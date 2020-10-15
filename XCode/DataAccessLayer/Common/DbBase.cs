@@ -910,8 +910,13 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
-                else if (!(value is IList))
-                    value = value.ChangeType(type);
+                else
+                {
+                    // 可空类型
+                    type = Nullable.GetUnderlyingType(type) ?? type;
+
+                    if (value != null && !(value is IList)) value = value.ChangeType(type);
+                }
 
                 // 写入数据类型
                 switch (type.GetTypeCode())

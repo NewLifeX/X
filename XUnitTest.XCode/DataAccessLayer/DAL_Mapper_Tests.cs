@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using NewLife.Security;
 using XCode.Membership;
@@ -96,6 +98,20 @@ namespace XUnitTest.XCode.DataAccessLayer
             public Int32 Id { get; set; }
 
             public String Name { get; set; }
+        }
+
+        [Fact]
+        public void NullableParameter()
+        {
+            var dal = User.Meta.Session.Dal;
+            var user = new { Id = Rand.Next(), Name = Rand.NextString(8), UpdateTime = (DateTime?)null };
+
+            var dps = dal.Db.CreateParameters(user);
+            Assert.Equal(3, dps.Length);
+
+            var dp = dps[2];
+            Assert.Equal(DbType.DateTime, dp.DbType);
+            Assert.Null(dp.Value);
         }
     }
 }

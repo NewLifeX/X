@@ -323,6 +323,10 @@ namespace Test
 
         private static void Test5()
         {
+            var type = typeof(DateTime?);
+            var tc = Type.GetTypeCode(type);
+            Console.WriteLine(tc);
+
             var set = XCode.Setting.Current;
             set.EntityCacheExpire = 5;
 
