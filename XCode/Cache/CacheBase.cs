@@ -61,6 +61,9 @@ namespace XCode.Cache
 
         /// <summary>显示统计信息的周期。默认60*60s，DAL.Debug=true时10*60s，Debug=true时60s</summary>
         public static Int32 Period { get; set; }
+
+        /// <summary>日志前缀</summary>
+        protected String LogPrefix { get; set; }
         #endregion
 
         static CacheBase()
@@ -70,9 +73,9 @@ namespace XCode.Cache
 #endif
         }
 
-        internal static void WriteLog(String format, params Object[] args)
+        internal void WriteLog(String format, params Object[] args)
         {
-            if (Debug) XTrace.WriteLine(format, args);
+            if (Debug) XTrace.WriteLine(LogPrefix + format, args);
         }
 
         /// <summary>检查并显示统计信息</summary>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using NewLife.Security;
 using XCode.Membership;
@@ -52,6 +54,23 @@ namespace XUnitTest.XCode.DataAccessLayer
         }
 
         [Fact]
+        public void InsertNullMember()
+        {
+            var dal = User.Meta.Session.Dal;
+
+            dal.Delete("user", new { Name = "" });
+
+            var user = new { Id = Rand.Next(), Name = Rand.NextString(8), Mobile = (String)null };
+            dal.Insert("user", user);
+
+            var list = dal.Query<MyUser>("select * from user where id=@id", new { user.Id }).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
+
+            dal.Delete("user", new { id = user.Id });
+        }
+
+        [Fact]
         public void ExecuteScalar()
         {
             var dal = User.Meta.Session.Dal;
@@ -79,6 +98,20 @@ namespace XUnitTest.XCode.DataAccessLayer
             public Int32 Id { get; set; }
 
             public String Name { get; set; }
+        }
+
+        [Fact]
+        public void NullableParameter()
+        {
+            var dal = User.Meta.Session.Dal;
+            var user = new { Id = Rand.Next(), Name = Rand.NextString(8), UpdateTime = (DateTime?)null };
+
+            var dps = dal.Db.CreateParameters(user);
+            Assert.Equal(3, dps.Length);
+
+            var dp = dps[2];
+            Assert.Equal(DbType.DateTime, dp.DbType);
+            Assert.Null(dp.Value);
         }
     }
 }

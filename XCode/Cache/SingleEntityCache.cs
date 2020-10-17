@@ -51,7 +51,7 @@ namespace XCode.Cache
         public Func<TEntity, String> GetSlaveKeyMethod { get; set; }
         #endregion
 
-        #region 构造、检查过期缓存
+        #region 构造
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
@@ -62,6 +62,8 @@ namespace XCode.Cache
             var fi = Entity<TEntity>.Meta.Unique;
             if (fi != null) GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
             FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
+
+            LogPrefix = $"SingleCache<{typeof(TEntity).Name}>";
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
@@ -83,7 +85,9 @@ namespace XCode.Cache
 
             _Timer.TryDispose();
         }
+        #endregion
 
+        #region 检查过期缓存
         private TimerX _Timer;
         private void StartTimer()
         {
@@ -291,6 +295,8 @@ namespace XCode.Cache
         {
             Interlocked.Decrement(ref Success);
 
+            WriteLog(".CreateItem {0}", key);
+
             // 开始更新数据，然后加入缓存
             var mkey = (TKey)(Object)key;
             var entity = Invoke(FindKeyMethod, mkey);
@@ -300,6 +306,8 @@ namespace XCode.Cache
         private CacheItem CreateSlaveItem<TKey2>(TKey2 key)
         {
             Interlocked.Decrement(ref Success);
+
+            WriteLog(".CreateSlaveItem {0}", key);
 
             // 开始更新数据，然后加入缓存
             var entity = Invoke(FindSlaveKeyMethod, key + "");
@@ -353,6 +361,8 @@ namespace XCode.Cache
         private void UpdateData(Object state)
         {
             var item = state as CacheItem;
+
+            WriteLog(".UpdateData {0} Expire={1} Visit={2}", item.Key, item.ExpireTime, item.VisitTime);
 
             // 先修改过期时间
             item.ExpireTime = TimerX.Now.AddSeconds(Expire);
@@ -424,7 +434,7 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
+            WriteLog("清空单对象缓存 原因：{0} Using = false", reason);
 
             var es = Entities;
             if (es == null) return;

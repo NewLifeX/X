@@ -184,12 +184,24 @@ namespace XCode.DataAccessLayer
         /// <param name="value">值</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        IDataParameter CreateParameter(String name, Object value, IDataColumn field = null);
+        IDataParameter CreateParameter(String name, Object value, IDataColumn field);
+
+        /// <summary>创建参数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        IDataParameter CreateParameter(String name, Object value, Type type = null);
 
         /// <summary>创建参数数组</summary>
         /// <param name="ps"></param>
         /// <returns></returns>
         IDataParameter[] CreateParameters(IDictionary<String, Object> ps);
+
+        /// <summary>根据对象成员创建参数数组</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        IDataParameter[] CreateParameters(Object model);
 
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         Boolean AutoClose { get; set; }

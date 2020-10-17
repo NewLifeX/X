@@ -615,7 +615,16 @@ namespace NewLife.Reflection
             if (value != null) vtype = value.GetType();
             if (vtype == conversionType) return value;
 
-            conversionType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
+            // 可空类型
+            var utype = Nullable.GetUnderlyingType(conversionType);
+            if (utype != null)
+            {
+                if (value == null) return null;
+
+                conversionType = utype;
+            }
+
+            //conversionType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
             if (conversionType.IsEnum)
             {
                 if (vtype == typeof(String))

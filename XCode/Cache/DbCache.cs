@@ -88,18 +88,18 @@ namespace NewLife.Caching
             }
         }
 
-        private readonly DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
-        {
-            Expire = 60,
-            AllowNull = false,
-        };
+        private readonly MemoryCache _cache = new MemoryCache() { Expire = 60 };
         private IDbCache Find(String key)
         {
             if (key.IsNullOrEmpty()) return null;
 
-            if (_cache.FindMethod == null) _cache.FindMethod = k => Factory.Find(KeyField == key) as IDbCache;
+            if (_cache.TryGetValue<IDbCache>(key, out var entry)) return entry;
 
-            return _cache[key];
+            entry= Factory.Find(KeyField == key) as IDbCache;
+
+            _cache.Set(key, entry);
+
+            return entry;
         }
         #endregion
 
@@ -163,7 +163,7 @@ namespace NewLife.Caching
             var count = 0;
             foreach (var item in keys)
             {
-                var e = _cache.Get(item);
+                var e = _cache.Get<Object>(item);
                 if (e != null)
                 {
                     _cache.Remove(item);

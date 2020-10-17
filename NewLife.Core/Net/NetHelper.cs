@@ -7,6 +7,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.IP;
 using NewLife.Log;
@@ -34,7 +35,7 @@ namespace NewLife
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
         }
 
-        private static readonly DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expire = 60 };
+        private static readonly ICache _Cache = MemoryCache.Instance;
         /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
@@ -42,10 +43,14 @@ namespace NewLife
         {
             if (hostname.IsNullOrEmpty()) return null;
 
-            if (_dnsCache.FindMethod == null) _dnsCache.FindMethod = s => NetUri.ParseAddress(s)?.FirstOrDefault();
+            var key = $"NetHelper:ParseAddress:{hostname}";
+            if (_Cache.TryGetValue<IPAddress>(key, out var address)) return address;
 
-            //return _dnsCache.GetItem(hostname, NetUri.ParseAddress);
-            return _dnsCache[hostname];
+            address = NetUri.ParseAddress(hostname)?.FirstOrDefault();
+
+            _Cache.Set(key, address, 60);
+
+            return address;
         }
 
         /// <summary>分析网络终结点</summary>
@@ -305,14 +310,18 @@ namespace NewLife
             return ips;
         }
 
-        private static readonly DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60/*, Asynchronous = true*/ };
         /// <summary>获取本机可用IP地址，缓存60秒，异步更新</summary>
         /// <returns></returns>
         public static IPAddress[] GetIPsWithCache()
         {
-            //return _ips.GetItem(1, k => GetIPs().ToArray());
-            if (_ips.FindMethod == null) _ips.FindMethod = k => GetIPs().ToArray();
-            return _ips[1];
+            var key = $"NetHelper:GetIPsWithCache";
+            if (_Cache.TryGetValue<IPAddress[]>(key, out var addrs)) return addrs;
+
+            addrs = GetIPs().ToArray();
+
+            _Cache.Set(key, addrs);
+
+            return addrs;
         }
 
         /// <summary>获取可用的多播地址</summary>

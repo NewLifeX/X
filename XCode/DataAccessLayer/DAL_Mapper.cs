@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -15,10 +16,14 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
         /// <returns></returns>
-        public IEnumerable<T> Query<T>(String sql, Object param = null) where T : class, new()
+        public IEnumerable<T> Query<T>(String sql, Object param = null)
         {
-            var ps = param?.ToDictionary();
-            var dt = QueryByCache(sql, ps, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
+            //var ps = param?.ToDictionary();
+            var dt = QueryByCache(sql, param, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
+
+            // 优先特殊处理基础类型，选择第一字段
+            if (Type.GetTypeCode(typeof(T)) != TypeCode.Object) return dt.Rows.Select(e => e[0].ChangeType<T>());
+
             return dt.ReadModels<T>();
         }
 
@@ -28,8 +33,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Execute(String sql, Object param = null)
         {
-            var ps = param?.ToDictionary();
-            return ExecuteByCache(sql, "", ps, (s, t, p) => Session.Execute(s, CommandType.Text, Db.CreateParameters(p)));
+            //var ps = param?.ToDictionary();
+            return ExecuteByCache(sql, "", param, (s, t, p) => Session.Execute(s, CommandType.Text, Db.CreateParameters(p)));
         }
 
         /// <summary>执行Sql并返回数据读取器</summary>
@@ -38,8 +43,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDataReader ExecuteReader(String sql, Object param = null)
         {
-            var ps = param?.ToDictionary();
-            var cmd = Session.CreateCommand(sql, CommandType.Text, Db.CreateParameters(ps));
+            //var ps = param?.ToDictionary();
+            var cmd = Session.CreateCommand(sql, CommandType.Text, Db.CreateParameters(param));
             cmd.Connection = Db.OpenConnection();
 
             return cmd.ExecuteReader(CommandBehavior.CloseConnection);
@@ -52,9 +57,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T ExecuteScalar<T>(String sql, Object param = null)
         {
-            var ps = param?.ToDictionary();
+            //var ps = param?.ToDictionary();
             //return Session.ExecuteScalar<T>(sql, CommandType.Text, Db.CreateParameters(ps));
-            return QueryByCache(sql, ps, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
+            return QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
         }
 
         /// <summary>插入数据</summary>
@@ -65,9 +70,9 @@ namespace XCode.DataAccessLayer
         {
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
-            var ps = data.ToDictionary();
-            var dps = Db.CreateParameters(ps);
-            var ns = ps.Join(",", e => e.Key);
+            var pis = data.ToDictionary();
+            var dps = Db.CreateParameters(data);
+            var ns = pis.Join(",", e => e.Key);
             var vs = dps.Join(",", e => e.ParameterName);
             var sql = $"Insert Into {tableName}({ns}) Values({vs})";
 
@@ -91,29 +96,27 @@ namespace XCode.DataAccessLayer
             // Set参数
             {
                 sb.Append(" Set ");
-                var ps = data.ToDictionary();
                 var i = 0;
-                foreach (var item in ps)
+                foreach (var pi in data.GetType().GetProperties(true))
                 {
                     if (i++ > 0) sb.Append(",");
 
-                    var p = Db.CreateParameter(item.Key, item.Value);
+                    var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
+                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
             }
             // Where条件
             {
                 sb.Append(" Where ");
-                var ps = data.ToDictionary();
                 var i = 0;
-                foreach (var item in ps)
+                foreach (var pi in where.GetType().GetProperties(true))
                 {
                     if (i++ > 0) sb.Append(" And ");
-                 
-                    var p = Db.CreateParameter(item.Key, item.Value);
+
+                    var p = Db.CreateParameter(pi.Name, pi.GetValue(where, null), pi.PropertyType);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
+                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
             }
 
@@ -134,18 +137,17 @@ namespace XCode.DataAccessLayer
 
             // 带上参数化的Where条件
             var dps = new List<IDataParameter>();
-            var ps = where.ToDictionary();
-            if (ps.Count > 0)
+            if (where != null)
             {
                 sb.Append(" Where ");
                 var i = 0;
-                foreach (var item in ps)
+                foreach (var pi in where.GetType().GetProperties(true))
                 {
                     if (i++ > 0) sb.Append("And ");
-                  
-                    var p = Db.CreateParameter(item.Key, item.Value);
+
+                    var p = Db.CreateParameter(pi.Name, pi.GetValue(where, null), pi.PropertyType);
                     dps.Add(p);
-                    sb.AppendFormat("{0}={1}", item.Key, p.ParameterName);
+                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
             }
             var sql = sb.Put(true);

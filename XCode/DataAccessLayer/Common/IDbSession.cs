@@ -17,6 +17,9 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         IDatabase Database { get; }
 
+        /// <summary>数据库事务</summary>
+        ITransaction Transaction { get; }
+
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }
 

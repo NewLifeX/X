@@ -44,11 +44,6 @@ namespace NewLife
 
             return avs[0];
         }
-#endif
-
-#if NET4
-        private static readonly DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
-        private static readonly DictionaryCache<MemberInfo, DictionaryCache<Type, Array>> _miCache2 = new DictionaryCache<MemberInfo, DictionaryCache<Type, Array>>();
 
         /// <summary>获取自定义特性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -59,18 +54,10 @@ namespace NewLife
         {
             if (member == null) return new TAttribute[0];
 
-            var micache = _miCache;
-            if (!inherit) micache = _miCache2;
-
-            // 二级字典缓存
-            var cache = micache.GetItem(member, m => new DictionaryCache<Type, Array>());
-            var atts = cache.GetItem(typeof(TAttribute), t =>
-            {
-                return member.GetCustomAttributes(t, inherit).Cast<TAttribute>().ToArray();
-            });
+            var atts =  member.GetCustomAttributes(typeof(TAttribute), inherit).Cast<TAttribute>().ToArray();
             if (atts == null || atts.Length <= 0) return new TAttribute[0];
 
-            return atts as TAttribute[];
+            return atts;
         }
 #endif
 
@@ -84,7 +71,7 @@ namespace NewLife
         {
             if (assembly == null) return new TAttribute[0];
 
-            var key = String.Format("{0}_{1}", assembly.FullName, typeof(TAttribute).FullName);
+            var key = $"{assembly.FullName}_{typeof(TAttribute).FullName}";
 
             return (TAttribute[])_asmCache.GetOrAdd(key, k =>
             {
