@@ -691,15 +691,19 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="stream">数据量</param>
         /// <param name="fields">要导出的字段列表</param>
+        /// <param name="displayfields">要导出的中文字段列表</param>
         /// <returns></returns>
-        public static Int64 SaveCsv<T>(this IEnumerable<T> list, Stream stream, String[] fields = null) where T : IEntity
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, Stream stream, String[] fields = null,String[] displayfields=null) where T : IEntity
         {
             if (list == null) return 0;
 
             var count = 0;
 
             using var csv = new CsvFile(stream, true);
-            csv.WriteLine(fields);
+            if(displayfields!=null)
+                csv.WriteLine(displayfields);
+            else
+                csv.WriteLine(fields);
             foreach (var entity in list)
             {
                 csv.WriteLine(fields.Select(e => entity[e]));
@@ -714,13 +718,17 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="file">文件</param>
         /// <param name="fields">要导出的字段列表</param>
+        /// <param name="displayfields">中文字段列表</param>
         /// <returns></returns>
-        public static Int64 SaveCsv<T>(this IEnumerable<T> list, String file, String[] fields) where T : IEntity
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, String file, String[] fields,String[] displayfields=null) where T : IEntity
         {
             if (list == null) return 0;
 
             var compressed = file.EndsWithIgnoreCase(".gz");
-            return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields));
+            if(displayfields!=null)
+                return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields, displayfields));
+            else
+                return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields));
         }
 
         /// <summary>写入文件，Csv格式</summary>
@@ -734,9 +742,12 @@ namespace XCode
 
             var fact = typeof(T).AsFactory();
             var fis = fact.Fields;
-            var fields = displayName ? fis.Select(e => e.DisplayName).ToArray() : fis.Select(e => e.Name).ToArray();
+            if(displayName)
+                return SaveCsv(list, file, fis.Select(e => e.Name).ToArray(), fis.Select(e => e.DisplayName).ToArray());
+           else
+                return SaveCsv(list, file, fis.Select(e => e.Name).ToArray(),null);
 
-            return SaveCsv(list, file, fields);
+          
         }
 
         /// <summary>从数据流读取列表</summary>
