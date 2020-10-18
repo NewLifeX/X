@@ -3,13 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using NewLife.Threading;
 using XCode.Code;
 
 namespace XCode.DataAccessLayer
@@ -39,11 +42,8 @@ namespace XCode.DataAccessLayer
                 var connName = ConnName;
                 var css = ConnStrs;
                 //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                if (!css.ContainsKey(connName)) GetFromConfigCenter(connName);
                 if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
-                if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
-                {
-                    AddConnStr(connName, kv.Item1, null, kv.Item2);
-                }
                 if (!css.ContainsKey(connName))
                 {
                     var cfg = NewLife.Setting.Current;
@@ -226,12 +226,38 @@ namespace XCode.DataAccessLayer
         /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
         public static event EventHandler<ResolveEventArgs> OnResolve;
 
-        private static readonly ConcurrentDictionary<String, Tuple<String, String>> _defs = new ConcurrentDictionary<String, Tuple<String, String>>(StringComparer.OrdinalIgnoreCase);
-        /// <summary>注册默认连接字符串。无法从配置文件获取时使用</summary>
-        /// <param name="connName">连接名</param>
-        /// <param name="connStr">连接字符串</param>
-        /// <param name="provider">数据库提供者</param>
-        public static void RegisterDefault(String connName, String connStr, String provider) => _defs[connName] = new Tuple<String, String>(connStr, provider);
+        /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
+        public static GetConfigCallback GetConfig;
+
+        private static ConcurrentBag<String> _conns = new ConcurrentBag<String>();
+        private static TimerX _timerGetConfig;
+        /// <summary>从配置中心加载连接字符串，并支持定时刷新</summary>
+        /// <param name="connName"></param>
+        /// <returns></returns>
+        private static Boolean GetFromConfigCenter(String connName)
+        {
+            var str = GetConfig?.Invoke(connName);
+            if (str.IsNullOrEmpty()) return false;
+
+            AddConnStr(connName, str, null, null);
+
+            // 加入集合，定时更新
+            if (_conns.Contains(connName)) return false;
+            _conns.Add(connName);
+
+            if (_timerGetConfig == null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
+
+            return true;
+        }
+
+        private static void DoGetConfig(Object state)
+        {
+            foreach (var item in _conns)
+            {
+                var str = GetConfig?.Invoke(item);
+                if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
+            }
+        }
 
         /// <summary>连接名</summary>
         public String ConnName { get; }
