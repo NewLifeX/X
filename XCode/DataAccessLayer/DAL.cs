@@ -236,14 +236,26 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static Boolean GetFromConfigCenter(String connName)
         {
-            var str = GetConfig?.Invoke(connName);
-            if (str.IsNullOrEmpty()) return false;
+            {
+                var str = GetConfig?.Invoke(connName);
+                if (str.IsNullOrEmpty()) return false;
 
-            AddConnStr(connName, str, null, null);
+                AddConnStr(connName, str, null, null);
 
-            // 加入集合，定时更新
-            if (_conns.Contains(connName)) return false;
-            _conns.Add(connName);
+                // 加入集合，定时更新
+                if (!_conns.Contains(connName)) _conns.Add(connName);
+            }
+
+            // 读写分离
+            if (!connName.EndsWithIgnoreCase(".readonly"))
+            {
+                var connName2 = connName + ".readonly";
+                var str = GetConfig?.Invoke(connName2);
+                if (!str.IsNullOrEmpty()) AddConnStr(connName2, str, null, null);
+
+                // 加入集合，定时更新
+                if (!_conns.Contains(connName2)) _conns.Add(connName2);
+            }
 
             if (_timerGetConfig == null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
 
