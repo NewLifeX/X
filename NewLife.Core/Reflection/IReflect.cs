@@ -621,6 +621,9 @@ namespace NewLife.Reflection
             {
                 if (value == null) return null;
 
+                // 时间日期可空处理
+                if (value is DateTime dt && dt == DateTime.MinValue) return null;
+
                 conversionType = utype;
             }
 
