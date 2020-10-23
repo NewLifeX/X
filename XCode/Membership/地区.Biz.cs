@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -293,11 +294,7 @@ namespace XCode.Membership
         }
 
         /// <summary>根据父级查子级，专属缓存</summary>
-        private static readonly DictionaryCache<Int32, IList<Area>> _pcache = new DictionaryCache<Int32, IList<Area>>
-        {
-            Expire = 20 * 60,
-            Period = 10 * 60,
-        };
+        private static readonly ICache _pcache = new MemoryCache { Expire = 20 * 60, Period = 10 * 60, };
 
         /// <summary>根据父级查找。三级地区使用实体缓存，四级地区使用专属缓存</summary>
         /// <param name="parentid">父级</param>
@@ -311,9 +308,14 @@ namespace XCode.Membership
             // 有子节点，并且都是启用状态，则直接使用
             if (rs.Count > 0 && rs.Any(e => e.Enable)) return rs;
 
-            if (_pcache.FindMethod == null) _pcache.FindMethod = k => FindAll(_.ParentID == k, _.ID.Asc(), null, 0, 0);
+            var key = parentid + "";
+            if (_pcache.TryGetValue(key, out rs)) return rs;
 
-            return _pcache[parentid];
+            rs = FindAll(_.ParentID == parentid, _.ID.Asc(), null, 0, 0);
+
+            _pcache.Set(key, rs, 20 * 60);
+
+            return rs;
         }
         #endregion
 
