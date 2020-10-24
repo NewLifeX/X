@@ -96,7 +96,10 @@ namespace NewLife.Messaging
                 if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{count}不足{size + len}字节");
             }
 
-            Payload = new Packet(pk.Data, pk.Offset + size, len);
+            if (pk.Next == null)
+                Payload = new Packet(pk.Data, pk.Offset + size, len);
+            else
+                Payload = pk.Slice(size, len);
 
             return true;
         }
@@ -147,9 +150,10 @@ namespace NewLife.Messaging
 
         #region 字符串指令格式
         /// <summary>从字符串中读取字符串消息</summary>
-        /// <param name="value"></param>
+        /// <param name="encoding">编码</param>
+        /// <param name="value">字符串</param>
         /// <returns>是否成功</returns>
-        public Boolean Decode(String value)
+        public Boolean Decode(String value, Encoding encoding = null)
         {
             if (value.IsNullOrEmpty() || value.Length < 4) throw new ArgumentOutOfRangeException(nameof(value), "数据包长度不足4字节");
 
@@ -165,7 +169,7 @@ namespace NewLife.Messaging
             Sequence = ss[1].ToInt();
             if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
 
-            var pk = new Packet(value.Substring(p + 1).GetBytes());
+            var pk = new Packet(value.Substring(p + 1).GetBytes(encoding));
             if (len > pk.Count) return false;
 
             Payload = pk.Slice(0, len);
@@ -174,7 +178,7 @@ namespace NewLife.Messaging
         }
 
         /// <summary>从数据包中读取字符串消息</summary>
-        /// <param name="pk"></param>
+        /// <param name="pk">数据包</param>
         /// <returns>是否成功</returns>
         public Boolean Decode(Packet pk)
         {
@@ -200,22 +204,23 @@ namespace NewLife.Messaging
         }
 
         /// <summary>把消息转为字符串封包</summary>
+        /// <param name="encoding">编码</param>
         /// <param name="includeFlag">是否包含标识位</param>
         /// <returns></returns>
-        public String Encode(Boolean includeFlag = true)
+        public String Encode(Encoding encoding = null, Boolean includeFlag = true)
         {
             var pk = Payload;
             var len = 0;
             if (pk != null) len = pk.Total;
 
-            if (!includeFlag) return $"{len},{Sequence}:{pk?.ToStr()}";
+            if (!includeFlag) return $"{len},{Sequence}:{pk?.ToStr(encoding)}";
 
             // 标记位
             var b = Flag & 0b0011_1111;
             if (Reply) b |= 0x80;
             if (Error || OneWay) b |= 0x40;
 
-            return $"{len},{Sequence},{b}:{pk?.ToStr()}";
+            return $"{len},{Sequence},{b}:{pk?.ToStr(encoding)}";
         }
         #endregion
 
