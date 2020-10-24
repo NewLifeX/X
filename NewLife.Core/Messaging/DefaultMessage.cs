@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -153,27 +154,21 @@ namespace NewLife.Messaging
             if (value.IsNullOrEmpty() || value.Length < 4) throw new ArgumentOutOfRangeException(nameof(value), "数据包长度不足4字节");
 
             // 长度
-            var p = value.IndexOf(',');
+            var p = value.IndexOf(':');
             if (p < 0) return false;
-            var len = value.Substring(0, p).ToInt();
+            var header = value.Substring(0, p);
 
-            // 序列号
-            var p2 = value.IndexOfAny(new[] { ',', ';' }, p + 1);
-            if (p2 < 0) return false;
-            Sequence = (Byte)value.Substring(p + 1, p2 - p - 1).ToInt();
+            var ss = header.Split(',');
+            if (ss.Length < 2) return false;
 
-            // 标识位
-            if (value[p2] == ',')
-            {
-                var p3 = value.IndexOf(':', p2 + 1);
-                if (p3 < 0) return false;
-                Flag = (Byte)value.Substring(p2 + 1, p3 - p2 - 1).ToInt();
-                p2 = p3;
-            }
+            var len = ss[0].ToInt();
+            Sequence = ss[1].ToInt();
+            if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
 
-            if (p2 + 1 + len > value.Length) return false;
+            var pk = new Packet(value.Substring(p + 1).GetBytes());
+            if (len > pk.Count) return false;
 
-            Payload = value.Substring(p2 + 1, len).GetBytes();
+            Payload = pk.Slice(0, len);
 
             return true;
         }
