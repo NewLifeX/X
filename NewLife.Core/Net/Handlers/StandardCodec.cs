@@ -20,9 +20,9 @@ namespace NewLife.Net.Handlers
         public override Object Write(IHandlerContext context, Object message)
         {
             if (UserPacket && message is Packet pk)
-                message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
+                message = new DefaultMessage { Payload = pk, Sequence = Interlocked.Increment(ref _gid) };
             else if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
-                msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
+                msg.Sequence = Interlocked.Increment(ref _gid);
 
             return base.Write(context, message);
         }
