@@ -14,6 +14,7 @@ namespace XCode.DataAccessLayer
             ioc.AddTransient<IDataTable, XTable>();
 
             InitLog();
+            InitConnections();
         }
 
         #region Sql日志输出

@@ -13,7 +13,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-using XCode.Code;
 
 namespace XCode.DataAccessLayer
 {
@@ -26,6 +25,52 @@ namespace XCode.DataAccessLayer
     /// </remarks>
     public partial class DAL
     {
+        #region 属性
+        /// <summary>连接名</summary>
+        public String ConnName { get; }
+
+        /// <summary>实现了IDatabase接口的数据库类型</summary>
+        public Type ProviderType { get; private set; }
+
+        /// <summary>数据库类型</summary>
+        public DatabaseType DbType { get; private set; }
+
+        /// <summary>连接字符串</summary>
+        /// <remarks>
+        /// 修改连接字符串将会清空<see cref="Db"/>
+        /// </remarks>
+        public String ConnStr { get; private set; }
+
+        private IDatabase _Db;
+        /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
+        public IDatabase Db
+        {
+            get
+            {
+                if (_Db != null) return _Db;
+                lock (this)
+                {
+                    if (_Db != null) return _Db;
+
+                    var type = ProviderType;
+                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
+
+                    //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
+                    var db = type.CreateInstance() as IDatabase;
+                    if (!ConnName.IsNullOrEmpty()) db.ConnName = ConnName;
+                    if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
+
+                    _Db = db;
+
+                    return _Db;
+                }
+            }
+        }
+
+        /// <summary>数据库会话</summary>
+        public IDbSession Session => Db.CreateSession();
+        #endregion
+
         #region 创建函数
         /// <summary>构造函数</summary>
         /// <param name="connName">配置名</param>
@@ -56,6 +101,9 @@ namespace XCode.DataAccessLayer
 
                 ConnStr = css[connName];
                 if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+
+                ProviderType = _connTypes[connName];
+                DbType = DbFactory.GetDefault(ProviderType)?.Type ?? DatabaseType.None;
 
                 _inited = true;
             }
@@ -98,94 +146,99 @@ namespace XCode.DataAccessLayer
         {
             _Db.TryDispose();
 
-            _ProviderType = null;
             _Db = null;
             _Tables = null;
             _hasCheck = false;
             HasCheckTables.Clear();
 
             GC.Collect(2);
+
+            _inited = false;
+            Init();
         }
 
-        private static Dictionary<String, String> _connStrs;
-        private static readonly Dictionary<String, Type> _connTypes = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<String, Type> _connTypes;
+        private static void InitConnections()
+        {
+            var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var ts = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+
+            LoadConfig(cs, ts);
+            LoadAppSettings(cs, ts);
+
+            ConnStrs = cs;
+            _connTypes = ts;
+        }
+
         /// <summary>链接字符串集合</summary>
         /// <remarks>
         /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
         /// </remarks>
-        public static Dictionary<String, String> ConnStrs
+        public static Dictionary<String, String> ConnStrs { get; private set; }
+
+        private static void LoadConfig(IDictionary<String, String> cs, IDictionary<String, Type> ts)
         {
-            get
+            var file = "web.config".GetFullPath();
+            var fname = AppDomain.CurrentDomain.FriendlyName;
+            if (!File.Exists(file)) file = "app.config".GetFullPath();
+            if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();
+            if (!File.Exists(file)) file = $"{fname}.exe.config".GetFullPath();
+            if (!File.Exists(file)) file = $"{fname}.dll.config".GetFullPath();
+
+            if (File.Exists(file))
             {
-                if (_connStrs != null) return _connStrs;
-                lock (_connTypes)
+                // 读取配置文件
+                var doc = new XmlDocument();
+                doc.Load(file);
+
+                var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
+                if (nodes != null)
                 {
-                    if (_connStrs != null) return _connStrs;
-
-                    var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-
-                    var file = "web.config".GetFullPath();
-                    var fname = AppDomain.CurrentDomain.FriendlyName;
-                    if (!File.Exists(file)) file = "app.config".GetFullPath();
-                    if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();
-                    if (!File.Exists(file)) file = $"{fname}.exe.config".GetFullPath();
-                    if (!File.Exists(file)) file = $"{fname}.dll.config".GetFullPath();
-
-                    if (File.Exists(file))
+                    foreach (XmlNode item in nodes)
                     {
-                        // 读取配置文件
-                        var doc = new XmlDocument();
-                        doc.Load(file);
-                        var nodes = doc.SelectNodes("/configuration/connectionStrings/add");
-                        if (nodes != null)
-                        {
-                            foreach (XmlNode item in nodes)
-                            {
-                                var name = item.Attributes["name"]?.Value;
-                                var connstr = item.Attributes["connectionString"]?.Value;
-                                var provider = item.Attributes["providerName"]?.Value;
-                                if (name.IsNullOrEmpty() || connstr.IsNullOrWhiteSpace()) continue;
+                        var name = item.Attributes["name"]?.Value;
+                        var connstr = item.Attributes["connectionString"]?.Value;
+                        var provider = item.Attributes["providerName"]?.Value;
+                        if (name.IsNullOrEmpty() || connstr.IsNullOrWhiteSpace()) continue;
 
-                                var type = DbFactory.GetProviderType(connstr, provider);
-                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+                        var type = DbFactory.GetProviderType(connstr, provider);
+                        if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
 
-                                cs[name] = connstr;
-                                _connTypes[name] = type;
-                            }
-                        }
+                        cs[name] = connstr;
+                        ts[name] = type;
                     }
-
-                    // 联合使用 appsettings.json
-                    file = "appsettings.json".GetFullPath();
-                    if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
-                    if (File.Exists(file))
-                    {
-                        var dic = JsonParser.Decode(File.ReadAllText(file));
-                        dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
-                        if (dic != null && dic.Count > 0)
-                        {
-                            foreach (var item in dic)
-                            {
-                                var name = item.Key;
-                                var ds = item.Value as IDictionary<String, Object>;
-                                if (name.IsNullOrEmpty() || ds == null) continue;
-
-                                var connstr = ds["connectionString"] + "";
-                                var provider = ds["providerName"] + "";
-                                if (connstr.IsNullOrWhiteSpace()) continue;
-
-                                var type = DbFactory.GetProviderType(connstr, provider);
-                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
-
-                                cs[name] = connstr;
-                                _connTypes[name] = type;
-                            }
-                        }
-                    }
-
-                    _connStrs = cs;
                 }
-                return _connStrs;
+            }
+        }
+
+        private static void LoadAppSettings(IDictionary<String, String> cs, IDictionary<String, Type> ts)
+        {
+            // 联合使用 appsettings.json
+            var file = "appsettings.json".GetFullPath();
+            if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+            if (File.Exists(file))
+            {
+                var dic = JsonParser.Decode(File.ReadAllText(file));
+                dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
+                if (dic != null && dic.Count > 0)
+                {
+                    foreach (var item in dic)
+                    {
+                        var name = item.Key;
+                        var ds = item.Value as IDictionary<String, Object>;
+                        if (name.IsNullOrEmpty() || ds == null) continue;
+
+                        var connstr = ds["connectionString"] + "";
+                        var provider = ds["providerName"] + "";
+                        if (connstr.IsNullOrWhiteSpace()) continue;
+
+                        var type = DbFactory.GetProviderType(connstr, provider);
+                        if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                        cs[name] = connstr;
+                        ts[name] = type;
+                    }
+                }
             }
         }
 
@@ -270,68 +323,6 @@ namespace XCode.DataAccessLayer
                 if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
             }
         }
-
-        /// <summary>连接名</summary>
-        public String ConnName { get; }
-
-        private Type _ProviderType;
-        /// <summary>实现了IDatabase接口的数据库类型</summary>
-        private Type ProviderType
-        {
-            get
-            {
-                if (_ProviderType == null && _connTypes.ContainsKey(ConnName)) _ProviderType = _connTypes[ConnName];
-                return _ProviderType;
-            }
-        }
-
-        /// <summary>数据库类型</summary>
-        public DatabaseType DbType
-        {
-            get
-            {
-                if (_Db != null) return _Db.Type;
-
-                var db = DbFactory.GetDefault(ProviderType);
-                if (db == null) return DatabaseType.None;
-                return db.Type;
-            }
-        }
-
-        /// <summary>连接字符串</summary>
-        /// <remarks>
-        /// 修改连接字符串将会清空<see cref="Db"/>
-        /// </remarks>
-        public String ConnStr { get; private set; }
-
-        private IDatabase _Db;
-        /// <summary>数据库。所有数据库操作在此统一管理，强烈建议不要直接使用该属性，在不同版本中IDatabase可能有较大改变</summary>
-        public IDatabase Db
-        {
-            get
-            {
-                if (_Db != null) return _Db;
-                lock (this)
-                {
-                    if (_Db != null) return _Db;
-
-                    var type = ProviderType;
-                    if (type == null) throw new XCodeException("无法识别{0}的数据提供者！", ConnName);
-
-                    //!!! 重量级更新：经常出现链接字符串为127/master的连接错误，非常有可能是因为这里线程冲突，A线程创建了实例但未来得及赋值连接字符串，就被B线程使用了
-                    var db = type.CreateInstance() as IDatabase;
-                    if (!ConnName.IsNullOrEmpty()) db.ConnName = ConnName;
-                    if (!ConnStr.IsNullOrEmpty()) db.ConnectionString = DecodeConnStr(ConnStr);
-
-                    _Db = db;
-
-                    return _Db;
-                }
-            }
-        }
-
-        /// <summary>数据库会话</summary>
-        public IDbSession Session => Db.CreateSession();
         #endregion
 
         #region 连接字符串编码解码
