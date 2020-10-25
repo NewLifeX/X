@@ -90,7 +90,7 @@ namespace NewLife
                     {
                         try
                         {
-                            XTrace.WriteLine("Load MachineInfo {0}", f);
+                            //XTrace.WriteLine("Load MachineInfo {0}", f);
                             Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
                         }
                         catch { }
