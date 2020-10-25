@@ -90,6 +90,7 @@ namespace NewLife
                     {
                         try
                         {
+                            XTrace.WriteLine("Load MachineInfo {0}", f);
                             Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
                         }
                         catch { }
@@ -358,8 +359,31 @@ namespace NewLife
                 //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
                 //}
 
-                file = "/proc/loadavg";
-                if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
+                //file = "/proc/loadavg";
+                //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
+
+                file = "/proc/stat";
+                if (File.Exists(file))
+                {
+                    // cpu  57057 0 14420 1554816 0 443 0 0 0 0
+
+                    var lines = File.ReadAllLines(file);
+                    var vs = lines[0].Split(" ");
+                    if (vs.Length >= 8 && vs[0] == "cpu")
+                    {
+                        var current = new SystemTime
+                        {
+                            IdleTime = vs[4].ToLong(),
+                            TotalTime = vs.Skip(1).Take(7).Select(e => e.ToLong()).Sum().ToLong(),
+                        };
+
+                        var idle = current.IdleTime - _systemTime?.IdleTime ?? 0;
+                        var total = current.TotalTime - _systemTime?.TotalTime ?? 0;
+                        _systemTime = current;
+
+                        CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
+                    }
+                }
             }
 
             if (Runtime.Windows)
@@ -369,21 +393,14 @@ namespace NewLife
                 var current = new SystemTime
                 {
                     IdleTime = idleTime.ToLong(),
-                    KernelTime = kernelTime.ToLong(),
-                    UserTime = userTime.ToLong(),
+                    TotalTime = kernelTime.ToLong() + userTime.ToLong(),
                 };
 
-                if (_systemTime != null)
-                {
-                    var idle = current.IdleTime - _systemTime.IdleTime;
-                    var kernel = current.KernelTime - _systemTime.KernelTime;
-                    var user = current.UserTime - _systemTime.UserTime;
-                    var total = kernel + user;
-
-                    CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
-                }
-
+                var idle = current.IdleTime - _systemTime?.IdleTime ?? 0;
+                var total = current.TotalTime - _systemTime?.TotalTime ?? 0;
                 _systemTime = current;
+
+                CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
             }
         }
         #endregion
@@ -606,8 +623,7 @@ namespace NewLife
         private class SystemTime
         {
             public Int64 IdleTime;
-            public Int64 KernelTime;
-            public Int64 UserTime;
+            public Int64 TotalTime;
         }
 
         private SystemTime _systemTime;

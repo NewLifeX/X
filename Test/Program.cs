@@ -54,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -75,9 +75,9 @@ namespace Test
 
         private static void Test1()
         {
-            var keys = ECDsaHelper.GenerateKey();
-            XTrace.WriteLine("prvKey:{0}", keys[0]);
-            XTrace.WriteLine("pubKey:{0}", keys[1]);
+            //var keys = ECDsaHelper.GenerateKey();
+            //XTrace.WriteLine("prvKey:{0}", keys[0]);
+            //XTrace.WriteLine("pubKey:{0}", keys[1]);
 
             //"你好".SpeakAsync();
 
