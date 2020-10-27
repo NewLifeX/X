@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -70,7 +71,7 @@ namespace NewLife.Log
             {
                 try
                 {
-                    ClientId = NetHelper.MyIP() + "";
+                    ClientId = NetHelper.MyIP() + "@" + Process.GetCurrentProcess().Id;
                 }
                 catch
                 {
