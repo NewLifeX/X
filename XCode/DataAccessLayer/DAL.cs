@@ -156,36 +156,47 @@ namespace XCode.DataAccessLayer
                     }
 
                     // 联合使用 appsettings.json
-                    file = "appsettings.json".GetFullPath();
-                    if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
-                    if (File.Exists(file))
+                    LoadAppSettings("appsettings.json", cs);
+                    //读取环境变量:ASPNETCORE_ENVIRONMENT=Development
+                    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    if (String.IsNullOrWhiteSpace(env))
                     {
-                        var dic = JsonParser.Decode(File.ReadAllText(file));
-                        dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
-                        if (dic != null && dic.Count > 0)
-                        {
-                            foreach (var item in dic)
-                            {
-                                var name = item.Key;
-                                var ds = item.Value as IDictionary<String, Object>;
-                                if (name.IsNullOrEmpty() || ds == null) continue;
-
-                                var connstr = ds["connectionString"] + "";
-                                var provider = ds["providerName"] + "";
-                                if (connstr.IsNullOrWhiteSpace()) continue;
-
-                                var type = DbFactory.GetProviderType(connstr, provider);
-                                if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
-
-                                cs[name] = connstr;
-                                _connTypes[name] = type;
-                            }
-                        }
+                        env = "Production";
                     }
-
+                    LoadAppSettings($"appsettings.{env.Trim()}.json", cs);
                     _connStrs = cs;
                 }
                 return _connStrs;
+            }
+        }
+
+        private static void LoadAppSettings(string fileName, Dictionary<String, String> cs)
+        {
+            var file = fileName.GetFullPath();
+            if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+            if (File.Exists(file))
+            {
+                var dic = JsonParser.Decode(File.ReadAllText(file));
+                dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
+                if (dic != null && dic.Count > 0)
+                {
+                    foreach (var item in dic)
+                    {
+                        var name = item.Key;
+                        var ds = item.Value as IDictionary<String, Object>;
+                        if (name.IsNullOrEmpty() || ds == null) continue;
+
+                        var connstr = ds["connectionString"] + "";
+                        var provider = ds["providerName"] + "";
+                        if (connstr.IsNullOrWhiteSpace()) continue;
+
+                        var type = DbFactory.GetProviderType(connstr, provider);
+                        if (type == null) XTrace.WriteLine("无法识别{0}的提供者{1}！", name, provider);
+
+                        cs[name] = connstr;
+                        _connTypes[name] = type;
+                    }
+                }
             }
         }
 
