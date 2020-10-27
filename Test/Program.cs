@@ -54,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                TestReadAppSettings();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -865,6 +865,13 @@ namespace Test
                 var result = pubdsa.VerifyData("123".GetBytes(), signStr);
                 Console.WriteLine("验证结果:" + result);
             }
+        }
+
+        private static void TestReadAppSettings()
+        {
+            var str = DAL.ConnStrs["MySQL.AppSettings"];
+            Console.WriteLine(str);
+            Console.WriteLine(DAL.ConnStrs["MySQL.AppSettings.default"]);
         }
     }
 }
