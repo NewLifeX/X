@@ -256,7 +256,7 @@ namespace XCode
                 Valid(isnew);
                 if (!Meta.Modules.Valid(this, isnew)) return -1;
 
-                return this.Upsert();
+                return this.Upsert(null, null, null, Meta.Session);
             }
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
