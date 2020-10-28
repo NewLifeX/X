@@ -64,8 +64,9 @@ namespace XCode
         ///// <summary>单对象实体缓存</summary>
         //ISingleEntityCache SingleCache { get; }
 
-        ///// <summary>总记录数</summary>
-        //Int32 Count { get; }
+        /// <summary>总记录数</summary>
+        [Obsolete("=>Session.Count")]
+        Int32 Count { get; }
         #endregion
 
         #region 创建实体、填充数据
@@ -182,8 +183,9 @@ namespace XCode
         ///// <returns></returns>
         //Int32 Rollback();
 
-        ///// <summary>创建事务</summary>
-        //EntityTransaction CreateTrans();
+        /// <summary>创建事务</summary>
+        [Obsolete("=>Session.CreateTrans")]
+        EntityTransaction CreateTrans();
         #endregion
 
         #region 辅助方法

@@ -67,8 +67,9 @@ namespace XCode
             ///// <summary>单对象实体缓存</summary>
             //public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
-            ///// <summary>总记录数</summary>
-            //public virtual Int32 Count => Session.Count;
+            /// <summary>总记录数</summary>
+            [Obsolete("=>Session.Count")]
+            public virtual Int32 Count => Session.Count;
             #endregion
 
             #region 构造
@@ -193,8 +194,9 @@ namespace XCode
             ///// <returns></returns>
             //public virtual Int32 Rollback() => Session.Rollback();
 
-            ///// <summary>创建事务</summary>
-            //public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
+            /// <summary>创建事务</summary>
+            [Obsolete("=>Session.CreateTrans")]
+            public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 辅助方法
