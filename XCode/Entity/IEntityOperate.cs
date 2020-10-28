@@ -183,8 +183,8 @@ namespace XCode
         ///// <returns></returns>
         //Int32 Rollback();
 
-        /// <summary>创建事务</summary>
-        EntityTransaction CreateTrans();
+        ///// <summary>创建事务</summary>
+        //EntityTransaction CreateTrans();
         #endregion
 
         #region 辅助方法

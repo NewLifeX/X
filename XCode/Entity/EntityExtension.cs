@@ -64,13 +64,15 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static IDataParameter[] CreateParameter<T>(this T entity, IEntitySession session = null) where T : IEntity
+        public static IDataParameter[] CreateParameter<T>(this T entity, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             var dps = new List<IDataParameter>();
             if (entity == null) return dps.ToArray();
 
             var fact = entity.GetType().AsFactory();
-            session ??= fact.Session;
+            //session ??= fact.Session;
             var db = session.Dal.Db;
 
             foreach (var item in fact.Fields)
@@ -85,13 +87,15 @@ namespace XCode
         /// <param name="list">实体列表</param>
         /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static IDataParameter[] CreateParameters<T>(this IEnumerable<T> list, IEntitySession session = null) where T : IEntity
+        public static IDataParameter[] CreateParameters<T>(this IEnumerable<T> list, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             var dps = new List<IDataParameter>();
             if (list == null || !list.Any()) return dps.ToArray();
 
             var fact = list.First().GetType().AsFactory();
-            session ??= fact.Session;
+            //session ??= fact.Session;
             var db = session.Dal.Db;
 
             foreach (var item in fact.Fields)
@@ -116,22 +120,19 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            if (list.Count() > 1)
-            {
-                var fact = entity.GetType().AsFactory();
-                session ??= fact.Session;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (session.Dal.SupportBatch)
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                if (!(list is IList<T> es)) es = list.ToList();
+                foreach (IEntity item in es.ToArray())
                 {
-                    if (!(list is IList<T> es)) es = list.ToList();
-                    foreach (IEntity item in es.ToArray())
-                    {
-                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
-                    }
-                    return BatchInsert(list, null, session);
+                    if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                    if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
                 }
+                return BatchInsert(list, null, session);
             }
 
             return DoAction(list, useTransition, e => e.Insert(), session);
@@ -148,14 +149,11 @@ namespace XCode
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            if (list.Count() > 1)
-            {
-                var fact = entity.GetType().AsFactory();
-                session ??= fact.Session;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle批量更新
-                if (session.Dal.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid(false), null, null, null, session);
-            }
+            // Oracle批量更新
+            if (session.Dal.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid(false), null, null, null, session);
 
             return DoAction(list, useTransition, e => e.Update(), session);
         }
@@ -179,19 +177,16 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Any())
-            {
-                var fact = entity.GetType().AsFactory();
-                session ??= fact.Session;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (session.Dal.SupportBatch)
-                {
-                    // 根据是否来自数据库，拆分为两组
-                    var ts = Split(list);
-                    list = ts.Item1;
-                    rs += BatchSave(session, ts.Item2.Valid(true));
-                }
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                // 根据是否来自数据库，拆分为两组
+                var ts = Split(list);
+                list = ts.Item1;
+                rs += BatchSave(session, ts.Item2.Valid(true));
             }
 
             return rs + DoAction(list, useTransition, e => e.Save(), session);
@@ -209,19 +204,16 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Any())
-            {
-                var fact = entity.GetType().AsFactory();
-                session ??= fact.Session;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (session.Dal.SupportBatch)
-                {
-                    // 根据是否来自数据库，拆分为两组
-                    var ts = Split(list);
-                    list = ts.Item1;
-                    rs += BatchSave(session, ts.Item2);
-                }
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                // 根据是否来自数据库，拆分为两组
+                var ts = Split(list);
+                list = ts.Item1;
+                rs += BatchSave(session, ts.Item2);
             }
 
             return rs + DoAction(list, useTransition, e => e.SaveWithoutValid(), session);
@@ -330,25 +322,27 @@ namespace XCode
 
         private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             if (!list.Any()) return 0;
 
             // 避免列表内实体对象为空
             var entity = list.First(e => e != null);
             if (entity == null) return 0;
 
-            var fact = entity.GetType().AsFactory();
+            //var fact = entity.GetType().AsFactory();
 
             // SQLite 批操作默认使用事务，其它数据库默认不使用事务
             if (useTransition == null)
             {
-                session ??= fact.Session;
+                //session ??= fact.Session;
                 useTransition = session.Dal.DbType == DatabaseType.SQLite;
             }
 
             var count = 0;
             if (useTransition != null && useTransition.Value)
             {
-                using var trans = fact.CreateTrans();
+                using var trans = session.CreateTrans();
                 count = DoAction(list, func, count);
 
                 trans.Commit();

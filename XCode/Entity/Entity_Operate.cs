@@ -196,8 +196,8 @@ namespace XCode
             ///// <returns></returns>
             //public virtual Int32 Rollback() => Session.Rollback();
 
-            /// <summary>创建事务</summary>
-            public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
+            ///// <summary>创建事务</summary>
+            //public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 辅助方法

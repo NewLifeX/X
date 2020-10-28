@@ -135,7 +135,7 @@ namespace XCode.Common
                         Console.Write(".");
                         tr?.Commit();
 
-                        tr = fact.CreateTrans();
+                        tr = session.CreateTrans();
                     }
 
                     if (!UseSql)
