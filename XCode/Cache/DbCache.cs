@@ -70,7 +70,7 @@ namespace NewLife.Caching
 
         #region 属性
         /// <summary>缓存个数。高频使用时注意性能</summary>
-        public override Int32 Count => Factory.Count;
+        public override Int32 Count => Factory.Session.Count;
 
         /// <summary>所有键。实际返回只读列表新实例，数据量较大时注意性能</summary>
         public override ICollection<String> Keys => Factory.FindAll().Select(e => e[Factory.Unique] as String).ToList();

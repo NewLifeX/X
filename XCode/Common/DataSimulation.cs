@@ -70,7 +70,7 @@ namespace XCode.Common
             WriteLog("数据模拟 Count={0:n0} Threads={1} BatchSize={2} UseSql={3}", count, Threads, BatchSize, UseSql);
 
             // 预热数据表
-            WriteLog("{0} 已有数据：{1:n0}", fact.TableName, fact.Count);
+            WriteLog("{0} 已有数据：{1:n0}", fact.TableName, session.Count);
 
             // 准备数据
             var list = new List<IEntity>();
@@ -156,9 +156,9 @@ namespace XCode.Common
             Score = (Int32)speed;
 
             session.ClearCache("SqlInsert");
-            var t = fact.Count;
+            var t = session.Count;
             Thread.Sleep(100);
-            WriteLog("{0} 共有数据：{1:n0}", fact.TableName, fact.Count);
+            WriteLog("{0} 共有数据：{1:n0}", fact.TableName, session.Count);
         }
         #endregion
 

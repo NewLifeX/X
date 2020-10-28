@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using NewLife.Data;
-using XCode.Cache;
 using XCode.Configuration;
 
 namespace XCode
@@ -65,8 +64,8 @@ namespace XCode
         ///// <summary>单对象实体缓存</summary>
         //ISingleEntityCache SingleCache { get; }
 
-        /// <summary>总记录数</summary>
-        Int32 Count { get; }
+        ///// <summary>总记录数</summary>
+        //Int32 Count { get; }
         #endregion
 
         #region 创建实体、填充数据
