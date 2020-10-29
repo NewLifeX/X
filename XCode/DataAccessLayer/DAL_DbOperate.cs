@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -9,8 +8,6 @@ using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Log;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -26,6 +23,12 @@ namespace XCode.DataAccessLayer
         private static Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
         public static Int32 ExecuteTimes => _ExecuteTimes;
+
+        /// <summary>只读实例。读写分离时，读取操作分走</summary>
+        public DAL ReadOnly { get; set; }
+
+        /// <summary>读写分离策略。忽略时间区间和表名</summary>
+        public ReadWriteStrategy Strategy { get; set; } = new ReadWriteStrategy();
         #endregion
 
         #region 数据操作方法
@@ -244,8 +247,14 @@ namespace XCode.DataAccessLayer
             return st;
         }
 
-        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String prefix)
+        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
+            // 读写分离
+            if (Strategy != null)
+            {
+                if (Strategy.Validate(this, k1 + "", action)) return ReadOnly.QueryByCache(k1, k2, k3, callback, action);
+            }
+
             CheckDatabase();
 
             // 读缓存
@@ -254,9 +263,9 @@ namespace XCode.DataAccessLayer
             if (cache != null)
             {
                 var sb = Pool.StringBuilder.Get();
-                if (!prefix.IsNullOrEmpty())
+                if (!action.IsNullOrEmpty())
                 {
-                    sb.Append(prefix);
+                    sb.Append(action);
                     sb.Append("#");
                 }
                 Append(sb, k1);
@@ -268,7 +277,7 @@ namespace XCode.DataAccessLayer
             }
 
             Interlocked.Increment(ref _QueryTimes);
-            var rs = Invoke(k1, k2, k3, callback, prefix);
+            var rs = Invoke(k1, k2, k3, callback, action);
 
             cache?.Set(key, rs, Expire);
 
@@ -323,7 +332,7 @@ namespace XCode.DataAccessLayer
         /// <summary>从Sql语句中截取表名</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        private static String[] GetTables(String sql)
+        public static String[] GetTables(String sql)
         {
             var list = new List<String>();
             var ms = reg_table.Matches(sql);

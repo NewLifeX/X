@@ -105,6 +105,13 @@ namespace XCode.DataAccessLayer
                 ProviderType = _connTypes[connName];
                 DbType = DbFactory.GetDefault(ProviderType)?.Type ?? DatabaseType.None;
 
+                // 读写分离
+                if (!connName.EndsWithIgnoreCase(".readonly"))
+                {
+                    var connName2 = connName + ".readonly";
+                    if (ConnStrs.ContainsKey(connName2)) ReadOnly = Create(connName2);
+                }
+
                 _inited = true;
             }
         }
