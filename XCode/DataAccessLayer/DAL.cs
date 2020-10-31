@@ -3,10 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
+using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -85,11 +88,8 @@ namespace XCode.DataAccessLayer
                 var connName = ConnName;
                 var css = ConnStrs;
                 //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
+                if (!css.ContainsKey(connName)) GetFromConfigCenter(connName);
                 if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
-                if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
-                {
-                    AddConnStr(connName, kv.Item1, null, kv.Item2);
-                }
                 if (!css.ContainsKey(connName))
                 {
                     var cfg = NewLife.Setting.Current;
@@ -188,6 +188,12 @@ namespace XCode.DataAccessLayer
         {
             var file = "web.config".GetFullPath();
             var fname = AppDomain.CurrentDomain.FriendlyName;
+            // 2020-10-22 阴 fname可能是特殊情况，要特殊处理 "TestSourceHost: Enumerating source (E:\projects\bin\Debug\DiYi.LogisticsTaskTests1.dll)"
+            //if (!File.Exists(fname))
+            //{
+            //    XTrace.WriteLine($"AppDomain.CurrentDomain.FriendlyName不太友好，处理一下：{fname}");
+            //    fname = fname.Substring(fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)).TrimEnd(')');
+            //}
             if (!File.Exists(file)) file = "app.config".GetFullPath();
             if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();
             if (!File.Exists(file)) file = $"{fname}.exe.config".GetFullPath();
@@ -290,7 +296,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
         public static GetConfigCallback GetConfig;
 
-        private static ConcurrentBag<String> _conns = new ConcurrentBag<String>();
+        private static ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
         private static TimerX _timerGetConfig;
         /// <summary>从配置中心加载连接字符串，并支持定时刷新</summary>
         /// <param name="connName"></param>
@@ -304,7 +310,7 @@ namespace XCode.DataAccessLayer
                 AddConnStr(connName, str, null, null);
 
                 // 加入集合，定时更新
-                if (!_conns.Contains(connName)) _conns.Add(connName);
+                if (!_conns.Contains(connName)) _conns.TryAdd(connName);
             }
 
             // 读写分离
@@ -315,7 +321,7 @@ namespace XCode.DataAccessLayer
                 if (!str.IsNullOrEmpty()) AddConnStr(connName2, str, null, null);
 
                 // 加入集合，定时更新
-                if (!_conns.Contains(connName2)) _conns.Add(connName2);
+                if (!_conns.Contains(connName2)) _conns.TryAdd(connName2);
             }
 
             if (_timerGetConfig == null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };

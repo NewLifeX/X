@@ -548,7 +548,7 @@ namespace XCode.Configuration
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(Field obj) => !obj.Equals(null) ? obj.ColumnName : null;
+        public static implicit operator String(Field obj) => !Equals(obj, null) && !obj.Equals(null) ? obj.ColumnName : null;
         #endregion
     }
 }
