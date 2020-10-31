@@ -130,7 +130,7 @@ namespace XCode.DataAccessLayer
                     var fname = AppDomain.CurrentDomain.FriendlyName;
 
                     // 2020-10-22 阴 fname可能是特殊情况，要特殊处理 "TestSourceHost: Enumerating source (E:\projects\bin\Debug\DiYi.LogisticsTaskTests1.dll)"
-                    if (!File.Exists(fname))
+                    if (!File.Exists(fname) && fname.StartsWith("TestSourceHost: Enumerating"))
                     {
                         XTrace.WriteLine($"AppDomain.CurrentDomain.FriendlyName不太友好，处理一下：{fname}");
                         fname = fname.Substring(fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)).TrimEnd(')');
