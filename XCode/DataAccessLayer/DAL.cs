@@ -172,7 +172,17 @@ namespace XCode.DataAccessLayer
             var ts = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
 
             LoadConfig(cs, ts);
-            LoadAppSettings(cs, ts);
+            //LoadAppSettings(cs, ts);
+
+            // 联合使用 appsettings.json
+            LoadAppSettings("appsettings.json", cs, ts);
+            //读取环境变量:ASPNETCORE_ENVIRONMENT=Development
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (String.IsNullOrWhiteSpace(env))
+            {
+                env = "Production";
+            }
+            LoadAppSettings($"appsettings.{env.Trim()}.json", cs, ts);
 
             ConnStrs = cs;
             _connTypes = ts;
@@ -225,25 +235,11 @@ namespace XCode.DataAccessLayer
             }
         }
 
-                    // 联合使用 appsettings.json
-                    LoadAppSettings("appsettings.json", cs);
-                    //读取环境变量:ASPNETCORE_ENVIRONMENT=Development
-                    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                    if (String.IsNullOrWhiteSpace(env))
-                    {
-                        env = "Production";
-                    }
-                    LoadAppSettings($"appsettings.{env.Trim()}.json", cs);
-                    _connStrs = cs;
-                }
-                return _connStrs;
-            }
-        }
-
-        private static void LoadAppSettings(string fileName, Dictionary<String, String> cs)
+        private static void LoadAppSettings(String fileName, IDictionary<String, String> cs, IDictionary<String, Type> ts)
         {
+            // Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
             var file = fileName.GetFullPath();
-            if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+            if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);
             if (File.Exists(file))
             {
                 var dic = JsonParser.Decode(File.ReadAllText(file));
@@ -310,7 +306,7 @@ namespace XCode.DataAccessLayer
         /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
         public static GetConfigCallback GetConfig;
 
-        private static ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
+        private static readonly ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
         private static TimerX _timerGetConfig;
         /// <summary>从配置中心加载连接字符串，并支持定时刷新</summary>
         /// <param name="connName"></param>
@@ -369,7 +365,7 @@ namespace XCode.DataAccessLayer
         /// <remarks>Base64=>UTF8字节=>明文</remarks>
         /// <param name="connstr"></param>
         /// <returns></returns>
-        static String DecodeConnStr(String connstr)
+        private static String DecodeConnStr(String connstr)
         {
             if (String.IsNullOrEmpty(connstr)) return connstr;
 
@@ -413,11 +409,9 @@ namespace XCode.DataAccessLayer
 
                 return _Tables;
             }
-            set
-            {
+            set =>
                 //设为null可清除缓存
                 _Tables = null;
-            }
         }
 
         private List<IDataTable> GetTables()
