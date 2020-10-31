@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Security;
 using NewLife.Web;
 using Xunit;
 
@@ -6,6 +7,13 @@ namespace XUnitTest.Web
 {
     public class JwtBuilderTests
     {
+        static JwtBuilderTests()
+        {
+            JwtBuilder.RegisterAlgorithm("ES256", ECDsaHelper.SignSha256, ECDsaHelper.VerifySha256);
+            JwtBuilder.RegisterAlgorithm("ES384", ECDsaHelper.SignSha384, ECDsaHelper.VerifySha384);
+            JwtBuilder.RegisterAlgorithm("ES512", ECDsaHelper.SignSha512, ECDsaHelper.VerifySha512);
+        }
+
         [Fact]
         public void HS256_Encode()
         {

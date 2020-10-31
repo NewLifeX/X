@@ -104,6 +104,7 @@
     <Compile Remove="Reflection\EmitHelper.cs" />
     <Compile Remove="Reflection\EmitReflect.cs" />
     <Compile Remove="Reflection\IIndexAccessor.cs" />
+    <Compile Remove="Security\ECDsaHelper.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
     <Compile Remove="Serialization\JsonCodec.cs" />
@@ -127,13 +128,5 @@
     <EmbeddedResource Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
     <EmbeddedResource Include="X组件.txt" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Security.Cryptography.Algorithms">
-      <Version>4.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Cng">
-      <Version>4.7.0</Version>
-    </PackageReference>
   </ItemGroup>
 </Project>
