@@ -120,6 +120,9 @@ namespace XCode
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         Int32 Rollback();
+
+        /// <summary>创建事务</summary>
+        EntityTransaction CreateTrans();
         #endregion
 
         #region 参数化

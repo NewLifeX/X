@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using NewLife.Data;
-using XCode.Cache;
 using XCode.Configuration;
 
 namespace XCode
@@ -66,6 +65,7 @@ namespace XCode
         //ISingleEntityCache SingleCache { get; }
 
         /// <summary>总记录数</summary>
+        [Obsolete("=>Session.Count")]
         Int32 Count { get; }
         #endregion
 
@@ -184,6 +184,7 @@ namespace XCode
         //Int32 Rollback();
 
         /// <summary>创建事务</summary>
+        [Obsolete("=>Session.CreateTrans")]
         EntityTransaction CreateTrans();
         #endregion
 

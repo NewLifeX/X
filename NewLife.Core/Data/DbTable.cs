@@ -78,10 +78,15 @@ namespace NewLife.Data
                 var row = new Object[fields.Length];
                 for (var i = 0; i < fields.Length; i++)
                 {
-                    var val = dr[fields[i]];
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var val = dr[fields[i]];
 
-                    if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
-                    row[i] = val;
+                        if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                        row[i] = val;
+                    }
+                    catch { }
                 }
                 rs.Add(row);
             }

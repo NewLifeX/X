@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using NewLife.Common;
 using NewLife.Net;
+using NewLife.Security;
 
 namespace NewLife.Log
 {
@@ -13,6 +16,12 @@ namespace NewLife.Log
     {
         /// <summary>服务端</summary>
         public String Server { get; set; }
+
+        /// <summary>应用标识</summary>
+        public String AppId { get; set; }
+
+        /// <summary>客户端标识</summary>
+        public String ClientId { get; set; }
 
         private ISocketRemote _client;
         private HttpClient _http;
@@ -31,7 +40,13 @@ namespace NewLife.Log
         public void Dispose()
         {
             // 销毁前把队列日志输出
-            if (_logCount > 0 && Interlocked.CompareExchange(ref _writing, 1, 0) == 0) PushLog();
+            if (_logCount > 0)
+            {
+                if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0)
+                    PushLog();
+                else
+                    Thread.Sleep(500);
+            }
 
             _client.TryDispose();
             _http.TryDispose();
@@ -50,6 +65,20 @@ namespace NewLife.Log
         {
             if (_inited) return;
 
+            var sys = SysConfig.Current;
+            if (AppId.IsNullOrEmpty()) AppId = sys.Name;
+            if (ClientId.IsNullOrEmpty())
+            {
+                try
+                {
+                    ClientId = NetHelper.MyIP() + "@" + Process.GetCurrentProcess().Id;
+                }
+                catch
+                {
+                    ClientId = Rand.NextString(8);
+                }
+            }
+
             var uri = new NetUri(Server);
             switch (uri.Type)
             {
@@ -62,10 +91,13 @@ namespace NewLife.Log
                 case NetType.Http:
                 case NetType.Https:
                 case NetType.WebSocket:
-                    _http = new HttpClient(new HttpClientHandler { UseProxy = false })
+                    var http = new HttpClient(new HttpClientHandler { UseProxy = false })
                     {
                         BaseAddress = new Uri(Server)
                     };
+                    http.DefaultRequestHeaders.Add("X-AppId", AppId);
+                    http.DefaultRequestHeaders.Add("X-ClientId", ClientId);
+                    _http = http;
                     break;
                 default:
                     break;
@@ -133,7 +165,8 @@ namespace NewLife.Log
                     sb.Clear();
                 }
 
-                sb.Append(Environment.NewLine + msg);
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(msg);
             }
 
             if (sb.Length > 0) Send(sb.ToString());

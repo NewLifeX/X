@@ -735,6 +735,9 @@ namespace XCode
 
             return rs;
         }
+
+        /// <summary>创建事务</summary>
+        public virtual EntityTransaction CreateTrans() => new EntityTransaction(Dal);
         #endregion
 
         #region 参数化

@@ -68,6 +68,7 @@ namespace XCode
             //public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
+            [Obsolete("=>Session.Count")]
             public virtual Int32 Count => Session.Count;
             #endregion
 
@@ -177,10 +178,7 @@ namespace XCode
             /// <param name="find">查找函数</param>
             /// <param name="create">创建对象</param>
             /// <returns></returns>
-            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create)
-            {
-                return Entity<TEntity>.GetOrAdd(key, (k, b) => find?.Invoke(k, b) as TEntity, k => create?.Invoke(k) as TEntity);
-            }
+            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create) => Entity<TEntity>.GetOrAdd(key, (k, b) => find?.Invoke(k, b) as TEntity, k => create?.Invoke(k) as TEntity);
             #endregion
 
             #region 事务
@@ -197,6 +195,7 @@ namespace XCode
             //public virtual Int32 Rollback() => Session.Rollback();
 
             /// <summary>创建事务</summary>
+            [Obsolete("=>Session.CreateTrans")]
             public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
@@ -226,7 +225,7 @@ namespace XCode
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
 
-            private ThreadLocal<Boolean> _AllowInsertIdentity = new ThreadLocal<Boolean>();
+            private readonly ThreadLocal<Boolean> _AllowInsertIdentity = new ThreadLocal<Boolean>();
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
             public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity.IsValueCreated && _AllowInsertIdentity.Value; set => _AllowInsertIdentity.Value = value; }
 

@@ -256,7 +256,7 @@ namespace XCode
                 Valid(isnew);
                 if (!Meta.Modules.Valid(this, isnew)) return -1;
 
-                return this.Upsert();
+                return this.Upsert(null, null, null, Meta.Session);
             }
 
             return FindCount(Persistence.GetPrimaryCondition(this), null, null, 0, 0) > 0 ? Update() : Insert();
@@ -805,9 +805,9 @@ namespace XCode
             }
 
             // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
+            var session = Meta.Session;
             if (page.RetrieveTotalCount)
             {
-                var session = Meta.Session;
                 Int64 rows;
 
                 // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
@@ -826,7 +826,7 @@ namespace XCode
             {
                 var st = Meta.Table.FindByName(page.Sort);
                 page.OrderBy = null;
-                page.Sort = st?.FormatedName;
+                page.Sort = session.Dal.Db.FormatName(st);
                 orderby = page.OrderBy;
 
                 //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序

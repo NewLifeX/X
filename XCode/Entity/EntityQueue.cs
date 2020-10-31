@@ -22,7 +22,7 @@ namespace XCode
         /// <summary>调试开关，默认false</summary>
         public Boolean Debug { get; set; }
 
-        /// <summary>数据访问</summary>
+        /// <summary>数据会话，分表分库时使用</summary>
         public IEntitySession Session { get; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
@@ -150,10 +150,10 @@ namespace XCode
                 try
                 {
                     // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
-                    if (Session.Table.InsertOnly)
-                        batch.Insert();
+                    if (ss.Table.InsertOnly)
+                        batch.Insert(null, ss);
                     else
-                        batch.SaveWithoutValid();
+                        batch.SaveWithoutValid(null, ss);
                 }
                 catch (Exception ex)
                 {

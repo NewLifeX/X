@@ -67,6 +67,11 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(list);
             Assert.Single(list);
 
+            var list2 = dal.Query<MyUser2>("select * from user where id=@id", new { user.Id }).ToList();
+            Assert.NotNull(list2);
+            Assert.Single(list2);
+            Assert.Null(list2[0].RegisterTime);
+
             dal.Delete("user", new { id = user.Id });
         }
 
@@ -100,11 +105,20 @@ namespace XUnitTest.XCode.DataAccessLayer
             public String Name { get; set; }
         }
 
+        class MyUser2
+        {
+            public Int32 Id { get; set; }
+
+            public String Name { get; set; }
+
+            public DateTime? RegisterTime { get; set; }
+        }
+
         [Fact]
         public void NullableParameter()
         {
             var dal = User.Meta.Session.Dal;
-            var user = new { Id = Rand.Next(), Name = Rand.NextString(8), UpdateTime = (DateTime?)null };
+            var user = new MyUser2 { Id = Rand.Next(), Name = Rand.NextString(8) };
 
             var dps = dal.Db.CreateParameters(user);
             Assert.Equal(3, dps.Length);

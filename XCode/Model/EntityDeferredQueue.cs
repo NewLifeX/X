@@ -30,6 +30,9 @@ namespace XCode.Model
         /// <summary>实体动作。默认Save保存</summary>
         public EntityActions Action { get; set; } = EntityActions.Save;
 
+        /// <summary>数据会话，分表分库时使用</summary>
+        public IEntitySession Session { get; set; }
+
         /// <summary>最大单行保存大小。大于该值时才采用批量保存，默认2</summary>
         public Int32 MaxSingle { get; set; } = 2;
         #endregion
@@ -55,7 +58,7 @@ namespace XCode.Model
                             if (item.IsFromDatabase)
                                 rs += item.Update();
                             else
-                                rs += item.Upsert();
+                                rs += item.Upsert(null, null, null, Session);
                             break;
                         case EntityActions.Insert:
                             rs += item.Insert();
@@ -64,7 +67,7 @@ namespace XCode.Model
                             rs += item.Update();
                             break;
                         case EntityActions.Upsert:
-                            rs += item.Upsert();
+                            rs += item.Upsert(null, null, null, Session);
                             break;
                         case EntityActions.Delete:
                             rs += item.Delete();
@@ -112,10 +115,10 @@ namespace XCode.Model
                 }
             }
 
-            if (us.Count > 0) rs += us.Update();
-            if (ns.Count > 0) rs += ns.Insert();
-            if (ps.Count > 0) rs += ps.Valid(true).Upsert();
-            if (ds.Count > 0) rs += ds.Delete();
+            if (us.Count > 0) rs += us.Update(null, Session);
+            if (ns.Count > 0) rs += ns.Insert(null, Session);
+            if (ps.Count > 0) rs += ps.Valid(true).Upsert(null, null, null, Session);
+            if (ds.Count > 0) rs += ds.Delete(null, Session);
 
             return rs;
         }

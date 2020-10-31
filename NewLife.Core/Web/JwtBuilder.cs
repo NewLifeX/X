@@ -7,6 +7,19 @@ using NewLife.Serialization;
 
 namespace NewLife.Web
 {
+    /// <summary>Jwt编码委托</summary>
+    /// <param name="data"></param>
+    /// <param name="secrect"></param>
+    /// <returns></returns>
+    public delegate Byte[] JwtEncodeDelegate(Byte[] data, String secrect);
+
+    /// <summary>Jwt解码委托</summary>
+    /// <param name="data"></param>
+    /// <param name="secrect"></param>
+    /// <param name="signature"></param>
+    /// <returns></returns>
+    public delegate Boolean JwtDecodeDelegate(Byte[] data, String secrect, Byte[] signature);
+
     /// <summary>JSON Web Token</summary>
     /// <remarks>
     /// 主要问题：
@@ -59,6 +72,19 @@ namespace NewLife.Web
         public Object this[String key] { get => Items?[key]; set => Items[key] = value; }
         #endregion
 
+        #region 构造
+        static JwtBuilder()
+        {
+            RegisterAlgorithm("HS256", (d, s) => d.SHA256(s.GetBytes()), null);
+            RegisterAlgorithm("HS384", (d, s) => d.SHA384(s.GetBytes()), null);
+            RegisterAlgorithm("HS512", (d, s) => d.SHA512(s.GetBytes()), null);
+
+            RegisterAlgorithm("RS256", RSAHelper.SignSha256, RSAHelper.VerifySha256);
+            RegisterAlgorithm("RS384", RSAHelper.SignSha384, RSAHelper.VerifySha384);
+            RegisterAlgorithm("RS512", RSAHelper.SignSha512, RSAHelper.VerifySha512);
+        }
+        #endregion
+
         #region JWT方法
         /// <summary>编码目标对象，生成令牌</summary>
         /// <param name="payload"></param>
@@ -92,20 +118,28 @@ namespace NewLife.Web
 
             // 签名
             var data = $"{header}.{body}".GetBytes();
-            var sign = alg switch
+            //var sign = alg switch
+            //{
+            //    "HS256" => data.SHA256(Secret.GetBytes()),
+            //    "HS384" => data.SHA384(Secret.GetBytes()),
+            //    "HS512" => data.SHA512(Secret.GetBytes()),
+            //    "RS256" => RSAHelper.SignSha256(data, Secret),
+            //    "RS384" => RSAHelper.SignSha384(data, Secret),
+            //    "RS512" => RSAHelper.SignSha512(data, Secret),
+            //    "ES256" => ECDsaHelper.SignSha256(data, Secret),
+            //    "ES384" => ECDsaHelper.SignSha384(data, Secret),
+            //    "ES512" => ECDsaHelper.SignSha512(data, Secret),
+            //    _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
+            //};
+
+            if (_encodes.TryGetValue(alg, out var enc) && enc != null)
             {
-                "HS256" => data.SHA256(Secret.GetBytes()),
-                "HS384" => data.SHA384(Secret.GetBytes()),
-                "HS512" => data.SHA512(Secret.GetBytes()),
-                "RS256" => RSAHelper.SignSha256(data, Secret),
-                "RS384" => RSAHelper.SignSha384(data, Secret),
-                "RS512" => RSAHelper.SignSha512(data, Secret),
-                "ES256" => ECDsaHelper.SignSha256(data, Secret),
-                "ES384" => ECDsaHelper.SignSha384(data, Secret),
-                "ES512" => ECDsaHelper.SignSha512(data, Secret),
-                _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
-            };
-            return $"{header}.{body}.{sign.ToUrlBase64()}";
+                var sign = enc(data, Secret);
+
+                return $"{header}.{body}.{sign.ToUrlBase64()}";
+            }
+
+            throw new InvalidOperationException($"不支持的算法[{alg}]");
         }
 
         /// <summary>解码令牌，得到目标对象</summary>
@@ -157,25 +191,50 @@ namespace NewLife.Web
 
             // 验证签名
             var data = $"{ts[0]}.{ts[1]}".GetBytes();
-            switch (Algorithm)
+            //switch (Algorithm)
+            //{
+            //    case "RS256": return RSAHelper.VerifySha256(data, Secret, ts[2].ToBase64());
+            //    case "RS384": return RSAHelper.VerifySha384(data, Secret, ts[2].ToBase64());
+            //    case "RS512": return RSAHelper.VerifySha512(data, Secret, ts[2].ToBase64());
+            //    case "ES256": return ECDsaHelper.VerifySha256(data, Secret, ts[2].ToBase64());
+            //    case "ES384": return ECDsaHelper.VerifySha384(data, Secret, ts[2].ToBase64());
+            //    case "ES512": return ECDsaHelper.VerifySha512(data, Secret, ts[2].ToBase64());
+            //}
+
+            //var sec = Secret.GetBytes();
+            //var sign = Algorithm switch
+            //{
+            //    "HS256" => data.SHA256(sec),
+            //    "HS384" => data.SHA384(sec),
+            //    "HS512" => data.SHA512(sec),
+            //    _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
+            //};
+            //return sign.ToUrlBase64() == ts[2];
+
+            if (_decodes.TryGetValue(Algorithm, out var dec))
             {
-                case "RS256": return RSAHelper.VerifySha256(data, Secret, ts[2].ToBase64());
-                case "RS384": return RSAHelper.VerifySha384(data, Secret, ts[2].ToBase64());
-                case "RS512": return RSAHelper.VerifySha512(data, Secret, ts[2].ToBase64());
-                case "ES256": return ECDsaHelper.VerifySha256(data, Secret, ts[2].ToBase64());
-                case "ES384": return ECDsaHelper.VerifySha384(data, Secret, ts[2].ToBase64());
-                case "ES512": return ECDsaHelper.VerifySha512(data, Secret, ts[2].ToBase64());
+                if (dec != null) return dec(data, Secret, ts[2].ToBase64());
+
+                // 没有验证算法，对比签名
+                if (_encodes.TryGetValue(Algorithm, out var enc) && enc != null) return enc(data, Secret).ToUrlBase64() == ts[2];
             }
 
-            var sec = Secret.GetBytes();
-            var sign = Algorithm switch
-            {
-                "HS256" => data.SHA256(sec),
-                "HS384" => data.SHA384(sec),
-                "HS512" => data.SHA512(sec),
-                _ => throw new InvalidOperationException($"不支持的算法[{alg}]"),
-            };
-            return sign.ToUrlBase64() == ts[2];
+            throw new InvalidOperationException($"不支持的算法[{Algorithm}]");
+        }
+        #endregion
+
+        #region 算法管理
+        private static IDictionary<String, JwtEncodeDelegate> _encodes = new Dictionary<String, JwtEncodeDelegate>(StringComparer.OrdinalIgnoreCase);
+        private static IDictionary<String, JwtDecodeDelegate> _decodes = new Dictionary<String, JwtDecodeDelegate>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>注册算法的编解码实现</summary>
+        /// <param name="algorithm"></param>
+        /// <param name="encode"></param>
+        /// <param name="decode"></param>
+        public static void RegisterAlgorithm(String algorithm, JwtEncodeDelegate encode, JwtDecodeDelegate decode)
+        {
+            _encodes[algorithm] = encode;
+            _decodes[algorithm] = decode;
         }
         #endregion
     }
