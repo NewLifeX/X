@@ -225,11 +225,25 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private static void LoadAppSettings(IDictionary<String, String> cs, IDictionary<String, Type> ts)
+                    // 联合使用 appsettings.json
+                    LoadAppSettings("appsettings.json", cs);
+                    //读取环境变量:ASPNETCORE_ENVIRONMENT=Development
+                    var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    if (String.IsNullOrWhiteSpace(env))
+                    {
+                        env = "Production";
+                    }
+                    LoadAppSettings($"appsettings.{env.Trim()}.json", cs);
+                    _connStrs = cs;
+                }
+                return _connStrs;
+            }
+        }
+
+        private static void LoadAppSettings(string fileName, Dictionary<String, String> cs)
         {
-            // 联合使用 appsettings.json
-            var file = "appsettings.json".GetFullPath();
-            if (!File.Exists(file)) file = Directory.GetCurrentDirectory() + "/appsettings.json";//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
+            var file = fileName.GetFullPath();
+            if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);//Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
             if (File.Exists(file))
             {
                 var dic = JsonParser.Decode(File.ReadAllText(file));
