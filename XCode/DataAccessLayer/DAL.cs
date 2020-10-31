@@ -3,12 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
-using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -87,8 +85,11 @@ namespace XCode.DataAccessLayer
                 var connName = ConnName;
                 var css = ConnStrs;
                 //if (!css.ContainsKey(connName)) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
-                if (!css.ContainsKey(connName)) GetFromConfigCenter(connName);
                 if (!css.ContainsKey(connName)) OnResolve?.Invoke(this, new ResolveEventArgs(connName));
+                if (!css.ContainsKey(connName) && _defs.TryGetValue(connName, out var kv))
+                {
+                    AddConnStr(connName, kv.Item1, null, kv.Item2);
+                }
                 if (!css.ContainsKey(connName))
                 {
                     var cfg = NewLife.Setting.Current;
