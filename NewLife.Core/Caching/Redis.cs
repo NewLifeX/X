@@ -450,10 +450,13 @@ namespace NewLife.Caching
         }
 
         /// <summary>获取信息</summary>
+        /// <param name="all">是否获取全部信息，包括Commandstats</param>
         /// <returns></returns>
-        public virtual IDictionary<String, String> GetInfo()
+        public virtual IDictionary<String, String> GetInfo(Boolean all = false)
         {
-            var rs = Execute(null, rds => rds.Execute("INFO", "all") as Packet);
+            var rs = all ?
+                Execute(null, rds => rds.Execute("INFO") as Packet) :
+                Execute(null, rds => rds.Execute("INFO", "all") as Packet);
             if (rs == null || rs.Count == 0) return null;
 
             var inf = rs.ToStr();
