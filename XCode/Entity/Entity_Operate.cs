@@ -322,7 +322,7 @@ namespace XCode
                                 concat &= item.Min();
                             else if (name.StartsWith("Avg") && name.Length > 3 && Char.IsUpper(name[3]))
                                 concat &= item.Avg();
-                            else if (name2.EndsWith("Rate"))
+                            else if (name2.EndsWith("Rate") || name2.EndsWith("Ratio"))
                                 concat &= item.Max();
                             else
                                 concat &= item.Sum();
