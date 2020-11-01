@@ -455,8 +455,8 @@ namespace NewLife.Caching
         public virtual IDictionary<String, String> GetInfo(Boolean all = false)
         {
             var rs = all ?
-                Execute(null, rds => rds.Execute("INFO") as Packet) :
-                Execute(null, rds => rds.Execute("INFO", "all") as Packet);
+                Execute(null, rds => rds.Execute("INFO", "all") as Packet) :
+                Execute(null, rds => rds.Execute("INFO") as Packet);
             if (rs == null || rs.Count == 0) return null;
 
             var inf = rs.ToStr();
