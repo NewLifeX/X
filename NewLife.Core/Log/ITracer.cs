@@ -254,10 +254,11 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var uri = request.RequestUri;
-            var span = tracer.NewSpan(uri.ToString().TrimEnd(uri.Query));
-            span.Tag = uri.PathAndQuery;
-            //span.Tag = request.Headers.UserAgent + "";
+            var url = request.RequestUri.ToString();
+            var p1 = url.IndexOf('?');
+            var p2 = url.IndexOf('/', "https://".Length);
+            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
+            span.Tag = p2 < 0 ? url : url.Substring(p2);
             span.Attach(request);
 
             return span;
@@ -271,10 +272,11 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var uri = request.RequestUri;
-            var span = tracer.NewSpan(uri.ToString().TrimEnd(uri.Query));
-            span.Tag = uri.PathAndQuery;
-            //span.Tag = request.Headers.UserAgent + "";
+            var url = request.RequestUri.ToString();
+            var p1 = url.IndexOf('?');
+            var p2 = url.IndexOf('/', "https://".Length);
+            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
+            span.Tag = p2 < 0 ? url : url.Substring(p2);
             span.Attach(request);
 
             return span;

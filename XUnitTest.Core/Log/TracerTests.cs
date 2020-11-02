@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -353,6 +354,54 @@ namespace XUnitTest.Log
             span.Start();
 
             Assert.NotEmpty(span.TraceId);
+        }
+
+        [Fact]
+        public void HttpRequestMessageUriTest()
+        {
+            var tracer = new DefaultTracer();
+
+            {
+                var url = "http://sso.newlifex.com/user/query?id=12345";
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                var span = tracer.NewSpan(request) as DefaultSpan;
+
+                Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+                Assert.Equal("/user/query?id=12345", span.Tag);
+            }
+
+            {
+                var url = "user/query?id=12345";
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                var span = tracer.NewSpan(request) as DefaultSpan;
+
+                Assert.Equal("user/query", span.Builder.Name);
+                Assert.Equal("user/query?id=12345", span.Tag);
+            }
+        }
+
+        [Fact]
+        public void WebRequestUriTest()
+        {
+            var tracer = new DefaultTracer();
+
+            {
+                var url = "http://sso.newlifex.com/user/query?id=12345";
+                var request = WebRequest.CreateHttp(url);
+                var span = tracer.NewSpan(request) as DefaultSpan;
+
+                Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+                Assert.Equal("/user/query?id=12345", span.Tag);
+            }
+
+            //{
+            //    var url = "user/query?id=12345";
+            //    var request = WebRequest.CreateHttp(new Uri(url, UriKind.RelativeOrAbsolute));
+            //    var span = tracer.NewSpan(request) as DefaultSpan;
+
+            //    Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+            //    Assert.Equal("/user/query?id=12345", span.Tag);
+            //}
         }
     }
 }
