@@ -54,7 +54,7 @@ namespace Test
                 try
                 {
 #endif
-                TestReadAppSettings();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -75,6 +75,10 @@ namespace Test
 
         private static void Test1()
         {
+            var b = (Byte)0x0F;
+            XTrace.WriteLine("{0} {0:X} {0:X2}", b);
+            // 15 F 0F
+
             //var keys = ECDsaHelper.GenerateKey();
             //XTrace.WriteLine("prvKey:{0}", keys[0]);
             //XTrace.WriteLine("pubKey:{0}", keys[1]);
