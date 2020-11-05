@@ -208,6 +208,7 @@ namespace NewLife
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + 1).Trim();
+                 
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
