@@ -374,7 +374,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 批量插入
-                Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
+                Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>().ToList());
 
                 return null;
             }

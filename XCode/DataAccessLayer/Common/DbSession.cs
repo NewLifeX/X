@@ -364,7 +364,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            using var cmd = OnCreateCommand(sql, type, ps);
+            var cmd = OnCreateCommand(sql, type, ps);
             return Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
         }
 
@@ -529,7 +529,7 @@ namespace XCode.DataAccessLayer
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+        public virtual Int32 Insert(IDataTable table, IDataColumn[] columns, IList<IExtend> list) => throw new NotSupportedException();
 
         /// <summary>批量更新</summary>
         /// <param name="table">数据表</param>
@@ -538,7 +538,7 @@ namespace XCode.DataAccessLayer
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+        public virtual Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list) => throw new NotSupportedException();
 
         /// <summary>批量插入或更新</summary>
         /// <param name="table">数据表</param>
@@ -547,7 +547,7 @@ namespace XCode.DataAccessLayer
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        public virtual Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+        public virtual Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list) => throw new NotSupportedException();
         #endregion
 
         #region 高级

@@ -435,7 +435,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 批量操作
-        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IList<IExtend> list)
         {
             var ps = new HashSet<String>();
             var sql = GetInsertSql(table, columns, ps);
@@ -478,7 +478,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list)
         {
             var ps = new HashSet<String>();
             var insert = GetInsertSql(table, columns, ps);

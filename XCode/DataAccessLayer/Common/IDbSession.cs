@@ -145,7 +145,7 @@ namespace XCode.DataAccessLayer
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
+        Int32 Insert(IDataTable table, IDataColumn[] columns, IList<IExtend> list);
 
         /// <summary>批量更新</summary>
         /// <param name="table">数据表</param>
@@ -154,7 +154,7 @@ namespace XCode.DataAccessLayer
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list);
+        Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list);
 
         /// <summary>批量插入或更新</summary>
         /// <param name="table">数据表</param>
@@ -163,7 +163,7 @@ namespace XCode.DataAccessLayer
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list);
+        Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list);
         #endregion
 
         #region 高级
