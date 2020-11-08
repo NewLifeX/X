@@ -171,7 +171,7 @@ namespace XCode.Membership
 
             if (Meta.Count <= 1 && FindCount() <= 1)
             {
-                var msg = String.Format("至少保留一个角色[{0}]禁止删除！", name);
+                var msg = $"至少保留一个角色[{name}]禁止删除！";
                 WriteLog("删除", true, msg);
 
                 throw new XException(msg);
@@ -179,7 +179,7 @@ namespace XCode.Membership
 
             if (entity.IsSystem)
             {
-                var msg = String.Format("系统角色[{0}]禁止删除！", name);
+                var msg = $"系统角色[{name}]禁止删除！";
                 WriteLog("删除", true, msg);
 
                 throw new XException(msg);

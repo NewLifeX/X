@@ -328,7 +328,7 @@ namespace XCode.DataAccessLayer
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
-            return String.Format("[{0}]", keyWord);
+            return $"[{keyWord}]";
         }
 
         /// <summary>系统数据库名</summary>
@@ -392,7 +392,7 @@ namespace XCode.DataAccessLayer
             //var n = 0L;
             //if (QueryIndex().TryGetValue(tableName, out n)) return n;
 
-            var sql = String.Format("select rows from sysindexes where id = object_id('{0}') and indid in (0,1)", tableName);
+            var sql = $"select rows from sysindexes where id = object_id('{tableName}') and indid in (0,1)";
             return ExecuteScalar<Int64>(sql);
         }
 
@@ -767,7 +767,7 @@ namespace XCode.DataAccessLayer
             #endregion
 
             // 列出用户表
-            var rows = dt.Select(String.Format("({0}='BASE TABLE' Or {0}='VIEW') AND TABLE_NAME<>'Sysdiagrams'", "TABLE_TYPE"));
+            var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
             if (rows == null || rows.Length < 1) return null;
 
             var list = GetTables(rows, names);
@@ -1072,7 +1072,7 @@ namespace XCode.DataAccessLayer
             {
                 if (ss[i].StartsWithIgnoreCase("Insert Into"))
                 {
-                    ss[i] = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", ss[i], tableName);
+                    ss[i] = $"SET IDENTITY_INSERT {tableName} ON;{ss[i]};SET IDENTITY_INSERT {tableName} OFF";
                     break;
                 }
             }
@@ -1081,12 +1081,12 @@ namespace XCode.DataAccessLayer
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{1}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName, table.Description);
+            return $"EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{table.Description}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
         }
 
         public override String DropTableDescriptionSQL(IDataTable table)
         {
-            return String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}'", table.TableName);
+            return $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
         }
 
         public override String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Add {FieldClause(field, true)}";

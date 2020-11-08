@@ -185,7 +185,7 @@ namespace XCode.DataAccessLayer
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
-            var rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
+            var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
 
             return GetTables(rows, names);
         }

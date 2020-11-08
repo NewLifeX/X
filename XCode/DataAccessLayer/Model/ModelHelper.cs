@@ -656,7 +656,7 @@ namespace XCode.DataAccessLayer
                     {
                         var len = dc.Length;
                         if (len == 0) len = 50;
-                        dc.RawType = String.Format("nvarchar({0})", len);
+                        dc.RawType = $"nvarchar({len})";
 
                         // 新建默认长度50，写入忽略50的长度，其它长度不能忽略
                         if (len == 50)

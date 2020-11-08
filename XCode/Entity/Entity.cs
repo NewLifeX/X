@@ -1457,7 +1457,7 @@ namespace XCode
 
                     var vs = sb.Put(true);
                     if (columns.Length > 1)
-                        return String.Format("[{0}]", vs);
+                        return $"[{vs}]";
                     else
                         return vs;
                 }

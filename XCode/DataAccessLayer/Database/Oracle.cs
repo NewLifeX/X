@@ -420,7 +420,7 @@ namespace XCode.DataAccessLayer
                 {
                     var m = reg_SEQ.Match(sql);
                     if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
-                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval From dual", m.Groups[1].Value));
+                        rs = ExecuteScalar<Int64>($"Select {m.Groups[1].Value}.currval From dual");
                 }
                 Commit();
                 return rs;
@@ -796,7 +796,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["TableComment"];
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
-            var where = String.Format("TABLE_NAME='{0}'", name);
+            var where = $"TABLE_NAME='{name}'";
             var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
 
@@ -928,28 +928,28 @@ namespace XCode.DataAccessLayer
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
                     if (precision <= 0) precision = 5;
-                    return String.Format("NUMBER({0}, 0)", precision);
+                    return $"NUMBER({precision}, 0)";
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
                     //if (precision <= 0) precision = 10;
                     if (precision <= 0) return "NUMBER";
-                    return String.Format("NUMBER({0}, 0)", precision);
+                    return $"NUMBER({precision}, 0)";
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     if (precision <= 0) precision = 20;
-                    return String.Format("NUMBER({0}, 0)", precision);
+                    return $"NUMBER({precision}, 0)";
                 case TypeCode.Single:
                     if (precision <= 0) precision = 5;
                     if (scale <= 0) scale = 1;
-                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                    return $"NUMBER({precision}, {scale})";
                 case TypeCode.Double:
                     if (precision <= 0) precision = 10;
                     if (scale <= 0) scale = 2;
-                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                    return $"NUMBER({precision}, {scale})";
                 case TypeCode.Decimal:
                     if (precision <= 0) precision = 20;
                     if (scale <= 0) scale = 4;
-                    return String.Format("NUMBER({0}, {1})", precision, scale);
+                    return $"NUMBER({precision}, {scale})";
                 default:
                     break;
             }

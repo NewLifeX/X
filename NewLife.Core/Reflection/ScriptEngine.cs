@@ -257,7 +257,7 @@ namespace NewLife.Reflection
                     var last = code[code.Length - 1];
                     if (last != ';' && last != '}') code += ";";
                 }
-                code = String.Format("\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{0}\r\n\t\t}}", code);
+                code = $"\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{code}\r\n\t\t}}";
             }
 
             // 没有命名空间，包含一个
@@ -266,10 +266,10 @@ namespace NewLife.Reflection
                 // 没有类名，包含一个
                 if (!code.Contains("class "))
                 {
-                    code = String.Format("\tpublic class {0}\r\n\t{{\r\n{1}\r\n\t}}", GetType().Name, code);
+                    code = $"\tpublic class {GetType().Name}\r\n\t{{\r\n{code}\r\n\t}}";
                 }
 
-                code = String.Format("namespace {0}\r\n{{\r\n{1}\r\n}}", GetType().Namespace, code);
+                code = $"namespace {GetType().Namespace}\r\n{{\r\n{code}\r\n}}";
             }
 
             // 命名空间

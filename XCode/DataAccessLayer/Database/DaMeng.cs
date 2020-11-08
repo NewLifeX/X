@@ -302,7 +302,7 @@ namespace XCode.DataAccessLayer
                 {
                     var m = reg_SEQ.Match(sql);
                     if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
-                        rs = ExecuteScalar<Int64>(String.Format("Select {0}.currval From dual", m.Groups[1].Value));
+                        rs = ExecuteScalar<Int64>($"Select {m.Groups[1].Value}.currval From dual");
                 }
                 Commit();
                 return rs;
@@ -643,7 +643,7 @@ namespace XCode.DataAccessLayer
             var dt = data?["TableComment"];
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
-            var where = String.Format("TABLE_NAME='{0}'", name);
+            var where = $"TABLE_NAME='{name}'";
             var drs = dt.Select(where);
             if (drs != null && drs.Length > 0) return Convert.ToString(drs[0]["COMMENTS"]);
 

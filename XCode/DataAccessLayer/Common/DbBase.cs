@@ -462,11 +462,11 @@ namespace XCode.DataAccessLayer
             if (tablename != sql)
                 sql = tablename;
             else
-                sql = String.Format("({0}) XCode_Temp_a", sql);
+                sql = $"({sql}) XCode_Temp_a";
 
             // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况
             if (startRowIndex <= 0 && maximumRows > 0)
-                return String.Format("Select Top {0} * From {1}", maximumRows, sql);
+                return $"Select Top {maximumRows} * From {sql}";
 
             if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
 
@@ -580,7 +580,7 @@ namespace XCode.DataAccessLayer
 
             var ms = reg_SimpleSQL.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
-                String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
+                String.IsNullOrEmpty(ms[0].Groups[1].Value)) return $"({sql}) XCode_Temp_a";
             return ms[0].Groups[1].Value;
         }
 
@@ -840,7 +840,7 @@ namespace XCode.DataAccessLayer
             {
                 if (value == null) return isNullable ? "null" : "''";
 
-                return String.Format("'{0}'", value);
+                return $"'{value}'";
             }
 
             if (value == null) return isNullable ? "null" : "";

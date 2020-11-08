@@ -358,7 +358,7 @@ namespace System.IO.Compression
                         throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
                 }
             }
-            catch (Exception ex) { throw new ZipException(String.Format("解压缩{0}时出错！", FileName), ex); }
+            catch (Exception ex) { throw new ZipException($"解压缩{FileName}时出错！", ex); }
         }
         #endregion
 

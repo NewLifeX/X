@@ -214,7 +214,7 @@ namespace XCode.DataAccessLayer
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
-            return String.Format("[{0}]", keyWord);
+            return $"[{keyWord}]";
             //return keyWord;
         }
 
@@ -662,7 +662,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table"></param>
         public void GetTbFields(IDataTable table)
         {
-            var sql = String.Format("PRAGMA table_info({0})", table.TableName);
+            var sql = $"PRAGMA table_info({table.TableName})";
 
             var ss = Database.CreateSession();
             var ds = ss.Query(sql, null);

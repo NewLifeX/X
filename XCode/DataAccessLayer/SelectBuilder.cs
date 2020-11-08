@@ -404,9 +404,9 @@ $";
 
             var builder = new SelectBuilder();
             if (String.IsNullOrEmpty(alias))
-                builder.Table = String.Format("({0})", t.ToString());
+                builder.Table = $"({t})";
             else
-                builder.Table = String.Format("({0}) {1}", t.ToString(), alias);
+                builder.Table = $"({t}) {alias}";
 
             // 把排序加载外层
             if (hasOrderWithoutTop) builder.OrderBy = OrderBy;

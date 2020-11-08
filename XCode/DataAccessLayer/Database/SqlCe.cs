@@ -134,7 +134,7 @@ namespace XCode.DataAccessLayer
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
-            return String.Format("[{0}]", keyWord);
+            return $"[{keyWord}]";
         }
         #endregion
 
