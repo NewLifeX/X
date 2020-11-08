@@ -439,7 +439,7 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>().ToList());
+            return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
         }
 
         /// <summary>批量更新</summary>
@@ -483,7 +483,7 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>().ToList());
+            return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
         }
 
         /// <summary>批量插入或更新</summary>
@@ -551,7 +551,7 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>().ToList());
+            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
         }
 
         /// <summary>批量插入或更新</summary>
