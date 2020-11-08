@@ -180,7 +180,8 @@ namespace XCode.DataAccessLayer
              * 	SQLITE_CONFIG_SERIALIZED = 3,
              */
 
-            mi.Invoke(this, new Object[] { 2 });
+            var rs = mi.Invoke(this, new Object[] { 2 });
+            XTrace.WriteLine("sqlite3_config_none(SQLITE_CONFIG_MULTITHREAD) = {0}", rs);
         }
         #endregion
 
@@ -314,8 +315,12 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
-            rs += Execute("PRAGMA auto_vacuum = 1");
-            //rs += Execute("VACUUM");
+            try
+            {
+                //rs += Execute("PRAGMA auto_vacuum = 1");
+                rs += Execute("VACUUM");
+            }
+            catch (Exception ex) { XTrace.WriteException(ex); }
 
             return rs;
         }
