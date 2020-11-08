@@ -405,7 +405,7 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IList<IExtend> list)
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
         {
             var sql = GetBatchSql(table, columns, null, null, list);
             return Execute(sql);
@@ -425,7 +425,7 @@ namespace XCode.DataAccessLayer
             //return rs;
         }
 
-        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IList<IExtend> list)
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
             var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
             return Execute(sql);
