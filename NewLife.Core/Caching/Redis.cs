@@ -9,6 +9,7 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
+using NewLife.Reflection;
 
 namespace NewLife.Caching
 {
@@ -431,6 +432,27 @@ namespace NewLife.Caching
             if (rs == null) return 0;
 
             return rs.Length;
+        }
+        #endregion
+
+        #region 子库
+        /// <summary>为同一服务器创建不同Db的子级库</summary>
+        /// <param name="db"></param>
+        /// <returns></returns>
+        public virtual Redis CreateSub(Int32 db)
+        {
+            var rds = GetType().CreateInstance() as Redis;
+            rds.Server = Server;
+            rds.Db = db;
+            rds.UserName = UserName;
+            rds.Password = Password;
+
+            rds.Encoder = Encoder;
+            rds.Timeout = Timeout;
+            rds.Retry = Retry;
+            rds.Tracer = Tracer;
+
+            return rds;
         }
         #endregion
 
