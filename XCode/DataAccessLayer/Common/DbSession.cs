@@ -364,7 +364,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Int32 Execute(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            var cmd = OnCreateCommand(sql, type, ps);
+            using var cmd = OnCreateCommand(sql, type, ps);
             return Execute(cmd, false, cmd2 => cmd2.ExecuteNonQuery());
         }
 
