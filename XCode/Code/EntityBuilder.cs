@@ -199,14 +199,14 @@ namespace XCode.Code
                 baseClass += "IExtend";
             }
 
-            var bs = baseClass.Split(",").Select(e => e.Trim()).ToArray();
+            var bs = baseClass?.Split(",").Select(e => e.Trim()).ToArray();
 
             // 数据类的基类只有接口，业务类基类则比较复杂
             var name = "";
             if (Business)
             {
                 // 数据类只要实体基类
-                name = bs.FirstOrDefault(e => e.Contains("Entity"));
+                name = bs?.FirstOrDefault(e => e.Contains("Entity"));
                 if (name.IsNullOrEmpty()) name = "Entity";
 
                 name = $"{name}<{ClassName}>";
@@ -214,10 +214,10 @@ namespace XCode.Code
             else
             {
                 // 数据类不要实体基类
-                name = bs.Where(e => !e.Contains("Entity")).Join(", ");
+                name = bs?.Where(e => !e.Contains("Entity")).Join(", ");
             }
 
-            return name.Replace("{name}", ClassName);
+            return name?.Replace("{name}", ClassName);
         }
 
         /// <summary>保存</summary>
