@@ -244,7 +244,7 @@ namespace NewLife.Messaging
 
         /// <summary>消息摘要</summary>
         /// <returns></returns>
-        public override String ToString() => $"{Flag:X2} Seq={Sequence} {Payload}";
+        public override String ToString() => $"{Flag:X2} Seq={Sequence:X2} {Payload}";
         #endregion
     }
 }

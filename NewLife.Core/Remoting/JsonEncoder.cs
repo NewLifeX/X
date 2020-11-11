@@ -49,7 +49,7 @@ namespace NewLife.Remoting
         public IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg)
         {
             var json = data.ToStr();
-            WriteLog("{0}[{2}]<={1}", action, json, msg is DefaultMessage dm ? dm.Sequence : 0);
+            WriteLog("{0}[{2:X2}]<={1}", action, json, msg is DefaultMessage dm ? dm.Sequence : 0);
 
             return JsonParser.Decode(json);
         }
@@ -62,7 +62,7 @@ namespace NewLife.Remoting
         public Object DecodeResult(String action, Packet data, IMessage msg)
         {
             var json = data.ToStr();
-            WriteLog("{0}[{2}]<={1}", action, json, msg is DefaultMessage dm ? dm.Sequence : 0);
+            WriteLog("{0}[{2:X2}]<={1}", action, json, msg is DefaultMessage dm ? dm.Sequence : 0);
 
             return new JsonParser(json).Decode();
         }
@@ -135,7 +135,7 @@ namespace NewLife.Remoting
                 pk = null;
 
             if (Log != null && str.IsNullOrEmpty() && pk != null) str = $"[{pk?.Total}]";
-            WriteLog("{0}[{2}]=>{1}", action, str, msg is DefaultMessage dm ? dm.Sequence : 0);
+            WriteLog("{0}[{2:X2}]=>{1}", action, str, msg is DefaultMessage dm ? dm.Sequence : 0);
 
             var payload = Encode(action, code, pk);
 

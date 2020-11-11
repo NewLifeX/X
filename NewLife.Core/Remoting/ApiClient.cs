@@ -255,18 +255,18 @@ namespace NewLife.Remoting
 
                 if (ex is TaskCanceledException)
                 {
-                    throw new TimeoutException($"请求[{action}]超时！", ex);
+                    throw new TimeoutException($"请求[{action}]超时({msg})！", ex);
                 }
                 throw;
             }
             catch (TaskCanceledException ex)
             {
-                throw new TimeoutException($"请求[{action}]超时！", ex);
+                throw new TimeoutException($"请求[{action}]超时({msg})！", ex);
             }
             finally
             {
                 var msCost = st.StopCount(sw) / 1000;
-                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]({msg})，耗时{msCost:n0}ms");
 
                 span?.Dispose();
             }
