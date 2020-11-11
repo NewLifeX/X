@@ -33,7 +33,7 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
-            if (Builder.Length > 0) Builder.Append(",");
+            if (Builder.Length > 0) Builder.Append(',');
             Builder.Append(exp);
 
             return this;

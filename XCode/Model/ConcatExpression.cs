@@ -64,7 +64,7 @@ namespace XCode
             var first = true;
             foreach (var exp in exps)
             {
-                if (!first) builder.Append(",");
+                if (!first) builder.Append(',');
                 first = false;
 
                 exp.GetString(db, builder, ps);

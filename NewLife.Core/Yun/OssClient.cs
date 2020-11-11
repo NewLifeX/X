@@ -270,7 +270,7 @@ namespace NewLife.Yun
                     sb.Append(paramName);
                     var paramValue = parameters[paramName];
                     if (!String.IsNullOrEmpty(paramValue + ""))
-                        sb.Append("=").Append(paramValue);
+                        sb.Append('=').Append(paramValue);
 
                     separator = '&';
                 }

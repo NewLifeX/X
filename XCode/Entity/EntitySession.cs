@@ -291,7 +291,7 @@ namespace XCode
                     sb.AppendFormat("IX_{0}", TableName);
                     foreach (var item in di.Columns)
                     {
-                        sb.Append("_");
+                        sb.Append('_');
                         sb.Append(item);
                     }
 

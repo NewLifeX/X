@@ -372,7 +372,7 @@ namespace XCode.Membership
                 //if (item.Value == PermissionFlags.None) continue;
                 // 不要跳过None，因为None表示只读
 
-                if (sb.Length > 0) sb.Append(",");
+                if (sb.Length > 0) sb.Append(',');
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
             SetItem(__.Permission, sb.Put(true));

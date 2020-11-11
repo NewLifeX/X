@@ -101,12 +101,12 @@ namespace XCode.DataAccessLayer
 
             if (di.Table != null)
             {
-                sb.Append("_");
+                sb.Append('_');
                 sb.Append(di.Table.TableName);
             }
             for (var i = 0; i < di.Columns.Length; i++)
             {
-                sb.Append("_");
+                sb.Append('_');
                 sb.Append(di.Columns[i]);
             }
             return sb.Put(true);

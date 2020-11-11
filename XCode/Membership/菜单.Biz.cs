@@ -269,7 +269,7 @@ namespace XCode.Membership
             // 根据资源按照从小到大排序一下
             foreach (var item in Permissions.OrderBy(e => e.Key))
             {
-                if (sb.Length > 0) sb.Append(",");
+                if (sb.Length > 0) sb.Append(',');
                 sb.AppendFormat("{0}#{1}", item.Key, item.Value);
             }
             SetItem(__.Permission, sb.Put(true));

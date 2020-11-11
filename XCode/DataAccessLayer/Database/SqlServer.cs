@@ -205,7 +205,7 @@ namespace XCode.DataAccessLayer
 
             sql = CheckSimpleSQL(sql2);
 
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "分页要求指定主键列或者排序字段！");
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException(nameof(keyColumn), "分页要求指定主键列或者排序字段！");
 
             if (maximumRows < 1)
                 sql = $"Select * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql} {orderBy}) {orderBy}";
@@ -456,10 +456,10 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc));
-                sb.Append(",");
+                sb.Append(',');
             }
             sb.Length--;
-            sb.Append(")");
+            sb.Append(')');
 
             // 值列表
             sb.Append(" Values(");
@@ -468,12 +468,12 @@ namespace XCode.DataAccessLayer
                 if (dc.Identity) continue;
 
                 sb.Append(db.FormatParameterName(dc.Name));
-                sb.Append(",");
+                sb.Append(',');
 
                 if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
             }
             sb.Length--;
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.Put(true);
         }

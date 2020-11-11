@@ -502,7 +502,7 @@ namespace NewLife.Serialization
                     _Builder.Append('{');
                     WriteLeftIndent();
                     WritePair("k", entry.Key);
-                    _Builder.Append(",");
+                    _Builder.Append(',');
                     WriteIndent();
                     WritePair("v", entry.Value);
                     WriteRightIndent();

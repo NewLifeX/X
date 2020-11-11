@@ -542,7 +542,7 @@ namespace XCode.DataAccessLayer
                         var arr = obj as IEnumerable;
                         foreach (var elm in arr)
                         {
-                            if (sb.Length > 0) sb.Append(",");
+                            if (sb.Length > 0) sb.Append(',');
                             sb.Append(elm);
                         }
                         obj = sb.ToString();

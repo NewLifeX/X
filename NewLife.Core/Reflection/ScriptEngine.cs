@@ -114,7 +114,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static ScriptEngine Create(String code, Boolean isExpression = true)
         {
-            if (String.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
+            if (String.IsNullOrEmpty(code)) throw new ArgumentNullException(nameof(code));
 
             var key = code + isExpression;
             return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));

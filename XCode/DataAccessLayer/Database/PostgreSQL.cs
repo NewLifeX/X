@@ -352,13 +352,13 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
+                if (i < fs.Count - 1) sb.Append(',');
             }
             if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.ToString();
         }

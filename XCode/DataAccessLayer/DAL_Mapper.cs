@@ -99,7 +99,7 @@ namespace XCode.DataAccessLayer
                 var i = 0;
                 foreach (var pi in data.GetType().GetProperties(true))
                 {
-                    if (i++ > 0) sb.Append(",");
+                    if (i++ > 0) sb.Append(',');
 
                     var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
                     dps.Add(p);

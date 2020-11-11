@@ -266,7 +266,7 @@ namespace XCode.DataAccessLayer
                 if (!action.IsNullOrEmpty())
                 {
                     sb.Append(action);
-                    sb.Append("#");
+                    sb.Append('#');
                 }
                 Append(sb, k1);
                 Append(sb, k2);
@@ -352,9 +352,9 @@ namespace XCode.DataAccessLayer
                 sb.Append(builder);
                 foreach (var item in builder.Parameters)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.ParameterName);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
@@ -362,9 +362,9 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in ps)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.ParameterName);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
@@ -372,15 +372,15 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in dic)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Key);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
             else
             {
-                sb.Append("#");
+                sb.Append('#');
                 sb.Append(value);
             }
         }

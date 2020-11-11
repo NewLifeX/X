@@ -223,7 +223,7 @@ namespace XCode.Configuration
         {
             EntityType = type;
             _Table = type.GetCustomAttribute<BindTableAttribute>(true);
-            if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
+            if (_Table == null) throw new ArgumentOutOfRangeException(nameof(type), "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true).ToArray();
             //_Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
@@ -240,7 +240,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public static TableItem Create(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
             return cache.GetOrAdd(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);

@@ -468,7 +468,7 @@ namespace XCode.DataAccessLayer
             if (startRowIndex <= 0 && maximumRows > 0)
                 return $"Select Top {maximumRows} * From {sql}";
 
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException(nameof(keyColumn), "这里用的not in分页算法要求指定主键列！");
 
             if (maximumRows < 1)
                 sql = $"Select * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql})";

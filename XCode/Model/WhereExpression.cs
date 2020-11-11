@@ -80,7 +80,7 @@ namespace XCode
                 {
                     case Operator.And: builder.Append(" And "); break;
                     case Operator.Or: builder.Append(" Or "); break;
-                    case Operator.Space: builder.Append(" "); break;
+                    case Operator.Space: builder.Append(' '); break;
                     default: break;
                 }
             }
@@ -102,9 +102,9 @@ namespace XCode
                 if (where.Operator > Operator) bracket = true;
             }
 
-            if (bracket) builder.Append("(");
+            if (bracket) builder.Append('(');
             exp.GetString(db, builder, ps);
-            if (bracket) builder.Append(")");
+            if (bracket) builder.Append(')');
         }
 
         /// <summary>拉平表达式，避免空子项</summary>

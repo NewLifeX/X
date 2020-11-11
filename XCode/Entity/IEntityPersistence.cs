@@ -321,7 +321,7 @@ namespace XCode
 
                 var column = fs[names[i]].Field;
                 sb.Append(db.FormatName(column));
-                sb.Append("=");
+                sb.Append('=');
                 sb.Append(db.FormatValue(column, values[i]));
             }
 
@@ -478,7 +478,7 @@ namespace XCode
 
                 var name = db.FormatName(fi.Field);
                 sb.Append(name);
-                sb.Append("=");
+                sb.Append('=');
 
                 if (db.UseParameter || UseParam(fi, value))
                 {

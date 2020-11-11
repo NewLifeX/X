@@ -314,7 +314,7 @@ namespace XCode.Membership
             var sb = Pool.StringBuilder.Get();
             foreach (var item in list)
             {
-                if (sb.Length > 0) sb.Append(",");
+                if (sb.Length > 0) sb.Append(',');
                 sb.Append(item);
             }
             SetValueInternal(sb.Put(true));
@@ -329,7 +329,7 @@ namespace XCode.Membership
             var sb = Pool.StringBuilder.Get();
             foreach (DictionaryEntry item in dic)
             {
-                if (sb.Length > 0) sb.Append(",");
+                if (sb.Length > 0) sb.Append(',');
                 sb.AppendFormat("{0}={1}", item.Key, item.Value);
             }
             SetValueInternal(sb.Put(true));

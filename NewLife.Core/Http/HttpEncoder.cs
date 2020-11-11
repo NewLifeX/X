@@ -136,7 +136,7 @@ namespace NewLife.Http
                 pk = null;
 
                 // url参数
-                sb.Append("?");
+                sb.Append('?');
                 if (args.GetType().GetTypeCode() != TypeCode.Object)
                 {
                     sb.Append(args);

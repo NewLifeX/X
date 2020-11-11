@@ -472,7 +472,7 @@ namespace XCode.DataAccessLayer
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
-                                sbValue.Append("0");
+                                sbValue.Append('0');
                             }
                             else if (type == typeof(DateTime))
                             {
@@ -570,7 +570,7 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var item in values)
                     {
-                        if (s.Length > 0) s.Append(" ");
+                        if (s.Length > 0) s.Append(' ');
                         s.Append(item);
                     }
                 }
@@ -855,12 +855,12 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
+                if (i < fs.Count - 1) sb.Append(',');
             }
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.ToString();
         }

@@ -699,7 +699,7 @@ namespace XCode.DataAccessLayer
                             sv = v is DateTime dt ? dt.ToFullString() : (v + "");
                         sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
                     }
-                    sb.Append("]");
+                    sb.Append(']');
                     sql = sb.Put(true);
                 }
 

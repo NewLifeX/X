@@ -636,7 +636,7 @@ namespace NewLife.Net
             var sb = Pool.StringBuilder.Get();
             foreach (var item in servers)
             {
-                if (sb.Length > 0) sb.Append(" ");
+                if (sb.Length > 0) sb.Append(' ');
                 sb.Append(item);
             }
             return Name + " " + sb.Put(true);

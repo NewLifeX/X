@@ -95,8 +95,8 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static Object ToXmlEntity(this String xml, Type type)
         {
-            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
-            if (type == null) throw new ArgumentNullException("type");
+            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(xml));
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             var x = new NewLife.Serialization.Xml
             {
@@ -134,8 +134,8 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static Object ToXmlEntity(this Stream stream, Type type, Encoding encoding = null)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
-            if (type == null) throw new ArgumentNullException("type");
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (type == null) throw new ArgumentNullException(nameof(type));
             if (encoding == null) encoding = Encoding.UTF8;
 
             var x = new NewLife.Serialization.Xml
@@ -165,7 +165,7 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static TEntity ToXmlFileEntity<TEntity>(this String file, Encoding encoding = null) where TEntity : class
         {
-            if (file.IsNullOrWhiteSpace()) throw new ArgumentNullException("file");
+            if (file.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(file));
             if (!File.Exists(file)) return null;
 
             using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

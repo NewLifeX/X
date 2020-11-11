@@ -309,10 +309,10 @@ namespace XCode.DataAccessLayer
                 //if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc));
-                sb.Append(",");
+                sb.Append(',');
             }
             sb.Length--;
-            sb.Append(")");
+            sb.Append(')');
 
             // 值列表
             sb.Append(" Values");
@@ -339,7 +339,7 @@ namespace XCode.DataAccessLayer
                         ids = cs.ToArray();
                     }
 
-                    sb.Append("(");
+                    sb.Append('(');
                     var row = dt.Rows[dr.Index];
                     for (var i = 0; i < columns.Length; i++)
                     {
@@ -348,7 +348,7 @@ namespace XCode.DataAccessLayer
 
                         var value = row[ids[i]];
                         sb.Append(db.FormatValue(dc, value));
-                        sb.Append(",");
+                        sb.Append(',');
                     }
                     sb.Length--;
                     sb.Append("),");
@@ -358,14 +358,14 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var entity in list)
                 {
-                    sb.Append("(");
+                    sb.Append('(');
                     foreach (var dc in columns)
                     {
                         //if (dc.Identity) continue;
 
                         var value = entity[dc.Name];
                         sb.Append(db.FormatValue(dc, value));
-                        sb.Append(",");
+                        sb.Append(',');
                     }
                     sb.Length--;
                     sb.Append("),");
@@ -390,7 +390,7 @@ namespace XCode.DataAccessLayer
                 }
                 if (addColumns != null && addColumns.Count > 0)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                     foreach (var dc in columns)
                     {
                         if (dc.Identity || dc.PrimaryKey) continue;
@@ -641,18 +641,18 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
+                if (i < fs.Count - 1) sb.Append(',');
             }
             if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             // 引擎和编码
             //sb.Append(" ENGINE=InnoDB");
             sb.Append(" DEFAULT CHARSET=utf8mb4");
-            sb.Append(";");
+            sb.Append(';');
 
             return sb.Put(true);
         }

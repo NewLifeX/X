@@ -38,7 +38,7 @@ namespace NewLife.Remoting
 
                 var sb = Pool.StringBuilder.Get();
                 sb.AppendFormat("{0} {1}", mi.ReturnType.Name, act.Name);
-                sb.Append("(");
+                sb.Append('(');
 
                 var pis = mi.GetParameters();
                 for (var i = 0; i < pis.Length; i++)
@@ -47,7 +47,7 @@ namespace NewLife.Remoting
                     sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
                 }
 
-                sb.Append(")");
+                sb.Append(')');
 
                 var des = mi.GetDescription();
                 if (!des.IsNullOrEmpty()) sb.AppendFormat(" {0}", des);

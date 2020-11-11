@@ -244,7 +244,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public Type GetType(String typeName)
         {
-            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException(nameof(typeName));
 
             return typeCache2.GetOrAdd(typeName, GetTypeInternal);
         }

@@ -360,10 +360,10 @@ namespace XCode.DataAccessLayer
                 //if (dc.Identity) continue;
 
                 sb.Append(db.FormatName(dc));
-                sb.Append(",");
+                sb.Append(',');
             }
             sb.Length--;
-            sb.Append(")");
+            sb.Append(')');
 
             // 值列表
             sb.Append(" Values(");
@@ -372,12 +372,12 @@ namespace XCode.DataAccessLayer
                 //if (dc.Identity) continue;
 
                 sb.Append(db.FormatParameterName(dc.Name));
-                sb.Append(",");
+                sb.Append(',');
 
                 if (!ps.Contains(dc.Name)) ps.Add(dc.Name);
             }
             sb.Length--;
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.Put(true);
         }
@@ -794,9 +794,9 @@ namespace XCode.DataAccessLayer
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
+                if (i < fs.Count - 1) sb.Append(',');
             }
 
             // 主键
@@ -804,7 +804,7 @@ namespace XCode.DataAccessLayer
             if (pks != null && pks.Length > 0) sb.AppendFormat(",\r\n\tprimary key ({0})", pks.Join(",", FormatName));
 
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             var sql = sb.ToString();
             if (sql.IsNullOrEmpty()) return sql;

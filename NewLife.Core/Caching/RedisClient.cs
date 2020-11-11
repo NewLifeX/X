@@ -221,7 +221,7 @@ namespace NewLife.Caching
                     // 指令日志。简单类型显示原始值，复杂类型显示序列化后字符串
                     if (log != null)
                     {
-                        log.Append(" ");
+                        log.Append(' ');
                         var ori = oriArgs?[i];
                         switch (ori.GetType().GetTypeCode())
                         {
@@ -429,10 +429,10 @@ namespace NewLife.Caching
 
             // WriteTo与位置无关，CopyTo与位置相关
             ms.Position = 0;
-            if (ms.Length > 0) await ms.CopyToAsync(ns, 4096);
+            if (ms.Length > 0) await ms.CopyToAsync(ns, 4096, cancellationToken);
             ms.Put();
 
-            await ns.FlushAsync();
+            await ns.FlushAsync(cancellationToken);
 
             var rs = await GetResponseAsync(ns, 1, cancellationToken);
 
@@ -527,7 +527,7 @@ namespace NewLife.Caching
             return arr;
         }
 
-        private Packet ReadPacket(Stream ms)
+        private static Packet ReadPacket(Stream ms)
         {
             var len = ReadLine(ms).ToInt(-1);
             if (len <= 0) return null;
@@ -547,7 +547,7 @@ namespace NewLife.Caching
             return new Packet(buf, 0, p - 2);
         }
 
-        private String ReadLine(Stream ms)
+        private static String ReadLine(Stream ms)
         {
             var sb = Pool.StringBuilder.Get();
             while (true)

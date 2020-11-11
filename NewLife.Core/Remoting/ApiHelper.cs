@@ -258,14 +258,14 @@ namespace NewLife.Remoting
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
                 if (action.Contains("?"))
-                    sb.Append("&");
+                    sb.Append('&');
                 else
-                    sb.Append("?");
+                    sb.Append('?');
 
                 var first = true;
                 foreach (var item in ps)
                 {
-                    if (!first) sb.Append("&");
+                    if (!first) sb.Append('&');
                     first = false;
 
                     var v = item.Value is DateTime dt ? dt.ToFullString() : (item.Value + "");
