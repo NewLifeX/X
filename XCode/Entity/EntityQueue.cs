@@ -130,7 +130,6 @@ namespace XCode
         {
             var list = state as ICollection<IEntity>;
             var ss = Session;
-            //var dal = ss.Dal;
 
             var speed = Speed;
             if (Debug || list.Count > 100_000)
@@ -149,11 +148,7 @@ namespace XCode
 
                 try
                 {
-                    // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
-                    if (ss.Table.InsertOnly)
-                        batch.Insert(null, ss);
-                    else
-                        batch.SaveWithoutValid(null, ss);
+                    OnProcess(batch);
                 }
                 catch (Exception ex)
                 {
@@ -194,6 +189,19 @@ namespace XCode
 
             // 马上再来一次，以便于连续处理数据
             _Timer.SetNext(-1);
+        }
+
+        /// <summary>处理一批数据。插入或更新</summary>
+        /// <param name="batch"></param>
+        protected virtual void OnProcess(IList<IEntity> batch)
+        {
+            var ss = Session;
+
+            // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
+            if (ss.Table.InsertOnly)
+                batch.Insert(null, ss);
+            else
+                batch.SaveWithoutValid(null, ss);
         }
 
         /// <summary>发生错误</summary>

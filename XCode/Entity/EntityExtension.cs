@@ -332,12 +332,13 @@ namespace XCode
 
             //var fact = entity.GetType().AsFactory();
 
-            // SQLite 批操作默认使用事务，其它数据库默认不使用事务
-            if (useTransition == null)
-            {
-                //session ??= fact.Session;
-                useTransition = session.Dal.DbType == DatabaseType.SQLite;
-            }
+            //!!! SQLite 默认使用事务将会导致实体队列批量更新时大范围锁数据行，回归到由外部控制增加事务
+            //// SQLite 批操作默认使用事务，其它数据库默认不使用事务
+            //if (useTransition == null)
+            //{
+            //    //session ??= fact.Session;
+            //    useTransition = session.Dal.DbType == DatabaseType.SQLite;
+            //}
 
             var count = 0;
             if (useTransition != null && useTransition.Value)
