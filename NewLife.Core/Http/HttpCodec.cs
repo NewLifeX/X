@@ -44,7 +44,7 @@ namespace NewLife.Http
             // Http编码器仅支持Tcp
             if (context?.Owner is ISocket sock && sock.Local != null && sock.Local.Type != NetType.Tcp) return base.Read(context, message);
 
-            if (!(message is Packet pk)) return base.Read(context, message);
+            if (message is not Packet pk) return base.Read(context, message);
 
             // 是否Http请求
             var isGet = pk.Count >= 4 && pk[0] == 'G' && pk[1] == 'E' && pk[2] == 'T' && pk[3] == ' ';

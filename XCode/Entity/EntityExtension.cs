@@ -126,7 +126,7 @@ namespace XCode
             // Oracle/MySql批量插入
             if (session.Dal.SupportBatch)
             {
-                if (!(list is IList<T> es)) es = list.ToList();
+                if (list is not IList<T> es) es = list.ToList();
                 foreach (IEntity item in es.ToArray())
                 {
                     if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);

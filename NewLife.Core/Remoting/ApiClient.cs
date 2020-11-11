@@ -355,7 +355,7 @@ namespace NewLife.Remoting
             LastActive = DateTime.Now;
 
             // Api解码消息得到Action和参数
-            if (!(e.Message is IMessage msg) || msg.Reply) return;
+            if (e.Message is not IMessage msg || msg.Reply) return;
 
             OnReceive(msg);
         }

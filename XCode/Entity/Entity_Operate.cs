@@ -253,7 +253,7 @@ namespace XCode
                 set { _MasterTime = value; _MasterTime_ = false; }
             }
 
-            private FieldItem GetMasterTime()
+            private static FieldItem GetMasterTime()
             {
                 var fis = Meta.Fields.Where(e => e.Type == typeof(DateTime)).ToArray();
                 if (fis.Length == 0) return null;

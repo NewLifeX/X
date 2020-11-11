@@ -346,7 +346,7 @@ namespace XCode
                 String name = null;
                 for (var i = 0; i < names.Length; i++)
                 {
-                    if (sb.Length > 0) sb.Append("，");
+                    if (sb.Length > 0) sb.Append('，');
 
                     FieldItem field = Meta.Table.FindByName(names[i]);
                     if (field != null) name = field.Description;
@@ -537,7 +537,7 @@ namespace XCode
         public static TEntity FindByKey(Object key)
         {
             var field = Meta.Unique;
-            if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKey方法要求" + typeof(TEntity).FullName + "有唯一主键！");
+            if (field == null) throw new ArgumentNullException(nameof(Meta.Unique), "FindByKey方法要求" + typeof(TEntity).FullName + "有唯一主键！");
 
             // 唯一键为自增且参数小于等于0时，返回空
             if (Helper.IsNullKey(key, field.Type)) return null;
@@ -1348,7 +1348,7 @@ namespace XCode
         /// <param name="extend">是否序列化扩展属性</param>
         protected virtual Boolean OnRead(Stream stream, Object context, Boolean extend)
         {
-            if (!(context is Binary bn)) bn = new Binary { Stream = stream, EncodeInt = true };
+            if (context is not Binary bn) bn = new Binary { Stream = stream, EncodeInt = true };
 
             var fs = extend ? Meta.AllFields : Meta.Fields;
             foreach (var fi in fs)
@@ -1366,7 +1366,7 @@ namespace XCode
         /// <param name="extend">是否序列化扩展属性</param>
         protected virtual Boolean OnWrite(Stream stream, Object context, Boolean extend)
         {
-            if (!(context is Binary bn)) bn = new Binary { Stream = stream, EncodeInt = true };
+            if (context is not Binary bn) bn = new Binary { Stream = stream, EncodeInt = true };
 
             var fs = extend ? Meta.AllFields : Meta.Fields;
             foreach (var fi in fs)
@@ -1451,7 +1451,7 @@ namespace XCode
                     var sb = Pool.StringBuilder.Get();
                     foreach (var dc in columns)
                     {
-                        if (sb.Length > 0) sb.Append(",");
+                        if (sb.Length > 0) sb.Append(',');
                         if (Meta.FieldNames.Contains(dc.Name)) sb.Append(this[dc.Name]);
                     }
 

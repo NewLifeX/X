@@ -108,7 +108,7 @@ namespace NewLife
             if (obj is IEnumerable ems)
             {
                 // 对于枚举成员，先考虑添加到列表，再逐个销毁，避免销毁过程中集合改变
-                if (!(obj is IList list))
+                if (obj is not IList list)
                 {
                     list = new List<Object>();
                     foreach (var item in ems)

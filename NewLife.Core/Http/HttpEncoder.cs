@@ -221,7 +221,7 @@ namespace NewLife.Http
             code = 0;
             value = null;
 
-            if (!(msg is HttpMessage http)) return false;
+            if (msg is not HttpMessage http) return false;
 
             // 分析请求方法 GET / HTTP/1.1
             var p = http.Header.IndexOf(new[] { (Byte)'\r', (Byte)'\n' });

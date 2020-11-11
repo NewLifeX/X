@@ -34,7 +34,7 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         public override Object Read(IHandlerContext context, Object message)
         {
-            if (!(message is Packet pk)) return base.Read(context, message);
+            if (message is not Packet pk) return base.Read(context, message);
 
             // 解码得到多个消息
             var list = Decode(context, pk);

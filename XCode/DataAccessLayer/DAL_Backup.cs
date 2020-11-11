@@ -362,7 +362,7 @@ namespace XCode.DataAccessLayer
 
             protected override Task ReceiveAsync(ActorContext context)
             {
-                if (!(context.Message is DbTable dt)) return null;
+                if (context.Message is not DbTable dt) return null;
 
                 // 匹配要写入的列
                 if (_Columns == null)
