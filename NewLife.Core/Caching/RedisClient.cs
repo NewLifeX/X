@@ -272,7 +272,10 @@ namespace NewLife.Caching
             for (var i = 0; i < count; i++)
             {
                 // 解析响应
-                var header = (Char)ms.ReadByte();
+                var b = ms.ReadByte();
+                if (b == -1) break;
+
+                var header = (Char)b;
                 if (header == '$')
                 {
                     list.Add(ReadBlock(ms));
@@ -366,7 +369,14 @@ namespace NewLife.Caching
             for (var i = 0; i < count; i++)
             {
                 // 解析响应
-                if (i > 0) header = (Char)ms.ReadByte();
+                if (i > 0)
+                {
+                    var b = ms.ReadByte();
+                    if (b == -1) break;
+
+                    header = (Char)b;
+                }
+
                 if (header == '$')
                 {
                     list.Add(ReadBlock(ms));
@@ -491,7 +501,10 @@ namespace NewLife.Caching
             var arr = new Object[n];
             for (var i = 0; i < n; i++)
             {
-                var header = (Char)ms.ReadByte();
+                var b = ms.ReadByte();
+                if (b == -1) break;
+
+                var header = (Char)b;
                 if (header == '$')
                 {
                     arr[i] = ReadPacket(ms);
@@ -860,10 +873,9 @@ namespace NewLife.Caching
         public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
             var ks = keys.ToArray();
-            var rs = Execute("MGET", ks) as Object[];
 
             var dic = new Dictionary<String, T>();
-            if (rs == null) return dic;
+            if (Execute("MGET", ks) is not Object[] rs) return dic;
 
             for (var i = 0; i < ks.Length && i < rs.Length; i++)
             {
