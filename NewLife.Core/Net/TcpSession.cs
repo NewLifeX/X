@@ -166,10 +166,8 @@ namespace NewLife.Net
                 // 连接失败时，任何错误都放弃当前Socket
                 Client = null;
                 if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
-                /*if (ThrowException)*/
-                throw;
 
-                //return false;
+                throw;
             }
 
             _Reconnect = 0;

@@ -6,7 +6,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Serialization;
 using NewLife.Threading;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -258,7 +257,7 @@ namespace NewLife.Remoting
                 {
                     throw new TimeoutException($"请求[{action}]超时！", ex);
                 }
-                throw aggex;
+                throw;
             }
             catch (TaskCanceledException ex)
             {
@@ -286,7 +285,7 @@ namespace NewLife.Remoting
             if (resultType == typeof(Packet)) return (TResult)(Object)data;
 
             // 解码结果
-            var result = enc.DecodeResult(action, data);
+            var result = enc.DecodeResult(action, data, rs);
             if (resultType == typeof(Object)) return (TResult)result;
 
             // 返回

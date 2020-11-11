@@ -94,8 +94,9 @@ namespace NewLife.Http
         /// <summary>解码结果</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
-        public virtual Object DecodeResult(String action, Packet data)
+        public virtual Object DecodeResult(String action, Packet data, IMessage msg)
         {
             var json = data.ToStr();
             WriteLog("{0}<={1}", action, json);

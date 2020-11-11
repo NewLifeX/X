@@ -116,35 +116,8 @@ namespace NewLife.Net
 
                     _RecvCount = 0;
 
-                    var uri = Remote;
-                    var remote = uri?.Address;
-                    var local = Local.Address;
                     // 本地和远程协议栈不一致时需要配对
-                    if (remote != null && !remote.IsAny() && local.AddressFamily != remote.AddressFamily)
-                    {
-                        if (remote.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            if (local == IPAddress.IPv6Any)
-                                local = IPAddress.Any;
-                            else if (local == IPAddress.IPv6Loopback)
-                                local = IPAddress.Loopback;
-                            else
-                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
-                        }
-                        else if (remote.AddressFamily == AddressFamily.InterNetworkV6)
-                        {
-                            if (local == IPAddress.Any)
-                                local = IPAddress.IPv6Any;
-                            else if (local == IPAddress.Loopback)
-                                local = IPAddress.IPv6Loopback;
-                            else
-                                remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
-                        }
-
-                        if (remote == null) throw new ArgumentOutOfRangeException(nameof(Remote), $"在{uri}中找不到适配本地{local}的可用地址！");
-                        Local.Address = local;
-                        Remote.Address = remote;
-                    }
+                    FixAddressFamily();
 
                     var rs = OnOpen();
                     if (!rs) return false;
@@ -168,6 +141,39 @@ namespace NewLife.Net
             }
 
             return true;
+        }
+
+        private void FixAddressFamily()
+        {
+            var uri = Remote;
+            var remote = uri?.Address;
+            var local = Local.Address;
+            // 本地和远程协议栈不一致时需要配对
+            if (remote != null && !remote.IsAny() && local.AddressFamily != remote.AddressFamily)
+            {
+                if (remote.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    if (local == IPAddress.IPv6Any)
+                        local = IPAddress.Any;
+                    else if (local == IPAddress.IPv6Loopback)
+                        local = IPAddress.Loopback;
+                    else
+                        remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
+                }
+                else if (remote.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    if (local == IPAddress.Any)
+                        local = IPAddress.IPv6Any;
+                    else if (local == IPAddress.Loopback)
+                        local = IPAddress.IPv6Loopback;
+                    else
+                        remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
+                }
+
+                if (remote == null) throw new ArgumentOutOfRangeException(nameof(Remote), $"在{uri}中找不到适配本地{local}的可用地址！");
+                Local.Address = local;
+                Remote.Address = remote;
+            }
         }
 
         /// <summary>打开</summary>
@@ -364,10 +370,10 @@ namespace NewLife.Net
             // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
             if (!rs)
             {
-                //if (io)
-                //    ProcessEvent(se, -1);
-                //else
-                ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
+                if (io)
+                    ProcessEvent(se, -1);
+                else
+                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
             }
 
             return true;

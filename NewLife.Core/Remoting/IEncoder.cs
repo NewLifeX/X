@@ -56,8 +56,9 @@ namespace NewLife.Remoting
         /// <summary>解码结果</summary>
         /// <param name="action"></param>
         /// <param name="data"></param>
+        /// <param name="msg">消息</param>
         /// <returns></returns>
-        Object DecodeResult(String action, Packet data);
+        Object DecodeResult(String action, Packet data, IMessage msg);
 
         /// <summary>转换为目标类型</summary>
         /// <param name="obj"></param>
@@ -81,7 +82,6 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual Boolean Decode(IMessage msg, out String action, out Int32 code, out Packet value)
         {
-            action = null;
             code = 0;
             value = null;
 
@@ -91,8 +91,10 @@ namespace NewLife.Remoting
             var reader = new BinaryReader(ms);
 
             action = reader.ReadString();
-            if (msg.Reply && msg.Error) code = reader.ReadInt32();
             if (action.IsNullOrEmpty()) throw new Exception("解码错误，无法找到服务名！");
+
+            // 异常响应才有code
+            if (msg.Reply && msg.Error) code = reader.ReadInt32();
 
             // 参数或结果
             if (ms.Length > ms.Position)
