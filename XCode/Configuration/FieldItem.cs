@@ -261,6 +261,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression StartsWith(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(StartsWith)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
@@ -274,6 +275,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression EndsWith(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(EndsWith)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
@@ -287,6 +289,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression Contains(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(Contains)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
@@ -300,6 +303,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotContains(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(NotContains)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
@@ -315,39 +319,30 @@ namespace XCode.Configuration
 
         Expression _In(IEnumerable value, Boolean flag)
         {
-            if (value == null) return new Expression();
-
-            //var op = Factory;
-            //var name = op.FormatName(ColumnName);
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
             var vs = new List<Object>();
-            var list = new List<Object>();
             foreach (var item in value)
             {
                 // 避免重复项
-                if (vs.Contains(item)) continue;
-                vs.Add(item);
-
-                // 格式化数值
-                //var str = op.FormatValue(this, item);
-                list.Add(item);
+                if (!vs.Contains(item)) vs.Add(item);
             }
-            if (list.Count <= 0) return new Expression();
+            if (vs.Count == 0) throw new ArgumentNullException(nameof(value));
 
-            // 特殊处理枚举全选，如果全选了枚举的所有项，则跳过当前条件构造
-            if (vs[0].GetType().IsEnum)
-            {
-                var es = Enum.GetValues(vs[0].GetType());
-                if (es.Length == vs.Count)
-                {
-                    if (vs.SequenceEqual(es.Cast<Object>())) return new Expression();
-                }
-            }
+            //// 特殊处理枚举全选，如果全选了枚举的所有项，则跳过当前条件构造
+            //if (vs[0].GetType().IsEnum)
+            //{
+            //    var es = Enum.GetValues(vs[0].GetType());
+            //    if (es.Length == vs.Count)
+            //    {
+            //        if (vs.SequenceEqual(es.Cast<Object>())) return new Expression();
+            //    }
+            //}
 
             // 如果In操作且只有一项，修改为等于
-            if (list.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
+            if (vs.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateIn(flag ? "{0} In({1})" : "{0} Not In({1})", list);
+            return CreateIn(flag ? "{0} In({1})" : "{0} Not In({1})", vs);
         }
 
         /// <summary>NotIn操作</summary>
@@ -362,7 +357,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression In(String child)
         {
-            if (child == null) return new Expression();
+            if (child.IsNullOrEmpty()) throw new ArgumentNullException(nameof(child));
 
             return CreateIn("{0} In({1})", child);
         }
@@ -373,7 +368,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotIn(String child)
         {
-            if (child == null) return new Expression();
+            if (child.IsNullOrEmpty()) throw new ArgumentNullException(nameof(child));
 
             return CreateIn("{0} Not In({1})", child);
         }
@@ -384,7 +379,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression In(SelectBuilder builder)
         {
-            if (builder == null) return new Expression();
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
             return CreateIn("{0} In({1})", builder);
         }
@@ -395,7 +390,7 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotIn(SelectBuilder builder)
         {
-            if (builder == null) return new Expression();
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
             return CreateIn("{0} Not In({1})", builder);
         }
