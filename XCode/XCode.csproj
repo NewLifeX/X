@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;netstandard2.0;net50</TargetFrameworks>
+    <TargetFrameworks>net40;net45;netstandard2.0;net5.0</TargetFrameworks>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
@@ -76,7 +76,7 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
     <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net50'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
     <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
