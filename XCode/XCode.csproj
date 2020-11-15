@@ -7,15 +7,12 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>10.0.2020.1111-beta2</Version>
-    <FileVersion>10.0.2020.1111</FileVersion>
+    <Version>10.0.2020.1115-beta2</Version>
+    <FileVersion>10.0.2020.1115</FileVersion>
     <AssemblyVersion>10.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>

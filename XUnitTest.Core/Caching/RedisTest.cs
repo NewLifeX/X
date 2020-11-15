@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using NewLife.Caching;
-using NewLife.Log;
-using Xunit;
-using NewLife.Serialization;
-using NewLife.Data;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using NewLife;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
+using NewLife.Caching;
+using NewLife.Data;
+using NewLife.Log;
+using NewLife.Serialization;
+using Xunit;
 
 namespace XUnitTest.Caching
 {
     public class RedisTest
     {
-        public Redis _redis { get; set; }
+        private Redis _redis;
 
         public RedisTest()
         {

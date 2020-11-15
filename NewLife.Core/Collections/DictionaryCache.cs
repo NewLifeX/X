@@ -291,7 +291,7 @@ namespace NewLife.Collections
         /// <param name="cache"></param>
         public void CopyTo(DictionaryCache<TKey, TValue> cache)
         {
-            if (_cache.Count == 0) return;
+            if (_cache.IsEmpty) return;
 
             foreach (var item in _cache)
             {

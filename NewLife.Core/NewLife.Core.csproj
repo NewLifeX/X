@@ -13,7 +13,6 @@
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
