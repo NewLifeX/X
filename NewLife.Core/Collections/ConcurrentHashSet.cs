@@ -32,7 +32,7 @@ namespace NewLife.Collections
         /// <summary>尝试删除</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean TryRemove(T item) => _dic.TryRemove(item, out var b);
+        public Boolean TryRemove(T item) => _dic.TryRemove(item, out _);
 
         #region IEnumerable<T> 成员
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dic.Keys.GetEnumerator();

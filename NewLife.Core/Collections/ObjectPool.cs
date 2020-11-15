@@ -206,8 +206,7 @@ namespace NewLife.Collections
                 return false;
             }
 
-            var db = value as DisposeBase;
-            if (db != null && db.Disposed)
+            if (value is DisposeBase db && db.Disposed)
             {
                 Interlocked.Increment(ref _ReleaseCount);
                 return false;
@@ -304,7 +303,7 @@ namespace NewLife.Collections
                 {
                     if (item.Value.LastTime < exp)
                     {
-                        if (_busy.TryRemove(item.Key, out var v))
+                        if (_busy.TryRemove(item.Key, out _))
                         {
                             // 业务层可能故意有借没还
                             //v.TryDispose();

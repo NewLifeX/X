@@ -91,7 +91,9 @@ namespace NewLife.Net
                 var sslStream = new SslStream(ns, false);
 
                 var sp = SslProtocol;
+#if !NET50
                 if (sp == SslProtocols.None) sp = SslProtocols.Default;
+#endif
 
                 WriteLog("服务端SSL认证 {0} {1}", sp, Certificate.Issuer);
 
@@ -222,9 +224,9 @@ namespace NewLife.Net
 
             return true;
         }
-        #endregion
+#endregion
 
-        #region 发送
+#region 发送
         private Int32 _bsize;
         private SpinLock _spinLock = new SpinLock();
 
@@ -300,9 +302,9 @@ namespace NewLife.Net
 
             return rs;
         }
-        #endregion
+#endregion
 
-        #region 接收
+#region 接收
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var sock = Client;
@@ -324,7 +326,7 @@ namespace NewLife.Net
         private void OnEndRead(IAsyncResult ar)
         {
             var se = ar.AsyncState as SocketAsyncEventArgs;
-            var bytes = 0;
+            Int32 bytes;
             try
             {
                 bytes = _Stream.EndRead(ar);
@@ -382,9 +384,9 @@ namespace NewLife.Net
 
             return true;
         }
-        #endregion
+#endregion
 
-        #region 自动重连
+#region 自动重连
         /// <summary>重连次数</summary>
         private Int32 _Reconnect;
         void Reconnect()
@@ -401,9 +403,9 @@ namespace NewLife.Net
             }
             catch { }
         }
-        #endregion
+#endregion
 
-        #region 辅助
+#region 辅助
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
         public override String LogPrefix
@@ -434,6 +436,6 @@ namespace NewLife.Net
             else
                 return Local.ToString();
         }
-        #endregion
+#endregion
     }
 }

@@ -125,7 +125,7 @@ namespace NewLife.Data
             if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
 
             var ver = bn.Read<Byte>();
-            var flag = bn.Read<Byte>();
+            _ = bn.Read<Byte>();
 
             // 版本兼容
             if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
@@ -347,14 +347,13 @@ namespace NewLife.Data
             foreach (var row in Rows)
             {
                 var model = (T)typeof(T).CreateInstance();
-                var ext = model as IExtend;
                 for (var i = 0; i < row.Length; i++)
                 {
                     // 扩展赋值，或 反射赋值
                     if (dic.TryGetValue(Columns[i], out var pi))
                     {
                         var val = row[i].ChangeType(pi.PropertyType);
-                        if (ext != null)
+                        if (model is IExtend ext)
                             ext[Columns[i]] = val;
                         else
                             pi.SetValue(model, val, null);

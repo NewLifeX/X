@@ -206,7 +206,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 辅助
-        private const String NewLineMarker = "\n";
+        private const Char NewLineMarker = '\n';
 
         private static readonly IList<String> ParamtersToSign = new List<String> {
             "acl", "uploadId", "partNumber", "uploads", "cors", "logging",
@@ -258,17 +258,21 @@ namespace NewLife.Yun
 
             sb.Append(resourcePath);
 
+#if NET50
+            var parameters = request.Options;
+#else
             var parameters = request.Properties;
+#endif
             if (parameters != null)
             {
                 var separator = '?';
-                foreach (var paramName in parameters.Keys.OrderBy(e => e))
+                foreach (var item in parameters.OrderBy(e => e.Key))
                 {
-                    if (!ParamtersToSign.Contains(paramName)) continue;
+                    if (!ParamtersToSign.Contains(item.Key)) continue;
 
                     sb.Append(separator);
-                    sb.Append(paramName);
-                    var paramValue = parameters[paramName];
+                    sb.Append(item.Key);
+                    var paramValue = item.Value;
                     if (!String.IsNullOrEmpty(paramValue + ""))
                         sb.Append('=').Append(paramValue);
 

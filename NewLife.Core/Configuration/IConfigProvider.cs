@@ -263,8 +263,7 @@ namespace NewLife.Configuration
             var elementType = pi.PropertyType.GetElementTypeEx();
 
             // 实例化数组
-            var arr = pi.GetValue(model, null) as Array;
-            if (arr == null)
+            if (pi.GetValue(model, null) is not Array arr)
             {
                 arr = Array.CreateInstance(elementType, section.Childs.Count);
                 pi.SetValue(model, arr, null);
@@ -297,8 +296,7 @@ namespace NewLife.Configuration
             var elementType = pi.PropertyType.GetElementTypeEx();
 
             // 实例化列表
-            var list = pi.GetValue(model, null) as IList;
-            if (list == null)
+            if (pi.GetValue(model, null) is not IList list)
             {
                 var obj = !pi.PropertyType.IsInterface ?
                     pi.PropertyType.CreateInstance() :
@@ -468,8 +466,8 @@ namespace NewLife.Configuration
 
             var p = name.LastIndexOf('.');
             var ext = p >= 0 ? name.Substring(p + 1) : name;
-
-            if (!_providers.TryGetValue(ext, out var type)) ext = DefaultProvider;
+            if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
+            Type type;
             if (!_providers.TryGetValue(ext, out type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
 
             var config = type.CreateInstance() as IConfigProvider;

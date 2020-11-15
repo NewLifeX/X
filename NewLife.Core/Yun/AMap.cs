@@ -267,8 +267,7 @@ namespace NewLife.Yun
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
 
-            var geo = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (geo == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> geo) return null;
 
             var rs = new Driving
             {
@@ -303,8 +302,7 @@ namespace NewLife.Yun
             var list = await InvokeAsync<IList<Object>>(url, "districts");
             if (list == null || list.Count == 0) return null;
 
-            var geo = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (geo == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> geo) return null;
 
             var addrs = GetArea(geo, 0);
 

@@ -36,8 +36,7 @@ namespace XCode
 
             if (!valueField.IsNullOrEmpty())
             {
-                var fi = fact.Table.FindByName(valueField) as FieldItem;
-                if (fi == null) throw new XException("无法找到名为{0}的字段", valueField);
+                if (fact.Table.FindByName(valueField) is not FieldItem fi) throw new XException("无法找到名为{0}的字段", valueField);
 
                 type = fi.Type;
             }

@@ -354,8 +354,7 @@ namespace System.IO.Compression
             //// 写入文件头时忽略掉这些字段，这些都是DirEntry的字段
             //writer.Settings.IgnoreMembers = ZipEntry.dirMembers;
 
-            var bn = writer as Binary;
-            if (bn != null) bn.IgnoreMembers = ZipEntry.dirMembers;
+            if (writer is Binary bn) bn.IgnoreMembers = ZipEntry.dirMembers;
 
             foreach (var item in Entries)
             {

@@ -275,7 +275,7 @@ namespace NewLife.Serialization
         public void ReadStart(Type type)
         {
             var att = UseAttribute;
-            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
+            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) _ = true;
 
             var reader = GetReader();
             while (reader.NodeType == XmlNodeType.Comment) reader.Skip();

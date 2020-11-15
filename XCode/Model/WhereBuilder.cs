@@ -261,8 +261,7 @@ namespace XCode.Model
                     var name = exp.Substring(0, p).Trim();
                     var value = exp.Substring(p + item.Length).Trim();
 
-                    var fi = Factory.Table.FindByName(name) as FieldItem;
-                    if (fi == null) throw new XCodeException($"无法识别表达式[{exp}]中的字段[{name}]，实体类[{Factory.EntityType.FullName}]中没有该字段");
+                    if (Factory.Table.FindByName(name) is not FieldItem fi) throw new XCodeException($"无法识别表达式[{exp}]中的字段[{name}]，实体类[{Factory.EntityType.FullName}]中没有该字段");
 
                     var val = GetValue(value);
 

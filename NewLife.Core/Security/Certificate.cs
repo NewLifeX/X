@@ -24,10 +24,7 @@ namespace NewLife.Security
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <returns></returns>
-        public static Byte[] CreateSelfSignCertificatePfx(String x500, DateTime startTime, DateTime endTime)
-        {
-            return CreateSelfSignCertificatePfx(x500, startTime, endTime, (SecureString)null);
-        }
+        public static Byte[] CreateSelfSignCertificatePfx(String x500, DateTime startTime, DateTime endTime) => CreateSelfSignCertificatePfx(x500, startTime, endTime, (SecureString)null);
 
         /// <summary>建立自签名证书</summary>
         /// <param name="x500"></param>
@@ -91,7 +88,11 @@ namespace NewLife.Security
             var certStore = IntPtr.Zero;
             var storeCertContext = IntPtr.Zero;
             var passwordPtr = IntPtr.Zero;
+
+#if !NET50
             RuntimeHelpers.PrepareConstrainedRegions();
+#endif
+
             try
             {
                 Check(NativeMethods.CryptAcquireContextW(
@@ -209,8 +210,7 @@ namespace NewLife.Security
         private static SystemTime ToSystemTime(DateTime dateTime)
         {
             var fileTime = dateTime.ToFileTime();
-            SystemTime systemTime;
-            Check(NativeMethods.FileTimeToSystemTime(ref fileTime, out systemTime));
+            Check(NativeMethods.FileTimeToSystemTime(ref fileTime, out var systemTime));
             return systemTime;
         }
 
@@ -306,7 +306,7 @@ namespace NewLife.Security
                 IntPtr x500,
                 Int32 strType,
                 IntPtr reserved,
-                [MarshalAs(UnmanagedType.LPArray)] [Out] Byte[] encoded,
+                [MarshalAs(UnmanagedType.LPArray)][Out] Byte[] encoded,
                 ref Int32 encodedLength,
                 out IntPtr errorString);
 
@@ -328,7 +328,7 @@ namespace NewLife.Security
 
             [DllImport("Crypt32.dll", SetLastError = true, ExactSpelling = true)]
             public static extern IntPtr CertOpenStore(
-                [MarshalAs(UnmanagedType.LPStr)] String storeProvider,
+                [MarshalAs(UnmanagedType.LPWStr)] String storeProvider,
                 Int32 messageAndCertificateEncodingType,
                 IntPtr cryptProvHandle,
                 Int32 flags,

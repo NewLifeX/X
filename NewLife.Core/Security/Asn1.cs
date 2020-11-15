@@ -234,7 +234,7 @@ namespace NewLife.Security
         /// <returns></returns>
         private static Byte[] ReadTLV(BinaryReader reader, Boolean trimZero = true)
         {
-            var len = ReadTLV(reader, out var tag);
+            var len = ReadTLV(reader, out _);
             //Debug.Assert(tag == 0x02);
 
             //if (offset > 0) reader.BaseStream.Seek(1, SeekOrigin.Current);

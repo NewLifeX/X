@@ -249,8 +249,7 @@ namespace XCode.DataAccessLayer
                     foreach (var item in dic)
                     {
                         var name = item.Key;
-                        var ds = item.Value as IDictionary<String, Object>;
-                        if (name.IsNullOrEmpty() || ds == null) continue;
+                        if (name.IsNullOrEmpty() || item.Value is not IDictionary<String, Object> ds) continue;
 
                         var connstr = ds["connectionString"] + "";
                         var provider = ds["providerName"] + "";

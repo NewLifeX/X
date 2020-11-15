@@ -83,8 +83,7 @@ namespace NewLife.Yun
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
 
-            var ds = rs["location"] as IDictionary<String, Object>;
-            if (ds == null || ds.Count < 2) return null;
+            if (rs["location"] is not IDictionary<String, Object> ds || ds.Count < 2) return null;
 
             var gp = new GeoPoint
             {
@@ -179,8 +178,7 @@ namespace NewLife.Yun
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;
 
-            var geo = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (geo == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> geo) return null;
 
             var d1 = geo["distance"] as IDictionary<String, Object>;
             var d2 = geo["duration"] as IDictionary<String, Object>;
@@ -218,8 +216,7 @@ namespace NewLife.Yun
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
 
-            var rs = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (rs == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> rs) return null;
 
             var geo = new GeoAddress();
 

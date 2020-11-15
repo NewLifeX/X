@@ -7,15 +7,13 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.10.2020.1111-beta2</Version>
-    <FileVersion>8.10.2020.1111</FileVersion>
+    <Version>8.10.2020.1115-beta2</Version>
+    <FileVersion>8.10.2020.1115</FileVersion>
     <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
@@ -36,7 +34,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat> 
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -109,6 +107,7 @@
     <Compile Remove="Security\ECDsaHelper.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
+    <Compile Remove="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Remove="Serialization\JsonCodec.cs" />
     <Compile Remove="Serialization\JsonCodec2.cs" />
     <Compile Remove="Web\OAuthClient.cs" />

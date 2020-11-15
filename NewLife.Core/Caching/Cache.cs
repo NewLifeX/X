@@ -359,7 +359,7 @@ namespace NewLife.Caching
             //提前执行一次网络操作，预热链路
             var key = "bstr_";
             Set(key, Rand.NextString(32));
-            var v = Get<String>(key);
+            _ = Get<String>(key);
             Remove(key);
 
             // 赋值测试

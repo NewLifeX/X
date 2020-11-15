@@ -280,7 +280,7 @@ namespace NewLife.Threading
             }
         }
 
-        private static void CopyNow(Object state) => _Now = DateTime.Now;
+        private static void CopyNow(Object? state) => _Now = DateTime.Now;
         #endregion
 
         #region 辅助

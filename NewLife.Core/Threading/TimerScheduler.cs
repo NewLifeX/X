@@ -135,7 +135,7 @@ namespace NewLife.Threading
 
         /// <summary>调度主程序</summary>
         /// <param name="state"></param>
-        private void Process(Object state)
+        private void Process(Object? state)
         {
             Current = this;
             while (true)
@@ -234,10 +234,9 @@ namespace NewLife.Threading
 
         /// <summary>处理每一个定时器</summary>
         /// <param name="state"></param>
-        private void Execute(Object state)
+        private void Execute(Object? state)
         {
-            var timer = state as TimerX;
-            if (timer == null) return;
+            if (state is not TimerX timer) return;
 
             TimerX.Current = timer;
 
@@ -288,10 +287,9 @@ namespace NewLife.Threading
 
         /// <summary>处理每一个定时器</summary>
         /// <param name="state"></param>
-        private async void ExecuteAsync(Object state)
+        private async void ExecuteAsync(Object? state)
         {
-            var timer = state as TimerX;
-            if (timer == null) return;
+            if (state is not TimerX timer) return;
 
             TimerX.Current = timer;
 

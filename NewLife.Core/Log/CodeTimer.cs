@@ -124,7 +124,7 @@ namespace NewLife.Log
 
         private static Int64 GetCurrentThreadTimes()
         {
-            GetThreadTimes(GetCurrentThread(), out var ct, out var et, out var kernelTime, out var userTimer);
+            GetThreadTimes(GetCurrentThread(), out _, out _, out var kernelTime, out var userTimer);
             return kernelTime + userTimer;
         }
         #endregion
@@ -163,10 +163,7 @@ namespace NewLife.Log
 
         #region 构造
         /// <summary>实例化一个代码计时器</summary>
-        public CodeTimer()
-        {
-            Gen = new Int32[] { 0, 0, 0 };
-        }
+        public CodeTimer() => Gen = new Int32[] { 0, 0, 0 };
         #endregion
 
         #region 方法
@@ -215,7 +212,7 @@ namespace NewLife.Log
             threadTime = GetCurrentThreadTimes();
 
             // 如果未指定迭代方法，则使用内部的Time
-            Action<Int32> action = Action;
+            var action = Action;
             if (action == null)
             {
                 action = Time;
@@ -279,12 +276,16 @@ namespace NewLife.Log
 
         #region 进度
         Thread thread;
+        CancellationTokenSource _source;
+
         /// <summary>基准时间</summary>
         static Double msBase;
 
         void StartProgress()
         {
             if (!ShowProgress) return;
+
+            _source = new CancellationTokenSource();
 
             // 使用低优先级线程显示进度
             thread = new Thread(Progress)
@@ -299,7 +300,8 @@ namespace NewLife.Log
         {
             if (thread != null && thread.IsAlive)
             {
-                thread.Abort();
+                _source.Cancel();
+                //thread.Abort();
                 thread.Join(3000);
             }
         }
@@ -309,10 +311,14 @@ namespace NewLife.Log
             var left = Console.CursorLeft;
 
             // 设置光标不可见
+#if __CORE__
+            var cursorVisible = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Console.CursorVisible;
+#else
             var cursorVisible = Console.CursorVisible;
+#endif
             Console.CursorVisible = false;
             var sw = Stopwatch.StartNew();
-            while (true)
+            while (!_source.IsCancellationRequested)
             {
                 try
                 {
@@ -353,9 +359,8 @@ namespace NewLife.Log
             var ms = Elapsed.TotalMilliseconds;
             if (msBase == 0) msBase = ms;
             var pc = ms / msBase;
-
-            var speed = ms == 0 ? 0 : Times / ms;
-            var cost = Times == 0 ? 0 : ms / Times;
+            _ = ms == 0 ? 0 : Times / ms;
+            _ = Times == 0 ? 0 : ms / Times;
             return $"{ms,7:n0}ms {ThreadTime,7:n0}ms {CpuCycles,15:n0} {Gen[0],3}/{Gen[1]}/{Gen[2]}\t{pc,8:p2}";
         }
         #endregion

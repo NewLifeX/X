@@ -71,7 +71,7 @@ namespace NewLife.Serialization
             if (type == null)
             {
                 if (value == null) return false;
-                type = value.GetType();
+                _ = value.GetType();
             }
 
             //if (type == typeof(Guid))

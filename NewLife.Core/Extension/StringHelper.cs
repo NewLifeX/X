@@ -119,7 +119,7 @@ namespace NewLife
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
-        [Obsolete]
+        [Obsolete("该扩展容易带来误解")]
         public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", params String[] separators)
         {
             var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -208,7 +208,7 @@ namespace NewLife
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + 1).Trim();
-                 
+
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
@@ -309,7 +309,7 @@ namespace NewLife
         /// <param name="value">格式字符串</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        [Obsolete]
+        [Obsolete("建议使用插值字符串")]
         public static String F(this String value, params Object?[] args)
         {
             if (String.IsNullOrEmpty(value)) return value;
@@ -954,14 +954,14 @@ namespace NewLife
         /// <param name="output">进程输出内容。默认为空时输出到日志</param>
         /// <param name="onExit">进程退出时执行</param>
         /// <returns>进程退出代码</returns>
-        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String>? output = null, Action<Process>? onExit = null)
+        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
             var p = new Process();
             var si = p.StartInfo;
             si.FileName = cmd;
-            si.Arguments = arguments;
+            if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
 
             // 对于控制台项目，这里需要捕获输出
@@ -977,8 +977,8 @@ namespace NewLife
                 }
                 else if (NewLife.Runtime.IsConsole)
                 {
-                    p.OutputDataReceived += (s, e) => XTrace.WriteLine(e.Data);
-                    p.ErrorDataReceived += (s, e) => XTrace.Log.Error(e.Data);
+                    p.OutputDataReceived += (s, e) => { if (e.Data != null) XTrace.WriteLine(e.Data); };
+                    p.ErrorDataReceived += (s, e) => { if (e.Data != null) XTrace.Log.Error(e.Data); };
                 }
             }
             if (onExit != null) p.Exited += (s, e) => { if (s is Process proc) onExit(proc); };

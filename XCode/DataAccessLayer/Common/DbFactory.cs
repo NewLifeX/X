@@ -84,8 +84,7 @@ namespace XCode.DataAccessLayer
                 var type = provider.GetTypeEx(true);
                 if (type != null)
                 {
-                    var db = type.CreateInstance() as IDatabase;
-                    if (db != null) _dbs[db.Type] = db;
+                    if (type.CreateInstance() is IDatabase db) _dbs[db.Type] = db;
                 }
 
                 return type;

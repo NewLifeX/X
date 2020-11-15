@@ -41,8 +41,12 @@ namespace NewLife.Web
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls;
             }
-            //#elif STD21
-            //            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+#elif NET50
+            try
+            {
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            }
+            catch { }
 #else
             try
             {

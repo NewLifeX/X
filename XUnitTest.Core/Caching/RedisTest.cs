@@ -24,6 +24,7 @@ namespace XUnitTest.Caching
             var file = @"config\redis.config";
             if (File.Exists(file)) config = File.ReadAllText(file.GetFullPath())?.Trim();
             if (config.IsNullOrEmpty()) config = "server=127.0.0.1:6379;db=3";
+            file.GetFullPath().EnsureDirectory(true);
             File.WriteAllText(file.GetFullPath(), config);
 
             //Redis = Redis.Create("127.0.0.1:6379", "newlife", 4);

@@ -238,8 +238,7 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
-            if (list == null || list.Count == 0) return true;
+            if (value is not IList list || list.Count == 0) return true;
 
             // 循环写入数据
             for (var i = 0; i < list.Count; i++)

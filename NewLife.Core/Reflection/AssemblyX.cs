@@ -166,7 +166,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                Type[] ts = null;
+                Type[] ts;
                 try
                 {
                     ts = Asm.GetTypes();
@@ -689,7 +689,10 @@ namespace NewLife.Reflection
                 {
                     if (asmx.FileVersion.IsNullOrEmpty()) continue;
 
-                    var file = asmx.Asm.CodeBase;
+                    var file = "";
+#if !__CORE__
+                    file = asmx.Asm.CodeBase;
+#endif
                     if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
                     if (file.IsNullOrEmpty()) continue;
 

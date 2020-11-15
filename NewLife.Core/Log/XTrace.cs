@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +97,7 @@ namespace NewLife.Log
             }
         }
 
-        private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
+        private static void TaskScheduler_UnobservedTaskException(Object? sender, UnobservedTaskExceptionEventArgs e)
         {
             if (!e.Observed)
             {
@@ -109,7 +110,7 @@ namespace NewLife.Log
             }
         }
 
-        private static void OnProcessExit(Object sender, EventArgs e)
+        private static void OnProcessExit(Object? sender, EventArgs e)
         {
             if (Log is CompositeLog compositeLog)
             {
@@ -182,8 +183,16 @@ namespace NewLife.Log
             // 适当加大控制台窗口
             try
             {
-                if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
-                if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+#if __CORE__
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                    if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+                }
+#else
+                    if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                    if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+#endif
             }
             catch { }
 
@@ -307,7 +316,7 @@ namespace NewLife.Log
             WriteVersion(asm);
 
             var asm2 = Assembly.GetEntryAssembly();
-            if (asm2 != asm) WriteVersion(asm2);
+            if (asm2 != null && asm2 != asm) WriteVersion(asm2);
         }
 
         /// <summary>输出程序集版本</summary>

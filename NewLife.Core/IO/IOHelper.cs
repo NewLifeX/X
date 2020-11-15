@@ -419,7 +419,7 @@ namespace System
             if (length > 0)
             {
                 var buf = new Byte[length];
-                var n = stream.Read(buf, 0, buf.Length);
+                _ = stream.Read(buf, 0, buf.Length);
                 //if (n != buf.Length) buf = buf.ReadBytes(0, n);
                 return buf;
             }
@@ -1190,7 +1190,7 @@ namespace System
                 var g = (count - 1) / groupSize;
                 len += g * 2;
                 // 扣除间隔
-                if (!String.IsNullOrEmpty(separate)) len -= g * separate.Length;
+                if (!String.IsNullOrEmpty(separate)) _ = g * separate.Length;
             }
             var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < count; i++)

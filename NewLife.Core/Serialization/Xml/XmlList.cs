@@ -23,8 +23,7 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
-            if (list == null || list.Count == 0) return true;
+            if (value is not IList list || list.Count == 0) return true;
 
             WriteLog("XmlWrite {0} 元素{1}项", type.Name, list.Count);
 
@@ -67,8 +66,7 @@ namespace NewLife.Serialization
             // 子元素类型
             var elmType = type.GetElementTypeEx();
 
-            var list = value as IList;
-            if (list == null || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+            if (value is not IList list || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
             // 清空已有数据
             list.Clear();

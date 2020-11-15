@@ -119,8 +119,7 @@ namespace NewLife.Remoting
             LastActive = DateTime.Now;
 
             // Api解码消息得到Action和参数
-            var msg = e.Message as IMessage;
-            if (msg == null || msg.Reply) return;
+            if (e.Message is not IMessage msg || msg.Reply) return;
 
             // 连接复用
             if (_Host is ApiServer svr && svr.Multiplex)

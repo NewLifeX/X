@@ -123,7 +123,7 @@ namespace NewLife.Json
                 }
 
                 // 实例化一次，用于触发派生类中可能的静态构造函数
-                var config = new TConfig();
+                new TConfig();
             }
         }
         #endregion

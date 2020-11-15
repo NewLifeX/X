@@ -133,7 +133,6 @@ namespace NewLife.Serialization
             Host.Hosts.Push(value);
 
             // 成员序列化访问器
-            var ac = value as IMemberAccessor;
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
@@ -146,7 +145,7 @@ namespace NewLife.Serialization
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 // 成员访问器优先
-                if (ac != null)
+                if (value is IMemberAccessor ac)
                 {
                     // 访问器直接写入成员
                     if (ac.Read(Host, member))

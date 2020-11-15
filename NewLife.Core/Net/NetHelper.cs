@@ -32,7 +32,13 @@ namespace NewLife
             BitConverter.GetBytes((UInt32)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
-            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+
+#if __CORE__
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#else
+                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#endif
         }
 
         private static readonly ICache _Cache = MemoryCache.Instance;
@@ -471,7 +477,7 @@ namespace NewLife
 
         #region IP地理位置
         /// <summary>IP地址提供者</summary>
-        public static IPProvider IpProvider;
+        public static IPProvider IpProvider { get; set; }
 
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>

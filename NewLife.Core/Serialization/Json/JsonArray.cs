@@ -70,10 +70,9 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
 
             Host.Write("[");
-            if (list != null && list.Count > 0)
+            if (value is IList list && list.Count > 0)
             {
                 // 循环写入数据
                 foreach (var item in list)

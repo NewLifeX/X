@@ -11,6 +11,6 @@ namespace System
         /// <param name="dict"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static Boolean Remove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key) => dict.TryRemove(key, out var value);
+        public static Boolean Remove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key) => dict.TryRemove(key, out _);
     }
 }

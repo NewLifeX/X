@@ -143,8 +143,7 @@ namespace NewLife.Serialization
             var elmType = type?.GetElementTypeEx();
             if (elmType == null) elmType = typeof(Object);
 
-            var arr = target as Array;
-            if (arr == null) arr = Array.CreateInstance(elmType, list.Count);
+            if (target is not Array arr) arr = Array.CreateInstance(elmType, list.Count);
             // 如果源数组有值，则最大只能创建源数组那么多项，抛弃多余项
             for (var i = 0; i < list.Count && i < arr.Length; i++)
             {
@@ -209,7 +208,6 @@ namespace NewLife.Serialization
             }
 
             // 扩展属性
-            var ext = target as IExtend;
 
             // 遍历所有可用于序列化的属性
             var props = target.GetType().GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
@@ -225,7 +223,7 @@ namespace NewLife.Serialization
                     if (pi == null)
                     {
                         // 可能有扩展属性
-                        if (ext != null) ext[item.Key] = item.Value;
+                        if (target is IExtend ext) ext[item.Key] = item.Value;
 
                         continue;
                     }

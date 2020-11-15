@@ -236,8 +236,7 @@ namespace System.Threading.Tasks
 
             if (source.Status == TaskStatus.RanToCompletion)
             {
-                var task = source as Task<TResult>;
-                return tcs.TrySetResult((task == null) ? default : task.Result);
+                return tcs.TrySetResult((source is not Task<TResult> task) ? default : task.Result);
             }
             return false;
         }

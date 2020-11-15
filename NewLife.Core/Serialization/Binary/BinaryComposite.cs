@@ -121,7 +121,6 @@ namespace NewLife.Serialization
             Host.Hosts.Push(value);
 
             // 成员序列化访问器
-            var ac = value as IMemberAccessor;
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
@@ -133,7 +132,7 @@ namespace NewLife.Serialization
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 // 成员访问器优先
-                if (ac != null && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
+                if (value is IMemberAccessor ac && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
 
                 // 数据流不足时，放弃读取目标成员，并认为整体成功
                 var hs = Host.Stream;

@@ -183,7 +183,7 @@ namespace NewLife.Collections
         public virtual Boolean Set(TKey key, TValue value)
         {
             // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-            return TryAdd(key, value, true, out var rs);
+            return TryAdd(key, value, true, out _);
         }
 
         /// <summary>尝试添加，或返回旧值</summary>

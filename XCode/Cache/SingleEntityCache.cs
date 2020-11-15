@@ -477,8 +477,7 @@ namespace XCode.Cache
         {
             if (!Using) return false;
 
-            var entity = value as TEntity;
-            if (entity == null) return false;
+            if (value is not TEntity entity) return false;
 
             var key = GetKeyMethod(entity);
             return Add(key, entity);

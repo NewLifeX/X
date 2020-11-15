@@ -162,8 +162,7 @@ namespace NewLife.Net
             if (socket == null || mSafeHandle == null) return;
 
             var value = socket.GetValue(mSafeHandle);
-            var hand = value as SafeHandle;
-            if (hand == null || hand.IsClosed) return;
+            if (value is not SafeHandle hand || hand.IsClosed) return;
 
             // 先用Shutdown禁用Socket（发送未完成发送的数据），再用Close关闭，这是一种比较优雅的关闭Socket的方法
             if (socket.Connected)
