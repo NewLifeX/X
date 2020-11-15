@@ -44,6 +44,21 @@ namespace Test
             set.Debug = true;
             set.LogLevel = LogLevel.All;
 
+            new LogEventListener(new[] {
+                "System.Runtime",
+                "System.Diagnostics.Eventing.FrameworkEventSource",
+                "System.Transactions.TransactionsEventSource",
+                "Microsoft-Windows-DotNETRuntime",
+                //"Private.InternalDiagnostics.System.Net.Sockets",
+                "System.Net.NameResolution",
+                //"Private.InternalDiagnostics.System.Net.NameResolution",
+                "System.Net.Sockets",
+                //"Private.InternalDiagnostics.System.Net.Http",
+                "System.Net.Http",
+                //"System.Data.DataCommonEventSource",
+                //"Microsoft-Diagnostics-DiagnosticSource",
+            });
+
             var set2 = XCode.Setting.Current;
             set2.Debug = true;
 #endif
@@ -54,7 +69,7 @@ namespace Test
                 try
                 {
 #endif
-                Test7();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -154,7 +169,7 @@ namespace Test
 
         private static void Test3()
         {
-            var tracer = DefaultTracer.Instance;
+            var tracer = DefaultTracer.Instance ?? new DefaultTracer();
             tracer.MaxSamples = 100;
             tracer.MaxErrors = 100;
 
