@@ -365,23 +365,25 @@ namespace NewLife
                 file = "/proc/stat";
                 if (File.Exists(file))
                 {
+                    // CPU指标：user，nice, system, idle, iowait, irq, softirq
                     // cpu  57057 0 14420 1554816 0 443 0 0 0 0
 
-                    var lines = File.ReadAllLines(file);
-                    var vs = lines[0].Split(" ");
-                    if (vs.Length >= 8 && vs[0] == "cpu")
+                    using var reader = new StreamReader(file);
+                    var line = reader.ReadLine();
+                    if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
                     {
+                        var vs = line.TrimStart("cpu").Trim().Split(" ");
                         var current = new SystemTime
                         {
-                            IdleTime = vs[4].ToLong(),
-                            TotalTime = vs.Skip(1).Take(7).Select(e => e.ToLong()).Sum().ToLong(),
+                            IdleTime = vs[3].ToLong(),
+                            TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
                         };
 
-                        var idle = current.IdleTime - _systemTime?.IdleTime ?? 0;
-                        var total = current.TotalTime - _systemTime?.TotalTime ?? 0;
+                        var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
+                        var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
                         _systemTime = current;
 
-                        CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
+                        CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
                     }
                 }
             }
@@ -396,11 +398,11 @@ namespace NewLife
                     TotalTime = kernelTime.ToLong() + userTime.ToLong(),
                 };
 
-                var idle = current.IdleTime - _systemTime?.IdleTime ?? 0;
-                var total = current.TotalTime - _systemTime?.TotalTime ?? 0;
+                var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
+                var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
                 _systemTime = current;
 
-                CpuRate = total == 0 ? 0 : (Single)((Double)(total - idle) / total);
+                CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
             }
         }
         #endregion
