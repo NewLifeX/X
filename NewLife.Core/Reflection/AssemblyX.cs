@@ -17,9 +17,6 @@ namespace NewLife.Reflection
         /// <summary>程序集</summary>
         public Assembly Asm { get; }
 
-        [NonSerialized]
-        private readonly List<String> hasLoaded = new List<String>();
-
         private String _Name;
         /// <summary>名称</summary>
         public String Name => _Name ??= "" + Asm.GetName().Name;
@@ -36,31 +33,9 @@ namespace NewLife.Reflection
         /// <summary>文件版本</summary>
         public String FileVersion => _FileVersion ??= "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
 
-        private DateTime _Compile;
+        private DateTime? _Compile;
         /// <summary>编译时间</summary>
-        public DateTime Compile
-        {
-            get
-            {
-                if (_Compile <= DateTime.MinValue && !hasLoaded.Contains("Compile"))
-                {
-                    hasLoaded.Add("Compile");
-
-                    if (!String.IsNullOrEmpty(Version))
-                    {
-                        var ss = Version.Split(new Char[] { '.' });
-                        var d = Convert.ToInt32(ss[2]);
-                        var s = Convert.ToInt32(ss[3]);
-
-                        var dt = new DateTime(2000, 1, 1);
-                        dt = dt.AddDays(d).AddSeconds(s * 2);
-
-                        _Compile = dt;
-                    }
-                }
-                return _Compile;
-            }
-        }
+        public DateTime Compile => _Compile ??= GetCompileTime(Version);
 
         private Version _CompileVersion;
         /// <summary>编译版本</summary>
@@ -814,6 +789,25 @@ namespace NewLife.Reflection
 
         //    return asm1.FullName == asm2.FullName;
         //}
+        #endregion
+
+        #region 辅助
+        /// <summary>根据版本号计算得到编译时间</summary>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        public static DateTime GetCompileTime(String version)
+        {
+            var ss = version?.Split(new Char[] { '.' });
+            if (ss == null || ss.Length < 4) return DateTime.MinValue;
+
+            var d = Convert.ToInt32(ss[2]);
+            var s = Convert.ToInt32(ss[3]);
+
+            var dt = new DateTime(2000, 1, 1);
+            dt = dt.AddDays(d).AddSeconds(s * 2);
+
+            return dt;
+        }
         #endregion
     }
 }
