@@ -101,18 +101,62 @@ namespace XUnitTest.XCode.Caching
         }
 
         [Fact]
+        public void TestClear()
+        {
+            var cache = new EntityCache<Role>
+            {
+                Expire = 2
+            };
+
+            // 尝试访问
+            var list = cache.Entities;
+            Assert.Equal(1, cache.Times);
+
+            cache.Clear("TestClear");
+
+            // 再次访问
+            var list2 = cache.Entities;
+
+            Assert.Equal(1, cache.Times);
+
+            // 等待更新完成
+            Thread.Sleep(1000);
+            Assert.Equal(2, cache.Times);
+        }
+
+        [Fact]
         public void TestAddRemove()
         {
-            var cache = Role.Meta.Cache;
-            var count = cache.Entities.Count;
+            var cache = new EntityCache<Role>
+            {
+                Expire = 2
+            };
 
-            var r = new Role { Name = "test" };
+            var list = cache.Entities;
 
-            cache.Add(r);
-            Assert.Equal(count + 1, cache.Entities.Count);
+            var role = new Role { Name = "test" };
 
-            cache.Remove(r);
-            Assert.Equal(count, cache.Entities.Count);
+            // 添加实体对象
+            cache.Add(role);
+            var list2 = cache.Entities;
+            Assert.NotEqual(list, list2);
+            Assert.Equal(list.Count + 1, list2.Count);
+
+            // 删除实体对象，来自内部
+            cache.Remove(role);
+            var list3 = cache.Entities;
+            Assert.True(list != list3);
+            Assert.True(list2 != list3);
+            Assert.Equal(list.Count, list3.Count);
+
+            // 删除实体对象，来自外部
+            cache.Add(role);
+            var role2 = new Role { Name = "test" };
+            cache.Remove(role2);
+            var list4 = cache.Entities;
+            Assert.True(list != list4);
+            Assert.True(list2 != list4);
+            Assert.Equal(list.Count, list4.Count);
         }
     }
 }

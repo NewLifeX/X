@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using NewLife;
 using NewLife.Collections;
@@ -19,7 +18,7 @@ namespace XCode.Cache
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache<TKey, TEntity> where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        /// <summary>过期时间。单位是秒，默认10秒</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>清理周期。默认60秒检查一次，清理10倍（600秒）未访问的缓存项</summary>
@@ -56,7 +55,7 @@ namespace XCode.Cache
         public SingleEntityCache()
         {
             var exp = Setting.Current.SingleCacheExpire;
-            if (exp <= 0) exp = 60;
+            if (exp <= 0) exp = 10;
             Expire = exp;
 
             var fi = Entity<TEntity>.Meta.Unique;
@@ -182,8 +181,8 @@ namespace XCode.Cache
             /// <summary>缓存过期时间</summary>
             public DateTime ExpireTime { get; set; }
 
-            /// <summary>是否已经过期</summary>
-            public Boolean Expired => ExpireTime <= TimerX.Now;
+            ///// <summary>是否已经过期</summary>
+            //public Boolean Expired => ExpireTime <= TimerX.Now;
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
@@ -191,6 +190,10 @@ namespace XCode.Cache
                 ExpireTime = TimerX.Now.AddSeconds(expire);
                 VisitTime = ExpireTime;
             }
+
+            /// <summary>获取已过期时间</summary>
+            /// <returns></returns>
+            public TimeSpan GetExpired() => TimerX.Now - ExpireTime;
         }
         #endregion
 
@@ -263,50 +266,57 @@ namespace XCode.Cache
             // 更新统计信息
             CheckShowStatics(ref Total, ShowStatics);
 
-            Interlocked.Increment(ref Success);
-
             // 获取 或 添加
-            CacheItem item = null;
-            CacheItem ci = null;
-            while (!dic.TryGetValue(key, out item))
+            if (dic.TryGetValue(key, out var ci))
             {
-                if (ci == null) ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
+                Interlocked.Increment(ref Success);
+            }
+            else
+            {
+                ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
                 // 不要缓存空值
                 if (ci == null) return null;
 
                 // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
-                if (dic.TryAdd(key, ci))
+                if (Entities.TryAdd(ci.Key, ci))
                 {
-                    item = ci;
+                    if (ci.SlaveKey != null) SlaveEntities.TryAdd(ci.SlaveKey, ci);
+
                     Interlocked.Increment(ref _Count);
-                    break;
                 }
             }
+
             // 最后访问时间
-            item.VisitTime = TimerX.Now;
+            ci.VisitTime = TimerX.Now;
 
             // 异步更新缓存
-            if (item.Expired) ThreadPoolX.QueueUserWorkItem(UpdateData, item);
+            var sec = ci.GetExpired().TotalSeconds;
+            if (sec > 0)
+            {
+                // 频繁更新下，采用异步更新缓存，以提升吞吐。非频繁访问时（2倍超时），同步更新
+                if (sec < Expire)
+                    ThreadPoolX.QueueUserWorkItem(UpdateData, ci);
+                else
+                    UpdateData(ci);
+            }
 
-            return item.Entity;
+            return ci.Entity;
         }
 
         private CacheItem CreateItem<TKey2>(TKey2 key)
         {
-            Interlocked.Decrement(ref Success);
-
             WriteLog(".CreateItem {0}", key);
 
             // 开始更新数据，然后加入缓存
             var mkey = (TKey)(Object)key;
             var entity = Invoke(FindKeyMethod, mkey);
+            if (entity == null) return null;
+
             return AddItem(mkey, entity);
         }
 
         private CacheItem CreateSlaveItem<TKey2>(TKey2 key)
         {
-            Interlocked.Decrement(ref Success);
-
             WriteLog(".CreateSlaveItem {0}", key);
 
             // 开始更新数据，然后加入缓存
@@ -339,16 +349,16 @@ namespace XCode.Cache
             };
             item.SetEntity(entity, Expire);
 
-            var es = Entities;
-            // 新增或更新
-            es[key] = item;
+            //var es = Entities;
+            //// 新增或更新
+            //es[key] = item;
 
-            if (!skey.IsNullOrWhiteSpace())
-            {
-                var ses = SlaveEntities;
-                // 新增或更新
-                ses[skey] = item;
-            }
+            //if (!skey.IsNullOrWhiteSpace())
+            //{
+            //    var ses = SlaveEntities;
+            //    // 新增或更新
+            //    ses[skey] = item;
+            //}
 
             return item;
         }
