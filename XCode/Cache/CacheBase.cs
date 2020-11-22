@@ -41,7 +41,7 @@ namespace XCode.Cache
             {
                 // 无效操作，句柄未初始化，不用出现
                 if (ex is InvalidOperationException && ex.Message.Contains("句柄未初始化")) return default;
-                if (DAL.Debug) DAL.WriteLog(ex.ToString());
+                DAL.WriteLog(ex.ToString());
                 throw;
             }
             finally

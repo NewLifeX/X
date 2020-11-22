@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using NewLife.Log;
 using XCode.Cache;
 using XCode.Membership;
@@ -11,6 +8,11 @@ namespace XUnitTest.XCode.Caching
 {
     public class SingleEntityCacheTests
     {
+        static SingleEntityCacheTests()
+        {
+            CacheBase.Debug = true;
+        }
+
         public SingleEntityCacheTests()
         {
             var count = User.Meta.Count;
@@ -19,8 +21,6 @@ namespace XUnitTest.XCode.Caching
         [Fact]
         public void TestKey()
         {
-            CacheBase.Debug = true;
-
             for (var i = 0; i < 15; i++)
             {
                 XTrace.WriteLine("{0}", i);
@@ -34,8 +34,6 @@ namespace XUnitTest.XCode.Caching
         [Fact]
         public void TestSlave()
         {
-            CacheBase.Debug = true;
-
             for (var i = 0; i < 15; i++)
             {
                 XTrace.WriteLine("{0}", i);

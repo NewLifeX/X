@@ -27,7 +27,7 @@ namespace XCode.Cache
         /// <summary>缓存更新次数</summary>
         public Int32 Times => _Times;
 
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        /// <summary>过期时间。单位是秒，默认10秒</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>填充数据的方法</summary>
@@ -37,7 +37,7 @@ namespace XCode.Cache
         public Boolean WaitFirst { get; set; } = true;
 
         /// <summary>是否在使用缓存，在不触发缓存动作的情况下检查是否有使用缓存</summary>
-        internal Boolean Using { get; set; }
+        public Boolean Using { get; set; }
         #endregion
 
         #region 构造
@@ -45,7 +45,7 @@ namespace XCode.Cache
         public EntityCache()
         {
             var exp = Setting.Current.EntityCacheExpire;
-            if (exp <= 0) exp = 60;
+            if (exp <= 0) exp = 10;
 
             Expire = exp;
 
@@ -111,7 +111,15 @@ namespace XCode.Cache
                 }
             }
             else
-                UpdateCacheAsync($"有效期{Expire}秒，已过期{sec:n0}秒");
+            {
+                var msg = $"有效期{Expire}秒，已过期{sec:n2}秒";
+
+                // 频繁更新下，采用异步更新缓存，以提升吞吐。非频繁访问时（2倍超时），同步更新
+                if (sec < Expire)
+                    UpdateCacheAsync(msg);
+                else
+                    UpdateCache(msg);
+            }
 
             // 只要访问了实体缓存数据集合，就认为是使用了实体缓存，允许更新缓存数据期间向缓存集合添删数据
             Using = true;
@@ -148,6 +156,7 @@ namespace XCode.Cache
             // 控制只有一个线程能更新
             if (Interlocked.CompareExchange(ref _updating, 1, 0) != 0) return;
 
+            WriteLog($"异步更新缓存，{reason}");
             ThreadPoolX.QueueUserWorkItem(UpdateCache, reason);
         }
 
@@ -190,7 +199,7 @@ namespace XCode.Cache
             UpdateCacheAsync(reason);
         }
 
-        private readonly IEntityFactory Operate = Entity<TEntity>.Meta.Factory;
+        private readonly IEntityFactory _factory = Entity<TEntity>.Meta.Factory;
         /// <summary>添加对象到缓存</summary>
         /// <param name="entity"></param>
         public void Add(TEntity entity)
@@ -220,7 +229,7 @@ namespace XCode.Cache
             var e = es.Find(x => x == entity);
             if (e == null)
             {
-                var fi = Operate.Unique;
+                var fi = _factory.Unique;
                 if (fi != null)
                 {
                     var v = entity[fi.Name];
@@ -254,7 +263,7 @@ namespace XCode.Cache
             if (e != null) return e;
 
             var idx = -1;
-            var fi = Operate.Unique;
+            var fi = _factory.Unique;
             if (fi != null)
             {
                 var v = entity[fi.Name];
@@ -307,7 +316,7 @@ namespace XCode.Cache
         #endregion
 
         #region IEntityCache 成员
-        IList<IEntity> IEntityCache.Entities { get { return new List<IEntity>(Entities); } }
+        IList<IEntity> IEntityCache.Entities => new List<IEntity>(Entities);
         #endregion
 
         #region 辅助
