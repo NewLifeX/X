@@ -242,7 +242,22 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);
             if (File.Exists(file))
             {
-                var dic = JsonParser.Decode(File.ReadAllText(file));
+                var lines = File.ReadAllLines(file);
+
+                // 预处理注释
+                var text = lines.Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//")).Join(Environment.NewLine);
+                while (true)
+                {
+                    var p = text.IndexOf("/*");
+                    if (p < 0) break;
+
+                    var p2 = text.IndexOf("*/", p + 2);
+                    if (p2 < 0) break;
+
+                    text = text.Substring(0, p) + text.Substring(p2 + 2);
+                }
+
+                var dic = JsonParser.Decode(text);
                 dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
                 if (dic != null && dic.Count > 0)
                 {
@@ -303,7 +318,7 @@ namespace XCode.DataAccessLayer
         public static event EventHandler<ResolveEventArgs> OnResolve;
 
         /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
-        public static GetConfigCallback GetConfig;
+        public static GetConfigCallback GetConfig { get; set; }
 
         private static readonly ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
         private static TimerX _timerGetConfig;
