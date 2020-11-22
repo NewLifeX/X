@@ -643,7 +643,7 @@ namespace NewLife
             var bbs = new List<String>();
             try
             {
-                var wql = String.Format("Select {0} From {1}", property, path);
+                var wql = $"Select {property} From {path}";
                 var cimobject = new ManagementObjectSearcher(wql);
                 var moc = cimobject.Get();
                 foreach (var mo in moc)

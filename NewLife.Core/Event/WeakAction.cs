@@ -130,7 +130,7 @@ namespace NewLife
             if (Method == null) return base.ToString();
 
             if (Method.DeclaringType != null)
-                return String.Format("{0}.{1}", Method.DeclaringType.Name, Method.Name);
+                return $"{Method.DeclaringType.Name}.{Method.Name}";
             else
                 return Method.Name;
         }

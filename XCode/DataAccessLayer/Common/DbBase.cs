@@ -498,7 +498,7 @@ namespace XCode.DataAccessLayer
                 #region 有OrderBy
                 // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况
                 if (startRowIndex <= 0 && maximumRows > 0)
-                    return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
+                    return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
 
                 keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
                 sql = sql.Substring(0, ms[0].Index);
@@ -1004,7 +1004,7 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
+        public override String ToString() => $"[{ConnName}] {Type} {ServerVersion}";
 
         protected static String ResolveFile(String file)
         {

@@ -31,7 +31,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否降序</summary>
         public Boolean IsDesc
         {
-            get { return IsDescs != null && IsDescs.Length > 0 ? IsDescs[0] : false; }
+            get { return IsDescs != null && IsDescs.Length > 0 && IsDescs[0]; }
             set { IsDescs = new Boolean[] { value }; }
         }
 
@@ -489,7 +489,7 @@ $";
             var builder = this;
             if (!String.IsNullOrEmpty(keyColumn)) builder.Column = keyColumn;
             if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-            builder.Column = String.Format("Top {0} {1}", top, builder.Column);
+            builder.Column = $"Top {top} {builder.Column}";
 
             return builder;
         }
@@ -499,10 +499,7 @@ $";
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(SelectBuilder obj)
-        {
-            return !obj.Equals(null) ? obj.ToString() : null;
-        }
+        public static implicit operator String(SelectBuilder obj) => !obj.Equals(null) ? obj.ToString() : null;
         #endregion
     }
 }

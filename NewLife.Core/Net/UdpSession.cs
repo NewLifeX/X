@@ -214,7 +214,7 @@ namespace NewLife.Net
         public override String ToString()
         {
             if (Remote != null && !Remote.EndPoint.IsAny())
-                return String.Format("{0}=>{1}", Local, Remote.EndPoint);
+                return $"{Local}=>{Remote.EndPoint}";
             else
                 return Local.ToString();
         }

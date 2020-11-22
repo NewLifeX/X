@@ -156,7 +156,7 @@ namespace XCode.DataAccessLayer
 
             // 找到该表所有字段，注意排序
             DataRow[] drs = null;
-            var where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
+            var where = $"{_.TalbeName}='{table.TableName}'";
             if (dt.Columns.Contains(_.OrdinalPosition))
                 drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
@@ -252,7 +252,7 @@ namespace XCode.DataAccessLayer
         {
             if (indexes == null) return null;
 
-            var drs = indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+            var drs = indexes.Select($"{_.TalbeName}='{table.TableName}'");
             if (drs == null || drs.Length < 1) return null;
 
             var list = new List<IDataIndex>();

@@ -172,7 +172,7 @@ namespace NewLife.Model
         #region 辅助
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("{0}[Count={1}]", GetType().Name, Count);
+        public override String ToString() => $"{GetType().Name}[Count={Count}]";
         #endregion
     }
 
@@ -196,7 +196,7 @@ namespace NewLife.Model
         #endregion
 
         #region 方法
-        public override String ToString() => String.Format("[{0},{1}]", ServiceType?.Name, ImplementationType?.Name);
+        public override String ToString() => $"[{ServiceType?.Name},{ImplementationType?.Name}]";
         #endregion
     }
 

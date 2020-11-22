@@ -668,7 +668,7 @@ namespace System.IO.Compression
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("{0} [{1}]", Name, Entries.Count);
+        public override String ToString() => $"{Name} [{Entries.Count}]";
         #endregion
 
         #region IEnumerable<ZipEntry> 成员

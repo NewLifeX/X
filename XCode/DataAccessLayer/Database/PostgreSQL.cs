@@ -277,7 +277,7 @@ namespace XCode.DataAccessLayer
         {
             var sql = base.FieldClause(field, onlyDefine);
             // 加上注释
-            if (!String.IsNullOrEmpty(field.Description)) sql = String.Format("{0} COMMENT '{1}'", sql, field.Description);
+            if (!String.IsNullOrEmpty(field.Description)) sql = $"{sql} COMMENT '{field.Description}'";
             return sql;
         }
 
@@ -367,7 +367,7 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(table.Description)) return null;
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table), table.Description);
+            return $"Alter Table {FormatName(table)} Comment '{table.Description}'";
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify Column {FieldClause(field, false)}";

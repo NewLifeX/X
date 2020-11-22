@@ -443,7 +443,7 @@ namespace XCode.DataAccessLayer
             {
                 var rs = cmd.ExecuteScalar();
                 if (rs == null || rs == DBNull.Value) return default;
-                if (rs is T) return (T)rs;
+                if (rs is T t) return t;
 
                 return (T)Reflect.ChangeType(rs, typeof(T));
             });
@@ -689,12 +689,12 @@ namespace XCode.DataAccessLayer
                         {
                             var bv = v as Byte[];
                             if (bv.Length > 8)
-                                sv = String.Format("[{0}]0x{1}...", bv.Length, BitConverter.ToString(bv, 0, 8));
+                                sv = $"[{bv.Length}]0x{BitConverter.ToString(bv, 0, 8)}...";
                             else
-                                sv = String.Format("[{0}]0x{1}", bv.Length, BitConverter.ToString(bv));
+                                sv = $"[{bv.Length}]0x{BitConverter.ToString(bv)}";
                         }
                         else if (v is String str && str.Length > 64)
-                            sv = String.Format("[{0}]{1}...", str.Length, str.Substring(0, 64));
+                            sv = $"[{str.Length}]{str.Substring(0, 64)}...";
                         else
                             sv = v is DateTime dt ? dt.ToFullString() : (v + "");
                         sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);

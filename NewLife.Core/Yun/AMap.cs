@@ -100,7 +100,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private readonly String _geoUrl = "http://restapi.amap.com/v3/geocode/geo?address={0}&city={1}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -113,7 +112,7 @@ namespace NewLife.Yun
             address = HttpUtility.UrlEncode(address);
             city = HttpUtility.UrlEncode(city);
 
-            var url = String.Format(_geoUrl, address, city);
+            var url = $"http://restapi.amap.com/v3/geocode/geo?address={address}&city={city}&output=json";
 
             var list = await InvokeAsync<IList<Object>>(url, "geocodes");
             return list?.FirstOrDefault() as IDictionary<String, Object>;
@@ -171,7 +170,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 逆地址编码
-        private readonly String _regeoUrl = "http://restapi.amap.com/v3/geocode/regeo?location={0},{1}&extensions=base&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/georegeo/#regeo
@@ -182,7 +180,7 @@ namespace NewLife.Yun
         {
             if (point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = String.Format(_regeoUrl, point.Longitude, point.Latitude);
+            var url = $"http://restapi.amap.com/v3/geocode/regeo?location={point.Longitude},{point.Latitude}&extensions=base&output=json";
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "regeocode");
         }
@@ -236,7 +234,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private readonly String _distanceUrl = "http://restapi.amap.com/v3/distance?origins={0},{1}&destination={2},{3}&type={4}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/direction
@@ -262,7 +259,7 @@ namespace NewLife.Yun
             if (destination == null || destination.Longitude < 1 && destination.Latitude < 1) throw new ArgumentNullException(nameof(destination));
 
             if (type <= 0) type = 1;
-            var url = String.Format(_distanceUrl, origin.Longitude, origin.Latitude, destination.Longitude, destination.Latitude, type);
+            var url = $"http://restapi.amap.com/v3/distance?origins={origin.Longitude},{origin.Latitude}&destination={destination.Longitude},{destination.Latitude}&type={type}&output=json";
 
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
@@ -280,8 +277,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 行政区划
-        //private String url3 = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=all&output=json";
-        private readonly String _areaUrl = "http://restapi.amap.com/v3/config/district?keywords={0}&subdistrict={1}&filter={2}&extensions=base&output=json";
         /// <summary>行政区划</summary>
         /// <remarks>
         /// http://lbs.amap.com/api/webservice/guide/api/district
@@ -297,7 +292,7 @@ namespace NewLife.Yun
             // 编码
             keywords = HttpUtility.UrlEncode(keywords);
 
-            var url = String.Format(_areaUrl, keywords, subdistrict, code);
+            var url = $"http://restapi.amap.com/v3/config/district?keywords={keywords}&subdistrict={subdistrict}&filter={code}&extensions=base&output=json";
 
             var list = await InvokeAsync<IList<Object>>(url, "districts");
             if (list == null || list.Count == 0) return null;

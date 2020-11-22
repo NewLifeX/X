@@ -221,10 +221,10 @@ namespace XCode
             {
                 if (!(value is Guid))
                 {
-                    if (value is Byte[])
-                        value = new Guid((Byte[])value);
-                    else if (value is String)
-                        value = new Guid((String)value);
+                    if (value is Byte[] buf)
+                        value = new Guid(buf);
+                    else if (value is String str)
+                        value = new Guid(str);
                 }
             }
 

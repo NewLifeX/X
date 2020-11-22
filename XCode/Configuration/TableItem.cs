@@ -456,7 +456,7 @@ namespace XCode.Configuration
             if (String.IsNullOrEmpty(Description))
                 return TableName;
             else
-                return String.Format("{0}（{1}）", TableName, Description);
+                return $"{TableName}（{Description}）";
         }
         #endregion
 

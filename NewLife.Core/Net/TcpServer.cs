@@ -367,7 +367,7 @@ namespace NewLife.Net
             var ss = Sessions;
             var count = ss != null ? ss.Count : 0;
             if (count > 0)
-                return String.Format("{0} [{1}]", Local, count);
+                return $"{Local} [{count}]";
             else
                 return Local.ToString();
         }

@@ -578,9 +578,9 @@ namespace XCode
             {
                 String msg;
                 if (Helper.IsNullKey(key, field.Type))
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！可能未设置自增主键！", key, Meta.Table.Description);
+                    msg = $"参数错误！无法取得编号为{key}的{Meta.Table.Description}！可能未设置自增主键！";
                 else
-                    msg = String.Format("参数错误！无法取得编号为{0}的{1}！", key, Meta.Table.Description);
+                    msg = $"参数错误！无法取得编号为{key}的{Meta.Table.Description}！";
 
                 throw new XCodeException(msg);
             }
@@ -770,8 +770,8 @@ namespace XCode
                         if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
 
                         // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
-                        list.Reverse();
-                        return list;
+                        //list.Reverse();
+                        return list.Reverse().ToList();
                     }
                 }
             }

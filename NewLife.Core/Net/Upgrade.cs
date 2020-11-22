@@ -257,7 +257,7 @@ namespace NewLife.Net
         /// <param name="args"></param>
         public void WriteLog(String format, params Object[] args)
         {
-            format = String.Format("[{0}]{1}", Name, format);
+            format = $"[{Name}]{format}";
             Log?.Info(format, args);
         }
         #endregion

@@ -206,7 +206,7 @@ namespace NewLife.Net
         {
             if (Servers.Contains(server)) return false;
 
-            server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
+            server.Name = $"{Name}{(server.Local.IsTcp ? "Tcp" : "Udp")}{(server.Local.Address.IsIPv4() ? "" : "6")}";
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;

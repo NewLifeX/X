@@ -87,7 +87,7 @@ namespace XCode.DataAccessLayer
             if (builder[Application_Name] == null)
             {
                 var name = AppDomain.CurrentDomain.FriendlyName;
-                builder[Application_Name] = String.Format("XCode_{0}_{1}", name, ConnName);
+                builder[Application_Name] = $"XCode_{name}_{ConnName}";
             }
         }
         #endregion
@@ -1053,7 +1053,7 @@ namespace XCode.DataAccessLayer
         protected override String RenameTable(String tableName, String tempTableName)
         {
             if (Version.Major >= 8)
-                return String.Format("EXECUTE sp_rename N'{0}', N'{1}', 'OBJECT' ", tableName, tempTableName);
+                return $"EXECUTE sp_rename N'{tableName}', N'{tempTableName}', 'OBJECT' ";
             else
                 return base.RenameTable(tableName, tempTableName);
         }
@@ -1187,7 +1187,7 @@ namespace XCode.DataAccessLayer
             return sql;
         }
 
-        public override String DropColumnDescriptionSQL(IDataColumn field) => String.Format("EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{0}', @level2type=N'COLUMN',@level2name=N'{1}'", field.Table.TableName, field.ColumnName);
+        public override String DropColumnDescriptionSQL(IDataColumn field) => $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{field.Table.TableName}', @level2type=N'COLUMN',@level2name=N'{field.ColumnName}'";
 
         String DeletePrimaryKeySQL(IDataColumn field)
         {

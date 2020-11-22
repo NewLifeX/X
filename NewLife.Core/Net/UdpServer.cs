@@ -370,7 +370,7 @@ namespace NewLife.Net
         {
             var ss = Sessions;
             if (ss != null && ss.Count > 0)
-                return String.Format("{0} [{1}]", Local, ss.Count);
+                return $"{Local} [{ss.Count}]";
             else
                 return Local.ToString();
         }

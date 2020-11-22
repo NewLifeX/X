@@ -252,7 +252,7 @@ namespace XCode.DataAccessLayer
                 else
                 {
                     if (sb.Length > 0) sb.AppendLine(";");
-                    sb.Append(sbDelete.ToString());
+                    sb.Append(sbDelete);
                 }
             }
             #endregion
@@ -541,7 +541,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        protected virtual String RenameTable(String tableName, String tempTableName) => String.Format("Alter Table {0} Rename To {1}", tableName, tempTableName);
+        protected virtual String RenameTable(String tableName, String tempTableName) => $"Alter Table {tableName} Rename To {tempTableName}";
 
         /// <summary>
         /// 获取架构语句，该执行的已经执行。

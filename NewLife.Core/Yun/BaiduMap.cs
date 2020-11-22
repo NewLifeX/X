@@ -55,7 +55,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private readonly String _geoUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&ret_coordtype={2}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -68,7 +67,7 @@ namespace NewLife.Yun
             address = HttpUtility.UrlEncode(address);
             city = HttpUtility.UrlEncode(city);
 
-            var url = String.Format(_geoUrl, address, city, CoordType);
+            var url = $"http://api.map.baidu.com/geocoder/v2/?address={address}&city={city}&ret_coordtype={CoordType}&output=json";
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -107,7 +106,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 逆地址编码
-        private readonly String _regeoUrl = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&extensions_town=true&latest_admin=1&coord_type={2}&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <param name="point"></param>
         /// <returns></returns>
@@ -115,7 +113,7 @@ namespace NewLife.Yun
         {
             if (point == null || point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = String.Format(_regeoUrl, point.Latitude, point.Longitude, CoordType);
+            var url = $"http://api.map.baidu.com/geocoder/v2/?location={point.Latitude},{point.Longitude}&extensions_town=true&latest_admin=1&coord_type={CoordType}&output=json";
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -156,7 +154,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private readonly String _distanceUrl = "http://api.map.baidu.com/routematrix/v2/driving?origins={0},{1}&destinations={2},{3}&tactics={4}&coord_type={5}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbsyun.baidu.com/index.php?title=webapi/route-matrix-api-v2
@@ -173,7 +170,7 @@ namespace NewLife.Yun
             if (type <= 0) type = 13;
             var coord = CoordType;
             if (!coord.IsNullOrEmpty() && coord.Length > 6) coord = coord.TrimEnd("ll");
-            var url = String.Format(_distanceUrl, origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
+            var url = $"http://api.map.baidu.com/routematrix/v2/driving?origins={origin.Latitude},{origin.Longitude}&destinations={destination.Latitude},{destination.Longitude}&tactics={type}&coord_type={coord}&output=json";
 
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;

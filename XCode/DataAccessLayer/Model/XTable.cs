@@ -108,11 +108,11 @@ namespace XCode.DataAccessLayer
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
         [XmlIgnore, IgnoreDataMember]
-        public IDataColumn Master { get { return Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey); } }
+        public IDataColumn Master => Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey);
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
         [XmlIgnore, IgnoreDataMember]
-        public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
+        public IDataColumn[] PrimaryKeys => Columns.FindAll(item => item.PrimaryKey).ToArray();
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -176,25 +176,14 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建字段</summary>
         /// <returns></returns>
-        public virtual IDataColumn CreateColumn()
-        {
-            var dc = new XField();
-            dc.Table = this;
-            return dc;
-        }
+        public virtual IDataColumn CreateColumn() => new XField { Table = this };
 
         /// <summary>创建索引</summary>
         /// <returns></returns>
-        public virtual IDataIndex CreateIndex()
-        {
-            var idx = new XIndex();
-            idx.Table = this;
-
-            return idx;
-        }
+        public virtual IDataIndex CreateIndex() => new XIndex { Table = this };
 
         /// <summary>修正数据</summary>
-        public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
+        public virtual IDataTable Fix() => ModelResolver.Current.Fix(this);
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -203,7 +192,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(DisplayName))
                 return Name;
             else
-                return String.Format("{0}({1})", Name, DisplayName);
+                return $"{Name}({DisplayName})";
         }
         #endregion
 

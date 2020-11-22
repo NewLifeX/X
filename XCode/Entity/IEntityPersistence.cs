@@ -143,7 +143,7 @@ namespace XCode
                     {
                         // 如果所有字段都不是自增，则取消对自增的处理
                         if (factory.Fields.All(f => !f.IsIdentity)) bAllow = false;
-                        if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, session.FormatedTableName);
+                        if (bAllow) sql = $"SET IDENTITY_INSERT {session.FormatedTableName} ON;{sql};SET IDENTITY_INSERT {session.FormatedTableName} OFF";
                     }
                 }
                 rs = session.Execute(sql, CommandType.Text, dps);

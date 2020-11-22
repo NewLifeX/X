@@ -104,7 +104,7 @@ namespace NewLife.Log
             if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
 
-            return String.Format("{0:HH:mm:ss.fff} {1,2} {2} {3} {4}", Time, ThreadID, IsPool ? (IsWeb ? 'W' : 'Y') : 'N', name, Message);
+            return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
         }
         #endregion
 

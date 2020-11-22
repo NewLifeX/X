@@ -52,10 +52,7 @@ namespace XCode
         /// <returns></returns>
         public static IEntityFactory Register(Type type, IEntityFactory factory)
         {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-
-            //return _factories.AddOrUpdate(type, factory, (t, f) => f);
-            _factories[type] = factory;
+            _factories[type] = factory ?? throw new ArgumentNullException(nameof(factory));
 
             return factory;
         }
@@ -116,7 +113,7 @@ namespace XCode
                 if (dic.TryGetValue(table.TableName, out var type))
                 {
                     // 两个都不是，报错吧！
-                    var msg = String.Format("设计错误！发现表{0}同时被两个实体类（{1}和{2}）使用！", table.TableName, type.FullName, item.FullName);
+                    var msg = $"设计错误！发现表{table.TableName}同时被两个实体类（{type.FullName}和{item.FullName}）使用！";
                     XTrace.WriteLine(msg);
                     throw new XCodeException(msg);
                 }

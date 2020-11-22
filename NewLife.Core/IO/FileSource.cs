@@ -21,7 +21,7 @@ namespace NewLife.IO
 
             if (asm == null) asm = Assembly.GetCallingAssembly();
             var stream = GetFileResource(asm, fileName);
-            if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, fileName));
+            if (stream == null) throw new ArgumentException("filename", $"在程序集{asm.GetName().Name}中无法找到名为{fileName}的资源！");
 
             if (destFile.IsNullOrEmpty()) destFile = fileName;
             destFile = destFile.GetFullPath();

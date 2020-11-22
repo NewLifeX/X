@@ -157,7 +157,7 @@ namespace NewLife.Web
             if (startBytes != 0)
             {
                 // 指定数据范围
-                Response.AddHeader("Content-Range", String.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
+                Response.AddHeader("Content-Range", $" bytes {startBytes}-{fileLength - 1}/{fileLength}");
             }
             Response.AddHeader("Connection", "Keep-Alive");
             Response.ContentType = ContentType;
