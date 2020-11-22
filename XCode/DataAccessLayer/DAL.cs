@@ -245,9 +245,21 @@ namespace XCode.DataAccessLayer
                 var lines = File.ReadAllLines(file);
 
                 // 预处理注释
-                var text = lines.Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//")).Join(Environment.NewLine);
+                var text = lines
+                    .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
+                    .Select(e =>
+                    {
+                        // 单行注释 “//” 放在最后的情况
+                        var p0 = e.IndexOf("//");
+                        if (p0 > 0) return e.Substring(0, p0);
+
+                        return e;
+                    })
+                    .Join(Environment.NewLine);
+
                 while (true)
                 {
+                    // 以下处理多行注释 “/**/” 放在一行的情况
                     var p = text.IndexOf("/*");
                     if (p < 0) break;
 
