@@ -848,6 +848,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public Boolean SetAll<T>(IDictionary<String, T> values)
         {
+            if (values == null || values.Count == 0) throw new ArgumentNullException(nameof(values));
+
             //var ps = new List<Packet>();
             var ps = new List<Object>();
             foreach (var item in values)
@@ -872,6 +874,8 @@ namespace NewLife.Caching
         /// <returns></returns>
         public IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
         {
+            if (keys == null || !keys.Any()) throw new ArgumentNullException(nameof(keys));
+
             var ks = keys.ToArray();
 
             var dic = new Dictionary<String, T>();
