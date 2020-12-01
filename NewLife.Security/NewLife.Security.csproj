@@ -12,9 +12,6 @@
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
