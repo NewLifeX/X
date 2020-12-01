@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
@@ -68,15 +70,15 @@ namespace NewLife.Net
         public Boolean Check()
         {
             // 删除备份文件
-            DeleteBuckup(DestinationPath);
+            DeleteBackup(DestinationPath);
 
             var url = Server;
 
             WriteLog("检查资源包 {0}", url);
 
             var web = CreateClient();
-            var html = web.GetHtml(url);
-            var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower())); 
+            var html = web.GetString(url);
+            var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower()));
             if (links == null || links.Length == 0)
             {
                 WriteLog("找不到资源包");
@@ -119,16 +121,24 @@ namespace NewLife.Net
             if (link == null) throw new Exception("没有可用新版本！");
             if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
 
+            Download(link.Url, link.FullName);
+        }
+
+        /// <summary>开始更新</summary>
+        /// <param name="url">下载源</param>
+        /// <param name="fileName">文件名</param>
+        public void Download(String url, String fileName)
+        {
             // 如果更新包不存在，则下载
-            var file = UpdatePath.CombinePath(link.FullName).GetBasePath();
+            var file = UpdatePath.CombinePath(fileName).GetBasePath();
             if (!File.Exists(file))
             {
-                WriteLog("准备下载 {0} 到 {1}", link.Url, file);
+                WriteLog("准备下载 {0} 到 {1}", url, file);
 
                 var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
-                TaskEx.Run(() => web.DownloadFileAsync(link.Url, file)).Wait();
+                TaskEx.Run(() => web.DownloadFileAsync(url, file)).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -141,7 +151,7 @@ namespace NewLife.Net
         public Boolean Update()
         {
             // 删除备份文件
-            DeleteBuckup(DestinationPath);
+            DeleteBackup(DestinationPath);
 
             var file = SourceFile;
 
@@ -180,18 +190,35 @@ namespace NewLife.Net
         #endregion
 
         #region 辅助
-        private WebClientX _Client;
-        private WebClientX CreateClient()
+        private HttpClient _Client;
+        private HttpClient CreateClient()
         {
             if (_Client != null) return _Client;
 
-            var web = new WebClientX();
-            return _Client = web;
+            return _Client = new HttpClient();
         }
 
         /// <summary>删除备份文件</summary>
         /// <param name="dest">目标目录</param>
+        [Obsolete("=>DeleteBackup", true)]
         public static void DeleteBuckup(String dest)
+        {
+            // 删除备份
+            var di = dest.AsDirectory();
+            var fs = di.GetAllFiles("*.del", true);
+            foreach (var item in fs)
+            {
+                try
+                {
+                    item.Delete();
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>删除备份文件</summary>
+        /// <param name="dest">目标目录</param>
+        public static void DeleteBackup(String dest)
         {
             // 删除备份
             var di = dest.AsDirectory();
