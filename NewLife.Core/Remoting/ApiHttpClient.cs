@@ -136,7 +136,7 @@ namespace NewLife.Remoting
                 }
                 catch (ApiException ex)
                 {
-                    ex.Source = Services[_idxServer]?.Address + "/" + action;
+                    ex.Source = Services[_idxServer % Services.Count]?.Address + "/" + action;
                     throw;
                 }
                 catch (HttpRequestException)
