@@ -290,12 +290,12 @@ namespace NewLife
 
             var mid = "/etc/machine-id";
             if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
-            if (File.Exists(mid)) Guid = File.ReadAllText(mid).Trim();
+            if (TryRead(mid, out var value)) Guid = value;
 
             var file = "/sys/class/dmi/id/product_uuid";
-            if (File.Exists(file)) UUID = File.ReadAllText(file).Trim();
+            if (TryRead(file, out value)) UUID = value;
             file = "/sys/class/dmi/id/product_name";
-            if (File.Exists(file)) Product = File.ReadAllText(file).Trim();
+            if (TryRead(file, out value)) Product = value;
 
             var disks = GetFiles("/dev/disk/by-id", true);
             if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
@@ -343,13 +343,13 @@ namespace NewLife
                 }
 
                 var file = "/sys/class/thermal/thermal_zone0/temp";
-                if (File.Exists(file))
-                    Temperature = File.ReadAllText(file).Trim().ToDouble() / 1000;
+                if (TryRead(file, out var value))
+                    Temperature = value.ToDouble() / 1000;
                 else
                 {
                     // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
                     file = "/sys/class/hwmon/hwmon0/device/temp_value";
-                    if (File.Exists(file)) Temperature = File.ReadAllText(file).Trim().Substring(null, ":").ToDouble();
+                    if (TryRead(file, out value)) Temperature = value.Substring(null, ":").ToDouble();
                 }
 
                 //var upt = Execute("uptime");
@@ -413,13 +413,13 @@ namespace NewLife
         public static String GetLinuxName()
         {
             var fr = "/etc/redhat-release";
-            if (File.Exists(fr)) return File.ReadAllText(fr).Trim();
+            if (TryRead(fr, out var value)) return value;
 
             var dr = "/etc/debian-release";
-            if (File.Exists(dr)) return File.ReadAllText(dr).Trim();
+            if (TryRead(dr, out value)) return value;
 
             var sr = "/etc/os-release";
-            if (File.Exists(sr)) return File.ReadAllText(sr).SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
+            if (TryRead(sr, out value)) return value?.SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
 
             var uname = Execute("uname", "-sr")?.Trim();
             if (!uname.IsNullOrEmpty()) return uname;
@@ -443,6 +443,22 @@ namespace NewLife
             }
 
             return null;
+        }
+
+        private static Boolean TryRead(String fileName, out String value)
+        {
+            value = null;
+
+            if (!File.Exists(fileName)) return false;
+
+            try
+            {
+                value = File.ReadAllText(fileName)?.Trim();
+                if (value.IsNullOrEmpty()) return false;
+            }
+            catch { return false; }
+
+            return true;
         }
 
         private static IDictionary<String, String> ReadInfo(String file, Char separate = ':')
