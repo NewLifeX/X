@@ -218,13 +218,14 @@ namespace NewLife.Net
 
         /// <summary>删除备份文件</summary>
         /// <param name="dest">目标目录</param>
-        public static void DeleteBackup(String dest)
+        public void DeleteBackup(String dest)
         {
             // 删除备份
             var di = dest.AsDirectory();
             var fs = di.GetAllFiles("*.del", true);
             foreach (var item in fs)
             {
+                WriteLog("Delete {0}", item);
                 try
                 {
                     item.Delete();
@@ -236,7 +237,7 @@ namespace NewLife.Net
         /// <summary>拷贝并替换。正在使用锁定的文件不可删除，但可以改名</summary>
         /// <param name="source">源目录</param>
         /// <param name="dest">目标目录</param>
-        public static void CopyAndReplace(String source, String dest)
+        public void CopyAndReplace(String source, String dest)
         {
             var di = source.AsDirectory();
 
@@ -250,27 +251,37 @@ namespace NewLife.Net
                 // 如果是应用配置文件，不要更新
                 if (dst.EndsWithIgnoreCase(".exe.config")) continue;
 
-                // 如果是exe/dll，则先改名，因为可能无法覆盖
-                if (dst.EndsWithIgnoreCase(".exe", ".dll") && File.Exists(dst))
+                // 拷贝覆盖
+                WriteLog("Copy {0}", item);
+                try
                 {
-                    // 先尝试删除
-                    try
+                    item.CopyTo(dst.EnsureDirectory(true), true);
+                }
+                catch
+                {
+                    // 如果是exe/dll，则先改名，因为可能无法覆盖
+                    if (/*dst.EndsWithIgnoreCase(".exe", ".dll") &&*/ File.Exists(dst))
                     {
-                        File.Delete(dst);
-                    }
-                    catch
-                    {
-                        var del = dst + ".del";
-                        if (File.Exists(del)) File.Delete(del);
-                        File.Move(dst, del);
+                        // 先尝试删除
+                        WriteLog("Delete {0}", item);
+                        try
+                        {
+                            File.Delete(dst);
+                        }
+                        catch
+                        {
+                            var del = dst + ".del";
+                            if (File.Exists(del)) File.Delete(del);
+                            File.Move(dst, del);
+                        }
+
+                        item.CopyTo(dst, true);
                     }
                 }
-
-                // 拷贝覆盖
-                item.CopyTo(dst.EnsureDirectory(true), true);
             }
 
             // 删除临时目录
+            WriteLog("Delete {0}", di.FullName);
             di.Delete(true);
         }
         #endregion
@@ -282,11 +293,7 @@ namespace NewLife.Net
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            format = $"[{Name}]{format}";
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info($"[{Name}]{format}", args);
         #endregion
     }
 }
