@@ -247,14 +247,15 @@ namespace XCode.DataAccessLayer
                 // 预处理注释
                 var text = lines
                     .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
-                    .Select(e =>
-                    {
-                        // 单行注释 “//” 放在最后的情况
-                        var p0 = e.IndexOf("//");
-                        if (p0 > 0) return e.Substring(0, p0);
+                    // 没考虑到链接中带双斜杠的，以下导致链接的内容被干掉
+                    //.Select(e =>
+                    //{
+                    //    // 单行注释 “//” 放在最后的情况
+                    //    var p0 = e.IndexOf("//");
+                    //    if (p0 > 0) return e.Substring(0, p0);
 
-                        return e;
-                    })
+                    //    return e;
+                    //})
                     .Join(Environment.NewLine);
 
                 while (true)
