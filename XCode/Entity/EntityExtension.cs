@@ -439,7 +439,17 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchInsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量更新</summary>
@@ -483,7 +493,17 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpdate:{session.TableName}");
+            try
+            {
+                return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量插入或更新</summary>
@@ -551,7 +571,17 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量插入或更新</summary>
@@ -595,7 +625,17 @@ namespace XCode
             dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
-            return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, new[] { entity as IExtend });
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Upsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, new[] { entity as IExtend });
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, entity);
+                throw;
+            }
         }
 
         /// <summary>获取脏数据列</summary>
