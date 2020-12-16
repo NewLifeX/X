@@ -14,7 +14,7 @@ namespace NewLife
     public static class StringHelper
     {
         #region 字符串扩展
-        /// <summary>忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等</summary>
+        /// <summary>忽略大小写的字符串相等比较，判断是否与任意一个待比较字符串相等</summary>
         /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
@@ -27,7 +27,7 @@ namespace NewLife
             return false;
         }
 
-        /// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
+        /// <summary>忽略大小写的字符串开始比较，判断是否与任意一个待比较字符串开始</summary>
         /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
