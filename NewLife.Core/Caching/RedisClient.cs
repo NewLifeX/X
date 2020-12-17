@@ -319,16 +319,19 @@ namespace NewLife.Caching
             var ns = GetStream(!isQuit);
             if (ns == null) return null;
 
-            // 验证登录
-            CheckLogin(cmd);
+            if (!cmd.IsNullOrEmpty())
+            {
+                // 验证登录
+                CheckLogin(cmd);
 
-            var ms = Pool.MemoryStream.Get();
-            GetRequest(ms, cmd, args, oriArgs);
+                var ms = Pool.MemoryStream.Get();
+                GetRequest(ms, cmd, args, oriArgs);
 
-            // WriteTo与位置无关，CopyTo与位置相关
-            //ms.Position = 0;
-            if (ms.Length > 0) ms.WriteTo(ns);
-            ms.Put();
+                // WriteTo与位置无关，CopyTo与位置相关
+                //ms.Position = 0;
+                if (ms.Length > 0) ms.WriteTo(ns);
+                ms.Put();
+            }
 
             var rs = GetResponse(ns, 1);
 
@@ -421,18 +424,21 @@ namespace NewLife.Caching
             var ns = await GetStreamAsync(!isQuit);
             if (ns == null) return null;
 
-            // 验证登录
-            CheckLogin(cmd);
+            if (!cmd.IsNullOrEmpty())
+            {
+                // 验证登录
+                CheckLogin(cmd);
 
-            var ms = Pool.MemoryStream.Get();
-            GetRequest(ms, cmd, args, oriArgs);
+                var ms = Pool.MemoryStream.Get();
+                GetRequest(ms, cmd, args, oriArgs);
 
-            // WriteTo与位置无关，CopyTo与位置相关
-            ms.Position = 0;
-            if (ms.Length > 0) await ms.CopyToAsync(ns, 4096, cancellationToken);
-            ms.Put();
+                // WriteTo与位置无关，CopyTo与位置相关
+                ms.Position = 0;
+                if (ms.Length > 0) await ms.CopyToAsync(ns, 4096, cancellationToken);
+                ms.Put();
 
-            await ns.FlushAsync(cancellationToken);
+                await ns.FlushAsync(cancellationToken);
+            }
 
             var rs = await GetResponseAsync(ns, 1, cancellationToken);
 
@@ -580,9 +586,9 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Object Execute(String cmd, params Object[] args)
         {
-            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
+            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
 
-            return ExecuteCommand(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
+            return ExecuteCommand(cmd, args?.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
         }
 
         /// <summary>执行命令。返回基本类型、对象、对象数组</summary>
@@ -599,8 +605,8 @@ namespace NewLife.Caching
             }
 
             var rs = Execute(cmd, args);
-            if (rs is TResult rs2) return rs2;
             if (rs == null) return default;
+            if (rs is TResult rs2) return rs2;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default;
@@ -628,6 +634,24 @@ namespace NewLife.Caching
             return true;
         }
 
+        /// <summary>读取更多。用于PubSub等多次读取命令</summary>
+        /// <returns></returns>
+        public virtual TResult ReadMore<TResult>()
+        {
+            var ns = GetStream(false);
+            if (ns == null) return default;
+
+            var rss = GetResponse(ns, 1);
+            var rs = rss.FirstOrDefault();
+
+            //var rs = ExecuteCommand(null, null, null);
+            if (rs == null) return default;
+            if (rs is TResult rs2) return rs2;
+            if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+
+            return default;
+        }
+
 #if NET4
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd">命令</param>
@@ -643,9 +667,9 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default)
         {
-            using var span = Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
+            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
 
-            return await ExecuteCommandAsync(cmd, args.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
+            return await ExecuteCommandAsync(cmd, args?.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
         }
 
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
@@ -669,8 +693,27 @@ namespace NewLife.Caching
             }
 
             var rs = await ExecuteAsync(cmd, args, cancellationToken);
-            if (rs is TResult rs2) return rs2;
             if (rs == null) return default;
+            if (rs is TResult rs2) return rs2;
+            if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
+
+            return default;
+        }
+
+        /// <summary>读取更多。用于PubSub等多次读取命令</summary>
+        /// <param name="cancellationToken">取消通知</param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ReadMoreAsync<TResult>(CancellationToken cancellationToken)
+        {
+            var ns = await GetStreamAsync(false);
+            if (ns == null) return default;
+
+            var rss = await GetResponseAsync(ns, 1, cancellationToken);
+            var rs = rss.FirstOrDefault();
+
+            //var rs = ExecuteCommand(null, null, null);
+            if (rs == null) return default;
+            if (rs is TResult rs2) return rs2;
             if (rs != null && TryChangeType(rs, typeof(TResult), out var target)) return (TResult)target;
 
             return default;
