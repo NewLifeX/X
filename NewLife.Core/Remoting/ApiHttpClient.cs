@@ -120,6 +120,7 @@ namespace NewLife.Remoting
         public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
         {
             var returnType = typeof(TResult);
+            var svrs = Services;
 
             var i = 0;
             do
@@ -136,14 +137,14 @@ namespace NewLife.Remoting
                 }
                 catch (ApiException ex)
                 {
-                    ex.Source = Services[_idxServer % Services.Count]?.Address + "/" + action;
+                    ex.Source = svrs[_idxServer % svrs.Count]?.Address + "/" + action;
                     throw;
                 }
                 catch (HttpRequestException)
                 {
                     // 网络异常时，自动切换到其它节点
                     _idxServer++;
-                    if (++i >= Services.Count) throw;
+                    if (++i >= svrs.Count) throw;
                 }
             } while (true);
         }
@@ -199,8 +200,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
-            var ms = Services;
-            if (ms.Count == 0) throw new InvalidOperationException("未添加服务地址！");
+            if (Services.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
             // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
             var service = GetService();

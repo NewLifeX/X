@@ -838,7 +838,10 @@ namespace XCode.Code
 
                     WriteLine();
                     WriteLine("// 实体缓存");
-                    WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.{0} == {1});", pk.Name, name);
+                    if (pk.DataType == typeof(String))
+                        WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.{0}.EqualIgnoreCase({1}));", pk.Name, name);
+                    else
+                        WriteLine("if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.{0} == {1});", pk.Name, name);
 
                     WriteLine();
                     WriteLine("// 单对象缓存");
@@ -888,7 +891,10 @@ namespace XCode.Code
                         exp.AppendFormat("_.{0} == {1}", dc.Name, dc.CamelName());
 
                         if (wh.Length > 0) wh.Append(" && ");
-                        wh.AppendFormat("e.{0} == {1}", dc.Name, dc.CamelName());
+                        if (dc.DataType == typeof(String))
+                            wh.AppendFormat("e.{0}.EqualIgnoreCase({1})", dc.Name, dc.CamelName());
+                        else
+                            wh.AppendFormat("e.{0} == {1}", dc.Name, dc.CamelName());
                     }
 
                     if (di.Unique)
