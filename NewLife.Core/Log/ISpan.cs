@@ -146,7 +146,8 @@ namespace NewLife.Log
         /// <summary>设置跟踪标识</summary>
         public virtual void Start()
         {
-            if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
+            //if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
+            if (Id.IsNullOrEmpty()) Id = CreateId();
 
             // 设置父级
             var span = Current;
@@ -170,7 +171,17 @@ namespace NewLife.Log
 
         private static String _myip;
         private static Int32 _seq;
+        private static Int32 _seq2;
         private static String _pid;
+
+        /// <summary>创建分片编号</summary>
+        /// <returns></returns>
+        protected virtual String CreateId()
+        {
+            // IPv4(8) + PID(4) + 顺序数(4)
+            var id = Interlocked.Increment(ref _seq);
+            return _myip + _pid + id.ToString("x4").PadLeft(4, '0');
+        }
 
         /// <summary>创建跟踪编号</summary>
         /// <returns></returns>
@@ -186,7 +197,8 @@ namespace NewLife.Log
             var sb = Pool.StringBuilder.Get();
             sb.Append(_myip);
             sb.Append(DateTime.UtcNow.ToLong());
-            sb.Append(Interlocked.Increment(ref _seq));
+            var id = Interlocked.Increment(ref _seq2);
+            sb.Append(id.ToString("x4").PadLeft(4, '0'));
             sb.Append('e');
             sb.Append(_pid);
 
