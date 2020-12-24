@@ -263,9 +263,17 @@ namespace XUnitTest.Caching
             // 已经过了一点时间
             Thread.Sleep(500);
 
+            var sw = Stopwatch.StartNew();
+
             // 循环多次后，可以抢到
             using var ck2 = ic.AcquireLock("TestLock3", 1000);
             Assert.NotNull(ck2);
+
+            // 耗时必须超过有效期
+            sw.Stop();
+            XTrace.WriteLine("TestLock3 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds >= 500);
+            Assert.True(sw.ElapsedMilliseconds <= 1000);
         }
     }
 }
