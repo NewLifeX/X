@@ -257,7 +257,7 @@ namespace NewLife.Caching
         public virtual Int32 Commit() => 0;
 
         /// <summary>申请分布式锁</summary>
-        /// <param name="key">要锁定的key，内部加lock:前缀</param>
+        /// <param name="key">要锁定的key</param>
         /// <param name="msTimeout">锁等待时间</param>
         /// <returns></returns>
         public IDisposable AcquireLock(String key, Int32 msTimeout)
