@@ -753,8 +753,14 @@ namespace XCode
             using var csv = new CsvFile(stream, true);
             if (displayfields != null)
                 csv.WriteLine(displayfields);
-            else
-                csv.WriteLine(fields);
+            else if (fields != null)
+            {
+                // 第一行以ID开头的csv文件，容易被识别为SYLK文件
+                if (fields.Length > 0)
+                    csv.WriteLine(fields.Select((e, k) => (k == 0 && e == "ID") ? "Id" : e));
+                else
+                    csv.WriteLine(fields);
+            }
             foreach (var entity in list)
             {
                 csv.WriteLine(fields.Select(e => entity[e]));
