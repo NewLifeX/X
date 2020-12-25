@@ -161,10 +161,16 @@ namespace NewLife
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
             if (ss == null || ss.Length < 1) return dic;
 
+            var k = 0;
             foreach (var item in ss)
             {
                 var p = item.IndexOf(nameValueSeparator);
-                if (p <= 0) continue;
+                if (p <= 0)
+                {
+                    dic[$"[{k}]"] = item;
+                    k++;
+                    continue;
+                }
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + nameValueSeparator.Length).Trim();
@@ -176,6 +182,7 @@ namespace NewLife
                     if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
                 }
 
+                k++;
                 dic[key] = val;
             }
 
