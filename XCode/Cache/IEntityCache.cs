@@ -20,7 +20,9 @@ namespace XCode.Cache
         IList<IEntity> Entities { get; }
 
         /// <summary>清除缓存</summary>
-        void Clear(String reason);
+        /// <param name="reason">清除原因</param>
+        /// <param name="force">强制清除，下次访问阻塞等待。默认false仅置为过期，下次访问异步更新</param>
+        void Clear(String reason, Boolean force = false);
     }
 
     /// <summary>单对象缓存接口</summary>
