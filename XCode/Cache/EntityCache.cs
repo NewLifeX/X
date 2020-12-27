@@ -115,7 +115,8 @@ namespace XCode.Cache
             }
             else
             {
-                var msg = $"有效期{Expire}秒，已过期{sec:n2}秒";
+                var s = ExpiredTime == DateTime.MinValue ? "已强制过期" : $"已过期{sec:n2}秒";
+                var msg = $"有效期{Expire}秒，{s}";
 
                 // 频繁更新下，采用异步更新缓存，以提升吞吐。非频繁访问时（2倍超时），同步更新
                 if (sec < Expire)
