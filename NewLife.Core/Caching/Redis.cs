@@ -95,7 +95,10 @@ namespace NewLife.Caching
         {
             if (config.IsNullOrEmpty()) return;
 
-            var dic = config.SplitAsDictionary("=", ";", true);
+            var dic =
+                config.Contains(',') && !config.Contains(';') ?
+                config.SplitAsDictionary("=", ",", true) :
+                config.SplitAsDictionary("=", ";", true);
             if (dic.Count > 0)
             {
                 Server = dic["Server"]?.Trim();
@@ -103,11 +106,18 @@ namespace NewLife.Caching
                 Password = dic["Password"]?.Trim();
                 Db = dic["Db"].ToInt();
 
+                if (Server.IsNullOrEmpty() && dic.TryGetValue("[0]", out var svr)) Server = svr;
+
                 // 连接字符串可能独立写了port
                 var port = dic["Port"].ToInt();
                 if (port > 0 && !Server.Contains(":")) Server += ":" + port;
 
-                if (dic.TryGetValue("Timeout", out var str)) Timeout = str.ToInt();
+                if (dic.TryGetValue("Timeout", out var str))
+                    Timeout = str.ToInt();
+                else if (dic.TryGetValue("responseTimeout", out str))
+                    Timeout = str.ToInt();
+                else if (dic.TryGetValue("connectTimeout", out str))
+                    Timeout = str.ToInt();
             }
         }
 

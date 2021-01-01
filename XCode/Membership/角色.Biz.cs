@@ -142,7 +142,7 @@ namespace XCode.Membership
                 sys.Save();
 
                 // 更新缓存
-                Meta.Cache.Clear("CheckRole");
+                Meta.Cache.Clear("CheckRole", true);
             }
         }
 

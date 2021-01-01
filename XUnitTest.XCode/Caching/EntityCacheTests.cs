@@ -112,16 +112,28 @@ namespace XUnitTest.XCode.Caching
             var list = cache.Entities;
             Assert.Equal(1, cache.Times);
 
-            cache.Clear("TestClear");
+            cache.Clear("TestClear", false);
+
+            Thread.Sleep(1000);
+            Assert.Equal(1, cache.Times);
 
             // 再次访问
             var list2 = cache.Entities;
 
             Assert.Equal(1, cache.Times);
+            Thread.Sleep(1000);
+            Assert.Equal(2, cache.Times);
+
+            cache.Clear("TestClear", true);
+
+            // 再次访问
+            list2 = cache.Entities;
+
+            Assert.Equal(3, cache.Times);
 
             // 等待更新完成
             Thread.Sleep(1000);
-            Assert.Equal(2, cache.Times);
+            Assert.Equal(3, cache.Times);
         }
 
         [Fact]
