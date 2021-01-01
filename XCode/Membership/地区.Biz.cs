@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -344,16 +345,34 @@ namespace XCode.Membership
             if (!key.IsNullOrEmpty())
             {
                 if (key.ToLong() > 0)
-                    exp &= _.ID == key | _.TelCode == key | _.ZipCode == key;
+                {
+                    var exp2 = new WhereExpression();
+                    if (key.Length == 6 || key.Length == 9) exp2 |= _.ID == key;
+                    if (key.Length == 2 || key.Length == 3) exp2 |= _.TelCode == key;
+                    if (key.Length == 6) exp2 |= _.ZipCode == key;
+
+                    exp &= exp2;
+                }
                 else
-                    exp &= _.Name == key | _.FullName.StartsWith(key) | _.Kind == key | _.PinYin.StartsWith(key) | _.JianPin == key | _.GeoHash.StartsWith(key);
+                {
+                    // 区分中英文，GeoHash全部小写
+                    if (Encoding.UTF8.GetByteCount(key) == key.Length)
+                    {
+                        if (key == key.ToLower())
+                            exp &= _.PinYin.StartsWith(key) | _.JianPin == key | _.GeoHash.StartsWith(key);
+                        else
+                            exp &= _.PinYin.StartsWith(key) | _.JianPin == key;
+                    }
+                    else
+                        exp &= _.Name == key | _.FullName.StartsWith(key) | _.Kind == key;
+                }
             }
 
             return FindAll(exp, page);
         }
 
         /// <summary>根据条件模糊搜索</summary>
-        /// <param name="parentid"></param>
+        /// <param name="parentid">在指定级别下搜索，-1表示所有，非负数时支持字符串相似搜索</param>
         /// <param name="key"></param>
         /// <param name="enable"></param>
         /// <param name="count"></param>
@@ -366,11 +385,20 @@ namespace XCode.Membership
 
             if (r != null)
             {
-                if (key.IsNullOrEmpty()) return r.Childs.Where(e => e.Enable).Take(count).ToList();
+                // 两级搜索，特殊处理直辖
+                var list = FindAllByParentID(r.ID) as List<Area>;
+                if (list.Count == 1 && list[0].Name.StartsWith("直辖")) list = FindAllByParentID(list[0].ID) as List<Area>;
+                foreach (var item in list.ToArray())
+                {
+                    var list2 = FindAllByParentID(item.ID);
+                    if (list2.Count > 0) list.AddRange(list2);
+                }
 
-                var list = r.AllChilds
-                    .Where(e => e.Enable)
-                    .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key)
+                if (enable != null) list = list.Where(e => e.Enable == enable).ToList();
+                if (!key.IsNullOrEmpty())
+                {
+                    var list2 = list
+                        .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key)
                         || !e.FullName.IsNullOrEmpty() && e.FullName.Contains(key)
                         || e.PinYin.StartsWithIgnoreCase(key)
                         || e.JianPin.EqualIgnoreCase(key)
@@ -378,12 +406,21 @@ namespace XCode.Membership
                         || e.ZipCode == key
                         || e.GeoHash.StartsWithIgnoreCase(key)
                         )
-                    .Take(count)
-                    .ToList();
-                if (list.Count > 0 || r.ID > 0) return list;
+                        .Take(count)
+                        .ToList();
+
+                    // LCS字符串 最长公共子序列搜索
+                    if (list2.Count == 0)
+                    {
+                        list2 = list.LCS(key, e => e.FullName).Select(e => e.Key).Take(count).ToList();
+                    }
+
+                    list = list2;
+                }
+                if (list.Count > 0 || r.ID > 0) return list.Take(count).ToList();
             }
 
-            return Search(parentid, -1, -1, -1, enable, key, DateTime.MinValue, DateTime.MinValue, new PageParameter { PageSize = count });
+            return Search(parentid, -1, -1, -1, enable, key, DateTime.MinValue, DateTime.MinValue, new PageParameter { PageSize = count, Sort = nameof(ID) });
         }
         #endregion
 
