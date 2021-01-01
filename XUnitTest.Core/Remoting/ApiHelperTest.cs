@@ -23,7 +23,8 @@ namespace XUnitTest.Remoting
 
         public ApiHelperTest()
         {
-            var port = Rand.Next(1000, 50000);
+            //var port = Rand.Next(10000, 50000);
+            var port = 28080;
 
             // 使用ApiServer作为测试服务端
             _Server = new ApiServer(port)
