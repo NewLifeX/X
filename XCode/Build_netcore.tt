@@ -5,10 +5,14 @@
 <#@ import namespace="System.Diagnostics" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="XCode.Code" #>
+<#@ import namespace="XCode.DataAccessLayer" #>
 <#@ output extension=".log" #>
 <#
     // 设置当前工作目录
 	PathHelper.BasePath = Host.ResolvePath(".");
+
+    // 设置如何格式化字段名，默认去掉下划线并转驼峰命名
+    //ModelResolver.Current = new ModelResolver { TrimUnderline = false, Camel = false };
 
     // 加载模型文件，得到数据表
     var option = new BuilderOption();
