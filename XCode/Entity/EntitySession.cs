@@ -523,8 +523,13 @@ namespace XCode
 
         /// <summary>清除缓存</summary>
         /// <param name="reason">清除原因</param>
+        [Obsolete]
+        public void ClearCache(String reason) => ClearCache(reason, false);
+
+        /// <summary>清除缓存</summary>
+        /// <param name="reason">清除原因</param>
         /// <param name="force">强制清除，下次访问阻塞等待。默认false仅置为过期，下次访问异步更新</param>
-        public void ClearCache(String reason, Boolean force = false)
+        public void ClearCache(String reason, Boolean force)
         {
             _cache?.Clear(reason, force);
 

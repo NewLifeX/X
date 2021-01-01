@@ -155,7 +155,7 @@ namespace XCode.Common
 
             Score = (Int32)speed;
 
-            session.ClearCache("SqlInsert");
+            session.ClearCache("SqlInsert", false);
             var t = session.Count;
             Thread.Sleep(100);
             WriteLog("{0} 共有数据：{1:n0}", fact.TableName, session.Count);

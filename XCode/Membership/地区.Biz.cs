@@ -660,7 +660,7 @@ namespace XCode.Membership
             var rs = ParseAndSave(html);
             var count = rs.Count;
 
-            Meta.Session.ClearCache("FetchAndSave");
+            Meta.Session.ClearCache("FetchAndSave", false);
 
             //            // 拉取四级地区
             //            if (level4)
@@ -877,7 +877,7 @@ namespace XCode.Membership
             var count = 0;
             count += MergeLevel3(list, addLose);
 
-            Meta.Session.ClearCache("Import");
+            Meta.Session.ClearCache("Import", false);
 
             // 等待异步写入的数据，导入四级地址时要做校验
             var retry = 10;
@@ -885,7 +885,7 @@ namespace XCode.Membership
 
             if (level >= 4) count += MergeLevel4(list, addLose);
 
-            Meta.Session.ClearCache("Import");
+            Meta.Session.ClearCache("Import", false);
 
             return count;
         }
