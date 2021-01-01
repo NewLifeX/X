@@ -270,7 +270,7 @@ namespace XUnitTest.XCode.Membership
             XTrace.WriteLine("SearchByKey=>: {0} {1}", pid, key);
             var list = Area.Search(pid, key, true, 10);
             XTrace.WriteLine("SearchByKey<=: {0}", list.Join(",", e => e.Path));
-          
+
             Assert.Equal(count, list.Count);
             if (list.Count > 0)
             {
@@ -280,9 +280,9 @@ namespace XUnitTest.XCode.Membership
         }
 
         [Theory]
-        [InlineData(310104, "虹梅街道", 1, 310104012, "虹梅路")]
-        [InlineData(310104, "康健街道", 1, 310104013, "康健新村")]
-        [InlineData(650000, "乌市", 2, 650100, "乌鲁木齐")]
+        [InlineData(310104, "虹梅街道", 10, 310104012, "虹梅路")]
+        [InlineData(310104, "康健街道", 10, 310104013, "康健新村")]
+        [InlineData(650000, "乌市", 10, 650100, "乌鲁木齐")]
         [InlineData(110100, "城区", 2, 110101, "东城")]
         [InlineData(110000, "城区", 2, 110101, "东城")]
         [InlineData(0, "中山", 1, 442000, "中山")]
@@ -291,12 +291,31 @@ namespace XUnitTest.XCode.Membership
             XTrace.WriteLine("SearchLike=>: {0} {1}", pid, key);
             var list = Area.Search(pid, key, true, 10);
             XTrace.WriteLine("SearchLike<=: {0}", list.Join(",", e => e.Path));
-           
+
             Assert.Equal(count, list.Count);
             if (list.Count > 0)
             {
                 Assert.Equal(rid, list[0].ID);
                 if (!name.IsNullOrEmpty()) Assert.Equal(name, list[0].Name);
+            }
+        }
+
+        [Theory]
+        [InlineData("上海市虹梅路2588弄", 310104012, "上海/徐汇/虹梅路")]
+        [InlineData("上海市华新中学", 310118107, "上海/青浦/华新")]
+        [InlineData("广西容县杨梅镇", 450921102, "广西/玉林/容县/杨梅")]
+        [InlineData("湖北神农木鱼", 429021102, "湖北/神农架/木鱼")]
+        public void SearchAddress(String address, Int32 rid, String target)
+        {
+            XTrace.WriteLine("SearchAddress=>: {0}", address);
+            var set = Area.SearchAddress(address);
+            XTrace.WriteLine("SearchAddress<=: {0}", set.Join(",", e => $"[{e.Value:n2}]{e.Key.Path}"));
+
+            if (set.Count > 0)
+            {
+                var r = set[0].Key;
+                Assert.Equal(rid, r.ID);
+                Assert.Equal(target, r.Path);
             }
         }
     }

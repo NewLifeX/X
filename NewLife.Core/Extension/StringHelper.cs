@@ -788,7 +788,7 @@ namespace NewLife
         /// <param name="keys"></param>
         /// <param name="keySelector"></param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        public static IList<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
         {
             var rs = new List<KeyValuePair<T, Double>>();
 
@@ -807,7 +807,7 @@ namespace NewLife
                 var dist = ks.Sum(e =>
                 {
                     var kv = Match(name, e, e.Length);
-                    return kv.Key - kv.Value * 0.5;
+                    return kv.Key - kv.Value * 0.1;
                 });
                 if (dist > 0)
                 {
