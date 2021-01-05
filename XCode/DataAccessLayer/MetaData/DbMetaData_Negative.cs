@@ -505,7 +505,7 @@ namespace XCode.DataAccessLayer
                             if (type == typeof(String))
                                 sbValue.Append($"ifnull({fname}, \'\')");
                             else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
-                               type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
+                               type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal) || type.IsEnum)
                                 sbValue.Append($"ifnull({fname}, 0)");
                             else if (type == typeof(DateTime))
                                 sbValue.Append($"ifnull({fname}, {db.FormatDateTime(DateTime.MinValue)})");
