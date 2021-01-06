@@ -954,14 +954,16 @@ namespace NewLife
         #endregion
 
         #region 执行命令行
+
         /// <summary>以隐藏窗口执行命令行</summary>
         /// <param name="cmd">文件名</param>
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
         /// <param name="output">进程输出内容。默认为空时输出到日志</param>
         /// <param name="onExit">进程退出时执行</param>
+        /// <param name="working">工作目录</param>
         /// <returns>进程退出代码</returns>
-        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null)
+        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
@@ -970,7 +972,7 @@ namespace NewLife
             si.FileName = cmd;
             if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
-
+            if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
             {
