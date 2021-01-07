@@ -25,6 +25,7 @@ namespace NewLife.Remoting
         public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
 
         /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
@@ -32,6 +33,7 @@ namespace NewLife.Remoting
         public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
         /// <summary>同步获取，参数构造在Url</summary>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
@@ -39,6 +41,7 @@ namespace NewLife.Remoting
         public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
@@ -46,6 +49,7 @@ namespace NewLife.Remoting
         public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
         /// <summary>同步提交，参数Json打包在Body</summary>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="client">Http客户端</param>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
@@ -53,6 +57,7 @@ namespace NewLife.Remoting
         public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="client">Http客户端</param>
         /// <param name="method">请求方法</param>
         /// <param name="action">服务操作</param>
@@ -165,7 +170,7 @@ namespace NewLife.Remoting
         public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg" };
 
         /// <summary>处理响应。统一识别code/message</summary>
-        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="response">Http响应消息</param>
         /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
         /// <returns></returns>
@@ -189,7 +194,7 @@ namespace NewLife.Remoting
         }
 
         /// <summary>处理响应。</summary>
-        /// <typeparam name="TResult"></typeparam>
+        /// <typeparam name="TResult">响应类型，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
         /// <param name="response">文本响应消息</param>
         /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
         /// <returns></returns>
@@ -200,12 +205,13 @@ namespace NewLife.Remoting
             var rtype = typeof(TResult);
 
             var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : JsonParser.Decode(response);
+            var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
 
             // 未指定有效数据名时，整体返回
-            if (!dic.ContainsKey(dataName) && rtype == typeof(IDictionary<String, Object>)) return (TResult)dic;
+            if (nodata && rtype == typeof(IDictionary<String, Object>)) return (TResult)dic;
 
             // 如果没有指定数据名，或者结果中不包含数据名，则整个字典作为结果数据
-            var data = (dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName)) ? dic : dic[dataName];
+            var data = nodata ? dic : dic[dataName];
 
             var code = 0;
             foreach (var item in CodeNames)
