@@ -14,8 +14,9 @@ namespace XCode.Membership
     [Serializable]
     [DataObject]
     [Description("日志")]
-    [BindIndex("IX_Log_Action_Category", false, "Action,Category")]
-    [BindIndex("IX_Log_CreateUserID", false, "CreateUserID")]
+    [BindIndex("IX_Log_Action_Category_ID", false, "Action,Category,ID")]
+    [BindIndex("IX_Log_Category_LinkID_ID", false, "Category,LinkID,ID")]
+    [BindIndex("IX_Log_CreateUserID_ID", false, "CreateUserID,ID")]
     [BindTable("Log", Description = "日志", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class Log
     {

@@ -32,7 +32,7 @@ namespace XCode.Membership
         [Obsolete]
         public virtual void WriteLog(Type type, String action, String remark, Int32 userid = 0, String name = null, String ip = null) => WriteLog(type, action, true, remark, userid, name, ip);
 
-        /// <summary>写日志</summary>
+        /// <summary>创建日志，未写入</summary>
         /// <param name="category">类型</param>
         /// <param name="action">操作</param>
         /// <param name="success">成功</param>
@@ -40,9 +40,8 @@ namespace XCode.Membership
         /// <param name="userid">用户</param>
         /// <param name="name">名称</param>
         /// <param name="ip">地址</param>
-        public virtual void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
+        public virtual Log CreateLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
-            if (!Enable) return;
             var factory = EntityFactory.CreateOperate(typeof(Log));
             var log = factory.Create() as Log;
             log.Category = category ?? throw new ArgumentNullException(nameof(category));
@@ -73,9 +72,27 @@ namespace XCode.Membership
                     if (log.UserName.IsNullOrEmpty()) log.UserName = user + "";
                 }
             }
+            if (log.CreateIP.IsNullOrEmpty()) log.CreateIP = ManageProvider.UserHost;
 
             log.Remark = remark;
             log.CreateTime = DateTime.Now;
+
+            return log;
+        }
+
+        /// <summary>写日志</summary>
+        /// <param name="category">类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        public virtual void WriteLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
+        {
+            if (!Enable) return;
+
+            var log = CreateLog(category, action, success, remark, userid, name, ip);
 
             log.SaveAsync();
         }
@@ -90,6 +107,8 @@ namespace XCode.Membership
         /// <param name="ip">地址</param>
         public virtual void WriteLog(Type type, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
+            if (!Enable) return;
+
             var cat = "";
             if (type.As<IEntity>())
             {
@@ -97,7 +116,10 @@ namespace XCode.Membership
                 if (fact != null) cat = fact.Table.DataTable.DisplayName;
             }
             if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-            WriteLog(cat, action, success, remark, userid, name, ip);
+
+            var log = CreateLog(cat, action, success, remark, userid, name, ip);
+
+            log.SaveAsync();
         }
 
         /// <summary>输出实体对象日志</summary>
@@ -108,7 +130,8 @@ namespace XCode.Membership
         {
             if (!Enable) return;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
+            var type = entity.GetType();
+            var fact = EntityFactory.CreateOperate(type);
 
             // 构造字段数据的字符串表示形式
             var sb = Pool.StringBuilder.Get();
@@ -133,6 +156,11 @@ namespace XCode.Membership
                 sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 
+            // 对象链接
+            var linkId = 0;
+            var uk = fact.Unique;
+            if (uk != null && uk.IsIdentity) linkId = entity[uk.Name].ToInt();
+
             var userid = 0;
             var name = "";
             if (entity is IManageUser user)
@@ -141,7 +169,14 @@ namespace XCode.Membership
                 name = user + "";
             }
 
-            WriteLog(entity.GetType(), action, error.IsNullOrEmpty(), sb.Put(true), userid, name);
+            //WriteLog(entity.GetType(), action, error.IsNullOrEmpty(), sb.Put(true), userid, name);
+            var category = fact.Table.DataTable.DisplayName;
+            if (category.IsNullOrEmpty()) category = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+
+            var log = CreateLog(category, action, error.IsNullOrEmpty(), sb.Put(true), userid, name);
+            log.LinkID = linkId;
+
+            log.SaveAsync();
         }
 
         /// <summary>是否使用日志</summary>

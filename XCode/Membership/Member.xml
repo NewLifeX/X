@@ -218,8 +218,9 @@
       <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Action,Category" />
-      <Index Columns="CreateUserID" />
+      <Index Columns="Action,Category,ID" />
+      <Index Columns="Category,LinkID,ID" />
+      <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
   <Table Name="UserOnline" Description="用户在线" ConnName="Log">
