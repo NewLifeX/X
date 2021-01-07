@@ -10,7 +10,7 @@ using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
     /// <summary>Zip实体。包含文件头信息和文件位置</summary>
     public class ZipEntry : IDisposable

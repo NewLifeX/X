@@ -3,7 +3,7 @@ using System;
 using System.Runtime.Serialization;
 using NewLife;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
     /// <summary>Zip异常</summary>
     [Serializable]

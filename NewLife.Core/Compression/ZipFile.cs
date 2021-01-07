@@ -1,12 +1,14 @@
 ﻿#if NET4
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife;
 using NewLife.Serialization;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
     /// <summary>压缩文档模式</summary>
     public enum ZipArchiveMode

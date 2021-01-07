@@ -1,7 +1,7 @@
 ﻿#if NET4
 using System;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
     /// <summary>压缩方法</summary>
     public enum CompressionMethod : ushort

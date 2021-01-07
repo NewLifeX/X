@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using NewLife;
 using NewLife.Collections;
 using NewLife.Reflection;
 
-namespace System
+namespace NewLife
 {
     /// <summary>IO工具类</summary>
     public static class IOHelper
