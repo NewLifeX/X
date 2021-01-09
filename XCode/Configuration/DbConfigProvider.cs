@@ -18,7 +18,7 @@ namespace XCode.Configuration
         /// <summary>加载配置</summary>
         public override Boolean LoadAll()
         {
-            // 读取文件，换个对象，避免数组元素在多次加载后重叠
+            // 换个对象，避免数组元素在多次加载后重叠
             var root = new ConfigSection { };
 
             var list = Parameter.FindAllByUserID(UserId);

@@ -18,7 +18,7 @@ namespace XUnitTest.Configuration
             var http = new HttpConfigProvider
             {
                 Server = "http://127.0.0.1:5000/config,http://10.0.0.4/config",
-                AppKey = "Test",
+                AppId = "Test",
                 Secret = "12345678",
                 LocalCache = true,
             };
