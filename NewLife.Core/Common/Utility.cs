@@ -145,7 +145,7 @@ namespace System
     public class DefaultConvert
     {
         private static readonly DateTime _dt1970 = new DateTime(1970, 1, 1);
-        private static DateTimeOffset _dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
+        private static readonly DateTimeOffset _dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
