@@ -99,12 +99,12 @@ namespace NewLife.Configuration
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。配置树位置</param>
-        public override Boolean Save<T>(T model, String nameSpace = null)
+        /// <param name="path">路径。配置树位置</param>
+        public override Boolean Save<T>(T model, String path = null)
         {
             // 文件存储，直接覆盖Root
             Root.Childs.Clear();
-            MapFrom(Root, model);
+            Root.MapFrom(model);
 
             return SaveAll();
         }
@@ -137,14 +137,14 @@ namespace NewLife.Configuration
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="autoReload">是否自动更新。默认true</param>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-        public override void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null)
+        /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
+        public override void Bind<T>(T model, Boolean autoReload = true, String path = null)
         {
-            base.Bind<T>(model, autoReload, nameSpace);
+            base.Bind<T>(model, autoReload, path);
 
             if (autoReload && !_models.ContainsKey(model))
             {
-                _models.Add(model, nameSpace);
+                _models.Add(model, path);
 
                 InitWatcher();
             }
@@ -157,13 +157,20 @@ namespace NewLife.Configuration
             var dir = Path.GetDirectoryName(fileName);
             if (Directory.Exists(dir))
             {
-                if (_watcher != null) _watcher.TryDispose();
-                _watcher = new FileSystemWatcher(dir, Path.GetFileName(fileName))
+                try
                 {
-                    NotifyFilter = NotifyFilters.LastWrite
-                };
-                _watcher.Changed += Watch_Changed;
-                _watcher.EnableRaisingEvents = true;
+                    if (_watcher != null) _watcher.TryDispose();
+                    _watcher = new FileSystemWatcher(dir, Path.GetFileName(fileName))
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite
+                    };
+                    _watcher.Changed += Watch_Changed;
+                    _watcher.EnableRaisingEvents = true;
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
             }
         }
 

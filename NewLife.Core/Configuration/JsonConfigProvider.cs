@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NewLife.Log;
 using NewLife.Serialization;
 
 namespace NewLife.Configuration

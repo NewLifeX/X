@@ -71,12 +71,12 @@ namespace NewLife.Configuration
 
                     if (!flag) return _Current;
 
-                    // 加载配置数据到提供者
-                    if (!prv.LoadAll())
-                    {
-                        XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).FullName, prv);
-                        //prv.Save(config);
-                    }
+                    //// 加载配置数据到提供者
+                    //if (!prv.LoadAll())
+                    //{
+                    //    XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).FullName, prv);
+                    //    //prv.Save(config);
+                    //}
 
                     // 绑定提供者数据到配置对象
                     prv.Bind(config, true);

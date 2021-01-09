@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Xml.Serialization;
 using NewLife.Reflection;
 
 namespace NewLife.Configuration
@@ -13,7 +8,7 @@ namespace NewLife.Configuration
     /// <summary>配置提供者</summary>
     /// <remarks>
     /// 建立树状配置数据体系，以分布式配置中心为核心，支持基于key的索引读写，也支持Load/Save/Bind的实体模型转换。
-    /// key索引支持冒号分隔的多层结构，在配置中心中作为整个key存在，在文件配置中第一段表示不同文件。
+    /// key索引支持冒号分隔的多层结构，在配置中心中不同命名空间使用不同提供者实例，在文件配置中不同文件使用不同提供者实例。
     /// 
     /// 一个配置类，支持从不同持久化提供者读取，可根据需要选择配置持久化策略。
     /// 例如，小系统采用ini/xml/json文件配置，分布式系统采用配置中心。
@@ -24,7 +19,7 @@ namespace NewLife.Configuration
         ICollection<String> Keys { get; }
 
         /// <summary>获取 或 设置 配置值</summary>
-        /// <param name="key">配置名</param>
+        /// <param name="key">配置名，支持冒号分隔的多级名称</param>
         /// <returns></returns>
         String this[String key] { get; set; }
 
@@ -33,77 +28,27 @@ namespace NewLife.Configuration
         /// <returns></returns>
         IConfigSection GetSection(String key);
 
-        /// <summary>从数据源加载数据到配置树</summary>
-        Boolean LoadAll();
-
-        /// <summary>保存配置树到数据源</summary>
-        Boolean SaveAll();
+        /// <summary>返回获取配置的委托</summary>
+        GetConfigCallback GetConfig { get; }
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
-        T Load<T>(String nameSpace = null) where T : new();
+        T Load<T>(String path = null) where T : new();
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-        Boolean Save<T>(T model, String nameSpace = null);
+        /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
+        Boolean Save<T>(T model, String path = null);
 
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="autoReload">是否自动更新。默认true</param>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-        void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null);
-    }
-
-    /// <summary>配置助手</summary>
-    public static class ConfigHelper
-    {
-        /// <summary>添加子节点</summary>
-        /// <param name="section"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static IConfigSection AddChild(this IConfigSection section, String key)
-        {
-            if (section == null) return null;
-
-            var cfg = new ConfigSection { Key = key };
-            if (section.Childs == null) section.Childs = new List<IConfigSection>();
-            section.Childs.Add(cfg);
-
-            return cfg;
-        }
-
-        /// <summary>查找或添加子节点</summary>
-        /// <param name="section"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static IConfigSection GetOrAddChild(this IConfigSection section, String key)
-        {
-            if (section == null) return null;
-
-            var cfg = section.Childs?.FirstOrDefault(e => e.Key == key);
-            if (cfg != null) return cfg;
-
-            cfg = new ConfigSection { Key = key };
-            if (section.Childs == null) section.Childs = new List<IConfigSection>();
-            section.Childs.Add(cfg);
-
-            return cfg;
-        }
-
-        internal static void SetValue(this IConfigSection section, Object value)
-        {
-            if (value is DateTime dt)
-                section.Value = dt.ToFullString();
-            else if (value is Boolean b)
-                section.Value = b.ToString().ToLower();
-            else
-                section.Value = value?.ToString();
-        }
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        void Bind<T>(T model, Boolean autoReload = true, String path = null);
     }
 
     /// <summary>配置提供者基类</summary>
@@ -126,44 +71,17 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public virtual String this[String key]
         {
-            get => Find(key, false)?.Value;
-            set => Find(key, true).Value = value;
+            get => Root.Find(key, false)?.Value;
+            set => Root.Find(key, true).Value = value;
         }
 
         /// <summary>查找配置项。可得到子级和配置</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual IConfigSection GetSection(String key) => Find(key, false);
+        public virtual IConfigSection GetSection(String key) => Root.Find(key, false);
 
-        /// <summary>查找配置项。可得到子级和配置</summary>
-        /// <param name="key"></param>
-        /// <param name="createOnMiss"></param>
-        /// <returns></returns>
-        protected virtual IConfigSection Find(String key, Boolean createOnMiss = false)
-        {
-            if (key.IsNullOrEmpty()) return Root;
-
-            // 分层
-            var ss = key.Split(':');
-
-            var section = Root;
-
-            // 逐级下钻
-            for (var i = 0; i < ss.Length; i++)
-            {
-                var cfg = section.Childs?.FirstOrDefault(e => e.Key == ss[i]);
-                if (cfg == null)
-                {
-                    if (!createOnMiss) return null;
-
-                    cfg = section.AddChild(ss[i]);
-                }
-
-                section = cfg;
-            }
-
-            return section;
-        }
+        /// <summary>返回获取配置的委托</summary>
+        public virtual GetConfigCallback GetConfig => key => Root.Find(key, false)?.Value;
 
         /// <summary>初始化提供者</summary>
         /// <param name="value"></param>
@@ -186,135 +104,20 @@ namespace NewLife.Configuration
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型</typeparam>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
-        public virtual T Load<T>(String nameSpace = null) where T : new()
+        public virtual T Load<T>(String path = null) where T : new()
         {
             EnsureLoad();
 
             // 如果有命名空间则使用指定层级数据源
-            var source = GetSection(nameSpace);
+            var source = GetSection(path);
             if (source == null) return default;
 
             var model = new T();
-            MapTo(source, model);
+            source.MapTo(model);
 
             return model;
-        }
-
-        /// <summary>映射配置树到实例公有属性</summary>
-        /// <param name="section">数据源</param>
-        /// <param name="model">模型</param>
-        protected virtual void MapTo(IConfigSection section, Object model)
-        {
-            if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
-
-            // 反射公有实例属性
-            foreach (var pi in model.GetType().GetProperties(true))
-            {
-                if (!pi.CanRead || !pi.CanWrite) continue;
-                //if (pi.GetIndexParameters().Length > 0) continue;
-                //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-                //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-                if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
-
-                var name = pi.Name;
-                var cfg = section.Childs?.FirstOrDefault(e => e.Key == name);
-                if (cfg == null) continue;
-
-                // 分别处理基本类型、数组类型、复杂类型
-                if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
-                {
-                    pi.SetValue(model, cfg.Value.ChangeType(pi.PropertyType), null);
-                }
-                else if (cfg.Childs != null)
-                {
-                    if (pi.PropertyType.As<IList>())
-                    {
-                        if (pi.PropertyType.IsArray)
-                            MapArray(cfg, model, pi);
-                        else
-                            MapList(cfg, model, pi);
-                    }
-                    else
-                    {
-                        // 复杂类型需要递归处理
-                        var val = pi.GetValue(model, null);
-                        if (val == null)
-                        {
-                            // 如果有无参构造函数，则实例化一个
-                            var ctor = pi.PropertyType.GetConstructor(new Type[0]);
-                            if (ctor != null)
-                            {
-                                val = ctor.Invoke(null);
-                                pi.SetValue(model, val, null);
-                            }
-                        }
-
-                        // 递归映射
-                        if (val != null) MapTo(cfg, val);
-                    }
-                }
-            }
-        }
-
-        private void MapArray(IConfigSection section, Object model, PropertyInfo pi)
-        {
-            var elementType = pi.PropertyType.GetElementTypeEx();
-
-            // 实例化数组
-            if (pi.GetValue(model, null) is not Array arr)
-            {
-                arr = Array.CreateInstance(elementType, section.Childs.Count);
-                pi.SetValue(model, arr, null);
-            }
-
-            // 逐个映射
-            for (var i = 0; i < section.Childs.Count; i++)
-            {
-                var sec = section.Childs[i];
-
-                // 基元类型
-                if (elementType.GetTypeCode() != TypeCode.Object)
-                {
-                    if (sec.Key == elementType.Name)
-                    {
-                        arr.SetValue(sec.Value.ChangeType(elementType), i);
-                    }
-                }
-                else
-                {
-                    var val = elementType.CreateInstance();
-                    MapTo(sec, val);
-                    arr.SetValue(val, i);
-                }
-            }
-        }
-
-        private void MapList(IConfigSection section, Object model, PropertyInfo pi)
-        {
-            var elementType = pi.PropertyType.GetElementTypeEx();
-
-            // 实例化列表
-            if (pi.GetValue(model, null) is not IList list)
-            {
-                var obj = !pi.PropertyType.IsInterface ?
-                    pi.PropertyType.CreateInstance() :
-                    typeof(List<>).MakeGenericType(elementType).CreateInstance();
-
-                list = obj as IList;
-                if (list == null) return;
-
-                pi.SetValue(model, list, null);
-            }
-
-            // 逐个映射
-            for (var i = 0; i < section.Childs.Count; i++)
-            {
-                var val = elementType.CreateInstance();
-                MapTo(section.Childs[i], val);
-                list[i] = val;
-            }
         }
 
         /// <summary>保存配置树到数据源</summary>
@@ -323,86 +126,14 @@ namespace NewLife.Configuration
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
-        /// <param name="nameSpace">命名空间。配置树位置</param>
-        public virtual Boolean Save<T>(T model, String nameSpace = null)
+        /// <param name="path">路径。配置树位置</param>
+        public virtual Boolean Save<T>(T model, String path = null)
         {
             // 如果有命名空间则使用指定层级数据源
-            var source = GetSection(nameSpace);
-            if (source != null) MapFrom(source, model);
+            var source = GetSection(path);
+            source?.MapFrom(model);
 
             return SaveAll();
-        }
-
-        /// <summary>从实例公有属性映射到配置树</summary>
-        /// <param name="section"></param>
-        /// <param name="model"></param>
-        protected virtual void MapFrom(IConfigSection section, Object model)
-        {
-            if (section == null) return;
-
-            // 反射公有实例属性
-            foreach (var pi in model.GetType().GetProperties(true))
-            {
-                if (!pi.CanRead || !pi.CanWrite) continue;
-                //if (pi.GetIndexParameters().Length > 0) continue;
-                //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-                //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-                if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
-
-                // 名称前面加上命名空间
-                var name = pi.Name;
-                var cfg = section.GetOrAddChild(name);
-
-                // 反射获取属性值
-                var val = pi.GetValue(model, null);
-                var att = pi.GetCustomAttribute<DescriptionAttribute>();
-                cfg.Comment = att?.Description;
-                if (cfg.Comment.IsNullOrEmpty())
-                {
-                    var att2 = pi.GetCustomAttribute<DisplayNameAttribute>();
-                    cfg.Comment = att2?.DisplayName;
-                }
-
-                //!! 即使模型字段值为空，也必须拷贝，否则修改设置时，无法清空某字段
-                //if (val == null) continue;
-
-                // 分别处理基本类型、数组类型、复杂类型
-                if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
-                {
-                    cfg.SetValue(val);
-                }
-                else if (pi.PropertyType.As<IList>())
-                {
-                    if (val is IList list) MapArray(section, cfg, list, pi.PropertyType.GetElementTypeEx());
-                }
-                else
-                {
-                    // 递归映射
-                    MapFrom(cfg, val);
-                }
-            }
-        }
-
-        private void MapArray(IConfigSection section, IConfigSection cfg, IList list, Type elementType)
-        {
-            // 为了避免数组元素叠加，干掉原来的
-            section.Childs.Remove(cfg);
-            cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
-            section.Childs.Add(cfg);
-
-            // 数组元素是没有key的集合
-            foreach (var item in list)
-            {
-                if (item == null) continue;
-
-                var cfg2 = cfg.AddChild(elementType.Name);
-
-                // 分别处理基本类型和复杂类型
-                if (item.GetType().GetTypeCode() != TypeCode.Object)
-                    cfg2.SetValue(item);
-                else
-                    MapFrom(cfg2, item);
-            }
         }
         #endregion
 
@@ -411,12 +142,14 @@ namespace NewLife.Configuration
         /// <typeparam name="T">模型</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="autoReload">是否自动更新。默认true</param>
-        /// <param name="nameSpace">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-        public virtual void Bind<T>(T model, Boolean autoReload = true, String nameSpace = null)
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        public virtual void Bind<T>(T model, Boolean autoReload = true, String path = null)
         {
+            EnsureLoad();
+
             // 如果有命名空间则使用指定层级数据源
-            var source = GetSection(nameSpace);
-            if (source != null) MapTo(source, model);
+            var source = GetSection(path);
+            source?.MapTo(model);
         }
         #endregion
 
@@ -467,8 +200,7 @@ namespace NewLife.Configuration
             var p = name.LastIndexOf('.');
             var ext = p >= 0 ? name.Substring(p + 1) : name;
             if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
-            Type type;
-            if (!_providers.TryGetValue(ext, out type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
+            if (!_providers.TryGetValue(ext, out var type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
 
             var config = type.CreateInstance() as IConfigProvider;
 

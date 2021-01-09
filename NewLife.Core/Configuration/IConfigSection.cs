@@ -17,6 +17,11 @@ namespace NewLife.Configuration
 
         /// <summary>子级</summary>
         IList<IConfigSection> Childs { get; set; }
+
+        /// <summary>获取 或 设置 配置值</summary>
+        /// <param name="key">配置名，支持冒号分隔的多级名称</param>
+        /// <returns></returns>
+        String this[String key] { get; set; }
     }
 
     /// <summary>配置项</summary>
@@ -37,6 +42,15 @@ namespace NewLife.Configuration
         #endregion
 
         #region 方法
+        /// <summary>获取 或 设置 配置值</summary>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        public virtual String this[String key]
+        {
+            get => this.Find(key, false)?.Value;
+            set => this.Find(key, true).Value = value;
+        }
+
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString()

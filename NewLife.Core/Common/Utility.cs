@@ -454,7 +454,7 @@ namespace System
         /// <remarks>全角半角的关系是相差0xFEE0</remarks>
         /// <param name="str"></param>
         /// <returns></returns>
-        private String ToDBC(String str)
+        private static String ToDBC(String str)
         {
             var ch = str.ToCharArray();
             for (var i = 0; i < ch.Length; i++)
