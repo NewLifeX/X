@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -21,6 +21,7 @@ namespace XCode.Membership
     [BindIndex("IX_Area_GeoHash", false, "GeoHash")]
     [BindIndex("IX_Area_UpdateTime_ID", false, "UpdateTime,ID")]
     [BindTable("Area", Description = "地区。行政区划数据，最高支持四级地址，9位数字", ConnName = "Membership", DbType = DatabaseType.None)]
+    
     public partial class Area
     {
         #region 属性
@@ -38,6 +39,7 @@ namespace XCode.Membership
         [Description("名称")]
         [DataObjectField(false, false, true, 50)]
         [BindColumn("Name", "名称", "", Master = true)]
+        [MarkAsCsvColumn(AppendPositionEnum.Left)]
         public String Name { get => _Name; set { if (OnPropertyChanging("Name", value)) { _Name = value; OnPropertyChanged("Name"); } } }
 
         private String _FullName;

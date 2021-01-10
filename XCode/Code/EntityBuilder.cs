@@ -313,7 +313,16 @@ namespace XCode.Code
                 WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\", Precision = {3}, Scale = {4})]", dc.ColumnName, dc.Description, dc.RawType, dc.Precision, dc.Scale);
             else
                 WriteLine("[BindColumn(\"{0}\", \"{1}\", \"{2}\"{3})]", dc.ColumnName, dc.Description, dc.RawType, dc.Master ? ", Master = true" : "");
-
+            //TODO:2 增加CSV标记
+            if (dc.CsvOption != null)
+            {
+               
+                var postion = string.Format("{0}.{1}", dc.CsvOption.MarkPosition.GetType().Name, dc.CsvOption.MarkPosition.ToString());
+                WriteLine("[MarkAsCsvColumn({0}{1}{2})]", postion
+                    , dc.CsvOption.AppendLeftTag.IsNullOrEmpty() ? "" : string.Format(",AppendLeftTag =\"{0}\"", dc.CsvOption.AppendLeftTag)
+                    , dc.CsvOption.AppendRightTag.IsNullOrEmpty() ? "" : string.Format(",AppendRightTag =\"{0}\"", dc.CsvOption.AppendRightTag)
+                    );
+            }
             if (Option.Interface)
                 WriteLine("{0} {1} {{ get; set; }}", type, dc.Name);
             else

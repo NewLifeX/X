@@ -1,0 +1,45 @@
+﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\NewLife.Core.dll" #>
+<#@ assembly name="$(ProjectDir)\$(OutputPath)\XCode.dll" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="XCode.Code" #>
+<#@ output extension=".log" #>
+<#
+    // 设置当前工作目录
+	PathHelper.BasePath = Host.ResolvePath(".");
+
+    // 加载模型文件，得到数据表
+    var option = new BuilderOption();
+    var tables = ClassBuilder.LoadModels(null, option, out var atts);
+    EntityBuilder.FixModelFile(null, option, atts, tables);
+
+    // 生成实体类
+    //option.BaseClass = "I{name}";
+    //option.ModelNameForCopy = "I{name}";
+    EntityBuilder.BuildTables(tables, option, chineseFileName: true);
+
+    // 生成简易模型类
+    option.Output = @"Output\EntityModels\";
+    option.ClassNameTemplate = "{name}Model";
+    option.ModelNameForCopy = "I{name}";
+    //ClassBuilder.BuildModels(tables, option);
+
+    // 生成简易接口
+    option.BaseClass = null;
+    option.ClassNameTemplate = null;
+    option.Output = @"Output\EntityInterfaces\";
+    //ClassBuilder.BuildInterfaces(tables, option);
+
+    // 精确控制生成
+    /*foreach (var item in tables)
+    {
+        var builder = new ClassBuilder
+        {
+            Table = item,
+            Option = option.Clone(),
+        };
+        builder.Execute();
+        builder.Save(null, true, false);
+    }*/
+#>

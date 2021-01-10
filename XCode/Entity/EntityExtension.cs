@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using NewLife;
 using NewLife.Data;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
@@ -757,7 +759,45 @@ namespace XCode
                 csv.WriteLine(fields);
             foreach (var entity in list)
             {
-                csv.WriteLine(fields.Select(e => entity[e]));
+                csv.WriteLine(fields.Select(e => {
+                    var result = entity[e];
+                    if (result.GetType().Equals(typeof(string))||result.GetType().Equals(typeof(Int32)) || result.GetType().Equals(typeof(Int64))) {
+                        PropertyInfo propertyInfo = entity.GetType().GetProperty(e);
+                       
+                        foreach (var attr in propertyInfo.GetCustomAttributes(false))
+                        {
+                           
+                            if (attr is MarkAsCsvColumn markatrr)
+                            {
+                                string str = result.ToString();
+                                switch (markatrr.AppendPosition)
+                                {
+                                    case AppendPositionEnum.Left:
+                                        {
+                                            str = string.Format("{1}{0}", str, markatrr.AppendLeftTag);
+                                        }
+                                        break;
+                                    case AppendPositionEnum.Right:
+                                        {
+                                            str = string.Format("{0}{1}", str, markatrr.AppendRightTag);
+                                        }
+                                        break;
+                                    case AppendPositionEnum.LeftAndRight:
+                                        {
+                                            str = string.Format("{1}{0}{2}", str, markatrr.AppendLeftTag, markatrr.AppendRightTag);
+
+                                        }
+                                        break;
+                                    default: break;
+                                }
+                                result = str;
+                            }
+                            
+                        }
+
+                    }
+                    return result;
+                }));
 
                 count++;
             }

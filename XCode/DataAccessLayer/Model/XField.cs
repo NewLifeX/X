@@ -129,6 +129,7 @@ namespace XCode.DataAccessLayer
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
         public IDictionary<String, String> Properties { get; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        public ICsvOption CsvOption { get ; set ; }
         #endregion
 
         #region 构造
@@ -171,6 +172,8 @@ namespace XCode.DataAccessLayer
 
             return field;
         }
+
+        public virtual ICsvOption CreateCsvOption() =>new XCsvOption() { DataColumn=this};
         #endregion
     }
 }

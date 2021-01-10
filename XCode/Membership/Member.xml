@@ -170,7 +170,9 @@
   <Table Name="Area" Description="地区。行政区划数据，最高支持四级地址，9位数字">
     <Columns>
       <Column Name="ID" DataType="Int32" PrimaryKey="True" Description="编码。行政区划编码" />
-      <Column Name="Name" DataType="String" Master="True" Description="名称" />
+        <Column Name="Name" DataType="String" Master="True" Description="名称" >
+            <Csv MarkPosition="Left"></Csv>
+        </Column>
       <Column Name="FullName" DataType="String" Master="True" Description="全名" />
       <Column Name="ParentID" DataType="Int32" Description="父级" />
       <Column Name="Level" DataType="Int32" Description="层级" />

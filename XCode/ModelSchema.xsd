@@ -84,6 +84,13 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
+    <xs:element name="CsvOptions" type="CsvProperty" minOccurs="0">
+        <xs:annotation>
+            <xs:documentation xml:lang="zh-cn">
+               导出CSV时标记位
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
     </xs:sequence>
     <xs:attribute name="Name" type="xs:string" use="required">
       <xs:annotation>
@@ -192,6 +199,9 @@
 
   <!--Column-start-->
   <xs:complexType name="ColumnType">
+       <xs:sequence >
+          <xs:element name="Csv" type="CsvOptionType" maxOccurs="1" minOccurs="0"></xs:element>
+      </xs:sequence>
     <xs:attribute name="Name" type="xs:string">
       <xs:annotation>
         <xs:documentation>
@@ -304,6 +314,7 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+     
   </xs:complexType>
   <!--Column-end-->
 
@@ -393,5 +404,48 @@
     </xs:attribute>
   </xs:complexType>
   <!--Index-end-->
-
+    <!--CsvOption Start-->
+    <xs:complexType name="CsvProperty">
+        <xs:sequence>
+            <xs:element name="CsvOption" type="CsvOptionType" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CsvOptionType">
+        <xs:annotation>
+            <xs:documentation xml:lang="zh-cn">
+                标记Csv导出选项
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="Column" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>用来填充左侧的字符，默认为制表符</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="MarkPosition" type="AppendPositionEnum" default="Left">
+            <xs:annotation>
+                <xs:documentation>标记位置</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="AppendLeftTag" type="xs:string" default="\t">
+            <xs:annotation>
+                <xs:documentation>用来填充左侧的字符，默认为制表符</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="AppendRightTag" type="xs:string" default="\t">
+            <xs:annotation>
+                <xs:documentation>用来填充右侧的字符，默认为制表符</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:simpleType name="AppendPositionEnum">
+        <xs:annotation>
+            <xs:documentation>标记为Csv字符串的位置，值范围{左，右，左右}</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="LeftAndRight"></xs:enumeration>
+            <xs:enumeration value="Left"></xs:enumeration>
+            <xs:enumeration value="Right"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <!--CsvOption End-->
 </xs:schema>

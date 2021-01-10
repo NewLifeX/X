@@ -51,6 +51,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>说明</summary>
         String Description { get; set; }
+        /// <summary>Csv导出标记项</summary>
+        ICsvOption CsvOption { get; set; }
+
         #endregion
 
         #region 扩展属性
@@ -69,6 +72,11 @@ namespace XCode.DataAccessLayer
         /// <summary>克隆到指定的数据表</summary>
         /// <param name="table"></param>
         IDataColumn Clone(IDataTable table);
+        /// <summary>
+        /// Csv导出选项
+        /// </summary>
+        /// <returns></returns>
+        ICsvOption CreateCsvOption();
         #endregion
     }
 }

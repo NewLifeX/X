@@ -316,6 +316,7 @@ namespace XCode.DataAccessLayer
                             }
                             (dc as IXmlSerializable).ReadXml(reader);
                             table.Columns.Add(dc);
+                          
                         }
                         reader.ReadEndElement();
 
@@ -334,6 +335,23 @@ namespace XCode.DataAccessLayer
                             (di as IXmlSerializable).ReadXml(reader);
                             di.Fix();
                             table.Indexes.Add(di);
+                        }
+                        reader.ReadEndElement();
+                        break;
+                    //TODO： 增加CSV标记
+                    case "CsvOptions":
+                        reader.ReadStartElement();
+                        while (reader.IsStartElement())
+                        {
+                            var columnName = reader.GetAttribute("Column");
+                            if (columnName.IsNullOrEmpty()) continue;
+                            var dc = table.Columns.Find(x=>x.ColumnName.EqualIgnoreCase(columnName));
+                            if (dc == null) continue;
+                            var csv = dc.CreateCsvOption();
+                            (csv as IXmlSerializable).ReadXml(reader);
+                            
+                            dc.CsvOption = csv;
+
                         }
                         reader.ReadEndElement();
                         break;
@@ -382,6 +400,19 @@ namespace XCode.DataAccessLayer
                 foreach (IXmlSerializable item in table.Indexes)
                 {
                     writer.WriteStartElement("Index");
+                    item.WriteXml(writer);
+                    writer.WriteEndElement();
+                }
+                writer.WriteEndElement();
+            }
+            //TODO:增加CSV标记
+            var cvsColumn = table.Columns.Where(x=>x.CsvOption!=null).Select(x=>x.CsvOption).ToList();
+            if (cvsColumn.Any())
+            {
+                writer.WriteStartElement("CsvOptions");
+                foreach (IXmlSerializable item in cvsColumn)
+                {
+                    writer.WriteStartElement("CsvOption");
                     item.WriteXml(writer);
                     writer.WriteEndElement();
                 }
@@ -449,6 +480,37 @@ namespace XCode.DataAccessLayer
                     dc.ColumnName = dc.Name;
                     dc.Name = ModelResolver.Current.GetName(dc.ColumnName);
                 }
+                if ((reader.NodeType == XmlNodeType.Element))
+                {
+
+                    /* using (var innerReader = reader.ReadSubtree())
+                     {
+                         innerReader.ReadStartElement();
+                         while (innerReader.IsStartElement())
+                         {
+
+                             if (innerReader.NodeType == XmlNodeType.Element && innerReader.Name == "Csv") {
+                                 var csv = dc.CreateCsvOption();
+                                 (csv as IXmlSerializable).ReadXml(innerReader);
+                                 dc.CsvOption = csv;
+                             }
+
+                         }
+                         innerReader.ReadEndElement();
+                     }*/
+                 /*   if (reader.ReadToDescendant("Csv")) {
+                        var csv = dc.CreateCsvOption();
+                        (csv as IXmlSerializable).ReadXml(reader);
+                        dc.CsvOption = csv;
+                    }*/
+                   
+                    
+                }
+               
+
+
+
+
             }
             //reader.Skip();
 
