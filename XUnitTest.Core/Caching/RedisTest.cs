@@ -37,6 +37,18 @@ namespace XUnitTest.Caching
 #endif
         }
 
+        [Fact]
+        public void ConfigTest()
+        {
+            var str = "127.0.0.1:6379,password=test,syncTimeout=5000,responseTimeout=5000,ResolveDns=true,connectTimeout=10000,keepAlive=5";
+            var redis = new Redis();
+            redis.Init(str);
+
+            Assert.Equal("127.0.0.1:6379", redis.Server);
+            Assert.Equal("test", redis.Password);
+            Assert.Equal(5000, redis.Timeout);
+        }
+
         [Fact(DisplayName = "基础测试")]
         public void BasicTest()
         {

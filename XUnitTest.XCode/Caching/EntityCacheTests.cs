@@ -50,7 +50,7 @@ namespace XUnitTest.XCode.Caching
             Assert.Equal(1, cache.Success);
 
             // 等待超时后，再次访问
-            Thread.Sleep(cache.Expire * 1000 + 10);
+            Thread.Sleep(cache.Expire * 1000 + 100);
             var list3 = cache.Entities;
 
             Assert.Equal(1, cache.Times);
@@ -71,7 +71,7 @@ namespace XUnitTest.XCode.Caching
             Assert.Equal(1, cache.Times);
 
             // 等待超时后，再次访问
-            Thread.Sleep(cache.Expire * 1000 + 10);
+            Thread.Sleep(cache.Expire * 1000 + 100);
             var list3 = cache.Entities;
 
             Assert.Equal(1, cache.Times);
@@ -94,7 +94,7 @@ namespace XUnitTest.XCode.Caching
             Assert.Equal(1, cache.Times);
 
             // 2倍超时后，再次访问走同步更新
-            Thread.Sleep(cache.Expire * 1000 * 2 + 10);
+            Thread.Sleep(cache.Expire * 1000 * 2 + 100);
             var list3 = cache.Entities;
 
             Assert.Equal(2, cache.Times);
@@ -112,16 +112,28 @@ namespace XUnitTest.XCode.Caching
             var list = cache.Entities;
             Assert.Equal(1, cache.Times);
 
-            cache.Clear("TestClear");
+            cache.Clear("TestClear", false);
+
+            Thread.Sleep(1000);
+            Assert.Equal(1, cache.Times);
 
             // 再次访问
             var list2 = cache.Entities;
 
             Assert.Equal(1, cache.Times);
+            Thread.Sleep(1000);
+            Assert.Equal(2, cache.Times);
+
+            cache.Clear("TestClear", true);
+
+            // 再次访问
+            list2 = cache.Entities;
+
+            Assert.Equal(3, cache.Times);
 
             // 等待更新完成
             Thread.Sleep(1000);
-            Assert.Equal(2, cache.Times);
+            Assert.Equal(3, cache.Times);
         }
 
         [Fact]

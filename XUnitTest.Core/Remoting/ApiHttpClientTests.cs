@@ -112,7 +112,10 @@ namespace XUnitTest.Remoting
         [Fact]
         public async void SlaveTest()
         {
-            var client = new ApiHttpClient("http://127.0.0.1:10000,http://127.0.0.1:20000," + _Address);
+            var client = new ApiHttpClient("http://127.0.0.1:10000,http://127.0.0.1:20000," + _Address)
+            {
+                Timeout = 3_000
+            };
             var ac = client as IApiClient;
 
             var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");

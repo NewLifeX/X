@@ -161,10 +161,16 @@ namespace NewLife
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
             if (ss == null || ss.Length < 1) return dic;
 
+            var k = 0;
             foreach (var item in ss)
             {
                 var p = item.IndexOf(nameValueSeparator);
-                if (p <= 0) continue;
+                if (p <= 0)
+                {
+                    dic[$"[{k}]"] = item;
+                    k++;
+                    continue;
+                }
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + nameValueSeparator.Length).Trim();
@@ -176,6 +182,7 @@ namespace NewLife
                     if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
                 }
 
+                k++;
                 dic[key] = val;
             }
 
@@ -781,7 +788,7 @@ namespace NewLife
         /// <param name="keys"></param>
         /// <param name="keySelector"></param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        public static IList<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
         {
             var rs = new List<KeyValuePair<T, Double>>();
 
@@ -800,7 +807,7 @@ namespace NewLife
                 var dist = ks.Sum(e =>
                 {
                     var kv = Match(name, e, e.Length);
-                    return kv.Key - kv.Value * 0.5;
+                    return kv.Key - kv.Value * 0.1;
                 });
                 if (dist > 0)
                 {
@@ -947,14 +954,16 @@ namespace NewLife
         #endregion
 
         #region 执行命令行
+
         /// <summary>以隐藏窗口执行命令行</summary>
         /// <param name="cmd">文件名</param>
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
         /// <param name="output">进程输出内容。默认为空时输出到日志</param>
         /// <param name="onExit">进程退出时执行</param>
+        /// <param name="working">工作目录</param>
         /// <returns>进程退出代码</returns>
-        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null)
+        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
@@ -963,7 +972,7 @@ namespace NewLife
             si.FileName = cmd;
             if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
-
+            if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
             {

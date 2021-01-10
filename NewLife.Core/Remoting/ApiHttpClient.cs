@@ -146,6 +146,12 @@ namespace NewLife.Remoting
                     _idxServer++;
                     if (++i >= svrs.Count) throw;
                 }
+                catch (TaskCanceledException)
+                {
+                    // 网络异常时，自动切换到其它节点
+                    _idxServer++;
+                    if (++i >= svrs.Count) throw;
+                }
             } while (true);
         }
 

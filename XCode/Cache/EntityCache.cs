@@ -12,8 +12,11 @@ namespace XCode.Cache
 {
     /// <summary>实体缓存</summary>
     /// <remarks>
-    /// 第一次读取缓存的时候，同步从数据库读取，这样子手上有一份数据。
-    /// 以后更新，都开异步线程去读取，而当前马上返回，让大家继续用着旧数据，这么做性能非常好。
+    /// 缓存更新逻辑：
+    /// 1，初始化。首次访问阻塞等待，确保得到有效数据。
+    /// 2，定时过期。过期后异步更新缓存返回旧数据，保障性能。但若过期两倍时间，则同步更新缓存阻塞等待返回新数据。
+    /// 3，主动清除。外部主动清除缓存，强制清除后下次访问时同步更新缓存，非强制清除后下次访问时异步更新缓存。
+    /// 4，添删改过期。添删改期间，仅修改缓存，不改变过期更新，避免事务中频繁更新缓存，提交回滚事务后强制清除缓存。
     /// </remarks>
     /// <typeparam name="TEntity">实体类型</typeparam>
     [DisplayName("实体缓存")]
@@ -112,7 +115,8 @@ namespace XCode.Cache
             }
             else
             {
-                var msg = $"有效期{Expire}秒，已过期{sec:n2}秒";
+                var s = ExpiredTime == DateTime.MinValue ? "已强制过期" : $"已过期{sec:n2}秒";
+                var msg = $"有效期{Expire}秒，{s}";
 
                 // 频繁更新下，采用异步更新缓存，以提升吞吐。非频繁访问时（2倍超时），同步更新
                 if (sec < Expire)
@@ -191,12 +195,26 @@ namespace XCode.Cache
         }
 
         /// <summary>清除缓存</summary>
-        public void Clear(String reason)
+        /// <param name="reason">清除原因</param>
+        /// <param name="force">强制清除，下次访问阻塞等待。默认false仅置为过期，下次访问异步更新</param>
+        public void Clear(String reason, Boolean force = false)
         {
             if (!Using) return;
 
-            // 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
-            UpdateCacheAsync(reason);
+            //// 直接执行异步更新，明明白白，确保任何情况下数据最新，并且不影响其它任务的性能
+            //UpdateCacheAsync(reason);
+
+            // 强迫下一次访问阻塞等待刷新
+            if (force)
+            {
+                ExpiredTime = DateTime.MinValue;
+                WriteLog("强制清除缓存，下次访问时同步更新阻塞等待");
+            }
+            else
+            {
+                ExpiredTime = DateTime.Now;
+                WriteLog("非强制清除缓存，下次访问时异步更新无需阻塞等待");
+            }
         }
 
         private readonly IEntityFactory _factory = Entity<TEntity>.Meta.Factory;
@@ -209,8 +227,6 @@ namespace XCode.Cache
             var es = _Entities;
             lock (es)
             {
-                //es.Add(entity);
-
                 var list = _Entities.ToList();
                 list.Add(entity);
                 _Entities = list.ToArray();
@@ -238,12 +254,9 @@ namespace XCode.Cache
             }
             if (e == null) return null;
 
-            //if (e != entity) e.CopyFrom(entity);
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             lock (es)
             {
-                //es.Remove(e);
-
                 var list = _Entities.ToList();
                 list.Remove(e);
                 _Entities = list.ToArray();
@@ -270,7 +283,6 @@ namespace XCode.Cache
                 idx = Array.FindIndex(es, x => Equals(x[fi.Name], v));
             }
 
-            //if (e != entity) e.CopyFrom(entity);
             // 更新实体缓存时，不做拷贝，避免产生脏数据，如果恰巧又使用单对象缓存，那会导致自动保存
             if (idx >= 0)
                 es[idx] = entity;
@@ -278,8 +290,6 @@ namespace XCode.Cache
             {
                 lock (es)
                 {
-                    //es.Add(entity);
-
                     var list = _Entities.ToList();
                     list.Add(entity);
                     _Entities = list.ToArray();

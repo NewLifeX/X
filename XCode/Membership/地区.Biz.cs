@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -344,16 +345,34 @@ namespace XCode.Membership
             if (!key.IsNullOrEmpty())
             {
                 if (key.ToLong() > 0)
-                    exp &= _.ID == key | _.TelCode == key | _.ZipCode == key;
+                {
+                    var exp2 = new WhereExpression();
+                    if (key.Length == 6 || key.Length == 9) exp2 |= _.ID == key;
+                    if (key.Length == 2 || key.Length == 3) exp2 |= _.TelCode == key;
+                    if (key.Length == 6) exp2 |= _.ZipCode == key;
+
+                    exp &= exp2;
+                }
                 else
-                    exp &= _.Name == key | _.FullName.StartsWith(key) | _.Kind == key | _.PinYin.StartsWith(key) | _.JianPin == key | _.GeoHash.StartsWith(key);
+                {
+                    // 区分中英文，GeoHash全部小写
+                    if (Encoding.UTF8.GetByteCount(key) == key.Length)
+                    {
+                        if (key == key.ToLower())
+                            exp &= _.PinYin.StartsWith(key) | _.JianPin == key | _.GeoHash.StartsWith(key);
+                        else
+                            exp &= _.PinYin.StartsWith(key) | _.JianPin == key;
+                    }
+                    else
+                        exp &= _.Name == key | _.FullName.StartsWith(key) | _.Kind == key;
+                }
             }
 
             return FindAll(exp, page);
         }
 
         /// <summary>根据条件模糊搜索</summary>
-        /// <param name="parentid"></param>
+        /// <param name="parentid">在指定级别下搜索，-1表示所有，非负数时支持字符串相似搜索</param>
         /// <param name="key"></param>
         /// <param name="enable"></param>
         /// <param name="count"></param>
@@ -366,24 +385,91 @@ namespace XCode.Membership
 
             if (r != null)
             {
-                if (key.IsNullOrEmpty()) return r.Childs.Where(e => e.Enable).Take(count).ToList();
-
-                var list = r.AllChilds
-                    .Where(e => e.Enable)
-                    .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key)
-                        || !e.FullName.IsNullOrEmpty() && e.FullName.Contains(key)
-                        || e.PinYin.StartsWithIgnoreCase(key)
-                        || e.JianPin.EqualIgnoreCase(key)
-                        || e.TelCode == key
-                        || e.ZipCode == key
-                        || e.GeoHash.StartsWithIgnoreCase(key)
-                        )
-                    .Take(count)
-                    .ToList();
-                if (list.Count > 0 || r.ID > 0) return list;
+                var set = SearchLike(r.ID, key, enable, count);
+                if (set.Count > 0 || r.ID > 0) return set.Take(count).Select(e => e.Key).ToList();
             }
 
-            return Search(parentid, -1, -1, -1, enable, key, DateTime.MinValue, DateTime.MinValue, new PageParameter { PageSize = count });
+            return Search(parentid, -1, -1, -1, enable, key, DateTime.MinValue, DateTime.MinValue, new PageParameter { PageSize = count, Sort = nameof(ID) });
+        }
+
+        private static IDictionary<Area, Double> SearchLike(Int32 parentid, String key, Boolean? enable, Int32 count)
+        {
+            // 两级搜索，特殊处理直辖
+            var list = FindAllByParentID(parentid) as List<Area>;
+            if (list.Count == 1 && list[0].Name.StartsWithIgnoreCase("直辖", "省辖", "市辖")) list = FindAllByParentID(list[0].ID) as List<Area>;
+            foreach (var item in list.ToArray())
+            {
+                var list2 = FindAllByParentID(item.ID);
+                if (list2.Count > 0) list.AddRange(list2);
+            }
+
+            if (enable != null) list = list.Where(e => e.Enable == enable).ToList();
+            if (key.IsNullOrEmpty()) return list.Take(count).ToDictionary(e => e, e => 1.0);
+
+            {
+                var list2 = list
+                    .Where(e => !e.Name.IsNullOrEmpty() && e.Name.Contains(key)
+                    || !e.FullName.IsNullOrEmpty() && e.FullName.Contains(key)
+                    || e.PinYin.StartsWithIgnoreCase(key)
+                    || e.JianPin.EqualIgnoreCase(key)
+                    || e.TelCode == key
+                    || e.ZipCode == key
+                    || e.GeoHash.StartsWithIgnoreCase(key)
+                    )
+                    .Take(count)
+                    .ToList();
+
+                if (list2.Count > 0) return list2.ToDictionary(e => e, e => 1.0);
+            }
+
+            // 近似搜索
+            return list.Match(key, e => e.FullName).OrderByDescending(e => e.Value).Take(count).ToDictionary(e => e.Key, e => e.Value);
+        }
+
+        /// <summary>搜索地址所属地区</summary>
+        /// <param name="address"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static IList<KeyValuePair<Area, Double>> SearchAddress(String address, Int32 count = 10)
+        {
+            var set = new Dictionary<Area, Double>();
+
+            // 一二级搜索，定位城市
+            var dic = SearchLike(0, address, true, count);
+            if (dic.Count == 0) return new List<KeyValuePair<Area, Double>>();
+
+            // 三级搜索
+            foreach (var item in dic)
+            {
+                var addr3 = address.TrimStart(item.Key.FullName, item.Key.Name);
+                var dic3 = SearchLike(item.Key.ID, addr3, true, count);
+                foreach (var elm in dic3)
+                {
+                    var r3 = elm.Key;
+                    if (r3.ID > 999999)
+                    {
+                        var val = item.Value + elm.Value;
+                        if (!set.TryGetValue(r3, out var v) || v < val)
+                            set[r3] = val;
+                    }
+                    else
+                    {
+                        // 四级搜索
+                        var addr4 = addr3.TrimStart(item.Key.FullName, item.Key.Name);
+                        var dic4 = SearchLike(r3.ID, addr4, true, count);
+                        foreach (var elm4 in dic4)
+                        {
+                            var r4 = elm4.Key;
+                            var val = item.Value + elm.Value + elm4.Value;
+                            if (!set.TryGetValue(r4, out var v) || v < val)
+                                set[r4] = val;
+                        }
+                    }
+                }
+            }
+
+            // 排序
+            return set.OrderByDescending(e => e.Value).Take(count).ToList();
         }
         #endregion
 
@@ -660,7 +746,7 @@ namespace XCode.Membership
             var rs = ParseAndSave(html);
             var count = rs.Count;
 
-            Meta.Session.ClearCache("FetchAndSave");
+            Meta.Session.ClearCache("FetchAndSave", false);
 
             //            // 拉取四级地区
             //            if (level4)
@@ -877,7 +963,7 @@ namespace XCode.Membership
             var count = 0;
             count += MergeLevel3(list, addLose);
 
-            Meta.Session.ClearCache("Import");
+            Meta.Session.ClearCache("Import", false);
 
             // 等待异步写入的数据，导入四级地址时要做校验
             var retry = 10;
@@ -885,7 +971,7 @@ namespace XCode.Membership
 
             if (level >= 4) count += MergeLevel4(list, addLose);
 
-            Meta.Session.ClearCache("Import");
+            Meta.Session.ClearCache("Import", false);
 
             return count;
         }

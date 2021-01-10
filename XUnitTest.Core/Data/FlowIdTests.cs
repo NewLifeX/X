@@ -46,17 +46,22 @@ namespace XUnitTest.Data
         {
             var sw = Stopwatch.StartNew();
 
-            var ws = new ConcurrentBag<Int32>();
+            //var ws = new ConcurrentBag<Int32>();
+            var ws = new ConcurrentDictionary<Int32, Snowflake>();
             var repeat = new ConcurrentBag<Int64>();
             var hash = new ConcurrentDictionary<Int64, Snowflake>();
 
             var ts = new List<Task>();
             for (var k = 0; k < 10; k++)
             {
+                // 提前计算workerId到本地变量，避免匿名函数闭包里面产生重复
+                var wid = (k + 1) & 0x3FF;
                 ts.Add(Task.Run(() =>
                 {
-                    var f = new Snowflake { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = Rand.Next() & 0x3FF };
-                    ws.Add(f.WorkerId);
+                    var f = new Snowflake { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = wid };
+                    //ws.Add(f.WorkerId);
+                    Assert.True(ws.TryAdd(f.WorkerId, f));
+                    //if (!ws.TryAdd(f.WorkerId, f)) Assert.True(false);
 
                     for (var i = 0; i < 100_000; i++)
                     {

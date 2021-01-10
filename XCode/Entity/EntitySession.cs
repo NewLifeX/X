@@ -522,10 +522,16 @@ namespace XCode
         }
 
         /// <summary>清除缓存</summary>
-        /// <param name="reason">原因</param>
-        public void ClearCache(String reason)
+        /// <param name="reason">清除原因</param>
+        [Obsolete]
+        public void ClearCache(String reason) => ClearCache(reason, false);
+
+        /// <summary>清除缓存</summary>
+        /// <param name="reason">清除原因</param>
+        /// <param name="force">强制清除，下次访问阻塞等待。默认false仅置为过期，下次访问异步更新</param>
+        public void ClearCache(String reason, Boolean force)
         {
-            _cache?.Clear(reason);
+            _cache?.Clear(reason, force);
 
             _singleCache?.Clear(reason);
 
@@ -644,9 +650,7 @@ namespace XCode
 
         private void DataChange(String reason)
         {
-            //var tr = GetTran();
-            //// 实体添删改时，有修改缓存，数据变更事件里不需要再次清空
-            //if (tr == null || tr.Count == 0) ClearCache(reason);
+            ClearCache(reason, true);
 
             _OnDataChange?.Invoke(ThisType);
         }
@@ -678,7 +682,7 @@ namespace XCode
             var rs = GetDAL(false).Session.Truncate(FormatedTableName);
 
             // 干掉所有缓存
-            _cache?.Clear("Truncate");
+            _cache?.Clear("Truncate", true);
             _singleCache?.Clear("Truncate");
             LongCount = 0;
 

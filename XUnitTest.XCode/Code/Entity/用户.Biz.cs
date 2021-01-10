@@ -181,7 +181,7 @@ namespace XCode.Membership
         public static User FindByName(String name)
         {
             // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name == name);
+            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
 
             // 单对象缓存
             //return Meta.SingleCache.GetItemWithSlaveKey(name) as User;

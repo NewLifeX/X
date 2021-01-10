@@ -302,17 +302,28 @@ namespace XCode.DataAccessLayer
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
             var tracer = Tracer ?? GlobalTracer;
-            var traceName = $"db:{ConnName}:{action}";
+            var traceName = "";
+            var sql = "";
 
             // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
             if (tracer != null)
             {
-                var tables = GetTables(k1 + "");
+                sql = (k1 + "").Trim();
+                if (action == "Execute")
+                {
+                    // 使用 Insert/Update/Delete 作为埋点操作名
+                    var p = sql.IndexOf(' ');
+                    if (p > 0) action = sql.Substring(0, p);
+                }
+
+                traceName = $"db:{ConnName}:{action}";
+
+                var tables = GetTables(sql);
                 if (tables.Length > 0) traceName += ":" + tables.Join("-");
             }
 
             // 使用k1参数作为tag，一般是sql
-            var span = tracer?.NewSpan(traceName, k1 + "");
+            var span = tracer?.NewSpan(traceName, sql);
             try
             {
                 return callback(k1, k2, k3);

@@ -9,6 +9,7 @@ using Xunit;
 using static XCode.Membership.Area;
 using System;
 using System.Threading;
+using NewLife;
 
 namespace XUnitTest.XCode.Membership
 {
@@ -226,15 +227,18 @@ namespace XUnitTest.XCode.Membership
         {
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
-            var file = "http://x.newlifex.com/Area.csv.gz";
+            if (Area.Meta.Count == 0)
+            {
+                var file = "http://x.newlifex.com/Area.csv.gz";
 
-            Area.Meta.Session.Truncate();
-            var rs = Area.Import(file, true, 3);
-            Assert.Equal(3639, rs);
+                Area.Meta.Session.Truncate();
+                var rs = Area.Import(file, true, 3);
+                Assert.Equal(3639, rs);
 
-            Area.Meta.Session.Truncate();
-            rs = Area.Import(file, true, 4);
-            Assert.Equal(46533, rs);
+                Area.Meta.Session.Truncate();
+                rs = Area.Import(file, true, 4);
+                Assert.Equal(46533, rs);
+            }
 
             Area.Meta.Session.Dal.Db.ShowSQL = true;
         }
@@ -250,6 +254,69 @@ namespace XUnitTest.XCode.Membership
             Assert.True(File.Exists(file.GetFullPath()));
 
             //File.Delete(file.GetFullPath());
+        }
+
+        [Theory]
+        [InlineData(0, "北京", 1, 110000)]
+        [InlineData(0, "北京市", 1, 110000)]
+        [InlineData(-1, "北京", 10, 110000)]
+        [InlineData(0, "玉林", 1, 450900, "玉林")]
+        [InlineData(-1, "玉林", 4, 450900)]
+        [InlineData(-1, "yulin", 10, 450900, "玉林")]
+        [InlineData(-1, "YL", 10, 230123, "依兰")]
+        [InlineData(-1, "537000", 10, 450900, "玉林")]
+        public void SearchByKey(Int32 pid, String key, Int32 count, Int32 rid, String name = null)
+        {
+            XTrace.WriteLine("SearchByKey=>: {0} {1}", pid, key);
+            var list = Area.Search(pid, key, true, 10);
+            XTrace.WriteLine("SearchByKey<=: {0}", list.Join(",", e => e.Path));
+
+            Assert.Equal(count, list.Count);
+            if (list.Count > 0)
+            {
+                Assert.Equal(rid, list[0].ID);
+                if (!name.IsNullOrEmpty()) Assert.Equal(name, list[0].Name);
+            }
+        }
+
+        [Theory]
+        [InlineData(310104, "虹梅街道", 10, 310104012, "虹梅路")]
+        [InlineData(310104, "康健街道", 10, 310104013, "康健新村")]
+        [InlineData(650000, "乌市", 10, 650100, "乌鲁木齐")]
+        [InlineData(110100, "城区", 2, 110101, "东城")]
+        [InlineData(110000, "城区", 2, 110101, "东城")]
+        [InlineData(0, "中山", 1, 442000, "中山")]
+        public void SearchLike(Int32 pid, String key, Int32 count, Int32 rid, String name = null)
+        {
+            XTrace.WriteLine("SearchLike=>: {0} {1}", pid, key);
+            var list = Area.Search(pid, key, true, 10);
+            XTrace.WriteLine("SearchLike<=: {0}", list.Join(",", e => e.Path));
+
+            Assert.Equal(count, list.Count);
+            if (list.Count > 0)
+            {
+                Assert.Equal(rid, list[0].ID);
+                if (!name.IsNullOrEmpty()) Assert.Equal(name, list[0].Name);
+            }
+        }
+
+        [Theory]
+        [InlineData("上海市虹梅路2588弄", 310104012, "上海/徐汇/虹梅路")]
+        [InlineData("上海市华新中学", 310118107, "上海/青浦/华新")]
+        [InlineData("广西容县杨梅镇", 450921102, "广西/玉林/容县/杨梅")]
+        [InlineData("湖北神农木鱼", 429021102, "湖北/神农架/木鱼")]
+        public void SearchAddress(String address, Int32 rid, String target)
+        {
+            XTrace.WriteLine("SearchAddress=>: {0}", address);
+            var set = Area.SearchAddress(address);
+            XTrace.WriteLine("SearchAddress<=: {0}", set.Join(",", e => $"[{e.Value:n2}]{e.Key.Path}"));
+
+            if (set.Count > 0)
+            {
+                var r = set[0].Key;
+                Assert.Equal(rid, r.ID);
+                Assert.Equal(target, r.Path);
+            }
         }
     }
 }

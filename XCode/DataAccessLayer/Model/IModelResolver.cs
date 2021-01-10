@@ -40,6 +40,14 @@ namespace XCode.DataAccessLayer
     /// <summary>模型解析器。解决名称大小写、去前缀、关键字等多个问题</summary>
     public class ModelResolver : IModelResolver
     {
+        #region 属性
+        /// <summary>去掉下划线。默认true，下划线前后单词用驼峰命名</summary>
+        public Boolean TrimUnderline { get; set; } = true;
+
+        /// <summary>使用驼峰命名。默认true</summary>
+        public Boolean Camel { get; set; } = true;
+        #endregion
+
         #region 名称处理
         /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
         /// <param name="name">名称</param>
@@ -59,26 +67,33 @@ namespace XCode.DataAccessLayer
             name = name.Replace("\\", "_");
 
             // 全大写或全小写名字，格式化为驼峰格式  包含下划线的表名和字段名生成类时自动去掉下划线
-            if (name.Contains("_"))//(  name == name.ToUpper() || name == name.ToLower()))//
+            if (name.Contains("_") && TrimUnderline)//(  name == name.ToUpper() || name == name.ToLower()))//
             {
                 var ns = name.Split("_");
                 var sb = Pool.StringBuilder.Get();
                 foreach (var item in ns)
                 {
-                    if (item.EqualIgnoreCase("ID"))
-                        sb.Append("ID");
+                    if (Camel)
+                    {
+                        if (item.EqualIgnoreCase("ID"))
+                            sb.Append("Id");
+                        else
+                        {
+                            // 首字母大小写，其它小写
+                            sb.Append(item.Substring(0, 1).ToUpper());
+                            sb.Append(item.Substring(1).ToLower());
+                        }
+                    }
                     else
                     {
-                        // 首字母大小写，其它小写
-                        sb.Append(item.Substring(0, 1).ToUpper());
-                        sb.Append(item.Substring(1).ToLower());
+                        sb.Append(item);
                     }
                 }
                 name = sb.Put(true);
             }
-            else if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
+            if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
             {
-                name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
+                if (Camel) name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
             }
 
             return name;
