@@ -59,10 +59,10 @@ namespace NewLife.Configuration
             return rs;
         }
 
-        /// <summary>设置配置项，保存到服务端</summary>
-        /// <param name="configs"></param>
-        /// <returns></returns>
-        protected virtual Int32 SetAll(IDictionary<String, Object> configs) => 0;
+        ///// <summary>设置配置项，保存到服务端</summary>
+        ///// <param name="configs"></param>
+        ///// <returns></returns>
+        //protected virtual Int32 SetAll(IDictionary<String, Object> configs) => 0;
 
         /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
         /// <param name="value"></param>
@@ -114,21 +114,21 @@ namespace NewLife.Configuration
             return true;
         }
 
-        /// <summary>保存配置树到数据源</summary>
-        public override Boolean SaveAll()
-        {
-            var dic = new Dictionary<String, Object>();
-            foreach (var item in Root.Childs)
-            {
-                // 只提交修改过的设置
-                if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
-                    dic[item.Key] = item.Value;
-            }
+        ///// <summary>保存配置树到数据源</summary>
+        //public override Boolean SaveAll()
+        //{
+        //    var dic = new Dictionary<String, Object>();
+        //    foreach (var item in Root.Childs)
+        //    {
+        //        // 只提交修改过的设置
+        //        if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+        //            dic[item.Key] = item.Value;
+        //    }
 
-            if (dic.Count > 0) SetAll(dic);
+        //    if (dic.Count > 0) SetAll(dic);
 
-            return true;
-        }
+        //    return true;
+        //}
         #endregion
 
         #region 绑定
@@ -196,7 +196,7 @@ namespace NewLife.Configuration
 
                 foreach (var item in _models)
                 {
-                    base.Bind(item.Key, false, item.Value);
+                    Bind(item.Key, false, item.Value);
                 }
             }
         }
