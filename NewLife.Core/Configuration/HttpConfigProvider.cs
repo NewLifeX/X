@@ -9,7 +9,7 @@ using NewLife.Threading;
 
 namespace NewLife.Configuration
 {
-    /// <summary>分布式配置中心文件提供者</summary>
+    /// <summary>配置中心提供者</summary>
     public class HttpConfigProvider : ConfigProvider
     {
         #region 属性
@@ -25,7 +25,7 @@ namespace NewLife.Configuration
         /// <summary>本地缓存配置数据，即使网络断开，仍然能够加载使用本地数据</summary>
         public Boolean LocalCache { get; set; }
 
-        /// <summary>更新周期。默认60秒，0表示关闭定时更新</summary>
+        /// <summary>更新周期。默认60秒</summary>
         public Int32 Period { get; set; } = 60;
 
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
@@ -161,7 +161,9 @@ namespace NewLife.Configuration
             {
                 if (_timer != null) return;
 
-                _timer = new TimerX(DoRefresh, null, 60_000, 60_000) { Async = true };
+                var p = Period;
+                if (p <= 0) p = 60;
+                _timer = new TimerX(DoRefresh, null, p * 1000, p * 1000) { Async = true };
             }
         }
 
