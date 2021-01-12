@@ -394,6 +394,20 @@ namespace NewLife.Reflection
                 }
             }
 
+            // 获取用于序列化的属性列表时，加上非公有的数据成员
+            pis = type.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic);
+            foreach (var pi in pis)
+            {
+                if (pi.GetIndexParameters().Length > 0) continue;
+                if (pi.GetCustomAttribute<XmlElementAttribute>() == null && pi.GetCustomAttribute<DataMemberAttribute>() == null) continue;
+
+                if (!set.Contains(pi.Name))
+                {
+                    list.Add(pi);
+                    set.Add(pi.Name);
+                }
+            }
+
             if (!baseFirst) list.AddRange(GetProperties(type.BaseType).Where(e => !set.Contains(e.Name)));
 
             return list;
