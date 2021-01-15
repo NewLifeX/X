@@ -75,6 +75,7 @@ namespace NewLife.Configuration
                         if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
                     }
                 }
+                var cls = dic.BuildModelClass();
                 return dic;
             }
             else

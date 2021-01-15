@@ -66,7 +66,7 @@ namespace NewLife.Configuration
         {
             if (section == null) return null;
 
-            var cfg = section.Childs?.FirstOrDefault(e => e.Key == key);
+            var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(key));
             if (cfg != null) return cfg;
 
             cfg = new ConfigSection { Key = key };
@@ -108,7 +108,7 @@ namespace NewLife.Configuration
                 if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
                 var name = pi.Name;
-                var cfg = section.Childs?.FirstOrDefault(e => e.Key == name);
+                var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
                 if (cfg == null) continue;
 
                 // 分别处理基本类型、数组类型、复杂类型

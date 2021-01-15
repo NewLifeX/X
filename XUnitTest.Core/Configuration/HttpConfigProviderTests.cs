@@ -37,6 +37,28 @@ namespace XUnitTest.Configuration
 
             var keys = provider.Keys.ToArray();
             Assert.NotNull(keys);
+
+            var model = provider.Load<Model>();
+            Assert.NotNull(model);
+            Assert.NotEmpty(model.AppApiUrl);
+            Assert.Equal(url, model.AppApiUrl);
+            Assert.True(model.Radius > 0);
+            Assert.NotEmpty(model.MySqlServer);
+
+            var model2 = new Model();
+            provider.Bind(model2);
+            Assert.Equal(url, model2.AppApiUrl);
+            Assert.True(model2.Radius > 0);
+            Assert.NotEmpty(model2.MySqlServer);
+        }
+
+        class Model
+        {
+            public Int32 Radius { get; set; }
+
+            public String MySqlServer { get; set; }
+
+            public String AppApiUrl { get; set; }
         }
     }
 }
