@@ -219,6 +219,9 @@ namespace NewLife.Configuration
 
                 Build(dic);
 
+                // 缓存
+                _cache = dic;
+
                 foreach (var item in _models)
                 {
                     Bind(item.Key, false, item.Value);
