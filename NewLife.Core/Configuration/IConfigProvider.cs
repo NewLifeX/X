@@ -71,7 +71,7 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public virtual String this[String key]
         {
-            get => Root.Find(key, false)?.Value;
+            get { EnsureLoad(); return Root.Find(key, false)?.Value; }
             set => Root.Find(key, true).Value = value;
         }
 

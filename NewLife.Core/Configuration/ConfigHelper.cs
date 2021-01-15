@@ -29,7 +29,7 @@ namespace NewLife.Configuration
             // 逐级下钻
             for (var i = 0; i < ss.Length; i++)
             {
-                var cfg = sec.Childs?.FirstOrDefault(e => e.Key == ss[i]);
+                var cfg = sec.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(ss[i]));
                 if (cfg == null)
                 {
                     if (!createOnMiss) return null;

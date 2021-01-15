@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -22,41 +21,66 @@ namespace NewLife.Configuration
         /// <summary>应用密钥</summary>
         public String Secret { get; set; }
 
+        /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
+        public String Scope { get; set; }
+
+        /// <summary>命名空间</summary>
+        public String NameSpace { get; set; }
+
         /// <summary>本地缓存配置数据，即使网络断开，仍然能够加载使用本地数据</summary>
         public Boolean LocalCache { get; set; }
 
         /// <summary>更新周期。默认60秒</summary>
         public Int32 Period { get; set; } = 60;
 
-        /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
-        public String Scope { get; set; }
-
         private IDictionary<String, Object> _cache;
         #endregion
 
         #region 方法
-        private HttpClient _client;
-        private HttpClient GetClient()
+        private ApiHttpClient _client;
+        private ApiHttpClient GetClient()
         {
             if (_client == null)
             {
-                _client = new HttpClient
+                _client = new ApiHttpClient(Server)
                 {
-                    BaseAddress = new Uri(Server)
+                    Timeout = 3_000
                 };
             }
 
             return _client;
         }
 
+        /// <summary>设置阿波罗服务端</summary>
+        /// <param name="nameSpaces"></param>
+        public void SetApollo(String nameSpaces = "application") => NameSpace = nameSpaces;
+
         /// <summary>获取所有配置</summary>
         /// <returns></returns>
         protected virtual IDictionary<String, Object> GetAll()
         {
             var client = GetClient();
-            var rs = client.Get<IDictionary<String, Object>>("Config/GetAll", new { appId = AppId, secret = Secret, scope = Scope });
 
-            return rs;
+            // 特殊处理Apollo
+            if (!NameSpace.IsNullOrEmpty())
+            {
+                var ns = NameSpace.Split(",", ";");
+                var dic = new Dictionary<String, Object>();
+                foreach (var item in ns)
+                {
+                    var action = $"/configfiles/json/{AppId}/default/{item}";
+                    var rs = client.Get<IDictionary<String, Object>>(action);
+                    foreach (var elm in rs)
+                    {
+                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                    }
+                }
+                return dic;
+            }
+            else
+            {
+                return client.Get<IDictionary<String, Object>>("Config/GetAll", new { appId = AppId, secret = Secret, scope = Scope });
+            }
         }
 
         ///// <summary>设置配置项，保存到服务端</summary>
@@ -73,14 +97,14 @@ namespace NewLife.Configuration
             if (LocalCache && File.Exists(file))
             {
                 var json = File.ReadAllText(file);
-                Root = Load(JsonParser.Decode(json));
+                Root = Build(JsonParser.Decode(json));
             }
         }
 
         /// <summary>加载配置字典为配置树</summary>
         /// <param name="configs"></param>
         /// <returns></returns>
-        protected IConfigSection Load(IDictionary<String, Object> configs)
+        protected IConfigSection Build(IDictionary<String, Object> configs)
         {
             // 换个对象，避免数组元素在多次加载后重叠
             var root = new ConfigSection { };
@@ -88,7 +112,7 @@ namespace NewLife.Configuration
             {
                 var section = root.GetOrAddChild(item.Key);
                 if (item.Value is IDictionary<String, Object> dic)
-                    section.Childs = Load(dic).Childs;
+                    section.Childs = Build(dic).Childs;
                 else
                     section.Value = item.Value + "";
             }
@@ -99,7 +123,7 @@ namespace NewLife.Configuration
         public override Boolean LoadAll()
         {
             var dic = GetAll();
-            Root = Load(dic);
+            Root = Build(dic);
 
             // 缓存
             _cache = dic;
@@ -192,7 +216,7 @@ namespace NewLife.Configuration
             {
                 XTrace.WriteLine("[{0}]配置改变，重新加载", AppId);
 
-                Load(dic);
+                Build(dic);
 
                 foreach (var item in _models)
                 {
