@@ -70,7 +70,6 @@ namespace NewLife.Net
 
                 Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
                 sock.Bind(Local.EndPoint);
-                CheckDynamic();
 
                 WriteLog("Open {0}", this);
             }

@@ -53,9 +53,6 @@ namespace NewLife.Net
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; internal protected set; }
 
-        /// <summary>是否使用动态端口。如果Port为0则为动态端口</summary>
-        public Boolean DynamicPort { get; private set; }
-
         /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
@@ -180,16 +177,6 @@ namespace NewLife.Net
         /// <returns></returns>
         protected abstract Boolean OnOpen();
 
-        /// <summary>检查是否动态端口。如果是动态端口，则把随机得到的端口拷贝到Port</summary>
-        internal protected void CheckDynamic()
-        {
-            if (Port == 0)
-            {
-                DynamicPort = true;
-                if (Port == 0) Port = (Client.LocalEndPoint as IPEndPoint).Port;
-            }
-        }
-
         /// <summary>关闭</summary>
         /// <param name="reason">关闭原因。便于日志分析</param>
         /// <returns>是否成功</returns>
@@ -210,9 +197,6 @@ namespace NewLife.Net
 
                 // 触发关闭完成的事件
                 Closed?.Invoke(this, EventArgs.Empty);
-
-                // 如果是动态端口，需要清零端口
-                if (DynamicPort) Port = 0;
 
                 Active = rs;
 

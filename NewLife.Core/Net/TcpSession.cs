@@ -126,7 +126,6 @@ namespace NewLife.Net
                     sock.ReceiveTimeout = timeout;
                 }
                 sock.Bind(Local.EndPoint);
-                CheckDynamic();
 
                 WriteLog("Open {0}", this);
             }
