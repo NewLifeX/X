@@ -44,11 +44,8 @@ namespace NewLife.Net
         /// <summary>底层Socket</summary>
         public Socket Client { get; protected set; }
 
-        /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; } = DateTime.Now;
-
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
-        public DateTime LastTime { get; internal protected set; }
+        public DateTime LastTime { get; internal protected set; } = DateTime.Now;
 
         /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
         public Int32 MaxAsync { get; set; } = 1;

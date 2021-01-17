@@ -74,14 +74,8 @@ namespace NewLife.Net
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get => Server.ProcessAsync; set => Server.ProcessAsync = value; }
 
-        /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; } = DateTime.Now;
-
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
-        public DateTime LastTime { get; private set; }
-
-        ///// <summary>缓冲区大小。默认8k</summary>
-        //public Int32 BufferSize { get => Server.BufferSize; set => Server.BufferSize = value; }
+        public DateTime LastTime { get; private set; } = DateTime.Now;
         #endregion
 
         #region 构造

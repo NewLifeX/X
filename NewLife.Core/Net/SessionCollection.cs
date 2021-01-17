@@ -127,8 +127,7 @@ namespace NewLife.Net
         Boolean IsNotAlive(ISocketSession session, Int32 timeout)
         {
             // 如果有最后时间则判断最后时间，否则判断开始时间
-            var time = session.LastTime > DateTime.MinValue ? session.LastTime : session.StartTime;
-            return time.AddSeconds(timeout) < DateTime.Now;
+            return session.LastTime > DateTime.MinValue && session.LastTime.AddSeconds(timeout) < DateTime.Now;
         }
         #endregion
 
