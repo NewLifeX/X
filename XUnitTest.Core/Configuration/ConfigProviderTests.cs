@@ -15,18 +15,18 @@ namespace XUnitTest.Configuration
             var ini = new InIConfigProvider { FileName = "Config/core0.ini" };
             var xml = new XmlConfigProvider { FileName = "Config/core0.xml" };
             var json = new JsonConfigProvider { FileName = "Config/core0.json" };
-            var http = new HttpConfigProvider
-            {
-                Server = "http://127.0.0.1:5000/config,http://10.0.0.4/config",
-                AppId = "Test",
-                Secret = "12345678",
-                LocalCache = true,
-            };
+            //var http = new HttpConfigProvider
+            //{
+            //    Server = "http://127.0.0.1:5000/config,http://10.0.0.4/config",
+            //    AppId = "Test",
+            //    Secret = "12345678",
+            //    LocalCache = true,
+            //};
 
-            var p = http["LogPath"];
-            http["LogPath"] = p;
+            //var p = http["LogPath"];
+            //http["LogPath"] = p;
 
-            var cfg = http.Load<Setting>();
+            var cfg = xml.Load<Setting>();
 
             Assert.NotNull(cfg);
             Assert.True(cfg.Debug);
@@ -40,7 +40,10 @@ namespace XUnitTest.Configuration
         [Fact]
         public void Find()
         {
-            var ini = new InIConfigProvider();
+            var ini = new InIConfigProvider
+            {
+                FileName = "config/find.ini"
+            };
 
             Assert.Null(ini["xxx"]);
             Assert.Null(ini["aaa"]);

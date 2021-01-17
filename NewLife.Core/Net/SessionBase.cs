@@ -96,29 +96,21 @@ namespace NewLife.Net
             {
                 if (Active) return true;
 
-                // 估算完成时间，执行过长时提示
-                using (var tc = new TimeCost(GetType().Name + ".Open", 1500))
+                _RecvCount = 0;
+
+                var rs = OnOpen();
+                if (!rs) return false;
+
+                var timeout = Timeout;
+                if (timeout > 0)
                 {
-                    tc.Log = Log;
-
-                    _RecvCount = 0;
-
-                    // 本地和远程协议栈不一致时需要配对
-                    FixAddressFamily();
-
-                    var rs = OnOpen();
-                    if (!rs) return false;
-
-                    var timeout = Timeout;
-                    if (timeout > 0)
-                    {
-                        Client.SendTimeout = timeout;
-                        Client.ReceiveTimeout = timeout;
-                    }
-
-                    // Tcp需要初始化管道
-                    if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
+                    Client.SendTimeout = timeout;
+                    Client.ReceiveTimeout = timeout;
                 }
+
+                // Tcp需要初始化管道
+                if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
+
                 Active = true;
 
                 ReceiveAsync();
@@ -128,39 +120,6 @@ namespace NewLife.Net
             }
 
             return true;
-        }
-
-        private void FixAddressFamily()
-        {
-            var uri = Remote;
-            var remote = uri?.Address;
-            var local = Local.Address;
-            // 本地和远程协议栈不一致时需要配对
-            if (remote != null && !remote.IsAny() && local.AddressFamily != remote.AddressFamily)
-            {
-                if (remote.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    if (local == IPAddress.IPv6Any)
-                        local = IPAddress.Any;
-                    else if (local == IPAddress.IPv6Loopback)
-                        local = IPAddress.Loopback;
-                    else
-                        remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetworkV6);
-                }
-                else if (remote.AddressFamily == AddressFamily.InterNetworkV6)
-                {
-                    if (local == IPAddress.Any)
-                        local = IPAddress.IPv6Any;
-                    else if (local == IPAddress.Loopback)
-                        local = IPAddress.IPv6Loopback;
-                    else
-                        remote = uri.GetAddresses().FirstOrDefault(e => e.AddressFamily == AddressFamily.InterNetwork);
-                }
-
-                if (remote == null) throw new ArgumentOutOfRangeException(nameof(Remote), $"在{uri}中找不到适配本地{local}的可用地址！");
-                Local.Address = local;
-                Remote.Address = remote;
-            }
         }
 
         /// <summary>打开</summary>

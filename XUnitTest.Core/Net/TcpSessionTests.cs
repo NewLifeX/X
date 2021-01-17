@@ -49,10 +49,13 @@ namespace XUnitTest.Net
             var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => !e.IsIPv4() && !IPAddress.IsLoopback(e));
             Assert.NotNull(addr);
 
-            var uri = new NetUri("https://www.newlifex.com");
-            var client = uri.CreateRemote();
-            client.Local.Address = addr;
-            client.Open();
+            if (entry.AddressList.Any(_ => !_.IsIPv4()))
+            {
+                var uri = new NetUri("https://www.newlifex.com");
+                var client = uri.CreateRemote();
+                client.Local.Address = addr;
+                client.Open();
+            }
         }
     }
 }

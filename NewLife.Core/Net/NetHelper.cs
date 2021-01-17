@@ -576,34 +576,6 @@ namespace NewLife
             };
         }
 
-        ///// <summary>根据远程网络标识创建客户端</summary>
-        ///// <param name="uri"></param>
-        ///// <returns></returns>
-        //public static ISocketClient CreateRemote(this Uri uri)
-        //{
-        //    var http = new HttpClient();
-        //    http.Request.Url = uri ?? throw new ArgumentNullException(nameof(uri));
-        //    http.Remote = new NetUri(uri + "");
-
-        //    switch (uri.Scheme.ToLower())
-        //    {
-        //        case "https":
-        //            http.IsSSL = true;
-        //            break;
-        //        case "wss":
-        //            http.IsWebSocket = true;
-        //            http.IsSSL = true;
-        //            break;
-        //        case "ws":
-        //            http.IsWebSocket = true;
-        //            break;
-        //        default:
-        //            break;
-        //    }
-
-        //    return http;
-        //}
-
         internal static Socket CreateTcp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
         internal static Socket CreateUdp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);

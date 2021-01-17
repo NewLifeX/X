@@ -135,12 +135,19 @@ namespace NewLife.Net
 
             try
             {
+                var ep = uri.EndPoint;
+                if (!Local.Address.IsIPv4() && ep.Address.IsIPv4())
+                {
+                    var address = uri.GetAddresses().FirstOrDefault(_ => !_.IsIPv4());
+                    if (address != null) ep = new IPEndPoint(address, ep.Port);
+                }
+
                 if (timeout <= 0)
-                    sock.Connect(uri.EndPoint);
+                    sock.Connect(ep);
                 else
                 {
                     // 采用异步来解决连接超时设置问题
-                    var ar = sock.BeginConnect(uri.EndPoint, null, null);
+                    var ar = sock.BeginConnect(ep, null, null);
                     if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                     {
                         sock.Close();
@@ -223,9 +230,9 @@ namespace NewLife.Net
 
             return true;
         }
-#endregion
+        #endregion
 
-#region 发送
+        #region 发送
         private Int32 _bsize;
         private SpinLock _spinLock = new SpinLock();
 
@@ -301,9 +308,9 @@ namespace NewLife.Net
 
             return rs;
         }
-#endregion
+        #endregion
 
-#region 接收
+        #region 接收
         internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
         {
             var sock = Client;
@@ -383,9 +390,9 @@ namespace NewLife.Net
 
             return true;
         }
-#endregion
+        #endregion
 
-#region 自动重连
+        #region 自动重连
         /// <summary>重连次数</summary>
         private Int32 _Reconnect;
         void Reconnect()
@@ -402,9 +409,9 @@ namespace NewLife.Net
             }
             catch { }
         }
-#endregion
+        #endregion
 
-#region 辅助
+        #region 辅助
         private String _LogPrefix;
         /// <summary>日志前缀</summary>
         public override String LogPrefix
@@ -435,6 +442,6 @@ namespace NewLife.Net
             else
                 return Local.ToString();
         }
-#endregion
+        #endregion
     }
 }

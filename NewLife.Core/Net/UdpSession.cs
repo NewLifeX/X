@@ -154,11 +154,6 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            //var task = SendAsync((Packet)null);
-            //if (Timeout > 0 && !task.Wait(Timeout)) return null;
-
-            //return task.Result;
-
             var ep = Remote.EndPoint as EndPoint;
             var buf = new Byte[Server.BufferSize];
             var size = Server.Client.ReceiveFrom(buf, ref ep);
