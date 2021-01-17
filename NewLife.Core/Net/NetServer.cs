@@ -542,7 +542,7 @@ namespace NewLife.Net
                     {
                         var svr = new TServer();
                         svr.Local.Address = addr;
-                        svr.Port = port;
+                        svr.Local.Port = port;
                         //svr.AddressFamily = family;
 
                         // 协议端口不能是已经被占用

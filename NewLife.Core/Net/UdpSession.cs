@@ -70,15 +70,12 @@ namespace NewLife.Net
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
         ISocketServer ISocketSession.Server => Server;
 
-        /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
-        public Boolean ThrowException { get => Server.ThrowException; set => Server.ThrowException = value; }
-
         /// <summary>异步处理接收到的数据，默认true利于提升网络吞吐量。</summary>
         /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。false避免拷贝，提升处理速度</remarks>
         public Boolean ProcessAsync { get => Server.ProcessAsync; set => Server.ProcessAsync = value; }
 
         /// <summary>通信开始时间</summary>
-        public DateTime StartTime { get; private set; }
+        public DateTime StartTime { get; private set; } = DateTime.Now;
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; private set; }
@@ -91,7 +88,6 @@ namespace NewLife.Net
         public UdpSession(UdpServer server, IPEndPoint remote)
         {
             Name = server.Name;
-            StartTime = DateTime.Now;
 
             Server = server;
             Remote = new NetUri(NetType.Udp, remote);

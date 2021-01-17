@@ -95,7 +95,7 @@ namespace NewLife.Net
                 catch (Exception ex)
                 {
                     if (!ex.IsDisposed()) OnError("Close", ex);
-                    if (ThrowException) throw;
+                    //if (ThrowException) throw;
 
                     return false;
                 }
@@ -156,7 +156,7 @@ namespace NewLife.Net
                     // 发送异常可能是连接出了问题，UDP不需要关闭
                     //Close();
 
-                    if (ThrowException) throw;
+                    //if (ThrowException) throw;
                 }
                 return -1;
             }

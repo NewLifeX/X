@@ -214,7 +214,7 @@ namespace NewLife.Net
                 {
                     Client = null;
                     if (!ex.IsDisposed()) OnError("Close", ex);
-                    if (ThrowException) throw;
+                    //if (ThrowException) throw;
 
                     return false;
                 }
@@ -287,7 +287,7 @@ namespace NewLife.Net
                     // 异步重连
                     ThreadPoolX.QueueUserWorkItem(Reconnect);
 
-                    if (ThrowException) throw;
+                    //if (ThrowException) throw;
                 }
 
                 return -1;

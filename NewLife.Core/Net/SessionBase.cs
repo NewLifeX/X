@@ -36,16 +36,13 @@ namespace NewLife.Net
         public NetUri Remote { get; set; } = new NetUri();
 
         /// <summary>超时。默认3000ms</summary>
-        public Int32 Timeout { get; set; } = 3000;
+        public Int32 Timeout { get; set; } = 3_000;
 
         /// <summary>是否活动</summary>
         public Boolean Active { get; set; }
 
         /// <summary>底层Socket</summary>
         public Socket Client { get; protected set; }
-
-        /// <summary>是否抛出异常，默认false不抛出。Send/Receive时可能发生异常，该设置决定是直接抛出异常还是通过<see cref="Error"/>事件</summary>
-        public Boolean ThrowException { get; set; }
 
         /// <summary>通信开始时间</summary>
         public DateTime StartTime { get; private set; } = DateTime.Now;
@@ -338,7 +335,7 @@ namespace NewLife.Net
                     OnError("ReceiveAsync", ex);
 
                     // 异常一般是网络错误，UDP不需要关闭
-                    if (!io && ThrowException) throw;
+                    //if (!io && ThrowException) throw;
                 }
                 return false;
             }
