@@ -25,9 +25,6 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        ///// <summary>最后一次同步接收数据得到的远程地址</summary>
-        //public IPEndPoint LastRemote { get; set; }
-
         /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
         public Boolean Loopback { get; set; }
         #endregion
@@ -199,8 +196,6 @@ namespace NewLife.Net
                 }
             }
 
-            //LastRemote = remote;
-
             // 为该连接单独创建一个会话，方便直接通信
             return CreateSession(remote);
         }
@@ -242,9 +237,6 @@ namespace NewLife.Net
             if (se.SocketError != SocketError.ConnectionReset &&
                 se.SocketError != SocketError.ConnectionAborted
                 ) return true;
-
-            // 以下仅处理Reset
-            //if (!EnableReset) return false;
 
             // 关闭相应会话
             var sessions = _Sessions;

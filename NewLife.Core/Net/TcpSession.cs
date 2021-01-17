@@ -27,9 +27,6 @@ namespace NewLife.Net
         /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
         public Int32 AutoReconnect { get; set; } = 3;
 
-        ///// <summary>是否匹配空包。Http协议需要</summary>
-        //protected Boolean MatchEmpty { get; set; }
-
         /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
         public Boolean NoDelay { get; set; }
 

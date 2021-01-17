@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -346,20 +345,10 @@ namespace NewLife.Net
                     var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
                     if (bytes < 0) bytes = se.BytesTransferred;
                     var pk = new Packet(se.Buffer, se.Offset, bytes);
-                    //if (Local.Type == NetType.Udp)
-                    //{
-                    //    // 拷贝走数据，参数要重复利用
-                    //    pk = pk.Clone();
-                    //    // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                    //    // 有些用户在处理数据时，又发送数据并等待响应
-                    //    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
-                    //}
-                    //else
-                    {
-                        // 同步执行，直接使用数据，不需要拷贝
-                        // 直接在IO线程调用业务逻辑
-                        ProcessReceive(pk, ep);
-                    }
+
+                    // 同步执行，直接使用数据，不需要拷贝
+                    // 直接在IO线程调用业务逻辑
+                    ProcessReceive(pk, ep);
                 }
 
                 // 开始新的监听
@@ -403,14 +392,7 @@ namespace NewLife.Net
                     ctx.Data = e;
 
                     // 进入管道处理，如果有一个或多个结果通过Finish来处理
-                    var msg = pp.Read(ctx, pk);
-                    //// 最后结果落实消息
-                    //if (msg != null)
-                    //{
-                    //    //ctx.FireRead(msg);
-                    //    e.Message = msg;
-                    //    OnReceive(e);
-                    //}
+                    pp.Read(ctx, pk);
                 }
             }
             catch (Exception ex)
