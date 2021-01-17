@@ -108,8 +108,8 @@ namespace NewLife.Net.Handlers
                     Interlocked.Decrement(ref _Count);
 
                     // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                    //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetResult(result));
-                    if (!src.Task.IsCompleted) src.TrySetResult(result);
+                    if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetResult(result));
+                    //if (!src.Task.IsCompleted) src.TrySetResult(result);
 
                     return true;
                 }
