@@ -50,10 +50,6 @@ namespace NewLife.Net
         /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
         public Int32 MaxAsync { get; set; } = 1;
 
-        /// <summary>异步处理接收到的数据，Tcp默认false，Udp默认true。</summary>
-        /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
-        public Boolean ProcessAsync { get; set; }
-
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
         #endregion
@@ -391,15 +387,15 @@ namespace NewLife.Net
                     var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
                     if (bytes < 0) bytes = se.BytesTransferred;
                     var pk = new Packet(se.Buffer, se.Offset, bytes);
-                    if (ProcessAsync)
-                    {
-                        // 拷贝走数据，参数要重复利用
-                        pk = pk.Clone();
-                        // 根据不信任用户原则，这里另外开线程执行用户逻辑
-                        // 有些用户在处理数据时，又发送数据并等待响应
-                        ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
-                    }
-                    else
+                    //if (Local.Type == NetType.Udp)
+                    //{
+                    //    // 拷贝走数据，参数要重复利用
+                    //    pk = pk.Clone();
+                    //    // 根据不信任用户原则，这里另外开线程执行用户逻辑
+                    //    // 有些用户在处理数据时，又发送数据并等待响应
+                    //    ThreadPoolX.QueueUserWorkItem(() => ProcessReceive(pk, ep));
+                    //}
+                    //else
                     {
                         // 同步执行，直接使用数据，不需要拷贝
                         // 直接在IO线程调用业务逻辑

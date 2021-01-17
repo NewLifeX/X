@@ -38,10 +38,6 @@ namespace NewLife.Net
         /// </remarks>
         IPipeline Pipeline { get; set; }
 
-        /// <summary>异步处理接收到的数据。</summary>
-        /// <remarks>异步处理有可能造成数据包乱序，特别是Tcp。true利于提升网络吞吐量。false避免拷贝，提升处理速度</remarks>
-        Boolean ProcessAsync { get; set; }
-
         /// <summary>日志提供者</summary>
         ILog Log { get; set; }
 

@@ -9,10 +9,10 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
-    class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
+    internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
         #region 属性
-        readonly ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
+        private readonly ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
 
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }
@@ -85,7 +85,7 @@ namespace NewLife.Net
         }
 
         /// <summary>移除不活动的会话</summary>
-        void RemoveNotAlive(Object state)
+        private void RemoveNotAlive(Object state)
         {
             if (!_dic.Any()) return;
 
@@ -124,11 +124,7 @@ namespace NewLife.Net
             }
         }
 
-        Boolean IsNotAlive(ISocketSession session, Int32 timeout)
-        {
-            // 如果有最后时间则判断最后时间，否则判断开始时间
-            return session.LastTime > DateTime.MinValue && session.LastTime.AddSeconds(timeout) < DateTime.Now;
-        }
+        private static Boolean IsNotAlive(ISocketSession session, Int32 timeout) => session.LastTime > DateTime.MinValue && session.LastTime.AddSeconds(timeout) < DateTime.Now;
         #endregion
 
         #region 成员
@@ -165,7 +161,7 @@ namespace NewLife.Net
 
         ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
-        ISocketSession IDictionary<String, ISocketSession>.this[String key] { get { return _dic[key]; } set { _dic[key] = value; } }
+        ISocketSession IDictionary<String, ISocketSession>.this[String key] { get => _dic[key]; set => _dic[key] = value; }
 
         #endregion
 

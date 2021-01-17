@@ -45,8 +45,6 @@ namespace NewLife.Net
             // 处理UDP最大并发接收
             MaxAsync = Environment.ProcessorCount * 16 / 10;
 
-            ProcessAsync = true;
-
             if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
