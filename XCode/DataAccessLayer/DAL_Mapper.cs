@@ -27,6 +27,13 @@ namespace XCode.DataAccessLayer
             return dt.ReadModels<T>();
         }
 
+        /// <summary>查询Sql并返回单个结果</summary>
+        /// <typeparam name="T">实体类</typeparam>
+        /// <param name="sql">Sql语句</param>
+        /// <param name="param">参数对象</param>
+        /// <returns></returns>
+        public T QuerySingle<T>(String sql, Object param = null) => Query<T>(sql, param).FirstOrDefault();
+
         /// <summary>执行Sql</summary>
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
@@ -63,10 +70,10 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>插入数据</summary>
-        /// <param name="tableName"></param>
         /// <param name="data"></param>
+        /// <param name="tableName"></param>
         /// <returns></returns>
-        public Int32 Insert(String tableName, Object data)
+        public Int32 Insert(Object data, String tableName = null)
         {
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
@@ -80,11 +87,11 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>更新数据</summary>
-        /// <param name="tableName"></param>
         /// <param name="data"></param>
         /// <param name="where"></param>
+        /// <param name="tableName"></param>
         /// <returns></returns>
-        public Int32 Update(String tableName, Object data, Object where)
+        public Int32 Update(Object data, Object where, String tableName = null)
         {
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
@@ -107,6 +114,7 @@ namespace XCode.DataAccessLayer
                 }
             }
             // Where条件
+            if (where != null)
             {
                 sb.Append(" Where ");
                 var i = 0;
@@ -154,6 +162,21 @@ namespace XCode.DataAccessLayer
 
             return ExecuteByCache(sql, "", dps.ToArray(), (s, t, p) => Session.Execute(s, CommandType.Text, p));
         }
+
+        /// <summary>插入数据</summary>
+        /// <param name="tableName"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [Obsolete]
+        public Int32 Insert(String tableName, Object data) => Insert(data, tableName);
+
+        /// <summary>更新数据</summary>
+        /// <param name="tableName"></param>
+        /// <param name="data"></param>
+        /// <param name="where"></param>
+        /// <returns></returns>
+        [Obsolete]
+        public Int32 Update(String tableName, Object data, Object where) => Update(data, where, tableName);
         #endregion
     }
 }

@@ -38,9 +38,9 @@ namespace XUnitTest.XCode.DataAccessLayer
         {
             var dal = User.Meta.Session.Dal;
             var user = new MyUser { Id = Rand.Next(), Name = Rand.NextString(8) };
-            dal.Insert("user", user);
+            dal.Insert(user, "user");
 
-            dal.Update("user", new { enable = true }, new { id = user.Id });
+            dal.Update(new { enable = true }, new { id = user.Id }, "user");
 
             var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = user.Name }).ToList();
             Assert.NotNull(list);
@@ -61,7 +61,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             dal.Delete("user", new { Name = "" });
 
             var user = new { Id = Rand.Next(), Name = Rand.NextString(8), Mobile = (String)null };
-            dal.Insert("user", user);
+            dal.Insert(user, "user");
 
             var list = dal.Query<MyUser>("select * from user where id=@id", new { user.Id }).ToList();
             Assert.NotNull(list);
