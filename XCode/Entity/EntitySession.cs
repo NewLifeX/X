@@ -287,6 +287,8 @@ namespace XCode
             {
                 foreach (var di in table.Indexes)
                 {
+                    if (!di.Name.IsNullOrEmpty()) continue;
+
                     var sb = Pool.StringBuilder.Get();
                     sb.AppendFormat("IX_{0}", TableName);
                     foreach (var item in di.Columns)
