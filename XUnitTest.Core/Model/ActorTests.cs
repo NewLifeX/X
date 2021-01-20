@@ -25,13 +25,16 @@ namespace XUnitTest.Model
                 actor.Tell($"数据行_{i + 1}");
             }
 
+            var sw2 = Stopwatch.StartNew();
+
             // 等待最终完成
             actor.Stop();
 
             sw.Stop();
+            sw2.Stop();
 
             Assert.True(sw.ElapsedMilliseconds > 6 * 500);
-            Assert.True(sw.ElapsedMilliseconds < 6 * 500 + 500);
+            Assert.True(sw2.ElapsedMilliseconds <= 500);
         }
 
         private class BuildExcelActor : Actor

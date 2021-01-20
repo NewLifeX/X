@@ -129,6 +129,8 @@ namespace NewLife.Configuration
         /// <param name="path">路径。配置树位置</param>
         public virtual Boolean Save<T>(T model, String path = null)
         {
+            EnsureLoad();
+
             // 如果有命名空间则使用指定层级数据源
             var source = GetSection(path);
             source?.MapFrom(model);
