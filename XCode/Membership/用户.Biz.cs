@@ -135,9 +135,9 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
 
-        /// <summary>兼容旧版角色组</summary>
-        [Obsolete("=>RoleIds")]
-        public String RoleIDs { get => RoleIds; set => RoleIds = value; }
+        ///// <summary>兼容旧版角色组</summary>
+        //[Obsolete("=>RoleIds")]
+        //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
