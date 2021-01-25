@@ -101,10 +101,7 @@ namespace NewLife.Web
         public Boolean TryDecode(String token, out String user, out DateTime expire)
         {
             if (token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(token));
-            if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
-
-            user = null;
-            expire = DateTime.MinValue;
+            //if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
 
             // Base64拆分数据和签名
             var p = token.IndexOf('.');
@@ -118,6 +115,8 @@ namespace NewLife.Web
             user = str.Substring(0, p);
             var secs = str.Substring(p + 1).ToInt();
             expire = secs.ToDateTime();
+
+            if (Key.IsNullOrEmpty()) return false;
 
             // 验证签名
             //if (!DSAHelper.Verify(data, Key, sig)) throw new InvalidOperationException("签名验证失败！");

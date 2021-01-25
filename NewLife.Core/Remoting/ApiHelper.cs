@@ -167,7 +167,7 @@ namespace NewLife.Remoting
         public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode" };
 
         /// <summary>结果消息名称。默认 message/msg/errmsg</summary>
-        public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg" };
+        public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg", "error" };
 
         /// <summary>处理响应。统一识别code/message</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
