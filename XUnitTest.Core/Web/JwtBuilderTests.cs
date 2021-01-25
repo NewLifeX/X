@@ -42,6 +42,10 @@ namespace XUnitTest.Web
                 Secret = builder.Secret,
             };
 
+            ts = builder2.Parse(token);
+            Assert.NotNull(ts);
+            Assert.Equal(3, ts.Length);
+
             var rs = builder2.TryDecode(token, out var msg);
             Assert.True(rs);
             Assert.Null(msg);
