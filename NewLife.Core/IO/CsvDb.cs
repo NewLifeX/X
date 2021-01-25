@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.IO
 {
@@ -220,7 +221,8 @@ namespace NewLife.IO
                             var model = new T();
                             foreach (var pi in pis)
                             {
-                                if (pi.CanWrite && headers.TryGetValue(pi.Name, out var idx) && idx < ss.Length)
+                                var name = SerialHelper.GetName(pi);
+                                if (pi.CanWrite && headers.TryGetValue(name, out var idx) && idx < ss.Length)
                                 {
                                     var value = ss[idx].ChangeType(pi.PropertyType);
                                     if (value != null) pi.SetValue(model, value, null);
