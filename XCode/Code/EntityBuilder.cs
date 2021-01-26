@@ -971,7 +971,17 @@ namespace XCode.Code
                 WriteLine("/// <returns>实体列表</returns>");
 
                 // 参数部分
-                var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                //var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                var pis = new StringBuilder();
+                foreach (var dc in cs)
+                {
+                    if (pis.Length > 0) pis.Append(", ");
+
+                    if (dc.DataType == typeof(Boolean))
+                        pis.Append($"{dc.DataType.Name}? {dc.CamelName()}");
+                    else
+                        pis.Append($"{dc.DataType.Name} {dc.CamelName()}");
+                }
                 var piTime = dcTime == null ? "" : "DateTime start, DateTime end, ";
                 WriteLine("public static IList<{0}> Search({1}, {2}String key, PageParameter page)", returnName, pis, piTime);
                 WriteLine("{");
