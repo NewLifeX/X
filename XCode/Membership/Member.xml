@@ -10,7 +10,7 @@
       <Column Name="Mail" DataType="String" ItemType="mail" Description="邮件" />
       <Column Name="Mobile" DataType="String" ItemType="mobile" Description="手机" />
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
-      <Column Name="Avatar" DataType="String" ItemType="image" Length="200" Description="头像" />
+      <Column Name="Avatar" DataType="String" Length="200" Description="头像" />
       <Column Name="RoleID" DataType="Int32" Description="角色。主要角色" />
       <Column Name="RoleIds" DataType="String" Length="200" Description="角色组。次要角色集合" />
       <Column Name="DepartmentID" DataType="Int32" Description="部门。组织机构" />
