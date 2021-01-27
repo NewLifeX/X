@@ -36,6 +36,18 @@ namespace NewLife.Configuration
         private IDictionary<String, Object> _cache;
         #endregion
 
+        #region 构造
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            _timer.TryDispose();
+            _client.TryDispose();
+        }
+        #endregion
+
         #region 方法
         private ApiHttpClient _client;
         private ApiHttpClient GetClient()
@@ -217,7 +229,7 @@ namespace NewLife.Configuration
             {
                 XTrace.WriteLine("[{0}]配置改变，重新加载", AppId);
 
-                Build(dic);
+                Root = Build(dic);
 
                 // 缓存
                 _cache = dic;
