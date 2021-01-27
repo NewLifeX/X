@@ -217,7 +217,7 @@ namespace NewLife.Configuration
             {
                 XTrace.WriteLine("[{0}]配置改变，重新加载", AppId);
 
-                Build(dic);
+                Root = Build(dic);
 
                 // 缓存
                 _cache = dic;
