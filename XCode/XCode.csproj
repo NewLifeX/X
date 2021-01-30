@@ -4,7 +4,7 @@
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
-    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
+    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle、Postgresql</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2020 NewLife</Copyright>
     <Version>10.0.2021.0125-beta3</Version>
