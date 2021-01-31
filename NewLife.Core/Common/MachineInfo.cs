@@ -20,6 +20,8 @@ namespace NewLife
 {
     /// <summary>机器信息</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/machine_info
+    /// 
     /// 刷新信息成本较高，建议采用单例模式
     /// </remarks>
     public class MachineInfo

@@ -5,6 +5,9 @@ using System.ComponentModel;
 namespace NewLife.Model
 {
     /// <summary>对象容器，仅依赖查找，不支持注入</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_container
+    /// </remarks>
     public interface IObjectContainer : IList<IObject>
     {
         #region 注册

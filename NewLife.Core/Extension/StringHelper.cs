@@ -11,6 +11,9 @@ using NewLife.Log;
 namespace NewLife
 {
     /// <summary>字符串助手类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/string_helper
+    /// </remarks>
     public static class StringHelper
     {
         #region 字符串扩展

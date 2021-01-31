@@ -10,6 +10,9 @@ using NewLife.Reflection;
 namespace NewLife
 {
     /// <summary>IO工具类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/io_helper
+    /// </remarks>
     public static class IOHelper
     {
         #region 压缩/解压缩 数据

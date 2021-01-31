@@ -16,6 +16,8 @@ namespace NewLife.Log
 {
     /// <summary>日志类，包含跟踪调试功能</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/log
+    /// 
     /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
     /// 
     /// 默认写日志到文本文件，可通过修改<see cref="Log"/>属性来增加日志输出方式。
