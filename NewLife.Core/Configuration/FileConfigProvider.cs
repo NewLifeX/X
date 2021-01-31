@@ -72,6 +72,7 @@ namespace NewLife.Configuration
             Root = section;
 
             IsNew = false;
+            _lastTime = fileName.AsFile().LastWriteTime;
 
             return true;
         }
@@ -93,6 +94,7 @@ namespace NewLife.Configuration
 
             // 写入文件
             OnWrite(fileName, Root);
+            _lastTime = fileName.AsFile().LastWriteTime;
 
             return true;
         }
