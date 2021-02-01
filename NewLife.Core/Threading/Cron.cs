@@ -9,22 +9,22 @@ namespace NewLife.Threading
     {
         #region 属性
         /// <summary>秒数集合</summary>
-        public List<Int32> Seconds;
+        public Int32[] Seconds;
 
         /// <summary>分钟集合</summary>
-        public List<Int32> Minutes;
+        public Int32[] Minutes;
 
         /// <summary>小时集合</summary>
-        public List<Int32> Hours;
+        public Int32[] Hours;
 
         /// <summary>日期集合</summary>
-        public List<Int32> DaysOfMonth;
+        public Int32[] DaysOfMonth;
 
         /// <summary>月份集合</summary>
-        public List<Int32> Months;
+        public Int32[] Months;
 
         /// <summary>星期集合</summary>
-        public List<Int32> DaysOfWeek;
+        public Int32[] DaysOfWeek;
         #endregion
 
         #region 构造
@@ -68,24 +68,32 @@ namespace NewLife.Threading
             return true;
         }
 
-        private List<Int32> BuildValues(String value, Int32 start, Int32 max)
+        private Int32[] BuildValues(String value, Int32 start, Int32 max)
         {
-            if (Int32.TryParse(value, out var n)) return new List<Int32> { n };
-            if (value.Contains(',')) return value.SplitAsInt(",").ToList();
+            if (Int32.TryParse(value, out var n)) return new Int32[] { n };
+            if (value.Contains(',')) return value.SplitAsInt(",");
 
+            var divisor = 0;
             var p = value.IndexOf('/');
-            var divisor = p > 0 ? value.Substring(p + 1).ToInt() : 0;
-
-            var p2 = value.IndexOf('-');
-            if (p2 > 0)
+            if (p > 0)
             {
-                start = value.Substring(0, p2).ToInt();
-                max = p > 0 ? value.Substring(p2 + 1, p - p2 - 1).ToInt() : value.Substring(p2 + 1).ToInt();
+                divisor = value.Substring(p + 1).ToInt();
+                value = value.Substring(0, p);
+            }
+
+            if ((p = value.IndexOf('-')) > 0)
+            {
+                start = value.Substring(0, p).ToInt();
+                max = value.Substring(p + 1).ToInt();
+            }
+            else if (Int32.TryParse(value, out n))
+            {
+                return Enumerable.Range(start, max - start).Where(e => e % divisor == n).ToArray();
             }
 
             return divisor > 0
-                ? Enumerable.Range(start, max - start).Where(e => e % divisor == 0).ToList()
-                : Enumerable.Range(start, max - start).ToList();
+                ? Enumerable.Range(start, max - start).Where(e => e % divisor == 0).ToArray()
+                : Enumerable.Range(start, max - start).ToArray();
         }
         #endregion
     }

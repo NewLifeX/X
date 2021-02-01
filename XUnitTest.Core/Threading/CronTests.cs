@@ -16,6 +16,7 @@ namespace XUnitTest.Threading
         [InlineData("0 * * * *")]
         [InlineData("0,1,2 * * * *")]
         [InlineData("*/2 * * * *")]
+        [InlineData("5/20 * * * *")]
         [InlineData("1-4 * * * *")]
         [InlineData("1-55/3 * * * *")]
         [InlineData("1,10,20 * * * *")]
@@ -27,7 +28,7 @@ namespace XUnitTest.Threading
         }
 
         [Fact]
-        public void is_time_minute_test()
+        public void is_time_second_test()
         {
             var cron = new Cron("0 * * * *");
             Assert.True(cron.IsTime(DateTime.Parse("8:00:00")));
@@ -41,6 +42,11 @@ namespace XUnitTest.Threading
             Assert.True(cron.IsTime(DateTime.Parse("8:00:00")));
             Assert.True(cron.IsTime(DateTime.Parse("8:00:02")));
             Assert.False(cron.IsTime(DateTime.Parse("8:00:03")));
+
+            cron = new Cron("5/20 * * * *");
+            Assert.True(cron.IsTime(DateTime.Parse("8:00:05")));
+            Assert.True(cron.IsTime(DateTime.Parse("8:00:25")));
+            Assert.False(cron.IsTime(DateTime.Parse("8:00:20")));
         }
 
         [Fact]
