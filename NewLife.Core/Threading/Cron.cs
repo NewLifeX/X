@@ -59,31 +59,11 @@ namespace NewLife.Threading
             if (ss.Length == 0) return false;
 
             Seconds = BuildValues(ss[0], 0, 60);
-
-            if (ss.Length > 1)
-                Minutes = BuildValues(ss[1], 0, 60);
-            else
-                Minutes = BuildValues("*", 0, 60);
-
-            if (ss.Length > 2)
-                Hours = BuildValues(ss[2], 0, 24);
-            else
-                Hours = BuildValues("*", 0, 24);
-
-            if (ss.Length > 3)
-                DaysOfMonth = BuildValues(ss[3], 1, 32);
-            else
-                DaysOfMonth = BuildValues("*", 1, 32);
-
-            if (ss.Length > 4)
-                Months = BuildValues(ss[4], 1, 13);
-            else
-                Months = BuildValues("*", 1, 13);
-
-            if (ss.Length > 5)
-                DaysOfWeek = BuildValues(ss[5], 0, 7);
-            else
-                DaysOfWeek = BuildValues("*", 0, 7);
+            Minutes = BuildValues(ss.Length > 1 ? ss[1] : "*", 0, 60);
+            Hours = BuildValues(ss.Length > 2 ? ss[2] : "*", 0, 24);
+            DaysOfMonth = BuildValues(ss.Length > 3 ? ss[3] : "*", 1, 32);
+            Months = BuildValues(ss.Length > 4 ? ss[4] : "*", 1, 13);
+            DaysOfWeek = BuildValues(ss.Length > 5 ? ss[5] : "*", 0, 7);
 
             return true;
         }
@@ -110,7 +90,7 @@ namespace NewLife.Threading
                     return Enumerable.Range(start, max - start).ToList();
             }
 
-            return new List<Int32>();
+            return new List<Int32> { value.ToInt() };
         }
         #endregion
     }
