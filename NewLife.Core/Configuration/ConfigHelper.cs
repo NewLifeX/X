@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Configuration
 {
@@ -105,9 +106,10 @@ namespace NewLife.Configuration
                 //if (pi.GetIndexParameters().Length > 0) continue;
                 //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
                 //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-                if (pi.Name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
-                var name = pi.Name;
+                var name = SerialHelper.GetName(pi);
+                if (name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
+
                 var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
                 if (cfg == null) continue;
 

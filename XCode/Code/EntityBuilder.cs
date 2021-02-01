@@ -383,10 +383,6 @@ namespace XCode.Code
 
                     if (!type.IsNullOrEmpty())
                     {
-                        if (!type.Contains("."))
-                        {
-
-                        }
                         if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
                         {
                             switch (type)
@@ -416,8 +412,7 @@ namespace XCode.Code
                             try
                             {
                                 // 特殊支持枚举
-                                var type2 = type.GetTypeEx(false);
-                                if (type2 != null && type2.IsEnum)
+                                if (column.DataType.IsInt())
                                     WriteLine("case \"{0}\": _{0} = ({1})value.ToInt(); break;", column.Name, type);
                                 else
                                     WriteLine("case \"{0}\": _{0} = ({1})value; break;", column.Name, type);

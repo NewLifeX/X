@@ -34,7 +34,7 @@ namespace XCode.Membership
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
-    public  partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
+    public partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
     {
         #region 对象操作
         static User()
@@ -135,9 +135,9 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
 
-        /// <summary>兼容旧版角色组</summary>
-        [Obsolete("=>RoleIds")]
-        public String RoleIDs { get => RoleIds; set => RoleIds = value; }
+        ///// <summary>兼容旧版角色组</summary>
+        //[Obsolete("=>RoleIds")]
+        //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
@@ -253,6 +253,27 @@ namespace XCode.Membership
             var exp = new WhereExpression();
             if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
             if (departmentId >= 0) exp &= _.DepartmentID == departmentId;
+            if (enable != null) exp &= _.Enable == enable.Value;
+            exp &= _.LastLogin.Between(start, end);
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
+
+            return FindAll(exp, page);
+        }
+
+        /// <summary>高级搜索</summary>
+        /// <param name="roleIds">角色</param>
+        /// <param name="departmentIds">部门</param>
+        /// <param name="enable">启用</param>
+        /// <param name="start">登录时间开始</param>
+        /// <param name="end">登录时间结束</param>
+        /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (roleIds != null && roleIds.Length > 0) exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
+            if (departmentIds != null && departmentIds.Length > 0) exp &= _.DepartmentID.In(departmentIds);
             if (enable != null) exp &= _.Enable == enable.Value;
             exp &= _.LastLogin.Between(start, end);
             if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
