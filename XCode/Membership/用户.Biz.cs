@@ -316,6 +316,42 @@ namespace XCode.Membership
         #endregion
 
         #region 业务
+        /// <summary>登录。借助回调来验证密码</summary>
+        /// <param name="username"></param>
+        /// <param name="onValid"></param>
+        /// <returns></returns>
+        public static User Login(String username, Action<User> onValid)
+        {
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
+            if (onValid == null) throw new ArgumentNullException(nameof(onValid));
+
+            try
+            {
+                // 过滤帐号中的空格，防止出现无操作无法登录的情况
+                var account = username.Trim();
+                //var user = FindByName(account);
+                // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
+                var user = Find(__.Name, account);
+                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+
+                if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
+
+                // 验证用户
+                onValid(user);
+
+                user.SaveLoginInfo();
+
+                WriteLog("登录", true, username);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                WriteLog("登录", false, username + "登录失败！" + ex.Message);
+                throw;
+            }
+        }
+
         /// <summary>登录</summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
