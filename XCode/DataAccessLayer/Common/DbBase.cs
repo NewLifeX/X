@@ -805,9 +805,8 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
-            //如果类型是Nullable的，则获取对应的类型
-            var g = type.GetGenericArguments();
-            if (g.Length > 0) type = g[0];
+            // 如果类型是Nullable的，则获取对应的类型
+            type = Nullable.GetUnderlyingType(type) ?? type;
 
             if (type == typeof(String))
             {
