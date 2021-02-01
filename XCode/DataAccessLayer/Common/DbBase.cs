@@ -805,6 +805,10 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
+            //如果类型是Nullable的，则获取对应的类型
+            var g = type.GetGenericArguments();
+            if (g.Length > 0) type = g[0];
+
             if (type == typeof(String))
             {
                 if (value == null) return isNullable ? "null" : "''";
@@ -836,7 +840,7 @@ namespace XCode.DataAccessLayer
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }
-            else if (column.DataType == typeof(Guid))
+            else if (type == typeof(Guid))
             {
                 if (value == null) return isNullable ? "null" : "''";
 

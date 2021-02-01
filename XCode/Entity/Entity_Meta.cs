@@ -104,8 +104,8 @@ namespace XCode
                 get
                 {
                     var dt = Table;
-                    if (dt.Identity != null) return dt.Identity;
                     if (dt.PrimaryKeys.Length == 1) return dt.PrimaryKeys[0];
+                    if (dt.Identity != null) return dt.Identity;
                     return null;
                 }
             }
