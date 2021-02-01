@@ -70,27 +70,22 @@ namespace NewLife.Threading
 
         private List<Int32> BuildValues(String value, Int32 start, Int32 max)
         {
-            if (value == "*") return Enumerable.Range(start, max - start).ToList();
-            if (value.StartsWith("*/"))
-            {
-                var divisor = value.Substring(2).ToInt();
-                return Enumerable.Range(start, max - start).Where(e => e % divisor == 0).ToList();
-            }
+            if (Int32.TryParse(value, out var n)) return new List<Int32> { n };
             if (value.Contains(',')) return value.SplitAsInt(",").ToList();
 
-            var ss = value.SplitAsInt("-", "/");
-            if (ss.Length >= 2)
-            {
-                start = ss[0];
-                max = ss[1];
+            var p = value.IndexOf('/');
+            var divisor = p > 0 ? value.Substring(p + 1).ToInt() : 0;
 
-                if (ss.Length > 2)
-                    return Enumerable.Range(start, max - start).Where(e => e % ss[2] == 0).ToList();
-                else
-                    return Enumerable.Range(start, max - start).ToList();
+            var p2 = value.IndexOf('-');
+            if (p2 > 0)
+            {
+                start = value.Substring(0, p2).ToInt();
+                max = p > 0 ? value.Substring(p2 + 1, p - p2 - 1).ToInt() : value.Substring(p2 + 1).ToInt();
             }
 
-            return new List<Int32> { value.ToInt() };
+            return divisor > 0
+                ? Enumerable.Range(start, max - start).Where(e => e % divisor == 0).ToList()
+                : Enumerable.Range(start, max - start).ToList();
         }
         #endregion
     }
