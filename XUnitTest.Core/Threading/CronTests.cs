@@ -21,6 +21,7 @@ namespace XUnitTest.Threading
         [InlineData("1-55/3 * * * *")]
         [InlineData("1,10,20 * * * *")]
         [InlineData("* 1,10,20 * * *")]
+        [InlineData("* 1-10,13,5/20 * * *")]
         public void Valid(String expression)
         {
             var cron = new Cron();

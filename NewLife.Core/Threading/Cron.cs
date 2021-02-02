@@ -25,6 +25,15 @@ namespace NewLife.Threading
 
         /// <summary>星期集合</summary>
         public Int32[] DaysOfWeek;
+
+        /// <summary>是否最后一天</summary>
+        public Boolean LastDay { get; set; }
+
+        /// <summary>是否最后一个星期</summary>
+        public Boolean LastWeekday { get; set; }
+
+        /// <summary>是否工作日</summary>
+        public Boolean Workday { get; set; }
         #endregion
 
         #region 构造
@@ -55,45 +64,74 @@ namespace NewLife.Threading
         /// <returns></returns>
         public Boolean Parse(String expressions)
         {
-            var ss = expressions.Split(" ");
+            var ss = expressions.Split(' ');
             if (ss.Length == 0) return false;
 
-            Seconds = BuildValues(ss[0], 0, 60);
-            Minutes = BuildValues(ss.Length > 1 ? ss[1] : "*", 0, 60);
-            Hours = BuildValues(ss.Length > 2 ? ss[2] : "*", 0, 24);
-            DaysOfMonth = BuildValues(ss.Length > 3 ? ss[3] : "*", 1, 32);
-            Months = BuildValues(ss.Length > 4 ? ss[4] : "*", 1, 13);
-            DaysOfWeek = BuildValues(ss.Length > 5 ? ss[5] : "*", 0, 7);
+            if (!TryParse(ss[0], 0, 60, out var vs)) return false;
+            Seconds = vs;
+            if (!TryParse(ss.Length > 1 ? ss[1] : "*", 0, 60, out vs)) return false;
+            Minutes = vs;
+            if (!TryParse(ss.Length > 2 ? ss[2] : "*", 0, 24, out vs)) return false;
+            Hours = vs;
+            if (!TryParse(ss.Length > 3 ? ss[3] : "*", 1, 32, out vs)) return false;
+            DaysOfMonth = vs;
+            if (!TryParse(ss.Length > 4 ? ss[4] : "*", 1, 13, out vs)) return false;
+            Months = vs;
+            if (!TryParse(ss.Length > 5 ? ss[5] : "*", 0, 7, out vs)) return false;
+            DaysOfWeek = vs;
 
             return true;
         }
 
-        private Int32[] BuildValues(String value, Int32 start, Int32 max)
+        private Boolean TryParse(String value, Int32 start, Int32 max, out Int32[] vs)
         {
-            if (Int32.TryParse(value, out var n)) return new Int32[] { n };
-            if (value.Contains(',')) return value.SplitAsInt(",");
+            // 固定值，最为常见，优先计算
+            if (Int32.TryParse(value, out var n)) { vs = new Int32[] { n }; return true; }
 
-            var divisor = 0;
+            var rs = new List<Int32>();
+            vs = null;
+
+            // 递归处理混合值
+            if (value.Contains(','))
+            {
+                foreach (var item in value.Split(','))
+                {
+                    if (!TryParse(item, start, max, out var arr)) return false;
+                    if (arr.Length > 0) rs.AddRange(arr);
+                }
+                vs = rs.ToArray();
+                return true;
+            }
+
+            // 步进值
+            var step = 1;
             var p = value.IndexOf('/');
             if (p > 0)
             {
-                divisor = value.Substring(p + 1).ToInt();
+                step = value.Substring(p + 1).ToInt();
                 value = value.Substring(0, p);
             }
 
-            if ((p = value.IndexOf('-')) > 0)
+            // 连续范围
+            if (value == "*")
+            {
+                start = 0;
+            }
+            else if ((p = value.IndexOf('-')) > 0)
             {
                 start = value.Substring(0, p).ToInt();
-                max = value.Substring(p + 1).ToInt();
+                max = value.Substring(p + 1).ToInt() + 1;
             }
             else if (Int32.TryParse(value, out n))
             {
-                return Enumerable.Range(start, max - start).Where(e => e % divisor == n).ToArray();
+                start = n;
             }
 
-            return divisor > 0
-                ? Enumerable.Range(start, max - start).Where(e => e % divisor == 0).ToArray()
-                : Enumerable.Range(start, max - start).ToArray();
+            for (var i = start; i < max; i += step)
+                rs.Add(i);
+
+            vs = rs.ToArray();
+            return true;
         }
         #endregion
     }
