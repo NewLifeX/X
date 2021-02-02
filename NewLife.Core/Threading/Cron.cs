@@ -112,24 +112,27 @@ namespace NewLife.Threading
             }
 
             // 连续范围
+            var s = start;
             if (value == "*" || value == "?")
             {
-                start = 0;
+                s = 0;
             }
             else if ((p = value.IndexOf('-')) > 0)
             {
-                start = value.Substring(0, p).ToInt();
+                s = value.Substring(0, p).ToInt();
                 max = value.Substring(p + 1).ToInt() + 1;
             }
             else if (Int32.TryParse(value, out n))
             {
-                start = n;
+                s = n;
             }
             else
                 return false;
 
-            for (var i = start; i < max; i += step)
-                rs.Add(i);
+            for (var i = s; i < max; i += step)
+            {
+                if (i >= start) rs.Add(i);
+            }
 
             vs = rs.ToArray();
             return true;
@@ -140,10 +143,14 @@ namespace NewLife.Threading
         /// <returns></returns>
         public DateTime GetNext(DateTime time)
         {
-            for (var dt = time.Trim().AddSeconds(1); ; dt = dt.AddSeconds(1))
+            // 设置末尾，避免死循环越界
+            var end = time.AddYears(1);
+            for (var dt = time.Trim().AddSeconds(1); dt < end; dt = dt.AddSeconds(1))
             {
                 if (IsTime(dt)) return dt;
             }
+
+            return DateTime.MinValue;
         }
         #endregion
     }
