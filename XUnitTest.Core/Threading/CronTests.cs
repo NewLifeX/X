@@ -48,6 +48,18 @@ namespace XUnitTest.Threading
             Assert.True(cron.IsTime(DateTime.Parse("8:00:05")));
             Assert.True(cron.IsTime(DateTime.Parse("8:00:25")));
             Assert.False(cron.IsTime(DateTime.Parse("8:00:20")));
+
+            // 下一次，5秒后
+            var dt = DateTime.Today;
+            var dt2 = cron.GetNext(dt);
+            Assert.Equal(dt.AddSeconds(5), dt2);
+
+            // 后续每次间隔20秒
+            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            Assert.Equal(dt.AddSeconds(25), dt2);
+
+            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            Assert.Equal(dt.AddSeconds(45), dt2);
         }
 
         [Fact]
@@ -56,9 +68,22 @@ namespace XUnitTest.Threading
             var cron = new Cron("* 0 * * *");
             Assert.True(cron.IsTime(DateTime.Parse("12:00:00")));
 
-            cron = new Cron("* 0,12 * * *");
+            cron = new Cron("* * 0,12 * * *");
             Assert.True(cron.IsTime(DateTime.Parse("12:00:00")));
             Assert.True(cron.IsTime(DateTime.Parse("12:00:00 pm")));
+
+            cron = new Cron("0 0 0,12 * * *");
+
+            // 下一次，零点
+            var dt = DateTime.Today;
+            var dt2 = cron.GetNext(dt);
+            Assert.Equal(dt, dt2);
+
+            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            Assert.Equal(dt.AddHours(12), dt2);
+
+            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            Assert.Equal(dt.AddHours(24), dt2);
         }
 
         [Fact]

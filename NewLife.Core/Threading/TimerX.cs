@@ -28,9 +28,6 @@ namespace NewLife.Threading
         /// <summary>所属调度器</summary>
         public TimerScheduler Scheduler { get; private set; }
 
-        ///// <summary>获取/设置 回调</summary>
-        //public WeakAction<Object> Callback { get; set; }
-
         /// <summary>目标对象。弱引用，使得调用方对象可以被GC回收</summary>
         internal readonly WeakReference Target;
 
@@ -67,6 +64,7 @@ namespace NewLife.Threading
         public Func<Boolean>? CanExecute { get; set; }
 
         private DateTime _AbsolutelyNext;
+        private Cron? _cron;
         #endregion
 
         #region 静态
@@ -186,6 +184,33 @@ namespace NewLife.Threading
             Scheduler.Add(this);
         }
 
+        /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
+        /// <param name="callback">委托</param>
+        /// <param name="state">用户数据</param>
+        /// <param name="cronExpression">CRON表达式</param>
+        /// <param name="scheduler">调度器</param>
+        public TimerX(TimerCallback callback, Object state, String cronExpression, String? scheduler = null)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (cronExpression.IsNullOrEmpty()) throw new ArgumentOutOfRangeException(nameof(cronExpression));
+
+            _cron = new Cron();
+            if (!_cron.Parse(cronExpression)) throw new ArgumentException("无效的CRON表达式", nameof(cronExpression));
+
+            Target = new WeakReference(callback.Target);
+            Method = callback.Method;
+            State = state;
+            Absolutely = true;
+
+            var now = DateTime.Now;
+            var next = _cron.GetNext(now);
+            NextTime = next;
+            _AbsolutelyNext = next;
+
+            Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
+            Scheduler.Add(this);
+        }
+
         /// <summary>销毁定时器</summary>
         public void Dispose()
         {
@@ -238,7 +263,10 @@ namespace NewLife.Threading
 
             if (Absolutely)
             {
-                NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
+                if (_cron != null)
+                    NextTime = _AbsolutelyNext = _cron.GetNext(_AbsolutelyNext.AddSeconds(1));
+                else
+                    NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
                 var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
                 return ts > 0 ? ts : period;
             }

@@ -126,6 +126,17 @@ namespace NewLife.Threading
             vs = rs.ToArray();
             return true;
         }
+
+        /// <summary>获得指定时间之后的下一次执行时间</summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public DateTime GetNext(DateTime time)
+        {
+            for (var dt = time; ; dt = dt.AddSeconds(1))
+            {
+                if (IsTime(dt)) return dt;
+            }
+        }
         #endregion
     }
 }
