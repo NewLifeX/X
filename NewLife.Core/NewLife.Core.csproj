@@ -6,9 +6,9 @@
     <AssemblyTitle>X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.10.2021.0125-beta3</Version>
-    <FileVersion>8.10.2021.0125</FileVersion>
+    <Copyright>©2002-2021 NewLife</Copyright>
+    <Version>8.10.2021.0202</Version>
+    <FileVersion>8.10.2021.0202</FileVersion>
     <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -24,7 +24,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增Http配置支持Apollo；调整扩展类命名空间</PackageReleaseNotes>
+    <PackageReleaseNotes>新增Cron定时器；新增Http配置支持Apollo；调整扩展类命名空间</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
