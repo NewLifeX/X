@@ -25,6 +25,8 @@ namespace NewLife.Threading
 
         /// <summary>星期集合</summary>
         public Int32[] DaysOfWeek;
+
+        private String _expression;
         #endregion
 
         #region 构造
@@ -32,8 +34,12 @@ namespace NewLife.Threading
         public Cron() { }
 
         /// <summary>实例化Cron表达式</summary>
-        /// <param name="expressions"></param>
-        public Cron(String expressions) => Parse(expressions);
+        /// <param name="expression"></param>
+        public Cron(String expression) => Parse(expression);
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => _expression;
         #endregion
 
         #region 方法
@@ -51,11 +57,11 @@ namespace NewLife.Threading
         }
 
         /// <summary>分析表达式</summary>
-        /// <param name="expressions"></param>
+        /// <param name="expression"></param>
         /// <returns></returns>
-        public Boolean Parse(String expressions)
+        public Boolean Parse(String expression)
         {
-            var ss = expressions.Split(' ');
+            var ss = expression.Split(' ');
             if (ss.Length == 0) return false;
 
             if (!TryParse(ss[0], 0, 60, out var vs)) return false;
@@ -70,6 +76,8 @@ namespace NewLife.Threading
             Months = vs;
             if (!TryParse(ss.Length > 5 ? ss[5] : "*", 0, 7, out vs)) return false;
             DaysOfWeek = vs;
+
+            _expression = expression;
 
             return true;
         }
@@ -127,12 +135,12 @@ namespace NewLife.Threading
             return true;
         }
 
-        /// <summary>获得指定时间之后的下一次执行时间</summary>
+        /// <summary>获得指定时间之后的下一次执行时间，不含指定时间</summary>
         /// <param name="time"></param>
         /// <returns></returns>
         public DateTime GetNext(DateTime time)
         {
-            for (var dt = time; ; dt = dt.AddSeconds(1))
+            for (var dt = time.Trim().AddSeconds(1); ; dt = dt.AddSeconds(1))
             {
                 if (IsTime(dt)) return dt;
             }

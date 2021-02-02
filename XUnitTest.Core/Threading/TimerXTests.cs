@@ -47,6 +47,7 @@ namespace XUnitTest.Threading
         [Fact]
         public void AsyncTest()
         {
+            XTrace.WriteLine("AsyncTest");
             using var timer = new TimerX(DoAsyncTest, "Stone", 10, 100);
 
             Thread.Sleep(1000);
@@ -54,7 +55,7 @@ namespace XUnitTest.Threading
 
         private static async Task DoAsyncTest(Object state)
         {
-            var key = Rand.Next();
+            var key = Rand.NextString(8);
             XTrace.WriteLine("Begin {0} {1}", state, key);
 
             await Task.Delay(110);
@@ -65,6 +66,7 @@ namespace XUnitTest.Threading
         [Fact]
         public void AsyncTest2()
         {
+            XTrace.WriteLine("AsyncTest2");
             using var timer = new TimerX(DoAsyncTest2, "Stone2", DateTime.Now, 100);
 
             Thread.Sleep(1000);
@@ -72,12 +74,21 @@ namespace XUnitTest.Threading
 
         private static async Task DoAsyncTest2(Object state)
         {
-            var key = Rand.Next();
+            var key = Rand.NextString(8);
             XTrace.WriteLine("Begin {0} {1}", state, key);
 
             await Task.Delay(110);
 
             XTrace.WriteLine("End {0} {1}", state, key);
+        }
+
+        [Fact]
+        public void CronTest()
+        {
+            XTrace.WriteLine("CronTest");
+            using var timer = new TimerX(DoAsyncTest2, "CronTest", "1/2 * * * *");
+
+            Thread.Sleep(5500);
         }
     }
 }

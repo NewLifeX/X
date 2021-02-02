@@ -55,10 +55,10 @@ namespace XUnitTest.Threading
             Assert.Equal(dt.AddSeconds(5), dt2);
 
             // 后续每次间隔20秒
-            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            dt2 = cron.GetNext(dt2);
             Assert.Equal(dt.AddSeconds(25), dt2);
 
-            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            dt2 = cron.GetNext(dt2);
             Assert.Equal(dt.AddSeconds(45), dt2);
         }
 
@@ -77,13 +77,13 @@ namespace XUnitTest.Threading
             // 下一次，零点
             var dt = DateTime.Today;
             var dt2 = cron.GetNext(dt);
-            Assert.Equal(dt, dt2);
-
-            dt2 = cron.GetNext(dt2.AddSeconds(1));
             Assert.Equal(dt.AddHours(12), dt2);
 
-            dt2 = cron.GetNext(dt2.AddSeconds(1));
+            dt2 = cron.GetNext(dt2);
             Assert.Equal(dt.AddHours(24), dt2);
+
+            dt2 = cron.GetNext(dt2);
+            Assert.Equal(dt.AddHours(36), dt2);
         }
 
         [Fact]
