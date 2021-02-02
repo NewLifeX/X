@@ -29,11 +29,14 @@ namespace NewLife.Threading
         /// <summary>是否最后一天</summary>
         public Boolean LastDay { get; set; }
 
+        /// <summary>是否工作日</summary>
+        public Boolean Workday { get; set; }
+
         /// <summary>是否最后一个星期</summary>
         public Boolean LastWeekday { get; set; }
 
-        /// <summary>是否工作日</summary>
-        public Boolean Workday { get; set; }
+        /// <summary>第几个星期</summary>
+        public Int32 WeekdayIndex { get; set; }
         #endregion
 
         #region 构造
@@ -73,11 +76,22 @@ namespace NewLife.Threading
             Minutes = vs;
             if (!TryParse(ss.Length > 2 ? ss[2] : "*", 0, 24, out vs)) return false;
             Hours = vs;
-            if (!TryParse(ss.Length > 3 ? ss[3] : "*", 1, 32, out vs)) return false;
+
+            var value = ss.Length > 3 ? ss[3] : "*";
+            if (value.EndsWithIgnoreCase("L", "LW")) LastDay = true;
+            if (value.EndsWithIgnoreCase("W")) Workday = true;
+            value = value.TrimEnd('L', 'W');
+            if (!TryParse(!value.IsNullOrEmpty() ? value : "*", 1, 32, out vs)) return false;
             DaysOfMonth = vs;
+
             if (!TryParse(ss.Length > 4 ? ss[4] : "*", 1, 13, out vs)) return false;
             Months = vs;
-            if (!TryParse(ss.Length > 5 ? ss[5] : "*", 0, 7, out vs)) return false;
+
+            value = ss.Length > 5 ? ss[5] : "*";
+            if (value.EndsWithIgnoreCase("L")) LastWeekday = true;
+            if (value.Contains("#")) Workday = true;
+            value = value.TrimEnd('L', 'W');
+            if (!TryParse(value, 0, 7, out vs)) return false;
             DaysOfWeek = vs;
 
             return true;
@@ -113,7 +127,7 @@ namespace NewLife.Threading
             }
 
             // 连续范围
-            if (value == "*")
+            if (value == "*" || value == "?")
             {
                 start = 0;
             }
@@ -126,6 +140,15 @@ namespace NewLife.Threading
             {
                 start = n;
             }
+            else if (value.EqualIgnoreCase("L"))
+            {
+                if (max == 7)
+                    LastWeekday = true;
+                else
+                    LastDay = true;
+            }
+            else
+                return false;
 
             for (var i = start; i < max; i += step)
                 rs.Add(i);

@@ -29,6 +29,20 @@ namespace XUnitTest.Threading
         }
 
         [Fact]
+        public void LastTest()
+        {
+            var cron = new Cron();
+            Assert.True(cron.Parse("* * * L *"));
+        }
+
+        [Fact]
+        public void WorkdayTest()
+        {
+            var cron = new Cron();
+            Assert.True(cron.Parse("* * * 20W *"));
+        }
+
+        [Fact]
         public void is_time_second_test()
         {
             var cron = new Cron("0 * * * *");
