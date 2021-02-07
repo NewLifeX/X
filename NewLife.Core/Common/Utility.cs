@@ -173,6 +173,7 @@ namespace System
             if (value is DateTime dt)
             {
                 if (dt == DateTime.MinValue) return 0;
+                if (dt == DateTime.MaxValue) return -1;
 
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;

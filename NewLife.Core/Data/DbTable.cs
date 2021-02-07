@@ -122,7 +122,7 @@ namespace NewLife.Data
         {
             // 头部，幻数、版本和标记
             var magic = bn.ReadBytes(14).ToStr();
-            if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
+            if (magic != "NewLifeDbTable") throw new InvalidDataException();
 
             var ver = bn.Read<Byte>();
             _ = bn.Read<Byte>();
@@ -130,7 +130,7 @@ namespace NewLife.Data
             // 版本兼容
             if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
 
-            // 写入头部
+            // 读取头部
             var count = bn.Read<Int32>();
             var cs = new String[count];
             var ts = new Type[count];
