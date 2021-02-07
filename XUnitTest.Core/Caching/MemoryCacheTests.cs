@@ -307,19 +307,23 @@ namespace XUnitTest.Caching
             Assert.Equal("NewLife", ga.Name);
         }
 
-        [Fact]
-        public void BigSave()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BigSave(Boolean compressed)
         {
             var mc = new MemoryCache();
 
-            for (var i = 0; i < 100_000; i++)
+            for (var i = 0; i < 500_000; i++)
             {
                 var ga = new GeoArea { Code = Rand.Next(100000, 999999), Name = Rand.NextString(8) };
                 mc.Set(ga.Name, ga);
             }
 
-            mc.Save("data/bigsave.cache", false);
-            mc.Save("data/bigsave.gz", true);
+            if (compressed)
+                mc.Save("data/bigsave.gz", true);
+            else
+                mc.Save("data/bigsave.cache", false);
         }
     }
 }
