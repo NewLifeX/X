@@ -31,6 +31,9 @@
     <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="IBM.Data.DB2.Core" Version="3.1.0.400" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>

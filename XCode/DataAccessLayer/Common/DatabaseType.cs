@@ -45,6 +45,10 @@ namespace XCode.DataAccessLayer
         [Description("达梦数据库")]
         DaMeng = 9,
 
+        /// <summary>DB2数据库</summary>
+        [Description("DB2数据库")]
+        DB2 = 10,
+
         /// <summary>网络虚拟数据库</summary>
         [Description("网络虚拟数据库")]
         Network = 100,
