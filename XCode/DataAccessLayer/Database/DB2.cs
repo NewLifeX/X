@@ -30,8 +30,11 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(DB2))
                     {
-                        _Factory = GetProviderFactory("IBM.Data.DB2.Core.dll", "IBM.Data.DB2.Core.DB2Factory") ?? 
-                            GetProviderFactory("IBM.Data.DB2.dll", "IBM.Data.DB2.DB2Factory");
+#if __CORE
+                        _Factory = GetProviderFactory("IBM.Data.DB2.Core.dll", "IBM.Data.DB2.Core.DB2Factory");
+#else
+                        _Factory = GetProviderFactory("IBM.Data.DB2.dll", "IBM.Data.DB2.DB2Factory");
+#endif
                     }
                 }
 
@@ -59,9 +62,9 @@ namespace XCode.DataAccessLayer
                 builder.TryAdd("Data Source", str);
             }
         }
-        #endregion
+#endregion
 
-        #region 方法
+#region 方法
         /// <summary>创建数据库会话</summary>
         /// <returns></returns>
         protected override IDbSession OnCreateSession() => new DB2Session(this);
@@ -77,9 +80,9 @@ namespace XCode.DataAccessLayer
 
             return false;
         }
-        #endregion
+#endregion
 
-        #region 分页
+#region 分页
         /// <summary>已重写。获取分页 2012.9.26 HUIYUE修正分页BUG</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -151,9 +154,9 @@ namespace XCode.DataAccessLayer
 
             return builder;
         }
-        #endregion
+#endregion
 
-        #region 数据库特性
+#region 数据库特性
         /// <summary>已重载。格式化时间</summary>
         /// <param name="dt"></param>
         /// <returns></returns>
@@ -230,9 +233,9 @@ namespace XCode.DataAccessLayer
 
             return dp;
         }
-        #endregion
+#endregion
 
-        #region 关键字
+#region 关键字
         protected override String ReservedWordsStr
         {
             get
@@ -258,17 +261,17 @@ namespace XCode.DataAccessLayer
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
-        #endregion
+#endregion
     }
 
     /// <summary>DB2数据库</summary>
     internal class DB2Session : RemoteDbSession
     {
-        #region 构造函数
+#region 构造函数
         public DB2Session(IDatabase db) : base(db) { }
-        #endregion
+#endregion
 
-        #region 基本方法 查询/执行
+#region 基本方法 查询/执行
         protected override DbTable OnFill(DbDataReader dr)
         {
             var dt = new DbTable();
@@ -369,9 +372,9 @@ namespace XCode.DataAccessLayer
 
             return cmd;
         }
-        #endregion
+#endregion
 
-        #region 批量操作
+#region 批量操作
         public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
         {
             var ps = new HashSet<String>();
@@ -526,7 +529,7 @@ namespace XCode.DataAccessLayer
 
             return Execute(sql, CommandType.Text, dps);
         }
-        #endregion
+#endregion
     }
 
     /// <summary>DB2元数据</summary>
@@ -859,7 +862,7 @@ namespace XCode.DataAccessLayer
             { typeof(String), new String[] { "VARCHAR2({0})", "NVARCHAR2({0})", "LONG", "CHAR({0})", "CLOB", "NCHAR({0})", "NCLOB", "XMLTYPE", "ROWID" } }
         };
 
-        #region 架构定义
+#region 架构定义
         public override Object SetSchema(DDLSchema schema, params Object[] values)
         {
             var session = Database.CreateSession();
@@ -949,6 +952,6 @@ namespace XCode.DataAccessLayer
         public override String AddColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is '{field.Description}'";
 
         public override String DropColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is ''";
-        #endregion
+#endregion
     }
 }
