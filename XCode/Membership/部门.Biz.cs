@@ -47,8 +47,6 @@ namespace XCode.Membership
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected override void InitData()
         {
-            base.InitData();
-
             if (Meta.Count > 0) return;
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}数据……", typeof(Department).Name);

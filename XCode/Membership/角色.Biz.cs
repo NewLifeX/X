@@ -58,8 +58,6 @@ namespace XCode.Membership
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected override void InitData()
         {
-            base.InitData();
-
             if (Meta.Count > 0)
             {
                 // 必须有至少一个可用的系统角色
