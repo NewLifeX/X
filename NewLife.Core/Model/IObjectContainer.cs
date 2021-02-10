@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace NewLife.Model
 {
-    /// <summary>对象容器，仅依赖查找，不支持注入</summary>
+    /// <summary>对象容器，支持注入</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/object_container
     /// </remarks>
-    public interface IObjectContainer : IList<IObject>
+    public interface IObjectContainer
     {
         #region 注册
         /// <summary>注册类型和名称</summary>
@@ -19,16 +18,9 @@ namespace NewLife.Model
         [EditorBrowsable(EditorBrowsableState.Never)]
         IObjectContainer Register(Type serviceType, Type implementationType, Object instance);
 
-        /// <summary>注册类型和名称</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="to">实现类型</param>
-        /// <param name="instance">实例</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IObjectContainer Register(Type from, Type to, Object instance, Object id, Int32 priority = 0);
+        /// <summary>添加</summary>
+        /// <param name="item"></param>
+        void Add(IObject item);
         #endregion
 
         #region 解析
@@ -37,22 +29,6 @@ namespace NewLife.Model
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
         Object Resolve(Type serviceType);
-
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        Object Resolve(Type from, Object id);
-
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        [Obsolete]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        Object ResolveInstance(Type from, Object id = null);
         #endregion
     }
 
@@ -62,8 +38,8 @@ namespace NewLife.Model
         /// <summary>单实例</summary>
         Singleton,
 
-        /// <summary>容器内单实例</summary>
-        Scoped,
+        ///// <summary>容器内单实例</summary>
+        //Scoped,
 
         /// <summary>每次一个实例</summary>
         Transient

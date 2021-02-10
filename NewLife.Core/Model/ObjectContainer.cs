@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using NewLife.Reflection;
+using System.Reflection;
 
 namespace NewLife.Model
 {
-    /// <summary>对象容器，仅依赖查找，不支持注入</summary>
+    /// <summary>对象容器，支持注入</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/object_container
     /// </remarks>
@@ -26,13 +25,6 @@ namespace NewLife.Model
 
         /// <summary>注册项个数</summary>
         public Int32 Count => _list.Count;
-
-        Boolean ICollection<IObject>.IsReadOnly => false;
-
-        /// <summary>索引访问</summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public IObject this[Int32 index] { get => _list[index]; set => _list[index] = value; }
         #endregion
 
         #region 方法
@@ -40,55 +32,25 @@ namespace NewLife.Model
         /// <param name="item"></param>
         public void Add(IObject item)
         {
-            for (var i = 0; i < _list.Count; i++)
+            lock (_list)
             {
-                // 覆盖重复项
-                if (_list[i].ServiceType == item.ServiceType)
+                for (var i = 0; i < _list.Count; i++)
                 {
-                    _list[i] = item;
-                    return;
+                    // 覆盖重复项
+                    if (_list[i].ServiceType == item.ServiceType)
+                    {
+                        _list[i] = item;
+                        return;
+                    }
                 }
-            }
 
-            _list.Add(item);
+                _list.Add(item);
+            }
         }
 
-        /// <summary>插入</summary>
-        /// <param name="index"></param>
-        /// <param name="item"></param>
-        public void Insert(Int32 index, IObject item) => _list.Insert(index, item);
-
-        /// <summary>删除</summary>
-        /// <param name="item"></param>
-        public Boolean Remove(IObject item) => _list.Remove(item);
-
-        /// <summary>删除</summary>
-        /// <param name="index"></param>
-        public void RemoveAt(Int32 index) => _list.RemoveAt(index);
-
-        /// <summary>清空</summary>
-        public void Clear() => _list.Clear();
-
-        /// <summary>查找位置</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Int32 IndexOf(IObject item) => _list.IndexOf(item);
-
-        /// <summary>包含</summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public Boolean Contains(IObject item) => _list.Contains(item);
-
-        /// <summary>拷贝</summary>
-        /// <param name="array"></param>
-        /// <param name="arrayIndex"></param>
-        public void CopyTo(IObject[] array, Int32 arrayIndex) => _list.CopyTo(array, arrayIndex);
-
-        /// <summary>枚举</summary>
-        /// <returns></returns>
-        public IEnumerator<IObject> GetEnumerator() => _list.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        ///// <summary>枚举</summary>
+        ///// <returns></returns>
+        //public IEnumerator<IObject> GetEnumerator() => _list.GetEnumerator();
         #endregion
 
         #region 注册
@@ -107,22 +69,12 @@ namespace NewLife.Model
                 ServiceType = serviceType,
                 ImplementationType = implementationType,
                 Instance = instance,
+                Lifttime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
             };
             Add(item);
 
             return this;
         }
-
-        /// <summary>注册</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="to">实现类型</param>
-        /// <param name="instance">实例</param>
-        /// <param name="id">标识</param>
-        /// <param name="priority">优先级</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual IObjectContainer Register(Type from, Type to, Object instance, Object id = null, Int32 priority = 0)
-        => Register(from, to, instance);
         #endregion
 
         #region 解析
@@ -138,38 +90,64 @@ namespace NewLife.Model
             //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
             if (item == null) return null;
 
+            var map = item as ObjectMap;
             var type = item.ImplementationType ?? item.ServiceType;
             switch (item.Lifttime)
             {
                 case ObjectLifetime.Singleton:
-                    if (item is ObjectMap map)
+                    if (map != null)
                     {
-                        if (map.Instance == null) map.Instance = type.CreateInstance();
+                        if (map.Instance == null) map.Instance = CreateInstance(type, new ServiceProvider(this), map.Factory);
 
                         return map.Instance;
                     }
-                    return type.CreateInstance();
+                    return CreateInstance(type, new ServiceProvider(this), null);
 
-                case ObjectLifetime.Scoped:
+                //case ObjectLifetime.Scoped:
                 case ObjectLifetime.Transient:
                 default:
-                    return type.CreateInstance();
+                    return CreateInstance(type, new ServiceProvider(this), map?.Factory);
             }
         }
 
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual Object Resolve(Type from, Object id) => Resolve(from);
+        private Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
+        {
+            if (factory != null) return factory(provider);
 
-        /// <summary>解析类型指定名称的实例</summary>
-        /// <param name="from">接口类型</param>
-        /// <param name="id">标识</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual Object ResolveInstance(Type from, Object id = null) => Resolve(from);
+            ParameterInfo errorParameter = null;
+            if (!type.IsAbstract)
+            {
+                var constructors = type.GetConstructors();
+                foreach (var constructorInfo in constructors)
+                {
+                    if (constructorInfo.IsStatic) continue;
+
+                    ParameterInfo errorParameter2 = null;
+                    var ps = constructorInfo.GetParameters();
+                    var pv = new Object[ps.Length];
+                    for (var i = 0; i != ps.Length; i++)
+                    {
+                        if (pv[i] != null) continue;
+
+                        var service = provider.GetService(ps[i].ParameterType);
+                        if (service == null)
+                        {
+                            errorParameter2 = ps[i];
+
+                            break;
+                        }
+                        else
+                        {
+                            pv[i] = service;
+                        }
+                    }
+
+                    if (errorParameter2 == null) return constructorInfo.Invoke(pv);
+                    errorParameter = errorParameter2;
+                }
+            }
+            throw new InvalidOperationException($"未找到适合 '{type}' 的构造函数，请确认该类型构造函数所需参数均已注册。无法解析参数 '{errorParameter}'");
+        }
         #endregion
 
         #region 辅助
@@ -179,7 +157,7 @@ namespace NewLife.Model
         #endregion
     }
 
-    class ObjectMap : IObject
+    internal class ObjectMap : IObject
     {
         #region 属性
         /// <summary>服务类型</summary>
@@ -203,7 +181,7 @@ namespace NewLife.Model
         #endregion
     }
 
-    class ServiceProvider : IServiceProvider
+    internal class ServiceProvider : IServiceProvider
     {
         private readonly IObjectContainer _container;
 
