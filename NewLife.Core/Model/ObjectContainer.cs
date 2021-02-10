@@ -168,6 +168,7 @@ namespace NewLife.Model
         #endregion
     }
 
+    /// <summary>对象映射</summary>
     internal class ObjectMap : IObject
     {
         #region 属性
@@ -188,6 +189,8 @@ namespace NewLife.Model
         #endregion
 
         #region 方法
+        /// <summary>显示友好名称</summary>
+        /// <returns></returns>
         public override String ToString() => $"[{ServiceType?.Name},{ImplementationType?.Name}]";
         #endregion
     }

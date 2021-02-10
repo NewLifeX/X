@@ -1,7 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using NewLife.Configuration;
 using XCode.DataAccessLayer;
+
+[assembly: InternalsVisibleTo("XUnitTest.XCode")]
 
 namespace XCode
 {

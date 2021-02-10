@@ -1,8 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using NewLife.Configuration;
 using NewLife.Log;
+
+[assembly: InternalsVisibleTo("XUnitTest.Core")]
 
 namespace NewLife
 {
