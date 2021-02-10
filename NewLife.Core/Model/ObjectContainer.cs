@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace NewLife.Model
 {
-    /// <summary>对象容器，支持注入</summary>
+    /// <summary>轻量级对象容器，支持注入</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/object_container
     /// </remarks>

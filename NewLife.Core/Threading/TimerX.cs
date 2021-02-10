@@ -75,7 +75,7 @@ namespace NewLife.Threading
         #endregion
 
         #region 构造
-        private TimerX(Object target, MethodInfo method, Object? state, String? scheduler = null)
+        private TimerX(Object? target, MethodInfo method, Object? state, String? scheduler = null)
         {
             Target = new WeakReference(target);
             Method = method;

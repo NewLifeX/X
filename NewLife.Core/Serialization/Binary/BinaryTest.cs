@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using NewLife.Log;
-using NewLife.Reflection;
 using NewLife.Security;
 
 
@@ -25,7 +23,7 @@ namespace NewLife.Serialization
             Console.Clear();
 
             var ks = new String[] { "普通", "高级", "名值普通", "名值高级" };
-            for (Int32 i = 0; i < 4; i++)
+            for (var i = 0; i < 4; i++)
             {
                 var ext = i == 1 || i == 3;
                 var unm = i == 2 || i == 3;
@@ -93,36 +91,37 @@ namespace NewLife.Serialization
             }
         }
 
-        static BinObject Create(Boolean ext)
+        private static BinObject Create(Boolean ext)
         {
-            var obj = new BinObject();
-
-            obj.ID = Rand.Next();
-            obj.Name = "新生命团队，学无先后达者为师";
-            obj.Enable = Rand.Next(2) > 0;
-            obj.Guid = Guid.NewGuid();
-            obj.Time = DateTime.Now;
-            obj.Data = Rand.NextBytes(16);
+            var obj = new BinObject
+            {
+                ID = Rand.Next(),
+                Name = "新生命团队，学无先后达者为师",
+                Enable = Rand.Next(2) > 0,
+                Guid = Guid.NewGuid(),
+                Time = DateTime.Now,
+                Data = Rand.NextBytes(16)
+            };
 
             if (ext)
             {
                 var n = Rand.Next(2, 10);
                 obj.Points = new Double[n];
-                for (Int32 i = 0; i < n; i++)
+                for (var i = 0; i < n; i++)
                 {
                     obj.Points[i] = (Double)Rand.Next() / 10000;
                 }
 
                 obj.Items = new List<String>();
                 n = Rand.Next(2, 10);
-                for (Int32 i = 0; i < n; i++)
+                for (var i = 0; i < n; i++)
                 {
                     obj.Items.Add(Rand.NextString(32));
                 }
 
                 obj.Container = new Dictionary<String, String>();
                 n = Rand.Next(2, 10);
-                for (Int32 i = 0; i < n; i++)
+                for (var i = 0; i < n; i++)
                 {
                     obj.Container.Add("元素" + (i + 1), Rand.NextString(32));
                 }
@@ -137,7 +136,7 @@ namespace NewLife.Serialization
             return obj;
         }
 
-        static void SetExt(Binary bn)
+        private static void SetExt(Binary bn)
         {
             var ims = bn.IgnoreMembers;
             ims.Add("Points");
@@ -149,7 +148,7 @@ namespace NewLife.Serialization
     }
 
     [Serializable]
-    class BinObject
+    internal class BinObject
     {
         public Int32 ID { get; set; }
 
