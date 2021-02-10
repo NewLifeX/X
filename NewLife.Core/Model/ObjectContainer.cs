@@ -48,9 +48,20 @@ namespace NewLife.Model
             }
         }
 
-        ///// <summary>枚举</summary>
-        ///// <returns></returns>
-        //public IEnumerator<IObject> GetEnumerator() => _list.GetEnumerator();
+        /// <summary>添加</summary>
+        /// <param name="item"></param>
+        public Boolean TryAdd(IObject item)
+        {
+            if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
+            lock (_list)
+            {
+                if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
+
+                _list.Add(item);
+
+                return true;
+            }
+        }
         #endregion
 
         #region 注册
@@ -184,9 +195,17 @@ namespace NewLife.Model
     internal class ServiceProvider : IServiceProvider
     {
         private readonly IObjectContainer _container;
+        /// <summary>容器</summary>
+        public IObjectContainer Container => _container;
 
         public ServiceProvider(IObjectContainer container) => _container = container;
 
-        public Object GetService(Type serviceType) => _container.Resolve(serviceType);
+        public Object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IObjectContainer)) return _container;
+            if (serviceType == typeof(IServiceProvider)) return this;
+
+            return _container.Resolve(serviceType);
+        }
     }
 }

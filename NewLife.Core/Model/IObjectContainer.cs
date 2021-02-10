@@ -21,6 +21,10 @@ namespace NewLife.Model
         /// <summary>添加</summary>
         /// <param name="item"></param>
         void Add(IObject item);
+
+        /// <summary>尝试添加</summary>
+        /// <param name="item"></param>
+        Boolean TryAdd(IObject item);
         #endregion
 
         #region 解析
