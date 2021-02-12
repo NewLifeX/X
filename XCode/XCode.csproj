@@ -7,7 +7,7 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle、Postgresql</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>10.0.2021.0202</Version>
+    <Version>10.0.2021.0212-beta1</Version>
     <FileVersion>10.0.2021.0202</FileVersion>
     <AssemblyVersion>10.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
