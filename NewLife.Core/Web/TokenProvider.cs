@@ -5,6 +5,9 @@ using NewLife.Security;
 namespace NewLife.Web
 {
     /// <summary>令牌提供者</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/token_provider
+    /// </remarks>
     public class TokenProvider
     {
         #region 属性

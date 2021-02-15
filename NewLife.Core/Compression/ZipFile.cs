@@ -37,6 +37,9 @@ namespace NewLife.Compression
     }
 
     /// <summary>压缩文件扩展</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/compression
+    /// </remarks>
     public static class ZipFile
     {
         /// <summary>打开压缩文档</summary>

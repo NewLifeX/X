@@ -7,6 +7,9 @@ using NewLife.Log;
 namespace NewLife.Model
 {
     /// <summary>轻量级主机服务</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// </remarks>
     public interface IHostedService
     {
         /// <summary>开始服务</summary>
@@ -21,6 +24,9 @@ namespace NewLife.Model
     }
 
     /// <summary>轻量级应用主机</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// </remarks>
     public interface IHost
     {
         /// <summary>添加服务</summary>
@@ -40,6 +46,9 @@ namespace NewLife.Model
     }
 
     /// <summary>轻量级应用主机</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// </remarks>
     public class Host : IHost
     {
         #region 属性
@@ -143,6 +152,9 @@ namespace NewLife.Model
 
 #if !NET4
     /// <summary>后台任务</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// </remarks>
     public abstract class BackgroundService : IHostedService, IDisposable
     {
         private Task _executingTask;
