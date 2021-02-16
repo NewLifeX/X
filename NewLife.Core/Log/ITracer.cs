@@ -242,6 +242,7 @@ namespace NewLife.Log
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
             if (handler == null) handler = new HttpClientHandler { UseProxy = false };
+            if (tracer == null) return new HttpClient(handler);
 
             return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
         }

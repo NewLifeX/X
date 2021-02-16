@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
 
 #nullable enable
 namespace NewLife.Yun
@@ -109,7 +109,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 方法
-        private WebClientX? _Client;
+        private HttpClient? _Client;
 
         /// <summary>异步获取字符串</summary>
         /// <param name="url"></param>
@@ -119,7 +119,7 @@ namespace NewLife.Yun
             var key = AcquireKey();
             if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey), "没有可用密钥");
 
-            if (_Client == null) _Client = new WebClientX { Log = Log };
+            if (_Client == null) _Client = DefaultTracer.Instance.CreateHttpClient();
 
             if (url.Contains("?"))
                 url += "&";
@@ -132,7 +132,7 @@ namespace NewLife.Yun
             LastString = null;
             LastKey = key;
 
-            var rs = await _Client.DownloadStringAsync(url).ConfigureAwait(false);
+            var rs = await _Client.GetStringAsync(url).ConfigureAwait(false);
 
             //// 删除无效密钥
             //if (IsValidKey(rs)) RemoveKey(key);
@@ -151,9 +151,9 @@ namespace NewLife.Yun
             var html = await GetStringAsync(url).ConfigureAwait(false);
             if (html.IsNullOrEmpty()) return default;
 
-            var rs = new JsonParser(html).Decode();
+            var rs = JsonParser.Decode(html);
 
-            LastResult = (IDictionary<String, Object>)rs;
+            LastResult = rs;
 
             return (T)rs;
         }
@@ -216,10 +216,7 @@ namespace NewLife.Yun
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
