@@ -11,6 +11,9 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>Json写入器</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public class JsonWriter
     {
         #region 属性
