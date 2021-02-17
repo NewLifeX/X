@@ -8,10 +8,7 @@ namespace NewLife.Serialization
     public class BinaryFont : BinaryHandlerBase
     {
         /// <summary>实例化</summary>
-        public BinaryFont()
-        {
-            Priority = 0x50;
-        }
+        public BinaryFont() => Priority = 50;
 
         /// <summary>写入对象</summary>
         /// <param name="value">目标对象</param>

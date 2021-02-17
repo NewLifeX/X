@@ -182,6 +182,7 @@ namespace NewLife.Serialization
 
         [ThreadStatic]
         private static Byte[] _encodes;
+
         /// <summary>写7位压缩编码整数</summary>
         /// <remarks>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -189,7 +190,7 @@ namespace NewLife.Serialization
         /// </remarks>
         /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
-        Int32 WriteEncoded(Int32 value)
+        private Int32 WriteEncoded(Int32 value)
         {
             if (_encodes == null) _encodes = new Byte[16];
 
@@ -294,7 +295,7 @@ namespace NewLife.Serialization
             };
         }
 
-        Int32 GetFieldSize()
+        private Int32 GetFieldSize()
         {
             if (Member is MemberInfo member)
             {

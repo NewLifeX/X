@@ -8,11 +8,7 @@ namespace NewLife.Serialization
     public class BinaryNormal : BinaryHandlerBase
     {
         /// <summary>初始化</summary>
-        public BinaryNormal()
-        {
-            // 优先级
-            Priority = 12;
-        }
+        public BinaryNormal() => Priority = 12;
 
         /// <summary>写入</summary>
         /// <param name="value"></param>

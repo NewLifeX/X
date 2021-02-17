@@ -7,10 +7,7 @@ namespace NewLife.Serialization
     public class BinaryGeneral : BinaryHandlerBase
     {
         /// <summary>实例化</summary>
-        public BinaryGeneral()
-        {
-            Priority = 10;
-        }
+        public BinaryGeneral() => Priority = 10;
 
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>
@@ -155,10 +152,7 @@ namespace NewLife.Serialization
         #region 字节
         /// <summary>将一个无符号字节写入</summary>
         /// <param name="value">要写入的无符号字节。</param>
-        public virtual void Write(Byte value)
-        {
-            Host.Write(value);
-        }
+        public virtual void Write(Byte value) => Host.Write(value);
 
         /// <summary>将字节数组写入，如果设置了UseSize，则先写入数组长度。</summary>
         /// <param name="buffer">包含要写入的数据的字节数组。</param>
@@ -249,7 +243,7 @@ namespace NewLife.Serialization
 
         /// <summary>判断字节顺序</summary>
         /// <param name="buffer">缓冲区</param>
-        void WriteIntBytes(Byte[] buffer)
+        private void WriteIntBytes(Byte[] buffer)
         {
             if (buffer == null || buffer.Length < 1) return;
 
@@ -420,27 +414,27 @@ namespace NewLife.Serialization
         /// <summary>使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual UInt16 ReadUInt16() { return (UInt16)ReadInt16(); }
+        public virtual UInt16 ReadUInt16() => (UInt16)ReadInt16();
 
         /// <summary>从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual UInt32 ReadUInt32() { return (UInt32)ReadInt32(); }
+        public virtual UInt32 ReadUInt32() => (UInt32)ReadInt32();
 
         /// <summary>从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。</summary>
         /// <returns></returns>
         //[CLSCompliant(false)]
-        public virtual UInt64 ReadUInt64() { return (UInt64)ReadInt64(); }
+        public virtual UInt64 ReadUInt64() => (UInt64)ReadInt64();
         #endregion
 
         #region 浮点数
         /// <summary>从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。</summary>
         /// <returns></returns>
-        public virtual Single ReadSingle() { return BitConverter.ToSingle(ReadBytes(4), 0); }
+        public virtual Single ReadSingle() => BitConverter.ToSingle(ReadBytes(4), 0);
 
         /// <summary>从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。</summary>
         /// <returns></returns>
-        public virtual Double ReadDouble() { return BitConverter.ToDouble(ReadBytes(8), 0); }
+        public virtual Double ReadDouble() => BitConverter.ToDouble(ReadBytes(8), 0);
         #endregion
 
         #region 字符串
