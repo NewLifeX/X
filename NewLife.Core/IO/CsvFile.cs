@@ -10,6 +10,7 @@ namespace NewLife.IO
 {
     /// <summary>Csv文件</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/csv_file
     /// 支持整体读写以及增量式读写，目标是读写超大Csv文件
     /// </remarks>
     public class CsvFile : DisposeBase
