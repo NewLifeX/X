@@ -325,7 +325,7 @@ namespace NewLife.Data
                 // 头部
                 if (Columns == null)
                 {
-                    Columns = pis.Select(e => e.Name).ToArray();
+                    Columns = pis.Select(e => SerialHelper.GetName(e)).ToArray();
                     Types = pis.Select(e => e.PropertyType).ToArray();
                 }
 
@@ -346,7 +346,7 @@ namespace NewLife.Data
         {
             // 可用属性
             var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var dic = pis.ToDictionary(e => e.Name, e => e, StringComparer.OrdinalIgnoreCase);
+            var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
 
             foreach (var row in Rows)
             {
