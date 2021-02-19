@@ -277,7 +277,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
 
-        Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true}
+        Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true; }
         #endregion
 
         #region Json序列化
