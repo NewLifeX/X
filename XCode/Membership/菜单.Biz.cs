@@ -197,13 +197,14 @@ namespace XCode.Membership
 
         /// <summary>取得当前角色的子菜单，有权限、可显示、排序</summary>
         /// <param name="filters"></param>
+        /// <param name="inclInvisible">包含不可见菜单</param>
         /// <returns></returns>
-        public IList<IMenu> GetSubMenus(Int32[] filters)
+        public IList<IMenu> GetSubMenus(Int32[] filters, Boolean inclInvisible = false)
         {
             var list = Childs;
             if (list == null || list.Count < 1) return new List<IMenu>();
 
-            list = list.Where(e => e.Visible).ToList();
+            if (!inclInvisible) list = list.Where(e => e.Visible).ToList();
             if (list == null || list.Count < 1) return new List<IMenu>();
 
             return list.Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
@@ -351,8 +352,9 @@ namespace XCode.Membership
             /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
             /// <param name="menuid"></param>
             /// <param name="user"></param>
+            /// <param name="inclInvisible">是否包含不可见菜单</param>
             /// <returns></returns>
-            IList<IMenu> IMenuFactory.GetMySubMenus(Int32 menuid, IUser user)
+            IList<IMenu> IMenuFactory.GetMySubMenus(Int32 menuid, IUser user, Boolean inclInvisible)
             {
                 var factory = this as IMenuFactory;
                 var root = factory.Root;
@@ -373,7 +375,7 @@ namespace XCode.Membership
                     if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return new List<IMenu>();
                 }
 
-                return menu.GetSubMenus(rs.SelectMany(e => e.Resources).ToArray());
+                return menu.GetSubMenus(rs.SelectMany(e => e.Resources).ToArray(), inclInvisible);
             }
 
             /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
@@ -519,8 +521,9 @@ namespace XCode.Membership
         /// <summary>获取指定菜单下，当前用户有权访问的子菜单。</summary>
         /// <param name="menuid"></param>
         /// <param name="user"></param>
+        /// <param name="inclInvisible"></param>
         /// <returns></returns>
-        IList<IMenu> GetMySubMenus(Int32 menuid, IUser user);
+        IList<IMenu> GetMySubMenus(Int32 menuid, IUser user, Boolean inclInvisible);
 
         /// <summary>扫描命名空间下的控制器并添加为菜单</summary>
         /// <param name="rootName"></param>
@@ -650,8 +653,9 @@ namespace XCode.Membership
 
         /// <summary></summary>
         /// <param name="filters"></param>
+        /// <param name="inclInvisible">是否包含不可见菜单</param>
         /// <returns></returns>
-        IList<IMenu> GetSubMenus(Int32[] filters);
+        IList<IMenu> GetSubMenus(Int32[] filters, Boolean inclInvisible);
 
         /// <summary>可选权限子项</summary>
         Dictionary<Int32, String> Permissions { get; }
