@@ -13,7 +13,7 @@ using NewLife.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
-    public class DbTable : IEnumerable<DbRow>, ICloneable
+    public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         #region 属性
         /// <summary>数据列</summary>
@@ -185,6 +185,8 @@ namespace NewLife.Data
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
         public Int64 LoadFile(String file, Boolean compressed = false) => file.AsFile().OpenRead(compressed, s => Read(s));
+
+        Boolean IAccessor.Read(Stream stream, Object context) { Read(stream); return true; }
         #endregion
 
         #region 二进制写入
@@ -271,6 +273,8 @@ namespace NewLife.Data
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
         public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+
+        Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true}
         #endregion
 
         #region Json序列化
