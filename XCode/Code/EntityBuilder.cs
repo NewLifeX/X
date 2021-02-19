@@ -383,10 +383,6 @@ namespace XCode.Code
 
                     if (!type.IsNullOrEmpty())
                     {
-                        if (!type.Contains("."))
-                        {
-
-                        }
                         if (!type.Contains(".") && conv.GetMethod("To" + type, new Type[] { typeof(Object) }) != null)
                         {
                             switch (type)
@@ -416,8 +412,7 @@ namespace XCode.Code
                             try
                             {
                                 // 特殊支持枚举
-                                var type2 = type.GetTypeEx(false);
-                                if (type2 != null && type2.IsEnum)
+                                if (column.DataType.IsInt())
                                     WriteLine("case \"{0}\": _{0} = ({1})value.ToInt(); break;", column.Name, type);
                                 else
                                     WriteLine("case \"{0}\": _{0} = ({1})value; break;", column.Name, type);
@@ -976,7 +971,17 @@ namespace XCode.Code
                 WriteLine("/// <returns>实体列表</returns>");
 
                 // 参数部分
-                var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                //var pis = cs.Join(", ", dc => $"{dc.DataType.Name} {dc.CamelName()}");
+                var pis = new StringBuilder();
+                foreach (var dc in cs)
+                {
+                    if (pis.Length > 0) pis.Append(", ");
+
+                    if (dc.DataType == typeof(Boolean))
+                        pis.Append($"{dc.DataType.Name}? {dc.CamelName()}");
+                    else
+                        pis.Append($"{dc.DataType.Name} {dc.CamelName()}");
+                }
                 var piTime = dcTime == null ? "" : "DateTime start, DateTime end, ";
                 WriteLine("public static IList<{0}> Search({1}, {2}String key, PageParameter page)", returnName, pis, piTime);
                 WriteLine("{");

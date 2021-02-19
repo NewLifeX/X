@@ -62,7 +62,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean WriteRef(Object value)
+        private Boolean WriteRef(Object value)
         {
             var bn = Host as Binary;
             if (!bn.UseRef) return false;
@@ -153,7 +153,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean ReadRef(ref Object value)
+        private Boolean ReadRef(ref Object value)
         {
             var bn = Host as Binary;
             if (!bn.UseRef) return false;
@@ -178,7 +178,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
+        private Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
         {
             // 访问器直接写入成员
             if (!ac.Read(Host, member)) return false;
@@ -208,7 +208,7 @@ namespace NewLife.Serialization
                 return type.GetFields(baseFirst).Cast<MemberInfo>().ToList();
         }
 
-        static Type GetMemberType(MemberInfo member)
+        private static Type GetMemberType(MemberInfo member)
         {
             return member.MemberType switch
             {

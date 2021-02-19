@@ -11,7 +11,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>MS的Access文件数据库</summary>
         [Description("Access文件数据库")]
-        Access,
+        Access = 1,
 
         /// <summary>MS的SqlServer数据库</summary>
         [Description("SqlServer数据库")]
@@ -27,7 +27,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>SqlCe数据库</summary>
         [Description("SqlCe数据库")]
-        SqlCe,
+        SqlCe = 5,
 
         /// <summary>SQLite数据库</summary>
         [Description("SQLite数据库")]
@@ -44,6 +44,10 @@ namespace XCode.DataAccessLayer
         /// <summary>达梦数据库</summary>
         [Description("达梦数据库")]
         DaMeng = 9,
+
+        /// <summary>DB2数据库</summary>
+        [Description("DB2数据库")]
+        DB2 = 10,
 
         /// <summary>网络虚拟数据库</summary>
         [Description("网络虚拟数据库")]

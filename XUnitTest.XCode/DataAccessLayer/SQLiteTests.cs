@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using NewLife.Log;
+using NewLife.Serialization;
+using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
@@ -76,6 +81,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void SelectTest()
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             var db = "Data\\Membership_Test.db";
             var dbf = db.GetFullPath();
             if (File.Exists(dbf)) File.Delete(dbf);
@@ -134,6 +141,121 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             // 清理现场
             if (File.Exists(dbf)) File.Delete(dbf);
+        }
+
+        private IDisposable CreateForBatch(String action)
+        {
+            var db = "Data\\Membership_Batch.db";
+            DAL.AddConnStr("Membership_Batch", $"Data Source={db}", null, "SQLite");
+
+            var dt = Role2.Meta.Table.DataTable.Clone() as IDataTable;
+            dt.TableName = $"Role2_{action}";
+
+            // 分表
+            var split = Role2.Meta.CreateSplit("Membership_Batch", dt.TableName);
+
+            var session = Role2.Meta.Session;
+            session.Dal.SetTables(dt);
+
+            // 清空数据
+            session.Truncate();
+
+            return split;
+        }
+
+        [Fact]
+        public void BatchInsert()
+        {
+            using var split = CreateForBatch("BatchInsert");
+
+            var list = new List<Role2>
+            {
+                new Role2 { Name = "管理员" },
+                new Role2 { Name = "高级用户" },
+                new Role2 { Name = "普通用户" }
+            };
+            var rs = list.BatchInsert();
+            Assert.Equal(list.Count, rs);
+
+            var list2 = Role2.FindAll();
+            Assert.Equal(list.Count, list2.Count);
+            Assert.Contains(list2, e => e.Name == "管理员");
+            Assert.Contains(list2, e => e.Name == "高级用户");
+            Assert.Contains(list2, e => e.Name == "普通用户");
+        }
+
+        [Fact]
+        public void BatchInsertIgnore()
+        {
+            using var split = CreateForBatch("InsertIgnore");
+
+            var list = new List<Role2>
+            {
+                new Role2 { Name = "管理员" },
+                new Role2 { Name = "高级用户" },
+                new Role2 { Name = "普通用户" }
+            };
+            var rs = list.BatchInsert();
+            Assert.Equal(list.Count, rs);
+
+            list = new List<Role2>
+            {
+                new Role2 { Name = "管理员" },
+                new Role2 { Name = "游客" },
+            };
+            rs = list.BatchInsertIgnore();
+            Assert.Equal(1, rs);
+
+            var list2 = Role2.FindAll();
+            Assert.Equal(4, list2.Count);
+            Assert.Contains(list2, e => e.Name == "管理员");
+            Assert.Contains(list2, e => e.Name == "高级用户");
+            Assert.Contains(list2, e => e.Name == "普通用户");
+            Assert.Contains(list2, e => e.Name == "游客");
+        }
+
+        [Fact]
+        public void BatchReplace()
+        {
+            using var split = CreateForBatch("Replace");
+
+            var list = new List<Role2>
+            {
+                new Role2 { Name = "管理员", Remark="guanliyuan" },
+                new Role2 { Name = "高级用户", Remark="gaoji" },
+                new Role2 { Name = "普通用户", Remark="putong" }
+            };
+            var rs = list.BatchInsert();
+            Assert.Equal(list.Count, rs);
+
+            var gly = list.FirstOrDefault(e => e.Name == "管理员");
+            Assert.NotNull(gly);
+            Assert.Equal("guanliyuan", gly.Remark);
+
+            XTrace.WriteLine(Role2.FindAll().ToJson());
+
+            list = new List<Role2>
+            {
+                new Role2 { Name = "管理员" },
+                new Role2 { Name = "游客", Remark="guest" },
+            };
+            rs = list.BatchReplace();
+            // 删除一行，插入2行，但是影响行为2，这一点跟MySql不同
+            Assert.Equal(2, rs);
+
+            var list2 = Role2.FindAll();
+            XTrace.WriteLine(list2.ToJson());
+            Assert.Equal(4, list2.Count);
+            Assert.Contains(list2, e => e.Name == "管理员");
+            Assert.Contains(list2, e => e.Name == "高级用户");
+            Assert.Contains(list2, e => e.Name == "普通用户");
+            Assert.Contains(list2, e => e.Name == "游客");
+
+            var gly2 = list2.FirstOrDefault(e => e.Name == "管理员");
+            Assert.NotNull(gly2);
+            Assert.Null(gly2.Remark);
+            // 管理员被删除后重新插入，自增ID改变
+            Assert.NotEqual(gly.ID, gly2.ID);
         }
     }
 }

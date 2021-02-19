@@ -15,6 +15,8 @@ namespace NewLife.Caching
 {
     /// <summary>Redi客户端</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/redis
+    /// 
     /// 强烈建议保持唯一的Redis对象供多次使用，Redis内部有连接池并且支持多线程并发访问。
     /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
     /// </remarks>

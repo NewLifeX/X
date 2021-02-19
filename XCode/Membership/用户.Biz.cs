@@ -34,7 +34,7 @@ namespace XCode.Membership
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
-    public  partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
+    public partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
     {
         #region 对象操作
         static User()
@@ -60,8 +60,6 @@ namespace XCode.Membership
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected override void InitData()
         {
-            base.InitData();
-
             if (Meta.Count > 0) return;
 
             if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(User).Name);
@@ -135,9 +133,9 @@ namespace XCode.Membership
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
 
-        /// <summary>兼容旧版角色组</summary>
-        [Obsolete("=>RoleIds")]
-        public String RoleIDs { get => RoleIds; set => RoleIds = value; }
+        ///// <summary>兼容旧版角色组</summary>
+        //[Obsolete("=>RoleIds")]
+        //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
@@ -259,6 +257,27 @@ namespace XCode.Membership
 
             return FindAll(exp, page);
         }
+
+        /// <summary>高级搜索</summary>
+        /// <param name="roleIds">角色</param>
+        /// <param name="departmentIds">部门</param>
+        /// <param name="enable">启用</param>
+        /// <param name="start">登录时间开始</param>
+        /// <param name="end">登录时间结束</param>
+        /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (roleIds != null && roleIds.Length > 0) exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
+            if (departmentIds != null && departmentIds.Length > 0) exp &= _.DepartmentID.In(departmentIds);
+            if (enable != null) exp &= _.Enable == enable.Value;
+            exp &= _.LastLogin.Between(start, end);
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
+
+            return FindAll(exp, page);
+        }
         #endregion
 
         #region 扩展操作
@@ -295,6 +314,42 @@ namespace XCode.Membership
         #endregion
 
         #region 业务
+        /// <summary>登录。借助回调来验证密码</summary>
+        /// <param name="username"></param>
+        /// <param name="onValid"></param>
+        /// <returns></returns>
+        public static User Login(String username, Action<User> onValid)
+        {
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
+            if (onValid == null) throw new ArgumentNullException(nameof(onValid));
+
+            try
+            {
+                // 过滤帐号中的空格，防止出现无操作无法登录的情况
+                var account = username.Trim();
+                //var user = FindByName(account);
+                // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
+                var user = Find(__.Name, account);
+                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+
+                if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
+
+                // 验证用户
+                onValid(user);
+
+                user.SaveLoginInfo();
+
+                WriteLog("登录", true, username);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                WriteLog("登录", false, username + "登录失败！" + ex.Message);
+                throw;
+            }
+        }
+
         /// <summary>登录</summary>
         /// <param name="username"></param>
         /// <param name="password"></param>

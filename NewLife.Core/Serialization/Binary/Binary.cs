@@ -30,9 +30,6 @@ namespace NewLife.Serialization
         /// <summary>要忽略的成员</summary>
         public ICollection<String> IgnoreMembers { get; set; }
 
-        ///// <summary>是否写入名称。默认false</summary>
-        //public Boolean UseName { get; set; }
-
         /// <summary>处理器列表</summary>
         public IList<IBinaryHandler> Handlers { get; private set; }
         #endregion
@@ -41,7 +38,6 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         public Binary()
         {
-            //UseName = false;
             IgnoreMembers = new HashSet<String>();
 
             // 遍历所有处理器实现
@@ -111,7 +107,6 @@ namespace NewLife.Serialization
         /// <param name="value">目标对象</param>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        //[DebuggerHidden]
         public virtual Boolean Write(Object value, Type type = null)
         {
             if (type == null)
@@ -187,6 +182,7 @@ namespace NewLife.Serialization
 
         [ThreadStatic]
         private static Byte[] _encodes;
+
         /// <summary>写7位压缩编码整数</summary>
         /// <remarks>
         /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -194,7 +190,7 @@ namespace NewLife.Serialization
         /// </remarks>
         /// <param name="value">数值</param>
         /// <returns>实际写入字节数</returns>
-        Int32 WriteEncoded(Int32 value)
+        private Int32 WriteEncoded(Int32 value)
         {
             if (_encodes == null) _encodes = new Byte[16];
 
@@ -217,10 +213,8 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        //[DebuggerHidden]
         public virtual Object Read(Type type)
         {
-            //var value = type.CreateInstance();
             Object value = null;
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
 
@@ -230,14 +224,12 @@ namespace NewLife.Serialization
         /// <summary>读取指定类型对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        //[DebuggerHidden]
         public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        //[DebuggerHidden]
         public virtual Boolean TryRead(Type type, ref Object value)
         {
             if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryRead {0} {1}", type.Name, value);
@@ -303,7 +295,7 @@ namespace NewLife.Serialization
             };
         }
 
-        Int32 GetFieldSize()
+        private Int32 GetFieldSize()
         {
             if (Member is MemberInfo member)
             {
@@ -322,21 +314,6 @@ namespace NewLife.Serialization
 
             return -1;
         }
-        #endregion
-
-        #region 有符号整数
-        /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
-        /// <param name="count">数量</param>
-        /// <returns></returns>
-        Byte[] ReadIntBytes(Int32 count) => Stream.ReadBytes(count);
-
-        /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
-        /// <returns></returns>
-        Int16 ReadInt16() => BitConverter.ToInt16(ReadIntBytes(2), 0);
-
-        /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
-        /// <returns></returns>
-        Int32 ReadInt32() => BitConverter.ToInt32(ReadIntBytes(4), 0);
         #endregion
 
         #region 7位压缩编码整数
@@ -401,10 +378,6 @@ namespace NewLife.Serialization
         }
         #endregion
 
-        #region 辅助函数
-
-        #endregion
-
         #region 跟踪日志
         /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream后，使用之前</summary>
         public virtual void EnableTrace()
@@ -441,6 +414,21 @@ namespace NewLife.Serialization
 
             var buf = bn.GetBytes();
             return new Packet(buf, 8, buf.Length - 8);
+        }
+
+        /// <summary>快速写入</summary>
+        /// <param name="value">对象</param>
+        /// <param name="stream">目标数据流</param>
+        /// <param name="encodeInt">使用7位编码整数</param>
+        /// <returns></returns>
+        public static void FastWrite(Object value, Stream stream, Boolean encodeInt = true)
+        {
+            var bn = new Binary
+            {
+                Stream = stream,
+                EncodeInt = encodeInt,
+            };
+            bn.Write(value);
         }
         #endregion
     }

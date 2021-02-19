@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace System.Collections.Generic
 {
@@ -115,7 +116,8 @@ namespace System.Collections.Generic
                 {
                     foreach (var pi in target.GetType().GetProperties(true))
                     {
-                        dic[pi.Name] = target.GetValue(pi);
+                        var name = SerialHelper.GetName(pi);
+                        dic[name] = target.GetValue(pi);
                     }
                 }
             }

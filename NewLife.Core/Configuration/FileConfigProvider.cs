@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Configuration
 {
@@ -17,6 +18,9 @@ namespace NewLife.Configuration
 
         /// <summary>是否新的配置文件</summary>
         public Boolean IsNew { get; set; }
+
+        /// <summary>更新周期。默认30秒</summary>
+        public Int32 Period { get; set; } = 30;
         #endregion
 
         #region 构造
@@ -26,7 +30,7 @@ namespace NewLife.Configuration
         {
             base.Dispose(disposing);
 
-            _watcher.TryDispose();
+            _timer.TryDispose();
         }
         #endregion
 
@@ -68,6 +72,7 @@ namespace NewLife.Configuration
             Root = section;
 
             IsNew = false;
+            _lastTime = fileName.AsFile().LastWriteTime;
 
             return true;
         }
@@ -89,9 +94,7 @@ namespace NewLife.Configuration
 
             // 写入文件
             OnWrite(fileName, Root);
-
-            // 首次建立配置文件时，由于文件不存在无法监听目录，改到这里延迟监听
-            if (_models.Count > 0 && _watcher == null) InitWatcher();
+            _lastTime = fileName.AsFile().LastWriteTime;
 
             return true;
         }
@@ -146,71 +149,60 @@ namespace NewLife.Configuration
             {
                 _models.Add(model, path);
 
-                InitWatcher();
+                InitTimer();
             }
         }
 
-        private void InitWatcher()
+        private TimerX _timer;
+        private void InitTimer()
         {
-            // 文件监视
-            var fileName = FileName.GetBasePath();
-            var dir = Path.GetDirectoryName(fileName);
-            if (Directory.Exists(dir))
+            if (_timer != null) return;
+            lock (this)
             {
-                try
-                {
-                    if (_watcher != null) _watcher.TryDispose();
-                    _watcher = new FileSystemWatcher(dir, Path.GetFileName(fileName))
-                    {
-                        NotifyFilter = NotifyFilters.LastWrite
-                    };
-                    _watcher.Changed += Watch_Changed;
-                    _watcher.EnableRaisingEvents = true;
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
-                }
+                if (_timer != null) return;
+
+                var p = Period;
+                if (p <= 0) p = 60;
+                _timer = new TimerX(DoRefresh, null, p * 1000, p * 1000) { Async = true };
             }
         }
 
         private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
-        private FileSystemWatcher _watcher;
-        private DateTime _nextRead;
         private Boolean _reading;
-        private void Watch_Changed(Object sender, FileSystemEventArgs e)
+        private DateTime _lastTime;
+        private void DoRefresh(Object state)
         {
-            if (e.ChangeType != WatcherChangeTypes.Changed || _reading) return;
-
-            // 短时间内不要重复
-            if (_nextRead > DateTime.Now) return;
-            _nextRead = DateTime.Now.AddSeconds(1);
+            if (_reading) return;
 
             var fileName = FileName.GetBasePath();
-            if (File.Exists(fileName))
+            var fi = FileName.AsFile();
+            if (!fi.Exists) return;
+
+            fi.Refresh();
+            if (_lastTime.Year > 2000 & fi.LastWriteTime <= _lastTime) return;
+            _lastTime = fi.LastWriteTime;
+
+            XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
+
+            _reading = true;
+            try
             {
-                XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
+                var section = new ConfigSection { };
+                OnRead(fileName, section);
+                Root = section;
 
-                _reading = true;
-                try
+                foreach (var item in _models)
                 {
-                    var section = new ConfigSection { };
-                    OnRead(fileName, section);
-                    Root = section;
-
-                    foreach (var item in _models)
-                    {
-                        base.Bind(item.Key, false, item.Value);
-                    }
+                    base.Bind(item.Key, false, item.Value);
                 }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex);
-                }
-                finally
-                {
-                    _reading = false;
-                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+            finally
+            {
+                _reading = false;
             }
         }
         #endregion

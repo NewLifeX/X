@@ -19,6 +19,7 @@ namespace XCode.DataAccessLayer
             Register<SqlServer>(DatabaseType.SqlServer);
             Register<PostgreSQL>(DatabaseType.PostgreSQL);
             Register<DaMeng>(DatabaseType.DaMeng);
+            Register<DB2>(DatabaseType.DB2);
 #if !__CORE__
             Register<Access>(DatabaseType.Access);
             Register<SqlCe>(DatabaseType.SqlCe);

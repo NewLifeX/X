@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
+using NewLife;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
-using NewLife;
 
 namespace XUnitTest.Caching
 {
@@ -15,10 +17,7 @@ namespace XUnitTest.Caching
     {
         public MemoryCache Cache { get; set; }
 
-        public MemoryCacheTests()
-        {
-            Cache = new MemoryCache();
-        }
+        public MemoryCacheTests() => Cache = new MemoryCache();
 
         [Fact(DisplayName = "基础测试")]
         public void Test1()
@@ -162,7 +161,7 @@ namespace XUnitTest.Caching
             Assert.Equal(obj.ToJson(), obj2.ToJson());
         }
 
-        class User
+        private class User
         {
             public String Name { get; set; }
             public String Company { get; set; }
@@ -274,6 +273,57 @@ namespace XUnitTest.Caching
             XTrace.WriteLine("TestLock3 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
             Assert.True(sw.ElapsedMilliseconds >= 500);
             Assert.True(sw.ElapsedMilliseconds <= 1000);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SaveAndLoad(Boolean compressed)
+        {
+            var mc = new MemoryCache();
+
+            mc.Set("Name", "大石头");
+            mc.Set("Age", 24, 3600);
+            mc.Set("Ext", new GeoArea { Code = 1234, Name = "NewLife" }, 86400);
+
+            var file = compressed ?
+                "data/memoryCache.gz".GetFullPath() :
+                "data/memoryCache.dat".GetFullPath();
+            if (File.Exists(file)) File.Delete(file);
+
+            mc.Save(file, compressed);
+
+            Assert.True(File.Exists(file));
+
+            var mc2 = new MemoryCache();
+            mc2.Load(file, compressed);
+
+            Assert.Equal("大石头", mc2.Get<String>("Name"));
+            Assert.Equal(24, mc2.Get<Int32>("Age"));
+
+            var ga = mc2.Get<GeoArea>("Ext");
+            Assert.NotNull(ga);
+            Assert.Equal(1234, ga.Code);
+            Assert.Equal("NewLife", ga.Name);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void BigSave(Boolean compressed)
+        {
+            var mc = new MemoryCache();
+
+            for (var i = 0; i < 500_000; i++)
+            {
+                var ga = new GeoArea { Code = Rand.Next(100000, 999999), Name = Rand.NextString(8) };
+                mc.Set(ga.Name, ga);
+            }
+
+            if (compressed)
+                mc.Save("data/bigsave.gz", true);
+            else
+                mc.Save("data/bigsave.cache", false);
         }
     }
 }

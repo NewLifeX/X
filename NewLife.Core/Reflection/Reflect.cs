@@ -8,6 +8,9 @@ using System.Reflection;
 namespace NewLife.Reflection
 {
     /// <summary>反射工具类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/reflect
+    /// </remarks>
     public static class Reflect
     {
         #region 静态

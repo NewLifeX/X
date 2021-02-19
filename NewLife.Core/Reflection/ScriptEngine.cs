@@ -15,6 +15,8 @@ namespace NewLife.Reflection
 {
     /// <summary>脚本引擎</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/script_engine
+    /// 
     /// 三大用法：
     /// 1，单个表达式，根据参数计算表达式结果并返回
     /// 2，多个语句，最后有返回语句

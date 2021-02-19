@@ -8,6 +8,8 @@ namespace System
 {
     /// <summary>工具类</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/utility
+    /// 
     /// 采用静态架构，允许外部重载工具类的各种实现<seealso cref="DefaultConvert"/>。
     /// 所有类型转换均支持默认值，默认值为该default(T)，在转换失败时返回默认值。
     /// </remarks>
@@ -171,6 +173,7 @@ namespace System
             if (value is DateTime dt)
             {
                 if (dt == DateTime.MinValue) return 0;
+                if (dt == DateTime.MaxValue) return -1;
 
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;

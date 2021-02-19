@@ -7,10 +7,7 @@ namespace NewLife.Serialization
     public class BinaryColor : BinaryHandlerBase
     {
         /// <summary>实例化</summary>
-        public BinaryColor()
-        {
-            Priority = 0x50;
-        }
+        public BinaryColor() => Priority = 50;
 
         /// <summary>写入对象</summary>
         /// <param name="value">目标对象</param>
@@ -19,15 +16,6 @@ namespace NewLife.Serialization
         public override Boolean Write(Object value, Type type)
         {
             if (type != typeof(Color)) return false;
-
-            // 结构体不需要引用计数
-            //// 写入引用
-            //if (value == null)
-            //{
-            //    Host.WriteSize(0);
-            //    return true;
-            //}
-            //Host.WriteSize(1);
 
             var color = (Color)value;
             WriteLog("WriteColor {0}", color);
@@ -47,13 +35,6 @@ namespace NewLife.Serialization
         public override Boolean TryRead(Type type, ref Object value)
         {
             if (type != typeof(Color)) return false;
-
-            // 结构体不需要引用计数
-            //// 读引用
-            //var size = Host.ReadSize();
-            //if (size == 0) return true;
-
-            //if (size != 1) WriteLog("读取引用应该是1，而实际是{0}", size);
 
             var a = Host.ReadByte();
             var r = Host.ReadByte();

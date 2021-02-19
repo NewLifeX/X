@@ -5,8 +5,10 @@ using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
-
     /// <summary>Json分析器</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public class JsonParser
     {
         #region 内部
@@ -52,7 +54,6 @@ namespace NewLife.Serialization
 
         #region 属性
         readonly String _json;
-        //readonly StringBuilder _builder = new StringBuilder();
         Token _Ahead = Token.None;
         Int32 index;
         #endregion

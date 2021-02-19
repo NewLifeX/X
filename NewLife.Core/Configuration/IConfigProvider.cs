@@ -15,6 +15,9 @@ namespace NewLife.Configuration
     /// </remarks>
     public interface IConfigProvider
     {
+        /// <summary>名称</summary>
+        String Name { get; set; }
+
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
 
@@ -58,11 +61,19 @@ namespace NewLife.Configuration
     public class ConfigProvider : DisposeBase, IConfigProvider
     {
         #region 属性
+        /// <summary>名称</summary>
+        public String Name { get; set; }
+
         /// <summary>根元素</summary>
         public IConfigSection Root { get; protected set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
+        #endregion
+
+        #region 构造
+        /// <summary>构造函数</summary>
+        public ConfigProvider() => Name = GetType().Name.TrimEnd("ConfigProvider");
         #endregion
 
         #region 方法
@@ -115,7 +126,10 @@ namespace NewLife.Configuration
             if (source == null) return default;
 
             var model = new T();
-            source.MapTo(model);
+            if (model is IConfigMapping map)
+                map.MapConfig(this, source);
+            else
+                source.MapTo(model);
 
             return model;
         }
@@ -151,7 +165,13 @@ namespace NewLife.Configuration
 
             // 如果有命名空间则使用指定层级数据源
             var source = GetSection(path);
-            source?.MapTo(model);
+            if (source != null)
+            {
+                if (model is IConfigMapping map)
+                    map.MapConfig(this, source);
+                else
+                    source.MapTo(model);
+            }
         }
         #endregion
 

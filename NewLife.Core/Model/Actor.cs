@@ -11,6 +11,8 @@ namespace NewLife.Model
 {
     /// <summary>无锁并行编程模型</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/actor
+    /// 
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
     /// 适用于任务颗粒较大的场合，例如IO操作。
     /// </remarks>

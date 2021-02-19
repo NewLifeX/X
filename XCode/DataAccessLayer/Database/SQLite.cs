@@ -338,14 +338,14 @@ namespace XCode.DataAccessLayer
         updatetime=values(updatetime);
          */
 
-        private String GetBatchSql(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        private String GetBatchSql(String action, IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
             var sb = Pool.StringBuilder.Get();
             var db = Database as DbBase;
 
             // 字段列表
             //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("Insert Into {0}(", db.FormatName(table));
+            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
             foreach (var dc in columns)
             {
                 //if (dc.Identity) continue;
@@ -466,42 +466,26 @@ namespace XCode.DataAccessLayer
 
         public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
         {
-            var sql = GetBatchSql(table, columns, null, null, list);
+            var sql = GetBatchSql("Insert Into", table, columns, null, null, list);
             return Execute(sql);
+        }
 
-            //// 分批
-            //var batchSize = (Database as DbBase).BatchSize;
-            //var rs = 0;
-            //for (var i = 0; i < list.Count();)
-            //{
-            //    var es = list.Skip(i).Take(batchSize).ToList();
-            //    var sql = GetBatchSql(table, columns, null, null, es);
-            //    rs += Execute(sql);
+        public override Int32 InsertIgnore(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Or Ignore Into", table, columns, null, null, list);
+            return Execute(sql);
+        }
 
-            //    i += es.Count;
-            //}
-
-            //return rs;
+        public override Int32 Replace(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Or Replace Into", table, columns, null, null, list);
+            return Execute(sql);
         }
 
         public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
-            var sql = GetBatchSql(table, columns, updateColumns, addColumns, list);
+            var sql = GetBatchSql("Insert Into", table, columns, updateColumns, addColumns, list);
             return Execute(sql);
-
-            //// 分批
-            //var batchSize = (Database as DbBase).BatchSize;
-            //var rs = 0;
-            //for (var i = 0; i < list.Count();)
-            //{
-            //    var es = list.Skip(i).Take(batchSize).ToList();
-            //    var sql = GetBatchSql(table, columns, updateColumns, addColumns, es);
-            //    rs += Execute(sql);
-
-            //    i += es.Count;
-            //}
-
-            //return rs;
         }
         #endregion
     }

@@ -452,6 +452,112 @@ namespace XCode
             }
         }
 
+        /// <summary>批量忽略插入</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
+        public static Int32 BatchInsertIgnore<T>(this IEnumerable<T> list, IDataColumn[] columns = null, IEntitySession session = null) where T : IEntity
+        {
+            if (list == null || !list.Any()) return 0;
+
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).ToArray();
+
+                // 第一列数据包含非零自增，表示要插入自增值
+                var id = columns.FirstOrDefault(e => e.Identity);
+                if (id != null)
+                {
+                    if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
+                }
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
+            }
+
+            session ??= fact.Session;
+            session.InitData();
+
+            var dal = session.Dal;
+            dal.CheckDatabase();
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:InsertIgnore:{session.TableName}");
+            try
+            {
+                return dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
+        }
+
+        /// <summary>批量替换</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
+        public static Int32 BatchReplace<T>(this IEnumerable<T> list, IDataColumn[] columns = null, IEntitySession session = null) where T : IEntity
+        {
+            if (list == null || !list.Any()) return 0;
+
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).ToArray();
+
+                // 第一列数据包含非零自增，表示要插入自增值
+                var id = columns.FirstOrDefault(e => e.Identity);
+                if (id != null)
+                {
+                    if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
+                }
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
+            }
+
+            session ??= fact.Session;
+            session.InitData();
+
+            var dal = session.Dal;
+            dal.CheckDatabase();
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Replace:{session.TableName}");
+            try
+            {
+                return dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
+        }
+
         /// <summary>批量更新</summary>
         /// <remarks>
         /// 注意类似：XCode.Exceptions.XSqlException: ORA-00933: SQL 命令未正确结束

@@ -9,6 +9,8 @@ namespace NewLife
     /// 常见的事件和委托，都包括两部分：对象和方法，当然如果委托到静态方法上，对象是为空的。
     /// 如果把事件委托到某个对象的方法上，同时就间接的引用了这个对象，导致其一直无法被回收，从而造成内存泄漏。
     /// 弱引用Action，原理就是把委托拆分，然后弱引用对象部分，需要调用委托的时候，再把对象“拉”回来，如果被回收了，就没有必要再调用它的方法了。
+    /// 
+    /// 文档 https://www.yuque.com/smartstone/nx/weak_action
     /// </remarks>
     /// <typeparam name="TArgs"></typeparam>
     public class WeakAction<TArgs>

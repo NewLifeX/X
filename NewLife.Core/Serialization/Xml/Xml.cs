@@ -309,7 +309,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 辅助方法
-        static String GetName(Type type)
+        private static String GetName(Type type)
         {
             if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
 

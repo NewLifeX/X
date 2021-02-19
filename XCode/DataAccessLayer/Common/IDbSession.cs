@@ -147,6 +147,20 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
 
+        /// <summary>批量忽略插入</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 InsertIgnore(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
+
+        /// <summary>批量替换</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 Replace(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
+
         /// <summary>批量更新</summary>
         /// <param name="table">数据表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>

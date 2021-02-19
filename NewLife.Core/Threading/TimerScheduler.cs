@@ -64,7 +64,7 @@ namespace NewLife.Threading
         public void Add(TimerX timer)
         {
             timer.Id = Interlocked.Increment(ref _tid);
-            WriteLog("Timer.Add {0}ms {1}", timer.Period, timer);
+            WriteLog("Timer.Add {0}", timer);
 
             lock (this)
             {
@@ -80,7 +80,6 @@ namespace NewLife.Threading
                 {
                     thread = new Thread(Process)
                     {
-                        //thread.Name = "TimerX";
                         Name = Name == "Default" ? "T" : Name,
                         IsBackground = true
                     };
@@ -91,8 +90,6 @@ namespace NewLife.Threading
 
                 Wake();
             }
-
-            //if (timers.Count > 100 && XTrace.Debug) XTrace.WriteLine("{0} 任务过多 {1}>{2}，请考虑使用新的调度器", Name, timers.Count, 100);
         }
 
         /// <summary>从队列删除定时器</summary>

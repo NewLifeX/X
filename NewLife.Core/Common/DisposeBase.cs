@@ -21,6 +21,9 @@ namespace NewLife
     }
 
     /// <summary>具有销毁资源处理的抽象基类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/disposebase
+    /// </remarks>
     /// <example>
     /// <code>
     /// /// &lt;summary&gt;子类重载实现资源释放逻辑时必须首先调用基类方法&lt;/summary&gt;

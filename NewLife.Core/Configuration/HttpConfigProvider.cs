@@ -24,7 +24,7 @@ namespace NewLife.Configuration
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
         public String Scope { get; set; }
 
-        /// <summary>命名空间</summary>
+        /// <summary>命名空间。Apollo专用，多个命名空间用逗号或分号隔开</summary>
         public String NameSpace { get; set; }
 
         /// <summary>本地缓存配置数据，即使网络断开，仍然能够加载使用本地数据</summary>
@@ -33,7 +33,20 @@ namespace NewLife.Configuration
         /// <summary>更新周期。默认60秒</summary>
         public Int32 Period { get; set; } = 60;
 
+        private Int32 _version;
         private IDictionary<String, Object> _cache;
+        #endregion
+
+        #region 构造
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            _timer.TryDispose();
+            _client.TryDispose();
+        }
         #endregion
 
         #region 方法
@@ -52,7 +65,7 @@ namespace NewLife.Configuration
         }
 
         /// <summary>设置阿波罗服务端</summary>
-        /// <param name="nameSpaces"></param>
+        /// <param name="nameSpaces">命名空间。多个命名空间用逗号或分号隔开</param>
         public void SetApollo(String nameSpaces = "application") => NameSpace = nameSpaces;
 
         /// <summary>获取所有配置</summary>
@@ -75,12 +88,28 @@ namespace NewLife.Configuration
                         if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
                     }
                 }
-                var cls = dic.BuildModelClass();
                 return dic;
             }
             else
             {
-                return client.Get<IDictionary<String, Object>>("Config/GetAll", new { appId = AppId, secret = Secret, scope = Scope });
+                var rs = client.Get<IDictionary<String, Object>>("Config/GetAll", new
+                {
+                    appId = AppId,
+                    secret = Secret,
+                    scope = Scope,
+                    version = _version,
+                });
+
+                // 增强版返回
+                if (rs.TryGetValue("configs", out var obj) && obj is IDictionary<String, Object> configs)
+                {
+                    var ver = rs["version"].ToInt(-1);
+                    if (ver > 0) _version = ver;
+
+                    return configs;
+                }
+
+                return rs;
             }
         }
 
@@ -217,7 +246,7 @@ namespace NewLife.Configuration
             {
                 XTrace.WriteLine("[{0}]配置改变，重新加载", AppId);
 
-                Build(dic);
+                Root = Build(dic);
 
                 // 缓存
                 _cache = dic;

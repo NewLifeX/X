@@ -9,11 +9,7 @@ namespace NewLife.Serialization
     public class BinaryDictionary : BinaryHandlerBase
     {
         /// <summary>初始化</summary>
-        public BinaryDictionary()
-        {
-            // 优先级
-            Priority = 30;
-        }
+        public BinaryDictionary() => Priority = 30;
 
         /// <summary>写入一个对象</summary>
         /// <param name="value">目标对象</param>

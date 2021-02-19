@@ -30,7 +30,7 @@ namespace NewLife.Caching
         /// <summary>定时清理时间，默认60秒</summary>
         public Int32 Period { get; set; } = 60;
         #endregion
-      
+
         #region 静态默认实现
         /// <summary>默认缓存</summary>
         public static ICache Instance { get; set; } = new MemoryCache();
@@ -585,6 +585,8 @@ namespace NewLife.Caching
         #endregion
 
         #region 持久化
+        private const String MAGIC = "NewLifeCache";
+        private const Byte _Ver = 1;
         /// <summary>保存到数据流</summary>
         /// <param name="stream"></param>
         /// <returns></returns>
@@ -596,26 +598,40 @@ namespace NewLife.Caching
                 EncodeInt = true,
             };
 
-            //bn.Write(_cache);
+            // 头部，幻数、版本和标记
+            bn.Write(MAGIC.GetBytes(), 0, MAGIC.Length);
+            bn.Write(_Ver);
+            bn.Write(0);
 
             bn.WriteSize(_cache.Count);
             foreach (var item in _cache)
             {
-                // Key+Type+Value+Expire
-                bn.Write(item.Key);
-
                 var ci = item.Value;
-                var code = ci.Value?.GetType().GetTypeCode() ?? TypeCode.Empty;
-                bn.Write((Byte)code);
-                if (ci.Value != null)
-                {
-                    if (code == TypeCode.Object)
-                        bn.Write(Binary.FastWrite(ci.Value));
-                    else
-                        bn.Write(ci);
-                }
 
+                // Key+Expire+Empty
+                // Key+Expire+TypeCode+Value
+                // Key+Expire+TypeCode+Type+Length+Value
+                bn.Write(item.Key);
                 bn.Write(ci.ExpiredTime.ToInt());
+
+                var type = ci.Value?.GetType();
+                if (type == null)
+                {
+                    bn.Write((Byte)TypeCode.Empty);
+                }
+                else
+                {
+                    var code = type.GetTypeCode();
+                    bn.Write((Byte)code);
+
+                    if (code != TypeCode.Object)
+                        bn.Write(ci.Value);
+                    else
+                    {
+                        bn.Write(type.FullName);
+                        bn.Write(Binary.FastWrite(ci.Value));
+                    }
+                }
             }
         }
 
@@ -630,31 +646,50 @@ namespace NewLife.Caching
                 EncodeInt = true,
             };
 
+            // 头部，幻数、版本和标记
+            var magic = bn.ReadBytes(MAGIC.Length).ToStr();
+            if (magic != MAGIC) throw new InvalidDataException();
+
+            var ver = bn.Read<Byte>();
+            _ = bn.Read<Byte>();
+
+            // 版本兼容
+            if (ver > _Ver) throw new InvalidDataException($"MemoryCache[ver={_Ver}]无法支持较新的版本[{ver}]");
+
             var count = bn.ReadSize();
-            while (count-- > 0 && stream.Position < stream.Length)
+            while (count-- > 0)
             {
+                // Key+Expire+Empty
+                // Key+Expire+TypeCode+Value
+                // Key+Expire+TypeCode+Type+Length+Value
                 var key = bn.Read<String>();
+                var exp = bn.Read<Int32>().ToDateTime();
                 var code = (TypeCode)bn.ReadByte();
 
-                Object value;
-                if (code == TypeCode.Object)
-                    value = bn.Read<Packet>();
-                else
+                Object value = null;
+                if (code == TypeCode.Empty)
+                {
+                }
+                else if (code != TypeCode.Object)
+                {
                     value = bn.Read(Type.GetType("System." + code));
+                }
+                else
+                {
+                    var typeName = bn.Read<String>();
+                    var type = typeName.GetTypeEx(false);
 
-                var exp = bn.Read<Int32>().ToDateTime();
+                    var pk = bn.Read<Packet>();
+                    value = pk;
+                    if (type != null)
+                    {
+                        var bn2 = new Binary() { Stream = pk.GetStream(), EncodeInt = true };
+                        value = bn2.Read(type);
+                    }
+                }
 
                 Set(key, value, exp - DateTime.Now);
             }
-
-            //var dic = bn.Read<Dictionary<String, Packet>>();
-            //if (dic != null)
-            //{
-            //    foreach (var item in dic)
-            //    {
-
-            //    }
-            //}
         }
 
         /// <summary>保存到文件</summary>

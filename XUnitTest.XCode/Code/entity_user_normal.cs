@@ -91,7 +91,7 @@ namespace Company.MyName
         [DisplayName("头像")]
         [Description("头像")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Avatar", "头像", "", ItemType = "image")]
+        [BindColumn("Avatar", "头像", "")]
         public String Avatar { get => _Avatar; set { if (OnPropertyChanging("Avatar", value)) { _Avatar = value; OnPropertyChanged("Avatar"); } } }
 
         private Int32 _RoleID;

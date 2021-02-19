@@ -142,22 +142,17 @@ namespace NewLife.Web
             throw new InvalidOperationException($"不支持的算法[{alg}]");
         }
 
-        /// <summary>解码令牌，得到目标对象</summary>
+        /// <summary>分析令牌</summary>
         /// <param name="token"></param>
-        /// <param name="message"></param>
         /// <returns></returns>
-        public Boolean TryDecode(String token, out String message)
+        public String[] Parse(String token)
         {
-            message = "JWT格式不正确";
-
-            if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
-
             var ts = token.Split('.');
-            if (ts.Length != 3) return false;
+            if (ts.Length != 3) return null;
 
             // 头部
             var header = JsonParser.Decode(ts[0].ToBase64().ToStr());
-            if (header == null) return false;
+            if (header == null) return null;
 
             if (header.TryGetValue("alg", out var alg) && alg != null) Algorithm = alg + "";
             if (header.TryGetValue("typ", out var typ)) Type = typ + "";
@@ -173,6 +168,22 @@ namespace NewLife.Web
             if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
             if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
             if (body.TryGetValue("jti", out value)) Id = value + "";
+
+            return ts;
+        }
+
+        /// <summary>解码令牌，得到目标对象</summary>
+        /// <param name="token"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public Boolean TryDecode(String token, out String message)
+        {
+            message = "JWT格式不正确";
+
+            if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
+
+            var ts = Parse(token);
+            if (ts == null) return false;
 
             // 验证关键字段
             var now = DateTime.Now;

@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NewLife;
-using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
@@ -530,6 +529,20 @@ namespace XCode.DataAccessLayer
         /// <param name="list">实体列表</param>
         /// <returns></returns>
         public virtual Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+
+        /// <summary>批量忽略插入</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public virtual Int32 InsertIgnore(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+
+        /// <summary>批量替换</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        public virtual Int32 Replace(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list) => throw new NotSupportedException();
 
         /// <summary>批量更新</summary>
         /// <param name="table">数据表</param>

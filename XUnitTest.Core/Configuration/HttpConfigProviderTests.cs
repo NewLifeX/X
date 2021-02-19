@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using NewLife.Configuration;
 using Xunit;
 
@@ -52,13 +53,55 @@ namespace XUnitTest.Configuration
             Assert.NotEmpty(model2.MySqlServer);
         }
 
-        class Model
+        private class Model
         {
             public Int32 Radius { get; set; }
 
             public String MySqlServer { get; set; }
 
             public String AppApiUrl { get; set; }
+        }
+
+        [Fact]
+        public void TestStardust()
+        {
+            var provider = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                //Server = "http://localhost:6600",
+                AppId = "StarWeb"
+            };
+
+            var str = provider["test1"];
+            Assert.NotEmpty(str);
+
+            var keys = provider.Keys.ToArray();
+            Assert.NotNull(keys);
+
+            var model = provider.Load<Model2>();
+            Assert.NotNull(model);
+            Assert.NotEmpty(model.Test);
+            Assert.Equal(str, model.Test);
+            Assert.NotEmpty(model.Shop);
+            Assert.NotEmpty(model.Title);
+            Assert.Equal("NewLife开发团队", model.Title);
+
+            var model2 = new Model2();
+            provider.Bind(model2);
+            Assert.Equal(str, model2.Test);
+            Assert.NotEmpty(model.Shop);
+            Assert.Equal("NewLife开发团队", model.Title);
+        }
+
+        private class Model2
+        {
+            [DataMember(Name = "test1")]
+            public String Test { get; set; }
+
+            [DataMember(Name = "conn_Shop")]
+            public String Shop { get; set; }
+
+            public String Title { get; set; }
         }
     }
 }
