@@ -13,6 +13,9 @@ using NewLife.Remoting;
 namespace NewLife.Yun
 {
     /// <summary>阿里云文件存储</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/oss
+    /// </remarks>
     public class OssClient
     {
         #region 属性

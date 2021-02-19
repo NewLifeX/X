@@ -13,6 +13,9 @@ using NewLife.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// </remarks>
     public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         #region 属性

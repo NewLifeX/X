@@ -5,6 +5,9 @@ using System.Text;
 namespace NewLife.Collections
 {
     /// <summary>对象池接口</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public interface IPool<T> where T : class
     {
@@ -24,6 +27,9 @@ namespace NewLife.Collections
     }
 
     /// <summary>对象池扩展</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// </remarks>
     public static class Pool
     {
         #region 扩展

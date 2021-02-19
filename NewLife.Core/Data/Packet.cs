@@ -8,6 +8,9 @@ using NewLife.Collections;
 namespace NewLife.Data
 {
     /// <summary>数据包</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/packet
+    /// </remarks>
     public class Packet
     {
         #region 属性

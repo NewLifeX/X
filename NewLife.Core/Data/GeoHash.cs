@@ -6,6 +6,8 @@ namespace NewLife.Data
 {
     /// <summary>经纬坐标的一维编码表示</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/geo_hash
+    /// 
     /// 一维编码表示一个矩形区域，前缀表示更大区域，例如北京wx4fbzdvs80包含在wx4fbzdvs里面。
     /// 这个特性可以用于附近地点搜索。
     /// GeoHash编码位数及距离关系：

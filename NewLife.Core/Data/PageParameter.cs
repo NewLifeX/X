@@ -6,6 +6,9 @@ using System.Xml.Serialization;
 namespace NewLife.Data
 {
     /// <summary>分页参数信息。可携带统计和数据权限扩展查询等信息</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/page_parameter
+    /// </remarks>
     public class PageParameter
     {
         #region 核心属性

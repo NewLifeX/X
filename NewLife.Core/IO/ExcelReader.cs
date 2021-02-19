@@ -11,6 +11,7 @@ namespace NewLife.IO
 {
     /// <summary>轻量级Excel读取器，仅用于导入数据</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/excel_reader
     /// 仅支持xlsx格式，本质上是压缩包，内部xml。
     /// 可根据xml格式扩展读取自己想要的内容。
     /// </remarks>
