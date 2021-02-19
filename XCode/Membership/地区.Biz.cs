@@ -124,7 +124,6 @@ namespace XCode.Membership
                                                        });
 
         /// <summary>父级路径</summary>
-        [XmlIgnore, ScriptIgnore]
         public String ParentPath
         {
             get
@@ -137,7 +136,6 @@ namespace XCode.Membership
         }
 
         /// <summary>路径</summary>
-        [XmlIgnore, ScriptIgnore]
         public String Path
         {
             get

@@ -127,11 +127,9 @@ namespace XCode.Membership
 
         #region 扩展属性
         /// <summary></summary>
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String Url2 => Url?.Replace("~", "");
 
         /// <summary>父菜单名</summary>
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String ParentMenuName { get => Parent?.Name; set { } }
 
         /// <summary>必要的菜单。必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
@@ -149,7 +147,6 @@ namespace XCode.Membership
         }
 
         /// <summary>友好名称。优先显示名</summary>
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String FriendName => DisplayName.IsNullOrWhiteSpace() ? Name : DisplayName;
         #endregion
 

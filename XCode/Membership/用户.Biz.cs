@@ -121,7 +121,6 @@ namespace XCode.Membership
         #region 扩展属性
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String LastLoginAddress => LastLoginIP.IPToAddress();
 
         /// <summary>部门</summary>
@@ -130,7 +129,6 @@ namespace XCode.Membership
 
         /// <summary>部门</summary>
         [Map(__.DepartmentID, typeof(Department), __.ID)]
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String DepartmentName => Department?.ToString();
 
         ///// <summary>兼容旧版角色组</summary>
@@ -529,7 +527,6 @@ namespace XCode.Membership
         /// <summary>角色名</summary>
         [DisplayName("角色")]
         [Map(__.RoleID, typeof(RoleMapProvider))]
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual String RoleName => Role + "";
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>
