@@ -5,6 +5,9 @@ using System.Xml.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据行</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// </remarks>
     public struct DbRow : IExtend
     {
         #region 属性

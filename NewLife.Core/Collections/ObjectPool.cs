@@ -9,6 +9,9 @@ using NewLife.Threading;
 namespace NewLife.Collections
 {
     /// <summary>资源池。支持空闲释放，主要用于数据库连接池和网络连接池</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class ObjectPool<T> : DisposeBase, IPool<T> where T : class
     {

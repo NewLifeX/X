@@ -13,7 +13,10 @@ using NewLife.Serialization;
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
-    public class DbTable : IEnumerable<DbRow>, ICloneable
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// </remarks>
+    public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         #region 属性
         /// <summary>数据列</summary>
@@ -185,6 +188,8 @@ namespace NewLife.Data
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
         public Int64 LoadFile(String file, Boolean compressed = false) => file.AsFile().OpenRead(compressed, s => Read(s));
+
+        Boolean IAccessor.Read(Stream stream, Object context) { Read(stream); return true; }
         #endregion
 
         #region 二进制写入
@@ -271,6 +276,8 @@ namespace NewLife.Data
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
         public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+
+        Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true}
         #endregion
 
         #region Json序列化
@@ -321,7 +328,7 @@ namespace NewLife.Data
                 // 头部
                 if (Columns == null)
                 {
-                    Columns = pis.Select(e => e.Name).ToArray();
+                    Columns = pis.Select(e => SerialHelper.GetName(e)).ToArray();
                     Types = pis.Select(e => e.PropertyType).ToArray();
                 }
 
@@ -342,7 +349,7 @@ namespace NewLife.Data
         {
             // 可用属性
             var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var dic = pis.ToDictionary(e => e.Name, e => e, StringComparer.OrdinalIgnoreCase);
+            var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
 
             foreach (var row in Rows)
             {

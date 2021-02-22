@@ -13,29 +13,24 @@ namespace XUnitTest.IO
 {
     public class CsvDbTests
     {
-        private CsvDb<PageParameter> GetDb(String name)
+        private CsvDb<GeoArea> GetDb(String name)
         {
             var file = $"data/{name}.csv".GetFullPath();
             if (File.Exists(file)) File.Delete(file);
 
-            var db = new CsvDb<PageParameter>((x, y) => x.PageIndex == y.PageIndex)
+            var db = new CsvDb<GeoArea>((x, y) => x.Code == y.Code)
             {
                 FileName = file
             };
             return db;
         }
 
-        private PageParameter GetModel()
+        private GeoArea GetModel()
         {
-            var model = new PageParameter
+            var model = new GeoArea
             {
-                PageIndex = Rand.Next(),
-                PageSize = Rand.Next(),
-
-                Sort = Rand.NextString(14),
-                Desc = Rand.Next(2) == 1,
-
-                TotalCount = Rand.Next(),
+                Code = Rand.Next(),
+                Name = Rand.NextString(14),
             };
 
             return model;
@@ -43,13 +38,13 @@ namespace XUnitTest.IO
 
         private String[] GetHeaders()
         {
-            var pis = typeof(PageParameter).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var pis = typeof(GeoArea).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             return pis.Select(e => e.Name).ToArray();
         }
 
-        private Object[] GetValue(PageParameter model)
+        private Object[] GetValue(GeoArea model)
         {
-            var pis = typeof(PageParameter).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var pis = typeof(GeoArea).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             //return pis.Select(e => e.GetValue(model, null)).ToArray();
             var arr = new Object[pis.Length];
             for (var i = 0; i < pis.Length; i++)
@@ -81,7 +76,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("Inserts");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = Rand.Next(2, 100);
             for (var i = 0; i < count; i++)
             {
@@ -106,7 +101,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("GetAll");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = Rand.Next(2, 100);
             for (var i = 0; i < count; i++)
             {
@@ -125,9 +120,9 @@ namespace XUnitTest.IO
             }
 
             // 高级查找
-            var list3 = db.FindAll(e => e.PageIndex >= 100 && e.PageIndex < 1000);
-            var list4 = list.Where(e => e.PageIndex >= 100 && e.PageIndex < 1000).ToList();
-            Assert.Equal(list4.Select(e => e.PageIndex), list3.Select(e => e.PageIndex));
+            var list3 = db.FindAll(e => e.Code >= 100 && e.Code < 1000);
+            var list4 = list.Where(e => e.Code >= 100 && e.Code < 1000).ToList();
+            Assert.Equal(list4.Select(e => e.Code), list3.Select(e => e.Code));
         }
 
         [Fact]
@@ -135,7 +130,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("GetCount");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = Rand.Next(2, 100);
             for (var i = 0; i < count; i++)
             {
@@ -155,7 +150,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("LargeInserts");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = 100_000;
             for (var i = 0; i < count; i++)
             {
@@ -181,7 +176,7 @@ namespace XUnitTest.IO
             var db = GetDb("InsertTwoTimes");
 
             // 第一次插入
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             {
                 var count = Rand.Next(2, 100);
                 for (var i = 0; i < count; i++)
@@ -194,7 +189,7 @@ namespace XUnitTest.IO
 
             // 第二次插入
             {
-                var list2 = new List<PageParameter>();
+                var list2 = new List<GeoArea>();
                 var count = Rand.Next(2, 100);
                 for (var i = 0; i < count; i++)
                 {
@@ -222,7 +217,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("Deletes");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = Rand.Next(2, 100);
             for (var i = 0; i < count; i++)
             {
@@ -240,7 +235,7 @@ namespace XUnitTest.IO
             Assert.Equal(list.Count, db.FindCount());
 
             // 随机抽几个，删除
-            var list2 = new List<PageParameter>();
+            var list2 = new List<GeoArea>();
             for (var i = 0; i < list.Count; i++)
             {
                 if (Rand.Next(2) == 1) list2.Add(list[i]);
@@ -256,7 +251,7 @@ namespace XUnitTest.IO
         {
             var db = GetDb("Update");
 
-            var list = new List<PageParameter>();
+            var list = new List<GeoArea>();
             var count = Rand.Next(2, 100);
             for (var i = 0; i < count; i++)
             {
@@ -270,13 +265,13 @@ namespace XUnitTest.IO
             var model = db.Find(list[idx]);
             Assert.NotNull(model);
 
-            model.TotalCount = Rand.Next();
+            model.ParentCode = Rand.Next();
             var rs = db.Update(model);
             Assert.True(rs);
 
             var model2 = db.Find(list[idx]);
             Assert.NotNull(model2);
-            Assert.Equal(model.TotalCount, model2.TotalCount);
+            Assert.Equal(model.ParentCode, model2.ParentCode);
         }
     }
 }
