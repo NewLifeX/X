@@ -238,7 +238,8 @@ namespace XCode.DataAccessLayer
         private static void LoadAppSettings(String fileName, IDictionary<String, String> cs, IDictionary<String, Type> ts)
         {
             // Asp.Net Core的Debug模式下配置文件位于项目目录而不是输出目录
-            var file = fileName.GetFullPath();
+            var file = fileName.GetBasePath();
+            if (!File.Exists(file)) file = fileName.GetFullPath();
             if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);
             if (File.Exists(file))
             {
