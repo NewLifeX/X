@@ -806,6 +806,8 @@ namespace XCode.Code
                         else
                             WriteLine("public {2} {0}{1} => {0} != null ? {0}.{1} : 0;", pname, master.Name, master.DataType.Name);
                     }
+
+                    WriteLine();
                 }
             }
 

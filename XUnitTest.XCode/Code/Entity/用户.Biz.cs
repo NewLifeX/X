@@ -140,22 +140,18 @@ namespace XCode.Membership
         public Role Role => Extends.Get(nameof(Role), k => Role.FindByID(RoleID));
 
         /// <summary>角色</summary>
-        [XmlIgnore, IgnoreDataMember]
-        //[ScriptIgnore]
-        [DisplayName("角色")]
         [Map(nameof(RoleID), typeof(Role), "ID")]
         public String RoleName => Role?.Name;
+
         /// <summary>部门</summary>
         [XmlIgnore, IgnoreDataMember]
         //[ScriptIgnore]
         public Department Department => Extends.Get(nameof(Department), k => Department.FindByID(DepartmentID));
 
         /// <summary>部门</summary>
-        [XmlIgnore, IgnoreDataMember]
-        //[ScriptIgnore]
-        [DisplayName("部门")]
         [Map(nameof(DepartmentID), typeof(Department), "ID")]
         public String DepartmentName => Department?.Name;
+
         #endregion
 
         #region 扩展查询
