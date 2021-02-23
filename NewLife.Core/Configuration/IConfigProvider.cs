@@ -114,7 +114,7 @@ namespace NewLife.Configuration
         }
 
         /// <summary>加载配置到模型</summary>
-        /// <typeparam name="T">模型</typeparam>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
         /// <returns></returns>
         public virtual T Load<T>(String path = null) where T : new()
@@ -155,7 +155,7 @@ namespace NewLife.Configuration
 
         #region 绑定
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-        /// <typeparam name="T">模型</typeparam>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="model">模型实例</param>
         /// <param name="autoReload">是否自动更新。默认true</param>
         /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
