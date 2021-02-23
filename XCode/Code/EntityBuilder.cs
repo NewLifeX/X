@@ -769,7 +769,11 @@ namespace XCode.Code
                 if (Option.Excludes.Contains(column.ColumnName)) continue;
 
                 // 找到名字映射
-                var dt = AllTables.FirstOrDefault(e => e.PrimaryKeys.Length == 1 && e.PrimaryKeys[0].DataType == column.DataType && (e.Name + e.PrimaryKeys[0].Name).EqualIgnoreCase(column.Name));
+                var dt = AllTables.FirstOrDefault(
+                    e => e.PrimaryKeys.Length == 1 &&
+                    e.PrimaryKeys[0].DataType == column.DataType &&
+                    (e.Name + e.PrimaryKeys[0].Name).EqualIgnoreCase(column.Name));
+
                 if (dt != null)
                 {
                     // 属性名
@@ -789,13 +793,13 @@ namespace XCode.Code
                     // 主字段
                     var master = dt.Master ?? dt.GetColumn("Name");
                     // 扩展属性有可能恰巧跟已有字段同名
-                    if (master != null && !dt.Columns.Any(e => e.Name.EqualIgnoreCase(pname + master.Name)))
+                    if (master != null && !master.PrimaryKey && !dt.Columns.Any(e => e.Name.EqualIgnoreCase(pname + master.Name)))
                     {
                         WriteLine();
                         WriteLine("/// <summary>{0}</summary>", dis);
-                        WriteLine("[XmlIgnore, IgnoreDataMember]");
-                        WriteLine("//[ScriptIgnore]");
-                        if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
+                        //WriteLine("[XmlIgnore, IgnoreDataMember]");
+                        //WriteLine("//[ScriptIgnore]");
+                        //if (!dis.IsNullOrEmpty()) WriteLine("[DisplayName(\"{0}\")]", dis);
                         WriteLine("[Map(nameof({0}), typeof({1}), \"{2}\")]", column.Name, dt.Name, pk.Name);
                         if (master.DataType == typeof(String))
                             WriteLine("public {2} {0}{1} => {0}?.{1};", pname, master.Name, master.DataType.Name);
