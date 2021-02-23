@@ -48,22 +48,29 @@ namespace NewLife.Data
         {
             if (stream is MemoryStream ms)
             {
-                try
-                {
 #if NET46 || __CORE__
-                    // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
-                    if (ms.TryGetBuffer(out var seg))
-                        Set(seg.Array, seg.Offset, seg.Count);
-                    else
-#endif
-                        Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
-
+                // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+                if (ms.TryGetBuffer(out var seg))
+                {
+                    Set(seg.Array, seg.Offset + (Int32)ms.Position, seg.Count - (Int32)ms.Position);
                     return;
                 }
-                catch (UnauthorizedAccessException) { }
+#endif
+                // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
+                // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
+
+                //try
+                //{
+                //    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
+                //}
+                //catch (UnauthorizedAccessException) { }
             }
 
-            Set(stream.ToArray());
+            //Set(stream.ToArray());
+
+            var buf = new Byte[stream.Length - stream.Position];
+            var count = stream.Read(buf, 0, buf.Length);
+            Set(buf, 0, count);
         }
         #endregion
 

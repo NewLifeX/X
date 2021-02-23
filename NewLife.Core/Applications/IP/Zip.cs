@@ -52,7 +52,7 @@ namespace NewLife.IP
             if (buf[0] == 0x1F & buf[1] == 0x8B && buf[2] == 0x08)
                 IOHelper.DecompressGZip(stream, ms);
             else
-                IOHelper.CopyTo(stream, ms);
+                stream.CopyTo(ms);
 
             ms.Position = 0;
             Stream = ms;

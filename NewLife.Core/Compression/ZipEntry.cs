@@ -241,7 +241,10 @@ namespace NewLife.Compression
             if (DataSource.IsCompressed)
             {
                 // 可能数据源是曾经被压缩过了的，比如刚解压的实体
-                source.CopyTo(writer.Stream, 0, dsLen);
+                //source.CopyTo(writer.Stream, 0, dsLen);
+                var buf = new Byte[dsLen];
+                var count = source.Read(buf, 0, buf.Length);
+                writer.Stream.Write(buf, 0, count);
                 return;
             }
 
@@ -249,7 +252,10 @@ namespace NewLife.Compression
             {
                 case CompressionMethod.Stored:
                     // 原始数据流直接拷贝到目标。必须指定大小，否则可能读过界
-                    source.CopyTo(writer.Stream, 0, dsLen);
+                    //source.CopyTo(writer.Stream, 0, dsLen);
+                    var buf = new Byte[dsLen];
+                    var count = source.Read(buf, 0, buf.Length);
+                    writer.Stream.Write(buf, 0, count);
                     break;
                 case CompressionMethod.Deflated:
                     {

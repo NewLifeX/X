@@ -36,7 +36,8 @@ namespace NewLife.IO
                 if (File.Exists(destFile)) File.Delete(destFile);
 
                 using var fs = File.Create(destFile);
-                IOHelper.CopyTo(stream, fs);
+                //IOHelper.CopyTo(stream, fs);
+                stream.CopyTo(fs);
             }
             catch { }
             finally { stream.Dispose(); }
@@ -107,7 +108,8 @@ namespace NewLife.IO
                     if (File.Exists(filename)) File.Delete(filename);
 
                     using var fs = File.Create(filename);
-                    IOHelper.CopyTo(stream, fs);
+                    //IOHelper.CopyTo(stream, fs);
+                    stream.CopyTo(fs);
                 }
                 catch { }
                 finally { stream.Dispose(); }

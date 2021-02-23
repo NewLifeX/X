@@ -115,7 +115,9 @@ namespace NewLife.IP
 
             if (!Init() || zip == null) return "";
 
-            var ip2 = (UInt32)addr.GetAddressBytes().Reverse().ToInt();
+            var buf = addr.GetAddressBytes();
+            Array.Reverse(buf);
+            var ip2 = (UInt32)buf.ToInt();
             lock (lockHelper)
             {
                 return zip.GetAddress(ip2) + "";
