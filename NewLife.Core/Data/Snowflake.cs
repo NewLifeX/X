@@ -42,7 +42,10 @@ namespace NewLife.Data
             {
                 var nodeId = SysConfig.Current.Instance;
                 var pid = Process.GetCurrentProcess().Id;
-                WorkerId = ((nodeId & 0x1F) << 5) | (pid & 0x1F);
+                var tid = Thread.CurrentThread.ManagedThreadId;
+                //WorkerId = ((nodeId & 0x1F) << 5) | (pid & 0x1F);
+                //WorkerId = (nodeId ^ pid ^ tid) & 0x3FF;
+                WorkerId = ((nodeId & 0x1F) << 5) | ((pid ^ tid) & 0x1F);
             }
 
             // 记录此时距离起点的毫秒数以及开机嘀嗒数
