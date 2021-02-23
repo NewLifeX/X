@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using Xunit;
@@ -142,6 +140,67 @@ namespace XUnitTest.Model
             Assert.NotNull(cache);
             Assert.NotNull(cache2);
             Assert.NotEqual(cache, cache2);
+        }
+
+        [Fact]
+        public void TestMutilConstructor()
+        {
+            {
+                var ioc = new ObjectContainer();
+                ioc.AddSingleton<ICache, Redis>();
+                ioc.AddTransient<MyService>();
+
+                var svc = ioc.Resolve<MyService>();
+                Assert.Equal(1, svc.Kind);
+            }
+
+            {
+                var ioc = new ObjectContainer();
+                ioc.AddSingleton<Redis>();
+                ioc.AddTransient<MyService>();
+
+                var svc = ioc.Resolve<MyService>();
+                Assert.Equal(2, svc.Kind);
+            }
+
+            {
+                var ioc = new ObjectContainer();
+                ioc.AddSingleton<ICache, Redis>();
+                ioc.AddTransient<MyService>();
+
+                var svc = ioc.Resolve<MyService>();
+                Assert.Equal(1, svc.Kind);
+            }
+
+            {
+                var ioc = new ObjectContainer();
+                ioc.AddSingleton<ICache, Redis>();
+                ioc.AddTransient<MyService>();
+
+                var svc = ioc.Resolve<MyService>();
+                Assert.Equal(1, svc.Kind);
+            }
+
+            {
+                var ioc = new ObjectContainer();
+                ioc.AddSingleton<ICache, Redis>();
+                ioc.AddSingleton<ILog>(XTrace.Log);
+                ioc.AddTransient<MyService>();
+
+                var svc = ioc.Resolve<MyService>();
+                Assert.Equal(3, svc.Kind);
+            }
+        }
+
+        private class MyService
+        {
+            public Int32 Kind { get; set; }
+
+            public MyService() => Kind = 1;
+
+            public MyService(Redis redis) => Kind = 2;
+
+            public MyService(ICache cache, ILog log) => Kind = 3;
         }
     }
 }

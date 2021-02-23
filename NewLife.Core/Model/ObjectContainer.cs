@@ -121,15 +121,44 @@ namespace NewLife.Model
             }
         }
 
+        private static IDictionary<TypeCode, Object> _defs;
         private Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
         {
             if (factory != null) return factory(provider);
 
+            // 初始化
+            if (_defs == null)
+            {
+                var dic = new Dictionary<TypeCode, Object>
+                {
+                    { TypeCode.Empty, null },
+                    { TypeCode.DBNull, null},
+                    { TypeCode.Boolean, false },
+                    { TypeCode.Char, (Char)0 },
+                    { TypeCode.SByte, (SByte)0 },
+                    { TypeCode.Byte, (Byte)0 },
+                    { TypeCode.Int16, (Int16)0 },
+                    { TypeCode.UInt16, (UInt16)0 },
+                    { TypeCode.Int32, (Int32)0 },
+                    { TypeCode.UInt32, (UInt32)0 },
+                    { TypeCode.Int64, (Int64)0 },
+                    { TypeCode.UInt64, (UInt64)0 },
+                    { TypeCode.Single, (Single)0 },
+                    { TypeCode.Double, (Double)0 },
+                    { TypeCode.Decimal, (Decimal)0 },
+                    { TypeCode.DateTime, DateTime.MinValue },
+                    { TypeCode.String, null }
+                };
+
+                _defs = dic;
+            }
+
             ParameterInfo errorParameter = null;
             if (!type.IsAbstract)
             {
+                // 选择构造函数，优先选择参数最多的可匹配构造函数
                 var constructors = type.GetConstructors();
-                foreach (var constructorInfo in constructors)
+                foreach (var constructorInfo in constructors.OrderByDescending(e => e.GetParameters().Length))
                 {
                     if (constructorInfo.IsStatic) continue;
 
@@ -140,16 +169,22 @@ namespace NewLife.Model
                     {
                         if (pv[i] != null) continue;
 
-                        var service = provider.GetService(ps[i].ParameterType);
-                        if (service == null)
-                        {
-                            errorParameter2 = ps[i];
-
-                            break;
-                        }
+                        var ptype = ps[i].ParameterType;
+                        if (_defs.TryGetValue(Type.GetTypeCode(ptype), out var obj))
+                            pv[i] = obj;
                         else
                         {
-                            pv[i] = service;
+                            var service = provider.GetService(ps[i].ParameterType);
+                            if (service == null)
+                            {
+                                errorParameter2 = ps[i];
+
+                                break;
+                            }
+                            else
+                            {
+                                pv[i] = service;
+                            }
                         }
                     }
 
