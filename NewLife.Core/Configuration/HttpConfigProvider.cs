@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -68,6 +69,35 @@ namespace NewLife.Configuration
         /// <param name="nameSpaces">命名空间。多个命名空间用逗号或分号隔开</param>
         public void SetApollo(String nameSpaces = "application") => NameSpace = nameSpaces;
 
+        /// <summary>从本地配置文件读取阿波罗地址，并得到阿波罗配置提供者</summary>
+        /// <param name="fileName">阿波罗配置文件名，默认appsettings.json</param>
+        /// <returns></returns>
+        public static HttpConfigProvider LoadApollo(String fileName = null)
+        {
+            if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
+
+            // 读取本地配置，得到Apollo地址后，加载全部配置
+            var jsonConfig = new JsonConfigProvider { FileName = fileName };
+            var apollo = jsonConfig.Load<ApolloModel>("apollo");
+
+            var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
+            httpConfig.SetApollo("application," + apollo.NameSpace);
+            httpConfig.LoadAll();
+
+            return httpConfig;
+        }
+
+        class ApolloModel
+        {
+            public String WMetaServer { get; set; }
+
+            public String AppId { get; set; }
+
+            public String NameSpace { get; set; }
+
+            public String MetaServer { get; set; }
+        }
+
         /// <summary>获取所有配置</summary>
         /// <returns></returns>
         protected virtual IDictionary<String, Object> GetAll()
@@ -77,7 +107,7 @@ namespace NewLife.Configuration
             // 特殊处理Apollo
             if (!NameSpace.IsNullOrEmpty())
             {
-                var ns = NameSpace.Split(",", ";");
+                var ns = NameSpace.Split(",", ";").Distinct();
                 var dic = new Dictionary<String, Object>();
                 foreach (var item in ns)
                 {
@@ -156,16 +186,22 @@ namespace NewLife.Configuration
             Root = Build(dic);
 
             // 缓存
-            _cache = dic;
+            SaveCache(dic);
+
+            return true;
+        }
+
+        private void SaveCache(IDictionary<String, Object> configs)
+        {
+            // 缓存
+            _cache = configs;
 
             // 本地缓存
             if (LocalCache)
             {
                 var file = $"Config/{AppId}.json".GetFullPath();
-                File.WriteAllText(file.EnsureDirectory(true), dic.ToJson());
+                File.WriteAllText(file.EnsureDirectory(true), configs.ToJson());
             }
-
-            return true;
         }
 
         ///// <summary>保存配置树到数据源</summary>
@@ -249,7 +285,7 @@ namespace NewLife.Configuration
                 Root = Build(dic);
 
                 // 缓存
-                _cache = dic;
+                SaveCache(dic);
 
                 foreach (var item in _models)
                 {
