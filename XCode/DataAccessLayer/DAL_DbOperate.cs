@@ -174,6 +174,20 @@ namespace XCode.DataAccessLayer
             return ExecuteByCache(sql, type, ps, (s, t, p) => Session.Execute(s, t, Db.CreateParameters(p)));
         }
 
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="commandTimeout">命令超时时间，一般用于需要长时间执行的命令</param>
+        /// <returns></returns>
+        public Int32 Execute(String sql, Int32 commandTimeout)
+        {
+            return ExecuteByCache(sql, commandTimeout, "", (s, t, p) =>
+            {
+                using var cmd = Session.CreateCommand(s);
+                if (t > 0) cmd.CommandTimeout = t;
+                return Session.Execute(cmd);
+            });
+        }
+
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>

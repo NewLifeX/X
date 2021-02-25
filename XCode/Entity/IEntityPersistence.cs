@@ -294,7 +294,25 @@ namespace XCode
         {
             var sql = $"Delete From {session.FormatedTableName}";
             if (!whereClause.IsNullOrEmpty()) sql += " Where " + whereClause;
-            return session.Execute(sql);
+            //return session.Execute(sql);
+
+            // MySql 支持分批删除
+            if (session.Dal.DbType == DatabaseType.MySql)
+            {
+                var rs = 0;
+                while (true)
+                {
+                    var rows = session.Dal.Execute(sql + " limit 100000", 5 * 60);
+                    rs += rows;
+
+                    if (rows < 100000) break;
+                }
+
+                return rs;
+            }
+
+            // 加大超时时间
+            return session.Dal.Execute(sql, 5 * 60);
         }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
