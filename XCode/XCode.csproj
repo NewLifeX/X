@@ -61,17 +61,11 @@
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
-    <DefineConstants>$(DefineConstants);STD21;NETSTANDARD2_1;__CORE__</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
     <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>

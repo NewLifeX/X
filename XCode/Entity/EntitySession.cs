@@ -507,7 +507,7 @@ namespace XCode
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-            if (count < 0 || count >= 1_000_000) count = dal.Session.QueryCountFast(FormatedTableName);
+            if (count <= 0 || count >= 1_000_000) count = dal.Session.QueryCountFast(FormatedTableName);
 
             // 查真实记录数，修正FastCount不够准确的情况
             if (count >= 0 && count < 10_000_000)
