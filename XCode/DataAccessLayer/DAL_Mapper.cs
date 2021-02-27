@@ -18,6 +18,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IEnumerable<T> Query<T>(String sql, Object param = null)
         {
+            if (IsValueTuple(typeof(T))) throw new InvalidOperationException($"不支持ValueTuple类型[{typeof(T).FullName}]");
+
             //var ps = param?.ToDictionary();
             var dt = QueryByCache(sql, param, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
 
@@ -34,15 +36,22 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T QuerySingle<T>(String sql, Object param = null) => Query<T>(sql, param).FirstOrDefault();
 
+        private static Boolean IsValueTuple(Type type)
+        {
+            if ((Object)type != null && type.IsValueType)
+            {
+                return type.FullName.StartsWith("System.ValueTuple`", StringComparison.Ordinal);
+            }
+            return false;
+        }
+
         /// <summary>执行Sql</summary>
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
         /// <returns></returns>
-        public Int32 Execute(String sql, Object param = null)
-        {
+        public Int32 Execute(String sql, Object param = null) =>
             //var ps = param?.ToDictionary();
-            return ExecuteByCache(sql, "", param, (s, t, p) => Session.Execute(s, CommandType.Text, Db.CreateParameters(p)));
-        }
+            ExecuteByCache(sql, "", param, (s, t, p) => Session.Execute(s, CommandType.Text, Db.CreateParameters(p)));
 
         /// <summary>执行Sql并返回数据读取器</summary>
         /// <param name="sql"></param>
@@ -62,12 +71,10 @@ namespace XCode.DataAccessLayer
         /// <param name="sql">SQL语句</param>
         /// <param name="param">参数对象</param>
         /// <returns></returns>
-        public T ExecuteScalar<T>(String sql, Object param = null)
-        {
+        public T ExecuteScalar<T>(String sql, Object param = null) =>
             //var ps = param?.ToDictionary();
             //return Session.ExecuteScalar<T>(sql, CommandType.Text, Db.CreateParameters(ps));
-            return QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
-        }
+            QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
 
         /// <summary>插入数据</summary>
         /// <param name="data"></param>
