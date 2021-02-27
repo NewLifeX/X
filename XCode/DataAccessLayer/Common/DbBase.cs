@@ -871,8 +871,8 @@ namespace XCode.DataAccessLayer
         {
             if (name.IsNullOrEmpty()) return name;
 
-            // 如果参数名是关键字，统一加前缀
-            if (IsReservedWord(name)) name = "x_" + name;
+            //// 如果参数名是关键字，统一加前缀
+            //if (IsReservedWord(name)) name = "x_" + name;
 
             return ParamPrefix + name;
         }
