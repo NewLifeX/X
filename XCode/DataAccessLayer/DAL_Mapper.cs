@@ -24,7 +24,10 @@ namespace XCode.DataAccessLayer
             var dt = QueryByCache(sql, param, "", (s, p, k3) => Session.Query(s, Db.CreateParameters(p)), nameof(Query));
 
             // 优先特殊处理基础类型，选择第一字段
-            if (Type.GetTypeCode(typeof(T)) != TypeCode.Object) return dt.Rows.Select(e => e[0].ChangeType<T>());
+            var type = typeof(T);
+            var utype = Nullable.GetUnderlyingType(type);
+            if (utype != null) type = utype;
+            if (type.GetTypeCode() != TypeCode.Object) return dt.Rows.Select(e => e[0].ChangeType<T>());
 
             return dt.ReadModels<T>();
         }

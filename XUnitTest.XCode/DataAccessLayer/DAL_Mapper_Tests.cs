@@ -10,19 +10,31 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class DAL_Mapper_Tests
     {
-        //[Fact]
-        //public void Query()
-        //{
-        //    var dal = User.Meta.Session.Dal;
+        [Fact]
+        public void Query()
+        {
+            var dal = User.Meta.Session.Dal;
 
-        //    var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
-        //    Assert.NotNull(list);
-        //    Assert.Single(list);
+            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
 
-        //    var user = list[0];
-        //    Assert.Equal(1, user.Id);
-        //    Assert.Equal("admin", user.Name);
-        //}
+            var user = list[0];
+            Assert.Equal(1, user.Id);
+            Assert.Equal("admin", user.Name);
+
+            var id = dal.QuerySingle<Int32>("select id from user where name=@name", new { Name = "admin" });
+            Assert.Equal(1, id);
+
+            var id2 = dal.QuerySingle<Int32?>("select id from user where name=@name", new { Name = "admin" });
+            Assert.Equal(1, id2);
+
+            var user2 = dal.QuerySingle<MyUser>("select * from user where name='xxx'");
+            Assert.Null(user2);
+
+            var id3 = dal.QuerySingle<Int32?>("select id from user where name='xxx'");
+            Assert.Null(id3);
+        }
 
         [Fact]
         public void Execute()
