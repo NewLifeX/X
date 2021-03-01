@@ -70,6 +70,8 @@ namespace XCode.DataAccessLayer
 
         /// <summary>数据库会话</summary>
         public IDbSession Session => Db.CreateSession();
+
+        private String _mapTo;
         #endregion
 
         #region 创建函数
@@ -103,6 +105,10 @@ namespace XCode.DataAccessLayer
                 ConnStr = css[connName];
                 if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
+                // 连接映射
+                var vs = ConnStr.SplitAsDictionary("=", ",");
+                if (vs.TryGetValue("MapTo", out var map) && !map.IsNullOrEmpty()) _mapTo = map;
+
                 ProviderType = _connTypes[connName];
                 DbType = DbFactory.GetDefault(ProviderType)?.Type ?? DatabaseType.None;
 
@@ -127,25 +133,14 @@ namespace XCode.DataAccessLayer
         {
             if (String.IsNullOrEmpty(connName)) throw new ArgumentNullException(nameof(connName));
 
-            // 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的ConnStr属性
-            //if (!_dals.TryGetValue(connName, out var dal))
-            //{
-            //    lock (_dals)
-            //    {
-            //        if (!_dals.TryGetValue(connName, out dal))
-            //        {
-            //            dal = new DAL(connName);
-            //            // 不用connName，因为可能在创建过程中自动识别了ConnName
-            //            _dals.Add(dal.ConnName, dal);
-            //        }
-            //    }
-            //}
-
             // Dictionary.TryGetValue 在多线程高并发下有可能抛出空异常
             var dal = _dals.GetOrAdd(connName, k => new DAL(k));
 
             // 创建完成对象后，初始化时单独锁这个对象，避免整体加锁
             dal.Init();
+
+            // 映射到另一个连接
+            if (!dal._mapTo.IsNullOrEmpty()) dal = _dals.GetOrAdd(dal._mapTo, k => new DAL(k));
 
             return dal;
         }

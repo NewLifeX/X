@@ -34,9 +34,9 @@ namespace XCode
         [Description("SQL最大长度。输出日志时的SQL最大长度，超长截断，默认4096，不截断用0")]
         public Int32 SQLMaxLength { get; set; } = 4096;
 
-        /// <summary>连接名映射#，表名映射@，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
-        [Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
-        public String ConnMaps { get; set; } = "";
+        ///// <summary>连接名映射#，表名映射@，表名映射@，把实体类中的Test2和Test3连接名映射到Test去</summary>
+        //[Description("连接映射。连接名映射#，表名映射@，把实体类中的Test2和Test3连接名映射到Test去")]
+        //public String ConnMaps { get; set; } = "";
 
         /// <summary>参数化添删改查。默认关闭</summary>
         [Description("参数化添删改查。默认关闭")]

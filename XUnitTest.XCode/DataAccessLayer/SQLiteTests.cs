@@ -68,6 +68,23 @@ namespace XUnitTest.XCode.DataAccessLayer
         }
 
         [Fact]
+        public void MapToTest()
+        {
+            var db = "Data\\Membership.db";
+            var dbf = db.GetFullPath();
+
+            DAL.AddConnStr("sysSQLite", $"Data Source={db}", null, "SQLite");
+            DAL.AddConnStr("mapTest", "MapTo=sysSQLite", null, null);
+
+            var dal1 = DAL.Create("sysSQLite");
+            var dal2 = DAL.Create("mapTest");
+            Assert.NotNull(dal2);
+            Assert.Equal(dal1, dal2);
+            Assert.Equal("sysSQLite", dal2.ConnName);
+            Assert.Equal(DatabaseType.SQLite, dal2.DbType);
+        }
+
+        [Fact]
         public void MetaTest()
         {
             DAL.AddConnStr("SQLite_Meta", "Data Source=Data\\Membership.db", null, "SQLite");
