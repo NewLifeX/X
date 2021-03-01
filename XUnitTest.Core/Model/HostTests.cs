@@ -27,14 +27,14 @@ namespace XUnitTest.Model
 
             //host.Run();
             var task = host.RunAsync();
-            task.Wait(1_000);
+            task.Wait(3_000);
 
             var host2 = host as Host;
             Assert.Equal(1, host2.Services.Count);
 
             var my = host2.Services[0] as MyService;
             Assert.NotNull(my);
-            Assert.True(my.DbCount >= 10);
+            Assert.Equal(99, my.DbCount);
             Assert.True(my.CacheCount > 0);
         }
 
@@ -78,7 +78,7 @@ namespace XUnitTest.Model
                 }
 
                 //todo 初始化数据库
-                Count = Rand.Next(10, 99);
+                Count = 99;
             }
         }
 

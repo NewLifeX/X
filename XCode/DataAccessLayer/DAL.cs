@@ -109,14 +109,17 @@ namespace XCode.DataAccessLayer
                 var vs = ConnStr.SplitAsDictionary("=", ",");
                 if (vs.TryGetValue("MapTo", out var map) && !map.IsNullOrEmpty()) _mapTo = map;
 
-                ProviderType = _connTypes[connName];
-                DbType = DbFactory.GetDefault(ProviderType)?.Type ?? DatabaseType.None;
+                if (_connTypes.TryGetValue(connName, out var t))
+                {
+                    ProviderType = t;
+                    DbType = DbFactory.GetDefault(t)?.Type ?? DatabaseType.None;
+                }
 
                 // 读写分离
                 if (!connName.EndsWithIgnoreCase(".readonly"))
                 {
                     var connName2 = connName + ".readonly";
-                    if (ConnStrs.ContainsKey(connName2)) ReadOnly = Create(connName2);
+                    if (css.ContainsKey(connName2)) ReadOnly = Create(connName2);
                 }
 
                 _inited = true;
@@ -153,6 +156,7 @@ namespace XCode.DataAccessLayer
             _Tables = null;
             _hasCheck = false;
             HasCheckTables.Clear();
+            _mapTo = null;
 
             GC.Collect(2);
 
@@ -160,11 +164,11 @@ namespace XCode.DataAccessLayer
             Init();
         }
 
-        private static Dictionary<String, Type> _connTypes;
+        private static ConcurrentDictionary<String, Type> _connTypes;
         private static void InitConnections()
         {
-            var cs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            var ts = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+            var cs = new ConcurrentDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var ts = new ConcurrentDictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
 
             LoadConfig(cs, ts);
             //LoadAppSettings(cs, ts);
@@ -185,9 +189,10 @@ namespace XCode.DataAccessLayer
 
         /// <summary>链接字符串集合</summary>
         /// <remarks>
-        /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性
+        /// 如果需要添加连接字符串，应该使用AddConnStr，MapTo连接字符串除外（可以直接ConnStrs.TryAdd添加）；
+        /// 如果需要修改一个DAL的连接字符串，不应该修改这里，而是修改DAL实例的<see cref="ConnStr"/>属性。
         /// </remarks>
-        public static Dictionary<String, String> ConnStrs { get; private set; }
+        public static ConcurrentDictionary<String, String> ConnStrs { get; private set; }
 
         private static void LoadConfig(IDictionary<String, String> cs, IDictionary<String, Type> ts)
         {
@@ -316,7 +321,7 @@ namespace XCode.DataAccessLayer
                 {
                     WriteLog("[{0}]的连接字符串改变，准备重置！", connName);
 
-                    var dal = Create(connName);
+                    var dal = _dals.GetOrAdd(connName, k => new DAL(k));
                     dal.ConnStr = connStr;
                     dal.Reset();
                 }
