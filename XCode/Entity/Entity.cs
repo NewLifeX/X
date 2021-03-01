@@ -570,6 +570,11 @@ namespace XCode
                 return Meta.Factory.Create(true) as TEntity;
             }
 
+            // 自动分库分表
+            var keyEntity = new TEntity();
+            keyEntity[field.Name] = key;
+            using var split = Meta.AutoSplit(keyEntity);
+
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
             var entity = Find(field.Name, key);
 
