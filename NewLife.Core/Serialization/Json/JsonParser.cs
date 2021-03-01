@@ -68,7 +68,14 @@ namespace NewLife.Serialization
         public static IDictionary<String, Object> Decode(String json)
         {
             var parser = new JsonParser(json);
-            return parser.ParseValue() as IDictionary<String, Object>;
+            try
+            {
+                return parser.ParseValue() as IDictionary<String, Object>;
+            }
+            catch (XException ex)
+            {
+                throw new XException($"解析Json出错：{json}", ex);
+            }
         }
 
         /// <summary>解码</summary>
@@ -267,7 +274,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            throw new Exception("已到达字符串结尾");
+            throw new XException("已到达字符串结尾");
         }
 
         private String ParseString()
@@ -334,7 +341,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            throw new Exception("已到达字符串结尾");
+            throw new XException("已到达字符串结尾");
         }
 
         private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -448,7 +455,7 @@ namespace NewLife.Serialization
 
             } while (++index < _json.Length);
 
-            if (index == _json.Length) throw new Exception("已到达字符串结尾");
+            if (index == _json.Length) throw new XException("已到达字符串结尾");
 
             ch = _json[index];
 
