@@ -149,6 +149,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Delete(String tableName, Object where)
         {
+            if (tableName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(tableName));
+
             var sb = Pool.StringBuilder.Get();
             sb.Append("Delete From ");
             sb.Append(tableName);

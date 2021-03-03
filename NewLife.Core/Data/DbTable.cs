@@ -336,7 +336,7 @@ namespace NewLife.Data
                 for (var i = 0; i < row.Length; i++)
                 {
                     // 反射取值
-                    row[i] = pis[i].GetValue(item, null);
+                    if (pis[i].CanRead) row[i] = pis[i].GetValue(item, null);
                 }
                 Rows.Add(row);
             }
@@ -357,7 +357,7 @@ namespace NewLife.Data
                 for (var i = 0; i < row.Length; i++)
                 {
                     // 扩展赋值，或 反射赋值
-                    if (dic.TryGetValue(Columns[i], out var pi))
+                    if (dic.TryGetValue(Columns[i], out var pi) && pi.CanWrite)
                     {
                         var val = row[i].ChangeType(pi.PropertyType);
                         if (model is IExtend ext)
