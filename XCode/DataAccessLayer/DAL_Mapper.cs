@@ -84,8 +84,6 @@ namespace XCode.DataAccessLayer
         /// <param name="param">参数对象</param>
         /// <returns></returns>
         public T ExecuteScalar<T>(String sql, Object param = null) =>
-            //var ps = param?.ToDictionary();
-            //return Session.ExecuteScalar<T>(sql, CommandType.Text, Db.CreateParameters(ps));
             QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
 
         private ConcurrentDictionary<Type, String> _tableMaps = new();
