@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -8,8 +9,16 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
+    /// <summary>根据实体类获取表名的委托</summary>
+    /// <param name="entityType">实体类</param>
+    /// <returns></returns>
+    public delegate String GetTableNameCallback(Type entityType);
+
     public partial class DAL
     {
+        /// <summary>根据实体类获取表名的委托，用于Mapper的Insert/Update</summary>
+        public static GetTableNameCallback GetTableName { get; set; }
+
         #region 查询
         /// <summary>查询Sql并映射为结果集</summary>
         /// <typeparam name="T">实体类</typeparam>
@@ -79,12 +88,21 @@ namespace XCode.DataAccessLayer
             //return Session.ExecuteScalar<T>(sql, CommandType.Text, Db.CreateParameters(ps));
             QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
 
+        private ConcurrentDictionary<Type, String> _tableMaps = new();
+        private String GetName(Type type)
+        {
+            if (GetTableName == null) return null;
+
+            return _tableMaps.GetOrAdd(type, t => GetTableName(t));
+        }
+
         /// <summary>插入数据</summary>
-        /// <param name="data"></param>
-        /// <param name="tableName"></param>
+        /// <param name="data">实体对象</param>
+        /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Int32 Insert(Object data, String tableName = null)
         {
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var pis = data.ToDictionary();
@@ -96,13 +114,14 @@ namespace XCode.DataAccessLayer
             return ExecuteByCache(sql, "", dps, (s, t, p) => Session.Execute(s, CommandType.Text, p));
         }
 
-        /// <summary>更新数据</summary>
-        /// <param name="data"></param>
-        /// <param name="where"></param>
-        /// <param name="tableName"></param>
+        /// <summary>更新数据。不支持自动识别主键</summary>
+        /// <param name="data">实体对象</param>
+        /// <param name="where">查询条件</param>
+        /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Int32 Update(Object data, Object where, String tableName = null)
         {
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var sb = Pool.StringBuilder.Get();
@@ -144,8 +163,8 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>删除数据</summary>
-        /// <param name="tableName"></param>
-        /// <param name="where"></param>
+        /// <param name="tableName">表名</param>
+        /// <param name="where">查询条件</param>
         /// <returns></returns>
         public Int32 Delete(String tableName, Object where)
         {

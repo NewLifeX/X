@@ -30,7 +30,7 @@ namespace XUnitTest.Model
             var sw2 = Stopwatch.StartNew();
 
             // 等待最终完成
-            actor.Stop(-1);
+            actor.Stop();
 
             sw.Stop();
             sw2.Stop();
