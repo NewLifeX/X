@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
@@ -14,8 +16,8 @@ namespace XUnitTest.Model
             var sw = Stopwatch.StartNew();
 
             var actor = new BuildExcelActor();
-
-            for (var i = 0; i < 6; i++)
+            var count = 6;
+            for (var i = 0; i < count; i++)
             {
                 // 模拟查询数据，耗时500ms
                 XTrace.WriteLine("读取数据……");
@@ -28,7 +30,7 @@ namespace XUnitTest.Model
             var sw2 = Stopwatch.StartNew();
 
             // 等待最终完成
-            actor.Stop();
+            actor.Stop(-1);
 
             sw.Stop();
             sw2.Stop();
@@ -42,6 +44,46 @@ namespace XUnitTest.Model
             protected override async Task ReceiveAsync(ActorContext context)
             {
                 XTrace.WriteLine("生成Excel数据：{0}", context.Message);
+
+                await Task.Delay(500);
+            }
+        }
+
+        [Fact]
+        public void TestCount()
+        {
+            using var actor = new TestActor();
+            actor.BoundedCapacity = 200;
+            actor.BatchSize = 100;
+
+            XTrace.WriteLine("TestCount Start");
+            for (var i = 0; i < 1000; i++)
+            {
+                actor.Tell(i);
+            }
+
+            XTrace.WriteLine("TestCount Finishing");
+
+            actor.Stop();
+            Assert.True(actor.Total < 1000);
+
+            actor.Stop(-1);
+            Assert.Equal(1000, actor.Total);
+
+            XTrace.WriteLine("TestCount End");
+
+            Thread.Sleep(5000);
+            XTrace.WriteLine("End");
+        }
+
+        private class TestActor : Actor
+        {
+            public Int32 Total { get; set; }
+
+            protected override async Task ReceiveAsync(ActorContext[] contexts)
+            {
+                Total += contexts.Length;
+                XTrace.WriteLine("Total={0}", Total);
 
                 await Task.Delay(500);
             }

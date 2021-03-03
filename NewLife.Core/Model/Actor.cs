@@ -121,9 +121,10 @@ namespace NewLife.Model
 
         /// <summary>开始时，返回执行线程包装任务，默认LongRunning</summary>
         /// <returns></returns>
-        protected virtual Task OnStart() => Task.Factory.StartNew(DoWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
+        protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
 
         /// <summary>通知停止添加消息，并等待处理完成</summary>
+        /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
         public virtual Boolean Stop(Int32 msTimeout = 0)
         {
             MailBox?.CompleteAdding();
@@ -157,11 +158,11 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        private async void DoWork()
+        private void DoActorWork()
         {
             try
             {
-                await LoopAsync();
+                Loop();
             }
             catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
@@ -174,7 +175,7 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        protected virtual async Task LoopAsync()
+        protected virtual void Loop()
         {
             var box = MailBox;
             while (!box.IsCompleted)
@@ -183,7 +184,7 @@ namespace NewLife.Model
                 {
                     var ctx = box.Take();
                     var task = ReceiveAsync(ctx);
-                    if (task != null) await task;
+                    if (task != null) task.Wait();
                 }
                 else
                 {
@@ -193,6 +194,7 @@ namespace NewLife.Model
                     var ctx = box.Take();
                     list.Add(ctx);
 
+                    // 不阻塞取一批
                     for (var i = 1; i < BatchSize; i++)
                     {
                         if (!box.TryTake(out ctx)) break;
@@ -200,7 +202,7 @@ namespace NewLife.Model
                         list.Add(ctx);
                     }
                     var task = ReceiveAsync(list.ToArray());
-                    if (task != null) await task;
+                    if (task != null) task.Wait();
                 }
             }
         }
