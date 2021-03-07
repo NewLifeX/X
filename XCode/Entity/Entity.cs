@@ -991,6 +991,10 @@ namespace XCode
             return list.Count < 1 ? null : list[0];
         }
 
+        /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
+        /// <returns>实体数组</returns>
+        public static Task<IList<TEntity>> FindAllAsync() => FindAllAsync(new WhereExpression(), null, null, 0, 0);
+
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
         /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
@@ -1175,6 +1179,10 @@ namespace XCode
 
             return list;
         }
+
+        /// <summary>返回总记录数</summary>
+        /// <returns></returns>
+        public static Task<Int64> FindCountAsync() => FindCountAsync(new WhereExpression(), null, null, 0, 0);
 
         /// <summary>返回总记录数</summary>
         /// <param name="where">条件，不带Where</param>
