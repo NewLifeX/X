@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
@@ -274,11 +275,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
 
-        /// <summary>创建连接</summary>
+        /// <summary>打开连接</summary>
         /// <returns></returns>
         public virtual DbConnection OpenConnection()
         {
-            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，是否漏了从Nuget引用？");
+            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，需要从Nuget引用！");
 
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
@@ -287,20 +288,22 @@ namespace XCode.DataAccessLayer
             return conn;
         }
 
-        ///// <summary>打开连接并执行操作</summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="callback"></param>
-        ///// <returns></returns>
-        //public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
-        //{
-        //    using (var conn = CreateConnection())
-        //    {
-        //        //conn.ConnectionString = ConnectionString;
-        //        //conn.Open();
+        /// <summary>打开连接</summary>
+        /// <returns></returns>
+        public virtual async Task<DbConnection> OpenConnectionAsync()
+        {
+            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，需要从Nuget引用！");
 
-        //        return callback(conn);
-        //    }
-        //}
+            var conn = Factory.CreateConnection();
+            conn.ConnectionString = ConnectionString;
+#if NET40
+            await TaskEx.Run(() => conn.Open());
+#else
+            await conn.OpenAsync();
+#endif
+
+            return conn;
+        }
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>

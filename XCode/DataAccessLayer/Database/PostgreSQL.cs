@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 
 namespace XCode.DataAccessLayer
@@ -157,6 +158,14 @@ namespace XCode.DataAccessLayer
             sql += ";Select LAST_INSERT_ID()";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
+
+#if !NET40
+        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            sql += ";Select LAST_INSERT_ID()";
+            return base.InsertAndGetIdentityAsync(sql, type, ps);
+        }
+#endif
         #endregion
     }
 

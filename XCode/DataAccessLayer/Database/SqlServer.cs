@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -432,6 +433,14 @@ namespace XCode.DataAccessLayer
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
+
+#if !NET40
+        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
+            return base.InsertAndGetIdentityAsync(sql, type, ps);
+        }
+#endif
         #endregion
 
         #region 批量操作

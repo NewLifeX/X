@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -97,6 +99,51 @@ namespace NewLife.Data
 
             Total = rs.Count;
         }
+
+#if !NET40
+        /// <summary>读取数据</summary>
+        /// <param name="dr"></param>
+        public async Task ReadAsync(DbDataReader dr)
+        {
+            ReadHeader(dr);
+            await ReadDataAsync(dr);
+        }
+
+        /// <summary>读取数据</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <param name="fields">要读取的字段序列</param>
+        public async Task ReadDataAsync(DbDataReader dr, Int32[] fields = null)
+        {
+            // 字段
+            var cs = Columns;
+            var ts = Types;
+
+            if (fields == null) fields = Enumerable.Range(0, cs.Length).ToArray();
+
+            // 数据
+            var rs = new List<Object[]>();
+            while (await dr.ReadAsync().ConfigureAwait(false))
+            {
+                var row = new Object[fields.Length];
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var val = dr[fields[i]];
+
+                        if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                        row[i] = val;
+                    }
+                    catch { }
+                }
+                rs.Add(row);
+            }
+            Rows = rs;
+
+            Total = rs.Count;
+        }
+#endif
         #endregion
 
         #region 二进制读取

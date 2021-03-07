@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading.Tasks;
 using NewLife;
 
 namespace XCode.DataAccessLayer
@@ -98,6 +99,10 @@ namespace XCode.DataAccessLayer
         /// <summary>创建连接</summary>
         /// <returns></returns>
         DbConnection OpenConnection();
+
+        /// <summary>打开连接</summary>
+        /// <returns></returns>
+        Task<DbConnection> OpenConnectionAsync();
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>

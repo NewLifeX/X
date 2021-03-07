@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -344,9 +345,13 @@ namespace XCode.DataAccessLayer
         {
             var dt = new DbTable();
             dt.ReadHeader(dr);
+            dt.ReadData(dr, GetFields(dt, dr));
 
-            Int32[] fields = null;
+            return dt;
+        }
 
+        private Int32[] GetFields(DbTable dt, DbDataReader dr)
+        {
             // 干掉rowNumber
             var idx = Array.FindIndex(dt.Columns, c => c.EqualIgnoreCase("rowNumber"));
             if (idx >= 0)
@@ -361,12 +366,10 @@ namespace XCode.DataAccessLayer
 
                 dt.Columns = cs.ToArray();
                 dt.Types = ts.ToArray();
-                fields = fs.ToArray();
+                return fs.ToArray();
             }
 
-            dt.ReadData(dr, fields);
-
-            return dt;
+            return null;
         }
 
         /// <summary>快速查询单表记录数，稍有偏差</summary>
@@ -431,6 +434,47 @@ namespace XCode.DataAccessLayer
             //    AutoClose();
             //}
         }
+
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public override Task<DbTable> QueryAsync(String sql, IDataParameter[] ps)
+        {
+            using var cmd = OnCreateCommand(sql, CommandType.Text, ps);
+            return ExecuteAsync(cmd, true, async cmd2 =>
+            {
+                using var dr = await cmd2.ExecuteReaderAsync();
+                var dt = new DbTable();
+                dt.ReadHeader(dr);
+                await dt.ReadDataAsync(dr, GetFields(dt, dr));
+                return dt;
+            });
+        }
+
+        public override async Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                Int64 rs = await ExecuteAsync(sql, type, ps);
+                if (rs > 0)
+                {
+                    var m = reg_SEQ.Match(sql);
+                    if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
+                        rs = await ExecuteScalarAsync<Int64>($"Select {m.Groups[1].Value}.currval From dual");
+                }
+                Commit();
+                return rs;
+            }
+            catch { Rollback(true); throw; }
+            //finally
+            //{
+            //    AutoClose();
+            //}
+        }
+#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>

@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -242,17 +243,6 @@ namespace XCode.DataAccessLayer
 
             return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
         }
-
-        ///// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
-        //public Boolean IgnoreCase { get; set; } = true;
-
-        //public override String FormatName(String name)
-        //{
-        //    if (IgnoreCase)
-        //        return base.FormatName(name);
-        //    else
-        //        return FormatKeyWord(name);
-        //}
         #endregion
     }
 
@@ -309,6 +299,43 @@ namespace XCode.DataAccessLayer
             }
             catch { Rollback(true); throw; }
         }
+
+#if !NET40
+        public override Task<Int64> QueryCountFastAsync(String tableName)
+        {
+            if (String.IsNullOrEmpty(tableName)) return Task.FromResult(0L);
+
+            var p = tableName.LastIndexOf(".");
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            tableName = tableName.ToUpper();
+
+            var owner = (Database as DaMeng).Owner;
+            if (owner.IsNullOrEmpty()) owner = (Database as DaMeng).User;
+            owner = owner.ToUpper();
+
+            // 某些表没有聚集索引，导致查出来的函数为零
+            var sql = $"select NUM_ROWS from all_tables where OWNER='{owner}' and TABLE_NAME='{tableName}'";
+            return ExecuteScalarAsync<Int64>(sql);
+        }
+
+        public override async Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                Int64 rs = await ExecuteAsync(sql, type, ps);
+                if (rs > 0)
+                {
+                    var m = reg_SEQ.Match(sql);
+                    if (m != null && m.Success && m.Groups != null && m.Groups.Count > 0)
+                        rs = await ExecuteScalarAsync<Int64>($"Select {m.Groups[1].Value}.currval From dual");
+                }
+                Commit();
+                return rs;
+            }
+            catch { Rollback(true); throw; }
+        }
+#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>
@@ -526,7 +553,8 @@ namespace XCode.DataAccessLayer
             if (names != null)
             {
                 var db = Database as DaMeng;
-                /*if (db.IgnoreCase)*/ names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
+                /*if (db.IgnoreCase)*/
+                names = names.Select(e => db.IsReservedWord(e) ? e : e.ToUpper()).ToArray();
             }
 
             // 采用集合过滤，提高效率

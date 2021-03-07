@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -296,6 +297,14 @@ namespace XCode.DataAccessLayer
             sql += ";Select last_insert_rowid() newid";
             return base.InsertAndGetIdentity(sql, type, ps);
         }
+
+#if !NET40
+        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            sql += ";Select last_insert_rowid() newid";
+            return base.InsertAndGetIdentityAsync(sql, type, ps);
+        }
+#endif
         #endregion
 
         #region 高级

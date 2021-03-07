@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -32,39 +33,13 @@ namespace XCode.DataAccessLayer
         {
             base.Dispose(disposing);
 
-            try
-            {
-                // 注意，没有Commit的数据，在这里将会被回滚
-                //if (Trans != null) Rollback();
-                // 在嵌套事务中，Rollback只能减少嵌套层数，而_Trans.Rollback能让事务马上回滚
-                /*if (Opened)*/
-                Transaction.TryDispose();
-
-                //Close();
-            }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex)
-            {
-                WriteLog("执行" + Database.Type + "的Dispose时出错：" + ex);
-            }
+            Transaction.TryDispose();
         }
         #endregion
 
         #region 属性
         /// <summary>数据库</summary>
         public IDatabase Database { get; }
-
-        ///// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
-        //private DatabaseType DbType => Database.Type;
-
-        ///// <summary>工厂</summary>
-        //private DbProviderFactory Factory => Database.Factory;
-
-        ///// <summary>链接字符串，会话单独保存，允许修改，修改不会影响数据库中的连接字符串</summary>
-        //public String ConnectionString { get; set; }
-
-        ///// <summary>数据连接对象。</summary>
-        //public DbConnection Conn { get; protected set; }
 
         /// <summary>查询次数</summary>
         public Int32 QueryTimes { get; set; }
@@ -82,7 +57,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual XDbException OnException(Exception ex)
         {
-            //if (Transaction == null && Opened) Close(); // 强制关闭数据库
             if (ex != null)
                 return new XDbSessionException(this, ex);
             else
@@ -96,7 +70,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual XSqlException OnException(Exception ex, DbCommand cmd, String sql)
         {
-            //if (Transaction == null && Opened) Close(); // 强制关闭数据库
             if (sql.IsNullOrEmpty()) sql = GetSql(cmd);
             if (ex != null)
                 return new XSqlException(sql, this, ex);
@@ -118,6 +91,38 @@ namespace XCode.DataAccessLayer
                 {
                     using var conn = Database.OpenConnection();
                     return callback(conn);
+                }
+                catch (Exception ex)
+                {
+                    // 如果重试次数用完，或者不应该在该异常上重试，则直接向上抛出异常
+                    if (i == retry || !ShouldRetryOn(ex)) throw;
+
+                    if (XTrace.Log.Level <= LogLevel.Debug) WriteLog("retry {0}，delay {1}", i + 1, delay);
+                    Thread.Sleep(delay);
+
+                    // 间隔时间倍增，最大30秒
+                    delay *= 2;
+                    if (delay > 30_000) delay = 30_000;
+                }
+            }
+
+            return default;
+        }
+
+        /// <summary>打开连接并执行操作</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public virtual async Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback)
+        {
+            var delay = 1000;
+            var retry = Database.RetryOnFailure;
+            for (var i = 0; i <= retry; i++)
+            {
+                try
+                {
+                    using var conn = await Database.OpenConnectionAsync();
+                    return await callback(conn);
                 }
                 catch (Exception ex)
                 {
@@ -171,21 +176,6 @@ namespace XCode.DataAccessLayer
 
             return false;
         }
-
-        ///// <summary>打开连接并执行操作</summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="callback"></param>
-        ///// <returns></returns>
-        //public virtual async Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback)
-        //{
-        //    using (var conn = Database.Factory.CreateConnection())
-        //    {
-        //        conn.ConnectionString = Database.ConnectionString;
-        //        await conn.OpenAsync();
-
-        //        return await callback(conn);
-        //    }
-        //}
         #endregion
 
         #region 事务
@@ -385,10 +375,8 @@ namespace XCode.DataAccessLayer
 
             return Process(conn =>
             {
-                //DbConnection conn = null;
                 try
                 {
-                    //if (cmd.Connection == null) cmd.Connection = conn = Database.Pool.Get();
                     if (cmd.Connection == null) cmd.Connection = conn;
 
                     BeginTrace();
@@ -400,8 +388,6 @@ namespace XCode.DataAccessLayer
                 }
                 finally
                 {
-                    //if (conn != null) Database.Pool.Put(conn);
-
                     EndTrace(cmd, text);
                 }
             });
@@ -414,11 +400,8 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public virtual Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            //return Execute(sql, type, ps);
             using var cmd = OnCreateCommand(sql, type, ps);
-            //Transaction?.Check(cmd, true);
 
-            //return ExecuteScalar<Int64>(cmd);
             return Execute(cmd, false, cmd2 =>
             {
                 var rs = cmd.ExecuteScalar();
@@ -437,7 +420,6 @@ namespace XCode.DataAccessLayer
         public virtual T ExecuteScalar<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             using var cmd = OnCreateCommand(sql, type, ps);
-            //return ExecuteScalar<T>(cmd);
             return Execute(cmd, true, cmd2 =>
             {
                 var rs = cmd.ExecuteScalar();
@@ -447,39 +429,6 @@ namespace XCode.DataAccessLayer
                 return (T)Reflect.ChangeType(rs, typeof(T));
             });
         }
-
-        //protected virtual T ExecuteScalar<T>(DbCommand cmd)
-        //{
-        //    Transaction?.Check(cmd, false);
-
-        //    QueryTimes++;
-        //    WriteSQL(cmd);
-
-        //    var conn = Database.Pool.Get();
-        //    try
-        //    {
-        //        if (cmd.Connection == null) cmd.Connection = conn;
-
-        //        BeginTrace();
-        //        var rs = cmd.ExecuteScalar();
-        //        if (rs == null || rs == DBNull.Value) return default(T);
-        //        if (rs is T) return (T)rs;
-
-        //        return (T)Reflect.ChangeType(rs, typeof(T));
-        //    }
-        //    catch (DbException ex)
-        //    {
-        //        throw OnException(ex, cmd);
-        //    }
-        //    finally
-        //    {
-        //        Database.Pool.Put(conn);
-        //        EndTrace(cmd);
-
-        //        //AutoClose();
-        //        cmd.Parameters.Clear();
-        //    }
-        //}
 
         /// <summary>获取一个DbCommand。</summary>
         /// <remark>
@@ -520,6 +469,142 @@ namespace XCode.DataAccessLayer
 
             return cmd;
         }
+        #endregion
+
+        #region 异步操作
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual Task<DbTable> QueryAsync(String sql, IDataParameter[] ps)
+        {
+            using var cmd = OnCreateCommand(sql, CommandType.Text, ps);
+            return ExecuteAsync(cmd, true, async cmd2 =>
+            {
+                using var dr = await cmd2.ExecuteReaderAsync();
+                var dt = new DbTable();
+                await dt.ReadAsync(dr);
+                return dt;
+            });
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual Task<Int64> QueryCountAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            if (sql.Contains(" "))
+            {
+                var orderBy = DbBase.CheckOrderClause(ref sql);
+                var ms = reg_QueryCount.Matches(sql);
+                if (ms != null && ms.Count > 0)
+                    sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
+                else
+                    sql = $"Select Count(*) From {DbBase.CheckSimpleSQL(sql)}";
+            }
+            else
+                sql = $"Select Count(*) From {Database.FormatName(sql)}";
+
+            return ExecuteScalarAsync<Int64>(sql, type, ps);
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>总记录数</returns>
+        public virtual Task<Int64> QueryCountAsync(SelectBuilder builder) => ExecuteScalarAsync<Int64>(builder.SelectCount().ToString(), CommandType.Text, builder.Parameters.ToArray());
+
+        /// <summary>快速查询单表记录数，稍有偏差</summary>
+        /// <param name="tableName"></param>
+        /// <returns></returns>
+        public virtual Task<Int64> QueryCountFastAsync(String tableName) => QueryCountAsync(tableName);
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual Task<Int32> ExecuteAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            using var cmd = OnCreateCommand(sql, type, ps);
+            return ExecuteAsync(cmd, false, cmd2 => cmd2.ExecuteNonQueryAsync());
+        }
+
+        /// <summary>执行DbCommand，返回受影响的行数</summary>
+        /// <param name="cmd">DbCommand</param>
+        /// <returns></returns>
+        public virtual Task<Int32> ExecuteAsync(DbCommand cmd) => ExecuteAsync(cmd, false, cmd2 => cmd2.ExecuteNonQueryAsync());
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        public virtual Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            using var cmd = OnCreateCommand(sql, type, ps);
+
+            return ExecuteAsync(cmd, false, async cmd2 =>
+            {
+                var rs = await cmd.ExecuteScalarAsync();
+                if (rs == null || rs == DBNull.Value) return 0;
+
+                return Reflect.ChangeType<Int64>(rs);
+            });
+        }
+
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public virtual Task<T> ExecuteScalarAsync<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            using var cmd = OnCreateCommand(sql, type, ps);
+            return ExecuteAsync(cmd, true, async cmd2 =>
+            {
+                var rs = await cmd.ExecuteScalarAsync();
+                if (rs == null || rs == DBNull.Value) return default;
+                if (rs is T t) return t;
+
+                return (T)Reflect.ChangeType(rs, typeof(T));
+            });
+        }
+
+        public virtual Task<T> ExecuteAsync<T>(DbCommand cmd, Boolean query, Func<DbCommand, Task<T>> callback)
+        {
+            Transaction?.Check(cmd, !query);
+
+            if (query)
+                QueryTimes++;
+            else
+                ExecuteTimes++;
+
+            var text = WriteSQL(cmd);
+
+            return ProcessAsync(conn =>
+            {
+                try
+                {
+                    if (cmd.Connection == null) cmd.Connection = conn;
+
+                    BeginTrace();
+                    return callback(cmd);
+                }
+                catch (DbException ex)
+                {
+                    throw OnException(ex, cmd, text);
+                }
+                finally
+                {
+                    EndTrace(cmd, text);
+                }
+            });
+        }
+#endif
         #endregion
 
         #region 批量操作
