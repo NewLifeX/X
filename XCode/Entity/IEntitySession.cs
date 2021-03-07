@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NewLife.Data;
 using XCode.Cache;
 using XCode.DataAccessLayer;
@@ -106,6 +107,34 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        Task<DbTable> QueryAsync(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
+
+        /// <summary>查询记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>记录数</returns>
+        Task<Int64> QueryCountAsync(SelectBuilder builder);
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        Task<Int32> ExecuteAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+#endif
+
         /// <summary>执行Truncate语句</summary>
         /// <returns>影响的结果</returns>
         Int32 Truncate();
@@ -157,6 +186,23 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         Int32 Delete(IEntity entity);
+
+#if !NET40
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> InsertAsync(IEntity entity);
+
+        /// <summary>更新数据库，同时更新实体缓存</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> UpdateAsync(IEntity entity);
+
+        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> DeleteAsync(IEntity entity);
+#endif
         #endregion
     }
 }

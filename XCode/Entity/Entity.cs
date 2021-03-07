@@ -5,6 +5,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -214,7 +215,7 @@ namespace XCode
                     rt = Meta._Modules.Delete(this);
 
                 // 没有更新任何数据
-                if (!rt) return -1;
+                if (!rt) return 0;
             }
 
             return func();
@@ -303,6 +304,85 @@ namespace XCode
 
             return Meta.Session.Queue.Add(this, msDelay);
         }
+
+#if !NET40
+        /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
+        /// <returns></returns>
+        public override Task<Int32> InsertAsync() => DoAction(OnInsertAsync, true);
+
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
+        /// <returns></returns>
+        protected virtual Task<Int32> OnInsertAsync()
+        {
+            var rs = Meta.Session.InsertAsync(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
+            // 设置默认累加字段
+            EntityAddition.SetField(this);
+
+            return rs;
+        }
+
+        /// <summary>更新数据，<see cref="Valid"/>后，在事务中调用<see cref="OnUpdate"/>。</summary>
+        /// <returns></returns>
+        public override Task<Int32> UpdateAsync() => DoAction(OnUpdateAsync, false);
+
+        /// <summary>更新数据库，同时更新实体缓存</summary>
+        /// <returns></returns>
+        protected virtual Task<Int32> OnUpdateAsync()
+        {
+            var rs = Meta.Session.UpdateAsync(this);
+
+            // 标记来自数据库
+            IsFromDatabase = true;
+
+            return rs;
+        }
+
+        /// <summary>删除数据，通过在事务中调用OnDelete实现。</summary>
+        /// <remarks>
+        /// 删除时，如果有且仅有主键有脏数据，则可能是ObjectDataSource之类的删除操作。
+        /// 该情况下，实体类没有完整的信息（仅有主键信息），将会导致无法通过扩展属性删除附属数据。
+        /// 如果需要避开该机制，请清空脏数据。
+        /// </remarks>
+        /// <returns></returns>
+        public override Task<Int32> DeleteAsync() => DoAction(OnDeleteAsync, null);
+
+        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
+        /// <returns></returns>
+        protected virtual Task<Int32> OnDeleteAsync() => Meta.Session.DeleteAsync(this);
+
+        Task<Int32> DoAction(Func<Task<Int32>> func, Boolean? isnew)
+        {
+            if (Meta.Table.DataTable.InsertOnly)
+            {
+                if (isnew == null) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止删除！");
+                if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
+            }
+
+            // 自动分库分表
+            using var split = Meta.AutoSplit(this as TEntity);
+
+            if (enableValid)
+            {
+                Boolean rt;
+                if (isnew != null)
+                {
+                    Valid(isnew.Value);
+                    rt = Meta._Modules.Valid(this, isnew.Value);
+                }
+                else
+                    rt = Meta._Modules.Delete(this);
+
+                // 没有更新任何数据
+                if (!rt) return Task.FromResult(0);
+            }
+
+            return func();
+        }
+#endif
 
         [NonSerialized]
         Boolean enableValid = true;
@@ -893,6 +973,241 @@ namespace XCode
         /// <summary>查找所有缓存。没有数据时返回空集合而不是null</summary>
         /// <returns></returns>
         public static IList<TEntity> FindAllWithCache() => Meta.Session.Cache.Entities;
+        #endregion
+
+        #region 异步查询
+#if !NET40
+        /// <summary>根据条件查找单个实体</summary>
+        /// <param name="where">查询条件</param>
+        /// <returns></returns>
+        public static async Task<TEntity> FindAsync(Expression where)
+        {
+            var max = 1;
+
+            // 优待主键查询
+            if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
+
+            var list = await FindAllAsync(where, null, null, 0, max);
+            return list.Count < 1 ? null : list[0];
+        }
+
+        /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
+        /// <remarks>
+        /// 最经典的批量查询，看这个Select @selects From Table Where @where Order By @order Limit @startRowIndex,@maximumRows，你就明白各参数的意思了。
+        /// </remarks>
+        /// <param name="where">条件字句，不带Where</param>
+        /// <param name="order">排序字句，不带Order By</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>实体集</returns>
+        public static async Task<IList<TEntity>> FindAllAsync(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
+        {
+            var session = Meta.Session;
+
+            #region 海量数据查询优化
+            // 海量数据尾页查询优化
+            // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
+            // 只有在百万数据，且开始行大于五十万时才使用
+
+            // 如下优化，避免了每次都调用Meta.Count而导致形成一次查询，虽然这次查询时间损耗不大
+            // 但是绝大多数查询，都不需要进行类似的海量数据优化，显然，这个startRowIndex将会挡住99%以上的浪费
+            Int64 count;
+            if (startRowIndex > 500000 && (count = session.LongCount) > 1000000)
+            {
+                //// 计算本次查询的结果行数
+                //var wh = where?.GetString(null);
+                // 数据量巨大，每次都查总记录数很不划算，还不如用一个不太准的数据
+                //if (!wh.IsNullOrEmpty()) count = FindCount(where, order, selects, startRowIndex, maximumRows);
+                // 游标在中间偏后
+                if (startRowIndex * 2 > count)
+                {
+                    var order2 = order;
+                    var bk = false; // 是否跳过
+
+                    #region 排序倒序
+                    // 默认是自增字段的降序
+                    var fi = Meta.Unique;
+                    if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
+
+                    if (!String.IsNullOrEmpty(order2))
+                    {
+                        //2014-01-05 Modify by Apex
+                        //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
+                        foreach (Match match in Regex.Matches(order2, @"\([^\)]*\)", RegexOptions.Singleline))
+                        {
+                            order2 = order2.Replace(match.Value, match.Value.Replace(",", "★"));
+                        }
+                        var ss = order2.Split(',');
+                        var sb = Pool.StringBuilder.Get();
+                        foreach (var item in ss)
+                        {
+                            var fn = item;
+                            var od = "asc";
+
+                            var p = fn.LastIndexOf(" ");
+                            if (p > 0)
+                            {
+                                od = item.Substring(p).Trim().ToLower();
+                                fn = item.Substring(0, p).Trim();
+                            }
+
+                            switch (od)
+                            {
+                                case "asc":
+                                    od = "desc";
+                                    break;
+                                case "desc":
+                                    //od = "asc";
+                                    od = null;
+                                    break;
+                                default:
+                                    bk = true;
+                                    break;
+                            }
+                            if (bk) break;
+
+                            if (sb.Length > 0) sb.Append(", ");
+                            sb.AppendFormat("{0} {1}", fn, od);
+                        }
+
+                        order2 = sb.Put(true).Replace("★", ",");
+                    }
+                    #endregion
+
+                    // 没有排序的实在不适合这种办法，因为没办法倒序
+                    if (!order2.IsNullOrEmpty())
+                    {
+                        // 最大可用行数改为实际最大可用行数
+                        var max = (Int32)Math.Min(maximumRows, count - startRowIndex);
+                        if (max <= 0) return new List<TEntity>();
+
+                        var start = (Int32)(count - (startRowIndex + maximumRows));
+                        var builder2 = CreateBuilder(where, order2, selects);
+                        var list = LoadData(await session.QueryAsync(builder2, start, max));
+                        if (list == null || list.Count < 1) return list;
+
+                        // 如果正在使用单对象缓存，则批量进入
+                        if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
+
+                        // 因为这样取得的数据是倒过来的，所以这里需要再倒一次
+                        //list.Reverse();
+                        return list.Reverse().ToList();
+                    }
+                }
+            }
+            #endregion
+
+            var builder = CreateBuilder(where, order, selects);
+            var list2 = LoadData(await session.QueryAsync(builder, startRowIndex, maximumRows));
+
+            // 如果正在使用单对象缓存，则批量进入
+            if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list2);
+
+            return list2;
+        }
+
+        /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <param name="selects">查询列，默认null表示所有字段</param>
+        /// <returns></returns>
+        public static async Task<IList<TEntity>> FindAllAsync(Expression where, PageParameter page = null, String selects = null)
+        {
+            if (page == null) return await FindAllAsync(where, null, selects, 0, 0);
+
+            // 页面参数携带进来的扩展查询
+            if (page.State is Expression exp)
+                where &= exp;
+            else if (page.State is WhereBuilder builder)
+            {
+                if (builder.Factory == null) builder.Factory = Meta.Factory;
+                where &= builder.GetExpression();
+            }
+
+            // 先查询满足条件的记录数，如果没有数据，则直接返回空集合，不再查询数据
+            var session = Meta.Session;
+            if (page.RetrieveTotalCount)
+            {
+                Int64 rows;
+
+                // 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+                if ((where == null || where.IsEmpty) && session.LongCount > 100_000)
+                    rows = session.LongCount;
+                else
+                    rows = await FindCountAsync(where, null, selects, 0, 0);
+                if (rows <= 0) return new List<TEntity>();
+
+                page.TotalCount = rows;
+            }
+
+            // 验证排序字段，避免非法
+            var orderby = page.OrderBy;
+            if (!page.Sort.IsNullOrEmpty())
+            {
+                var st = Meta.Table.FindByName(page.Sort);
+                page.OrderBy = null;
+                page.Sort = session.Dal.Db.FormatName(st);
+                orderby = page.OrderBy;
+
+                //!!! 恢复排序字段，否则属性名和字段名不一致时前台无法降序
+                page.Sort = st?.Name;
+            }
+
+            // 采用起始行还是分页
+            IList<TEntity> list;
+            if (page.StartRow >= 0)
+                list = await FindAllAsync(where, orderby, selects, page.StartRow, page.PageSize);
+            else
+                list = await FindAllAsync(where, orderby, selects, (page.PageIndex - 1) * page.PageSize, page.PageSize);
+
+            if (list == null || list.Count == 0) return list;
+
+            // 统计数据。100万以上数据要求带where才支持统计
+            if (page.RetrieveState &&
+                (page.RetrieveTotalCount && page.TotalCount < 10_000_000
+                || Meta.Session.LongCount < 10_000_000 || where != null)
+                )
+            {
+                var selectStat = Meta.Factory.SelectStat;
+                if (!selectStat.IsNullOrEmpty()) page.State = (await FindAllAsync(where, null, selectStat)).FirstOrDefault();
+            }
+
+            return list;
+        }
+
+        /// <summary>返回总记录数</summary>
+        /// <param name="where">条件，不带Where</param>
+        /// <param name="order">排序，不带Order By。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="selects">查询列。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="startRowIndex">开始行，0表示第一行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行。这里无意义，仅仅为了保持与FindAll相同的方法签名</param>
+        /// <returns>总行数</returns>
+        public static Task<Int64> FindCountAsync(Expression where, String order = null, String selects = null, Int64 startRowIndex = 0, Int64 maximumRows = 0)
+        {
+            var session = Meta.Session;
+            var db = session.Dal.Db;
+            var ps = db.UseParameter ? new Dictionary<String, Object>() : null;
+            var wh = where?.GetString(db, ps);
+
+            //// 如果总记录数超过10万，为了提高性能，返回快速查找且带有缓存的总记录数
+            //if (String.IsNullOrEmpty(wh) && session.LongCount > 100000) return session.LongCount;
+
+            var builder = new SelectBuilder
+            {
+                Table = session.FormatedTableName,
+                Where = wh
+            };
+
+            // 提取参数
+            builder = FixParam(builder, ps);
+
+            // 分组查分组数的时候，必须带上全部selects字段
+            if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
+
+            return session.QueryCountAsync(builder);
+        }
+#endif
         #endregion
 
         #region 取总记录数

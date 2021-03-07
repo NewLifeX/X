@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
@@ -650,6 +651,58 @@ namespace XCode
             return rs;
         }
 
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public virtual Task<DbTable> QueryAsync(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        {
+            InitData();
+
+            return GetDAL(true).QueryAsync(builder, startRowIndex, maximumRows);
+        }
+
+        /// <summary>查询记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>记录数</returns>
+        public virtual Task<Int64> QueryCountAsync(SelectBuilder builder)
+        {
+            InitData();
+
+            return GetDAL(true).SelectCountAsync(builder);
+        }
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        public Task<Int32> ExecuteAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            InitData();
+
+            var rs = GetDAL(false).ExecuteAsync(sql, type, ps);
+            DataChange("Execute " + type);
+            return rs;
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        public Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            InitData();
+
+            var rs = GetDAL(false).InsertAndGetIdentityAsync(sql, type, ps);
+            DataChange("InsertAndGetIdentity " + type);
+            return rs;
+        }
+#endif
+
         private void DataChange(String reason)
         {
             ClearCache(reason, true);
@@ -810,6 +863,65 @@ namespace XCode
 
             return rs;
         }
+
+#if !NET40
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> InsertAsync(IEntity entity)
+        {
+            var rs = await Factory.Persistence.InsertAsync(this, entity);
+
+            var e = entity as TEntity;
+
+            // 加入实体缓存
+            _cache?.Add(e);
+
+            // 增加计数
+            if (_Count >= 0) Interlocked.Increment(ref _Count);
+
+            return rs;
+        }
+
+        /// <summary>更新数据库，同时更新实体缓存</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public virtual Task<Int32> UpdateAsync(IEntity entity)
+        {
+            var rs = Factory.Persistence.UpdateAsync(this, entity);
+
+            var e = entity as TEntity;
+
+            // 更新缓存
+            _cache?.Update(e);
+
+            // 干掉缓存项，让它重新获取
+            _singleCache?.Remove(e);
+
+            return rs;
+        }
+
+        /// <summary>从数据库中删除该对象，同时从实体缓存和单对象缓存中删除，扣减总数量</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        public virtual Task<Int32> DeleteAsync(IEntity entity)
+        {
+            var rs = Factory.Persistence.DeleteAsync(this, entity);
+
+            var e = entity as TEntity;
+
+            // 从实体缓存删除
+            _cache?.Remove(e);
+
+            // 从单对象缓存删除
+            _singleCache?.Remove(e);
+
+            // 减少计数
+            if (_Count > 0) Interlocked.Decrement(ref _Count);
+
+            return rs;
+        }
+#endif
         #endregion
 
         #region 队列

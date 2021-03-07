@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
@@ -45,6 +46,20 @@ namespace XCode
         /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
         public abstract Int32 Delete();
+
+#if !NET4
+        /// <summary>把该对象持久化到数据库</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> InsertAsync();
+
+        /// <summary>更新数据库</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> UpdateAsync();
+
+        /// <summary>从数据库中删除该对象</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> DeleteAsync();
+#endif
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
         /// <returns></returns>

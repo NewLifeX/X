@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -39,6 +40,26 @@ namespace XCode
         /// <param name="entity">实体</param>
         /// <returns></returns>
         Int32 Delete(IEntitySession session, IEntity entity);
+
+#if !NET40
+        /// <summary>插入</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> InsertAsync(IEntitySession session, IEntity entity);
+
+        /// <summary>更新</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> UpdateAsync(IEntitySession session, IEntity entity);
+
+        /// <summary>删除</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> DeleteAsync(IEntitySession session, IEntity entity);
+#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>
@@ -219,6 +240,104 @@ namespace XCode
 
             return rs;
         }
+
+#if !NET40
+        /// <summary>插入</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> InsertAsync(IEntitySession session, IEntity entity)
+        {
+            var factory = Factory;
+
+            // 添加数据前，处理Guid
+            SetGuidField(factory.AutoSetGuidField, entity);
+
+            IDataParameter[] dps = null;
+            var sql = SQL(session, entity, DataObjectMethodType.Insert, ref dps);
+            if (String.IsNullOrEmpty(sql)) return 0;
+
+            var rs = 0;
+
+            //检查是否有标识列，标识列需要特殊处理
+            var field = factory.Table.Identity;
+            var bAllow = factory.AllowInsertIdentity;
+            if (field != null && field.IsIdentity && !bAllow && factory.AutoIdentity)
+            {
+                var id = await session.InsertAndGetIdentityAsync(sql, CommandType.Text, dps);
+                if (id > 0) entity[field.Name] = id;
+                rs = id > 0 ? 1 : 0;
+            }
+            else
+            {
+                if (bAllow)
+                {
+                    var dal = DAL.Create(factory.ConnName);
+                    if (dal.DbType == DatabaseType.SqlServer)
+                    {
+                        // 如果所有字段都不是自增，则取消对自增的处理
+                        if (factory.Fields.All(f => !f.IsIdentity)) bAllow = false;
+                        if (bAllow) sql = $"SET IDENTITY_INSERT {session.FormatedTableName} ON;{sql};SET IDENTITY_INSERT {session.FormatedTableName} OFF";
+                    }
+                }
+                rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+            }
+
+            // 清除脏数据，避免连续两次调用Save造成重复提交
+            entity.Dirtys.Clear();
+
+            return rs;
+        }
+
+        /// <summary>更新</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> UpdateAsync(IEntitySession session, IEntity entity)
+        {
+            // 没有脏数据，不需要更新
+            if (!entity.HasDirty) return 0;
+
+            IDataParameter[] dps = null;
+            var sql = "";
+
+            // 双锁判断脏数据
+            lock (entity)
+            {
+                if (!entity.HasDirty) return 0;
+
+                sql = SQL(session, entity, DataObjectMethodType.Update, ref dps);
+                if (sql.IsNullOrEmpty()) return 0;
+
+                //清除脏数据，避免重复提交
+                entity.Dirtys.Clear();
+            }
+
+            var rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+
+            //EntityAddition.ClearValues(entity as EntityBase);
+
+            return rs;
+        }
+
+        /// <summary>删除</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> DeleteAsync(IEntitySession session, IEntity entity)
+        {
+            IDataParameter[] dps = null;
+            var sql = SQL(session, entity, DataObjectMethodType.Delete, ref dps);
+            if (String.IsNullOrEmpty(sql)) return 0;
+
+            var rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+
+            // 清除脏数据，避免重复提交保存
+            entity.Dirtys.Clear();
+
+            return rs;
+        }
+#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>
