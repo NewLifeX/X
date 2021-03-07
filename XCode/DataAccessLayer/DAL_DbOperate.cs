@@ -4,6 +4,7 @@ using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
@@ -200,6 +201,122 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
+        #region 异步操作
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public Task<DbTable> QueryAsync(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        {
+            return QueryByCacheAsync(builder, startRowIndex, maximumRows, (sb, start, max) =>
+            {
+                sb = PageSplit(sb, start, max);
+                return Session.QueryAsync(sb.ToString(), sb.Parameters.ToArray());
+            }, nameof(QueryAsync));
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<DbTable> QueryAsync(String sql, IDictionary<String, Object> ps = null)
+        {
+            return QueryByCacheAsync(sql, ps, "", (s, p, k3) => Session.QueryAsync(s, Db.CreateParameters(p)), nameof(QueryAsync));
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sb">查询生成器</param>
+        /// <returns></returns>
+        public Task<Int64> SelectCountAsync(SelectBuilder sb)
+        {
+            return QueryByCacheAsync(sb, "", "", (s, k2, k3) => Session.QueryCountAsync(s), nameof(SelectCountAsync));
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int64> SelectCountAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return QueryByCacheAsync(sql, type, ps, (s, t, p) => Session.QueryCountAsync(s, t, p), nameof(SelectCountAsync));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql)
+        {
+            return ExecuteByCacheAsync(sql, "", "", (s, t, p) => Session.ExecuteAsync(s));
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql"></param>
+        /// <returns>新增行的自动编号</returns>
+        public Task<Int64> InsertAndGetIdentityAsync(String sql)
+        {
+            return ExecuteByCacheAsync(sql, "", "", (s, t, p) => Session.InsertAndGetIdentityAsync(s));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteAsync(s, t, p));
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql"></param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        public Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.InsertAndGetIdentityAsync(s, t, p));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteAsync(s, t, Db.CreateParameters(p)));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="commandTimeout">命令超时时间，一般用于需要长时间执行的命令</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, Int32 commandTimeout)
+        {
+            return ExecuteByCacheAsync(sql, commandTimeout, "", (s, t, p) =>
+            {
+                using var cmd = Session.CreateCommand(s);
+                if (t > 0) cmd.CommandTimeout = t;
+                return Session.ExecuteAsync(cmd);
+            });
+        }
+
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<T> ExecuteScalarAsync<T>(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteScalarAsync<T>(s, t, Db.CreateParameters(p)));
+        }
+#endif
+        #endregion
+
         #region 事务
         /// <summary>开始事务</summary>
         /// <remarks>
@@ -314,6 +431,98 @@ namespace XCode.DataAccessLayer
         }
 
         private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
+        {
+            var tracer = Tracer ?? GlobalTracer;
+            var traceName = "";
+            var sql = "";
+
+            // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
+            if (tracer != null)
+            {
+                sql = (k1 + "").Trim();
+                if (action == "Execute")
+                {
+                    // 使用 Insert/Update/Delete 作为埋点操作名
+                    var p = sql.IndexOf(' ');
+                    if (p > 0) action = sql.Substring(0, p);
+                }
+
+                traceName = $"db:{ConnName}:{action}";
+
+                var tables = GetTables(sql);
+                if (tables.Length > 0) traceName += ":" + tables.Join("-");
+            }
+
+            // 使用k1参数作为tag，一般是sql
+            var span = tracer?.NewSpan(traceName, sql);
+            try
+            {
+                return callback(k1, k2, k3);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
+        }
+
+        private async Task<TResult> QueryByCacheAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback, String action)
+        {
+            // 读写分离
+            if (Strategy != null)
+            {
+                if (Strategy.Validate(this, k1 + "", action)) return await ReadOnly.QueryByCacheAsync(k1, k2, k3, callback, action);
+            }
+
+            CheckDatabase();
+
+            // 读缓存
+            var cache = GetCache();
+            var key = "";
+            if (cache != null)
+            {
+                var sb = Pool.StringBuilder.Get();
+                if (!action.IsNullOrEmpty())
+                {
+                    sb.Append(action);
+                    sb.Append('#');
+                }
+                Append(sb, k1);
+                Append(sb, k2);
+                Append(sb, k3);
+                key = sb.Put(true);
+
+                if (cache.TryGetValue<TResult>(key, out var value)) return value;
+            }
+
+            Interlocked.Increment(ref _QueryTimes);
+            var rs = await InvokeAsync(k1, k2, k3, callback, action);
+
+            cache?.Set(key, rs, Expire);
+
+            return rs;
+        }
+
+        private async Task<TResult> ExecuteByCacheAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback)
+        {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
+
+            CheckDatabase();
+
+            var rs = await InvokeAsync(k1, k2, k3, callback, "Execute");
+
+            GetCache()?.Clear();
+
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            return rs;
+        }
+
+        private Task<TResult> InvokeAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback, String action)
         {
             var tracer = Tracer ?? GlobalTracer;
             var traceName = "";
