@@ -479,6 +479,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this UInt16 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[2];
             return buf.Write(value, 0, isLittleEndian);
         }
@@ -489,6 +491,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this Int16 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[2];
             return buf.Write((UInt16)value, 0, isLittleEndian);
         }
@@ -499,6 +503,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this UInt32 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[4];
             return buf.Write(value, 0, isLittleEndian);
         }
@@ -509,6 +515,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this Int32 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[4];
             return buf.Write((UInt32)value, 0, isLittleEndian);
         }
@@ -519,6 +527,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this UInt64 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[8];
             return buf.Write(value, 0, isLittleEndian);
         }
@@ -529,6 +539,8 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] GetBytes(this Int64 value, Boolean isLittleEndian = true)
         {
+            if (isLittleEndian) return BitConverter.GetBytes(value);
+
             var buf = new Byte[8];
             return buf.Write((UInt64)value, 0, isLittleEndian);
         }

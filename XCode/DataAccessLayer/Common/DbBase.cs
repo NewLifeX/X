@@ -69,13 +69,12 @@ namespace XCode.DataAccessLayer
         /// <summary>释放所有会话</summary>
         internal void ReleaseSession()
         {
-            //_store.Values.TryDispose();
             var st = _store;
-            if (st != null && st.IsValueCreated)
-            {
-                _store = new ThreadLocal<IDbSession>();
-                //st.TryDispose();
-            }
+#if NET40 || NET45
+            if (st != null) _store = new ThreadLocal<IDbSession>();
+#else
+            if (st != null) _store = new AsyncLocal<IDbSession>();
+#endif
         }
         #endregion
 
@@ -144,30 +143,6 @@ namespace XCode.DataAccessLayer
             if (ConnectionString.IsNullOrWhiteSpace())
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
         }
-
-        //private ConnectionPool _Pool;
-        ///// <summary>连接池</summary>
-        //public ConnectionPool Pool
-        //{
-        //    get
-        //    {
-        //        if (_Pool != null) return _Pool;
-        //        lock (this)
-        //        {
-        //            if (_Pool != null) return _Pool;
-
-        //            var pool = new ConnectionPool
-        //            {
-        //                Name = ConnName + "Pool",
-        //                Factory = Factory,
-        //                ConnectionString = ConnectionString,
-        //            };
-        //            if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
-
-        //            return _Pool = pool;
-        //        }
-        //    }
-        //}
 
         protected virtual String DefaultConnectionString => String.Empty;
 
@@ -247,8 +222,11 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>();
+#if NET40 || NET45
+        private ThreadLocal<IDbSession> _store = new();
+#else
+        private AsyncLocal<IDbSession> _store = new();
+#endif
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>

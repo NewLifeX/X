@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
 using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
 
 namespace XCode
 {
-    partial class Entity<TEntity>
+    public partial class Entity<TEntity>
     {
         /// <summary>实体元数据</summary>
         public static class Meta
@@ -44,50 +45,29 @@ namespace XCode
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 
-            [ThreadStatic]
-            private static String _ConnName;
+#if NET40 || NET45
+            private static readonly ThreadLocal<String> _ConnName = new();
+#else
+            private static readonly AsyncLocal<String> _ConnName = new();
+#endif
             /// <summary>链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
             public static String ConnName
             {
-                get { if (_ConnName.IsNullOrEmpty()) _ConnName = Table.ConnName; return _ConnName; }
-                set
-                {
-                    _Session = null;
-                    _ConnName = value;
-                }
+                get => _ConnName.Value ??= Table.ConnName;
+                set { _Session.Value = null; _ConnName.Value = value; }
             }
 
-            [ThreadStatic]
-            private static String _TableName;
+#if NET40 || NET45
+            private static readonly ThreadLocal<String> _TableName = new();
+#else
+            private static readonly AsyncLocal<String> _TableName = new();
+#endif
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get
-                {
-                    if (_TableName == null)
-                    {
-                        var name = Table.TableName;
-
-                        //// 检查自动表前缀
-                        //var dal = DAL.Create(ConnName);
-                        //var pf = dal.Db.TablePrefix;
-                        //if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
-
-                        _TableName = name;
-                    }
-                    return _TableName;
-                }
-                set
-                {
-                    _Session = null;
-                    _TableName = value;
-                }
+                get => _TableName.Value ??= Table.TableName;
+                set { _Session.Value = null; _TableName.Value = value; }
             }
-
-            //[ThreadStatic]
-            //private static String _ReadOnlyConnName;
-            ///// <summary>只读链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
-            //public static String ReadOnlyConnName { get => _ReadOnlyConnName; set => _ReadOnlyConnName = value; }
 
             /// <summary>所有数据属性</summary>
             public static FieldItem[] AllFields => Table.AllFields;
@@ -115,50 +95,13 @@ namespace XCode
             #endregion
 
             #region 会话
-            [ThreadStatic]
-            private static EntitySession<TEntity> _Session;
-            //[ThreadStatic]
-            //private static EntitySession<TEntity> _ReadOnlySession;
-
+#if NET40 || NET45
+            private static readonly ThreadLocal<EntitySession<TEntity>> _Session = new();
+#else
+            private static readonly AsyncLocal<EntitySession<TEntity>> _Session = new();
+#endif
             /// <summary>实体会话。线程静态</summary>
-            public static EntitySession<TEntity> Session => _Session ??= EntitySession<TEntity>.Create(ConnName, TableName);
-
-            ///// <summary>获取实体会话，用于数据库操作</summary>
-            ///// <param name="readOnly"></param>
-            ///// <returns></returns>
-            //public static EntitySession<TEntity> GetSession(Boolean readOnly)
-            //{
-            //    var tableName = TableName;
-
-            //    // 只读连接
-            //    if (readOnly)
-            //    {
-            //        // 根据后缀查找只读连接名
-            //        var name = ReadOnlyConnName;
-            //        if (name == null)
-            //        {
-            //            name = Table.ConnName + ".readonly";
-            //            if (!DAL.ConnStrs.ContainsKey(name)) name = "";
-
-            //            ReadOnlyConnName = name;
-            //        }
-
-            //        if (name != "")
-            //        {
-            //            // 连接名和表名没有改变
-            //            var rss = _ReadOnlySession;
-            //            if (rss != null && rss.ConnName == name && rss.TableName == tableName) return rss;
-
-            //            return _ReadOnlySession = EntitySession<TEntity>.Create(name, tableName);
-            //        }
-            //    }
-
-            //    // 连接名和表名没有改变
-            //    var ss = _Session;
-            //    if (ss != null && ss.ConnName == ConnName && ss.TableName == tableName) return ss;
-
-            //    return _Session = EntitySession<TEntity>.Create(ConnName, tableName);
-            //}
+            public static EntitySession<TEntity> Session => _Session.Value ??= EntitySession<TEntity>.Create(ConnName, TableName);
             #endregion
 
             #region 事务保护
@@ -263,7 +206,7 @@ namespace XCode
                 return new SplitPackge(connName, tableName);
             }
 
-            class SplitPackge : IDisposable
+            private class SplitPackge : IDisposable
             {
                 /// <summary>连接名</summary>
                 public String ConnName { get; set; }
