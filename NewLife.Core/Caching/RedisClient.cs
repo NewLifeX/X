@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -247,7 +248,7 @@ namespace NewLife.Caching
                     ms.Write(_NewLine);
                 }
             }
-            if (log != null) WriteLog(log.Put(true));
+            if (log != null) WriteLog("=> {0}", log.Put(true));
         }
 
         /// <summary>接收响应</summary>
@@ -261,11 +262,12 @@ namespace NewLife.Caching
              * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
              * 2: 错误信息。-开头， 例：-ERR unknown command 'mush'\r\n
              * 3: 整型数字。:开头， 例：:1\r\n
-             * 4：大块回复值，最大512M。  $开头+数据长度。 例：$4\r\mush\r\n
+             * 4：大块回复值，最大512M。  $开头+数据长度。 例：$4\r\nmush\r\n
              * 5：多条回复。*开头， 例：*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n
              */
 
             var ms = new BufferedStream(ns);
+            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
 
             // 多行响应
             var list = new List<Object>();
@@ -276,21 +278,20 @@ namespace NewLife.Caching
                 if (b == -1) break;
 
                 var header = (Char)b;
+                log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(ReadBlock(ms));
+                    list.Add(ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
-                    list.Add(ReadBlocks(ms));
+                    list.Add(ReadBlocks(ms, log));
                 }
                 else
                 {
                     // 字符串以换行为结束符
                     var str = ReadLine(ms);
-
-                    var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
-                    if (log != null) WriteLog("=> {0}", str);
+                    log?.Append(str);
 
                     if (header == '+' || header == ':')
                         list.Add(str);
@@ -303,6 +304,8 @@ namespace NewLife.Caching
                     }
                 }
             }
+
+            if (log != null) WriteLog("<= {0}", log.Put(true));
 
             return list;
         }
@@ -353,12 +356,13 @@ namespace NewLife.Caching
              * 1：简单字符串，非二进制安全字符串，一般是状态回复。  +开头，例：+OK\r\n 
              * 2: 错误信息。-开头， 例：-ERR unknown command 'mush'\r\n
              * 3: 整型数字。:开头， 例：:1\r\n
-             * 4：大块回复值，最大512M。  $开头+数据长度。 例：$4\r\mush\r\n
+             * 4：大块回复值，最大512M。  $开头+数据长度。 例：$4\r\nmush\r\n
              * 5：多条回复。*开头， 例：*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n
              */
 
             var list = new List<Object>();
             var ms = ns;
+            var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
 
             // 取巧进行异步操作，只要异步读取到第一个字节，后续同步读取
             var buf = new Byte[1];
@@ -380,21 +384,20 @@ namespace NewLife.Caching
                     header = (Char)b;
                 }
 
+                log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(ReadBlock(ms));
+                    list.Add(ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
-                    list.Add(ReadBlocks(ms));
+                    list.Add(ReadBlocks(ms, log));
                 }
                 else
                 {
                     // 字符串以换行为结束符
                     var str = ReadLine(ms);
-
-                    var log = Log == null || Log == Logger.Null ? null : Pool.StringBuilder.Get();
-                    if (log != null) WriteLog("=> {0}", str);
+                    log?.Append(str);
 
                     if (header == '+' || header == ':')
                         list.Add(str);
@@ -407,6 +410,8 @@ namespace NewLife.Caching
                     }
                 }
             }
+
+            if (log != null) WriteLog("<= {0}", log.Put(true));
 
             return list;
         }
@@ -485,57 +490,46 @@ namespace NewLife.Caching
             }
         }
 
-        private Packet ReadBlock(Stream ms)
-        {
-            var rs = ReadPacket(ms);
+        private Packet ReadBlock(Stream ms, StringBuilder log) => ReadPacket(ms, log);
 
-            if (rs is Packet pk && Log != null && Log != Logger.Null)
-            {
-                WriteLog("=> [{0}]{1}", pk.Count, pk.ToStr(null, 0, 1024)?.TrimEnd());
-            }
-
-            return rs;
-        }
-
-        private Object[] ReadBlocks(Stream ms)
+        private Object[] ReadBlocks(Stream ms, StringBuilder log)
         {
             // 结果集数量
-            var n = ReadLine(ms).ToInt(-1);
-            if (n < 0) return new Object[0];
+            var len = ReadLine(ms).ToInt(-1);
+            log?.Append(len);
+            if (len < 0) return new Object[0];
 
-            //var ms = reader.BaseStream;
-            var arr = new Object[n];
-            for (var i = 0; i < n; i++)
+            var arr = new Object[len];
+            for (var i = 0; i < len; i++)
             {
                 var b = ms.ReadByte();
                 if (b == -1) break;
 
                 var header = (Char)b;
+                log?.Append(' ');
+                log?.Append(header);
                 if (header == '$')
                 {
-                    arr[i] = ReadPacket(ms);
+                    arr[i] = ReadPacket(ms, log);
                 }
                 else if (header == '+' || header == ':')
                 {
                     arr[i] = ReadLine(ms);
+                    log?.Append(arr[i]);
                 }
                 else if (header == '*')
                 {
-                    arr[i] = ReadBlocks(ms);
-                }
-
-                if (arr[i] is Packet pk && Log != null && Log != Logger.Null)
-                {
-                    WriteLog("=> [{0}]{1}", pk.Count, pk.ToStr(null, 0, 1024)?.TrimEnd());
+                    arr[i] = ReadBlocks(ms, log);
                 }
             }
 
             return arr;
         }
 
-        private static Packet ReadPacket(Stream ms)
+        private static Packet ReadPacket(Stream ms, StringBuilder log)
         {
             var len = ReadLine(ms).ToInt(-1);
+            log?.Append(len);
             if (len <= 0) return null;
             //if (len <= 0) throw new InvalidDataException();
 
@@ -550,7 +544,10 @@ namespace NewLife.Caching
                 p += count;
             }
 
-            return new Packet(buf, 0, p - 2);
+            var pk = new Packet(buf, 0, p - 2);
+            log?.AppendFormat(" {0}", pk.ToStr(null, 0, 1024)?.TrimEnd());
+
+            return pk;
         }
 
         private static String ReadLine(Stream ms)
@@ -821,7 +818,7 @@ namespace NewLife.Caching
             return list.ToArray();
         }
 
-        class Command
+        private class Command
         {
             public String Name { get; set; }
             public Object[] Args { get; set; }

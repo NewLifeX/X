@@ -638,7 +638,14 @@ namespace NewLife.Caching
             if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("2.6.12") >= 0)
             {
                 //!!! 重构Redis.Add实现，早期的SETNX支持设置过期时间，后来不支持了，并且连资料都找不到了，改用2.6.12新版 SET key value EX expire NX
-                return Execute(key, rds => rds.Execute<String>("SET", key, value, "EX", expire, "NX"), true) == "OK";
+                var result = Execute(key, rds => rds.Execute<String>("SET", key, value, "EX", expire, "NX"), true);
+                if (result.IsNullOrEmpty()) return false;
+                if (result == "OK") return true;
+
+                // 记录异常返回
+                XTrace.WriteLine("Redis.Add({0}, {1}, {2}) => {3}", key, value, expire, result);
+
+                return false;
             }
 
             // 旧版本不支持SETNX带过期时间，需要分为前后两条指令

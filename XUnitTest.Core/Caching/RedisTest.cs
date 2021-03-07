@@ -114,7 +114,8 @@ namespace XUnitTest.Caching
 
             XTrace.WriteLine("redis_version:{0}", ic.Info["redis_version"]);
 
-            ic.Set(key, Environment.UserName);
+            ic.Remove(key);
+            ic.Set(key, Environment.UserName, 23);
             var rs = ic.Add(key, Environment.MachineName, 30);
             Assert.False(rs);
 
@@ -182,9 +183,9 @@ namespace XUnitTest.Caching
             ic.Increment(key, 22);
             Assert.Equal(123 + 22, ic.Get<Int32>(key));
 
-            ic.Set(key2, 456d);
-            ic.Increment(key2, 22d);
-            Assert.Equal(456d + 22d, ic.Get<Double>(key2));
+            ic.Set(key2, 45.6d);
+            ic.Increment(key2, 2.2d);
+            Assert.Equal(45.6d + 2.2d, ic.Get<Double>(key2));
         }
 
         [Fact(DisplayName = "复杂对象")]
