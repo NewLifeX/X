@@ -139,6 +139,13 @@ namespace NewLife.Caching
         /// <returns>返回是否包含值，即使反序列化失败</returns>
         Boolean TryGetValue<T>(String key, out T value);
 
+        /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        T GetOrAdd<T>(String key, Func<String, T> callback);
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>

@@ -282,6 +282,26 @@ namespace NewLife.Caching
             return !item.Expired;
         }
 
+        /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public override T GetOrAdd<T>(String key, Func<String, T> callback)
+        {
+            CacheItem ci = null;
+            do
+            {
+                if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
+
+                if (ci == null) ci = new CacheItem(callback(key), Expire);
+            } while (!_cache.TryAdd(key, ci));
+
+            Interlocked.Increment(ref _count);
+
+            return (T)ci.Visit();
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>

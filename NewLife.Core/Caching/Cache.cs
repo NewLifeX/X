@@ -186,6 +186,25 @@ namespace NewLife.Caching
             return ContainsKey(key);
         }
 
+        /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public virtual T GetOrAdd<T>(String key, Func<String, T> callback)
+        {
+            var value = Get<T>(key);
+            if (!Equals(value, default)) return value;
+
+            if (ContainsKey(key)) return value;
+
+            value = callback(key);
+
+            if (Add(key, value)) return value;
+
+            return Get<T>(key);
+        }
+
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
