@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
@@ -27,6 +28,9 @@ namespace NewLife.Remoting
         /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
         public Boolean UseProxy { get; set; }
 
+        /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
+        public Boolean RoundRobin { get; set; }
+
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
@@ -44,6 +48,9 @@ namespace NewLife.Remoting
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
         public IList<Service> Services { get; } = new List<Service>();
+
+        /// <summary>当前服务</summary>
+        protected Service _currentService;
         #endregion
 
         #region 构造
@@ -51,7 +58,7 @@ namespace NewLife.Remoting
         public ApiHttpClient() { }
 
         /// <summary>实例化</summary>
-        /// <param name="urls">地址集合。多地址逗号分隔，支持权重，3*http://127.0.0.1:1234,7*http://127.0.0.1:3344</param>
+        /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
         public ApiHttpClient(String urls)
         {
             if (!urls.IsNullOrEmpty())
@@ -59,21 +66,7 @@ namespace NewLife.Remoting
                 var ss = urls.Split(",");
                 for (var i = 0; i < ss.Length; i++)
                 {
-                    var svc = new Service
-                    {
-                        Name = "service" + (i + 1)
-                    };
-
-                    // 解析权重
-                    var url = ss[i];
-                    var p = url.IndexOf("*http");
-                    if (p > 0)
-                    {
-                        svc.Weight = url.Substring(0, p).ToInt();
-                        url = url.Substring(p + 1);
-                    }
-
-                    svc.Address = new Uri(url);
+                    if (!ss[i].IsNullOrEmpty()) Add("service" + (i + 1), ss[i]);
                 }
             }
         }
@@ -92,6 +85,37 @@ namespace NewLife.Remoting
         #endregion
 
         #region 方法
+        /// <summary>添加服务地址</summary>
+        /// <param name="name">名称</param>
+        /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
+        public void Add(String name, String address)
+        {
+            var url = address;
+            var svc = new Service
+            {
+                Name = name
+            };
+
+            // 解析名称
+            var p = url.IndexOf('=');
+            if (p > 0)
+            {
+                svc.Name = url.Substring(0, p);
+                url = url.Substring(p + 1);
+            }
+
+            // 解析权重
+            p = url.IndexOf("*http");
+            if (p > 0)
+            {
+                svc.Weight = url.Substring(0, p).ToInt();
+                url = url.Substring(p + 1);
+            }
+
+            svc.Address = new Uri(url);
+            Services.Add(svc);
+        }
+
         /// <summary>添加服务地址</summary>
         /// <param name="name"></param>
         /// <param name="address"></param>
@@ -150,19 +174,15 @@ namespace NewLife.Remoting
                 }
                 catch (ApiException ex)
                 {
-                    ex.Source = svrs[_idxServer % svrs.Count]?.Address + "/" + action;
+                    ex.Source = _currentService?.Address + "/" + action;
                     throw;
                 }
                 catch (HttpRequestException)
                 {
-                    // 网络异常时，自动切换到其它节点
-                    _idxServer++;
                     if (++i >= svrs.Count) throw;
                 }
                 catch (TaskCanceledException)
                 {
-                    // 网络异常时，自动切换到其它节点
-                    _idxServer++;
                     if (++i >= svrs.Count) throw;
                 }
             } while (true);
@@ -210,9 +230,7 @@ namespace NewLife.Remoting
 
         #region 调度池
         /// <summary>调度索引，当前使用该索引处的服务</summary>
-        protected volatile Int32 _idxServer;
-        private Int32 _idxLast = -1;
-        private DateTime _nextTrace;
+        private volatile Int32 _idxServer;
 
         /// <summary>异步发送</summary>
         /// <param name="request">请求</param>
@@ -224,10 +242,12 @@ namespace NewLife.Remoting
             // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
             var service = GetService();
             Source = service.Name;
+            _currentService = service;
 
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;
             var sw = st.StartCount();
+            Exception error = null;
             try
             {
                 var client = service.Client;
@@ -242,9 +262,9 @@ namespace NewLife.Remoting
 
                 return await SendOnServiceAsync(request, service, client);
             }
-            catch
+            catch (Exception ex)
             {
-                service.Client = null;
+                error = ex;
 
                 throw;
             }
@@ -254,7 +274,7 @@ namespace NewLife.Remoting
                 if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
 
                 // 归还服务
-                PutService(service);
+                PutService(service, error);
             }
         }
 
@@ -266,34 +286,65 @@ namespace NewLife.Remoting
         protected virtual Service GetService()
         {
             var svrs = Services;
+            if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
 
-            // 一定时间后，切换回来主节点
-            var idx = _idxServer;
-            if (idx > 0)
+            if (RoundRobin)
             {
-                var now = DateTime.Now;
-                if (_nextTrace.Year < 2000) _nextTrace = now.AddSeconds(300);
-                if (now > _nextTrace)
+                // 判断当前节点是否有效
+                Service svc = null;
+                for (var i = 0; i < svrs.Count; i++)
                 {
-                    _nextTrace = DateTime.MinValue;
+                    svc = svrs[_idxServer % svrs.Count];
 
-                    idx = _idxServer = 0;
+                    // 权重足够，又没有错误，就是它了
+                    if ((svc.Weight <= 0 || svc.Index < svc.Weight || svrs.Count == 1) && svc.NextTime < DateTime.Now) break;
+
+                    // 这个就算了，再下一个
+                    svc.Index = 0;
+                    svc = null;
+                    _idxServer++;
                 }
-            }
+                if (svc == null) throw new XException("没有可用服务节点！");
 
-            if (idx != _idxLast)
+                svc.Times++;
+
+                // 计算下一次节点
+                svc.Index++;
+                if (svc.Index >= svc.Weight)
+                {
+                    svc.Index = 0;
+                    _idxServer++;
+                }
+                if (_idxServer >= svrs.Count) _idxServer = 0;
+
+                return svc;
+            }
+            else
             {
-                XTrace.WriteLine("Http使用 {0}", svrs[idx % svrs.Count].Address);
+                // 一定时间后，切换回来主节点
+                var idx = _idxServer;
+                if (idx > 0 && svrs[0].NextTime < DateTime.Now) idx = _idxServer = 0;
 
-                _idxLast = idx;
+                return svrs[idx % svrs.Count];
             }
-
-            return svrs[idx % svrs.Count];
         }
 
         /// <summary>归还服务，此处实现故障转移Failover，服务的客户端被清空，说明当前服务不可用</summary>
         /// <param name="service"></param>
-        protected virtual void PutService(Service service) { }
+        /// <param name="error"></param>
+        protected virtual void PutService(Service service, Exception error)
+        {
+            if (error is HttpRequestException || error is TaskCanceledException)
+            {
+                // 网络异常时，自动切换到其它节点
+                _idxServer++;
+            }
+            if (error != null)
+            {
+                service.Client = null;
+                service.NextTime = DateTime.Now.AddSeconds(RoundRobin ? 60 : 300);
+            }
+        }
 
         /// <summary>在指定服务地址上发生请求</summary>
         /// <param name="request">请求消息</param>
@@ -337,6 +388,12 @@ namespace NewLife.Remoting
 
             /// <summary>权重。用于负载均衡，默认1</summary>
             public Int32 Weight { get; set; } = 1;
+
+            /// <summary>轮询均衡时，本项第几次使用</summary>
+            internal Int32 Index;
+
+            /// <summary>总次数</summary>
+            public Int32 Times { get; set; }
 
             /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
             [XmlIgnore, IgnoreDataMember]

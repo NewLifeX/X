@@ -121,5 +121,86 @@ namespace XUnitTest.Remoting
             var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(infs);
         }
+
+        [Fact]
+        public async void RoundRobinTest()
+        {
+            var client = new ApiHttpClient("test1=3*http://127.0.0.1:10000,test2=7*http://127.0.0.1:20000,")
+            {
+                RoundRobin = true,
+                Timeout = 3_000,
+                Log = XTrace.Log,
+            };
+
+            Assert.Equal(2, client.Services.Count);
+
+            // 再加两个
+            client.Add("test3", "2*" + _Address);
+            client.Add("test4", "1*" + _Address);
+
+            Assert.Equal(4, client.Services.Count);
+
+            {
+                var svc = client.Services[0];
+                Assert.Equal("test1", svc.Name);
+                Assert.Equal(3, svc.Weight);
+                Assert.Equal("http://127.0.0.1:10000/", svc.Address + "");
+
+                svc = client.Services[1];
+                Assert.Equal("test2", svc.Name);
+                Assert.Equal(7, svc.Weight);
+                Assert.Equal("http://127.0.0.1:20000/", svc.Address + "");
+
+                svc = client.Services[2];
+                Assert.Equal("test3", svc.Name);
+                Assert.Equal(2, svc.Weight);
+                Assert.Equal(_Address + "/", svc.Address + "");
+            }
+
+            var ac = client as IApiClient;
+
+            {
+                var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
+                Assert.NotNull(infs);
+            }
+            {
+                var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
+                Assert.NotNull(infs);
+            }
+            {
+                var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
+                Assert.NotNull(infs);
+            }
+            {
+                var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
+                Assert.NotNull(infs);
+            }
+
+            // 判断结果
+            {
+                var svc = client.Services[0];
+                Assert.Null(svc.Client);
+                Assert.True(svc.NextTime > DateTime.Now.AddSeconds(55));
+                Assert.Equal(1, svc.Times);
+            }
+            {
+                var svc = client.Services[1];
+                Assert.Null(svc.Client);
+                Assert.True(svc.NextTime > DateTime.Now.AddSeconds(55));
+                Assert.Equal(1, svc.Times);
+            }
+            {
+                var svc = client.Services[2];
+                Assert.NotNull(svc.Client);
+                Assert.True(svc.NextTime.Year < 2000);
+                Assert.Equal(3, svc.Times);
+            }
+            {
+                var svc = client.Services[3];
+                Assert.NotNull(svc.Client);
+                Assert.True(svc.NextTime.Year < 2000);
+                Assert.Equal(1, svc.Times);
+            }
+        }
     }
 }
