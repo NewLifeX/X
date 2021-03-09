@@ -51,16 +51,29 @@ namespace NewLife.Remoting
         public ApiHttpClient() { }
 
         /// <summary>实例化</summary>
-        /// <param name="urls"></param>
+        /// <param name="urls">地址集合。多地址逗号分隔，支持权重，3*http://127.0.0.1:1234,7*http://127.0.0.1:3344</param>
         public ApiHttpClient(String urls)
         {
-            //Add("Default", new Uri(urls));
             if (!urls.IsNullOrEmpty())
             {
                 var ss = urls.Split(",");
                 for (var i = 0; i < ss.Length; i++)
                 {
-                    Add("service" + (i + 1), new Uri(ss[i]));
+                    var svc = new Service
+                    {
+                        Name = "service" + (i + 1)
+                    };
+
+                    // 解析权重
+                    var url = ss[i];
+                    var p = url.IndexOf("*http");
+                    if (p > 0)
+                    {
+                        svc.Weight = url.Substring(0, p).ToInt();
+                        url = url.Substring(p + 1);
+                    }
+
+                    svc.Address = new Uri(url);
                 }
             }
         }
@@ -275,7 +288,7 @@ namespace NewLife.Remoting
                 _idxLast = idx;
             }
 
-            return svrs[_idxServer % svrs.Count];
+            return svrs[idx % svrs.Count];
         }
 
         /// <summary>归还服务，此处实现故障转移Failover，服务的客户端被清空，说明当前服务不可用</summary>
@@ -321,6 +334,13 @@ namespace NewLife.Remoting
 
             /// <summary>名称</summary>
             public Uri Address { get; set; }
+
+            /// <summary>权重。用于负载均衡，默认1</summary>
+            public Int32 Weight { get; set; } = 1;
+
+            /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
+            [XmlIgnore, IgnoreDataMember]
+            public DateTime NextTime { get; set; }
 
             /// <summary>客户端</summary>
             [XmlIgnore, IgnoreDataMember]
