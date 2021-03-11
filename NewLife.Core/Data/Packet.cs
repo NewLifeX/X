@@ -319,9 +319,9 @@ namespace NewLife.Data
         }
 
         /// <summary>把封包写入到目标数组</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">目标数组</param>
+        /// <param name="offset">目标数组的偏移量</param>
+        /// <param name="count">目标数组的字节数</param>
         public void WriteTo(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (count < 0) count = Total;
