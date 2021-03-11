@@ -330,10 +330,10 @@ namespace NewLife.Http
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 #if NET4
             rs.CopyTo(fs);
-            //fs.Flush();
+            fs.Flush();
 #else
             await rs.CopyToAsync(fs);
-            //await fs.FlushAsync();
+            await fs.FlushAsync();
 #endif
         }
         #endregion

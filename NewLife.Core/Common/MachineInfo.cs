@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
@@ -62,6 +61,9 @@ namespace NewLife
 
         /// <summary>温度</summary>
         public Double Temperature { get; set; }
+
+        /// <summary>电池剩余</summary>
+        public Double Battery { get; set; }
         #endregion
 
         #region 构造
@@ -230,6 +232,10 @@ namespace NewLife
                 if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
             }
 
+            // 电池剩余
+            str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+            if (!str.IsNullOrEmpty()) Battery = str.ToDouble() / 100.0;
+
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 #endif
         }
@@ -270,6 +276,12 @@ namespace NewLife
             // 从注册表读取 MachineGuid
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
+
+            var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+            if (battery != null)
+            {
+                if (battery.TryGetValue("EstimatedChargeRemaining", out str)) Battery = str.ToDouble() / 100.0;
+            }
         }
 
         private void LoadLinuxInfo()
@@ -315,6 +327,17 @@ namespace NewLife
             // 从release文件读取产品
             var prd = GetProductByRelease();
             if (!prd.IsNullOrEmpty()) Product = prd;
+
+            // 电池剩余
+            if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
+                TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
+            {
+                Battery = energy_now.ToDouble() / energy_full.ToDouble();
+            }
+            else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
+            {
+                Battery = capacity.ToDouble() / 100.0;
+            }
         }
 
         /// <summary>获取实时数据，如CPU、内存、温度</summary>
