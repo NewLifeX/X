@@ -65,9 +65,9 @@ namespace NewLife.Http
             {
                 // 数据包拼接到上一个未完整消息中
                 if (msg.Payload == null)
-                    msg.Payload = pk;
+                    msg.Payload = pk.Clone(); //拷贝一份，避免缓冲区重用
                 else
-                    msg.Payload.Append(pk);
+                    msg.Payload.Append(pk.Clone());//拷贝一份，避免缓冲区重用
 
                 // 消息完整才允许上报
                 if (msg.ContentLength == 0 || msg.ContentLength > 0 && msg.Payload != null && msg.Payload.Total >= msg.ContentLength)
@@ -109,7 +109,18 @@ namespace NewLife.Http
                     {
                         // 请求不完整，拷贝一份，避免缓冲区重用
                         if (msg.Header != null) msg.Header = msg.Header.Clone();
-                        if (msg.Payload != null) msg.Payload = msg.Payload.Clone();
+                        if (msg.Payload != null)
+                        {
+                            // payload有长度时才能复制，否则会造成数据错误
+                            if (msg.Payload.Count > 0)
+                            {
+                                msg.Payload = msg.Payload.Clone();
+                            } 
+                            else
+                            {
+                                msg.Payload = null;
+                            }
+                        }
 
                         ext["Message"] = msg;
                     }
