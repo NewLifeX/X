@@ -255,6 +255,7 @@ namespace NewLife.Net
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
             if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
+            se.SetBuffer(null, 0, 0);
             se.TryDispose();
         }
 
