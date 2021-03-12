@@ -219,7 +219,7 @@ namespace NewLife.Remoting
             if (!Token.IsNullOrEmpty())
             {
                 var dic = args.ToDictionary();
-                if (!dic.ContainsKey(nameof(Token))) dic[nameof(Token)] = Token;
+                if (!dic.ContainsKey("Token")) dic["Token"] = Token;
                 args = dic;
             }
 

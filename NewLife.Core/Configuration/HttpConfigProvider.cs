@@ -34,6 +34,9 @@ namespace NewLife.Configuration
         /// <summary>更新周期。默认60秒</summary>
         public Int32 Period { get; set; } = 60;
 
+        /// <summary>Api客户端</summary>
+        public IApiClient Client { get; set; }
+
         private Int32 _version;
         private IDictionary<String, Object> _cache;
         #endregion
@@ -46,23 +49,22 @@ namespace NewLife.Configuration
             base.Dispose(disposing);
 
             _timer.TryDispose();
-            _client.TryDispose();
+            Client.TryDispose();
         }
         #endregion
 
         #region 方法
-        private ApiHttpClient _client;
-        private ApiHttpClient GetClient()
+        private IApiClient GetClient()
         {
-            if (_client == null)
+            if (Client == null)
             {
-                _client = new ApiHttpClient(Server)
+                Client = new ApiHttpClient(Server)
                 {
                     Timeout = 3_000
                 };
             }
 
-            return _client;
+            return Client;
         }
 
         /// <summary>设置阿波罗服务端</summary>
@@ -102,7 +104,7 @@ namespace NewLife.Configuration
         /// <returns></returns>
         protected virtual IDictionary<String, Object> GetAll()
         {
-            var client = GetClient();
+            var client = GetClient() as ApiHttpClient;
 
             // 特殊处理Apollo
             if (!NameSpace.IsNullOrEmpty())
