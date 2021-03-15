@@ -124,12 +124,14 @@ namespace NewLife.Configuration
             }
             else
             {
-                var rs = client.Get<IDictionary<String, Object>>("Config/GetAll", new
+                var rs = client.Post<IDictionary<String, Object>>("Config/GetAll", new
                 {
                     appId = AppId,
                     secret = Secret,
                     scope = Scope,
                     version = _version,
+                    usedKeys = UsedKeys.Join(),
+                    missedKeys = MissedKeys.Join(),
                 });
 
                 // 增强版返回

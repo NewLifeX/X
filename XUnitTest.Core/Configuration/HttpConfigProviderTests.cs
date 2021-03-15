@@ -91,6 +91,8 @@ namespace XUnitTest.Configuration
             Assert.Equal(str, model2.Test);
             Assert.NotEmpty(model.Shop);
             Assert.Equal("NewLife开发团队", model.Title);
+
+            provider.LoadAll();
         }
 
         private class Model2

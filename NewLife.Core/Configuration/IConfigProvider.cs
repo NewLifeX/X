@@ -71,6 +71,12 @@ namespace NewLife.Configuration
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
+
+        /// <summary>已使用的键</summary>
+        public ICollection<String> UsedKeys { get; } = new List<String>();
+
+        /// <summary>缺失的键</summary>
+        public ICollection<String> MissedKeys { get; } = new List<String>();
         #endregion
 
         #region 构造
@@ -84,17 +90,37 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public virtual String this[String key]
         {
-            get { EnsureLoad(); return Root.Find(key, false)?.Value; }
-            set => Root.Find(key, true).Value = value;
+            get { EnsureLoad(); return Find(key, false)?.Value; }
+            set => Find(key, true).Value = value;
         }
 
         /// <summary>查找配置项。可得到子级和配置</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual IConfigSection GetSection(String key) => Root.Find(key, false);
+        public virtual IConfigSection GetSection(String key) => Find(key, false);
 
         /// <summary>返回获取配置的委托</summary>
-        public virtual GetConfigCallback GetConfig => key => Root.Find(key, false)?.Value;
+        public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
+
+        private IConfigSection Find(String key, Boolean createOnMiss)
+        {
+            UseKey(key);
+
+            var sec = Root.Find(key, createOnMiss);
+            if (sec == null) MissKey(key);
+
+            return sec;
+        }
+
+        internal void UseKey(String key)
+        {
+            if (!key.IsNullOrEmpty() && !UsedKeys.Contains(key)) UsedKeys.Add(key);
+        }
+
+        internal void MissKey(String key)
+        {
+            if (!key.IsNullOrEmpty() && !MissedKeys.Contains(key)) MissedKeys.Add(key);
+        }
 
         /// <summary>初始化提供者</summary>
         /// <param name="value"></param>
@@ -131,7 +157,7 @@ namespace NewLife.Configuration
             if (model is IConfigMapping map)
                 map.MapConfig(this, source);
             else
-                source.MapTo(model);
+                source.MapTo(model, this);
 
             return model;
         }
@@ -172,7 +198,7 @@ namespace NewLife.Configuration
                 if (model is IConfigMapping map)
                     map.MapConfig(this, source);
                 else
-                    source.MapTo(model);
+                    source.MapTo(model, this);
             }
         }
         #endregion
