@@ -135,10 +135,12 @@ namespace NewLife.Configuration
                 });
 
                 // 增强版返回
-                if (rs.TryGetValue("configs", out var obj) && obj is IDictionary<String, Object> configs)
+                if (rs.TryGetValue("configs", out var obj))
                 {
                     var ver = rs["version"].ToInt(-1);
                     if (ver > 0) _version = ver;
+
+                    if (obj is not IDictionary<String, Object> configs) return null;
 
                     return configs;
                 }
@@ -186,13 +188,25 @@ namespace NewLife.Configuration
         /// <summary>加载配置</summary>
         public override Boolean LoadAll()
         {
-            var dic = GetAll();
-            Root = Build(dic);
+            try
+            {
+                var dic = GetAll();
+                if (dic != null)
+                {
+                    Root = Build(dic);
 
-            // 缓存
-            SaveCache(dic);
+                    // 缓存
+                    SaveCache(dic);
+                }
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+
+                return false;
+            }
         }
 
         private void SaveCache(IDictionary<String, Object> configs)
