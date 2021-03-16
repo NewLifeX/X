@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using NewLife;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -201,6 +202,28 @@ namespace XUnitTest.Remoting
                 Assert.True(svc.NextTime.Year < 2000);
                 Assert.Equal(1, svc.Times);
             }
+        }
+
+        [Fact]
+        public async void FilterTest()
+        {
+            var filter = new TokenHttpFilter
+            {
+                UserName = "starweb",
+                Password = "",
+            };
+
+            var client = new ApiHttpClient("http://star.newlifex.com:6600")
+            {
+                Filter = filter,
+
+                Log = XTrace.Log,
+            };
+
+            var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
+
+            Assert.NotNull(rs);
+            Assert.NotNull(filter.Token);
         }
     }
 }

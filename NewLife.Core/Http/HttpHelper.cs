@@ -25,6 +25,9 @@ namespace NewLife.Http
         /// <summary>性能跟踪器</summary>
         public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
 
+        /// <summary>Http过滤器</summary>
+        public static IHttpFilter Filter { get; set; }
+
         #region Http封包解包
         /// <summary>创建请求包</summary>
         /// <param name="method"></param>
@@ -294,13 +297,20 @@ namespace NewLife.Http
             if (span != null) span.SetError(null, content.ReadAsStringAsync().Result);
             try
             {
-                var rs = await client.SendAsync(request);
-                return await rs.Content.ReadAsStringAsync();
+                Filter?.OnRequest(client, request, null);
+
+                var response = await client.SendAsync(request);
+
+                Filter?.OnResponse(client, response, null);
+
+                return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
                 // 跟踪异常
                 span?.SetError(ex, null);
+
+                Filter?.OnError(client, ex, null);
 
                 throw;
             }

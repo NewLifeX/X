@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -23,6 +24,9 @@ namespace NewLife.Remoting
         #region 远程调用
         /// <summary>性能跟踪器</summary>
         public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+
+        /// <summary>Http过滤器</summary>
+        public static IHttpFilter Filter { get; set; }
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -88,13 +92,20 @@ namespace NewLife.Remoting
             try
             {
                 // 发起请求
-                var msg = await client.SendAsync(request);
-                return await ProcessResponse<TResult>(msg, dataName);
+                Filter?.OnRequest(client, request, null);
+
+                var response = await client.SendAsync(request);
+
+                Filter?.OnResponse(client, response, null);
+
+                return await ProcessResponse<TResult>(response, dataName);
             }
             catch (Exception ex)
             {
                 // 跟踪异常
                 span?.SetError(ex, args);
+
+                Filter?.OnError(client, ex, null);
 
                 throw;
             }

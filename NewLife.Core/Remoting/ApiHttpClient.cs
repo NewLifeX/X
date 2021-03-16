@@ -34,6 +34,9 @@ namespace NewLife.Remoting
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
+        /// <summary>Http过滤器</summary>
+        public IHttpFilter Filter { get; set; }
+
         /// <summary>服务器源。正在使用的服务器</summary>
         public String Source { get; private set; }
 
@@ -174,15 +177,19 @@ namespace NewLife.Remoting
                 }
                 catch (ApiException ex)
                 {
+                    Filter?.OnError(_currentService?.Client, ex, this);
+
                     ex.Source = _currentService?.Address + "/" + action;
                     throw;
                 }
-                catch (HttpRequestException)
+                catch (HttpRequestException ex)
                 {
+                    Filter?.OnError(_currentService?.Client, ex, this);
                     if (++i >= svrs.Count) throw;
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException ex)
                 {
+                    Filter?.OnError(_currentService?.Client, ex, this);
                     if (++i >= svrs.Count) throw;
                 }
             } while (true);
@@ -353,11 +360,16 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client)
         {
-            var rs = await client.SendAsync(request);
-            // 业务层只会返回200 OK
-            rs.EnsureSuccessStatusCode();
+            Filter?.OnRequest(client, request, this);
 
-            return rs;
+            var response = await client.SendAsync(request);
+
+            Filter?.OnResponse(client, response, this);
+
+            // 业务层只会返回200 OK
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
 
         /// <summary>创建客户端</summary>
