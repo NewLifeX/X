@@ -228,7 +228,7 @@ namespace NewLife
             }
             else
             {
-                str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
                 if (!str.IsNullOrEmpty()) Temperature = (str.ToDouble() - 2732) / 10.0;
             }
 
@@ -276,6 +276,12 @@ namespace NewLife
             // 从注册表读取 MachineGuid
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
+
+            var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+            if (temp != null)
+            {
+                if (temp.TryGetValue("CurrentTemperature", out str)) Temperature = (str.ToDouble() - 2732) / 10.0;
+            }
 
             var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
             if (battery != null)
@@ -675,8 +681,9 @@ namespace NewLife
         /// <summary>获取WMI信息</summary>
         /// <param name="path"></param>
         /// <param name="property"></param>
+        /// <param name="nameSpace"></param>
         /// <returns></returns>
-        public static String GetInfo(String path, String property)
+        public static String GetInfo(String path, String property, String nameSpace = null)
         {
             // Linux Mono不支持WMI
             if (Runtime.Mono) return "";
@@ -685,7 +692,7 @@ namespace NewLife
             try
             {
                 var wql = $"Select {property} From {path}";
-                var cimobject = new ManagementObjectSearcher(wql);
+                var cimobject = new ManagementObjectSearcher(nameSpace, wql);
                 var moc = cimobject.Get();
                 foreach (var mo in moc)
                 {

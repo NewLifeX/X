@@ -69,7 +69,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
