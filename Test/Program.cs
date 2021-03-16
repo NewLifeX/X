@@ -130,7 +130,7 @@ namespace Test
             mi = MachineInfo.Current;
             for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0} Disk={3}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK());
+                XTrace.WriteLine("CPU={0:p2} Temp={1:n2} Memory={2:n0} Disk={3}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK());
                 Thread.Sleep(1000);
                 mi.Refresh();
             }
