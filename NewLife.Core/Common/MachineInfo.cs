@@ -158,7 +158,7 @@ namespace NewLife
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
 
             // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
@@ -220,6 +220,8 @@ namespace NewLife
             //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
             //}
 
+            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+
             // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
             var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
             if (!str.IsNullOrEmpty())
@@ -235,8 +237,6 @@ namespace NewLife
             // 电池剩余
             str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
             if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
-
-            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 #endif
         }
 
