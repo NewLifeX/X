@@ -69,7 +69,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -896,6 +896,30 @@ namespace Test
             var str = DAL.ConnStrs["MySQL.AppSettings"];
             Console.WriteLine(str);
             Console.WriteLine(DAL.ConnStrs["MySQL.AppSettings.default"]);
+        }
+
+        /// <summary>测试config文件的写入</summary>
+        private static void TestWriteConfig()
+        {
+            ConfigTest.Current.Names = new List<string> { "1", "2" };
+            ConfigTest.Current.Sex = "1";
+            ConfigTest.Current.xyf = new List<XYF>() { new XYF() { name = "123" }, new XYF() { name = "321" } };
+            ConfigTest.Current.Save();
+
+            //Class1.Current.Names = "123";
+            //Class1.Current.Save();
+
+            //Class1.Provider = XmlConfig;
+
+
+        }
+
+        /// <summary>测试config文件的读取</summary>
+        private static void TestReadConfig()
+        {
+            var z = ConfigTest.Current.Names;
+            var x = ConfigTest.Current.Sex;
+            var y = ConfigTest.Current.xyf;
         }
     }
 }

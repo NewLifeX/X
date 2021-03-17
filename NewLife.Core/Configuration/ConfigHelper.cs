@@ -211,8 +211,16 @@ namespace NewLife.Configuration
             for (var i = 0; i < section.Childs.Count; i++)
             {
                 var val = elementType.CreateInstance();
-                MapTo(section.Childs[i], val, provider);
-                list[i] = val;
+                if (elementType.GetTypeCode() != TypeCode.Object)
+                {
+                    val = section.Childs[i].Value;
+                }
+                else
+                {
+                    MapTo(section.Childs[i], val, provider);
+                    //list[i] = val;
+                }
+                list.Add(val);
             }
         }
 
