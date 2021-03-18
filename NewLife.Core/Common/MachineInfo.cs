@@ -158,7 +158,7 @@ namespace NewLife
             }
             catch (Exception ex)
             {
-                XTrace.WriteException(ex);
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
 
             // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
