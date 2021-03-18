@@ -220,6 +220,8 @@ namespace NewLife
             //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
             //}
 
+            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+
             // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
             var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
             if (!str.IsNullOrEmpty())
@@ -235,8 +237,6 @@ namespace NewLife
             // 电池剩余
             str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
             if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
-
-            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 #endif
         }
 
