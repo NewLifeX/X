@@ -292,8 +292,16 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual Service GetService()
         {
+            // 在可用服务节点中选择，如果全部节点不可用，则启用全部节点，避免网络恢复后无法及时通信
             var svrs = Services;
-            if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
+            //if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
+            if (!svrs.Any(e => e.NextTime < DateTime.Now))
+            {
+                foreach (var item in svrs)
+                {
+                    item.NextTime = DateTime.MinValue;
+                }
+            }
 
             if (RoundRobin)
             {
