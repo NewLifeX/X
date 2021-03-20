@@ -555,7 +555,7 @@ namespace NewLife
             {
                 var psi = new ProcessStartInfo(cmd, arguments)
                 {
-                    UseShellExecute = false,
+                    UseShellExecute = true,
                     RedirectStandardOutput = true
                 };
                 var process = Process.Start(psi);
