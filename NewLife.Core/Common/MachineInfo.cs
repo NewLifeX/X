@@ -222,21 +222,21 @@ namespace NewLife
 
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 
-            // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-            var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-            if (!str.IsNullOrEmpty())
-            {
-                Temperature = str.SplitAsInt().Average();
-            }
-            else
-            {
-                str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-                if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-            }
+            //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            //var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+            //if (!str.IsNullOrEmpty())
+            //{
+            //    Temperature = str.SplitAsInt().Average();
+            //}
+            //else
+            //{
+            //    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+            //    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+            //}
 
-            // 电池剩余
-            str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-            if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
+            //// 电池剩余
+            //str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+            //if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
 #endif
         }
 
@@ -277,17 +277,17 @@ namespace NewLife
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
 
-            var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-            if (temp != null)
-            {
-                if (temp.TryGetValue("CurrentTemperature", out str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-            }
+            //var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+            //if (temp != null)
+            //{
+            //    if (temp.TryGetValue("CurrentTemperature", out str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+            //}
 
-            var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-            if (battery != null)
-            {
-                if (battery.TryGetValue("EstimatedChargeRemaining", out str)) Battery = str.SplitAsInt().Average() / 100.0;
-            }
+            //var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+            //if (battery != null)
+            //{
+            //    if (battery.TryGetValue("EstimatedChargeRemaining", out str)) Battery = str.SplitAsInt().Average() / 100.0;
+            //}
         }
 
         private void LoadLinuxInfo()
@@ -434,6 +434,36 @@ namespace NewLife
                 _systemTime = current;
 
                 CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+
+#if __CORE__
+                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                if (temp != null)
+                {
+                    if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                }
+
+                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+                if (battery != null)
+                {
+                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                }
+#else
+                // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+                var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+                if (!str.IsNullOrEmpty())
+                {
+                    Temperature = str.SplitAsInt().Average();
+                }
+                else
+                {
+                    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+                    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                }
+
+                // 电池剩余
+                str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+                if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
+#endif
             }
         }
         #endregion
@@ -523,7 +553,11 @@ namespace NewLife
         {
             try
             {
-                var psi = new ProcessStartInfo(cmd, arguments) { RedirectStandardOutput = true };
+                var psi = new ProcessStartInfo(cmd, arguments)
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                };
                 var process = Process.Start(psi);
                 if (!process.WaitForExit(3_000))
                 {
@@ -702,7 +736,6 @@ namespace NewLife
             }
             catch (Exception ex)
             {
-                //XTrace.WriteException(ex);
                 if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
                 return "";
             }

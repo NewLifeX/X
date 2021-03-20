@@ -979,9 +979,9 @@ namespace NewLife
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
             {
+                si.UseShellExecute = false;
                 si.RedirectStandardOutput = true;
                 si.RedirectStandardError = true;
-                si.UseShellExecute = false;
                 if (output != null)
                 {
                     p.OutputDataReceived += (s, e) => output(e.Data);
