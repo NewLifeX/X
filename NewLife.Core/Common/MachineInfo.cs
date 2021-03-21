@@ -555,7 +555,8 @@ namespace NewLife
             {
                 var psi = new ProcessStartInfo(cmd, arguments)
                 {
-                    UseShellExecute = true,
+                    // UseShellExecute 必须 false，以便于后续重定向输出流
+                    UseShellExecute = false,
                     RedirectStandardOutput = true
                 };
                 var process = Process.Start(psi);
@@ -582,8 +583,6 @@ namespace NewLife
             var str = Execute("wmic", args)?.Trim();
             if (str.IsNullOrEmpty()) return dic;
 
-            //return str.SplitAsDictionary("=", Environment.NewLine);
-
             var ss = str.Split(Environment.NewLine);
             foreach (var item in ss)
             {
@@ -597,6 +596,13 @@ namespace NewLife
                     else
                         dic[k] = v;
                 }
+            }
+
+            // 排序，避免多个磁盘序列号时，顺序变动
+            foreach (var item in dic)
+            {
+                if (item.Value.Contains(','))
+                    dic[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
             }
 
             return dic;
