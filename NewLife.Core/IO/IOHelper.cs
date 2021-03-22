@@ -46,6 +46,7 @@ namespace NewLife
         }
 
         /// <summary>解压缩数据流</summary>
+        /// <returns>Deflate算法，如果是ZLIB格式，则前面多两个字节，解压缩之前去掉，RocketMQ中有用到</returns>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
@@ -76,6 +77,7 @@ namespace NewLife
         }
 
         /// <summary>解压缩字节数组</summary>
+        /// <returns>Deflate算法，如果是ZLIB格式，则前面多两个字节，解压缩之前去掉，RocketMQ中有用到</returns>
         /// <param name="data">字节数组</param>
         /// <returns></returns>
         public static Byte[] Decompress(this Byte[] data)
