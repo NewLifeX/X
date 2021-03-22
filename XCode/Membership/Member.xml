@@ -31,7 +31,7 @@
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="Name" Unique="True" />
@@ -65,7 +65,7 @@
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />
@@ -95,7 +95,7 @@
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="Name" Unique="True" />
@@ -128,7 +128,7 @@
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="Name" />
@@ -159,7 +159,7 @@
       <Column Name="UpdateUserID" DataType="Int32" Description="更新用户" />
       <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="UserID,Category,Name" Unique="True" />
@@ -186,7 +186,7 @@
       <Column Name="Enable" DataType="Boolean" Description="启用" />
       <Column Name="CreateTime" DataType="DateTime" Description="创建时间" />
       <Column Name="UpdateTime" DataType="DateTime" Description="更新时间" />
-      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+      <Column Name="Remark" DataType="String" Length="500" Description="备注" />
     </Columns>
     <Indexes>
       <Index Columns="ParentID" />
@@ -215,7 +215,7 @@
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="时间" />
-      <Column Name="Remark" DataType="String" Length="500" Description="详细信息" />
+      <Column Name="Remark" DataType="String" Length="2000" Description="详细信息" />
     </Columns>
     <Indexes>
       <Index Columns="Action,Category,ID" />

@@ -153,7 +153,7 @@ namespace XCode.Membership
         /// <summary>详细信息</summary>
         [DisplayName("详细信息")]
         [Description("详细信息")]
-        [DataObjectField(false, false, true, 500)]
+        [DataObjectField(false, false, true, 2000)]
         [BindColumn("Remark", "详细信息", "")]
         public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
         #endregion
