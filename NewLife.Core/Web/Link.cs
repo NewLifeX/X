@@ -197,6 +197,15 @@ namespace NewLife.Web
 
                 Name = name.Substring(0, p) + name.Substring(p + 1 + 14);
             }
+            else if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2)
+            {
+                Time = new DateTime(
+                    ts.Substring(0, 4).ToInt(),
+                    ts.Substring(4, 2).ToInt(),
+                    ts.Substring(6, 2).ToInt());
+
+                Name = name.Substring(0, p) + name.Substring(p + 1 + 8);
+            }
 
             return p;
         }

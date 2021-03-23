@@ -53,7 +53,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	UPDATEUSERID int NOT NULL DEFAULT 0,
 	UPDATEIP nvarchar(50) NULL COLLATE NOCASE,
 	UPDATETIME datetime NOT NULL DEFAULT '0001-01-01',
-	REMARK nvarchar(200) NULL COLLATE NOCASE
+	REMARK nvarchar(500) NULL COLLATE NOCASE
 )", rs);
         }
 
@@ -96,7 +96,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	UPDATEUSERID INT NOT NULL COMMENT '更新用户',
 	UPDATEIP VARCHAR(50) COMMENT '更新地址',
 	UPDATETIME DATETIME NOT NULL COMMENT '更新时间',
-	REMARK VARCHAR(200) COMMENT '备注',
+	REMARK VARCHAR(500) COMMENT '备注',
 	Primary Key (ID)
 ) DEFAULT CHARSET=utf8mb4;", rs);
         }
@@ -140,7 +140,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	updateuserid int NOT NULL DEFAULT 0,
 	updateip nvarchar(50) NULL COLLATE NOCASE,
 	updatetime datetime NOT NULL DEFAULT '0001-01-01',
-	remark nvarchar(200) NULL COLLATE NOCASE
+	remark nvarchar(500) NULL COLLATE NOCASE
 )", rs);
         }
 
@@ -183,7 +183,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	updateuserid INT NOT NULL COMMENT '更新用户',
 	updateip VARCHAR(50) COMMENT '更新地址',
 	updatetime DATETIME NOT NULL COMMENT '更新时间',
-	remark VARCHAR(200) COMMENT '备注',
+	remark VARCHAR(500) COMMENT '备注',
 	Primary Key (id)
 ) DEFAULT CHARSET=utf8mb4;", rs);
         }
@@ -227,7 +227,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	update_user_id int NOT NULL DEFAULT 0,
 	update_ip nvarchar(50) NULL COLLATE NOCASE,
 	update_time datetime NOT NULL DEFAULT '0001-01-01',
-	remark nvarchar(200) NULL COLLATE NOCASE
+	remark nvarchar(500) NULL COLLATE NOCASE
 )", rs);
         }
 
@@ -270,7 +270,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 	update_user_id INT NOT NULL COMMENT '更新用户',
 	update_ip VARCHAR(50) COMMENT '更新地址',
 	update_time DATETIME NOT NULL COMMENT '更新时间',
-	remark VARCHAR(200) COMMENT '备注',
+	remark VARCHAR(500) COMMENT '备注',
 	Primary Key (id)
 ) DEFAULT CHARSET=utf8mb4;", rs);
         }

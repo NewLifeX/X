@@ -10,13 +10,13 @@ using Xunit;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
-    public class MySqlTests
+    public class PostgreSQLTests
     {
-        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=root";
+        private static String _ConnStr = "Server=.;Database=sys;Uid=root;Pwd=root";
 
-        public MySqlTests()
+        public PostgreSQLTests()
         {
-            var f = "Config\\mysql.config".GetFullPath();
+            var f = "Config\\pgsql.config".GetFullPath();
             if (File.Exists(f))
                 _ConnStr = File.ReadAllText(f);
             else
@@ -26,7 +26,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void InitTest()
         {
-            var db = DbFactory.Create(DatabaseType.MySql);
+            var db = DbFactory.Create(DatabaseType.PostgreSQL);
             Assert.NotNull(db);
 
             var factory = db.Factory;
@@ -48,11 +48,11 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void ConnectTest()
         {
-            var db = DbFactory.Create(DatabaseType.MySql);
+            var db = DbFactory.Create(DatabaseType.PostgreSQL);
             var factory = db.Factory;
 
             var conn = factory.CreateConnection();
-            //conn.ConnectionString = "Server=localhost;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word";
+            //conn.ConnectionString = "Server=localhost;Database=Membership;Uid=root;Pwd=Pass@word";
             conn.ConnectionString = _ConnStr.Replace("Server=.;", "Server=localhost;");
             conn.Open();
         }
@@ -60,16 +60,16 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void DALTest()
         {
-            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
-            var dal = DAL.Create("sysMySql");
+            DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
+            var dal = DAL.Create("sysPgSql");
             Assert.NotNull(dal);
-            Assert.Equal("sysMySql", dal.ConnName);
-            Assert.Equal(DatabaseType.MySql, dal.DbType);
+            Assert.Equal("sysPgSql", dal.ConnName);
+            Assert.Equal(DatabaseType.PostgreSQL, dal.DbType);
 
             var db = dal.Db;
             var connstr = db.ConnectionString;
             Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith(";Port=3306;Database=sys;Uid=root;Pwd=root;CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr.Replace("Pass@word", "root"));
+            Assert.EndsWith(";Database=sys;Uid=root;Pwd=root", connstr.Replace("Pass@word", "root"));
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
@@ -79,8 +79,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         public void MetaTest()
         {
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership;");
-            DAL.AddConnStr("MySql_Meta", connStr, null, "MySql");
-            var dal = DAL.Create("MySql_Meta");
+            DAL.AddConnStr("PgSql_Meta", connStr, null, "PostgreSQL");
+            var dal = DAL.Create("PgSql_Meta");
 
             // 反向工程
             dal.SetTables(User.Meta.Table.DataTable);
@@ -93,8 +93,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void SelectTest()
         {
-            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
-            var dal = DAL.Create("sysMySql");
+            DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
+            var dal = DAL.Create("sysPgSql");
             try
             {
                 dal.Execute("drop database membership_test");
@@ -102,10 +102,10 @@ namespace XUnitTest.XCode.DataAccessLayer
             catch (Exception ex) { XTrace.WriteException(ex); }
 
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Test;");
-            DAL.AddConnStr("MySql_Select", connStr, null, "MySql");
+            DAL.AddConnStr("PgSql_Select", connStr, null, "PostgreSQL");
 
-            Role.Meta.ConnName = "MySql_Select";
-            Area.Meta.ConnName = "MySql_Select";
+            Role.Meta.ConnName = "PgSql_Select";
+            Area.Meta.ConnName = "PgSql_Select";
 
             Role.Meta.Session.InitData();
 
@@ -135,8 +135,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void TablePrefixTest()
         {
-            DAL.AddConnStr("sysMySql", _ConnStr, null, "MySql");
-            var dal = DAL.Create("sysMySql");
+            DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
+            var dal = DAL.Create("sysPgSql");
             try
             {
                 dal.Execute("drop database membership_table_prefix");
@@ -145,10 +145,10 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Table_Prefix;");
             connStr += ";TablePrefix=member_";
-            DAL.AddConnStr("MySql_Table_Prefix", connStr, null, "MySql");
+            DAL.AddConnStr("PgSql_Table_Prefix", connStr, null, "PostgreSQL");
 
-            Role.Meta.ConnName = "MySql_Table_Prefix";
-            //Area.Meta.ConnName = "MySql_Table_Prefix";
+            Role.Meta.ConnName = "PgSql_Table_Prefix";
+            //Area.Meta.ConnName = "PgSql_Table_Prefix";
 
             Role.Meta.Session.InitData();
 
@@ -175,7 +175,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         private IDisposable CreateForBatch(String action)
         {
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Batch;");
-            DAL.AddConnStr("Membership_Batch", connStr, null, "MySql");
+            DAL.AddConnStr("Membership_Batch", connStr, null, "PostgreSQL");
 
             var dt = Role2.Meta.Table.DataTable.Clone() as IDataTable;
             dt.TableName = $"Role2_{action}";
