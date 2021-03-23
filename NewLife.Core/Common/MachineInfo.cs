@@ -346,6 +346,8 @@ namespace NewLife
             }
         }
 
+        private ICollection<String> _excludes = new List<String>();
+
         /// <summary>获取实时数据，如CPU、内存、温度</summary>
         public void Refresh()
         {
@@ -436,33 +438,54 @@ namespace NewLife
                 CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
 
 #if __CORE__
-                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-                if (temp != null)
+                if (!_excludes.Contains(nameof(Temperature)))
                 {
-                    if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                    if (temp != null && temp.Count > 0)
+                    {
+                        if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    }
+                    else
+                        _excludes.Add(nameof(Temperature));
                 }
 
-                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-                if (battery != null)
+                if (!_excludes.Contains(nameof(Battery)))
                 {
-                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                    var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+                    if (battery != null && battery.Count > 0)
+                    {
+                        if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                    }
+                    else
+                        _excludes.Add(nameof(Battery));
                 }
 #else
-                // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-                var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-                if (!str.IsNullOrEmpty())
+                if (!_excludes.Contains(nameof(Temperature)))
                 {
-                    Temperature = str.SplitAsInt().Average();
-                }
-                else
-                {
-                    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-                    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+                    var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+                    if (!str.IsNullOrEmpty())
+                    {
+                        Temperature = str.SplitAsInt().Average();
+                    }
+                    else
+                    {
+                        str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+                        if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    }
+
+                    if (str.IsNullOrEmpty()) _excludes.Add(nameof(Temperature));
                 }
 
-                // 电池剩余
-                str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-                if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
+                if (!_excludes.Contains(nameof(Battery)))
+                {
+                    // 电池剩余
+                    var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+                    if (!str.IsNullOrEmpty())
+                        Battery = str.SplitAsInt().Average() / 100.0;
+                    else
+                        _excludes.Add(nameof(Battery));
+                }
 #endif
             }
         }
