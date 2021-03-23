@@ -12,7 +12,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class PostgreSQLTests
     {
-        private static String _ConnStr = "Server=.;Database=sys;Uid=root;Pwd=root";
+        private static String _ConnStr = "Server=.;Database=postgres;Uid=postgres;Pwd=postgres";
 
         public PostgreSQLTests()
         {
@@ -52,7 +52,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var factory = db.Factory;
 
             var conn = factory.CreateConnection();
-            //conn.ConnectionString = "Server=localhost;Database=Membership;Uid=root;Pwd=Pass@word";
+            //conn.ConnectionString = "Server=localhost;Database=Membership;Uid=postgres;Pwd=Pass@word";
             conn.ConnectionString = _ConnStr.Replace("Server=.;", "Server=localhost;");
             conn.Open();
         }
@@ -68,8 +68,8 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var db = dal.Db;
             var connstr = db.ConnectionString;
-            Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith(";Database=sys;Uid=root;Pwd=root", connstr.Replace("Pass@word", "root"));
+            Assert.Equal("postgres", db.DatabaseName);
+            Assert.EndsWith(";Database=postgres;Uid=postgres;Pwd=postgres", connstr.Replace("Pass@word", "postgres"));
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
@@ -78,7 +78,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [Fact]
         public void MetaTest()
         {
-            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership;");
+            var connStr = _ConnStr.Replace("Database=postgres;", "Database=Membership;");
             DAL.AddConnStr("PgSql_Meta", connStr, null, "PostgreSQL");
             var dal = DAL.Create("PgSql_Meta");
 
@@ -101,7 +101,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
-            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Test;");
+            var connStr = _ConnStr.Replace("Database=postgres;", "Database=Membership_Test;");
             DAL.AddConnStr("PgSql_Select", connStr, null, "PostgreSQL");
 
             Role.Meta.ConnName = "PgSql_Select";
@@ -143,7 +143,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             }
             catch (Exception ex) { XTrace.WriteException(ex); }
 
-            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Table_Prefix;");
+            var connStr = _ConnStr.Replace("Database=postgres;", "Database=Membership_Table_Prefix;");
             connStr += ";TablePrefix=member_";
             DAL.AddConnStr("PgSql_Table_Prefix", connStr, null, "PostgreSQL");
 
@@ -174,7 +174,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 
         private IDisposable CreateForBatch(String action)
         {
-            var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Batch;");
+            var connStr = _ConnStr.Replace("Database=postgres;", "Database=Membership_Batch;");
             DAL.AddConnStr("Membership_Batch", connStr, null, "PostgreSQL");
 
             var dt = Role2.Meta.Table.DataTable.Clone() as IDataTable;

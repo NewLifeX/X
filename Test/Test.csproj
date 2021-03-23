@@ -31,6 +31,7 @@
     <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Npgsql" Version="4.0.11" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
   </ItemGroup>
   <ItemGroup>

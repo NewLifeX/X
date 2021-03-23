@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using NewLife;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -148,6 +149,11 @@ namespace XCode.DataAccessLayer
                     OpenDatabase(conn, Database.ConnectionString, sysdbname);
 
                     return callback(this, conn);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                    throw;
                 }
                 finally
                 {

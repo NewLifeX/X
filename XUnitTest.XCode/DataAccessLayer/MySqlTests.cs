@@ -88,6 +88,10 @@ namespace XUnitTest.XCode.DataAccessLayer
             var tables = dal.Tables;
             Assert.NotNull(tables);
             Assert.True(tables.Count > 0);
+
+            var tb = tables.FirstOrDefault(e => e.Name == "User");
+            Assert.NotNull(tb);
+            Assert.NotEmpty(tb.Description);
         }
 
         [Fact]
