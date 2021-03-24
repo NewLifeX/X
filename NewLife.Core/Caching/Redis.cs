@@ -293,6 +293,8 @@ namespace NewLife.Caching
                 catch (InvalidDataException)
                 {
                     if (i++ >= Retry) throw;
+
+                    Thread.Sleep(100);
                 }
                 catch (Exception ex)
                 {
@@ -303,7 +305,11 @@ namespace NewLife.Caching
 
                         // 网络异常时，自动切换到其它节点
                         _idxServer++;
-                        if (++i < _servers.Length) continue;
+                        if (++i < _servers.Length)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
                     }
 
                     throw;
