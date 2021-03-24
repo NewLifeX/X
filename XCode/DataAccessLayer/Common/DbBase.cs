@@ -342,11 +342,20 @@ namespace XCode.DataAccessLayer
 
                     links.Add($"{name}.{platform}-{arch}");
                     links.Add($"{name}.{platform}");
+                    links.Add($"{name}_netstandard20");
+
+                    var ver = Environment.Version;
+                    if (ver.Major >= 3) links.Add($"{name}_netstandard21");
+                    if (ver.Major < 5)
+                        links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
+                    else
+                        links.Add($"{name}_net{ver.Major}{ver.Minor}");
 #else
                     if (Environment.Is64BitProcess) linkName += "64";
                     var ver = Environment.Version;
                     if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
                     links.Add(linkName);
+                    links.Add($"{name}_net45");
 #endif
                     // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                     if (!strict && !links.Contains(name)) links.Add(name);

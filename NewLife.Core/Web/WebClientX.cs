@@ -165,15 +165,17 @@ namespace NewLife.Web
                     if (ls.Length == 0) return file;
 
                     // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
-                    foreach (var item in names)
-                    {
-                        link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
-                           .OrderByDescending(e => e.Version)
-                           .ThenByDescending(e => e.Time)
-                           .FirstOrDefault();
-                        if (link != null) break;
-                    }
+                    //foreach (var item in names)
+                    //{
+                    //    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                    //       .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
+                    //       .OrderByDescending(e => e.Version)
+                    //       .ThenByDescending(e => e.Time)
+                    //       .FirstOrDefault();
+                    //    if (link != null) break;
+                    //}
+                    ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
+                    link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
                 }
                 catch (WebException ex)
                 {
