@@ -7,6 +7,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife;
+using NewLife.Collections;
+using NewLife.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -173,6 +175,141 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
 #endif
+        #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(String action, IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            //if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
+            foreach (var dc in columns)
+            {
+                // 取消对主键的过滤，避免列名和值无法一一对应的问题
+                //if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc));
+                sb.Append(',');
+            }
+            sb.Length--;
+            sb.Append(')');
+
+            // 值列表
+            sb.Append(" Values");
+
+            // 优化支持DbTable
+            if (list.FirstOrDefault() is DbRow)
+            {
+                // 提前把列名转为索引，然后根据索引找数据
+                DbTable dt = null;
+                Int32[] ids = null;
+                foreach (DbRow dr in list)
+                {
+                    if (dr.Table != dt)
+                    {
+                        dt = dr.Table;
+                        var cs = new List<Int32>();
+                        foreach (var dc in columns)
+                        {
+                            if (dc.Identity)
+                                cs.Add(0);
+                            else
+                                cs.Add(dt.GetColumn(dc.ColumnName));
+                        }
+                        ids = cs.ToArray();
+                    }
+
+                    sb.Append('(');
+                    var row = dt.Rows[dr.Index];
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        var dc = columns[i];
+                        //if (dc.Identity) continue;
+
+                        var value = row[ids[i]];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            else
+            {
+                foreach (var entity in list)
+                {
+                    sb.Append('(');
+                    foreach (var dc in columns)
+                    {
+                        //if (dc.Identity) continue;
+
+                        var value = entity[dc.Name];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if ((updateColumns != null && updateColumns.Count > 0) || (addColumns != null && addColumns.Count > 0))
+            {
+                sb.Append(" On Duplicate Key Update ");
+                if (updateColumns != null && updateColumns.Count > 0)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null && addColumns.Count > 0)
+                {
+                    sb.Append(',');
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Into", table, columns, null, null, list);
+            return Execute(sql);
+        }
+
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Into", table, columns, updateColumns, addColumns, list);
+            return Execute(sql);
+        }
         #endregion
     }
 
