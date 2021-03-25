@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Caching;
+using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -201,6 +202,32 @@ namespace XUnitTest.Model
             public MyService(Redis redis) => Kind = 2;
 
             public MyService(ICache cache, ILog log) => Kind = 3;
+        }
+
+        [Fact]
+        public void AddRedis()
+        {
+            var ioc = new ObjectContainer();
+
+            var config = new ConfigProvider();
+            config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
+            ioc.AddSingleton<IConfigProvider>(config);
+            ioc.AddSingleton(provider => new Redis(provider, "orderRedis"));
+
+            var prv = ioc.BuildServiceProvider();
+
+            var rds = prv.GetService<Redis>();
+
+            Assert.Equal("127.0.0.1:6379", rds.Server);
+            Assert.Equal("pass", rds.Password);
+            Assert.Equal(7, rds.Db);
+
+            config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
+            config.SaveAll();
+
+            Assert.Equal("10.0.0.1:6379", rds.Server);
+            Assert.Equal("word", rds.Password);
+            Assert.Equal(13, rds.Db);
         }
     }
 }

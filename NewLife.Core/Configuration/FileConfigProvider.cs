@@ -96,6 +96,9 @@ namespace NewLife.Configuration
             OnWrite(fileName, Root);
             _lastTime = fileName.AsFile().LastWriteTime;
 
+            // 通知绑定对象，配置数据有改变
+            NotifyChange();
+
             return true;
         }
 
@@ -145,12 +148,7 @@ namespace NewLife.Configuration
         {
             base.Bind<T>(model, autoReload, path);
 
-            if (autoReload && !_models.ContainsKey(model))
-            {
-                _models.Add(model, path);
-
-                InitTimer();
-            }
+            if (autoReload) InitTimer();
         }
 
         private TimerX _timer;
@@ -167,7 +165,6 @@ namespace NewLife.Configuration
             }
         }
 
-        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
         private Boolean _reading;
         private DateTime _lastTime;
         private void DoRefresh(Object state)
@@ -191,10 +188,7 @@ namespace NewLife.Configuration
                 OnRead(fileName, section);
                 Root = section;
 
-                foreach (var item in _models)
-                {
-                    base.Bind(item.Key, false, item.Value);
-                }
+                NotifyChange();
             }
             catch (Exception ex)
             {

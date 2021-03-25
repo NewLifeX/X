@@ -163,7 +163,12 @@ namespace NewLife.Configuration
         }
 
         /// <summary>保存配置树到数据源</summary>
-        public virtual Boolean SaveAll() => true;
+        public virtual Boolean SaveAll()
+        {
+            NotifyChange();
+
+            return true;
+        }
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -182,6 +187,7 @@ namespace NewLife.Configuration
         #endregion
 
         #region 绑定
+        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="model">模型实例</param>
@@ -199,6 +205,20 @@ namespace NewLife.Configuration
                     map.MapConfig(this, source);
                 else
                     source.MapTo(model, this);
+            }
+
+            if (autoReload && !_models.ContainsKey(model))
+            {
+                _models.Add(model, path);
+            }
+        }
+
+        /// <summary>通知绑定对象，配置数据有改变</summary>
+        protected virtual void NotifyChange()
+        {
+            foreach (var item in _models)
+            {
+                Bind(item.Key, false, item.Value);
             }
         }
         #endregion

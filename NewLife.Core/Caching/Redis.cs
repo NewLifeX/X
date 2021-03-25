@@ -6,21 +6,23 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 
 namespace NewLife.Caching
 {
-    /// <summary>Redi客户端</summary>
+    /// <summary>Redis客户端</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/redis
     /// 
     /// 强烈建议保持唯一的Redis对象供多次使用，Redis内部有连接池并且支持多线程并发访问。
     /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
     /// </remarks>
-    public class Redis : Cache
+    public class Redis : Cache, IConfigMapping
     {
         #region 属性
         /// <summary>服务器，带端口。例如127.0.0.1:6397，支持逗号分隔的多地址，网络异常时，自动切换到其它节点，60秒后切回来</summary>
@@ -91,6 +93,38 @@ namespace NewLife.Caching
             Db = db;
         }
 
+        /// <summary>按照配置服务实例化Redis，用于NETCore依赖注入</summary>
+        /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+        /// <param name="name">缓存名称，也是配置中心key</param>
+        public Redis(IServiceProvider provider, String name)
+        {
+            Name = name;
+
+            var configProvider = provider.GetRequiredService<IConfigProvider>();
+            configProvider.Bind(this, true, name);
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            try
+            {
+                Commit();
+            }
+            catch { }
+
+            _Pool.TryDispose();
+        }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{Name} Server={Server} Db={Db}";
+        #endregion
+
+        #region 配置方法
         /// <summary>使用连接字符串初始化</summary>
         /// <param name="config"></param>
         public override void Init(String config)
@@ -123,24 +157,11 @@ namespace NewLife.Caching
             }
         }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
+        void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
         {
-            base.Dispose(disposing);
-
-            try
-            {
-                Commit();
-            }
-            catch { }
-
-            _Pool.TryDispose();
+            if (section != null && section.Value != null) Init(section.Value);
         }
 
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override String ToString() => $"{Name} Server={Server} Db={Db}";
         #endregion
 
         #region 客户端池

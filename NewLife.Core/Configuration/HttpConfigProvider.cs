@@ -249,15 +249,8 @@ namespace NewLife.Configuration
         {
             base.Bind<T>(model, autoReload, path);
 
-            if (autoReload && !_models.ContainsKey(model))
-            {
-                _models.Add(model, path);
-
-                InitTimer();
-            }
+            if (autoReload) InitTimer();
         }
-
-        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
         #endregion
 
         #region 定时
@@ -305,10 +298,7 @@ namespace NewLife.Configuration
                 // 缓存
                 SaveCache(dic);
 
-                foreach (var item in _models)
-                {
-                    Bind(item.Key, false, item.Value);
-                }
+                NotifyChange();
             }
         }
         #endregion
