@@ -161,7 +161,6 @@ namespace NewLife.Caching
         {
             if (section != null && section.Value != null) Init(section.Value);
         }
-
         #endregion
 
         #region 客户端池

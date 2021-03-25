@@ -6,9 +6,11 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Model;
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -16,7 +18,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>Http应用接口客户端</summary>
-    public class ApiHttpClient : DisposeBase, IApiClient
+    public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping
     {
         #region 属性
         /// <summary>令牌。每次请求携带</summary>
@@ -50,7 +52,7 @@ namespace NewLife.Remoting
         public ITracer Tracer { get; set; }
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
-        public IList<Service> Services { get; } = new List<Service>();
+        public IList<Service> Services { get; private set; } = new List<Service>();
 
         /// <summary>当前服务</summary>
         protected Service _currentService;
@@ -62,16 +64,17 @@ namespace NewLife.Remoting
 
         /// <summary>实例化</summary>
         /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
-        public ApiHttpClient(String urls)
+        public ApiHttpClient(String urls) => Init(urls);
+
+        /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
+        /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+        /// <param name="name">缓存名称，也是配置中心key</param>
+        public ApiHttpClient(IServiceProvider provider, String name)
         {
-            if (!urls.IsNullOrEmpty())
-            {
-                var ss = urls.Split(",");
-                for (var i = 0; i < ss.Length; i++)
-                {
-                    if (!ss[i].IsNullOrEmpty()) Add("service" + (i + 1), ss[i]);
-                }
-            }
+            //Name = name;
+
+            var configProvider = provider.GetRequiredService<IConfigProvider>();
+            configProvider.Bind(this, true, name);
         }
 
         /// <summary>销毁</summary>
@@ -91,7 +94,14 @@ namespace NewLife.Remoting
         /// <summary>添加服务地址</summary>
         /// <param name="name">名称</param>
         /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-        public void Add(String name, String address)
+        public void Add(String name, String address) => ParseAndAdd(Services, name, address);
+
+        /// <summary>添加服务地址</summary>
+        /// <param name="name"></param>
+        /// <param name="address"></param>
+        public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+
+        private void ParseAndAdd(IList<Service> services, String name, String address)
         {
             var url = address;
             var svc = new Service
@@ -116,13 +126,29 @@ namespace NewLife.Remoting
             }
 
             svc.Address = new Uri(url);
-            Services.Add(svc);
+            services.Add(svc);
         }
 
-        /// <summary>添加服务地址</summary>
-        /// <param name="name"></param>
-        /// <param name="address"></param>
-        public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+        private String _lastUrls;
+        private void Init(String urls)
+        {
+            if (!urls.IsNullOrEmpty() && urls != _lastUrls)
+            {
+                var services = new List<Service>();
+                var ss = urls.Split(",");
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    if (!ss[i].IsNullOrEmpty()) ParseAndAdd(services, "service" + (i + 1), ss[i]);
+                }
+                Services = services;
+                _lastUrls = urls;
+            }
+        }
+
+        void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
+        {
+            if (section != null && section.Value != null) Init(section.Value);
+        }
         #endregion
 
         #region 核心方法

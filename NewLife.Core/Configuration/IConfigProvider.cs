@@ -54,6 +54,13 @@ namespace NewLife.Configuration
         /// <param name="autoReload">是否自动更新。默认true</param>
         /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         void Bind<T>(T model, Boolean autoReload = true, String path = null);
+
+        /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+        /// <param name="model">模型实例</param>
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="onChange">配置改变时执行的委托</param>
+        void Bind<T>(T model, String path, Action<IConfigSection> onChange);
     }
 
     /// <summary>配置提供者基类</summary>
@@ -188,6 +195,7 @@ namespace NewLife.Configuration
 
         #region 绑定
         private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
+        private readonly IDictionary<Object, ModelWrap> _models2 = new Dictionary<Object, ModelWrap>();
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="model">模型实例</param>
@@ -213,12 +221,58 @@ namespace NewLife.Configuration
             }
         }
 
+        /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+        /// <param name="model">模型实例</param>
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="onChange">配置改变时执行的委托</param>
+        public virtual void Bind<T>(T model, String path, Action<IConfigSection> onChange)
+        {
+            EnsureLoad();
+
+            // 如果有命名空间则使用指定层级数据源
+            var source = GetSection(path);
+            if (source != null)
+            {
+                if (model is IConfigMapping map)
+                    map.MapConfig(this, source);
+                else
+                    source.MapTo(model, this);
+            }
+
+            if (onChange != null && !_models2.ContainsKey(model))
+            {
+                _models2.Add(model, new ModelWrap { Path = path, OnChange = onChange });
+            }
+        }
+
+        class ModelWrap
+        {
+            public String Path { get; set; }
+
+            public Action<IConfigSection> OnChange { get; set; }
+        }
+
         /// <summary>通知绑定对象，配置数据有改变</summary>
         protected virtual void NotifyChange()
         {
             foreach (var item in _models)
             {
-                Bind(item.Key, false, item.Value);
+                var model = item.Key;
+                var source = GetSection(item.Value);
+                if (source != null)
+                {
+                    if (model is IConfigMapping map)
+                        map.MapConfig(this, source);
+                    else
+                        source.MapTo(model, this);
+                }
+            }
+            foreach (var item in _models2)
+            {
+                var model = item.Key;
+                var source = GetSection(item.Value.Path);
+                if (source != null) item.Value.OnChange(source);
             }
         }
         #endregion
