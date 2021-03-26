@@ -101,13 +101,13 @@ namespace XCode.Membership
         [BindColumn("RoleID", "角色。主要角色", "")]
         public Int32 RoleID { get => _RoleID; set { if (OnPropertyChanging("RoleID", value)) { _RoleID = value; OnPropertyChanged("RoleID"); } } }
 
-        private String _RoleIds;
+        private Int32[] _RoleIds;
         /// <summary>角色组。次要角色集合</summary>
         [DisplayName("角色组")]
         [Description("角色组。次要角色集合")]
         [DataObjectField(false, false, true, 200)]
         [BindColumn("RoleIds", "角色组。次要角色集合", "")]
-        public String RoleIds { get => _RoleIds; set { if (OnPropertyChanging("RoleIds", value)) { _RoleIds = value; OnPropertyChanged("RoleIds"); } } }
+        public Int32[] RoleIds { get => _RoleIds; set { if (OnPropertyChanging("RoleIds", value)) { _RoleIds = value; OnPropertyChanged("RoleIds"); } } }
 
         private Int32 _DepartmentID;
         /// <summary>部门。组织机构</summary>
@@ -358,7 +358,7 @@ namespace XCode.Membership
                     case "Code": _Code = Convert.ToString(value); break;
                     case "Avatar": _Avatar = Convert.ToString(value); break;
                     case "RoleID": _RoleID = value.ToInt(); break;
-                    case "RoleIds": _RoleIds = Convert.ToString(value); break;
+                    case "RoleIds": _RoleIds = (Int32[])value; break;
                     case "DepartmentID": _DepartmentID = value.ToInt(); break;
                     case "Online": _Online = value.ToBoolean(); break;
                     case "Enable": _Enable = value.ToBoolean(); break;

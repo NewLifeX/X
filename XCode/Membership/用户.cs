@@ -105,7 +105,7 @@ namespace XCode.Membership
         /// <summary>角色组。次要角色集合</summary>
         [DisplayName("角色组")]
         [Description("角色组。次要角色集合")]
-        [DataObjectField(false, false, true, 0)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("RoleIds", "角色组。次要角色集合", "")]
         public Int32[] RoleIds { get => _RoleIds; set { if (OnPropertyChanging("RoleIds", value)) { _RoleIds = value; OnPropertyChanged("RoleIds"); } } }
 

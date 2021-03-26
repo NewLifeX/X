@@ -730,6 +730,7 @@ namespace XCode.Code
                         WriteLine("//    entity.{0} = \"abc\";", column.Name);
                         break;
                     default:
+                        WriteLine("//    entity.{0} = null;", column.Name);
                         break;
                 }
             }

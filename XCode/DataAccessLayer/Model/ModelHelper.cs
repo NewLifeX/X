@@ -691,6 +691,11 @@ namespace XCode.DataAccessLayer
                         dc.Length = 0;
                         dc.Nullable = true;
                     }
+                    else if (dc.DataType == typeof(Int32[]))
+                    {
+                        dc.Length = 50;
+                        dc.Nullable = true;
+                    }
                     break;
             }
 

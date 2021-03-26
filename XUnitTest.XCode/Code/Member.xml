@@ -12,7 +12,7 @@
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
       <Column Name="Avatar" DataType="String" ItemType="image" Length="200" Description="头像" />
       <Column Name="RoleID" DataType="Int32" Description="角色。主要角色" />
-      <Column Name="RoleIds" DataType="String" Length="200" Description="角色组。次要角色集合" />
+      <Column Name="RoleIds" DataType="Int32[]" Length="200" Description="角色组。次要角色集合" />
       <Column Name="DepartmentID" DataType="Int32" Description="部门。组织机构" />
       <Column Name="Online" DataType="Boolean" Description="在线" />
       <Column Name="Enable" DataType="Boolean" Description="启用" />
