@@ -668,6 +668,20 @@ namespace NewLife.Reflection
                 if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToLong(), conversionType);
             }
 
+            // 处理数组
+            if (conversionType == typeof(Int32[]))
+            {
+                return (value as String).SplitAsInt();
+            }
+            else if (conversionType == typeof(Int64[]))
+            {
+                return (value as String).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.ToLong()).ToArray();
+            }
+            else if (conversionType == typeof(String[]))
+            {
+                return (value as String).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            }
+
             if (value != null)
             {
                 // 尝试基础类型转换
