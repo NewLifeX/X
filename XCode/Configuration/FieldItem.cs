@@ -266,7 +266,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", value + "%");
+            return CreateFormat("{0} Like '{1}%'", value);
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -280,7 +280,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", "%" + value);
+            return CreateFormat("{0} Like '%{1}'", value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -294,7 +294,18 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", $"%{value}%");
+            return CreateFormat("{0} Like '%{1}%'", value);
+        }
+
+        /// <summary>包含某个数字，%,{0},%操作</summary>
+        /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public Expression Contains(Int32 value)
+        {
+            if (Type != typeof(Int32[])) throw new NotSupportedException($"[{nameof(Contains)}]函数仅支持Int32[]字段！");
+
+            return CreateFormat("{0} Like '%,{1},%'", value);
         }
 
         /// <summary>不包含某个字符串，%{0}%操作</summary>
@@ -308,7 +319,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like {1}", $"%{value}%");
+            return CreateFormat("{0} Not Like '%{1}%'", value);
         }
 
         /// <summary>In操作</summary>

@@ -59,19 +59,21 @@ namespace XCode
             if (ps == null)
             {
                 // 可能不需要参数，比如 Is Null
-                var val = "";
                 if (Format.Contains("{1}"))
                 {
-                    //var op = fi.Factory;
+                    var val = Value;
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
                         val = ems.Join(",", e => db.FormatValue(Field.Field, e));
-                    else
-                        val = db.FormatValue(Field.Field, Value);
-                }
+                    //else
+                    //    val = db.FormatValue(Field.Field, Value);
 
-                builder.AppendFormat(Format, columnName, val);
+                    builder.AppendFormat(Format, columnName, val);
+                }
+                else
+                    builder.AppendFormat(Format, columnName);
+
                 return;
             }
 
@@ -88,7 +90,11 @@ namespace XCode
                 while (ps.ContainsKey(name)) name = Field.Name + i++;
 
                 // 数值留给字典
-                ps[name] = Value.ChangeType(type);
+                // 处理数组
+                if (type == typeof(Int32[]) || type == typeof(Int64[]) || type == typeof(String[]))
+                    ps[name] = Value;
+                else
+                    ps[name] = Value.ChangeType(type);
 
                 builder.AppendFormat(Format, columnName, db.FormatParameterName(name));
             }
