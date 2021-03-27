@@ -407,7 +407,7 @@ namespace NewLife
                 //file = "/proc/loadavg";
                 //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
 
-                file = "/proc/stat";
+                var file = "/proc/stat";
                 if (File.Exists(file))
                 {
                     // CPU指标：user，nice, system, idle, iowait, irq, softirq
