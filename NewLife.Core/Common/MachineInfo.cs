@@ -334,16 +334,16 @@ namespace NewLife
             var prd = GetProductByRelease();
             if (!prd.IsNullOrEmpty()) Product = prd;
 
-            // 电池剩余
-            if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
-                TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
-            {
-                Battery = energy_now.ToDouble() / energy_full.ToDouble();
-            }
-            else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
-            {
-                Battery = capacity.ToDouble() / 100.0;
-            }
+            //// 电池剩余
+            //if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
+            //    TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
+            //{
+            //    Battery = energy_now.ToDouble() / energy_full.ToDouble();
+            //}
+            //else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
+            //{
+            //    Battery = capacity.ToDouble() / 100.0;
+            //}
         }
 
         private ICollection<String> _excludes = new List<String>();
@@ -375,14 +375,26 @@ namespace NewLife
                         AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
                 }
 
-                var file = "/sys/class/thermal/thermal_zone0/temp";
-                if (TryRead(file, out var value))
+                // respberrypi + fedora
+                if (TryRead("/sys/class/thermal/thermal_zone0/temp", out var value) ||
+                    TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
+                    TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
+                    TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
+                    TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
                     Temperature = value.ToDouble() / 1000;
-                else
+                // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
+                else if (TryRead("/sys/class/hwmon/hwmon0/device/temp_value", out value))
+                    Temperature = value.Substring(null, ":").ToDouble();
+
+                // 电池剩余
+                if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
+                    TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
                 {
-                    // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
-                    file = "/sys/class/hwmon/hwmon0/device/temp_value";
-                    if (TryRead(file, out value)) Temperature = value.Substring(null, ":").ToDouble();
+                    Battery = energy_now.ToDouble() / energy_full.ToDouble();
+                }
+                else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
+                {
+                    Battery = capacity.ToDouble() / 100.0;
                 }
 
                 //var upt = Execute("uptime");
