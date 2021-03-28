@@ -102,7 +102,9 @@ namespace XCode.Membership
             if (ids.Length > 0)
             {
                 RoleID = ids[0];
-                RoleIds = ids.Skip(1).ToArray();
+                var str = ids.Skip(1).Join();
+                if (!str.IsNullOrEmpty()) str = "," + str + ",";
+                RoleIds = str;
             }
         }
 
@@ -128,6 +130,10 @@ namespace XCode.Membership
         /// <summary>部门</summary>
         [Map(__.DepartmentID, typeof(Department), __.ID)]
         public String DepartmentName => Department?.ToString();
+
+        ///// <summary>兼容旧版角色组</summary>
+        //[Obsolete("=>RoleIds")]
+        //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
@@ -512,7 +518,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Int32[] GetRoleIDs()
         {
-            var ids = RoleIds.Where(e => e > 0).OrderBy(e => e).ToList();
+            var ids = RoleIds.SplitAsInt().OrderBy(e => e).ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
 
             return ids.Distinct().ToArray();
@@ -613,7 +619,7 @@ namespace XCode.Membership
         Int32 RoleID { get; set; }
 
         /// <summary>角色组。次要角色集合</summary>
-        Int32[] RoleIds { get; set; }
+        String RoleIds { get; set; }
 
         /// <summary>部门。组织机构</summary>
         Int32 DepartmentID { get; set; }

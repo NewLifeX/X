@@ -40,8 +40,6 @@ namespace XCode.DataAccessLayer
             if (utype != null) type = utype;
             if (type.GetTypeCode() != TypeCode.Object) return dt.Rows.Select(e => e[0].ChangeType<T>());
 
-            if (type != typeof(Int32[]) || type != typeof(Int64[]) || type != typeof(String[])) return dt.Rows.Select(e => e[0].ChangeType<T>());
-
             return dt.ReadModels<T>();
         }
 

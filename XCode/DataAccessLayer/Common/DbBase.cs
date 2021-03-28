@@ -795,26 +795,6 @@ namespace XCode.DataAccessLayer
             else if (value != null)
                 type = value.GetType();
 
-            // 支持整型数组和字符串数组
-            if (type == typeof(Int32[]))
-            {
-                type = typeof(String);
-                if (value is Int32[] arr)
-                    value = arr.Length == 0 ? "" : ("," + arr.Join(",") + ",");
-            }
-            else if (type == typeof(Int64[]))
-            {
-                type = typeof(String);
-                if (value is Int64[] arr)
-                    value = arr.Length == 0 ? "" : ("," + arr.Join(",") + ",");
-            }
-            else if (type == typeof(String[]))
-            {
-                type = typeof(String);
-                if (value is String[] arr)
-                    value = arr.Length == 0 ? "" : ("," + arr.Join(",") + ",");
-            }
-
             // 如果类型是Nullable的，则获取对应的类型
             type = Nullable.GetUnderlyingType(type) ?? type;
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Linq;
 using NewLife;
 using NewLife.Data;
 using XCode.Configuration;
@@ -227,23 +226,6 @@ namespace XCode
                     else if (value is String str)
                         value = new Guid(str);
                 }
-            }
-            // 处理数组
-            else if (type == typeof(Int32[]))
-            {
-                //type = typeof(String);
-                if (value is String str)
-                    value = str.SplitAsInt();
-            }
-            else if (type == typeof(Int64[]))
-            {
-                if (value is String str)
-                    value = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.ToLong()).ToArray();
-            }
-            else if (type == typeof(String[]))
-            {
-                if (value is String str)
-                    value = str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
             }
 
             //// 不影响脏数据的状态

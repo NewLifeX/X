@@ -375,13 +375,7 @@ namespace XCode.DataAccessLayer
             // 处理枚举
             if (type.IsEnum) type = typeof(Int32);
 
-            if (!Types.TryGetValue(type, out var ns))
-            {
-                // 处理数组
-                if (type == typeof(Int32[]) || type == typeof(Int64[]) || type == typeof(String[])) type = typeof(String);
-
-                if (!Types.TryGetValue(type, out ns)) return null;
-            }
+            if (!Types.TryGetValue(type, out var ns)) return null;
 
             var typeName = ns.FirstOrDefault();
             // 大文本选第二个类型
