@@ -43,7 +43,7 @@ namespace XCode.Code
         public Int32 RoleID { get; set; }
 
         /// <summary>角色组。次要角色集合</summary>
-        public Int32[] RoleIds { get; set; }
+        public String RoleIds { get; set; }
 
         /// <summary>部门。组织机构</summary>
         public Int32 DepartmentID { get; set; }
@@ -160,7 +160,7 @@ namespace XCode.Code
                     case "Code": Code = Convert.ToString(value); break;
                     case "Avatar": Avatar = Convert.ToString(value); break;
                     case "RoleID": RoleID = value.ToInt(); break;
-                    case "RoleIds": RoleIds = (Int32[])value; break;
+                    case "RoleIds": RoleIds = Convert.ToString(value); break;
                     case "DepartmentID": DepartmentID = value.ToInt(); break;
                     case "Online": Online = value.ToBoolean(); break;
                     case "Enable": Enable = value.ToBoolean(); break;

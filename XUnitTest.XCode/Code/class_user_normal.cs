@@ -68,7 +68,7 @@ namespace Company.MyName
         /// <summary>角色组。次要角色集合</summary>
         [Description("角色组。次要角色集合")]
         [DisplayName("角色组")]
-        public Int32[] RoleIds { get; set; }
+        public String RoleIds { get; set; }
 
         /// <summary>部门。组织机构</summary>
         [Description("部门。组织机构")]

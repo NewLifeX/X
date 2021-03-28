@@ -42,7 +42,7 @@ namespace XCode.Membership
         Int32 RoleID { get; set; }
 
         /// <summary>角色组。次要角色集合</summary>
-        Int32[] RoleIds { get; set; }
+        String RoleIds { get; set; }
 
         /// <summary>部门。组织机构</summary>
         Int32 DepartmentID { get; set; }
