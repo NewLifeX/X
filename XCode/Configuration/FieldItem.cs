@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 using NewLife;
 using XCode.DataAccessLayer;
@@ -266,7 +265,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", value + "%");
+            return CreateFormat("{0} Like '{1}%'", value);
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -280,7 +279,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", "%" + value);
+            return CreateFormat("{0} Like '%{1}'", value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -294,7 +293,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like {1}", $"%{value}%");
+            return CreateFormat("{0} Like '%{1}%'", value);
         }
 
         /// <summary>不包含某个字符串，%{0}%操作</summary>
@@ -308,7 +307,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like {1}", $"%{value}%");
+            return CreateFormat("{0} Not Like '%{1}%'", value);
         }
 
         /// <summary>In操作</summary>
