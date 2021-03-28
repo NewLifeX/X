@@ -22,7 +22,7 @@ namespace XUnitTest.Configuration
             }
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void TestApollo()
         {
             var provider = new HttpConfigProvider

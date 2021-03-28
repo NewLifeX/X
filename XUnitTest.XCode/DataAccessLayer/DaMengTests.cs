@@ -52,7 +52,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(dp);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void ConnectTest()
         {
             var db = DbFactory.Create(DatabaseType.DaMeng);
@@ -63,7 +63,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void DALTest()
         {
             DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
@@ -81,7 +81,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(ver);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void MetaTest()
         {
             DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
@@ -92,7 +92,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.True(tables.Count > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void SelectTest()
         {
             //DAL.AddConnStr("Membership", _ConnStr, null, "DaMeng");

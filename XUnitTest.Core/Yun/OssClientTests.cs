@@ -45,7 +45,7 @@ namespace XUnitTest.Yun
             return client;
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public async void ListBuckets()
         {
             var client = GetClient();
@@ -54,7 +54,7 @@ namespace XUnitTest.Yun
             Assert.NotNull(buckets);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public async void ListBuckets2()
         {
             var client = GetClient();
@@ -63,7 +63,7 @@ namespace XUnitTest.Yun
             Assert.NotNull(buckets);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public async void ListObjects()
         {
             var client = GetClient();
@@ -73,7 +73,7 @@ namespace XUnitTest.Yun
             Assert.NotNull(objects);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public async void ListObjects2()
         {
             var client = GetClient();
@@ -83,7 +83,7 @@ namespace XUnitTest.Yun
             Assert.NotNull(objects);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public async void PutGetDelete()
         {
             var client = GetClient();
