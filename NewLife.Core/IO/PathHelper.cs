@@ -218,7 +218,9 @@ namespace System.IO
 
             if (count <= 0) count = (Int32)(fs.Length - offset);
 
-            return fs.ReadBytes(count);
+            var buf = new Byte[count];
+            fs.Read(buf, 0, buf.Length);
+            return buf;
         }
 
         /// <summary>把数据写入文件指定位置</summary>

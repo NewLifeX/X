@@ -106,6 +106,7 @@
     <Compile Remove="Security\ECDsaHelper.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
+    <Compile Remove="Serialization\Binary\BinaryPair.cs" />
     <Compile Remove="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Remove="Serialization\JsonCodec.cs" />
     <Compile Remove="Serialization\JsonCodec2.cs" />

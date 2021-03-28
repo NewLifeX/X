@@ -409,19 +409,24 @@ namespace NewLife.Http
              */
             len &= 0x7F;
             if (len == 126)
-                len = ms.ReadBytes(2).ToUInt16(0, false);
+                len = (ms.ReadByte() << 8) | ms.ReadByte();
             else if (len == 127)
+            {
+                var buf = new Byte[8];
+                ms.Read(buf, 0, buf.Length);
                 // 没有人会传输超大数据
-                len = (Int32)BitConverter.ToUInt64(ms.ReadBytes(8), 0);
+                len = (Int32)BitConverter.ToUInt64(buf, 0);
+            }
 
             // 如果mask，剩下的就是数据，避免拷贝，提升性能
             if (!mask) return new Packet(pk.Data, pk.Offset + (Int32)ms.Position, len);
 
             var masks = new Byte[4];
-            if (mask) masks = ms.ReadBytes(4);
+            if (mask) ms.Read(masks, 0, masks.Length);
 
             // 读取数据
-            var data = ms.ReadBytes(len);
+            var data = new Byte[len];
+            ms.Read(data, 0, data.Length);
 
             if (mask)
             {

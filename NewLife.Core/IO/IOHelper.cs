@@ -180,7 +180,9 @@ namespace NewLife
 
             if (len > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, 1024 * 2);
 
-            return des.ReadBytes(len);
+            var buf = new Byte[len];
+            des.Read(buf, 0, buf.Length);
+            return buf;
         }
 
         /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
