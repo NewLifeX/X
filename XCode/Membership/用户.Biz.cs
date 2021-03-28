@@ -363,7 +363,7 @@ namespace XCode.Membership
             }
         }
 
-        private static User Login(String username, String password, Int32 hashTimes)
+        static User Login(String username, String password, Int32 hashTimes)
         {
             if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
 
@@ -512,7 +512,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Int32[] GetRoleIDs()
         {
-            var ids = RoleIds?.Where(e => e > 0).OrderBy(e => e).ToList()??new List<Int32>();
+            var ids = RoleIds.Where(e => e > 0).OrderBy(e => e).ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
 
             return ids.Distinct().ToArray();
@@ -568,7 +568,7 @@ namespace XCode.Membership
         #endregion
     }
 
-    internal class RoleMapProvider : MapProvider
+    class RoleMapProvider : MapProvider
     {
         public RoleMapProvider()
         {
