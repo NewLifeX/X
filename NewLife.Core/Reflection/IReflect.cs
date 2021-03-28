@@ -669,20 +669,17 @@ namespace NewLife.Reflection
             }
 
             // 处理数组
-            if (value is String strValue)
+            if (conversionType == typeof(Int32[]))
             {
-                if (conversionType == typeof(Int32[]))
-                {
-                    return strValue.SplitAsInt();
-                }
-                else if (conversionType == typeof(Int64[]))
-                {
-                    return strValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.ToLong()).ToArray();
-                }
-                else if (conversionType == typeof(String[]))
-                {
-                    return strValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
-                }
+                return (value as String).SplitAsInt();
+            }
+            else if (conversionType == typeof(Int64[]))
+            {
+                return (value as String).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.ToLong()).ToArray();
+            }
+            else if (conversionType == typeof(String[]))
+            {
+                return (value as String).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
             }
 
             if (value != null)
