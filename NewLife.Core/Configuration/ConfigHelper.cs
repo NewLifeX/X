@@ -160,16 +160,17 @@ namespace NewLife.Configuration
         private static void MapArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
         {
             var elementType = pi.PropertyType.GetElementTypeEx();
+            var count = section.Childs.Count;
 
             // 实例化数组
-            if (pi.GetValue(model, null) is not Array arr)
+            if (pi.GetValue(model, null) is not Array arr || arr.Length == 0)
             {
-                arr = Array.CreateInstance(elementType, section.Childs.Count);
+                arr = Array.CreateInstance(elementType, count);
                 pi.SetValue(model, arr, null);
             }
 
             // 逐个映射
-            for (var i = 0; i < section.Childs.Count; i++)
+            for (var i = 0; i < count && i < arr.Length; i++)
             {
                 var sec = section.Childs[i];
 
