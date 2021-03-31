@@ -489,6 +489,7 @@ namespace NewLife.Caching
             rds.Timeout = Timeout;
             rds.Retry = Retry;
             rds.Tracer = Tracer;
+            rds.Log = Log;
 
             return rds;
         }
