@@ -37,6 +37,9 @@ namespace NewLife.Configuration
         /// <summary>Api客户端</summary>
         public IApiClient Client { get; set; }
 
+        /// <summary>服务器信息。配置中心最后一次接口响应，包含配置数据以外的其它内容</summary>
+        public IDictionary<String, Object> Info { get; set; }
+
         private Int32 _version;
         private IDictionary<String, Object> _cache;
         #endregion
@@ -115,6 +118,7 @@ namespace NewLife.Configuration
                 {
                     var action = $"/configfiles/json/{AppId}/default/{item}";
                     var rs = client.Get<IDictionary<String, Object>>(action);
+                    Info = rs;
                     foreach (var elm in rs)
                     {
                         if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
@@ -133,6 +137,7 @@ namespace NewLife.Configuration
                     usedKeys = UsedKeys.Join(),
                     missedKeys = MissedKeys.Join(),
                 });
+                Info = rs;
 
                 // 增强版返回
                 if (rs.TryGetValue("configs", out var obj))
