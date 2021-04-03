@@ -31,7 +31,28 @@ namespace NewLife.Reflection
 
         private String _FileVersion;
         /// <summary>文件版本</summary>
-        public String FileVersion => _FileVersion ??= "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+        public String FileVersion
+        {
+            get
+            {
+                if (_FileVersion == null)
+                {
+                    var ver = Asm.GetCustomAttributeValue<AssemblyInformationalVersionAttribute, String>();
+                    if (!ver.IsNullOrEmpty())
+                    {
+                        var p = ver.IndexOf('+');
+                        if (p > 0) ver = ver.Substring(0, p);
+                    }
+                    _FileVersion = ver;
+                }
+
+                if (_FileVersion == null) _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+
+                if (_FileVersion == null) _FileVersion = "";
+
+                return _FileVersion;
+            }
+        }
 
         private DateTime? _Compile;
         /// <summary>编译时间</summary>
