@@ -52,6 +52,9 @@ namespace NewLife.Caching
         /// <summary>编码器。决定对象存储在redis中的格式，默认json</summary>
         public IRedisEncoder Encoder { get; set; } = new RedisJsonEncoder();
 
+        /// <summary>失败时抛出异常。默认true</summary>
+        public Boolean ThrowOnFailed { get; set; } = true;
+
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
 
@@ -532,10 +535,17 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
+            var rs = "";
             if (expire <= 0)
-                return Execute(key, rds => rds.Execute<String>("SET", key, value) == "OK", true);
+                rs = Execute(key, rds => rds.Execute<String>("SET", key, value), true);
             else
-                return Execute(key, rds => rds.Execute<String>("SETEX", key, expire, value) == "OK", true);
+                rs = Execute(key, rds => rds.Execute<String>("SETEX", key, expire, value), true);
+
+            if (rs == "OK") return true;
+            if (rs.IsNullOrEmpty()) return false;
+            if (ThrowOnFailed) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
+
+            return false;
         }
 
         /// <summary>获取单体</summary>
@@ -669,8 +679,7 @@ namespace NewLife.Caching
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
-                // 记录异常返回
-                XTrace.WriteLine("Redis.Add({0}, {1}, {2}) => {3}", key, value, expire, result);
+                if (ThrowOnFailed) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
 
                 return false;
             }

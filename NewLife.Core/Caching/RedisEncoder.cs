@@ -65,7 +65,13 @@ namespace NewLife.Caching
 
                 var str = pk.ToStr().Trim('\"');
                 if (type.GetTypeCode() == TypeCode.String) return str;
-                if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
+                //if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
+                if (type.GetTypeCode() != TypeCode.Object)
+                {
+                    if (type == typeof(Boolean) && str == "OK") return true;
+
+                    return Convert.ChangeType(str, type);
+                }
 
                 return str.ToJsonEntity(type);
             }

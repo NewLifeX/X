@@ -12,6 +12,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 //#nullable enable
 namespace NewLife.Caching
@@ -730,7 +731,11 @@ namespace NewLife.Caching
             {
                 try
                 {
-                    target = value.ChangeType(type);
+                    //target = value.ChangeType(type);
+                    if (type == typeof(Boolean) && str == "OK")
+                        target = true;
+                    else
+                        target = Convert.ChangeType(str, type);
                     return true;
                 }
                 catch (Exception ex)
@@ -862,25 +867,25 @@ namespace NewLife.Caching
         #endregion
 
         #region 获取设置
-        /// <summary>设置</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="secTimeout">超时时间</param>
-        /// <returns></returns>
-        public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
-        {
-            if (secTimeout <= 0)
-                return Execute<String>("SET", key, value) == "OK";
-            else
-                return Execute<String>("SETEX", key, secTimeout, value) == "OK";
-        }
+        ///// <summary>设置</summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="key"></param>
+        ///// <param name="value"></param>
+        ///// <param name="secTimeout">超时时间</param>
+        ///// <returns></returns>
+        //public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
+        //{
+        //    if (secTimeout <= 0)
+        //        return Execute<String>("SET", key, value) == "OK";
+        //    else
+        //        return Execute<String>("SETEX", key, secTimeout, value) == "OK";
+        //}
 
-        /// <summary>读取</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public T Get<T>(String key) => Execute<T>("GET", key);
+        ///// <summary>读取</summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="key"></param>
+        ///// <returns></returns>
+        //public T Get<T>(String key) => Execute<T>("GET", key);
 
         /// <summary>批量设置</summary>
         /// <typeparam name="T"></typeparam>
@@ -904,6 +909,7 @@ namespace NewLife.Caching
 
             //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
+            if (rs != "OK" && Host.ThrowOnFailed) throw new XException("Redis.SetAll({0})失败。{1}", values.ToJson(), rs);
 
             return rs == "OK";
         }
