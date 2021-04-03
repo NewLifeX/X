@@ -909,7 +909,7 @@ namespace NewLife.Caching
 
             //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
-            if (rs != "OK" && Host.ThrowOnFailed) throw new XException("Redis.SetAll({0})失败。{1}", values.ToJson(), rs);
+            if (rs != "OK" && Host.ThrowOnFailure) throw new XException("Redis.SetAll({0})失败。{1}", values.ToJson(), rs);
 
             return rs == "OK";
         }

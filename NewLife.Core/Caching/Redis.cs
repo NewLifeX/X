@@ -53,7 +53,7 @@ namespace NewLife.Caching
         public IRedisEncoder Encoder { get; set; } = new RedisJsonEncoder();
 
         /// <summary>失败时抛出异常。默认true</summary>
-        public Boolean ThrowOnFailed { get; set; } = true;
+        public Boolean ThrowOnFailure { get; set; } = true;
 
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
@@ -304,6 +304,7 @@ namespace NewLife.Caching
             var sw = Counter?.StartCount();
 
             var i = 0;
+            var delay = 100;
             do
             {
                 // 每次重试都需要重新从池里借出连接
@@ -317,7 +318,8 @@ namespace NewLife.Caching
                 {
                     if (i++ >= Retry) throw;
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(delay);
+                    delay *= 2;
                 }
                 catch (Exception ex)
                 {
@@ -391,6 +393,7 @@ namespace NewLife.Caching
             var sw = Counter?.StartCount();
 
             var i = 0;
+            var delay = 100;
             do
             {
                 // 每次重试都需要重新从池里借出连接
@@ -403,6 +406,9 @@ namespace NewLife.Caching
                 catch (InvalidDataException)
                 {
                     if (i++ >= Retry) throw;
+
+                    await Task.Delay(delay);
+                    delay *= 2;
                 }
                 catch (SocketException)
                 {
@@ -543,7 +549,7 @@ namespace NewLife.Caching
 
             if (rs == "OK") return true;
             if (rs.IsNullOrEmpty()) return false;
-            if (ThrowOnFailed) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
+            if (ThrowOnFailure) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
 
             return false;
         }
@@ -679,7 +685,7 @@ namespace NewLife.Caching
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
-                if (ThrowOnFailed) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
+                if (ThrowOnFailure) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
 
                 return false;
             }
