@@ -206,33 +206,6 @@ namespace XUnitTest.Model
         }
 
         [Fact]
-        public void AddRedis()
-        {
-            var ioc = new ObjectContainer();
-
-            var config = new ConfigProvider();
-            config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
-            ioc.AddSingleton<IConfigProvider>(config);
-            ioc.AddSingleton(provider => new Redis(provider, "orderRedis"));
-
-            var prv = ioc.BuildServiceProvider();
-
-            var rds = prv.GetService<Redis>();
-
-            Assert.Equal("127.0.0.1:6379", rds.Server);
-            Assert.Equal("pass", rds.Password);
-            Assert.Equal(7, rds.Db);
-
-            // 改变配置数据，影响对象属性
-            config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
-            config.SaveAll();
-
-            Assert.Equal("10.0.0.1:6379", rds.Server);
-            Assert.Equal("word", rds.Password);
-            Assert.Equal(13, rds.Db);
-        }
-
-        [Fact]
         public void AddApiHttpClient()
         {
             var ioc = new ObjectContainer();

@@ -106,7 +106,7 @@ namespace XCode.DataAccessLayer
                 if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
                 // 连接映射
-                var vs = ConnStr.SplitAsDictionary("=", ",");
+                var vs = ConnStr.SplitAsDictionary("=", ",", true);
                 if (vs.TryGetValue("MapTo", out var map) && !map.IsNullOrEmpty()) _mapTo = map;
 
                 if (_connTypes.TryGetValue(connName, out var t))
