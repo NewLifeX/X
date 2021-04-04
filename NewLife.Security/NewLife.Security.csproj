@@ -5,9 +5,9 @@
     <AssemblyTitle>加密库</AssemblyTitle>
     <Description>扩展加密算法</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.10.2021.0101</Version>
-    <FileVersion>8.10.2021.0101</FileVersion>
+    <Copyright>©2002-2021 NewLife</Copyright>
+    <Version>8.10.2021.0404</Version>
+    <FileVersion>8.10.2021.0404</FileVersion>
     <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
