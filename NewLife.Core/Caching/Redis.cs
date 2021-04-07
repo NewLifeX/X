@@ -157,6 +157,9 @@ namespace NewLife.Caching
                     Timeout = str.ToInt();
                 else if (dic.TryGetValue("connectTimeout", out str))
                     Timeout = str.ToInt();
+
+                if (dic.TryGetValue("ThrowOnFailure", out str))
+                    ThrowOnFailure = str.ToBoolean();
             }
         }
 
