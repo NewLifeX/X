@@ -128,11 +128,15 @@ namespace NewLife.Caching
         #endregion
 
         #region 配置方法
+        private String _configOld;
         /// <summary>使用连接字符串初始化</summary>
         /// <param name="config"></param>
         public override void Init(String config)
         {
             if (config.IsNullOrEmpty()) return;
+
+            if (config == _configOld) return;
+            if (!_configOld.IsNullOrEmpty()) XTrace.WriteLine("Redis[{0}]连接字符串改变！", Name);
 
             var dic =
                 config.Contains(',') && !config.Contains(';') ?
@@ -161,6 +165,8 @@ namespace NewLife.Caching
                 if (dic.TryGetValue("ThrowOnFailure", out str))
                     ThrowOnFailure = str.ToBoolean();
             }
+
+            _configOld = config;
         }
 
         void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
@@ -782,9 +788,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Decrement(String key, Double value) =>
-            //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
-            Increment(key, -value);
+        public override Double Decrement(String key, Double value) => Increment(key, -value);
         #endregion
 
         #region 性能测试
