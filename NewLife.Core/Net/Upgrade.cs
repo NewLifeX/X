@@ -169,6 +169,9 @@ namespace NewLife.Net
             // 拷贝替换更新
             CopyAndReplace(tmp, DestinationPath);
 
+            // 删除备份文件
+            DeleteBackup(DestinationPath);
+
             WriteLog("更新成功！");
 
             return true;
@@ -262,18 +265,20 @@ namespace NewLife.Net
                     // 如果是exe/dll，则先改名，因为可能无法覆盖
                     if (/*dst.EndsWithIgnoreCase(".exe", ".dll") &&*/ File.Exists(dst))
                     {
-                        // 先尝试删除
-                        WriteLog("Delete {0}", item);
-                        try
-                        {
-                            File.Delete(dst);
-                        }
-                        catch
-                        {
-                            var del = dst + ".del";
-                            if (File.Exists(del)) File.Delete(del);
-                            File.Move(dst, del);
-                        }
+                        //// 先尝试删除
+                        //WriteLog("Delete {0}", item);
+                        //try
+                        //{
+                        //    File.Delete(dst);
+                        //}
+                        //catch
+                        //{
+                        // 直接Move文件，不要删除，否则Linux上可能导致当前进程退出
+                        WriteLog("Move {0}", item);
+                        var del = dst + ".del";
+                        if (File.Exists(del)) File.Delete(del);
+                        File.Move(dst, del);
+                        //}
 
                         item.CopyTo(dst, true);
                     }
