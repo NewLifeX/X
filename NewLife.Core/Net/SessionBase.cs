@@ -98,27 +98,36 @@ namespace NewLife.Net
             {
                 if (Active) return true;
 
-                _RecvCount = 0;
-
-                var rs = OnOpen();
-                if (!rs) return false;
-
-                var timeout = Timeout;
-                if (timeout > 0)
+                using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote);
+                try
                 {
-                    Client.SendTimeout = timeout;
-                    Client.ReceiveTimeout = timeout;
+                    _RecvCount = 0;
+
+                    var rs = OnOpen();
+                    if (!rs) return false;
+
+                    var timeout = Timeout;
+                    if (timeout > 0)
+                    {
+                        Client.SendTimeout = timeout;
+                        Client.ReceiveTimeout = timeout;
+                    }
+
+                    // Tcp需要初始化管道
+                    if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
+
+                    Active = true;
+
+                    ReceiveAsync();
+
+                    // 触发打开完成的事件
+                    Opened?.Invoke(this, EventArgs.Empty);
                 }
-
-                // Tcp需要初始化管道
-                if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
-
-                Active = true;
-
-                ReceiveAsync();
-
-                // 触发打开完成的事件
-                Opened?.Invoke(this, EventArgs.Empty);
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, null);
+                    throw;
+                }
             }
 
             return true;
@@ -138,20 +147,29 @@ namespace NewLife.Net
             {
                 if (!Active) return true;
 
-                // 管道
-                Pipeline?.Close(CreateContext(this), reason);
+                using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote);
+                try
+                {
+                    // 管道
+                    Pipeline?.Close(CreateContext(this), reason);
 
-                var rs = true;
-                if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
+                    var rs = true;
+                    if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
 
-                _RecvCount = 0;
+                    _RecvCount = 0;
 
-                // 触发关闭完成的事件
-                Closed?.Invoke(this, EventArgs.Empty);
+                    // 触发关闭完成的事件
+                    Closed?.Invoke(this, EventArgs.Empty);
 
-                Active = rs;
+                    Active = rs;
 
-                return !rs;
+                    return !rs;
+                }
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, null);
+                    throw;
+                }
             }
         }
 
@@ -202,10 +220,19 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var buf = new Byte[BufferSize];
-            var size = Client.Receive(buf);
+            using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
+            try
+            {
+                var buf = new Byte[BufferSize];
+                var size = Client.Receive(buf);
 
-            return new Packet(buf, 0, size);
+                return new Packet(buf, 0, size);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         /// <summary>当前异步接收个数</summary>
@@ -384,7 +411,7 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         private void ProcessReceive(Packet pk, IPEndPoint remote)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total);
+            using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "");
             try
             {
                 LastTime = DateTime.Now;
@@ -478,8 +505,17 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            var ctx = CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+            try
+            {
+                var ctx = CreateContext(this);
+                return (Int32)Pipeline.Write(ctx, message);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         /// <summary>通过管道发送消息并等待响应</summary>
@@ -487,14 +523,23 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            var ctx = CreateContext(this);
-            var source = new TaskCompletionSource<Object>();
-            ctx["TaskSource"] = source;
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+            try
+            {
+                var ctx = CreateContext(this);
+                var source = new TaskCompletionSource<Object>();
+                ctx["TaskSource"] = source;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return TaskEx.FromResult((Object)null);
+                var rs = (Int32)Pipeline.Write(ctx, message);
+                if (rs < 0) return TaskEx.FromResult((Object)null);
 
-            return source.Task;
+                return source.Task;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         /// <summary>处理数据帧</summary>

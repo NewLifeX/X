@@ -82,7 +82,16 @@ namespace NewLife.Net.Handlers
         protected override IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            if (ss["Codec"] is not PacketCodec pc) ss["Codec"] = pc = new PacketCodec { Expire = Expire, GetLength = p => GetLength(p, Offset, Size), Offset = Offset };
+            if (ss["Codec"] is not PacketCodec pc)
+            {
+                ss["Codec"] = pc = new PacketCodec
+                {
+                    Expire = Expire,
+                    GetLength = p => GetLength(p, Offset, Size),
+                    Offset = Offset,
+                    Tracer = (context.Owner as ISocket)?.Tracer
+                };
+            }
 
             var pks = pc.Parse(pk);
 

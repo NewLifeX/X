@@ -245,6 +245,7 @@ namespace NewLife.Net
 
             if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             var rs = count;
             var sock = Client;
             var gotLock = false;
@@ -281,6 +282,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk.ToBase64());
+
                 if (!ex.IsDisposed())
                 {
                     OnError("Send", ex);
@@ -360,6 +363,8 @@ namespace NewLife.Net
         {
             if (pk.Count == 0)
             {
+                using var span = Tracer?.NewSpan($"net:{Name}:EmptyData");
+
                 // 连续多次空数据，则断开
                 if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
                 {
@@ -400,11 +405,15 @@ namespace NewLife.Net
 
             WriteLog("Reconnect {0}", this);
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Reconnect", _Reconnect + "");
             try
             {
                 Open();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+            }
         }
         #endregion
 

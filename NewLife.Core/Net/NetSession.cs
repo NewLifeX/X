@@ -78,7 +78,7 @@ namespace NewLife.Net
         {
             var ns = (this as INetSession).Host;
             var tracer = ns?.Tracer;
-            var span = tracer?.NewSpan($"net:{ns.Name}:Receive");
+            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive");
 
             try
             {
@@ -88,10 +88,6 @@ namespace NewLife.Net
             {
                 span?.SetError(ex, Remote + "");
                 throw;
-            }
-            finally
-            {
-                span?.Dispose();
             }
         }
 

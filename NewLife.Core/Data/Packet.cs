@@ -380,6 +380,17 @@ namespace NewLife.Data
 
             return ReadBytes(0, maxLength).ToHex(separate, groupSize);
         }
+
+        /// <summary>转为Base64编码</summary>
+        /// <returns></returns>
+        public String ToBase64()
+        {
+            if (Data == null) return null;
+
+            if (Next == null) Data.ToBase64(Offset, Count);
+
+            return ToArray().ToBase64();
+        }
         #endregion
 
         #region 重载运算符

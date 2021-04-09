@@ -223,7 +223,7 @@ namespace NewLife.Remoting
                 args = dic;
             }
 
-            var span = Tracer?.NewSpan("rpc:" + action);
+            var span = Tracer?.NewSpan("rpc:" + action, args);
             args = span.Attach(args);
 
             // 编码请求，构造消息
@@ -305,7 +305,7 @@ namespace NewLife.Remoting
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;
 
-            var span = Tracer?.NewSpan("rpc:" + action);
+            var span = Tracer?.NewSpan("rpc:" + action, args);
             args = span.Attach(args);
 
             // 编码请求

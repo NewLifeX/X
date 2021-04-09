@@ -43,7 +43,14 @@ namespace NewLife.Net.Handlers
         protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            if (ss["Codec"] is not PacketCodec pc) ss["Codec"] = pc = new PacketCodec { GetLength = DefaultMessage.GetLength };
+            if (ss["Codec"] is not PacketCodec pc)
+            {
+                ss["Codec"] = pc = new PacketCodec
+                {
+                    GetLength = DefaultMessage.GetLength,
+                    Tracer = (context.Owner as ISocket)?.Tracer
+                };
+            }
 
             var pks = pc.Parse(pk);
             var list = pks.Select(e =>

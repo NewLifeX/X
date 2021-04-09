@@ -46,6 +46,9 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         Boolean LogReceive { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        ITracer Tracer { get; set; }
         #endregion
 
         #region 方法

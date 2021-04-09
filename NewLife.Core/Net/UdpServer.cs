@@ -113,6 +113,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             try
             {
                 var rs = 0;
@@ -144,6 +145,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk.ToBase64());
+
                 if (!ex.IsDisposed())
                 {
                     OnError("Send", ex);
