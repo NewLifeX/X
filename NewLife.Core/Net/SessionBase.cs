@@ -51,6 +51,9 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -234,7 +237,7 @@ namespace NewLife.Net
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessEvent(e, -1);
+                se.Completed += (s, e) => ProcessEvent(e, -1, true);
                 se.UserToken = count;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
@@ -261,9 +264,9 @@ namespace NewLife.Net
 
         /// <summary>用一个事件参数来开始异步接收</summary>
         /// <param name="se">事件参数</param>
-        /// <param name="io">是否在IO线程调用</param>
+        /// <param name="ioThread">是否在线程池调用</param>
         /// <returns></returns>
-        Boolean StartReceive(SocketAsyncEventArgs se, Boolean io)
+        Boolean StartReceive(SocketAsyncEventArgs se, Boolean ioThread)
         {
             if (Disposed)
             {
@@ -303,10 +306,10 @@ namespace NewLife.Net
             // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
             if (!rs)
             {
-                if (io)
-                    ProcessEvent(se, -1);
+                if (ioThread)
+                    ProcessEvent(se, -1, true);
                 else
-                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
+                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1, false), se);
             }
 
             return true;
@@ -315,9 +318,15 @@ namespace NewLife.Net
         internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
         /// <summary>同步或异步收到数据</summary>
+        /// <remarks>
+        /// ioThread:
+        /// 如果在StartReceive的时候线程池调用ProcessEvent，则处于worker线程；
+        /// 如果在IOCP的时候调用ProcessEvent，则处于completionPort线程。
+        /// </remarks>
         /// <param name="se"></param>
         /// <param name="bytes"></param>
-        internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes)
+        /// <param name="ioThread">是否在IO线程池里面</param>
+        internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, Boolean ioThread)
         {
             try
             {
@@ -354,13 +363,19 @@ namespace NewLife.Net
 
                 // 开始新的监听
                 if (Active && !Disposed)
-                    StartReceive(se, true);
+                    StartReceive(se, ioThread);
                 else
                     ReleaseRecv(se, "!Active || Disposed");
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
+
+                // 如果数据处理异常，并且Error处理也抛出异常，则这里可能出错，导致整个接收链毁掉。
+                // 但是这个可能性极低
+                ReleaseRecv(se, "ProcessEventError " + ex.Message);
+                Close("ProcessEventError");
+                Dispose();
             }
         }
 
@@ -369,6 +384,7 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         private void ProcessReceive(Packet pk, IPEndPoint remote)
         {
+            using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total);
             try
             {
                 LastTime = DateTime.Now;
@@ -398,6 +414,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk.ToHex());
                 if (!ex.IsDisposed()) OnError("OnReceive", ex);
             }
         }

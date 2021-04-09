@@ -108,7 +108,7 @@ namespace NewLife.Net
         /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
         public X509Certificate Certificate { get; set; }
 
-        /// <summary>APM跟踪器</summary>
+        /// <summary>APM性能追踪器</summary>
         public ITracer Tracer { get; set; }
 
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>

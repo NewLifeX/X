@@ -348,7 +348,7 @@ namespace NewLife.Net
                 return;
             }
 
-            ProcessEvent(se, bytes);
+            ProcessEvent(se, bytes, true);
         }
 
         //private Int32 _empty;
