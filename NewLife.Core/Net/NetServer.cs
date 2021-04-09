@@ -502,7 +502,7 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
+        protected ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
         {
             switch (protocol)
             {
@@ -530,7 +530,7 @@ namespace NewLife.Net
             }
         }
 
-        static ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
+        ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
         {
             var list = new List<ISocketServer>();
             switch (family)
@@ -544,6 +544,7 @@ namespace NewLife.Net
                         svr.Local.Address = addr;
                         svr.Local.Port = port;
                         //svr.AddressFamily = family;
+                        svr.Tracer = Tracer;
 
                         // 协议端口不能是已经被占用
                         if (!svr.Local.CheckPort()) list.Add(svr);

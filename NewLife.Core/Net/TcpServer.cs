@@ -306,7 +306,8 @@ namespace NewLife.Net
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
-                Pipeline = Pipeline
+                Pipeline = Pipeline,
+                Tracer = Tracer,
             };
 
             // 为了降低延迟，服务端不要合并小包

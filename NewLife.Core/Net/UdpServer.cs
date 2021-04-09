@@ -303,6 +303,7 @@ namespace NewLife.Net
                     Log = Log,
                     LogSend = LogSend,
                     LogReceive = LogReceive,
+                    Tracer = Tracer,
                 };
 
                 session = us;

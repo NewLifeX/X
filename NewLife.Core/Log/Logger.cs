@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace NewLife.Log
 {
@@ -247,6 +248,11 @@ namespace NewLife.Log
                 if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
             }
             sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
+
+            ThreadPool.GetMinThreads(out var minWorker, out var minIO);
+            ThreadPool.GetMaxThreads(out var maxWorker, out var maxIO);
+            ThreadPool.GetAvailableThreads(out var avaWorker, out var avaIO);
+            sb.AppendFormat("#ThreadPool: Min={0}/{1}, Max={2}/{3}, Available={4}/{5}\r\n", minWorker, minIO, maxWorker, maxIO, avaWorker, avaIO);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
             sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N/定时T 线程名/任务ID 消息内容\r\n");

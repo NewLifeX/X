@@ -14,8 +14,13 @@ namespace NewLife.Threading
         static ThreadPoolX()
         {
             // 在这个同步异步大量混合使用的时代，需要更多的初始线程来屏蔽各种对TPL的不合理使用
-            ThreadPool.GetMinThreads(out var wt, out _);
-            if (wt < 32) ThreadPool.SetMinThreads(32, 32);
+            ThreadPool.GetMinThreads(out var wt, out var io);
+            if (wt < 32 || io < 32)
+            {
+                if (wt < 32) wt = 32;
+                if (io < 32) io = 32;
+                ThreadPool.SetMinThreads(wt, io);
+            }
         }
 
         /// <summary>初始化线程池

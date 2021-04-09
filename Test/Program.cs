@@ -69,7 +69,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test8();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -169,19 +169,19 @@ namespace Test
 
         private static void Test3()
         {
-            var tracer = DefaultTracer.Instance ?? new DefaultTracer();
+            using var tracer = new DefaultTracer { Log = XTrace.Log };
             tracer.MaxSamples = 100;
             tracer.MaxErrors = 100;
 
             if (Console.ReadLine() == "1")
             {
-                var svr = new ApiServer(1234)
+                var svr = new ApiServer(12345)
                 //var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
-                    Tracer = DefaultTracer.Instance,
+                    Tracer = tracer,
                 };
 
                 // http状态
@@ -198,12 +198,12 @@ namespace Test
             }
             else
             {
-                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:1234")
+                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:12345")
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
-                    Tracer = DefaultTracer.Instance,
+                    Tracer = tracer,
 
                     UsePool = true,
                 };

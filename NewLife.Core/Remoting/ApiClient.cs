@@ -393,6 +393,7 @@ namespace NewLife.Remoting
             var client = new NetUri(svr).CreateRemote();
             // 网络层采用消息层超时
             client.Timeout = Timeout;
+            client.Tracer = Tracer;
 
             client.Add(GetMessageCodec());
 

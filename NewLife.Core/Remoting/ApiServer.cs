@@ -125,7 +125,8 @@ namespace NewLife.Remoting
 
             svr = new ApiNetServer
             {
-                Host = this
+                Host = this,
+                Tracer = Tracer,
             };
             svr.Init(new NetUri(NetType.Unknown, "*", Port), this);
 
