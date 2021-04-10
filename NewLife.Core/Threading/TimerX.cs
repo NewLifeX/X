@@ -63,6 +63,9 @@ namespace NewLife.Threading
         /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
         public Func<Boolean>? CanExecute { get; set; }
 
+        /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
+        public Cron? Cron => _cron;
+
         private DateTime _AbsolutelyNext;
         private Cron? _cron;
         #endregion
