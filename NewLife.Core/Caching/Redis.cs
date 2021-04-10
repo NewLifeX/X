@@ -37,9 +37,6 @@ namespace NewLife.Caching
         /// <summary>目标数据库。默认0</summary>
         public Int32 Db { get; set; }
 
-        /// <summary> Key前缀，用于隔离缓存</summary>
-        public String Prefix { get; set; }
-
         /// <summary>读写超时时间。默认3000ms</summary>
         public Int32 Timeout { get; set; } = 3_000;
 
@@ -77,12 +74,12 @@ namespace NewLife.Caching
         /// <param name="server"></param>
         /// <param name="password"></param>
         /// <param name="db"></param>
-        public Redis(String server, String password, Int32 db) : this(server, username: "", password, db, "")
+        public Redis(String server, String password, Int32 db)
         {
-            //// 有人多输入了一个空格，酿成大祸
-            //Server = server?.Trim();
-            //Password = password?.Trim();
-            //Db = db;
+            // 有人多输入了一个空格，酿成大祸
+            Server = server?.Trim();
+            Password = password?.Trim();
+            Db = db;
         }
 
         /// <summary>实例化Redis，指定服务器地址、用户、密码、库</summary>
@@ -90,29 +87,13 @@ namespace NewLife.Caching
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="db"></param>
-        public Redis(String server, String username, String password, Int32 db) : this(server, username, password, db, "")
-        {
-            //// 有人多输入了一个空格，酿成大祸
-            //Server = server?.Trim();
-            //UserName = username?.Trim();
-            //Password = password?.Trim();
-            //Db = db;
-        }
-
-        /// <summary>实例化Redis，指定服务器地址、用户、密码、库</summary>
-        /// <param name="server"></param>
-        /// <param name="username"></param>
-        /// <param name="password"></param>
-        /// <param name="db"></param>
-        /// <param name="prefix"></param>
-        public Redis(String server, String username, String password, Int32 db, String prefix)
+        public Redis(String server, String username, String password, Int32 db)
         {
             // 有人多输入了一个空格，酿成大祸
             Server = server?.Trim();
             UserName = username?.Trim();
             Password = password?.Trim();
             Db = db;
-            Prefix = prefix?.Trim();
         }
 
         /// <summary>按照配置服务实例化Redis，用于NETCore依赖注入</summary>
@@ -166,7 +147,6 @@ namespace NewLife.Caching
                 Server = dic["Server"]?.Trim();
                 UserName = dic["UserName"]?.Trim();
                 Password = dic["Password"]?.Trim();
-                Prefix = dic["Prefix"]?.Trim();
                 Db = dic["Db"].ToInt();
 
                 if (Server.IsNullOrEmpty() && dic.TryGetValue("[0]", out var svr)) Server = svr;
@@ -295,85 +275,6 @@ namespace NewLife.Caching
                     return _Pool = pool;
                 }
             }
-        }
-
-        /// <summary>执行命令 不支持集群</summary>
-        /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="func">回调函数</param>
-        /// <param name="write">是否写入操作</param>
-        /// <returns></returns>
-        public virtual TResult Execute<TResult>(Func<RedisClient, TResult> func, Boolean write = false)
-        {
-            // 写入或完全管道模式时，才处理管道操作
-            if (write || FullPipeline)
-            {
-                // 管道模式直接执行
-                var rds = _client.Value;
-                if (rds == null && AutoPipeline > 0) rds = StartPipeline();
-                if (rds != null)
-                {
-                    var rs = func(rds);
-
-                    // 命令数足够，自动提交
-                    if (AutoPipeline > 0 && rds.PipelineCommands >= AutoPipeline)
-                    {
-                        StopPipeline(true);
-                        StartPipeline();
-                    }
-
-                    return rs;
-                }
-            }
-
-            // 读操作遇到未完成管道队列时，立马执行管道操作
-            if (!write) StopPipeline(true);
-
-            // 统计性能
-            var sw = Counter?.StartCount();
-
-            var i = 0;
-            var delay = 100;
-            do
-            {
-                // 每次重试都需要重新从池里借出连接
-                var client = Pool.Get();
-                try
-                {
-                    client.Reset();
-                    return func(client);
-                }
-                catch (InvalidDataException)
-                {
-                    if (i++ >= Retry) throw;
-
-                    Thread.Sleep(delay);
-                    delay *= 2;
-                }
-                catch (Exception ex)
-                {
-                    if (ex is SocketException || ex is IOException)
-                    {
-                        // 销毁连接
-                        client.TryDispose();
-
-                        // 网络异常时，自动切换到其它节点
-                        _idxServer++;
-                        if (++i < _servers.Length)
-                        {
-                            Thread.Sleep(100);
-                            continue;
-                        }
-                    }
-
-                    throw;
-                }
-                finally
-                {
-                    Pool.Put(client);
-
-                    Counter?.StopCount(sw);
-                }
-            } while (true);
         }
 
         /// <summary>执行命令</summary>
@@ -610,24 +511,11 @@ namespace NewLife.Caching
 
             return rds;
         }
-
-        /// <summary>
-        /// 拼接真正的Key
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        protected virtual String FormatKey(String key)
-        {
-            if (Prefix.IsNullOrEmpty()) return key;
-            // 部分业务喜欢自己加PrefixKey
-            if (key.StartsWith(Prefix)) return key;
-            return $"{Prefix}:{key}";
-        }
         #endregion
 
         #region 基础操作
         /// <summary>缓存个数</summary>
-        public override Int32 Count => Execute(rds => rds.Execute<Int32>("DBSIZE"));
+        public override Int32 Count => Execute(null, rds => rds.Execute<Int32>("DBSIZE"));
 
         /// <summary>获取所有键，限制10000项，超额请使用FullRedis.Search</summary>
         public override ICollection<String> Keys
@@ -636,7 +524,7 @@ namespace NewLife.Caching
             {
                 if (Count > 10000) throw new InvalidOperationException("数量过大时，禁止获取所有键，请使用FullRedis.Search");
 
-                return Execute(rds => rds.Execute<String[]>("KEYS", "*"));
+                return Execute(null, rds => rds.Execute<String[]>("KEYS", "*"));
             }
         }
 
@@ -646,8 +534,8 @@ namespace NewLife.Caching
         public virtual IDictionary<String, String> GetInfo(Boolean all = false)
         {
             var rs = all ?
-                Execute(rds => rds.Execute("INFO", "all") as Packet) :
-                Execute(rds => rds.Execute("INFO") as Packet);
+                Execute(null, rds => rds.Execute("INFO", "all") as Packet) :
+                Execute(null, rds => rds.Execute("INFO") as Packet);
             if (rs == null || rs.Count == 0) return null;
 
             var inf = rs.ToStr();
@@ -660,14 +548,13 @@ namespace NewLife.Caching
         /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         public override Boolean Set<T>(String key, T value, Int32 expire = -1)
         {
-            key = FormatKey(key);
             if (expire < 0) expire = Expire;
 
             var rs = "";
             if (expire <= 0)
-                rs = Execute(rds => rds.Execute<String>("SET", key, value), true);
+                rs = Execute(key, rds => rds.Execute<String>("SET", key, value), true);
             else
-                rs = Execute(rds => rds.Execute<String>("SETEX", key, expire, value), true);
+                rs = Execute(key, rds => rds.Execute<String>("SETEX", key, expire, value), true);
 
             if (rs == "OK") return true;
             if (rs.IsNullOrEmpty()) return false;
@@ -678,46 +565,30 @@ namespace NewLife.Caching
 
         /// <summary>获取单体</summary>
         /// <param name="key">键</param>
-        public override T Get<T>(String key)
-        {
-            key = FormatKey(key);
-            return Execute(rds => rds.Execute<T>("GET", key));
-        }
+        public override T Get<T>(String key) => Execute(key, rds => rds.Execute<T>("GET", key));
 
         /// <summary>批量移除缓存项</summary>
         /// <param name="keys">键集合</param>
-        public override Int32 Remove(params String[] keys)
-        {
-            keys = keys.Select(m => $"{ FormatKey(m)}").ToArray();
-            return Execute(rds => rds.Execute<int>("DEL", keys), true);
-        }
+        public override Int32 Remove(params String[] keys) => Execute(keys.FirstOrDefault(), rds => rds.Execute<Int32>("DEL", keys), true);
 
         /// <summary>清空所有缓存项</summary>
-        public override void Clear() => Execute(rds => rds.Execute<String>("FLUSHDB"), true);
+        public override void Clear() => Execute(null, rds => rds.Execute<String>("FLUSHDB"), true);
 
         /// <summary>是否存在</summary>
         /// <param name="key">键</param>
-        public override Boolean ContainsKey(String key)
-        {
-            key = FormatKey(key);
-            return Execute(rds => rds.Execute<int>("EXISTS", key) > 0);
-        }
+        public override Boolean ContainsKey(String key) => Execute(key, rds => rds.Execute<Int32>("EXISTS", key) > 0);
+
         /// <summary>设置缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <param name="expire">过期时间</param>
-        public override Boolean SetExpire(String key, TimeSpan expire)
-        {
-            key = FormatKey(key);
-            return Execute(rds => rds.Execute<string>("EXPIRE", key, (int)expire.TotalSeconds) == "1", true);
-        }
+        public override Boolean SetExpire(String key, TimeSpan expire) => Execute(key, rds => rds.Execute<String>("EXPIRE", key, (Int32)expire.TotalSeconds) == "1", true);
 
         /// <summary>获取缓存项有效期</summary>
         /// <param name="key">键</param>
         /// <returns></returns>
         public override TimeSpan GetExpire(String key)
         {
-            key = FormatKey(key);
-            var sec = Execute(rds => rds.Execute<Int32>("TTL", key));
+            var sec = Execute(key, rds => rds.Execute<Int32>("TTL", key));
             return TimeSpan.FromSeconds(sec);
         }
         #endregion
@@ -727,11 +598,7 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="keys"></param>
         /// <returns></returns>
-        public override IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
-        {
-            keys = keys.Select(m => $"{ FormatKey(m)}").ToArray();
-            return Execute(rds => rds.GetAll<T>(keys));
-        }
+        public override IDictionary<String, T> GetAll<T>(IEnumerable<String> keys) => Execute(keys.FirstOrDefault(), rds => rds.GetAll<T>(keys));
 
         /// <summary>批量设置缓存项</summary>
         /// <typeparam name="T"></typeparam>
@@ -753,8 +620,7 @@ namespace NewLife.Caching
                 return;
             }
 
-            values = values.ToDictionary(k => FormatKey(k.Key), v => v.Value);
-            Execute(rds => rds.SetAll(values), true);
+            Execute(values.FirstOrDefault().Key, rds => rds.SetAll(values), true);
 
             // 使用管道批量设置过期时间
             if (expire > 0)
@@ -810,11 +676,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
-            key = FormatKey(key);
             //if (expire < 0) expire = Expire;
 
             // 没有有效期，直接使用SETNX
-            if (expire <= 0) return Execute(rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
+            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
 
             // 带有有效期，需要判断版本是否支持
             var inf = Info;
@@ -825,7 +690,7 @@ namespace NewLife.Caching
             if (inf != null && inf.TryGetValue("redis_version", out var ver) && ver.CompareTo("2.6.12") >= 0)
             {
                 //!!! 重构Redis.Add实现，早期的SETNX支持设置过期时间，后来不支持了，并且连资料都找不到了，改用2.6.12新版 SET key value EX expire NX
-                var result = Execute(rds => rds.Execute<String>("SET", key, value, "EX", expire, "NX"), true);
+                var result = Execute(key, rds => rds.Execute<String>("SET", key, value, "EX", expire, "NX"), true);
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
@@ -835,7 +700,7 @@ namespace NewLife.Caching
             }
 
             // 旧版本不支持SETNX带过期时间，需要分为前后两条指令
-            var rs = Execute(rds => rds.Execute<Int32>("SETNX", key, value), true);
+            var rs = Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true);
             if (rs > 0) SetExpire(key, TimeSpan.FromSeconds(expire));
 
             return rs > 0;
@@ -846,11 +711,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="value">值</param>
         /// <returns></returns>
-        public override T Replace<T>(String key, T value)
-        {
-            key = FormatKey(key);
-            return Execute(rds => rds.Execute<T>("GETSET", key, value), true);
-        }
+        public override T Replace<T>(String key, T value) => Execute(key, rds => rds.Execute<T>("GETSET", key, value), true);
 
         /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败</summary>
         /// <remarks>
@@ -862,14 +723,13 @@ namespace NewLife.Caching
         /// <returns>返回是否包含值，即使反序列化失败</returns>
         public override Boolean TryGetValue<T>(String key, out T value)
         {
-            key = FormatKey(key);
             T v1 = default;
-            var rs1 = Execute(rds =>
-           {
-               var rs2 = rds.TryExecute("GET", new[] { key }, out T v2);
-               v1 = v2;
-               return rs2;
-           });
+            var rs1 = Execute(key, rds =>
+            {
+                var rs2 = rds.TryExecute("GET", new[] { key }, out T v2);
+                v1 = v2;
+                return rs2;
+            });
             value = v1;
 
             return rs1;
@@ -900,22 +760,17 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Increment(String key, Int64 value)
         {
-            key = FormatKey(key);
             if (value == 1)
-                return Execute(rds => rds.Execute<Int64>("INCR", key), true);
+                return Execute(key, rds => rds.Execute<Int64>("INCR", key), true);
             else
-                return Execute(rds => rds.Execute<Int64>("INCRBY", key, value), true);
+                return Execute(key, rds => rds.Execute<Int64>("INCRBY", key, value), true);
         }
 
         /// <summary>累加，原子操作，乘以100后按整数操作</summary>
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Increment(String key, Double value)
-        {
-            key = FormatKey(key);
-            return Execute(rds => rds.Execute<Double>("INCRBYFLOAT", key, value), true);
-        }
+        public override Double Increment(String key, Double value) => Execute(key, rds => rds.Execute<Double>("INCRBYFLOAT", key, value), true);
 
         /// <summary>递减，原子操作</summary>
         /// <param name="key">键</param>
@@ -923,11 +778,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Int64 Decrement(String key, Int64 value)
         {
-            key = FormatKey(key);
             if (value == 1)
-                return Execute(rds => rds.Execute<Int64>("DECR", key), true);
+                return Execute(key, rds => rds.Execute<Int64>("DECR", key), true);
             else
-                return Execute(rds => rds.Execute<Int64>("DECRBY", key, value.ToString()), true);
+                return Execute(key, rds => rds.Execute<Int64>("DECRBY", key, value.ToString()), true);
         }
 
         /// <summary>递减，原子操作，乘以100后按整数操作</summary>
@@ -1010,7 +864,6 @@ namespace NewLife.Caching
         /// <param name="batch">批量操作</param>
         protected override Int64 BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
-            key = FormatKey(key);
             if (rand && batch > 10) times /= 10;
             return base.BenchInc(key, times, threads, rand, batch);
         }
