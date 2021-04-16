@@ -10,6 +10,7 @@ using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
 
@@ -517,6 +518,18 @@ namespace XUnitTest.Caching
             Assert.Equal("10.0.0.1:6379", rds.Server);
             Assert.Equal("word", rds.Password);
             Assert.Equal(13, rds.Db);
+        }
+
+        [Fact]
+        public void MaxMessageSizeTest()
+        {
+            var ic = _redis;
+
+            ic.MaxMessageSize = 1028;
+
+            var ex = Assert.Throws<InvalidOperationException>(() => ic.Set("ttt", Rand.NextString(1029)));
+            Assert.NotNull(ex);
+            Assert.Equal("命令[SET]的数据包大小[1060]超过最大限制[1028]", ex.Message);
         }
     }
 }

@@ -55,6 +55,9 @@ namespace NewLife.Caching
         /// <summary>失败时抛出异常。默认true</summary>
         public Boolean ThrowOnFailure { get; set; } = true;
 
+        /// <summary>最大消息大小。超过时抛出异常，默认1024*1024字节</summary>
+        public Int32 MaxMessageSize { get; set; } = 1024 * 1024;
+
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
 

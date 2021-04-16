@@ -331,6 +331,9 @@ namespace NewLife.Caching
                 var ms = Pool.MemoryStream.Get();
                 GetRequest(ms, cmd, args, oriArgs);
 
+                var max = Host.MaxMessageSize;
+                if (max > 0 && ms.Length > max) throw new InvalidOperationException($"命令[{cmd}]的数据包大小[{ms.Length}]超过最大限制[{max}]");
+
                 // WriteTo与位置无关，CopyTo与位置相关
                 //ms.Position = 0;
                 if (ms.Length > 0) ms.WriteTo(ns);
