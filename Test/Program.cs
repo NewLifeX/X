@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Data;
 using System.Threading.Tasks;
+using NewLife.Configuration;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -44,20 +45,20 @@ namespace Test
             set.Debug = true;
             set.LogLevel = LogLevel.All;
 
-            new LogEventListener(new[] {
-                "System.Runtime",
-                "System.Diagnostics.Eventing.FrameworkEventSource",
-                "System.Transactions.TransactionsEventSource",
-                "Microsoft-Windows-DotNETRuntime",
-                //"Private.InternalDiagnostics.System.Net.Sockets",
-                "System.Net.NameResolution",
-                //"Private.InternalDiagnostics.System.Net.NameResolution",
-                "System.Net.Sockets",
-                //"Private.InternalDiagnostics.System.Net.Http",
-                "System.Net.Http",
-                //"System.Data.DataCommonEventSource",
-                //"Microsoft-Diagnostics-DiagnosticSource",
-            });
+            //new LogEventListener(new[] {
+            //    "System.Runtime",
+            //    "System.Diagnostics.Eventing.FrameworkEventSource",
+            //    "System.Transactions.TransactionsEventSource",
+            //    "Microsoft-Windows-DotNETRuntime",
+            //    //"Private.InternalDiagnostics.System.Net.Sockets",
+            //    "System.Net.NameResolution",
+            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
+            //    "System.Net.Sockets",
+            //    //"Private.InternalDiagnostics.System.Net.Http",
+            //    "System.Net.Http",
+            //    //"System.Data.DataCommonEventSource",
+            //    //"Microsoft-Diagnostics-DiagnosticSource",
+            //});
 
             var set2 = XCode.Setting.Current;
             set2.Debug = true;
@@ -69,7 +70,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -415,9 +416,15 @@ namespace Test
 
         private static void Test7()
         {
-#if __CORE__
-            XTrace.WriteLine(RuntimeInformation.OSDescription);
-#endif
+            var config = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                AppId = "Test",
+                Period = 5,
+            };
+            //config.LoadAll();
+            DAL.SetConfig(config);
+            //DAL.GetConfig = config.GetConfig;
 
             XCode.Setting.Current.Migration = Migration.Full;
             //Role.Meta.Session.Dal.Db.Migration = Migration.Full;

@@ -31,7 +31,7 @@ namespace NewLife.Configuration
         /// <summary>本地缓存配置数据，即使网络断开，仍然能够加载使用本地数据</summary>
         public Boolean LocalCache { get; set; }
 
-        /// <summary>更新周期。默认60秒</summary>
+        /// <summary>更新周期。默认60秒，0秒表示不做自动更新</summary>
         public Int32 Period { get; set; } = 60;
 
         /// <summary>Api客户端</summary>
@@ -92,7 +92,7 @@ namespace NewLife.Configuration
             return httpConfig;
         }
 
-        class ApolloModel
+        private class ApolloModel
         {
             public String WMetaServer { get; set; }
 
@@ -204,6 +204,9 @@ namespace NewLife.Configuration
                     SaveCache(dic);
                 }
 
+                // 自动更新
+                if (Period > 0) InitTimer();
+
                 return true;
             }
             catch (Exception ex)
@@ -276,27 +279,23 @@ namespace NewLife.Configuration
         private void DoRefresh(Object state)
         {
             var dic = GetAll();
+            if (dic == null) return;
 
-            var flag = false;
-            if (_cache == null)
-            {
-                flag = true;
-            }
-            else
+            var keys = new List<String>();
+            if (_cache != null)
             {
                 foreach (var item in dic)
                 {
                     if (!_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                     {
-                        flag = true;
-                        break;
+                        keys.Add(item.Key);
                     }
                 }
             }
 
-            if (flag)
+            if (keys.Count > 0)
             {
-                XTrace.WriteLine("[{0}]配置改变，重新加载", AppId);
+                XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, keys.Join());
 
                 Root = Build(dic);
 

@@ -329,10 +329,20 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
+        [Obsolete]
         public static event EventHandler<ResolveEventArgs> OnResolve;
 
         /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
         public static GetConfigCallback GetConfig { get; set; }
+
+        private static IConfigProvider _configProvider;
+        /// <summary>设置配置提供者。可用于配置中心</summary>
+        /// <param name="configProvider"></param>
+        public static void SetConfig(IConfigProvider configProvider)
+        {
+            configProvider.Bind(new MyDAL());
+            _configProvider = configProvider;
+        }
 
         private static readonly ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
         private static TimerX _timerGetConfig;
@@ -341,8 +351,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static Boolean GetFromConfigCenter(String connName)
         {
+            var getConfig = GetConfig ?? _configProvider.GetConfig;
             {
-                var str = GetConfig?.Invoke(connName);
+                var str = getConfig?.Invoke(connName);
                 if (str.IsNullOrEmpty()) return false;
 
                 AddConnStr(connName, str, null, null);
@@ -355,14 +366,14 @@ namespace XCode.DataAccessLayer
             if (!connName.EndsWithIgnoreCase(".readonly"))
             {
                 var connName2 = connName + ".readonly";
-                var str = GetConfig?.Invoke(connName2);
+                var str = getConfig?.Invoke(connName2);
                 if (!str.IsNullOrEmpty()) AddConnStr(connName2, str, null, null);
 
                 // 加入集合，定时更新
                 if (!_conns.Contains(connName2)) _conns.TryAdd(connName2);
             }
 
-            if (_timerGetConfig == null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
+            if (_timerGetConfig == null && GetConfig != null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
 
             return true;
         }
@@ -373,6 +384,18 @@ namespace XCode.DataAccessLayer
             {
                 var str = GetConfig?.Invoke(item);
                 if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
+            }
+        }
+
+        class MyDAL : IConfigMapping
+        {
+            public void MapConfig(IConfigProvider provider, IConfigSection section)
+            {
+                foreach (var item in _conns)
+                {
+                    var str = section[item];
+                    if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
+                }
             }
         }
         #endregion

@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Configuration
