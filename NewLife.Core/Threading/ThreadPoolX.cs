@@ -122,7 +122,7 @@ namespace NewLife.Threading
 
             /// <summary>创建实例</summary>
             /// <returns></returns>
-            protected override ThreadItem OnCreate() => new ThreadItem(Host);
+            protected override ThreadItem OnCreate() => new(Host);
         }
         #endregion
 

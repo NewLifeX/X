@@ -276,7 +276,7 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(sql);
         }
 
-        static readonly Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex reg_SEQ = new(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -760,7 +760,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "BLOB", "BINARY", "VARBINARY" } },
             { typeof(Boolean), new String[] { "BIT" } },

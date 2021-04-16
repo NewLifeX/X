@@ -202,7 +202,7 @@ namespace XCode.Cache
         private Int32 _Count;
 
         /// <summary>单对象缓存</summary>
-        private readonly ConcurrentDictionary<TKey, CacheItem> Entities = new ConcurrentDictionary<TKey, CacheItem>();
+        private readonly ConcurrentDictionary<TKey, CacheItem> Entities = new();
 
         private ConcurrentDictionary<String, CacheItem> _SlaveEntities;
         /// <summary>单对象缓存，从键查询使用</summary>

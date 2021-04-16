@@ -88,7 +88,7 @@ namespace NewLife.Caching
             }
         }
 
-        private readonly MemoryCache _cache = new MemoryCache() { Expire = 60 };
+        private readonly MemoryCache _cache = new() { Expire = 60 };
         private IDbCache Find(String key)
         {
             if (key.IsNullOrEmpty()) return null;

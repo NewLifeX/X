@@ -283,7 +283,7 @@ namespace NewLife.Threading
         /// <param name="callback"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static TimerX Delay(TimerCallback callback, Int32 ms) => new TimerX(callback, null, ms, 0) { Async = true };
+        public static TimerX Delay(TimerCallback callback, Int32 ms) => new(callback, null, ms, 0) { Async = true };
 
         private static TimerX? _NowTimer;
         private static DateTime _Now;

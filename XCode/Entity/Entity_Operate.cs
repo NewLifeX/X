@@ -225,7 +225,7 @@ namespace XCode
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
 
-            private readonly ThreadLocal<Boolean> _AllowInsertIdentity = new ThreadLocal<Boolean>();
+            private readonly ThreadLocal<Boolean> _AllowInsertIdentity = new();
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
             public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity.IsValueCreated && _AllowInsertIdentity.Value; set => _AllowInsertIdentity.Value = value; }
 

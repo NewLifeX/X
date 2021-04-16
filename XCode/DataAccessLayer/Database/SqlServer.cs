@@ -1236,7 +1236,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary({0})", "image", "varbinary({0})", "timestamp" } },
             //{ typeof(DateTimeOffset), new String[] { "datetimeoffset({0})" } },

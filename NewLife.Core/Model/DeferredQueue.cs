@@ -23,7 +23,7 @@ namespace NewLife.Model
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        private volatile ConcurrentDictionary<String, Object> _Entities = new ConcurrentDictionary<String, Object>();
+        private volatile ConcurrentDictionary<String, Object> _Entities = new();
         /// <summary>实体字典</summary>
         public ConcurrentDictionary<String, Object> Entities => _Entities;
 

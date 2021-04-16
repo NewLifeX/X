@@ -313,7 +313,7 @@ namespace XCode.DataAccessLayer
             return dt;
         }
 
-        private static readonly Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_QueryCount = new(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -832,7 +832,7 @@ namespace XCode.DataAccessLayer
 
         #region SQL时间跟踪
         private Stopwatch _swSql;
-        private static readonly HashSet<String> _trace_sqls = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<String> _trace_sqls = new(StringComparer.OrdinalIgnoreCase);
 
         protected void BeginTrace()
         {

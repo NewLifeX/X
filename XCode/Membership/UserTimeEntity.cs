@@ -233,7 +233,7 @@ namespace XCode.Membership
             return true;
         }
 
-        private static readonly ConcurrentDictionary<Type, FieldItem[]> _ipFieldNames = new ConcurrentDictionary<Type, FieldItem[]>();
+        private static readonly ConcurrentDictionary<Type, FieldItem[]> _ipFieldNames = new();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>

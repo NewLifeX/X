@@ -402,7 +402,7 @@ namespace NewLife.Data
         /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator Packet(ArraySegment<Byte> value) => new Packet(value);
+        public static implicit operator Packet(ArraySegment<Byte> value) => new(value);
 
         /// <summary>已重载</summary>
         /// <returns></returns>

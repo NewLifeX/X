@@ -88,7 +88,7 @@ namespace NewLife.Log
         public String AttachParameter { get; set; } = "traceparent";
 
         /// <summary>Span构建器集合</summary>
-        protected ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
+        protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
         /// <summary>采样定时器</summary>
         protected TimerX _timer;

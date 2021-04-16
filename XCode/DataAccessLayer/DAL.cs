@@ -128,7 +128,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 静态管理
-        private static readonly ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, DAL> _dals = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
@@ -344,7 +344,7 @@ namespace XCode.DataAccessLayer
             _configProvider = configProvider;
         }
 
-        private static readonly ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
+        private static readonly ConcurrentHashSet<String> _conns = new();
         private static TimerX _timerGetConfig;
         /// <summary>从配置中心加载连接字符串，并支持定时刷新</summary>
         /// <param name="connName"></param>
@@ -549,7 +549,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        internal List<String> HasCheckTables = new List<String>();
+        internal List<String> HasCheckTables = new();
         /// <summary>检查是否已存在，如果不存在则添加</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>

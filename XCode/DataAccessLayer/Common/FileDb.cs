@@ -67,7 +67,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        private static readonly List<String> hasChecked = new List<String>();
+        private static readonly List<String> hasChecked = new();
 
         ///// <summary>已重载。打开数据库连接前创建数据库</summary>
         //public override void Open()

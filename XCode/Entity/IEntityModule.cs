@@ -151,7 +151,7 @@ namespace XCode
     public abstract class EntityModule : IEntityModule
     {
         #region IEntityModule 成员
-        private readonly Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
+        private readonly Dictionary<Type, Boolean> _Inited = new();
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -257,7 +257,7 @@ namespace XCode
             return entity.SetItem(name, value);
         }
 
-        private static readonly ConcurrentDictionary<Type, FieldItem[]> _fieldNames = new ConcurrentDictionary<Type, FieldItem[]>();
+        private static readonly ConcurrentDictionary<Type, FieldItem[]> _fieldNames = new();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>

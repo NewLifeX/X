@@ -109,7 +109,7 @@ namespace NewLife.Reflection
             IsExpression = isExpression;
         }
 
-        static readonly ConcurrentDictionary<String, ScriptEngine> _cache = new ConcurrentDictionary<String, ScriptEngine>(StringComparer.OrdinalIgnoreCase);
+        static readonly ConcurrentDictionary<String, ScriptEngine> _cache = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>为指定代码片段创建脚本引擎实例。采用缓存，避免同一脚本重复创建引擎。</summary>
         /// <param name="code">代码片段</param>
         /// <param name="isExpression">是否表达式，表达式将编译成为一个Main方法</param>

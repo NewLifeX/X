@@ -12,7 +12,7 @@ namespace NewLife.IP
     /// <summary>IP搜索</summary>
     public static class Ip
     {
-        private static readonly Object lockHelper = new Object();
+        private static readonly Object lockHelper = new();
         private static Zip? zip;
 
         /// <summary>数据文件</summary>

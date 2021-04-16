@@ -640,7 +640,7 @@ namespace NewLife.Compression
             return bn;
         }
 
-        internal static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);
+        internal static readonly DateTime MinDateTime = new(1980, 1, 1);
         internal static DateTime DosDateTimeToFileTime(Int32 value)
         {
             if (value <= 0) return MinDateTime;

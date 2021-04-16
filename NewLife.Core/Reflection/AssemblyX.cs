@@ -107,7 +107,7 @@ namespace NewLife.Reflection
         #region 构造
         private AssemblyX(Assembly asm) => Asm = asm;
 
-        private static readonly ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
+        private static readonly ConcurrentDictionary<Assembly, AssemblyX> cache = new();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
@@ -234,7 +234,7 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        readonly ConcurrentDictionary<String, Type> typeCache2 = new ConcurrentDictionary<String, Type>();
+        readonly ConcurrentDictionary<String, Type> typeCache2 = new();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>

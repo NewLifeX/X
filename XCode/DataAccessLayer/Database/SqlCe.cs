@@ -372,7 +372,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "varbinary({0})", "timestamp", "binary({0})", "image" } },
             { typeof(Guid), new String[] { "uniqueidentifier" } },
@@ -408,7 +408,7 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe辅助类</summary>
     public static class SqlCeHelper
     {
-        static readonly Dictionary<Int32, SQLCEVersion> versionDictionary = new Dictionary<Int32, SQLCEVersion>
+        static readonly Dictionary<Int32, SQLCEVersion> versionDictionary = new()
         {
             { 0x73616261, SQLCEVersion.SQLCE20 },
             { 0x002dd714, SQLCEVersion.SQLCE30 },

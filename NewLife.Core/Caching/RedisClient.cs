@@ -937,10 +937,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 辅助
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new();
         /// <summary>获取命令对应的字节数组，全局缓存</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>

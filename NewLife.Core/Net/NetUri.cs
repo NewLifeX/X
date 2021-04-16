@@ -263,7 +263,7 @@ namespace NewLife.Net
         /// <summary>重载类型转换，字符串直接转为NetUri对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator NetUri(String value) => new NetUri(value);
+        public static implicit operator NetUri(String value) => new(value);
         #endregion
     }
 }

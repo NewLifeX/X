@@ -100,7 +100,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据表</summary>
         public String Table { get; set; }
 
-        private static readonly Regex reg_gb = new Regex(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_gb = new(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private String _Where;
         /// <summary>条件</summary>
         public String Where
@@ -233,7 +233,7 @@ $";
 
         // 如果字符串内容里面含有圆括号，这个正则将无法正常工作，字符串边界的单引号也不好用平衡组，可以考虑在匹配前先用正则替换掉字符串
 
-        static readonly Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
+        static readonly Regex regexSelect = new(SelectRegex, RegexOptions.Compiled);
 
         /// <summary>分析一条SQL</summary>
         /// <param name="sql"></param>

@@ -234,7 +234,7 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static readonly ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
+        static readonly ConcurrentDictionary<Type, TableItem> cache = new();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>

@@ -12,7 +12,7 @@ namespace NewLife.Net
     internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
         #region 属性
-        private readonly ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
+        private readonly ConcurrentDictionary<String, ISocketSession> _dic = new();
 
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }

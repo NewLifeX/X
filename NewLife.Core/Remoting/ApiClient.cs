@@ -70,7 +70,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 打开关闭
-        private readonly Object Root = new Object();
+        private readonly Object Root = new();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {

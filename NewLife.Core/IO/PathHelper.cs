@@ -204,7 +204,7 @@ namespace System.IO
         /// <summary>文件路径作为文件信息</summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static FileInfo AsFile(this String file) => new FileInfo(file.GetFullPath());
+        public static FileInfo AsFile(this String file) => new(file.GetFullPath());
 
         /// <summary>从文件中读取数据</summary>
         /// <param name="file"></param>
@@ -410,7 +410,7 @@ namespace System.IO
         /// <summary>路径作为目录信息</summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public static DirectoryInfo AsDirectory(this String dir) => new DirectoryInfo(dir.GetFullPath());
+        public static DirectoryInfo AsDirectory(this String dir) => new(dir.GetFullPath());
 
         /// <summary>获取目录内所有符合条件的文件，支持多文件扩展匹配</summary>
         /// <param name="di">目录</param>

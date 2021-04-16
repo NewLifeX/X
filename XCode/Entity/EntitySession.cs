@@ -88,7 +88,7 @@ namespace XCode
             Queue = new EntityQueue(this);
         }
 
-        private static readonly ConcurrentDictionary<String, EntitySession<TEntity>> _es = new ConcurrentDictionary<String, EntitySession<TEntity>>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, EntitySession<TEntity>> _es = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建指定表名连接名的会话</summary>
         /// <param name="connName"></param>
         /// <param name="tableName"></param>
@@ -181,7 +181,7 @@ namespace XCode
         /// <summary>记录已进行数据初始化</summary>
         Boolean hasCheckInitData = false;
         Int32 initThread = 0;
-        readonly Object _wait_lock = new Object();
+        readonly Object _wait_lock = new();
 
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
@@ -305,7 +305,7 @@ namespace XCode
 
         private Boolean IsGenerated => ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null;
         Boolean _hasCheckModel = false;
-        readonly Object _checkLock = new Object();
+        readonly Object _checkLock = new();
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
@@ -796,7 +796,7 @@ namespace XCode
         }
 
         /// <summary>创建事务</summary>
-        public virtual EntityTransaction CreateTrans() => new EntityTransaction(Dal);
+        public virtual EntityTransaction CreateTrans() => new(Dal);
         #endregion
 
         #region 参数化

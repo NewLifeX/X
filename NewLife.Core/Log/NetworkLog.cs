@@ -25,7 +25,7 @@ namespace NewLife.Log
 
         private ISocketRemote _client;
         private HttpClient _http;
-        private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private readonly ConcurrentQueue<String> _Logs = new();
         private volatile Int32 _logCount;
         private Int32 _writing;
 

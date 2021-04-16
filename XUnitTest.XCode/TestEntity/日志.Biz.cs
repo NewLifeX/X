@@ -165,7 +165,7 @@ namespace XCode.Membership
         }
 
         // Select Count(Id) as Id,Category From Log2 Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By Id Desc limit 20
-        static readonly FieldCache<Log2> _CategoryCache = new FieldCache<Log2>(nameof(Category))
+        static readonly FieldCache<Log2> _CategoryCache = new(nameof(Category))
         {
             //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };

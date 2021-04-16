@@ -65,7 +65,7 @@ namespace NewLife.Collections
 
             /// <summary>创建</summary>
             /// <returns></returns>
-            protected override StringBuilder OnCreate() => new StringBuilder(InitialCapacity);
+            protected override StringBuilder OnCreate() => new(InitialCapacity);
 
             /// <summary>归还</summary>
             /// <param name="value"></param>
@@ -111,7 +111,7 @@ namespace NewLife.Collections
 
             /// <summary>创建</summary>
             /// <returns></returns>
-            protected override MemoryStream OnCreate() => new MemoryStream(InitialCapacity);
+            protected override MemoryStream OnCreate() => new(InitialCapacity);
 
             /// <summary>归还</summary>
             /// <param name="value"></param>

@@ -589,7 +589,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static readonly ConcurrentDictionary<Type, Object> cache = new ConcurrentDictionary<Type, Object>();
+        static readonly ConcurrentDictionary<Type, Object> cache = new();
         static Object GetDefault(Type type)
         {
             return cache.GetOrAdd(type, item => item.CreateInstance());

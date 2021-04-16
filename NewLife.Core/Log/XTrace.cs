@@ -121,7 +121,7 @@ namespace NewLife.Log
             }
         }
 
-        static readonly Object _lock = new Object();
+        static readonly Object _lock = new();
         static Int32 _initing = 0;
 
         /// <summary>

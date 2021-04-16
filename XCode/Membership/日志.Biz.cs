@@ -163,7 +163,7 @@ namespace XCode.Membership
 
         #region 扩展操作
         // Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
-        static readonly FieldCache<Log> CategoryCache = new FieldCache<Log>(__.Category)
+        static readonly FieldCache<Log> CategoryCache = new(__.Category)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };
@@ -172,7 +172,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
 
-        static readonly FieldCache<Log> ActionCache = new FieldCache<Log>(__.Action)
+        static readonly FieldCache<Log> ActionCache = new(__.Action)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };

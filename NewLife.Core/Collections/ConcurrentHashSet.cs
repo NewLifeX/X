@@ -11,7 +11,7 @@ namespace NewLife.Collections
     /// </remarks>
     public class ConcurrentHashSet<T> : IEnumerable<T>
     {
-        private readonly ConcurrentDictionary<T, Byte> _dic = new ConcurrentDictionary<T, Byte>();
+        private readonly ConcurrentDictionary<T, Byte> _dic = new();
 
         /// <summary>是否空集合</summary>
         public Boolean IsEmpty => _dic.IsEmpty;

@@ -231,7 +231,7 @@ namespace NewLife.Net
 
         #region 发送
         private Int32 _bsize;
-        private SpinLock _spinLock = new SpinLock();
+        private SpinLock _spinLock = new();
 
         /// <summary>发送数据</summary>
         /// <remarks>

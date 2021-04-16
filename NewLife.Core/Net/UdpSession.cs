@@ -239,7 +239,7 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展接口
-        private readonly ConcurrentDictionary<String, Object> _Items = new ConcurrentDictionary<String, Object>();
+        private readonly ConcurrentDictionary<String, Object> _Items = new();
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items => _Items;
 

@@ -87,7 +87,7 @@ namespace System
         /// <param name="value">时间日期</param>
         /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
         /// <returns></returns>
-        public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new DateTimeOffset(value.DateTime.Trim(format), value.Offset);
+        public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new(value.DateTime.Trim(format), value.Offset);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，对UTC时间加后缀</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
@@ -146,8 +146,8 @@ namespace System
     [EditorBrowsable(EditorBrowsableState.Advanced)]
     public class DefaultConvert
     {
-        private static readonly DateTime _dt1970 = new DateTime(1970, 1, 1);
-        private static readonly DateTimeOffset _dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
+        private static readonly DateTime _dt1970 = new(1970, 1, 1);
+        private static readonly DateTimeOffset _dto1970 = new(new DateTime(1970, 1, 1));
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>

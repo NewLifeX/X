@@ -435,7 +435,7 @@ namespace NewLife.Caching
         }
 #endif
 
-        private readonly ThreadLocal<RedisClient> _client = new ThreadLocal<RedisClient>();
+        private readonly ThreadLocal<RedisClient> _client = new();
         /// <summary>开始管道模式</summary>
         public virtual RedisClient StartPipeline()
         {

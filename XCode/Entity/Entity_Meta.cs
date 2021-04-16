@@ -41,7 +41,7 @@ namespace XCode
             #endregion
 
             #region 基本属性
-            private static readonly Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
+            private static readonly Lazy<TableItem> _Table = new(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 
@@ -232,7 +232,7 @@ namespace XCode
             #endregion
 
             #region 模块
-            internal static EntityModules _Modules = new EntityModules(typeof(TEntity));
+            internal static EntityModules _Modules = new(typeof(TEntity));
             /// <summary>实体模块集合</summary>
             public static EntityModules Modules => _Modules;
             #endregion

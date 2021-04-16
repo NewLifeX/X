@@ -50,7 +50,7 @@ namespace NewLife.Serialization
         /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
-        private readonly StringBuilder _Builder = new StringBuilder();
+        private readonly StringBuilder _Builder = new();
         #endregion
 
         #region 构造

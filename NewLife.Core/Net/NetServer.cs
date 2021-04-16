@@ -45,7 +45,7 @@ namespace NewLife.Net
         /// <summary>服务名</summary>
         public String Name { get; set; }
 
-        private NetUri _Local = new NetUri();
+        private NetUri _Local = new();
         /// <summary>本地结点</summary>
         public NetUri Local
         {
@@ -432,7 +432,7 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
+        private ConcurrentDictionary<Int32, INetSession> _Sessions = new();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
         public IDictionary<Int32, INetSession> Sessions => _Sessions;
 

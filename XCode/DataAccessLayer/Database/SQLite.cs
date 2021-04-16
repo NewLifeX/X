@@ -521,7 +521,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
             { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },
@@ -928,7 +928,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        private readonly List<IDataTable> memoryTables = new List<IDataTable>();
+        private readonly List<IDataTable> memoryTables = new();
         /// <summary>已重载。因为内存数据库无法检测到架构，不知道表是否已存在，所以需要自己维护</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>

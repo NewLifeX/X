@@ -88,7 +88,7 @@ namespace XCode.Membership
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
 
-        private static readonly ThreadLocal<String> _UserHost = new ThreadLocal<String>();
+        private static readonly ThreadLocal<String> _UserHost = new();
         /// <summary>用户主机</summary>
         public static String UserHost { get => _UserHost.Value; set => _UserHost.Value = value; }
         #endregion

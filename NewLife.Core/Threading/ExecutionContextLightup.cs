@@ -5,7 +5,7 @@ namespace System
 {
     internal class ExecutionContextLightup : Lightup
     {
-        public static readonly ExecutionContextLightup Instance = new ExecutionContextLightup(null);
+        public static readonly ExecutionContextLightup Instance = new(null);
 
         private Delegate _dispose;
 

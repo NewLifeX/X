@@ -98,7 +98,7 @@ namespace NewLife.Log
             set => System.Runtime.Remoting.Messaging.CallContext.LogicalSetData(FieldKey, new System.Runtime.Remoting.ObjectHandle(value));
         }
 #else
-        private static readonly System.Threading.AsyncLocal<ISpan> _Current = new System.Threading.AsyncLocal<ISpan>();
+        private static readonly System.Threading.AsyncLocal<ISpan> _Current = new();
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
 #endif

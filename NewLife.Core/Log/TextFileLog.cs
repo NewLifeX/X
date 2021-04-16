@@ -58,7 +58,7 @@ namespace NewLife.Log
             _Timer = new TimerX(DoWriteAndClose, null, 0_000, 5_000) { Async = true };
         }
 
-        private static readonly ConcurrentDictionary<String, TextFileLog> cache = new ConcurrentDictionary<String, TextFileLog>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, TextFileLog> cache = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>每个目录的日志实例应该只有一个，所以采用静态创建</summary>
         /// <param name="path">日志目录或日志文件路径</param>
         /// <param name="fileFormat"></param>
@@ -155,7 +155,7 @@ namespace NewLife.Log
 
         #region 异步写日志
         private readonly TimerX _Timer;
-        private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private readonly ConcurrentQueue<String> _Logs = new();
         private volatile Int32 _logCount;
         private Int32 _writing;
         private DateTime _NextClose;

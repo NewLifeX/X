@@ -315,8 +315,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取 字段/属性
-        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
-        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new();
         /// <summary>获取字段</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -351,8 +351,8 @@ namespace NewLife.Reflection
             return list;
         }
 
-        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
-        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new();
         /// <summary>获取属性</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
