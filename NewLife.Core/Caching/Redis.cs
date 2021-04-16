@@ -167,6 +167,9 @@ namespace NewLife.Caching
 
                 if (dic.TryGetValue("ThrowOnFailure", out str))
                     ThrowOnFailure = str.ToBoolean();
+
+                if (dic.TryGetValue("MaxMessageSize", out str) && str.ToInt(-1) >= 0)
+                    MaxMessageSize = str.ToInt();
             }
 
             _configOld = config;
