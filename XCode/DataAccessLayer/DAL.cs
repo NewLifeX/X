@@ -143,7 +143,7 @@ namespace XCode.DataAccessLayer
             dal.Init();
 
             // 映射到另一个连接
-            if (!dal._mapTo.IsNullOrEmpty()) dal = _dals.GetOrAdd(dal._mapTo, k => new DAL(k));
+            if (!dal._mapTo.IsNullOrEmpty()) dal = _dals.GetOrAdd(dal._mapTo, Create);
 
             return dal;
         }
