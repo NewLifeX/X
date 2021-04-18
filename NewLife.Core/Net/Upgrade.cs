@@ -169,8 +169,9 @@ namespace NewLife.Net
             // 拷贝替换更新
             CopyAndReplace(tmp, DestinationPath);
 
-            // 删除备份文件
-            DeleteBackup(DestinationPath);
+            //// 删除备份文件
+            //DeleteBackup(DestinationPath);
+            //!!! 先别急着删除，在Linux上，删除正在使用的文件可能导致进程崩溃
 
             WriteLog("更新成功！");
 

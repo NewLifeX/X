@@ -216,6 +216,7 @@ namespace NewLife.Net
             if (SocketLog != null) server.Log = SocketLog;
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
+            server.Tracer = Tracer;
 
             server.Error += OnError;
 

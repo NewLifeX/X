@@ -282,6 +282,7 @@ namespace NewLife.Net
                 // 自动开始异步接收处理
                 session.SslProtocol = SslProtocol;
                 session.Certificate = Certificate;
+                session.Tracer = Tracer;
                 session.Start();
             }
         }

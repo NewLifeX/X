@@ -529,7 +529,7 @@ namespace XUnitTest.Caching
 
             var ex = Assert.Throws<InvalidOperationException>(() => ic.Set("ttt", Rand.NextString(1029)));
             Assert.NotNull(ex);
-            Assert.Equal("命令[SET]的数据包大小[1060]超过最大限制[1028]", ex.Message);
+            Assert.Equal("命令[SET]的数据包大小[1060]超过最大限制[1028]，大key会拖累整个Redis实例，可通过Redis.MaxMessageSize调节。", ex.Message);
         }
     }
 }

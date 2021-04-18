@@ -325,6 +325,7 @@ namespace NewLife.Net
                     //us.ID = g_ID++;
                     // 会话改为原子操作，避免多线程冲突
                     us.ID = Interlocked.Increment(ref g_ID);
+                    us.Tracer = Tracer;
                     us.Start();
 
                     // 触发新会话事件
