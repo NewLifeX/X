@@ -351,7 +351,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static Boolean GetFromConfigCenter(String connName)
         {
-            var getConfig = GetConfig ?? _configProvider.GetConfig;
+            var getConfig = GetConfig ?? _configProvider?.GetConfig;
             {
                 var str = getConfig?.Invoke(connName);
                 if (str.IsNullOrEmpty()) return false;
