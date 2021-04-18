@@ -332,7 +332,7 @@ namespace NewLife.Caching
                 GetRequest(ms, cmd, args, oriArgs);
 
                 var max = Host.MaxMessageSize;
-                if (max > 0 && ms.Length > max) throw new InvalidOperationException($"命令[{cmd}]的数据包大小[{ms.Length}]超过最大限制[{max}]");
+                if (max > 0 && ms.Length > max) throw new InvalidOperationException($"命令[{cmd}]的数据包大小[{ms.Length}]超过最大限制[{max}]，大key会拖累整个Redis实例，可通过Redis.MaxMessageSize调节。");
 
                 // WriteTo与位置无关，CopyTo与位置相关
                 //ms.Position = 0;

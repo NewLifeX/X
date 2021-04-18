@@ -286,15 +286,18 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="callback"></param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public override T GetOrAdd<T>(String key, Func<String, T> callback)
+        public override T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
         {
+            if (expire < 0) expire = Expire;
+
             CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
 
-                if (ci == null) ci = new CacheItem(callback(key), Expire);
+                if (ci == null) ci = new CacheItem(callback(key), expire);
             } while (!_cache.TryAdd(key, ci));
 
             Interlocked.Increment(ref _count);

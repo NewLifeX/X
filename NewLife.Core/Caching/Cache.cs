@@ -190,8 +190,9 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="callback"></param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public virtual T GetOrAdd<T>(String key, Func<String, T> callback)
+        public virtual T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
         {
             var value = Get<T>(key);
             if (!Equals(value, default)) return value;
@@ -200,7 +201,8 @@ namespace NewLife.Caching
 
             value = callback(key);
 
-            if (Add(key, value)) return value;
+            if (expire < 0) expire = Expire;
+            if (Add(key, value, expire)) return value;
 
             return Get<T>(key);
         }
