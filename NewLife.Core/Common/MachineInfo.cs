@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
+using System.Net.NetworkInformation;
 #if __WIN__
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -58,6 +59,12 @@ namespace NewLife
 
         /// <summary>CPU占用率</summary>
         public Single CpuRate { get; private set; }
+
+        /// <summary>网络上行速度。字节每秒，初始化后首次读取为0</summary>
+        public UInt64 UplinkSpeed { get; set; }
+
+        /// <summary>网络下行速度。字节每秒，初始化后首次读取为0</summary>
+        public UInt64 DownlinkSpeed { get; set; }
 
         /// <summary>温度</summary>
         public Double Temperature { get; set; }
@@ -500,6 +507,39 @@ namespace NewLife
                 }
 #endif
             }
+
+            RefreshSpeed();
+        }
+
+        private DateTime _lastTime;
+        private Int64 _lastSent;
+        private Int64 _lastReceived;
+        /// <summary>刷新网络速度</summary>
+        public void RefreshSpeed()
+        {
+            var sent = 0L;
+            var received = 0L;
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+#if NET4
+                var st = ni.GetIPv4Statistics();
+#else
+                var st = ni.GetIPStatistics();
+#endif
+                sent += st.BytesSent;
+                received += st.BytesReceived;
+            }
+
+            if (_lastTime.Year > 2000)
+            {
+                var interval = (DateTime.Now - _lastTime).TotalMilliseconds;
+                UplinkSpeed = (UInt64)((sent - _lastSent) * 1000 / interval);
+                DownlinkSpeed = (UInt64)((received - _lastReceived) * 1000 / interval);
+            }
+
+            _lastSent = sent;
+            _lastReceived = received;
+            _lastTime = DateTime.Now;
         }
         #endregion
 

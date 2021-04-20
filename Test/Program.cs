@@ -23,6 +23,7 @@ using System.Security.Cryptography;
 using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
+using System.Net.NetworkInformation;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -70,7 +71,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -131,7 +132,7 @@ namespace Test
             mi = MachineInfo.Current;
             for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("CPU={0:p2} Temp={1:n2} Memory={2:n0} Disk={3}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK());
+                XTrace.WriteLine("CPU={0:p2} Temp={1:n2} Memory={2:n0} Disk={3} Speed={4:n0} {5:n0}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK(), mi.UplinkSpeed.ToGMK(), mi.DownlinkSpeed.ToGMK());
                 Thread.Sleep(1000);
                 mi.Refresh();
             }
