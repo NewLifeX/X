@@ -218,6 +218,7 @@ namespace NewLife
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
 
                 var ip = item.GetIPProperties();
                 if (ip != null) yield return ip;
@@ -289,12 +290,16 @@ namespace NewLife
         public static IEnumerable<IPAddress> GetIPs()
         {
             var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
-            foreach (var item in GetActiveInterfaces())
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item != null && item.UnicastAddresses.Count > 0)
+                if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                var ipp = item.GetIPProperties();
+                if (ipp != null && ipp.UnicastAddresses.Count > 0)
                 {
-                    var gw = item.GatewayAddresses.Count;
-                    foreach (var elm in item.UnicastAddresses)
+                    var gw = ipp.GatewayAddresses.Count;
+                    foreach (var elm in ipp.UnicastAddresses)
                     {
                         try
                         {
