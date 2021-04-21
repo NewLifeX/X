@@ -333,6 +333,9 @@ namespace NewLife.Caching
                 {
                     if (i++ >= Retry) throw;
 
+                    // 销毁连接
+                    client.TryDispose();
+
                     Thread.Sleep(delay);
                     delay *= 2;
                 }
