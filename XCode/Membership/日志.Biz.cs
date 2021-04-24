@@ -113,7 +113,7 @@ namespace XCode.Membership
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
             if (success != null) exp &= _.Success == success;
-            if (userid >= 0) exp &= _.CreateUserID == userid;
+            if (userid > 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
             var snow = Meta.Factory.Snow;
