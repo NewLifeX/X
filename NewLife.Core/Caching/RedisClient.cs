@@ -534,6 +534,12 @@ namespace NewLife.Caching
         {
             var len = ReadLine(ms).ToInt(-1);
             log?.Append(len);
+            if (len == 0)
+            {
+                // 某些字段即使长度是0，还是要把换行符读走
+                ReadLine(ms);
+                return null;
+            }
             if (len <= 0) return null;
             //if (len <= 0) throw new InvalidDataException();
 

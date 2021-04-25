@@ -71,7 +71,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test14();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -556,9 +556,11 @@ namespace Test
 
         private static void Test14()
         {
-            var str = "E59E4316-7E81-4A43-94D6-32480C83ACE7@fa6ad071-6f0a-498f-8875-b9fb65625e15@70-8B-CD-0B-4D-D5,74-C6-3B-87-3F-8D";
-            var result = str.GetBytes().RC4("设备".GetBytes()).Crc().GetBytes().ToHex();
-            Console.WriteLine(result);
+            var rds = new Redis("127.0.0.1", null, 3);
+            rds.Log = XTrace.Log;
+            var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
+
+            var str = "XREAD count 3 streams stream_empty_item 0-0";
         }
 
         ///// <summary>
