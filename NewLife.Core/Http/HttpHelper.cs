@@ -323,6 +323,9 @@ namespace NewLife.Http
 
             foreach (var item in headers)
             {
+                //判断请求头中是否已存在，存在先删除，再添加
+                if (client.DefaultRequestHeaders.Contains(item.Key))
+                    client.DefaultRequestHeaders.Remove(item.Key);
                 client.DefaultRequestHeaders.Add(item.Key, item.Value);
             }
 
