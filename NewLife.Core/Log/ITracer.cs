@@ -196,11 +196,11 @@ namespace NewLife.Log
             if (tag is String str)
                 span.Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
-                span.Tag = builder.ToString().Cut(1024);
+                span.Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
             {
                 if (tag is Packet pk)
-                    span.Tag = pk.ToBase64().Cut(1024);
+                    span.Tag = pk.ToStr(null, 0, 1024);
                 else if (tag is IMessage msg)
                     span.Tag = msg.ToPacket().ToBase64().Cut(1024);
                 else

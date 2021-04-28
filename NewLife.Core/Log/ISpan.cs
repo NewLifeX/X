@@ -229,7 +229,7 @@ namespace NewLife.Log
             if (tag is String str)
                 Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
-                Tag = builder.ToString().Cut(1024);
+                Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
             else if (tag != null)
                 Tag = tag.ToJson().Cut(1024);
         }
