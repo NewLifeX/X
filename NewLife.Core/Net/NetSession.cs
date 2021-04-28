@@ -78,7 +78,7 @@ namespace NewLife.Net
         {
             var ns = (this as INetSession).Host;
             var tracer = ns?.Tracer;
-            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive");
+            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", e.Message ?? e.Packet);
 
             try
             {

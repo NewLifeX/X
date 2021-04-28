@@ -200,7 +200,12 @@ namespace NewLife.Log
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
             {
                 if (tag is Packet pk)
-                    span.Tag = pk.ToStr(null, 0, 1024);
+                {
+                    if (pk[0] == '{' && pk[pk.Total - 1] == '}')
+                        span.Tag = pk.ToStr(null, 0, 1024);
+                    else
+                        span.Tag = pk.ToBase64().Cut(1024);
+                }
                 else if (tag is IMessage msg)
                     span.Tag = msg.ToPacket().ToBase64().Cut(1024);
                 else
