@@ -411,6 +411,9 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         private void ProcessReceive(Packet pk, IPEndPoint remote)
         {
+            // 打断上下文调用链，这里必须是起点
+            DefaultSpan.Current = null;
+
             using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "");
             try
             {

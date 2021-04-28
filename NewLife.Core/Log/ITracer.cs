@@ -6,7 +6,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using NewLife.Data;
 using NewLife.Http;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -196,7 +198,14 @@ namespace NewLife.Log
             else if (tag is StringBuilder builder)
                 span.Tag = builder.ToString().Cut(1024);
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
-                span.Tag = tag.ToJson().Cut(1024);
+            {
+                if (tag is Packet pk)
+                    span.Tag = pk.ToBase64().Cut(1024);
+                else if (tag is IMessage msg)
+                    span.Tag = msg.ToPacket().ToBase64().Cut(1024);
+                else
+                    span.Tag = tag.ToJson().Cut(1024);
+            }
 
             return span;
         }
