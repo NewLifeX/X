@@ -201,7 +201,7 @@ namespace NewLife.Log
             {
                 if (tag is Packet pk)
                 {
-                    if (pk[0] == '{' && pk[pk.Total - 1] == '}')
+                    if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
                         span.Tag = pk.ToStr(null, 0, 1024);
                     else
                         span.Tag = pk.ToBase64().Cut(1024);
