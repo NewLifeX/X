@@ -33,6 +33,9 @@ namespace NewLife.Remoting
         /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
         public Boolean RoundRobin { get; set; }
 
+        /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
+        public Int32 ShieldingTime { get; set; } = 60;
+
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
@@ -345,7 +348,9 @@ namespace NewLife.Remoting
                     svc = null;
                     _idxServer++;
                 }
-                if (svc == null) throw new XException("没有可用服务节点！");
+                // 如果都没有可用节点，默认选第一个
+                if (svc == null && svrs.Count > 0) svc = svrs[0];
+                //if (svc == null) throw new XException("没有可用服务节点！");
 
                 svc.Times++;
 
@@ -383,7 +388,7 @@ namespace NewLife.Remoting
             if (error != null)
             {
                 service.Client = null;
-                service.NextTime = DateTime.Now.AddSeconds(RoundRobin ? 60 : 300);
+                service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
             }
         }
 
