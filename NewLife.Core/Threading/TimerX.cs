@@ -263,9 +263,11 @@ namespace NewLife.Threading
 
             if (Absolutely)
             {
+                // Cron以当前时间开始计算下一次
+                // 绝对时间还没有到时，不计算下一次
                 if (_cron != null)
-                    NextTime = _AbsolutelyNext = _cron.GetNext(_AbsolutelyNext);
-                else
+                    NextTime = _AbsolutelyNext = _cron.GetNext(DateTime.Now);
+                else if (_AbsolutelyNext < DateTime.Now)
                     NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
                 var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
                 return ts > 0 ? ts : period;
