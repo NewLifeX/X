@@ -101,7 +101,7 @@ namespace NewLife.Log
 
             var name = ThreadName;
             if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
-            if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
+            if (name.EqualIgnoreCase("Threadpool worker", ".NET ThreadPool Worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
 
             return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
