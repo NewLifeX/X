@@ -770,7 +770,7 @@ namespace XCode.DataAccessLayer
                 var sql = cmd.CommandText;
 
                 // 诊断信息
-                if (XTrace.Log.Level <= LogLevel.Debug) sql = $"[{Database.ConnName}]{sql}";
+                /*if (XTrace.Log.Level <= LogLevel.Debug)*/ sql = $"[{Database.ConnName}] {sql}";
 
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)
