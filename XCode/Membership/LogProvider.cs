@@ -42,9 +42,11 @@ namespace XCode.Membership
         /// <param name="ip">地址</param>
         public virtual Log CreateLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
+            if (category.IsNullOrEmpty()) throw new ArgumentNullException(nameof(category));
+
             var factory = EntityFactory.CreateOperate(typeof(Log));
             var log = factory.Create() as Log;
-            log.Category = category ?? throw new ArgumentNullException(nameof(category));
+            log.Category = category;
             log.Action = action;
             log.Success = success;
 
