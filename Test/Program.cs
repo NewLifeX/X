@@ -24,6 +24,8 @@ using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
 using System.Net.NetworkInformation;
+using NewLife.Xml;
+using Test.Model;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -35,6 +37,7 @@ namespace Test
     {
         private static void Main(String[] args)
         {
+            Test16();
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             XTrace.UseConsole();
@@ -890,6 +893,12 @@ namespace Test
                 var result = pubdsa.VerifyData("123".GetBytes(), signStr);
                 Console.WriteLine("验证结果:" + result);
             }
+        }
+
+        private static void Test16()
+        {
+            string xml = "<FDLibBaseCfgList version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\n<FDLibBaseCfg>\n<id>1</id>\n<FDID>1D28BF6FAA5D4C92929C9ED02F0F73E4</FDID>\n<name>路人库</name>\n<faceLibType>stranger</faceLibType>\n</FDLibBaseCfg>\n<FDLibBaseCfg>\n<id>2</id>\n<FDID>B1F5A8F601B84E18BE3C22EA52033345</FDID>\n<name>内部人员库</name>\n<faceLibType>ordinary</faceLibType>\n</FDLibBaseCfg>\n</FDLibBaseCfgList>\n";
+            var a = xml.ToXmlEntity<FDLibBaseCfgList>();
         }
 
         private static void TestReadAppSettings()
