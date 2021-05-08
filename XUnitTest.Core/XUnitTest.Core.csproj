@@ -41,4 +41,9 @@
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Serialization\StarAgent.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -23,9 +23,6 @@ using System.Security.Cryptography;
 using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
-using System.Net.NetworkInformation;
-using NewLife.Xml;
-using Test.Model;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;

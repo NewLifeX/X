@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -58,10 +59,10 @@ namespace NewLife.Serialization
             if (!type.As<IList>()) return false;
 
             var reader = Host.GetReader();
-            if (!reader.IsStartElement()) return true;
 
             // 读一次开始，移动到内部第一个元素
-            //reader.ReadStartElement();
+            if (reader.NodeType == XmlNodeType.Attribute) reader.ReadStartElement();
+            if (!reader.IsStartElement()) return true;
 
             // 子元素类型
             var elmType = type.GetElementTypeEx();
@@ -93,7 +94,7 @@ namespace NewLife.Serialization
             }
 
             // 读一次结束
-            //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
             return true;
         }

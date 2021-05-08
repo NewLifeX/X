@@ -219,7 +219,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object Read(Type type)
         {
-            var value = type.CreateInstance();
+            var value = type.As<Array>() ? null : type.CreateInstance();
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
 
             return value;
