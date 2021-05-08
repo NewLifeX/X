@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Test.Model
+namespace XUnitTest.Serialization
 {
     public class FDLibBaseCfg
     {
