@@ -13,7 +13,11 @@ namespace NewLife.IO
     /// 文档 https://www.yuque.com/smartstone/nx/csv_file
     /// 支持整体读写以及增量式读写，目标是读写超大Csv文件
     /// </remarks>
-    public class CsvFile : DisposeBase
+#if NET50
+    public class CsvFile : IDisposable, IAsyncDisposable
+#else
+    public class CsvFile : IDisposable
+#endif
     {
         #region 属性
         /// <summary>文件编码</summary>
@@ -52,11 +56,20 @@ namespace NewLife.IO
                 _stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
+        private Boolean _disposed;
+        /// <summary>销毁</summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
+        protected virtual void Dispose(Boolean disposing)
         {
-            base.Dispose(disposing);
+            if (_disposed) return;
+            _disposed = true;
 
             // 必须刷新写入器，否则可能丢失一截数据
             _writer?.Flush();
@@ -70,6 +83,30 @@ namespace NewLife.IO
                 _stream.Close();
             }
         }
+
+#if NET50
+        /// <summary>异步销毁</summary>
+        /// <returns></returns>
+        public virtual async ValueTask DisposeAsync()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            // 必须刷新写入器，否则可能丢失一截数据
+            await _writer?.FlushAsync();
+
+            if (!_leaveOpen && _stream != null)
+            {
+                _reader.TryDispose();
+
+                await _writer.DisposeAsync();
+
+                await _stream.DisposeAsync();
+            }
+
+            GC.SuppressFinalize(this);
+        }
+#endif
         #endregion
 
         #region 读取
@@ -216,7 +253,7 @@ namespace NewLife.IO
 #if NET4
             if (_writer == null) _writer = new StreamWriter(_stream, Encoding);
 #else
-            if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, true);
+            if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, _leaveOpen);
 #endif
         }
         #endregion
