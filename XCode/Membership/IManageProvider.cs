@@ -190,19 +190,33 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual IManageUser Register(String username, String password, Int32 roleid, Boolean enable)
         {
-            var pass = PasswordProvider.Hash(password);
-
-            var user = new User
+            try
             {
-                Name = username,
-                Password = pass,
-                Enable = enable,
-                RoleID = roleid
-            };
+                // 去重判断
+                var user = Membership.User.FindByName(username);
+                if (user != null) throw new ArgumentException(nameof(username), $"用户[{username}]已存在！");
 
-            user.Register();
+                var pass = PasswordProvider.Hash(password);
 
-            return user;
+                user = new User
+                {
+                    Name = username,
+                    Password = pass,
+                    Enable = enable,
+                    RoleID = roleid
+                };
+
+                user.Register();
+
+                Membership.User.WriteLog("注册", true, $"用户[{user}]使用[{username}]注册成功");
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Membership.User.WriteLog("注册", false, username + "注册失败！" + ex.Message);
+                throw;
+            }
         }
 
         /// <summary>修改密码</summary>
