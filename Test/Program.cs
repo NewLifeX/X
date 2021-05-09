@@ -23,6 +23,7 @@ using System.Security.Cryptography;
 using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
+using System.Text;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -70,7 +71,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test14();
+                    Test11();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -522,6 +523,20 @@ namespace Test
 
         private static void Test11()
         {
+            var sb = new StringBuilder();
+            for (var i = 0; i < 26; i++)
+            {
+                sb.Append((Char)('a' + i));
+            }
+            for (var i = 0; i < 26; i++)
+            {
+                sb.Append((Char)('A' + i));
+            }
+            for (var i = 0; i < 10; i++)
+            {
+                sb.Append((Char)('0' + i));
+            }
+            Console.WriteLine(sb);
         }
 
         /// <summary>测试序列化</summary>
@@ -555,11 +570,11 @@ namespace Test
 
         private static void Test14()
         {
-            var rds = new Redis("127.0.0.1", null, 3);
-            rds.Log = XTrace.Log;
+            var rds = new Redis("127.0.0.1", null, 3)
+            {
+                Log = XTrace.Log
+            };
             var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
-
-            var str = "XREAD count 3 streams stream_empty_item 0-0";
         }
 
         ///// <summary>
@@ -901,7 +916,7 @@ namespace Test
         /// <summary>测试config文件的写入</summary>
         private static void TestWriteConfig()
         {
-            ConfigTest.Current.Names = new List<string> { "1", "2" };
+            ConfigTest.Current.Names = new List<String> { "1", "2" };
             ConfigTest.Current.Sex = "1";
             ConfigTest.Current.xyf = new List<XYF>() { new XYF() { name = "123" }, new XYF() { name = "321" } };
             ConfigTest.Current.Save();

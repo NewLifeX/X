@@ -4,7 +4,7 @@
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
-      <Column Name="Password" DataType="String" Description="密码" />
+      <Column Name="Password" DataType="String" Length="200" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="昵称" />
       <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" Type="XCode.Membership.SexKinds" />
       <Column Name="Mail" DataType="String" ItemType="mail" Description="邮件" />

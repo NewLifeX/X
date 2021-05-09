@@ -80,22 +80,22 @@ namespace XCode.Membership
             if (Name.IsNullOrEmpty()) throw new ArgumentNullException(__.Name, "用户名不能为空！");
             //if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
 
-            var pass = Password;
-            if (isNew)
-            {
-                if (!pass.IsNullOrEmpty() && pass.Length != 32) Password = pass.MD5();
-            }
-            else
-            {
-                // 编辑修改密码
-                if (IsDirty(__.Password))
-                {
-                    if (!pass.IsNullOrEmpty())
-                        Password = pass.MD5();
-                    else
-                        Dirtys[__.Password] = false;
-                }
-            }
+            //var pass = Password;
+            //if (isNew)
+            //{
+            //    if (!pass.IsNullOrEmpty() && pass.Length != 32) Password = pass.MD5();
+            //}
+            //else
+            //{
+            //    // 编辑修改密码
+            //    if (IsDirty(__.Password))
+            //    {
+            //        if (!pass.IsNullOrEmpty())
+            //            Password = pass.MD5();
+            //        else
+            //            Dirtys[__.Password] = false;
+            //    }
+            //}
 
             // 重新整理角色
             var ids = GetRoleIDs();
@@ -197,6 +197,21 @@ namespace XCode.Membership
             if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
 
             return Find(__.Code, code);
+        }
+
+        /// <summary>为登录而查找账号，搜索名称、邮箱、手机、代码</summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public static User FindForLogin(String account)
+        {
+            if (account.IsNullOrEmpty()) return null;
+
+            var user = Find(_.Name == account);
+            if (user == null && account.Contains("@")) user = Find(_.Mail == account);
+            if (user == null && account.ToLong() > 0) user = Find(_.Mobile == account);
+            if (user == null) user = Find(_.Code == account);
+
+            return user;
         }
         #endregion
 
@@ -438,7 +453,7 @@ namespace XCode.Membership
 
         /// <summary>保存登录信息</summary>
         /// <returns></returns>
-        protected virtual Int32 SaveLoginInfo()
+        public virtual Int32 SaveLoginInfo()
         {
             Logins++;
             LastLogin = DateTime.Now;
