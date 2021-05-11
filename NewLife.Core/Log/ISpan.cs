@@ -55,7 +55,7 @@ namespace NewLife.Log
         #region 属性
         /// <summary>构建器</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public ISpanBuilder Builder { get; }
+        public ISpanBuilder Builder { get; private set; }
 
         /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
         public String Id { get; set; }
@@ -149,10 +149,9 @@ namespace NewLife.Log
 
             // 设置父级
             var span = Current;
+            _parent = span;
             if (span != null && span != this)
             {
-                _parent = span;
-
                 ParentId = span.Id;
                 TraceId = span.TraceId;
 
@@ -218,6 +217,10 @@ namespace NewLife.Log
             // Builder这一批可能已经上传，重新取一次，以防万一
             var builder = Builder.Tracer.BuildSpan(Builder.Name);
             builder.Finish(this);
+
+            // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
+            // 也有可能原来的Builder已经上传，现在加入了新的builder集合
+            Builder = null;
         }
 
         /// <summary>设置错误信息</summary>

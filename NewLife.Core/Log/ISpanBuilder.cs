@@ -151,7 +151,7 @@ namespace NewLife.Log
             // 处理采样
             if (span.Error != null)
             {
-                if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors || force)
+                if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors || force && _Errors <= Tracer.MaxErrors * 10)
                 {
                     var ss = ErrorSamples ??= new List<ISpan>();
                     lock (ss)
@@ -160,8 +160,8 @@ namespace NewLife.Log
                     }
                 }
             }
-            // 强制采样，未达最大数采样，超时采样
-            else if (force || total <= Tracer.MaxSamples || Tracer.Timeout > 0 && cost > Tracer.Timeout)
+            // 未达最大数采样，超时采样，强制采样
+            else if (total <= Tracer.MaxSamples || (Tracer.Timeout > 0 && cost > Tracer.Timeout || force) && total <= Tracer.MaxSamples * 10)
             {
                 var ss = Samples ??= new List<ISpan>();
                 lock (ss)
