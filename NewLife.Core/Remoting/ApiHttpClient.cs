@@ -198,6 +198,7 @@ namespace NewLife.Remoting
                 var request = BuildRequest(method, action, args, returnType);
                 onRequest?.Invoke(request);
 
+                var filter = Filter;
                 try
                 {
                     var msg = await SendAsync(request);
@@ -210,14 +211,14 @@ namespace NewLife.Remoting
 
                     if (ex is ApiException)
                     {
-                        Filter?.OnError(_currentService?.Client, ex, this);
+                        if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
 
                         ex.Source = _currentService?.Address + "/" + action;
                         throw;
                     }
                     else if (ex is HttpRequestException || ex is TaskCanceledException)
                     {
-                        Filter?.OnError(_currentService?.Client, ex, this);
+                        if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
                         if (++i >= svrs.Count) throw;
                     }
                     else
@@ -408,11 +409,12 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client)
         {
-            Filter?.OnRequest(client, request, this);
+            var filter = Filter;
+            if (filter != null) await filter.OnRequest(client, request, this);
 
             var response = await client.SendAsync(request);
 
-            Filter?.OnResponse(client, response, this);
+            if (filter != null) await filter.OnResponse(client, response, this);
 
             // 业务层只会返回200 OK
             response.EnsureSuccessStatusCode();

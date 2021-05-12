@@ -9,7 +9,7 @@ namespace System.Threading.Tasks
     /// <summary>任务扩展</summary>
     public static class TaskEx
     {
-#region 异步执行
+        #region 异步执行
         /// <summary>公平调度的工厂</summary>
         public static TaskFactory Factory { get; } = new TaskFactory(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
 
@@ -68,7 +68,7 @@ namespace System.Threading.Tasks
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken) => TaskExtensions.Unwrap(Run<Task<TResult>>(function, cancellationToken));
-#endregion
+        #endregion
 
         private const String ArgumentOutOfRange_TimeoutNonNegativeOrMinusOne = "The timeout must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.";
 

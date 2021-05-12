@@ -295,13 +295,14 @@ namespace NewLife.Http
             // 开始跟踪，注入TraceId
             using var span = Tracer?.NewSpan(request);
             if (span != null) span.SetError(null, content.ReadAsStringAsync().Result);
+            var filter = Filter;
             try
             {
-                Filter?.OnRequest(client, request, null);
+                if (filter != null) await filter.OnRequest(client, request, null);
 
                 var response = await client.SendAsync(request);
 
-                Filter?.OnResponse(client, response, null);
+                if (filter != null) await filter.OnResponse(client, response, request);
 
                 return await response.Content.ReadAsStringAsync();
             }
@@ -310,7 +311,7 @@ namespace NewLife.Http
                 // 跟踪异常
                 span?.SetError(ex, null);
 
-                Filter?.OnError(client, ex, null);
+                if (filter != null) await filter.OnError(client, ex, request);
 
                 throw;
             }

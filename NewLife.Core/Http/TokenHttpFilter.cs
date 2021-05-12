@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -39,7 +40,7 @@ namespace NewLife.Http
         /// <param name="request">请求消息</param>
         /// <param name="state">状态数据</param>
         /// <returns></returns>
-        public virtual void OnRequest(HttpClient client, HttpRequestMessage request, Object state)
+        public virtual async Task OnRequest(HttpClient client, HttpRequestMessage request, Object state)
         {
             if (request.Headers.Authorization != null) return;
 
@@ -66,7 +67,7 @@ namespace NewLife.Http
             {
                 try
                 {
-                    Token = client.Post<TokenModel>(Action, new
+                    Token = await client.PostAsync<TokenModel>(Action, new
                     {
                         grant_type = "refresh_token",
                         refresh_token = Token.RefreshToken,
@@ -97,7 +98,7 @@ namespace NewLife.Http
         /// <param name="response">响应消息</param>
         /// <param name="state">状态数据</param>
         /// <returns></returns>
-        public virtual void OnResponse(HttpClient client, HttpResponseMessage response, Object state)
+        public virtual Task OnResponse(HttpClient client, HttpResponseMessage response, Object state)
         {
             var code = (Int32)response.StatusCode;
             if (ErrorCodes.Contains(code))
@@ -105,6 +106,14 @@ namespace NewLife.Http
                 // 马上过期
                 Expire = DateTime.MinValue;
             }
+
+#if NET40
+            return TaskEx.FromResult(0);
+#elif NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
 
         /// <summary>发生错误时</summary>
@@ -112,7 +121,7 @@ namespace NewLife.Http
         /// <param name="exception">异常</param>
         /// <param name="state">状态数据</param>
         /// <returns></returns>
-        public virtual void OnError(HttpClient client, Exception exception, Object state)
+        public virtual Task OnError(HttpClient client, Exception exception, Object state)
         {
             // 识别ApiException
             if (exception is ApiException ae && ErrorCodes.Contains(ae.Code))
@@ -120,6 +129,14 @@ namespace NewLife.Http
                 // 马上过期
                 Expire = DateTime.MinValue;
             }
+
+#if NET40
+            return TaskEx.FromResult(0);
+#elif NET45
+            return Task.FromResult(0);
+#else
+            return Task.CompletedTask;
+#endif
         }
     }
 }

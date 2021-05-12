@@ -89,14 +89,15 @@ namespace NewLife.Remoting
 
             // 开始跟踪，注入TraceId
             using var span = Tracer?.NewSpan(request);
+            var filter = Filter;
             try
             {
                 // 发起请求
-                Filter?.OnRequest(client, request, null);
+                if (filter != null) await filter.OnRequest(client, request, null);
 
                 var response = await client.SendAsync(request);
 
-                Filter?.OnResponse(client, response, null);
+                if (filter != null) await filter.OnResponse(client, response, request);
 
                 return await ProcessResponse<TResult>(response, dataName);
             }
@@ -105,7 +106,7 @@ namespace NewLife.Remoting
                 // 跟踪异常
                 span?.SetError(ex, args);
 
-                Filter?.OnError(client, ex, null);
+                if (filter != null) await filter.OnError(client, ex, request);
 
                 throw;
             }
