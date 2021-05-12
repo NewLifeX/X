@@ -204,22 +204,24 @@ namespace NewLife.Remoting
 
                     return await ApiHelper.ProcessResponse<TResult>(msg);
                 }
-                catch (ApiException ex)
+                catch (Exception ex)
                 {
-                    Filter?.OnError(_currentService?.Client, ex, this);
+                    while (ex is AggregateException age) ex = age.InnerException;
 
-                    ex.Source = _currentService?.Address + "/" + action;
-                    throw;
-                }
-                catch (HttpRequestException ex)
-                {
-                    Filter?.OnError(_currentService?.Client, ex, this);
-                    if (++i >= svrs.Count) throw;
-                }
-                catch (TaskCanceledException ex)
-                {
-                    Filter?.OnError(_currentService?.Client, ex, this);
-                    if (++i >= svrs.Count) throw;
+                    if (ex is ApiException)
+                    {
+                        Filter?.OnError(_currentService?.Client, ex, this);
+
+                        ex.Source = _currentService?.Address + "/" + action;
+                        throw;
+                    }
+                    else if (ex is HttpRequestException || ex is TaskCanceledException)
+                    {
+                        Filter?.OnError(_currentService?.Client, ex, this);
+                        if (++i >= svrs.Count) throw;
+                    }
+                    else
+                        throw;
                 }
             } while (true);
         }
@@ -371,7 +373,10 @@ namespace NewLife.Remoting
                 var idx = _idxServer;
                 if (idx > 0 && svrs[0].NextTime < DateTime.Now) idx = _idxServer = 0;
 
-                return svrs[idx % svrs.Count];
+                var svc = svrs[idx % svrs.Count];
+                svc.Times++;
+
+                return svc;
             }
         }
 
@@ -380,13 +385,17 @@ namespace NewLife.Remoting
         /// <param name="error"></param>
         protected virtual void PutService(Service service, Exception error)
         {
-            if (error is HttpRequestException || error is TaskCanceledException)
+            var ex = error;
+            while (ex is AggregateException age) ex = age.InnerException;
+
+            if (ex is HttpRequestException || ex is TaskCanceledException)
             {
                 // 网络异常时，自动切换到其它节点
                 _idxServer++;
             }
             if (error != null)
             {
+                service.Errors++;
                 service.Client = null;
                 service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
             }
@@ -446,6 +455,9 @@ namespace NewLife.Remoting
             /// <summary>总次数</summary>
             public Int32 Times { get; set; }
 
+            /// <summary>错误数</summary>
+            public Int32 Errors { get; set; }
+
             /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
             [XmlIgnore, IgnoreDataMember]
             public DateTime NextTime { get; set; }
@@ -453,6 +465,10 @@ namespace NewLife.Remoting
             /// <summary>客户端</summary>
             [XmlIgnore, IgnoreDataMember]
             public HttpClient Client { get; set; }
+
+            /// <summary>已重载。友好显示</summary>
+            /// <returns></returns>
+            public override String ToString() => $"{Name} {Address}";
         }
         #endregion
 

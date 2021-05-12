@@ -111,7 +111,7 @@ namespace XUnitTest.Remoting
         }
 
         [Fact]
-        public async void SlaveTest()
+        public void SlaveTest()
         {
             var client = new ApiHttpClient("http://127.0.0.1:10000,http://127.0.0.1:20000," + _Address)
             {
@@ -119,8 +119,35 @@ namespace XUnitTest.Remoting
             };
             var ac = client as IApiClient;
 
-            var infs = await ac.InvokeAsync<IDictionary<String, Object>>("api/info");
+            var infs = ac.Invoke<IDictionary<String, Object>>("api/info");
             Assert.NotNull(infs);
+        }
+
+        [Fact]
+        public async void SlaveAsyncTest()
+        {
+            var filter = new TokenHttpFilter
+            {
+                UserName = "starweb",
+                Password = "",
+            };
+            var client = new ApiHttpClient("http://127.0.0.1:10000,http://127.0.0.1:20000,http://star.newlifex.com:6600")
+            {
+                Filter = filter,
+                Timeout = 3_000
+            };
+
+            var rs = await client.PostAsync<Object>("config/getall", new { appid = "starweb" });
+            Assert.NotNull(rs);
+
+            var ss = client.Services;
+            Assert.Equal(3, ss.Count);
+            Assert.Equal(1, ss[0].Times);
+            Assert.Equal(1, ss[0].Errors);
+            Assert.Equal(1, ss[1].Times);
+            Assert.Equal(1, ss[1].Errors);
+            Assert.Equal(1, ss[2].Times);
+            Assert.Equal(0, ss[2].Errors);
         }
 
         [Fact]
