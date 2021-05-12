@@ -54,6 +54,10 @@ namespace NewLife.Configuration
             _timer.TryDispose();
             Client.TryDispose();
         }
+
+        /// <summary>已重载。输出友好信息</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{GetType().Name} AppId={AppId} Server={Server}";
         #endregion
 
         #region 方法

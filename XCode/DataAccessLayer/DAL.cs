@@ -11,6 +11,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -336,10 +337,12 @@ namespace XCode.DataAccessLayer
         public static GetConfigCallback GetConfig { get; set; }
 
         private static IConfigProvider _configProvider;
-        /// <summary>设置配置提供者。可用于配置中心</summary>
+        /// <summary>设置配置提供者。可对接配置中心，DAL内部自动从内置对象容器中取得星尘配置提供者</summary>
         /// <param name="configProvider"></param>
         public static void SetConfig(IConfigProvider configProvider)
         {
+            WriteLog("DAL绑定配置提供者 {0}", configProvider);
+
             configProvider.Bind(new MyDAL());
             _configProvider = configProvider;
         }
@@ -351,7 +354,22 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         private static Boolean GetFromConfigCenter(String connName)
         {
-            var getConfig = GetConfig ?? _configProvider?.GetConfig;
+            var getConfig = GetConfig;
+
+            // 自动从对象容器里取得配置提供者
+            if (getConfig == null && _configProvider == null)
+            {
+                var prv = ObjectContainer.Provider.GetService<IConfigProvider>();
+                if (prv != null)
+                {
+                    WriteLog("DAL自动绑定配置提供者 {0}", prv);
+
+                    prv.Bind(new MyDAL());
+                    _configProvider = prv;
+                }
+            }
+
+            if (getConfig == null) getConfig = _configProvider?.GetConfig;
             {
                 var str = getConfig?.Invoke(connName);
                 if (str.IsNullOrEmpty()) return false;
