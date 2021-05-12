@@ -42,7 +42,7 @@ namespace Company.MyName
         /// <summary>密码</summary>
         [DisplayName("密码")]
         [Description("密码")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Password", "密码", "")]
         public String Password { get => _Password; set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } } }
 

@@ -26,7 +26,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table USER(
 	ID integer Primary Key AUTOINCREMENT,
 	NAME nvarchar(50) NOT NULL COLLATE NOCASE,
-	PASSWORD nvarchar(50) NULL COLLATE NOCASE,
+	PASSWORD nvarchar(200) NULL COLLATE NOCASE,
 	DISPLAYNAME nvarchar(50) NULL COLLATE NOCASE,
 	SEX int NOT NULL DEFAULT 0,
 	MAIL nvarchar(50) NULL COLLATE NOCASE,
@@ -69,7 +69,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table If Not Exists `USER`(
 	ID INT NOT NULL AUTO_INCREMENT COMMENT '编号',
 	NAME VARCHAR(50) NOT NULL COMMENT '名称。登录用户名',
-	PASSWORD VARCHAR(50) COMMENT '密码',
+	PASSWORD VARCHAR(200) COMMENT '密码',
 	DISPLAYNAME VARCHAR(50) COMMENT '昵称',
 	SEX INT NOT NULL COMMENT '性别。未知、男、女',
 	MAIL VARCHAR(50) COMMENT '邮件',
@@ -113,7 +113,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table user(
 	id integer Primary Key AUTOINCREMENT,
 	name nvarchar(50) NOT NULL COLLATE NOCASE,
-	password nvarchar(50) NULL COLLATE NOCASE,
+	password nvarchar(200) NULL COLLATE NOCASE,
 	displayname nvarchar(50) NULL COLLATE NOCASE,
 	sex int NOT NULL DEFAULT 0,
 	mail nvarchar(50) NULL COLLATE NOCASE,
@@ -156,7 +156,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table If Not Exists `user`(
 	id INT NOT NULL AUTO_INCREMENT COMMENT '编号',
 	name VARCHAR(50) NOT NULL COMMENT '名称。登录用户名',
-	password VARCHAR(50) COMMENT '密码',
+	password VARCHAR(200) COMMENT '密码',
 	displayname VARCHAR(50) COMMENT '昵称',
 	sex INT NOT NULL COMMENT '性别。未知、男、女',
 	mail VARCHAR(50) COMMENT '邮件',
@@ -200,7 +200,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table user(
 	id integer Primary Key AUTOINCREMENT,
 	name nvarchar(50) NOT NULL COLLATE NOCASE,
-	password nvarchar(50) NULL COLLATE NOCASE,
+	password nvarchar(200) NULL COLLATE NOCASE,
 	display_name nvarchar(50) NULL COLLATE NOCASE,
 	sex int NOT NULL DEFAULT 0,
 	mail nvarchar(50) NULL COLLATE NOCASE,
@@ -243,7 +243,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Equal(@"Create Table If Not Exists `user`(
 	id INT NOT NULL AUTO_INCREMENT COMMENT '编号',
 	name VARCHAR(50) NOT NULL COMMENT '名称。登录用户名',
-	password VARCHAR(50) COMMENT '密码',
+	password VARCHAR(200) COMMENT '密码',
 	display_name VARCHAR(50) COMMENT '昵称',
 	sex INT NOT NULL COMMENT '性别。未知、男、女',
 	mail VARCHAR(50) COMMENT '邮件',
