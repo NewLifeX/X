@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using NewLife.Security;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Shards;
 using Xunit;
 
 namespace XUnitTest.XCode.EntityTests
@@ -184,6 +186,44 @@ namespace XUnitTest.XCode.EntityTests
 
             // 恢复现场，避免影响其它测试用例
             User2.Meta.ShardTableName = null;
+        }
+
+        [Fact]
+        public void ShardTestSQLite()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy
+            {
+                Field = User2._.RegisterTime,
+                TablePolicy = "{0}_{1:yyyyMM}",
+            };
+            User2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var user = new User2
+            {
+                Name = Rand.NextString(8),
+
+                RegisterTime = new DateTime(2020, 8, 22),
+                UpdateTime = new DateTime(2020, 9, 1),
+            };
+
+            // 添删改查全部使用新表名
+            user.Insert();
+            Assert.StartsWith(@"[test] Insert Into User2_202008(", sql);
+
+            user.DisplayName = Rand.NextString(16);
+            user.Update();
+            Assert.StartsWith(@"[test] Update User2_202008 Set", sql);
+
+            user.Delete();
+            Assert.StartsWith(@"[test] Delete From User2_202008 Where", sql);
+
+            // 恢复现场，避免影响其它测试用例
+            User2.Meta.ShardPolicy = null;
         }
     }
 }

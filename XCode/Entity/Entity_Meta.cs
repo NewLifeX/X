@@ -5,6 +5,7 @@ using System.Threading;
 using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.Shards;
 
 namespace XCode
 {
@@ -176,6 +177,9 @@ namespace XCode
             /// <summary>自动分表回调，用于添删改操作</summary>
             public static Func<TEntity, String> ShardTableName { get; set; }
 
+            /// <summary>分表分库策略</summary>
+            public static IShardPolicy ShardPolicy { get; set; }
+
             /// <summary>在分库上执行操作，自动还原</summary>
             /// <param name="connName"></param>
             /// <param name="tableName"></param>
@@ -199,6 +203,10 @@ namespace XCode
             /// <returns></returns>
             public static IDisposable AutoSplit(TEntity entity)
             {
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Get(entity);
+                if (model != null) return new SplitPackge(model.ConnName, model.TableName);
+
                 var connName = ShardConnName?.Invoke(entity);
                 var tableName = ShardTableName?.Invoke(entity);
                 if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
