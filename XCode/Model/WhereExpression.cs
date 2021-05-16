@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using NewLife.Collections;
@@ -20,7 +21,7 @@ namespace XCode
     };
 
     /// <summary>条件表达式</summary>
-    public class WhereExpression : Expression
+    public class WhereExpression : Expression, IEnumerable<Expression>
     {
         #region 属性
         /// <summary>左节点</summary>
@@ -126,6 +127,71 @@ namespace XCode
 
             return exp;
         }
+
+        ///// <summary>访问表达式</summary>
+        ///// <param name="visitor"></param>
+        ///// <returns></returns>
+        //public Expression Visit(Func<Expression, Boolean> visitor)
+        //{
+        //    if (Left != null)
+        //    {
+        //        var rs = visitor(Left);
+        //        if (rs) return Left;
+
+        //        if (Left is WhereExpression where)
+        //        {
+        //            var exp = where.Visit(visitor);
+        //            if (exp != null) return exp;
+        //        }
+        //    }
+
+        //    if (Right != null)
+        //    {
+        //        var rs = visitor(Right);
+        //        if (rs) return Right;
+
+        //        if (Right is WhereExpression where)
+        //        {
+        //            var exp = where.Visit(visitor);
+        //            if (exp != null) return exp;
+        //        }
+        //    }
+
+        //    return null;
+        //}
+
+        /// <summary>枚举</summary>
+        /// <returns></returns>
+        public IEnumerator<Expression> GetEnumerator()
+        {
+            if (Left != null)
+            {
+                yield return Left;
+
+                if (Left is WhereExpression where)
+                {
+                    foreach (var item in where)
+                    {
+                        yield return item;
+                    }
+                }
+            }
+
+            if (Right != null)
+            {
+                yield return Right;
+
+                if (Right is WhereExpression where)
+                {
+                    foreach (var item in where)
+                    {
+                        yield return item;
+                    }
+                }
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion
     }
 }

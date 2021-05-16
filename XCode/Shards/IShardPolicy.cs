@@ -17,5 +17,10 @@ namespace XCode.Shards
         ///// <param name="time"></param>
         ///// <returns></returns>
         //ShardModel Get(DateTime time);
+
+        /// <summary>从查询表达式中计算多个分表分库</summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        ShardModel[] Gets(Expression expression);
     }
 }

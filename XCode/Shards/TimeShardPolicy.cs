@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using NewLife;
 using XCode.Configuration;
 
@@ -61,6 +63,67 @@ namespace XCode.Shards
             if (!TablePolicy.IsNullOrEmpty()) model.TableName = String.Format(TablePolicy, table.TableName, time);
 
             return model;
+        }
+
+        /// <summary>从查询表达式中计算多个分表分库</summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        public virtual ShardModel[] Gets(Expression expression)
+        {
+            if (expression is WhereExpression where)
+            {
+                // 时间范围查询
+                var exps = where.Where(e => e is FieldExpression fe && fe.Field == Field).Cast<FieldExpression>().ToList();
+
+                var models = new List<ShardModel>();
+                var start = DateTime.MinValue;
+                var end = DateTime.Now.AddSeconds(1);
+
+                var fi = Field;
+                if (fi.Type == typeof(DateTime))
+                {
+                    //var start = exps.FirstOrDefault(e => e.Action == ">" || e.Action == ">=");
+                    //var end = exps.FirstOrDefault(e => e.Action == "<" || e.Action == "<=");
+                }
+                else if (fi.Type == typeof(Int64))
+                {
+                    var sf = exps.FirstOrDefault(e => e.Action == ">" || e.Action == ">=");
+                    var ef = exps.FirstOrDefault(e => e.Action == "<" || e.Action == "<=");
+                    if (sf != null)
+                    {
+                        var id = sf.Value.ToLong();
+                        if (fi.Factory.Snow.TryParse(id, out var time, out _, out _))
+                        {
+                            // 如果没有等于，向前一秒
+                            if (sf.Action == ">") time = time.AddSeconds(1);
+                            start = time;
+
+                            if (ef != null && fi.Factory.Snow.TryParse(ef.Value.ToLong(), out var time2, out _, out _))
+                            {
+                                // 如果有等于，向前一秒
+                                if (ef.Action == "<=") time2 = time2.AddSeconds(1);
+                                end = time2;
+                            }
+                        }
+                    }
+                }
+
+                // 构建了一个时间区间 start <= @fi < end
+                // 简单起见，按照分钟步进
+                ShardModel last = null;
+                for (var dt = start; dt < end; dt = dt.AddMinutes(1))
+                {
+                    var model = Get(dt);
+                    if (last == null || model.ConnName != last.ConnName || model.TableName != last.TableName)
+                    {
+                        models.Add(model);
+                        last = model;
+                    }
+                }
+                return models.ToArray();
+            }
+
+            return null;
         }
     }
 }

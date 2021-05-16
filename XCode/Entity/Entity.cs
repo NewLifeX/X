@@ -862,13 +862,38 @@ namespace XCode
             }
             #endregion
 
-            var builder = CreateBuilder(where, order, selects);
-            var list2 = LoadData(session.Query(builder, startRowIndex, maximumRows));
+            // 自动分表
+            var shards = Meta.ShardPolicy?.Gets(where);
+            if (shards == null)
+            {
+                var builder = CreateBuilder(where, order, selects);
+                var list2 = LoadData(session.Query(builder, startRowIndex, maximumRows));
 
-            // 如果正在使用单对象缓存，则批量进入
-            if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list2);
+                // 如果正在使用单对象缓存，则批量进入
+                if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list2);
 
-            return list2;
+                return list2;
+            }
+            else
+            {
+                // 暂时仅支持row=0，否则不好处理多表查询
+                var row = startRowIndex;
+                var max = maximumRows;
+
+                var rs = new List<TEntity>();
+                foreach (var shard in shards)
+                {
+                    using var split = Meta.CreateSplit(shard.ConnName, shard.TableName);
+
+                    var builder = CreateBuilder(where, order, selects);
+                    var list2 = LoadData(Meta.Session.Query(builder, row, max));
+                    if (list2.Count > 0) rs.AddRange(list2);
+                    if (rs.Count >= maximumRows) return rs;
+
+                    max -= list2.Count;
+                }
+                return rs;
+            }
         }
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
@@ -1009,7 +1034,7 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            #region 海量数据查询优化
+        #region 海量数据查询优化
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
@@ -1029,7 +1054,7 @@ namespace XCode
                     var order2 = order;
                     var bk = false; // 是否跳过
 
-                    #region 排序倒序
+        #region 排序倒序
                     // 默认是自增字段的降序
                     var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
@@ -1077,7 +1102,7 @@ namespace XCode
 
                         order2 = sb.Put(true).Replace("★", ",");
                     }
-                    #endregion
+        #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
                     if (!order2.IsNullOrEmpty())
@@ -1100,7 +1125,7 @@ namespace XCode
                     }
                 }
             }
-            #endregion
+        #endregion
 
             var builder = CreateBuilder(where, order, selects);
             var list2 = LoadData(await session.QueryAsync(builder, startRowIndex, maximumRows));

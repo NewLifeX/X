@@ -82,16 +82,24 @@
       <Column Name="Category" DataType="String" Description="类别" />
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />
+      <Column Name="Success" DataType="Boolean" Description="成功" />
       <Column Name="UserName" DataType="String" Description="用户名" />
-      <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
-      <Column Name="CreateIP" DataType="String" Description="IP地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="时间" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="时间" />
       <Column Name="Remark" DataType="Byte[]" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Category" />
-      <Index Columns="CreateUserID" />
-      <Index Columns="CreateTime" />
+      <Index Columns="Action,Category,ID" />
+      <Index Columns="Category,LinkID,ID" />
+      <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
 </Tables>

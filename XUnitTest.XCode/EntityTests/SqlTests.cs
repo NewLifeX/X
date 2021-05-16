@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using NewLife.Data;
 using NewLife.Security;
 using XCode;
 using XCode.DataAccessLayer;
@@ -234,33 +236,37 @@ namespace XUnitTest.XCode.EntityTests
             {
                 Field = Log2._.ID,
                 ConnPolicy = "{0}_{1:yyyy}",
-                TablePolicy = "{0}_{1:yyyyMM}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
             };
             Log2.Meta.ShardPolicy = shard;
 
-            // 拦截Sql
-            var sql = "";
-            DAL.LocalFilter = s => sql = s;
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
 
-            var now = DateTime.Now;
+            var time = DateTime.Now;
             var log = new Log2
             {
                 Action = "分表",
                 Category = Rand.NextString(8),
 
-                CreateTime = now,
+                CreateTime = time,
             };
 
             // 添删改查全部使用新表名
             log.Insert();
-            Assert.StartsWith($"[test_{now:yyyy}] Insert Into Log2_{now:yyyyMM}(", sql);
+            Assert.StartsWith($"[test_{time:yyyy}] Insert Into Log2_{time:yyyyMMdd}(", sqls[^1]);
 
             log.Category = Rand.NextString(16);
             log.Update();
-            Assert.StartsWith($"[test_{now:yyyy}] Update Log2_{now:yyyyMM} Set", sql);
+            Assert.StartsWith($"[test_{time:yyyy}] Update Log2_{time:yyyyMMdd} Set", sqls[^1]);
 
             log.Delete();
-            Assert.StartsWith($"[test_{now:yyyy}] Delete From Log2_{now:yyyyMM} Where", sql);
+            Assert.StartsWith($"[test_{time:yyyy}] Delete From Log2_{time:yyyyMMdd} Where", sqls[^1]);
+
+            var list = Log2.Search(null, null, -1, null, -1, time.AddHours(-24), time, null, new PageParameter { PageSize = 100 });
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddHours(-24):yyyyMMdd} Where", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time:yyyyMMdd} Where", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;
