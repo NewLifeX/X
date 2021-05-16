@@ -27,12 +27,24 @@ namespace XCode.Shards
         public virtual ShardModel Get(IEntity entity)
         {
             var fi = Field;
-            if (fi == null || fi.Type != typeof(DateTime)) throw new XCodeException("分表策略要求指定时间字段！");
+            if (fi == null) throw new XCodeException("分表策略要求指定时间字段！");
 
-            var time = entity[Field.Name].ToDateTime();
-            if (time.Year <= 1) throw new XCodeException("实体对象时间字段为空，无法用于分表");
+            if (fi.Type == typeof(DateTime))
+            {
+                var time = entity[Field.Name].ToDateTime();
+                if (time.Year <= 1) throw new XCodeException("实体对象时间字段为空，无法用于分表");
 
-            return Get(time);
+                return Get(time);
+            }
+            else if (fi.Type == typeof(Int64))
+            {
+                var id = entity[Field.Name].ToLong();
+                if (!fi.Factory.Snow.TryParse(id, out var time, out _, out _)) throw new XCodeException("雪花Id解析时间失败，无法用于分表");
+
+                return Get(time);
+            }
+
+            throw new XCodeException($"时间分表策略不支持[{fi.Type.FullName}]类型字段");
         }
 
         /// <summary>为时间计算分表分库</summary>
@@ -42,7 +54,7 @@ namespace XCode.Shards
         {
             if (ConnPolicy.IsNullOrEmpty() && TablePolicy.IsNullOrEmpty()) return null;
 
-            var table =Field.Factory.Table;
+            var table = Field.Factory.Table;
 
             var model = new ShardModel();
             if (!ConnPolicy.IsNullOrEmpty()) model.ConnName = String.Format(ConnPolicy, table.ConnName, time);

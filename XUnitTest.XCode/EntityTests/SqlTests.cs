@@ -225,5 +225,45 @@ namespace XUnitTest.XCode.EntityTests
             // 恢复现场，避免影响其它测试用例
             User2.Meta.ShardPolicy = null;
         }
+
+        [Fact]
+        public void ShardTestSQLite2()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy
+            {
+                Field = Log2._.ID,
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMM}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var now = DateTime.Now;
+            var log = new Log2
+            {
+                Action = "分表",
+                Category = Rand.NextString(8),
+
+                CreateTime = now,
+            };
+
+            // 添删改查全部使用新表名
+            log.Insert();
+            Assert.StartsWith($"[test_{now:yyyy}] Insert Into Log2_{now:yyyyMM}(", sql);
+
+            log.Category = Rand.NextString(16);
+            log.Update();
+            Assert.StartsWith($"[test_{now:yyyy}] Update Log2_{now:yyyyMM} Set", sql);
+
+            log.Delete();
+            Assert.StartsWith($"[test_{now:yyyy}] Delete From Log2_{now:yyyyMM} Where", sql);
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
     }
 }

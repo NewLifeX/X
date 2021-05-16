@@ -200,9 +200,6 @@ namespace XCode
                 if (!isnew.Value) throw new XCodeException($"只写的日志型数据[{Meta.ThisType.FullName}]禁止修改！");
             }
 
-            // 自动分库分表
-            using var split = Meta.AutoSplit(this as TEntity);
-
             if (enableValid)
             {
                 Boolean rt;
@@ -217,6 +214,9 @@ namespace XCode
                 // 没有更新任何数据
                 if (!rt) return 0;
             }
+
+            // 自动分库分表
+            using var split = Meta.AutoSplit(this as TEntity);
 
             return func();
         }
