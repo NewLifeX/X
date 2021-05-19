@@ -128,7 +128,7 @@ namespace XCode.Membership
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByName(String name) => Membership.User.FindByName(name);
+        public virtual IManageUser FindByName(String name) => Membership.User.FindForLogin(name);
 
         /// <summary>登录</summary>
         /// <param name="username"></param>
@@ -193,7 +193,7 @@ namespace XCode.Membership
             try
             {
                 // 去重判断
-                var user = Membership.User.FindByName(username);
+                var user = Membership.User.FindForLogin(username);
                 if (user != null) throw new ArgumentException(nameof(username), $"用户[{username}]已存在！");
 
                 var pass = PasswordProvider.Hash(password);
