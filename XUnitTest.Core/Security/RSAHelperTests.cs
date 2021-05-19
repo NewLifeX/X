@@ -348,9 +348,13 @@ MwIDAQAB
         [Fact]
         public void TestBase64Key()
         {
-            var rsa = new RSACryptoServiceProvider(2048);
-            var prvKey = RSAHelper.WriteParameters(rsa.ExportParameters(true));
-            var pubKey = RSAHelper.WriteParameters(rsa.ExportParameters(false));
+            //var rsa = new RSACryptoServiceProvider(2048);
+            //var prvKey = RSAHelper.WriteParameters(rsa.ExportParameters(true));
+            //var pubKey = RSAHelper.WriteParameters(rsa.ExportParameters(false));
+
+            var ss = RSAHelper.GenerateParameters(1024);
+            var prvKey = ss[0];
+            var pubKey = ss[1];
 
             Assert.NotEmpty(prvKey);
             Assert.NotEmpty(pubKey);

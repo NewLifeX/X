@@ -4,7 +4,6 @@ using System.Threading;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Model;
-using XCode.Model;
 
 namespace XCode.Membership
 {
@@ -135,7 +134,13 @@ namespace XCode.Membership
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public virtual IManageUser Login(String username, String password, Boolean rememberme)
+        public virtual IManageUser Login(String username, String password, Boolean rememberme) => Current = LoginCore(username, password);
+
+        /// <summary>核心登录方法</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public virtual IManageUser LoginCore(String username, String password)
         {
             try
             {
@@ -149,6 +154,7 @@ namespace XCode.Membership
                 if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
 
                 var prv = PasswordProvider;
+                if (prv == null) throw new ArgumentNullException(nameof(PasswordProvider));
 
                 // 数据库为空密码，任何密码均可登录
                 if (!user.Password.IsNullOrEmpty())
@@ -167,8 +173,6 @@ namespace XCode.Membership
                 user.SaveLoginInfo();
 
                 Membership.User.WriteLog("登录", true, $"用户[{user}]使用[{username}]登录成功");
-
-                Current = user;
 
                 return user;
             }
