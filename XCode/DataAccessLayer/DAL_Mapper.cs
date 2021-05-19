@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
@@ -174,7 +175,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>更新数据。不支持自动识别主键</summary>
         /// <param name="data">实体对象</param>
-        /// <param name="where">查询条件</param>
+        /// <param name="where">查询条件。默认使用Id字段</param>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Int32 Update(Object data, Object where, String tableName = null)
@@ -210,6 +211,18 @@ namespace XCode.DataAccessLayer
                     if (i++ > 0) sb.Append(" And ");
 
                     var p = Db.CreateParameter(pi.Name, pi.GetValue(where, null), pi.PropertyType);
+                    dps.Add(p);
+                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
+                }
+            }
+            else
+            {
+                var pi = data.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi != null)
+                {
+                    sb.Append(" Where ");
+
+                    var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
@@ -273,7 +286,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>更新数据。不支持自动识别主键</summary>
         /// <param name="data">实体对象</param>
-        /// <param name="where">查询条件</param>
+        /// <param name="where">查询条件。默认使用Id字段</param>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Task<Int32> UpdateAsync(Object data, Object where, String tableName = null)
@@ -309,6 +322,18 @@ namespace XCode.DataAccessLayer
                     if (i++ > 0) sb.Append(" And ");
 
                     var p = Db.CreateParameter(pi.Name, pi.GetValue(where, null), pi.PropertyType);
+                    dps.Add(p);
+                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
+                }
+            }
+            else
+            {
+                var pi = data.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi != null)
+                {
+                    sb.Append(" Where ");
+
+                    var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
