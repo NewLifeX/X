@@ -344,5 +344,24 @@ MwIDAQAB
 
             Assert.Equal(key1, key2);
         }
+
+        [Fact]
+        public void TestBase64Key()
+        {
+            var rsa = new RSACryptoServiceProvider(2048);
+            var prvKey = RSAHelper.WriteParameters(rsa.ExportParameters(true));
+            var pubKey = RSAHelper.WriteParameters(rsa.ExportParameters(false));
+
+            Assert.NotEmpty(prvKey);
+            Assert.NotEmpty(pubKey);
+
+            var str = "Stone@NewLife";
+            var txt = RSAHelper.Encrypt(str.GetBytes(), pubKey).ToBase64();
+            Assert.NotEmpty(txt);
+
+            var rs = RSAHelper.Decrypt(txt.ToBase64(), prvKey).ToStr();
+            Assert.NotEmpty(rs);
+            Assert.Equal(str, rs);
+        }
     }
 }
