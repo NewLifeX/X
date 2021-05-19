@@ -12,15 +12,18 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>根据实体类获取表名的委托</summary>
+    /// <summary>根据实体类获取表名或主键名的委托</summary>
     /// <param name="entityType">实体类</param>
     /// <returns></returns>
-    public delegate String GetTableNameCallback(Type entityType);
+    public delegate String GetNameCallback(Type entityType);
 
     public partial class DAL
     {
         /// <summary>根据实体类获取表名的委托，用于Mapper的Insert/Update</summary>
-        public static GetTableNameCallback GetTableName { get; set; }
+        public static GetNameCallback GetTableName { get; set; }
+
+        /// <summary>根据实体类获取主键名的委托，用于Mapper的Update</summary>
+        public static GetNameCallback GetKeyName { get; set; }
 
         #region 添删改查
         /// <summary>查询Sql并映射为结果集</summary>
@@ -148,11 +151,19 @@ namespace XCode.DataAccessLayer
 #endif
 
         private ConcurrentDictionary<Type, String> _tableMaps = new();
-        private String GetName(Type type)
+        private String OnGetTableName(Type type)
         {
             if (GetTableName == null) return null;
 
             return _tableMaps.GetOrAdd(type, t => GetTableName(t));
+        }
+
+        private ConcurrentDictionary<Type, String> _keyMaps = new();
+        private String OnGetKeyName(Type type)
+        {
+            if (GetKeyName == null) return null;
+
+            return _keyMaps.GetOrAdd(type, t => GetKeyName(t));
         }
 
         /// <summary>插入数据</summary>
@@ -161,7 +172,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Insert(Object data, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var pis = data.ToDictionary();
@@ -180,7 +191,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Update(Object data, Object where, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var sb = Pool.StringBuilder.Get();
@@ -217,15 +228,17 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                var pi = data.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                if (pi != null)
-                {
-                    sb.Append(" Where ");
+                var name = OnGetKeyName(data.GetType());
+                if (name.IsNullOrEmpty()) name = "Id";
 
-                    var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
-                    dps.Add(p);
-                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
-                }
+                var pi = data.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi == null) throw new XCodeException($"更新实体对象时未标记主键且未设置where");
+
+                sb.Append(" Where ");
+
+                var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
+                dps.Add(p);
+                sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
             }
 
             var sql = sb.Put(true);
@@ -272,7 +285,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Task<Int32> InsertAsync(Object data, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var pis = data.ToDictionary();
@@ -291,7 +304,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Task<Int32> UpdateAsync(Object data, Object where, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var sb = Pool.StringBuilder.Get();
@@ -328,15 +341,17 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                var pi = data.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                if (pi != null)
-                {
-                    sb.Append(" Where ");
+                var name = OnGetKeyName(data.GetType());
+                if (name.IsNullOrEmpty()) name = "Id";
 
-                    var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
-                    dps.Add(p);
-                    sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
-                }
+                var pi = data.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi == null) throw new XCodeException($"更新实体对象时未标记主键且未设置where");
+
+                sb.Append(" Where ");
+
+                var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
+                dps.Add(p);
+                sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
             }
 
             var sql = sb.Put(true);
