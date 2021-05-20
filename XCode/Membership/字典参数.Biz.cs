@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Model;
 using NewLife.Reflection;
 using XCode;
 
@@ -74,6 +77,13 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
+        /// <summary>用户</summary>
+        [XmlIgnore, IgnoreDataMember]
+        public IManageUser User => Extends.Get(nameof(User), k => Membership.User.FindByID(UserID));
+
+        /// <summary>用户名</summary>
+        [Map(nameof(UserID))]
+        public String UserName => UserID == 0 ? "全局" : (User + "");
         #endregion
 
         #region 扩展查询
