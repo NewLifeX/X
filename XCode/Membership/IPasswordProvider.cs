@@ -42,11 +42,11 @@ namespace XCode.Membership
         public String Algorithm { get; set; } = "sha512";
 
         /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
-        /// <param name="password"></param>
+        /// <param name="password">密码</param>
         /// <returns></returns>
         public String Hash(String password)
         {
-            var salt = NextString(8);
+            var salt = NextString(16);
             var hash = Algorithm switch
             {
                 "md5" => (password.MD5() + salt).MD5(),

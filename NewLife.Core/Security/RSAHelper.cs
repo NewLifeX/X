@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -29,6 +30,72 @@ namespace NewLife.Security
             return ss;
         }
 
+        /// <summary>产生非对称密钥对</summary>
+        /// <remarks>
+        /// RSAParameters的各个字段采用大端字节序，转为BigInteger的之前一定要倒序。
+        /// RSA加密后密文最小长度就是密钥长度，所以1024密钥最小密文长度是128字节。
+        /// </remarks>
+        /// <param name="keySize">密钥长度，默认1024位强密钥</param>
+        /// <returns></returns>
+        public static String[] GenerateParameters(Int32 keySize = 2048)
+        {
+            var rsa = new RSACryptoServiceProvider(keySize);
+
+            var ss = new String[2];
+            ss[0] = WriteParameters(rsa.ExportParameters(true));
+            ss[1] = WriteParameters(rsa.ExportParameters(false));
+
+            return ss;
+        }
+
+        /// <summary>RSA参数转为Base64密钥</summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static String WriteParameters(RSAParameters p)
+        {
+            var ms = new MemoryStream();
+            ms.WriteArray(p.Modulus);
+            ms.WriteArray(p.Exponent);
+
+            if (p.D != null && p.D.Length > 0)
+            {
+                ms.WriteArray(p.D);
+                ms.WriteArray(p.P);
+                ms.WriteArray(p.Q);
+                ms.WriteArray(p.DP);
+                ms.WriteArray(p.DQ);
+                ms.WriteArray(p.InverseQ);
+            }
+
+            return ms.ToArray().ToUrlBase64();
+        }
+
+        /// <summary>根据Base64密钥创建RSA参数</summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static RSAParameters ReadParameters(String key)
+        {
+            using var ms = new MemoryStream(key.ToBase64());
+
+            var p = new RSAParameters
+            {
+                Modulus = ms.ReadArray(),
+                Exponent = ms.ReadArray(),
+            };
+
+            if (ms.Position < ms.Length)
+            {
+                p.D = ms.ReadArray();
+                p.P = ms.ReadArray();
+                p.Q = ms.ReadArray();
+                p.DP = ms.ReadArray();
+                p.DQ = ms.ReadArray();
+                p.InverseQ = ms.ReadArray();
+            }
+
+            return p;
+        }
+
         /// <summary>创建RSA对象，支持Xml密钥和Pem密钥</summary>
         /// <param name="key"></param>
         /// <returns></returns>
@@ -40,8 +107,10 @@ namespace NewLife.Security
             var rsa = new RSACryptoServiceProvider();
             if (key.StartsWith("<RSAKeyValue>") && key.EndsWith("</RSAKeyValue>"))
                 rsa.FromXmlString(key);
-            else
+            else if (key.StartsWith("--") || key.Contains("\r") || key.Contains("\n"))
                 rsa.ImportParameters(ReadPem(key));
+            else
+                rsa.ImportParameters(ReadParameters(key));
 
             return rsa;
         }
