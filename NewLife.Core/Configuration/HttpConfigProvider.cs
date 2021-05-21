@@ -22,6 +22,9 @@ namespace NewLife.Configuration
         /// <summary>应用密钥</summary>
         public String Secret { get; set; }
 
+        /// <summary>层级分隔符。用于配置中心取得配置后，划分层级构建树状结构，默认冒号</summary>
+        public String Separator { get; set; } = ":";
+
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
         public String Scope { get; set; }
 
@@ -179,13 +182,20 @@ namespace NewLife.Configuration
         /// <summary>加载配置字典为配置树</summary>
         /// <param name="configs"></param>
         /// <returns></returns>
-        protected IConfigSection Build(IDictionary<String, Object> configs)
+        public virtual IConfigSection Build(IDictionary<String, Object> configs)
         {
             // 换个对象，避免数组元素在多次加载后重叠
             var root = new ConfigSection { };
             foreach (var item in configs)
             {
-                var section = root.GetOrAddChild(item.Key);
+                var ks = item.Key.Split(Separator);
+                var section = root;
+                for (var i = 0; i < ks.Length; i++)
+                {
+                    section = section.GetOrAddChild(ks[i]) as ConfigSection;
+                }
+
+                //var section = root.GetOrAddChild(key);
                 if (item.Value is IDictionary<String, Object> dic)
                     section.Childs = Build(dic).Childs;
                 else

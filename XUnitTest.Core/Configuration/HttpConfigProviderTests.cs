@@ -105,5 +105,62 @@ namespace XUnitTest.Configuration
 
             public String Title { get; set; }
         }
+
+        [Fact]
+        public void TestLayers()
+        {
+            var dic = new Dictionary<String, Object>
+            {
+                ["name"] = "stone",
+                ["cls:server"] = "http://127.0.0.1",
+                ["cls:topic"] = "mytopic"
+            };
+
+            var prv = new HttpConfigProvider();
+            var rs = prv.Build(dic);
+
+            Assert.Equal(2, rs.Childs.Count);
+            Assert.Equal("name", rs.Childs[0].Key);
+            Assert.Equal("stone", rs.Childs[0].Value);
+
+            var section = rs.Childs[1];
+            Assert.Equal("cls", section.Key);
+            Assert.Null(section.Value);
+            Assert.Equal(2, section.Childs.Count);
+            Assert.Equal("server", section.Childs[0].Key);
+            Assert.Equal("http://127.0.0.1", section.Childs[0].Value);
+            Assert.Equal("topic", section.Childs[1].Key);
+            Assert.Equal("mytopic", section.Childs[1].Value);
+
+            prv.Root = rs;
+
+            var cls = prv.Load<MyCls>("cls");
+            Assert.NotNull(cls);
+            Assert.Equal("http://127.0.0.1", cls.Server);
+            Assert.Equal("mytopic", cls.Topic);
+        }
+
+        [Fact]
+        public void TestStardustLayers()
+        {
+            var provider = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                //Server = "http://localhost:6600",
+                AppId = "StarWeb"
+            };
+
+            var cls = provider.Load<MyCls>("cls");
+            Assert.NotNull(cls);
+            Assert.Equal("http://127.0.0.1", cls.Server);
+            Assert.Equal("mytopic", cls.Topic);
+        }
+
+        class MyCls
+        {
+            public String Server { get; set; }
+
+            public String Topic { get; set; }
+        }
     }
 }

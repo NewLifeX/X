@@ -20,6 +20,9 @@ namespace NewLife.Configuration
         /// <summary>名称</summary>
         String Name { get; set; }
 
+        /// <summary>根元素</summary>
+        IConfigSection Root { get; set; }
+
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
 
@@ -74,7 +77,7 @@ namespace NewLife.Configuration
         public String Name { get; set; }
 
         /// <summary>根元素</summary>
-        public IConfigSection Root { get; protected set; } = new ConfigSection { Childs = new List<IConfigSection>() };
+        public IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
