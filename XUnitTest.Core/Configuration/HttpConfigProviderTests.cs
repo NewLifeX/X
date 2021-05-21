@@ -138,22 +138,28 @@ namespace XUnitTest.Configuration
             Assert.NotNull(cls);
             Assert.Equal("http://127.0.0.1", cls.Server);
             Assert.Equal("mytopic", cls.Topic);
+
+            Assert.Equal("http://127.0.0.1", prv["cls:Server"]);
+            Assert.Equal("mytopic", prv["cls:Topic"]);
         }
 
         [Fact]
         public void TestStardustLayers()
         {
-            var provider = new HttpConfigProvider
+            var prv = new HttpConfigProvider
             {
                 Server = "http://star.newlifex.com:6600",
                 //Server = "http://localhost:6600",
                 AppId = "StarWeb"
             };
 
-            var cls = provider.Load<MyCls>("cls");
+            var cls = prv.Load<MyCls>("cls");
             Assert.NotNull(cls);
             Assert.Equal("http://127.0.0.1", cls.Server);
             Assert.Equal("mytopic", cls.Topic);
+
+            Assert.Equal("http://127.0.0.1", prv["cls:Server"]);
+            Assert.Equal("mytopic", prv["cls:Topic"]);
         }
 
         class MyCls
