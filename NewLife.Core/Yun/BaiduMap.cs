@@ -245,6 +245,39 @@ namespace NewLife.Yun
         }
         #endregion
 
+        #region IP定位
+        private readonly String _ipUrl = "https://api.map.baidu.com/location/ip";
+        /// <summary>IP定位</summary>
+        /// <remarks>
+        /// https://lbsyun.baidu.com/index.php?title=webapi/ip-api
+        /// </remarks>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public async Task<IDictionary<String, Object>> IpLocationAsync(String ip)
+        {
+            var url = _ipUrl + $"?ip={ip}&coor={CoordType}";
+
+            var dic = await InvokeAsync<IDictionary<String, Object>>(url, null);
+            if (dic == null || dic.Count == 0) return null;
+
+            if (dic["content"] is not IDictionary<String, Object> rs) return null;
+
+            if (dic.TryGetValue("address", out var fulladdress)) rs["full_address"] = fulladdress;
+            if (rs.TryGetValue("address_detail", out var v1))
+            {
+                rs.Merge(v1);
+                rs.Remove("address_detail");
+            }
+            if (rs.TryGetValue("point", out var v2))
+            {
+                rs.Merge(v2);
+                rs.Remove("point");
+            }
+
+            return rs;
+        }
+        #endregion
+
         #region 密钥管理
         private readonly String[] _KeyWords = new[] { "AK" };
         /// <summary>是否无效Key。可能禁用或超出限制</summary>
