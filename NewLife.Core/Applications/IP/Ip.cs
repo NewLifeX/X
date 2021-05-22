@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using NewLife.Log;
 using NewLife.Threading;
 using NewLife.Web;
@@ -20,6 +21,10 @@ namespace NewLife.IP
 
         static Ip()
         {
+
+#if NET50
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             var set = Setting.Current;
             var dir = set.DataPath;
             var ip = dir.CombinePath("ip.gz").GetBasePath();
