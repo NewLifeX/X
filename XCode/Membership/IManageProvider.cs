@@ -80,14 +80,6 @@ namespace XCode.Membership
     public abstract class ManageProvider : IManageProvider
     {
         #region 静态实例
-        static ManageProvider()
-        {
-            Register<IRole>(Role.Meta.Factory);
-            Register<IMenu>(Membership.Menu.Meta.Factory);
-            Register<ILog>(Log.Meta.Factory);
-            Register<IUser>(Membership.User.Meta.Factory);
-        }
-
         /// <summary>当前管理提供者</summary>
         public static IManageProvider Provider { get; set; }
 
@@ -274,13 +266,41 @@ namespace XCode.Membership
         #endregion
 
         #region 实体类扩展
-        private static readonly IDictionary<Type, IEntityFactory> _factories = new NullableDictionary<Type, IEntityFactory>();
-        private static void Register<TIEntity>(IEntityFactory factory) => _factories[typeof(TIEntity)] = factory;
+        private static IDictionary<Type, IEntityFactory> _factories;
+        private static void InitFactories()
+        {
+            if (_factories == null)
+            {
+                var fact = new NullableDictionary<Type, IEntityFactory>
+                {
+                    [typeof(IRole)] = Role.Meta.Factory,
+                    [typeof(IMenu)] = Membership.Menu.Meta.Factory,
+                    [typeof(ILog)] = Log.Meta.Factory,
+                    [typeof(IUser)] = Membership.User.Meta.Factory
+                };
+
+                // 不想加锁，用原子操作
+                //_factories = fact;
+                Interlocked.CompareExchange(ref _factories, fact, null);
+            }
+        }
+
+        private static void Register<TIEntity>(IEntityFactory factory)
+        {
+            InitFactories();
+            
+            _factories[typeof(TIEntity)] = factory;
+        }
 
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
         /// <returns></returns>
-        internal static IEntityFactory GetFactory<TIEntity>() => _factories[typeof(TIEntity)];
+        internal static IEntityFactory GetFactory<TIEntity>()
+        {
+            InitFactories();
+
+            return _factories[typeof(TIEntity)];
+        }
 
         internal static T Get<T>() => (T)GetFactory<T>()?.Default;
         #endregion

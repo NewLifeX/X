@@ -21,7 +21,7 @@ namespace XCode.Membership
 
 #if !DEBUG
             // 关闭SQL日志
-            Meta.Session.Dal.Db.ShowSQL = false;
+            NewLife.Threading.ThreadPoolX.QueueUserWorkItem(() => { Meta.Session.Dal.Db.ShowSQL = false; });
 #endif
         }
 

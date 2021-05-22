@@ -541,7 +541,7 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
-        [Map(__.RoleID, typeof(RoleMapProvider))]
+        [Map(__.RoleID, typeof(Role), "ID")]
         public virtual String RoleName => Role + "";
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>
@@ -587,16 +587,6 @@ namespace XCode.Membership
 
         Boolean IIdentity.IsAuthenticated => true;
         #endregion
-    }
-
-    class RoleMapProvider : MapProvider
-    {
-        public RoleMapProvider()
-        {
-            var role = ManageProvider.Get<IRole>();
-            EntityType = role.GetType();
-            Key = EntityType.AsFactory().Unique?.Name;
-        }
     }
 
     /// <summary>用户</summary>
