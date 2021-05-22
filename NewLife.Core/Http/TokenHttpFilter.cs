@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Remoting;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
 
@@ -19,6 +20,13 @@ namespace NewLife.Http
 
         /// <summary>密钥</summary>
         public String Password { get; set; }
+
+        /// <summary>安全密钥。keyName$keyValue</summary>
+        /// <remarks>
+        /// 公钥，用于RSA加密用户密码，在通信链路上保护用户密码安全，可以写死在代码里面。
+        /// 密钥前面可以增加keyName，形成keyName$keyValue，用于向服务端指示所使用的密钥标识，方便未来更换密钥。
+        /// </remarks>
+        public String SecurityKey { get; set; }
 
         /// <summary>申请令牌动作名，默认 OAuth/Token</summary>
         public String Action { get; set; } = "OAuth/Token";
@@ -50,11 +58,12 @@ namespace NewLife.Http
             // 申请令牌。没有令牌，或者令牌已过期
             if (Token == null || Expire < DateTime.Now)
             {
+                var pass = EncodePassword(UserName, Password);
                 Token = client.Post<TokenModel>(Action, new
                 {
                     grant_type = "password",
                     username = UserName,
-                    password = Password
+                    password = pass
                 });
 
                 // 过期时间和刷新令牌的时间
@@ -91,6 +100,33 @@ namespace NewLife.Http
                 if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";
                 request.Headers.Authorization = new AuthenticationHeaderValue(type, Token.AccessToken);
             }
+        }
+
+        /// <summary>编码密码，在传输中保护安全，一般使用RSA加密</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        protected virtual String EncodePassword(String username, String password)
+        {
+            if (password.IsNullOrEmpty()) return password;
+
+            var key = SecurityKey;
+            if (!key.IsNullOrEmpty())
+            {
+                var name = "";
+                var p = key.IndexOf('$');
+                if (p >= 0)
+                {
+                    name = key.Substring(0, p);
+                    key = key.Substring(p + 1);
+                }
+
+                // RSA公钥加密
+                var pass = RSAHelper.Encrypt(password.GetBytes(), key).ToBase64();
+                password = $"$rsa${name}${pass}";
+            }
+
+            return password;
         }
 
         /// <summary>获取响应后</summary>
