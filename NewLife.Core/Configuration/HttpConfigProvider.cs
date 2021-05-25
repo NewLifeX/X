@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -28,8 +29,8 @@ namespace NewLife.Configuration
         /// <summary>命名空间。Apollo专用，多个命名空间用逗号或分号隔开</summary>
         public String NameSpace { get; set; }
 
-        /// <summary>本地缓存配置数据，即使网络断开，仍然能够加载使用本地数据</summary>
-        public Boolean LocalCache { get; set; }
+        /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
+        public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
 
         /// <summary>更新周期。默认60秒，0秒表示不做自动更新</summary>
         public Int32 Period { get; set; } = 60;
@@ -168,10 +169,14 @@ namespace NewLife.Configuration
         public override void Init(String value)
         {
             // 本地缓存
-            var file = $"Config/{AppId}.json".GetFullPath();
-            if (LocalCache && File.Exists(file))
+            var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
+            if (CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
             {
                 var json = File.ReadAllText(file);
+
+                // 加密存储
+                if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Decrypt(json.ToBase64(), AppId.GetBytes()).ToStr();
+
                 Root = Build(JsonParser.Decode(json));
             }
         }
@@ -234,10 +239,15 @@ namespace NewLife.Configuration
             _cache = configs;
 
             // 本地缓存
-            if (LocalCache)
+            if (CacheLevel > ConfigCacheLevel.NoCache)
             {
-                var file = $"Config/{AppId}.json".GetFullPath();
-                File.WriteAllText(file.EnsureDirectory(true), configs.ToJson());
+                var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
+                var json = configs.ToJson();
+
+                // 加密存储
+                if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Encrypt(json.GetBytes(), AppId.GetBytes()).ToBase64();
+
+                File.WriteAllText(file.EnsureDirectory(true), json);
             }
         }
 
