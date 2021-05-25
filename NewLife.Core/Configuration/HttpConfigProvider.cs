@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -170,7 +171,7 @@ namespace NewLife.Configuration
         {
             // 本地缓存
             var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
-            if (CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
+            if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
             {
                 var json = File.ReadAllText(file);
 
@@ -206,9 +207,18 @@ namespace NewLife.Configuration
             return root;
         }
 
+        private Int32 _inited;
         /// <summary>加载配置</summary>
         public override Boolean LoadAll()
         {
+            try
+            {
+                // 首次访问，加载配置
+                if (_inited == 0 && Interlocked.CompareExchange(ref _inited, 1, 0) == 0)
+                    Init(null);
+            }
+            catch { }
+
             try
             {
                 var dic = GetAll();
