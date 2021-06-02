@@ -172,6 +172,9 @@ namespace NewLife.Caching
                     MaxMessageSize = str.ToInt();
             }
 
+            // 更换Redis连接字符串时，清空原连接池
+            if (!_configOld.IsNullOrEmpty()) _Pool = null;
+
             _configOld = config;
         }
 
@@ -323,7 +326,8 @@ namespace NewLife.Caching
             do
             {
                 // 每次重试都需要重新从池里借出连接
-                var client = Pool.Get();
+                var pool = Pool;
+                var client = pool.Get();
                 try
                 {
                     client.Reset();
@@ -359,7 +363,7 @@ namespace NewLife.Caching
                 }
                 finally
                 {
-                    Pool.Put(client);
+                    pool.Put(client);
 
                     Counter?.StopCount(sw);
                 }
