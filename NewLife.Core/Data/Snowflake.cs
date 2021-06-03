@@ -36,6 +36,9 @@ namespace NewLife.Data
         /// <summary>序列号，取12位。进程内静态，避免多个实例生成重复Id</summary>
         public Int32 Sequence => _Sequence;
 
+        /// <summary>workerId分配集群。配置后可确保所有实例化的雪花对象得到唯一workerId，建议使用Redis</summary>
+        public static ICache Cluster { get; set; }
+
         private Int64 _msStart;
         private Stopwatch _watch;
         private Int64 _lastTime;
@@ -44,6 +47,8 @@ namespace NewLife.Data
         #region 核心方法
         private void Init()
         {
+            if (WorkerId <= 0 && Cluster != null) JoinCluster(Cluster);
+
             // 初始化WorkerId，取5位实例加上5位进程，确保同一台机器的WorkerId不同
             if (WorkerId <= 0)
             {
