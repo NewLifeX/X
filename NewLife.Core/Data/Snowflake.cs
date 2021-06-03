@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Common;
+using NewLife.Log;
 
 namespace NewLife.Data
 {
@@ -9,12 +10,15 @@ namespace NewLife.Data
     [Obsolete("=>SnowFlake")]
     public class FlowId : Snowflake { }
 
-    /// <summary>雪花算法。分布式Id</summary>
+    /// <summary>雪花算法。分布式Id，业务内必须确保单例</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/snow_flake
     /// 
     /// 使用一个 64 bit 的 long 型的数字作为全局唯一 id。在分布式系统中的应用十分广泛，且ID 引入了时间戳，基本上保持自增。
     /// 1bit保留 + 41bit时间戳 + 10bit机器 + 12bit序列号
+    /// 
+    /// 内置自动选择机器workerId，无法绝对保证唯一，从而导致整体生成的雪花Id有一定几率重复。
+    /// 如果想要绝对唯一，建议在外部设置唯一的workerId，再结合单例使用，此时确保最终生成的Id绝对不重复！
     /// </remarks>
     public class Snowflake
     {
@@ -26,12 +30,13 @@ namespace NewLife.Data
         public Int32 WorkerId { get; set; }
 
         private Int32 _Sequence;
-        /// <summary>序列号，取12位</summary>
-        public Int32 Sequence { get => _Sequence; set => _Sequence = value; }
+        /// <summary>序列号，取12位。进程内静态，避免多个实例生成重复Id</summary>
+        public Int32 Sequence => _Sequence;
 
         private Int64 _msStart;
         private Stopwatch _watch;
         private Int64 _lastTime;
+        private volatile Int32 _index;
         #endregion
 
         #region 核心方法
@@ -62,23 +67,39 @@ namespace NewLife.Data
         {
             Init();
 
-            // 此时嘀嗒数减去起点嘀嗒数，加上七点毫秒数
-            //var ms = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+            // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
             var ms = _watch.ElapsedMilliseconds + _msStart;
             var wid = WorkerId & 0x3FF;
             var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
 
             //!!! 避免时间倒退
-            if (ms < _lastTime) ms = _lastTime;
+            var t = _lastTime - ms;
+            if (t > 0)
+            {
+                XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
+                if (t > 10_000) throw new InvalidOperationException($"时间倒退过大({t}ms)，为确保唯一性，Snowflake拒绝生成新Id");
+
+                ms = _lastTime;
+            }
 
             // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
-            if (_lastTime == ms && seq == 0)
+            if (ms == _lastTime)
             {
-                //ms++;
-                // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
-                //Thread.SpinWait(1000);
-                while (_lastTime == ms) ms = _watch.ElapsedMilliseconds + _msStart;
+                if (Interlocked.Increment(ref _index) >= 0x1000)
+                {
+                    // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
+                    while (ms <= _lastTime)
+                    {
+                        Thread.SpinWait(1000);
+                        ms = _watch.ElapsedMilliseconds + _msStart;
+                    }
+                    _index = 0;
+                }
+            }
+            else
+            {
+                _index = 0;
             }
             _lastTime = ms;
 
