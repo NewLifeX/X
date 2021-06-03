@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using NewLife.Caching;
 using NewLife.Common;
 using NewLife.Log;
 
@@ -17,8 +18,10 @@ namespace NewLife.Data
     /// 使用一个 64 bit 的 long 型的数字作为全局唯一 id。在分布式系统中的应用十分广泛，且ID 引入了时间戳，基本上保持自增。
     /// 1bit保留 + 41bit时间戳 + 10bit机器 + 12bit序列号
     /// 
-    /// 内置自动选择机器workerId，无法绝对保证唯一，从而导致整体生成的雪花Id有一定几率重复。
+    /// 内置自动选择机器workerId，IP+进程+线程，无法绝对保证唯一，从而导致整体生成的雪花Id有一定几率重复。
     /// 如果想要绝对唯一，建议在外部设置唯一的workerId，再结合单例使用，此时确保最终生成的Id绝对不重复！
+    /// 高要求场合，推荐使用Redis自增序数作为workerId，在大型分布式系统中亦能保证绝对唯一。
+    /// 已提供JoinCluster方法，用于把当前对象加入集群，确保workerId唯一。
     /// </remarks>
     public class Snowflake
     {
@@ -26,7 +29,7 @@ namespace NewLife.Data
         /// <summary>开始时间戳。首次使用前设置，否则无效，默认1970-1-1</summary>
         public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1);
 
-        /// <summary>机器Id，取10位</summary>
+        /// <summary>机器Id，取10位。内置默认取IP+进程+线程，不能保证绝对唯一，要求高的场合建议外部保证workerId唯一</summary>
         public Int32 WorkerId { get; set; }
 
         private Int32 _Sequence;
@@ -36,7 +39,6 @@ namespace NewLife.Data
         private Int64 _msStart;
         private Stopwatch _watch;
         private Int64 _lastTime;
-        private volatile Int32 _index;
         #endregion
 
         #region 核心方法
@@ -84,22 +86,11 @@ namespace NewLife.Data
 
             // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
             // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
-            if (ms == _lastTime)
+            if (ms == _lastTime && seq == 0)
             {
-                if (Interlocked.Increment(ref _index) >= 0x1000)
-                {
-                    // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
-                    while (ms <= _lastTime)
-                    {
-                        Thread.SpinWait(1000);
-                        ms = _watch.ElapsedMilliseconds + _msStart;
-                    }
-                    _index = 0;
-                }
-            }
-            else
-            {
-                _index = 0;
+                // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
+                //Thread.SpinWait(1000);
+                while (ms <= _lastTime) ms = _watch.ElapsedMilliseconds + _msStart;
             }
             _lastTime = ms;
 
@@ -147,6 +138,17 @@ namespace NewLife.Data
             sequence = (Int32)(id & 0x0FFF);
 
             return true;
+        }
+        #endregion
+
+        #region 集群扩展
+        /// <summary>加入集群。由集群统一分配WorkerId，确保唯一，从而保证生成的雪花Id绝对唯一</summary>
+        /// <param name="cache"></param>
+        /// <param name="key"></param>
+        public virtual void JoinCluster(ICache cache, String key = "SnowflakeWorkerId")
+        {
+            var wid = (Int32)cache.Increment(key, 1);
+            WorkerId = wid & 0x3FF;
         }
         #endregion
     }

@@ -97,7 +97,7 @@ namespace XUnitTest.Data
         {
             var sw = Stopwatch.StartNew();
 
-            var cpu = Environment.ProcessorCount;
+            var cpu = Environment.ProcessorCount * 4;
             var count = 10_000_000L;
 
             var ts = new List<Task>();
@@ -121,7 +121,7 @@ namespace XUnitTest.Data
             count *= ts.Count;
             XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
 
-            Assert.True(sw.ElapsedMilliseconds < 10_000);
+            Assert.True(sw.ElapsedMilliseconds < 20_000);
         }
     }
 }
