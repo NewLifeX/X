@@ -19,7 +19,7 @@ namespace XCode.TDengine
         /// <summary>连接字符串</summary>
         public override String ConnectionString { get; set; }
 
-        private readonly String _version = String.Empty;
+        private String _version = String.Empty;
         /// <summary>服务器版本</summary>
         public override String ServerVersion
         {
@@ -27,8 +27,8 @@ namespace XCode.TDengine
             {
                 if (_handler == IntPtr.Zero) throw new XCodeException("连接未打开");
 
-                //if (_version.IsNullOrEmpty())
-                //    _version = Marshal.PtrToStringAnsi(TD.GetServerInfo(_handler));
+                if (_version.IsNullOrEmpty())
+                    _version = Marshal.PtrToStringAnsi(TD.GetServerInfo(_handler));
 
                 return _version;
             }
@@ -100,14 +100,20 @@ namespace XCode.TDengine
             if (connStr.IsNullOrEmpty()) throw new InvalidOperationException("未设置连接字符串");
 
             var builder = new ConnectionStringBuilder(connStr);
-            _DataSource = builder["DataSource"];
+            _DataSource = builder["DataSource"] ?? builder["Server"];
+            var port = builder["Port"].ToInt();
+            //if (port <= 0) port = 6030;
 
-            _handler = TD.Connect(_DataSource, builder["Username"], builder["Password"], "", (Int16)builder["Port"].ToInt());
-            if (_handler == IntPtr.Zero) throw new XCodeException("打开数据库连接失败");
+            var user = builder["username"] ?? builder["user"] ?? builder["uid"];
+            var pass = builder["password"] ?? builder["pass"] ?? builder["pwd"];
+            var db = builder["database"] ?? builder["db"];
+
+            _handler = TD.Connect(_DataSource, user, pass, db, (Int16)port);
+            if (_handler == IntPtr.Zero) throw new XCodeException("打开数据库连接失败！");
 
             SetState(ConnectionState.Open);
 
-            ChangeDatabase(builder["Database"]);
+            ChangeDatabase(db);
         }
 
         /// <summary>关闭连接</summary>

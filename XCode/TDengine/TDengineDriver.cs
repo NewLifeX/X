@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2019 TAOS Data, Inc. <jhtao@taosdata.com>
  *
  * This program is free software: you can use, redistribute, and/or modify
@@ -163,5 +163,14 @@ namespace TDengineDriver
 
         [DllImport("taos", EntryPoint = "taos_close", CallingConvention = CallingConvention.Cdecl)]
         static extern public int Close(IntPtr taos);
+
+        [DllImport("taos", EntryPoint = "taos_get_client_info", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GetClientInfo();
+
+        [DllImport("taos", EntryPoint = "taos_get_server_info", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr GetServerInfo(IntPtr taos);
+
+        [DllImport("taos", EntryPoint = "taos_select_db", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SelectDatabase(IntPtr taos, string db);
     }
 }
