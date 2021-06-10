@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Runtime.InteropServices;
 using NewLife;
+using NewLife.Log;
+using NewLife.Net;
 using TDengineDriver;
 using XCode.DataAccessLayer;
 using TD = TDengineDriver.TDengine;
@@ -67,6 +70,13 @@ namespace XCode.TDengine
             TD.Options((Int32)TDengineInitOption.TDDB_OPTION_SHELL_ACTIVITY_TIMER, "60");
             TD.Init();
 
+            var h = TD.GetClientInfo();
+            if (h != IntPtr.Zero)
+            {
+                var str = Marshal.PtrToStringAnsi(h);
+                XTrace.WriteLine("TDengine v{0}", str);
+            }
+
             AppDomain.CurrentDomain.DomainUnload += (s, e) => TD.Cleanup();
         }
 
@@ -108,7 +118,13 @@ namespace XCode.TDengine
             var pass = builder["password"] ?? builder["pass"] ?? builder["pwd"];
             var db = builder["database"] ?? builder["db"];
 
-            _handler = TD.Connect(_DataSource, user, pass, db, (Int16)port);
+            var uri = new NetUri(_DataSource);
+            if (port > 0) uri.Port = port;
+#if DEBUG
+            XTrace.WriteLine("连接TDengine：server={0};user={1};pass={2};db={3}", uri, user, pass, db);
+#endif
+
+            _handler = TD.Connect(uri.Address + "", user, pass, db, (Int16)uri.Port);
             if (_handler == IntPtr.Zero) throw new XCodeException("打开数据库连接失败！");
 
             SetState(ConnectionState.Open);
