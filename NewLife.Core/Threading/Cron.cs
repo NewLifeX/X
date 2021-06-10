@@ -22,6 +22,9 @@ namespace NewLife.Threading
     /// * 1-10,13,25/3 * * * 每小时的1分4分7分10分13分25分，每一秒各一次
     /// 0 0 0 1 * * 每个月1日的0点整
     /// 0 0 2 * * 1-5 每个工作日的凌晨2点
+    /// 
+    /// 星期部分采用Linux和.NET风格，0表示周日，1表示周一。
+    /// 可设置Sunday为1，1表示周日，2表示周一。
     /// </example>
     public class Cron
     {
@@ -43,6 +46,9 @@ namespace NewLife.Threading
 
         /// <summary>星期集合</summary>
         public Int32[] DaysOfWeek;
+
+        /// <summary>星期天偏移量。周日对应的数字，默认0。1表示周日时，2表示周一</summary>
+        public Int32 Sunday { get; set; }
 
         private String _expression;
         #endregion
@@ -71,7 +77,7 @@ namespace NewLife.Threading
                    Hours.Contains(time.Hour) &&
                    DaysOfMonth.Contains(time.Day) &&
                    Months.Contains(time.Month) &&
-                   DaysOfWeek.Contains((Int32)time.DayOfWeek);
+                   DaysOfWeek.Contains((Int32)time.DayOfWeek + Sunday);
         }
 
         /// <summary>分析表达式</summary>
@@ -132,18 +138,14 @@ namespace NewLife.Threading
             // 连续范围
             var s = start;
             if (value == "*" || value == "?")
-            {
                 s = 0;
-            }
             else if ((p = value.IndexOf('-')) > 0)
             {
                 s = value.Substring(0, p).ToInt();
                 max = value.Substring(p + 1).ToInt() + 1;
             }
             else if (Int32.TryParse(value, out n))
-            {
                 s = n;
-            }
             else
                 return false;
 
@@ -162,7 +164,7 @@ namespace NewLife.Threading
         public DateTime GetNext(DateTime time)
         {
             // 设置末尾，避免死循环越界
-            var end = time.AddYears(1);
+            var end = time.AddYears(10);
             for (var dt = time.Trim().AddSeconds(1); dt < end; dt = dt.AddSeconds(1))
             {
                 if (IsTime(dt)) return dt;
