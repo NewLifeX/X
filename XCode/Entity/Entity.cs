@@ -1303,7 +1303,25 @@ namespace XCode
             // 分组查分组数的时候，必须带上全部selects字段
             if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
-            return session.QueryCount(builder);
+            // 自动分表
+            var shards = Meta.ShardPolicy?.Gets(where);
+            if (shards == null)
+            {
+                return session.QueryCount(builder);
+            }
+            else
+            {
+                var rs = 0;
+                foreach (var shard in shards)
+                {
+                    using var split = Meta.CreateSplit(shard.ConnName, shard.TableName);
+
+                    session = Meta.Session;
+                    builder.Table = session.FormatedTableName;
+                    rs += session.QueryCount(builder);
+                }
+                return rs;
+            }
         }
 
         ///// <summary>执行SQL返回总记录数</summary>
