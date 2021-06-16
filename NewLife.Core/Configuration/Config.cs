@@ -43,6 +43,7 @@ namespace NewLife.Configuration
                     {
                         lock (typeof(Config<TConfig>))
                         {
+                            prv = Provider;
                             if (prv == null)
                             {
                                 // 创建提供者
