@@ -197,6 +197,9 @@ namespace XCode.Shards
             var models = new List<ShardModel>();
 
             // 构建了一个时间区间 start <= @fi < end
+            // 如果两个都是日期，使用 start <= @fi <= end
+            if (start == start.Date && end == end.Date) end = end.AddSeconds(1);
+
             var hash = new HashSet<String>();
             for (var dt = start; dt < end; dt = dt.Add(Step))
             {
