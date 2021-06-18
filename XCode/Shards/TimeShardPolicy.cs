@@ -25,9 +25,6 @@ namespace XCode.Shards
         /// <summary>时间区间步进。遇到时间区间需要扫描多张表时的时间步进，默认1天</summary>
         public TimeSpan Step { get; set; } = TimeSpan.FromDays(1);
 
-        /// <summary>允许搜索</summary>
-        public Boolean AllowSearch { get; set; }
-
         private readonly String _fieldName;
         #endregion
 
@@ -141,14 +138,13 @@ namespace XCode.Shards
         /// <returns></returns>
         public virtual ShardModel[] Shards(Expression expression)
         {
-            if (!AllowSearch) return null;
-
             if (expression is not WhereExpression where) return null;
 
-            // 时间范围查询
+            // 时间范围查询，用户可能自己写分表查询
             var fi = GetField();
             var exps = where.Where(e => e is FieldExpression fe && fe.Field == fi).Cast<FieldExpression>().ToList();
-            if (exps.Count == 0) throw new XCodeException($"分表策略要求查询条件包括[{fi}]字段！");
+            //if (exps.Count == 0) throw new XCodeException($"分表策略要求查询条件包括[{fi}]字段！");
+            if (exps.Count == 0) return null;
 
             if (fi.Type == typeof(DateTime))
             {

@@ -225,6 +225,8 @@ namespace XCode
             {
                 // 使用自动分表分库策略
                 var model = ShardPolicy?.Shard(value);
+                if (model == null) return null;
+
                 return new SplitPackge(model.ConnName, model.TableName);
             }
 
@@ -237,10 +239,13 @@ namespace XCode
             {
                 // 使用自动分表分库策略
                 var models = ShardPolicy?.Shards(start, end);
+                if (models == null) yield break;
+
                 foreach (var model in models)
                 {
                     using var shard = new SplitPackge(model.ConnName, model.TableName);
-                    yield return callback();
+                    var rs = callback();
+                    if (!Equals(rs, default)) yield return rs;
                 }
             }
 
