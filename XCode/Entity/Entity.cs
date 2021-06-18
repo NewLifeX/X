@@ -216,7 +216,7 @@ namespace XCode
             }
 
             // 自动分库分表
-            using var split = Meta.AutoSplit(this as TEntity);
+            using var split = Meta.CreateShard(this as TEntity);
 
             return func();
         }
@@ -232,7 +232,7 @@ namespace XCode
         public override Int32 Save()
         {
             // 自动分库分表
-            using var split = Meta.AutoSplit(this as TEntity);
+            using var split = Meta.CreateShard(this as TEntity);
 
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
@@ -280,8 +280,8 @@ namespace XCode
         /// <returns>是否成功加入异步队列，实体对象已存在于队列中则返回false</returns>
         public override Boolean SaveAsync(Int32 msDelay = 0)
         {
-            // 自动分库分表
-            using var split = Meta.AutoSplit(this as TEntity);
+            // 自动分库分表，影响后面的Meta.Session
+            using var split = Meta.CreateShard(this as TEntity);
 
             var isnew = false;
 
@@ -363,7 +363,7 @@ namespace XCode
             }
 
             // 自动分库分表
-            using var split = Meta.AutoSplit(this as TEntity);
+            using var split = Meta.CreateShard(this as TEntity);
 
             if (enableValid)
             {
@@ -653,7 +653,7 @@ namespace XCode
             // 自动分库分表
             var keyEntity = new TEntity();
             keyEntity[field.Name] = key;
-            using var split = Meta.AutoSplit(keyEntity);
+            using var split = Meta.CreateShard(keyEntity);
 
             // 此外，一律返回 查找值，即使可能是空。而绝不能在找不到数据的情况下给它返回空，因为可能是找不到数据而已，而返回新实例会导致前端以为这里是新增数据
             var entity = Find(field.Name, key);
@@ -863,7 +863,7 @@ namespace XCode
             #endregion
 
             // 自动分表
-            var shards = Meta.ShardPolicy?.Gets(where);
+            var shards = Meta.ShardPolicy?.Shards(where);
             if (shards == null)
             {
                 var builder = CreateBuilder(where, order, selects);
@@ -1304,7 +1304,7 @@ namespace XCode
             if (!builder.GroupBy.IsNullOrEmpty()) builder.Column = selects;
 
             // 自动分表
-            var shards = Meta.ShardPolicy?.Gets(where);
+            var shards = Meta.ShardPolicy?.Shards(where);
             if (shards == null)
             {
                 return session.QueryCount(builder);

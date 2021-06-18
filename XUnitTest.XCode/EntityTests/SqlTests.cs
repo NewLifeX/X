@@ -171,7 +171,7 @@ namespace XUnitTest.XCode.EntityTests
                 RegisterTime = new DateTime(2020, 8, 22),
                 UpdateTime = new DateTime(2020, 9, 1),
             };
-            User2.Meta.AutoSplit(user);
+            User2.Meta.CreateShard(user);
 
             var factory = User2.Meta.Factory;
             var session = User2.Meta.Session;

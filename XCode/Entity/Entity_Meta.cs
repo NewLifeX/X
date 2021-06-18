@@ -172,9 +172,11 @@ namespace XCode
 
             #region 分表分库
             /// <summary>自动分库回调，用于添删改操作</summary>
+            [Obsolete("=>AutoShard")]
             public static Func<TEntity, String> ShardConnName { get; set; }
 
             /// <summary>自动分表回调，用于添删改操作</summary>
+            [Obsolete("=>AutoShard")]
             public static Func<TEntity, String> ShardTableName { get; set; }
 
             /// <summary>分表分库策略</summary>
@@ -201,17 +203,45 @@ namespace XCode
             /// <summary>针对实体对象自动分库分表</summary>
             /// <param name="entity"></param>
             /// <returns></returns>
-            public static IDisposable AutoSplit(TEntity entity)
+            public static IDisposable CreateShard(TEntity entity)
             {
                 // 使用自动分表分库策略
-                var model = ShardPolicy?.Get(entity);
+                var model = ShardPolicy?.Shard(entity);
                 if (model != null) return new SplitPackge(model.ConnName, model.TableName);
 
+#pragma warning disable CS0618 // 类型或成员已过时
                 var connName = ShardConnName?.Invoke(entity);
                 var tableName = ShardTableName?.Invoke(entity);
                 if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
+#pragma warning restore CS0618 // 类型或成员已过时
 
                 return new SplitPackge(connName, tableName);
+            }
+
+            /// <summary>为实体对象、时间、雪花Id等计算分表分库</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static IDisposable CreateShard(Object value)
+            {
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Shard(value);
+                return new SplitPackge(model.ConnName, model.TableName);
+            }
+
+            /// <summary>针对时间区间自动分库分表，常用于多表顺序查询，支持倒序</summary>
+            /// <param name="start"></param>
+            /// <param name="end"></param>
+            /// <param name="callback"></param>
+            /// <returns></returns>
+            public static IEnumerable<T> AutoShard<T>(DateTime start, DateTime end, Func<T> callback)
+            {
+                // 使用自动分表分库策略
+                var models = ShardPolicy?.Shards(start, end);
+                foreach (var model in models)
+                {
+                    using var shard = new SplitPackge(model.ConnName, model.TableName);
+                    yield return callback();
+                }
             }
 
             private class SplitPackge : IDisposable
