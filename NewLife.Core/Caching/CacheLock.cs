@@ -8,6 +8,11 @@ namespace NewLife.Caching
     {
         private ICache Client { get; set; }
 
+        /// <summary>
+        /// 是否持有锁
+        /// </summary>
+        private Boolean _hasLock = false;
+
         /// <summary>键</summary>
         public String Key { get; set; }
 
@@ -40,7 +45,7 @@ namespace NewLife.Caching
 
                 // 申请加锁。没有冲突时可以直接返回
                 var rs = ch.Add(Key, expire, sTimeout);
-                if (rs) return true;
+                if (rs) return _hasLock = true;
 
                 // 死锁超期检测
                 var dt = ch.Get<DateTime>(Key);
@@ -56,7 +61,7 @@ namespace NewLife.Caching
                     if (old <= now)
                     {
                         ch.SetExpire(Key, TimeSpan.FromMilliseconds(msTimeout));
-                        return true;
+                        return _hasLock = true;
                     }
                 }
 
@@ -81,7 +86,10 @@ namespace NewLife.Caching
             }
             else
             {
-                Client.Remove(Key);
+                if (_hasLock)
+                {
+                    Client.Remove(Key);
+                }
             }
         }
     }
