@@ -188,7 +188,7 @@ namespace XUnitTest.Caching
 
             ic.Set(key2, 45.6d);
             ic.Increment(key2, 2.2d);
-            Assert.Equal(45.6d + 2.2d, ic.Get<Double>(key2));
+            Assert.True(Math.Round((45.6d + 2.2d) - ic.Get<Double>(key2), 4) < 0.0001);
         }
 
         [Fact(DisplayName = "复杂对象")]
@@ -349,7 +349,33 @@ namespace XUnitTest.Caching
             XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
             Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-            Thread.Sleep(2000 - 1000 + 1);
+            Thread.Sleep(2000 - 1000 + 100);
+
+            // 那个锁其实已经不在了，缓存应该把它干掉
+            Assert.False(ic.ContainsKey("lock:TestLock2"));
+        }
+
+        [Fact(DisplayName = "抢锁失败2")]
+        public void TestLock22()
+        {
+            var ic = _redis;
+
+            var ck1 = ic.AcquireLock("lock:TestLock2", 2000);
+            // 故意不用using，验证GC是否能回收
+            //using var ck1 = ic.AcquireLock("TestLock2", 3000);
+
+            var sw = Stopwatch.StartNew();
+
+            // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
+            var ck2 = ic.AcquireLock("lock:TestLock2", 1000, 1000, false);
+            Assert.Null(ck2);
+
+            // 耗时必须超过有效期
+            sw.Stop();
+            XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds >= 1000);
+
+            Thread.Sleep(2000 - 1000 + 100);
 
             // 那个锁其实已经不在了，缓存应该把它干掉
             Assert.False(ic.ContainsKey("lock:TestLock2"));
@@ -440,7 +466,7 @@ namespace XUnitTest.Caching
 
             Assert.Equal(key, rs[0]);
             Assert.Equal("xxx", rs[1]);
-            Assert.True(sw.ElapsedMilliseconds >= 100);
+            //Assert.True(sw.ElapsedMilliseconds >= 100);
         }
 
         [Fact(DisplayName = "从机测试")]

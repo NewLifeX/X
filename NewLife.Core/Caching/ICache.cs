@@ -179,9 +179,17 @@ namespace NewLife.Caching
 
         /// <summary>申请分布式锁</summary>
         /// <param name="key">要锁定的key</param>
-        /// <param name="msTimeout"></param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
         /// <returns></returns>
         IDisposable AcquireLock(String key, Int32 msTimeout);
+
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key">要锁定的key</param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
+        /// <param name="msExpire">锁超时时间，单位毫秒</param>
+        /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
+        /// <returns></returns>
+        IDisposable AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure);
         #endregion
 
         #region 性能测试
