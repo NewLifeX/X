@@ -31,13 +31,28 @@ namespace XUnitTest.Net
             Assert.NotNull(addr);
 
             var uri = new NetUri("https://www.newlifex.com");
-            var client = uri.CreateRemote();
+            var client = uri.CreateRemote() as TcpSession;
             client.Local.Address = addr;
             client.Open();
+
+            Assert.True(client.RemoteAddress.IsIPv4());
         }
 
         [Fact]
         public void BindTest3()
+        {
+            var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
+            Assert.NotNull(addr);
+
+            var uri = new NetUri("https://www.newlifex.com");
+            var client = uri.CreateRemote() as TcpSession;
+            client.Open();
+
+            Assert.False(client.RemoteAddress.IsIPv4());
+        }
+
+        [Fact]
+        public void BindTest4()
         {
             Assert.True(Socket.OSSupportsIPv4);
             Assert.True(Socket.OSSupportsIPv6);

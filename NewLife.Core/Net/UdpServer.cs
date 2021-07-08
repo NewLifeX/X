@@ -57,10 +57,11 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
+                var uri = Remote;
                 // 根据目标地址适配本地IPv4/IPv6
-                if (Remote != null && !Remote.Address.IsAny())
+                if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
                 {
-                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
                 }
 
                 Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
