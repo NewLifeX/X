@@ -194,9 +194,9 @@ namespace XUnitTest.XCode.EntityTests
         public void ShardTestSQLite()
         {
             // 配置自动分表策略，一般在实体类静态构造函数中配置
-            var shard = new TimeShardPolicy
+            var shard = new TimeShardPolicy("RegisterTime", User2.Meta.Factory)
             {
-                Field = User2._.RegisterTime,
+                //Field = User2._.RegisterTime,
                 TablePolicy = "{0}_{1:yyyyMM}",
             };
             User2.Meta.ShardPolicy = shard;
@@ -232,9 +232,9 @@ namespace XUnitTest.XCode.EntityTests
         public void ShardTestSQLite2()
         {
             // 配置自动分表策略，一般在实体类静态构造函数中配置
-            var shard = new TimeShardPolicy
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
             {
-                Field = Log2._.ID,
+                //Field = Log2._.ID,
                 ConnPolicy = "{0}_{1:yyyy}",
                 TablePolicy = "{0}_{1:yyyyMMdd}",
             };
