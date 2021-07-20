@@ -45,7 +45,7 @@ namespace NewLife.Net.Handlers
             var now = DateTime.Now;
 
             // 控制超时时间，默认15秒
-            if (msTimeout <= 10 || msTimeout >= 600_000) msTimeout = 15_000;
+            if (msTimeout <= 10) msTimeout = 15_000;
 
             var qi = new Item
             {
