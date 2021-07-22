@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 
-namespace NewLife.Core.Collections
+namespace NewLife.Collections
 {
     /// <summary>布隆过滤器</summary>
     /// <remarks>

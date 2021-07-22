@@ -9,6 +9,9 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>Json序列化</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public class Json : FormatterBase, IJson
     {
         #region 属性
@@ -17,8 +20,6 @@ namespace NewLife.Serialization
 
         /// <summary>处理器列表</summary>
         public IList<IJsonHandler> Handlers { get; private set; }
-
-        //private StringBuilder _builder;
         #endregion
 
         #region 构造
@@ -26,8 +27,6 @@ namespace NewLife.Serialization
         public Json()
         {
             UseProperty = true;
-
-            //_builder = new StringBuilder();
 
             // 遍历所有处理器实现
             var list = new List<IJsonHandler>
@@ -86,7 +85,7 @@ namespace NewLife.Serialization
                 if (item is T) return item as T;
             }
 
-            return default(T);
+            return default;
         }
         #endregion
 
@@ -160,7 +159,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [DebuggerHidden]
-        public T Read<T>() => (T)(Object)Read(typeof(T));
+        public T Read<T>() => (T)Read(typeof(T));
 
         /// <summary>尝试读取指定类型对象</summary>
         /// <param name="type"></param>

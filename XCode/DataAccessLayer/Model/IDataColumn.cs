@@ -22,6 +22,9 @@ namespace XCode.DataAccessLayer
         /// </summary>
         String RawType { get; set; }
 
+        /// <summary>元素类型</summary>
+        String ItemType { get; set; }
+
         /// <summary>标识</summary>
         Boolean Identity { get; set; }
 

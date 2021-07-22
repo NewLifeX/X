@@ -1,97 +1,122 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net45;netstandard2.0;net40</TargetFrameworks>
+    <TargetFrameworks>net40;net45;netstandard2.0;net5.0</TargetFrameworks>
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
-    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle</Description>
+    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle、Postgresql</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2019 新生命开发团队</Copyright>
-    <Version>9.14.2019.0822</Version>
-    <FileVersion>9.14.2019.0822</FileVersion>
-    <AssemblyVersion>9.14.*</AssemblyVersion>
+    <Copyright>©2002-2021 NewLife</Copyright>
+    <Version>10.2.2021.0708</Version>
+    <FileVersion>10.2.2021.0708</FileVersion>
+    <AssemblyVersion>10.2.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <LangVersion>latest</LangVersion>
+    <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
-
   <PropertyGroup>
     <PackageId>NewLife.XCode</PackageId>
     <Authors>$(Company)</Authors>
-    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
-    <PackageIconUrl>http://www.NewLifeX.com/logo.png</PackageIconUrl>
+    <ProjectUrl>https://www.yuque.com/smartstone/xcode</ProjectUrl>
+    <PackageIcon>leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>增强一级缓存，部分场景使用文件缓存</PackageReleaseNotes>
+    <PackageReleaseNotes>增强自动分表分库策略</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSource>true</IncludeSource>
-    <LangVersion>latest</LangVersion>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat> 
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="build\**" />
+    <Compile Remove="Membership\Config\**" />
+    <Compile Remove="Membership\Log\**" />
+    <Compile Remove="Sync\**" />
     <Compile Remove="tools\**" />
+    <Compile Remove="Web\**" />
     <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="Membership\Config\**" />
+    <EmbeddedResource Remove="Membership\Log\**" />
+    <EmbeddedResource Remove="Sync\**" />
     <EmbeddedResource Remove="tools\**" />
+    <EmbeddedResource Remove="Web\**" />
     <None Remove="build\**" />
+    <None Remove="Membership\Config\**" />
+    <None Remove="Membership\Log\**" />
+    <None Remove="Sync\**" />
     <None Remove="tools\**" />
+    <None Remove="Web\**" />
   </ItemGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DefineConstants>$(DefineConstants);STD20;NETSTANDARD2_0;__CORE__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
     <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
+    <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net40' Or '$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='net40'">
-    <Reference Include="System.Data" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
+  <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Remove="Membership\MenuProvider.cs" />
+    <Compile Remove="Membership\用户在线.Biz.cs" />
+    <Compile Remove="Membership\用户在线.cs" />
+    <Compile Remove="Membership\访问统计.Biz.cs" />
+    <Compile Remove="Membership\访问统计.cs" />
+    <Compile Remove="Model\XCodeService.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Transform\ETL.cs" />
+    <Compile Remove="Transform\IdentityExtracter.cs" />
+    <Compile Remove="Transform\Sync.cs" />
+    <Compile Remove="Transform\TimeExtracter.cs" />
+    <Compile Remove="Transform\TimeSpanExtracter.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="Build.tt" />
+    <None Remove="Build_netcore.tt" />
     <None Remove="install.ps1" />
     <None Remove="Model.xml" />
     <None Remove="Readme.MD" />
     <None Remove="UpdateInfo.txt" />
   </ItemGroup>
-
   <ItemGroup>
+    <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
+    <Content Include="Build_netcore.tt">
+      <PackagePath>content\Entity\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
     <Content Include="Build.tt">
       <Pack>true</Pack>
       <PackagePath>content\Entity\</PackagePath>
@@ -101,30 +126,25 @@
       <PackagePath>content\Entity\</PackagePath>
     </Content>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="Readme.MD" />
     <EmbeddedResource Include="UpdateInfo.txt" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <None Update="Membership\生成实体类.log">
+    <None Update="Membership\Build.log">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>生成实体类.tt</DependentUpon>
+      <DependentUpon>Build.tt</DependentUpon>
     </None>
-    <None Update="Membership\生成实体类.tt">
+    <None Update="Membership\Build.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>生成实体类.log</LastGenOutput>
+      <LastGenOutput>Build.log</LastGenOutput>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-
 </Project>

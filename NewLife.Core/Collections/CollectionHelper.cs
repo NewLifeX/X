@@ -1,32 +1,50 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection;
-using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace System.Collections.Generic
 {
     /// <summary>集合扩展</summary>
     public static class CollectionHelper
     {
-        /// <summary>集合转为数组</summary>
+        /// <summary>集合转为数组，加锁确保安全</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="collection"></param>
-        /// <param name="index"></param>
+        /// <param name="index">数组偏移量。大于0时，新数组将空出来前面一截，把数据拷贝到后面</param>
         /// <returns></returns>
-        public static T[] ToArray<T>(this ICollection<T> collection, Int32 index = 0)
+        [Obsolete("index参数晦涩难懂")]
+        public static T[] ToArray<T>(this ICollection<T> collection, Int32 index)
         {
             if (collection == null) return null;
 
-            //var count = collection.Count;
-            //if (count == 0) return new T[0];
             lock (collection)
             {
                 var count = collection.Count;
                 if (count == 0) return new T[0];
 
-                var arr = new T[count - index];
+                var arr = new T[count + index];
                 collection.CopyTo(arr, index);
+
+                return arr;
+            }
+        }
+
+        /// <summary>集合转为数组，加锁确保安全</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public static T[] ToArray<T>(this ICollection<T> collection)
+        {
+            if (collection == null) return null;
+
+            lock (collection)
+            {
+                var count = collection.Count;
+                if (count == 0) return new T[0];
+
+                var arr = new T[count];
+                collection.CopyTo(arr, 0);
 
                 return arr;
             }
@@ -79,6 +97,8 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this Object target)
         {
+            //!! 即使传入为空，也返回字典，而不是null，避免业务层需要大量判空
+            //if (target == null) return null;
             if (target is IDictionary<String, Object> dic) return dic;
 
             dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
@@ -94,12 +114,10 @@ namespace System.Collections.Generic
                 }
                 else
                 {
-                    foreach (var pi in target.GetType().GetProperties())
+                    foreach (var pi in target.GetType().GetProperties(true))
                     {
-                        if (pi.GetIndexParameters().Length > 0) continue;
-                        if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-
-                        dic[pi.Name] = target.GetValue(pi);
+                        var name = SerialHelper.GetName(pi);
+                        dic[name] = target.GetValue(pi);
                     }
                 }
             }
@@ -137,7 +155,7 @@ namespace System.Collections.Generic
         {
             if (collection == null) return null;
 
-            if (collection is NullableDictionary<TKey, TValue> dic && (comparer != null || dic.Comparer == comparer)) return collection as NullableDictionary<TKey, TValue>;
+            if (collection is NullableDictionary<TKey, TValue> dic && (comparer == null || dic.Comparer == comparer)) return dic;
 
             return new NullableDictionary<TKey, TValue>(collection, comparer);
         }

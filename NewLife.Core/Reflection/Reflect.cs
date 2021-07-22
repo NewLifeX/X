@@ -8,6 +8,9 @@ using System.Reflection;
 namespace NewLife.Reflection
 {
     /// <summary>反射工具类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/reflect
+    /// </remarks>
     public static class Reflect
     {
         #region 静态
@@ -119,7 +122,7 @@ namespace NewLife.Reflection
         [DebuggerHidden]
         public static Object CreateInstance(this Type type, params Object[] parameters)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             return Provider.CreateInstance(type, parameters);
         }
@@ -131,8 +134,8 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Invoke(this Object target, String name, params Object[] parameters)
         {
-            if (target == null) throw new ArgumentNullException("target");
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
 
             if (TryInvoke(target, name, out var value, parameters)) return value;
 
@@ -176,8 +179,8 @@ namespace NewLife.Reflection
         public static Object Invoke(this Object target, MethodBase method, params Object[] parameters)
         {
             //if (target == null) throw new ArgumentNullException("target");
-            if (method == null) throw new ArgumentNullException("method");
-            if (!method.IsStatic && target == null) throw new ArgumentNullException("target");
+            if (method == null) throw new ArgumentNullException(nameof(method));
+            if (!method.IsStatic && target == null) throw new ArgumentNullException(nameof(target));
 
             return Provider.Invoke(target, method, parameters);
         }
@@ -191,8 +194,8 @@ namespace NewLife.Reflection
         public static Object InvokeWithParams(this Object target, MethodBase method, IDictionary parameters)
         {
             //if (target == null) throw new ArgumentNullException("target");
-            if (method == null) throw new ArgumentNullException("method");
-            if (!method.IsStatic && target == null) throw new ArgumentNullException("target");
+            if (method == null) throw new ArgumentNullException(nameof(method));
+            if (!method.IsStatic && target == null) throw new ArgumentNullException(nameof(target));
 
             return Provider.InvokeWithParams(target, method, parameters);
         }
@@ -205,8 +208,8 @@ namespace NewLife.Reflection
         [DebuggerHidden]
         public static Object GetValue(this Object target, String name, Boolean throwOnError = true)
         {
-            if (target == null) throw new ArgumentNullException("target");
-            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
 
             if (TryGetValue(target, name, out var value)) return value;
 
@@ -221,26 +224,13 @@ namespace NewLife.Reflection
         /// <param name="name">名称</param>
         /// <param name="value">数值</param>
         /// <returns>是否成功获取数值</returns>
-        public static Boolean TryGetValue(this Object target, String name, out Object value)
+        internal static Boolean TryGetValue(this Object target, String name, out Object value)
         {
             value = null;
 
             if (String.IsNullOrEmpty(name)) return false;
 
             var type = GetType(ref target);
-            //var pi = GetPropertyEx(type, name);
-            //if (pi != null)
-            //{
-            //    value = target.GetValue(pi);
-            //    return true;
-            //}
-
-            //var fi = GetFieldEx(type, name);
-            //if (fi != null)
-            //{
-            //    value = target.GetValue(fi);
-            //    return true;
-            //}
 
             var mi = type.GetMemberEx(name, true);
             if (mi == null) return false;
@@ -269,7 +259,7 @@ namespace NewLife.Reflection
             else if (member is FieldInfo)
                 return Provider.GetValue(target, member as FieldInfo);
             else
-                throw new ArgumentOutOfRangeException("member");
+                throw new ArgumentOutOfRangeException(nameof(member));
         }
 
         /// <summary>设置目标对象指定名称的属性/字段值，若不存在返回false</summary>
@@ -305,7 +295,7 @@ namespace NewLife.Reflection
             else if (member is FieldInfo)
                 Provider.SetValue(target, member as FieldInfo, value);
             else
-                throw new ArgumentOutOfRangeException("member");
+                throw new ArgumentOutOfRangeException(nameof(member));
         }
 
         /// <summary>从源对象拷贝数据到目标对象</summary>
@@ -354,7 +344,7 @@ namespace NewLife.Reflection
         /// <summary>从参数数组中获取类型数组</summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        internal static Type[] GetTypeArray(this Object[] args)
+        public static Type[] GetTypeArray(this Object[] args)
         {
             if (args == null) return Type.EmptyTypes;
 
@@ -411,20 +401,6 @@ namespace NewLife.Reflection
                 || type == typeof(Byte)
                 || type == typeof(SByte)
                 ;
-            //switch (type.GetTypeCode())
-            //{
-            //    case TypeCode.SByte:
-            //    case TypeCode.Byte:
-            //    case TypeCode.Int16:
-            //    case TypeCode.UInt16:
-            //    case TypeCode.Int32:
-            //    case TypeCode.UInt32:
-            //    case TypeCode.Int64:
-            //    case TypeCode.UInt64:
-            //        return true;
-            //    default:
-            //        return false;
-            //}
         }
 
         /// <summary>是否泛型列表</summary>
@@ -459,9 +435,15 @@ namespace NewLife.Reflection
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
         /// <param name="baseType">基类或接口</param>
-        /// <param name="isLoadAssembly">是否加载为加载程序集</param>
         /// <returns></returns>
-        public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly = false) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
+        public static IEnumerable<Type> GetAllSubclasses(this Type baseType) => Provider.GetAllSubclasses(baseType);
+
+        ///// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
+        ///// <param name="baseType">基类或接口</param>
+        ///// <param name="isLoadAssembly">是否加载为加载程序集</param>
+        ///// <returns></returns>
+        //[Obsolete]
+        //public static IEnumerable<Type> GetAllSubclasses(this Type baseType, Boolean isLoadAssembly) => Provider.GetAllSubclasses(baseType, isLoadAssembly);
         #endregion
 
         #region 辅助方法
@@ -470,7 +452,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         static Type GetType(ref Object target)
         {
-            if (target == null) throw new ArgumentNullException("target");
+            if (target == null) throw new ArgumentNullException(nameof(target));
 
             var type = target as Type;
             if (type == null)
@@ -481,18 +463,18 @@ namespace NewLife.Reflection
             return type;
         }
 
-        /// <summary>判断某个类型是否可空类型</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        static Boolean IsNullable(Type type)
-        {
-            //if (type.IsValueType) return false;
+        ///// <summary>判断某个类型是否可空类型</summary>
+        ///// <param name="type">类型</param>
+        ///// <returns></returns>
+        //static Boolean IsNullable(Type type)
+        //{
+        //    //if (type.IsValueType) return false;
 
-            if (type.IsGenericType && !type.IsGenericTypeDefinition &&
-                Object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
+        //    if (type.IsGenericType && !type.IsGenericTypeDefinition &&
+        //        Object.ReferenceEquals(type.GetGenericTypeDefinition(), typeof(Nullable<>))) return true;
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>把一个方法转为泛型委托，便于快速反射调用</summary>
         /// <typeparam name="TFunc"></typeparam>
@@ -501,7 +483,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static TFunc As<TFunc>(this MethodInfo method, Object target = null)
         {
-            if (method == null) return default(TFunc);
+            if (method == null) return default;
 
             if (target == null)
                 return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), method, true);

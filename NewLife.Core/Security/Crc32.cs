@@ -91,10 +91,10 @@ namespace NewLife.Security
         /// </param>
         public Crc32 Update(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
-            if (buffer == null) throw new ArgumentNullException("buffer");
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
             if (count <= 0) count = buffer.Length;
-            if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException("offset");
+            if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
 
             while (--count >= 0)
             {
@@ -109,7 +109,7 @@ namespace NewLife.Security
         /// <param name="count">数量</param>
         public Crc32 Update(Stream stream, Int64 count = -1)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
             //if (count < 0) throw new ArgumentOutOfRangeException("count", "Count不能小于0！");
             if (count <= 0) count = Int64.MaxValue;
 

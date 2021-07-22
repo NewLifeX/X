@@ -1,13 +1,105 @@
 ﻿#if NET4
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife;
 using NewLife.Serialization;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
+    /// <summary>压缩文档模式</summary>
+    public enum ZipArchiveMode
+    {
+        /// <summary>读取</summary>
+        Read,
+
+        /// <summary>读取</summary>
+        Create,
+
+        /// <summary>读取</summary>
+        Update
+    }
+
+    /// <summary>压缩等级</summary>
+    public enum CompressionLevel
+    {
+        /// <summary>优化</summary>
+        Optimal,
+
+        /// <summary>最快</summary>
+        Fastest,
+
+        /// <summary>不压缩</summary>
+        NoCompression
+    }
+
+    /// <summary>压缩文件扩展</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/compression
+    /// </remarks>
+    public static class ZipFile
+    {
+        /// <summary>打开压缩文档</summary>
+        /// <param name="archiveFileName"></param>
+        /// <param name="mode"></param>
+        /// <param name="entryNameEncoding"></param>
+        /// <returns></returns>
+        public static ZipArchive Open(String archiveFileName, ZipArchiveMode mode, Encoding entryNameEncoding = null)
+        {
+            FileMode mode2;
+            FileAccess access;
+            FileShare share;
+            switch (mode)
+            {
+                case ZipArchiveMode.Read:
+                    mode2 = FileMode.Open;
+                    access = FileAccess.Read;
+                    share = FileShare.Read;
+                    break;
+                case ZipArchiveMode.Create:
+                    mode2 = FileMode.CreateNew;
+                    access = FileAccess.Write;
+                    share = FileShare.None;
+                    break;
+                case ZipArchiveMode.Update:
+                    mode2 = FileMode.OpenOrCreate;
+                    access = FileAccess.ReadWrite;
+                    share = FileShare.None;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("mode");
+            }
+            var fileStream = new FileStream(archiveFileName, mode2, access, share, 4096, useAsync: false);
+            try
+            {
+                return new ZipArchive(fileStream, entryNameEncoding);
+            }
+            catch
+            {
+                fileStream.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>从目录创建压缩文档</summary>
+        /// <param name="sourceDirectoryName"></param>
+        /// <param name="destinationArchiveFileName"></param>
+        /// <param name="compressionLevel"></param>
+        /// <param name="includeBaseDirectory"></param>
+        public static void CreateFromDirectory(String sourceDirectoryName, String destinationArchiveFileName, CompressionLevel compressionLevel, Boolean includeBaseDirectory)
+        {
+            if (String.IsNullOrEmpty(sourceDirectoryName)) throw new ArgumentNullException(nameof(sourceDirectoryName));
+            if (String.IsNullOrEmpty(destinationArchiveFileName)) destinationArchiveFileName = Path.ChangeExtension(Path.GetFileName(destinationArchiveFileName), ".zip");
+
+            using var zf = new ZipArchive();
+            zf.AddDirectory(sourceDirectoryName, null, compressionLevel == CompressionLevel.NoCompression);
+            zf.Write(destinationArchiveFileName);
+        }
+    }
+
     /// <summary>Zip文件</summary>
     /// <remarks>
     /// Zip定义位于 <a target="_blank" href="http://www.pkware.com/documents/casestudies/APPNOTE.TXT">http://www.pkware.com/documents/casestudies/APPNOTE.TXT</a>
@@ -25,7 +117,7 @@ namespace System.IO.Compression
     /// <example>
     /// 标准压缩：
     /// <code>
-    /// using (ZipFile zf = new ZipFile())
+    /// using (ZipArchive zf = new ZipArchive())
     /// {
     ///     zf.AddDirectory("TestZip");
     /// 
@@ -38,7 +130,7 @@ namespace System.IO.Compression
     /// 
     /// 标准解压缩：
     /// <code>
-    /// using (ZipFile zf = new ZipFile(file))
+    /// using (ZipArchive zf = new ZipArchive(file))
     /// {
     ///     zf.Extract("TestZip");
     /// }
@@ -46,16 +138,16 @@ namespace System.IO.Compression
     /// 
     /// 快速压缩：
     /// <code>
-    /// ZipFile.CompressFile("aa.doc");
-    /// ZipFile.CompressDirectory("TestZip");
+    /// ZipArchive.CompressFile("aa.doc");
+    /// ZipArchive.CompressDirectory("TestZip");
     /// </code>
     /// 
     /// 快速解压缩：
     /// <code>
-    /// ZipFile.Extract("aa.zip", "Test");
+    /// ZipArchive.Extract("aa.zip", "Test");
     /// </code>
     /// </example>
-    public partial class ZipFile : IDisposable, IEnumerable, IEnumerable<ZipEntry>
+    public partial class ZipArchive : IDisposable, IEnumerable, IEnumerable<ZipEntry>
     {
         #region 属性
         /// <summary>名称</summary>
@@ -76,12 +168,12 @@ namespace System.IO.Compression
 
         #region 构造
         /// <summary>实例化一个Zip文件对象</summary>
-        public ZipFile() { }
+        public ZipArchive() { }
 
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="fileName">文件名</param>
         /// <param name="encoding">字符串编码</param>
-        public ZipFile(String fileName, Encoding encoding = null)
+        public ZipArchive(String fileName, Encoding encoding = null)
         {
             Name = fileName;
             if (encoding != null) Encoding = encoding;
@@ -91,9 +183,20 @@ namespace System.IO.Compression
         /// <summary>实例化一个Zip文件对象。延迟到第一次使用<see cref="Entries"/>时读取</summary>
         /// <param name="stream"></param>
         /// <param name="encoding"></param>
-        public ZipFile(Stream stream, Encoding encoding = null)
+        public ZipArchive(Stream stream, Encoding encoding = null)
         {
             if (encoding != null) Encoding = encoding;
+            _stream = stream;
+        }
+
+        /// <summary>实例化Zip文档</summary>
+        /// <param name="stream"></param>
+        /// <param name="mode"></param>
+        /// <param name="leaveOpen"></param>
+        /// <param name="entryNameEncoding"></param>
+        public ZipArchive(Stream stream, ZipArchiveMode mode, Boolean leaveOpen, Encoding entryNameEncoding)
+        {
+            if (entryNameEncoding != null) Encoding = entryNameEncoding;
             _stream = stream;
         }
 
@@ -112,11 +215,11 @@ namespace System.IO.Compression
         #endregion
 
         #region 读取
-        String _file;
-        Stream _stream;
+        private String _file;
+        private Stream _stream;
 
         /// <summary>使用文件和数据流时，延迟到第一次使用<see cref="Entries"/>时读取</summary>
-        void EnsureRead()
+        private void EnsureRead()
         {
             // 这里必须把_file=null这行注释，否则进不去，不知道为什么
             if (!_file.IsNullOrWhiteSpace())
@@ -256,8 +359,7 @@ namespace System.IO.Compression
             //// 写入文件头时忽略掉这些字段，这些都是DirEntry的字段
             //writer.Settings.IgnoreMembers = ZipEntry.dirMembers;
 
-            var bn = writer as Binary;
-            if (bn != null) bn.IgnoreMembers = ZipEntry.dirMembers;
+            if (writer is Binary bn) bn.IgnoreMembers = ZipEntry.dirMembers;
 
             foreach (var item in Entries)
             {
@@ -299,10 +401,8 @@ namespace System.IO.Compression
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
-            using (var fs = File.Create(fileName))
-            {
-                Write(fs);
-            }
+            using var fs = File.Create(fileName);
+            Write(fs);
         }
         #endregion
 
@@ -342,10 +442,8 @@ namespace System.IO.Compression
             if (outputPath.IsNullOrEmpty()) outputPath = Path.GetDirectoryName(fileName);
             if (outputPath.IsNullOrEmpty()) throw new ArgumentNullException(nameof(outputPath));
 
-            using (var zf = new ZipFile(fileName))
-            {
-                zf.Extract(outputPath, overrideExisting, throwException);
-            }
+            using var zf = new ZipArchive(fileName);
+            zf.Extract(outputPath, overrideExisting, throwException);
         }
         #endregion
 
@@ -354,9 +452,9 @@ namespace System.IO.Compression
         /// 必须指定文件路径<paramref name="fileName"/>，如果不指定实体名<paramref name="entryName"/>，则使用文件名，并加到顶级目录。</summary>
         /// <param name="fileName">文件路径</param>
         /// <param name="entryName">实体名</param>
-        /// <param name="stored">是否仅存储，不压缩</param>
+        /// <param name="level">压缩等级</param>
         /// <returns></returns>
-        public ZipEntry AddFile(String fileName, String entryName = null, Boolean? stored = false)
+        public ZipEntry CreateEntryFromFile(String fileName, String entryName = null, CompressionLevel level = CompressionLevel.Optimal)
         {
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException("fileName");
 
@@ -378,7 +476,18 @@ namespace System.IO.Compression
                 }
             }
 
-            var entry = ZipEntry.Create(fileName, entryName, stored);
+            var entry = ZipEntry.Create(fileName, entryName, level == CompressionLevel.NoCompression);
+            Entries.Add(entry);
+
+            return entry;
+        }
+
+        /// <summary>创建压缩项</summary>
+        /// <param name="entryName"></param>
+        /// <returns></returns>
+        public ZipEntry CreateEntry(String entryName)
+        {
+            var entry = ZipEntry.Create(new MemoryStream(), entryName, false);
             Entries.Add(entry);
 
             return entry;
@@ -410,7 +519,8 @@ namespace System.IO.Compression
 
                 if (!String.IsNullOrEmpty(entryName)) name = entryName + name;
 
-                AddFile(item, name, stored);
+                var level = (stored != null && stored.Value) ? CompressionLevel.NoCompression : CompressionLevel.Optimal;
+                CreateEntryFromFile(item, name, level);
             }
 
             foreach (var item in Directory.GetDirectories(dirName, "*", SearchOption.TopDirectoryOnly))
@@ -435,11 +545,9 @@ namespace System.IO.Compression
             if (String.IsNullOrEmpty(fileName)) throw new ArgumentNullException(nameof(fileName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(fileName, ".zip");
 
-            using (var zf = new ZipFile())
-            {
-                zf.AddFile(fileName);
-                zf.Write(outputName);
-            }
+            using var zf = new ZipArchive();
+            zf.CreateEntryFromFile(fileName);
+            zf.Write(outputName);
         }
 
         /// <summary>快速压缩目录。</summary>
@@ -450,11 +558,9 @@ namespace System.IO.Compression
             if (String.IsNullOrEmpty(dirName)) throw new ArgumentNullException(nameof(dirName));
             if (String.IsNullOrEmpty(outputName)) outputName = Path.ChangeExtension(Path.GetFileName(dirName), ".zip");
 
-            using (var zf = new ZipFile())
-            {
-                zf.AddDirectory(dirName);
-                zf.Write(outputName);
-            }
+            using var zf = new ZipArchive();
+            zf.AddDirectory(dirName);
+            zf.Write(outputName);
         }
         #endregion
 
@@ -534,7 +640,7 @@ namespace System.IO.Compression
             return bn;
         }
 
-        internal static readonly DateTime MinDateTime = new DateTime(1980, 1, 1);
+        internal static readonly DateTime MinDateTime = new(1980, 1, 1);
         internal static DateTime DosDateTimeToFileTime(Int32 value)
         {
             if (value <= 0) return MinDateTime;
@@ -567,7 +673,7 @@ namespace System.IO.Compression
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("{0} [{1}]", Name, Entries.Count);
+        public override String ToString() => $"{Name} [{Entries.Count}]";
         #endregion
 
         #region IEnumerable<ZipEntry> 成员
@@ -577,7 +683,7 @@ namespace System.IO.Compression
         #endregion
 
         #region CentralDirectory
-        class EndOfCentralDirectory
+        private class EndOfCentralDirectory
         {
             #region 属性
             /// <summary>签名。end of central dir signature</summary>

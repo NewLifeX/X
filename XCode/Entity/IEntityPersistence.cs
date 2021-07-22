@@ -5,6 +5,8 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Reflection;
 using XCode.Configuration;
@@ -15,57 +17,85 @@ namespace XCode
     /// <summary>实体持久化接口。可通过实现该接口来自定义实体类持久化行为。</summary>
     public interface IEntityPersistence
     {
+        #region 属性
+        /// <summary>实体工厂</summary>
+        IEntityFactory Factory { get; }
+        #endregion
+
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Insert(IEntity entity);
+        Int32 Insert(IEntitySession session, IEntity entity);
 
         /// <summary>更新</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Update(IEntity entity);
+        Int32 Update(IEntitySession session, IEntity entity);
 
         /// <summary>删除</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        Int32 Delete(IEntity entity);
+        Int32 Delete(IEntitySession session, IEntity entity);
+
+#if !NET40
+        /// <summary>插入</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> InsertAsync(IEntitySession session, IEntity entity);
+
+        /// <summary>更新</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> UpdateAsync(IEntitySession session, IEntity entity);
+
+        /// <summary>删除</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        Task<Int32> DeleteAsync(IEntitySession session, IEntity entity);
+#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Insert(IEntityOperate factory, String[] names, Object[] values);
+        Int32 Insert(IEntitySession session, String[] names, Object[] values);
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        Int32 Update(IEntityOperate factory, String setClause, String whereClause);
+        Int32 Update(IEntitySession session, String setClause, String whereClause);
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="setNames">更新属性列表</param>
         /// <param name="setValues">更新值列表</param>
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
+        Int32 Update(IEntitySession session, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues);
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        Int32 Delete(IEntityOperate factory, String whereClause);
+        Int32 Delete(IEntitySession session, String whereClause);
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        Int32 Delete(IEntityOperate factory, String[] names, Object[] values);
+        Int32 Delete(IEntitySession session, String[] names, Object[] values);
         #endregion
 
         #region 获取语句
@@ -75,45 +105,51 @@ namespace XCode
         WhereExpression GetPrimaryCondition(IEntity entity);
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        String GetSql(IEntity entity, DataObjectMethodType methodType);
+        String GetSql(IEntitySession session, IEntity entity, DataObjectMethodType methodType);
         #endregion
 
         #region 参数化
         /// <summary>插入语句</summary>
-        /// <param name="factory"></param>
+        /// <param name="session">实体会话</param>
         /// <returns></returns>
-        String InsertSQL(IEntityOperate factory);
+        String InsertSQL(IEntitySession session);
         #endregion
     }
 
     /// <summary>默认实体持久化</summary>
     public class EntityPersistence : IEntityPersistence
     {
+        #region 属性
+        /// <summary>实体工厂</summary>
+        public IEntityFactory Factory { get; set; }
+        #endregion
+
         #region 添删改方法
         /// <summary>插入</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Insert(IEntity entity)
+        public virtual Int32 Insert(IEntitySession session, IEntity entity)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var session = fact.Session;
+            var factory = Factory;
 
             // 添加数据前，处理Guid
-            SetGuidField(fact, entity);
+            SetGuidField(factory.AutoSetGuidField, entity);
 
             IDataParameter[] dps = null;
-            var sql = SQL(entity, DataObjectMethodType.Insert, ref dps);
+            var sql = SQL(session, entity, DataObjectMethodType.Insert, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
             var rs = 0;
 
             //检查是否有标识列，标识列需要特殊处理
-            var field = fact.Table.Identity;
-            var bAllow = fact.AllowInsertIdentity;
-            if (field != null && field.IsIdentity && !bAllow && fact.AutoIdentity)
+            var field = factory.Table.Identity;
+            var bAllow = factory.AllowInsertIdentity;
+            if (field != null && field.IsIdentity && !bAllow && factory.AutoIdentity)
             {
                 var id = session.InsertAndGetIdentity(sql, CommandType.Text, dps);
                 if (id > 0) entity[field.Name] = id;
@@ -123,12 +159,12 @@ namespace XCode
             {
                 if (bAllow)
                 {
-                    var dal = DAL.Create(fact.ConnName);
+                    var dal = DAL.Create(factory.ConnName);
                     if (dal.DbType == DatabaseType.SqlServer)
                     {
                         // 如果所有字段都不是自增，则取消对自增的处理
-                        if (fact.Fields.All(f => !f.IsIdentity)) bAllow = false;
-                        if (bAllow) sql = String.Format("SET IDENTITY_INSERT {1} ON;{0};SET IDENTITY_INSERT {1} OFF", sql, fact.FormatedTableName);
+                        if (factory.Fields.All(f => !f.IsIdentity)) bAllow = false;
+                        if (bAllow) sql = $"SET IDENTITY_INSERT {session.FormatedTableName} ON;{sql};SET IDENTITY_INSERT {session.FormatedTableName} OFF";
                     }
                 }
                 rs = session.Execute(sql, CommandType.Text, dps);
@@ -140,9 +176,8 @@ namespace XCode
             return rs;
         }
 
-        static void SetGuidField(IEntityOperate op, IEntity entity)
+        void SetGuidField(FieldItem fi, IEntity entity)
         {
-            var fi = op.AutoSetGuidField;
             if (fi != null)
             {
                 // 判断是否设置了数据
@@ -158,9 +193,10 @@ namespace XCode
         }
 
         /// <summary>更新</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntity entity)
+        public virtual Int32 Update(IEntitySession session, IEntity entity)
         {
             // 没有脏数据，不需要更新
             if (!entity.HasDirty) return 0;
@@ -173,15 +209,13 @@ namespace XCode
             {
                 if (!entity.HasDirty) return 0;
 
-                sql = SQL(entity, DataObjectMethodType.Update, ref dps);
+                sql = SQL(session, entity, DataObjectMethodType.Update, ref dps);
                 if (sql.IsNullOrEmpty()) return 0;
 
                 //清除脏数据，避免重复提交
                 entity.Dirtys.Clear();
             }
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var session = fact.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
 
             //EntityAddition.ClearValues(entity as EntityBase);
@@ -190,16 +224,15 @@ namespace XCode
         }
 
         /// <summary>删除</summary>
-        /// <param name="entity"></param>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntity entity)
+        public virtual Int32 Delete(IEntitySession session, IEntity entity)
         {
             IDataParameter[] dps = null;
-            var sql = SQL(entity, DataObjectMethodType.Delete, ref dps);
+            var sql = SQL(session, entity, DataObjectMethodType.Delete, ref dps);
             if (String.IsNullOrEmpty(sql)) return 0;
 
-            var op = EntityFactory.CreateOperate(entity.GetType());
-            var session = op.Session;
             var rs = session.Execute(sql, CommandType.Text, dps);
 
             // 清除脏数据，避免重复提交保存
@@ -208,17 +241,117 @@ namespace XCode
             return rs;
         }
 
+#if !NET40
+        /// <summary>插入</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> InsertAsync(IEntitySession session, IEntity entity)
+        {
+            var factory = Factory;
+
+            // 添加数据前，处理Guid
+            SetGuidField(factory.AutoSetGuidField, entity);
+
+            IDataParameter[] dps = null;
+            var sql = SQL(session, entity, DataObjectMethodType.Insert, ref dps);
+            if (String.IsNullOrEmpty(sql)) return 0;
+
+            var rs = 0;
+
+            //检查是否有标识列，标识列需要特殊处理
+            var field = factory.Table.Identity;
+            var bAllow = factory.AllowInsertIdentity;
+            if (field != null && field.IsIdentity && !bAllow && factory.AutoIdentity)
+            {
+                var id = await session.InsertAndGetIdentityAsync(sql, CommandType.Text, dps);
+                if (id > 0) entity[field.Name] = id;
+                rs = id > 0 ? 1 : 0;
+            }
+            else
+            {
+                if (bAllow)
+                {
+                    var dal = DAL.Create(factory.ConnName);
+                    if (dal.DbType == DatabaseType.SqlServer)
+                    {
+                        // 如果所有字段都不是自增，则取消对自增的处理
+                        if (factory.Fields.All(f => !f.IsIdentity)) bAllow = false;
+                        if (bAllow) sql = $"SET IDENTITY_INSERT {session.FormatedTableName} ON;{sql};SET IDENTITY_INSERT {session.FormatedTableName} OFF";
+                    }
+                }
+                rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+            }
+
+            // 清除脏数据，避免连续两次调用Save造成重复提交
+            entity.Dirtys.Clear();
+
+            return rs;
+        }
+
+        /// <summary>更新</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> UpdateAsync(IEntitySession session, IEntity entity)
+        {
+            // 没有脏数据，不需要更新
+            if (!entity.HasDirty) return 0;
+
+            IDataParameter[] dps = null;
+            var sql = "";
+
+            // 双锁判断脏数据
+            lock (entity)
+            {
+                if (!entity.HasDirty) return 0;
+
+                sql = SQL(session, entity, DataObjectMethodType.Update, ref dps);
+                if (sql.IsNullOrEmpty()) return 0;
+
+                //清除脏数据，避免重复提交
+                entity.Dirtys.Clear();
+            }
+
+            var rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+
+            //EntityAddition.ClearValues(entity as EntityBase);
+
+            return rs;
+        }
+
+        /// <summary>删除</summary>
+        /// <param name="session">实体会话</param>
+        /// <param name="entity">实体</param>
+        /// <returns></returns>
+        public virtual async Task<Int32> DeleteAsync(IEntitySession session, IEntity entity)
+        {
+            IDataParameter[] dps = null;
+            var sql = SQL(session, entity, DataObjectMethodType.Delete, ref dps);
+            if (String.IsNullOrEmpty(sql)) return 0;
+
+            var rs = await session.ExecuteAsync(sql, CommandType.Text, dps);
+
+            // 清除脏数据，避免重复提交保存
+            entity.Dirtys.Clear();
+
+            return rs;
+        }
+#endif
+
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Insert(IEntityOperate factory, String[] names, Object[] values)
+        public virtual Int32 Insert(IEntitySession session, String[] names, Object[] values)
         {
             if (names == null) throw new ArgumentNullException(nameof(names), "属性列表和值列表不能为空");
             if (values == null) throw new ArgumentNullException(nameof(values), "属性列表和值列表不能为空");
             if (names.Length != values.Length) throw new ArgumentException("属性列表必须和值列表一一对应");
 
+            var factory = Factory;
+            var db = session.Dal.Db;
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
@@ -233,63 +366,85 @@ namespace XCode
                     sbn.Append(", ");
                     sbv.Append(", ");
                 }
-                sbn.Append(factory.FormatName(fs[names[i]].Name));
+
+                var column = fs[names[i]].Field;
+                sbn.Append(db.FormatName(column));
                 //sbv.Append(SqlDataFormat(values[i], fs[names[i]]));
-                sbv.Append(factory.FormatValue(names[i], values[i]));
+                sbv.Append(db.FormatValue(column, values[i]));
             }
             var sn = sbn.Put(true);
             var sv = sbv.Put(true);
-            return factory.Session.Execute(String.Format("Insert Into {2}({0}) values({1})", sn, sv, factory.FormatedTableName));
+            return session.Execute($"Insert Into {session.FormatedTableName}({sn}) values({sv})");
         }
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="setClause">要更新的项和数据</param>
         /// <param name="whereClause">指定要更新的实体</param>
         /// <returns></returns>
-        public virtual Int32 Update(IEntityOperate factory, String setClause, String whereClause)
+        public virtual Int32 Update(IEntitySession session, String setClause, String whereClause)
         {
             if (setClause.IsNullOrEmpty() || !setClause.Contains("=") || setClause.ToLower().Contains(" or ")) throw new ArgumentException("非法参数");
 
-            var sql = String.Format("Update {0} Set {1}", factory.FormatedTableName, setClause.Replace("And", ","));
+            var sql = $"Update {session.FormatedTableName} Set {setClause.Replace("And", ",")}";
             if (!String.IsNullOrEmpty(whereClause)) sql += " Where " + whereClause;
-            return factory.Session.Execute(sql);
+            return session.Execute(sql);
         }
 
         /// <summary>更新一批实体数据</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="setNames">更新属性列表</param>
         /// <param name="setValues">更新值列表</param>
         /// <param name="whereNames">条件属性列表</param>
         /// <param name="whereValues">条件值列表</param>
         /// <returns>返回受影响的行数</returns>
-        public virtual Int32 Update(IEntityOperate factory, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
+        public virtual Int32 Update(IEntitySession session, String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues)
         {
-            var sc = Join(factory, setNames, setValues, ", ");
-            var wc = Join(factory, whereNames, whereValues, " And ");
-            return Update(factory, sc, wc);
+            var sc = Join(session, setNames, setValues, ", ");
+            var wc = Join(session, whereNames, whereValues, " And ");
+            return Update(session, sc, wc);
         }
 
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityOperate factory, String whereClause)
+        public virtual Int32 Delete(IEntitySession session, String whereClause)
         {
-            var sql = String.Format("Delete From {0}", factory.FormatedTableName);
+            var sql = $"Delete From {session.FormatedTableName}";
             if (!whereClause.IsNullOrEmpty()) sql += " Where " + whereClause;
-            return factory.Session.Execute(sql);
+            //return session.Execute(sql);
+
+            // MySql 支持分批删除
+            if (session.Dal.DbType == DatabaseType.MySql)
+            {
+                var rs = 0;
+                while (true)
+                {
+                    var rows = session.Dal.Execute(sql + " limit 100000", 5 * 60);
+                    rs += rows;
+
+                    if (rows < 100000) break;
+                }
+
+                return rs;
+            }
+
+            // 加大超时时间
+            return session.Dal.Execute(sql, 5 * 60);
         }
 
         /// <summary>从数据库中删除指定属性列表和值列表所限定的实体对象。</summary>
-        /// <param name="factory">实体工厂</param>
+        /// <param name="session">实体会话</param>
         /// <param name="names">属性列表</param>
         /// <param name="values">值列表</param>
         /// <returns></returns>
-        public virtual Int32 Delete(IEntityOperate factory, String[] names, Object[] values) => Delete(factory, Join(factory, names, values, "And"));
+        public virtual Int32 Delete(IEntitySession session, String[] names, Object[] values) => Delete(session, Join(session, names, values, "And"));
 
-        private static String Join(IEntityOperate factory, String[] names, Object[] values, String split)
+        private String Join(IEntitySession session, String[] names, Object[] values, String split)
         {
+            var factory = Factory;
+            var db = session.Dal.Db;
             var fs = new Dictionary<String, FieldItem>(StringComparer.OrdinalIgnoreCase);
             foreach (var fi in factory.Fields)
                 fs.Add(fi.Name, fi);
@@ -300,9 +455,11 @@ namespace XCode
                 if (!fs.ContainsKey(names[i])) throw new ArgumentException("类[" + factory.EntityType.FullName + "]中不存在[" + names[i] + "]属性");
 
                 if (i > 0) sb.AppendFormat(" {0} ", split);
-                sb.Append(factory.FormatName(fs[names[i]].Name));
-                sb.Append("=");
-                sb.Append(factory.FormatValue(names[i], values[i]));
+
+                var column = fs[names[i]].Field;
+                sb.Append(db.FormatName(column));
+                sb.Append('=');
+                sb.Append(db.FormatValue(column, values[i]));
             }
 
             return sb.Put(true);
@@ -311,35 +468,37 @@ namespace XCode
 
         #region 获取语句
         /// <summary>把SQL模版格式化为SQL语句</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <returns>SQL字符串</returns>
-        public virtual String GetSql(IEntity entity, DataObjectMethodType methodType)
+        public virtual String GetSql(IEntitySession session, IEntity entity, DataObjectMethodType methodType)
         {
             IDataParameter[] dps = null;
-            return SQL(entity, methodType, ref dps);
+            return SQL(session, entity, methodType, ref dps);
         }
 
         /// <summary>把SQL模版格式化为SQL语句</summary>
+        /// <param name="session">实体会话</param>
         /// <param name="entity">实体对象</param>
         /// <param name="methodType"></param>
         /// <param name="parameters">参数数组</param>
         /// <returns>SQL字符串</returns>
-        String SQL(IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
+        String SQL(IEntitySession session, IEntity entity, DataObjectMethodType methodType, ref IDataParameter[] parameters)
         {
-            switch (methodType)
+            return methodType switch
             {
-                case DataObjectMethodType.Insert: return InsertSQL(entity, ref parameters);
-                case DataObjectMethodType.Update: return UpdateSQL(entity, ref parameters);
-                case DataObjectMethodType.Delete: return DeleteSQL(entity, ref parameters);
-            }
-            return null;
+                DataObjectMethodType.Insert => InsertSQL(session, entity, ref parameters),
+                DataObjectMethodType.Update => UpdateSQL(session, entity, ref parameters),
+                DataObjectMethodType.Delete => DeleteSQL(session, entity, ref parameters),
+                _ => null,
+            };
         }
 
-        static String InsertSQL(IEntity entity, ref IDataParameter[] parameters)
+        String InsertSQL(IEntitySession session, IEntity entity, ref IDataParameter[] parameters)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var factory = Factory;
+            var db = session.Dal.Db;
 
             /*
             * 插入数据原则：
@@ -354,22 +513,22 @@ namespace XCode
 
             var dps = new List<IDataParameter>();
             // 只读列没有插入操作
-            foreach (var fi in fact.Fields)
+            foreach (var fi in factory.Fields)
             {
                 var value = entity[fi.Name];
                 // 标识列不需要插入，别的类型都需要
-                if (CheckIdentity(fi, value, fact, sbNames, sbValues)) continue;
+                if (CheckIdentity(db, fi, value, sbNames, sbValues)) continue;
 
                 // 1，有脏数据的字段一定要参与
                 if (!entity.IsDirty(fi.Name))
                 {
-                    if (!fact.FullInsert) continue;
+                    if (!factory.FullInsert) continue;
 
                     //// 不允许空时，插入空值没有意义
                     //if (!fi.IsNullable) continue;
                 }
 
-                sbNames.Separate(",").Append(fact.FormatName(fi.ColumnName));
+                sbNames.Separate(",").Append(db.FormatName(fi.Field));
                 sbValues.Separate(",");
 
                 if (db.UseParameter || UseParam(fi, value))
@@ -380,7 +539,7 @@ namespace XCode
                     sbValues.Append(dp.ParameterName);
                 }
                 else
-                    sbValues.Append(fact.FormatValue(fi, value));
+                    sbValues.Append(db.FormatValue(fi.Field, value));
             }
 
             var ns = sbNames.Put(true);
@@ -389,16 +548,17 @@ namespace XCode
 
             if (dps.Count > 0) parameters = dps.ToArray();
 
-            return "Insert Into {0}({1}) Values({2})".F(fact.FormatedTableName, ns, vs);
+            return $"Insert Into {session.FormatedTableName}({ns}) Values({vs})";
         }
 
-        static Boolean CheckIdentity(FieldItem fi, Object value, IEntityOperate op, StringBuilder sbNames, StringBuilder sbValues)
+        Boolean CheckIdentity(IDatabase db, FieldItem fi, Object value, StringBuilder sbNames, StringBuilder sbValues)
         {
             if (!fi.IsIdentity) return false;
 
             // 有些时候需要向自增字段插入数据，这里特殊处理
             String idv = null;
-            if (op.AllowInsertIdentity)
+            var factory = Factory;
+            if (factory.AllowInsertIdentity)
                 idv = "" + value;
             //else
             //    idv = DAL.Create(op.ConnName).Db.FormatIdentity(fi.Field, value);
@@ -406,7 +566,7 @@ namespace XCode
             // 允许返回String.Empty作为插入空
             if (idv == null) return true;
 
-            sbNames.Separate(", ").Append(op.FormatName(fi.ColumnName));
+            sbNames.Separate(", ").Append(db.FormatName(fi.Field));
             sbValues.Separate(", ");
 
             sbValues.Append(idv);
@@ -414,7 +574,7 @@ namespace XCode
             return true;
         }
 
-        static String UpdateSQL(IEntity entity, ref IDataParameter[] parameters)
+        String UpdateSQL(IEntitySession session, IEntity entity, ref IDataParameter[] parameters)
         {
             /*
              * 实体更新原则：
@@ -424,12 +584,12 @@ namespace XCode
              * 4，累加字段特殊处理
              */
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var factory = Factory;
+            var db = session.Dal.Db;
 
-            var exp = DefaultCondition(entity);
+            var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
-            var def = exp?.GetString(ps);
+            var def = exp?.GetString(db, ps);
             if (def.IsNullOrEmpty()) return null;
 
             // 处理累加字段
@@ -438,23 +598,24 @@ namespace XCode
             var sb = Pool.StringBuilder.Get();
             var dps = new List<IDataParameter>();
             // 只读列没有更新操作
-            foreach (var fi in fact.Fields)
+            foreach (var fi in factory.Fields)
             {
                 if (fi.IsIdentity) continue;
 
                 //脏数据判断
                 if (!entity.IsDirty(fi.Name)) continue;
 
+                // 检查累加，如果累加且累加值为0，则跳过更新
+                var flag = TryCheckAdditionalValue(dfs, fi.Name, out var val, out var sign);
+                if (flag && Convert.ToDecimal(val) == 0) continue;
+
                 var value = entity[fi.Name];
 
                 sb.Separate(","); // 加逗号
 
-                var name = fact.FormatName(fi.ColumnName);
+                var name = db.FormatName(fi.Field);
                 sb.Append(name);
-                sb.Append("=");
-
-                // 检查累加
-                var flag = TryCheckAdditionalValue(dfs, fi.Name, out var val, out var sign);
+                sb.Append('=');
 
                 if (db.UseParameter || UseParam(fi, value))
                 {
@@ -485,7 +646,7 @@ namespace XCode
                             sb.AppendFormat("{0}-{1}", name, val);
                     }
                     else
-                        sb.Append(fact.FormatValue(fi, value));
+                        sb.Append(db.FormatValue(fi.Field, value));
                 }
             }
 
@@ -500,25 +661,25 @@ namespace XCode
             {
                 foreach (var item in ps)
                 {
-                    var dp = db.CreateParameter(item.Key, item.Value, fact.Table.FindByName(item.Key)?.Field);
+                    var dp = db.CreateParameter(item.Key, item.Value, factory.Table.FindByName(item.Key)?.Field);
 
                     dps.Add(dp);
                 }
             }
 
             if (dps.Count > 0) parameters = dps.ToArray();
-            return "Update {0} Set {1} Where {2}".F(fact.FormatedTableName, str, def);
+            return $"Update {session.FormatedTableName} Set {str} Where {def}";
         }
 
-        static String DeleteSQL(IEntity entity, ref IDataParameter[] parameters)
+        String DeleteSQL(IEntitySession session, IEntity entity, ref IDataParameter[] parameters)
         {
-            var fact = EntityFactory.CreateOperate(entity.GetType());
-            var db = fact.Session.Dal.Db;
+            var factory = Factory;
+            var db = session.Dal.Db;
 
             // 标识列作为删除关键字
-            var exp = DefaultCondition(entity);
+            var exp = GetPrimaryCondition(entity);
             var ps = !db.UseParameter ? null : new Dictionary<String, Object>();
-            var def = exp?.GetString(ps);
+            var def = exp?.GetString(db, ps);
             if (def.IsNullOrEmpty()) return null;
 
             if (ps != null && ps.Count > 0)
@@ -526,15 +687,14 @@ namespace XCode
                 var dps = new List<IDataParameter>();
                 foreach (var item in ps)
                 {
-                    var dp = db.CreateParameter(item.Key, item.Value, fact.Table.FindByName(item.Key)?.Field);
+                    var dp = db.CreateParameter(item.Key, item.Value, factory.Table.FindByName(item.Key)?.Field);
 
                     dps.Add(dp);
                 }
                 parameters = dps.ToArray();
             }
 
-            var formatedTalbeName = fact.FormatedTableName;
-            return "Delete From {0} Where {1}".F(formatedTalbeName, def);
+            return $"Delete From {session.FormatedTableName} Where {def}";
         }
 
         static Boolean UseParam(FieldItem fi, Object value)
@@ -640,24 +800,19 @@ namespace XCode
         }
 
         /// <summary>获取主键条件</summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public virtual WhereExpression GetPrimaryCondition(IEntity entity) => DefaultCondition(entity);
-
-        /// <summary>
-        /// 默认条件。
+        /// <remarks>
         /// 若有标识列，则使用一个标识列作为条件；
         /// 如有主键，则使用全部主键作为条件。
-        /// </summary>
+        /// </remarks>
         /// <param name="entity">实体对象</param>
-        /// <returns>条件</returns>
-        static WhereExpression DefaultCondition(IEntity entity)
+        /// <returns></returns>
+        public virtual WhereExpression GetPrimaryCondition(IEntity entity)
         {
-            var op = EntityFactory.CreateOperate(entity.GetType());
+            var factory = Factory;
             var exp = new WhereExpression();
 
             // 标识列作为查询关键字
-            var fi = op.Table.Identity;
+            var fi = factory.Table.Identity;
             if (fi != null)
             {
                 exp &= (fi as Field) == entity[fi.Name];
@@ -665,9 +820,9 @@ namespace XCode
             }
 
             // 主键作为查询关键字
-            var ps = op.Table.PrimaryKeys;
+            var ps = factory.Table.PrimaryKeys;
             // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Length < 1) ps = op.Table.Fields;
+            if (ps == null || ps.Length < 1) ps = factory.Table.Fields;
 
             foreach (var item in ps)
             {
@@ -680,29 +835,28 @@ namespace XCode
 
         #region 参数化
         /// <summary>插入语句</summary>
-        /// <param name="factory"></param>
         /// <returns></returns>
-        public virtual String InsertSQL(IEntityOperate factory)
+        public virtual String InsertSQL(IEntitySession session)
         {
-            var fact = factory;
-            var db = fact.Session.Dal.Db;
+            var factory = Factory;
+            var db = session.Dal.Db;
 
             var sbNames = Pool.StringBuilder.Get();
             var sbValues = Pool.StringBuilder.Get();
 
-            foreach (var fi in fact.Fields)
+            foreach (var fi in factory.Fields)
             {
                 // 标识列不需要插入，别的类型都需要
-                if (fi.IsIdentity && !fact.AllowInsertIdentity) continue;
+                if (fi.IsIdentity && !factory.AllowInsertIdentity) continue;
 
-                sbNames.Separate(", ").Append(fact.FormatName(fi.ColumnName));
+                sbNames.Separate(", ").Append(db.FormatName(fi.Field));
                 sbValues.Separate(", ").Append(db.FormatParameterName(fi.Name));
             }
 
             var ns = sbNames.Put(true);
             var vs = sbValues.Put(true);
 
-            return $"Insert Into {fact.FormatedTableName}({ns}) Values({vs})";
+            return $"Insert Into {session.FormatedTableName}({ns}) Values({vs})";
         }
         #endregion
     }

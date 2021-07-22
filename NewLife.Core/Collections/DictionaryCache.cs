@@ -10,7 +10,10 @@ using NewLife.Threading;
 namespace NewLife.Collections
 {
     /// <summary>字典缓存。当指定键的缓存项不存在时，调用委托获取值，并写入缓存。</summary>
-    /// <remarks>常用匿名函数或者Lambda表达式作为委托。</remarks>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dictionary_cache
+    /// 常用匿名函数或者Lambda表达式作为委托。
+    /// </remarks>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
     public class DictionaryCache<TKey, TValue> : DisposeBase, IEnumerable<KeyValuePair<TKey, TValue>>
@@ -57,9 +60,9 @@ namespace NewLife.Collections
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _count = 0;
             //_cache.Clear();
@@ -79,7 +82,7 @@ namespace NewLife.Collections
             public DateTime ExpiredTime { get; private set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired => ExpiredTime <= TimerX.Now;
+            public Boolean Expired => ExpiredTime <= DateTime.Now;
 
             /// <summary>访问时间</summary>
             public DateTime VisitTime { get; private set; }
@@ -90,7 +93,7 @@ namespace NewLife.Collections
             {
                 Value = value;
 
-                var now = VisitTime = TimerX.Now;
+                var now = VisitTime = DateTime.Now;
                 if (seconds > 0) ExpiredTime = now.AddSeconds(seconds);
             }
 
@@ -148,7 +151,7 @@ namespace NewLife.Collections
                 }
             }
 
-            return default(TValue);
+            return default;
         }
 
         /// <summary>获取 GetOrAdd</summary>
@@ -156,7 +159,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual TValue Get(TKey key)
         {
-            if (!_cache.TryGetValue(key, out var item) || item.Expired) return default(TValue);
+            if (!_cache.TryGetValue(key, out var item) || item.Expired) return default;
 
             return item.Visit();
         }
@@ -167,7 +170,7 @@ namespace NewLife.Collections
         /// <returns></returns>
         public virtual Boolean TryGetValue(TKey key, out TValue value)
         {
-            value = default(TValue);
+            value = default;
 
             if (!_cache.TryGetValue(key, out var item) || item.Expired) return false;
 
@@ -183,7 +186,7 @@ namespace NewLife.Collections
         public virtual Boolean Set(TKey key, TValue value)
         {
             // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-            return TryAdd(key, value, true, out var rs);
+            return TryAdd(key, value, true, out _);
         }
 
         /// <summary>尝试添加，或返回旧值</summary>
@@ -211,7 +214,7 @@ namespace NewLife.Collections
 
             Interlocked.Increment(ref _count);
 
-            resultingValue = default(TValue);
+            resultingValue = default;
 
             StartTimer();
 
@@ -291,7 +294,7 @@ namespace NewLife.Collections
         /// <param name="cache"></param>
         public void CopyTo(DictionaryCache<TKey, TValue> cache)
         {
-            if (_cache.Count == 0) return;
+            if (_cache.IsEmpty) return;
 
             foreach (var item in _cache)
             {

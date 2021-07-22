@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using NewLife;
 using XCode.Common;
 using XCode.Exceptions;
 
@@ -155,7 +156,7 @@ namespace XCode.DataAccessLayer
 
             // 找到该表所有字段，注意排序
             DataRow[] drs = null;
-            var where = String.Format("{0}='{1}'", _.TalbeName, table.TableName);
+            var where = $"{_.TalbeName}='{table.TableName}'";
             if (dt.Columns.Contains(_.OrdinalPosition))
                 drs = dt.Select(where, _.OrdinalPosition);
             else if (dt.Columns.Contains(_.ID))
@@ -251,7 +252,7 @@ namespace XCode.DataAccessLayer
         {
             if (indexes == null) return null;
 
-            var drs = indexes.Select(String.Format("{0}='{1}'", _.TalbeName, table.TableName));
+            var drs = indexes.Select($"{_.TalbeName}='{table.TableName}'");
             if (drs == null || drs.Length < 1) return null;
 
             var list = new List<IDataIndex>();
@@ -273,7 +274,7 @@ namespace XCode.DataAccessLayer
                     else if (indexColumns.Columns.Contains(_.ColumnPosition))
                         orderby = _.ColumnPosition;
 
-                    var dics = indexColumns.Select(String.Format("{0}='{1}' And {2}='{3}'", _.TalbeName, table.TableName, _.IndexName, di.Name), orderby);
+                    var dics = indexColumns.Select($"{_.TalbeName}='{table.TableName}' And {_.IndexName}='{di.Name}'", orderby);
                     if (dics != null && dics.Length > 0)
                     {
                         var ns = new List<String>();
@@ -382,9 +383,9 @@ namespace XCode.DataAccessLayer
             if (typeName.Contains("{0}"))
             {
                 if (typeName.Contains("{1}"))
-                    typeName = typeName.F(field.Precision, field.Scale);
+                    typeName = String.Format(typeName, field.Precision, field.Scale);
                 else
-                    typeName = typeName.F(field.Length);
+                    typeName = String.Format(typeName, field.Length);
             }
 
             return typeName;
@@ -422,10 +423,10 @@ namespace XCode.DataAccessLayer
                         if (dbtype.Contains("{1}"))
                         {
                             if (field is XField xf)
-                                field.RawType = dbtype.F(xf.Precision, xf.Scale);
+                                field.RawType = String.Format(dbtype, xf.Precision, xf.Scale);
                         }
                         else
-                            field.RawType = dbtype.F(field.Length);
+                            field.RawType = String.Format(dbtype, field.Length);
                     }
 
                     return item.Key;

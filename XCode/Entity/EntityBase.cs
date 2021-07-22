@@ -2,24 +2,25 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Data;
 using NewLife.Reflection;
 using XCode.Common;
 using XCode.Configuration;
-using XCode.Model;
 
 namespace XCode
 {
     /// <summary>数据实体基类的基类</summary>
     [Serializable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract partial class EntityBase : IEntity, ICloneable
+    public abstract partial class EntityBase : IEntity, IExtend, IExtend2, IExtend3, ICloneable
     {
         #region 初始化数据
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        internal protected virtual void InitData() { }
+        protected internal virtual void InitData() { }
         #endregion
 
         #region 填充数据
@@ -45,6 +46,20 @@ namespace XCode
         /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
         public abstract Int32 Delete();
+
+#if !NET4
+        /// <summary>把该对象持久化到数据库</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> InsertAsync();
+
+        /// <summary>更新数据库</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> UpdateAsync();
+
+        /// <summary>从数据库中删除该对象</summary>
+        /// <returns></returns>
+        public abstract Task<Int32> DeleteAsync();
+#endif
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
         /// <returns></returns>
@@ -77,7 +92,7 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         public Boolean SetItem(String name, Object value)
         {
-            var fact = EntityFactory.CreateOperate(GetType());
+            var fact = GetType().AsFactory();
             FieldItem fi = fact.Table.FindByName(name);
             // 确保数据类型一致
             if (fi != null) value = value.ChangeType(fi.Type);
@@ -92,18 +107,6 @@ namespace XCode
             }
             return b;
         }
-
-        ///// <summary>设置脏数据项。如果某个键存在并且数据没有脏，则设置</summary>
-        ///// <param name="name"></param>
-        ///// <param name="value"></param>
-        ///// <returns>返回是否成功设置了数据</returns>
-        //public Boolean SetNoDirtyItem(String name, Object value)
-        //{
-        //    var fact = EntityFactory.CreateOperate(GetType());
-        //    if (fact.FieldNames.Contains(name) && !Dirtys[name]) return SetItem(name, value);
-
-        //    return false;
-        //}
         #endregion
 
         #region 克隆
@@ -130,9 +133,11 @@ namespace XCode
             if (entity == this) return 0;
 
             IEntity src = this;
-            var nsSrc = EntityFactory.CreateOperate(src.GetType()).FieldNames;
+            var fact1 = src.GetType().AsFactory();
+            var fact2 = entity.GetType().AsFactory();
+            var nsSrc = fact1.FieldNames;
             //if (nsSrc == null || nsSrc.Count < 1) return 0;
-            var nsDes = EntityFactory.CreateOperate(entity.GetType()).FieldNames;
+            var nsDes = fact2.FieldNames;
             if (nsDes == null || nsDes.Count < 1) return 0;
 
             var n = 0;
@@ -148,14 +153,21 @@ namespace XCode
                 else
                 {
                     // 如果没有该字段，则写入到扩展属性里面去
-                    src.Extends[item] = entity[item];
+                    src[item] = entity[item];
                     if (setDirty) Dirtys[item] = true;
                 }
 
                 n++;
             }
             // 赋值扩展数据
-            entity.Extends.CopyTo(src.Extends);
+            //entity.Extends.CopyTo(src.Extends);
+            if (entity is EntityBase entity2 && entity2._Items != null && entity2._Items.Count > 0)
+            {
+                foreach (var item in entity2._Items)
+                {
+                    src[item.Key] = item.Value;
+                }
+            }
 
             return n;
         }
@@ -199,9 +211,17 @@ namespace XCode
         [NonSerialized]
         internal EntityExtend _Extends;
         /// <summary>扩展属性</summary>
-        //[NonSerialized]
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public EntityExtend Extends { get { return _Extends ?? (_Extends = new EntityExtend()); } set { _Extends = value; } }
+        public EntityExtend Extends { get => _Extends ??= new EntityExtend(); set => _Extends = value; }
+
+        [NonSerialized]
+        internal IDictionary<String, Object> _Items;
+        /// <summary>扩展字段。存放未能映射到实体属性的数据库字段</summary>
+        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        public IDictionary<String, Object> Items => _Items ??= new Dictionary<String, Object>();
+
+        /// <summary>扩展数据键集合</summary>
+        IEnumerable<String> IExtend2.Keys => _Items?.Keys;
         #endregion
 
         #region 累加
@@ -215,7 +235,7 @@ namespace XCode
             {
                 if (_Addition == null)
                 {
-                    _Addition = XCodeService.Container.Resolve<IEntityAddition>();
+                    _Addition = new EntityAddition();
                     _Addition.Entity = this;
                 }
                 return _Addition;
@@ -234,7 +254,7 @@ namespace XCode
         /// <summary>设置主键为空。Save将调用Insert</summary>
         void IEntity.SetNullKey()
         {
-            var eop = EntityFactory.CreateOperate(GetType());
+            var eop = GetType().AsFactory();
             foreach (var item in eop.Fields)
             {
                 if (item.PrimaryKey || item.IsIdentity) this[item.Name] = null;
@@ -252,7 +272,7 @@ namespace XCode
             if (this == entity) return true;
 
             // 判断是否所有主键相等
-            var op = EntityFactory.CreateOperate(GetType());
+            var op = GetType().AsFactory();
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
             if (ps == null || ps.Length < 1) ps = op.Table.Fields;

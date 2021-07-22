@@ -121,11 +121,14 @@ namespace NewLife.Serialization
             var start = 0;
             if (pos == 0 || pos == start) return new Byte[0];
 
-            if (ms is MemoryStream && pos == ms.Length && start == 0)
-                return (ms as MemoryStream).ToArray();
+            if (ms is MemoryStream ms2 && pos == ms.Length && start == 0)
+                return ms2.ToArray();
 
             ms.Position = start;
-            return ms.ReadBytes(pos - start);
+
+            var buf = new Byte[pos - start];
+            ms.Read(buf, 0, buf.Length);
+            return buf;
         }
         #endregion
 

@@ -3,13 +3,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
-using System.Threading;
+using System.Net.Http;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Log;
 #if !NET4
-using System.Net.Http;
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -21,6 +18,9 @@ namespace NewLife.Web
         #region 属性
         /// <summary>超时，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
+
+        /// <summary>最后使用的连接名</summary>
+        public Link LastLink { get; set; }
         #endregion
 
         #region 构造
@@ -35,6 +35,12 @@ namespace NewLife.Web
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls;
             }
+#elif NET50
+            try
+            {
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            }
+            catch { }
 #else
             try
             {
@@ -52,102 +58,15 @@ namespace NewLife.Web
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
-#if !NET4
             _client.TryDispose();
-#endif
         }
         #endregion
 
         #region 核心方法
-#if NET4
-        /// <summary>创建客户端会话</summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        protected virtual HttpWebRequest Create(String uri)
-        {
-            var req = WebRequest.Create(uri) as HttpWebRequest;
-
-            return req;
-        }
-
-        /// <summary>下载数据</summary>
-        /// <param name="address"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        protected virtual async Task<Byte[]> SendAsync(String address, Byte[] data = null)
-        {
-            var time = Timeout;
-            if (time <= 0) time = 3000;
-            while (true)
-            {
-                var http = Create(address);
-                http.Timeout = time;
-                http.Method = data == null || data.Length == 0 ? "GET" : "POST";
-
-                Log.Info("WebClientX.SendAsync {0}", address);
-
-                // 发送请求
-                var rs = (await Task.Factory.FromAsync(http.BeginGetResponse, http.EndGetResponse, null)) as HttpWebResponse;
-
-                // 如果是重定向
-                switch (rs.StatusCode)
-                {
-                    case HttpStatusCode.MovedPermanently:
-                    case HttpStatusCode.Redirect:
-                    case HttpStatusCode.RedirectMethod:
-                        var url = rs.Headers[HttpResponseHeader.Location + ""] + "";
-                        if (!url.IsNullOrEmpty())
-                        {
-                            address = url;
-                            data = null;
-                            continue;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                var ms = NewLife.Collections.Pool.MemoryStream.Get();
-                var ns = rs.GetResponseStream();
-
-                ns.CopyTo(ms);
-                while (rs.ContentLength > 0 && ms.Length < rs.ContentLength)
-                {
-                    Thread.Sleep(10);
-                    ns.CopyTo(ms);
-                }
-
-                return ms.Put(true);
-            }
-        }
-
-        /// <summary>下载数据</summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        public virtual async Task<Byte[]> DownloadDataAsync(String address) => await SendAsync(address);
-
-        /// <summary>下载字符串</summary>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        public virtual async Task<String> DownloadStringAsync(String address) => (await SendAsync(address)).ToStr();
-
-        /// <summary>下载文件</summary>
-        /// <param name="address"></param>
-        /// <param name="fileName"></param>
-        public virtual async Task DownloadFileAsync(String address, String fileName)
-        {
-            var rs = await SendAsync(address);
-            fileName.EnsureDirectory(true);
-            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                await fs.WriteAsync(rs, 0, rs.Length);
-            }
-        }
-#else
         private HttpClient _client;
 
         /// <summary>创建客户端会话</summary>
@@ -157,11 +76,10 @@ namespace NewLife.Web
             var http = _client;
             if (http == null)
             {
-                var handler = new HttpClientHandler();
-                http = new HttpClient(handler);
+                http = DefaultTracer.Instance.CreateHttpClient();
+                http.Timeout = TimeSpan.FromMilliseconds(Timeout);
 
                 _client = http;
-                http.Timeout = new TimeSpan(0, 0, 0, 0, Timeout);
             }
 
             return http;
@@ -173,16 +91,12 @@ namespace NewLife.Web
         /// <returns></returns>
         public virtual async Task<HttpContent> SendAsync(String address, HttpContent content = null)
         {
-            var time = Timeout;
-            if (time <= 0) time = 3000;
-
             var http = EnsureCreate();
 
             Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
             // 发送请求
-            var source = new CancellationTokenSource(time);
-            var task = content != null ? http.PostAsync(address, content, source.Token) : http.GetAsync(address, source.Token);
+            var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
             var rs = await task;
 
             return rs.Content;
@@ -204,12 +118,9 @@ namespace NewLife.Web
         {
             var rs = await SendAsync(address);
             fileName.EnsureDirectory(true);
-            using (var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                await rs.CopyToAsync(fs);
-            }
+            using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await rs.CopyToAsync(fs);
         }
-#endif
         #endregion
 
         #region 方法
@@ -254,15 +165,17 @@ namespace NewLife.Web
                     if (ls.Length == 0) return file;
 
                     // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
-                    foreach (var item in names)
-                    {
-                        link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           .Where(e => e.Name.EqualIgnoreCase(item))
-                           .OrderByDescending(e => e.Version)
-                           .ThenByDescending(e => e.Time)
-                           .FirstOrDefault();
-                        if (link != null) break;
-                    }
+                    //foreach (var item in names)
+                    //{
+                    //    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                    //       .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
+                    //       .OrderByDescending(e => e.Version)
+                    //       .ThenByDescending(e => e.Time)
+                    //       .FirstOrDefault();
+                    //    if (link != null) break;
+                    //}
+                    ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
+                    link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
                 }
                 catch (WebException ex)
                 {
@@ -281,6 +194,7 @@ namespace NewLife.Web
                 return file;
             }
 
+            LastLink = link;
             var linkName = link.FullName;
             var file2 = destdir.CombinePath(linkName).EnsureDirectory();
 
@@ -292,7 +206,7 @@ namespace NewLife.Web
                 if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
                 {
                     Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
-                    return file;
+                    return file2;
                 }
             }
 
@@ -349,7 +263,6 @@ namespace NewLife.Web
             try
             {
                 Log.Info("解压缩到 {0}", destdir);
-                //ZipFile.ExtractToDirectory(file, destdir);
                 file.AsFile().Extract(destdir, overwrite);
 
                 // 删除zip
@@ -360,63 +273,9 @@ namespace NewLife.Web
             catch (Exception ex)
             {
                 Log.Error(ex?.GetTrue()?.ToString());
-
-                //// 这个时候出现异常，删除zip
-                //if (!file.IsNullOrEmpty() && File.Exists(file))
-                //{
-                //    try
-                //    {
-                //        File.Delete(file);
-                //    }
-                //    catch { }
-                //}
             }
 
             return null;
-        }
-        #endregion
-
-        #region 辅助
-        private static Boolean? _useUnsafeHeaderParsing;
-        /// <summary>设置是否允许不安全头部</summary>
-        /// <remarks>
-        /// 微软WebClient默认要求严格的Http头部，否则报错
-        /// </remarks>
-        /// <param name="useUnsafe"></param>
-        /// <returns></returns>
-        public static Boolean SetAllowUnsafeHeaderParsing(Boolean useUnsafe)
-        {
-            if (_useUnsafeHeaderParsing != null && _useUnsafeHeaderParsing.Value == useUnsafe) return true;
-
-#if __CORE__
-            _useUnsafeHeaderParsing = true;
-#else
-            //Get the assembly that contains the internal class
-            var aNetAssembly = Assembly.GetAssembly(typeof(System.Net.Configuration.SettingsSection));
-            if (aNetAssembly == null) return false;
-
-            //Use the assembly in order to get the internal type for the internal class
-            var type = aNetAssembly.GetType("System.Net.Configuration.SettingsSectionInternal");
-            if (type == null) return false;
-
-            //Use the internal static property to get an instance of the internal settings class.
-            //If the static instance isn't created allready the property will create it for us.
-            var section = type.InvokeMember("Section", BindingFlags.Static | BindingFlags.GetProperty | BindingFlags.NonPublic, null, null, new Object[] { });
-
-            if (section != null)
-            {
-                //Locate the private bool field that tells the framework is unsafe header parsing should be allowed or not
-                var useUnsafeHeaderParsing = type.GetField("useUnsafeHeaderParsing", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (useUnsafeHeaderParsing != null)
-                {
-                    useUnsafeHeaderParsing.SetValue(section, useUnsafe);
-                    _useUnsafeHeaderParsing = useUnsafe;
-                    return true;
-                }
-            }
-#endif
-
-            return false;
         }
         #endregion
 

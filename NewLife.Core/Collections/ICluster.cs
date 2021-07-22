@@ -9,6 +9,9 @@ namespace NewLife.Collections
     /// <typeparam name="TValue"></typeparam>
     public interface ICluster<TKey, TValue>
     {
+        /// <summary>最后使用资源</summary>
+        KeyValuePair<TKey, TValue> Current { get; }
+
         /// <summary>资源列表</summary>
         Func<IEnumerable<TKey>> GetItems { get; set; }
 

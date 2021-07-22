@@ -17,50 +17,46 @@ namespace NewLife.Reflection
         /// <summary>程序集</summary>
         public Assembly Asm { get; }
 
-        [NonSerialized]
-        private List<String> hasLoaded = new List<String>();
-
         private String _Name;
         /// <summary>名称</summary>
-        public String Name => _Name ?? (_Name = "" + Asm.GetName().Name);
+        public String Name => _Name ??= "" + Asm.GetName().Name;
 
         private String _Version;
         /// <summary>程序集版本</summary>
-        public String Version => _Version ?? (_Version = "" + Asm.GetName().Version);
+        public String Version => _Version ??= "" + Asm.GetName().Version;
 
         private String _Title;
         /// <summary>程序集标题</summary>
-        public String Title => _Title ?? (_Title = "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>());
+        public String Title => _Title ??= "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>();
 
         private String _FileVersion;
         /// <summary>文件版本</summary>
-        public String FileVersion => _FileVersion ?? (_FileVersion = "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>());
-
-        private DateTime _Compile;
-        /// <summary>编译时间</summary>
-        public DateTime Compile
+        public String FileVersion
         {
             get
             {
-                if (_Compile <= DateTime.MinValue && !hasLoaded.Contains("Compile"))
+                if (_FileVersion == null)
                 {
-                    hasLoaded.Add("Compile");
-
-                    if (!String.IsNullOrEmpty(Version))
+                    var ver = Asm.GetCustomAttributeValue<AssemblyInformationalVersionAttribute, String>();
+                    if (!ver.IsNullOrEmpty())
                     {
-                        var ss = Version.Split(new Char[] { '.' });
-                        var d = Convert.ToInt32(ss[2]);
-                        var s = Convert.ToInt32(ss[3]);
-
-                        var dt = new DateTime(2000, 1, 1);
-                        dt = dt.AddDays(d).AddSeconds(s * 2);
-
-                        _Compile = dt;
+                        var p = ver.IndexOf('+');
+                        if (p > 0) ver = ver.Substring(0, p);
                     }
+                    _FileVersion = ver;
                 }
-                return _Compile;
+
+                if (_FileVersion == null) _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+
+                if (_FileVersion == null) _FileVersion = "";
+
+                return _FileVersion;
             }
         }
+
+        private DateTime? _Compile;
+        /// <summary>编译时间</summary>
+        public DateTime Compile => _Compile ??= GetCompileTime(Version);
 
         private Version _CompileVersion;
         /// <summary>编译版本</summary>
@@ -84,11 +80,11 @@ namespace NewLife.Reflection
 
         private String _Company;
         /// <summary>公司名称</summary>
-        public String Company => _Company ?? (_Company = "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>());
+        public String Company => _Company ??= "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
 
         private String _Description;
         /// <summary>说明</summary>
-        public String Description => _Description ?? (_Description = "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>());
+        public String Description => _Description ??= "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
 
         /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
         public String Location
@@ -111,7 +107,7 @@ namespace NewLife.Reflection
         #region 构造
         private AssemblyX(Assembly asm) => Asm = asm;
 
-        private static ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
+        private static readonly ConcurrentDictionary<Assembly, AssemblyX> cache = new();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
@@ -124,18 +120,40 @@ namespace NewLife.Reflection
 
         static AssemblyX()
         {
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += (sender, args) =>
-            {
-                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
-                if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-                return Assembly.ReflectionOnlyLoad(args.Name);
-            };
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-            {
-                var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
-                if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-                return OnResolve(args.Name);
-            };
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
+        }
+
+        private static Assembly OnReflectionOnlyAssemblyResolve(Object sender, ResolveEventArgs args)
+        {
+            var flag = XTrace.Log.Level <= LogLevel.Debug;
+            if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+            //if (!flag) return null;
+            //try
+            //{
+            //    return Assembly.ReflectionOnlyLoad(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            return null;
+            //}
+        }
+
+        private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
+        {
+            var flag = XTrace.Log.Level <= LogLevel.Debug;
+            if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
+            //if (!flag) return null;
+            //try
+            //{
+            //    return OnResolve(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            return null;
+            //}
         }
         #endregion
 
@@ -146,7 +164,7 @@ namespace NewLife.Reflection
         {
             get
             {
-                Type[] ts = null;
+                Type[] ts;
                 try
                 {
                     ts = Asm.GetTypes();
@@ -218,13 +236,13 @@ namespace NewLife.Reflection
         #endregion
 
         #region 方法
-        ConcurrentDictionary<String, Type> typeCache2 = new ConcurrentDictionary<String, Type>();
+        readonly ConcurrentDictionary<String, Type> typeCache2 = new();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
         public Type GetType(String typeName)
         {
-            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException("typeName");
+            if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException(nameof(typeName));
 
             return typeCache2.GetOrAdd(typeName, GetTypeInternal);
         }
@@ -285,134 +303,134 @@ namespace NewLife.Reflection
         #endregion
 
         #region 插件
-        /// <summary>查找插件</summary>
-        /// <typeparam name="TPlugin"></typeparam>
-        /// <returns></returns>
-        internal List<Type> FindPlugins<TPlugin>() => FindPlugins(typeof(TPlugin));
+        ///// <summary>查找插件</summary>
+        ///// <typeparam name="TPlugin"></typeparam>
+        ///// <returns></returns>
+        //internal List<Type> FindPlugins<TPlugin>() => FindPlugins(typeof(TPlugin));
 
-        private ConcurrentDictionary<Type, List<Type>> _plugins = new ConcurrentDictionary<Type, List<Type>>();
-        /// <summary>查找插件，带缓存</summary>
-        /// <param name="baseType">类型</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        internal List<Type> FindPlugins(Type baseType)
-        {
-            // 如果type是null，则返回所有类型
+        //private ConcurrentDictionary<Type, List<Type>> _plugins = new ConcurrentDictionary<Type, List<Type>>();
+        ///// <summary>查找插件，带缓存</summary>
+        ///// <param name="baseType">类型</param>
+        ///// <returns></returns>
+        //[EditorBrowsable(EditorBrowsableState.Advanced)]
+        //internal List<Type> FindPlugins(Type baseType)
+        //{
+        //    // 如果type是null，则返回所有类型
 
-            if (_plugins.TryGetValue(baseType, out var list)) return list;
+        //    if (_plugins.TryGetValue(baseType, out var list)) return list;
 
-            list = new List<Type>();
-            foreach (var item in Types)
-            {
-                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-                if (item != baseType && item.As(baseType)) list.Add(item);
-            }
-            if (list.Count <= 0) list = null;
+        //    list = new List<Type>();
+        //    foreach (var item in Types)
+        //    {
+        //        if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+        //        if (item != baseType && item.As(baseType)) list.Add(item);
+        //    }
+        //    if (list.Count <= 0) list = null;
 
-            _plugins.TryAdd(baseType, list);
+        //    _plugins.TryAdd(baseType, list);
 
-            return list;
-        }
+        //    return list;
+        //}
 
-        /// <summary>查找所有非系统程序集中的所有插件</summary>
-        /// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
-        /// <param name="baseType"></param>
-        /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
-        /// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
-        {
-            var baseAssemblyName = baseType.Assembly.GetName().Name;
+        ///// <summary>查找所有非系统程序集中的所有插件</summary>
+        ///// <remarks>继承类所在的程序集会引用baseType所在的程序集，利用这一点可以做一定程度的性能优化。</remarks>
+        ///// <param name="baseType"></param>
+        ///// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
+        ///// <param name="excludeGlobalTypes">指示是否应检查来自所有引用程序集的类型。如果为 false，则检查来自所有引用程序集的类型。 否则，只检查来自非全局程序集缓存 (GAC) 引用的程序集的类型。</param>
+        ///// <returns></returns>
+        //[EditorBrowsable(EditorBrowsableState.Advanced)]
+        //internal static IEnumerable<Type> FindAllPlugins(Type baseType, Boolean isLoadAssembly = false, Boolean excludeGlobalTypes = true)
+        //{
+        //    var baseAssemblyName = baseType.Assembly.GetName().Name;
 
-            // 如果基类所在程序集没有强命名，则搜索时跳过所有强命名程序集
-            // 因为继承类程序集的强命名要求基类程序集必须强命名
-            var signs = baseType.Assembly.GetName().GetPublicKey();
-            var hasNotSign = signs == null || signs.Length <= 0;
+        //    // 如果基类所在程序集没有强命名，则搜索时跳过所有强命名程序集
+        //    // 因为继承类程序集的强命名要求基类程序集必须强命名
+        //    var signs = baseType.Assembly.GetName().GetPublicKey();
+        //    var hasNotSign = signs == null || signs.Length <= 0;
 
-            var list = new List<Type>();
-            foreach (var item in GetAssemblies())
-            {
-                signs = item.Asm.GetName().GetPublicKey();
-                if (hasNotSign && signs != null && signs.Length > 0) continue;
+        //    var list = new List<Type>();
+        //    foreach (var item in GetAssemblies())
+        //    {
+        //        signs = item.Asm.GetName().GetPublicKey();
+        //        if (hasNotSign && signs != null && signs.Length > 0) continue;
 
-                // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-                if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+        //        // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+        //        if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
-                // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
-                if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+        //        // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
+        //        if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
 
-                var ts = item.FindPlugins(baseType);
-                if (ts != null && ts.Count > 0)
-                {
-                    foreach (var elm in ts)
-                    {
-                        if (!list.Contains(elm))
-                        {
-                            list.Add(elm);
-                            yield return elm;
-                        }
-                    }
-                }
-            }
-            if (isLoadAssembly)
-            {
-                foreach (var item in ReflectionOnlyGetAssemblies())
-                {
-                    // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-                    if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+        //        var ts = item.FindPlugins(baseType);
+        //        if (ts != null && ts.Count > 0)
+        //        {
+        //            foreach (var elm in ts)
+        //            {
+        //                if (!list.Contains(elm))
+        //                {
+        //                    list.Add(elm);
+        //                    yield return elm;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    if (isLoadAssembly)
+        //    {
+        //        foreach (var item in ReflectionOnlyGetAssemblies())
+        //        {
+        //            // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+        //            if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
-                    // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
-                    if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
+        //            // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
+        //            if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
 
-                    var ts = item.FindPlugins(baseType);
-                    if (ts != null && ts.Count > 0)
-                    {
-                        // 真实加载
-                        if (XTrace.Debug)
-                        {
-                            // 如果是本目录的程序集，去掉目录前缀
-                            var file = item.Asm.Location;
-                            var root = ".".GetFullPath();
-                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
-                            XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
-                        }
-                        var asm2 = Assembly.LoadFile(item.Asm.Location);
-                        ts = Create(asm2).FindPlugins(baseType);
+        //            var ts = item.FindPlugins(baseType);
+        //            if (ts != null && ts.Count > 0)
+        //            {
+        //                // 真实加载
+        //                if (XTrace.Debug)
+        //                {
+        //                    // 如果是本目录的程序集，去掉目录前缀
+        //                    var file = item.Asm.Location;
+        //                    var root = ".".GetFullPath();
+        //                    if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+        //                    XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
+        //                }
+        //                var asm2 = Assembly.LoadFile(item.Asm.Location);
+        //                ts = Create(asm2).FindPlugins(baseType);
 
-                        if (ts != null && ts.Count > 0)
-                        {
-                            foreach (var elm in ts)
-                            {
-                                if (!list.Contains(elm))
-                                {
-                                    list.Add(elm);
-                                    yield return elm;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                if (ts != null && ts.Count > 0)
+        //                {
+        //                    foreach (var elm in ts)
+        //                    {
+        //                        if (!list.Contains(elm))
+        //                        {
+        //                            list.Add(elm);
+        //                            yield return elm;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
-        /// <summary><paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/></summary>
-        /// <param name="asm">程序集</param>
-        /// <param name="baseAsmName">被引用程序集全名</param>
-        /// <returns></returns>
-        private static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
-        {
-            //if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
-            if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
+        ///// <summary><paramref name="asm"/> 是否引用了 <paramref name="baseAsmName"/></summary>
+        ///// <param name="asm">程序集</param>
+        ///// <param name="baseAsmName">被引用程序集全名</param>
+        ///// <returns></returns>
+        //private static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
+        //{
+        //    //if (asm.FullName.EqualIgnoreCase(baseAsmName)) return true;
+        //    if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
 
-            foreach (var item in asm.GetReferencedAssemblies())
-            {
-                //if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
-                if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
-            }
+        //    foreach (var item in asm.GetReferencedAssemblies())
+        //    {
+        //        //if (item.FullName.EqualIgnoreCase(baseAsmName)) return true;
+        //        if (item.Name.EqualIgnoreCase(baseAsmName)) return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>根据名称获取类型</summary>
         /// <param name="typeName">类型名</param>
@@ -422,6 +440,15 @@ namespace NewLife.Reflection
         {
             var type = Type.GetType(typeName);
             if (type != null) return type;
+
+            // 数组
+            if (typeName.EndsWith("[]"))
+            {
+                var elemType = GetType(typeName.Substring(0, typeName.Length - 2), isLoadAssembly);
+                if (elemType == null) return null;
+
+                return elemType.MakeArrayType();
+            }
 
             // 加速基础类型识别，忽略大小写
             if (!typeName.Contains("."))
@@ -531,21 +558,16 @@ namespace NewLife.Reflection
 
                     var basedir = AppDomain.CurrentDomain.BaseDirectory;
                     set.Add(basedir);
-                    if (Directory.Exists("bin".GetFullPath())) set.Add("bin".GetFullPath());
-                    var plugin = Setting.Current.GetPluginPath();
+
+                    var bin = "bin".GetFullPath();
+                    if (Directory.Exists(bin)) set.Add(bin);
+
+                    var cfg = Setting.Current;
+                    var plugin = cfg.PluginPath.GetFullPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
 
-                    //// 增加所有程序集所在目录为搜索目录，便于查找程序集
-                    //foreach (var asm in GetAssemblies())
-                    //{
-                    //    // GAC程序集和系统程序集跳过
-                    //    if (asm.Asm.GlobalAssemblyCache) continue;
-                    //    if (asm.IsSystemAssembly) continue;
-                    //    if (String.IsNullOrEmpty(asm.Location)) continue;
-
-                    //    var dir = Path.GetDirectoryName(asm.Location).EnsureEnd("\\");
-                    //    if (!set.Contains(dir)) set.Add(dir);
-                    //}
+                    plugin = cfg.PluginPath.GetBasePath();
+                    if (!set.Contains(plugin)) set.Add(plugin);
 
                     _AssemblyPaths = set;
                 }
@@ -580,7 +602,7 @@ namespace NewLife.Reflection
             }
         }
 
-        private static ICollection<String> _BakImages = new List<String>();
+        private static readonly ICollection<String> _BakImages = new List<String>();
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -601,31 +623,15 @@ namespace NewLife.Reflection
 
             foreach (var item in ss)
             {
-                // 仅尝试加载dll和exe，不加载vshost文件
-                if (!item.EndsWithIgnoreCase(".dll", ".exe") || item.EndsWithIgnoreCase(".vshost.exe")) continue;
+                // 仅尝试加载dll
+                if (!item.EndsWithIgnoreCase(".dll")) continue;
                 if (_BakImages.Contains(item)) continue;
 
                 if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                     loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-#if !__CORE__
                 var asm = ReflectionOnlyLoadFrom(item, ver);
                 if (asm == null) continue;
-#else
-
-                var asm = (Assembly)null;
-                try
-                {
-                    asm = Assembly.LoadFrom(item);
-                }
-                catch (BadImageFormatException)
-                {
-                    _BakImages.Add(item);
-                    //XTrace.WriteLine(ex.ToString());
-                }
-
-                if (asm == null) continue;
-#endif
 
                 // 不搜索系统程序集，优化性能
                 if (CheckSystem(asm)) continue;
@@ -643,7 +649,6 @@ namespace NewLife.Reflection
             }
         }
 
-#if !__CORE__
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="file"></param>
         /// <param name="ver"></param>
@@ -655,11 +660,18 @@ namespace NewLife.Reflection
 
             try
             {
+#if !__CORE__
                 return Assembly.ReflectionOnlyLoadFrom(file);
-            }
-            catch { return null; }
-        }
+#else
+                return Assembly.LoadFrom(file);
 #endif
+            }
+            catch
+            {
+                _BakImages.Add(file);
+                return null;
+            }
+        }
 
         /// <summary>获取当前应用程序的所有程序集，不包括系统程序集，仅限本目录</summary>
         /// <returns></returns>
@@ -673,11 +685,23 @@ namespace NewLife.Reflection
                 // 加载程序集列表很容易抛出异常，全部屏蔽
                 try
                 {
-                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                    var file = asmx.Asm.CodeBase;
-                    if (String.IsNullOrEmpty(file)) continue;
-                    file = file.TrimStart("file:///");
-                    file = file.Replace("/", "\\");
+                    if (asmx.FileVersion.IsNullOrEmpty()) continue;
+
+                    var file = "";
+#if !__CORE__
+                    file = asmx.Asm.CodeBase;
+#endif
+                    if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
+                    if (file.IsNullOrEmpty()) continue;
+
+                    if (file.StartsWith("file:///"))
+                    {
+                        file = file.TrimStart("file:///");
+                        if (Path.DirectorySeparatorChar == '\\')
+                            file = file.Replace('/', '\\');
+                        else
+                            file = file.Replace('\\', '/').EnsureStart("/");
+                    }
                     if (!file.StartsWithIgnoreCase(cur)) continue;
 
                     if (!hs.Contains(file))
@@ -788,6 +812,25 @@ namespace NewLife.Reflection
 
         //    return asm1.FullName == asm2.FullName;
         //}
+        #endregion
+
+        #region 辅助
+        /// <summary>根据版本号计算得到编译时间</summary>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        public static DateTime GetCompileTime(String version)
+        {
+            var ss = version?.Split(new Char[] { '.' });
+            if (ss == null || ss.Length < 4) return DateTime.MinValue;
+
+            var d = Convert.ToInt32(ss[2]);
+            var s = Convert.ToInt32(ss[3]);
+
+            var dt = new DateTime(2000, 1, 1);
+            dt = dt.AddDays(d).AddSeconds(s * 2);
+
+            return dt;
+        }
         #endregion
     }
 }

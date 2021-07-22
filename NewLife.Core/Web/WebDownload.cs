@@ -34,7 +34,7 @@ namespace NewLife.Web
         /// <summary>是否启用浏览器缓存 默认禁用</summary>
         public Boolean BrowserCache { get; set; }
 
-        private TimeSpan _browserCacheMaxAge = new TimeSpan(30, 0, 0, 0);
+        private TimeSpan _browserCacheMaxAge = new(30, 0, 0, 0);
         /// <summary>浏览器最大缓存时间 默认30天。通过Cache-Control头控制max-age，直接使用浏览器缓存，不会发出Http请求，对F5无效</summary>
         public TimeSpan BrowserCacheMaxAge { get { return _browserCacheMaxAge; } set { _browserCacheMaxAge = value; } }
 
@@ -157,7 +157,7 @@ namespace NewLife.Web
             if (startBytes != 0)
             {
                 // 指定数据范围
-                Response.AddHeader("Content-Range", String.Format(" bytes {0}-{1}/{2}", startBytes, fileLength - 1, fileLength));
+                Response.AddHeader("Content-Range", $" bytes {startBytes}-{fileLength - 1}/{fileLength}");
             }
             Response.AddHeader("Connection", "Keep-Alive");
             Response.ContentType = ContentType;

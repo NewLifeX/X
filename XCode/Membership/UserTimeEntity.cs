@@ -2,11 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Web;
-using NewLife.Model;
+using NewLife;
 using NewLife.Threading;
-using NewLife.Web;
 using XCode.Configuration;
 
 namespace XCode.Membership
@@ -43,11 +40,7 @@ namespace XCode.Membership
 
         /// <summary>实例化</summary>
         /// <param name="provider"></param>
-        public UserModule(IManageProvider provider)
-        {
-            //Provider = provider ?? ManageProvider.Provider;
-            Provider = provider;
-        }
+        public UserModule(IManageProvider provider) => Provider = provider;
         #endregion
 
         /// <summary>初始化。检查是否匹配</summary>
@@ -88,12 +81,16 @@ namespace XCode.Membership
             {
                 if (isNew)
                 {
-                    SetNoDirtyItem(fs, entity, __.CreateUserID, user.ID);
-                    SetNoDirtyItem(fs, entity, __.CreateUser, user + "");
+                    SetItem(fs, entity, __.CreateUserID, user.ID);
+                    SetItem(fs, entity, __.CreateUser, user + "");
+                    SetItem(fs, entity, __.UpdateUserID, user.ID);
+                    SetItem(fs, entity, __.UpdateUser, user + "");
                 }
-
-                SetNoDirtyItem(fs, entity, __.UpdateUserID, user.ID);
-                SetNoDirtyItem(fs, entity, __.UpdateUser, user + "");
+                else
+                {
+                    SetNoDirtyItem(fs, entity, __.UpdateUserID, user.ID);
+                    SetNoDirtyItem(fs, entity, __.UpdateUser, user + "");
+                }
             }
             else
             {
@@ -147,10 +144,16 @@ namespace XCode.Membership
 
             var fs = GetFields(entity.GetType());
 
-            if (isNew) SetNoDirtyItem(fs, entity, __.CreateTime, TimerX.Now);
-
-            // 不管新建还是更新，都改变更新时间
-            SetNoDirtyItem(fs, entity, __.UpdateTime, TimerX.Now);
+            if (isNew)
+            {
+                SetItem(fs, entity, __.CreateTime, TimerX.Now);
+                SetItem(fs, entity, __.UpdateTime, TimerX.Now);
+            }
+            else
+            {
+                // 不管新建还是更新，都改变更新时间
+                SetNoDirtyItem(fs, entity, __.UpdateTime, TimerX.Now);
+            }
 
             return true;
         }
@@ -186,7 +189,7 @@ namespace XCode.Membership
             }
 
             var fs2 = GetIPFieldNames(entityType);
-            return fs2 != null && fs2.Count > 0;
+            return fs2 != null && fs2.Length > 0;
         }
 
         /// <summary>验证数据，自动加上创建和更新的信息</summary>
@@ -201,44 +204,42 @@ namespace XCode.Membership
             {
                 // 如果不是IPv6，去掉后面端口
                 if (ip.Contains("://")) ip = ip.Substring("://", null);
-                if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
+                //if (ip.Contains(":") && !ip.Contains("::")) ip = ip.Substring(null, ":");
 
                 var fs = GetFields(entity.GetType());
 
                 if (isNew)
                 {
-                    SetNoDirtyItem(fs, entity, __.CreateIP, ip);
+                    //SetItem(fs, entity, __.CreateIP, ip);
 
                     var fs2 = GetIPFieldNames(entity.GetType());
                     if (fs2 != null)
                     {
                         foreach (var item in fs2)
                         {
-                            SetNoDirtyItem(fs2, entity, item, ip);
+                            SetItem(fs2, entity, item, ip);
                         }
                     }
-                }
 
-                // 不管新建还是更新，都改变更新时间
-                SetNoDirtyItem(fs, entity, __.UpdateIP, ip);
+                    //SetItem(fs, entity, __.UpdateIP, ip);
+                }
+                else
+                {
+                    // 不管新建还是更新，都改变更新
+                    SetNoDirtyItem(fs, entity, __.UpdateIP, ip);
+                }
             }
 
             return true;
         }
 
-        private static ConcurrentDictionary<Type, ICollection<FieldItem>> _ipFieldNames = new ConcurrentDictionary<Type, ICollection<FieldItem>>();
+        private static readonly ConcurrentDictionary<Type, FieldItem[]> _ipFieldNames = new();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected static ICollection<FieldItem> GetIPFieldNames(Type entityType)
+        protected static FieldItem[] GetIPFieldNames(Type entityType)
         {
-            return _ipFieldNames.GetOrAdd(entityType, t =>
-            {
-                var fs = GetFields(t);
-                if (fs == null || fs.Count == 0) return null;
-
-                return new HashSet<FieldItem>(fs.Where(e => e.Name.EndsWith("IP")));
-            });
+            return _ipFieldNames.GetOrAdd(entityType, t => GetFields(t)?.Where(e => e.Name.EndsWith("IP")).ToArray());
         }
     }
 }

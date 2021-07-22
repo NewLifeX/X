@@ -55,7 +55,7 @@ namespace NewLife.Serialization
                     return value + "";
                 case TypeCode.String:
                     if (((String)value).IsNullOrEmpty()) return String.Empty;
-                    return "\"{0}\"".F(value);
+                    return $"\"{value}\"";
                 case TypeCode.Object:
                 default:
                     return null;
@@ -70,10 +70,9 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
 
             Host.Write("[");
-            if (list != null && list.Count > 0)
+            if (value is IList list && list.Count > 0)
             {
                 // 循环写入数据
                 foreach (var item in list)

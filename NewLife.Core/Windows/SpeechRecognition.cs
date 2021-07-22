@@ -15,7 +15,7 @@ namespace NewLife.Windows
         #region 属性
         private ISpeech _speech;
 
-        private IDictionary<String, Action> _dic;
+        private readonly IDictionary<String, Action> _dic;
 
         /// <summary>系统名称。用于引导前缀</summary>
         public String Name { get; set; } = "丁丁";
@@ -35,9 +35,9 @@ namespace NewLife.Windows
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _speech.TryDispose();
         }
@@ -49,10 +49,7 @@ namespace NewLife.Windows
 
         /// <summary>获取已注册的所有键值</summary>
         /// <returns></returns>
-        public String[] GetAllKeys()
-        {
-            return _dic.Keys.ToArray();
-        }
+        public String[] GetAllKeys() => _dic.Keys.ToArray();
         #endregion
 
         #region 方法

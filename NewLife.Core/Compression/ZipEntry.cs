@@ -3,13 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Reflection;
 using NewLife.Security;
 using NewLife.Serialization;
 
-namespace System.IO.Compression
+namespace NewLife.Compression
 {
     /// <summary>Zip实体。包含文件头信息和文件位置</summary>
     public class ZipEntry : IDisposable
@@ -35,8 +36,8 @@ namespace System.IO.Compression
 
         private Int32 _LastModified;
         /// <summary>最后修改时间</summary>
-        [XmlIgnore]
-        public DateTime LastModified { get => ZipFile.DosDateTimeToFileTime(_LastModified); set => _LastModified = ZipFile.FileTimeToDosDateTime(value); }
+        [XmlIgnore, IgnoreDataMember]
+        public DateTime LastModified { get => ZipArchive.DosDateTimeToFileTime(_LastModified); set => _LastModified = ZipArchive.FileTimeToDosDateTime(value); }
 
         /// <summary>CRC校验</summary>
         public UInt32 Crc;
@@ -91,8 +92,8 @@ namespace System.IO.Compression
 
         #region 属性
         /// <summary>是否目录</summary>
-        [XmlIgnore]
-        public Boolean IsDirectory => ("" + FileName).EndsWith(ZipFile.DirSeparator);
+        [XmlIgnore, IgnoreDataMember]
+        public Boolean IsDirectory => ("" + FileName).EndsWith(ZipArchive.DirSeparator);
 
         /// <summary>数据源</summary>
         [NonSerialized]
@@ -129,7 +130,7 @@ namespace System.IO.Compression
         #endregion
 
         #region 读取核心
-        internal static ZipEntry ReadEntry(ZipFile zipfile, Stream stream, Boolean first, Boolean embedFileData)
+        internal static ZipEntry ReadEntry(ZipArchive zipfile, Stream stream, Boolean first, Boolean embedFileData)
         {
             var reader = zipfile.CreateReader(stream);
             // 读取文件头时忽略掉这些字段，这些都是DirEntry的字段
@@ -183,7 +184,7 @@ namespace System.IO.Compression
             return entry;
         }
 
-        internal static ZipEntry ReadDirEntry(ZipFile zipfile, Stream stream)
+        internal static ZipEntry ReadDirEntry(ZipArchive zipfile, Stream stream)
         {
             var reader = zipfile.CreateReader(stream);
 
@@ -240,7 +241,10 @@ namespace System.IO.Compression
             if (DataSource.IsCompressed)
             {
                 // 可能数据源是曾经被压缩过了的，比如刚解压的实体
-                source.CopyTo(writer.Stream, 0, dsLen);
+                //source.CopyTo(writer.Stream, 0, dsLen);
+                var buf = new Byte[dsLen];
+                var count = source.Read(buf, 0, buf.Length);
+                writer.Stream.Write(buf, 0, count);
                 return;
             }
 
@@ -248,7 +252,10 @@ namespace System.IO.Compression
             {
                 case CompressionMethod.Stored:
                     // 原始数据流直接拷贝到目标。必须指定大小，否则可能读过界
-                    source.CopyTo(writer.Stream, 0, dsLen);
+                    //source.CopyTo(writer.Stream, 0, dsLen);
+                    var buf = new Byte[dsLen];
+                    var count = source.Read(buf, 0, buf.Length);
+                    writer.Stream.Write(buf, 0, count);
                     break;
                 case CompressionMethod.Deflated:
                     {
@@ -312,7 +319,7 @@ namespace System.IO.Compression
                 }
 
                 // 修正时间
-                if (LastModified > ZipFile.MinDateTime)
+                if (LastModified > ZipArchive.MinDateTime)
                 {
                     var fi = new FileInfo(file)
                     {
@@ -357,7 +364,7 @@ namespace System.IO.Compression
                         throw new XException("无法处理的压缩算法{0}！", CompressionMethod);
                 }
             }
-            catch (Exception ex) { throw new ZipException(String.Format("解压缩{0}时出错！", FileName), ex); }
+            catch (Exception ex) { throw new ZipException($"解压缩{FileName}时出错！", ex); }
         }
         #endregion
 
@@ -377,7 +384,7 @@ namespace System.IO.Compression
             }
 
             IDataSource ds = null;
-            if (!entryName.EndsWith(ZipFile.DirSeparator))
+            if (!entryName.EndsWith(ZipArchive.DirSeparator))
             {
                 if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
 
@@ -387,7 +394,7 @@ namespace System.IO.Compression
             var entry = Create(entryName, ds, stored);
 
             // 读取最后修改时间
-            if (entry.LastModified <= ZipFile.MinDateTime)
+            if (entry.LastModified <= ZipArchive.MinDateTime)
             {
                 var fi = new FileInfo(fileName);
                 entry.LastModified = fi.LastWriteTime;
@@ -420,7 +427,7 @@ namespace System.IO.Compression
             var entry = Create(entryName, ds, stored);
 
             // 读取最后修改时间
-            if (!String.IsNullOrEmpty(fileName) && entry.LastModified <= ZipFile.MinDateTime)
+            if (!String.IsNullOrEmpty(fileName) && entry.LastModified <= ZipArchive.MinDateTime)
             {
                 var fi = new FileInfo(fileName);
                 entry.LastModified = fi.LastWriteTime;
@@ -496,7 +503,7 @@ namespace System.IO.Compression
             public Int64 Offset { get; }
 
             /// <summary>长度</summary>
-            public Int64 Length { get; }
+            public Int64 Length => Stream.Length;
 
             /// <summary>是否被压缩</summary>
             public Boolean IsCompressed { get; set; }
@@ -505,7 +512,7 @@ namespace System.IO.Compression
             {
                 Stream = stream;
                 Offset = stream.Position;
-                Length = stream.Length;
+                //Length = stream.Length;
             }
 
             public void Dispose() => Stream.TryDispose();
@@ -520,7 +527,7 @@ namespace System.IO.Compression
             public UInt32 GetCRC()
             {
                 Stream.Seek(Offset, SeekOrigin.Begin);
-                return new Crc32().Update(Stream, Length).Value;
+                return new Crc32().Update(Stream, Stream.Length).Value;
             }
             #endregion
         }

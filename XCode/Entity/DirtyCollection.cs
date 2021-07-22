@@ -8,7 +8,7 @@ namespace XCode
     /// <summary>脏属性集合</summary>
     /// <remarks>
     /// 脏数据需要并行高性能，要节省内存，允许重复。
-    /// 普通集合加锁成本太高，并行集合内存消耗太大，并行字典只有一两项的时候也要占用7.9k内存。
+    /// 普通集合加锁成本太高，并发集合内存消耗太大，并发字典只有一两项的时候也要占用7.9k内存。
     /// </remarks>
     [Serializable]
     public class DirtyCollection : IEnumerable<String>

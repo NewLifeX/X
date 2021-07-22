@@ -47,7 +47,7 @@ namespace System
             Func<T> methodAccessor = GetMethodAccessor<Func<T>>(ref storage, methodName, true);
             if (methodAccessor == null)
             {
-                returnValue = default(T);
+                returnValue = default;
                 return false;
             }
             returnValue = methodAccessor.Invoke();
@@ -129,7 +129,7 @@ namespace System
         {
             if (typeof(T).GetConstructor(argumentTypes) == null) return null;
 
-            return (object[] arguments) => (T)((object)Activator.CreateInstance(typeof(T), arguments));
+            return (object[] arguments) => (T)Activator.CreateInstance(typeof(T), arguments);
         }
 
         private Delegate CreateMethodAccessor(Type type, string name, bool bindInstance = true)

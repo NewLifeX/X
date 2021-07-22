@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using NewLife.Log;
-using XCode.Membership;
+using NewLife;
 
 namespace XCode.Transform
 {
@@ -161,7 +158,7 @@ namespace XCode.Transform
     {
         #region 属性
         /// <summary>目标实体工厂。分批统计时不需要设定</summary>
-        public IEntityOperate Target { get; set; }
+        public IEntityFactory Target { get; set; }
 
         /// <summary>仅插入，不用判断目标是否已有数据</summary>
         public Boolean InsertOnly { get; set; }
@@ -174,7 +171,7 @@ namespace XCode.Transform
         /// <summary>实例化数据同步</summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public Sync(IEntityOperate source, IEntityOperate target) : base(source) { Target = target; }
+        public Sync(IEntityFactory source, IEntityFactory target) : base(source) { Target = target; }
         #endregion
 
         #region 数据处理
@@ -203,14 +200,12 @@ namespace XCode.Transform
             var fact = Target;
             if (fact == null) throw new ArgumentNullException(nameof(Target));
 
-            using (var tran = fact.CreateTrans())
-            {
-                var rs = base.OnProcess(ctx);
+            using var tran = fact.CreateTrans();
+            var rs = base.OnProcess(ctx);
 
-                tran.Commit();
+            tran.Commit();
 
-                return rs;
-            }
+            return rs;
         }
 
         /// <summary>同步单行数据</summary>

@@ -54,8 +54,7 @@ namespace NewLife.Web
             //HasWrite = true;
 
             // 只处理Page页面
-            var page = ctx.Handler as Page;
-            if (page == null) return;
+            if (ctx.Handler is not Page page) return;
 
             var str = Render(ctx);
             if (String.IsNullOrEmpty(str)) return;

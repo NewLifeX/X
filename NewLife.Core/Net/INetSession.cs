@@ -3,11 +3,10 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Data;
-using NewLife.Messaging;
 
 namespace NewLife.Net
 {
-    /// <summary>网络服务会话接口</summary>
+    /// <summary>网络服务的会话，每个连接一个会话</summary>
     /// <remarks>
     /// 所有应用服务器以会话<see cref="INetSession"/>作为业务处理核心。
     /// 应用服务器收到新会话请求后，通过<see cref="Start"/>启动一个会话处理。
@@ -16,7 +15,7 @@ namespace NewLife.Net
     public interface INetSession : IDisposable2
     {
         #region 属性
-        /// <summary>编号</summary>
+        /// <summary>唯一会话标识</summary>
         Int32 ID { get; }
 
         /// <summary>主服务</summary>
@@ -39,8 +38,8 @@ namespace NewLife.Net
 
         #region 收发
         /// <summary>发送数据</summary>
-        /// <param name="pk">数据包</param>
-        INetSession Send(Packet pk);
+        /// <param name="data">数据包</param>
+        INetSession Send(Packet data);
 
         /// <summary>发送数据流</summary>
         /// <param name="stream"></param>
@@ -59,9 +58,6 @@ namespace NewLife.Net
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
-
-        ///// <summary>消息到达事件</summary>
-        //event EventHandler<MessageEventArgs> MessageReceived;
         #endregion
     }
 

@@ -28,7 +28,7 @@ namespace XCode
             if (list == null || !list.Any()) return new Dictionary<String, String>();
 
             var type = list.First().GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = type.AsFactory();
 
             // 构造主键类型和值类型
             var key = fact.Unique;
@@ -36,8 +36,7 @@ namespace XCode
 
             if (!valueField.IsNullOrEmpty())
             {
-                var fi = fact.Table.FindByName(valueField) as FieldItem;
-                if (fi == null) throw new XException("无法找到名为{0}的字段", valueField);
+                if (fact.Table.FindByName(valueField) is not FieldItem fi) throw new XException("无法找到名为{0}的字段", valueField);
 
                 type = fi.Type;
             }
@@ -62,15 +61,18 @@ namespace XCode
         /// <summary>从实体对象创建参数</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity">实体对象</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static IDataParameter[] CreateParameter<T>(this T entity) where T : IEntity
+        public static IDataParameter[] CreateParameter<T>(this T entity, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             var dps = new List<IDataParameter>();
             if (entity == null) return dps.ToArray();
 
-            var type = entity.GetType();
-            var fact = EntityFactory.CreateOperate(type);
-            var db = fact.Session.Dal.Db;
+            var fact = entity.GetType().AsFactory();
+            //session ??= fact.Session;
+            var db = session.Dal.Db;
 
             foreach (var item in fact.Fields)
             {
@@ -82,15 +84,18 @@ namespace XCode
 
         /// <summary>从实体列表创建参数</summary>
         /// <param name="list">实体列表</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static IDataParameter[] CreateParameters<T>(this IEnumerable<T> list) where T : IEntity
+        public static IDataParameter[] CreateParameters<T>(this IEnumerable<T> list, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             var dps = new List<IDataParameter>();
             if (list == null || !list.Any()) return dps.ToArray();
 
-            var type = list.First().GetType();
-            var fact = EntityFactory.CreateOperate(type);
-            var db = fact.Session.Dal.Db;
+            var fact = list.First().GetType().AsFactory();
+            //session ??= fact.Session;
+            var db = session.Dal.Db;
 
             foreach (var item in fact.Fields)
             {
@@ -106,61 +111,58 @@ namespace XCode
         /// <summary>把整个集合插入到数据库</summary>
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 Insert<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        public static Int32 Insert<T>(this IEnumerable<T> list, Boolean? useTransition = null, IEntitySession session = null) where T : IEntity
         {
             // 避免列表内实体对象为空
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            if (list.Count() > 1)
-            {
-                var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (db.SupportBatch)
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                if (list is not IList<T> es) es = list.ToList();
+                foreach (IEntity item in es.ToArray())
                 {
-                    if (!(list is IList<T> es)) es = list.ToList();
-                    foreach (IEntity item in es.ToArray())
-                    {
-                        if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                        if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
-                    }
-                    return BatchInsert(list);
+                    if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
+                    if (!fact.Modules.Valid(item, item.IsNullKey)) es.Remove((T)item);
                 }
+                return BatchInsert(list, null, session);
             }
 
-            return DoAction(list, useTransition, e => e.Insert());
+            return DoAction(list, useTransition, e => e.Insert(), session);
         }
 
         /// <summary>把整个集合更新到数据库</summary>
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 Update<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        public static Int32 Update<T>(this IEnumerable<T> list, Boolean? useTransition = null, IEntitySession session = null) where T : IEntity
         {
             // 避免列表内实体对象为空
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
-            if (list.Count() > 1)
-            {
-                var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle批量更新
-                if (db.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid());
-            }
+            // Oracle批量更新
+            if (session.Dal.DbType == DatabaseType.Oracle) return BatchUpdate(list.Valid(false), null, null, null, session);
 
-            return DoAction(list, useTransition, e => e.Update());
+            return DoAction(list, useTransition, e => e.Update(), session);
         }
 
         /// <summary>把整个保存更新到数据库</summary>
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        public static Int32 Save<T>(this IEnumerable<T> list, Boolean? useTransition = null, IEntitySession session = null) where T : IEntity
         {
             /*
            * Save的几个场景：
@@ -174,51 +176,46 @@ namespace XCode
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Any())
-            {
-                var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (db.SupportBatch)
-                {
-                    // 根据是否来自数据库，拆分为两组
-                    var ts = Split(list);
-                    list = ts.Item1;
-                    rs += BatchSave(fact, ts.Item2.Valid());
-                }
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                // 根据是否来自数据库，拆分为两组
+                var ts = Split(list);
+                list = ts.Item1;
+                rs += BatchSave(session, ts.Item2.Valid(true));
             }
 
-            return rs + DoAction(list, useTransition, e => e.Save());
+            return rs + DoAction(list, useTransition, e => e.Save(), session);
         }
 
         /// <summary>把整个保存更新到数据库，保存时不需要验证</summary>
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        public static Int32 SaveWithoutValid<T>(this IEnumerable<T> list, Boolean? useTransition = null, IEntitySession session = null) where T : IEntity
         {
             // 避免列表内实体对象为空
             var entity = list.FirstOrDefault(e => e != null);
             if (entity == null) return 0;
 
             var rs = 0;
-            if (list.Any())
-            {
-                var fact = entity.GetType().AsFactory();
-                var db = fact.Session.Dal;
+            var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
-                // Oracle/MySql批量插入
-                if (db.SupportBatch)
-                {
-                    // 根据是否来自数据库，拆分为两组
-                    var ts = Split(list);
-                    list = ts.Item1;
-                    rs += BatchSave(fact, ts.Item2);
-                }
+            // Oracle/MySql批量插入
+            if (session.Dal.SupportBatch)
+            {
+                // 根据是否来自数据库，拆分为两组
+                var ts = Split(list);
+                list = ts.Item1;
+                rs += BatchSave(session, ts.Item2);
             }
 
-            return rs + DoAction(list, useTransition, e => e.SaveWithoutValid());
+            return rs + DoAction(list, useTransition, e => e.SaveWithoutValid(), session);
         }
 
         private static Tuple<IList<T>, IList<T>> Split<T>(IEnumerable<T> list) where T : IEntity
@@ -236,11 +233,11 @@ namespace XCode
             return new Tuple<IList<T>, IList<T>>(updates, others);
         }
 
-        private static Int32 BatchSave<T>(IEntityOperate fact, IEnumerable<T> list) where T : IEntity
+        private static Int32 BatchSave<T>(IEntitySession session, IEnumerable<T> list) where T : IEntity
         {
             // 没有其它唯一索引，且主键为空时，走批量插入
             var rs = 0;
-            if (!fact.Table.DataTable.Indexes.Any(di => di.Unique))
+            if (!session.Table.Indexes.Any(di => di.Unique))
             {
                 var inserts = new List<T>();
                 var updates = new List<T>();
@@ -259,18 +256,18 @@ namespace XCode
                 }
                 list = upserts;
 
-                if (inserts.Count > 0) rs += BatchInsert(inserts);
+                if (inserts.Count > 0) rs += BatchInsert(inserts, null, session);
                 if (updates.Count > 0)
                 {
                     // 只有Oracle支持批量Update
-                    if (fact.Session.Dal.DbType == DatabaseType.Oracle)
-                        rs += BatchUpdate(updates);
+                    if (session.Dal.DbType == DatabaseType.Oracle)
+                        rs += BatchUpdate(updates, null, null, null, session);
                     else
                         upserts.AddRange(upserts);
                 }
             }
 
-            if (list.Any()) rs += Upsert(list);
+            if (list.Any()) rs += Upsert(list, null, null, null, session);
 
             return rs;
         }
@@ -278,8 +275,9 @@ namespace XCode
         /// <summary>把整个集合从数据库中删除</summary>
         /// <param name="list">实体列表</param>
         /// <param name="useTransition">是否使用事务保护</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null) where T : IEntity
+        public static Int32 Delete<T>(this IEnumerable<T> list, Boolean? useTransition = null, IEntitySession session = null) where T : IEntity
         {
             // 避免列表内实体对象为空
             var entity = list.FirstOrDefault(e => e != null);
@@ -290,11 +288,12 @@ namespace XCode
             var pks = fact.Table.PrimaryKeys;
             if (pks != null && pks.Length == 1)
             {
+                session ??= fact.Session;
                 var pk = pks[0];
                 var count = 0;
                 var rs = 0;
                 var ks = new List<Object>();
-                var sql = $"Delete From {fact.FormatedTableName} Where ";
+                var sql = $"Delete From {session.FormatedTableName} Where ";
                 foreach (var item in list)
                 {
                     ks.Add(item[pk.Name]);
@@ -303,7 +302,7 @@ namespace XCode
                     // 分批执行
                     if (count >= 1000)
                     {
-                        rs += fact.Session.Execute(sql + pk.In(ks));
+                        rs += session.Execute(sql + pk.In(ks));
 
                         ks.Clear();
                         count = 0;
@@ -311,37 +310,42 @@ namespace XCode
                 }
                 if (count > 0)
                 {
-                    rs += fact.Session.Execute(sql + pk.In(ks));
+                    rs += session.Execute(sql + pk.In(ks));
                 }
 
                 return rs;
             }
 
-            return DoAction(list, useTransition, e => e.Delete());
+            return DoAction(list, useTransition, e => e.Delete(), session);
         }
 
-        private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func) where T : IEntity
+        private static Int32 DoAction<T>(this IEnumerable<T> list, Boolean? useTransition, Func<T, Int32> func, IEntitySession session) where T : IEntity
         {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+
             if (!list.Any()) return 0;
 
             // 避免列表内实体对象为空
             var entity = list.First(e => e != null);
             if (entity == null) return 0;
 
-            var fact = EntityFactory.CreateOperate(entity.GetType());
+            //var fact = entity.GetType().AsFactory();
 
-            // SQLite 批操作默认使用事务，其它数据库默认不使用事务
-            if (useTransition == null) useTransition = fact.Session.Dal.DbType == DatabaseType.SQLite;
+            //!!! SQLite 默认使用事务将会导致实体队列批量更新时大范围锁数据行，回归到由外部控制增加事务
+            //// SQLite 批操作默认使用事务，其它数据库默认不使用事务
+            //if (useTransition == null)
+            //{
+            //    //session ??= fact.Session;
+            //    useTransition = session.Dal.DbType == DatabaseType.SQLite;
+            //}
 
             var count = 0;
             if (useTransition != null && useTransition.Value)
             {
-                using (var trans = fact.CreateTrans())
-                {
-                    count = DoAction(list, func, count);
+                using var trans = session.CreateTrans();
+                count = DoAction(list, func, count);
 
-                    trans.Commit();
-                }
+                trans.Commit();
             }
             else
             {
@@ -365,8 +369,9 @@ namespace XCode
         /// <summary>批量验证对象</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
+        /// <param name="isNew"></param>
         /// <returns></returns>
-        public static IList<T> Valid<T>(this IEnumerable<T> list) where T : IEntity
+        public static IList<T> Valid<T>(this IEnumerable<T> list, Boolean isNew) where T : IEntity
         {
             var rs = new List<T>();
 
@@ -379,8 +384,8 @@ namespace XCode
             // 验证对象
             foreach (IEntity item in list)
             {
-                if (item is EntityBase entity2) entity2.Valid(item.IsNullKey);
-                if (modules.Valid(item, item.IsNullKey)) rs.Add((T)item);
+                if (item is EntityBase entity2) entity2.Valid(isNew);
+                if (modules.Valid(item, isNew)) rs.Add((T)item);
             }
 
             return rs;
@@ -392,11 +397,12 @@ namespace XCode
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns>
         /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
         /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
         /// </returns>
-        public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null) where T : IEntity
+        public static Int32 BatchInsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, IEntitySession session = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
 
@@ -426,26 +432,146 @@ namespace XCode
                 }
             }
 
-            var session = fact.Session;
+            session ??= fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
 
-            return session.Dal.Session.Insert(session.TableName, columns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            //var tableName = dal.Db.FormatTableName(session.TableName);
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchInsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
+        }
+
+        /// <summary>批量忽略插入</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
+        public static Int32 BatchInsertIgnore<T>(this IEnumerable<T> list, IDataColumn[] columns = null, IEntitySession session = null) where T : IEntity
+        {
+            if (list == null || !list.Any()) return 0;
+
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).ToArray();
+
+                // 第一列数据包含非零自增，表示要插入自增值
+                var id = columns.FirstOrDefault(e => e.Identity);
+                if (id != null)
+                {
+                    if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
+                }
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
+            }
+
+            session ??= fact.Session;
+            session.InitData();
+
+            var dal = session.Dal;
+            dal.CheckDatabase();
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:InsertIgnore:{session.TableName}");
+            try
+            {
+                return dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
+        }
+
+        /// <summary>批量替换</summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="list">实体列表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
+        /// <returns>
+        /// Oracle：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// MySQL：当批量插入操作中有一条记录无法正常写入，则本次写入的所有数据都不会被写入（可以理解为自带事物）
+        /// </returns>
+        public static Int32 BatchReplace<T>(this IEnumerable<T> list, IDataColumn[] columns = null, IEntitySession session = null) where T : IEntity
+        {
+            if (list == null || !list.Any()) return 0;
+
+            var entity = list.First();
+            var fact = entity.GetType().AsFactory();
+            if (columns == null)
+            {
+                columns = fact.Fields.Select(e => e.Field).ToArray();
+
+                // 第一列数据包含非零自增，表示要插入自增值
+                var id = columns.FirstOrDefault(e => e.Identity);
+                if (id != null)
+                {
+                    if (entity[id.Name].ToLong() == 0) columns = columns.Where(e => !e.Identity).ToArray();
+                }
+
+                // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
+                if (!fact.FullInsert)
+                {
+                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
+                }
+            }
+
+            session ??= fact.Session;
+            session.InitData();
+
+            var dal = session.Dal;
+            dal.CheckDatabase();
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Replace:{session.TableName}");
+            try
+            {
+                return dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量更新</summary>
         /// <remarks>
         /// 注意类似：XCode.Exceptions.XSqlException: ORA-00933: SQL 命令未正确结束
         /// [SQL:Update tablen_Name Set FieldName=:FieldName W [:FieldName=System.Int32[]]][DB:AAA/Oracle]
-        /// 建议是优先检查表是否存在主键，如果由于没有主键导致，及时通过try...cache 依旧无法正常保存。
+        /// 建议是优先检查表是否存在主键，如果由于没有主键导致，即使通过try...cache 依旧无法正常保存。
         /// </remarks>
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="list">实体列表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns></returns>
-        public static Int32 BatchUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        public static Int32 BatchUpdate<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null, IEntitySession session = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
 
@@ -466,11 +592,24 @@ namespace XCode
 
             if ((updateColumns == null || updateColumns.Count < 1) && (addColumns == null || addColumns.Count < 1)) return 0;
 
-            var session = fact.Session;
+            session ??= fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
 
-            return session.Dal.Session.Update(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            //var tableName = dal.Db.FormatTableName(session.TableName);
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpdate:{session.TableName}");
+            try
+            {
+                return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量插入或更新</summary>
@@ -479,6 +618,7 @@ namespace XCode
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns>
         /// MySQL返回值：返回值相当于流程执行次数，及时insert失败也会累计一次执行（所以不建议通过该返回值确定操作记录数）
         /// do insert success = 1次; 
@@ -486,17 +626,18 @@ namespace XCode
         /// 简单来说：对于一行记录，如果Insert 成功则返回1，如果需要执行的是update 则返回2
         /// Oracle返回值：无论是插入还是更新返回的都始终为-1
         /// </returns>
-        public static Int32 Upsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null) where T : IEntity
+        public static Int32 Upsert<T>(this IEnumerable<T> list, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null, IEntitySession session = null) where T : IEntity
         {
             if (list == null || !list.Any()) return 0;
 
             var entity = list.First();
             var fact = entity.GetType().AsFactory();
+            session ??= fact.Session;
 
             // SqlServer的批量Upsert需要主键参与，哪怕是自增，构建update的where时用到主键
             if (columns == null)
             {
-                var dbt = fact.Session.Dal.DbType;
+                var dbt = session.Dal.DbType;
                 if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
                 else if (dbt == DatabaseType.MySql)
@@ -530,11 +671,23 @@ namespace XCode
             // 没有任何数据变更则直接返回0
             if ((updateColumns == null || updateColumns.Count <= 0) && (addColumns == null || addColumns.Count <= 0)) return 0;
 
-            var session = fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
 
-            return session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, list.Cast<IIndexAccessor>());
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            //var tableName = dal.Db.FormatTableName(session.TableName);
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, list);
+                throw;
+            }
         }
 
         /// <summary>批量插入或更新</summary>
@@ -542,13 +695,14 @@ namespace XCode
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
+        /// <param name="session">指定会话，分表分库时必用</param>
         /// <returns>
         /// MySQL返回值：返回值相当于流程执行次数，及时insert失败也会累计一次执行（所以不建议通过该返回值确定操作记录数）
         /// do insert success = 1次; 
         /// do update success =2次(insert 1次+update 1次)，
         /// 简单来说：如果Insert 成功则返回1，如果需要执行的是update 则返回2，
         /// </returns>
-        public static Int32 Upsert(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null)
+        public static Int32 Upsert(this IEntity entity, IDataColumn[] columns = null, ICollection<String> updateColumns = null, ICollection<String> addColumns = null, IEntitySession session = null)
         {
             var fact = entity.GetType().AsFactory();
             if (columns == null)
@@ -570,18 +724,31 @@ namespace XCode
             if (updateColumns == null) updateColumns = entity.Dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).Distinct().ToArray();
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
-            var session = fact.Session;
+            session ??= fact.Session;
             session.InitData();
-            session.Dal.CheckDatabase();
 
-            return fact.Session.Dal.Session.Upsert(session.TableName, columns, updateColumns, addColumns, new[] { entity as IIndexAccessor });
+            var dal = session.Dal;
+            dal.CheckDatabase();
+            //var tableName = dal.Db.FormatTableName(session.TableName);
+
+            var tracer = dal.Tracer ?? DAL.GlobalTracer;
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Upsert:{session.TableName}");
+            try
+            {
+                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, new[] { entity as IExtend });
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, entity);
+                throw;
+            }
         }
 
         /// <summary>获取脏数据列</summary>
         /// <param name="fact"></param>
         /// <param name="list"></param>
         /// <returns></returns>
-        private static String[] GetDirtyColumns(IEntityOperate fact, IEnumerable<IEntity> list)
+        private static String[] GetDirtyColumns(IEntityFactory fact, IEnumerable<IEntity> list)
         {
             //var fact = list.FirstOrDefault().GetType().AsFactory();
 
@@ -667,46 +834,64 @@ namespace XCode
         {
             if (list == null) return 0;
 
-            // 确保创建目录
-            file.EnsureDirectory(true);
-
-            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            return file.AsFile().OpenWrite(compressed, fs =>
             {
                 foreach (var item in list)
                 {
                     (item as IAccessor).Write(fs, null);
                 }
-
-                fs.SetLength(fs.Position);
-                return fs.Position;
-            }
+            });
         }
 
         /// <summary>写入数据流，Csv格式</summary>
         /// <param name="list">实体列表</param>
         /// <param name="stream">数据量</param>
-        /// <param name="displayName">是否使用中文显示名，否则使用英文属性名</param>
+        /// <param name="fields">要导出的字段列表</param>
+        /// <param name="displayfields">要导出的中文字段列表</param>
         /// <returns></returns>
-        public static Int64 SaveCsv<T>(this IEnumerable<T> list, Stream stream, Boolean displayName = false) where T : IEntity
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, Stream stream, String[] fields = null, String[] displayfields = null) where T : IEntity
         {
             if (list == null) return 0;
 
-            var p = stream.Position;
-            var fact = typeof(T).AsFactory();
-            using (var csv = new CsvFile(stream, true))
+            var count = 0;
+
+            using var csv = new CsvFile(stream, true);
+            if (displayfields != null)
+                csv.WriteLine(displayfields);
+            else if (fields != null)
             {
-                var fs = fact.Fields;
-                if (displayName)
-                    csv.WriteLine(fs.Select(e => e.DisplayName));
+                // 第一行以ID开头的csv文件，容易被识别为SYLK文件
+                if (fields.Length > 0)
+                    csv.WriteLine(fields.Select((e, k) => (k == 0 && e == "ID") ? "Id" : e));
                 else
-                    csv.WriteLine(fs.Select(e => e.Name));
-                foreach (var entity in list)
-                {
-                    csv.WriteLine(fs.Select(e => entity[e.Name]));
-                }
+                    csv.WriteLine(fields);
+            }
+            foreach (var entity in list)
+            {
+                csv.WriteLine(fields.Select(e => entity[e]));
+
+                count++;
             }
 
-            return stream.Position - p;
+            return count;
+        }
+
+        /// <summary>写入文件，Csv格式</summary>
+        /// <param name="list">实体列表</param>
+        /// <param name="file">文件</param>
+        /// <param name="fields">要导出的字段列表</param>
+        /// <param name="displayfields">中文字段列表</param>
+        /// <returns></returns>
+        public static Int64 SaveCsv<T>(this IEnumerable<T> list, String file, String[] fields, String[] displayfields = null) where T : IEntity
+        {
+            if (list == null) return 0;
+
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            if (displayfields != null)
+                return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields, displayfields));
+            else
+                return file.AsFile().OpenWrite(compressed, fs => SaveCsv(list, fs, fields));
         }
 
         /// <summary>写入文件，Csv格式</summary>
@@ -718,16 +903,14 @@ namespace XCode
         {
             if (list == null) return 0;
 
-            // 确保创建目录
-            file.EnsureDirectory(true);
+            var fact = typeof(T).AsFactory();
+            var fis = fact.Fields;
+            if (displayName)
+                return SaveCsv(list, file, fis.Select(e => e.Name).ToArray(), fis.Select(e => e.DisplayName).ToArray());
+            else
+                return SaveCsv(list, file, fis.Select(e => e.Name).ToArray(), null);
 
-            using (var fs = new FileStream(file.GetFullPath(), FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
-            {
-                SaveCsv(list, fs, displayName);
 
-                fs.SetLength(fs.Position);
-                return fs.Position;
-            }
         }
 
         /// <summary>从数据流读取列表</summary>
@@ -780,9 +963,10 @@ namespace XCode
             file = file.GetFullPath();
             if (!File.Exists(file)) return list;
 
-            var fact = typeof(T).AsFactory();
-            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            file.AsFile().OpenRead(compressed, fs =>
             {
+                var fact = typeof(T).AsFactory();
                 while (fs.Position < fs.Length)
                 {
                     var entity = (T)fact.Create();
@@ -790,7 +974,7 @@ namespace XCode
 
                     list.Add(entity);
                 }
-            }
+            });
 
             return list;
         }
@@ -802,31 +986,30 @@ namespace XCode
         public static IList<T> LoadCsv<T>(this IList<T> list, Stream stream) where T : IEntity
         {
             var fact = typeof(T).AsFactory();
-            using (var csv = new CsvFile(stream, true))
+            using var csv = new CsvFile(stream, true);
+
+            // 匹配字段
+            var names = csv.ReadLine();
+            var fields = new FieldItem[names.Length];
+            for (var i = 0; i < names.Length; i++)
             {
-                // 匹配字段
-                var names = csv.ReadLine();
-                var fields = new FieldItem[names.Length];
-                for (var i = 0; i < names.Length; i++)
+                fields[i] = fact.Fields.FirstOrDefault(e => names[i].EqualIgnoreCase(e.Name, e.DisplayName, e.ColumnName));
+            }
+
+            // 读取数据
+            while (true)
+            {
+                var line = csv.ReadLine();
+                if (line == null || line.Length == 0) break;
+
+                var entity = (T)fact.Create();
+                for (var i = 0; i < fields.Length && i < line.Length; i++)
                 {
-                    fields[i] = fact.Fields.FirstOrDefault(e => names[i].EqualIgnoreCase(e.Name, e.DisplayName, e.ColumnName));
+                    var fi = fields[i];
+                    if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
                 }
 
-                // 读取数据
-                while (true)
-                {
-                    var line = csv.ReadLine();
-                    if (line == null || line.Length == 0) break;
-
-                    var entity = (T)fact.Create();
-                    for (var i = 0; i < fields.Length; i++)
-                    {
-                        var fi = fields[i];
-                        if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
-                    }
-
-                    list.Add(entity);
-                }
+                list.Add(entity);
             }
 
             return list;
@@ -842,10 +1025,10 @@ namespace XCode
             file = file.GetFullPath();
             if (!File.Exists(file)) return list;
 
-            using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return LoadCsv(list, fs);
-            }
+            var compressed = file.EndsWithIgnoreCase(".gz");
+            file.AsFile().OpenRead(compressed, fs => LoadCsv(list, fs));
+
+            return list;
         }
         #endregion
 

@@ -151,10 +151,8 @@ namespace SplitTableOrDatabase
             {
                 var dt = start.AddDays(Rand.Next(0, 365));
                 XTrace.WriteLine("查询日期：{0}", dt);
-                var list = History.Meta.ProcessWithSplit(
-                    $"HDB_{dt:yyMM}",
-                    $"History_{dt:yyMMdd}",
-                    () => History.FindAll());
+                using var split = History.Meta.CreateSplit($"HDB_{dt:yyMM}", $"History_{dt:yyMMdd}");
+                var list = History.FindAll();
 
                 XTrace.WriteLine("数据：{0}", list.Count);
             }

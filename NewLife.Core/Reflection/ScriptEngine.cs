@@ -1,4 +1,4 @@
-﻿#if !__CORE__
+﻿#if __WIN__
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
@@ -15,6 +15,8 @@ namespace NewLife.Reflection
 {
     /// <summary>脚本引擎</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/script_engine
+    /// 
     /// 三大用法：
     /// 1，单个表达式，根据参数计算表达式结果并返回
     /// 2，多个语句，最后有返回语句
@@ -107,14 +109,14 @@ namespace NewLife.Reflection
             IsExpression = isExpression;
         }
 
-        static ConcurrentDictionary<String, ScriptEngine> _cache = new ConcurrentDictionary<String, ScriptEngine>(StringComparer.OrdinalIgnoreCase);
+        static readonly ConcurrentDictionary<String, ScriptEngine> _cache = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>为指定代码片段创建脚本引擎实例。采用缓存，避免同一脚本重复创建引擎。</summary>
         /// <param name="code">代码片段</param>
         /// <param name="isExpression">是否表达式，表达式将编译成为一个Main方法</param>
         /// <returns></returns>
         public static ScriptEngine Create(String code, Boolean isExpression = true)
         {
-            if (String.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
+            if (String.IsNullOrEmpty(code)) throw new ArgumentNullException(nameof(code));
 
             var key = code + isExpression;
             return _cache.GetOrAdd(key, k => new ScriptEngine(code, isExpression));
@@ -257,7 +259,7 @@ namespace NewLife.Reflection
                     var last = code[code.Length - 1];
                     if (last != ';' && last != '}') code += ";";
                 }
-                code = String.Format("\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{0}\r\n\t\t}}", code);
+                code = $"\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{code}\r\n\t\t}}";
             }
 
             // 没有命名空间，包含一个
@@ -266,10 +268,10 @@ namespace NewLife.Reflection
                 // 没有类名，包含一个
                 if (!code.Contains("class "))
                 {
-                    code = String.Format("\tpublic class {0}\r\n\t{{\r\n{1}\r\n\t}}", GetType().Name, code);
+                    code = $"\tpublic class {GetType().Name}\r\n\t{{\r\n{code}\r\n\t}}";
                 }
 
-                code = String.Format("namespace {0}\r\n{{\r\n{1}\r\n}}", GetType().Namespace, code);
+                code = $"namespace {GetType().Namespace}\r\n{{\r\n{code}\r\n}}";
             }
 
             // 命名空间
@@ -450,12 +452,12 @@ namespace NewLife.Reflection
             // 处理工作目录
             var flag = false;
             var _cur = Environment.CurrentDirectory;
-            var _my = PathHelper.BaseDirectory;
+            var _my = PathHelper.BasePath;
             if (!WorkingDirectory.IsNullOrEmpty())
             {
                 flag = true;
                 Environment.CurrentDirectory = WorkingDirectory;
-                PathHelper.BaseDirectory = WorkingDirectory;
+                PathHelper.BasePath = WorkingDirectory;
             }
 
             try
@@ -467,7 +469,7 @@ namespace NewLife.Reflection
                 if (flag)
                 {
                     Environment.CurrentDirectory = _cur;
-                    PathHelper.BaseDirectory = _my;
+                    PathHelper.BasePath = _my;
                 }
             }
         }

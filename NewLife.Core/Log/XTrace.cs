@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
-#if !__CORE__
+#if __WIN__
 using System.Windows.Forms;
+using NewLife.Net;
 #endif
 using NewLife.Reflection;
 using NewLife.Threading;
 
+#nullable enable
 namespace NewLife.Log
 {
     /// <summary>日志类，包含跟踪调试功能</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/log
+    /// 
     /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
     /// 
     /// 默认写日志到文本文件，可通过修改<see cref="Log"/>属性来增加日志输出方式。
@@ -22,7 +27,7 @@ namespace NewLife.Log
     {
         #region 写日志
         /// <summary>文本文件日志</summary>
-        private static ILog _Log;
+        private static ILog _Log = Logger.Null;
         /// <summary>日志提供者，默认使用文本文件日志</summary>
         public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
@@ -32,15 +37,19 @@ namespace NewLife.Log
         {
             if (!InitLog()) return;
 
+            WriteVersion();
+
             Log.Info(msg);
         }
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public static void WriteLine(String format, params Object[] args)
+        public static void WriteLine(String format, params Object?[] args)
         {
             if (!InitLog()) return;
+
+            WriteVersion();
 
             Log.Info(format, args);
         }
@@ -59,6 +68,8 @@ namespace NewLife.Log
         {
             if (!InitLog()) return;
 
+            WriteVersion();
+
             Log.Error("{0}", ex);
         }
         #endregion
@@ -68,16 +79,27 @@ namespace NewLife.Log
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
             ThreadPoolX.Init();
         }
+
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
         {
-            WriteException(e.ExceptionObject as Exception);
-            if (e.IsTerminating) Log.Fatal("异常退出！");
+            if (e.ExceptionObject is Exception ex) WriteException(ex);
+            if (e.IsTerminating)
+            {
+                Log.Fatal("异常退出！");
+
+                if (Log is CompositeLog compositeLog)
+                {
+                    var log = compositeLog.Get<TextFileLog>();
+                    log.TryDispose();
+                }
+            }
         }
 
-        private static void TaskScheduler_UnobservedTaskException(Object sender, UnobservedTaskExceptionEventArgs e)
+        private static void TaskScheduler_UnobservedTaskException(Object? sender, UnobservedTaskExceptionEventArgs e)
         {
             if (!e.Observed)
             {
@@ -90,7 +112,16 @@ namespace NewLife.Log
             }
         }
 
-        static readonly Object _lock = new Object();
+        private static void OnProcessExit(Object? sender, EventArgs e)
+        {
+            if (Log is CompositeLog compositeLog)
+            {
+                var log = compositeLog.Get<TextFileLog>();
+                log.TryDispose();
+            }
+        }
+
+        static readonly Object _lock = new();
         static Int32 _initing = 0;
 
         /// <summary>
@@ -99,7 +130,7 @@ namespace NewLife.Log
         static Boolean InitLog()
         {
             /*
-             * 日志初始化可能会除法配置模块，其内部又写日志导致死循环。
+             * 日志初始化可能会触发配置模块，其内部又写日志导致死循环。
              * 1，外部写日志引发初始化
              * 2，标识日志初始化正在进行中
              * 3，初始化日志提供者
@@ -108,27 +139,31 @@ namespace NewLife.Log
              * 6，正常写入日志
              */
 
-            if (_Log != null) return true;
+            if (_Log != null && _Log != Logger.Null) return true;
             if (_initing > 0 && _initing == Thread.CurrentThread.ManagedThreadId) return false;
 
             lock (_lock)
             {
-                if (_Log != null) return true;
+                if (_Log != null && _Log != Logger.Null) return true;
 
                 _initing = Thread.CurrentThread.ManagedThreadId;
-                _Log = TextFileLog.Create(LogPath);
 
                 var set = Setting.Current;
+                if (set.LogFileFormat.Contains("{1}"))
+                    _Log = new LevelLog(LogPath, set.LogFileFormat);
+                else
+                    _Log = TextFileLog.Create(LogPath);
+
                 if (!set.NetworkLog.IsNullOrEmpty())
                 {
-                    var nlog = new NetworkLog(NetHelper.ParseEndPoint(set.NetworkLog, 514));
+                    var nlog = new NetworkLog(set.NetworkLog);
                     _Log = new CompositeLog(_Log, nlog);
                 }
 
                 _initing = 0;
             }
 
-            WriteVersion();
+            //WriteVersion();
 
             return true;
         }
@@ -150,8 +185,16 @@ namespace NewLife.Log
             // 适当加大控制台窗口
             try
             {
-                if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
-                if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+#if __CORE__
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                    if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+                }
+#else
+                    if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                    if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+#endif
             }
             catch { }
 
@@ -240,7 +283,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static ILog Combine(this Control control, ILog log, Int32 maxLines = 1000)
         {
-            if (control == null || log == null) return log;
+            //if (control == null || log == null) return log;
 
             var clg = new TextControlLog
             {
@@ -260,19 +303,22 @@ namespace NewLife.Log
         /// <summary>文本日志目录</summary>
         public static String LogPath { get; set; } = Setting.Current.LogPath;
 
-        /// <summary>临时目录</summary>
-        public static String TempPath { get; set; } = Setting.Current.TempPath;
+        ///// <summary>临时目录</summary>
+        //public static String TempPath { get; set; } = Setting.Current.TempPath;
         #endregion
 
         #region 版本信息
+        private static Int32 _writeVersion;
         /// <summary>输出核心库和启动程序的版本号</summary>
         public static void WriteVersion()
         {
+            if (_writeVersion > 0 || Interlocked.CompareExchange(ref _writeVersion, 1, 0) != 0) return;
+
             var asm = Assembly.GetExecutingAssembly();
             WriteVersion(asm);
 
             var asm2 = Assembly.GetEntryAssembly();
-            if (asm2 != asm) WriteVersion(asm2);
+            if (asm2 != null && asm2 != asm) WriteVersion(asm2);
         }
 
         /// <summary>输出程序集版本</summary>
@@ -286,7 +332,11 @@ namespace NewLife.Log
             {
                 var ver = "";
                 var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
-                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
+                if (tar != null)
+                {
+                    ver = tar.FrameworkDisplayName;
+                    if (ver.IsNullOrEmpty()) ver = tar.FrameworkName;
+                }
 
                 WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}", asmx.Name, asmx.FileVersion, asmx.Compile, ver);
                 var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
@@ -296,3 +346,4 @@ namespace NewLife.Log
         #endregion
     }
 }
+#nullable restore

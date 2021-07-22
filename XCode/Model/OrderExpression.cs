@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -21,7 +22,7 @@ namespace XCode
 
         /// <summary>实例化</summary>
         /// <param name="exp"></param>
-        public OrderExpression(String exp) { Builder.Append(exp); }
+        public OrderExpression(String exp) => Builder.Append(exp);
         #endregion
 
         #region 方法
@@ -32,17 +33,18 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
-            if (Builder.Length > 0) Builder.Append(",");
+            if (Builder.Length > 0) Builder.Append(',');
             Builder.Append(exp);
 
             return this;
         }
 
         /// <summary>已重载。</summary>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
             if (Builder == null || Builder.Length <= 0) return;
 
@@ -52,7 +54,7 @@ namespace XCode
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(OrderExpression obj) => obj?.GetString(null);
+        public static implicit operator String(OrderExpression obj) => obj?.GetString(null, null);
         #endregion
 
         #region 重载运算符

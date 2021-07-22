@@ -17,6 +17,15 @@ namespace NewLife.Data
         /// <summary>经纬度坐标</summary>
         public GeoPoint() { }
 
+        /// <summary>实例化经纬度坐标</summary>
+        /// <param name="longitude"></param>
+        /// <param name="latitude"></param>
+        public GeoPoint(Double longitude, Double latitude)
+        {
+            Longitude = longitude;
+            Latitude = latitude;
+        }
+
         /// <summary>经纬度坐标</summary>
         /// <param name="location"></param>
         public GeoPoint(String location)

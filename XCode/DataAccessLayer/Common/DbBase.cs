@@ -8,7 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -44,12 +46,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             //_store.Values.TryDispose();
-            _store.TryDispose();
+            //_store.TryDispose();
 
             if (_metadata != null)
             {
@@ -68,9 +70,12 @@ namespace XCode.DataAccessLayer
         /// <summary>释放所有会话</summary>
         internal void ReleaseSession()
         {
-            //_store.Values.TryDispose();
-            _store.TryDispose();
-            _store = new ThreadLocal<IDbSession>();
+            var st = _store;
+#if NET40 || NET45
+            if (st != null) _store = new ThreadLocal<IDbSession>();
+#else
+            if (st != null) _store = new AsyncLocal<IDbSession>();
+#endif
         }
         #endregion
 
@@ -140,30 +145,6 @@ namespace XCode.DataAccessLayer
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
         }
 
-        //private ConnectionPool _Pool;
-        ///// <summary>连接池</summary>
-        //public ConnectionPool Pool
-        //{
-        //    get
-        //    {
-        //        if (_Pool != null) return _Pool;
-        //        lock (this)
-        //        {
-        //            if (_Pool != null) return _Pool;
-
-        //            var pool = new ConnectionPool
-        //            {
-        //                Name = ConnName + "Pool",
-        //                Factory = Factory,
-        //                ConnectionString = ConnectionString,
-        //            };
-        //            if (DAL.Debug && XTrace.Log.Level == LogLevel.Debug) pool.Log = XTrace.Log;
-
-        //            return _Pool = pool;
-        //        }
-        //    }
-        //}
-
         protected virtual String DefaultConnectionString => String.Empty;
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
@@ -181,10 +162,11 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
             if (builder.TryGetAndRemove(nameof(Readonly), out value) && !value.IsNullOrEmpty()) Readonly = value.ToBoolean();
             if (builder.TryGetAndRemove(nameof(DataCache), out value) && !value.IsNullOrEmpty()) DataCache = value.ToInt();
+            // 反向工程生成sql中表名和字段名称大小写
+            if (builder.TryGetAndRemove(nameof(NameFormat), out value) && !value.IsNullOrEmpty()) NameFormat = (NameFormats)Enum.Parse(typeof(NameFormats), value, true);
 
             // 连接字符串去掉provider，可能有些数据库不支持这个属性
             if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
-
 
             // 数据库名称
             var db = builder["Database"];
@@ -210,10 +192,8 @@ namespace XCode.DataAccessLayer
                 _ServerVersion = String.Empty;
 
                 //return _ServerVersion = Process(conn => conn.ServerVersion);
-                using (var conn = OpenConnection())
-                {
-                    return _ServerVersion = conn.ServerVersion;
-                }
+                using var conn = OpenConnection();
+                return _ServerVersion = conn.ServerVersion;
             }
         }
 
@@ -226,16 +206,28 @@ namespace XCode.DataAccessLayer
         /// <summary>本连接数据只读</summary>
         public Boolean Readonly { get; set; }
 
+        /// <summary>失败重试。执行命令超时后的重试次数，默认0不重试</summary>
+        public Int32 RetryOnFailure { get; set; } = Setting.Current.RetryOnFailure;
+
         /// <summary>数据层缓存有效期。单位秒</summary>
         public Int32 DataCache { get; set; }
 
         /// <summary>表前缀。所有在该连接上的表名都自动增加该前缀</summary>
         public String TablePrefix { get; set; }
+
+        /// <summary>反向工程表名、字段名大小写设置</summary>
+        public NameFormats NameFormat { get; set; } = Setting.Current.NameFormat;
+
+        /// <summary>批大小。用于批量操作数据，默认5000</summary>
+        public Int32 BatchSize { get; set; } = 5_000;
         #endregion
 
         #region 方法
-        /// <summary>保证数据库在每一个线程都有唯一的一个实例</summary>
-        private ThreadLocal<IDbSession> _store = new ThreadLocal<IDbSession>();
+#if NET40 || NET45
+        private ThreadLocal<IDbSession> _store = new();
+#else
+        private AsyncLocal<IDbSession> _store = new();
+#endif
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
@@ -283,10 +275,12 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected abstract IMetaData OnCreateMetaData();
 
-        /// <summary>创建连接</summary>
+        /// <summary>打开连接</summary>
         /// <returns></returns>
         public virtual DbConnection OpenConnection()
         {
+            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，需要从Nuget引用！");
+
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
             conn.Open();
@@ -294,20 +288,22 @@ namespace XCode.DataAccessLayer
             return conn;
         }
 
-        ///// <summary>打开连接并执行操作</summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="callback"></param>
-        ///// <returns></returns>
-        //public virtual TResult Process<TResult>(Func<DbConnection, TResult> callback)
-        //{
-        //    using (var conn = CreateConnection())
-        //    {
-        //        //conn.ConnectionString = ConnectionString;
-        //        //conn.Open();
+        /// <summary>打开连接</summary>
+        /// <returns></returns>
+        public virtual async Task<DbConnection> OpenConnectionAsync()
+        {
+            if (Factory == null) throw new InvalidOperationException($"无法找到{Type}的ADO.NET驱动，需要从Nuget引用！");
 
-        //        return callback(conn);
-        //    }
-        //}
+            var conn = Factory.CreateConnection();
+            conn.ConnectionString = ConnectionString;
+#if NET40
+            await TaskEx.Run(() => conn.Open());
+#else
+            await conn.OpenAsync();
+#endif
+
+            return conn;
+        }
 
         /// <summary>是否支持该提供者所描述的数据库</summary>
         /// <param name="providerName">提供者</param>
@@ -319,9 +315,10 @@ namespace XCode.DataAccessLayer
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
+        /// <param name="strict"></param>
         /// <param name="ignoreError"></param>
         /// <returns></returns>
-        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean ignoreError = false)
+        public static DbProviderFactory GetProviderFactory(String assemblyFile, String className, Boolean strict = false, Boolean ignoreError = false)
         {
             try
             {
@@ -331,28 +328,37 @@ namespace XCode.DataAccessLayer
                 {
                     var linkName = name;
 #if __CORE__
-                    if (Runtime.Linux)
-                    {
-                        linkName += Environment.Is64BitProcess ? ".linux-x64" : ".linux-x86";
-                        links.Add(linkName);
-                        links.Add(name + ".linux");
-                    }
-                    else
-                    {
-                        linkName += Environment.Is64BitProcess ? ".win-x64" : ".win-x86";
-                        links.Add(linkName);
-                        links.Add(name + ".win");
-                    }
+                    var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
+                    // 可能是在x64架构上跑x86
+                    if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
 
-                    linkName = name + ".st";
+                    var platform = "";
+                    if (Runtime.Linux)
+                        platform = "linux";
+                    else if (Runtime.OSX)
+                        platform = "osx";
+                    else
+                        platform = "win";
+
+                    links.Add($"{name}.{platform}-{arch}");
+                    links.Add($"{name}.{platform}");
+                    links.Add($"{name}_netstandard20");
+
+                    var ver = Environment.Version;
+                    if (ver.Major >= 3) links.Add($"{name}_netstandard21");
+                    if (ver.Major < 5)
+                        links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
+                    else
+                        links.Add($"{name}_net{ver.Major}{ver.Minor}");
 #else
                     if (Environment.Is64BitProcess) linkName += "64";
                     var ver = Environment.Version;
                     if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-#endif
                     links.Add(linkName);
+                    links.Add($"{name}_net45");
+#endif
                     // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                    if (!links.Contains(name)) links.Add(name);
+                    if (!strict && !links.Contains(name)) links.Add(name);
                 }
 
                 var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
@@ -385,7 +391,8 @@ namespace XCode.DataAccessLayer
                     // 如果还没有，就写异常
                     if (!File.Exists(file)) throw new FileNotFoundException("缺少文件" + file + "！", file);
                 }
-                if (type == null) return null;
+                //if (type == null) return null;
+                if (type == null) throw new XCodeException("无法加载驱动[{0}]，请从nuget正确引入数据库驱动！", assemblyFile);
 
                 var asm = type.Assembly;
                 if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
@@ -403,7 +410,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        [DllImport("kernel32.dll")]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern Int32 SetDllDirectory(String pathName);
         #endregion
 
@@ -445,18 +452,18 @@ namespace XCode.DataAccessLayer
             if (tablename != sql)
                 sql = tablename;
             else
-                sql = String.Format("({0}) XCode_Temp_a", sql);
+                sql = $"({sql}) XCode_Temp_a";
 
             // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况
             if (startRowIndex <= 0 && maximumRows > 0)
-                return String.Format("Select Top {0} * From {1}", maximumRows, sql);
+                return $"Select Top {maximumRows} * From {sql}";
 
-            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException("keyColumn", "这里用的not in分页算法要求指定主键列！");
+            if (String.IsNullOrEmpty(keyColumn)) throw new ArgumentNullException(nameof(keyColumn), "这里用的not in分页算法要求指定主键列！");
 
             if (maximumRows < 1)
-                sql = String.Format("Select * From {1} Where {2} Not In(Select Top {0} {2} From {1})", startRowIndex, sql, keyColumn);
+                sql = $"Select * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql})";
             else
-                sql = String.Format("Select Top {0} * From {1} Where {2} Not In(Select Top {3} {2} From {1})", maximumRows, sql, keyColumn, startRowIndex);
+                sql = $"Select Top {maximumRows} * From {sql} Where {keyColumn} Not In(Select Top {startRowIndex} {keyColumn} From {sql})";
             return sql;
         }
 
@@ -481,7 +488,7 @@ namespace XCode.DataAccessLayer
                 #region 有OrderBy
                 // 取第一页也不用分页。把这代码放到这里，主要是数字分页中要自己处理这种情况
                 if (startRowIndex <= 0 && maximumRows > 0)
-                    return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
+                    return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
 
                 keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
                 sql = sql.Substring(0, ms[0].Index);
@@ -532,9 +539,9 @@ namespace XCode.DataAccessLayer
                     //但是，在第一页的时候，没有用到keyColumn，而数据库一般默认是升序
                     //这时候就会出现第一页是升序，后面页是降序的情况了。这里改正这个BUG
                     if (keyColumn.ToLower().EndsWith(" desc") || keyColumn.ToLower().EndsWith(" asc"))
-                        return String.Format("Select Top {0} * From {1} Order By {2}", maximumRows, CheckSimpleSQL(sql), keyColumn);
+                        return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)} Order By {keyColumn}";
                     else
-                        return String.Format("Select Top {0} * From {1}", maximumRows, CheckSimpleSQL(sql));
+                        return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
                 }
 
                 if (!keyColumn.ToLower().EndsWith(" unknown")) canMaxMin = true;
@@ -545,15 +552,15 @@ namespace XCode.DataAccessLayer
             if (canMaxMin)
             {
                 if (maximumRows < 1)
-                    sql = String.Format("Select * From {1} Where {2}{3}(Select {4}({2}) From (Select Top {0} {2} From {1} Order By {2} {5}) XCode_Temp_a) Order By {2} {5}", startRowIndex, CheckSimpleSQL(sql), keyColumn, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+                    sql = $"Select * From {CheckSimpleSQL(sql)} Where {keyColumn}{(isAscOrder ? ">" : "<")}(Select {(isAscOrder ? "max" : "min")}({keyColumn}) From (Select Top {startRowIndex} {keyColumn} From {CheckSimpleSQL(sql)} Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}) XCode_Temp_a) Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}";
                 else
-                    sql = String.Format("Select Top {0} * From {1} Where {2}{4}(Select {5}({2}) From (Select Top {3} {2} From {1} Order By {2} {6}) XCode_Temp_a) Order By {2} {6}", maximumRows, CheckSimpleSQL(sql), keyColumn, startRowIndex, isAscOrder ? ">" : "<", isAscOrder ? "max" : "min", isAscOrder ? "Asc" : "Desc");
+                    sql = $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)} Where {keyColumn}{(isAscOrder ? ">" : "<")}(Select {(isAscOrder ? "max" : "min")}({keyColumn}) From (Select Top {startRowIndex} {keyColumn} From {CheckSimpleSQL(sql)} Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}) XCode_Temp_a) Order By {keyColumn} {(isAscOrder ? "Asc" : "Desc")}";
                 return sql;
             }
             return null;
         }
 
-        private static Regex reg_SimpleSQL = new Regex(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_SimpleSQL = new(@"^\s*select\s+\*\s+from\s+([\w\[\]\""\""\']+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>检查简单SQL语句，比如Select * From table</summary>
         /// <param name="sql">待检查SQL语句</param>
         /// <returns>如果是简单SQL语句则返回表名，否则返回子查询(sql) XCode_Temp_a</returns>
@@ -563,11 +570,11 @@ namespace XCode.DataAccessLayer
 
             var ms = reg_SimpleSQL.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
-                String.IsNullOrEmpty(ms[0].Groups[1].Value)) return String.Format("({0}) XCode_Temp_a", sql);
+                String.IsNullOrEmpty(ms[0].Groups[1].Value)) return $"({sql}) XCode_Temp_a";
             return ms[0].Groups[1].Value;
         }
 
-        private static Regex reg_Order = new Regex(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_Order = new(@"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>检查是否以Order子句结尾，如果是，分割sql为前后两部分</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
@@ -679,42 +686,117 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
-        /// <param name="tableName">名称</param>
+        /// <param name="table">表</param>
         /// <returns></returns>
-        public virtual String FormatTableName(String tableName)
+        public virtual String FormatName(IDataTable table)
         {
+            if (table == null) return null;
+
+            var name = table.TableName;
+
             // 检查自动表前缀
             var pf = TablePrefix;
-            if (!pf.IsNullOrEmpty()) tableName = pf + tableName;
+            if (!pf.IsNullOrEmpty()) name = pf + name;
 
-            tableName = FormatName(tableName);
-
-            // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-            if (!tableName.Contains("."))
+            // 名称格式化，只有表名跟名称相同时才处理。否则认为用户指定了表名
+            switch (NameFormat)
             {
-                // 角色名作为点前缀来约束表名，支持所有数据库
-                var owner = Owner;
-                if (!owner.IsNullOrEmpty()) tableName = FormatName(owner) + "." + tableName;
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Underline:
+                    if (table.TableName == table.Name)
+                        name = ChangeUnderline(name).ToLower();
+                    else
+                        name = name.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
             }
 
-            return tableName;
+            return FormatName(name);
+        }
+
+        /// <summary>格式化字段名，考虑大小写</summary>
+        /// <param name="column">字段</param>
+        /// <returns></returns>
+        public virtual String FormatName(IDataColumn column)
+        {
+            if (column == null) return null;
+
+            var name = column.ColumnName;
+
+            // 名称格式化，只有字段名名跟名称相同时才处理。否则认为用户指定了字段名
+            switch (NameFormat)
+            {
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Underline:
+                    if (column.ColumnName == column.Name)
+                        name = ChangeUnderline(name).ToLower();
+                    else
+                        name = name.ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+
+            return FormatName(name);
+        }
+
+        /// <summary>把驼峰命名转为下划线</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static String ChangeUnderline(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+
+            // 遇到大写字母时，表示新一段开始，增加下划线
+            for (var i = 0; i < name.Length; i++)
+            {
+                var ch = name[i];
+                if (i > 0 && Char.IsUpper(ch))
+                {
+                    // 前一个小写字母，新的开始
+                    if (Char.IsLower(name[i - 1]))
+                        sb.Append('_');
+                    // 后一个字母小写，新的开始
+                    else if (i < name.Length - 1 && Char.IsLower(name[i + 1]))
+                        sb.Append('_');
+                }
+                sb.Append(ch);
+            }
+
+            return sb.Put(true);
         }
 
         /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field">字段</param>
+        /// <param name="column">字段</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        public virtual String FormatValue(IDataColumn field, Object value)
+        public virtual String FormatValue(IDataColumn column, Object value)
         {
             var isNullable = true;
             Type type = null;
-            if (field != null)
+            if (column != null)
             {
-                type = field.DataType;
-                isNullable = field.Nullable;
+                type = column.DataType;
+                isNullable = column.Nullable;
             }
             else if (value != null)
                 type = value.GetType();
+
+            // 如果类型是Nullable的，则获取对应的类型
+            type = Nullable.GetUnderlyingType(type) ?? type;
 
             if (type == typeof(String))
             {
@@ -747,11 +829,11 @@ namespace XCode.DataAccessLayer
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }
-            else if (field.DataType == typeof(Guid))
+            else if (type == typeof(Guid))
             {
                 if (value == null) return isNullable ? "null" : "''";
 
-                return String.Format("'{0}'", value);
+                return $"'{value}'";
             }
 
             if (value == null) return isNullable ? "null" : "";
@@ -779,8 +861,8 @@ namespace XCode.DataAccessLayer
         {
             if (name.IsNullOrEmpty()) return name;
 
-            // 如果参数名是关键字，统一加前缀
-            if (IsReservedWord(name)) name = "x_" + name;
+            //// 如果参数名是关键字，统一加前缀
+            //if (IsReservedWord(name)) name = "x_" + name;
 
             return ParamPrefix + name;
         }
@@ -798,10 +880,17 @@ namespace XCode.DataAccessLayer
         /// <param name="value">值</param>
         /// <param name="field">字段</param>
         /// <returns></returns>
-        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field = null)
+        public virtual IDataParameter CreateParameter(String name, Object value, IDataColumn field) => CreateParameter(name, value, field?.DataType);
+
+        /// <summary>创建参数</summary>
+        /// <param name="name">名称</param>
+        /// <param name="value">值</param>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
-            var type = field?.DataType;
-            if (value == null && type == null) throw new ArgumentNullException(nameof(field));
+            //var type = field?.DataType;
+            if (value == null && type == null) throw new ArgumentNullException(nameof(value));
 
             var dp = Factory.CreateParameter();
             dp.ParameterName = FormatParameterName(name);
@@ -815,8 +904,13 @@ namespace XCode.DataAccessLayer
                     // 参数可能是数组
                     if (type != null && type != typeof(Byte[]) && type.IsArray) type = type.GetElementTypeEx();
                 }
-                else if (!(value is IList))
-                    value = value.ChangeType(type);
+                else
+                {
+                    // 可空类型
+                    type = Nullable.GetUnderlyingType(type) ?? type;
+
+                    if (value != null && !(value is IList)) value = value.ChangeType(type);
+                }
 
                 // 写入数据类型
                 switch (type.GetTypeCode())
@@ -874,6 +968,25 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual IDataParameter[] CreateParameters(IDictionary<String, Object> ps) => ps?.Select(e => CreateParameter(e.Key, e.Value)).ToArray();
 
+        /// <summary>根据对象成员创建参数数组</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public virtual IDataParameter[] CreateParameters(Object model)
+        {
+            if (model == null) return new IDataParameter[0];
+            if (model is IDataParameter[] dps) return dps;
+            if (model is IDataParameter dp) return new[] { dp };
+            if (model is IDictionary<String, Object> dic) return CreateParameters(dic);
+
+            var list = new List<IDataParameter>();
+            foreach (var pi in model.GetType().GetProperties(true))
+            {
+                list.Add(CreateParameter(pi.Name, pi.GetValue(model, null), pi.PropertyType));
+            }
+
+            return list.ToArray();
+        }
+
         /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
         public Boolean AutoClose { get; set; } = true;
 
@@ -884,41 +997,24 @@ namespace XCode.DataAccessLayer
         #region 辅助函数
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("[{0}] {1} {2}", ConnName, Type, ServerVersion);
+        public override String ToString() => $"[{ConnName}] {Type} {ServerVersion}";
 
         protected static String ResolveFile(String file)
         {
-            if (String.IsNullOrEmpty(file)) return file;
+            if (file.IsNullOrEmpty()) return file;
 
-            file = file.Replace("|DataDirectory|", @"~\App_Data");
+            var cfg = NewLife.Setting.Current;
+            file = file.Replace("|DataDirectory|", cfg.DataPath);
+            file = file.Replace(@"~\App_Data", cfg.DataPath);
+            file = file.TrimStart("~");
 
-            var sep = Path.DirectorySeparatorChar + "";
-            var sep2 = sep == "/" ? "\\" : "/";
-            var bpath = AppDomain.CurrentDomain.BaseDirectory.EnsureEnd(sep);
-            if (file.StartsWith("~" + sep) || file.StartsWith("~" + sep2))
-            {
-                file = file.Replace(sep2, sep).Replace("~" + sep, bpath);
-            }
-            else if (file.StartsWith("." + sep) || file.StartsWith("." + sep2))
-            {
-                file = file.Replace(sep2, sep).Replace("." + sep, bpath);
-            }
-            else if (!Path.IsPathRooted(file))
-            {
-                file = bpath.CombinePath(file.Replace(sep2, sep));
-            }
             // 过滤掉不必要的符号
-            file = new FileInfo(file).FullName;
+            file = new FileInfo(file.GetBasePath()).FullName;
 
             return file;
         }
 
-        internal DictionaryCache<String, DataTable> _SchemaCache = new DictionaryCache<String, DataTable>(StringComparer.OrdinalIgnoreCase)
-        {
-            Expire = 10,
-            Period = 10 * 60,
-        };
-
+        internal ICache _SchemaCache = new MemoryCache { Expire = 10, Period = 10 * 60, };
         #endregion
 
         #region Sql日志输出

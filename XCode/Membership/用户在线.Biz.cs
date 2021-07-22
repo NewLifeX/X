@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using NewLife;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Threading;
@@ -44,6 +45,14 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
+            // 截取长度
+            var len = _.Status.Length;
+            if (len <= 0) len = 50;
+            if (!Status.IsNullOrEmpty() && Status.Length > len) Status = Status.Substring(0, len);
+
+            len = _.Page.Length;
+            if (len <= 0) len = 50;
+            if (!Page.IsNullOrEmpty() && Page.Length > len) Page = Page.Substring(0, len);
         }
         #endregion
 
@@ -84,7 +93,7 @@ namespace XCode.Membership
         {
             if (userid <= 0) return new List<UserOnline>();
 
-            return FindAll(__.UserID, userid);
+            return FindAll(_.UserID == userid);
         }
         #endregion
 
@@ -175,8 +184,8 @@ namespace XCode.Membership
 
             if (user == null) return SetStatus(sessionid, page, status, 0, null, ip);
 
-            if (user is IAuthUser user2) user2.Online = true;
-            (user as IEntity).SaveAsync(1000);
+            //if (user is IAuthUser user2) user2.Online = true;
+            //(user as IEntity).SaveAsync(1000);
 
             return SetStatus(sessionid, page, status, user.ID, user + "", ip);
         }
@@ -193,16 +202,16 @@ namespace XCode.Membership
             var list = FindAll(exp, null, null, 0, 0);
             list.Delete();
 
-            // 设置离线
-            foreach (var item in list)
-            {
-                var user = ManageProvider.Provider.FindByID(item.UserID);
-                if (user is IAuthUser user2)
-                {
-                    user2.Online = false;
-                    user2.Save();
-                }
-            }
+            //// 设置离线
+            //foreach (var item in list)
+            //{
+            //    var user = ManageProvider.Provider.FindByID(item.UserID);
+            //    if (user is IAuthUser user2)
+            //    {
+            //        user2.Online = false;
+            //        user2.Save();
+            //    }
+            //}
 
             return list;
         }

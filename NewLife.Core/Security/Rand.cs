@@ -8,7 +8,7 @@ namespace NewLife.Security
     /// <summary>随机数</summary>
     public static class Rand
     {
-        private static RandomNumberGenerator _rnd;
+        private static readonly RandomNumberGenerator _rnd;
 
         static Rand()
         {
@@ -20,7 +20,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Int32 Next(Int32 max = Int32.MaxValue)
         {
-            if (max <= 0) throw new ArgumentOutOfRangeException("max");
+            if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max));
 
             return Next(0, max);
         }
@@ -36,7 +36,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Int32 Next(Int32 min, Int32 max)
         {
-            if (max <= min) throw new ArgumentOutOfRangeException("max");
+            if (max <= min) throw new ArgumentOutOfRangeException(nameof(max));
 
             if (_buf == null) _buf = new Byte[4];
             _rnd.GetBytes(_buf);

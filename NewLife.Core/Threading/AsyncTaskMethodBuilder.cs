@@ -26,7 +26,7 @@ namespace System.Runtime.CompilerServices
         /// <returns></returns>
         public static AsyncTaskMethodBuilder Create()
         {
-            return default(AsyncTaskMethodBuilder);
+            return default;
         }
 
         /// <summary>开始运行有关联状态机的生成器。</summary>
@@ -129,7 +129,7 @@ namespace System.Runtime.CompilerServices
 
         static AsyncTaskMethodBuilder()
         {
-            s_defaultResultTask = AsyncMethodTaskCache<TResult>.CreateCompleted(default(TResult));
+            s_defaultResultTask = AsyncMethodTaskCache<TResult>.CreateCompleted(default);
             try
             {
                 AsyncVoidMethodBuilder.PreventUnobservedTaskExceptions();
@@ -143,7 +143,7 @@ namespace System.Runtime.CompilerServices
         /// <returns></returns>
         public static AsyncTaskMethodBuilder<TResult> Create()
         {
-            return default(AsyncTaskMethodBuilder<TResult>);
+            return default;
         }
 
         /// <summary>开始运行有关联状态机的生成器。</summary>

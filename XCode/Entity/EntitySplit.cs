@@ -16,18 +16,16 @@ namespace XCode
         /// <param name="tableName"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static T Split<T>(this IEntityOperate factory, String connName, String tableName, Func<T> func)
+        public static T Split<T>(this IEntityFactory factory, String connName, String tableName, Func<T> func)
         {
-            using (var split = new SplitPackge(factory, connName, tableName))
-            {
-                return func();
-            }
+            using var split = new SplitPackge(factory, connName, tableName);
+            return func();
         }
 
         class SplitPackge : IDisposable
         {
             /// <summary>实体工厂</summary>
-            public IEntityOperate Factory { get; set; }
+            public IEntityFactory Factory { get; set; }
 
             /// <summary>连接名</summary>
             public String ConnName { get; set; }
@@ -35,7 +33,7 @@ namespace XCode
             /// <summary>表名</summary>
             public String TableName { get; set; }
 
-            public SplitPackge(IEntityOperate factory, String connName, String tableName)
+            public SplitPackge(IEntityFactory factory, String connName, String tableName)
             {
                 Factory = factory;
 

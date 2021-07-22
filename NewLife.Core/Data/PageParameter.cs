@@ -5,7 +5,10 @@ using System.Xml.Serialization;
 
 namespace NewLife.Data
 {
-    /// <summary>分页参数信息</summary>
+    /// <summary>分页参数信息。可携带统计和数据权限扩展查询等信息</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/page_parameter
+    /// </remarks>
     public class PageParameter
     {
         #region 核心属性
@@ -69,8 +72,12 @@ namespace NewLife.Data
         {
             get
             {
+                // 如果PageSize小于等于0，则直接返回1
+                if (PageSize <= 0) return 1;
+
                 var count = TotalCount / PageSize;
                 if ((TotalCount % PageSize) != 0) count++;
+
                 return count;
             }
         }
@@ -118,7 +125,7 @@ namespace NewLife.Data
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public Boolean RetrieveTotalCount { get; set; }
 
-        /// <summary>获取 或 设置 状态。用于传递统计等数据</summary>
+        /// <summary>获取 或 设置 状态。用于传递统计、扩展查询等用户数据</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public virtual Object State { get; set; }
 
@@ -161,7 +168,7 @@ namespace NewLife.Data
 
         /// <summary>获取表示分页参数唯一性的键值，可用作缓存键</summary>
         /// <returns></returns>
-        public virtual String GetKey() => "{0}-{1}-{2}".F(PageIndex, PageCount, OrderBy);
+        public virtual String GetKey() => $"{PageIndex}-{PageCount}-{OrderBy}";
         #endregion
     }
 }

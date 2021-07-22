@@ -1,13 +1,18 @@
 ﻿using System;
-using NewLife.Reflection;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 
 namespace NewLife.Data
 {
     /// <summary>数据行</summary>
-    public struct DbRow : IIndexAccessor
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// </remarks>
+    public struct DbRow : IExtend
     {
         #region 属性
         /// <summary>数据表</summary>
+        [XmlIgnore, IgnoreDataMember]
         public DbTable Table { get; set; }
 
         /// <summary>行索引</summary>

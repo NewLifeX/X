@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -6,6 +7,8 @@ namespace NewLife.Messaging
 {
     /// <summary>标准消息SRMP</summary>
     /// <remarks>
+    /// 标准协议最大优势是短小，头部定长，没有序列化成本，适用于专业级RPC以及嵌入式通信。
+    /// 缺点是可读性差，不能适用于字符串通信场景。
     /// 标准网络封包协议：1 Flag + 1 Sequence + 2 Length + N Payload
     /// 1个字节标识位，标识请求、响应、错误、加密、压缩等；
     /// 1个字节序列号，用于请求响应包配对；
@@ -14,6 +17,20 @@ namespace NewLife.Messaging
     /// 如：
     /// Open => OK
     /// 01-01-04-00-"Open" => 81-01-02-00-"OK"
+    /// 
+    /// 
+    /// 字符串协议最大优势是可读性极强，适用于物联网模组的AT指令通信。
+    /// 缺点是字符串序列化成本很高，且指令比较长。
+    /// 字符串封包协议：Length,Sequence[,Flag]:Payload
+    /// 字符串表示的负载长度，逗号之后是字符串表示的序列号，然后分号隔开字符串负载。
+    /// 负载长度是字节长度；
+    /// 标记位根据需要可选；
+    /// 如：
+    /// Open => 执行成功
+    /// 4,1,1:Open => 12,1,129:执行成功
+    /// 简化版：
+    /// 4,1:Open => 12,1:执行成功
+    /// 
     /// </remarks>
     public class DefaultMessage : Message
     {
@@ -22,7 +39,7 @@ namespace NewLife.Messaging
         public Byte Flag { get; set; } = 1;
 
         /// <summary>序列号，匹配请求和响应</summary>
-        public Byte Sequence { get; set; }
+        public Int32 Sequence { get; set; }
         #endregion
 
         #region 方法
@@ -46,7 +63,8 @@ namespace NewLife.Messaging
         /// <returns>是否成功</returns>
         public override Boolean Read(Packet pk)
         {
-            if (pk.Count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足4字节");
+            var count = pk.Total;
+            if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足4字节");
 
             var size = 4;
             var buf = pk.ReadBytes(0, size);
@@ -66,19 +84,22 @@ namespace NewLife.Messaging
             Sequence = buf[1];
 
             var len = (buf[3] << 8) | buf[2];
-            if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
+            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{count}不足{size + len}字节");
 
             // 支持超过64k的超大包
             if (len == 0xFFFF)
             {
                 size += 4;
-                if (pk.Count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
+                if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
 
                 len = pk.ReadBytes(size - 4, 4).ToInt();
-                if (size + len > pk.Count) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度{0}不足{1}字节".F(pk.Count, size + len));
+                if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{count}不足{size + len}字节");
             }
 
-            Payload = new Packet(pk.Data, pk.Offset + size, len);
+            if (pk.Next == null)
+                Payload = new Packet(pk.Data, pk.Offset + size, len);
+            else
+                Payload = pk.Slice(size, len);
 
             return true;
         }
@@ -105,7 +126,7 @@ namespace NewLife.Messaging
             pk[0] = (Byte)b;
 
             // 序列号
-            pk[1] = Sequence;
+            pk[1] = (Byte)(Sequence & 0xFF);
 
             if (len < 0xFFFF)
             {
@@ -124,6 +145,82 @@ namespace NewLife.Messaging
             }
 
             return pk;
+        }
+        #endregion
+
+        #region 字符串指令格式
+        /// <summary>从字符串中读取字符串消息</summary>
+        /// <param name="encoding">编码</param>
+        /// <param name="value">字符串</param>
+        /// <returns>是否成功</returns>
+        public Boolean Decode(String value, Encoding encoding = null)
+        {
+            if (value.IsNullOrEmpty() || value.Length < 4) throw new ArgumentOutOfRangeException(nameof(value), "数据包长度不足4字节");
+
+            // 长度
+            var p = value.IndexOf(':');
+            if (p < 0) return false;
+            var header = value.Substring(0, p);
+
+            var ss = header.Split(',');
+            if (ss.Length < 2) return false;
+
+            var len = ss[0].ToInt();
+            Sequence = ss[1].ToInt();
+            if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
+
+            var pk = new Packet(value.Substring(p + 1).GetBytes(encoding));
+            if (len > pk.Count) return false;
+
+            Payload = pk.Slice(0, len);
+
+            return true;
+        }
+
+        /// <summary>从数据包中读取字符串消息</summary>
+        /// <param name="pk">数据包</param>
+        /// <returns>是否成功</returns>
+        public Boolean Decode(Packet pk)
+        {
+            if (pk == null || pk.Total < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度不足4字节");
+
+            // 头部
+            var p = pk.IndexOf(new[] { (Byte)':' });
+            if (p < 0) return false;
+            var header = pk.Slice(0, p).ToStr();
+
+            var ss = header.Split(',');
+            if (ss.Length < 2) return false;
+
+            var len = ss[0].ToInt();
+            Sequence = ss[1].ToInt();
+            if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
+
+            if (p + 1 + len > pk.Total) return false;
+
+            Payload = pk.Slice(p + 1, len);
+
+            return true;
+        }
+
+        /// <summary>把消息转为字符串封包</summary>
+        /// <param name="encoding">编码</param>
+        /// <param name="includeFlag">是否包含标识位</param>
+        /// <returns></returns>
+        public String Encode(Encoding encoding = null, Boolean includeFlag = true)
+        {
+            var pk = Payload;
+            var len = 0;
+            if (pk != null) len = pk.Total;
+
+            if (!includeFlag) return $"{len},{Sequence}:{pk?.ToStr(encoding)}";
+
+            // 标记位
+            var b = Flag & 0b0011_1111;
+            if (Reply) b |= 0x80;
+            if (Error || OneWay) b |= 0x40;
+
+            return $"{len},{Sequence},{b}:{pk?.ToStr(encoding)}";
         }
         #endregion
 
@@ -147,7 +244,7 @@ namespace NewLife.Messaging
 
         /// <summary>消息摘要</summary>
         /// <returns></returns>
-        public override String ToString() => $"{Flag:X2} Seq={Sequence} {Payload}";
+        public override String ToString() => $"{Flag:X2} Seq={Sequence:X2} {Payload}";
         #endregion
     }
 }

@@ -1,23 +1,27 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 
-namespace System
+#nullable enable
+namespace NewLife
 {
     /// <summary>字符串助手类</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/string_helper
+    /// </remarks>
     public static class StringHelper
     {
         #region 字符串扩展
-        /// <summary>忽略大小写的字符串相等比较，判断是否以任意一个待比较字符串相等</summary>
+        /// <summary>忽略大小写的字符串相等比较，判断是否与任意一个待比较字符串相等</summary>
         /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean EqualIgnoreCase(this String value, params String[] strs)
+        public static Boolean EqualIgnoreCase(this String? value, params String[] strs)
         {
             foreach (var item in strs)
             {
@@ -26,13 +30,13 @@ namespace System
             return false;
         }
 
-        /// <summary>忽略大小写的字符串开始比较，判断是否以任意一个待比较字符串开始</summary>
+        /// <summary>忽略大小写的字符串开始比较，判断是否与任意一个待比较字符串开始</summary>
         /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean StartsWithIgnoreCase(this String value, params String[] strs)
+        public static Boolean StartsWithIgnoreCase(this String? value, params String[] strs)
         {
-            if (String.IsNullOrEmpty(value)) return false;
+            if (value == null || String.IsNullOrEmpty(value)) return false;
 
             foreach (var item in strs)
             {
@@ -45,9 +49,9 @@ namespace System
         /// <param name="value">字符串</param>
         /// <param name="strs">待比较字符串数组</param>
         /// <returns></returns>
-        public static Boolean EndsWithIgnoreCase(this String value, params String[] strs)
+        public static Boolean EndsWithIgnoreCase(this String? value, params String[] strs)
         {
-            if (String.IsNullOrEmpty(value)) return false;
+            if (value == null || String.IsNullOrEmpty(value)) return false;
 
             foreach (var item in strs)
             {
@@ -59,12 +63,12 @@ namespace System
         /// <summary>指示指定的字符串是 null 还是 String.Empty 字符串</summary>
         /// <param name="value">字符串</param>
         /// <returns></returns>
-        public static Boolean IsNullOrEmpty(this String value) => value == null || value.Length <= 0;
+        public static Boolean IsNullOrEmpty(this String? value) => value == null || value.Length <= 0;
 
         /// <summary>是否空或者空白字符串</summary>
         /// <param name="value">字符串</param>
         /// <returns></returns>
-        public static Boolean IsNullOrWhiteSpace(this String value)
+        public static Boolean IsNullOrWhiteSpace(this String? value)
         {
             if (value != null)
             {
@@ -80,9 +84,10 @@ namespace System
         /// <param name="value">字符串</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
-        public static String[] Split(this String value, params String[] separators)
+        public static String[] Split(this String? value, params String[] separators)
         {
-            if (String.IsNullOrEmpty(value)) return new String[0];
+            //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
+            if (value == null || String.IsNullOrEmpty(value)) return new String[0];
             if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -93,9 +98,9 @@ namespace System
         /// <param name="value">字符串</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
-        public static Int32[] SplitAsInt(this String value, params String[] separators)
+        public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
-            if (String.IsNullOrEmpty(value)) return new Int32[0];
+            if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
             if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -117,17 +122,17 @@ namespace System
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
         /// <param name="separators">分组分隔符，默认逗号分号</param>
         /// <returns></returns>
-        [Obsolete]
-        public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", params String[] separators)
+        [Obsolete("该扩展容易带来误解")]
+        public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", params String[] separators)
         {
             var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value.IsNullOrWhiteSpace()) return dic;
+            if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
-            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length == 0) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
+            if (ss == null || ss.Length == 0) return dic;
 
             foreach (var item in ss)
             {
@@ -148,21 +153,27 @@ namespace System
         /// <param name="separator">分组分隔符，默认分号</param>
         /// <param name="trimQuotation">去掉括号</param>
         /// <returns></returns>
-        public static IDictionary<String, String> SplitAsDictionary(this String value, String nameValueSeparator = "=", String separator = ";", Boolean trimQuotation = false)
+        public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", String separator = ";", Boolean trimQuotation = false)
         {
             var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value.IsNullOrWhiteSpace()) return dic;
+            if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
             //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
+            if (ss == null || ss.Length < 1) return dic;
 
+            var k = 0;
             foreach (var item in ss)
             {
                 var p = item.IndexOf(nameValueSeparator);
-                if (p <= 0) continue;
+                if (p <= 0)
+                {
+                    dic[$"[{k}]"] = item;
+                    k++;
+                    continue;
+                }
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + nameValueSeparator.Length).Trim();
@@ -174,6 +185,7 @@ namespace System
                     if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
                 }
 
+                k++;
                 dic[key] = val;
             }
 
@@ -188,16 +200,16 @@ namespace System
         /// <param name="separator"></param>
         /// <param name="trimQuotation"></param>
         /// <returns></returns>
-        public static IDictionary<String, String> SplitAsDictionaryT(this String value, Char nameValueSeparator = '=', Char separator = ';', Boolean trimQuotation = false)
+        public static IDictionary<String, String> SplitAsDictionaryT(this String? value, Char nameValueSeparator = '=', Char separator = ';', Boolean trimQuotation = false)
         {
             var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value.IsNullOrWhiteSpace()) return dic;
+            if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             //if (nameValueSeparator == null) nameValueSeparator = '=';
             //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
+            if (ss == null || ss.Length < 1) return dic;
 
             foreach (var item in ss)
             {
@@ -206,6 +218,7 @@ namespace System
 
                 var key = item.Substring(0, p).Trim();
                 var val = item.Substring(p + 1).Trim();
+
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
@@ -237,37 +250,37 @@ namespace System
             return sb.Put(true);
         }
 
-        /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
-        /// <param name="value"></param>
-        /// <param name="separator">组合分隔符，默认逗号</param>
-        /// <param name="func">把对象转为字符串的委托</param>
-        /// <returns></returns>
+        ///// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
+        ///// <param name="value"></param>
+        ///// <param name="separator">组合分隔符，默认逗号</param>
+        ///// <param name="func">把对象转为字符串的委托</param>
+        ///// <returns></returns>
         //[Obsolete]
-        public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String> func)
-        {
-            var sb = Pool.StringBuilder.Get();
-            if (value != null)
-            {
-                if (func == null) func = obj => "{0}".F(obj);
-                foreach (var item in value)
-                {
-                    sb.Separate(separator).Append(func(item));
-                }
-            }
-            return sb.Put(true);
-        }
+        //public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String>? func)
+        //{
+        //    var sb = Pool.StringBuilder.Get();
+        //    if (value != null)
+        //    {
+        //        if (func == null) func = obj => obj + "";
+        //        foreach (var item in value)
+        //        {
+        //            sb.Separate(separator).Append(func(item));
+        //        }
+        //    }
+        //    return sb.Put(true);
+        //}
 
         /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
         /// <param name="value"></param>
         /// <param name="separator">组合分隔符，默认逗号</param>
         /// <param name="func">把对象转为字符串的委托</param>
         /// <returns></returns>
-        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object> func = null)
+        public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object?>? func = null)
         {
             var sb = Pool.StringBuilder.Get();
             if (value != null)
             {
-                if (func == null) func = obj => "{0}".F(obj);
+                if (func == null) func = obj => obj;
                 foreach (var item in value)
                 {
                     sb.Separate(separator).Append(func(item));
@@ -282,7 +295,7 @@ namespace System
         /// <returns></returns>
         public static StringBuilder Separate(this StringBuilder sb, String separator)
         {
-            if (sb == null || String.IsNullOrEmpty(separator)) return sb;
+            if (/*sb == null ||*/ String.IsNullOrEmpty(separator)) return sb;
 
             if (sb.Length > 0) sb.Append(separator);
 
@@ -293,10 +306,10 @@ namespace System
         /// <param name="value">字符串</param>
         /// <param name="encoding">编码，默认utf-8无BOM</param>
         /// <returns></returns>
-        public static Byte[] GetBytes(this String value, Encoding encoding = null)
+        public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
         {
-            if (value == null) return null;
-            if (value == String.Empty) return new Byte[0];
+            //if (value == null) return null;
+            if (String.IsNullOrEmpty(value)) return new Byte[0];
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
@@ -306,21 +319,69 @@ namespace System
         /// <param name="value">格式字符串</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static String F(this String value, params Object[] args)
+        [Obsolete("建议使用插值字符串")]
+        public static String F(this String value, params Object?[] args)
         {
             if (String.IsNullOrEmpty(value)) return value;
 
             // 特殊处理时间格式化。这些年，无数项目实施因为时间格式问题让人发狂
             for (var i = 0; i < args.Length; i++)
             {
-                if (args[i] is DateTime)
+                if (args[i] is DateTime dt)
                 {
                     // 没有写格式化字符串的时间参数，一律转为标准时间字符串
-                    if (value.Contains("{" + i + "}")) args[i] = ((DateTime)args[i]).ToFullString();
+                    if (value.Contains("{" + i + "}")) args[i] = dt.ToFullString();
                 }
             }
 
             return String.Format(value, args);
+        }
+
+        /// <summary>指定输入是否匹配目标表达式，支持*匹配</summary>
+        /// <param name="pattern">匹配表达式</param>
+        /// <param name="input">输入字符串</param>
+        /// <param name="comparisonType">字符串比较方式</param>
+        /// <returns></returns>
+        public static Boolean IsMatch(this String pattern, String input, StringComparison comparisonType = StringComparison.CurrentCulture)
+        {
+            if (pattern.IsNullOrEmpty() || input.IsNullOrEmpty()) return false;
+
+            // 普通表达式，直接包含
+            var p = pattern.IndexOf('*');
+            if (p < 0) return String.Equals(input, pattern, comparisonType);
+
+            // 表达式分组
+            var ps = pattern.Split('*');
+
+            // 头尾专用匹配
+            if (ps.Length == 2)
+            {
+                if (p == 0) return input.EndsWith(ps[1], comparisonType);
+                if (p == pattern.Length - 1) return input.StartsWith(ps[0], comparisonType);
+            }
+
+            // 逐项跳跃式匹配
+            p = 0;
+            for (var i = 0; i < ps.Length; i++)
+            {
+                // 最后一组反向匹配
+                if (i == ps.Length - 1)
+                    p = input.LastIndexOf(ps[i], input.Length - 1, input.Length - p, comparisonType);
+                else
+                    p = input.IndexOf(ps[i], p, comparisonType);
+                if (p < 0) return false;
+
+                // 第一组必须开头
+                if (i == 0 && p > 0) return false;
+
+                p += ps[i].Length;
+            }
+
+            // 最后一组*允许不到边界
+            if (ps[ps.Length - 1].IsNullOrEmpty()) return p <= input.Length;
+
+            // 最后一组必须结尾
+            return p == input.Length;
         }
         #endregion
 
@@ -407,7 +468,7 @@ namespace System
         /// <param name="startIndex">搜索的开始位置</param>
         /// <param name="positions">位置数组，两个元素分别记录头尾位置</param>
         /// <returns></returns>
-        public static String Substring(this String str, String after, String before = null, Int32 startIndex = 0, Int32[] positions = null)
+        public static String? Substring(this String str, String after, String? before = null, Int32 startIndex = 0, Int32[]? positions = null)
         {
             if (String.IsNullOrEmpty(str)) return str;
             if (String.IsNullOrEmpty(after) && String.IsNullOrEmpty(before)) return str;
@@ -448,14 +509,14 @@ namespace System
         /// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
         /// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
         /// <returns></returns>
-        public static String Cut(this String str, Int32 maxLength, String pad = null)
+        public static String Cut(this String str, Int32 maxLength, String? pad = null)
         {
             if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
 
             // 计算截取长度
             var len = maxLength;
-            if (!String.IsNullOrEmpty(pad)) len -= pad.Length;
-            if (len <= 0) return pad;
+            if (pad != null && !String.IsNullOrEmpty(pad)) len -= pad.Length;
+            if (len <= 0) throw new ArgumentOutOfRangeException(nameof(maxLength));
 
             return str.Substring(0, len) + pad;
         }
@@ -730,7 +791,7 @@ namespace System
         /// <param name="keys"></param>
         /// <param name="keySelector"></param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
+        public static IList<KeyValuePair<T, Double>> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector)
         {
             var rs = new List<KeyValuePair<T, Double>>();
 
@@ -749,7 +810,7 @@ namespace System
                 var dist = ks.Sum(e =>
                 {
                     var kv = Match(name, e, e.Length);
-                    return kv.Key - kv.Value * 0.5;
+                    return kv.Key - kv.Value * 0.1;
                 });
                 if (dist > 0)
                 {
@@ -835,7 +896,7 @@ namespace System
         #endregion
 
         #region 文字转语音
-        private static NewLife.Extension.SpeakProvider _provider;
+        private static NewLife.Extension.SpeakProvider? _provider;
         //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
         static void Init()
         {
@@ -853,7 +914,7 @@ namespace System
         {
             Init();
 
-            _provider.Speak(value);
+            _provider?.Speak(value);
         }
 
         /// <summary>异步调用语音引擎说出指定话。可能导致后来的调用打断前面的语音</summary>
@@ -862,7 +923,7 @@ namespace System
         {
             Init();
 
-            _provider.SpeakAsync(value);
+            _provider?.SpeakAsync(value);
         }
 
         /// <summary>启用语音提示</summary>
@@ -885,40 +946,42 @@ namespace System
         /// 停止所有语音播报
         /// </summary>
         /// <param name="value"></param>
-        public static string SpeakAsyncCancelAll(this String value)
+        public static String SpeakAsyncCancelAll(this String value)
         {
             Init();
 
-            _provider.SpeakAsyncCancelAll();
+            _provider?.SpeakAsyncCancelAll();
 
             return value;
         }
         #endregion
 
         #region 执行命令行
+
         /// <summary>以隐藏窗口执行命令行</summary>
         /// <param name="cmd">文件名</param>
         /// <param name="arguments">命令参数</param>
         /// <param name="msWait">等待毫秒数</param>
         /// <param name="output">进程输出内容。默认为空时输出到日志</param>
         /// <param name="onExit">进程退出时执行</param>
+        /// <param name="working">工作目录</param>
         /// <returns>进程退出代码</returns>
-        public static Int32 Run(this String cmd, String arguments = null, Int32 msWait = 0, Action<String> output = null, Action<Process> onExit = null)
+        public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
             var p = new Process();
             var si = p.StartInfo;
             si.FileName = cmd;
-            si.Arguments = arguments;
+            if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
-
+            if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
             {
+                si.UseShellExecute = false;
                 si.RedirectStandardOutput = true;
                 si.RedirectStandardError = true;
-                si.UseShellExecute = false;
                 if (output != null)
                 {
                     p.OutputDataReceived += (s, e) => output(e.Data);
@@ -926,11 +989,11 @@ namespace System
                 }
                 else if (NewLife.Runtime.IsConsole)
                 {
-                    p.OutputDataReceived += (s, e) => XTrace.WriteLine(e.Data);
-                    p.ErrorDataReceived += (s, e) => XTrace.Log.Error(e.Data);
+                    p.OutputDataReceived += (s, e) => { if (e.Data != null) XTrace.WriteLine(e.Data); };
+                    p.ErrorDataReceived += (s, e) => { if (e.Data != null) XTrace.Log.Error(e.Data); };
                 }
             }
-            if (onExit != null) p.Exited += (s, e) => onExit(s as Process);
+            if (onExit != null) p.Exited += (s, e) => { if (s is Process proc) onExit(proc); };
 
             p.Start();
             if (msWait > 0 && (output != null || NewLife.Runtime.IsConsole))
@@ -939,13 +1002,17 @@ namespace System
                 p.BeginErrorReadLine();
             }
 
-            if (msWait <= 0) return -1;
+            if (msWait == 0) return -1;
 
             // 如果未退出，则不能拿到退出代码
-            if (!p.WaitForExit(msWait)) return -1;
+            if (msWait < 0)
+                p.WaitForExit();
+            else if (!p.WaitForExit(msWait))
+                return -1;
 
             return p.ExitCode;
         }
         #endregion
     }
 }
+#nullable restore

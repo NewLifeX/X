@@ -9,6 +9,9 @@ using NewLife.Threading;
 namespace NewLife.Collections
 {
     /// <summary>资源池。支持空闲释放，主要用于数据库连接池和网络连接池</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
     public class ObjectPool<T> : DisposeBase, IPool<T> where T : class
     {
@@ -37,15 +40,15 @@ namespace NewLife.Collections
         public Int32 AllIdleTime { get; set; } = 0;
 
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
-        private ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
+        private readonly ConcurrentStack<Item> _free = new();
 
         /// <summary>扩展空闲集合。保存最小个数以外部分</summary>
-        private ConcurrentQueue<Item> _free2 = new ConcurrentQueue<Item>();
+        private readonly ConcurrentQueue<Item> _free2 = new();
 
         /// <summary>借出去的放在这</summary>
-        private ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
+        private readonly ConcurrentDictionary<T, Item> _busy = new();
 
-        private readonly Object SyncRoot = new Object();
+        private readonly Object SyncRoot = new();
         #endregion
 
         #region 构造
@@ -62,9 +65,9 @@ namespace NewLife.Collections
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _timer.TryDispose();
 
@@ -178,7 +181,7 @@ namespace NewLife.Collections
 
         /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
         /// <returns></returns>
-        public PoolItem<T> GetItem() => new PoolItem<T>(this, Get());
+        public PoolItem<T> GetItem() => new(this, Get());
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
@@ -206,8 +209,7 @@ namespace NewLife.Collections
                 return false;
             }
 
-            var db = value as DisposeBase;
-            if (db != null && db.Disposed)
+            if (value is DisposeBase db && db.Disposed)
             {
                 Interlocked.Increment(ref _ReleaseCount);
                 return false;
@@ -304,7 +306,7 @@ namespace NewLife.Collections
                 {
                     if (item.Value.LastTime < exp)
                     {
-                        if (_busy.TryRemove(item.Key, out var v))
+                        if (_busy.TryRemove(item.Key, out _))
                         {
                             // 业务层可能故意有借没还
                             //v.TryDispose();
@@ -423,9 +425,9 @@ namespace NewLife.Collections
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             Pool.Put(Value);
         }

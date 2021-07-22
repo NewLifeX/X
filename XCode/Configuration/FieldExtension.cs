@@ -1,4 +1,6 @@
 ﻿using System;
+using NewLife;
+using NewLife.Data;
 using XCode.Configuration;
 
 namespace XCode
@@ -7,7 +9,7 @@ namespace XCode
     public static class FieldExtension
     {
         #region 时间复杂运算
-        /// <summary>时间专用区间函数</summary>
+        /// <summary>时间专用区间函数，左闭合右开放，开始结束都是日期时包含结束日期（也即结束日期加一天）</summary>
         /// <param name="fi"></param>
         /// <param name="start">起始时间，大于等于</param>
         /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
@@ -23,8 +25,8 @@ namespace XCode
             {
                 if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
 
-                // 如果只有日期，则加一天，表示包含这一天
-                if (end == end.Date) end = end.AddDays(1);
+                //// 如果只有日期，则加一天，表示包含这一天
+                //if (end == end.Date) end = end.AddDays(1);
 
                 return fi < end;
             }
@@ -37,6 +39,40 @@ namespace XCode
                 if (start == start.Date && end == end.Date) end = end.AddDays(1);
 
                 return exp & fi < end;
+            }
+        }
+
+        /// <summary>时间专用区间函数，左闭合右开放，开始结束都是日期时包含结束日期（也即结束日期加一天）</summary>
+        /// <param name="fi"></param>
+        /// <param name="start">起始时间，大于等于</param>
+        /// <param name="end">结束时间，小于。如果是日期，则加一天</param>
+        /// <param name="snow"></param>
+        /// <returns></returns>
+        public static Expression Between(this FieldItem fi, DateTime start, DateTime end, Snowflake snow)
+        {
+            if (fi.Type != typeof(Int64)) throw new NotSupportedException($"[{nameof(Between)}]函数仅支持Int64字段！");
+
+            var exp = new WhereExpression();
+            if (fi == null) return exp;
+
+            if (start <= DateTime.MinValue || start >= DateTime.MaxValue)
+            {
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
+
+                //// 如果只有日期，则加一天，表示包含这一天
+                //if (end == end.Date) end = end.AddDays(1);
+
+                return fi < snow.GetId(end);
+            }
+            else
+            {
+                exp &= fi >= snow.GetId(start);
+                if (end <= DateTime.MinValue || end >= DateTime.MaxValue) return exp;
+
+                // 如果只有日期，则加一天，表示包含这一天
+                if (start == start.Date && end == end.Date) end = end.AddDays(1);
+
+                return exp & fi < snow.GetId(end);
             }
         }
 
@@ -318,7 +354,7 @@ namespace XCode
         #region 分组选择
         /// <summary>分组。有条件的分组请使用WhereExpression.GroupBy</summary>
         /// <returns></returns>
-        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression(String.Format("Group By {0}", field.FormatedName));
+        public static ConcatExpression GroupBy(this FieldItem field) => field == null ? null : new ConcatExpression($"Group By {field.FormatedName}");
 
         ///// <summary>按照指定若干个字段分组。没有条件时使用分组请用FieldItem的GroupBy</summary>
         ///// <param name="where"></param>
@@ -370,12 +406,9 @@ namespace XCode
             if (field == null) return null;
 
             var name = field.FormatedName;
-            if (String.IsNullOrEmpty(newName))
-                newName = name;
-            else
-                newName = field.Factory.FormatName(newName);
+            if (newName.IsNullOrEmpty()) newName = name;
 
-            return new ConcatExpression(String.Format("{2}({0}) as {1}", name, newName, action));
+            return new ConcatExpression($"{action}({name}) as {newName}");
         }
 
         /// <summary>作为新的列</summary>
@@ -387,12 +420,9 @@ namespace XCode
             if (field == null) return null;
 
             var name = field.FormatedName;
-            if (String.IsNullOrEmpty(newName))
-                newName = name;
-            else
-                newName = field.Factory.FormatName(newName);
+            if (newName.IsNullOrEmpty()) newName = name;
 
-            return new ConcatExpression(String.Format("{0} as {1}", name, newName));
+            return new ConcatExpression($"{name} as {newName}");
         }
 
         /// <summary>数量</summary>
@@ -423,7 +453,23 @@ namespace XCode
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
-        public static ConcatExpression Agv(this FieldItem field, String newName = null) => Aggregate(field, "Agv", newName);
+        public static ConcatExpression Avg(this FieldItem field, String newName = null) => Aggregate(field, "Avg", newName);
+        #endregion
+
+        #region 高级聚合
+        /// <summary>sumCase子句，计算等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumCase(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}={1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算大于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLarge(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}>{1} then 1 else 0 end) " + newName, value);
         #endregion
     }
 }

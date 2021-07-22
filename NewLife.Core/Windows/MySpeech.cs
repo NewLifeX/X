@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Speech.Recognition;
 using NewLife.Log;
+using NewLife.Model;
 
 namespace NewLife.Windows
 {
@@ -13,8 +14,9 @@ namespace NewLife.Windows
         /// <summary>语音识别事件</summary>
         public event EventHandler<RecognitionEventArgs> SpeechRecognized;
 
-        public MySpeech()
+        static MySpeech()
         {
+            ObjectContainer.Current.AddSingleton<ISpeech, MySpeech>();
         }
 
         public Boolean Init()

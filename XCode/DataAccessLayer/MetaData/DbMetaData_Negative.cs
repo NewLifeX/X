@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using NewLife;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -58,6 +60,7 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         private String ConnName => Database.ConnName;
+
         #endregion
 
         #region 反向工程
@@ -121,25 +124,32 @@ namespace XCode.DataAccessLayer
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
             // 数据库表进入字典
-            var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            //var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
+            IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                var dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-                if (dbtables != null && dbtables.Count > 0)
-                {
-                    foreach (var item in dbtables)
-                    {
-                        dic.Add(item.TableName, item);
-                    }
-                }
+                dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
+                //if (dbtables != null && dbtables.Count > 0)
+                //{
+                //    foreach (var item in dbtables)
+                //    {
+                //        //dic.Add(item.TableName, item);
+                //        dic[item.TableName] = item;
+                //    }
+                //}
             }
 
             foreach (var item in tables)
             {
                 try
                 {
+                    // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
+                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == item.TableName);
+                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(item.TableName));
+
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    if (dic.TryGetValue(item.TableName, out var dbtable))
+                    //if (dic.TryGetValue(item.TableName, out var dbtable))
+                    if (dbtable != null)
                         CheckTable(item, dbtable, mode);
                     else
                         CheckTable(item, null, mode);
@@ -242,7 +252,7 @@ namespace XCode.DataAccessLayer
                 else
                 {
                     if (sb.Length > 0) sb.AppendLine(";");
-                    sb.Append(sbDelete.ToString());
+                    sb.Append(sbDelete);
                 }
             }
             #endregion
@@ -262,7 +272,8 @@ namespace XCode.DataAccessLayer
                 }
                 if (IsColumnChanged(item, dbf, entityDb)) PerformSchema(sb, noDelete, DDLSchema.AlterColumn, item, dbf);
 
-                if (item.Description + "" != dbf.Description + "")
+                //if (item.Description + "" != dbf.Description + "")
+                if (FormatDescription(item.Description) != FormatDescription(dbf.Description))
                 {
                     // 先删除旧注释
                     //if (dbf.Description != null) PerformSchema(sb, noDelete, DDLSchema.DropColumnDescription, dbf);
@@ -289,7 +300,8 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             #region 表说明
-            if (entitytable.Description + "" != dbtable.Description + "")
+            //if (entitytable.Description + "" != dbtable.Description + "")
+            if (FormatDescription(entitytable.Description) != FormatDescription(dbtable.Description))
             {
                 //// 先删除旧注释
                 //if (!String.IsNullOrEmpty(dbtable.Description)) PerformSchema(sb, onlySql, DDLSchema.DropTableDescription, dbtable);
@@ -351,6 +363,18 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
+        /// <summary>格式化注释，去除所有非单词字符</summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private String FormatDescription(String str)
+        {
+            if (str.IsNullOrWhiteSpace()) return null;
+
+            return Regex.Replace(
+                str.Replace("\r\n", " ").Replace("\n", " ").Replace("\\", "\\\\").Replace("'", "")
+                .Replace("\"", "").Replace("。", ""), @"\W", "");
+        }
+
         /// <summary>检查字段是否有改变，除了默认值和备注以外</summary>
         /// <param name="entityColumn"></param>
         /// <param name="dbColumn"></param>
@@ -366,14 +390,16 @@ namespace XCode.DataAccessLayer
             // 是否已改变
             var isChanged = false;
 
-            //仅针对字符串类型比较长度
+            // 仅针对字符串类型比较长度
             if (!isChanged && entityColumn.DataType == typeof(String) && entityColumn.Length != dbColumn.Length)
             {
                 isChanged = true;
 
-                //如果是大文本类型，长度可能不等
-                if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0) &&
-                    (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)) isChanged = false;
+                // 如果是大文本类型，长度可能不等
+                if ((entityColumn.Length > Database.LongTextLength || entityColumn.Length <= 0)
+                    && (entityDb != null && dbColumn.Length > entityDb.LongTextLength || dbColumn.Length <= 0)
+                    || dbColumn.RawType.EqualIgnoreCase("ntext", "text", "sysname"))
+                    isChanged = false;
             }
 
             return isChanged;
@@ -384,6 +410,7 @@ namespace XCode.DataAccessLayer
             var type = entityColumn.DataType;
             if (type.IsEnum) type = typeof(Int32);
             if (type == dbColumn.DataType) return false;
+            if (Nullable.GetUnderlyingType(type) == dbColumn.DataType) return false;
 
             //// 整型不做改变
             //if (type.IsInt() && dbColumn.DataType.IsInt()) return false;
@@ -404,8 +431,8 @@ namespace XCode.DataAccessLayer
             // 通过重建表的方式修改字段
             var tableName = dbtable.TableName;
             var tempTableName = "Temp_" + tableName + "_" + Rand.Next(1000, 10000);
-            tableName = FormatName(tableName);
-            tempTableName = FormatName(tempTableName);
+            tableName = FormatName(dbtable);
+            //tempTableName = FormatName(tempTableName);
 
             // 每个分号后面故意加上空格，是为了让DbMetaData执行SQL时，不要按照分号加换行来拆分这个SQL语句
             var sb = new StringBuilder();
@@ -424,8 +451,7 @@ namespace XCode.DataAccessLayer
                 var sbValue = new StringBuilder();
                 foreach (var item in entitytable.Columns)
                 {
-                    var name = item.ColumnName;
-                    var fname = FormatName(name);
+                    var fname = FormatName(item);
                     var type = item.DataType;
                     var field = dbtable.GetColumn(item.ColumnName);
                     if (field == null)
@@ -446,7 +472,7 @@ namespace XCode.DataAccessLayer
                                 if (sbName.Length > 0) sbName.Append(", ");
                                 if (sbValue.Length > 0) sbValue.Append(", ");
                                 sbName.Append(fname);
-                                sbValue.Append("0");
+                                sbValue.Append('0');
                             }
                             else if (type == typeof(DateTime))
                             {
@@ -477,14 +503,14 @@ namespace XCode.DataAccessLayer
                         {
                             flag = true;
                             if (type == typeof(String))
-                                sbValue.Append("ifnull({0}, \'\')".F(fname));
+                                sbValue.Append($"ifnull({fname}, \'\')");
                             else if (type == typeof(Int16) || type == typeof(Int32) || type == typeof(Int64) ||
-                               type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal))
-                                sbValue.Append("ifnull({0}, 0)".F(fname));
+                               type == typeof(Single) || type == typeof(Double) || type == typeof(Decimal) || type.IsEnum)
+                                sbValue.Append($"ifnull({fname}, 0)");
                             else if (type == typeof(DateTime))
-                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatDateTime(DateTime.MinValue)));
+                                sbValue.Append($"ifnull({fname}, {db.FormatDateTime(DateTime.MinValue)})");
                             else if (type == typeof(Boolean))
-                                sbValue.Append("ifnull({0}, {1})".F(fname, db.FormatValue(item, false)));
+                                sbValue.Append($"ifnull({fname}, { db.FormatValue(item, false)})");
                             else
                                 flag = false;
                         }
@@ -501,7 +527,7 @@ namespace XCode.DataAccessLayer
                         }
                     }
                 }
-                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName.ToString(), sbValue.ToString());
+                sb.AppendFormat("Insert Into {0}({2}) Select {3} From {1}", tableName, tempTableName, sbName, sbValue);
             }
             else
             {
@@ -515,7 +541,7 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
-        protected virtual String RenameTable(String tableName, String tempTableName) => String.Format("Alter Table {0} Rename To {1}", tableName, tempTableName);
+        protected virtual String RenameTable(String tableName, String tempTableName) => $"Alter Table {tableName} Rename To {tempTableName}";
 
         /// <summary>
         /// 获取架构语句，该执行的已经执行。
@@ -544,7 +570,7 @@ namespace XCode.DataAccessLayer
                 {
                     foreach (var item in values)
                     {
-                        if (s.Length > 0) s.Append(" ");
+                        if (s.Length > 0) s.Append(' ');
                         s.Append(item);
                     }
                 }
@@ -756,7 +782,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder();
 
             //字段名
-            sb.AppendFormat("{0} ", FormatName(field.ColumnName));
+            sb.AppendFormat("{0} ", FormatName(field));
 
             String typeName = null;
             // 如果还是原来的数据库类型，则直接使用
@@ -814,33 +840,32 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义语句
-        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {FormatName(dbname)}";
+        public virtual String CreateDatabaseSQL(String dbname, String file) => $"Create Database {Database.FormatName(dbname)}";
 
-        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {FormatName(dbname)}";
+        public virtual String DropDatabaseSQL(String dbname) => $"Drop Database {Database.FormatName(dbname)}";
 
         public virtual String DatabaseExistSQL(String dbname) => null;
 
         public virtual String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
-
             var sb = new StringBuilder();
 
-            sb.AppendFormat("Create Table {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
+                if (i < fs.Count - 1) sb.Append(',');
             }
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.ToString();
         }
 
-        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table.TableName)}";
+        public virtual String DropTableSQL(IDataTable table) => $"Drop Table {FormatName(table)}";
 
         public virtual String TableExistSQL(IDataTable table) => throw new NotSupportedException("该功能未实现！");
 
@@ -848,11 +873,11 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropTableDescriptionSQL(IDataTable table) => null;
 
-        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Add {FieldClause(field, true)}";
+        public virtual String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Add {FieldClause(field, true)}";
 
-        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table.TableName)} Alter Column {FieldClause(field, false)}";
+        public virtual String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Alter Column {FieldClause(field, false)}";
 
-        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table.TableName)} Drop Column {field.ColumnName}";
+        public virtual String DropColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Drop Column {FormatName(field)}";
 
         public virtual String AddColumnDescriptionSQL(IDataColumn field) => null;
 
@@ -866,19 +891,14 @@ namespace XCode.DataAccessLayer
             else
                 sb.Append("Create Index ");
 
-            sb.Append(FormatName(index.Name));
-            sb.AppendFormat(" On {0} (", FormatName(index.Table.TableName));
-            for (var i = 0; i < index.Columns.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(index.Columns[i]));
-            }
-            sb.Append(")");
+            sb.Append(index.Name);
+            var dcs = index.Table.GetColumns(index.Columns);
+            sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(",", FormatName));
 
             return sb.ToString();
         }
 
-        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {FormatName(index.Name)} On {FormatName(index.Table.TableName)}";
+        public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name} On {FormatName(index.Table)}";
 
         //public virtual String CompactDatabaseSQL() => null;
         #endregion

@@ -22,7 +22,7 @@ namespace XCode
         /// <summary>调试开关，默认false</summary>
         public Boolean Debug { get; set; }
 
-        /// <summary>数据访问</summary>
+        /// <summary>数据会话，分表分库时使用</summary>
         public IEntitySession Session { get; }
 
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
@@ -57,6 +57,7 @@ namespace XCode
                     if (_Timer == null)
                     {
                         _Timer = new TimerX(Work, null, Period, Period, "EQ") { Async = true };
+                        //_Timer.Scheduler.Log = XTrace.Log;
                         _Timer.CanExecute = () => DelayEntities.Any() || Entities.Any();
                     }
                 }
@@ -129,7 +130,6 @@ namespace XCode
         {
             var list = state as ICollection<IEntity>;
             var ss = Session;
-            var dal = ss.Dal;
 
             var speed = Speed;
             if (Debug || list.Count > 100_000)
@@ -148,7 +148,7 @@ namespace XCode
 
                 try
                 {
-                    batch.SaveWithoutValid();
+                    OnProcess(batch);
                 }
                 catch (Exception ex)
                 {
@@ -189,6 +189,19 @@ namespace XCode
 
             // 马上再来一次，以便于连续处理数据
             _Timer.SetNext(-1);
+        }
+
+        /// <summary>处理一批数据。插入或更新</summary>
+        /// <param name="batch"></param>
+        protected virtual void OnProcess(IList<IEntity> batch)
+        {
+            var ss = Session;
+
+            // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
+            if (ss.Table.InsertOnly)
+                batch.Insert(null, ss);
+            else
+                batch.SaveWithoutValid(null, ss);
         }
 
         /// <summary>发生错误</summary>

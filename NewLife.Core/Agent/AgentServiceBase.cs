@@ -24,10 +24,10 @@ namespace NewLife.Agent
     {
         #region 属性
         /// <summary>显示名</summary>
-        public virtual String DisplayName { get; set; }
+        public virtual String DisplayName { get; set; } = "";
 
         /// <summary>描述</summary>
-        public virtual String Description { get; set; }
+        public virtual String Description { get; set; } = "";
         #endregion
 
         #region 构造
@@ -47,6 +47,7 @@ namespace NewLife.Agent
         /// <summary>服务主函数</summary>
         public void Main()
         {
+            MachineInfo.RegisterAsync();
             XTrace.UseConsole();
 
             var service = this;
@@ -64,7 +65,7 @@ namespace NewLife.Agent
             if (set.DisplayName.IsNullOrEmpty()) set.DisplayName = asm.Title;
             if (set.Description.IsNullOrEmpty()) set.Description = asm.Description;
 
-            set.SaveAsync();
+            set.Save();
 
             // 用配置覆盖
             service.ServiceName = set.ServiceName;
@@ -269,7 +270,7 @@ namespace NewLife.Agent
             Console.ForegroundColor = color;
         }
 
-        private Dictionary<Char, Menu> _Menus = new Dictionary<Char, Menu>();
+        private readonly Dictionary<Char, Menu> _Menus = new Dictionary<Char, Menu>();
         /// <summary>添加菜单</summary>
         /// <param name="key"></param>
         /// <param name="name"></param>
@@ -278,7 +279,7 @@ namespace NewLife.Agent
         {
             if (!_Menus.ContainsKey(key))
             {
-                _Menus.Add(key, new Menu { Key = key, Name = name, Callback = callbak });
+                _Menus.Add(key, new Menu(key, name, callbak));
             }
         }
 
@@ -287,6 +288,13 @@ namespace NewLife.Agent
             public Char Key { get; set; }
             public String Name { get; set; }
             public Action Callback { get; set; }
+
+            public Menu(Char key, String name, Action callback)
+            {
+                Key = key;
+                Name = name;
+                Callback = callback;
+            }
         }
         #endregion
 
@@ -311,7 +319,7 @@ namespace NewLife.Agent
         #endregion
 
         #region 服务维护
-        private TimerX _Timer;
+        private TimerX? _Timer;
 
         /// <summary>服务管理线程封装</summary>
         /// <param name="data"></param>
@@ -418,7 +426,7 @@ namespace NewLife.Agent
             WriteLog("重启服务！");
 
             // 在临时目录生成重启服务的批处理文件
-            var filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "重启.bat");
+            var filename = "重启.bat".GetFullPath();
             if (File.Exists(filename)) File.Delete(filename);
 
             File.AppendAllText(filename, "net stop " + ServiceName);
@@ -467,10 +475,7 @@ namespace NewLife.Agent
 
         /// <summary>在终端服务器会话中接收的更改事件时执行</summary>
         /// <param name="changeDescription"></param>
-        protected override void OnSessionChange(SessionChangeDescription changeDescription)
-        {
-            WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
-        }
+        protected override void OnSessionChange(SessionChangeDescription changeDescription) => WriteLog(nameof(OnSessionChange) + " SessionId={0} Reason={1}", changeDescription.SessionId, changeDescription.Reason);
         #endregion
 
         #region 看门狗

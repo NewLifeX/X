@@ -1,4 +1,4 @@
-﻿![XCode](http://www.newlifex.com/templates/green/images/logo.png)
+﻿![XCode](https://www.newlifex.com/logo.png)
 ## XCode ORM是什么?
 XCode是一个超越了ORM范围的映射组件，除了对象到关系数据库的映射外，还有到网络和其它二进制形式等的映射，所以称之为数据映射组件。
 

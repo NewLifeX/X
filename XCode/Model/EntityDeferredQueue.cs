@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using NewLife.Model;
-using XCode.DataAccessLayer;
 
 namespace XCode.Model
 {
@@ -32,6 +30,9 @@ namespace XCode.Model
         /// <summary>实体动作。默认Save保存</summary>
         public EntityActions Action { get; set; } = EntityActions.Save;
 
+        /// <summary>数据会话，分表分库时使用</summary>
+        public IEntitySession Session { get; set; }
+
         /// <summary>最大单行保存大小。大于该值时才采用批量保存，默认2</summary>
         public Int32 MaxSingle { get; set; } = 2;
         #endregion
@@ -53,7 +54,11 @@ namespace XCode.Model
                     switch (Action)
                     {
                         case EntityActions.Save:
-                            rs += item.Save();
+                            // 来自数据库，更新
+                            if (item.IsFromDatabase)
+                                rs += item.Update();
+                            else
+                                rs += item.Upsert(null, null, null, Session);
                             break;
                         case EntityActions.Insert:
                             rs += item.Insert();
@@ -62,8 +67,7 @@ namespace XCode.Model
                             rs += item.Update();
                             break;
                         case EntityActions.Upsert:
-                            //var cs = GetColumns(new[] { item });
-                            rs += item.Upsert();
+                            rs += item.Upsert(null, null, null, Session);
                             break;
                         case EntityActions.Delete:
                             rs += item.Delete();
@@ -88,9 +92,9 @@ namespace XCode.Model
                             // 来自数据库，更新
                             if (item.IsFromDatabase)
                                 us.Add(item);
-                            // 空主键，插入
-                            else if (item.IsNullKey)
-                                ns.Add(item);
+                            //// 空主键，插入
+                            //else if (item.IsNullKey)
+                            //    ns.Add(item);
                             // 其它 Upsert
                             else
                                 ps.Add(item);
@@ -111,38 +115,13 @@ namespace XCode.Model
                 }
             }
 
-            if (us.Count > 0) rs += us.Update(true);
-            if (ns.Count > 0) rs += ns.Insert(true);
-            if (ps.Count > 0) rs += ps.Valid().Upsert();
-            if (ds.Count > 0) rs += ds.Delete(true);
+            if (us.Count > 0) rs += us.Update(null, Session);
+            if (ns.Count > 0) rs += ns.Insert(null, Session);
+            if (ps.Count > 0) rs += ps.Valid(true).Upsert(null, null, null, Session);
+            if (ds.Count > 0) rs += ds.Delete(null, Session);
 
             return rs;
         }
-
-        ///// <summary>获取Upsert列，默认选择脏数据列</summary>
-        ///// <param name="list"></param>
-        ///// <returns></returns>
-        //protected virtual IDataColumn[] GetColumns(IList<IEntity> list)
-        //{
-        //    var fact = list.FirstOrDefault().GetType().AsFactory();
-
-        //    // 获取所有带有脏数据的字段
-        //    var cs = new List<IDataColumn>();
-        //    var ns = new List<String>();
-        //    foreach (var entity in list)
-        //    {
-        //        foreach (var fi in fact.Fields)
-        //        {
-        //            if (!ns.Contains(fi.Name) && entity.Dirtys[fi.Name])
-        //            {
-        //                ns.Add(fi.Name);
-        //                cs.Add(fi.Field);
-        //            }
-        //        }
-        //    }
-
-        //    return cs.ToArray();
-        //}
         #endregion
     }
 }

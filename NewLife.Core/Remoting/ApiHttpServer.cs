@@ -7,7 +7,7 @@ namespace NewLife.Remoting
     class ApiHttpServer : ApiNetServer
     {
         #region 属性
-        private String RawUrl;
+        //private String RawUrl;
         #endregion
 
         public ApiHttpServer()
@@ -28,20 +28,16 @@ namespace NewLife.Remoting
             var uri = config as NetUri;
             Port = uri.Port;
 
-            RawUrl = uri + "";
+            //RawUrl = uri + "";
 
             // Http封包协议
-            Add<HttpCodec>();
+            //Add<HttpCodec>();
+            Add(new HttpCodec { AllowParseHeader = true });
 
-            host.Handler = new ApiHttpHandler { Host = host };
+            //host.Handler = new ApiHttpHandler { Host = host };
             host.Encoder = new HttpEncoder();
 
             return true;
         }
-    }
-
-    class ApiHttpHandler : ApiHandler
-    {
-
     }
 }

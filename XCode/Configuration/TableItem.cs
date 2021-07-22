@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Collections;
 using XCode.DataAccessLayer;
 
@@ -18,12 +20,12 @@ namespace XCode.Configuration
         public Type EntityType { get; }
 
         /// <summary>绑定表特性</summary>
-        private BindTableAttribute _Table;
+        private readonly BindTableAttribute _Table;
 
         /// <summary>绑定索引特性</summary>
-        private BindIndexAttribute[] _Indexes;
+        private readonly BindIndexAttribute[] _Indexes;
 
-        private DescriptionAttribute _Description;
+        private readonly DescriptionAttribute _Description;
         /// <summary>说明</summary>
         public String Description
         {
@@ -74,13 +76,13 @@ namespace XCode.Configuration
                 {
                     var connName = _Table?.ConnName;
 
-                    var str = FindConnMap(connName, EntityType);
-                    if (!str.IsNullOrEmpty())
-                    {
-                        DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
+                    //var str = FindConnMap(connName, EntityType);
+                    //if (!str.IsNullOrEmpty())
+                    //{
+                    //    DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
 
-                        connName = str;
-                    }
+                    //    connName = str;
+                    //}
 
                     _ConnName = connName;
                 }
@@ -89,54 +91,54 @@ namespace XCode.Configuration
             set { _ConnName = value; }
         }
 
-        private static List<String> _ConnMaps;
-        /// <summary>连接名映射</summary>
-        private static List<String> ConnMaps
-        {
-            get
-            {
-                // 加锁，并且先实例化本地变量，最后再赋值，避免返回空集合
-                // 原来的写法存在线程冲突，可能第一个线程实例化列表后，还来不及填充，后续线程就已经把集合拿走
-                if (_ConnMaps != null) return _ConnMaps;
-                lock (typeof(TableItem))
-                {
-                    if (_ConnMaps != null) return _ConnMaps;
+        //private static List<String> _ConnMaps;
+        ///// <summary>连接名映射</summary>
+        //private static List<String> ConnMaps
+        //{
+        //    get
+        //    {
+        //        // 加锁，并且先实例化本地变量，最后再赋值，避免返回空集合
+        //        // 原来的写法存在线程冲突，可能第一个线程实例化列表后，还来不及填充，后续线程就已经把集合拿走
+        //        if (_ConnMaps != null) return _ConnMaps;
+        //        lock (typeof(TableItem))
+        //        {
+        //            if (_ConnMaps != null) return _ConnMaps;
 
-                    var list = new List<String>();
-                    var str = Setting.Current.ConnMaps;
-                    if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
+        //            var list = new List<String>();
+        //            var str = Setting.Current.ConnMaps;
+        //            if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
 
-                    var ss = str.Split(",");
-                    foreach (var item in ss)
-                    {
-                        if (list.Contains(item.Trim())) continue;
+        //            var ss = str.Split(",");
+        //            foreach (var item in ss)
+        //            {
+        //                if (list.Contains(item.Trim())) continue;
 
-                        if (item.Contains("#") && !item.EndsWith("#") ||
-                            item.Contains("@") && !item.EndsWith("@")) list.Add(item.Trim());
-                    }
-                    return _ConnMaps = list;
-                }
-            }
-        }
+        //                if (item.Contains("#") && !item.EndsWith("#") ||
+        //                    item.Contains("@") && !item.EndsWith("@")) list.Add(item.Trim());
+        //            }
+        //            return _ConnMaps = list;
+        //        }
+        //    }
+        //}
 
-        /// <summary>根据连接名和类名查找连接名映射</summary>
-        /// <param name="connName"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private static String FindConnMap(String connName, Type type)
-        {
-            var name1 = connName + "#";
-            var name2 = type.FullName + "@";
-            var name3 = type.Name + "@";
+        ///// <summary>根据连接名和类名查找连接名映射</summary>
+        ///// <param name="connName"></param>
+        ///// <param name="type"></param>
+        ///// <returns></returns>
+        //private static String FindConnMap(String connName, Type type)
+        //{
+        //    var name1 = connName + "#";
+        //    var name2 = type.FullName + "@";
+        //    var name3 = type.Name + "@";
 
-            foreach (var item in ConnMaps)
-            {
-                if (item.StartsWith(name1)) return item.Substring(name1.Length);
-                if (item.StartsWith(name2)) return item.Substring(name2.Length);
-                if (item.StartsWith(name3)) return item.Substring(name3.Length);
-            }
-            return null;
-        }
+        //    foreach (var item in ConnMaps)
+        //    {
+        //        if (item.StartsWith(name1)) return item.Substring(name1.Length);
+        //        if (item.StartsWith(name2)) return item.Substring(name2.Length);
+        //        if (item.StartsWith(name3)) return item.Substring(name3.Length);
+        //    }
+        //    return null;
+        //}
         #endregion
 
         #region 扩展属性
@@ -146,15 +148,15 @@ namespace XCode.Configuration
         public FieldItem[] Fields { get; private set; }
 
         /// <summary>所有字段</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem[] AllFields { get; private set; }
 
         /// <summary>标识列</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem Identity { get; private set; }
 
         /// <summary>主键。不会返回null</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public FieldItem[] PrimaryKeys { get; private set; }
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
@@ -162,7 +164,7 @@ namespace XCode.Configuration
 
         private ICollection<String> _FieldNames;
         /// <summary>字段名集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public ICollection<String> FieldNames
         {
             get
@@ -190,7 +192,7 @@ namespace XCode.Configuration
 
         private ICollection<String> _ExtendFieldNames;
         /// <summary>扩展属性集合，不区分大小写的哈希表存储，外部不要修改元素数据</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public ICollection<String> ExtendFieldNames
         {
             get
@@ -209,7 +211,7 @@ namespace XCode.Configuration
         }
 
         /// <summary>数据表架构</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataTable DataTable { get; private set; }
 
         /// <summary>模型检查模式</summary>
@@ -221,7 +223,7 @@ namespace XCode.Configuration
         {
             EntityType = type;
             _Table = type.GetCustomAttribute<BindTableAttribute>(true);
-            if (_Table == null) throw new ArgumentOutOfRangeException("type", "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
+            if (_Table == null) throw new ArgumentOutOfRangeException(nameof(type), "类型" + type + "没有" + typeof(BindTableAttribute).Name + "特性！");
 
             _Indexes = type.GetCustomAttributes<BindIndexAttribute>(true).ToArray();
             //_Relations = type.GetCustomAttributes<BindRelationAttribute>(true).ToArray();
@@ -232,13 +234,13 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
+        static readonly ConcurrentDictionary<Type, TableItem> cache = new();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
         public static TableItem Create(Type type)
         {
-            if (type == null) throw new ArgumentNullException("type");
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             // 不能给没有BindTableAttribute特性的类型创建TableItem，否则可能会在InitFields中抛出异常
             return cache.GetOrAdd(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
@@ -454,7 +456,7 @@ namespace XCode.Configuration
             if (String.IsNullOrEmpty(Description))
                 return TableName;
             else
-                return String.Format("{0}（{1}）", TableName, Description);
+                return $"{TableName}（{Description}）";
         }
         #endregion
 

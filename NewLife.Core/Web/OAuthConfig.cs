@@ -4,13 +4,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
 using NewLife.Common;
-using NewLife.Xml;
+using NewLife.Configuration;
 
 namespace NewLife.Web
 {
     /// <summary>配置</summary>
-    [XmlConfigFile("Config/OAuth.config", 15000)]
-    public class OAuthConfig : XmlConfig<OAuthConfig>
+    public class OAuthConfig : Config<OAuthConfig>
     {
         #region 属性
         /// <summary>调试开关。默认true</summary>
@@ -62,10 +61,7 @@ namespace NewLife.Web
         /// <summary>获取</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public OAuthItem Get(String name)
-        {
-            return Items.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
-        }
+        public OAuthItem Get(String name) => Items.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
 
         /// <summary>获取或添加</summary>
         /// <param name="name"></param>
@@ -119,6 +115,6 @@ namespace NewLife.Web
 
         /// <summary>授权范围</summary>
         [XmlAttribute]
-        public String Scope { get; set; } = "";
+        public String Scope { get; set; }
     }
 }

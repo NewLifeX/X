@@ -96,16 +96,16 @@ namespace XCode
         /// <param name="dal"></param>
         public EntityTransaction(DAL dal) : this(dal.Session) { }
 
-        /// <summary>用实体操作接口来实例化一个事务区域</summary>
-        /// <param name="eop"></param>
-        public EntityTransaction(IEntityOperate eop) : this(DAL.Create(eop.ConnName).Session) { }
+        ///// <summary>用实体操作接口来实例化一个事务区域</summary>
+        ///// <param name="eop"></param>
+        //public EntityTransaction(IEntityFactory eop) : this(DAL.Create(eop.ConnName).Session) { }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
         /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (hasStart && !hasFinish)
             {

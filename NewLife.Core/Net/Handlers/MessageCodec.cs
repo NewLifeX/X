@@ -8,7 +8,7 @@ using NewLife.Model;
 
 namespace NewLife.Net.Handlers
 {
-    /// <summary>消息封包</summary>
+    /// <summary>消息封包编码器</summary>
     public class MessageCodec<T> : Handler
     {
         /// <summary>消息队列。用于匹配请求响应包</summary>
@@ -78,7 +78,7 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         public override Object Read(IHandlerContext context, Object message)
         {
-            if (!(message is Packet pk)) return base.Read(context, message);
+            if (message is not Packet pk) return base.Read(context, message);
 
             // 解码得到多个消息
             var list = Decode(context, pk);
@@ -91,15 +91,14 @@ namespace NewLife.Net.Handlers
                 else
                     message = msg;
 
-                // 后续处理器，得到最终结果，匹配请求队列
-                var rs = base.Read(context, message);
-
+                var rs = message;
                 if (msg is IMessage msg3)
                 {
-                    // 匹配
+                    // 匹配请求队列
                     if (msg3.Reply)
                     {
                         //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
+                        // Match里面TrySetResult时，必然唤醒原来阻塞的Task，如果不是当前io线程执行后续代码，必然导致两个线程共用了数据区，因此需要拷贝
                         if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
 
                         Queue.Match(context.Owner, msg, rs, IsMatch);
@@ -113,7 +112,7 @@ namespace NewLife.Net.Handlers
 
                 // 匹配输入回调，让上层事件收到分包信息。
                 // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
-                context.FireRead(rs);
+                base.Read(context, rs);
             }
 
             return null;
@@ -133,15 +132,14 @@ namespace NewLife.Net.Handlers
 
         #region 粘包处理
         /// <summary>从数据流中获取整帧数据长度</summary>
-        /// <param name="pk"></param>
-        /// <param name="offset"></param>
-        /// <param name="size"></param>
+        /// <param name="pk">数据包</param>
+        /// <param name="offset">长度的偏移量</param>
+        /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
         /// <returns>数据帧长度（包含头部长度位）</returns>
         protected static Int32 GetLength(Packet pk, Int32 offset, Int32 size)
         {
             if (offset < 0) return pk.Total - pk.Offset;
 
-            var p = pk.Offset;
             // 数据不够，连长度都读取不了
             if (offset >= pk.Total) return 0;
 
@@ -153,6 +151,8 @@ namespace NewLife.Net.Handlers
                     var ms = pk.GetStream();
                     if (offset > 0) ms.Seek(offset, SeekOrigin.Current);
                     len = ms.ReadEncodedInt();
+
+                    // 计算变长的头部长度
                     len += (Int32)(ms.Position - offset);
                     break;
                 case 1:

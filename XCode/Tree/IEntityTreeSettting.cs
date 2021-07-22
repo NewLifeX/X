@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using NewLife;
 
 namespace XCode
 {
@@ -37,15 +38,15 @@ namespace XCode
     public class EntityTreeSetting<TEntity> : IEntityTreeSetting where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        private IEntityOperate _Factory = Entity<TEntity>.Meta.Factory;
+        private IEntityFactory _Factory = Entity<TEntity>.Meta.Factory;
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory { get { return _Factory; } set { _Factory = value; } }
+        public IEntityFactory Factory { get { return _Factory; } set { _Factory = value; } }
         #endregion
 
         #region 设置型属性
         private String _Key;
         /// <summary>关联键名称，一般是主键，如ID</summary>
-        public virtual String Key { get { return _Key ?? (_Key = Factory.Unique.Name); } set { _Key = value; } }
+        public virtual String Key { get { return _Key ??= Factory.Unique.Name; } set { _Key = value; } }
 
         private String _Parent;
         /// <summary>关联父键名，一般是Parent加主键，如ParentID</summary>

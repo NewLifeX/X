@@ -34,7 +34,7 @@ namespace NewLife.Net.Handlers
         /// <returns></returns>
         public override Object Read(IHandlerContext context, Object message)
         {
-            if (!(message is Packet pk)) return base.Read(context, message);
+            if (message is not Packet pk) return base.Read(context, message);
 
             // 解码得到多个消息
             var list = Decode(context, pk);
@@ -43,10 +43,11 @@ namespace NewLife.Net.Handlers
             foreach (var msg in list)
             {
                 // 把数据发送给后续处理器
-                var rs = base.Read(context, msg);
+                //var rs = base.Read(context, msg);
 
                 // 匹配输入回调，让上层事件收到分包信息
-                context.FireRead(rs);
+                //context.FireRead(rs);
+                base.Read(context, msg);
             }
 
             return null;
@@ -71,8 +72,15 @@ namespace NewLife.Net.Handlers
         protected IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            var pc = ss["Codec"] as PacketCodec;
-            if (pc == null) ss["Codec"] = pc = new PacketCodec { MaxCache = MaxCacheDataLength, GetLength = GetLineLength };
+            if (ss["Codec"] is not PacketCodec pc)
+            {
+                ss["Codec"] = pc = new PacketCodec
+                {
+                    MaxCache = MaxCacheDataLength,
+                    GetLength = GetLineLength,
+                    Tracer = (context.Owner as ISocket)?.Tracer
+                };
+            }
 
             return pc.Parse(pk);
         }

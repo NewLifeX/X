@@ -8,6 +8,9 @@ using NewLife.Collections;
 namespace NewLife.Data
 {
     /// <summary>数据包</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/packet
+    /// </remarks>
     public class Packet
     {
         #region 属性
@@ -45,22 +48,29 @@ namespace NewLife.Data
         {
             if (stream is MemoryStream ms)
             {
-                try
+#if NET46 || __CORE__
+                // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+                if (ms.TryGetBuffer(out var seg))
                 {
-#if NET46
-                    // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
-                    if (stream.TryGetBuffer(out var seg))
-                        Set(seg.Array, seg.Offset, seg.Count);
-                    else
-#endif
-                    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
-
+                    Set(seg.Array, seg.Offset + (Int32)ms.Position, seg.Count - (Int32)ms.Position);
                     return;
                 }
-                catch (UnauthorizedAccessException) { }
+#endif
+                // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
+                // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
+
+                //try
+                //{
+                //    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
+                //}
+                //catch (UnauthorizedAccessException) { }
             }
 
-            Set(stream.ToArray());
+            //Set(stream.ToArray());
+
+            var buf = new Byte[stream.Length - stream.Position];
+            var count = stream.Read(buf, 0, buf.Length);
+            Set(buf, 0, count);
         }
         #endregion
 
@@ -97,15 +107,6 @@ namespace NewLife.Data
                 else
                     Data[p] = value;
                 // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
-                //else
-                //{
-                //    //throw new IndexOutOfRangeException();//超出索引下标报错
-                //    Byte[] b;// 或新建一个Pakcet 继续延申数据链,我觉得选择延时比较好,有时候写代码可以偷懒
-                //    b = new Byte[index - Count + 1];
-                //    var pk = new Packet(b);
-                //    Next = pk;
-                //    Next[index - Count] = value;
-                //}
             }
         }
         #endregion
@@ -300,7 +301,6 @@ namespace NewLife.Data
         /// <returns></returns>
         public virtual MemoryStream GetStream()
         {
-            //if (Next == null) return new MemoryStream(Data, Offset, Count, false);
             if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
             var ms = new MemoryStream();
@@ -319,9 +319,9 @@ namespace NewLife.Data
         }
 
         /// <summary>把封包写入到目标数组</summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="buffer">目标数组</param>
+        /// <param name="offset">目标数组的偏移量</param>
+        /// <param name="count">目标数组的字节数</param>
         public void WriteTo(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
         {
             if (count < 0) count = Total;
@@ -380,6 +380,17 @@ namespace NewLife.Data
 
             return ReadBytes(0, maxLength).ToHex(separate, groupSize);
         }
+
+        /// <summary>转为Base64编码</summary>
+        /// <returns></returns>
+        public String ToBase64()
+        {
+            if (Data == null) return null;
+
+            if (Next == null) Data.ToBase64(Offset, Count);
+
+            return ToArray().ToBase64();
+        }
         #endregion
 
         #region 重载运算符
@@ -391,7 +402,7 @@ namespace NewLife.Data
         /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static implicit operator Packet(ArraySegment<Byte> value) => new Packet(value);
+        public static implicit operator Packet(ArraySegment<Byte> value) => new(value);
 
         /// <summary>已重载</summary>
         /// <returns></returns>

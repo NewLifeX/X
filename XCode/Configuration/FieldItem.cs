@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
+using NewLife;
 using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
@@ -100,9 +100,6 @@ namespace XCode.Configuration
         /// </remarks>
         public String ColumnName { get { return _ColumnName; } set { if (value != null) _ColumnName = value.Trim(COLUMNNAME_FLAG); } }
 
-        ///// <summary>默认值</summary>
-        //public String DefaultValue { get; set; }
-
         /// <summary>是否只读</summary>
         /// <remarks>set { _ReadOnly = value; } 放出只读属性的设置，比如在编辑页面的时候，有的字段不能修改 如修改用户时  不能修改用户名</remarks>
         public Boolean ReadOnly { get; set; }
@@ -114,19 +111,19 @@ namespace XCode.Configuration
         public IDataColumn Field { get; private set; }
 
         /// <summary>实体操作者</summary>
-        public IEntityOperate Factory
+        public IEntityFactory Factory
         {
             get
             {
                 var type = Table.EntityType;
                 if (type.IsInterface) return null;
 
-                return EntityFactory.CreateOperate(type);
+                return type.AsFactory();
             }
         }
 
         /// <summary>已格式化的字段名，可字节用于SQL中。主要用于处理关键字，比如MSSQL里面的[User]</summary>
-        public String FormatedName => Factory.FormatName(ColumnName);
+        public String FormatedName => Factory.Session.Dal.Db.FormatName(Field);
 
         /// <summary>跟当前字段有关系的原始字段</summary>
         public FieldItem OriField { get; internal set; }
@@ -217,6 +214,7 @@ namespace XCode.Configuration
             if (col != null)
             {
                 dc.RawType = col.RawType;
+                dc.ItemType = col.ItemType;
                 dc.Precision = col.Precision;
                 dc.Scale = col.Scale;
             }
@@ -240,6 +238,7 @@ namespace XCode.Configuration
         /// <param name="value">数值</param>
         /// <returns></returns>
         internal Expression CreateFormat(String format, Object value) => new FormatExpression(this, format, value);
+        private Expression CreateIn(String format, Object value) => new InExpression(this, format, value);
 
         internal static Expression CreateField(FieldItem field, String action, Object value) => field == null ? new Expression() : new FieldExpression(field, action, value);
         #endregion
@@ -255,19 +254,18 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotEqual(Object value) => CreateField(this, "<>", value);
 
-        Expression CreateLike(String value) => CreateFormat("{0} Like {1}", value);
-
         /// <summary>以某个字符串开始,{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
         public Expression StartsWith(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(StartsWith)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("{0}%".F(value));
+            return CreateFormat("{0} Like '{1}%'", value);
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -276,11 +274,12 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression EndsWith(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(EndsWith)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("%{0}".F(value));
+            return CreateFormat("{0} Like '%{1}'", value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -289,24 +288,26 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression Contains(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(Contains)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateLike("%{0}%".F(value));
+            return CreateFormat("{0} Like '%{1}%'", value);
         }
 
-        /// <summary>包含某个字符串，%{0}%操作</summary>
+        /// <summary>不包含某个字符串，%{0}%操作</summary>
         /// <remarks>空参数不参与表达式操作，不生成该部分SQL拼接</remarks>
         /// <param name="value">数值</param>
         /// <returns></returns>
         public Expression NotContains(String value)
         {
+            if (value.IsNullOrEmpty()) throw new ArgumentNullException(nameof(value));
             if (Type != typeof(String)) throw new NotSupportedException($"[{nameof(NotContains)}]函数仅支持字符串字段！");
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like {1}", value);
+            return CreateFormat("{0} Not Like '%{1}%'", value);
         }
 
         /// <summary>In操作</summary>
@@ -317,39 +318,30 @@ namespace XCode.Configuration
 
         Expression _In(IEnumerable value, Boolean flag)
         {
-            if (value == null) return new Expression();
-
-            var op = Factory;
-            var name = op.FormatName(ColumnName);
+            if (value == null) throw new ArgumentNullException(nameof(value));
 
             var vs = new List<Object>();
-            var list = new List<Object>();
             foreach (var item in value)
             {
                 // 避免重复项
-                if (vs.Contains(item)) continue;
-                vs.Add(item);
-
-                // 格式化数值
-                //var str = op.FormatValue(this, item);
-                list.Add(item);
+                if (!vs.Contains(item)) vs.Add(item);
             }
-            if (list.Count <= 0) return new Expression();
+            if (vs.Count == 0) throw new ArgumentNullException(nameof(value));
 
-            // 特殊处理枚举全选，如果全选了枚举的所有项，则跳过当前条件构造
-            if (vs[0].GetType().IsEnum)
-            {
-                var es = Enum.GetValues(vs[0].GetType());
-                if (es.Length == vs.Count)
-                {
-                    if (vs.SequenceEqual(es.Cast<Object>())) return new Expression();
-                }
-            }
+            //// 特殊处理枚举全选，如果全选了枚举的所有项，则跳过当前条件构造
+            //if (vs[0].GetType().IsEnum)
+            //{
+            //    var es = Enum.GetValues(vs[0].GetType());
+            //    if (es.Length == vs.Count)
+            //    {
+            //        if (vs.SequenceEqual(es.Cast<Object>())) return new Expression();
+            //    }
+            //}
 
             // 如果In操作且只有一项，修改为等于
-            if (list.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
+            if (vs.Count == 1) return CreateField(this, flag ? "=" : "<>", vs[0]);
 
-            return CreateFormat(flag ? "{0} In({1})" : "{0} Not In({1})", list);
+            return CreateIn(flag ? "{0} In({1})" : "{0} Not In({1})", vs);
         }
 
         /// <summary>NotIn操作</summary>
@@ -364,9 +356,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression In(String child)
         {
-            if (child == null) return new Expression();
+            if (child.IsNullOrEmpty()) throw new ArgumentNullException(nameof(child));
 
-            return CreateFormat("{0} In({1})", child);
+            return CreateIn("{0} In({1})", child);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
@@ -375,9 +367,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotIn(String child)
         {
-            if (child == null) return new Expression();
+            if (child.IsNullOrEmpty()) throw new ArgumentNullException(nameof(child));
 
-            return CreateFormat("{0} Not In({1})", child);
+            return CreateIn("{0} Not In({1})", child);
         }
 
         /// <summary>In操作。直接使用字符串可能有注入风险</summary>
@@ -386,9 +378,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression In(SelectBuilder builder)
         {
-            if (builder == null) return new Expression();
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-            return CreateFormat("{0} In({1})", builder);
+            return CreateIn("{0} In({1})", builder);
         }
 
         /// <summary>NotIn操作。直接使用字符串可能有注入风险</summary>
@@ -397,9 +389,9 @@ namespace XCode.Configuration
         /// <returns></returns>
         public Expression NotIn(SelectBuilder builder)
         {
-            if (builder == null) return new Expression();
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-            return CreateFormat("{0} Not In ({1})", builder);
+            return CreateIn("{0} Not In({1})", builder);
         }
 
         /// <summary>IsNull操作，不为空，一般用于字符串，但不匹配0长度字符串</summary>
@@ -550,7 +542,7 @@ namespace XCode.Configuration
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(Field obj) => !obj.Equals(null) ? obj.ColumnName : null;
+        public static implicit operator String(Field obj) => !Equals(obj, null) && !obj.Equals(null) ? obj.ColumnName : null;
         #endregion
     }
 }

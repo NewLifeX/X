@@ -62,7 +62,7 @@ namespace NewLife.Serialization
                     return value + "";
                 case TypeCode.String:
                     if (((String)value).IsNullOrEmpty()) return String.Empty;
-                    return "\"{0}\"".F(value);
+                    return $"\"{value}\"";
                 case TypeCode.Object:
                 default:
                     return null;
@@ -133,7 +133,6 @@ namespace NewLife.Serialization
             Host.Hosts.Push(value);
 
             // 成员序列化访问器
-            var ac = value as IMemberAccessor;
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
@@ -146,7 +145,7 @@ namespace NewLife.Serialization
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 // 成员访问器优先
-                if (ac != null)
+                if (value is IMemberAccessor ac)
                 {
                     // 访问器直接写入成员
                     if (ac.Read(Host, member))
@@ -193,15 +192,12 @@ namespace NewLife.Serialization
 
         static Type GetMemberType(MemberInfo member)
         {
-            switch (member.MemberType)
+            return member.MemberType switch
             {
-                case MemberTypes.Field:
-                    return (member as FieldInfo).FieldType;
-                case MemberTypes.Property:
-                    return (member as PropertyInfo).PropertyType;
-                default:
-                    throw new NotSupportedException();
-            }
+                MemberTypes.Field => (member as FieldInfo).FieldType,
+                MemberTypes.Property => (member as PropertyInfo).PropertyType,
+                _ => throw new NotSupportedException(),
+            };
         }
         #endregion
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
 using XCode;
@@ -69,10 +70,24 @@ namespace XCode.Membership
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
 
-#if !DEBUG
+            //#if !DEBUG
             // 关闭SQL日志
             Meta.Session.Dal.Db.ShowSQL = false;
-#endif
+            //#endif
+        }
+
+        /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
+        /// <param name="isNew"></param>
+        public override void Valid(Boolean isNew)
+        {
+            // 截取长度
+            var len = _.Title.Length;
+            if (len <= 0) len = 50;
+            if (!Title.IsNullOrEmpty() && Title.Length > len) Title = Title.Substring(0, len);
+
+            len = _.Page.Length;
+            if (len <= 0) len = 50;
+            if (!Page.IsNullOrEmpty() && Page.Length > len) Page = Page.Substring(0, len);
         }
         #endregion
 
@@ -96,7 +111,7 @@ namespace XCode.Membership
             //return Find(_.ID == id);
         }
 
-        private static DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
+        private static readonly DictionaryCache<VisitStatModel, VisitStat> _cache = new DictionaryCache<VisitStatModel, VisitStat> { Expire = 20 * 60, Period = 60 };
         /// <summary>根据模型查找</summary>
         /// <param name="model"></param>
         /// <param name="cache"></param>
@@ -140,21 +155,15 @@ namespace XCode.Membership
             return FindAll(exp, param);
         }
 
-        static FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(_.Page);
+        static readonly FieldCache<VisitStat> PageCache = new FieldCache<VisitStat>(__.Page);
 
         /// <summary>查找所有</summary>
         /// <returns></returns>
-        public static IList<VisitStat> FindAllPage()
-        {
-            return PageCache.Entities;
-        }
+        public static IList<VisitStat> FindAllPage() => PageCache.Entities;
 
         /// <summary>获取所有名称</summary>
         /// <returns></returns>
-        public static IDictionary<String, String> FindAllPageName()
-        {
-            return PageCache.FindAllName();
-        }
+        public static IDictionary<String, String> FindAllPageName() => PageCache.FindAllName();
         #endregion
 
         #region 业务操作
@@ -180,7 +189,7 @@ namespace XCode.Membership
             }
 
             // 并行处理
-            Parallel.ForEach(list, m => ProcessItem(m as VisitStatModel));
+            Parallel.ForEach(list, m => ProcessItem(m));
         }
 
         private static VisitStat ProcessItem(VisitStatModel model)

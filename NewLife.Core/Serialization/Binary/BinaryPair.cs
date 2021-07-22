@@ -176,7 +176,7 @@ namespace NewLife.Serialization
             finally
             {
                 Host.Stream = old;
-                WriteLog("        {0}".F(value));
+                WriteLog("        {0}", value);
             }
         }
         #endregion
@@ -189,7 +189,7 @@ namespace NewLife.Serialization
             var dic = value as IDictionary;
 
             var gs = type.GetGenericArguments();
-            if (gs.Length != 2) throw new NotSupportedException("字典类型仅支持 {0}".F(typeof(Dictionary<,>).FullName));
+            if (gs.Length != 2) throw new NotSupportedException($"字典类型仅支持 {typeof(Dictionary<,>).FullName}");
             if (gs[0] != typeof(String)) throw new NotSupportedException("字典类型仅支持Key=String的名值对");
 
             foreach (DictionaryEntry item in dic)
@@ -206,7 +206,7 @@ namespace NewLife.Serialization
 
             // 子元素类型
             var gs = type.GetGenericArguments();
-            if (gs.Length != 2) throw new NotSupportedException("字典类型仅支持 {0}".F(typeof(Dictionary<,>).FullName));
+            if (gs.Length != 2) throw new NotSupportedException($"字典类型仅支持 {typeof(Dictionary<,>).FullName}");
 
             var keyType = gs[0];
             var valType = gs[1];
@@ -238,8 +238,7 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
-            if (list == null || list.Count == 0) return true;
+            if (value is not IList list || list.Count == 0) return true;
 
             // 循环写入数据
             for (var i = 0; i < list.Count; i++)
@@ -374,15 +373,12 @@ namespace NewLife.Serialization
 
         static Type GetMemberType(MemberInfo member)
         {
-            switch (member.MemberType)
+            return member.MemberType switch
             {
-                case MemberTypes.Field:
-                    return (member as FieldInfo).FieldType;
-                case MemberTypes.Property:
-                    return (member as PropertyInfo).PropertyType;
-                default:
-                    throw new NotSupportedException();
-            }
+                MemberTypes.Field => (member as FieldInfo).FieldType,
+                MemberTypes.Property => (member as PropertyInfo).PropertyType,
+                _ => throw new NotSupportedException(),
+            };
         }
         #endregion
     }

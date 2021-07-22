@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -9,9 +10,6 @@ namespace XCode
     public class ConcatExpression : Expression
     {
         #region 属性
-        ///// <summary>内置字符串</summary>
-        //public StringBuilder Builder { get; set; } = new StringBuilder();
-
         /// <summary>内置表达式集合</summary>
         public IList<Expression> Expressions { get; set; } = new List<Expression>();
 
@@ -36,7 +34,6 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(exp)) return this;
 
-            //Builder.Separate(",").Append(exp);
             Expressions.Add(new Expression(exp));
 
             return this;
@@ -49,32 +46,28 @@ namespace XCode
         {
             if (exp == null) return this;
 
-            //Builder.Separate(",").Append(exp);
             Expressions.Add(exp);
 
             return this;
         }
 
         /// <summary>已重载。</summary>
+        /// <param name="db">数据库</param>
         /// <param name="builder">字符串构建器</param>
         /// <param name="ps">参数字典</param>
         /// <returns></returns>
-        public override void GetString(StringBuilder builder, IDictionary<String, Object> ps)
+        public override void GetString(IDatabase db, StringBuilder builder, IDictionary<String, Object> ps)
         {
-            //if (Builder == null || Builder.Length <= 0) return;
-
-            //builder.Append(Builder);
-
             var exps = Expressions;
             if (exps == null || exps.Count == 0) return;
 
             var first = true;
             foreach (var exp in exps)
             {
-                if (!first) builder.Append(",");
+                if (!first) builder.Append(',');
                 first = false;
 
-                exp.GetString(builder, ps);
+                exp.GetString(db, builder, ps);
             }
         }
         #endregion

@@ -11,7 +11,7 @@ namespace NewLife.Compression
     public class SevenZip
     {
         #region  基础
-        private static String _7z = null;
+        private static readonly String _7z = null;
 
         static SevenZip()
         {
@@ -96,7 +96,7 @@ namespace NewLife.Compression
         {
             if (Directory.Exists(path)) path = path.GetFullPath().EnsureEnd("\\") + "*";
 
-            return Run("a \"{0}\" \"{1}\" -mx9 -ssw".F(destFile, path));
+            return Run($"a \"{destFile}\" \"{path}\" -mx9 -ssw");
         }
 
         /// <summary>解压缩文件</summary>
@@ -108,7 +108,7 @@ namespace NewLife.Compression
         {
             destDir.EnsureDirectory(false);
 
-            var args = "x \"{0}\" -o\"{1}\" -y -r".F(file, destDir);
+            var args = $"x \"{file}\" -o\"{destDir}\" -y -r";
             if (overwrite)
                 args += " -aoa";
             else

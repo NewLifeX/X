@@ -1,14 +1,14 @@
 ﻿#if !__CORE__
 using System;
 using System.ComponentModel;
-using NewLife.Xml;
+using NewLife.Configuration;
 
 namespace NewLife.Agent
 {
     /// <summary>服务设置</summary>
     [DisplayName("服务设置")]
-    [XmlConfigFile(@"Config\Agent.config", 15000)]
-    public class Setting : XmlConfig<Setting>
+    [Config("Agent.config")]
+    public class Setting : Config<Setting>
     {
         #region 属性
         /// <summary>服务名</summary>

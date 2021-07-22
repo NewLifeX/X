@@ -2,7 +2,7 @@
 后续例程与使用说明均以Redis为例，各缓存实现类似。  
 
 ### 内存缓存 MemoryCache
-MemoryCache核心是并行字典ConcurrentDictionary，由于省去了序列化和网络通信，使得它具有千万级超高性能。  
+MemoryCache核心是并发字典ConcurrentDictionary，由于省去了序列化和网络通信，使得它具有千万级超高性能。  
 MemoryCache支持过期时间，默认容量10万个，未过期key超过该值后，每60秒根据LRU清理溢出部分。  
 常用于进程内千万级以下数据缓存场景。  
 
@@ -19,9 +19,9 @@ Redis实现标准协议以及基础字符串操作，完整实现由独立开源
 
 ```csharp
 // 实例化Redis，默认端口6379可以省略，密码有两种写法
-//var ic = Redis.Create("127.0.0.1", 7);
-var ic = Redis.Create("pass@127.0.0.1:6379", 7);
-//var ic = Redis.Create("server=127.0.0.1:6379;password=pass", 7);
+//var ic = new Redis("127.0.0.1", 7);
+var ic = new Redis("pass@127.0.0.1:6379", 7);
+//var ic = new Redis("server=127.0.0.1:6379;password=pass", 7);
 ic.Log = XTrace.Log; // 调试日志。正式使用时注释
 ```
 

@@ -8,7 +8,7 @@ using NewLife.Log;
 namespace XCode.DataAccessLayer
 {
     /// <summary>事务对象</summary>
-    interface ITransaction : IDisposable
+    public interface ITransaction : IDisposable
     {
         /// <summary>事务隔离级别</summary>
         IsolationLevel Level { get; }
@@ -73,9 +73,9 @@ namespace XCode.DataAccessLayer
 #endif
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Count > 0)
             {

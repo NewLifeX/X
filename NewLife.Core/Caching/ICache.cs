@@ -100,6 +100,12 @@ namespace NewLife.Caching
         /// <returns></returns>
         IProducerConsumer<T> GetQueue<T>(String key);
 
+        /// <summary>获取栈</summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="key">键</param>
+        /// <returns></returns>
+        IProducerConsumer<T> GetStack<T>(String key);
+
         /// <summary>获取Set</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
@@ -125,6 +131,21 @@ namespace NewLife.Caching
         /// <param name="value">值</param>
         /// <returns></returns>
         T Replace<T>(String key, T value);
+
+        /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败，解决缓存穿透问题</summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <param name="key">键</param>
+        /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
+        /// <returns>返回是否包含值，即使反序列化失败</returns>
+        Boolean TryGetValue<T>(String key, out T value);
+
+        /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
+        /// <returns></returns>
+        T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1);
 
         /// <summary>累加，原子操作</summary>
         /// <param name="key">键</param>
@@ -158,16 +179,24 @@ namespace NewLife.Caching
 
         /// <summary>申请分布式锁</summary>
         /// <param name="key">要锁定的key</param>
-        /// <param name="msTimeout"></param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
         /// <returns></returns>
         IDisposable AcquireLock(String key, Int32 msTimeout);
+
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key">要锁定的key</param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
+        /// <param name="msExpire">锁超时时间，单位毫秒</param>
+        /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
+        /// <returns></returns>
+        IDisposable AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure);
         #endregion
 
         #region 性能测试
         /// <summary>多线程性能测试</summary>
-        /// <param name="rand">随机读写</param>
-        /// <param name="batch">批量操作。默认0不分批</param>
-        void Bench(Boolean rand = false, Int32 batch = 0);
+        /// <param name="rand">随机读写。顺序，每个线程多次操作一个key；随机，每个线程每次操作不同key</param>
+        /// <param name="batch">批量操作。默认0不分批，分批仅针对随机读写，对顺序读写的单key操作没有意义</param>
+        Int64 Bench(Boolean rand = false, Int32 batch = 0);
         #endregion
     }
 }

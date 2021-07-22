@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
 using System.Threading;
-using System.Web;
-using NewLife.Common;
+using NewLife;
+using NewLife.Collections;
 using NewLife.Model;
-using NewLife.Web;
-using XCode.Model;
 
 namespace XCode.Membership
 {
@@ -23,6 +18,9 @@ namespace XCode.Membership
     {
         /// <summary>当前登录用户，设为空则注销登录</summary>
         IManageUser Current { get; set; }
+
+        /// <summary>密码提供者</summary>
+        IPasswordProvider PasswordProvider { get; set; }
 
         /// <summary>获取当前用户</summary>
         /// <param name="context"></param>
@@ -45,22 +43,29 @@ namespace XCode.Membership
         IManageUser FindByName(String name);
 
         /// <summary>登录</summary>
-        /// <param name="name"></param>
+        /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        IManageUser Login(String name, String password, Boolean rememberme = false);
+        IManageUser Login(String username, String password, Boolean rememberme = false);
 
         /// <summary>注销</summary>
         void Logout();
 
         /// <summary>注册用户</summary>
-        /// <param name="name">用户名</param>
+        /// <param name="username">用户名</param>
         /// <param name="password">密码</param>
         /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用</param>
         /// <returns></returns>
-        IManageUser Register(String name, String password, Int32 roleid = 0, Boolean enable = false);
+        IManageUser Register(String username, String password, Int32 roleid = 0, Boolean enable = false);
+
+        /// <summary>修改密码</summary>
+        /// <param name="username">用户名</param>
+        /// <param name="newPassword">新密码</param>
+        /// <param name="oldPassword">旧密码，如果未指定，则不校验</param>
+        /// <returns></returns>
+        IManageUser ChangePassword(String username, String newPassword, String oldPassword);
 
         /// <summary>获取服务</summary>
         /// <remarks>
@@ -75,28 +80,16 @@ namespace XCode.Membership
     public abstract class ManageProvider : IManageProvider
     {
         #region 静态实例
-        static ManageProvider()
-        {
-            var ioc = ObjectContainer.Current;
-            // 外部管理提供者需要手工覆盖
-            //ioc.Register<IManageProvider, DefaultManageProvider>();
-
-            ioc.AutoRegister<IRole, Role>()
-                .AutoRegister<IMenu, Menu>()
-                .AutoRegister<ILog, Log>()
-                .AutoRegister<IUser, UserX>();
-        }
-
         /// <summary>当前管理提供者</summary>
-        public static IManageProvider Provider => ObjectContainer.Current.ResolveInstance<IManageProvider>();
+        public static IManageProvider Provider { get; set; }
 
         /// <summary>当前登录用户</summary>
-        public static IUser User { get => Provider.Current as IUser; set => Provider.Current = value as IManageUser; }
+        public static IUser User { get => Provider?.Current as IUser; set => Provider.Current = value as IManageUser; }
 
         /// <summary>菜单工厂</summary>
         public static IMenuFactory Menu => GetFactory<IMenu>() as IMenuFactory;
 
-        private static ThreadLocal<String> _UserHost = new ThreadLocal<String>();
+        private static readonly ThreadLocal<String> _UserHost = new();
         /// <summary>用户主机</summary>
         public static String UserHost { get => _UserHost.Value; set => _UserHost.Value = value; }
         #endregion
@@ -104,6 +97,9 @@ namespace XCode.Membership
         #region IManageProvider 接口
         /// <summary>当前用户</summary>
         public virtual IManageUser Current { get => GetCurrent(); set => SetCurrent(value); }
+
+        /// <summary>密码提供者</summary>
+        public IPasswordProvider PasswordProvider { get; set; } = new SaltPasswordProvider();
 
         /// <summary>获取当前用户</summary>
         /// <param name="context"></param>
@@ -118,58 +114,145 @@ namespace XCode.Membership
         /// <summary>根据用户编号查找</summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByID(Object userid) => UserX.FindByID((userid + "").ToInt(-1));
+        public virtual IManageUser FindByID(Object userid) => Membership.User.FindByID((userid + "").ToInt(-1));
 
         /// <summary>根据用户帐号查找</summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public virtual IManageUser FindByName(String name) => UserX.FindByName(name);
+        public virtual IManageUser FindByName(String name) => Membership.User.FindForLogin(name);
 
         /// <summary>登录</summary>
-        /// <param name="name"></param>
+        /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public virtual IManageUser Login(String name, String password, Boolean rememberme)
+        public virtual IManageUser Login(String username, String password, Boolean rememberme) => Current = LoginCore(username, password);
+
+        /// <summary>核心登录方法</summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public virtual IManageUser LoginCore(String username, String password)
         {
-            var user = UserX.Login(name, password, rememberme);
+            try
+            {
+                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
 
-            Current = user;
+                // 过滤帐号中的空格，防止出现无操作无法登录的情况
+                var account = username.Trim();
+                // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
+                var user = Membership.User.FindForLogin(account);
+                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+                if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
 
-            //var expire = TimeSpan.FromDays(0);
-            //if (rememberme && user != null) expire = TimeSpan.FromDays(365);
-            //this.SaveCookie(user, expire);
+                var prv = PasswordProvider;
+                if (prv == null) throw new ArgumentNullException(nameof(PasswordProvider));
 
-            return user;
+                // 数据库为空密码，任何密码均可登录
+                if (!user.Password.IsNullOrEmpty())
+                {
+                    if (!prv.Verify(password, user.Password)) throw new EntityException("用户名或密码不正确！");
+
+                    // 旧式密码更新为新格式，更安全
+                    if (!user.Password.Contains("$"))
+                        user.Password = prv.Hash(password);
+                }
+                else
+                {
+                    user.Password = prv.Hash(password);
+                }
+
+                user.SaveLoginInfo();
+
+                Membership.User.WriteLog("登录", true, $"用户[{user}]使用[{username}]登录成功");
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Membership.User.WriteLog("登录", false, username + "登录失败！" + ex.Message);
+                throw;
+            }
         }
 
         /// <summary>注销</summary>
-        public virtual void Logout()
-        {
-            Current = null;
-        }
+        public virtual void Logout() => Current = null;
 
         /// <summary>注册用户</summary>
-        /// <param name="name">用户名</param>
+        /// <param name="username">用户名</param>
         /// <param name="password">密码</param>
         /// <param name="roleid">角色</param>
         /// <param name="enable">是否启用。某些系统可能需要验证审核</param>
         /// <returns></returns>
-        public virtual IManageUser Register(String name, String password, Int32 roleid, Boolean enable)
+        public virtual IManageUser Register(String username, String password, Int32 roleid, Boolean enable)
         {
-            var user = new UserX
+            try
             {
-                Name = name,
-                Password = password,
-                Enable = enable,
-                RoleID = roleid
-            };
+                // 去重判断
+                var user = Membership.User.FindForLogin(username);
+                if (user != null) throw new ArgumentException(nameof(username), $"用户[{username}]已存在！");
 
-            user.Register();
+                var pass = PasswordProvider.Hash(password);
 
-            return user;
+                user = new User
+                {
+                    Name = username,
+                    Password = pass,
+                    Enable = enable,
+                    RoleID = roleid
+                };
+
+                user.Register();
+
+                Membership.User.WriteLog("注册", true, $"用户[{user}]使用[{username}]注册成功");
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Membership.User.WriteLog("注册", false, username + "注册失败！" + ex.Message);
+                throw;
+            }
         }
 
+        /// <summary>修改密码</summary>
+        /// <param name="username">用户名</param>
+        /// <param name="newPassword">新密码</param>
+        /// <param name="oldPassword">旧密码，如果未指定，则不校验</param>
+        /// <returns></returns>
+        public virtual IManageUser ChangePassword(String username, String newPassword, String oldPassword)
+        {
+            try
+            {
+                if (username.IsNullOrEmpty()) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
+
+                // 过滤帐号中的空格，防止出现误操作无法登录的情况
+                var account = username.Trim();
+                var user = Membership.User.Find(Membership.User.__.Name, account);
+                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+                if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
+
+                var prv = PasswordProvider;
+
+                // 数据库为空密码，任何密码均可登录
+                if (!oldPassword.IsNullOrEmpty())
+                {
+                    if (!prv.Verify(oldPassword, user.Password)) throw new EntityException("用户名或密码不正确！");
+                }
+
+                user.Password = prv.Hash(newPassword);
+                user.Update();
+
+                Membership.User.WriteLog("修改密码", true, username);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Membership.User.WriteLog("修改密码", false, username + "修改密码失败！" + ex.Message);
+                throw;
+            }
+        }
 
         /// <summary>获取服务</summary>
         /// <typeparam name="TService"></typeparam>
@@ -179,29 +262,47 @@ namespace XCode.Membership
         /// <summary>获取服务</summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        public virtual Object GetService(Type serviceType) => XCodeService.Container.Resolve(serviceType);
+        public virtual Object GetService(Type serviceType) => null;
         #endregion
 
         #region 实体类扩展
+        private static IDictionary<Type, IEntityFactory> _factories;
+        private static void InitFactories()
+        {
+            if (_factories == null)
+            {
+                var fact = new NullableDictionary<Type, IEntityFactory>
+                {
+                    [typeof(IRole)] = Role.Meta.Factory,
+                    [typeof(IMenu)] = Membership.Menu.Meta.Factory,
+                    [typeof(ILog)] = Log.Meta.Factory,
+                    [typeof(IUser)] = Membership.User.Meta.Factory
+                };
+
+                // 不想加锁，用原子操作
+                //_factories = fact;
+                Interlocked.CompareExchange(ref _factories, fact, null);
+            }
+        }
+
+        private static void Register<TIEntity>(IEntityFactory factory)
+        {
+            InitFactories();
+            
+            _factories[typeof(TIEntity)] = factory;
+        }
+
         /// <summary>根据实体类接口获取实体工厂</summary>
         /// <typeparam name="TIEntity"></typeparam>
         /// <returns></returns>
-        internal static IEntityOperate GetFactory<TIEntity>()
+        internal static IEntityFactory GetFactory<TIEntity>()
         {
-            var container = XCodeService.Container;
-            var type = container.ResolveType<TIEntity>();
-            if (type == null) return null;
+            InitFactories();
 
-            return EntityFactory.CreateOperate(type);
+            return _factories[typeof(TIEntity)];
         }
 
-        internal static T Get<T>()
-        {
-            var eop = GetFactory<T>();
-            if (eop == null) return default(T);
-
-            return (T)eop.Default;
-        }
+        internal static T Get<T>() => (T)GetFactory<T>()?.Default;
         #endregion
     }
 }

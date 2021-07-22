@@ -49,7 +49,7 @@ namespace NewLife.Web
             return true;
         }
 
-        ICollection<String> fileErrors = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        readonly ICollection<String> fileErrors = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>错误处理方法</summary>
         /// <param name="sender"></param>

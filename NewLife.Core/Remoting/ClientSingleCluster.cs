@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using NewLife.Collections;
+using NewLife.Log;
 using NewLife.Net;
 
 namespace NewLife.Remoting
@@ -10,6 +11,9 @@ namespace NewLife.Remoting
     /// <summary>客户端单连接故障转移集群</summary>
     public class ClientSingleCluster : ICluster<String, ISocketClient>
     {
+        /// <summary>最后使用资源</summary>
+        public KeyValuePair<String, ISocketClient> Current { get; private set; }
+
         /// <summary>服务器地址列表</summary>
         public Func<IEnumerable<String>> GetItems { get; set; }
 
@@ -35,6 +39,9 @@ namespace NewLife.Remoting
             {
                 tc = _Client;
                 if (tc != null && tc.Active && !tc.Disposed) return tc;
+
+                // 释放旧对象
+                tc.TryDispose();
 
                 return _Client = CreateClient();
             }
@@ -64,8 +71,13 @@ namespace NewLife.Remoting
                 var svr = svrs[k];
                 try
                 {
+                    WriteLog("集群转移：{0}", svr);
+
                     var client = OnCreate(svr);
                     client.Open();
+
+                    // 设置当前资源
+                    Current = new KeyValuePair<String, ISocketClient>(svr, client);
 
                     return client;
                 }
@@ -77,5 +89,15 @@ namespace NewLife.Remoting
 
             throw last;
         }
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; } = Logger.Null;
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+        #endregion
     }
 }

@@ -5,6 +5,9 @@ using NewLife.Security;
 namespace NewLife.Web
 {
     /// <summary>令牌提供者</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/token_provider
+    /// </remarks>
     public class TokenProvider
     {
         #region 属性
@@ -21,7 +24,7 @@ namespace NewLife.Web
         {
             if (file.IsNullOrEmpty()) return false;
 
-            file = file.GetFullPath();
+            file = file.GetBasePath();
             if (File.Exists(file))
             {
                 Key = File.ReadAllText(file);
@@ -65,10 +68,12 @@ namespace NewLife.Web
         /// <param name="token">令牌</param>
         /// <param name="expire">有效期</param>
         /// <returns></returns>
+        [Obsolete("=>TryDecode")]
         public String Decode(String token, out DateTime expire)
         {
             if (token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(token));
             if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
+
             expire = DateTime.MinValue;
 
             // Base64拆分数据和签名
@@ -89,6 +94,38 @@ namespace NewLife.Web
             expire = secs.ToDateTime();
 
             return user;
+        }
+
+        /// <summary>尝试解码令牌，即使失败，也会返回用户信息和有效时间</summary>
+        /// <param name="token">令牌</param>
+        /// <param name="user">用户信息</param>
+        /// <param name="expire">有效时间</param>
+        /// <returns>解码结果，成功或失败</returns>
+        public Boolean TryDecode(String token, out String user, out DateTime expire)
+        {
+            if (token.IsNullOrEmpty()) throw new ArgumentNullException(nameof(token));
+            //if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
+
+            // Base64拆分数据和签名
+            var p = token.IndexOf('.');
+            var data = token.Substring(0, p).ToBase64();
+            var sig = token.Substring(p + 1).ToBase64();
+
+            // 拆分数据和有效期
+            var str = data.ToStr();
+            p = str.LastIndexOf(',');
+
+            user = str.Substring(0, p);
+            var secs = str.Substring(p + 1).ToInt();
+            expire = secs.ToDateTime();
+
+            if (Key.IsNullOrEmpty()) return false;
+
+            // 验证签名
+            //if (!DSAHelper.Verify(data, Key, sig)) throw new InvalidOperationException("签名验证失败！");
+            if (!DSAHelper.Verify(data, Key, sig)) return false;
+
+            return true;
         }
         #endregion
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 namespace XCode.Membership
 {
@@ -9,69 +8,71 @@ namespace XCode.Membership
     public class LogEntity<TEntity> : Entity<TEntity> where TEntity : LogEntity<TEntity>, new()
     {
         #region 改动时写日志
-        ///// <summary>调用Save时写日志</summary>
-        ///// <returns></returns>
-        //public override int Save()
-        //{
-        //    // 更改日志保存顺序，先保存才能获取到id
-        //    string action = "添加";
-        //    var isNew = IsNullKey;
-        //    if (!isNew)
-        //    {
-        //        // 没有修改时不写日志
-        //        if (!HasDirty) return 0;
-
-        //        action = "修改";
-
-        //        // 必须提前写修改日志，否则修改后脏数据失效，保存的日志为空
-        //        LogProvider.Provider.WriteLog(action, this);
-        //    }
-
-        //    int result = base.Save();
-
-        //    if (isNew) LogProvider.Provider.WriteLog(action, this);
-
-        //    return result;
-        //}
-
         /// <summary>添加时写日志</summary>
         /// <returns></returns>
         public override Int32 Insert()
         {
-            var rs = base.Insert();
-
-            LogProvider.Provider.WriteLog("添加", this);
-
-            return rs;
+            var err = "";
+            try
+            {
+                return base.Insert();
+            }
+            catch (Exception ex)
+            {
+                err = ex.Message;
+                throw;
+            }
+            finally
+            {
+                LogProvider.Provider.WriteLog("添加", this, err);
+            }
         }
 
         /// <summary>修改时写日志</summary>
         /// <returns></returns>
         public override Int32 Update()
         {
+            // 必须提前写修改日志，否则修改后脏数据失效，保存的日志为空
             if (HasDirty) LogProvider.Provider.WriteLog("修改", this);
 
-            return base.Update();
+            try
+            {
+                return base.Update();
+            }
+            catch (Exception ex)
+            {
+                LogProvider.Provider.WriteLog("修改", this, ex.Message);
+                throw;
+            }
         }
 
         /// <summary>删除时写日志</summary>
         /// <returns></returns>
         public override Int32 Delete()
         {
-            LogProvider.Provider.WriteLog("删除", this);
-
-            return base.Delete();
+            var err = "";
+            try
+            {
+                return base.Delete();
+            }
+            catch (Exception ex)
+            {
+                err = ex.Message;
+                throw;
+            }
+            finally
+            {
+                LogProvider.Provider.WriteLog("删除", this, err);
+            }
         }
         #endregion
 
         #region 日志
         /// <summary>写日志</summary>
         /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
         /// <param name="remark">备注</param>
-        public static void WriteLog(String action, String remark)
-        {
-            LogProvider.Provider.WriteLog(typeof(TEntity), action, remark);
-        }
+        public static void WriteLog(String action, Boolean success, String remark) => LogProvider.Provider.WriteLog(typeof(TEntity), action, success, remark);
         #endregion
     }
 }

@@ -36,8 +36,8 @@ namespace NewLife.Web
         #endregion
 
         #region 方法
-        static Regex _regA = new Regex("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        static Regex _regTitle = new Regex("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regA = new("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regTitle = new("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>分析HTML中的链接</summary>
         /// <param name="html">Html文本</param>
@@ -110,7 +110,7 @@ namespace NewLife.Web
             if (ns.Length == 0) return list.ToArray();
 
             // 如果由很多段组成，可能是unix格式
-            var unix = ns[0].Split(" ").Length >= 6;
+            _ = ns[0].Split(" ").Length >= 6;
             var buri = new Uri(url);
             foreach (var item in ns)
             {
@@ -196,6 +196,15 @@ namespace NewLife.Web
                     ts.Substring(12, 2).ToInt());
 
                 Name = name.Substring(0, p) + name.Substring(p + 1 + 14);
+            }
+            else if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2)
+            {
+                Time = new DateTime(
+                    ts.Substring(0, 4).ToInt(),
+                    ts.Substring(4, 2).ToInt(),
+                    ts.Substring(6, 2).ToInt());
+
+                Name = name.Substring(0, p) + name.Substring(p + 1 + 8);
             }
 
             return p;

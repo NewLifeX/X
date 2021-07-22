@@ -132,7 +132,7 @@ namespace NewLife.Serialization
         public static T Read(Stream stream)
         {
             var obj = new T();
-            if (!obj.Read(stream, null)) return default(T);
+            if (!obj.Read(stream, null)) return default;
 
             return obj;
         }

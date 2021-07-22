@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using XCode.Cache;
+using NewLife.Data;
 using XCode.Configuration;
 
 namespace XCode
 {
     /// <summary>数据实体操作接口</summary>
-    public interface IEntityOperate
+    [Obsolete("=>IEntityFactory")]
+    public interface IEntityOperate : IEntityFactory { }
+
+    /// <summary>数据实体操作接口</summary>
+    public interface IEntityFactory
     {
         #region 主要属性
         /// <summary>实体类型</summary>
@@ -15,6 +19,12 @@ namespace XCode
 
         /// <summary>实体会话</summary>
         IEntitySession Session { get; }
+
+        /// <summary>实体持久化</summary>
+        IEntityPersistence Persistence { get; set; }
+
+        /// <summary>数据行访问器，把数据行映射到实体类</summary>
+        IDataRowEntityAccessor Accessor { get; set; }
         #endregion
 
         #region 属性
@@ -45,16 +55,17 @@ namespace XCode
         /// <summary>表名</summary>
         String TableName { get; set; }
 
-        /// <summary>已格式化的表名，带有中括号等</summary>
-        String FormatedTableName { get; }
+        ///// <summary>已格式化的表名，带有中括号等</summary>
+        //String FormatedTableName { get; }
 
-        /// <summary>实体缓存</summary>
-        IEntityCache Cache { get; }
+        ///// <summary>实体缓存</summary>
+        //IEntityCache Cache { get; }
 
-        /// <summary>单对象实体缓存</summary>
-        ISingleEntityCache SingleCache { get; }
+        ///// <summary>单对象实体缓存</summary>
+        //ISingleEntityCache SingleCache { get; }
 
         /// <summary>总记录数</summary>
+        [Obsolete("=>Session.Count")]
         Int32 Count { get; }
         #endregion
 
@@ -156,46 +167,47 @@ namespace XCode
         /// <param name="find">查找函数</param>
         /// <param name="create">创建对象</param>
         /// <returns></returns>
-        IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null);
+        IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create);
         #endregion
 
         #region 事务
-        /// <summary>开始事务</summary>
-        /// <returns></returns>
-        Int32 BeginTransaction();
+        ///// <summary>开始事务</summary>
+        ///// <returns></returns>
+        //Int32 BeginTransaction();
 
-        /// <summary>提交事务</summary>
-        /// <returns></returns>
-        Int32 Commit();
+        ///// <summary>提交事务</summary>
+        ///// <returns></returns>
+        //Int32 Commit();
 
-        /// <summary>回滚事务</summary>
-        /// <returns></returns>
-        Int32 Rollback();
+        ///// <summary>回滚事务</summary>
+        ///// <returns></returns>
+        //Int32 Rollback();
 
         /// <summary>创建事务</summary>
+        [Obsolete("=>Session.CreateTrans")]
         EntityTransaction CreateTrans();
         #endregion
 
         #region 辅助方法
-        /// <summary>格式化关键字</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String FormatName(String name);
+        ///// <summary>格式化关键字</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String FormatName(String name);
 
-        /// <summary>
-        /// 取得一个值的Sql值。
-        /// 当这个值是字符串类型时，会在该值前后加单引号；
-        /// </summary>
-        /// <param name="name">字段</param>
-        /// <param name="value">对象</param>
-        /// <returns>Sql值的字符串形式</returns>
-        String FormatValue(String name, Object value);
+        ///// <summary>
+        ///// 取得一个值的Sql值。
+        ///// 当这个值是字符串类型时，会在该值前后加单引号；
+        ///// </summary>
+        ///// <param name="name">字段</param>
+        ///// <param name="value">对象</param>
+        ///// <returns>Sql值的字符串形式</returns>
+        //String FormatValue(String name, Object value);
 
-        /// <summary>格式化数据为SQL数据</summary>
-        /// <param name="field">字段</param>
-        /// <param name="value">数值</param>
-        /// <returns></returns>
-        String FormatValue(FieldItem field, Object value);
+        ///// <summary>格式化数据为SQL数据</summary>
+        ///// <param name="field">字段</param>
+        ///// <param name="value">数值</param>
+        ///// <returns></returns>
+        //String FormatValue(FieldItem field, Object value);
         #endregion
 
         #region 一些设置
@@ -225,6 +237,13 @@ namespace XCode
 
         /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
         Boolean FullInsert { get; set; }
+
+        /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
+        Snowflake Snow { get; }
+
+        /// <summary>流式Id</summary>
+        [Obsolete("=>Snow")]
+        Snowflake FlowId { get; }
         #endregion
     }
 }

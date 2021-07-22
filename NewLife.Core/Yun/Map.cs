@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.Web;
 
+#nullable enable
 namespace NewLife.Yun
 {
     /// <summary>地图提供者接口</summary>
@@ -30,14 +31,14 @@ namespace NewLife.Yun
         /// <param name="address"></param>
         /// <param name="city"></param>
         /// <returns></returns>
-        Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String city = null);
+        Task<IDictionary<String, Object>> GetGeocoderAsync(String address, String? city = null);
 
         /// <summary>查询地址获取坐标</summary>
         /// <param name="address">地址</param>
         /// <param name="city">城市</param>
         /// <param name="formatAddress">是否格式化地址</param>
         /// <returns></returns>
-        Task<GeoAddress> GetGeoAsync(String address, String city = null, Boolean formatAddress = false);
+        Task<GeoAddress> GetGeoAsync(String address, String? city = null, Boolean formatAddress = false);
         #endregion
 
         #region 逆地址编码
@@ -72,25 +73,25 @@ namespace NewLife.Yun
     {
         #region 属性
         /// <summary>应用密钥。多个key逗号分隔</summary>
-        public String AppKey { get; set; }
+        public String? AppKey { get; set; }
 
         /// <summary>应用密码参数名</summary>
         protected String KeyName { get; set; } = "key";
 
         /// <summary>最后密钥</summary>
-        public String LastKey { get; private set; }
+        public String? LastKey { get; private set; }
 
         /// <summary>坐标系</summary>
-        public String CoordType { get; set; }
+        public String? CoordType { get; set; }
 
         /// <summary>最后网址</summary>
-        public String LastUrl { get; private set; }
+        public String? LastUrl { get; private set; }
 
         /// <summary>最后响应</summary>
-        public String LastString { get; private set; }
+        public String? LastString { get; private set; }
 
         /// <summary>最后结果</summary>
-        public IDictionary<String, Object> LastResult { get; private set; }
+        public IDictionary<String, Object>? LastResult { get; private set; }
 
         /// <summary>收到异常响应时是否抛出异常</summary>
         public Boolean ThrowException { get; set; }
@@ -99,16 +100,16 @@ namespace NewLife.Yun
         #region 构造
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _Client.TryDispose();
         }
         #endregion
 
         #region 方法
-        private WebClientX _Client;
+        private HttpClient? _Client;
 
         /// <summary>异步获取字符串</summary>
         /// <param name="url"></param>
@@ -118,7 +119,7 @@ namespace NewLife.Yun
             var key = AcquireKey();
             if (key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(AppKey), "没有可用密钥");
 
-            if (_Client == null) _Client = new WebClientX { Log = Log };
+            if (_Client == null) _Client = DefaultTracer.Instance.CreateHttpClient();
 
             if (url.Contains("?"))
                 url += "&";
@@ -131,7 +132,7 @@ namespace NewLife.Yun
             LastString = null;
             LastKey = key;
 
-            var rs = await _Client.DownloadStringAsync(url).ConfigureAwait(false);
+            var rs = await _Client.GetStringAsync(url).ConfigureAwait(false);
 
             //// 删除无效密钥
             //if (IsValidKey(rs)) RemoveKey(key);
@@ -143,31 +144,34 @@ namespace NewLife.Yun
         /// <param name="url">目标Url</param>
         /// <param name="result">结果字段</param>
         /// <returns></returns>
-        protected virtual async Task<T> InvokeAsync<T>(String url, String result)
+        protected virtual async Task<T?> InvokeAsync<T>(String url, String result) where T : class
         {
             LastResult = null;
 
             var html = await GetStringAsync(url).ConfigureAwait(false);
-            if (html.IsNullOrEmpty()) return default(T);
+            if (html.IsNullOrEmpty()) return default;
 
-            var rs = new JsonParser(html).Decode();
+            var rs = JsonParser.Decode(html);
 
-            LastResult = (IDictionary<String, Object>)rs;
+            LastResult = rs;
 
             return (T)rs;
         }
         #endregion
 
         #region 密钥管理
-        private String[] _Keys;
+        private String[]? _Keys;
         //private Int32 _KeyIndex;
 
         /// <summary>申请密钥</summary>
         /// <returns></returns>
         protected String AcquireKey()
         {
+            if (AppKey.IsNullOrEmpty()) return String.Empty;
+
             var ks = _Keys;
-            if (ks == null) ks = _Keys = AppKey.Split(",");
+            if (ks == null) ks = _Keys = AppKey?.Split(",");
+            if (ks == null) return String.Empty;
 
             //var key = _Keys[_KeyIndex++];
             //if (_KeyIndex >= _Keys.Length) _KeyIndex = 0;
@@ -193,7 +197,7 @@ namespace NewLife.Yun
             _Keys = list.ToArray();
         }
 
-        private String[] _KeyWords = new[] { "INVALID", "LIMIT" };
+        private readonly String[] _KeyWords = new[] { "INVALID", "LIMIT" };
         /// <summary>是否无效Key。可能禁用或超出限制</summary>
         /// <param name="result"></param>
         /// <returns></returns>
@@ -212,10 +216,8 @@ namespace NewLife.Yun
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
+#nullable restore

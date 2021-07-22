@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
@@ -24,13 +26,13 @@ namespace NewLife.Net
     /// 
     /// 收到请求<see cref="Server_NewSession"/>后，会建立<see cref="CreateSession"/>会话，并加入到会话集合<see cref="Sessions"/>中，然后启动<see cref="Start"/>会话处理；
     /// 
-    /// 快速用法：
+    /// 标准用法：
     /// 指定端口后直接<see cref="Start"/>，NetServer将同时监听Tcp/Udp和IPv4/IPv6（会检查是否支持）四个端口。
     /// 
-    /// 简单用法：
+    /// 高级用法：
     /// 重载方法<see cref="EnsureCreateServer"/>来创建一个SocketServer并赋值给<see cref="Server"/>属性，<see cref="EnsureCreateServer"/>将会在<see cref="OnStart"/>时首先被调用。
     /// 
-    /// 标准用法：
+    /// 超级用法：
     /// 使用<see cref="AttachServer"/>方法向网络服务器添加Socket服务，其中第一个将作为默认Socket服务<see cref="Server"/>。
     /// 如果Socket服务集合<see cref="Servers"/>为空，将依据地址<see cref="Local"/>、端口<see cref="Port"/>、地址族<see cref="AddressFamily"/>、协议<see cref="ProtocolType"/>创建默认Socket服务。
     /// 如果地址族<see cref="AddressFamily"/>指定为IPv4和IPv6以外的值，将同时创建IPv4和IPv6两个Socket服务；
@@ -43,7 +45,7 @@ namespace NewLife.Net
         /// <summary>服务名</summary>
         public String Name { get; set; }
 
-        private NetUri _Local = new NetUri();
+        private NetUri _Local = new();
         /// <summary>本地结点</summary>
         public NetUri Local
         {
@@ -89,20 +91,25 @@ namespace NewLife.Net
         /// </remarks>
         public Int32 SessionTimeout { get; set; }
 
-        /// <summary>管道</summary>
+        /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
+        /// <remarks>
+        /// 1，接收数据解码时，从前向后通过管道处理器；
+        /// 2，发送数据编码时，从后向前通过管道处理器；
+        /// </remarks>
         public IPipeline Pipeline { get; set; }
 
         /// <summary>使用会话集合，允许遍历会话。默认true</summary>
         public Boolean UseSession { get; set; } = true;
 
-        /// <summary>会话统计</summary>
-        public ICounter StatSession { get; set; }
+        /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+        public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
-        /// <summary>发送统计</summary>
-        public ICounter StatSend { get; set; }
+        /// <summary>SSL证书。服务端使用</summary>
+        /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+        public X509Certificate Certificate { get; set; }
 
-        /// <summary>接收统计</summary>
-        public ICounter StatReceive { get; set; }
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
 
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
         public Int32 StatPeriod { get; set; } = 600;
@@ -130,10 +137,6 @@ namespace NewLife.Net
 
             Servers = new List<ISocketServer>();
 
-            StatSession = new PerfCounter();
-            StatSend = new PerfCounter();
-            StatReceive = new PerfCounter();
-
             if (Setting.Current.Debug) Log = XTrace.Log;
         }
 
@@ -159,9 +162,9 @@ namespace NewLife.Net
 
         /// <summary>已重载。释放会话集合等资源</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
@@ -203,22 +206,25 @@ namespace NewLife.Net
         {
             if (Servers.Contains(server)) return false;
 
-            server.Name = String.Format("{0}{1}{2}", Name, server.Local.IsTcp ? "Tcp" : "Udp", server.Local.Address.IsIPv4() ? "" : "6");
-            // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
-            if (SocketLog != null) server.Log = SocketLog;
+            server.Name = $"{Name}{(server.Local.IsTcp ? "Tcp" : "Udp")}{(server.Local.Address.IsIPv4() ? "" : "6")}";
             server.NewSession += Server_NewSession;
 
             if (SessionTimeout > 0) server.SessionTimeout = SessionTimeout;
             if (Pipeline != null) server.Pipeline = Pipeline;
 
-            server.StatSession = StatSession;
-            server.StatSend = StatSend;
-            server.StatReceive = StatReceive;
-
+            // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
+            if (SocketLog != null) server.Log = SocketLog;
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
+            server.Tracer = Tracer;
 
             server.Error += OnError;
+
+            if (server is TcpServer ts)
+            {
+                ts.SslProtocol = SslProtocol;
+                ts.Certificate = Certificate;
+            }
 
             Servers.Add(server);
 
@@ -259,28 +265,19 @@ namespace NewLife.Net
 
         /// <summary>添加处理器</summary>
         /// <typeparam name="THandler"></typeparam>
-        public void Add<THandler>() where THandler : IHandler, new()
-        {
-            if (Pipeline == null) Pipeline = new Pipeline();
-
-            Pipeline.AddLast(new THandler());
-        }
+        public void Add<THandler>() where THandler : IHandler, new() => GetPipe().Add(new THandler());
 
         /// <summary>添加处理器</summary>
         /// <param name="handler">处理器</param>
-        public void Add(IHandler handler)
-        {
-            if (Pipeline == null) Pipeline = new Pipeline();
+        public void Add(IHandler handler) => GetPipe().Add(handler);
 
-            Pipeline.AddLast(handler);
-        }
+        private IPipeline GetPipe() => Pipeline ??= new Pipeline();
         #endregion
 
         #region 方法
         /// <summary>开始服务</summary>
         public void Start()
         {
-            //if (Active) throw new InvalidOperationException("服务已经开始！");
             if (Active) return;
 
             OnStart();
@@ -308,7 +305,6 @@ namespace NewLife.Net
 
             foreach (var item in Servers)
             {
-                //if (item.Port > 0) WriteLog("开始监听 {0}", item);
                 item.Start();
 
                 // 如果是随机端口，反写回来，并且修改其它服务器的端口
@@ -321,7 +317,6 @@ namespace NewLife.Net
                         if (elm != item && elm.Port == 0) elm.Port = Port;
                     }
                 }
-                /*if (item.Port <= 0)*/
                 WriteLog("开始监听 {0}", item);
             }
 
@@ -332,9 +327,6 @@ namespace NewLife.Net
         /// <param name="reason">关闭原因。便于日志分析</param>
         public void Stop(String reason)
         {
-            //if (!Active) throw new InvalidOperationException("服务没有开始！");
-            //if (!Active) return;
-
             _Timer.TryDispose();
 
             var ss = Servers.Where(e => e.Active).ToArray();
@@ -362,11 +354,8 @@ namespace NewLife.Net
         /// <summary>新会话，对于TCP是新连接，对于UDP是新客户端</summary>
         public event EventHandler<NetSessionEventArgs> NewSession;
 
-        /// <summary>某个会话的数据到达。sender是ISocketSession</summary>
+        /// <summary>某个会话的数据到达。sender是INetSession</summary>
         public event EventHandler<ReceivedEventArgs> Received;
-
-        ///// <summary>消息到达事件</summary>
-        //public event EventHandler<MessageEventArgs> MessageReceived;
 
         /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
         /// <param name="sender"></param>
@@ -380,7 +369,7 @@ namespace NewLife.Net
             NewSession?.Invoke(sender, new NetSessionEventArgs { Session = ns });
         }
 
-        private Int32 sessionID = 0;
+        private Int32 _sessionID = 0;
         /// <summary>收到连接时，建立会话，并挂接数据接收和错误处理事件</summary>
         /// <param name="session"></param>
         protected virtual INetSession OnNewSession(ISocketSession session)
@@ -393,11 +382,14 @@ namespace NewLife.Net
             // sessionID变大后，可能达到最大值，然后变为-1，再变为0，所以不用担心
             //ns.ID = ++sessionID;
             // 网络会话改为原子操作，避免多线程冲突
-            if (ns is NetSession) (ns as NetSession).ID = Interlocked.Increment(ref sessionID);
+            if (ns is NetSession ns2)
+            {
+                ns2.ID = Interlocked.Increment(ref _sessionID);
+                ns2.Log = SessionLog ?? Log;
+            }
             ns.Host = this;
             ns.Server = session.Server;
             ns.Session = session;
-            if (ns is NetSession ns2) ns2.Log = SessionLog ?? Log;
 
             if (UseSession) AddSession(ns);
 
@@ -441,7 +433,7 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
+        private ConcurrentDictionary<Int32, INetSession> _Sessions = new();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
         public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
@@ -457,12 +449,9 @@ namespace NewLife.Net
         protected virtual void AddSession(INetSession session)
         {
             if (session.Host == null) session.Host = this;
-            session.OnDisposed += (s, e) =>
-            {
-                var id = (s as INetSession).ID;
-                if (id > 0) _Sessions.Remove(id);
-            };
-            _Sessions.TryAdd(session.ID, session);
+
+            if (_Sessions.TryAdd(session.ID, session))
+                session.OnDisposed += (s, e) => _Sessions.Remove((s as INetSession).ID);
         }
 
         /// <summary>创建会话</summary>
@@ -485,23 +474,22 @@ namespace NewLife.Net
         {
             if (sessionid == 0) return null;
 
-            if (!Sessions.TryGetValue(sessionid, out var ns)) return null;
-            return ns;
+            return Sessions.TryGetValue(sessionid, out var ns) ? ns : null;
         }
         #endregion
 
         #region 群发
-        /// <summary>异步群发</summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public virtual Task<Int32> SendAllAsync(Byte[] buffer)
+        /// <summary>异步群发数据给所有客户端</summary>
+        /// <param name="data"></param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Task<Int32> SendAllAsync(Packet data)
         {
             if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
 
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(TaskEx.Run(() => item.Value.Send(buffer)));
+                ts.Add(TaskEx.Run(() => item.Value.Send(data)));
             }
 
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
@@ -515,7 +503,7 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
+        protected ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
         {
             switch (protocol)
             {
@@ -543,7 +531,7 @@ namespace NewLife.Net
             }
         }
 
-        static ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
+        ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
         {
             var list = new List<ISocketServer>();
             switch (family)
@@ -555,8 +543,9 @@ namespace NewLife.Net
                     {
                         var svr = new TServer();
                         svr.Local.Address = addr;
-                        svr.Port = port;
+                        svr.Local.Port = port;
                         //svr.AddressFamily = family;
+                        svr.Tracer = Tracer;
 
                         // 协议端口不能是已经被占用
                         if (!svr.Local.CheckPort()) list.Add(svr);
@@ -594,9 +583,6 @@ namespace NewLife.Net
         {
             var sb = Pool.StringBuilder.Get();
             if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
-            if (StatSend.Value > 0) sb.AppendFormat("发送：{0} ", StatSend);
-            if (StatReceive.Value > 0) sb.AppendFormat("接收：{0} ", StatReceive);
-            //if (StatSession.Value > 0) sb.AppendFormat("会话：{0} ", StatSession);
 
             return sb.Put(true);
         }
@@ -652,7 +638,7 @@ namespace NewLife.Net
             var sb = Pool.StringBuilder.Get();
             foreach (var item in servers)
             {
-                if (sb.Length > 0) sb.Append(" ");
+                if (sb.Length > 0) sb.Append(' ');
                 sb.Append(item);
             }
             return Name + " " + sb.Put(true);

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
+using NewLife;
 using NewLife.Reflection;
-using XCode.DataAccessLayer;
 
 namespace XCode
 {
@@ -18,7 +16,7 @@ namespace XCode
 
         private MapProvider _Provider;
         /// <summary>目标提供者</summary>
-        public MapProvider Provider { get { return _Provider ?? (_Provider = GetProvider(_Type, _Key)); } set { _Provider = value; } }
+        public MapProvider Provider { get { return _Provider ??= GetProvider(_Type, _Key); } set { _Provider = value; } }
         #endregion
 
         #region 构造
@@ -52,7 +50,7 @@ namespace XCode
             // 区分实体类和提供者
             if (type.As<MapProvider>()) return Activator.CreateInstance(type) as MapProvider;
 
-            if (key.IsNullOrEmpty()) key = EntityFactory.CreateOperate(type)?.Unique?.Name;
+            if (key.IsNullOrEmpty()) key = type.AsFactory()?.Unique?.Name;
             return new MapProvider { EntityType = type, Key = key };
         }
         #endregion
@@ -74,7 +72,7 @@ namespace XCode
         /// <returns></returns>
         public virtual IDictionary<Object, String> GetDataSource()
         {
-            var fact = EntityFactory.CreateOperate(EntityType);
+            var fact = EntityType.AsFactory();
 
             var key = Key;
             var mst = fact.Master?.Name;
@@ -83,9 +81,9 @@ namespace XCode
             if (mst.IsNullOrEmpty()) throw new ArgumentNullException("没有设置主要字段");
 
             // 数据较少时，从缓存读取
-            var list = fact.Count < 1000 ? fact.FindAllWithCache() : fact.FindAll("", null, null, 0, 100);
+            var list = fact.Session.Count < 1000 ? fact.FindAllWithCache() : fact.FindAll("", null, null, 0, 100);
 
-            return list.ToDictionary(e => e[key], e => e[mst] + "");
+            return list.Where(e => e[key] != null).ToDictionary(e => e[key], e => e[mst] + "");
         }
         #endregion
     }

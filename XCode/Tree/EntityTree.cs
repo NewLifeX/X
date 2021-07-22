@@ -34,7 +34,7 @@ namespace XCode
         static EntityTree()
         {
             // 避免实际应用中，直接调用Entity的静态方法时，没有引发TEntity的静态构造函数。
-            var entity = new TEntity();
+            new TEntity();
 
             // 更方便实体树子类重载树形设置
             if (Setting == null) Setting = new EntityTreeSetting<TEntity> { Factory = Meta.Factory };
@@ -54,58 +54,32 @@ namespace XCode
 
         /// <summary>子节点</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual IList<TEntity> Childs
-        {
-            get { return Extends.Get(nameof(Childs), e => FindChilds()); }
-            set { Extends.Set(nameof(Childs), value); }
-        }
+        public virtual IList<TEntity> Childs => Extends.Get(nameof(Childs), e => FindChilds());
 
         /// <summary>子节点</summary>
-        protected virtual IList<TEntity> FindChilds() { return FindAllByParent((TKey)this[Setting.Key]); }
+        protected virtual IList<TEntity> FindChilds() => FindAllByParent((TKey)this[Setting.Key]);
 
         /// <summary>父节点</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual TEntity Parent
-        {
-            get { return Extends.Get(nameof(Parent), e => FindParent()); }
-            set { Extends.Set(nameof(Parent), value); }
-        }
+        public virtual TEntity Parent => Extends.Get(nameof(Parent), e => FindParent());
 
         /// <summary>父节点</summary>
-        protected virtual TEntity FindParent()
-        {
-            return FindByKeyWithCache((TKey)this[Setting.Parent]);
-        }
+        protected virtual TEntity FindParent() => FindByKeyWithCache((TKey)this[Setting.Parent]);
 
         /// <summary>在缓存中查找节点</summary>
-        protected static TEntity FindByKeyWithCache(TKey key)
-        {
-            return Meta.Session.Cache.Find(e => Equals(e[Setting.Key], key));
-        }
+        protected static TEntity FindByKeyWithCache(TKey key) => Meta.Session.Cache.Find(e => Equals(e[Setting.Key], key));
 
         /// <summary>子孙节点</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual IList<TEntity> AllChilds
-        {
-            get { return Extends.Get(nameof(AllChilds), e => FindAllChilds(this)); }
-            set { Extends.Set(nameof(AllChilds), value); }
-        }
+        public virtual IList<TEntity> AllChilds => Extends.Get(nameof(AllChilds), e => FindAllChilds(this));
 
         /// <summary>子孙节点，包含自己</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual IList<TEntity> MyAllChilds
-        {
-            get { return Extends.Get(nameof(MyAllChilds), e => FindAllChilds(this, true)); }
-            set { Extends.Set(nameof(MyAllChilds), value); }
-        }
+        public virtual IList<TEntity> MyAllChilds => Extends.Get(nameof(MyAllChilds), e => FindAllChilds(this, true));
 
         /// <summary>父节点集合</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual IList<TEntity> AllParents
-        {
-            get { return Extends.Get(nameof(AllParents), e => FindAllParents(this)); }
-            set { Extends.Set(nameof(AllParents), value); }
-        }
+        public virtual IList<TEntity> AllParents => Extends.Get(nameof(AllParents), e => FindAllParents(this));
 
         /// <summary>深度</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
@@ -226,11 +200,11 @@ namespace XCode
 
         /// <summary>斜杠分隔的全路径</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public String FullPath { get { return @"\" + GetFullPath(true); } }
+        public String FullPath => @"\" + GetFullPath(true);
 
         /// <summary>斜杠分隔的全父路径</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public String FullParentPath { get { return @"\" + GetFullPath(false); } }
+        public String FullParentPath => @"\" + GetFullPath(false);
         #endregion
 
         #region 查询
@@ -296,10 +270,7 @@ namespace XCode
         /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
         /// <param name="exclude"></param>
         /// <returns></returns>
-        public IList<TEntity> FindAllChildsExcept(IEntityTree exclude)
-        {
-            return FindAllChilds(this, true, exclude);
-        }
+        public IList<TEntity> FindAllChildsExcept(IEntityTree exclude) => FindAllChilds(this, true, exclude);
 
         /// <summary>查找指定键的所有父节点，从高到底以深度层次树结构输出</summary>
         /// <param name="key"></param>
@@ -653,21 +624,21 @@ namespace XCode
 
         #region IEntityTree 成员
         /// <summary>父实体</summary>
-        IEntity IEntityTree.Parent { get { return Parent; } }
+        IEntity IEntityTree.Parent => Parent;
 
         /// <summary>子实体集合</summary>
-        IList<IEntity> IEntityTree.Childs { get { return Childs.Cast<IEntity>().ToList(); } }
+        IList<IEntity> IEntityTree.Childs => Childs.Cast<IEntity>().ToList();
 
         /// <summary>子孙实体集合。以深度层次树结构输出</summary>
-        IList<IEntity> IEntityTree.AllChilds { get { return AllChilds.Cast<IEntity>().ToList(); } }
+        IList<IEntity> IEntityTree.AllChilds => AllChilds.Cast<IEntity>().ToList();
 
         /// <summary>父亲实体集合。以深度层次树结构输出</summary>
-        IList<IEntity> IEntityTree.AllParents { get { return AllParents.Cast<IEntity>().ToList(); } }
+        IList<IEntity> IEntityTree.AllParents => AllParents.Cast<IEntity>().ToList();
 
         /// <summary>获取完整树，包含根节点，排除指定分支。多用于树节点父级选择</summary>
         /// <param name="exclude"></param>
         /// <returns></returns>
-        IList<IEntity> IEntityTree.FindAllChildsExcept(IEntityTree exclude) { return FindAllChildsExcept(exclude).Cast<IEntity>().ToList(); }
+        IList<IEntity> IEntityTree.FindAllChildsExcept(IEntityTree exclude) => FindAllChildsExcept(exclude).Cast<IEntity>().ToList();
         #endregion
     }
 }

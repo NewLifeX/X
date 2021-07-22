@@ -11,11 +11,13 @@ using NewLife.Serialization;
 namespace NewLife.Remoting
 {
     /// <summary>API控制器</summary>
-    //[AllowAnonymous]
-    public class ApiController
+    public class ApiController : IApi
     {
         /// <summary>主机</summary>
         public IApiHost Host { get; set; }
+
+        /// <summary>会话</summary>
+        public IApiSession Session { get; set; }
 
         private String[] _all;
         /// <summary>获取所有接口</summary>
@@ -26,8 +28,9 @@ namespace NewLife.Remoting
             //System.Threading.Thread.Sleep(1000);
             if (_all != null) return _all;
 
+            var svc = Host as ApiServer;
             var list = new List<String>();
-            foreach (var item in Host.Manager.Services)
+            foreach (var item in svc.Manager.Services)
             {
                 var act = item.Value;
 
@@ -35,7 +38,7 @@ namespace NewLife.Remoting
 
                 var sb = Pool.StringBuilder.Get();
                 sb.AppendFormat("{0} {1}", mi.ReturnType.Name, act.Name);
-                sb.Append("(");
+                sb.Append('(');
 
                 var pis = mi.GetParameters();
                 for (var i = 0; i < pis.Length; i++)
@@ -44,7 +47,7 @@ namespace NewLife.Remoting
                     sb.AppendFormat("{0} {1}", pis[i].ParameterType.Name, pis[i].Name);
                 }
 
-                sb.Append(")");
+                sb.Append(')');
 
                 var des = mi.GetDescription();
                 if (!des.IsNullOrEmpty()) sb.AppendFormat(" {0}", des);
@@ -73,6 +76,7 @@ namespace NewLife.Remoting
             {
                 Server = asmx?.Name,
                 asmx?.Version,
+                asmx?.Compile,
                 OS = _OS,
                 MachineName = _MachineName,
                 UserName = _UserName,
@@ -81,11 +85,20 @@ namespace NewLife.Remoting
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
+                LastState = Session["State"],
                 Time = DateTime.Now,
             };
 
+            // 记录上一次状态
+            Session["State"] = state;
+
             // 转字典
             var dic = rs.ToDictionary();
+
+            // 令牌
+            //var token = ctx.Parameters["Token"] + "";
+            //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
+            if (!Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
 
             // 时间和连接数
             if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
@@ -126,11 +139,13 @@ namespace NewLife.Remoting
 
         private Object GetStat()
         {
+            var svc = Host as ApiServer;
+
             var dic = new Dictionary<String, Object>
             {
-                ["_Total"] = Host.StatProcess + ""
+                ["_Total"] = svc.StatProcess + ""
             };
-            foreach (var item in Host.Manager.Services)
+            foreach (var item in svc.Manager.Services)
             {
                 var api = item.Value;
                 dic[item.Key] = api.StatProcess + " " + api.LastSession;

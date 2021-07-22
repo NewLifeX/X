@@ -99,7 +99,7 @@ namespace NewLife.Log
 
             foreach (var item in Logs)
             {
-                sb.Append(" ");
+                sb.Append(' ');
                 sb.Append(item + "");
             }
 

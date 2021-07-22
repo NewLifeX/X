@@ -23,6 +23,7 @@ namespace NewLife.Json
     /// 用户也可以通过配置实体类的静态构造函数修改基类的<see cref="_.ConfigFile"/>和<see cref="_.ReloadTime"/>来动态配置加载信息。
     /// </remarks>
     /// <typeparam name="TConfig"></typeparam>
+    [Obsolete("=>Config<TConfig>")]
     public class JsonConfig<TConfig> : DisposeBase where TConfig : JsonConfig<TConfig>, new()
     {
         #region 静态
@@ -35,7 +36,7 @@ namespace NewLife.Json
             {
                 if (_loading) return _Current ?? new TConfig();
 
-                var dcf = _.ConfigFile;
+                var dcf = _.ConfigFile?.GetBasePath();
                 if (dcf == null) return new TConfig();
 
                 // 这里要小心，避免_Current的null判断完成后，_Current被别人置空，而导致这里返回null
@@ -62,7 +63,7 @@ namespace NewLife.Json
                     _Current = config;
                     if (!config.Load(dcf))
                     {
-                        config.ConfigFile = dcf.GetFullPath();
+                        config.ConfigFile = dcf;
                         config.SetExpire();  // 设定过期时间
                         config.IsNew = true;
                         config.OnNew();
@@ -70,7 +71,7 @@ namespace NewLife.Json
                         config.OnLoaded();
 
                         // 创建或覆盖
-                        var act = File.Exists(dcf.GetFullPath()) ? "加载出错" : "不存在";
+                        var act = File.Exists(dcf) ? "加载出错" : "不存在";
                         XTrace.WriteLine("{0}的配置文件{1} {2}，准备用默认配置覆盖！", typeof(TConfig).Name, dcf, act);
                         try
                         {
@@ -112,7 +113,7 @@ namespace NewLife.Json
                 {
                     // 这里不能着急，派生类可能通过静态构造函数指定配置文件路径
                     //throw new XException("编码错误！请为配置类{0}设置{1}特性，指定配置文件！", typeof(TConfig), typeof(XmlConfigFileAttribute).Name);
-                    _.ConfigFile = "ViewConfig\\{0}.json".F(typeof(TConfig).Name);
+                    _.ConfigFile = $"ViewConfig\\{typeof(TConfig).Name}.json";
                     _.ReloadTime = 10000;
                 }
                 else
@@ -122,7 +123,7 @@ namespace NewLife.Json
                 }
 
                 // 实例化一次，用于触发派生类中可能的静态构造函数
-                var config = new TConfig();
+                new TConfig();
             }
         }
         #endregion
@@ -150,7 +151,7 @@ namespace NewLife.Json
                 // 频繁调用File.Exists的性能损耗巨大
                 if (cf.IsNullOrEmpty()) return false;
 
-                var now = TimerX.Now;
+                var now = DateTime.Now;
                 if (_.ReloadTime > 0 && expire < now)
                 {
                     var fi = new FileInfo(cf);
@@ -180,8 +181,8 @@ namespace NewLife.Json
                     lastWrite = fi.LastWriteTime;
                 }
                 else
-                    lastWrite = TimerX.Now;
-                expire = TimerX.Now.AddMilliseconds(_.ReloadTime);
+                    lastWrite = DateTime.Now;
+                expire = DateTime.Now.AddMilliseconds(_.ReloadTime);
             }
         }
 
@@ -193,9 +194,9 @@ namespace NewLife.Json
         #region 构造
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _Timer.TryDispose();
         }
@@ -208,7 +209,8 @@ namespace NewLife.Json
         public virtual Boolean Load(String filename)
         {
             if (filename.IsNullOrWhiteSpace()) return false;
-            filename = filename.GetFullPath();
+
+            filename = filename.GetBasePath();
             if (!File.Exists(filename)) return false;
 
             _loading = true;
@@ -287,7 +289,7 @@ namespace NewLife.Json
         {
             if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
             if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
-            filename = filename.GetFullPath();
+            filename = filename.GetBasePath();
 
             // 加锁避免多线程保存同一个文件冲突
             lock (filename)

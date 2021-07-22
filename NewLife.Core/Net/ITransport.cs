@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using NewLife.Data;
 
 namespace NewLife.Net
@@ -18,13 +17,8 @@ namespace NewLife.Net
         Boolean Close();
 
         /// <summary>写入数据</summary>
-        /// <param name="pk">数据包</param>
-        Boolean Send(Packet pk);
-
-        ///// <summary>异步发送数据并等待响应</summary>
-        ///// <param name="pk">数据包</param>
-        ///// <returns></returns>
-        //Task<Packet> SendAsync(Packet pk);
+        /// <param name="data">数据包</param>
+        Int32 Send(Packet data);
 
         /// <summary>读取数据</summary>
         /// <returns></returns>

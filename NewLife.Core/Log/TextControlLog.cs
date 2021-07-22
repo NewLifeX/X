@@ -31,8 +31,7 @@ namespace NewLife.Log
         {
             if (control == null) return;
 
-            var txt = control as TextBoxBase;
-            if (txt == null) throw new XException("不支持的控件类型{0}！", control.GetType());
+            if (control is not TextBoxBase txt) throw new XException("不支持的控件类型{0}！", control.GetType());
 
             txt.Append(msg, maxLines);
         }

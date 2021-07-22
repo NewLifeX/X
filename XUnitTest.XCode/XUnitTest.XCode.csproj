@@ -1,20 +1,122 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-
-    <IsPackable>false</IsPackable>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputPath>..\BinXCodeTest</OutputPath>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="xunit" Version="2.4.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <Compile Remove="Code\BuildTT\UserTT.cs" />
+    <Compile Remove="Code\class_user_baseclass.cs" />
+    <Compile Remove="Code\class_user_normal.cs" />
+    <Compile Remove="Code\class_user_pure.cs" />
+    <Compile Remove="Code\class_user_save.cs" />
+    <Compile Remove="Code\Dtos\IUser.cs" />
+    <Compile Remove="Code\Dtos\UserDto.cs" />
+    <Compile Remove="Code\EntityInterfaces\IUser.cs" />
+    <Compile Remove="Code\EntityModels\UserModel.cs" />
+    <Compile Remove="Code\Entity\用户.Biz.cs" />
+    <Compile Remove="Code\Entity\用户.cs" />
+    <Compile Remove="Code\entity_user_normal.cs" />
+    <Compile Remove="Code\entity_user_normal_biz.cs" />
+    <Compile Remove="Code\Models\IUserModel.cs" />
+    <Compile Remove="Code\Models\UserModel.cs" />
   </ItemGroup>
-
+  <ItemGroup>
+    <None Remove="TestEntity\Build.tt" />
+    <None Remove="TestEntity\Model.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestEntity\Build.tt">
+      <PackagePath>content\Entity\</PackagePath>
+      <Pack>true</Pack>
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Build.log</LastGenOutput>
+    </Content>
+    <Content Include="TestEntity\Model.xml">
+      <PackagePath>content\Entity\</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Code\BuildTT\UserTT.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_baseclass.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_pure.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_save.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Dtos\IUser.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Dtos\UserDto.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\EntityInterfaces\IUser.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\EntityModels\UserModel.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Entity\用户.Biz.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Entity\用户.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\entity_user_normal_biz.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\entity_user_normal.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\class_user_normal.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Models\IUserModel.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Code\Models\UserModel.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Code\class_user_extend2.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Code\class_user_extend.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Code\class_user_interface.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Code\Member.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestEntity\Build.log">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Build.tt</DependentUpon>
+    </None>
+  </ItemGroup>
 </Project>

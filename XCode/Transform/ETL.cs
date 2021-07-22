@@ -84,7 +84,7 @@ namespace XCode.Transform
 
         /// <summary>实例化数据抽取器</summary>
         /// <param name="source"></param>
-        public ETL(IEntityOperate source) : this() => Extracter = new TimeExtracter { Factory = source };
+        public ETL(IEntityFactory source) : this() => Extracter = new TimeExtracter { Factory = source };
         #endregion
 
         #region 开始停止
@@ -304,7 +304,7 @@ namespace XCode.Transform
 
             var end = set.End;
             if (Extracter is TimeExtracter ext) end = ext.ActualEnd;
-            var ends = end > DateTime.MinValue && end < DateTime.MaxValue ? ", {0}".F(end) : "";
+            var ends = end.Year > 2000 ? $", {end.ToFullString()}" : "";
             WriteLog("共处理{0}行，区间({1}, {2})，抓取{4:n0}ms，{5:n0}qps，处理{6:n0}ms，{7:n0}tps", total, set.Start, set.Row, ends, ctx.FetchCost, ctx.FetchSpeed, ctx.ProcessCost, ctx.ProcessSpeed);
 
             Module?.OnFinished(ctx);
@@ -373,7 +373,7 @@ namespace XCode.Transform
         {
             Log?.Info(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "处理", format.F(args));
+            Provider?.WriteLog(Name, "处理", true, String.Format(format, args));
         }
 
         /// <summary>显示错误日志。默认true</summary>
@@ -386,7 +386,7 @@ namespace XCode.Transform
         {
             Log?.Error(Name + " " + format, args);
 
-            Provider?.WriteLog(Name, "错误", format.F(args));
+            Provider?.WriteLog(Name, "错误", true, String.Format(format, args));
         }
         #endregion
     }

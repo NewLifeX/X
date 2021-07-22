@@ -62,7 +62,7 @@ namespace System.Runtime.CompilerServices
             {
                 synchronizationContext.OperationStarted();
             }
-            m_coreState = default(AsyncMethodBuilderCore);
+            m_coreState = default;
             m_objectIdForDebugger = null;
         }
 

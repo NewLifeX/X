@@ -2,16 +2,18 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using XCode.Cache;
+using System.Threading;
+using NewLife;
+using NewLife.Data;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
 namespace XCode
 {
-    partial class Entity<TEntity>
+    public partial class Entity<TEntity>
     {
-        /// <summary>默认的实体操作者</summary>
-        public class EntityOperate : IEntityOperate
+        /// <summary>默认的实体工厂</summary>
+        public class EntityOperate : IEntityFactory
         {
             #region 主要属性
             /// <summary>实体类型</summary>
@@ -19,12 +21,18 @@ namespace XCode
 
             /// <summary>实体会话</summary>
             public virtual IEntitySession Session => Meta.Session;
+
+            /// <summary>实体持久化</summary>
+            public IEntityPersistence Persistence { get; set; }
+
+            /// <summary>数据行访问器，把数据行映射到实体类</summary>
+            public IDataRowEntityAccessor Accessor { get; set; }
             #endregion
 
             #region 属性
             private IEntity _Default;
             /// <summary>默认实体</summary>
-            public virtual IEntity Default { get { return _Default ?? (_Default = new TEntity()); } set { _Default = value; } }
+            public virtual IEntity Default { get => _Default ??= new TEntity(); set => _Default = value; }
 
             /// <summary>数据表元数据</summary>
             public virtual TableItem Table => Meta.Table;
@@ -45,21 +53,22 @@ namespace XCode
             public virtual FieldItem Master => Meta.Master;
 
             /// <summary>连接名</summary>
-            public virtual String ConnName { get { return Meta.ConnName; } set { Meta.ConnName = value; } }
+            public virtual String ConnName { get => Meta.ConnName; set => Meta.ConnName = value; }
 
             /// <summary>表名</summary>
-            public virtual String TableName { get { return Meta.TableName; } set { Meta.TableName = value; } }
+            public virtual String TableName { get => Meta.TableName; set => Meta.TableName = value; }
 
-            /// <summary>已格式化的表名，带有中括号等</summary>
-            public virtual String FormatedTableName => Session.FormatedTableName;
+            ///// <summary>已格式化的表名，带有中括号等</summary>
+            //public virtual String FormatedTableName => Session.FormatedTableName;
 
-            /// <summary>实体缓存</summary>
-            public virtual IEntityCache Cache => Session.Cache;
+            ///// <summary>实体缓存</summary>
+            //public virtual IEntityCache Cache => Session.Cache;
 
-            /// <summary>单对象实体缓存</summary>
-            public virtual ISingleEntityCache SingleCache => Session.SingleCache;
+            ///// <summary>单对象实体缓存</summary>
+            //public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
+            [Obsolete("=>Session.Count")]
             public virtual Int32 Count => Session.Count;
             #endregion
 
@@ -68,6 +77,8 @@ namespace XCode
             public EntityOperate()
             {
                 //MasterTime = GetMasterTime();
+                Persistence = new EntityPersistence { Factory = this };
+                Accessor = new DataRowEntityAccessor();
             }
             #endregion
 
@@ -75,7 +86,7 @@ namespace XCode
             /// <summary>创建一个实体对象</summary>
             /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
             /// <returns></returns>
-            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit) as TEntity;
+            public virtual IEntity Create(Boolean forEdit = false) => (Default as TEntity).CreateInstance(forEdit);
 
             /// <summary>加载记录集</summary>
             /// <param name="ds">记录集</param>
@@ -120,10 +131,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
-            }
+            public virtual IList<IEntity> FindAll(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
 
             /// <summary>查询并返回实体对象集合。
             /// 表名以及所有字段名，请使用类名以及字段对应的属性名，方法内转换为表名和列名
@@ -134,10 +142,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>实体数组</returns>
-            public virtual IList<IEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
-            }
+            public virtual IList<IEntity> FindAll(Expression where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindAll(where, order, selects, startRowIndex, maximumRows).Cast<IEntity>().ToList();
             #endregion
 
             #region 缓存查询
@@ -158,10 +163,7 @@ namespace XCode
             /// <param name="startRowIndex">开始行，0表示第一行</param>
             /// <param name="maximumRows">最大返回行数，0表示所有行</param>
             /// <returns>总行数</returns>
-            public virtual Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows)
-            {
-                return Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
-            }
+            public virtual Int32 FindCount(String where, String order, String selects, Int64 startRowIndex, Int64 maximumRows) => Entity<TEntity>.FindCount(where, order, selects, startRowIndex, maximumRows);
 
             /// <summary>返回总记录数</summary>
             /// <param name="where">条件，不带Where</param>
@@ -176,75 +178,56 @@ namespace XCode
             /// <param name="find">查找函数</param>
             /// <param name="create">创建对象</param>
             /// <returns></returns>
-            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find = null, Func<TKey, IEntity> create = null)
-            {
-                if (find != null)
-                {
-                    if (create != null)
-                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, k => create(k) as TEntity);
-                    else
-                        return Entity<TEntity>.GetOrAdd(key, (k, b) => find(k, b) as TEntity, null);
-                }
-                else
-                {
-                    if (create != null)
-                        return Entity<TEntity>.GetOrAdd(key, null, k => create(k) as TEntity);
-                    else
-                        return Entity<TEntity>.GetOrAdd(key, null, null);
-                }
-                //return Entity<TEntity>.GetOrAdd(key,
-                //    (k, b) => find?.Invoke(k, b) as TEntity,
-                //    k => create?.Invoke(k) as TEntity);
-            }
+            public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create) => Entity<TEntity>.GetOrAdd(key, (k, b) => find?.Invoke(k, b) as TEntity, k => create?.Invoke(k) as TEntity);
             #endregion
 
             #region 事务
-            /// <summary>开始事务</summary>
-            /// <returns></returns>
-            public virtual Int32 BeginTransaction() => Session.BeginTrans();
+            ///// <summary>开始事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 BeginTransaction() => Session.BeginTrans();
 
-            /// <summary>提交事务</summary>
-            /// <returns></returns>
-            public virtual Int32 Commit() => Session.Commit();
+            ///// <summary>提交事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 Commit() => Session.Commit();
 
-            /// <summary>回滚事务</summary>
-            /// <returns></returns>
-            public virtual Int32 Rollback() => Session.Rollback();
+            ///// <summary>回滚事务</summary>
+            ///// <returns></returns>
+            //public virtual Int32 Rollback() => Session.Rollback();
 
             /// <summary>创建事务</summary>
+            [Obsolete("=>Session.CreateTrans")]
             public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 辅助方法
-            /// <summary>格式化关键字</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            public virtual String FormatName(String name) => Meta.FormatName(name);
+            ///// <summary>格式化关键字</summary>
+            ///// <param name="name">名称</param>
+            ///// <returns></returns>
+            //public virtual String FormatName(String name) => Meta.FormatName(name);
 
-            /// <summary>
-            /// 取得一个值的Sql值。
-            /// 当这个值是字符串类型时，会在该值前后加单引号；
-            /// </summary>
-            /// <param name="name">字段</param>
-            /// <param name="value">对象</param>
-            /// <returns>Sql值的字符串形式</returns>
-            public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
+            ///// <summary>
+            ///// 取得一个值的Sql值。
+            ///// 当这个值是字符串类型时，会在该值前后加单引号；
+            ///// </summary>
+            ///// <param name="name">字段</param>
+            ///// <param name="value">对象</param>
+            ///// <returns>Sql值的字符串形式</returns>
+            //public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="field">字段</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="field">字段</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
             #endregion
 
             #region 一些设置
             /// <summary>是否自增获取自增返回值。默认启用</summary>
             public Boolean AutoIdentity { get; set; } = true;
 
-            [ThreadStatic]
-            private static Boolean _AllowInsertIdentity;
+            private readonly ThreadLocal<Boolean> _AllowInsertIdentity = new();
             /// <summary>是否允许向自增列插入数据。为免冲突，仅本线程有效</summary>
-            public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity; set => _AllowInsertIdentity = value; }
+            public virtual Boolean AllowInsertIdentity { get => _AllowInsertIdentity.IsValueCreated && _AllowInsertIdentity.Value; set => _AllowInsertIdentity.Value = value; }
 
             /// <summary>自动设置Guid的字段。对实体类有效，可在实体类类型构造函数里面设置</summary>
             public virtual FieldItem AutoSetGuidField { get; set; }
@@ -270,7 +253,7 @@ namespace XCode
                 set { _MasterTime = value; _MasterTime_ = false; }
             }
 
-            private FieldItem GetMasterTime()
+            private static FieldItem GetMasterTime()
             {
                 var fis = Meta.Fields.Where(e => e.Type == typeof(DateTime)).ToArray();
                 if (fis.Length == 0) return null;
@@ -337,9 +320,9 @@ namespace XCode
                                 concat &= item.Max();
                             else if (name.StartsWith("Min") && name.Length > 3 && Char.IsUpper(name[3]))
                                 concat &= item.Min();
-                            else if (name.StartsWith("Agv") && name.Length > 3 && Char.IsUpper(name[3]))
-                                concat &= item.Agv();
-                            else if (name2.EndsWith("Rate"))
+                            else if (name.StartsWith("Avg") && name.Length > 3 && Char.IsUpper(name[3]))
+                                concat &= item.Avg();
+                            else if (name2.EndsWith("Rate") || name2.EndsWith("Ratio"))
                                 concat &= item.Max();
                             else
                                 concat &= item.Sum();
@@ -358,6 +341,13 @@ namespace XCode
 
             /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
             public Boolean FullInsert { get; set; } = true;
+
+            /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
+            public Snowflake Snow { get; } = new Snowflake();
+
+            /// <summary>流式Id</summary>
+            [Obsolete("=>Snow")]
+            public Snowflake FlowId => Snow;
             #endregion
         }
     }

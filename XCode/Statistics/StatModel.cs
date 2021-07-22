@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Reflection;
+using NewLife;
 
 namespace XCode.Statistics
 {
@@ -117,11 +118,11 @@ namespace XCode.Statistics
             switch (Level)
             {
                 case StatLevels.All: return "全局";
-                case StatLevels.Year: return "{0:yyyy}".F(dt);
-                case StatLevels.Month: return "{0:yyyy-MM}".F(dt);
-                case StatLevels.Day: return "{0:yyyy-MM-dd}".F(dt);
-                case StatLevels.Hour: return "{0:yyyy-MM-dd HH}".F(dt);
-                case StatLevels.Minute: return "{0:yyyy-MM-dd HH:mm}".F(dt);
+                case StatLevels.Year: return $"{dt:yyyy}";
+                case StatLevels.Month: return $"{dt:yyyy-MM}";
+                case StatLevels.Day: return $"{dt:yyyy-MM-dd}";
+                case StatLevels.Hour: return $"{dt:yyyy-MM-dd HH}";
+                case StatLevels.Minute: return $"{dt:yyyy-MM-dd HH:mm}";
                 default: return Level + "";
             }
         }

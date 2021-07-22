@@ -54,7 +54,7 @@ namespace NewLife.Remoting
         [ThreadStatic]
         private static ControllerContext _Current;
         /// <summary>当前线程上下文</summary>
-        public static ControllerContext Current { get { return _Current; } set { _Current = value; } }
+        public static ControllerContext Current { get => _Current; set => _Current = value; }
 
         /// <summary>重置为默认状态</summary>
         public void Reset()

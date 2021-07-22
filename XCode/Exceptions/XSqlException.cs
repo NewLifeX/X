@@ -64,7 +64,9 @@ namespace XCode.Exceptions
         /// <summary>从序列化信息中读取Sql</summary>
         /// <param name="info"></param>
         /// <param name="context"></param>
+#if !NET50
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
+#endif
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);

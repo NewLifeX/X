@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace NewLife.Web.OAuth
 {
@@ -26,9 +27,10 @@ namespace NewLife.Web.OAuth
             if (dic.ContainsKey("login")) UserName = dic["login"].Trim();
             if (dic.ContainsKey("name")) NickName = dic["name"].Trim();
             if (dic.ContainsKey("avatar_url")) Avatar = dic["avatar_url"].Trim();
+            if (dic.ContainsKey("bio")) Detail = dic["bio"].Trim();
         }
 
-        private WebClientX _Client;
+        private System.Net.Http.HttpClient _Client;
 
         /// <summary>创建客户端</summary>
         /// <param name="url">路径</param>
@@ -40,10 +42,16 @@ namespace NewLife.Web.OAuth
                 // 允许宽松头部
                 WebClientX.SetAllowUnsafeHeaderParsing(true);
 
-                // 必须指定中文编码
-                _Client = new WebClientX();
+                var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                var agent = "";
+                if (asm != null) agent = $"{asm.GetName().Name} v{asm.GetName().Version}";
+
+                var client = new System.Net.Http.HttpClient();
+                client.DefaultRequestHeaders.UserAgent.ParseAdd(agent);
+
+                _Client = client;
             }
-            return LastHtml = _Client.GetHtml(url);
+            return LastHtml = _Client.GetStringAsync(url).Result;
         }
     }
 }

@@ -16,10 +16,7 @@ namespace NewLife.Web
 
         /// <summary>初始化模块，准备拦截请求。</summary>
         /// <param name="context"></param>
-        void IHttpModule.Init(HttpApplication context)
-        {
-            context.PostReleaseRequestState += CompressContent;
-        }
+        void IHttpModule.Init(HttpApplication context) => context.PostReleaseRequestState += CompressContent;
         #endregion
 
         /// <summary>网页压缩文件</summary>
@@ -78,18 +75,12 @@ namespace NewLife.Web
         /// <summary>检查请求头，确认客户端是否支持压缩编码</summary>
         /// <param name="req"></param>
         /// <param name="encoding"></param>
-        private static Boolean IsEncodingAccepted(HttpRequest req, String encoding)
-        {
-            return req.Headers["Accept-encoding"] != null && req.Headers["Accept-encoding"].Contains(encoding);
-        }
+        private static Boolean IsEncodingAccepted(HttpRequest req, String encoding) => req.Headers["Accept-encoding"] != null && req.Headers["Accept-encoding"].Contains(encoding);
 
         /// <summary>添加压缩编码到响应头</summary>
         /// <param name="res"></param>
         /// <param name="encoding"></param>
-        private static void SetEncoding(HttpResponse res, String encoding)
-        {
-            res.AppendHeader("Content-encoding", encoding);
-        }
+        private static void SetEncoding(HttpResponse res, String encoding) => res.AppendHeader("Content-encoding", encoding);
         #endregion
     }
 }

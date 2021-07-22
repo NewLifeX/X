@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -92,26 +93,26 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>字段集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("字段集合")]
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("索引集合")]
         [Description("索引集合")]
         public List<IDataIndex> Indexes { get; private set; }
 
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
-        [XmlIgnore]
-        public IDataColumn Master { get { return Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey); } }
+        [XmlIgnore, IgnoreDataMember]
+        public IDataColumn Master => Columns.FirstOrDefault(e => e.Master) ?? Columns.FirstOrDefault(e => e.PrimaryKey);
 
         /// <summary>主键集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore]
-        public IDataColumn[] PrimaryKeys { get { return Columns.FindAll(item => item.PrimaryKey).ToArray(); } }
+        [XmlIgnore, IgnoreDataMember]
+        public IDataColumn[] PrimaryKeys => Columns.FindAll(item => item.PrimaryKey).ToArray();
 
         private String _DisplayName;
         /// <summary>显示名</summary>
@@ -138,11 +139,17 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>扩展属性</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         [Category("扩展")]
         [DisplayName("扩展属性")]
         [Description("扩展属性")]
         public IDictionary<String, String> Properties { get; private set; }
+
+        ///// <summary>忽略名称大小写</summary>
+        //[XmlAttribute]
+        //[DisplayName("是否忽略大小写")]
+        //[Description("是否忽略大小写")]
+        //public String IgnoreNameCase { get; set; }
         #endregion
 
         #region 构造
@@ -169,25 +176,14 @@ namespace XCode.DataAccessLayer
         #region 方法
         /// <summary>创建字段</summary>
         /// <returns></returns>
-        public virtual IDataColumn CreateColumn()
-        {
-            var dc = new XField();
-            dc.Table = this;
-            return dc;
-        }
+        public virtual IDataColumn CreateColumn() => new XField { Table = this };
 
         /// <summary>创建索引</summary>
         /// <returns></returns>
-        public virtual IDataIndex CreateIndex()
-        {
-            var idx = new XIndex();
-            idx.Table = this;
-
-            return idx;
-        }
+        public virtual IDataIndex CreateIndex() => new XIndex { Table = this };
 
         /// <summary>修正数据</summary>
-        public virtual IDataTable Fix() { return ModelResolver.Current.Fix(this); }
+        public virtual IDataTable Fix() => ModelResolver.Current.Fix(this);
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
@@ -196,7 +192,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(DisplayName))
                 return Name;
             else
-                return String.Format("{0}({1})", Name, DisplayName);
+                return $"{Name}({DisplayName})";
         }
         #endregion
 

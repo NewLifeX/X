@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
+using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Log;
-using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace XCode.DataAccessLayer
 {
@@ -26,6 +24,12 @@ namespace XCode.DataAccessLayer
         private static Int32 _ExecuteTimes;
         /// <summary>执行次数</summary>
         public static Int32 ExecuteTimes => _ExecuteTimes;
+
+        /// <summary>只读实例。读写分离时，读取操作分走</summary>
+        public DAL ReadOnly { get; set; }
+
+        /// <summary>读写分离策略。忽略时间区间和表名</summary>
+        public ReadWriteStrategy Strategy { get; set; } = new ReadWriteStrategy();
         #endregion
 
         #region 数据操作方法
@@ -171,6 +175,20 @@ namespace XCode.DataAccessLayer
             return ExecuteByCache(sql, type, ps, (s, t, p) => Session.Execute(s, t, Db.CreateParameters(p)));
         }
 
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="commandTimeout">命令超时时间，一般用于需要长时间执行的命令</param>
+        /// <returns></returns>
+        public Int32 Execute(String sql, Int32 commandTimeout)
+        {
+            return ExecuteByCache(sql, commandTimeout, "", (s, t, p) =>
+            {
+                using var cmd = Session.CreateCommand(s);
+                if (t > 0) cmd.CommandTimeout = t;
+                return Session.Execute(cmd);
+            });
+        }
+
         /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">SQL语句</param>
@@ -181,6 +199,122 @@ namespace XCode.DataAccessLayer
         {
             return ExecuteByCache(sql, type, ps, (s, t, p) => Session.ExecuteScalar<T>(s, t, Db.CreateParameters(p)));
         }
+        #endregion
+
+        #region 异步操作
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public Task<DbTable> QueryAsync(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        {
+            return QueryByCacheAsync(builder, startRowIndex, maximumRows, (sb, start, max) =>
+            {
+                sb = PageSplit(sb, start, max);
+                return Session.QueryAsync(sb.ToString(), sb.Parameters.ToArray());
+            }, nameof(QueryAsync));
+        }
+
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<DbTable> QueryAsync(String sql, IDictionary<String, Object> ps = null)
+        {
+            return QueryByCacheAsync(sql, ps, "", (s, p, k3) => Session.QueryAsync(s, Db.CreateParameters(p)), nameof(QueryAsync));
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sb">查询生成器</param>
+        /// <returns></returns>
+        public Task<Int64> SelectCountAsync(SelectBuilder sb)
+        {
+            return QueryByCacheAsync(sb, "", "", (s, k2, k3) => Session.QueryCountAsync(s), nameof(SelectCountAsync));
+        }
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int64> SelectCountAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return QueryByCacheAsync(sql, type, ps, (s, t, p) => Session.QueryCountAsync(s, t, p), nameof(SelectCountAsync));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql)
+        {
+            return ExecuteByCacheAsync(sql, "", "", (s, t, p) => Session.ExecuteAsync(s));
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql"></param>
+        /// <returns>新增行的自动编号</returns>
+        public Task<Int64> InsertAndGetIdentityAsync(String sql)
+        {
+            return ExecuteByCacheAsync(sql, "", "", (s, t, p) => Session.InsertAndGetIdentityAsync(s));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteAsync(s, t, p));
+        }
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql"></param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        public Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type, params IDataParameter[] ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.InsertAndGetIdentityAsync(s, t, p));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteAsync(s, t, Db.CreateParameters(p)));
+        }
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="commandTimeout">命令超时时间，一般用于需要长时间执行的命令</param>
+        /// <returns></returns>
+        public Task<Int32> ExecuteAsync(String sql, Int32 commandTimeout)
+        {
+            return ExecuteByCacheAsync(sql, commandTimeout, "", (s, t, p) =>
+            {
+                using var cmd = Session.CreateCommand(s);
+                if (t > 0) cmd.CommandTimeout = t;
+                return Session.ExecuteAsync(cmd);
+            });
+        }
+
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        public Task<T> ExecuteScalarAsync<T>(String sql, CommandType type, IDictionary<String, Object> ps)
+        {
+            return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteScalarAsync<T>(s, t, Db.CreateParameters(p)));
+        }
+#endif
         #endregion
 
         #region 事务
@@ -213,12 +347,12 @@ namespace XCode.DataAccessLayer
 
         #region 缓存
         /// <summary>缓存存储</summary>
-        public DictionaryCache<String, Object> Store { get; set; }
+        public ICache Store { get; set; }
 
         /// <summary>数据层缓存。默认10秒</summary>
         public Int32 Expire { get; set; }
 
-        private DictionaryCache<String, Object> GetCache()
+        private ICache GetCache()
         {
             var st = Store;
             if (st != null) return st;
@@ -237,73 +371,48 @@ namespace XCode.DataAccessLayer
                     var p = exp / 2;
                     if (p < 30) p = 30;
 
-                    st = Store = new DictionaryCache<String, Object> { Period = p, Expire = exp };
+                    st = Store = new MemoryCache { Period = p, Expire = exp };
                 }
             }
 
             return st;
         }
 
-        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String prefix = null)
+        private TResult QueryByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
         {
+            // 读写分离
+            if (Strategy != null)
+            {
+                if (Strategy.Validate(this, k1 + "", action)) return ReadOnly.QueryByCache(k1, k2, k3, callback, action);
+            }
+
             CheckDatabase();
 
             // 读缓存
             var cache = GetCache();
+            var key = "";
             if (cache != null)
             {
                 var sb = Pool.StringBuilder.Get();
-                if (!prefix.IsNullOrEmpty())
+                if (!action.IsNullOrEmpty())
                 {
-                    sb.Append(prefix);
-                    sb.Append("#");
+                    sb.Append(action);
+                    sb.Append('#');
                 }
                 Append(sb, k1);
                 Append(sb, k2);
                 Append(sb, k3);
-                var key = sb.Put(true);
+                key = sb.Put(true);
 
-                //if (cache.TryGetValue(key, out var value)) return value.ChangeType<TResult>();
-
-                return cache.GetItem(key, k =>
-                {
-                    // 达到60秒后全表查询使用文件缓存
-                    var dataFile = "";
-                    if ((Expire >= 60 || Db.Readonly) && prefix == nameof(Query))
-                    {
-                        var builder = k1 as SelectBuilder;
-                        var start = (Int64)(Object)k2;
-                        var max = (Int64)(Object)k3;
-                        if (start <= 0 && max <= 0 && builder != null && builder.Where.IsNullOrEmpty())
-                        {
-                            dataFile = XTrace.TempPath.CombinePath(ConnName, builder.Table.Trim('[', ']', '`', '"') + ".dt");
-
-                            // 首次缓存加载时采用文件缓存替代，避免读取数据库耗时过长
-                            if (!cache.ContainsKey(k) && File.Exists(dataFile.GetFullPath()))
-                            {
-                                var dt = new DbTable();
-                                dt.LoadFile(dataFile);
-                                return dt;
-                            }
-                        }
-                    }
-
-                    Interlocked.Increment(ref _QueryTimes);
-                    var rs = callback(k1, k2, k3);
-
-                    // 达到60秒后全表查询使用文件缓存
-                    if (!dataFile.IsNullOrEmpty())
-                    {
-                        (rs as DbTable).SaveFile(dataFile);
-                    }
-
-                    return rs;
-                }).ChangeType<TResult>();
+                if (cache.TryGetValue<TResult>(key, out var value)) return value;
             }
 
             Interlocked.Increment(ref _QueryTimes);
+            var rs = Invoke(k1, k2, k3, callback, action);
 
-            return callback(k1, k2, k3);
+            cache?.Set(key, rs, Expire);
+
+            return rs;
         }
 
         private TResult ExecuteByCache<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback)
@@ -312,31 +421,160 @@ namespace XCode.DataAccessLayer
 
             CheckDatabase();
 
-            var rs = callback(k1, k2, k3);
+            var rs = Invoke(k1, k2, k3, callback, "Execute");
 
-            var st = GetCache();
-            if (st != null)
-            {
-                st?.Clear();
-
-                // 删除文件缓存
-                var dataDir = XTrace.TempPath.CombinePath(ConnName);
-                if (Directory.Exists(dataDir))
-                {
-                    try
-                    {
-                        Directory.Delete(dataDir, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex);
-                    }
-                }
-            }
+            GetCache()?.Clear();
 
             Interlocked.Increment(ref _ExecuteTimes);
 
             return rs;
+        }
+
+        private TResult Invoke<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, TResult> callback, String action)
+        {
+            var tracer = Tracer ?? GlobalTracer;
+            var traceName = "";
+            var sql = "";
+
+            // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
+            if (tracer != null)
+            {
+                sql = (k1 + "").Trim();
+                if (action == "Execute")
+                {
+                    // 使用 Insert/Update/Delete 作为埋点操作名
+                    var p = sql.IndexOf(' ');
+                    if (p > 0) action = sql.Substring(0, p);
+                }
+
+                traceName = $"db:{ConnName}:{action}";
+
+                var tables = GetTables(sql);
+                if (tables.Length > 0) traceName += ":" + tables.Join("-");
+            }
+
+            // 使用k1参数作为tag，一般是sql
+            var span = tracer?.NewSpan(traceName, sql);
+            try
+            {
+                return callback(k1, k2, k3);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
+        }
+
+        private async Task<TResult> QueryByCacheAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback, String action)
+        {
+            // 读写分离
+            if (Strategy != null)
+            {
+                if (Strategy.Validate(this, k1 + "", action)) return await ReadOnly.QueryByCacheAsync(k1, k2, k3, callback, action);
+            }
+
+            CheckDatabase();
+
+            // 读缓存
+            var cache = GetCache();
+            var key = "";
+            if (cache != null)
+            {
+                var sb = Pool.StringBuilder.Get();
+                if (!action.IsNullOrEmpty())
+                {
+                    sb.Append(action);
+                    sb.Append('#');
+                }
+                Append(sb, k1);
+                Append(sb, k2);
+                Append(sb, k3);
+                key = sb.Put(true);
+
+                if (cache.TryGetValue<TResult>(key, out var value)) return value;
+            }
+
+            Interlocked.Increment(ref _QueryTimes);
+            var rs = await InvokeAsync(k1, k2, k3, callback, action);
+
+            cache?.Set(key, rs, Expire);
+
+            return rs;
+        }
+
+        private async Task<TResult> ExecuteByCacheAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback)
+        {
+            if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
+
+            CheckDatabase();
+
+            var rs = await InvokeAsync(k1, k2, k3, callback, "Execute");
+
+            GetCache()?.Clear();
+
+            Interlocked.Increment(ref _ExecuteTimes);
+
+            return rs;
+        }
+
+        private Task<TResult> InvokeAsync<T1, T2, T3, TResult>(T1 k1, T2 k2, T3 k3, Func<T1, T2, T3, Task<TResult>> callback, String action)
+        {
+            var tracer = Tracer ?? GlobalTracer;
+            var traceName = "";
+            var sql = "";
+
+            // 从sql解析表名，作为跟踪名一部分。正则避免from前后换行的情况
+            if (tracer != null)
+            {
+                sql = (k1 + "").Trim();
+                if (action == "Execute")
+                {
+                    // 使用 Insert/Update/Delete 作为埋点操作名
+                    var p = sql.IndexOf(' ');
+                    if (p > 0) action = sql.Substring(0, p);
+                }
+
+                traceName = $"db:{ConnName}:{action}";
+
+                var tables = GetTables(sql);
+                if (tables.Length > 0) traceName += ":" + tables.Join("-");
+            }
+
+            // 使用k1参数作为tag，一般是sql
+            var span = tracer?.NewSpan(traceName, sql);
+            try
+            {
+                return callback(k1, k2, k3);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+            finally
+            {
+                span?.Dispose();
+            }
+        }
+
+        private static readonly Regex reg_table = new("(?:\\s+from|insert\\s+into|update|\\s+join)\\s+[`'\"\\[]?([\\w]+)[`'\"\\[]?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        /// <summary>从Sql语句中截取表名</summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public static String[] GetTables(String sql)
+        {
+            var list = new List<String>();
+            var ms = reg_table.Matches(sql);
+            foreach (Match item in ms)
+            {
+                list.Add(item.Groups[1].Value);
+            }
+            return list.ToArray();
         }
 
         private static void Append(StringBuilder sb, Object value)
@@ -348,9 +586,9 @@ namespace XCode.DataAccessLayer
                 sb.Append(builder);
                 foreach (var item in builder.Parameters)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.ParameterName);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
@@ -358,9 +596,9 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in ps)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.ParameterName);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
@@ -368,15 +606,15 @@ namespace XCode.DataAccessLayer
             {
                 foreach (var item in dic)
                 {
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Key);
-                    sb.Append("#");
+                    sb.Append('#');
                     sb.Append(item.Value);
                 }
             }
             else
             {
-                sb.Append("#");
+                sb.Append('#');
                 sb.Append(value);
             }
         }

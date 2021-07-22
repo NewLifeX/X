@@ -16,10 +16,8 @@ namespace NewLife.IO
         /// <returns></returns>
         public static Encoding Detect(String filename)
         {
-            using (var fs = File.OpenRead(filename))
-            {
-                return Detect(fs);
-            }
+            using var fs = File.OpenRead(filename);
+            return Detect(fs);
         }
 
         /// <summary>检测文件编码</summary>
@@ -27,10 +25,8 @@ namespace NewLife.IO
         /// <returns></returns>
         public static Encoding DetectEncoding(this FileInfo file)
         {
-            using (var fs = file.OpenRead())
-            {
-                return fs.Detect();
-            }
+            using var fs = file.OpenRead();
+            return fs.Detect();
         }
 
         /// <summary>检测数据流编码</summary>
@@ -128,7 +124,9 @@ namespace NewLife.IO
 
             if (boms[0] == 0xef && boms[1] == 0xbb && boms[2] == 0xbf) return Encoding.UTF8;
 
+#if !NET50
             if (boms[0] == 0x2b && boms[1] == 0x2f && boms[2] == 0x76) return Encoding.UTF7;
+#endif
 
             if (boms.Length < 4) return null;
 
@@ -290,7 +288,7 @@ namespace NewLife.IO
 
                 if ((suspiciousUTF8SequenceCount * 500000.0 / data.Length >= 1) // 可疑序列
                     && (
-                    // 所有可疑情况，无法平率ASCII可能性
+                           // 所有可疑情况，无法平率ASCII可能性
                            data.Length - suspiciousUTF8BytesTotal == 0
                            ||
                            likelyUSASCIIBytesInSample * 1.0 / (data.Length - suspiciousUTF8BytesTotal) >= 0.8

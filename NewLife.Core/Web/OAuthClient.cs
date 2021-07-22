@@ -47,22 +47,25 @@ namespace NewLife.Web
 
         #region 返回参数
         /// <summary>授权码</summary>
-        public String Code { get; private set; }
+        public String Code { get; set; }
 
         /// <summary>访问令牌</summary>
-        public String AccessToken { get; private set; }
+        public String AccessToken { get; set; }
 
         /// <summary>刷新令牌</summary>
-        public String RefreshToken { get; private set; }
+        public String RefreshToken { get; set; }
 
         /// <summary>统一标识</summary>
-        public String OpenID { get; private set; }
+        public String OpenID { get; set; }
+
+        /// <summary>企业级标识</summary>
+        public String UnionID { get; set; }
 
         /// <summary>过期时间</summary>
-        public DateTime Expire { get; private set; }
+        public DateTime Expire { get; set; }
 
         /// <summary>访问项</summary>
-        public IDictionary<String, String> Items { get; private set; }
+        public IDictionary<String, String> Items { get; set; }
         #endregion
 
         #region 构造
@@ -116,6 +119,9 @@ namespace NewLife.Web
 
             var client = type?.CreateInstance() as OAuthClient ?? new OAuthClient();
             client.Apply(name);
+
+            // NewLife支持注销
+            if (name.EqualIgnoreCase("NewLife") && client.LogoutUrl.IsNullOrEmpty()) client.LogoutUrl = "logout?client_id={key}&redirect_uri={redirect}&state={state}";
 
             return client;
         }
@@ -274,8 +280,20 @@ namespace NewLife.Web
         /// <summary>昵称</summary>
         public String NickName { get; set; }
 
+        /// <summary>用户代码</summary>
+        public String UserCode { get; set; }
+
+        /// <summary>手机</summary>
+        public String Mobile { get; set; }
+
+        /// <summary>邮箱</summary>
+        public String Mail { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
+
+        /// <summary>明细</summary>
+        public String Detail { get; set; }
 
         /// <summary>获取用户信息</summary>
         /// <returns></returns>
@@ -452,10 +470,7 @@ namespace NewLife.Web
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

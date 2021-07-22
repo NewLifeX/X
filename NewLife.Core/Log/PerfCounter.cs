@@ -28,9 +28,9 @@ namespace NewLife.Log
         #region 构造
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _Timer.TryDispose();
         }
@@ -138,11 +138,11 @@ namespace NewLife.Log
         public override String ToString()
         {
             if (Cost >= 1000)
-                return "{0:n0}/{1:n0}/{2:n0}tps/{3:n0}/{4:n0}ms".F(Times, MaxSpeed, Speed, MaxCost / 1000, Cost / 1000);
+                return $"{Times:n0}/{MaxSpeed:n0}/{Speed:n0}tps/{MaxCost / 1000:n0}/{Cost / 1000:n0}ms";
             if (Cost > 0)
-                return "{0:n0}/{1:n0}/{2:n0}tps/{3:n0}/{4:n0}us".F(Times, MaxSpeed, Speed, MaxCost, Cost);
+                return $"{Times:n0}/{MaxSpeed:n0}/{Speed:n0}tps/{MaxCost:n0}/{Cost:n0}us";
             else
-                return "{0:n0}/{1:n0}/{2:n0}tps".F(Times, MaxSpeed, Speed);
+                return $"{Times:n0}/{MaxSpeed:n0}/{Speed:n0}tps";
         }
         #endregion
     }

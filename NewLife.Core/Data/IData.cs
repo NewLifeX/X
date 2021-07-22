@@ -7,16 +7,16 @@ namespace NewLife.Data
     public interface IData
     {
         #region 属性
-        /// <summary>数据包</summary>
+        /// <summary>原始数据包</summary>
         Packet Packet { get; set; }
 
         /// <summary>远程地址</summary>
         IPEndPoint Remote { get; set; }
 
-        /// <summary>消息</summary>
+        /// <summary>解码后的消息</summary>
         Object Message { get; set; }
 
-        /// <summary>用户数据</summary>
+        /// <summary>用户自定义数据</summary>
         Object UserState { get; set; }
         #endregion
     }

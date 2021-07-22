@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+using NewLife;
 
-namespace System
+namespace NewLife
 {
     /// <summary>枚举类型助手类</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]

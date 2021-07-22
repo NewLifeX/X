@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<xs:schema id="ModelSchema"
-    targetNamespace="http://www.newlifex.com/ModelSchema.xsd"
+<xs:schema id="Model2020"
+    targetNamespace="http://www.newlifex.com/Model2020.xsd"
     elementFormDefault="qualified"
-    xmlns="http://www.newlifex.com/ModelSchema.xsd"
-    xmlns:mstns="http://www.newlifex.com/ModelSchema.xsd"
+    xmlns="http://www.newlifex.com/Model2020.xsd"
+    xmlns:mstns="http://www.newlifex.com/Model2020.xsd"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
   <xs:annotation>
     <xs:documentation xml:lang="zh-cn">
-      新生命模型XML架构说明
+      新生命Xml模型文件架构说明
     </xs:documentation>
   </xs:annotation>
 
@@ -18,39 +18,45 @@
     <xs:sequence>
       <xs:element name="Table" type="TableType" maxOccurs="unbounded" ></xs:element>
     </xs:sequence>
-    <xs:attribute name="Version" type="xs:string"></xs:attribute>
-    <xs:attribute name="NameSpace" type="xs:string">
+    <xs:attribute name="Version" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          命名空间
+          使用该模型文件的XCode版本
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="ChineseFileName" type="BooleanType">
+    <xs:attribute name="NameSpace" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          中文名称
+          所生成实体类的命名空间
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="ConnName" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          字符串连接名
+          实体类的数据库连接名
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="Output" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          输出地址，绝对或相对地址，相对的是模型文件所在目录
+          输出目录，绝对或相对地址，相对的是模型文件所在目录
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
     <xs:attribute name="BaseClass" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          基类名称
+          实体类的基类
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ChineseFileName" type="BooleanType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          是否使用中文作为实体类文件名
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -60,11 +66,17 @@
   <xs:complexType name="TableType">
     <xs:annotation>
       <xs:documentation xml:lang="zh-cn">
-        一个Table对应一个数据库表
+        一个Table就是一个实体类，对应一张数据表
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="Columns" type="ColumnsType"></xs:element>
+      <xs:element name="Columns" type="ColumnsType">
+        <xs:annotation>
+          <xs:documentation xml:lang="zh-cn">
+            属性/字段列表
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
       <xs:element name="Indexes" type="IndexesType" minOccurs="0">
         <xs:annotation>
           <xs:documentation xml:lang="zh-cn">
@@ -72,13 +84,6 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
-      <!--<xs:element name="Relations" type="IndexesType" minOccurs="0">
-            <xs:annotation>
-                <xs:documentation xml:lang="zh-cn">
-                    关系
-                </xs:documentation>
-            </xs:annotation>
-        </xs:element>-->
     </xs:sequence>
     <xs:attribute name="Name" type="xs:string" use="required">
       <xs:annotation>
@@ -215,10 +220,17 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="ItemType" type="ItemTypeType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          元素类型，用于魔方表单展示
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute name="Identity" type="BooleanType">
       <xs:annotation>
         <xs:documentation>
-          标识
+          自增标识
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -239,7 +251,7 @@
     <xs:attribute name="Length" type="xs:int">
       <xs:annotation>
         <xs:documentation>
-          长度，当使用-1时表示文本类型
+          长度，字符串-1表示无限大
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -285,6 +297,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="Attribute" type="xs:string">
+      <xs:annotation>
+        <xs:documentation>
+          数据属性的特性，例如忽略序列化的XmlIgnore,ScriptIgnore,IgnoreDataMember，支持{name}替换属性名
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <!--Column-end-->
 
@@ -315,9 +334,20 @@
       <xs:enumeration value="Decimal" ></xs:enumeration>
       <xs:enumeration value="DateTime" ></xs:enumeration>
       <xs:enumeration value="String" ></xs:enumeration>
+      <xs:enumeration value="Byte[]" ></xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <!--DataType-end-->
+
+  <!--ItemType-start-->
+  <xs:simpleType name="ItemTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="image" ></xs:enumeration>
+      <xs:enumeration value="file" ></xs:enumeration>
+      <xs:enumeration value="html" ></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!--ItemType-end-->
 
   <xs:complexType name="IndexesType">
     <xs:sequence>

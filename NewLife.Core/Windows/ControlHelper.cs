@@ -23,10 +23,8 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using (var tc = new TimeCost("Control.Invoke", 500))
-                {
-                    method();
-                }
+                using var tc = new TimeCost("Control.Invoke", 500);
+                method();
             }));
         }
 
@@ -54,10 +52,8 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using (var tc = new TimeCost("Control.Invoke", 500))
-                {
-                    method(arg);
-                }
+                using var tc = new TimeCost("Control.Invoke", 500);
+                method(arg);
             }));
         }
 
@@ -88,10 +84,8 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using (var tc = new TimeCost("Control.Invoke", 500))
-                {
-                    method(arg, arg2);
-                }
+                using var tc = new TimeCost("Control.Invoke", 500);
+                method(arg, arg2);
             }));
         }
 
@@ -111,7 +105,7 @@ namespace System.Windows.Forms
         #endregion
 
         #region 文本控件扩展
-        private static Regex _line = new Regex("(?:[^\n])\r", RegexOptions.Compiled);
+        private static readonly Regex _line = new("(?:[^\n])\r", RegexOptions.Compiled);
         /// <summary>附加文本到文本控件末尾。主要解决非UI线程以及滚动控件等问题</summary>
         /// <param name="txt">控件</param>
         /// <param name="msg">消息</param>
@@ -352,11 +346,11 @@ namespace System.Windows.Forms
 
         #region 文本控件着色
         //Int32 _pColor = 0;
-        static Color _Key = Color.FromArgb(255, 170, 0);
-        static Color _Num = Color.FromArgb(255, 58, 131);
-        static Color _KeyName = Color.FromArgb(0, 255, 255);
+        static readonly Color _Key = Color.FromArgb(255, 170, 0);
+        static readonly Color _Num = Color.FromArgb(255, 58, 131);
+        static readonly Color _KeyName = Color.FromArgb(0, 255, 255);
 
-        static String[] _Keys = new String[] {
+        static readonly String[] _Keys = new String[] {
             "(", ")", "{", "}", "[", "]", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<",
             "void", "new", "delete", "true", "false"
         };
@@ -411,7 +405,7 @@ namespace System.Windows.Forms
         }
 
         // 正则匹配，数字开头的词。支持0x开头的十六进制
-        static Regex _reg = new Regex(@"(?i)\b(0x|[0-9])([0-9a-fA-F\-]*)(.*?)\b", RegexOptions.Compiled);
+        static readonly Regex _reg = new(@"(?i)\b(0x|[0-9])([0-9a-fA-F\-]*)(.*?)\b", RegexOptions.Compiled);
         static void ChangeNumColor(RichTextBox rtb, Int32 start)
         {
             //var ms = _reg.Matches(rtb.Text, start);
@@ -431,7 +425,7 @@ namespace System.Windows.Forms
             rtb.Colour(_reg, start, _Num, _Num, _Key);
         }
 
-        static Regex _reg2 = new Regex(@"(?i)(\b\w+\b)(\s*::\s*)(\b\w+\b)", RegexOptions.Compiled);
+        static readonly Regex _reg2 = new(@"(?i)(\b\w+\b)(\s*::\s*)(\b\w+\b)", RegexOptions.Compiled);
         /// <summary>改变C++类名方法名颜色</summary>
         static void ChangeCppColor(RichTextBox rtb, Int32 start)
         {
@@ -455,7 +449,7 @@ namespace System.Windows.Forms
             rtb.Colour(_reg2, start, color, _Key, color3);
         }
 
-        static Regex _reg3 = new Regex(@"(?i)(\b\w+\b)(\s*[=:])[^:]\s*", RegexOptions.Compiled);
+        static readonly Regex _reg3 = new(@"(?i)(\b\w+\b)(\s*[=:])[^:]\s*", RegexOptions.Compiled);
         static void ChangeKeyNameColor(RichTextBox rtb, Int32 start)
         {
             //var ms = _reg3.Matches(rtx.Text, _pColor);

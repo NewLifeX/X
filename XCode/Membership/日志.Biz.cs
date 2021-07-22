@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web;
+using NewLife;
 using NewLife.Data;
-using NewLife.Model;
-using NewLife.Web;
 using XCode.Cache;
 
 namespace XCode.Membership
 {
     /// <summary>日志</summary>
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Log : Log<Log> { }
-
-    /// <summary>日志</summary>
-    public partial class Log<TEntity> : Entity<TEntity> where TEntity : Log<TEntity>, new()
+    public partial class Log : Entity<Log>
     {
         #region 对象操作
         static Log()
@@ -27,7 +21,7 @@ namespace XCode.Membership
 
 #if !DEBUG
             // 关闭SQL日志
-            Meta.Session.Dal.Db.ShowSQL = false;
+            NewLife.Threading.ThreadPoolX.QueueUserWorkItem(() => { Meta.Session.Dal.Db.ShowSQL = false; });
 #endif
         }
 
@@ -63,20 +57,9 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        ///// <summary>创建人名称</summary>
-        //[XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        //[DisplayName("创建人")]
-        //[Map("CreateUserID")]
-        //public String CreateUserName { get { return ManageProvider.Provider.FindByID(CreateUserID) + ""; } }
-
-        ///// <summary>物理地址</summary>
-        ////[BindRelation("CreateIP")]
-        //[DisplayName("物理地址")]
-        //public String CreateAddress { get { return CreateIP.IPToAddress(); } }
         #endregion
 
         #region 扩展查询
-
         /// <summary>查询</summary>
         /// <param name="key"></param>
         /// <param name="userid"></param>
@@ -85,18 +68,20 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
+        [Obsolete]
+        public static IList<Log> Search(String key, Int32 userid, String category, DateTime start, DateTime end, PageParameter p)
         {
             var exp = new WhereExpression();
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (userid >= 0) exp &= _.CreateUserID == userid;
-            if (start > DateTime.MinValue) exp &= _.CreateTime >= start;
-            if (end > DateTime.MinValue)
-            {
-                if (end == end.Date) end = end.AddDays(1);
-                exp &= _.CreateTime < end;
-            }
+
+            // 主键带有时间戳
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
+            else
+                exp &= _.CreateTime.Between(start, end);
 
             // 先精确查询，再模糊
             if (!key.IsNullOrEmpty())
@@ -109,72 +94,102 @@ namespace XCode.Membership
 
             return FindAll(exp, p);
         }
+
+        /// <summary>查询</summary>
+        /// <param name="category"></param>
+        /// <param name="action"></param>
+        /// <param name="success"></param>
+        /// <param name="userid"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="key"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        [Obsolete]
+        public static IList<Log> Search(String category, String action, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
+        {
+            var exp = new WhereExpression();
+
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
+            if (success != null) exp &= _.Success == success;
+            if (userid > 0) exp &= _.CreateUserID == userid;
+
+            // 主键带有时间戳
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
+            else
+                exp &= _.CreateTime.Between(start, end);
+
+            if (!key.IsNullOrEmpty()) exp &= _.Remark.Contains(key);
+
+            return FindAll(exp, p);
+        }
+
+        /// <summary>查询</summary>
+        /// <param name="category"></param>
+        /// <param name="action"></param>
+        /// <param name="linkId"></param>
+        /// <param name="success"></param>
+        /// <param name="userid"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="key"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static IList<Log> Search(String category, String action, Int32 linkId, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
+        {
+            var exp = new WhereExpression();
+
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
+            if (linkId >= 0) exp &= _.LinkID == linkId;
+            if (success != null) exp &= _.Success == success;
+            if (userid >= 0) exp &= _.CreateUserID == userid;
+
+            // 主键带有时间戳
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
+            else
+                exp &= _.CreateTime.Between(start, end);
+
+            if (!key.IsNullOrEmpty()) exp &= _.Remark.Contains(key);
+
+            return FindAll(exp, p);
+        }
         #endregion
 
         #region 扩展操作
-        static FieldCache<TEntity> CategoryCache = new FieldCache<TEntity>(_.Category);
+        // Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
+        static readonly FieldCache<Log> CategoryCache = new(__.Category)
+        {
+            Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
 
-        /// <summary>查找所有类别名</summary>
-        /// <returns></returns>
-        public static IList<TEntity> FindAllCategory() => CategoryCache.Entities;
-
-        /// <summary>获取所有类别名称</summary>
+        /// <summary>获取所有类别名称，最近30天</summary>
         /// <returns></returns>
         public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
+
+        static readonly FieldCache<Log> ActionCache = new(__.Action)
+        {
+            Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
+
+        /// <summary>获取所有操作名称，最近30天</summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> FindAllActionName() => ActionCache.FindAllName();
         #endregion
 
         #region 业务
-        ///// <summary>创建日志</summary>
-        ///// <param name="category"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static TEntity Create(String category, String action)
-        //{
-        //    var entity = new TEntity();
-
-        //    entity.Category = category;
-        //    entity.Action = action;
-
-        //    return entity;
-        //}
-
-        ///// <summary>创建日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //public static TEntity Create(Type type, String action)
-        //{
-        //    var name = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-
-        //    return Create(name, action);
-        //}
-
-        ///// <summary>创建</summary>
-        ///// <param name="type"></param>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        //ILog ILog.Create(Type type, String action) { return Create(type, action); }
-
-        ///// <summary>写日志</summary>
-        ///// <param name="type">类型</param>
-        ///// <param name="action">操作</param>
-        ///// <param name="remark">备注</param>
-        //public void WriteLog(Type type, String action, String remark)
-        //{
-        //    var log = Create(type, action);
-        //    if (log != null)
-        //    {
-        //        log.Remark = remark;
-        //        log.Save();
-        //    }
-        //}
-
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => String.Format("{0} {1} {2} {3:yyyy-MM-dd HH:mm:ss} {4}", Category, Action, UserName, CreateTime, Remark);
+        public override String ToString() => $"{Category} {Action} {UserName} {CreateTime:yyyy-MM-dd HH:mm:ss} {Remark}";
         #endregion
     }
 
+    /// <summary>日志接口</summary>
     public partial interface ILog
     {
         /// <summary>保存</summary>

@@ -27,9 +27,8 @@ namespace NewLife.Model
     [AttributeUsage(AttributeTargets.Class)]
     public class PluginAttribute : Attribute
     {
-        private String _Identity;
         /// <summary>插件宿主标识</summary>
-        public String Identity { get { return _Identity; } set { _Identity = value; } }
+        public String Identity { get; set; }
 
         /// <summary>实例化</summary>
         /// <param name="identity"></param>
@@ -50,7 +49,7 @@ namespace NewLife.Model
 
         private List<IPlugin> _Plugins;
         /// <summary>插件集合</summary>
-        public List<IPlugin> Plugins { get { return _Plugins ?? (_Plugins = new List<IPlugin>()); } }
+        public List<IPlugin> Plugins { get { return _Plugins ??= new List<IPlugin>(); } }
 
         private ILog _Log = XTrace.Log;
         /// <summary>日志提供者</summary>
@@ -75,9 +74,9 @@ namespace NewLife.Model
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
         /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             if (disposing)
             {
@@ -110,7 +109,7 @@ namespace NewLife.Model
 
             var list = new List<Type>();
             // 此时是加载所有插件，无法识别哪些是需要的
-            foreach (var item in typeof(IPlugin).GetAllSubclasses(true))
+            foreach (var item in typeof(IPlugin).GetAllSubclasses())
             {
                 if (item != null)
                 {

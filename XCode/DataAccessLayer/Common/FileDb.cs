@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -66,7 +67,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-        private static List<String> hasChecked = new List<String>();
+        private static readonly List<String> hasChecked = new();
 
         ///// <summary>已重载。打开数据库连接前创建数据库</summary>
         //public override void Open()
@@ -95,7 +96,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override Int32 Truncate(String tableName)
         {
-            var sql = "Delete From {0}".F(Database.FormatName(tableName));
+            var sql = $"Delete From {Database.FormatName(tableName)}";
             return Execute(sql);
         }
         #endregion

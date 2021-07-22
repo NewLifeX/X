@@ -35,7 +35,7 @@ namespace NewLife.Yun
         protected override async Task<T> InvokeAsync<T>(String url, String result)
         {
             var dic = await base.InvokeAsync<IDictionary<String, Object>>(url, result);
-            if (dic == null || dic.Count == 0) return default(T);
+            if (dic == null || dic.Count == 0) return default;
 
             var status = dic["status"].ToInt();
             if (status != 0)
@@ -55,7 +55,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址编码
-        private String _geoUrl = "http://api.map.baidu.com/geocoder/v2/?address={0}&city={1}&ret_coordtype={2}&output=json";
         /// <summary>查询地址的经纬度坐标</summary>
         /// <param name="address"></param>
         /// <param name="city"></param>
@@ -68,7 +67,7 @@ namespace NewLife.Yun
             address = HttpUtility.UrlEncode(address);
             city = HttpUtility.UrlEncode(city);
 
-            var url = _geoUrl.F(address, city, CoordType);
+            var url = $"http://api.map.baidu.com/geocoder/v2/?address={address}&city={city}&ret_coordtype={CoordType}&output=json";
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -83,8 +82,7 @@ namespace NewLife.Yun
             var rs = await GetGeocoderAsync(address, city);
             if (rs == null || rs.Count == 0) return null;
 
-            var ds = rs["location"] as IDictionary<String, Object>;
-            if (ds == null || ds.Count < 2) return null;
+            if (rs["location"] is not IDictionary<String, Object> ds || ds.Count < 2) return null;
 
             var gp = new GeoPoint
             {
@@ -108,7 +106,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 逆地址编码
-        private String _regeoUrl = "http://api.map.baidu.com/geocoder/v2/?location={0},{1}&extensions_town=true&latest_admin=1&coord_type={2}&output=json";
         /// <summary>根据坐标获取地址</summary>
         /// <param name="point"></param>
         /// <returns></returns>
@@ -116,7 +113,7 @@ namespace NewLife.Yun
         {
             if (point == null || point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
 
-            var url = _regeoUrl.F(point.Latitude, point.Longitude, CoordType);
+            var url = $"http://api.map.baidu.com/geocoder/v2/?location={point.Latitude},{point.Longitude}&extensions_town=true&latest_admin=1&coord_type={CoordType}&output=json";
 
             return await InvokeAsync<IDictionary<String, Object>>(url, "result");
         }
@@ -157,7 +154,6 @@ namespace NewLife.Yun
         #endregion
 
         #region 路径规划
-        private String _distanceUrl = "http://api.map.baidu.com/routematrix/v2/driving?origins={0},{1}&destinations={2},{3}&tactics={4}&coord_type={5}&output=json";
         /// <summary>计算距离和驾车时间</summary>
         /// <remarks>
         /// http://lbsyun.baidu.com/index.php?title=webapi/route-matrix-api-v2
@@ -174,13 +170,12 @@ namespace NewLife.Yun
             if (type <= 0) type = 13;
             var coord = CoordType;
             if (!coord.IsNullOrEmpty() && coord.Length > 6) coord = coord.TrimEnd("ll");
-            var url = _distanceUrl.F(origin.Latitude, origin.Longitude, destination.Latitude, destination.Longitude, type, coord);
+            var url = $"http://api.map.baidu.com/routematrix/v2/driving?origins={origin.Latitude},{origin.Longitude}&destinations={destination.Latitude},{destination.Longitude}&tactics={type}&coord_type={coord}&output=json";
 
             var list = await InvokeAsync<IList<Object>>(url, "result");
             if (list == null || list.Count == 0) return null;
 
-            var geo = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (geo == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> geo) return null;
 
             var d1 = geo["distance"] as IDictionary<String, Object>;
             var d2 = geo["duration"] as IDictionary<String, Object>;
@@ -196,7 +191,7 @@ namespace NewLife.Yun
         #endregion
 
         #region 地址检索
-        private String _placeUrl = "http://api.map.baidu.com/place/v2/search?output=json";
+        private readonly String _placeUrl = "http://api.map.baidu.com/place/v2/search?output=json";
         /// <summary>行政区划区域检索</summary>
         /// <remarks>
         /// http://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-placeapi
@@ -218,8 +213,7 @@ namespace NewLife.Yun
             var list = await InvokeAsync<IList<Object>>(url, "results");
             if (list == null || list.Count == 0) return null;
 
-            var rs = list.FirstOrDefault() as IDictionary<String, Object>;
-            if (rs == null) return null;
+            if (list.FirstOrDefault() is not IDictionary<String, Object> rs) return null;
 
             var geo = new GeoAddress();
 
@@ -251,8 +245,41 @@ namespace NewLife.Yun
         }
         #endregion
 
+        #region IP定位
+        private readonly String _ipUrl = "https://api.map.baidu.com/location/ip";
+        /// <summary>IP定位</summary>
+        /// <remarks>
+        /// https://lbsyun.baidu.com/index.php?title=webapi/ip-api
+        /// </remarks>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public async Task<IDictionary<String, Object>> IpLocationAsync(String ip)
+        {
+            var url = _ipUrl + $"?ip={ip}&coor={CoordType}";
+
+            var dic = await InvokeAsync<IDictionary<String, Object>>(url, null);
+            if (dic == null || dic.Count == 0) return null;
+
+            if (dic["content"] is not IDictionary<String, Object> rs) return null;
+
+            if (dic.TryGetValue("address", out var fulladdress)) rs["full_address"] = fulladdress;
+            if (rs.TryGetValue("address_detail", out var v1))
+            {
+                rs.Merge(v1);
+                rs.Remove("address_detail");
+            }
+            if (rs.TryGetValue("point", out var v2))
+            {
+                rs.Merge(v2);
+                rs.Remove("point");
+            }
+
+            return rs;
+        }
+        #endregion
+
         #region 密钥管理
-        private String[] _KeyWords = new[] { "AK" };
+        private readonly String[] _KeyWords = new[] { "AK" };
         /// <summary>是否无效Key。可能禁用或超出限制</summary>
         /// <param name="result"></param>
         /// <returns></returns>

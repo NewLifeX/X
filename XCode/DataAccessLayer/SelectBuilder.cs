@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
 
@@ -30,7 +31,7 @@ namespace XCode.DataAccessLayer
         /// <summary>是否降序</summary>
         public Boolean IsDesc
         {
-            get { return IsDescs != null && IsDescs.Length > 0 ? IsDescs[0] : false; }
+            get { return IsDescs != null && IsDescs.Length > 0 && IsDescs[0]; }
             set { IsDescs = new Boolean[] { value }; }
         }
 
@@ -99,7 +100,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据表</summary>
         public String Table { get; set; }
 
-        private static Regex reg_gb = new Regex(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_gb = new(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private String _Where;
         /// <summary>条件</summary>
         public String Where
@@ -232,7 +233,7 @@ $";
 
         // 如果字符串内容里面含有圆括号，这个正则将无法正常工作，字符串边界的单引号也不好用平衡组，可以考虑在匹配前先用正则替换掉字符串
 
-        static Regex regexSelect = new Regex(SelectRegex, RegexOptions.Compiled);
+        static readonly Regex regexSelect = new(SelectRegex, RegexOptions.Compiled);
 
         /// <summary>分析一条SQL</summary>
         /// <param name="sql"></param>
@@ -257,7 +258,7 @@ $";
         }
 
         /// <summary>缓存存储</summary>
-        public static ICache Store { get; set; } = NewLife.Caching.Cache.Default;
+        public static ICache Store { get; set; } = MemoryCache.Instance;
 
         /// <summary>根据SQL创建，带缓存</summary>
         /// <remarks>
@@ -356,7 +357,7 @@ $";
             if (!Where.IsNullOrEmpty())
             {
                 if (Where.Contains(" ") && Where.ToLower().Contains("or"))
-                    Where = String.Format("({0}) And ", Where);
+                    Where = $"({Where}) And ";
                 else
                     Where += " And ";
             }
@@ -403,9 +404,9 @@ $";
 
             var builder = new SelectBuilder();
             if (String.IsNullOrEmpty(alias))
-                builder.Table = String.Format("({0})", t.ToString());
+                builder.Table = $"({t})";
             else
-                builder.Table = String.Format("({0}) {1}", t.ToString(), alias);
+                builder.Table = $"({t}) {alias}";
 
             // 把排序加载外层
             if (hasOrderWithoutTop) builder.OrderBy = OrderBy;
@@ -488,7 +489,7 @@ $";
             var builder = this;
             if (!String.IsNullOrEmpty(keyColumn)) builder.Column = keyColumn;
             if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-            builder.Column = String.Format("Top {0} {1}", top, builder.Column);
+            builder.Column = $"Top {top} {builder.Column}";
 
             return builder;
         }
@@ -498,10 +499,7 @@ $";
         /// <summary>类型转换</summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static implicit operator String(SelectBuilder obj)
-        {
-            return !obj.Equals(null) ? obj.ToString() : null;
-        }
+        public static implicit operator String(SelectBuilder obj) => !obj.Equals(null) ? obj.ToString() : null;
         #endregion
     }
 }

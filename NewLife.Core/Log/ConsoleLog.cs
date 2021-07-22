@@ -19,56 +19,39 @@ namespace NewLife.Log
 
             if (!UseColor)
             {
-                ConsoleWriteLog(e);
+                Console.WriteLine(e);
                 return;
             }
 
             lock (this)
             {
                 var cc = Console.ForegroundColor;
-                switch (level)
+                cc = level switch
                 {
-                    case LogLevel.Warn:
-                        cc = ConsoleColor.Yellow;
-                        break;
-                    case LogLevel.Error:
-                    case LogLevel.Fatal:
-                        cc = ConsoleColor.Red;
-                        break;
-                    default:
-                        cc = GetColor(e.ThreadID);
-                        break;
-                }
-
+                    LogLevel.Warn => ConsoleColor.Yellow,
+                    LogLevel.Error or LogLevel.Fatal => ConsoleColor.Red,
+                    _ => GetColor(e.ThreadID),
+                };
                 var old = Console.ForegroundColor;
                 Console.ForegroundColor = cc;
-                ConsoleWriteLog(e);
+                Console.WriteLine(e);
                 Console.ForegroundColor = old;
             }
         }
 
-        private void ConsoleWriteLog(WriteLogEventArgs e)
-        {
-            var msg = e.ToString();
-            Console.WriteLine(msg);
-        }
-
-        static ConcurrentDictionary<Int32, ConsoleColor> dic = new ConcurrentDictionary<Int32, ConsoleColor>();
-        static ConsoleColor[] colors = new ConsoleColor[] {
+        static readonly ConcurrentDictionary<Int32, ConsoleColor> dic = new();
+        static readonly ConsoleColor[] colors = new ConsoleColor[] {
             ConsoleColor.Green, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.White, ConsoleColor.Yellow,
             ConsoleColor.DarkGreen, ConsoleColor.DarkCyan, ConsoleColor.DarkMagenta, ConsoleColor.DarkRed, ConsoleColor.DarkYellow };
-        private ConsoleColor GetColor(Int32 threadid)
+        private static ConsoleColor GetColor(Int32 threadid)
         {
             if (threadid == 1) return ConsoleColor.Gray;
 
-            return dic.GetOrAdd(threadid, k => colors[dic.Count % colors.Length]);
+            return dic.GetOrAdd(threadid, k => colors[k % colors.Length]);
         }
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString()
-        {
-            return String.Format("{0} UseColor={1}", GetType().Name, UseColor);
-        }
+        public override String ToString() => $"{GetType().Name} UseColor={UseColor}";
     }
 }

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using NewLife.Reflection;
+using System.Threading.Tasks;
+using NewLife.Data;
 
 namespace XCode
 {
     /// <summary>数据实体接口</summary>
-    public interface IEntity : IIndexAccessor
+    public interface IEntity : IExtend
     {
         #region 属性
         /// <summary>脏属性。存储哪些属性的数据被修改过了。</summary>
@@ -63,6 +62,20 @@ namespace XCode
         /// <param name="msDelay">延迟保存的时间。默认0ms近实时保存</param>
         /// <returns>是否成功加入异步队列</returns>
         Boolean SaveAsync(Int32 msDelay = 0);
+
+#if !NET4
+        /// <summary>把该对象持久化到数据库</summary>
+        /// <returns></returns>
+        Task<Int32> InsertAsync();
+
+        /// <summary>更新数据库</summary>
+        /// <returns></returns>
+        Task<Int32> UpdateAsync();
+
+        /// <summary>从数据库中删除该对象</summary>
+        /// <returns></returns>
+        Task<Int32> DeleteAsync();
+#endif
         #endregion
 
         #region 获取/设置 字段值

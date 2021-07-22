@@ -1,16 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
+using NewLife.Caching;
 using NewLife.Collections;
+using NewLife.IP;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Net;
 
-namespace System
+namespace NewLife
 {
     /// <summary>网络工具类</summary>
     public static class NetHelper
@@ -29,10 +32,16 @@ namespace System
             BitConverter.GetBytes((UInt32)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
-            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+
+#if __CORE__
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#else
+                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#endif
         }
 
-        private static readonly DictionaryCache<String, IPAddress> _dnsCache = new DictionaryCache<String, IPAddress>(StringComparer.OrdinalIgnoreCase) { Expire = 60 };
+        private static readonly ICache _Cache = MemoryCache.Instance;
         /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
         /// <param name="hostname"></param>
         /// <returns></returns>
@@ -40,10 +49,14 @@ namespace System
         {
             if (hostname.IsNullOrEmpty()) return null;
 
-            if (_dnsCache.FindMethod == null) _dnsCache.FindMethod = s => NetUri.ParseAddress(s)?.FirstOrDefault();
+            var key = $"NetHelper:ParseAddress:{hostname}";
+            if (_Cache.TryGetValue<IPAddress>(key, out var address)) return address;
 
-            //return _dnsCache.GetItem(hostname, NetUri.ParseAddress);
-            return _dnsCache[hostname];
+            address = NetUri.ParseAddress(hostname)?.FirstOrDefault();
+
+            _Cache.Set(key, address, 60);
+
+            return address;
         }
 
         /// <summary>分析网络终结点</summary>
@@ -57,7 +70,7 @@ namespace System
             var p = address.IndexOf("://");
             if (p >= 0) address = address.Substring(p + 3);
 
-            p = address.IndexOf(":");
+            p = address.LastIndexOf(':');
             if (p > 0)
                 return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
             else
@@ -186,6 +199,15 @@ namespace System
         /// <param name="uri"></param>
         /// <returns></returns>
         public static Boolean CheckPort(this NetUri uri) => CheckPort(uri.Address, uri.Type, uri.Port);
+
+        /// <summary>获取所有Tcp连接，带进程Id</summary>
+        /// <returns></returns>
+        public static TcpConnectionInformation2[] GetAllTcpConnections()
+        {
+            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
+
+            return TcpConnectionInformation2.GetAllTcpConnections();
+        }
         #endregion
 
         #region 本机信息
@@ -196,6 +218,7 @@ namespace System
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
 
                 var ip = item.GetIPProperties();
                 if (ip != null) yield return ip;
@@ -267,12 +290,16 @@ namespace System
         public static IEnumerable<IPAddress> GetIPs()
         {
             var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
-            foreach (var item in GetActiveInterfaces())
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item != null && item.UnicastAddresses.Count > 0)
+                if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                var ipp = item.GetIPProperties();
+                if (ipp != null && ipp.UnicastAddresses.Count > 0)
                 {
-                    var gw = item.GatewayAddresses.Count;
-                    foreach (var elm in item.UnicastAddresses)
+                    var gw = ipp.GatewayAddresses.Count;
+                    foreach (var elm in ipp.UnicastAddresses)
                     {
                         try
                         {
@@ -294,14 +321,18 @@ namespace System
             return ips;
         }
 
-        private static DictionaryCache<Int32, IPAddress[]> _ips = new DictionaryCache<Int32, IPAddress[]> { Expire = 60/*, Asynchronous = true*/ };
         /// <summary>获取本机可用IP地址，缓存60秒，异步更新</summary>
         /// <returns></returns>
         public static IPAddress[] GetIPsWithCache()
         {
-            //return _ips.GetItem(1, k => GetIPs().ToArray());
-            if (_ips.FindMethod == null) _ips.FindMethod = k => GetIPs().ToArray();
-            return _ips[1];
+            var key = $"NetHelper:GetIPsWithCache";
+            if (_Cache.TryGetValue<IPAddress[]>(key, out var addrs)) return addrs;
+
+            addrs = GetIPs().ToArray();
+
+            _Cache.Set(key, addrs);
+
+            return addrs;
         }
 
         /// <summary>获取可用的多播地址</summary>
@@ -324,17 +355,56 @@ namespace System
             }
         }
 
-        /// <summary>获取以太网MAC地址</summary>
+        private static readonly String[] _Excludes = new[] { "Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE" };
+        /// <summary>获取所有物理网卡MAC地址</summary>
         /// <returns></returns>
         public static IEnumerable<Byte[]> GetMacs()
         {
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item.NetworkInterfaceType != NetworkInterfaceType.Ethernet) continue;
+                if (_Excludes.Any(e => item.Description.Contains(e))) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
-                var mac = item.GetPhysicalAddress();
-                if (mac != null) yield return mac.GetAddressBytes();
+                var ips = item.GetIPProperties();
+                var addrs = ips.UnicastAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+
+                var mac = item.GetPhysicalAddress()?.GetAddressBytes();
+                if (mac != null && mac.Length == 6) yield return mac;
             }
+        }
+
+        /// <summary>获取网卡MAC地址（网关所在网卡）</summary>
+        /// <returns></returns>
+        public static Byte[] GetMac()
+        {
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (_Excludes.Any(e => item.Description.Contains(e))) continue;
+                if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
+
+                var ips = item.GetIPProperties();
+                var addrs = ips.UnicastAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+
+                // 网关
+                addrs = ips.GatewayAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.Length == 0) continue;
+
+                var mac = item.GetPhysicalAddress()?.GetAddressBytes();
+                if (mac != null && mac.Length == 6) return mac;
+            }
+
+            return null;
         }
 
         /// <summary>获取本地第一个IPv4地址</summary>
@@ -359,7 +429,7 @@ namespace System
             }
         }
 
-        static void Wake(String mac)
+        private static void Wake(String mac)
         {
             mac = mac.Replace("-", null).Replace(":", null);
             var buffer = new Byte[mac.Length / 2];
@@ -411,22 +481,21 @@ namespace System
         #endregion
 
         #region IP地理位置
-        static IPProvider _IpProvider;
+        /// <summary>IP地址提供者</summary>
+        public static IPProvider IpProvider { get; set; }
+
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
         /// <returns></returns>
         public static String GetAddress(this IPAddress addr)
         {
-            if (addr.IsAny())
-                return "任意地址";
-            else if (IPAddress.IsLoopback(addr))
-                return "本地环回地址";
-            else if (addr.IsLocal())
-                return "本机地址";
+            if (addr.IsAny()) return "任意地址";
+            if (IPAddress.IsLoopback(addr)) return "本地环回";
+            if (addr.IsLocal()) return "本机地址";
 
-            if (_IpProvider == null) _IpProvider = ObjectContainer.Current.AutoRegister<IPProvider, IpProviderDefault>().Resolve<IPProvider>();
+            if (IpProvider == null) IpProvider = new MyIpProvider();
 
-            return _IpProvider.GetAddress(addr);
+            return IpProvider.GetAddress(addr);
         }
 
         /// <summary>根据字符串形式IP地址转为物理地址</summary>
@@ -434,7 +503,7 @@ namespace System
         /// <returns></returns>
         public static String IPToAddress(this String addr)
         {
-            if (addr.IsNullOrEmpty()) return null;
+            if (addr.IsNullOrEmpty()) return String.Empty;
 
             // 有可能是NetUri
             var p = addr.IndexOf("://");
@@ -447,23 +516,18 @@ namespace System
             // 过滤IPv4/IPv6端口
             if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
-            if (!IPAddress.TryParse(addr, out var ip)) return null;
+            if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
             return ip.GetAddress();
         }
 
-        /// <summary>IP地址提供者接口</summary>
-        public interface IPProvider
+        /// <summary>IP地址提供者</summary>
+        public class IPProvider
         {
             /// <summary>获取IP地址的物理地址位置</summary>
             /// <param name="addr"></param>
             /// <returns></returns>
-            String GetAddress(IPAddress addr);
-        }
-
-        class IpProviderDefault : IPProvider
-        {
-            public String GetAddress(IPAddress addr)
+            public virtual String GetAddress(IPAddress addr)
             {
                 // 判断局域网地址
                 var ip = addr.ToString();
@@ -490,17 +554,12 @@ namespace System
         {
             if (local == null) throw new ArgumentNullException(nameof(local));
 
-            switch (local.Type)
+            return local.Type switch
             {
-                case NetType.Tcp:
-                    return new TcpSession { Local = local };
-                case NetType.Udp:
-                    return new UdpServer { Local = local };
-                //case NetType.Http:
-                //    return new HttpClient { Local = local };
-                default:
-                    throw new NotSupportedException("不支持{0}协议".F(local.Type));
-            }
+                NetType.Tcp => new TcpSession { Local = local },
+                NetType.Udp => new UdpServer { Local = local },
+                _ => throw new NotSupportedException($"不支持{local.Type}协议"),
+            };
         }
 
         /// <summary>根据远程网络标识创建客户端</summary>
@@ -510,57 +569,21 @@ namespace System
         {
             if (remote == null) throw new ArgumentNullException(nameof(remote));
 
-            switch (remote.Type)
+            return remote.Type switch
             {
-                case NetType.Tcp:
-                    return new TcpSession { Remote = remote };
-                case NetType.Udp:
-                    return new UdpServer { Remote = remote };
-                //case NetType.Http:
-                //    var http = new HttpClient { Remote = remote };
-                //    //http.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                //    return http;
-                //case NetType.WebSocket:
-                //    var ws = new HttpClient { Remote = remote };
-                //    //ws.IsSSL = remote.Protocol.EqualIgnoreCase("https");
-                //    ws.IsWebSocket = true;
-                //    return ws;
-                default:
-                    throw new NotSupportedException("不支持{0}协议".F(remote.Type));
-            }
+                NetType.Tcp => new TcpSession { Remote = remote },
+                NetType.Udp => new UdpServer { Remote = remote },
+#if !NET4
+                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+                NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+#endif
+                _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
+            };
         }
 
-        ///// <summary>根据远程网络标识创建客户端</summary>
-        ///// <param name="uri"></param>
-        ///// <returns></returns>
-        //public static ISocketClient CreateRemote(this Uri uri)
-        //{
-        //    var http = new HttpClient();
-        //    http.Request.Url = uri ?? throw new ArgumentNullException(nameof(uri));
-        //    http.Remote = new NetUri(uri + "");
+        internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
-        //    switch (uri.Scheme.ToLower())
-        //    {
-        //        case "https":
-        //            http.IsSSL = true;
-        //            break;
-        //        case "wss":
-        //            http.IsWebSocket = true;
-        //            http.IsSSL = true;
-        //            break;
-        //        case "ws":
-        //            http.IsWebSocket = true;
-        //            break;
-        //        default:
-        //            break;
-        //    }
-
-        //    return http;
-        //}
-
-        internal static Socket CreateTcp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
-
-        internal static Socket CreateUdp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+        internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         #endregion
     }
 }

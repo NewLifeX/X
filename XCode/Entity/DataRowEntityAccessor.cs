@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using NewLife;
 using NewLife.Data;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
@@ -27,22 +28,22 @@ namespace XCode
         IList<T> LoadData<T>(IDataReader dr) where T : Entity<T>, new();
     }
 
-    /// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
-    public interface IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType);
-    }
+    ///// <summary>在数据行和实体类之间映射数据接口的提供者</summary>
+    //public interface IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    IDataRowEntityAccessor CreateAccessor(Type entityType);
+    //}
 
-    class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
-    {
-        /// <summary>创建实体类的数据行访问器</summary>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        public IDataRowEntityAccessor CreateDataRowEntityAccessor(Type entityType) => new DataRowEntityAccessor();
-    }
+    //class DataRowEntityAccessorProvider : IDataRowEntityAccessorProvider
+    //{
+    //    /// <summary>创建实体类的数据行访问器</summary>
+    //    /// <param name="entityType"></param>
+    //    /// <returns></returns>
+    //    public IDataRowEntityAccessor CreateAccessor(Type entityType) => new DataRowEntityAccessor();
+    //}
 
     class DataRowEntityAccessor : IDataRowEntityAccessor
     {
@@ -179,12 +180,12 @@ namespace XCode
             if (type != null)
                 // 仅对精确匹配的字段进行读取旧值
                 oldValue = entity[name];
-            else
-            {
-                type = value?.GetType();
-                // 如果扩展数据里面有该字段也读取旧值
-                if (entity.Extends.ContainsKey(name)) oldValue = entity.Extends[name];
-            }
+            //else
+            //{
+            //    type = value?.GetType();
+            //    // 如果扩展数据里面有该字段也读取旧值
+            //    if (entity.Extends.TryGetValue(name, out var v)) oldValue = v;
+            //}
 
             // 不处理相同数据的赋值
             if (Equals(value, oldValue)) return;
@@ -220,10 +221,10 @@ namespace XCode
             {
                 if (!(value is Guid))
                 {
-                    if (value is Byte[])
-                        value = new Guid((Byte[])value);
-                    else if (value is String)
-                        value = new Guid((String)value);
+                    if (value is Byte[] buf)
+                        value = new Guid(buf);
+                    else if (value is String str)
+                        value = new Guid(str);
                 }
             }
 
@@ -241,7 +242,11 @@ namespace XCode
             {
                 entity[name] = value;
 
-                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value)) entity.Extends[name] = value;
+                if (value?.GetType() != type && !EntityBase.CheckEqual(entity[name], value))
+                {
+                    var ext = entity as IExtend3;
+                    ext[name] = value;
+                }
             }
 
             //if (b != null)

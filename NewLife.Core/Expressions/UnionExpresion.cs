@@ -62,7 +62,7 @@ namespace NewLife.Expressions
 
             var codes = new Stack<IndexInfoResult>();
 
-            Container = Container ?? new List<IndexInfoResult>();
+            Container ??= new List<IndexInfoResult>();
 
             for (var i = 0; i < arr.Length; i++)
             {

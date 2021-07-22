@@ -7,7 +7,7 @@ namespace NewLife.Extension
 {
     class SpeakProvider
     {
-        private static String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
+        private static readonly String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
         private Type _type;
 
         public SpeakProvider()
@@ -15,10 +15,12 @@ namespace NewLife.Extension
             try
             {
                 // 新版系统内置
+                Assembly asm = null;
                 if (Environment.OSVersion.Version.Major >= 6)
-                    Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
+                    asm = Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
 
-                _type = typeName.GetTypeEx(true);
+                //_type = typeName.GetTypeEx(true);
+                _type = Type.GetType(typeName) ?? asm?.GetType(typeName);
             }
             catch (Exception ex)
             {

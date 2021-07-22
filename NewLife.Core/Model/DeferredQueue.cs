@@ -23,7 +23,7 @@ namespace NewLife.Model
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        private volatile ConcurrentDictionary<String, Object> _Entities = new ConcurrentDictionary<String, Object>();
+        private volatile ConcurrentDictionary<String, Object> _Entities = new();
         /// <summary>实体字典</summary>
         public ConcurrentDictionary<String, Object> Entities => _Entities;
 
@@ -65,9 +65,9 @@ namespace NewLife.Model
 
         /// <summary>销毁。统计队列销毁时保存数据</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _Timer.TryDispose();
             _Entities?.Clear();

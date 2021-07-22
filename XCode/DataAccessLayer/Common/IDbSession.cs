@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
@@ -19,8 +18,8 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库</summary>
         IDatabase Database { get; }
 
-        ///// <summary>链接字符串</summary>
-        //String ConnectionString { get; set; }
+        /// <summary>数据库事务</summary>
+        ITransaction Transaction { get; }
 
         /// <summary>查询次数</summary>
         Int32 QueryTimes { get; set; }
@@ -39,11 +38,11 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         TResult Process<TResult>(Func<DbConnection, TResult> callback);
 
-        ///// <summary>打开连接并执行操作</summary>
-        ///// <typeparam name="TResult"></typeparam>
-        ///// <param name="callback"></param>
-        ///// <returns></returns>
-        //Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback);
+        /// <summary>打开连接并执行操作</summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<TResult> ProcessAsync<TResult>(Func<DbConnection, Task<TResult>> callback);
         #endregion
 
         #region 事务
@@ -141,31 +140,99 @@ namespace XCode.DataAccessLayer
         DbCommand CreateCommand(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
         #endregion
 
+        #region 异步操作
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        Task<DbTable> QueryAsync(String sql, IDataParameter[] ps);
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>总记录数</returns>
+        Task<Int64> QueryCountAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+
+        /// <summary>执行SQL查询，返回总记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>总记录数</returns>
+        Task<Int64> QueryCountAsync(SelectBuilder builder);
+
+        /// <summary>快速查询单表记录数，稍有偏差</summary>
+        /// <param name="tableName">表名</param>
+        /// <returns></returns>
+        Task<Int64> QueryCountFastAsync(String tableName);
+
+        /// <summary>执行SQL语句，返回受影响的行数</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        Task<Int32> ExecuteAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+
+        /// <summary>执行DbCommand，返回受影响的行数</summary>
+        /// <param name="cmd">DbCommand</param>
+        /// <returns></returns>
+        Task<Int32> ExecuteAsync(DbCommand cmd);
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+
+        /// <summary>执行SQL语句，返回结果中的第一行第一列</summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns></returns>
+        Task<T> ExecuteScalarAsync<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+#endif
+        #endregion
+
         #region 批量操作
         /// <summary>批量插入</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Insert(String tableName, IDataColumn[] columns, IEnumerable<IIndexAccessor> list);
+        Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
+
+        /// <summary>批量忽略插入</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 InsertIgnore(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
+
+        /// <summary>批量替换</summary>
+        /// <param name="table">数据表</param>
+        /// <param name="columns">要插入的字段，默认所有字段</param>
+        /// <param name="list">实体列表</param>
+        /// <returns></returns>
+        Int32 Replace(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list);
 
         /// <summary>批量更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要更新的字段，默认所有字段</param>
         /// <param name="updateColumns">要更新的字段，默认脏数据</param>
         /// <param name="addColumns">要累加更新的字段，默认累加</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Update(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
+        Int32 Update(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list);
 
         /// <summary>批量插入或更新</summary>
-        /// <param name="tableName">表名</param>
+        /// <param name="table">数据表</param>
         /// <param name="columns">要插入的字段，默认所有字段</param>
         /// <param name="updateColumns">主键已存在时，要更新的字段</param>
         /// <param name="addColumns">主键已存在时，要累加更新的字段</param>
         /// <param name="list">实体列表</param>
         /// <returns></returns>
-        Int32 Upsert(String tableName, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IIndexAccessor> list);
+        Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list);
         #endregion
 
         #region 高级

@@ -2,21 +2,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Data
 {
     /// <summary>数据表</summary>
-    public class DbTable : IEnumerable<DbRow>, ICloneable
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// </remarks>
+    public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         #region 属性
         /// <summary>数据列</summary>
         public String[] Columns { get; set; }
 
         /// <summary>数据列类型</summary>
+        [XmlIgnore, IgnoreDataMember]
         public Type[] Types { get; set; }
 
         /// <summary>数据行</summary>
@@ -74,10 +84,15 @@ namespace NewLife.Data
                 var row = new Object[fields.Length];
                 for (var i = 0; i < fields.Length; i++)
                 {
-                    var val = dr[fields[i]];
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var val = dr[fields[i]];
 
-                    if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
-                    row[i] = val;
+                        if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                        row[i] = val;
+                    }
+                    catch { }
                 }
                 rs.Add(row);
             }
@@ -85,6 +100,51 @@ namespace NewLife.Data
 
             Total = rs.Count;
         }
+
+#if !NET40
+        /// <summary>读取数据</summary>
+        /// <param name="dr"></param>
+        public async Task ReadAsync(DbDataReader dr)
+        {
+            ReadHeader(dr);
+            await ReadDataAsync(dr);
+        }
+
+        /// <summary>读取数据</summary>
+        /// <param name="dr">数据读取器</param>
+        /// <param name="fields">要读取的字段序列</param>
+        public async Task ReadDataAsync(DbDataReader dr, Int32[] fields = null)
+        {
+            // 字段
+            var cs = Columns;
+            var ts = Types;
+
+            if (fields == null) fields = Enumerable.Range(0, cs.Length).ToArray();
+
+            // 数据
+            var rs = new List<Object[]>();
+            while (await dr.ReadAsync().ConfigureAwait(false))
+            {
+                var row = new Object[fields.Length];
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var val = dr[fields[i]];
+
+                        if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                        row[i] = val;
+                    }
+                    catch { }
+                }
+                rs.Add(row);
+            }
+            Rows = rs;
+
+            Total = rs.Count;
+        }
+#endif
         #endregion
 
         #region 二进制读取
@@ -92,10 +152,8 @@ namespace NewLife.Data
 
         /// <summary>从数据流读取</summary>
         /// <param name="stream"></param>
-        public Int64 Read(Stream stream)
+        public void Read(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -107,22 +165,23 @@ namespace NewLife.Data
 
             // 读取全部数据
             ReadData(bn, Total);
-
-            return stream.Position - p;
         }
 
         /// <summary>读取头部</summary>
         /// <param name="bn"></param>
         public void ReadHeader(Binary bn)
         {
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             var magic = bn.ReadBytes(14).ToStr();
-            if (magic.Trim() != "NewLifeDbTable") throw new InvalidDataException();
+            if (magic != "NewLifeDbTable") throw new InvalidDataException();
 
             var ver = bn.Read<Byte>();
-            var flag = bn.Read<Byte>();
+            _ = bn.Read<Byte>();
 
-            // 写入头部
+            // 版本兼容
+            if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
+
+            // 读取头部
             var count = bn.Read<Int32>();
             var cs = new String[count];
             var ts = new Type[count];
@@ -130,7 +189,7 @@ namespace NewLife.Data
             {
                 cs[i] = bn.Read<String>();
                 var tc = (TypeCode)bn.Read<Byte>();
-                ts[i] = tc.ToString().GetTypeEx(false);
+                ts[i] = Type.GetType("System." + tc);
             }
             Columns = cs;
             Types = ts;
@@ -142,30 +201,22 @@ namespace NewLife.Data
         /// <param name="bn"></param>
         /// <param name="rows"></param>
         /// <returns></returns>
-        public Int32 ReadData(Binary bn, Int32 rows)
+        public void ReadData(Binary bn, Int32 rows)
         {
-            if (rows <= 0) return 0;
+            if (rows <= 0) return;
 
             var ts = Types;
-
-            var total = 0;
-            //var length = bn.Stream.Length;
             var rs = new List<Object[]>(rows);
             for (var k = 0; k < rows; k++)
             {
-                //if (bn.Stream.Position >= length) break;
-
                 var row = new Object[ts.Length];
                 for (var i = 0; i < ts.Length; i++)
                 {
                     row[i] = bn.Read(ts[i]);
                 }
                 rs.Add(row);
-                total++;
             }
             Rows = rs;
-
-            return total;
         }
 
         /// <summary>读取</summary>
@@ -185,15 +236,15 @@ namespace NewLife.Data
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
         public Int64 LoadFile(String file, Boolean compressed = false) => file.AsFile().OpenRead(compressed, s => Read(s));
+
+        Boolean IAccessor.Read(Stream stream, Object context) { Read(stream); return true; }
         #endregion
 
         #region 二进制写入
         /// <summary>写入数据流</summary>
         /// <param name="stream"></param>
-        public Int64 Write(Stream stream)
+        public void Write(Stream stream)
         {
-            var p = stream.Position;
-
             var bn = new Binary
             {
                 EncodeInt = true,
@@ -209,8 +260,6 @@ namespace NewLife.Data
 
             // 写入数据行
             WriteData(bn);
-
-            return stream.Position - p;
         }
 
         /// <summary>写入头部到数据流</summary>
@@ -220,7 +269,7 @@ namespace NewLife.Data
             var cs = Columns;
             var ts = Types;
 
-            // 头部，幻数、版本和压缩标记
+            // 头部，幻数、版本和标记
             bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
             bn.Write(_Ver);
             bn.Write(0);
@@ -274,7 +323,121 @@ namespace NewLife.Data
         /// <param name="file"></param>
         /// <param name="compressed">是否压缩</param>
         /// <returns></returns>
-        public Int64 SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+        public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
+
+        Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true; }
+        #endregion
+
+        #region Json序列化
+        /// <summary>转Json字符串</summary>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
+        /// <returns></returns>
+        public String ToJson(Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
+        {
+            // 先转为名值对象的数组，再进行序列化
+            var list = ToDictionary();
+            return list.ToJson(indented, nullValue, camelCase);
+        }
+
+        /// <summary>转为字典数组形式</summary>
+        /// <returns></returns>
+        public IList<IDictionary<String, Object>> ToDictionary()
+        {
+            var list = new List<IDictionary<String, Object>>();
+            foreach (var row in Rows)
+            {
+                var dic = new Dictionary<String, Object>();
+                for (var i = 0; i < Columns.Length; i++)
+                {
+                    dic[Columns[i]] = row[i];
+                }
+                list.Add(dic);
+            }
+
+            return list;
+        }
+        #endregion
+
+        #region Csv序列化
+        /// <summary>保存到Csv文件</summary>
+        /// <param name="file"></param>
+        public void SaveCsv(String file)
+        {
+            using var csv = new CsvFile(file, true);
+            csv.WriteLine(Columns);
+            csv.WriteAll(Rows);
+        }
+
+        /// <summary>从Csv文件加载</summary>
+        /// <param name="file"></param>
+        public void LoadCsv(String file)
+        {
+            using var csv = new CsvFile(file, false);
+            Columns = csv.ReadLine();
+            Rows = csv.ReadAll();
+        }
+        #endregion
+
+        #region 反射
+        /// <summary>写入模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="models"></param>
+        public void WriteModels<T>(IEnumerable<T> models)
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
+
+            Rows = new List<Object[]>();
+            foreach (var item in models)
+            {
+                // 头部
+                if (Columns == null)
+                {
+                    Columns = pis.Select(e => SerialHelper.GetName(e)).ToArray();
+                    Types = pis.Select(e => e.PropertyType).ToArray();
+                }
+
+                var row = new Object[Columns.Length];
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 反射取值
+                    if (pis[i].CanRead) row[i] = pis[i].GetValue(item, null);
+                }
+                Rows.Add(row);
+            }
+        }
+
+        /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IEnumerable<T> ReadModels<T>()
+        {
+            // 可用属性
+            var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var row in Rows)
+            {
+                var model = (T)typeof(T).CreateInstance();
+                for (var i = 0; i < row.Length; i++)
+                {
+                    // 扩展赋值，或 反射赋值
+                    if (dic.TryGetValue(Columns[i], out var pi) && pi.CanWrite)
+                    {
+                        var val = row[i].ChangeType(pi.PropertyType);
+                        if (model is IExtend ext)
+                            ext[Columns[i]] = val;
+                        else
+                            pi.SetValue(model, val, null);
+                    }
+                }
+
+                yield return model;
+            }
+        }
         #endregion
 
         #region 获取
@@ -285,7 +448,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public T Get<T>(Int32 row, String name)
         {
-            if (!TryGet<T>(row, name, out var value)) return default(T);
+            if (!TryGet<T>(row, name, out var value)) return default;
 
             return value;
         }
@@ -298,7 +461,7 @@ namespace NewLife.Data
         /// <returns></returns>
         public Boolean TryGet<T>(Int32 row, String name, out T value)
         {
-            value = default(T);
+            value = default;
             var rs = Rows;
 
             if (row < 0 || row >= rs.Count || name.IsNullOrEmpty()) return false;
@@ -331,7 +494,7 @@ namespace NewLife.Data
         #region 辅助
         /// <summary>数据集</summary>
         /// <returns></returns>
-        public override String ToString() => "DbTable[{0}][{1}]".F(Columns == null ? 0 : Columns.Length, Rows == null ? 0 : Rows.Count);
+        public override String ToString() => $"DbTable[{Columns?.Length}][{Rows?.Count}]";
 
         private static IDictionary<TypeCode, Object> _Defs;
         private static Object GetDefault(TypeCode tc)
@@ -342,58 +505,24 @@ namespace NewLife.Data
                 foreach (TypeCode item in Enum.GetValues(typeof(TypeCode)))
                 {
                     Object val = null;
-                    switch (item)
+                    val = item switch
                     {
-                        case TypeCode.Boolean:
-                            val = false;
-                            break;
-                        case TypeCode.Char:
-                            val = (Char)0;
-                            break;
-                        case TypeCode.SByte:
-                            val = (SByte)0;
-                            break;
-                        case TypeCode.Byte:
-                            val = (Byte)0;
-                            break;
-                        case TypeCode.Int16:
-                            val = (Int16)0;
-                            break;
-                        case TypeCode.UInt16:
-                            val = (UInt16)0;
-                            break;
-                        case TypeCode.Int32:
-                            val = 0;
-                            break;
-                        case TypeCode.UInt32:
-                            val = (UInt32)0;
-                            break;
-                        case TypeCode.Int64:
-                            val = (Int64)0;
-                            break;
-                        case TypeCode.UInt64:
-                            val = (UInt64)0;
-                            break;
-                        case TypeCode.Single:
-                            val = (Single)0;
-                            break;
-                        case TypeCode.Double:
-                            val = (Double)0;
-                            break;
-                        case TypeCode.Decimal:
-                            val = (Decimal)0;
-                            break;
-                        case TypeCode.DateTime:
-                            val = DateTime.MinValue;
-                            break;
-                        case TypeCode.Empty:
-                        case TypeCode.Object:
-                        case TypeCode.DBNull:
-                        case TypeCode.String:
-                        default:
-                            val = null;
-                            break;
-                    }
+                        TypeCode.Boolean => false,
+                        TypeCode.Char => (Char)0,
+                        TypeCode.SByte => (SByte)0,
+                        TypeCode.Byte => (Byte)0,
+                        TypeCode.Int16 => (Int16)0,
+                        TypeCode.UInt16 => (UInt16)0,
+                        TypeCode.Int32 => 0,
+                        TypeCode.UInt32 => (UInt32)0,
+                        TypeCode.Int64 => (Int64)0,
+                        TypeCode.UInt64 => (UInt64)0,
+                        TypeCode.Single => (Single)0,
+                        TypeCode.Double => (Double)0,
+                        TypeCode.Decimal => (Decimal)0,
+                        TypeCode.DateTime => DateTime.MinValue,
+                        _ => null,
+                    };
                     dic[item] = val;
                 }
                 _Defs = dic;
@@ -444,7 +573,7 @@ namespace NewLife.Data
 
                 if (_row < 0 || _row >= rs.Count)
                 {
-                    _Current = default(DbRow);
+                    _Current = default;
                     return false;
                 }
 
@@ -457,7 +586,7 @@ namespace NewLife.Data
 
             public void Reset()
             {
-                _Current = default(DbRow);
+                _Current = default;
                 _row = -1;
             }
 

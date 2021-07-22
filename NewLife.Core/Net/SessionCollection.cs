@@ -9,10 +9,10 @@ using NewLife.Threading;
 namespace NewLife.Net
 {
     /// <summary>会话集合。带有自动清理不活动会话的功能</summary>
-    class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
+    internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
     {
         #region 属性
-        ConcurrentDictionary<String, ISocketSession> _dic = new ConcurrentDictionary<String, ISocketSession>();
+        private readonly ConcurrentDictionary<String, ISocketSession> _dic = new();
 
         /// <summary>服务端</summary>
         public ISocketServer Server { get; private set; }
@@ -21,7 +21,7 @@ namespace NewLife.Net
         public Int32 ClearPeriod { get; set; } = 10;
 
         /// <summary>清理会话计时器</summary>
-        private TimerX clearTimer;
+        private readonly TimerX clearTimer;
         #endregion
 
         #region 构造
@@ -37,9 +37,9 @@ namespace NewLife.Net
             };
         }
 
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             clearTimer.TryDispose();
 
@@ -54,10 +54,11 @@ namespace NewLife.Net
         public Boolean Add(ISocketSession session)
         {
             var key = session.Remote.EndPoint + "";
-            if (_dic.ContainsKey(key)) return false;
+            //if (_dic.ContainsKey(key)) return false;
+
+            if (!_dic.TryAdd(key, session)) return false;
 
             session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
-            _dic.TryAdd(key, session);
 
             return true;
         }
@@ -84,7 +85,7 @@ namespace NewLife.Net
         }
 
         /// <summary>移除不活动的会话</summary>
-        void RemoveNotAlive(Object state)
+        private void RemoveNotAlive(Object state)
         {
             if (!_dic.Any()) return;
 
@@ -93,7 +94,7 @@ namespace NewLife.Net
             var keys = new List<String>();
             var values = new List<ISocketSession>();
             // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost("{0}.RemoveNotAlive".F(GetType().Name), 100))
+            using (var tc = new TimeCost($"{GetType().Name}.RemoveNotAlive", 100))
             {
                 tc.Log = Server.Log;
 
@@ -123,12 +124,7 @@ namespace NewLife.Net
             }
         }
 
-        Boolean IsNotAlive(ISocketSession session, Int32 timeout)
-        {
-            // 如果有最后时间则判断最后时间，否则判断开始时间
-            var time = session.LastTime > DateTime.MinValue ? session.LastTime : session.StartTime;
-            return time.AddSeconds(timeout) < DateTime.Now;
-        }
+        private static Boolean IsNotAlive(ISocketSession session, Int32 timeout) => session.LastTime > DateTime.MinValue && session.LastTime.AddSeconds(timeout) < DateTime.Now;
         #endregion
 
         #region 成员
@@ -138,7 +134,7 @@ namespace NewLife.Net
 
         public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly;
 
-        public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator() as IEnumerator<ISocketSession>;
+        public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _dic.GetEnumerator();
         #endregion
@@ -165,7 +161,7 @@ namespace NewLife.Net
 
         ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
-        ISocketSession IDictionary<String, ISocketSession>.this[String key] { get { return _dic[key]; } set { _dic[key] = value; } }
+        ISocketSession IDictionary<String, ISocketSession>.this[String key] { get => _dic[key]; set => _dic[key] = value; }
 
         #endregion
 

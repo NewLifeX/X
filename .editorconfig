@@ -1,4 +1,4 @@
-# EditorConfig is awesome:http://EditorConfig.org
+ï»¿# EditorConfig is awesome:http://EditorConfig.org
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 
 # top-most EditorConfig file
@@ -43,7 +43,7 @@ csharp_indent_labels = flush_left
 #csharp_space_between_method_call_parameter_list_parentheses = true
 #csharp_space_between_parentheses = control_flow_statements, type_casts
 
-# µ¥ĞĞ·ÅÖÃ´úÂë
+# å•è¡Œæ”¾ç½®ä»£ç 
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
@@ -96,7 +96,7 @@ csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
-# µ¥ĞĞ²»ĞèÒª´óÀ¨ºÅ
+# å•è¡Œä¸éœ€è¦å¤§æ‹¬å·
 csharp_prefer_braces = false:suggestion
 
 # Newline settings

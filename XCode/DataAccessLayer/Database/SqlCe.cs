@@ -37,13 +37,11 @@ namespace XCode.DataAccessLayer
 
                         if (_Factory != null)
                         {
-                            using (var conn = _Factory.CreateConnection())
-                            {
-                                if (conn.ServerVersion.StartsWith("4"))
-                                    SqlCeProviderVersion = SQLCEVersion.SQLCE40;
-                                else
-                                    SqlCeProviderVersion = SQLCEVersion.SQLCE35;
-                            }
+                            using var conn = _Factory.CreateConnection();
+                            if (conn.ServerVersion.StartsWith("4"))
+                                SqlCeProviderVersion = SQLCEVersion.SQLCE40;
+                            else
+                                SqlCeProviderVersion = SQLCEVersion.SQLCE35;
                         }
                     }
                 }
@@ -110,10 +108,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        protected override String ReservedWordsStr
-        {
-            get { return "ADD,ALL,ALTER,AND,ANY,APPLY,AS,ASC,AUTHORIZATION,BACKUP,BEGIN,BETWEEN,BREAK,BROWSE,BULK,BY,CASCADE,CASE,CAST,CHECK,CHECKPOINT,CLOSE,CLUSTERED,COALESCE,COLLATE,COLUMN,COMMIT,COMPUTE,CONSTRAINT,CONTAINS,CONTAINSTABLE,CONTINUE,CONVERT,CREATE,CROSS,CURRENT,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DBCC,DEALLOCATE,DECLARE,DEFAULT,DELETE,DENY,DESC,DISK,DISTINCT,DISTRIBUTED,DOUBLE,DROP,DUMP,ELSE,END,ERRLVL,ESCAPE,EXCEPT,EXEC,EXECUTE,EXISTS,EXIT,EXTERNAL,FETCH,FILE,FILLFACTOR,FIRST,FOR,FOREIGN,FREETEXT,FREETEXTTABLE,FROM,FULL,FUNCTION,GOTO,GRANT,GROUP,HAVING,HOLDLOCK,IDENTITY,IDENTITY_INSERT,IDENTITYCOL,IF,IN,INDEX,INNER,INSERT,INTERSECT,INTO,IS,JOIN,KEY,KILL,LEFT,LIKE,LINENO,LOAD,NATIONAL,NEXT,NOCHECK,NONCLUSTERED,NOT,NULL,NULLIF,OF,OFF,OFFSET,OFFSETS,ON,ONLY,OPEN,OPENDATASOURCE,OPENQUERY,OPENROWSET,OPENXML,OPTION,OR,ORDER,OUTER,OVER,PERCENT,PIVOT,PLAN,PRIMARY,PRINT,PROC,PROCEDURE,PUBLIC,RAISERROR,READ,READTEXT,RECONFIGURE,REFERENCES,REPLICATION,RESTORE,RESTRICT,RETURN,REVERT,REVOKE,RIGHT,ROLLBACK,ROW,ROWCOUNT,ROWGUIDCOL,ROWS,RULE,SAVE,SCHEMA,SELECT,SESSION_USER,SET,SETUSER,SHUTDOWN,SOME,STATISTICS,SYSTEM_USER,TABLE,TEXTSIZE,THEN,TO,TOP,TRAN,TRANSACTION,TRIGGER,TRUNCATE,TSEQUAL,UNION,UNIQUE,UNPIVOT,UPDATE,UPDATETEXT,USE,USER,VALUES,VARYING,VIEW,WAITFOR,WHEN,WHERE,WHILE,WITH,WRITETEXT,XMLUNNEST"; }
-        }
+        protected override String ReservedWordsStr => "ADD,ALL,ALTER,AND,ANY,APPLY,AS,ASC,AUTHORIZATION,BACKUP,BEGIN,BETWEEN,BREAK,BROWSE,BULK,BY,CASCADE,CASE,CAST,CHECK,CHECKPOINT,CLOSE,CLUSTERED,COALESCE,COLLATE,COLUMN,COMMIT,COMPUTE,CONSTRAINT,CONTAINS,CONTAINSTABLE,CONTINUE,CONVERT,CREATE,CROSS,CURRENT,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DBCC,DEALLOCATE,DECLARE,DEFAULT,DELETE,DENY,DESC,DISK,DISTINCT,DISTRIBUTED,DOUBLE,DROP,DUMP,ELSE,END,ERRLVL,ESCAPE,EXCEPT,EXEC,EXECUTE,EXISTS,EXIT,EXTERNAL,FETCH,FILE,FILLFACTOR,FIRST,FOR,FOREIGN,FREETEXT,FREETEXTTABLE,FROM,FULL,FUNCTION,GOTO,GRANT,GROUP,HAVING,HOLDLOCK,IDENTITY,IDENTITY_INSERT,IDENTITYCOL,IF,IN,INDEX,INNER,INSERT,INTERSECT,INTO,IS,JOIN,KEY,KILL,LEFT,LIKE,LINENO,LOAD,NATIONAL,NEXT,NOCHECK,NONCLUSTERED,NOT,NULL,NULLIF,OF,OFF,OFFSET,OFFSETS,ON,ONLY,OPEN,OPENDATASOURCE,OPENQUERY,OPENROWSET,OPENXML,OPTION,OR,ORDER,OUTER,OVER,PERCENT,PIVOT,PLAN,PRIMARY,PRINT,PROC,PROCEDURE,PUBLIC,RAISERROR,READ,READTEXT,RECONFIGURE,REFERENCES,REPLICATION,RESTORE,RESTRICT,RETURN,REVERT,REVOKE,RIGHT,ROLLBACK,ROW,ROWCOUNT,ROWGUIDCOL,ROWS,RULE,SAVE,SCHEMA,SELECT,SESSION_USER,SET,SETUSER,SHUTDOWN,SOME,STATISTICS,SYSTEM_USER,TABLE,TEXTSIZE,THEN,TO,TOP,TRAN,TRANSACTION,TRIGGER,TRUNCATE,TSEQUAL,UNION,UNIQUE,UNPIVOT,UPDATE,UPDATETEXT,USE,USER,VALUES,VARYING,VIEW,WAITFOR,WHEN,WHERE,WHILE,WITH,WRITETEXT,XMLUNNEST";
 
         ///// <summary>当前时间函数</summary>
         //public override String DateTimeNow { get { return "getdate()"; } }
@@ -139,15 +134,12 @@ namespace XCode.DataAccessLayer
 
             if (keyWord.StartsWith("[") && keyWord.EndsWith("]")) return keyWord;
 
-            return String.Format("[{0}]", keyWord);
+            return $"[{keyWord}]";
         }
         #endregion
 
         #region 分页
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            return MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
-        }
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => MSPageSplit.PageSplit(builder, startRowIndex, maximumRows, false, b => CreateSession().QueryCount(b));
         #endregion
     }
 
@@ -287,23 +279,7 @@ namespace XCode.DataAccessLayer
             var sb = new StringBuilder(sql.Length + 32 + pks.Length * 16);
             sb.Append(sql);
             sb.Append(";\r\n");
-            sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key (", FormatName(table.TableName), table.TableName);
-
-            //foreach (var item in pks)
-            //{
-            //    sb.Append(FormatName(item.ColumnName));
-            //    sb.Append(",");
-            //}
-            //sb.Remove(sb.Length - 1, 1);
-
-            // sb.Remove涉及内存复制
-            for (var i = 0; i < pks.Length; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(FormatName(pks[i].ColumnName));
-            }
-
-            sb.Append(")");
+            sb.AppendFormat("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table), table.TableName, pks.Join(",", FormatName));
 
             //sql += ";" + Environment.NewLine;
             //sql += String.Format("Alter Table {0} Add Constraint PK_{1} Primary Key ({2})", FormatName(table.TableName), table.TableName, sb);
@@ -396,7 +372,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "varbinary({0})", "timestamp", "binary({0})", "image" } },
             { typeof(Guid), new String[] { "uniqueidentifier" } },
@@ -432,7 +408,7 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe辅助类</summary>
     public static class SqlCeHelper
     {
-        static Dictionary<Int32, SQLCEVersion> versionDictionary = new Dictionary<Int32, SQLCEVersion>
+        static readonly Dictionary<Int32, SQLCEVersion> versionDictionary = new()
         {
             { 0x73616261, SQLCEVersion.SQLCE20 },
             { 0x002dd714, SQLCEVersion.SQLCE30 },
@@ -450,10 +426,8 @@ namespace XCode.DataAccessLayer
             using (var fs = new FileStream(fileName, FileMode.Open))
             {
                 fs.Seek(16, SeekOrigin.Begin);
-                using (var reader = new BinaryReader(fs))
-                {
-                    versionLONGWORD = reader.ReadInt32();
-                }
+                using var reader = new BinaryReader(fs);
+                versionLONGWORD = reader.ReadInt32();
             }
 
             if (versionDictionary.ContainsKey(versionLONGWORD))
@@ -519,13 +493,11 @@ namespace XCode.DataAccessLayer
 
     class SqlCeEngine : IDisposable
     {
-        private static Type _EngineType = "System.Data.SqlServerCe.SqlCeEngine".GetTypeEx(true);
         /// <summary></summary>
-        public static Type EngineType { get { return _EngineType; } set { _EngineType = value; } }
+        public static Type EngineType { get; set; } = "System.Data.SqlServerCe.SqlCeEngine".GetTypeEx(true);
 
-        private Object _Engine;
         /// <summary>引擎</summary>
-        public Object Engine { get { return _Engine; } set { _Engine = value; } }
+        public Object Engine { get; set; }
 
         public static SqlCeEngine Create(String connstr)
         {

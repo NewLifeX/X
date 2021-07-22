@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Caching;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Security;
 
@@ -134,8 +135,8 @@ namespace NewLife.Web
         {
             var prv = GetProvider();
 
-            var username = prv.Decode(token, out var expire);
-            if (username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
+            var rs = prv.TryDecode(token, out var username, out var expire);
+            if (!rs || username.IsNullOrEmpty()) throw new Exception("非法访问令牌");
             if (expire < DateTime.Now) throw new Exception("令牌已过期");
 
             return username;
@@ -168,15 +169,12 @@ namespace NewLife.Web
 
         #region 日志
         /// <summary>日志</summary>
-        public NewLife.Log.ILog Log { get; set; }
+        public ILog Log { get; set; }
 
         /// <summary>写日志</summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void WriteLog(String format, params Object[] args)
-        {
-            Log?.Info(format, args);
-        }
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
@@ -48,7 +49,7 @@ namespace XCode.Service
             {
                 var u = new Uri(uri);
 
-                Servers = new[] { "{2}://{0}:{1}".F(u.Host, u.Port, u.Scheme) };
+                Servers = new[] { $"{u.Scheme}://{u.Host}:{u.Port}" };
 
                 Db = u.PathAndQuery.Split("/").FirstOrDefault();
                 var us = u.UserInfo.Split(":");

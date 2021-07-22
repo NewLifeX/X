@@ -49,7 +49,7 @@ namespace NewLife.Http
                 // 构造资源路径
                 var sch = Headers["Sec-WebSocket-Key"] + "" != "" ? "ws" : "http";
                 var host = Headers["Host"] + "";
-                var uri = "{0}://{1}".F(sch, host);
+                var uri = $"{sch}://{host}";
                 //var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
                 //if (host.IsNullOrEmpty() || !host.Contains(":"))
                 //{
@@ -87,14 +87,14 @@ namespace NewLife.Http
                 if (uri.Port == 80)
                     host = uri.Host;
                 else
-                    host = "{0}:{1}".F(uri.Host, uri.Port);
+                    host = $"{uri.Host}:{uri.Port}";
             }
             else if (uri.Scheme.EqualIgnoreCase("https"))
             {
                 if (uri.Port == 443)
                     host = uri.Host;
                 else
-                    host = "{0}:{1}".F(uri.Host, uri.Port);
+                    host = $"{uri.Host}:{uri.Port}";
             }
 
             // 构建头部

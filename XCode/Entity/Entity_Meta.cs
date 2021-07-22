@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
+using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
-using XCode.DataAccessLayer;
+using XCode.Shards;
 
 namespace XCode
 {
-    partial class Entity<TEntity>
+    public partial class Entity<TEntity>
     {
         /// <summary>实体元数据</summary>
         public static class Meta
@@ -22,67 +24,50 @@ namespace XCode
             /// <summary>实体类型</summary>
             public static Type ThisType => typeof(TEntity);
 
+            //private static IEntityFactory _Factory;
             /// <summary>实体操作者</summary>
-            public static IEntityOperate Factory
+            public static IEntityFactory Factory
             {
                 get
                 {
+                    // 不能缓存Factory，因为后期可能会改变注册，比如Menu
+                    //if (_Factory != null) return _Factory;
+
                     var type = ThisType;
                     if (type.IsInterface) return null;
 
-                    return EntityFactory.CreateOperate(type);
+                    return /*_Factory = */type.AsFactory();
                 }
             }
-
-            [ThreadStatic]
-            private static EntitySession<TEntity> _Session;
-            /// <summary>实体会话。线程静态</summary>
-            public static EntitySession<TEntity> Session => _Session ?? (_Session = EntitySession<TEntity>.Create(ConnName, TableName));
             #endregion
 
             #region 基本属性
-            private static Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
+            private static readonly Lazy<TableItem> _Table = new(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 
-            [ThreadStatic]
-            private static String _ConnName;
+#if NET40 || NET45
+            private static readonly ThreadLocal<String> _ConnName = new();
+#else
+            private static readonly AsyncLocal<String> _ConnName = new();
+#endif
             /// <summary>链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
             public static String ConnName
             {
-                get { if (_ConnName.IsNullOrEmpty()) _ConnName = Table.ConnName; return _ConnName; }
-                set
-                {
-                    _Session = null;
-                    _ConnName = value;
-                }
+                get => _ConnName.Value ??= Table.ConnName;
+                set { _Session.Value = null; _ConnName.Value = value; }
             }
 
-            [ThreadStatic]
-            private static String _TableName;
+#if NET40 || NET45
+            private static readonly ThreadLocal<String> _TableName = new();
+#else
+            private static readonly AsyncLocal<String> _TableName = new();
+#endif
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
-                get
-                {
-                    if (_TableName == null)
-                    {
-                        var name = Table.TableName;
-
-                        //// 检查自动表前缀
-                        //var dal = DAL.Create(ConnName);
-                        //var pf = dal.Db.TablePrefix;
-                        //if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
-
-                        _TableName = name;
-                    }
-                    return _TableName;
-                }
-                set
-                {
-                    _Session = null;
-                    _TableName = value;
-                }
+                get => _TableName.Value ??= Table.TableName;
+                set { _Session.Value = null; _TableName.Value = value; }
             }
 
             /// <summary>所有数据属性</summary>
@@ -100,14 +85,24 @@ namespace XCode
                 get
                 {
                     var dt = Table;
-                    if (dt.Identity != null) return dt.Identity;
                     if (dt.PrimaryKeys.Length == 1) return dt.PrimaryKeys[0];
+                    if (dt.Identity != null) return dt.Identity;
                     return null;
                 }
             }
 
             /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
             public static FieldItem Master => Table.Master ?? Unique;
+            #endregion
+
+            #region 会话
+#if NET40 || NET45
+            private static readonly ThreadLocal<EntitySession<TEntity>> _Session = new();
+#else
+            private static readonly AsyncLocal<EntitySession<TEntity>> _Session = new();
+#endif
+            /// <summary>实体会话。线程静态</summary>
+            public static EntitySession<TEntity> Session => _Session.Value ??= EntitySession<TEntity>.Create(ConnName, TableName);
             #endregion
 
             #region 事务保护
@@ -134,27 +129,27 @@ namespace XCode
             #endregion
 
             #region 辅助方法
-            /// <summary>格式化关键字</summary>
-            /// <param name="name">名称</param>
-            /// <returns></returns>
-            public static String FormatName(String name) => Session.Dal.Db.FormatName(name);
+            ///// <summary>格式化关键字</summary>
+            ///// <param name="name">名称</param>
+            ///// <returns></returns>
+            //public static String FormatName(String name) => Session.Dal.Db.FormatName(name);
 
-            /// <summary>格式化时间</summary>
-            /// <param name="dateTime"></param>
-            /// <returns></returns>
-            public static String FormatDateTime(DateTime dateTime) => Session.Dal.Db.FormatDateTime(dateTime);
+            ///// <summary>格式化时间</summary>
+            ///// <param name="dateTime"></param>
+            ///// <returns></returns>
+            //public static String FormatDateTime(DateTime dateTime) => Session.Dal.Db.FormatDateTime(dateTime);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="name">名称</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public static String FormatValue(String name, Object value) => FormatValue(Table.FindByName(name), value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="name">名称</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public static String FormatValue(String name, Object value) => FormatValue(Table.FindByName(name), value);
 
-            /// <summary>格式化数据为SQL数据</summary>
-            /// <param name="field">字段</param>
-            /// <param name="value">数值</param>
-            /// <returns></returns>
-            public static String FormatValue(FieldItem field, Object value) => Session.Dal.Db.FormatValue(field?.Field, value);
+            ///// <summary>格式化数据为SQL数据</summary>
+            ///// <param name="field">字段</param>
+            ///// <param name="value">数值</param>
+            ///// <returns></returns>
+            //public static String FormatValue(FieldItem field, Object value) => Session.Dal.Db.FormatValue(field?.Field, value);
             #endregion
 
             #region 缓存
@@ -176,17 +171,27 @@ namespace XCode
             #endregion
 
             #region 分表分库
+            /// <summary>自动分库回调，用于添删改操作</summary>
+            [Obsolete("=>AutoShard")]
+            public static Func<TEntity, String> ShardConnName { get; set; }
+
+            /// <summary>自动分表回调，用于添删改操作</summary>
+            [Obsolete("=>AutoShard")]
+            public static Func<TEntity, String> ShardTableName { get; set; }
+
+            /// <summary>分表分库策略</summary>
+            public static IShardPolicy ShardPolicy { get; set; }
+
             /// <summary>在分库上执行操作，自动还原</summary>
             /// <param name="connName"></param>
             /// <param name="tableName"></param>
             /// <param name="func"></param>
             /// <returns></returns>
+            [Obsolete("=>CreateSplit")]
             public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
             {
-                using (var split = CreateSplit(connName, tableName))
-                {
-                    return func();
-                }
+                using var split = CreateSplit(connName, tableName);
+                return func();
             }
 
             /// <summary>创建分库会话，using结束时自动还原</summary>
@@ -195,7 +200,56 @@ namespace XCode
             /// <returns></returns>
             public static IDisposable CreateSplit(String connName, String tableName) => new SplitPackge(connName, tableName);
 
-            class SplitPackge : IDisposable
+            /// <summary>针对实体对象自动分库分表</summary>
+            /// <param name="entity"></param>
+            /// <returns></returns>
+            public static IDisposable CreateShard(TEntity entity)
+            {
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Shard(entity);
+                if (model != null) return new SplitPackge(model.ConnName, model.TableName);
+
+#pragma warning disable CS0618 // 类型或成员已过时
+                var connName = ShardConnName?.Invoke(entity);
+                var tableName = ShardTableName?.Invoke(entity);
+                if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
+#pragma warning restore CS0618 // 类型或成员已过时
+
+                return new SplitPackge(connName, tableName);
+            }
+
+            /// <summary>为实体对象、时间、雪花Id等计算分表分库</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static IDisposable CreateShard(Object value)
+            {
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Shard(value);
+                if (model == null) return null;
+
+                return new SplitPackge(model.ConnName, model.TableName);
+            }
+
+            /// <summary>针对时间区间自动分库分表，常用于多表顺序查询，支持倒序</summary>
+            /// <param name="start"></param>
+            /// <param name="end"></param>
+            /// <param name="callback"></param>
+            /// <returns></returns>
+            public static IEnumerable<T> AutoShard<T>(DateTime start, DateTime end, Func<T> callback)
+            {
+                // 使用自动分表分库策略
+                var models = ShardPolicy?.Shards(start, end);
+                if (models == null) yield break;
+
+                foreach (var model in models)
+                {
+                    using var shard = new SplitPackge(model.ConnName, model.TableName);
+                    var rs = callback();
+                    if (!Equals(rs, default)) yield return rs;
+                }
+            }
+
+            private class SplitPackge : IDisposable
             {
                 /// <summary>连接名</summary>
                 public String ConnName { get; set; }
@@ -221,7 +275,7 @@ namespace XCode
             #endregion
 
             #region 模块
-            internal static EntityModules _Modules = new EntityModules(typeof(TEntity));
+            internal static EntityModules _Modules = new(typeof(TEntity));
             /// <summary>实体模块集合</summary>
             public static EntityModules Modules => _Modules;
             #endregion

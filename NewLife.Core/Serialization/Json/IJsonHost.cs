@@ -5,12 +5,15 @@ using NewLife.Reflection;
 namespace NewLife.Serialization
 {
     /// <summary>Json序列化接口</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public interface IJsonHost
     {
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
         /// <param name="indented">是否缩进。默认false</param>
-        /// <param name="nullValue">是否写控制。默认true</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
         /// <param name="camelCase">是否驼峰命名。默认false</param>
         /// <returns></returns>
         String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false);
@@ -29,20 +32,13 @@ namespace NewLife.Serialization
     }
 
     /// <summary>Json助手</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public static class JsonHelper
     {
         /// <summary>默认实现</summary>
         public static IJsonHost Default { get; set; } = new FastJson();
-
-        static JsonHelper()
-        {
-            //Default = new FastJson();
-
-            //if (JsonNet.Support())
-            //    Default = new JsonNet();
-            //else
-            //    Default = new JsonDefault();
-        }
 
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
@@ -156,7 +152,7 @@ namespace NewLife.Serialization
         public static T Convert<T>(Object obj)
         {
             if (obj == null) return default;
-            if (obj is T) return (T)obj;
+            if (obj is T t) return t;
             if (obj.GetType().As<T>()) return (T)obj;
 
             return (T)Default.Convert(obj, typeof(T));

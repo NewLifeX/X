@@ -7,6 +7,7 @@ using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -184,7 +185,7 @@ namespace XCode.DataAccessLayer
             if (dt?.Rows == null || dt.Rows.Count < 1) return null;
 
             // 默认列出所有字段
-            var rows = dt.Select(String.Format("{0}='Table' Or {0}='View'", "TABLE_TYPE"));
+            var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
 
             return GetTables(rows, names);
         }
@@ -283,7 +284,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
             { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },

@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
-using NewLife.Reflection;
-using NewLife.Threading;
 
 namespace XCode.Membership
 {
@@ -45,21 +42,11 @@ namespace XCode.Membership
     }
 
     /// <summary>角色</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class Role : Role<Role> { }
-
-    /// <summary>角色</summary>
-    /// <typeparam name="TEntity"></typeparam>
-    public abstract partial class Role<TEntity> : LogEntity<TEntity>
-          where TEntity : Role<TEntity>, new()
+    public partial class Role : LogEntity<Role>, IRole
     {
         #region 对象操作
         static Role()
         {
-            // 用于引发基类的静态构造函数
-            var entity = new TEntity();
-
             //Meta.Factory.FullInsert = false;
 
             Meta.Modules.Add<UserModule>();
@@ -71,8 +58,6 @@ namespace XCode.Membership
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected override void InitData()
         {
-            base.InitData();
-
             if (Meta.Count > 0)
             {
                 // 必须有至少一个可用的系统角色
@@ -92,19 +77,19 @@ namespace XCode.Membership
             }
             else
             {
-                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}角色数据……", typeof(Role).Name);
 
                 Add("管理员", true, "默认拥有全部最高权限，由系统工程师使用，安装配置整个系统");
                 Add("高级用户", false, "业务管理人员，可以管理业务模块，可以分配授权用户等级");
                 Add("普通用户", false, "普通业务人员，可以使用系统常规业务模块功能");
-                Add("游客", false, "新注册用户默认属于游客组");
+                Add("游客", false, "新注册默认属于游客");
 
-                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(TEntity).Name);
+                if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}角色数据！", typeof(Role).Name);
             }
 
             //CheckRole();
-            // 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
-            ThreadPoolX.QueueUserWorkItem(CheckRole);
+            //// 当前处于事务之中，下面使用Menu会触发异步检查架构，SQLite单线程机制可能会造成死锁
+            //ThreadPoolX.QueueUserWorkItem(CheckRole);
         }
 
         /// <summary>初始化时执行必要的权限检查，以防万一管理员无法操作</summary>
@@ -114,9 +99,8 @@ namespace XCode.Membership
             var list = FindAll();
 
             // 如果某些菜单已经被删除，但是角色权限表仍然存在，则删除
-            var eopMenu = ManageProvider.GetFactory<IMenu>();
-            var menus = eopMenu.FindAll().Cast<IMenu>().ToList();
-            var ids = menus.Select(e => (Int32)e["ID"]).ToArray();
+            var menus = Menu.FindAll();
+            var ids = menus.Select(e => e.ID).ToArray();
             foreach (var role in list)
             {
                 if (!role.CheckValid(ids)) XTrace.WriteLine("删除[{0}]中的无效资源权限！", role);
@@ -156,7 +140,7 @@ namespace XCode.Membership
                 sys.Save();
 
                 // 更新缓存
-                Meta.Cache.Clear("CheckRole");
+                Meta.Cache.Clear("CheckRole", true);
             }
         }
 
@@ -185,16 +169,16 @@ namespace XCode.Membership
 
             if (Meta.Count <= 1 && FindCount() <= 1)
             {
-                var msg = String.Format("至少保留一个角色[{0}]禁止删除！", name);
-                WriteLog("删除", msg);
+                var msg = $"至少保留一个角色[{name}]禁止删除！";
+                WriteLog("删除", true, msg);
 
                 throw new XException(msg);
             }
 
             if (entity.IsSystem)
             {
-                var msg = String.Format("系统角色[{0}]禁止删除！", name);
-                WriteLog("删除", msg);
+                var msg = $"系统角色[{name}]禁止删除！";
+                WriteLog("删除", true, msg);
 
                 throw new XException(msg);
             }
@@ -245,7 +229,7 @@ namespace XCode.Membership
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static Role FindByID(Int32 id)
         {
             if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
@@ -255,12 +239,12 @@ namespace XCode.Membership
         /// <summary>根据编号查找角色</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        IRole IRole.FindByID(Int32 id) { return FindByID(id); }
+        IRole IRole.FindByID(Int32 id) => FindByID(id);
 
         /// <summary>根据名称查找角色</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name)
+        public static Role FindByName(String name)
         {
             if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
 
@@ -269,9 +253,10 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展权限
+        private IDictionary<Int32, PermissionFlags> _Permissions;
         /// <summary>本角色权限集合</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public IDictionary<Int32, PermissionFlags> Permissions { get; } = new Dictionary<Int32, PermissionFlags>();
+        public IDictionary<Int32, PermissionFlags> Permissions => _Permissions ??= new Dictionary<Int32, PermissionFlags>();
 
         /// <summary>是否拥有指定资源的指定权限</summary>
         /// <param name="resid"></param>
@@ -306,15 +291,13 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Set(Int32 resid, PermissionFlags flag = PermissionFlags.All)
         {
-            var pf = PermissionFlags.None;
-            if (!Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
-                if (flag != PermissionFlags.None)
-                    Permissions.Add(resid, flag);
+                Permissions[resid] = pf | flag;
             }
             else
             {
-                Permissions[resid] = pf | flag;
+                if (flag != PermissionFlags.None) Permissions.Add(resid, flag);
             }
         }
 
@@ -323,8 +306,7 @@ namespace XCode.Membership
         /// <param name="flag"></param>
         public void Reset(Int32 resid, PermissionFlags flag)
         {
-            var pf = PermissionFlags.None;
-            if (Permissions.TryGetValue(resid, out pf))
+            if (Permissions.TryGetValue(resid, out var pf))
             {
                 Permissions[resid] = pf & ~flag;
             }
@@ -368,9 +350,12 @@ namespace XCode.Membership
 
         void SavePermission()
         {
+            var ps = _Permissions;
+            if (ps == null) return;
+
             // 不能这样子直接清空，因为可能没有任何改变，而这么做会两次改变脏数据，让系统以为有改变
             //Permission = null;
-            if (Permissions.Count <= 0)
+            if (ps.Count <= 0)
             {
                 //Permission = null;
                 SetItem(__.Permission, null);
@@ -379,13 +364,13 @@ namespace XCode.Membership
 
             var sb = Pool.StringBuilder.Get();
             // 根据资源按照从小到大排序一下
-            foreach (var item in Permissions.OrderBy(e => e.Key))
+            foreach (var item in ps.OrderBy(e => e.Key))
             {
                 //// 跳过None
                 //if (item.Value == PermissionFlags.None) continue;
                 // 不要跳过None，因为None表示只读
 
-                if (sb.Length > 0) sb.Append(",");
+                if (sb.Length > 0) sb.Append(',');
                 sb.AppendFormat("{0}#{1}", item.Key, (Int32)item.Value);
             }
             SetItem(__.Permission, sb.Put(true));
@@ -422,13 +407,13 @@ namespace XCode.Membership
         /// <param name="issys"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, Boolean issys, String remark = null)
+        public static Role Add(String name, Boolean issys, String remark = null)
         {
             //var entity = FindByName(name);
             var entity = Find(__.Name, name);
             if (entity != null) return entity;
 
-            entity = new TEntity
+            entity = new Role
             {
                 Name = name,
                 IsSystem = issys,
@@ -442,8 +427,71 @@ namespace XCode.Membership
         #endregion
     }
 
+    /// <summary>角色</summary>
     public partial interface IRole
     {
+        #region 属性
+        /// <summary>编号</summary>
+        Int32 ID { get; set; }
+
+        /// <summary>名称</summary>
+        String Name { get; set; }
+
+        /// <summary>启用</summary>
+        Boolean Enable { get; set; }
+
+        /// <summary>系统。用于业务系统开发使用，不受数据权限约束，禁止修改名称或删除</summary>
+        Boolean IsSystem { get; set; }
+
+        /// <summary>权限。对不同资源的权限，逗号分隔，每个资源的权限子项竖线分隔</summary>
+        String Permission { get; set; }
+
+        /// <summary>扩展1</summary>
+        Int32 Ex1 { get; set; }
+
+        /// <summary>扩展2</summary>
+        Int32 Ex2 { get; set; }
+
+        /// <summary>扩展3</summary>
+        Double Ex3 { get; set; }
+
+        /// <summary>扩展4</summary>
+        String Ex4 { get; set; }
+
+        /// <summary>扩展5</summary>
+        String Ex5 { get; set; }
+
+        /// <summary>扩展6</summary>
+        String Ex6 { get; set; }
+
+        /// <summary>创建者</summary>
+        String CreateUser { get; set; }
+
+        /// <summary>创建用户</summary>
+        Int32 CreateUserID { get; set; }
+
+        /// <summary>创建地址</summary>
+        String CreateIP { get; set; }
+
+        /// <summary>创建时间</summary>
+        DateTime CreateTime { get; set; }
+
+        /// <summary>更新者</summary>
+        String UpdateUser { get; set; }
+
+        /// <summary>更新用户</summary>
+        Int32 UpdateUserID { get; set; }
+
+        /// <summary>更新地址</summary>
+        String UpdateIP { get; set; }
+
+        /// <summary>更新时间</summary>
+        DateTime UpdateTime { get; set; }
+
+        /// <summary>备注</summary>
+        String Remark { get; set; }
+        #endregion
+
         /// <summary>本角色权限集合</summary>
         IDictionary<Int32, PermissionFlags> Permissions { get; }
 

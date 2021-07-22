@@ -21,7 +21,7 @@ namespace NewLife.IO
 
             if (asm == null) asm = Assembly.GetCallingAssembly();
             var stream = GetFileResource(asm, fileName);
-            if (stream == null) throw new ArgumentException("filename", String.Format("在程序集{0}中无法找到名为{1}的资源！", asm.GetName().Name, fileName));
+            if (stream == null) throw new ArgumentException("filename", $"在程序集{asm.GetName().Name}中无法找到名为{fileName}的资源！");
 
             if (destFile.IsNullOrEmpty()) destFile = fileName;
             destFile = destFile.GetFullPath();
@@ -35,10 +35,9 @@ namespace NewLife.IO
             {
                 if (File.Exists(destFile)) File.Delete(destFile);
 
-                using (var fs = File.Create(destFile))
-                {
-                    IOHelper.CopyTo(stream, fs);
-                }
+                using var fs = File.Create(destFile);
+                //IOHelper.CopyTo(stream, fs);
+                stream.CopyTo(fs);
             }
             catch { }
             finally { stream.Dispose(); }
@@ -74,7 +73,7 @@ namespace NewLife.IO
             else
                 ns = names.Where(e => e.StartsWithIgnoreCase(prefix));
 
-            if (String.IsNullOrEmpty(dest)) dest = AppDomain.CurrentDomain.BaseDirectory;
+            if (String.IsNullOrEmpty(dest)) dest = ".".GetFullPath();
             dest = dest.GetFullPath();
 
             // 开始处理
@@ -108,10 +107,9 @@ namespace NewLife.IO
                 {
                     if (File.Exists(filename)) File.Delete(filename);
 
-                    using (var fs = File.Create(filename))
-                    {
-                        IOHelper.CopyTo(stream, fs);
-                    }
+                    using var fs = File.Create(filename);
+                    //IOHelper.CopyTo(stream, fs);
+                    stream.CopyTo(fs);
                 }
                 catch { }
                 finally { stream.Dispose(); }

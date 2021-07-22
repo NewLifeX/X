@@ -45,7 +45,7 @@ namespace XCode.Common
         /// <returns></returns>
         public static Boolean IsEntityNullKey(IEntity entity)
         {
-            var eop = EntityFactory.CreateOperate(entity.GetType());
+            var eop = entity.GetType().AsFactory();
             foreach (var item in eop.Fields)
             {
                 if ((item.PrimaryKey || item.IsIdentity) && IsNullKey(entity[item.Name], item.Type)) return true;

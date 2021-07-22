@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using NewLife;
 using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -102,7 +103,7 @@ namespace XCode.Service
                     {
                         var name = bn.Read<String>();
                         var tc = (TypeCode)bn.Read<Byte>();
-                        var type = tc.ToString().GetTypeEx(false);
+                        var type = Type.GetType("System." + tc);
                         var value = bn.Read(type);
 
                         dic[name] = value;

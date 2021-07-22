@@ -3,11 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Log;
+#if !NET4
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Model
 {
     /// <summary>无锁并行编程模型</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/actor
+    /// 
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
     /// 适用于任务颗粒较大的场合，例如IO操作。
     /// </remarks>
@@ -43,17 +48,28 @@ namespace NewLife.Model
         /// <summary>是否启用</summary>
         public Boolean Active { get; private set; }
 
-        /// <summary>受限容量。最大可堆积的消息数</summary>
+        /// <summary>受限容量。最大可堆积的消息数，默认Int32.MaxValue</summary>
         public Int32 BoundedCapacity { get; set; } = Int32.MaxValue;
 
         /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
         public Int32 BatchSize { get; set; } = 1;
+
+        /// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
+        public Boolean LongRunning { get; set; }
 
         /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
 
         private Task _task;
         private Exception _error;
+
+#if NET40 || NET45
+        /// <summary>已完成任务</summary>
+        public static Task CompletedTask { get; } = TaskEx.FromResult(0);
+#else
+        /// <summary>已完成任务</summary>
+        public static Task CompletedTask { get; } = Task.CompletedTask;
+#endif
         #endregion
 
         #region 构造
@@ -62,9 +78,9 @@ namespace NewLife.Model
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _error = null;
             Stop(0);
@@ -105,9 +121,10 @@ namespace NewLife.Model
 
         /// <summary>开始时，返回执行线程包装任务，默认LongRunning</summary>
         /// <returns></returns>
-        protected virtual Task OnStart() => Task.Factory.StartNew(DoWork, TaskCreationOptions.LongRunning);
+        protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
 
         /// <summary>通知停止添加消息，并等待处理完成</summary>
+        /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
         public virtual Boolean Stop(Int32 msTimeout = 0)
         {
             MailBox?.CompleteAdding();
@@ -141,7 +158,7 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        private void DoWork()
+        private void DoActorWork()
         {
             try
             {
@@ -166,7 +183,8 @@ namespace NewLife.Model
                 if (BatchSize <= 1)
                 {
                     var ctx = box.Take();
-                    Receive(ctx);
+                    var task = ReceiveAsync(ctx);
+                    if (task != null) task.Wait();
                 }
                 else
                 {
@@ -176,24 +194,26 @@ namespace NewLife.Model
                     var ctx = box.Take();
                     list.Add(ctx);
 
+                    // 不阻塞取一批
                     for (var i = 1; i < BatchSize; i++)
                     {
                         if (!box.TryTake(out ctx)) break;
 
                         list.Add(ctx);
                     }
-                    Receive(list.ToArray());
+                    var task = ReceiveAsync(list.ToArray());
+                    if (task != null) task.Wait();
                 }
             }
         }
 
         /// <summary>处理消息</summary>
         /// <param name="context">上下文</param>
-        protected virtual void Receive(ActorContext context) { }
+        protected virtual Task ReceiveAsync(ActorContext context) => CompletedTask;
 
         /// <summary>批量处理消息</summary>
         /// <param name="contexts">上下文集合</param>
-        protected virtual void Receive(ActorContext[] contexts) { }
+        protected virtual Task ReceiveAsync(ActorContext[] contexts) => CompletedTask;
         #endregion
     }
 }

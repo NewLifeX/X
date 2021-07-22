@@ -19,7 +19,7 @@ namespace NewLife.Caching
     {
         #region 属性
         /// <summary>实体工厂</summary>
-        protected IEntityOperate Factory { get; }
+        protected IEntityFactory Factory { get; }
 
         /// <summary>主键字段</summary>
         protected Field KeyField { get; }
@@ -33,7 +33,7 @@ namespace NewLife.Caching
         /// <param name="factory"></param>
         /// <param name="keyName"></param>
         /// <param name="timeName"></param>
-        public DbCache(IEntityOperate factory = null, String keyName = null, String timeName = null)
+        public DbCache(IEntityFactory factory = null, String keyName = null, String timeName = null)
         {
             if (factory == null) factory = MyDbCache.Meta.Factory;
             if (!(factory.Default is IDbCache)) throw new XCodeException("实体类[{0}]需要实现[{1}]接口", factory.EntityType.FullName, typeof(IDbCache).FullName);
@@ -41,7 +41,7 @@ namespace NewLife.Caching
             var name = factory.EntityType.Name;
 
             var key = !keyName.IsNullOrEmpty() ? factory.Table.FindByName(keyName) : factory.Unique;
-            if (key == null || key.Type != typeof(String)) throw new XCodeException("[{0}]没有字符串类型的主键".F(name));
+            if (key == null || key.Type != typeof(String)) throw new XCodeException($"[{name}]没有字符串类型的主键");
 
             TimeField = (!timeName.IsNullOrEmpty() ? factory.Table.FindByName(timeName) : factory.MasterTime) as Field;
 
@@ -59,9 +59,9 @@ namespace NewLife.Caching
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             clearTimer.TryDispose();
             clearTimer = null;
@@ -70,7 +70,7 @@ namespace NewLife.Caching
 
         #region 属性
         /// <summary>缓存个数。高频使用时注意性能</summary>
-        public override Int32 Count => Factory.Count;
+        public override Int32 Count => Factory.Session.Count;
 
         /// <summary>所有键。实际返回只读列表新实例，数据量较大时注意性能</summary>
         public override ICollection<String> Keys => Factory.FindAll().Select(e => e[Factory.Unique] as String).ToList();
@@ -88,18 +88,18 @@ namespace NewLife.Caching
             }
         }
 
-        private DictionaryCache<String, IDbCache> _cache = new DictionaryCache<String, IDbCache>()
-        {
-            Expire = 60,
-            AllowNull = false,
-        };
+        private readonly MemoryCache _cache = new() { Expire = 60 };
         private IDbCache Find(String key)
         {
             if (key.IsNullOrEmpty()) return null;
 
-            if (_cache.FindMethod == null) _cache.FindMethod = k => Factory.Find(KeyField == key) as IDbCache;
+            if (_cache.TryGetValue<IDbCache>(key, out var entry)) return entry;
 
-            return _cache[key];
+            entry= Factory.Find(KeyField == key) as IDbCache;
+
+            _cache.Set(key, entry);
+
+            return entry;
         }
         #endregion
 
@@ -142,7 +142,7 @@ namespace NewLife.Caching
         public override T Get<T>(String key)
         {
             var e = Find(key);
-            if (e == null) return default(T);
+            if (e == null) return default;
 
             var value = e.Value;
             //return JsonHelper.Convert<T>(value);
@@ -163,7 +163,7 @@ namespace NewLife.Caching
             var count = 0;
             foreach (var item in keys)
             {
-                var e = _cache.Get(item);
+                var e = _cache.Get<Object>(item);
                 if (e != null)
                 {
                     _cache.Remove(item);
@@ -263,14 +263,14 @@ namespace NewLife.Caching
         /// <param name="threads">线程</param>
         /// <param name="rand">随机读写</param>
         /// <param name="batch">批量操作</param>
-        public override void BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+        public override Int64 BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
         {
             if (rand)
                 times *= 1;
             else
                 times *= 1000;
 
-            base.BenchOne(times, threads, rand, batch);
+            return base.BenchOne(times, threads, rand, batch);
         }
         #endregion
     }

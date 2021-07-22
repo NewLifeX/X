@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1;net50</TargetFrameworks>
+    <AssemblyName>xcodetool</AssemblyName>
+    <RootNamespace>XCode</RootNamespace>
+    <AssemblyTitle>数据中间件工具</AssemblyTitle>
+    <Description>数据中间件，代码生成</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2020 NewLife</Copyright>
+    <Version>9.20.2020.0910</Version>
+    <FileVersion>9.20.2020.0910</FileVersion>
+    <AssemblyVersion>9.20.*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    <OutputPath>..\..\Bin</OutputPath>
+    <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
+    <LangVersion>latest</LangVersion>
+    <PackAsTool>true</PackAsTool>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Authors>$(Company)</Authors>
+    <ProjectUrl>https://github.com/NewLifeX</ProjectUrl>
+    <PackageIcon>content\leaf.png</PackageIcon>
+    <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
+    <PackageReleaseNotes>强化FormatName支持反向生成下划线字段名；重构实体类代码生成，支持独立生成模型类和接口</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\Doc\leaf.png" Link="leaf.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\XCode\Model.xml" Link="Model.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
+    <ProjectReference Include="..\XCode\XCode.csproj" />
+  </ItemGroup>
+
+</Project>

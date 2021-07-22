@@ -219,7 +219,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object Read(Type type)
         {
-            var value = type.CreateInstance();
+            var value = type.As<Array>() ? null : type.CreateInstance();
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
 
             return value;
@@ -275,7 +275,7 @@ namespace NewLife.Serialization
         public void ReadStart(Type type)
         {
             var att = UseAttribute;
-            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
+            if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) _ = true;
 
             var reader = GetReader();
             while (reader.NodeType == XmlNodeType.Comment) reader.Skip();
@@ -309,7 +309,7 @@ namespace NewLife.Serialization
         #endregion
 
         #region 辅助方法
-        static String GetName(Type type)
+        private static String GetName(Type type)
         {
             if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
 

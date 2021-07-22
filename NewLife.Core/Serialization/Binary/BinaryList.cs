@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -9,11 +8,7 @@ namespace NewLife.Serialization
     public class BinaryList : BinaryHandlerBase
     {
         /// <summary>初始化</summary>
-        public BinaryList()
-        {
-            // 优先级
-            Priority = 20;
-        }
+        public BinaryList() => Priority = 20;
 
         /// <summary>写入</summary>
         /// <param name="value"></param>
@@ -23,9 +18,8 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
             // 先写入长度
-            if (list == null || list.Count == 0)
+            if (value is not IList list || list.Count == 0)
             {
                 Host.WriteSize(0);
                 return true;

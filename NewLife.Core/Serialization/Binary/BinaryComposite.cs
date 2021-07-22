@@ -62,7 +62,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean WriteRef(Object value)
+        private Boolean WriteRef(Object value)
         {
             var bn = Host as Binary;
             if (!bn.UseRef) return false;
@@ -121,7 +121,6 @@ namespace NewLife.Serialization
             Host.Hosts.Push(value);
 
             // 成员序列化访问器
-            var ac = value as IMemberAccessor;
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
@@ -133,7 +132,7 @@ namespace NewLife.Serialization
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 // 成员访问器优先
-                if (ac != null && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
+                if (value is IMemberAccessor ac && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
 
                 // 数据流不足时，放弃读取目标成员，并认为整体成功
                 var hs = Host.Stream;
@@ -154,7 +153,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean ReadRef(ref Object value)
+        private Boolean ReadRef(ref Object value)
         {
             var bn = Host as Binary;
             if (!bn.UseRef) return false;
@@ -179,7 +178,7 @@ namespace NewLife.Serialization
             return true;
         }
 
-        Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
+        private Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
         {
             // 访问器直接写入成员
             if (!ac.Read(Host, member)) return false;
@@ -209,17 +208,14 @@ namespace NewLife.Serialization
                 return type.GetFields(baseFirst).Cast<MemberInfo>().ToList();
         }
 
-        static Type GetMemberType(MemberInfo member)
+        private static Type GetMemberType(MemberInfo member)
         {
-            switch (member.MemberType)
+            return member.MemberType switch
             {
-                case MemberTypes.Field:
-                    return (member as FieldInfo).FieldType;
-                case MemberTypes.Property:
-                    return (member as PropertyInfo).PropertyType;
-                default:
-                    throw new NotSupportedException();
-            }
+                MemberTypes.Field => (member as FieldInfo).FieldType,
+                MemberTypes.Property => (member as PropertyInfo).PropertyType,
+                _ => throw new NotSupportedException(),
+            };
         }
         #endregion
     }

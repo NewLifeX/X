@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using NewLife.Data;
 
 namespace NewLife.Serialization
 {
@@ -7,11 +8,7 @@ namespace NewLife.Serialization
     public class BinaryNormal : BinaryHandlerBase
     {
         /// <summary>初始化</summary>
-        public BinaryNormal()
-        {
-            // 优先级
-            Priority = 12;
-        }
+        public BinaryNormal() => Priority = 12;
 
         /// <summary>写入</summary>
         /// <param name="value"></param>
@@ -30,7 +27,22 @@ namespace NewLife.Serialization
                 var bn = Host as Binary;
                 var bc = bn.GetHandler<BinaryGeneral>();
                 bc.Write((Byte[])value);
-                
+
+                return true;
+            }
+            else if (type == typeof(Packet))
+            {
+                var bn = Host as Binary;
+                if (value is Packet pk)
+                {
+                    Host.WriteSize(pk.Total);
+                    pk.CopyTo(Host.Stream);
+                }
+                else
+                {
+                    Host.WriteSize(0);
+                }
+
                 return true;
             }
             else if (type == typeof(Char[]))
@@ -84,6 +96,12 @@ namespace NewLife.Serialization
             else if (type == typeof(Byte[]))
             {
                 value = ReadBytes(-1);
+                return true;
+            }
+            else if (type == typeof(Packet))
+            {
+                var buf = ReadBytes(-1);
+                value = new Packet(buf);
                 return true;
             }
             else if (type == typeof(Char[]))

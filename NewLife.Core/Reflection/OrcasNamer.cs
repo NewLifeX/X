@@ -8,43 +8,41 @@ namespace NewLife.Reflection
     {
         public static String GetName(MemberInfo member)
         {
-            using (TextWriter writer = new StringWriter())
+            using TextWriter writer = new StringWriter();
+            switch (member.MemberType)
             {
-                switch (member.MemberType)
-                {
-                    case MemberTypes.TypeInfo:
-                    case MemberTypes.NestedType:
-                        writer.Write("T:");
-                        WriteType(member as Type, writer);
-                        break;
-                    case MemberTypes.Field:
-                        writer.Write("F:");
-                        WriteField(member as FieldInfo, writer);
-                        break;
-                    case MemberTypes.Property:
-                        writer.Write("P:");
-                        WriteProperty(member as PropertyInfo, writer);
-                        break;
-                    case MemberTypes.Method:
-                        writer.Write("M:");
-                        WriteMethod(member as MethodInfo, writer);
-                        break;
-                    case MemberTypes.Constructor:
-                        writer.Write("M:");
-                        var ctor = member as ConstructorInfo;
-                        if (!ctor.IsStatic)
-                            WriteConstructor(ctor, writer);
-                        else
-                            WriteStaticConstructor(ctor, writer);
-                        break;
-                    case MemberTypes.Event:
-                        writer.Write("E:");
-                        WriteEvent(member as EventInfo, writer);
-                        break;
-                }
-
-                return writer.ToString();
+                case MemberTypes.TypeInfo:
+                case MemberTypes.NestedType:
+                    writer.Write("T:");
+                    WriteType(member as Type, writer);
+                    break;
+                case MemberTypes.Field:
+                    writer.Write("F:");
+                    WriteField(member as FieldInfo, writer);
+                    break;
+                case MemberTypes.Property:
+                    writer.Write("P:");
+                    WriteProperty(member as PropertyInfo, writer);
+                    break;
+                case MemberTypes.Method:
+                    writer.Write("M:");
+                    WriteMethod(member as MethodInfo, writer);
+                    break;
+                case MemberTypes.Constructor:
+                    writer.Write("M:");
+                    var ctor = member as ConstructorInfo;
+                    if (!ctor.IsStatic)
+                        WriteConstructor(ctor, writer);
+                    else
+                        WriteStaticConstructor(ctor, writer);
+                    break;
+                case MemberTypes.Event:
+                    writer.Write("E:");
+                    WriteEvent(member as EventInfo, writer);
+                    break;
             }
+
+            return writer.ToString();
         }
 
         private static void WriteEvent(EventInfo trigger, TextWriter writer)

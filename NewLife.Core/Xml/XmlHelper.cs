@@ -25,11 +25,9 @@ namespace NewLife.Xml
             // 删除字节序
             //encoding = encoding.TrimPreamble();
 
-            using (var stream = new MemoryStream())
-            {
-                ToXml(obj, stream, encoding, attachComment, useAttribute);
-                return encoding.GetString(stream.ToArray());
-            }
+            using var stream = new MemoryStream();
+            ToXml(obj, stream, encoding, attachComment, useAttribute);
+            return encoding.GetString(stream.ToArray());
         }
 
         /// <summary>序列化为Xml数据流</summary>
@@ -74,12 +72,10 @@ namespace NewLife.Xml
                 return;
             }
 
-            using (var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
-            {
-                obj.ToXml(stream, encoding, attachComment);
-                // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
-                stream.SetLength(stream.Position);
-            }
+            using var stream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            obj.ToXml(stream, encoding, attachComment);
+            // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
+            stream.SetLength(stream.Position);
         }
         #endregion
 
@@ -99,8 +95,8 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static Object ToXmlEntity(this String xml, Type type)
         {
-            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException("xml");
-            if (type == null) throw new ArgumentNullException("type");
+            if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(xml));
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
             var x = new NewLife.Serialization.Xml
             {
@@ -138,8 +134,8 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static Object ToXmlEntity(this Stream stream, Type type, Encoding encoding = null)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
-            if (type == null) throw new ArgumentNullException("type");
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (type == null) throw new ArgumentNullException(nameof(type));
             if (encoding == null) encoding = Encoding.UTF8;
 
             var x = new NewLife.Serialization.Xml
@@ -169,13 +165,11 @@ namespace NewLife.Xml
         /// <returns>Xml实体对象</returns>
         public static TEntity ToXmlFileEntity<TEntity>(this String file, Encoding encoding = null) where TEntity : class
         {
-            if (file.IsNullOrWhiteSpace()) throw new ArgumentNullException("file");
+            if (file.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(file));
             if (!File.Exists(file)) return null;
 
-            using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                return stream.ToXmlEntity<TEntity>(encoding);
-            }
+            using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return stream.ToXmlEntity<TEntity>(encoding);
         }
         #endregion
 

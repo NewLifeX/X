@@ -16,7 +16,7 @@ namespace NewLife.Security
             var dsa = new DSACryptoServiceProvider(keySize);
 
             var ss = new String[2];
-            var pa = dsa.ExportParameters(true);
+            _ = dsa.ExportParameters(true);
             ss[0] = dsa.ToXmlStringX(true);
             ss[1] = dsa.ToXmlStringX(false);
 

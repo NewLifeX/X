@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using NewLife;
 using NewLife.Collections;
@@ -19,7 +18,7 @@ namespace XCode.Cache
     public class SingleEntityCache<TKey, TEntity> : CacheBase<TEntity>, ISingleEntityCache<TKey, TEntity> where TEntity : Entity<TEntity>, new()
     {
         #region 属性
-        /// <summary>过期时间。单位是秒，默认60秒</summary>
+        /// <summary>过期时间。单位是秒，默认10秒</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>清理周期。默认60秒检查一次，清理10倍（600秒）未访问的缓存项</summary>
@@ -51,25 +50,27 @@ namespace XCode.Cache
         public Func<TEntity, String> GetSlaveKeyMethod { get; set; }
         #endregion
 
-        #region 构造、检查过期缓存
+        #region 构造
         /// <summary>实例化一个实体缓存</summary>
         public SingleEntityCache()
         {
             var exp = Setting.Current.SingleCacheExpire;
-            if (exp <= 0) exp = 60;
+            if (exp <= 0) exp = 10;
             Expire = exp;
 
             var fi = Entity<TEntity>.Meta.Unique;
             if (fi != null) GetKeyMethod = entity => (TKey)entity[Entity<TEntity>.Meta.Unique.Name];
             FindKeyMethod = key => Entity<TEntity>.FindByKey(key);
+
+            LogPrefix = $"SingleCache<{typeof(TEntity).Name}>";
         }
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
         /// 因为该方法只会被调用一次，所以该参数的意义不太大。</param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             try
             {
@@ -83,7 +84,9 @@ namespace XCode.Cache
 
             _Timer.TryDispose();
         }
+        #endregion
 
+        #region 检查过期缓存
         private TimerX _Timer;
         private void StartTimer()
         {
@@ -178,8 +181,8 @@ namespace XCode.Cache
             /// <summary>缓存过期时间</summary>
             public DateTime ExpireTime { get; set; }
 
-            /// <summary>是否已经过期</summary>
-            public Boolean Expired => ExpireTime <= TimerX.Now;
+            ///// <summary>是否已经过期</summary>
+            //public Boolean Expired => ExpireTime <= TimerX.Now;
 
             public void SetEntity(TEntity entity, Int32 expire)
             {
@@ -187,6 +190,10 @@ namespace XCode.Cache
                 ExpireTime = TimerX.Now.AddSeconds(expire);
                 VisitTime = ExpireTime;
             }
+
+            /// <summary>获取已过期时间</summary>
+            /// <returns></returns>
+            public TimeSpan GetExpired() => TimerX.Now - ExpireTime;
         }
         #endregion
 
@@ -195,7 +202,7 @@ namespace XCode.Cache
         private Int32 _Count;
 
         /// <summary>单对象缓存</summary>
-        private ConcurrentDictionary<TKey, CacheItem> Entities = new ConcurrentDictionary<TKey, CacheItem>();
+        private readonly ConcurrentDictionary<TKey, CacheItem> Entities = new();
 
         private ConcurrentDictionary<String, CacheItem> _SlaveEntities;
         /// <summary>单对象缓存，从键查询使用</summary>
@@ -234,7 +241,7 @@ namespace XCode.Cache
             if (Total > 0)
             {
                 var sb = Pool.StringBuilder.Get();
-                var name = "<{0}>({1:n0})".F(typeof(TEntity).Name, Entities.Count);
+                var name = $"<{typeof(TEntity).Name}>({Entities.Count:n0})";
                 sb.AppendFormat("对象缓存{0,-20}", name);
                 sb.AppendFormat("总次数{0,11:n0}", Total);
                 if (Success > 0) sb.AppendFormat("，命中{0,11:n0}（{1,6:P02}）", Success, (Double)Success / Total);
@@ -259,47 +266,58 @@ namespace XCode.Cache
             // 更新统计信息
             CheckShowStatics(ref Total, ShowStatics);
 
-            Interlocked.Increment(ref Success);
-
             // 获取 或 添加
-            CacheItem item = null;
-            CacheItem ci = null;
-            while (!dic.TryGetValue(key, out item))
+            if (dic.TryGetValue(key, out var ci))
             {
-                if (ci == null) ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
+                Interlocked.Increment(ref Success);
+            }
+            else
+            {
+                ci = Object.ReferenceEquals(dic, Entities) ? CreateItem(key) : CreateSlaveItem(key);
                 // 不要缓存空值
                 if (ci == null) return null;
 
                 // 尝试添加，即使多线程并发，这里宁可多浪费点时间，也不要带来锁定
-                if (dic.TryAdd(key, ci))
+                if (Entities.TryAdd(ci.Key, ci))
                 {
-                    item = ci;
+                    if (ci.SlaveKey != null) SlaveEntities.TryAdd(ci.SlaveKey, ci);
+
                     Interlocked.Increment(ref _Count);
-                    break;
                 }
             }
+
             // 最后访问时间
-            item.VisitTime = TimerX.Now;
+            ci.VisitTime = TimerX.Now;
 
             // 异步更新缓存
-            if (item.Expired) ThreadPoolX.QueueUserWorkItem(UpdateData, item);
+            var sec = ci.GetExpired().TotalSeconds;
+            if (sec > 0)
+            {
+                // 频繁更新下，采用异步更新缓存，以提升吞吐。非频繁访问时（2倍超时），同步更新
+                if (sec < Expire)
+                    ThreadPoolX.QueueUserWorkItem(UpdateData, ci);
+                else
+                    UpdateData(ci);
+            }
 
-            return item.Entity;
+            return ci.Entity;
         }
 
         private CacheItem CreateItem<TKey2>(TKey2 key)
         {
-            Interlocked.Decrement(ref Success);
+            WriteLog(".CreateItem {0}", key);
 
             // 开始更新数据，然后加入缓存
             var mkey = (TKey)(Object)key;
             var entity = Invoke(FindKeyMethod, mkey);
+            if (entity == null) return null;
+
             return AddItem(mkey, entity);
         }
 
         private CacheItem CreateSlaveItem<TKey2>(TKey2 key)
         {
-            Interlocked.Decrement(ref Success);
+            WriteLog(".CreateSlaveItem {0}", key);
 
             // 开始更新数据，然后加入缓存
             var entity = Invoke(FindSlaveKeyMethod, key + "");
@@ -331,16 +349,16 @@ namespace XCode.Cache
             };
             item.SetEntity(entity, Expire);
 
-            var es = Entities;
-            // 新增或更新
-            es[key] = item;
+            //var es = Entities;
+            //// 新增或更新
+            //es[key] = item;
 
-            if (!skey.IsNullOrWhiteSpace())
-            {
-                var ses = SlaveEntities;
-                // 新增或更新
-                ses[skey] = item;
-            }
+            //if (!skey.IsNullOrWhiteSpace())
+            //{
+            //    var ses = SlaveEntities;
+            //    // 新增或更新
+            //    ses[skey] = item;
+            //}
 
             return item;
         }
@@ -353,6 +371,8 @@ namespace XCode.Cache
         private void UpdateData(Object state)
         {
             var item = state as CacheItem;
+
+            WriteLog(".UpdateData {0} Expire={1} Visit={2}", item.Key, item.ExpireTime, item.VisitTime);
 
             // 先修改过期时间
             item.ExpireTime = TimerX.Now.AddSeconds(Expire);
@@ -424,7 +444,7 @@ namespace XCode.Cache
         {
             if (!Using) return;
 
-            WriteLog("清空单对象缓存：{0} 原因：{1} Using = false", typeof(TEntity).FullName, reason);
+            WriteLog("清空单对象缓存 原因：{0} Using = false", reason);
 
             var es = Entities;
             if (es == null) return;
@@ -467,8 +487,7 @@ namespace XCode.Cache
         {
             if (!Using) return false;
 
-            var entity = value as TEntity;
-            if (entity == null) return false;
+            if (value is not TEntity entity) return false;
 
             var key = GetKeyMethod(entity);
             return Add(key, entity);
@@ -493,7 +512,7 @@ namespace XCode.Cache
 
         /// <summary>已重载。</summary>
         /// <returns></returns>
-        public override String ToString() => "SingleEntityCache<{0}, {1}>[{2}]".F(typeof(TKey).Name, typeof(TEntity).Name, Entities.Count);
+        public override String ToString() => $"SingleEntityCache<{typeof(TKey).Name}, {typeof(TEntity).Name}>[{Entities.Count}]";
         #endregion
     }
 }

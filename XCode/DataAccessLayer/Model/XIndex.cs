@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -45,7 +47,7 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>表</summary>
-        [XmlIgnore]
+        [XmlIgnore, IgnoreDataMember]
         public IDataTable Table { get; set; }
         #endregion
 
@@ -91,9 +93,9 @@ namespace XCode.DataAccessLayer
         public override String ToString()
         {
             if (Columns != null && Columns.Length > 0)
-                return String.Format("{0}=>{1} {2}", Name, String.Join(",", Columns), Unique ? "U" : "");
+                return $"{Name}=>{String.Join(",", Columns)} {(Unique ? "U" : "")}";
             else
-                return String.Format("{0} {1}", Name, Unique ? "U" : "");
+                return $"{Name} {(Unique ? "U" : "")}";
         }
         #endregion
     }

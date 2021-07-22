@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Threading;
 
 namespace NewLife.Messaging
 {
@@ -17,14 +16,20 @@ namespace NewLife.Messaging
         /// <summary>获取长度的委托</summary>
         public Func<Packet, Int32> GetLength { get; set; }
 
+        /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
+        public Int32 Offset { get; set; }
+
         /// <summary>最后一次解包成功，而不是最后一次接收</summary>
-        public DateTime Last { get; set; } = TimerX.Now;
+        public DateTime Last { get; set; } = DateTime.Now;
 
         /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
         public Int32 Expire { get; set; } = 5_000;
 
         /// <summary>最大缓存待处理数据。默认0无限制</summary>
         public Int32 MaxCache { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         /// <summary>分析数据流，得到一帧数据</summary>
@@ -41,6 +46,8 @@ namespace NewLife.Messaging
             {
                 if (pk == null) return list.ToArray();
 
+                using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
+
                 var idx = 0;
                 while (idx < pk.Total)
                 {
@@ -50,9 +57,9 @@ namespace NewLife.Messaging
                     if (len <= 0 || len > pk2.Total) break;
 
                     // 根据计算得到的长度，重新设置数据片正确长度
-                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
-                    idx += len;
+                    idx += Offset + len;
                 }
                 // 如果没有剩余，可以返回
                 if (idx == pk.Total) return list.ToArray();
@@ -67,6 +74,8 @@ namespace NewLife.Messaging
                 // 检查缓存，内部可能创建或清空
                 CheckCache();
                 ms = Stream;
+
+                using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData={pk.Total}");
 
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
@@ -85,10 +94,10 @@ namespace NewLife.Messaging
                     if (len <= 0 || len > pk2.Total) break;
 
                     // 根据计算得到的长度，重新设置数据片正确长度
-                    pk2.Set(pk2.Data, pk2.Offset, len);
+                    pk2.Set(pk2.Data, pk2.Offset, Offset + len);
                     list.Add(pk2);
 
-                    ms.Seek(len, SeekOrigin.Current);
+                    ms.Seek(Offset + len, SeekOrigin.Current);
                 }
 
                 // 如果读完了数据，需要重置缓冲区
@@ -112,9 +121,12 @@ namespace NewLife.Messaging
             if (ms == null) Stream = ms = new MemoryStream();
 
             // 超过该时间后按废弃数据处理
-            var now = TimerX.Now;
+            var now = DateTime.Now;
             if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
             {
+                using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"Position={ms.Position} Length={ms.Length} MaxCache={MaxCache}");
+                span?.SetError(new Exception("数据包编码器放弃数据"), null);
+
                 if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
 
                 ms.SetLength(0);

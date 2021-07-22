@@ -20,11 +20,11 @@ namespace NewLife.Model
 
         /// <summary>写入管道过滤后最终处理消息</summary>
         /// <param name="message"></param>
-        Boolean FireWrite(Object message);
+        Int32 FireWrite(Object message);
     }
 
     /// <summary>处理器上下文</summary>
-    public class HandlerContext : IHandlerContext
+    public class HandlerContext : IHandlerContext, IExtend3
     {
         #region 属性
         /// <summary>管道</summary>
@@ -49,7 +49,7 @@ namespace NewLife.Model
 
         /// <summary>写入管道过滤后最终处理消息</summary>
         /// <param name="message"></param>
-        public virtual Boolean FireWrite(Object message) => true;
+        public virtual Int32 FireWrite(Object message) => 0;
         #endregion
     }
 }

@@ -6,6 +6,7 @@ namespace NewLife.Collections
 {
     /// <summary>轻量级对象池。数组无锁实现，高性能</summary>
     /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
     /// 内部 1+N 的存储结果，保留最热的一个对象在外层，便于快速存取。
     /// 数组具有极快的查找速度，结构体确保没有GC操作。
     /// </remarks>

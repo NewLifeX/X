@@ -5,8 +5,10 @@ using NewLife.Collections;
 
 namespace NewLife.Serialization
 {
-
     /// <summary>Json分析器</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public class JsonParser
     {
         #region 内部
@@ -52,7 +54,6 @@ namespace NewLife.Serialization
 
         #region 属性
         readonly String _json;
-        //readonly StringBuilder _builder = new StringBuilder();
         Token _Ahead = Token.None;
         Int32 index;
         #endregion
@@ -60,6 +61,22 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         /// <param name="json"></param>
         public JsonParser(String json) => _json = json;
+
+        /// <summary>解码</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static IDictionary<String, Object> Decode(String json)
+        {
+            var parser = new JsonParser(json);
+            try
+            {
+                return parser.ParseValue() as IDictionary<String, Object>;
+            }
+            catch (XException ex)
+            {
+                throw new XException($"解析Json出错：{json}", ex);
+            }
+        }
 
         /// <summary>解码</summary>
         /// <returns></returns>
@@ -92,7 +109,7 @@ namespace NewLife.Serialization
                             if (token == Token.Number) index = old;
 
                             // 名称
-                            var name = ParseName();
+                            var name = ParseString(true);
 
                             // :
                             if (NextToken() != Token.Colon)
@@ -146,7 +163,7 @@ namespace NewLife.Serialization
                     return ParseNumber();
 
                 case Token.String:
-                    var str = ParseString();
+                    var str = ParseString(false);
                     if (str.IsNullOrEmpty()) return str;
 
                     // 有可能是字符串或时间日期
@@ -180,11 +197,13 @@ namespace NewLife.Serialization
             throw new XException("在 {0} 的标识符无法识别", index);
         }
 
-        private String ParseName()
+        private String ParseString(Boolean isName)
         {
+            // 识别名称时，如果以双引号开头，则把冒号当作名称一部分
+            if (isName && index > 0 && _json[index - 1] == '"') isName = false;
+
             SkipToken(); // "
 
-            //_builder.Length = 0;
             var sb = Pool.StringBuilder.Get();
 
             var runIndex = -1;
@@ -203,7 +222,7 @@ namespace NewLife.Serialization
                     }
                     return sb.Put(true);
                 }
-                else if (c == ':')
+                else if (isName && c == ':')
                 {
                     // 如果是没有双引号的名字，则退回一个字符
                     index--;
@@ -257,74 +276,7 @@ namespace NewLife.Serialization
                 }
             }
 
-            throw new Exception("已到达字符串结尾");
-        }
-
-        private String ParseString()
-        {
-            SkipToken(); // "
-
-            //_builder.Length = 0;
-            var sb = Pool.StringBuilder.Get();
-
-            var runIndex = -1;
-
-            while (index < _json.Length)
-            {
-                var c = _json[index++];
-
-                if (c == '"')
-                {
-                    if (runIndex != -1)
-                    {
-                        if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
-
-                        sb.Append(_json, runIndex, index - runIndex - 1);
-                    }
-                    return sb.Put(true);
-                }
-
-                if (c != '\\')
-                {
-                    if (runIndex == -1) runIndex = index - 1;
-
-                    continue;
-                }
-
-                if (index == _json.Length) break;
-
-                if (runIndex != -1)
-                {
-                    sb.Append(_json, runIndex, index - runIndex - 1);
-                    runIndex = -1;
-                }
-
-                switch (_json[index++])
-                {
-                    case '"': sb.Append('"'); break;
-                    case '\\': sb.Append('\\'); break;
-                    case '/': sb.Append('/'); break;
-                    case 'b': sb.Append('\b'); break;
-                    case 'f': sb.Append('\f'); break;
-                    case 'n': sb.Append('\n'); break;
-                    case 'r': sb.Append('\r'); break;
-                    case 't': sb.Append('\t'); break;
-                    case 'u':
-                        {
-                            var remainingLength = _json.Length - index;
-                            if (remainingLength < 4) break;
-
-                            // 分析32位十六进制数字
-                            var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
-                            sb.Append((Char)codePoint);
-
-                            index += 4;
-                        }
-                        break;
-                }
-            }
-
-            throw new Exception("已到达字符串结尾");
+            throw new XException("已到达字符串结尾");
         }
 
         private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -399,7 +351,10 @@ namespace NewLife.Serialization
                 return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
 
-            return CreateLong(out var num, _json, startIndex, index - startIndex);
+            var m = CreateLong(out _, _json, startIndex, index - startIndex);
+            if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
+
+            return m;
         }
 
         private Token LookAhead()
@@ -435,7 +390,7 @@ namespace NewLife.Serialization
 
             } while (++index < _json.Length);
 
-            if (index == _json.Length) throw new Exception("已到达字符串结尾");
+            if (index == _json.Length) throw new XException("已到达字符串结尾");
 
             ch = _json[index];
 

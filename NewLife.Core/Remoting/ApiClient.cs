@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
@@ -13,7 +14,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>应用接口客户端</summary>
-    public class ApiClient : ApiHost, IApiSession
+    public class ApiClient : ApiHost, IApiClient
     {
         #region 属性
         /// <summary>是否已打开</summary>
@@ -28,20 +29,17 @@ namespace NewLife.Remoting
         /// <summary>是否使用连接池。true时建立多个到服务端的连接（高吞吐），默认false使用单一连接（低延迟）</summary>
         public Boolean UsePool { get; set; }
 
-        /// <summary>主机</summary>
-        IApiHost IApiSession.Host => this;
+        /// <summary>令牌。每次请求携带</summary>
+        public String Token { get; set; }
 
         /// <summary>最后活跃时间</summary>
         public DateTime LastActive { get; set; }
 
-        /// <summary>所有服务器所有会话，包含自己</summary>
-        IApiSession[] IApiSession.AllSessions => new IApiSession[] { this };
+        /// <summary>调用统计</summary>
+        public ICounter StatInvoke { get; set; }
 
-        /// <summary>发送数据包统计信息</summary>
-        public ICounter StatSend { get; set; }
-
-        /// <summary>接收数据包统计信息</summary>
-        public ICounter StatReceive { get; set; }
+        /// <summary>性能跟踪器</summary>
+        public ITracer Tracer { get; set; } = DefaultTracer.Instance;
         #endregion
 
         #region 构造
@@ -50,23 +48,20 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Client");
-
-            // 注册默认服务控制器
-            Register(new ApiController { Host = this }, null);
         }
 
         /// <summary>实例化应用接口客户端</summary>
         /// <param name="uris">服务端地址集合，逗号分隔</param>
         public ApiClient(String uris) : this()
         {
-            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",");
+            if (!uris.IsNullOrEmpty()) Servers = uris.Split(",", ";");
         }
 
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void OnDispose(Boolean disposing)
+        protected override void Dispose(Boolean disposing)
         {
-            base.OnDispose(disposing);
+            base.Dispose(disposing);
 
             _Timer.TryDispose();
 
@@ -75,7 +70,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 打开关闭
-        private readonly Object Root = new Object();
+        private readonly Object Root = new();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {
@@ -89,7 +84,7 @@ namespace NewLife.Remoting
 
                 if (Encoder == null) Encoder = new JsonEncoder();
                 //if (Encoder == null) Encoder = new BinaryEncoder();
-                if (Handler == null) Handler = new ApiHandler { Host = this };
+                //if (Handler == null) Handler = new ApiHandler { Host = this };
 
                 // 集群
                 Cluster = InitCluster();
@@ -97,19 +92,10 @@ namespace NewLife.Remoting
 
                 Encoder.Log = EncoderLog;
 
-                // 拥有默认服务控制器之外的服务时，才显示服务
-                var svcs = Manager.Services;
-                if (svcs.Any(e => !(e.Value.Controller is ApiController))) ShowService();
-
                 // 控制性能统计信息
                 var ms = StatPeriod * 1000;
                 if (ms > 0)
                 {
-                    if (StatInvoke == null) StatInvoke = new PerfCounter();
-                    if (StatProcess == null) StatProcess = new PerfCounter();
-                    if (StatSend == null) StatSend = new PerfCounter();
-                    if (StatReceive == null) StatReceive = new PerfCounter();
-
                     _Timer = new TimerX(DoWork, null, ms, ms) { Async = true };
                 }
 
@@ -136,9 +122,9 @@ namespace NewLife.Remoting
             if (cluster == null)
             {
                 if (UsePool)
-                    cluster = new ClientPoolCluster();
+                    cluster = new ClientPoolCluster { Log = Log };
                 else
-                    cluster = new ClientSingleCluster();
+                    cluster = new ClientSingleCluster { Log = Log };
                 //Cluster = cluster;
             }
 
@@ -150,26 +136,15 @@ namespace NewLife.Remoting
 
             return cluster;
         }
-
-        /// <summary>查找Api动作</summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public virtual ApiAction FindAction(String action) => Manager.Find(action);
-
-        /// <summary>创建控制器实例</summary>
-        /// <param name="api"></param>
-        /// <returns></returns>
-        public virtual Object CreateController(ApiAction api) => this.CreateController(this, api);
         #endregion
 
         #region 远程调用
         /// <summary>异步调用，等待返回结果</summary>
-        /// <param name="resultType">返回类型</param>
+        /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual async Task<Object> InvokeAsync(Type resultType, String action, Object args = null, Byte flag = 0)
+        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
         {
             // 让上层异步到这直接返回，后续代码在另一个线程执行
             //!!! Task.Yield会导致强制捕获上下文，虽然会在另一个线程执行，但在UI线程中可能无法抢占上下文导致死锁
@@ -183,7 +158,7 @@ namespace NewLife.Remoting
 
             try
             {
-                return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag).ConfigureAwait(false);
+                return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
             }
             catch (ApiException ex)
             {
@@ -192,7 +167,7 @@ namespace NewLife.Remoting
                 {
                     await Cluster.InvokeAsync(client => OnLoginAsync(client, true)).ConfigureAwait(false);
 
-                    return await ApiHostHelper.InvokeAsync(this, this, resultType, act, args, flag).ConfigureAwait(false);
+                    return await InvokeWithClientAsync<TResult>(null, act, args).ConfigureAwait(false);
                 }
 
                 throw;
@@ -204,47 +179,24 @@ namespace NewLife.Remoting
             }
         }
 
-        /// <summary>异步调用，等待返回结果</summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
-        /// <returns></returns>
-        public virtual async Task<TResult> InvokeAsync<TResult>(String action, Object args = null, Byte flag = 0)
-        {
-            // 发送失败时，返回空
-            var rs = await InvokeAsync(typeof(TResult), action, args, flag).ConfigureAwait(false);
-            if (rs == null) return default;
-
-            return (TResult)rs;
-        }
-
         /// <summary>同步调用，阻塞等待</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
-        /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual TResult Invoke<TResult>(String action, Object args = null, Byte flag = 0)
-        {
-            // 发送失败时，返回空
-            var rs = TaskEx.Run(() => InvokeAsync(typeof(TResult), action, args, flag)).Result;
-            if (rs == null) return default;
-
-            return (TResult)rs;
-        }
+        public virtual TResult Invoke<TResult>(String action, Object args = null) => TaskEx.Run(() => InvokeAsync<TResult>(action, args)).Result;
 
         /// <summary>单向发送。同步调用，不等待返回</summary>
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        public virtual Boolean InvokeOneWay(String action, Object args = null, Byte flag = 0)
+        public virtual Int32 InvokeOneWay(String action, Object args = null, Byte flag = 0)
         {
-            if (!Open()) return false;
+            if (!Open()) return -1;
 
             var act = action;
 
-            return ApiHostHelper.Invoke(this, this, act, args, flag);
+            return Invoke(this, act, args, flag);
         }
 
         /// <summary>指定客户端的异步调用，等待返回结果</summary>
@@ -255,25 +207,164 @@ namespace NewLife.Remoting
         /// <param name="args">参数</param>
         /// <param name="flag">标识</param>
         /// <returns></returns>
-        protected virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
+        public virtual async Task<TResult> InvokeWithClientAsync<TResult>(ISocketClient client, String action, Object args = null, Byte flag = 0)
         {
-            var act = action;
+            // 性能计数器，次数、TPS、平均耗时
+            var st = StatInvoke;
+            var sw = st.StartCount();
 
-            return (TResult)await ApiHostHelper.InvokeAsync(this, client, typeof(TResult), act, args, flag).ConfigureAwait(false);
+            LastActive = DateTime.Now;
+
+            // 令牌
+            if (!Token.IsNullOrEmpty())
+            {
+                var dic = args.ToDictionary();
+                if (!dic.ContainsKey("Token")) dic["Token"] = Token;
+                args = dic;
+            }
+
+            var span = Tracer?.NewSpan("rpc:" + action, args);
+            args = span.Attach(args);
+
+            // 编码请求，构造消息
+            var enc = Encoder;
+            var msg = enc.CreateRequest(action, args);
+            if (flag > 0 && msg is DefaultMessage dm) dm.Flag = flag;
+
+            var invoker = client != null ? (client + "") : ToString();
+            IMessage rs = null;
+            try
+            {
+                if (client != null)
+                    rs = (await client.SendMessageAsync(msg).ConfigureAwait(false)) as IMessage;
+                else
+                    rs = (await Cluster.InvokeAsync(client =>
+                    {
+                        invoker = client.Remote + "";
+                        return client.SendMessageAsync(msg);
+                    }).ConfigureAwait(false)) as IMessage;
+
+                if (rs == null) return default;
+            }
+            catch (AggregateException aggex)
+            {
+                var ex = aggex.GetTrue();
+
+                // 跟踪异常
+                span?.SetError(ex, args);
+
+                if (ex is TaskCanceledException)
+                {
+                    throw new TimeoutException($"请求[{action}]超时({msg})！", ex);
+                }
+                throw;
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"请求[{action}]超时({msg})！", ex);
+            }
+            finally
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]({msg})，耗时{msCost:n0}ms");
+
+                span?.Dispose();
+            }
+
+            // 特殊返回类型
+            var resultType = typeof(TResult);
+            if (resultType == typeof(IMessage)) return (TResult)rs;
+            //if (resultType == typeof(Packet)) return rs.Payload;
+
+            if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
+
+            // 是否成功
+            if (code != 0 && code != 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+
+            if (data == null) return default;
+            if (resultType == typeof(Packet)) return (TResult)(Object)data;
+
+            // 解码结果
+            var result = enc.DecodeResult(action, data, rs);
+            if (resultType == typeof(Object)) return (TResult)result;
+
+            // 返回
+            return (TResult)enc.Convert(result, resultType);
         }
 
-        Task<IMessage> IApiSession.SendAsync(IMessage msg) => Cluster.InvokeAsync(client => client.SendMessageAsync(msg)).ContinueWith(t => t.Result as IMessage);
+        /// <summary>调用</summary>
+        /// <param name="session"></param>
+        /// <param name="action">服务操作</param>
+        /// <param name="args">参数</param>
+        /// <param name="flag">标识</param>
+        /// <returns></returns>
+        private Int32 Invoke(Object session, String action, Object args, Byte flag = 0)
+        {
+            if (session == null) return -1;
 
-        Boolean IApiSession.Send(IMessage msg) => Cluster.Invoke(client => client.SendMessage(msg));
+            // 性能计数器，次数、TPS、平均耗时
+            var st = StatInvoke;
+
+            var span = Tracer?.NewSpan("rpc:" + action, args);
+            args = span.Attach(args);
+
+            // 编码请求
+            var msg = Encoder.CreateRequest(action, args);
+
+            if (msg is DefaultMessage dm)
+            {
+                dm.OneWay = true;
+                if (flag > 0) dm.Flag = flag;
+            }
+
+            var sw = st.StartCount();
+            try
+            {
+                if (session is IApiSession ss)
+                    return Cluster.Invoke(client => client.SendMessage(msg));
+                else if (session is ISocketRemote client)
+                    return client.SendMessage(msg);
+                else
+                    throw new InvalidOperationException();
+            }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                span?.SetError(ex, args);
+
+                throw;
+            }
+            finally
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{action}]，耗时{msCost:n0}ms");
+
+                span?.Dispose();
+            }
+        }
+        #endregion
+
+        #region 异步接收
+        /// <summary>客户端收到服务端主动下发消息</summary>
+        /// <param name="message"></param>
+        protected virtual void OnReceive(IMessage message) { }
+
+        private void Client_Received(Object sender, ReceivedEventArgs e)
+        {
+            LastActive = DateTime.Now;
+
+            // Api解码消息得到Action和参数
+            if (e.Message is not IMessage msg || msg.Reply) return;
+
+            OnReceive(msg);
+        }
         #endregion
 
         #region 登录
         /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
-        /// <param name="session">会话</param>
-        /// <param name="state">状态。客户端ISocketClient</param>
-        public override void OnNewSession(IApiSession session, Object state)
+        /// <param name="client">会话</param>
+        public virtual void OnNewSession(ISocketClient client)
         {
-            var client = state as ISocketClient;
             OnLoginAsync(client, true)?.Wait();
         }
 
@@ -302,28 +393,14 @@ namespace NewLife.Remoting
             var client = new NetUri(svr).CreateRemote();
             // 网络层采用消息层超时
             client.Timeout = Timeout;
-            client.StatSend = StatSend;
-            client.StatReceive = StatReceive;
+            client.Tracer = Tracer;
 
             client.Add(GetMessageCodec());
 
-            client.Opened += (s, e) => OnNewSession(this, s);
+            client.Opened += (s, e) => OnNewSession(s as ISocketClient);
             client.Received += Client_Received;
 
             return client;
-        }
-
-        private void Client_Received(Object sender, ReceivedEventArgs e)
-        {
-            LastActive = DateTime.Now;
-
-            // Api解码消息得到Action和参数
-            if (!(e.Message is IMessage msg) || msg.Reply) return;
-
-            var ss = sender as ISocketRemote;
-            var host = this as IApiHost;
-            var rs = host.Process(this, msg);
-            if (rs != null) ss?.SendMessage(rs);
         }
         #endregion
 
@@ -336,7 +413,11 @@ namespace NewLife.Remoting
 
         private void DoWork(Object state)
         {
-            var msg = this.GetStat();
+            var sb = Pool.StringBuilder.Get();
+            var pf1 = StatInvoke;
+            if (pf1 != null && pf1.Value > 0) sb.AppendFormat("请求：{0} ", pf1);
+
+            var msg = sb.Put(true);
             if (msg.IsNullOrEmpty() || msg == _Last) return;
             _Last = msg;
 

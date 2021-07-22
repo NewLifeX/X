@@ -2,7 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+using NewLife;
+using NewLife.Collections;
+using NewLife.Data;
 
 namespace XCode.DataAccessLayer
 {
@@ -28,6 +34,21 @@ namespace XCode.DataAccessLayer
 
                 return _Factory;
             }
+        }
+
+        const String Server_Key = "Server";
+        protected override void OnSetConnectionString(ConnectionStringBuilder builder)
+        {
+            base.OnSetConnectionString(builder);
+
+            var key = builder[Server_Key];
+            if (key.EqualIgnoreCase(".", "localhost"))
+            {
+                //builder[Server_Key] = "127.0.0.1";
+                builder[Server_Key] = IPAddress.Loopback.ToString();
+            }
+
+            if (builder.TryGetValue("Database", out var db) && db != db.ToLower()) builder["Database"] = db.ToLower();
         }
         #endregion
 
@@ -69,24 +90,14 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        ///// <summary>当前时间函数</summary>
-        //public override String DateTimeNow { get { return "now()"; } }
-
-        //protected override string ReservedWordsStr
-        //{
-        //    get
-        //    {
-        //        return "ACCESSIBLE,ADD,ALL,ALTER,ANALYZE,AND,AS,ASC,ASENSITIVE,BEFORE,BETWEEN,BIGINT,BINARY,BLOB,BOTH,BY,CALL,CASCADE,CASE,CHANGE,CHAR,CHARACTER,CHECK,COLLATE,COLUMN,CONDITION,CONNECTION,CONSTRAINT,CONTINUE,CONTRIBUTORS,CONVERT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DATABASES,DAY_HOUR,DAY_MICROSECOND,DAY_MINUTE,DAY_SECOND,DEC,DECIMAL,DECLARE,DEFAULT,DELAYED,DELETE,DESC,DESCRIBE,DETERMINISTIC,DISTINCT,DISTINCTROW,DIV,DOUBLE,DROP,DUAL,EACH,ELSE,ELSEIF,ENCLOSED,ESCAPED,EXISTS,EXIT,EXPLAIN,FALSE,FETCH,FLOAT,FLOAT4,FLOAT8,FOR,FORCE,FOREIGN,FROM,FULLTEXT,GRANT,GROUP,HAVING,HIGH_PRIORITY,HOUR_MICROSECOND,HOUR_MINUTE,HOUR_SECOND,IF,IGNORE,IN,INDEX,INFILE,INNER,INOUT,INSENSITIVE,INSERT,INT,INT1,INT2,INT3,INT4,INT8,INTEGER,INTERVAL,INTO,IS,ITERATE,JOIN,KEY,KEYS,KILL,LEADING,LEAVE,LEFT,LIKE,LIMIT,LINEAR,LINES,LOAD,LOCALTIME,LOCALTIMESTAMP,LOCK,LONG,LONGBLOB,LONGTEXT,LOOP,LOW_PRIORITY,MATCH,MEDIUMBLOB,MEDIUMINT,MEDIUMTEXT,MIDDLEINT,MINUTE_MICROSECOND,MINUTE_SECOND,MOD,MODIFIES,NATURAL,NOT,NO_WRITE_TO_BINLOG,NULL,NUMERIC,ON,OPTIMIZE,OPTION,OPTIONALLY,OR,ORDER,OUT,OUTER,OUTFILE,PRECISION,PRIMARY,PROCEDURE,PURGE,RANGE,READ,READS,READ_ONLY,READ_WRITE,REAL,REFERENCES,REGEXP,RELEASE,RENAME,REPEAT,REPLACE,REQUIRE,RESTRICT,RETURN,REVOKE,RIGHT,RLIKE,SCHEMA,SCHEMAS,SECOND_MICROSECOND,SELECT,SENSITIVE,SEPARATOR,SET,SHOW,SMALLINT,SPATIAL,SPECIFIC,SQL,SQLEXCEPTION,SQLSTATE,SQLWARNING,SQL_BIG_RESULT,SQL_CALC_FOUND_ROWS,SQL_SMALL_RESULT,SSL,STARTING,STRAIGHT_JOIN,TABLE,TERMINATED,THEN,TINYBLOB,TINYINT,TINYTEXT,TO,TRAILING,TRIGGER,TRUE,UNDO,UNION,UNIQUE,UNLOCK,UNSIGNED,UPDATE,UPGRADE,USAGE,USE,USING,UTC_DATE,UTC_TIME,UTC_TIMESTAMP,VALUES,VARBINARY,VARCHAR,VARCHARACTER,VARYING,WHEN,WHERE,WHILE,WITH,WRITE,X509,XOR,YEAR_MONTH,ZEROFILL";
-        //    }
-        //}
-
-        ///// <summary>格式化时间为SQL字符串</summary>
-        ///// <param name="dateTime">时间值</param>
-        ///// <returns></returns>
-        //public override String FormatDateTime(DateTime dateTime)
-        //{
-        //    return String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
-        //}
+        protected override String ReservedWordsStr
+        {
+            get
+            {
+                return "ACCESSIBLE,ADD,ALL,ALTER,ANALYZE,AND,AS,ASC,ASENSITIVE,BEFORE,BETWEEN,BIGINT,BINARY,BLOB,BOTH,BY,CALL,CASCADE,CASE,CHANGE,CHAR,CHARACTER,CHECK,COLLATE,COLUMN,CONDITION,CONNECTION,CONSTRAINT,CONTINUE,CONTRIBUTORS,CONVERT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DATABASES,DAY_HOUR,DAY_MICROSECOND,DAY_MINUTE,DAY_SECOND,DEC,DECIMAL,DECLARE,DEFAULT,DELAYED,DELETE,DESC,DESCRIBE,DETERMINISTIC,DISTINCT,DISTINCTROW,DIV,DOUBLE,DROP,DUAL,EACH,ELSE,ELSEIF,ENCLOSED,ESCAPED,EXISTS,EXIT,EXPLAIN,FALSE,FETCH,FLOAT,FLOAT4,FLOAT8,FOR,FORCE,FOREIGN,FROM,FULLTEXT,GRANT,GROUP,HAVING,HIGH_PRIORITY,HOUR_MICROSECOND,HOUR_MINUTE,HOUR_SECOND,IF,IGNORE,IN,INDEX,INFILE,INNER,INOUT,INSENSITIVE,INSERT,INT,INT1,INT2,INT3,INT4,INT8,INTEGER,INTERVAL,INTO,IS,ITERATE,JOIN,KEY,KEYS,KILL,LEADING,LEAVE,LEFT,LIKE,LIMIT,LINEAR,LINES,LOAD,LOCALTIME,LOCALTIMESTAMP,LOCK,LONG,LONGBLOB,LONGTEXT,LOOP,LOW_PRIORITY,MATCH,MEDIUMBLOB,MEDIUMINT,MEDIUMTEXT,MIDDLEINT,MINUTE_MICROSECOND,MINUTE_SECOND,MOD,MODIFIES,NATURAL,NOT,NO_WRITE_TO_BINLOG,NULL,NUMERIC,ON,OPTIMIZE,OPTION,OPTIONALLY,OR,ORDER,OUT,OUTER,OUTFILE,PRECISION,PRIMARY,PROCEDURE,PURGE,RANGE,READ,READS,READ_ONLY,READ_WRITE,REAL,REFERENCES,REGEXP,RELEASE,RENAME,REPEAT,REPLACE,REQUIRE,RESTRICT,RETURN,REVOKE,RIGHT,RLIKE,SCHEMA,SCHEMAS,SECOND_MICROSECOND,SELECT,SENSITIVE,SEPARATOR,SET,SHOW,SMALLINT,SPATIAL,SPECIFIC,SQL,SQLEXCEPTION,SQLSTATE,SQLWARNING,SQL_BIG_RESULT,SQL_CALC_FOUND_ROWS,SQL_SMALL_RESULT,SSL,STARTING,STRAIGHT_JOIN,TABLE,TERMINATED,THEN,TINYBLOB,TINYINT,TINYTEXT,TO,TRAILING,TRIGGER,TRUE,UNDO,UNION,UNIQUE,UNLOCK,UNSIGNED,UPDATE,UPGRADE,USAGE,USE,USING,UTC_DATE,UTC_TIME,UTC_TIMESTAMP,VALUES,VARBINARY,VARCHAR,VARCHARACTER,VARYING,WHEN,WHERE,WHILE,WITH,WRITE,X509,XOR,YEAR_MONTH,ZEROFILL," +
+                    "LOG,User,Role,Admin,Rank,Member";
+            }
+        }
 
         /// <summary>格式化关键字</summary>
         /// <param name="keyWord">关键字</param>
@@ -96,9 +107,9 @@ namespace XCode.DataAccessLayer
             //if (String.IsNullOrEmpty(keyWord)) throw new ArgumentNullException("keyWord");
             if (String.IsNullOrEmpty(keyWord)) return keyWord;
 
-            if (keyWord.StartsWith("`") && keyWord.EndsWith("`")) return keyWord;
+            if (keyWord.StartsWith("\"") && keyWord.EndsWith("\"")) return keyWord;
 
-            return String.Format("`{0}`", keyWord);
+            return $"\"{keyWord}\"";
         }
 
         /// <summary>格式化数据为SQL数据</summary>
@@ -109,14 +120,14 @@ namespace XCode.DataAccessLayer
         {
             if (field.DataType == typeof(String))
             {
-                if (value == null) return field.Nullable ? "null" : "``";
+                if (value == null) return field.Nullable ? "null" : "''";
                 //云飞扬：这里注释掉，应该返回``而不是null字符
                 //if (String.IsNullOrEmpty(value.ToString()) && field.Nullable) return "null";
-                return "`" + value + "`";
+                return "'" + value + "'";
             }
             else if (field.DataType == typeof(Boolean))
             {
-                return (Boolean)value ? "'Y'" : "'N'";
+                return (Boolean)value ? "true" : "false";
             }
 
             return base.FormatValue(field, value);
@@ -128,13 +139,13 @@ namespace XCode.DataAccessLayer
         protected internal override String ParamPrefix => "$";
 
         /// <summary>系统数据库名</summary>
-        public override String SystemDatabaseName => "PostgreSQL";
+        public override String SystemDatabaseName => "postgres";
 
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "\'\'") + "||" + (!String.IsNullOrEmpty(right) ? right : "\'\'");
+        public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "''") + "||" + (!String.IsNullOrEmpty(right) ? right : "''");
         #endregion
     }
 
@@ -153,8 +164,151 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            sql += ";Select LAST_INSERT_ID()";
+            sql += " RETURNING id";
             return base.InsertAndGetIdentity(sql, type, ps);
+        }
+
+#if !NET40
+        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
+        {
+            sql += " RETURNING id";
+            return base.InsertAndGetIdentityAsync(sql, type, ps);
+        }
+#endif
+        #endregion
+
+        #region 批量操作
+        /*
+        insert into stat (siteid,statdate,`count`,cost,createtime,updatetime) values 
+        (1,'2018-08-11 09:34:00',1,123,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now()),
+        (3,'2018-08-11 09:34:00',1,789,now(),now()),
+        (2,'2018-08-11 09:34:00',1,456,now(),now())
+        on duplicate key update 
+        `count`=`count`+values(`count`),cost=cost+values(cost),
+        updatetime=values(updatetime);
+         */
+
+        private String GetBatchSql(String action, IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        {
+            var sb = Pool.StringBuilder.Get();
+            var db = Database as DbBase;
+
+            // 字段列表
+            //if (columns == null) columns = table.Columns.ToArray();
+            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
+            foreach (var dc in columns)
+            {
+                // 取消对主键的过滤，避免列名和值无法一一对应的问题
+                //if (dc.Identity) continue;
+
+                sb.Append(db.FormatName(dc));
+                sb.Append(',');
+            }
+            sb.Length--;
+            sb.Append(')');
+
+            // 值列表
+            sb.Append(" Values");
+
+            // 优化支持DbTable
+            if (list.FirstOrDefault() is DbRow)
+            {
+                // 提前把列名转为索引，然后根据索引找数据
+                DbTable dt = null;
+                Int32[] ids = null;
+                foreach (DbRow dr in list)
+                {
+                    if (dr.Table != dt)
+                    {
+                        dt = dr.Table;
+                        var cs = new List<Int32>();
+                        foreach (var dc in columns)
+                        {
+                            if (dc.Identity)
+                                cs.Add(0);
+                            else
+                                cs.Add(dt.GetColumn(dc.ColumnName));
+                        }
+                        ids = cs.ToArray();
+                    }
+
+                    sb.Append('(');
+                    var row = dt.Rows[dr.Index];
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        var dc = columns[i];
+                        //if (dc.Identity) continue;
+
+                        var value = row[ids[i]];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            else
+            {
+                foreach (var entity in list)
+                {
+                    sb.Append('(');
+                    foreach (var dc in columns)
+                    {
+                        //if (dc.Identity) continue;
+
+                        var value = entity[dc.Name];
+                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            sb.Length--;
+
+            // 重复键执行update
+            if ((updateColumns != null && updateColumns.Count > 0) || (addColumns != null && addColumns.Count > 0))
+            {
+                sb.Append(" On Duplicate Key Update ");
+                if (updateColumns != null && updateColumns.Count > 0)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null && addColumns.Count > 0)
+                {
+                    sb.Append(',');
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+            }
+
+            return sb.Put(true);
+        }
+
+        public override Int32 Insert(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Into", table, columns, null, null, list);
+            return Execute(sql);
+        }
+
+        public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
+        {
+            var sql = GetBatchSql("Insert Into", table, columns, updateColumns, addColumns, list);
+            return Execute(sql);
         }
         #endregion
     }
@@ -163,6 +317,37 @@ namespace XCode.DataAccessLayer
     internal class PostgreSQLMetaData : RemoteDbMetaData
     {
         public PostgreSQLMetaData() => Types = _DataTypes;
+
+        #region 数据类型
+        protected override List<KeyValuePair<Type, Type>> FieldTypeMaps
+        {
+            get
+            {
+                if (_FieldTypeMaps == null)
+                {
+                    var list = base.FieldTypeMaps;
+                    if (!list.Any(e => e.Key == typeof(Byte) && e.Value == typeof(Boolean)))
+                        list.Add(new KeyValuePair<Type, Type>(typeof(Byte), typeof(Boolean)));
+                }
+                return base.FieldTypeMaps;
+            }
+        }
+
+        /// <summary>数据类型映射</summary>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
+        {
+            { typeof(Byte[]), new String[] { "bytea" } },
+            { typeof(Boolean), new String[] { "boolean" } },
+            { typeof(Int16), new String[] { "smallint" } },
+            { typeof(Int32), new String[] { "integer" } },
+            { typeof(Int64), new String[] { "bigint" } },
+            { typeof(Single), new String[] { "float" } },
+            { typeof(Double), new String[] { "float8", "double precision" } },
+            { typeof(Decimal), new String[] { "decimal" } },
+            { typeof(DateTime), new String[] { "timestamp", "timestamp without time zone", "date" } },
+            { typeof(String), new String[] { "varchar({0})", "character varying", "text" } },
+        };
+        #endregion
 
         protected override void FixTable(IDataTable table, DataRow dr, IDictionary<String, DataTable> data)
         {
@@ -208,75 +393,15 @@ namespace XCode.DataAccessLayer
             base.FixField(field, dr);
         }
 
-        //protected override DataRow[] FindDataType(IDataColumn field, String typeName, Boolean? isLong)
-        //{
-        //    DataRow[] drs = base.FindDataType(field, typeName, isLong);
-        //    if (drs != null && drs.Length > 1)
-        //    {
-        //        // 无符号/有符号
-        //        if (!String.IsNullOrEmpty(field.RawType))
-        //        {
-        //            Boolean IsUnsigned = field.RawType.ToLower().Contains("unsigned");
-
-        //            foreach (DataRow dr in drs)
-        //            {
-        //                String format = GetDataRowValue<String>(dr, "CreateFormat");
-
-        //                if (IsUnsigned && format.ToLower().Contains("unsigned"))
-        //                    return new DataRow[] { dr };
-        //                else if (!IsUnsigned && !format.ToLower().Contains("unsigned"))
-        //                    return new DataRow[] { dr };
-        //            }
-        //        }
-
-        //        // 字符串
-        //        if (typeName == typeof(String).FullName)
-        //        {
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "NVARCHAR" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //                else if (name == "LONGTEXT" && field.Length > Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //            foreach (var dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "VARCHAR" && field.Length <= Database.LongTextLength)
-        //                    return new DataRow[] { dr };
-        //            }
-        //        }
-
-        //        // 时间日期
-        //        if (typeName == typeof(DateTime).FullName)
-        //        {
-        //            // DateTime的范围是0001到9999
-        //            // Timestamp的范围是1970到2038
-        //            //String d = field.Default;
-        //            //CheckAndGetDefault(field, ref d);
-        //            foreach (DataRow dr in drs)
-        //            {
-        //                var name = GetDataRowValue<String>(dr, "TypeName");
-        //                if (name == "DATETIME") return new DataRow[] { dr };
-        //            }
-        //        }
-        //    }
-        //    return drs;
-        //}
-
-        protected override String GetFieldType(IDataColumn field)
-        {
-            if (field.DataType == typeof(Boolean)) return "enum('N','Y')";
-
-            return base.GetFieldType(field);
-        }
-
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
+            if (field.Identity) return $"{field.Name} serial NOT NULL";
+
             var sql = base.FieldClause(field, onlyDefine);
-            // 加上注释
-            if (!String.IsNullOrEmpty(field.Description)) sql = String.Format("{0} COMMENT '{1}'", sql, field.Description);
+
+            //// 加上注释
+            //if (!String.IsNullOrEmpty(field.Description)) sql = $"{sql} COMMENT '{field.Description}'";
+
             return sql;
         }
 
@@ -285,30 +410,10 @@ namespace XCode.DataAccessLayer
             String str = null;
             if (!field.Nullable) str = " NOT NULL";
 
-            if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
+            if (field.Identity) str = " serial NOT NULL";
 
             return str;
         }
-
-        /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
-        {
-            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
-            //{ typeof(TimeSpan), new String[] { "TIME" } },
-            //{ typeof(SByte), new String[] { "TINYINT" } },
-            { typeof(Byte), new String[] { "TINYINT UNSIGNED" } },
-            { typeof(Int16), new String[] { "SMALLINT" } },
-            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
-            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT" } },
-            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            { typeof(Int64), new String[] { "BIGINT" } },
-            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
-            { typeof(Single), new String[] { "FLOAT" } },
-            { typeof(Double), new String[] { "DOUBLE" } },
-            { typeof(Decimal), new String[] { "DECIMAL" } },
-            { typeof(DateTime), new String[] { "DATE", "DATETIME", "TIMESTAMP" } },
-            { typeof(String), new String[] { "NVARCHAR({0})", "TEXT", "CHAR({0})", "NCHAR({0})", "VARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT" } }
-        };
 
         #region 架构定义
         //public override object SetSchema(DDLSchema schema, params object[] values)
@@ -330,7 +435,7 @@ namespace XCode.DataAccessLayer
             //return base.DatabaseExist(databaseName);
 
             var session = Database.CreateSession();
-            var dt = GetSchema(_.Databases, new String[] { databaseName });
+            var dt = GetSchema(_.Databases, new String[] { databaseName.ToLower() });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
@@ -339,54 +444,36 @@ namespace XCode.DataAccessLayer
         //    return String.Format("Create Database Binary {0}", FormatKeyWord(dbname));
         //}
 
-        public override String DropDatabaseSQL(String dbname) => String.Format("Drop Database If Exists {0}", FormatName(dbname));
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
 
             var sb = new StringBuilder(32 + fs.Count * 20);
-            String key = null;
 
-            sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table.TableName));
+            sb.AppendFormat("Create Table {0}(", FormatName(table));
             for (var i = 0; i < fs.Count; i++)
             {
                 sb.AppendLine();
-                sb.Append("\t");
+                sb.Append('\t');
                 sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(",");
-
-                if (fs[i].PrimaryKey) key = fs[i].ColumnName;
+                if (i < fs.Count - 1) sb.Append(',');
             }
-            if (!String.IsNullOrEmpty(key))
-            {
-                sb.AppendLine(",");
-                sb.AppendFormat("\tPrimary Key ({0})", FormatName(key));
-            }
+            if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
-            sb.Append(")");
+            sb.Append(')');
 
             return sb.ToString();
         }
 
-        public override String AddTableDescriptionSQL(IDataTable table)
-        {
-            if (String.IsNullOrEmpty(table.Description)) return null;
+        public override String AddTableDescriptionSQL(IDataTable table) => $"Comment On Table {FormatName(table)} is '{table.Description}'";
 
-            return String.Format("Alter Table {0} Comment '{1}'", FormatName(table.TableName), table.Description);
-        }
+        public override String DropTableDescriptionSQL(IDataTable table) => $"Comment On Table {FormatName(table)} is ''";
 
-        public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => String.Format("Alter Table {0} Modify Column {1}", FormatName(field.Table.TableName), FieldClause(field, false));
+        public override String AddColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is '{field.Description}'";
 
-        public override String AddColumnDescriptionSQL(IDataColumn field)
-        {
-            // 返回String.Empty表示已经在别的SQL中处理
-            return String.Empty;
-
-            //if (String.IsNullOrEmpty(field.Description)) return null;
-
-            //return String.Format("Alter Table {0} Modify {1} Comment '{2}'", FormatKeyWord(field.Table.Name), FormatKeyWord(field.Name), field.Description);
-        }
+        public override String DropColumnDescriptionSQL(IDataColumn field) => $"Comment On Column {FormatName(field.Table)}.{FormatName(field)} is ''";
         #endregion
 
         #region 辅助函数

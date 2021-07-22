@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading.Tasks;
 using NewLife.Data;
 using XCode.Cache;
 using XCode.DataAccessLayer;
@@ -16,6 +17,9 @@ namespace XCode
 
         /// <summary>表名</summary>
         String TableName { get; }
+
+        /// <summary>数据表</summary>
+        IDataTable Table { get; }
 
         /// <summary>用于标识会话的键值</summary>
         String Key { get; }
@@ -34,7 +38,7 @@ namespace XCode
         /// <summary>检查并初始化数据。参数等待时间为0表示不等待</summary>
         /// <param name="ms">等待时间，-1表示不限，0表示不等待</param>
         /// <returns>如果等待，返回是否收到信号</returns>
-        Boolean WaitForInitData(Int32 ms = 1000);
+        Boolean WaitForInitData(Int32 ms = 3000);
         #endregion
 
         #region 缓存
@@ -63,8 +67,14 @@ namespace XCode
         Int64 LongCount { get; }
 
         /// <summary>清除缓存</summary>
-        /// <param name="reason">原因</param>
+        /// <param name="reason">清除原因</param>
+        [Obsolete]
         void ClearCache(String reason);
+
+        /// <summary>清除缓存</summary>
+        /// <param name="reason">清除原因</param>
+        /// <param name="force">强制清除，下次访问阻塞等待。默认false仅置为过期，下次访问异步更新</param>
+        void ClearCache(String reason, Boolean force);
         #endregion
 
         #region 数据库操作
@@ -97,6 +107,34 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
+#if !NET40
+        /// <summary>执行SQL查询，返回记录集</summary>
+        /// <param name="builder">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        Task<DbTable> QueryAsync(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows);
+
+        /// <summary>查询记录数</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <returns>记录数</returns>
+        Task<Int64> QueryCountAsync(SelectBuilder builder);
+
+        /// <summary>执行</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>影响的结果</returns>
+        Task<Int32> ExecuteAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+
+        /// <summary>执行插入语句并返回新增行的自动编号</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="type">命令类型，默认SQL文本</param>
+        /// <param name="ps">命令参数</param>
+        /// <returns>新增行的自动编号</returns>
+        Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
+#endif
+
         /// <summary>执行Truncate语句</summary>
         /// <returns>影响的结果</returns>
         Int32 Truncate();
@@ -117,6 +155,9 @@ namespace XCode
         /// <summary>回滚事务，忽略异常</summary>
         /// <returns>剩下的事务计数</returns>
         Int32 Rollback();
+
+        /// <summary>创建事务</summary>
+        EntityTransaction CreateTrans();
         #endregion
 
         #region 参数化
@@ -124,10 +165,10 @@ namespace XCode
         ///// <returns></returns>
         //IDataParameter CreateParameter();
 
-        /// <summary>格式化参数名</summary>
-        /// <param name="name">名称</param>
-        /// <returns></returns>
-        String FormatParameterName(String name);
+        ///// <summary>格式化参数名</summary>
+        ///// <param name="name">名称</param>
+        ///// <returns></returns>
+        //String FormatParameterName(String name);
         #endregion
 
         #region 实体操作
@@ -145,6 +186,23 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         Int32 Delete(IEntity entity);
+
+#if !NET40
+        /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> InsertAsync(IEntity entity);
+
+        /// <summary>更新数据库，同时更新实体缓存</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> UpdateAsync(IEntity entity);
+
+        /// <summary>从数据库中删除该对象，同时从实体缓存中删除</summary>
+        /// <param name="entity">实体对象</param>
+        /// <returns></returns>
+        Task<Int32> DeleteAsync(IEntity entity);
+#endif
         #endregion
     }
 }

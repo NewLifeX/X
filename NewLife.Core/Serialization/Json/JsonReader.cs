@@ -3,20 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using NewLife.Data;
+using NewLife.Model;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
 {
     /// <summary>Json读取器</summary>
+    /// <remarks>
+    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// </remarks>
     public class JsonReader
     {
         #region 属性
         /// <summary>是否使用UTC时间</summary>
         public Boolean UseUTCDateTime { get; set; }
-        #endregion
 
-        #region 构造
-        //public JsonReader() { }
+        /// <summary>服务提供者</summary>
+        public IServiceProvider Provider { get; set; } = ObjectContainer.Provider;
         #endregion
 
         #region 转换方法
@@ -24,10 +28,7 @@ namespace NewLife.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="json"></param>
         /// <returns></returns>
-        public T Read<T>(String json)
-        {
-            return (T)Read(json, typeof(T));
-        }
+        public T Read<T>(String json) => (T)Read(json, typeof(T));
 
         /// <summary>读取Json到指定类型</summary>
         /// <param name="json"></param>
@@ -117,8 +118,7 @@ namespace NewLife.Serialization
             var elmType = type?.GetElementTypeEx();
             if (elmType == null) elmType = typeof(Object);
 
-            var arr = target as Array;
-            if (arr == null) arr = Array.CreateInstance(elmType, list.Count);
+            if (target is not Array arr) arr = Array.CreateInstance(elmType, list.Count);
             // 如果源数组有值，则最大只能创建源数组那么多项，抛弃多余项
             for (var i = 0; i < list.Count && i < arr.Length; i++)
             {
@@ -158,8 +158,8 @@ namespace NewLife.Serialization
             return target;
         }
 
-        private Dictionary<Object, Int32> _circobj = new Dictionary<Object, Int32>();
-        private Dictionary<Int32, Object> _cirrev = new Dictionary<Int32, Object>();
+        private readonly Dictionary<Object, Int32> _circobj = new();
+        private readonly Dictionary<Int32, Object> _cirrev = new();
         /// <summary>字典转复杂对象，反射属性赋值</summary>
         /// <param name="dic"></param>
         /// <param name="type"></param>
@@ -171,7 +171,7 @@ namespace NewLife.Serialization
             if (type == typeof(StringDictionary)) return CreateSD(dic);
             if (type == typeof(Object)) return dic;
 
-            if (target == null) target = type.CreateInstance();
+            if (target == null) target = Provider.GetService(type) ?? type.CreateInstance();
 
             if (type.IsDictionary()) return CreateDic(dic, type, target);
 
@@ -182,8 +182,10 @@ namespace NewLife.Serialization
                 _cirrev.Add(circount, target);
             }
 
+            // 扩展属性
+
             // 遍历所有可用于序列化的属性
-            var props = type.GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
+            var props = target.GetType().GetProperties(true).ToDictionary(e => SerialHelper.GetName(e), e => e);
             foreach (var item in dic)
             {
                 var v = item.Value;
@@ -193,7 +195,13 @@ namespace NewLife.Serialization
                 {
                     // 可能有小写
                     pi = props.Values.FirstOrDefault(e => e.Name.EqualIgnoreCase(item.Key));
-                    if (pi == null) continue;
+                    if (pi == null)
+                    {
+                        // 可能有扩展属性
+                        if (target is IExtend ext) ext[item.Key] = item.Value;
+
+                        continue;
+                    }
                 }
                 if (!pi.CanWrite) continue;
 
@@ -318,47 +326,52 @@ namespace NewLife.Serialization
             }
 
             //用于解决奇葩json中时间字段使用了utc时间戳，还是用双引号包裹起来的情况。
-            if (value is String)
+            if (value is String str)
             {
-                if (Int64.TryParse(value + "", out var result) && result > 0)
+                if (str.IsNullOrEmpty()) return DateTime.MinValue;
+
+                if (Int64.TryParse(str, out var result) && result > 0)
                 {
                     var sdt = result.ToDateTime();
                     if (UseUTCDateTime) sdt = sdt.ToUniversalTime();
                     return sdt;
                 }
+
+                // 尝试直转时间
+                var dt = str.ToDateTime();
+                if (dt.Year > 1) return UseUTCDateTime ? dt.ToUniversalTime() : dt;
+
+                var utc = false;
+
+                var year = 0;
+                var month = 0;
+                var day = 0;
+                var hour = 0;
+                var min = 0;
+                var sec = 0;
+                var ms = 0;
+
+                year = CreateInteger(str, 0, 4);
+                month = CreateInteger(str, 5, 2);
+                day = CreateInteger(str, 8, 2);
+                if (str.Length >= 19)
+                {
+                    hour = CreateInteger(str, 11, 2);
+                    min = CreateInteger(str, 14, 2);
+                    sec = CreateInteger(str, 17, 2);
+                    if (str.Length > 21 && str[19] == '.')
+                        ms = CreateInteger(str, 20, 3);
+
+                    if (str[str.Length - 1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
+                }
+
+                if (!UseUTCDateTime && !utc)
+                    return new DateTime(year, month, day, hour, min, sec, ms);
+                else
+                    return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
             }
 
-            var str = (String)value;
-            if (str.IsNullOrEmpty()) return DateTime.MinValue;
-
-            var utc = false;
-
-            var year = 0;
-            var month = 0;
-            var day = 0;
-            var hour = 0;
-            var min = 0;
-            var sec = 0;
-            var ms = 0;
-
-            year = CreateInteger(str, 0, 4);
-            month = CreateInteger(str, 5, 2);
-            day = CreateInteger(str, 8, 2);
-            if (str.Length >= 19)
-            {
-                hour = CreateInteger(str, 11, 2);
-                min = CreateInteger(str, 14, 2);
-                sec = CreateInteger(str, 17, 2);
-                if (str.Length > 21 && str[19] == '.')
-                    ms = CreateInteger(str, 20, 3);
-
-                if (str[str.Length - 1] == 'Z') utc = true;
-            }
-
-            if (!UseUTCDateTime && !utc)
-                return new DateTime(year, month, day, hour, min, sec, ms);
-            else
-                return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
+            return DateTime.MinValue;
         }
 
         private Object CreateDictionary(IList<Object> list, Type type, Object target)

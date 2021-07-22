@@ -72,7 +72,7 @@ namespace NewLife.Remoting
             if (typeName.IsNullOrEmpty() || miName.Contains("/"))
                 return miName;
             else
-                return "{0}/{1}".F(typeName, miName);
+                return $"{typeName}/{miName}";
         }
 
         /// <summary>已重载。</summary>
@@ -93,7 +93,9 @@ namespace NewLife.Remoting
                     rtype = type.Name;
                 }
             }
-            return "{0} {1}({2})".F(rtype, mi.Name, mi.GetParameters().Select(pi => "{0} {1}".F(pi.ParameterType.Name, pi.Name)).Join(", "));
+
+            var ps = mi.GetParameters().Select(pi => $"{pi.ParameterType.Name} {pi.Name}").Join(", ");
+            return $"{rtype} {mi.Name}({ps})";
         }
     }
 }

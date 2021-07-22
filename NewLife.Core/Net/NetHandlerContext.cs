@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
-using NewLife.Messaging;
 using NewLife.Model;
-using NewLife.Threading;
+using NewLife.Serialization;
 
 namespace NewLife.Net
 {
@@ -74,9 +73,9 @@ namespace NewLife.Net
 
         /// <summary>写入管道过滤后最终处理消息</summary>
         /// <param name="message"></param>
-        public override Boolean FireWrite(Object message)
+        public override Int32 FireWrite(Object message)
         {
-            if (message == null) return false;
+            if (message == null) return -1;
 
             var session = Session;
 
@@ -84,16 +83,21 @@ namespace NewLife.Net
             if (message is Byte[] buf) return session.Send(buf);
             if (message is Packet pk) return session.Send(pk);
             if (message is String str) return session.Send(str.GetBytes());
+            if (message is IAccessor acc) return session.Send(acc.ToPacket());
 
             // 发送一批数据包
             if (message is IEnumerable<Packet> pks)
             {
+                var rs = 0;
                 foreach (var item in pks)
                 {
-                    if (!session.Send(item)) return false;
+                    var count = session.Send(item);
+                    if (count < 0) break;
+
+                    rs += count;
                 }
 
-                return true;
+                return rs;
             }
 
             throw new XException("无法识别消息[{0}]，可能缺少编码处理器", message?.GetType()?.FullName);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -23,8 +24,7 @@ namespace NewLife.Serialization
         {
             if (!type.As<IList>() && !(value is IList)) return false;
 
-            var list = value as IList;
-            if (list == null || list.Count == 0) return true;
+            if (value is not IList list || list.Count == 0) return true;
 
             WriteLog("XmlWrite {0} 元素{1}项", type.Name, list.Count);
 
@@ -59,16 +59,15 @@ namespace NewLife.Serialization
             if (!type.As<IList>()) return false;
 
             var reader = Host.GetReader();
-            if (!reader.IsStartElement()) return true;
 
             // 读一次开始，移动到内部第一个元素
-            //reader.ReadStartElement();
+            if (reader.NodeType == XmlNodeType.Attribute) reader.ReadStartElement();
+            if (!reader.IsStartElement()) return true;
 
             // 子元素类型
             var elmType = type.GetElementTypeEx();
 
-            var list = value as IList;
-            if (list == null || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+            if (value is not IList list || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
 
             // 清空已有数据
             list.Clear();
@@ -95,7 +94,7 @@ namespace NewLife.Serialization
             }
 
             // 读一次结束
-            //if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
+            if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
 
             return true;
         }

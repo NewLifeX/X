@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife;
 using NewLife.Reflection;
 using XCode.Exceptions;
 
@@ -129,7 +130,7 @@ namespace XCode.DataAccessLayer
             // 结果列处理
             builder2.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
-            if ((!string.IsNullOrEmpty(builder2.Column)) && builder2.Column.Contains("."))
+            if ((!String.IsNullOrEmpty(builder2.Column)) && builder2.Column.Contains("."))
             {
                 builder2.Column = "*";
             }
@@ -193,7 +194,7 @@ namespace XCode.DataAccessLayer
             // 结果列处理
             builder3.Column = builder.Column;
             // 如果结果列包含有“.”，即有形如tab1.id、tab2.name之类的列时设为获取子查询的全部列
-            if ((!string.IsNullOrEmpty(builder3.Column)) && builder3.Column.Contains("."))
+            if ((!String.IsNullOrEmpty(builder3.Column)) && builder3.Column.Contains("."))
             {
                 builder3.Column = "*";
             }
@@ -217,7 +218,7 @@ namespace XCode.DataAccessLayer
 
             var builder1 = builder.Clone().Top(startRowIndex, builder.Key);
             var builder2 = builder1.AsChild("XCode_T0", true);
-            builder2.Column = String.Format("{0}({1})", builder.IsDesc ? "Min" : "Max", builder.Key);
+            builder2.Column = $"{(builder.IsDesc ? "Min" : "Max")}({builder.Key})";
 
             SelectBuilder builder3 = null;
             if (maximumRows < 1)
@@ -247,7 +248,7 @@ namespace XCode.DataAccessLayer
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = "*, row_number() over(Order By {0}) as rowNumber".F(builder.OrderBy ?? builder.KeyOrder);
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
@@ -263,9 +264,9 @@ namespace XCode.DataAccessLayer
             // row_number()直接影响了排序，这里不再需要
             builder2.OrderBy = null;
             if (maximumRows < 1)
-                builder2.Where = String.Format("rowNumber>={0}", startRowIndex + 1);
+                builder2.Where = $"rowNumber>={startRowIndex + 1}";
             else
-                builder2.Where = String.Format("rowNumber Between {0} And {1}", startRowIndex + 1, startRowIndex + maximumRows);
+                builder2.Where = $"rowNumber Between {startRowIndex + 1} And {startRowIndex + maximumRows}";
 
             return builder2;
         }
@@ -274,7 +275,7 @@ namespace XCode.DataAccessLayer
         {
             if (!String.IsNullOrEmpty(keyColumn)) builder.Column = keyColumn;
             if (String.IsNullOrEmpty(builder.Column)) builder.Column = "*";
-            builder.Column = String.Format("Top {0} {1}", top, builder.Column);
+            builder.Column = $"Top {top} {builder.Column}";
             return builder;
         }
     }

@@ -11,7 +11,7 @@ namespace NewLife.Collections
     /// </remarks>
     public class ConcurrentHashSet<T> : IEnumerable<T>
     {
-        private ConcurrentDictionary<T, Byte> _dic = new ConcurrentDictionary<T, Byte>();
+        private readonly ConcurrentDictionary<T, Byte> _dic = new();
 
         /// <summary>是否空集合</summary>
         public Boolean IsEmpty => _dic.IsEmpty;
@@ -32,7 +32,7 @@ namespace NewLife.Collections
         /// <summary>尝试删除</summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public Boolean TryRemove(T item) => _dic.TryRemove(item, out var b);
+        public Boolean TryRemove(T item) => _dic.TryRemove(item, out _);
 
         #region IEnumerable<T> 成员
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dic.Keys.GetEnumerator();

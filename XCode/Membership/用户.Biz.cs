@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Common;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Security.Principal;
-using System.Web;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Web;
 
 namespace XCode.Membership
 {
@@ -29,23 +27,20 @@ namespace XCode.Membership
     }
 
     /// <summary>管理员</summary>
-    [Serializable]
-    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
-    public class UserX : User<UserX> { }
+    [Obsolete("UserX=>User")]
+    public class UserX : User { }
 
     /// <summary>管理员</summary>
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>
-    /// <typeparam name="TEntity">管理员类型</typeparam>
-    public abstract partial class User<TEntity> : LogEntity<TEntity>, IUser, IAuthUser, IIdentity
-        where TEntity : User<TEntity>, new()
+    public partial class User : LogEntity<User>, IUser, IAuthUser, IIdentity
     {
         #region 对象操作
         static User()
         {
-            // 用于引发基类的静态构造函数
-            var entity = new TEntity();
+            //// 用于引发基类的静态构造函数
+            //var entity = new TEntity();
 
             //!!! 曾经这里导致产生死锁
             // 这里是静态构造函数，访问Factory引发EntityFactory.CreateOperate，
@@ -65,17 +60,15 @@ namespace XCode.Membership
         [EditorBrowsable(EditorBrowsableState.Never)]
         internal protected override void InitData()
         {
-            base.InitData();
-
             if (Meta.Count > 0) return;
 
-            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("开始初始化{0}用户数据……", typeof(User).Name);
 
             Add("admin", null, 1, "管理员");
             //Add("poweruser", null, 2, "高级用户");
             //Add("user", null, 3, "普通用户");
 
-            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(TEntity).Name);
+            if (XTrace.Debug) XTrace.WriteLine("完成初始化{0}用户数据！", typeof(User).Name);
         }
 
         /// <summary>验证</summary>
@@ -87,22 +80,22 @@ namespace XCode.Membership
             if (Name.IsNullOrEmpty()) throw new ArgumentNullException(__.Name, "用户名不能为空！");
             //if (RoleID < 1) throw new ArgumentNullException(__.RoleID, "没有指定角色！");
 
-            var pass = Password;
-            if (isNew)
-            {
-                if (!pass.IsNullOrEmpty() && pass.Length != 32) Password = pass.MD5();
-            }
-            else
-            {
-                // 编辑修改密码
-                if (IsDirty(__.Password))
-                {
-                    if (!pass.IsNullOrEmpty())
-                        Password = pass.MD5();
-                    else
-                        Dirtys[__.Password] = false;
-                }
-            }
+            //var pass = Password;
+            //if (isNew)
+            //{
+            //    if (!pass.IsNullOrEmpty() && pass.Length != 32) Password = pass.MD5();
+            //}
+            //else
+            //{
+            //    // 编辑修改密码
+            //    if (IsDirty(__.Password))
+            //    {
+            //        if (!pass.IsNullOrEmpty())
+            //            Password = pass.MD5();
+            //        else
+            //            Dirtys[__.Password] = false;
+            //    }
+            //}
 
             // 重新整理角色
             var ids = GetRoleIDs();
@@ -111,7 +104,7 @@ namespace XCode.Membership
                 RoleID = ids[0];
                 var str = ids.Skip(1).Join();
                 if (!str.IsNullOrEmpty()) str = "," + str + ",";
-                RoleIDs = str;
+                RoleIds = str;
             }
         }
 
@@ -126,14 +119,8 @@ namespace XCode.Membership
         #endregion
 
         #region 扩展属性
-        /// <summary>友好名字</summary>
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public virtual String FriendName => String.IsNullOrEmpty(DisplayName) ? Name : DisplayName;
-
         /// <summary>物理地址</summary>
         [DisplayName("物理地址")]
-        //[BindRelation(__.LastLoginIP)]
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
         public String LastLoginAddress => LastLoginIP.IPToAddress();
 
         /// <summary>部门</summary>
@@ -142,14 +129,18 @@ namespace XCode.Membership
 
         /// <summary>部门</summary>
         [Map(__.DepartmentID, typeof(Department), __.ID)]
-        public String DepartmentName => Department + "";
+        public String DepartmentName => Department?.ToString();
+
+        ///// <summary>兼容旧版角色组</summary>
+        //[Obsolete("=>RoleIds")]
+        //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
         #endregion
 
         #region 扩展查询
         /// <summary>根据编号查找</summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static TEntity FindByID(Int32 id)
+        public static User FindByID(Int32 id)
         {
             if (id <= 0) return null;
 
@@ -162,53 +153,65 @@ namespace XCode.Membership
         /// <summary>根据名称查找</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
-        public static TEntity FindByName(String name)
+        public static User FindByName(String name)
         {
             if (name.IsNullOrEmpty()) return null;
 
             if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
 
             // 单对象缓存
-            return Meta.SingleCache.GetItemWithSlaveKey(name) as TEntity;
+            return Meta.SingleCache.GetItemWithSlaveKey(name) as User;
         }
 
         /// <summary>根据邮箱地址查找</summary>
         /// <param name="mail"></param>
         /// <returns></returns>
-        public static TEntity FindByMail(String mail)
+        public static User FindByMail(String mail)
         {
             if (mail.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Mail, mail);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Mail.EqualIgnoreCase(mail));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Mail.EqualIgnoreCase(mail));
+
+            return Find(__.Mail, mail);
         }
 
         /// <summary>根据手机号码查找</summary>
         /// <param name="mobile"></param>
         /// <returns></returns>
-        public static TEntity FindByMobile(String mobile)
+        public static User FindByMobile(String mobile)
         {
             if (mobile.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Mobile, mobile);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Mobile.EqualIgnoreCase(mobile));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Mobile == mobile);
+
+            return Find(__.Mobile, mobile);
         }
 
         /// <summary>根据唯一代码查找</summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public static TEntity FindByCode(String code)
+        public static User FindByCode(String code)
         {
             if (code.IsNullOrEmpty()) return null;
 
-            if (Meta.Count >= 1000)
-                return Find(__.Code, code);
-            else // 实体缓存
-                return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
+            if (Meta.Count < 1000) return Meta.Cache.Find(e => e.Code.EqualIgnoreCase(code));
+
+            return Find(__.Code, code);
+        }
+
+        /// <summary>为登录而查找账号，搜索名称、邮箱、手机、代码</summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public static User FindForLogin(String account)
+        {
+            if (account.IsNullOrEmpty()) return null;
+
+            var user = Find(_.Name == account);
+            if (user == null && account.Contains("@")) user = Find(_.Mail == account);
+            if (user == null && account.ToLong() > 0) user = Find(_.Mobile == account);
+            if (user == null) user = Find(_.Code == account);
+
+            return user;
         }
         #endregion
 
@@ -219,7 +222,7 @@ namespace XCode.Membership
         /// <param name="isEnable"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, PageParameter p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
+        public static IList<User> Search(String key, Int32 roleId, Boolean? isEnable, PageParameter p) => Search(key, roleId, isEnable, DateTime.MinValue, DateTime.MinValue, p);
 
         /// <summary>高级查询</summary>
         /// <param name="key"></param>
@@ -229,10 +232,10 @@ namespace XCode.Membership
         /// <param name="end"></param>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static IList<TEntity> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
+        public static IList<User> Search(String key, Int32 roleId, Boolean? isEnable, DateTime start, DateTime end, PageParameter p)
         {
             var exp = _.LastLogin.Between(start, end);
-            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIDs.Contains("," + roleId + ",");
+            if (roleId > 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
             if (isEnable != null) exp &= _.Enable == isEnable;
 
             // 先精确查询，再模糊
@@ -246,6 +249,48 @@ namespace XCode.Membership
 
             return FindAll(exp, p);
         }
+
+        /// <summary>高级搜索</summary>
+        /// <param name="roleId">角色</param>
+        /// <param name="departmentId">部门</param>
+        /// <param name="enable">启用</param>
+        /// <param name="start">登录时间开始</param>
+        /// <param name="end">登录时间结束</param>
+        /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<User> Search(Int32 roleId, Int32 departmentId, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (roleId >= 0) exp &= _.RoleID == roleId | _.RoleIds.Contains("," + roleId + ",");
+            if (departmentId >= 0) exp &= _.DepartmentID == departmentId;
+            if (enable != null) exp &= _.Enable == enable.Value;
+            exp &= _.LastLogin.Between(start, end);
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
+
+            return FindAll(exp, page);
+        }
+
+        /// <summary>高级搜索</summary>
+        /// <param name="roleIds">角色</param>
+        /// <param name="departmentIds">部门</param>
+        /// <param name="enable">启用</param>
+        /// <param name="start">登录时间开始</param>
+        /// <param name="end">登录时间结束</param>
+        /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
+        {
+            var exp = new WhereExpression();
+            if (roleIds != null && roleIds.Length > 0) exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
+            if (departmentIds != null && departmentIds.Length > 0) exp &= _.DepartmentID.In(departmentIds);
+            if (enable != null) exp &= _.Enable == enable.Value;
+            exp &= _.LastLogin.Between(start, end);
+            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
+
+            return FindAll(exp, page);
+        }
         #endregion
 
         #region 扩展操作
@@ -255,14 +300,14 @@ namespace XCode.Membership
         /// <param name="roleid"></param>
         /// <param name="display"></param>
         /// <returns></returns>
-        public static TEntity Add(String name, String pass, Int32 roleid = 1, String display = null)
+        public static User Add(String name, String pass, Int32 roleid = 1, String display = null)
         {
             //var entity = Find(_.Name == name);
             //if (entity != null) return entity;
 
             if (pass.IsNullOrEmpty()) pass = name;
 
-            var entity = new TEntity
+            var entity = new User
             {
                 Name = name,
                 Password = pass.MD5(),
@@ -278,18 +323,54 @@ namespace XCode.Membership
 
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
-        public override String ToString() => FriendName;
+        public override String ToString() => DisplayName.IsNullOrEmpty() ? Name : DisplayName;
         #endregion
 
         #region 业务
+        /// <summary>登录。借助回调来验证密码</summary>
+        /// <param name="username"></param>
+        /// <param name="onValid"></param>
+        /// <returns></returns>
+        public static User Login(String username, Action<User> onValid)
+        {
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
+            if (onValid == null) throw new ArgumentNullException(nameof(onValid));
+
+            try
+            {
+                // 过滤帐号中的空格，防止出现无操作无法登录的情况
+                var account = username.Trim();
+                //var user = FindByName(account);
+                // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
+                var user = Find(__.Name, account);
+                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+
+                if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
+
+                // 验证用户
+                onValid(user);
+
+                user.SaveLoginInfo();
+
+                WriteLog("登录", true, username);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                WriteLog("登录", false, username + "登录失败！" + ex.Message);
+                throw;
+            }
+        }
+
         /// <summary>登录</summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="rememberme">是否记住密码</param>
         /// <returns></returns>
-        public static TEntity Login(String username, String password, Boolean rememberme = false)
+        public static User Login(String username, String password, Boolean rememberme = false)
         {
-            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username");
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
             //if (String.IsNullOrEmpty(password)) throw new ArgumentNullException("password");
 
             try
@@ -298,14 +379,14 @@ namespace XCode.Membership
             }
             catch (Exception ex)
             {
-                WriteLog("登录", username + "登录失败！" + ex.Message);
+                WriteLog("登录", false, username + "登录失败！" + ex.Message);
                 throw;
             }
         }
 
-        static TEntity Login(String username, String password, Int32 hashTimes)
+        static User Login(String username, String password, Int32 hashTimes)
         {
-            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException("username", "该帐号不存在！");
+            if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
 
             // 过滤帐号中的空格，防止出现无操作无法登录的情况
             var account = username.Trim();
@@ -363,16 +444,16 @@ namespace XCode.Membership
             user.SaveLoginInfo();
 
             if (hashTimes == -1)
-                WriteLog("自动登录", username);
+                WriteLog("自动登录", true, username);
             else
-                WriteLog("登录", username);
+                WriteLog("登录", true, username);
 
             return user;
         }
 
         /// <summary>保存登录信息</summary>
         /// <returns></returns>
-        protected virtual Int32 SaveLoginInfo()
+        public virtual Int32 SaveLoginInfo()
         {
             Logins++;
             LastLogin = DateTime.Now;
@@ -388,12 +469,12 @@ namespace XCode.Membership
         public virtual void Logout()
         {
             //var user = Current;
-            var user = this;
-            if (user != null)
-            {
-                user.Online = false;
-                user.SaveAsync();
-            }
+            //var user = this;
+            //if (user != null)
+            //{
+            //    user.Online = false;
+            //    user.SaveAsync();
+            //}
 
             //Current = null;
             //Thread.CurrentPrincipal = null;
@@ -402,26 +483,24 @@ namespace XCode.Membership
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>
         public virtual void Register()
         {
-            using (var tran = Meta.CreateTrans())
+            using var tran = Meta.CreateTrans();
+            //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
+            if (Meta.Count < 3 && FindCount() <= 1)
             {
-                //!!! 第一个用户注册时，如果只有一个默认admin账号，则自动抢管理员
-                if (Meta.Count < 3 && FindCount() <= 1)
+                var list = FindAll();
+                if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
                 {
-                    var list = FindAll();
-                    if (list.Count == 0 || list.Count == 1 && list[0].DisableAdmin())
-                    {
-                        RoleID = 1;
-                        Enable = true;
-                    }
+                    RoleID = 1;
+                    Enable = true;
                 }
-
-                RegisterTime = DateTime.Now;
-                RegisterIP = ManageProvider.UserHost;
-
-                Insert();
-
-                tran.Commit();
             }
+
+            RegisterTime = DateTime.Now;
+            RegisterIP = ManageProvider.UserHost;
+
+            Insert();
+
+            tran.Commit();
         }
 
         /// <summary>禁用默认管理员</summary>
@@ -454,7 +533,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public virtual Int32[] GetRoleIDs()
         {
-            var ids = RoleIDs.SplitAsInt().OrderBy(e => e).ToList();
+            var ids = RoleIds.SplitAsInt().OrderBy(e => e).ToList();
             if (RoleID > 0) ids.Insert(0, RoleID);
 
             return ids.Distinct().ToArray();
@@ -462,8 +541,7 @@ namespace XCode.Membership
 
         /// <summary>角色名</summary>
         [DisplayName("角色")]
-        [Map(__.RoleID, typeof(RoleMapProvider))]
-        [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+        [Map(__.RoleID, typeof(Role), "ID")]
         public virtual String RoleName => Role + "";
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>
@@ -511,20 +589,100 @@ namespace XCode.Membership
         #endregion
     }
 
-    class RoleMapProvider : MapProvider
-    {
-        public RoleMapProvider()
-        {
-            var role = ManageProvider.Get<IRole>();
-            EntityType = role.GetType();
-            Key = EntityFactory.CreateOperate(EntityType).Unique?.Name;
-        }
-    }
-
+    /// <summary>用户</summary>
     public partial interface IUser
     {
-        /// <summary>友好名字</summary>
-        String FriendName { get; }
+        #region 属性
+        /// <summary>编号</summary>
+        Int32 ID { get; set; }
+
+        /// <summary>名称。登录用户名</summary>
+        String Name { get; set; }
+
+        /// <summary>密码</summary>
+        String Password { get; set; }
+
+        /// <summary>昵称</summary>
+        String DisplayName { get; set; }
+
+        /// <summary>性别。未知、男、女</summary>
+        SexKinds Sex { get; set; }
+
+        /// <summary>邮件</summary>
+        String Mail { get; set; }
+
+        /// <summary>手机</summary>
+        String Mobile { get; set; }
+
+        /// <summary>代码。身份证、员工编号等</summary>
+        String Code { get; set; }
+
+        /// <summary>头像</summary>
+        String Avatar { get; set; }
+
+        /// <summary>角色。主要角色</summary>
+        Int32 RoleID { get; set; }
+
+        /// <summary>角色组。次要角色集合</summary>
+        String RoleIds { get; set; }
+
+        /// <summary>部门。组织机构</summary>
+        Int32 DepartmentID { get; set; }
+
+        /// <summary>在线</summary>
+        Boolean Online { get; set; }
+
+        /// <summary>启用</summary>
+        Boolean Enable { get; set; }
+
+        /// <summary>登录次数</summary>
+        Int32 Logins { get; set; }
+
+        /// <summary>最后登录</summary>
+        DateTime LastLogin { get; set; }
+
+        /// <summary>最后登录IP</summary>
+        String LastLoginIP { get; set; }
+
+        /// <summary>注册时间</summary>
+        DateTime RegisterTime { get; set; }
+
+        /// <summary>注册IP</summary>
+        String RegisterIP { get; set; }
+
+        /// <summary>扩展1</summary>
+        Int32 Ex1 { get; set; }
+
+        /// <summary>扩展2</summary>
+        Int32 Ex2 { get; set; }
+
+        /// <summary>扩展3</summary>
+        Double Ex3 { get; set; }
+
+        /// <summary>扩展4</summary>
+        String Ex4 { get; set; }
+
+        /// <summary>扩展5</summary>
+        String Ex5 { get; set; }
+
+        /// <summary>扩展6</summary>
+        String Ex6 { get; set; }
+
+        /// <summary>更新者</summary>
+        String UpdateUser { get; set; }
+
+        /// <summary>更新用户</summary>
+        Int32 UpdateUserID { get; set; }
+
+        /// <summary>更新地址</summary>
+        String UpdateIP { get; set; }
+
+        /// <summary>更新时间</summary>
+        DateTime UpdateTime { get; set; }
+
+        /// <summary>备注</summary>
+        String Remark { get; set; }
+        #endregion
 
         /// <summary>角色</summary>
         IRole Role { get; }
