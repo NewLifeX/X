@@ -231,8 +231,7 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
-            // 自动分库分表
-            using var split = Meta.CreateShard(this as TEntity);
+        
 
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
@@ -256,7 +255,8 @@ namespace XCode
             {
                 Valid(isnew);
                 if (!Meta.Modules.Valid(this, isnew)) return -1;
-
+                // 自动分库分表
+                using var split = Meta.CreateShard(this as TEntity);
                 return this.Upsert(null, null, null, Meta.Session);
             }
 
@@ -280,9 +280,6 @@ namespace XCode
         /// <returns>是否成功加入异步队列，实体对象已存在于队列中则返回false</returns>
         public override Boolean SaveAsync(Int32 msDelay = 0)
         {
-            // 自动分库分表，影响后面的Meta.Session
-            using var split = Meta.CreateShard(this as TEntity);
-
             var isnew = false;
 
             // 优先使用自增字段判断
@@ -299,7 +296,8 @@ namespace XCode
                 Valid(isnew);
                 Meta._Modules.Valid(this, isnew);
             }
-
+            // 自动分库分表，影响后面的Meta.Session
+            using var split = Meta.CreateShard(this as TEntity);
             if (!HasDirty) return false;
 
             return Meta.Session.Queue.Add(this, msDelay);

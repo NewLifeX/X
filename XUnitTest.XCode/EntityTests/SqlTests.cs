@@ -249,8 +249,6 @@ namespace XUnitTest.XCode.EntityTests
             {
                 Action = "分表",
                 Category = Rand.NextString(8),
-
-                CreateTime = time,
             };
 
             // 添删改查全部使用新表名
@@ -267,9 +265,58 @@ namespace XUnitTest.XCode.EntityTests
             var list = Log2.Search(null, null, -1, null, -1, time.AddHours(-24), time, null, new PageParameter { PageSize = 100 });
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddHours(-24):yyyyMMdd} Where", sqls[^2]);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time:yyyyMMdd} Where", sqls[^1]);
-
+            
+            // logs.Delete();
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;
+        }
+
+        [Fact]
+        public void ShardTestSQLite3() {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy(Log2._.CreateTime, Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            new Log2
+            {
+                Action = "分表1",
+                Category = Rand.NextString(8),
+            }.Save();
+            Assert.StartsWith($"[test_{time:yyyy}] Insert Into Log2_{time:yyyyMMdd}(", sqls[^1]);
+            new Log2
+            {
+                Action = "分表2",
+                Category = Rand.NextString(8),
+            }.SaveAsync();
+            //saveAsync 好拦截不了sql
+            Assert.StartsWith($"[test_{time:yyyy}] Insert Into Log2_{time:yyyyMMdd}(", sqls[^1]);
+            // 配置自动分表策略，一般在实体类静态构造函数中配置 
+            //var shard = new TimeShardPolicy("CreateTime", Log2.Meta.Factory)
+            //{
+            //    //Field = Log2._.ID,
+            //    ConnPolicy = "{0}_{1:yyyy}",
+            //    TablePolicy = "{0}_{1:yyyyMMdd}",
+            //};
+            //Log2.Meta.ShardPolicy = shard;
+            //// 拦截Sql，仅为了断言，非业务代码
+            //var sqls = new List<String>();
+            //DAL.LocalFilter = s => sqls.Add(s);
+
+            //var time = DateTime.Now;
+            //var logs = new List<Log2> { new Log2 {Action = "分表",
+            //    Category = Rand.NextString(8) } , new Log2 {Action = "分表",
+            //    Category = Rand.NextString(8) } };
+            //logs.Save();
+            //Assert.StartsWith($"[test_{time:yyyy}] Insert Into Log2_{time:yyyyMMdd}(", sqls[^1]);
         }
     }
 }
