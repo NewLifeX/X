@@ -8,7 +8,7 @@ namespace NewLife.Log
     {
         private IDictionary<LogLevel, ILog> _logs = new Dictionary<LogLevel, ILog>();
 
-        /// <summary>通过指定路径和文件格式来实例化等级日志，每个登记使用自己的日志输出</summary>
+        /// <summary>通过指定路径和文件格式来实例化等级日志，每个等级使用自己的日志输出</summary>
         /// <param name="logPath"></param>
         /// <param name="fileFormat"></param>
         public LevelLog(String logPath, String fileFormat)
