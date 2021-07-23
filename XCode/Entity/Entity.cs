@@ -231,8 +231,7 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
-        
-
+            
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
 
