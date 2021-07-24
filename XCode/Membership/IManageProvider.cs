@@ -136,7 +136,7 @@ namespace XCode.Membership
         {
             try
             {
-                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
+                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "帐号{0}登录失败：帐号或密码不正确！");
 
                 // 过滤帐号中的空格，防止出现无操作无法登录的情况
                 var account = username.Trim();
