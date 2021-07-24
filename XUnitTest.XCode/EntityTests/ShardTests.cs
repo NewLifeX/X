@@ -168,5 +168,31 @@ namespace XUnitTest.XCode.EntityTests
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;
         }
+
+        [Fact]
+        public void SearchDates()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            var list = Log2.Search(null, null, -1, null, -1, time.AddDays(-3), time, null, new PageParameter { PageSize = 10000 });
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-3):yyyyMMdd} Where ID>=", sqls[^7]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where ID>=", sqls[^5]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where ID>=", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where ID>=", sqls[^1]);
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
     }
 }
