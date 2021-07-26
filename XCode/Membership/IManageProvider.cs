@@ -136,13 +136,13 @@ namespace XCode.Membership
         {
             try
             {
-                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), "该帐号不存在！");
+                if (String.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username), $"用户名或密码不正确！");
 
                 // 过滤帐号中的空格，防止出现无操作无法登录的情况
                 var account = username.Trim();
                 // 登录时必须从数据库查找用户，缓存中的用户对象密码字段可能为空
                 var user = Membership.User.FindForLogin(account);
-                if (user == null) throw new EntityException("帐号{0}不存在！", account);
+                if (user == null) throw new EntityException("用户名或密码不正确！");
                 if (!user.Enable) throw new EntityException("账号{0}被禁用！", account);
 
                 var prv = PasswordProvider;

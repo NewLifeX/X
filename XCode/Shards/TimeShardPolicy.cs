@@ -138,11 +138,15 @@ namespace XCode.Shards
         /// <returns></returns>
         public virtual ShardModel[] Shards(Expression expression)
         {
-            if (expression is not WhereExpression where) return null;
+            //if (expression is not WhereExpression where) return null;
 
             // 时间范围查询，用户可能自己写分表查询
             var fi = GetField();
-            var exps = where.Where(e => e is FieldExpression fe && fe.Field == fi).Cast<FieldExpression>().ToList();
+            var exps = new List<FieldExpression>();
+            if (expression is WhereExpression where)
+                exps = where.Where(e => e is FieldExpression fe && fe.Field == fi).Cast<FieldExpression>().ToList();
+            else if (expression is FieldExpression fieldExpression && fieldExpression.Field == fi)
+                exps.Add(fieldExpression);
             //if (exps.Count == 0) throw new XCodeException($"分表策略要求查询条件包括[{fi}]字段！");
             if (exps.Count == 0) return null;
 
@@ -187,6 +191,14 @@ namespace XCode.Shards
                         return GetModels(start, end);
                     }
                 }
+
+                var eq = exps.FirstOrDefault(e => e.Action == "=");
+                if (eq != null)
+                {
+                    var id = eq.Value.ToLong();
+                    if (Factory.Snow.TryParse(id, out var time, out _, out _))
+                        return new[] { Shard(time) };
+                }
             }
 
             throw new XCodeException("分表策略因条件不足无法执行分表查询操作！");
@@ -201,7 +213,7 @@ namespace XCode.Shards
             if (start == start.Date && end == end.Date) end = end.AddSeconds(1);
 
             var hash = new HashSet<String>();
-            for (var dt = start; dt < end; dt = dt.Add(Step))
+            for (var dt = start.Date; dt < end; dt = dt.Add(Step))
             {
                 var model = Shard(dt);
                 var key = $"{model.ConnName}#{model.TableName}";

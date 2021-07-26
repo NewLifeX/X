@@ -17,6 +17,9 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
+        /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
+        public IPAddress RemoteAddress { get; private set; }
+
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
@@ -114,6 +117,12 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
+                // 根据目标地址适配本地IPv4/IPv6
+                if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+                {
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+                }
+
                 sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 if (NoDelay) sock.NoDelay = true;
@@ -138,7 +147,13 @@ namespace NewLife.Net
                     var address = uri.GetAddresses().FirstOrDefault(_ => !_.IsIPv4());
                     if (address != null) ep = new IPEndPoint(address, ep.Port);
                 }
+                else if (Local.Address.IsIPv4() && !ep.Address.IsIPv4())
+                {
+                    var address = uri.GetAddresses().FirstOrDefault(_ => _.IsIPv4());
+                    if (address != null) ep = new IPEndPoint(address, ep.Port);
+                }
 
+                RemoteAddress = ep.Address;
                 if (timeout <= 0)
                     sock.Connect(ep);
                 else

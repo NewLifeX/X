@@ -22,6 +22,7 @@ namespace XUnitTest.XCode.EntityTests
             Assert.True(log.ID > 0);
 
             var log2 = Log2.FindByID(log.ID);
+            Assert.NotNull(log2);
             Assert.Equal(buf, log2.Remark);
 
             var buf2 = Rand.NextBytes(1024);
@@ -29,6 +30,7 @@ namespace XUnitTest.XCode.EntityTests
             log2.Update();
 
             var log3 = Log2.FindByID(log.ID);
+            Assert.NotNull(log3);
             Assert.Equal(buf2, log3.Remark);
 
             log.Delete();

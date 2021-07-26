@@ -25,16 +25,16 @@ namespace XUnitTest.Threading
                 Interlocked.Increment(ref count);
 
                 //Assert.Equal(s, TimerX.Current);
-            }, null, 10, 100, "Test");
+            }, null, 100, 1000, "Test");
 
             Assert.True(timer.Id > 0);
             Assert.Equal("Test", timer.Scheduler.Name);
             //Assert.NotNull(timer.Callback);
             Assert.Null(timer.State);
-            Assert.True(timer.NextTime > now.AddMilliseconds(10));
-            Assert.True(timer.NextTime < now.AddMilliseconds(20));
+            Assert.True(timer.NextTime > now.AddMilliseconds(100));
+            //Assert.True(timer.NextTime < now.AddMilliseconds(20));
             Assert.Equal(0, timer.Timers);
-            Assert.Equal(100, timer.Period);
+            Assert.Equal(1000, timer.Period);
             Assert.False(timer.Async);
             Assert.False(timer.Absolutely);
 
