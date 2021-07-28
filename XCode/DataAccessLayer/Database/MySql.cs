@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {

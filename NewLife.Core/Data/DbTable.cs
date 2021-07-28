@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -356,6 +357,26 @@ namespace NewLife.Data
             }
 
             return list;
+        }
+        #endregion
+
+        #region Csv序列化
+        /// <summary>保存到Csv文件</summary>
+        /// <param name="file"></param>
+        public void SaveCsv(String file)
+        {
+            using var csv = new CsvFile(file, true);
+            csv.WriteLine(Columns);
+            csv.WriteAll(Rows);
+        }
+
+        /// <summary>从Csv文件加载</summary>
+        /// <param name="file"></param>
+        public void LoadCsv(String file)
+        {
+            using var csv = new CsvFile(file, false);
+            Columns = csv.ReadLine();
+            Rows = csv.ReadAll();
         }
         #endregion
 

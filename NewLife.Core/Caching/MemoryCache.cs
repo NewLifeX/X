@@ -248,6 +248,8 @@ namespace NewLife.Caching
                 if (_cache.TryGetValue(key, out var item))
                 {
                     var rs = item.Value;
+                    // 如果已经过期，不要返回旧值
+                    if (item.Expired) rs = default(T);
                     item.Set(value, expire);
                     return (T)rs;
                 }
