@@ -544,6 +544,11 @@ namespace XCode.Membership
         [Map(__.RoleID, typeof(Role), "ID")]
         public virtual String RoleName => Role + "";
 
+        /// <summary>角色组名</summary>
+        [DisplayName("角色组")]
+        [Map(__.RoleIds, typeof(Role), "ID")]
+        public virtual String RoleNames => Roles.Select(s => s.Name).Join();
+
         /// <summary>用户是否拥有当前菜单的指定权限</summary>
         /// <param name="menu">指定菜单</param>
         /// <param name="flags">是否拥有多个权限中的任意一个，或的关系。如果需要表示与的关系，可以传入一个多权限位合并</param>
