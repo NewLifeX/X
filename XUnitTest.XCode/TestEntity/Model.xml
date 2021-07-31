@@ -97,7 +97,9 @@
       <Column Name="Remark" DataType="Byte[]" Description="详细信息" />
     </Columns>
     <Indexes>
+      <Index Columns="Action,Category" />
       <Index Columns="Action,Category,ID" />
+      <Index Columns="Category,LinkID,ID" />
       <Index Columns="Category,LinkID,ID" />
       <Index Columns="CreateUserID,ID" />
     </Indexes>
