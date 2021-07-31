@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NewLife;
 using NewLife.Collections;
@@ -268,9 +269,15 @@ namespace XCode.DataAccessLayer
             var dis = table.Indexes;
             dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
+            var columnKeys = new List<String>();
             foreach (var di in dis)
             {
                 if (di.Columns == null) continue;
+
+                // 干掉重复索引
+                var key = di.Columns.Join();
+                if (columnKeys.Contains(key)) continue;
+                columnKeys.Add(key);
 
                 var dcs = table.GetColumns(di.Columns);
                 if (dcs == null || dcs.Length <= 0) continue;
