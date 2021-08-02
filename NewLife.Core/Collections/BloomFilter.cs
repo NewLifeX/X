@@ -28,7 +28,7 @@ namespace NewLife.Collections
         /// <param name="fpp">期望的误判率。小于1</param>
         public BloomFilter(Int64 n, Double fpp)
         {
-            if (fpp <= 0 || fpp >= 1) fpp = 0.0001;
+            if (fpp is <= 0 or >= 1) fpp = 0.0001;
 
             // 根据Guava算法计算位数组大小
             _M = (Int32)(-n * Math.Log(fpp) / (Math.Log(2) * Math.Log(2)));

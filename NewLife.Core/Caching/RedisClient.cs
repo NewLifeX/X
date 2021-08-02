@@ -294,7 +294,7 @@ namespace NewLife.Caching
                     var str = ReadLine(ms);
                     log?.Append(str);
 
-                    if (header == '+' || header == ':')
+                    if (header is '+' or ':')
                         list.Add(str);
                     else if (header == '-')
                         throw new Exception(str);
@@ -403,7 +403,7 @@ namespace NewLife.Caching
                     var str = ReadLine(ms);
                     log?.Append(str);
 
-                    if (header == '+' || header == ':')
+                    if (header is '+' or ':')
                         list.Add(str);
                     else if (header == '-')
                         throw new Exception(str);
@@ -516,7 +516,7 @@ namespace NewLife.Caching
                 {
                     arr[i] = ReadPacket(ms, log);
                 }
-                else if (header == '+' || header == ':')
+                else if (header is '+' or ':')
                 {
                     arr[i] = ReadLine(ms);
                     log?.Append(arr[i]);

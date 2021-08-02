@@ -216,7 +216,7 @@ namespace NewLife.Remoting
                         ex.Source = _currentService?.Address + "/" + action;
                         throw;
                     }
-                    else if (ex is HttpRequestException || ex is TaskCanceledException)
+                    else if (ex is HttpRequestException or TaskCanceledException)
                     {
                         if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
                         if (++i >= svrs.Count) throw;
@@ -389,7 +389,7 @@ namespace NewLife.Remoting
             var ex = error;
             while (ex is AggregateException age) ex = age.InnerException;
 
-            if (ex is HttpRequestException || ex is TaskCanceledException)
+            if (ex is HttpRequestException or TaskCanceledException)
             {
                 // 网络异常时，自动切换到其它节点
                 _idxServer++;

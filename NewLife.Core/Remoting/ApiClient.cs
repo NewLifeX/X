@@ -279,7 +279,7 @@ namespace NewLife.Remoting
             if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0 && code != 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+            if (code is not 0 and not 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
 
             if (data == null) return default;
             if (resultType == typeof(Packet)) return (TResult)(Object)data;

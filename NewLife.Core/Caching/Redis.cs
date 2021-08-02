@@ -345,7 +345,7 @@ namespace NewLife.Caching
                 }
                 catch (Exception ex)
                 {
-                    if (ex is SocketException || ex is IOException)
+                    if (ex is SocketException or IOException)
                     {
                         // 销毁连接
                         client.TryDispose();

@@ -198,7 +198,7 @@ namespace XCode.Membership
                 case ParameterKinds.Boolean: return str.ToBoolean();
                 case ParameterKinds.Int:
                     var v = str.ToLong();
-                    return (v >= Int32.MaxValue || v <= Int32.MinValue) ? (Object)v : (Int32)v;
+                    return (v is >= Int32.MaxValue or <= Int32.MinValue) ? (Object)v : (Int32)v;
                 case ParameterKinds.Double: return str.ToDouble();
                 case ParameterKinds.DateTime: return str.ToDateTime();
                 case ParameterKinds.String: return str;

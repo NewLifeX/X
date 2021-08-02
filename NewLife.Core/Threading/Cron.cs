@@ -137,7 +137,7 @@ namespace NewLife.Threading
 
             // 连续范围
             var s = start;
-            if (value == "*" || value == "?")
+            if (value is "*" or "?")
                 s = 0;
             else if ((p = value.IndexOf('-')) > 0)
             {

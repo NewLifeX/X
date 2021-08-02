@@ -909,7 +909,7 @@ namespace XCode.DataAccessLayer
                     // 可空类型
                     type = Nullable.GetUnderlyingType(type) ?? type;
 
-                    if (value != null && !(value is IList)) value = value.ChangeType(type);
+                    if (value is not null and not IList) value = value.ChangeType(type);
                 }
 
                 // 写入数据类型

@@ -186,7 +186,7 @@ namespace NewLife.Http
                 rs = ParseResponse(rs);
 
                 // 跳转
-                if (StatusCode == 301 || StatusCode == 302)
+                if (StatusCode is 301 or 302)
                 {
                     if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                     {
@@ -374,7 +374,7 @@ namespace NewLife.Http
                 rs = ParseResponse(rs);
 
                 // 跳转
-                if (StatusCode == 301 || StatusCode == 302)
+                if (StatusCode is 301 or 302)
                 {
                     if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                     {

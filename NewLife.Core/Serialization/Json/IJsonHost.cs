@@ -114,13 +114,13 @@ namespace NewLife.Serialization
                             sb.Append("\r\n");
                             sb.Append(' ', indentation * 2);
                         }
-                        else if (ch == '[' || ch == '{')
+                        else if (ch is '[' or '{')
                         {
                             sb.Append(ch);
                             sb.Append("\r\n");
                             sb.Append(' ', ++indentation * 2);
                         }
-                        else if (ch == ']' || ch == '}')
+                        else if (ch is ']' or '}')
                         {
                             sb.Append("\r\n");
                             sb.Append(' ', --indentation * 2);

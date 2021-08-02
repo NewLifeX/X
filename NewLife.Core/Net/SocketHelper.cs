@@ -1,12 +1,12 @@
 ﻿using System;
-using NewLife.Reflection;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using NewLife.Reflection;
 
 namespace NewLife.Net
 {
@@ -199,11 +199,7 @@ namespace NewLife.Net
         /// <summary>Socket是否未被关闭</summary>
         /// <param name="se"></param>
         /// <returns></returns>
-        internal static Boolean IsNotClosed(this SocketAsyncEventArgs se)
-        {
-            return se.SocketError == SocketError.OperationAborted || se.SocketError == SocketError.Interrupted || se.SocketError == SocketError.NotSocket;
-
-        }
+        internal static Boolean IsNotClosed(this SocketAsyncEventArgs se) => se.SocketError is SocketError.OperationAborted or SocketError.Interrupted or SocketError.NotSocket;
 
         /// <summary>根据异步事件获取可输出异常，屏蔽常见异常</summary>
         /// <param name="se"></param>
@@ -212,10 +208,10 @@ namespace NewLife.Net
         {
             if (se == null) return null;
 
-            if (se.SocketError == SocketError.ConnectionReset ||
-                se.SocketError == SocketError.OperationAborted ||
-                se.SocketError == SocketError.Interrupted ||
-                se.SocketError == SocketError.NotSocket)
+            if (se.SocketError is SocketError.ConnectionReset or
+                SocketError.OperationAborted or
+                SocketError.Interrupted or
+                SocketError.NotSocket)
                 return null;
 
             var ex = se.ConnectByNameError;

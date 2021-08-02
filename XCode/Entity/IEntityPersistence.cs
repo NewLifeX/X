@@ -702,7 +702,7 @@ namespace XCode
             //// 是否使用参数化
             //if (Setting.Current.UserParameter) return true;
 
-            if (fi.Length > 0 && fi.Length < 4000) return false;
+            if (fi.Length is > 0 and < 4000) return false;
 
             // 虽然是大字段，但数据量不大时不用参数
             if (fi.Type == typeof(String))

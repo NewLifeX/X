@@ -15,7 +15,7 @@ namespace NewLife.Log
         {
             foreach (LogLevel item in Enum.GetValues(typeof(LogLevel)))
             {
-                if (item > LogLevel.All && item < LogLevel.Off)
+                if (item is > LogLevel.All and < LogLevel.Off)
                 {
                     _logs[item] = new TextFileLog(logPath, false, fileFormat) { Level = item };
                 }

@@ -305,17 +305,10 @@ namespace NewLife.IO
         /// <returns></returns>
         static Boolean IsCommonASCII(Byte bt)
         {
-            if (bt == 0x0A // 回车
-                || bt == 0x0D // 换行
-                || bt == 0x09 // 制表符
-                || (bt >= 0x20 && bt <= 0x2F) // 符号
-                || (bt >= 0x30 && bt <= 0x39) // 数字
-                || (bt >= 0x3A && bt <= 0x40) // 符号
-                || (bt >= 0x41 && bt <= 0x5A) // 大写字母
-                || (bt >= 0x5B && bt <= 0x60) // 符号
-                || (bt >= 0x61 && bt <= 0x7A) // 小写字母
-                || (bt >= 0x7B && bt <= 0x7E) // 符号
-                )
+            if (bt is 0x0A // 回车
+                or 0x0D // 换行
+                or 0x09 // 制表符
+                or >= 0x20 and <= 0x2F or >= 0x30 and <= 0x39 or >= 0x3A and <= 0x40 or >= 0x41 and <= 0x5A or >= 0x5B and <= 0x60 or >= 0x61 and <= 0x7A or >= 0x7B and <= 0x7E)
                 return true;
             else
                 return false;
@@ -333,16 +326,16 @@ namespace NewLife.IO
                 var second = buf[pos + 1];
                 if (first == 0xC2)
                 {
-                    if (second == 0x81 || second == 0x8D || second == 0x8F || second == 0x90 || second == 0x9D || second >= 0xA0 && second <= 0xBF)
+                    if (second is 0x81 or 0x8D or 0x8F or 0x90 or 0x9D or >= 0xA0 and <= 0xBF)
                         return 2;
                 }
                 else if (first == 0xC3)
                 {
-                    if (second >= 0x80 && second <= 0xBF) return 2;
+                    if (second is >= 0x80 and <= 0xBF) return 2;
                 }
                 else if (first == 0xC5)
                 {
-                    if (second == 0x92 || second == 0x93 || second == 0xA0 || second == 0xA1 || second == 0xB8 || second == 0xBD || second == 0xBE)
+                    if (second is 0x92 or 0x93 or 0xA0 or 0xA1 or 0xB8 or 0xBD or 0xBE)
                         return 2;
                 }
                 else if (first == 0xC6)
@@ -351,20 +344,20 @@ namespace NewLife.IO
                 }
                 else if (first == 0xCB)
                 {
-                    if (second == 0x86 || second == 0x9C) return 2;
+                    if (second is 0x86 or 0x9C) return 2;
                 }
                 else if (buf.Length >= pos + 2 && first == 0xE2)
                 {
                     var three = buf[pos + 2];
                     if (second == 0x80)
                     {
-                        if (three == 0x93 || three == 0x94 || three == 0x98 || three == 0x99 || three == 0x9A)
+                        if (three is 0x93 or 0x94 or 0x98 or 0x99 or 0x9A)
                             return 3;
-                        if (three == 0x9C || three == 0x9D || three == 0x9E)
+                        if (three is 0x9C or 0x9D or 0x9E)
                             return 3;
-                        if (three == 0xA0 || three == 0xA1 || three == 0xA2)
+                        if (three is 0xA0 or 0xA1 or 0xA2)
                             return 3;
-                        if (three == 0xA6 || three == 0xB0 || three == 0xB9 || three == 0xBA)
+                        if (three is 0xA6 or 0xB0 or 0xB9 or 0xBA)
                             return 3;
                     }
                     else if (second == 0x82 && three == 0xAC || second == 0x84 && three == 0xA2)

@@ -41,7 +41,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间");
 
             var rs = ic.Remove(key2);
             Assert.Equal(1, rs);

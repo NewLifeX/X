@@ -52,7 +52,7 @@ namespace NewLife.Http
 
             // 该连接第一包检查是否Http
             var ext = context.Owner as IExtend;
-            if (!(ext["Encoder"] is HttpEncoder))
+            if (ext["Encoder"] is not HttpEncoder)
             {
                 // 第一个请求必须是GET/POST，才执行后续操作
                 if (!isGet && !isPost) return base.Read(context, message);

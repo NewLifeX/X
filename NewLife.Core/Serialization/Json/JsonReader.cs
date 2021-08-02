@@ -318,7 +318,7 @@ namespace NewLife.Serialization
         private DateTime CreateDateTime(Object value)
         {
             if (value is DateTime) return (DateTime)value;
-            if (value is Int64 || value is Int32)
+            if (value is Int64 or Int32)
             {
                 var dt = value.ToDateTime();
                 if (UseUTCDateTime) dt = dt.ToUniversalTime();

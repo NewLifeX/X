@@ -383,7 +383,7 @@ namespace NewLife.Serialization
         public virtual void EnableTrace()
         {
             var stream = Stream;
-            if (stream == null || stream is TraceStream) return;
+            if (stream is null or TraceStream) return;
 
             Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }

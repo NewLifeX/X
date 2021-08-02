@@ -286,7 +286,7 @@ namespace NewLife.Serialization
             else
                 reader.ReadStartElement();
 
-            while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+            while (reader.NodeType is XmlNodeType.Comment or XmlNodeType.Whitespace) reader.Skip();
         }
 
         /// <summary>读取结束</summary>
