@@ -540,13 +540,11 @@ namespace XCode.Membership
         }
 
         /// <summary>角色名</summary>
-        [DisplayName("角色")]
         [Map(__.RoleID, typeof(Role), "ID")]
         public virtual String RoleName => Role + "";
 
         /// <summary>角色组名</summary>
-        [DisplayName("角色组")]
-        [Map(__.RoleIds, typeof(Role), "ID")]
+        [Map(__.RoleIds)]
         public virtual String RoleNames => Roles.Select(s => s.Name).Join();
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>

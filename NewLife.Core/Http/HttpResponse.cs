@@ -2,8 +2,6 @@
 using System.Linq;
 using System.Net;
 using NewLife.Collections;
-using NewLife.Data;
-using NewLife.Messaging;
 
 namespace NewLife.Http
 {
@@ -11,12 +9,6 @@ namespace NewLife.Http
     public class HttpResponse : HttpBase
     {
         #region 属性
-        ///// <summary>是否WebSocket</summary>
-        //public Boolean IsWebSocket { get; set; }
-
-        /// <summary>是否启用SSL</summary>
-        public Boolean IsSSL { get; set; }
-
         /// <summary>状态码</summary>
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
 
@@ -31,17 +23,19 @@ namespace NewLife.Http
             if (firstLine.IsNullOrEmpty()) return false;
 
             // HTTP/1.1 502 Bad Gateway
+            if (!firstLine.StartsWith("HTTP/")) return false;
 
             var ss = firstLine.Split(" ");
             //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
             if (ss.Length < 3) return false;
+
+            Version = ss[0].TrimStart("HTTP/");
 
             // 分析响应码
             var code = ss[1].ToInt();
             if (code > 0) StatusCode = (HttpStatusCode)code;
 
             StatusDescription = ss.Skip(2).Join(" ");
-            //ContentLength = Headers["Content-Length"].ToInt();
 
             return true;
         }
@@ -53,12 +47,12 @@ namespace NewLife.Http
         {
             // 构建头部
             var sb = Pool.StringBuilder.Get();
-            sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)StatusCode, StatusCode);
+            sb.AppendFormat("HTTP/{2} {0} {1}\r\n", (Int32)StatusCode, StatusCode, Version);
 
-            //cors
-            sb.AppendFormat("Access-Control-Allow-Origin:{0}\r\n", "*");
-            sb.AppendFormat("Access-Control-Allow-Methods:{0}\r\n", "POST, GET");
-            sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+            //// cors
+            //sb.AppendFormat("Access-Control-Allow-Origin:{0}\r\n", "*");
+            //sb.AppendFormat("Access-Control-Allow-Methods:{0}\r\n", "POST, GET");
+            //sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
             // 内容长度
             if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
@@ -79,5 +73,9 @@ namespace NewLife.Http
         {
             if (StatusCode != HttpStatusCode.OK) throw new Exception(StatusDescription ?? (StatusCode + ""));
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => $"HTTP/{Version} {(Int32)StatusCode} {StatusDescription ?? (StatusCode + "")}";
     }
 }

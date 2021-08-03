@@ -1,5 +1,6 @@
 ﻿using System;
 using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Http
 {
@@ -13,23 +14,11 @@ namespace NewLife.Http
         /// <summary>资源路径</summary>
         public Uri Url { get; set; }
 
-        /// <summary>用户代理</summary>
-        public String UserAgent { get; set; }
-
-        /// <summary>是否压缩</summary>
-        public Boolean Compressed { get; set; }
+        /// <summary>目标主机</summary>
+        public String Host { get; set; }
 
         /// <summary>保持连接</summary>
         public Boolean KeepAlive { get; set; }
-
-        /// <summary>可接受内容</summary>
-        public String Accept { get; set; }
-
-        /// <summary>接受语言</summary>
-        public String AcceptLanguage { get; set; }
-
-        /// <summary>引用路径</summary>
-        public String Referer { get; set; }
         #endregion
 
         /// <summary>分析第一行</summary>
@@ -38,34 +27,40 @@ namespace NewLife.Http
         {
             if (firstLine.IsNullOrEmpty()) return false;
 
-            var ss = firstLine.Split(" ");
+            var ss = firstLine.Split(' ');
             if (ss.Length < 3) return false;
 
             // 分析请求方法 GET / HTTP/1.1
             if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
             {
                 Method = ss[0];
-
-                // 构造资源路径
-                var sch = Headers["Sec-WebSocket-Key"] + "" != "" ? "ws" : "http";
-                var host = Headers["Host"] + "";
-                var uri = $"{sch}://{host}";
-                //var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
-                //if (host.IsNullOrEmpty() || !host.Contains(":"))
-                //{
-                //    var port = Local.Port;
-                //    if (IsSSL && port != 443 || !IsSSL && port != 80) uri += ":" + port;
-                //}
-                uri += ss[1];
-                Url = new Uri(uri);
+                Url = new Uri(ss[1], UriKind.RelativeOrAbsolute);
+                Version = ss[2].TrimStart("HTTP/");
             }
 
-            UserAgent = Headers["User-Agent"] + "";
-            Compressed = (Headers["Accept-Encoding"] + "").Contains("deflate");
-            KeepAlive = (Headers["Connection"] + "").EqualIgnoreCase("keep-alive");
-            Accept = Headers["Accept"] + "";
-            AcceptLanguage = Headers["Accept-Language"] + "";
-            Referer = Headers["Referer"] + "";
+            Host = Headers["Host"];
+            KeepAlive = Headers["Connection"].EqualIgnoreCase("keep-alive");
+
+            return true;
+        }
+
+        private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        /// <summary>快速分析请求头，只分析第一行</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public Boolean FastParse(Packet pk)
+        {
+            if (!FastValidHeader(pk)) return false;
+
+            var p = pk.IndexOf(NewLine);
+            if (p < 0) return false;
+
+            var line = pk.ReadBytes(0, p).ToStr();
+
+            Body = pk.Slice(p + 2);
+
+            // 分析第一行
+            if (!OnParse(line)) return false;
 
             return true;
         }
@@ -78,50 +73,53 @@ namespace NewLife.Http
             if (Method.IsNullOrEmpty()) Method = length > 0 ? "POST" : "GET";
 
             // 分解主机和资源
-            var host = "";
             var uri = Url;
             if (uri == null) uri = new Uri("/");
 
-            if (uri.Scheme.EqualIgnoreCase("http", "ws"))
+            if (Host.IsNullOrEmpty())
             {
-                if (uri.Port == 80)
-                    host = uri.Host;
-                else
-                    host = $"{uri.Host}:{uri.Port}";
-            }
-            else if (uri.Scheme.EqualIgnoreCase("https"))
-            {
-                if (uri.Port == 443)
-                    host = uri.Host;
-                else
-                    host = $"{uri.Host}:{uri.Port}";
+                var host = "";
+                if (uri.Scheme.EqualIgnoreCase("http", "ws"))
+                {
+                    if (uri.Port == 80)
+                        host = uri.Host;
+                    else
+                        host = $"{uri.Host}:{uri.Port}";
+                }
+                else if (uri.Scheme.EqualIgnoreCase("https", "wss"))
+                {
+                    if (uri.Port == 443)
+                        host = uri.Host;
+                    else
+                        host = $"{uri.Host}:{uri.Port}";
+                }
+                Host = host;
             }
 
             // 构建头部
             var sb = Pool.StringBuilder.Get();
-            sb.AppendFormat("{0} {1} HTTP/1.1\r\n", Method, uri.PathAndQuery);
-            sb.AppendFormat("Host:{0}\r\n", host);
-
-            if (!Accept.IsNullOrEmpty()) sb.AppendFormat("Accept:{0}\r\n", Accept);
-            if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
-            if (!AcceptLanguage.IsNullOrEmpty()) sb.AppendFormat("AcceptLanguage:{0}\r\n", AcceptLanguage);
-            if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
+            sb.AppendFormat("{0} {1} HTTP/{2}\r\n", Method, uri, Version);
+            sb.AppendFormat("Host:{0}\r\n", Host);
 
             // 内容长度
-            if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
-            if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
+            if (length > 0) Headers["Content-Length"] = length + "";
+            if (!ContentType.IsNullOrEmpty()) Headers["Content-Type"] = ContentType;
 
-            if (KeepAlive) sb.AppendLine("Connection:keep-alive");
-            if (!Referer.IsNullOrEmpty()) sb.AppendFormat("Referer:{0}\r\n", Referer);
+            if (KeepAlive) Headers["Connection"] = "keep-alive";
 
             foreach (var item in Headers)
             {
-                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                if (!item.Key.EqualIgnoreCase("Host"))
+                    sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
             }
 
             sb.AppendLine();
 
             return sb.Put(true);
         }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{Method} {Url}";
     }
 }
