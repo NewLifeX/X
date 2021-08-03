@@ -55,7 +55,11 @@ namespace NewLife.Http
             //sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
             // 内容长度
-            if (length > 0) sb.AppendFormat("Content-Length:{0}\r\n", length);
+            if (length > 0)
+                sb.AppendFormat("Content-Length:{0}\r\n", length);
+            else if (length == 0 && !Headers.ContainsKey("Transfer-Encoding"))
+                sb.AppendFormat("Content-Length:{0}\r\n", length);
+
             if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
 
             foreach (var item in Headers)

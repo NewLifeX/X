@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Net;
-using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Net;
+using NewLife.Remoting;
+using NewLife.Serialization;
 
 namespace NewLife.Http
 {
@@ -12,9 +13,6 @@ namespace NewLife.Http
         #region 属性
         /// <summary>是否WebSocket</summary>
         public Boolean IsWebSocket { get; set; }
-
-        ///// <summary>是否启用SSL</summary>
-        //public Boolean IsSSL { get; set; }
 
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
@@ -50,12 +48,15 @@ namespace NewLife.Http
                 req.Body.Append(e.Packet);
             }
 
-            // 收到全部数据后，触发请求处理
+            // 收到全部数据后，触发请求处理ed
             if (req != null && req.IsCompleted)
             {
                 var rs = ProcessRequest(req, e);
                 if (rs != null)
                 {
+                    var server = (this as INetSession).Host as HttpServer;
+                    if (!server.ServerName.IsNullOrEmpty() && !rs.Headers.ContainsKey("Server")) rs.Headers["Server"] = server.ServerName;
+
                     Send(rs.Build());
                 }
             }
@@ -74,11 +75,67 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
-            return new HttpResponse
+            // 匹配路由处理器
+            var routes = ((this as INetSession).Host as HttpServer).Routes;
+            var path = request.Url.OriginalString;
+            var p = path.IndexOf('?');
+            if (p > 0) path = path.Substring(0, p);
+
+            if (!routes.TryGetValue(path, out var handler))
+                return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+
+            var context = new DefaultHttpContext
             {
-                StatusCode = HttpStatusCode.OK,
-                Body = $"Hello NewLife!".GetBytes()
+                Request = request,
+                Response = new HttpResponse()
             };
+
+            try
+            {
+                if (handler is HttpProcessDelegate httpHandler)
+                {
+                    httpHandler(context);
+                }
+                else
+                {
+                    var rs = context.Response;
+                    var result = handler.DynamicInvoke();
+
+                    if (result is Packet pk)
+                    {
+                        rs.ContentType = "application/octet-stream";
+                        rs.Body = pk;
+                    }
+                    else if (result is Byte[] buffer)
+                    {
+                        rs.ContentType = "application/octet-stream";
+                        rs.Body = buffer;
+                    }
+                    else if (result is String str)
+                    {
+                        rs.ContentType = "text/plain";
+                        rs.Body = str.GetBytes();
+                    }
+                    else
+                    {
+                        rs.ContentType = "application/json";
+                        rs.Body = result.ToJson().GetBytes();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // 处理异常
+                var rs = context.Response;
+                if (ex is ApiException aex)
+                    rs.StatusCode = (HttpStatusCode)aex.Code;
+                else
+                    rs.StatusCode = HttpStatusCode.InternalServerError;
+
+                rs.StatusDescription = ex.Message;
+            }
+
+            return context.Response;
         }
         #endregion
 

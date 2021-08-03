@@ -352,6 +352,7 @@ namespace Test
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log
             };
+            server.Map("/", () => "Hello NewLife! " + DateTime.Now.ToFullString());
             server.Start();
 
             _server = server;
