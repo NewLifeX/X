@@ -74,15 +74,21 @@ namespace NewLife.Http
         /// <param name="path"></param>
         public void MapController(Type controllerType, String path = null)
         {
-            if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimEnd("Controller") + "/*";
+            if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimEnd("Controller");
 
-            Routes[path] = new ControllerHandler { ControllerType = controllerType };
+            var path2 = path.EnsureEnd("/*");
+            Routes[path2] = new ControllerHandler { ControllerType = controllerType };
         }
 
         /// <summary>映射静态文件</summary>
-        /// <param name="path"></param>
-        /// <param name="contentPath"></param>
-        public void MapStaticFiles(String path, String contentPath) => Routes[path] = new StaticFilesHandler { ContentPath = contentPath };
+        /// <param name="path">映射路径，如 /js</param>
+        /// <param name="contentPath">内容目录，如 /wwwroot/js</param>
+        public void MapStaticFiles(String path, String contentPath)
+        {
+            path = path.EnsureEnd("/");
+            var path2 = path.EnsureEnd("*");
+            Routes[path2] = new StaticFilesHandler { Path = path, ContentPath = contentPath };
+        }
 
         private IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         /// <summary>匹配处理器</summary>
@@ -103,8 +109,8 @@ namespace NewLife.Http
                 {
                     if (Routes.TryGetValue(item.Key, out handler))
                     {
-                        // 大于两段的路径不做缓存，避免动态Url引起缓存膨胀
-                        if (path.Split('/').Length <= 3) _maps[path] = item.Key;
+                        // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀
+                        if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _maps[path] = item.Key;
 
                         return handler;
                     }

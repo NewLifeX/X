@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using NewLife.Remoting;
 
 namespace NewLife.Http
 {
@@ -9,12 +11,53 @@ namespace NewLife.Http
     public class StaticFilesHandler : IHttpHandler
     {
         #region 属性
+        /// <summary>映射路径</summary>
+        public String Path { get; set; }
+
         /// <summary>内容目录</summary>
         public String ContentPath { get; set; }
         #endregion
 
         /// <summary>处理请求</summary>
         /// <param name="context"></param>
-        public void ProcessRequest(IHttpContext context) => throw new NotImplementedException();
+        public void ProcessRequest(IHttpContext context)
+        {
+            if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(404, "找不到文件" + context.Path);
+
+            var file = context.Path.Substring(Path.Length);
+            file = ContentPath.CombinePath(file);
+
+            var fi = file.AsFile();
+            if (!fi.Exists) throw new ApiException(404, "找不到文件" + context.Path);
+
+            String contentType = null;
+            switch (fi.Extension)
+            {
+                case ".htm":
+                case ".html":
+                    contentType = "text/html";
+                    break;
+                case ".txt":
+                case ".log":
+                    contentType = "text/plain";
+                    break;
+                case ".xml":
+                    contentType = "text/xml";
+                    break;
+                case ".png":
+                    contentType = "image/png";
+                    break;
+                case ".jpg":
+                    contentType = "image/jpeg";
+                    break;
+                case ".gif":
+                    contentType = "image/gif";
+                    break;
+                default:
+                    break;
+            }
+
+            context.Response.SetResult(fi.OpenRead(), contentType);
+        }
     }
 }

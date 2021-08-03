@@ -90,7 +90,8 @@ namespace NewLife.Http
             {
                 Connection = this,
                 Request = request,
-                Response = new HttpResponse()
+                Response = new HttpResponse(),
+                Path = path,
             };
 
             try

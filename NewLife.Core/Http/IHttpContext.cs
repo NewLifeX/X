@@ -18,6 +18,9 @@ namespace NewLife.Http
         /// <summary>连接会话</summary>
         INetSession Connection { get; }
 
+        /// <summary>执行路径</summary>
+        String Path { get; }
+
         /// <summary>请求参数</summary>
         IDictionary<String, Object> Parameters { get; }
         #endregion
@@ -35,6 +38,9 @@ namespace NewLife.Http
 
         /// <summary>连接会话</summary>
         public INetSession Connection { get; set; }
+
+        /// <summary>执行路径</summary>
+        public String Path { get; set; }
 
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);

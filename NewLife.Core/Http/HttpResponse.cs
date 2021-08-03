@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using NewLife.Collections;
@@ -96,7 +97,8 @@ namespace NewLife.Http
 
         /// <summary>设置结果，影响Body和ContentType</summary>
         /// <param name="result"></param>
-        public void SetResult(Object result)
+        /// <param name="contentType"></param>
+        public void SetResult(Object result, String contentType = null)
         {
             if (result is Exception ex)
             {
@@ -109,22 +111,27 @@ namespace NewLife.Http
             }
             else if (result is Packet pk)
             {
-                ContentType = "application/octet-stream";
+                ContentType = contentType ?? "application/octet-stream";
                 Body = pk;
             }
             else if (result is Byte[] buffer)
             {
-                ContentType = "application/octet-stream";
+                ContentType = contentType ?? "application/octet-stream";
                 Body = buffer;
+            }
+            else if (result is Stream stream)
+            {
+                ContentType = contentType ?? "application/octet-stream";
+                Body = stream.ReadBytes();
             }
             else if (result is String str)
             {
-                ContentType = "text/html";
+                ContentType = contentType ?? "text/html";
                 Body = str.GetBytes();
             }
             else
             {
-                ContentType = "application/json";
+                ContentType = contentType ?? "application/json";
                 Body = result.ToJson().GetBytes();
             }
         }
