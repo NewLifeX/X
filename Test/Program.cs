@@ -353,6 +353,7 @@ namespace Test
                 SessionLog = XTrace.Log
             };
             server.Map("/", () => "Hello NewLife! " + DateTime.Now.ToFullString());
+            server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.Start();
 
             _server = server;

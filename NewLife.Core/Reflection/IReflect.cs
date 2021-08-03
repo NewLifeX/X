@@ -475,7 +475,7 @@ namespace NewLife.Reflection
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return Invoke(target, method, null);
+            if (pis == null || pis.Length == 0) return Invoke(target, method, null);
 
             var ps = new Object[pis.Length];
             for (var i = 0; i < pis.Length; i++)

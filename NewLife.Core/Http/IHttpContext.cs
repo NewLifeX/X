@@ -1,4 +1,7 @@
-﻿using NewLife.Net;
+﻿using System;
+using System.Collections.Generic;
+using NewLife.Collections;
+using NewLife.Net;
 
 namespace NewLife.Http
 {
@@ -18,6 +21,9 @@ namespace NewLife.Http
 
         /// <summary>连接会话</summary>
         INetSession Connection { get; }
+
+        /// <summary>请求参数</summary>
+        IDictionary<String, Object> Parameters { get; }
         #endregion
     }
 
@@ -32,7 +38,10 @@ namespace NewLife.Http
         public HttpResponse Response { get; set; }
 
         /// <summary>连接会话</summary>
-        public INetSession Connection { get; }
+        public INetSession Connection { get; set; }
+
+        /// <summary>请求参数</summary>
+        public IDictionary<String, Object> Parameters { get; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
         #endregion
     }
 }

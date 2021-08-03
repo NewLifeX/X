@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using NewLife.Data;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Serialization;
 
@@ -86,12 +88,15 @@ namespace NewLife.Http
 
             var context = new DefaultHttpContext
             {
+                Connection = this,
                 Request = request,
                 Response = new HttpResponse()
             };
 
             try
             {
+                PrepareRequest(context);
+
                 if (handler is HttpProcessDelegate httpHandler)
                 {
                     httpHandler(context);
@@ -99,7 +104,8 @@ namespace NewLife.Http
                 else
                 {
                     var rs = context.Response;
-                    var result = handler.DynamicInvoke();
+                    //var result = handler.DynamicInvoke();
+                    var result = OnInvoke(handler, context);
 
                     if (result is Packet pk)
                     {
@@ -136,6 +142,59 @@ namespace NewLife.Http
             }
 
             return context.Response;
+        }
+
+        /// <summary>准备请求参数</summary>
+        /// <param name="context"></param>
+        protected virtual void PrepareRequest(IHttpContext context)
+        {
+            var req = context.Request;
+            var ps = context.Parameters;
+
+            // 头部参数
+            ps.Merge(req.Headers);
+
+            // 地址参数
+            var url = req.Url.OriginalString;
+            var p = url.IndexOf('?');
+            if (p > 0)
+            {
+                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&");
+                ps.Merge(qs);
+            }
+
+            // 提交参数
+            if (req.Method == "POST" && req.BodyLength > 0)
+            {
+                var body = req.Body;
+                if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
+                {
+                    var js = JsonParser.Decode(body.ToStr());
+                    ps.Merge(js);
+                }
+            }
+        }
+
+        /// <summary>复杂调用</summary>
+        /// <param name="handler"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        protected virtual Object OnInvoke(Delegate handler, IHttpContext context)
+        {
+            var mi = handler.Method;
+            var pis = mi.GetParameters();
+            if (pis.Length == 0) return handler.DynamicInvoke();
+
+            var parameters = context.Parameters;
+
+            var args = new Object[pis.Length];
+            for (var i = 0; i < pis.Length; i++)
+            {
+                if (parameters.TryGetValue(pis[i].Name, out var v))
+                    args[i] = v.ChangeType(pis[i].ParameterType);
+            }
+
+            return handler.DynamicInvoke(args);
         }
         #endregion
 

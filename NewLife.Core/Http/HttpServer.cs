@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq.Expressions;
 using NewLife.Net;
 
 namespace NewLife.Http
@@ -42,7 +43,44 @@ namespace NewLife.Http
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map(String path, Func<Object> handler) => Routes[path] = handler;
+        public void Map<TResult>(String path, Func<TResult> handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
+        public void Map<TModel, TResult>(String path, Func<TModel, TResult> handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
+        public void Map<T1, T2, TResult>(String path, Func<T1, T2, TResult> handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
+        public void Map<T1, T2, T3, TResult>(String path, Func<T1, T2, T3, TResult> handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
+        public void Map<T1, T2, T3, T4, TResult>(String path, Func<T1, T2, T3, T4, TResult> handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
+        public void Map<T1, T2, T3, T4, T5, TResult>(String path, Func<T1, T2, T3, T4, T5, TResult> handler) => Routes[path] = handler;
+
+        ///// <summary>映射路由处理器</summary>
+        ///// <param name="path"></param>
+        ///// <param name="expression"></param>
+        //public void Map(String path, Expression expression)
+        //{
+        //    Routes[path] = new HttpProcessDelegate(context =>
+        //    {
+        //        var exp = expression;
+        //        WriteLog(exp + "");
+        //    });
+        //}
         #endregion
     }
 }
