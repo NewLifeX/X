@@ -91,10 +91,10 @@ namespace NewLife.Http
         #region 读写
         /// <summary>创建请求响应包</summary>
         /// <returns></returns>
-        public Packet Build()
+        public virtual Packet Build()
         {
             var data = Body;
-            var len = data != null ? data.Count : 0;
+            var len = data != null ? data.Count : -1;
 
             var header = BuildHeader(len);
             var rs = new Packet(header.GetBytes())

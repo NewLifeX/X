@@ -48,7 +48,7 @@ namespace NewLife.Http
                 req.Body.Append(e.Packet);
             }
 
-            // 收到全部数据后，触发请求处理ed
+            // 收到全部数据后，触发请求处理
             if (req != null && req.IsCompleted)
             {
                 var rs = ProcessRequest(req, e);

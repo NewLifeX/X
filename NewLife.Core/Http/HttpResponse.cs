@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Http
 {
@@ -40,6 +41,19 @@ namespace NewLife.Http
             return true;
         }
 
+        /// <summary>创建请求响应包</summary>
+        /// <returns></returns>
+        public override Packet Build()
+        {
+            // 如果响应异常，则使用响应描述作为内容
+            if (StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())
+            {
+                Body = StatusDescription.GetBytes();
+            }
+
+            return base.Build();
+        }
+
         /// <summary>创建头部</summary>
         /// <param name="length"></param>
         /// <returns></returns>
@@ -57,8 +71,8 @@ namespace NewLife.Http
             // 内容长度
             if (length > 0)
                 sb.AppendFormat("Content-Length:{0}\r\n", length);
-            else if (length == 0 && !Headers.ContainsKey("Transfer-Encoding"))
-                sb.AppendFormat("Content-Length:{0}\r\n", length);
+            else if (!Headers.ContainsKey("Transfer-Encoding"))
+                sb.AppendFormat("Content-Length:{0}\r\n", 0);
 
             if (!ContentType.IsNullOrEmpty()) sb.AppendFormat("Content-Type:{0}\r\n", ContentType);
 
