@@ -24,6 +24,7 @@ using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
 using System.Text;
+using NewLife.Http;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -71,7 +72,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -343,29 +344,17 @@ namespace Test
             if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
+        private static NetServer _server;
         private static void Test5()
         {
-            var type = typeof(DateTime?);
-            var tc = Type.GetTypeCode(type);
-            Console.WriteLine(tc);
-
-            var set = XCode.Setting.Current;
-            set.EntityCacheExpire = 5;
-
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-
-            for (var i = 0; i < 10; i++)
+            var server = new HttpServer
             {
-                LogProvider.Provider.WriteLog("test" + i, "test", true, "xxx");
-            }
+                Log = XTrace.Log,
+                SessionLog = XTrace.Log
+            };
+            server.Start();
 
-            for (var i = 0; i < 1000; i++)
-            {
-                var names = Log.FindAllCategoryName();
-                XTrace.WriteLine("names: {0}", names.Count);
-
-                Thread.Sleep(1000);
-            }
+            _server = server;
         }
 
         private static void Test6()

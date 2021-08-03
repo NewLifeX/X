@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 using NewLife.Net;
 
 namespace NewLife.Http
@@ -18,9 +13,11 @@ namespace NewLife.Http
             Name = "Http";
             Port = 80;
             ProtocolType = NetType.Http;
-
-            // Http封包协议
-            //SessionPacket = new PacketFactory { Offset = -1 };
         }
+
+        /// <summary>创建会话</summary>
+        /// <param name="session"></param>
+        /// <returns></returns>
+        protected override INetSession CreateSession(ISocketSession session) => new HttpSession();
     }
 }

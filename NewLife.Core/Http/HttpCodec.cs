@@ -190,13 +190,6 @@ namespace NewLife.Http
             Header = pk.Slice(0, p);
             Payload = pk.Slice(p + 4);
 
-            //var isGet = pk.Count >= 4 && pk[0] == 'G' && pk[1] == 'E' && pk[2] == 'T' && pk[3] == ' ';
-            //var isPost = pk.Count >= 5 && pk[0] == 'P' && pk[1] == 'O' && pk[2] == 'S' && pk[3] == 'T' && pk[4] == ' ';
-            //if (isGet)
-            //    Method = "GET";
-            //else if (isPost)
-            //    Method = "POST";
-
             return true;
         }
 

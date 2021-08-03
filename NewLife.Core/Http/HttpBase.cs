@@ -13,7 +13,7 @@ namespace NewLife.Http
         public String Version { get; set; } = "1.1";
 
         /// <summary>内容长度</summary>
-        public Int32 ContentLength { get; set; }
+        public Int32 ContentLength { get; set; } = -1;
 
         /// <summary>内容类型</summary>
         public String ContentType { get; set; }
@@ -74,7 +74,7 @@ namespace NewLife.Http
                 if (p > 0) Headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
             }
 
-            ContentLength = Headers["Content-Length"].ToInt();
+            ContentLength = Headers["Content-Length"].ToInt(-1);
             ContentType = Headers["Content-Type"];
 
             // 分析第一行

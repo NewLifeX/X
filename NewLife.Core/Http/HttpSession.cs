@@ -7,7 +7,7 @@ using NewLife.Net;
 namespace NewLife.Http
 {
     /// <summary>Http会话</summary>
-    public class HttpSession : TcpSession
+    public class HttpSession : NetSession
     {
         #region 属性
         /// <summary>是否WebSocket</summary>
@@ -23,106 +23,62 @@ namespace NewLife.Http
         public HttpResponse Response { get; set; }
         #endregion
 
-        #region 构造
-        internal HttpSession(ISocketServer server, Socket client) : base(server, client)
-        {
-            Name = GetType().Name;
-            //Remote.Port = 80;
-            Remote.Type = server.Local.Type;
-            Remote.EndPoint = client.RemoteEndPoint as IPEndPoint;
-
-            //DisconnectWhenEmptyData = false;
-            ProcessAsync = false;
-            MatchEmpty = true;
-
-            // 添加过滤器
-            if (SendFilter == null) SendFilter = new HttpResponseFilter { Session = this };
-        }
-        #endregion
-
         #region 收发数据
-        /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <summary>收到客户端发来的数据</summary>
+        /// <param name="e"></param>
+        protected override void OnReceive(ReceivedEventArgs e)
         {
-            if (pk == null || pk.Count == 0) return true;
-
-            /*
-             * 解析流程：
-             *  首次访问或过期，创建请求对象
-             *      判断头部是否完整
-             *          --判断主体是否完整
-             *              触发新的请求
-             *          --加入缓存
-             *      加入缓存
-             *  触发收到数据
-             */
-
-            var header = Request;
-
-            // 是否全新请求
-            if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
+            if (e.Packet.Total == 0 || !HttpBase.FastValidHeader(e.Packet))
             {
-                var req = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
+                base.OnReceive(e);
+                return;
+            }
 
-                // 分析头部
-                if (req.ParseHeader(pk))
+            var req = Request;
+            var request = new HttpRequest();
+            if (request.Parse(e.Packet))
+            {
+                req = Request = request;
+
+                WriteLog("{0} {1}", request.Method, request.Url);
+
+                OnNewRequest(request, e);
+            }
+            else if (req != null)
+            {
+                // 链式数据包
+                req.Body.Append(e.Packet);
+            }
+
+            // 收到全部数据后，触发请求处理
+            if (req != null && req.IsCompleted)
+            {
+                var rs = ProcessRequest(req, e);
+                if (rs != null)
                 {
-                    Request = header = req;
-                    Response = new HttpResponse();
-#if DEBUG
-                    WriteLog("{0} {1}", header.Method, header.Url);
-#endif
+                    Send(rs.Build());
                 }
             }
 
-            // 增加主体长度
-            header.BodyLength += pk.Count;
-
-            // WebSocket
-            if (CheckWebSocket(ref pk, remote)) return true;
-
-            if (!IsWebSocket && !header.ParseBody(ref pk)) return true;
-
-            base.OnReceive(pk, remote);
-
-            // 如果还有响应，说明还没发出
-            var rs = Response;
-            if (rs == null) return true;
-
-            // 请求内容为空
-            //var html = "请求 {0} 内容未处理！".F(Request.Url);
-            var html = "{0} {1} {2}".F(Request.Method, Request.Url, DateTime.Now);
-            Send(new Packet(html.GetBytes()));
-
-            return true;
+            base.OnReceive(e);
         }
-        #endregion
 
-        #region Http服务端
-        class HttpResponseFilter : FilterBase
+        /// <summary>收到新的Http请求，只有头部</summary>
+        /// <param name="request"></param>
+        /// <param name="e"></param>
+        protected virtual void OnNewRequest(HttpRequest request, ReceivedEventArgs e) { }
+
+        /// <summary>处理Http请求</summary>
+        /// <param name="request"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
-            public HttpSession Session { get; set; }
-
-            protected override Boolean OnExecute(FilterContext context)
+            return new HttpResponse
             {
-                var pk = context.Packet;
-                var ss = Session;
-
-                if (ss.IsWebSocket)
-                    pk = HttpHelper.MakeWS(pk);
-                else
-                    pk = ss.Response.Build(pk);
-                ss.Response = null;
-
-                context.Packet = pk;
-#if DEBUG
-                //Session.WriteLog(pk.ToStr());
-#endif
-
-                return true;
-            }
+                StatusCode = HttpStatusCode.OK,
+                Body = $"Hello NewLife!".GetBytes()
+            };
         }
         #endregion
 
@@ -142,16 +98,16 @@ namespace NewLife.Http
 
                 // 发送握手
                 HttpHelper.Handshake(key, Response);
-                Send(null);
+                //Send(null);
 
                 IsWebSocket = true;
-                DisconnectWhenEmptyData = false;
+                //DisconnectWhenEmptyData = false;
             }
             else
             {
                 pk = HttpHelper.ParseWS(pk);
 
-                return base.OnReceive(pk, remote);
+                //return base.OnReceive(pk, remote);
             }
 
             return true;
