@@ -78,13 +78,13 @@ namespace NewLife.Http
         protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
             // 匹配路由处理器
-            var routes = ((this as INetSession).Host as HttpServer).Routes;
+            var server = (this as INetSession).Host as HttpServer;
             var path = request.Url.OriginalString;
             var p = path.IndexOf('?');
             if (p > 0) path = path.Substring(0, p);
 
-            if (!routes.TryGetValue(path, out var handler))
-                return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+            var handler = server.MatchHandler(path);
+            if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
             var context = new DefaultHttpContext
             {
@@ -97,48 +97,12 @@ namespace NewLife.Http
             {
                 PrepareRequest(context);
 
-                if (handler is HttpProcessDelegate httpHandler)
-                {
-                    httpHandler(context);
-                }
-                else
-                {
-                    var rs = context.Response;
-                    //var result = handler.DynamicInvoke();
-                    var result = OnInvoke(handler, context);
+                handler.ProcessRequest(context);
 
-                    if (result is Packet pk)
-                    {
-                        rs.ContentType = "application/octet-stream";
-                        rs.Body = pk;
-                    }
-                    else if (result is Byte[] buffer)
-                    {
-                        rs.ContentType = "application/octet-stream";
-                        rs.Body = buffer;
-                    }
-                    else if (result is String str)
-                    {
-                        rs.ContentType = "text/plain";
-                        rs.Body = str.GetBytes();
-                    }
-                    else
-                    {
-                        rs.ContentType = "application/json";
-                        rs.Body = result.ToJson().GetBytes();
-                    }
-                }
             }
             catch (Exception ex)
             {
-                // 处理异常
-                var rs = context.Response;
-                if (ex is ApiException aex)
-                    rs.StatusCode = (HttpStatusCode)aex.Code;
-                else
-                    rs.StatusCode = HttpStatusCode.InternalServerError;
-
-                rs.StatusDescription = ex.Message;
+                context.Response.SetResult(ex);
             }
 
             return context.Response;
@@ -151,8 +115,8 @@ namespace NewLife.Http
             var req = context.Request;
             var ps = context.Parameters;
 
-            // 头部参数
-            ps.Merge(req.Headers);
+            //// 头部参数
+            //ps.Merge(req.Headers);
 
             // 地址参数
             var url = req.Url.OriginalString;
@@ -173,28 +137,6 @@ namespace NewLife.Http
                     ps.Merge(js);
                 }
             }
-        }
-
-        /// <summary>复杂调用</summary>
-        /// <param name="handler"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected virtual Object OnInvoke(Delegate handler, IHttpContext context)
-        {
-            var mi = handler.Method;
-            var pis = mi.GetParameters();
-            if (pis.Length == 0) return handler.DynamicInvoke();
-
-            var parameters = context.Parameters;
-
-            var args = new Object[pis.Length];
-            for (var i = 0; i < pis.Length; i++)
-            {
-                if (parameters.TryGetValue(pis[i].Name, out var v))
-                    args[i] = v.ChangeType(pis[i].ParameterType);
-            }
-
-            return handler.DynamicInvoke(args);
         }
         #endregion
 

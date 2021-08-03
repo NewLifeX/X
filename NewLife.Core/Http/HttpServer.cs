@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq.Expressions;
 using NewLife.Net;
 
 namespace NewLife.Http
@@ -15,7 +14,7 @@ namespace NewLife.Http
         public String ServerName { get; set; }
 
         /// <summary>路由映射</summary>
-        public IDictionary<String, Delegate> Routes { get; set; } = new Dictionary<String, Delegate>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<String, IHttpHandler> Routes { get; set; } = new Dictionary<String, IHttpHandler>(StringComparer.OrdinalIgnoreCase);
         #endregion
 
         /// <summary>实例化</summary>
@@ -38,49 +37,82 @@ namespace NewLife.Http
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map(String path, HttpProcessDelegate handler) => Routes[path] = handler;
+        public void Map(String path, HttpProcessDelegate handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map<TResult>(String path, Func<TResult> handler) => Routes[path] = handler;
+        public void Map<TResult>(String path, Func<TResult> handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map<TModel, TResult>(String path, Func<TModel, TResult> handler) => Routes[path] = handler;
+        public void Map<TModel, TResult>(String path, Func<TModel, TResult> handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map<T1, T2, TResult>(String path, Func<T1, T2, TResult> handler) => Routes[path] = handler;
+        public void Map<T1, T2, TResult>(String path, Func<T1, T2, TResult> handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map<T1, T2, T3, TResult>(String path, Func<T1, T2, T3, TResult> handler) => Routes[path] = handler;
+        public void Map<T1, T2, T3, TResult>(String path, Func<T1, T2, T3, TResult> handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
-        public void Map<T1, T2, T3, T4, TResult>(String path, Func<T1, T2, T3, T4, TResult> handler) => Routes[path] = handler;
+        public void Map<T1, T2, T3, T4, TResult>(String path, Func<T1, T2, T3, T4, TResult> handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
-        /// <summary>映射路由处理器</summary>
+        /// <summary>映射控制器</summary>
+        /// <typeparam name="TController"></typeparam>
         /// <param name="path"></param>
-        /// <param name="handler"></param>
-        public void Map<T1, T2, T3, T4, T5, TResult>(String path, Func<T1, T2, T3, T4, T5, TResult> handler) => Routes[path] = handler;
+        public void MapController<TController>(String path = null) => MapController(typeof(TController), path);
 
-        ///// <summary>映射路由处理器</summary>
-        ///// <param name="path"></param>
-        ///// <param name="expression"></param>
-        //public void Map(String path, Expression expression)
-        //{
-        //    Routes[path] = new HttpProcessDelegate(context =>
-        //    {
-        //        var exp = expression;
-        //        WriteLog(exp + "");
-        //    });
-        //}
+        /// <summary>映射控制器</summary>
+        /// <param name="controllerType"></param>
+        /// <param name="path"></param>
+        public void MapController(Type controllerType, String path = null)
+        {
+            if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimEnd("Controller") + "/*";
+
+            Routes[path] = new ControllerHandler { ControllerType = controllerType };
+        }
+
+        /// <summary>映射静态文件</summary>
+        /// <param name="path"></param>
+        /// <param name="contentPath"></param>
+        public void MapStaticFiles(String path, String contentPath) => Routes[path] = new StaticFilesHandler { ContentPath = contentPath };
+
+        private IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>匹配处理器</summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public IHttpHandler MatchHandler(String path)
+        {
+            if (Routes.TryGetValue(path, out var handler)) return handler;
+
+            // 判断缓存
+            if (_maps.TryGetValue(path, out var p) &&
+                Routes.TryGetValue(p, out handler)) return handler;
+
+            // 模糊匹配
+            foreach (var item in Routes)
+            {
+                if (item.Key.Contains("*") && item.Key.IsMatch(path))
+                {
+                    if (Routes.TryGetValue(item.Key, out handler))
+                    {
+                        // 大于两段的路径不做缓存，避免动态Url引起缓存膨胀
+                        if (path.Split('/').Length <= 3) _maps[path] = item.Key;
+
+                        return handler;
+                    }
+                }
+            }
+
+            return null;
+        }
         #endregion
     }
 }

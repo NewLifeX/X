@@ -5,10 +5,6 @@ using NewLife.Net;
 
 namespace NewLife.Http
 {
-    /// <summary>Http请求处理委托</summary>
-    /// <param name="context"></param>
-    public delegate void HttpProcessDelegate(IHttpContext context);
-
     /// <summary>Http上下文</summary>
     public interface IHttpContext
     {

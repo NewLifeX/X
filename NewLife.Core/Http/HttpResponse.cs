@@ -3,6 +3,8 @@ using System.Linq;
 using System.Net;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Remoting;
+using NewLife.Serialization;
 
 namespace NewLife.Http
 {
@@ -90,6 +92,41 @@ namespace NewLife.Http
         public void Valid()
         {
             if (StatusCode != HttpStatusCode.OK) throw new Exception(StatusDescription ?? (StatusCode + ""));
+        }
+
+        /// <summary>设置结果，影响Body和ContentType</summary>
+        /// <param name="result"></param>
+        public void SetResult(Object result)
+        {
+            if (result is Exception ex)
+            {
+                if (ex is ApiException aex)
+                    StatusCode = (HttpStatusCode)aex.Code;
+                else
+                    StatusCode = HttpStatusCode.InternalServerError;
+
+                StatusDescription = ex.Message;
+            }
+            else if (result is Packet pk)
+            {
+                ContentType = "application/octet-stream";
+                Body = pk;
+            }
+            else if (result is Byte[] buffer)
+            {
+                ContentType = "application/octet-stream";
+                Body = buffer;
+            }
+            else if (result is String str)
+            {
+                ContentType = "text/html";
+                Body = str.GetBytes();
+            }
+            else
+            {
+                ContentType = "application/json";
+                Body = result.ToJson().GetBytes();
+            }
         }
 
         /// <summary>已重载。</summary>
