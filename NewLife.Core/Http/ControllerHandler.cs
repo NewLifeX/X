@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Collections;
+using System.Reflection;
+using NewLife.Reflection;
+using NewLife.Remoting;
 
 namespace NewLife.Http
 {
@@ -15,6 +16,19 @@ namespace NewLife.Http
 
         /// <summary>处理请求</summary>
         /// <param name="context"></param>
-        public void ProcessRequest(IHttpContext context) => throw new NotImplementedException();
+        public virtual void ProcessRequest(IHttpContext context)
+        {
+            var ss = context.Path.Split('/');
+            var methodName = ss[2];
+
+            var controller = ControllerType.CreateInstance();
+
+            var method = ControllerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            if (method == null) throw new ApiException(404, $"控制器[{ControllerType.FullName}]内无法找到操作[{methodName}]");
+
+            var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
+
+            context.Response.SetResult(result);
+        }
     }
 }

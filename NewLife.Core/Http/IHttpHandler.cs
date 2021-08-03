@@ -23,7 +23,7 @@ namespace NewLife.Http
 
         /// <summary>处理请求</summary>
         /// <param name="context"></param>
-        public void ProcessRequest(IHttpContext context)
+        public virtual void ProcessRequest(IHttpContext context)
         {
             var handler = Callback;
             if (handler is HttpProcessDelegate httpHandler)
