@@ -494,6 +494,24 @@ namespace NewLife.Net
 
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
+
+        /// <summary>异步群发数据给所有客户端</summary>
+        /// <param name="data"></param>
+        /// <param name="predicate"></param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var ts = new List<Task>();
+            foreach (var item in Sessions)
+            {
+                if (predicate == null || predicate(item.Value))
+                    ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+            }
+
+            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+        }
         #endregion
 
         #region 创建Tcp/Udp、IPv4/IPv6服务

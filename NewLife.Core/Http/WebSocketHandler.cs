@@ -26,20 +26,18 @@ namespace NewLife.Http
         /// <param name="message"></param>
         public virtual void ProcessMessage(WebSocketMessage message)
         {
+            var remote = _context.Connection.Remote;
             var ws = _context.WebSockets;
             var msg = message.Payload?.ToStr();
             switch (message.Type)
             {
-                //case WebSocketMessageType.Data:
-                //    break;
                 case WebSocketMessageType.Text:
                     WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
-                    ws.Send("你在说，" + msg);
+                    // 群发所有客户端
+                    ws.SendAll($"[{remote}]说，{msg}");
                     break;
-                //case WebSocketMessageType.Binary:
-                //    break;
                 case WebSocketMessageType.Close:
-                    WriteLog("WebSocket关闭[{0}] [{1}] {2}", _context.Connection.Remote, message.CloseStatus, message.StatusDescription);
+                    WriteLog("WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
                     break;
                 case WebSocketMessageType.Ping:
                 case WebSocketMessageType.Pong:

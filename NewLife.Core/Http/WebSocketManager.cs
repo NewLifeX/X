@@ -2,6 +2,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using NewLife.Data;
+using NewLife.Net;
 using NewLife.Security;
 
 namespace NewLife.Http
@@ -94,6 +95,22 @@ namespace NewLife.Http
         /// <summary>发送文本消息</summary>
         /// <param name="message"></param>
         public void Send(String message) => Send(WebSocketMessageType.Text, message.GetBytes());
+
+        /// <summary>向所有连接发送消息</summary>
+        /// <param name="type"></param>
+        /// <param name="data"></param>
+        /// <param name="predicate"></param>
+        public void SendAll(WebSocketMessageType type, Packet data, Func<INetSession, Boolean> predicate = null)
+        {
+            var msg = new WebSocketMessage { Type = type, Payload = data };
+            var session = Context.Connection;
+            session.Host.SendAllAsync(msg.ToPacket(), predicate);
+        }
+
+        /// <summary>想所有连接发送文本消息</summary>
+        /// <param name="message"></param>
+        /// <param name="predicate"></param>
+        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(WebSocketMessageType.Text, message.GetBytes(), predicate);
 
         /// <summary>发送关闭连接</summary>
         /// <param name="closeStatus"></param>
