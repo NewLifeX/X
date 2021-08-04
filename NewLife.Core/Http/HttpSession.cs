@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Security.Cryptography;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -14,7 +13,7 @@ namespace NewLife.Http
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
-        private IHttpContext _websocket;
+        private WebSocketManager _websocket;
         #endregion
 
         #region 收发数据
@@ -31,11 +30,7 @@ namespace NewLife.Http
             // WebSocket 数据
             if (_websocket != null)
             {
-                if (_websocket.WebSockets?.Handler != null)
-                {
-                    var message = new WebSocketMessage();
-                    if (message.Read(e.Packet)) _websocket.WebSockets.Handler(message);
-                }
+                _websocket.Process(e.Packet);
 
                 base.OnReceive(e);
                 return;
@@ -107,7 +102,7 @@ namespace NewLife.Http
                 PrepareRequest(context);
 
                 // 处理 WebSocket 握手
-                if (_websocket == null) Handshake(context);
+                if (_websocket == null) _websocket = WebSocketManager.Handshake(context);
 
                 handler.ProcessRequest(context);
             }
@@ -148,29 +143,6 @@ namespace NewLife.Http
                     ps.Merge(js);
                 }
             }
-        }
-        #endregion
-
-        #region WebSocket
-        /// <summary>WebSocket 握手</summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected virtual void Handshake(IHttpContext context)
-        {
-            var request = context.Request;
-            if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return;
-
-            var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
-            key = buf.ToBase64();
-
-            var response = context.Response;
-            response.StatusCode = HttpStatusCode.SwitchingProtocols;
-            response.Headers["Upgrade"] = "websocket";
-            response.Headers["Connection"] = "Upgrade";
-            response.Headers["Sec-WebSocket-Accept"] = key;
-
-            if (context is DefaultHttpContext dhc) dhc.WebSockets = new WebSocketManager { IsWebSocketRequest = true };
-            _websocket = context;
         }
         #endregion
     }

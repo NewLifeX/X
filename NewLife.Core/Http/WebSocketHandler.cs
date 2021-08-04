@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Net;
 using NewLife.Log;
-using NewLife.Remoting;
 
 namespace NewLife.Http
 {
@@ -28,12 +26,15 @@ namespace NewLife.Http
         /// <param name="message"></param>
         public virtual void ProcessMessage(WebSocketMessage message)
         {
+            var ws = _context.WebSockets;
             switch (message.Type)
             {
                 //case WebSocketMessageType.Data:
                 //    break;
                 case WebSocketMessageType.Text:
-                    WriteLog("WebSocket收到[{0}] {1}", message.Type, message.Body?.ToStr());
+                    var msg = message.Payload?.ToStr();
+                    WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
+                    ws.Send("你在说，" + msg);
                     break;
                 //case WebSocketMessageType.Binary:
                 //    break;

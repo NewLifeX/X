@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using NewLife.Data;
 
 namespace NewLife.Http
@@ -35,8 +36,8 @@ namespace NewLife.Http
         /// <summary>消息类型</summary>
         public WebSocketMessageType Type { get; set; }
 
-        /// <summary>数据体</summary>
-        public Packet Body { get; set; }
+        /// <summary>负载数据</summary>
+        public Packet Payload { get; set; }
         #endregion
 
         #region 方法
@@ -80,7 +81,7 @@ namespace NewLife.Http
             // 如果mask，剩下的就是数据，避免拷贝，提升性能
             if (!mask)
             {
-                Body = pk.Slice((Int32)ms.Position, len);
+                Payload = pk.Slice((Int32)ms.Position, len);
                 return true;
             }
 
@@ -94,7 +95,7 @@ namespace NewLife.Http
             if (mask)
             {
                 // 直接在数据缓冲区修改，避免拷贝
-                var data = Body = pk.Slice((Int32)ms.Position, len);
+                var data = Payload = pk.Slice((Int32)ms.Position, len);
                 for (var i = 0; i < len; i++)
                 {
                     data[i] = (Byte)(data[i] ^ masks[i % 4]);
@@ -102,6 +103,38 @@ namespace NewLife.Http
             }
 
             return true;
+        }
+
+        /// <summary>把消息转为封包</summary>
+        /// <returns></returns>
+        public virtual Packet ToPacket()
+        {
+            var pk = Payload;
+            var size = pk == null ? 0 : pk.Total;
+
+            var ms = new MemoryStream();
+            ms.WriteByte((Byte)(0x80 | (Byte)Type));
+
+            /*
+             * 数据长度
+             * len < 126    单字节表示长度
+             * len = 126    后续2字节表示长度，大端
+             * len = 127    后续8字节表示长度
+             */
+            if (size < 126)
+                ms.WriteByte((Byte)size);
+            else if (size < 0xFFFF)
+            {
+                ms.WriteByte(126);
+                ms.Write(((Int16)size).GetBytes(false));
+            }
+            else
+            {
+                ms.WriteByte(127);
+                ms.Write(((Int64)size).GetBytes(false));
+            }
+
+            return new Packet(ms.ToArray()) { Next = pk };
         }
         #endregion
     }
