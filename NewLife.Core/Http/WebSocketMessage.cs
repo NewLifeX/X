@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using NewLife.Data;
+using NewLife.Security;
 
 namespace NewLife.Http
 {
@@ -35,6 +36,9 @@ namespace NewLife.Http
 
         /// <summary>消息类型</summary>
         public WebSocketMessageType Type { get; set; }
+
+        /// <summary>加密数据的掩码</summary>
+        public Byte[] MaskKey { get; set; }
 
         /// <summary>负载数据</summary>
         public Packet Payload { get; set; }
@@ -87,10 +91,7 @@ namespace NewLife.Http
 
             var masks = new Byte[4];
             if (mask) ms.Read(masks, 0, masks.Length);
-
-            //// 读取数据
-            //var data = new Byte[len];
-            //ms.Read(data, 0, data.Length);
+            MaskKey = masks;
 
             if (mask)
             {
@@ -110,10 +111,12 @@ namespace NewLife.Http
         public virtual Packet ToPacket()
         {
             var pk = Payload;
-            var size = pk == null ? 0 : pk.Total;
+            var len = pk == null ? 0 : pk.Total;
 
             var ms = new MemoryStream();
             ms.WriteByte((Byte)(0x80 | (Byte)Type));
+
+            var masks = MaskKey;
 
             /*
              * 数据长度
@@ -121,17 +124,49 @@ namespace NewLife.Http
              * len = 126    后续2字节表示长度，大端
              * len = 127    后续8字节表示长度
              */
-            if (size < 126)
-                ms.WriteByte((Byte)size);
-            else if (size < 0xFFFF)
+
+            if (masks == null)
             {
-                ms.WriteByte(126);
-                ms.Write(((Int16)size).GetBytes(false));
+                if (len < 126)
+                {
+                    ms.WriteByte((Byte)len);
+                }
+                else if (len < 0xFFFF)
+                {
+                    ms.WriteByte(126);
+                    ms.Write(((Int16)len).GetBytes(false));
+                }
+                else
+                {
+                    ms.WriteByte(127);
+                    ms.Write(((Int64)len).GetBytes(false));
+                }
             }
             else
             {
-                ms.WriteByte(127);
-                ms.Write(((Int64)size).GetBytes(false));
+                if (len < 126)
+                {
+                    ms.WriteByte((Byte)(len | 0x80));
+                }
+                else if (len < 0xFFFF)
+                {
+                    ms.WriteByte(126 | 0x80);
+                    ms.Write(((Int16)len).GetBytes(false));
+                }
+                else
+                {
+                    ms.WriteByte(127 | 0x80);
+                    ms.Write(((Int64)len).GetBytes(false));
+                }
+
+                ms.Write(masks);
+
+                // 掩码混淆数据。直接在数据缓冲区修改，避免拷贝
+                var data = Payload;
+                for (var i = 0; i < len; i++)
+                {
+                    data[i] = (Byte)(data[i] ^ masks[i % 4]);
+                }
             }
 
             return new Packet(ms.ToArray()) { Next = pk };

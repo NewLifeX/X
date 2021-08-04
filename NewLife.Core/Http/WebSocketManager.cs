@@ -2,6 +2,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using NewLife.Data;
+using NewLife.Security;
 
 namespace NewLife.Http
 {
@@ -58,15 +59,16 @@ namespace NewLife.Http
                 {
                     Handler(message);
 
+                    var session = Context.Connection;
                     switch (message.Type)
                     {
                         case WebSocketMessageType.Close:
-                            Context.Connection.Dispose();
+                            session.Dispose();
                             break;
-                        //case WebSocketMessageType.Ping:
-                        //    break;
-                        //case WebSocketMessageType.Pong:
-                        //    break;
+                        case WebSocketMessageType.Ping:
+                            var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
+                            session.Send(msg.ToPacket());
+                            break;
                     }
                 }
             }
