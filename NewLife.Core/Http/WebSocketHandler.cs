@@ -27,26 +27,26 @@ namespace NewLife.Http
         public virtual void ProcessMessage(WebSocketMessage message)
         {
             var ws = _context.WebSockets;
+            var msg = message.Payload?.ToStr();
             switch (message.Type)
             {
                 //case WebSocketMessageType.Data:
                 //    break;
                 case WebSocketMessageType.Text:
-                    var msg = message.Payload?.ToStr();
                     WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
                     ws.Send("你在说，" + msg);
                     break;
                 //case WebSocketMessageType.Binary:
                 //    break;
                 case WebSocketMessageType.Close:
-                    WriteLog("WebSocket关闭 {0}", _context.Connection.Remote);
+                    WriteLog("WebSocket关闭[{0}] [{1}] {2}", _context.Connection.Remote, message.CloseStatus, message.StatusDescription);
                     break;
                 case WebSocketMessageType.Ping:
                 case WebSocketMessageType.Pong:
-                    WriteLog("WebSocket心跳[{0}]", message.Type);
+                    WriteLog("WebSocket心跳[{0}] {1}", message.Type, msg);
                     break;
                 default:
-                    WriteLog("WebSocket收到[{0}]", message.Type);
+                    WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
                     break;
             }
         }

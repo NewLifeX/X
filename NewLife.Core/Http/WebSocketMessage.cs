@@ -42,6 +42,12 @@ namespace NewLife.Http
 
         /// <summary>负载数据</summary>
         public Packet Payload { get; set; }
+
+        /// <summary>关闭状态。仅用于Close消息</summary>
+        public Int32 CloseStatus { get; set; }
+
+        /// <summary>关闭状态描述。仅用于Close消息</summary>
+        public String StatusDescription { get; set; }
         #endregion
 
         #region 方法
@@ -86,21 +92,30 @@ namespace NewLife.Http
             if (!mask)
             {
                 Payload = pk.Slice((Int32)ms.Position, len);
-                return true;
+            }
+            else
+            {
+                var masks = new Byte[4];
+                if (mask) ms.Read(masks, 0, masks.Length);
+                MaskKey = masks;
+
+                if (mask)
+                {
+                    // 直接在数据缓冲区修改，避免拷贝
+                    var data = Payload = pk.Slice((Int32)ms.Position, len);
+                    for (var i = 0; i < len; i++)
+                    {
+                        data[i] = (Byte)(data[i] ^ masks[i % 4]);
+                    }
+                }
             }
 
-            var masks = new Byte[4];
-            if (mask) ms.Read(masks, 0, masks.Length);
-            MaskKey = masks;
-
-            if (mask)
+            // 特殊处理关闭消息
+            if (Type == WebSocketMessageType.Close)
             {
-                // 直接在数据缓冲区修改，避免拷贝
-                var data = Payload = pk.Slice((Int32)ms.Position, len);
-                for (var i = 0; i < len; i++)
-                {
-                    data[i] = (Byte)(data[i] ^ masks[i % 4]);
-                }
+                var data = Payload;
+                CloseStatus = data.ReadBytes(0, 2).ToUInt16(0, false);
+                StatusDescription = data.Slice(2).ToStr();
             }
 
             return true;
@@ -112,6 +127,16 @@ namespace NewLife.Http
         {
             var pk = Payload;
             var len = pk == null ? 0 : pk.Total;
+
+            // 特殊处理关闭消息
+            if (len == 0 && Type == WebSocketMessageType.Close)
+            {
+                pk = new Packet(((UInt16)CloseStatus).GetBytes(false))
+                {
+                    Next = StatusDescription.GetBytes()
+                };
+                len = pk.Total;
+            }
 
             var ms = new MemoryStream();
             ms.WriteByte((Byte)(0x80 | (Byte)Type));

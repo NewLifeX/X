@@ -63,11 +63,18 @@ namespace NewLife.Http
                     switch (message.Type)
                     {
                         case WebSocketMessageType.Close:
-                            session.Dispose();
+                            {
+                                //var msg = new WebSocketMessage { Type = WebSocketMessageType.Close, Payload = "Finished".GetBytes() };
+                                //session.Send(msg.ToPacket());
+                                Close(1000, "Finished");
+                                session.Dispose();
+                            }
                             break;
                         case WebSocketMessageType.Ping:
-                            var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
-                            session.Send(msg.ToPacket());
+                            {
+                                var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
+                                session.Send(msg.ToPacket());
+                            }
                             break;
                     }
                 }
@@ -87,6 +94,21 @@ namespace NewLife.Http
         /// <summary>发送文本消息</summary>
         /// <param name="message"></param>
         public void Send(String message) => Send(WebSocketMessageType.Text, message.GetBytes());
+
+        /// <summary>发送关闭连接</summary>
+        /// <param name="closeStatus"></param>
+        /// <param name="statusDescription"></param>
+        public void Close(Int32 closeStatus, String statusDescription)
+        {
+            var msg = new WebSocketMessage
+            {
+                Type = WebSocketMessageType.Close,
+                CloseStatus = closeStatus,
+                StatusDescription = statusDescription
+            };
+            var session = Context.Connection;
+            session.Send(msg.ToPacket());
+        }
         #endregion
     }
 }

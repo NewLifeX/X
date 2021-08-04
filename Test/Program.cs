@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using NewLife.Configuration;
 using System.Text;
 using NewLife.Http;
+using System.Net.WebSockets;
 
 #if !NET4
 using TaskEx = System.Threading.Tasks.Task;
@@ -345,7 +346,7 @@ namespace Test
         }
 
         private static NetServer _server;
-        private static void Test5()
+        private static async void Test5()
         {
             var server = new HttpServer
             {
@@ -361,6 +362,19 @@ namespace Test
             server.Start();
 
             _server = server;
+
+#if NET5_0
+            var client = new ClientWebSocket();
+            await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+
+            var buf = new Byte[1024];
+            var rs = await client.ReceiveAsync(buf, default);
+            XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+
+            await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
+            XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+#endif
         }
 
         private static void Test6()
