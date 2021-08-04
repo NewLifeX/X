@@ -349,6 +349,7 @@ namespace Test
         {
             var server = new HttpServer
             {
+                Port = 8080,
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log
             };
@@ -356,6 +357,7 @@ namespace Test
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.MapStaticFiles("/logos", "images/");
             server.MapController<ApiController>("/api");
+            server.Map("/ws", new WebSocketHandler());
             server.Start();
 
             _server = server;

@@ -100,6 +100,8 @@ namespace NewLife.Http
         /// <param name="contentType"></param>
         public void SetResult(Object result, String contentType = null)
         {
+            if (result == null) return;
+
             if (result is Exception ex)
             {
                 if (ex is ApiException aex)

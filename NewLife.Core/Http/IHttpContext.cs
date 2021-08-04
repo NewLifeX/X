@@ -18,8 +18,14 @@ namespace NewLife.Http
         /// <summary>连接会话</summary>
         INetSession Connection { get; }
 
+        /// <summary>WebSocket连接</summary>
+        WebSocketManager WebSockets { get; }
+
         /// <summary>执行路径</summary>
         String Path { get; }
+
+        /// <summary>处理器</summary>
+        IHttpHandler Handler { get; }
 
         /// <summary>请求参数</summary>
         IDictionary<String, Object> Parameters { get; }
@@ -39,8 +45,14 @@ namespace NewLife.Http
         /// <summary>连接会话</summary>
         public INetSession Connection { get; set; }
 
+        /// <summary>WebSocket连接</summary>
+        public WebSocketManager WebSockets { get; set; }
+
         /// <summary>执行路径</summary>
         public String Path { get; set; }
+
+        /// <summary>处理器</summary>
+        public IHttpHandler Handler { get; set; }
 
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using NewLife.Data;
+using System.Security.Cryptography;
 using NewLife.Net;
-using NewLife.Reflection;
-using NewLife.Remoting;
 using NewLife.Serialization;
 
 namespace NewLife.Http
@@ -13,14 +11,10 @@ namespace NewLife.Http
     public class HttpSession : NetSession
     {
         #region 属性
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
-
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
-        /// <summary>响应</summary>
-        public HttpResponse Response { get; set; }
+        private IHttpContext _websocket;
         #endregion
 
         #region 收发数据
@@ -28,8 +22,21 @@ namespace NewLife.Http
         /// <param name="e"></param>
         protected override void OnReceive(ReceivedEventArgs e)
         {
-            if (e.Packet.Total == 0 || !HttpBase.FastValidHeader(e.Packet))
+            if (e.Packet.Total == 0 /*|| !HttpBase.FastValidHeader(e.Packet)*/)
             {
+                base.OnReceive(e);
+                return;
+            }
+
+            // WebSocket 数据
+            if (_websocket != null)
+            {
+                if (_websocket.WebSockets?.Handler != null)
+                {
+                    var message = new WebSocketMessage();
+                    if (message.Read(e.Packet)) _websocket.WebSockets.Handler(message);
+                }
+
                 base.OnReceive(e);
                 return;
             }
@@ -92,14 +99,17 @@ namespace NewLife.Http
                 Request = request,
                 Response = new HttpResponse(),
                 Path = path,
+                Handler = handler,
             };
 
             try
             {
                 PrepareRequest(context);
 
-                handler.ProcessRequest(context);
+                // 处理 WebSocket 握手
+                if (_websocket == null) Handshake(context);
 
+                handler.ProcessRequest(context);
             }
             catch (Exception ex)
             {
@@ -142,34 +152,25 @@ namespace NewLife.Http
         #endregion
 
         #region WebSocket
-        /// <summary>检查WebSocket</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
+        /// <summary>WebSocket 握手</summary>
+        /// <param name="context"></param>
         /// <returns></returns>
-        protected virtual Boolean CheckWebSocket(ref Packet pk, IPEndPoint remote)
+        protected virtual void Handshake(IHttpContext context)
         {
-            if (!IsWebSocket)
-            {
-                var key = Request["Sec-WebSocket-Key"];
-                if (key.IsNullOrEmpty()) return false;
+            var request = context.Request;
+            if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return;
 
-                WriteLog("WebSocket Handshake {0}", key);
+            var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
+            key = buf.ToBase64();
 
-                // 发送握手
-                HttpHelper.Handshake(key, Response);
-                //Send(null);
+            var response = context.Response;
+            response.StatusCode = HttpStatusCode.SwitchingProtocols;
+            response.Headers["Upgrade"] = "websocket";
+            response.Headers["Connection"] = "Upgrade";
+            response.Headers["Sec-WebSocket-Accept"] = key;
 
-                IsWebSocket = true;
-                //DisconnectWhenEmptyData = false;
-            }
-            else
-            {
-                pk = HttpHelper.ParseWS(pk);
-
-                //return base.OnReceive(pk, remote);
-            }
-
-            return true;
+            if (context is DefaultHttpContext dhc) dhc.WebSockets = new WebSocketManager { IsWebSocketRequest = true };
+            _websocket = context;
         }
         #endregion
     }

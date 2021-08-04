@@ -37,6 +37,11 @@ namespace NewLife.Http
         /// <summary>映射路由处理器</summary>
         /// <param name="path"></param>
         /// <param name="handler"></param>
+        public void Map(String path, IHttpHandler handler) => Routes[path] = handler;
+
+        /// <summary>映射路由处理器</summary>
+        /// <param name="path"></param>
+        /// <param name="handler"></param>
         public void Map(String path, HttpProcessDelegate handler) => Routes[path] = new DelegateHandler { Callback = handler };
 
         /// <summary>映射路由处理器</summary>

@@ -24,8 +24,8 @@ namespace NewLife.Http
         /// <summary>主体长度</summary>
         public Int32 BodyLength => Body == null ? 0 : Body.Total;
 
-        /// <summary>是否已完整</summary>
-        public Boolean IsCompleted => ContentLength == 0 || ContentLength <= BodyLength;
+        /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
+        public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
 
         /// <summary>头部集合</summary>
         public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
