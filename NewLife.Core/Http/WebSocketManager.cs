@@ -54,7 +54,21 @@ namespace NewLife.Http
             if (Handler != null)
             {
                 var message = new WebSocketMessage();
-                if (message.Read(pk)) Handler(message);
+                if (message.Read(pk))
+                {
+                    Handler(message);
+
+                    switch (message.Type)
+                    {
+                        case WebSocketMessageType.Close:
+                            Context.Connection.Dispose();
+                            break;
+                        //case WebSocketMessageType.Ping:
+                        //    break;
+                        //case WebSocketMessageType.Pong:
+                        //    break;
+                    }
+                }
             }
         }
 
