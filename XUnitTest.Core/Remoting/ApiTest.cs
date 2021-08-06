@@ -19,7 +19,7 @@ namespace XUnitTest.Remoting
 
         public ApiTest()
         {
-            var port = Rand.Next(10000, 65535);
+            var port = Rand.Next(12348);
 
             _Server = new ApiServer(port)
             {

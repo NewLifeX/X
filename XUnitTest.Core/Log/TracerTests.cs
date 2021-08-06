@@ -179,11 +179,15 @@ namespace XUnitTest.Log
 
                 // 另一个线程建立span，必须用UnsafeQueueUserWorkItem截断上下文传递，否则还是会建立父子关系
                 ISpan span2 = null;
+                var e = new AutoResetEvent(false);
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
                     span2 = tracer.NewSpan("test2");
+                    e.Set();
                 }, null);
-                Thread.Sleep(100);
+                //Thread.Sleep(100);
+                e.WaitOne();
+
                 //using var span2 = Task.Factory.StartNew(() => tracer.NewSpan("test2"), TaskCreationOptions.LongRunning).Result;
                 Assert.NotEqual(span.TraceId, span2.TraceId);
                 Assert.NotEqual(span.Id, span2.ParentId);
@@ -214,11 +218,14 @@ namespace XUnitTest.Log
 
                 // 另一个线程建立span
                 ISpan span2 = null;
+                var e = new AutoResetEvent(false);
                 ThreadPool.QueueUserWorkItem(s =>
                 {
                     span2 = tracer.NewSpan("test2");
+                    e.Set();
                 }, null);
-                Thread.Sleep(100);
+                //Thread.Sleep(100);
+                e.WaitOne();
 
                 Assert.Equal(span.TraceId, span2.TraceId);
                 Assert.Equal(span.Id, span2.ParentId);

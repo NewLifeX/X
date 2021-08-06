@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NewLife.Http;
 using NewLife.Yun;
 using Xunit;
+using NewLife;
 
 namespace XUnitTest.Yun
 {
@@ -13,8 +15,12 @@ namespace XUnitTest.Yun
         [Fact]
         public async void IpLocation()
         {
+            var html = new TinyHttpClient().GetString("http://myip.ipip.net");
+            var ip = html?.Substring("IP：", " ");
+            Assert.NotEmpty(ip);
+
             var map = new BaiduMap();
-            var rs = await map.IpLocationAsync("");
+            var rs = await map.IpLocationAsync(ip);
 
             Assert.NotNull(rs);
 

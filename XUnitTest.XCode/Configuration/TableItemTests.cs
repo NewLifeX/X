@@ -17,7 +17,7 @@ namespace XUnitTest.XCode.Configuration
         {
             var ti = TableItem.Create(typeof(Log2));
             XTrace.WriteLine(ti.TableName);
-            Assert.Equal(5, ti.DataTable.Indexes.Count);
+            Assert.Equal(4, ti.DataTable.Indexes.Count);
         }
     }
 }

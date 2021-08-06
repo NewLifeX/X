@@ -453,17 +453,20 @@ namespace XUnitTest.Caching
             var sw = Stopwatch.StartNew();
 
             // 异步发送
-            ThreadPool.QueueUserWorkItem(s =>
+            var thread = new Thread(s =>
             {
                 Thread.Sleep(100);
 
                 rds.Execute(key, r => r.Execute<Int32>("LPUSH", key, "xxx"), true);
             });
+            thread.Start();
 
-            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 2));
+            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 5));
 
             sw.Stop();
 
+            Assert.NotNull(rs);
+            Assert.Equal(2, rs.Length);
             Assert.Equal(key, rs[0]);
             Assert.Equal("xxx", rs[1]);
             //Assert.True(sw.ElapsedMilliseconds >= 100);
