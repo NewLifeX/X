@@ -31,7 +31,7 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(SqlServer))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.SqlClient.dll", "Microsoft.Data.SqlClient.SqlClientFactory");
+                        if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.SqlClient.dll", "Microsoft.Data.SqlClient.SqlClientFactory", false, true);
                         if (_Factory == null) _Factory = GetProviderFactory(null, "System.Data.SqlClient.SqlClientFactory");
                     }
                 }
