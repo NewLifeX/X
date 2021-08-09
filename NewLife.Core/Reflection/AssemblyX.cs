@@ -129,15 +129,19 @@ namespace NewLife.Reflection
             var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
-            //try
-            //{
-            //    return Assembly.ReflectionOnlyLoad(args.Name);
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteException(ex);
+
+#if NET40_OR_GREATER
+            try
+            {
+                return Assembly.ReflectionOnlyLoad(args.Name);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+#endif
+
             return null;
-            //}
         }
 
         private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
@@ -145,15 +149,19 @@ namespace NewLife.Reflection
             var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
-            //try
-            //{
-            //    return OnResolve(args.Name);
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteException(ex);
+
+#if NET40_OR_GREATER
+            try
+            {
+                return OnResolve(args.Name);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+#endif
+
             return null;
-            //}
         }
         #endregion
 
