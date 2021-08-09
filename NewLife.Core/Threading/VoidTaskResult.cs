@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
 	[StructLayout(LayoutKind.Sequential, Size = 1)]

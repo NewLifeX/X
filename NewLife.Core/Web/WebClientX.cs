@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NewLife.Log;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -26,7 +26,7 @@ namespace NewLife.Web
         #region 构造
         static WebClientX()
         {
-#if NET4
+#if NET40
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
@@ -35,7 +35,7 @@ namespace NewLife.Web
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls;
             }
-#elif NET50
+#elif NETSTANDARD || NETCOREAPP
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;

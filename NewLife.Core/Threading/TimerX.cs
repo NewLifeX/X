@@ -318,7 +318,7 @@ namespace NewLife.Threading
         #region 辅助
         /// <summary>已重载</summary>
         /// <returns></returns>
-        public override String ToString() => $"[{Id}]{Method.DeclaringType.Name}.{Method.Name} ({(_cron != null ? _cron.ToString() : (Period + "ms"))})";
+        public override String ToString() => $"[{Id}]{Method.DeclaringType?.Name}.{Method.Name} ({(_cron != null ? _cron.ToString() : (Period + "ms"))})";
         #endregion
     }
 }

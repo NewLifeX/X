@@ -139,7 +139,7 @@ namespace NewLife.Caching
             return ns;
         }
 
-#if !NET4
+#if !NET40
         private async Task<Stream> GetStreamAsync(Boolean create)
         {
             var tc = Client;
@@ -347,7 +347,7 @@ namespace NewLife.Caching
             return rs.FirstOrDefault();
         }
 
-#if !NET4
+#if !NET40
         /// <summary>异步接收响应</summary>
         /// <param name="ns">网络数据流</param>
         /// <param name="count">响应个数</param>
@@ -659,7 +659,7 @@ namespace NewLife.Caching
             return default;
         }
 
-#if NET4
+#if NET40
         /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
         /// <param name="cmd">命令</param>
         /// <param name="args">参数数组</param>

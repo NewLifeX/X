@@ -48,7 +48,7 @@ namespace NewLife.Data
         {
             if (stream is MemoryStream ms)
             {
-#if NET46 || __CORE__
+#if NET46_OR_GREATER || NETSTANDARD || NETCOREAPP
                 // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
                 if (ms.TryGetBuffer(out var seg))
                 {

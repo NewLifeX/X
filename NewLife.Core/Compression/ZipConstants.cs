@@ -1,4 +1,4 @@
-﻿#if NET4
+﻿#if NET40
 using System;
 
 namespace NewLife.Compression

@@ -25,7 +25,7 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET4
+#if NET40
             using (var stream = new DeflateStream(ms, CompressionMode.Compress, true))
             {
                 inStream.CopyTo(stream);
@@ -96,7 +96,7 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET4
+#if NET40
             using (var stream = new GZipStream(ms, CompressionMode.Compress, true))
             {
                 inStream.CopyTo(stream);

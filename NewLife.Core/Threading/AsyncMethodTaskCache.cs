@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
     internal class AsyncMethodTaskCache<TResult>

@@ -10,7 +10,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -841,7 +841,7 @@ namespace NewLife.Caching
             return _collection.TryTake(out var item) ? item : default;
         }
 
-#if NET4
+#if NET40
         /// <summary>消费获取，同步阻塞</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>

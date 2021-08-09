@@ -1,6 +1,6 @@
 using System;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
     /// <summary>表示为异步方法生成的状态机。此类别仅供编译器使用。</summary>

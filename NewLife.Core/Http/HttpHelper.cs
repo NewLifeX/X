@@ -13,7 +13,7 @@ using System.Text;
 using NewLife.Xml;
 using NewLife.Log;
 using System.Linq;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -342,7 +342,7 @@ namespace NewLife.Http
             var rs = await client.GetStreamAsync(address);
             fileName.EnsureDirectory(true);
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-#if NET4
+#if NET40
             rs.CopyTo(fs);
             fs.Flush();
 #else

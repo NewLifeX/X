@@ -1,6 +1,6 @@
 using System;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
 	internal interface IAsyncMethodBuilder

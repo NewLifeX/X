@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-#if NET4
+#if NET40
 namespace System
 {
     internal abstract class Lightup

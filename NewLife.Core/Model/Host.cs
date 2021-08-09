@@ -150,7 +150,7 @@ namespace NewLife.Model
         #endregion
     }
 
-#if !NET4
+#if NET45_OR_GREATER || NETSTANDARD || NETCOREAPP
     /// <summary>后台任务</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/host

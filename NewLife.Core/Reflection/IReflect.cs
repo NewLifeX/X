@@ -723,7 +723,7 @@ namespace NewLife.Reflection
             if (type == baseType) return true;
 
             // 如果基类是泛型定义，补充完整，例如IList<>
-#if NET4
+#if NET40
             if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
 #else
             if (baseType.IsGenericTypeDefinition

@@ -124,7 +124,7 @@ namespace NewLife.IO
 
             if (boms[0] == 0xef && boms[1] == 0xbb && boms[2] == 0xbf) return Encoding.UTF8;
 
-#if !NET50
+#if !NETCOREAPP
             if (boms[0] == 0x2b && boms[1] == 0x2f && boms[2] == 0x76) return Encoding.UTF7;
 #endif
 

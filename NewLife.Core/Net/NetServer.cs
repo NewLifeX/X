@@ -13,7 +13,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 

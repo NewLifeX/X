@@ -19,16 +19,16 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
-    <DefineConstants>$(DefineConstants);NETSTANDARD2_0;__CORE__</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />

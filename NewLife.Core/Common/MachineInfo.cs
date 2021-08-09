@@ -10,7 +10,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using System.Net.NetworkInformation;
-#if __WIN__
+#if NET40_OR_GREATER
 using System.Management;
 using Microsoft.VisualBasic.Devices;
 using Microsoft.Win32;
@@ -521,7 +521,7 @@ namespace NewLife
             var received = 0L;
             foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-#if NET4
+#if NET40
                 var st = ni.GetIPv4Statistics();
 #else
                 var st = ni.GetIPStatistics();
@@ -792,7 +792,7 @@ namespace NewLife
 
         private SystemTime _systemTime;
 
-#if __WIN__
+#if NET40_OR_GREATER
         /// <summary>获取WMI信息</summary>
         /// <param name="path"></param>
         /// <param name="property"></param>

@@ -370,7 +370,7 @@ namespace NewLife.Caching
             } while (true);
         }
 
-#if NET4
+#if NET40
         /// <summary>异步执行命令</summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">命令key，用于选择集群节点</param>

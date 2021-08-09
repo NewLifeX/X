@@ -235,7 +235,7 @@ namespace NewLife.Threading
                 Active = false;
                 waitForTimer?.Set();
 
-#if !NET50
+#if !NETCOREAPP
                 var th = Thread;
                 if (th != null && th.IsAlive) th.Abort();
 #endif

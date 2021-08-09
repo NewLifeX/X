@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-#if NET4
+#if NET40
 namespace System.Threading.Tasks
 {
     /// <summary>任务扩展</summary>

@@ -13,7 +13,7 @@ namespace NewLife.IO
     /// 文档 https://www.yuque.com/smartstone/nx/csv_file
     /// 支持整体读写以及增量式读写，目标是读写超大Csv文件
     /// </remarks>
-#if NET50
+#if NET5_0_OR_GREATER
     public class CsvFile : IDisposable, IAsyncDisposable
 #else
     public class CsvFile : IDisposable
@@ -84,7 +84,7 @@ namespace NewLife.IO
             }
         }
 
-#if NET50
+#if NET5_0_OR_GREATER
         /// <summary>异步销毁</summary>
         /// <returns></returns>
         public virtual async ValueTask DisposeAsync()
@@ -204,7 +204,7 @@ namespace NewLife.IO
             _writer.WriteLine(str);
         }
 
-#if !NET4
+#if !NET40
         /// <summary>异步写入一行</summary>
         /// <param name="line"></param>
         public async Task WriteLineAsync(IEnumerable<Object> line)
@@ -250,7 +250,7 @@ namespace NewLife.IO
         private StreamWriter _writer;
         private void EnsureWriter()
         {
-#if NET4
+#if NET40
             if (_writer == null) _writer = new StreamWriter(_stream, Encoding);
 #else
             if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, _leaveOpen);

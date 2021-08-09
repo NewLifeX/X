@@ -17,7 +17,7 @@ using NewLife.Data;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -104,7 +104,7 @@ namespace NewLife.Http
 
                 tc.TryDispose();
                 tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-#if NET4
+#if NET40
                 //tc.Connect(remote.Address, remote.Port);
                 await Task.Factory.FromAsync(tc.BeginConnect, tc.EndConnect, remote.Address, remote.Port, null);
 #else
@@ -125,7 +125,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET4
+#if NET40
                     sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
 #else
                     await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
@@ -152,7 +152,7 @@ namespace NewLife.Http
 
             // 接收
             var buf = new Byte[64 * 1024];
-#if NET4
+#if NET40
             var count = ns.Read(buf, 0, buf.Length);
 #else
             var source = new CancellationTokenSource(Timeout);
@@ -319,7 +319,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET4
+#if NET40
                     sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
 #else
                     sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false);

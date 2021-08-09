@@ -27,7 +27,7 @@ using System.Text;
 using NewLife.Http;
 using System.Net.WebSockets;
 
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -363,7 +363,7 @@ namespace Test
 
             _server = server;
 
-#if NET5_0
+#if NET5_0_OR_GREATER
             var client = new ClientWebSocket();
             await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
             await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);

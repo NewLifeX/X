@@ -34,13 +34,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;STD20</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>

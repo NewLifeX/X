@@ -12,7 +12,7 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
