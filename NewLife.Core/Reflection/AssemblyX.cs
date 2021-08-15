@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -610,7 +611,7 @@ namespace NewLife.Reflection
             }
         }
 
-        private static readonly ICollection<String> _BakImages = new List<String>();
+        private static readonly ConcurrentHashSet<String> _BakImages = new();
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -676,7 +677,7 @@ namespace NewLife.Reflection
             }
             catch
             {
-                _BakImages.Add(file);
+                _BakImages.TryAdd(file);
                 return null;
             }
         }
