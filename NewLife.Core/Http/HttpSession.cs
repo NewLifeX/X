@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Web;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -132,7 +134,8 @@ namespace NewLife.Http
             var p = url.IndexOf('?');
             if (p > 0)
             {
-                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&");
+                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&")
+                    .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
                 ps.Merge(qs);
             }
 
