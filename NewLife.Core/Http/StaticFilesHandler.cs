@@ -24,6 +24,9 @@ namespace NewLife.Http
             var file = context.Path.Substring(Path.Length);
             file = ContentPath.CombinePath(file);
 
+            // 路径安全检查，防止越界
+            if (!file.GetFullPath().StartsWithIgnoreCase(Path.GetFullPath())) throw new ApiException(404, "找不到文件" + context.Path);
+
             var fi = file.AsFile();
             if (!fi.Exists) throw new ApiException(404, "找不到文件" + context.Path);
 

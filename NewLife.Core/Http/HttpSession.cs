@@ -85,6 +85,9 @@ namespace NewLife.Http
             var p = path.IndexOf('?');
             if (p > 0) path = path.Substring(0, p);
 
+            // 路径安全检查，防止越界
+            if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
+
             var handler = server.MatchHandler(path);
             if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
