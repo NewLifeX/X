@@ -83,9 +83,9 @@ namespace NewLife.Http
         }
 
         /// <summary>发送消息</summary>
-        /// <param name="type"></param>
         /// <param name="data"></param>
-        public void Send(WebSocketMessageType type, Packet data)
+        /// <param name="type"></param>
+        public void Send(Packet data, WebSocketMessageType type)
         {
             var msg = new WebSocketMessage { Type = type, Payload = data };
             var session = Context.Connection;
@@ -94,13 +94,13 @@ namespace NewLife.Http
 
         /// <summary>发送文本消息</summary>
         /// <param name="message"></param>
-        public void Send(String message) => Send(WebSocketMessageType.Text, message.GetBytes());
+        public void Send(String message) => Send(message.GetBytes(), WebSocketMessageType.Text);
 
         /// <summary>向所有连接发送消息</summary>
-        /// <param name="type"></param>
         /// <param name="data"></param>
+        /// <param name="type"></param>
         /// <param name="predicate"></param>
-        public void SendAll(WebSocketMessageType type, Packet data, Func<INetSession, Boolean> predicate = null)
+        public void SendAll(Packet data, WebSocketMessageType type, Func<INetSession, Boolean> predicate = null)
         {
             var msg = new WebSocketMessage { Type = type, Payload = data };
             var session = Context.Connection;
@@ -110,7 +110,7 @@ namespace NewLife.Http
         /// <summary>想所有连接发送文本消息</summary>
         /// <param name="message"></param>
         /// <param name="predicate"></param>
-        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(WebSocketMessageType.Text, message.GetBytes(), predicate);
+        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(message.GetBytes(), WebSocketMessageType.Text, predicate);
 
         /// <summary>发送关闭连接</summary>
         /// <param name="closeStatus"></param>
