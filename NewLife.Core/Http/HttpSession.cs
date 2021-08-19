@@ -15,7 +15,7 @@ namespace NewLife.Http
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
-        private WebSocketManager _websocket;
+        private WebSocket _websocket;
         #endregion
 
         #region 收发数据
@@ -107,7 +107,7 @@ namespace NewLife.Http
                 PrepareRequest(context);
 
                 // 处理 WebSocket 握手
-                if (_websocket == null) _websocket = WebSocketManager.Handshake(context);
+                if (_websocket == null) _websocket = WebSocket.Handshake(context);
 
                 handler.ProcessRequest(context);
             }

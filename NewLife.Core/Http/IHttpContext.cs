@@ -19,7 +19,7 @@ namespace NewLife.Http
         INetSession Connection { get; }
 
         /// <summary>WebSocket连接</summary>
-        WebSocketManager WebSockets { get; }
+        WebSocket WebSocket { get; }
 
         /// <summary>执行路径</summary>
         String Path { get; }
@@ -46,7 +46,7 @@ namespace NewLife.Http
         public INetSession Connection { get; set; }
 
         /// <summary>WebSocket连接</summary>
-        public WebSocketManager WebSockets { get; set; }
+        public WebSocket WebSocket { get; set; }
 
         /// <summary>执行路径</summary>
         public String Path { get; set; }

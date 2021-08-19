@@ -7,25 +7,33 @@ using NewLife.Security;
 
 namespace NewLife.Http
 {
+    /// <summary>WebSocket消息处理</summary>
+    /// <param name="socket"></param>
+    /// <param name="message"></param>
+    public delegate void WebSocketDelegate(WebSocket socket, WebSocketMessage message);
+
     /// <summary>WebSocket会话管理</summary>
-    public class WebSocketManager
+    public class WebSocket
     {
         #region 属性
-        /// <summary>是否WebSocket连接</summary>
-        public Boolean IsWebSocketRequest { get; set; }
+        /// <summary>是否还在连接</summary>
+        public Boolean Connected { get; set; }
 
         /// <summary>消息处理器</summary>
-        public Action<WebSocketMessage> Handler { get; set; }
+        public WebSocketDelegate Handler { get; set; }
 
         /// <summary>Http上下文</summary>
         public IHttpContext Context { get; set; }
+
+        /// <summary>活跃时间</summary>
+        public DateTime ActiveTime { get; set; }
         #endregion
 
         #region 方法
         /// <summary>WebSocket 握手</summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static WebSocketManager Handshake(IHttpContext context)
+        public static WebSocket Handshake(IHttpContext context)
         {
             var request = context.Request;
             if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return null;
@@ -39,12 +47,13 @@ namespace NewLife.Http
             response.Headers["Connection"] = "Upgrade";
             response.Headers["Sec-WebSocket-Accept"] = key;
 
-            var manager = new WebSocketManager
+            var manager = new WebSocket
             {
-                IsWebSocketRequest = true,
-                Context = context
+                Context = context,
+                Connected = true,
+                ActiveTime = DateTime.Now,
             };
-            if (context is DefaultHttpContext dhc) dhc.WebSockets = manager;
+            if (context is DefaultHttpContext dhc) dhc.WebSocket = manager;
 
             return manager;
         }
@@ -53,31 +62,29 @@ namespace NewLife.Http
         /// <param name="pk"></param>
         public void Process(Packet pk)
         {
-            if (Handler != null)
+            var message = new WebSocketMessage();
+            if (message.Read(pk))
             {
-                var message = new WebSocketMessage();
-                if (message.Read(pk))
-                {
-                    Handler(message);
+                ActiveTime = DateTime.Now;
 
-                    var session = Context.Connection;
-                    switch (message.Type)
-                    {
-                        case WebSocketMessageType.Close:
-                            {
-                                //var msg = new WebSocketMessage { Type = WebSocketMessageType.Close, Payload = "Finished".GetBytes() };
-                                //session.Send(msg.ToPacket());
-                                Close(1000, "Finished");
-                                session.Dispose();
-                            }
-                            break;
-                        case WebSocketMessageType.Ping:
-                            {
-                                var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
-                                session.Send(msg.ToPacket());
-                            }
-                            break;
-                    }
+                Handler?.Invoke(this, message);
+
+                var session = Context.Connection;
+                switch (message.Type)
+                {
+                    case WebSocketMessageType.Close:
+                        {
+                            Close(1000, "Finished");
+                            session.Dispose();
+                            Connected = false;
+                        }
+                        break;
+                    case WebSocketMessageType.Ping:
+                        {
+                            var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
+                            session.Send(msg.ToPacket());
+                        }
+                        break;
                 }
             }
         }
