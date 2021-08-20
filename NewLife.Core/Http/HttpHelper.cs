@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Security;
 using System.Net.Http;
 using NewLife.Serialization;
 using System.Text;
 using NewLife.Xml;
 using NewLife.Log;
 using System.Linq;
+using System.Threading;
+using NewLife.Caching;
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -353,130 +353,77 @@ namespace NewLife.Http
         #endregion
 
         #region WebSocket
-        /// <summary>建立握手包</summary>
-        /// <param name="request"></param>
-        public static void MakeHandshake(HttpRequest request)
-        {
-            request["Upgrade"] = "websocket";
-            request["Connection"] = "Upgrade";
-            request["Sec-WebSocket-Key"] = Rand.NextBytes(16).ToBase64();
-            request["Sec-WebSocket-Version"] = "13";
-        }
-
-        /// <summary>握手</summary>
-        /// <param name="key"></param>
-        /// <param name="response"></param>
-        public static void Handshake(String key, HttpResponse response)
-        {
-            if (key.IsNullOrEmpty()) return;
-
-            var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
-            key = buf.ToBase64();
-
-            //var sb = new StringBuilder();
-            //sb.AppendLine("HTTP/1.1 101 Switching Protocols");
-            //sb.AppendLine("Upgrade: websocket");
-            //sb.AppendLine("Connection: Upgrade");
-            //sb.AppendLine("Sec-WebSocket-Accept: " + key);
-            //sb.AppendLine();
-
-            //return sb.ToString().GetBytes();
-
-            response.StatusCode = HttpStatusCode.SwitchingProtocols;
-            response.Headers["Upgrade"] = "websocket";
-            response.Headers["Connection"] = "Upgrade";
-            response.Headers["Sec-WebSocket-Accept"] = key;
-        }
-
-        /// <summary>分析WS数据包</summary>
-        /// <param name="pk"></param>
+#if !NET40
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="queue"></param>
+        /// <param name="source"></param>
         /// <returns></returns>
-        public static Packet ParseWS(Packet pk)
+        public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
         {
-            if (pk.Count < 2) return null;
-
-            var ms = pk.GetStream();
-
-            // 仅处理一个包
-            var fin = (ms.ReadByte() & 0x80) == 0x80;
-            if (!fin) return null;
-
-            var len = ms.ReadByte();
-
-            var mask = (len & 0x80) == 0x80;
-
-            /*
-             * 数据长度
-             * len < 126    单字节表示长度
-             * len = 126    后续2字节表示长度，大端
-             * len = 127    后续8字节表示长度
-             */
-            len &= 0x7F;
-            if (len == 126)
-                len = (ms.ReadByte() << 8) | ms.ReadByte();
-            else if (len == 127)
+            var token = source.Token;
+            //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
+            try
             {
-                var buf = new Byte[8];
-                ms.Read(buf, 0, buf.Length);
-                // 没有人会传输超大数据
-                len = (Int32)BitConverter.ToUInt64(buf, 0);
-            }
-
-            // 如果mask，剩下的就是数据，避免拷贝，提升性能
-            if (!mask) return new Packet(pk.Data, pk.Offset + (Int32)ms.Position, len);
-
-            var masks = new Byte[4];
-            if (mask) ms.Read(masks, 0, masks.Length);
-
-            // 读取数据
-            var data = new Byte[len];
-            ms.Read(data, 0, data.Length);
-
-            if (mask)
-            {
-                for (var i = 0; i < len; i++)
+                while (!token.IsCancellationRequested && socket.Connected)
                 {
-                    data[i] = (Byte)(data[i] ^ masks[i % 4]);
+                    var msg = await queue.TakeOneAsync(30_000);
+                    if (msg != null)
+                    {
+                        socket.Send(msg.GetBytes(), WebSocketMessageType.Text);
+                    }
+                    else
+                    {
+                        await Task.Delay(100, token);
+                    }
                 }
             }
-
-            return data;
-        }
-
-        /// <summary>创建WS请求包</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public static Packet MakeWS(Packet pk)
-        {
-            if (pk == null) return null;
-
-            var size = pk.Count;
-
-            var ms = new MemoryStream();
-            ms.WriteByte(0x81);
-
-            /*
-             * 数据长度
-             * len < 126    单字节表示长度
-             * len = 126    后续2字节表示长度，大端
-             * len = 127    后续8字节表示长度
-             */
-            if (size < 126)
-                ms.WriteByte((Byte)size);
-            else if (size < 0xFFFF)
+            catch (Exception ex)
             {
-                ms.WriteByte(126);
-                ms.Write(((Int16)size).GetBytes(false));
+                XTrace.WriteException(ex);
             }
-            else
-                throw new NotSupportedException();
-
-            //pk.WriteTo(ms);
-
-            //return new Packet(ms.ToArray());
-
-            return new Packet(ms.ToArray()) { Next = pk };
+            finally
+            {
+                //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
+                source.Cancel();
+            }
         }
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="queue"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
+        {
+            var token = source.Token;
+            //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
+            try
+            {
+                while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    var msg = await queue.TakeOneAsync(30_000);
+                    if (msg != null)
+                    {
+                        await socket.SendAsync(new ArraySegment<Byte>(msg.GetBytes()), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+                    }
+                    else
+                    {
+                        await Task.Delay(100, token);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+            finally
+            {
+                //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
+                source.Cancel();
+            }
+        }
+#endif
         #endregion
     }
 }
