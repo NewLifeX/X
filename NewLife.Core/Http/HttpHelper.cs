@@ -391,6 +391,14 @@ namespace NewLife.Http
 
         /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
         /// <param name="socket"></param>
+        /// <param name="host"></param>
+        /// <param name="topic"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
         /// <param name="queue"></param>
         /// <param name="source"></param>
         /// <returns></returns>
@@ -423,6 +431,14 @@ namespace NewLife.Http
                 source.Cancel();
             }
         }
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="host"></param>
+        /// <param name="topic"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
 #endif
         #endregion
     }
