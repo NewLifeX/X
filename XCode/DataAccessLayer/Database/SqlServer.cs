@@ -52,23 +52,6 @@ namespace XCode.DataAccessLayer
                 if (_Version == null)
                 {
                     _Version = new Version(ServerVersion);
-
-                    //var session = CreateSession();
-                    //try
-                    //{
-                    //    // 取数据库版本
-                    //    if (!session.Opened) session.Open();
-                    //    var ver = session.Conn.ServerVersion;
-                    //    session.AutoClose();
-
-                    //    _Version = new Version(ver);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    XTrace.WriteLine("查询[{0}]的版本时出错，将按MSSQL2000进行分页处理！{1}", ConnName, ex);
-                    //    _Version = new Version();
-                    //}
-                    //finally { session.Dispose(); }
                 }
                 return _Version;
             }

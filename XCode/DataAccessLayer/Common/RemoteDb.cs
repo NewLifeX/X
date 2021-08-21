@@ -13,21 +13,6 @@ namespace XCode.DataAccessLayer
         /// <summary>系统数据库名</summary>
         public virtual String SystemDatabaseName => "master";
 
-        ///// <summary>数据库服务器版本</summary>
-        //public override String ServerVersion
-        //{
-        //    get
-        //    {
-        //        var ver = _ServerVersion;
-        //        if (ver != null) return ver;
-        //        _ServerVersion = String.Empty;
-
-        //        ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
-
-        //        return ver;
-        //    }
-        //}
-
         private String _User;
         /// <summary>用户名UserID</summary>
         public String User
@@ -55,50 +40,6 @@ namespace XCode.DataAccessLayer
                 return _User;
             }
         }
-
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    builder["Server"] = "127.0.0.1";
-                    // Oracle连接字符串不支持Database关键字
-                    if (Type != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
-
-        //const String Pooling = "Pooling";
-        //protected override void OnSetConnectionString(ConnectionStringBuilder builder)
-        //{
-        //    base.OnSetConnectionString(builder);
-
-        //    // 关闭底层连接池，使用XCode连接池
-        //    builder.TryAdd(Pooling, "false");
-        //}
-
-        ///// <summary>格式化表名，考虑表前缀和Owner</summary>
-        ///// <param name="tableName">名称</param>
-        ///// <returns></returns>
-        //public override String FormatTableName(String tableName)
-        //{
-        //    tableName = base.FormatTableName(tableName);
-
-        //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-        //    if (!tableName.Contains("."))
-        //    {
-        //        // 角色名作为点前缀来约束表名，支持所有数据库
-        //        var owner = Owner;
-        //        if (!owner.IsNullOrEmpty() && !owner.EqualIgnoreCase(User)) tableName = FormatKeyWord(owner) + "." + tableName;
-        //    }
-
-        //    return tableName;
-        //}
         #endregion
     }
 

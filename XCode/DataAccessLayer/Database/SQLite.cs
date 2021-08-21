@@ -131,12 +131,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        public SQLite()
-        {
-            // SQLite不使用自动关闭，以提升性能
-            AutoClose = false;
-        }
-
         protected override void Dispose(Boolean disposing)
         {
             base.Dispose(disposing);
