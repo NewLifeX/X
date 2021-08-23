@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
@@ -94,6 +95,47 @@ namespace XUnitTest.Http
         {
             public void ProcessRequest(IHttpContext context)
             {
+                var name = context.Parameters["name"];
+                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                context.Response.SetResult(html);
+            }
+        }
+
+        [Fact]
+        public async void BigPost()
+        {
+            _server.Map("/my2", new MyHttpHandler2());
+
+            var client = new HttpClient { BaseAddress = _baseUri };
+
+            var buf1 = new Byte[8 * 1024];
+            var buf2 = new Byte[8 * 1024];
+
+            Array.Fill(buf1, (Byte)'0');
+            Array.Fill(buf2, (Byte)'0');
+
+            buf1[0] = (Byte)'1';
+            buf2[0] = (Byte)'2';
+
+            var ms = new MemoryStream();
+            ms.Write(buf1);
+            ms.Write(buf2);
+
+            var rs = await client.PostAsync("/my2?name=newlife", new ByteArrayContent(ms.ToArray()));
+
+            Assert.Equal(HttpStatusCode.OK, rs.StatusCode);
+        }
+
+        class MyHttpHandler2 : IHttpHandler
+        {
+            public void ProcessRequest(IHttpContext context)
+            {
+                Assert.Equal(8 * 1024 * 2, context.Request.ContentLength);
+
+                // 数据部分，链式
+                var pk = context.Request.Body;
+                Assert.Equal(8 * 1024 * 2, pk.Total);
+
                 var name = context.Parameters["name"];
                 var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
                 context.Response.SetResult(html);
