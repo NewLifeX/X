@@ -58,7 +58,7 @@ namespace NewLife.Http
             return manager;
         }
 
-        /// <summary>处理WebSocket数据包</summary>
+        /// <summary>处理WebSocket数据包，不支持超大数据帧（默认8k）</summary>
         /// <param name="pk"></param>
         public void Process(Packet pk)
         {

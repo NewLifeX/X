@@ -47,11 +47,14 @@ namespace NewLife.Http
                 WriteLog("{0} {1}", request.Method, request.Url);
 
                 OnNewRequest(request, e);
+
+                // 后面还有数据包，克隆缓冲区
+                if (!req.IsCompleted) req.Body = req.Body.Clone();
             }
             else if (req != null)
             {
                 // 链式数据包
-                req.Body.Append(e.Packet);
+                req.Body.Append(e.Packet.Clone());
             }
 
             // 收到全部数据后，触发请求处理

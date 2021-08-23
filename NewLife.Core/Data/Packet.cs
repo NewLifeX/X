@@ -349,7 +349,11 @@ namespace NewLife.Data
         {
             if (Next == null) return new Packet(Data.ReadBytes(Offset, Count));
 
-            return new Packet(ToArray());
+            // 链式包输出
+            var ms = Pool.MemoryStream.Get();
+            CopyTo(ms);
+
+            return new Packet(ms.Put(true));
         }
 
         /// <summary>以字符串表示</summary>
