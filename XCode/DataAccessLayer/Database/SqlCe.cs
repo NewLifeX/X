@@ -77,24 +77,6 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
-
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    var name = Path.GetTempFileName();
-                    FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", name, true);
-
-                    builder[_.DataSource] = name;
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
         #endregion
 
         #region 方法
@@ -176,11 +158,11 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
 
         /// <summary>返回数据源的架构信息</summary>

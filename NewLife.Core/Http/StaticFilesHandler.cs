@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using NewLife.Remoting;
 
 namespace NewLife.Http
@@ -20,12 +17,15 @@ namespace NewLife.Http
 
         /// <summary>处理请求</summary>
         /// <param name="context"></param>
-        public void ProcessRequest(IHttpContext context)
+        public virtual void ProcessRequest(IHttpContext context)
         {
             if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(404, "找不到文件" + context.Path);
 
             var file = context.Path.Substring(Path.Length);
             file = ContentPath.CombinePath(file);
+
+            // 路径安全检查，防止越界
+            if (!file.GetFullPath().StartsWithIgnoreCase(Path.GetFullPath())) throw new ApiException(404, "找不到文件" + context.Path);
 
             var fi = file.AsFile();
             if (!fi.Exists) throw new ApiException(404, "找不到文件" + context.Path);
@@ -43,6 +43,9 @@ namespace NewLife.Http
                     break;
                 case ".xml":
                     contentType = "text/xml";
+                    break;
+                case ".json":
+                    contentType = "text/json";
                     break;
                 case ".png":
                     contentType = "image/png";

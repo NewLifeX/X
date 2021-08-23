@@ -50,9 +50,6 @@ namespace XCode.DataAccessLayer
         {
             base.Dispose(disposing);
 
-            //_store.Values.TryDispose();
-            //_store.TryDispose();
-
             if (_metadata != null)
             {
                 // 销毁本数据库的元数据对象
@@ -60,11 +57,12 @@ namespace XCode.DataAccessLayer
                 {
                     _metadata.Dispose();
                 }
-                catch (Exception ex) { XTrace.WriteException(ex); }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
                 _metadata = null;
             }
-
-            //_Pool.TryDispose();
         }
 
         /// <summary>释放所有会话</summary>
@@ -76,17 +74,6 @@ namespace XCode.DataAccessLayer
 #else
             if (st != null) _store = new AsyncLocal<IDbSession>();
 #endif
-        }
-        #endregion
-
-        #region 常量
-        protected static class _
-        {
-            public static readonly String DataSource = "Data Source";
-            public static readonly String Owner = "Owner";
-            public static readonly String ShowSQL = "ShowSQL";
-            public static readonly String UserParameter = "UserParameter";
-            public static readonly String Migration = "Migration";
         }
         #endregion
 
@@ -104,11 +91,7 @@ namespace XCode.DataAccessLayer
         /// <summary>链接字符串</summary>
         public virtual String ConnectionString
         {
-            get
-            {
-                //if (_ConnectionString == null) _ConnectionString = DefaultConnectionString;
-                return _ConnectionString;
-            }
+            get => _ConnectionString;
             set
             {
 #if DEBUG
@@ -129,13 +112,6 @@ namespace XCode.DataAccessLayer
 
                     ReleaseSession();
                 }
-
-                //// 更新连接池的连接字符串
-                //if (_Pool != null)
-                //{
-                //    _Pool.ConnectionString = connStr;
-                //    _Pool.Clear();
-                //}
             }
         }
 
@@ -144,8 +120,6 @@ namespace XCode.DataAccessLayer
             if (ConnectionString.IsNullOrWhiteSpace())
                 throw new XCodeException("[{0}]未指定连接字符串！", ConnName);
         }
-
-        protected virtual String DefaultConnectionString => String.Empty;
 
         /// <summary>设置连接字符串时允许从中取值或修改，基类用于读取拥有者Owner，子类重写时应调用基类</summary>
         /// <param name="builder"></param>
@@ -156,7 +130,7 @@ namespace XCode.DataAccessLayer
 
             // 参数化，需要兼容写错了一年的UserParameter
             if (builder.TryGetAndRemove(nameof(UseParameter), out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
-            if (builder.TryGetAndRemove("UserParameter", out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
+            //if (builder.TryGetAndRemove("UserParameter", out value) && !value.IsNullOrEmpty()) UseParameter = value.ToBoolean();
 
             if (builder.TryGetAndRemove(nameof(Migration), out value) && !value.IsNullOrEmpty()) Migration = (Migration)Enum.Parse(typeof(Migration), value, true);
             if (builder.TryGetAndRemove(nameof(TablePrefix), out value) && !value.IsNullOrEmpty()) TablePrefix = value;
@@ -191,7 +165,6 @@ namespace XCode.DataAccessLayer
 
                 _ServerVersion = String.Empty;
 
-                //return _ServerVersion = Process(conn => conn.ServerVersion);
                 using var conn = OpenConnection();
                 return _ServerVersion = conn.ServerVersion;
             }
@@ -240,7 +213,6 @@ namespace XCode.DataAccessLayer
             session = OnCreateSession();
 
             CheckConnStr();
-            //session.ConnectionString = ConnectionString;
 
             _store.Value = session;
 
@@ -848,21 +820,12 @@ namespace XCode.DataAccessLayer
             return value.ToString();
         }
 
-        ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
-        ///// <param name="field">字段</param>
-        ///// <param name="value">数值</param>
-        ///// <returns></returns>
-        //public virtual String FormatIdentity(IDataColumn field, Object value) => null;
-
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         public virtual String FormatParameterName(String name)
         {
             if (name.IsNullOrEmpty()) return name;
-
-            //// 如果参数名是关键字，统一加前缀
-            //if (IsReservedWord(name)) name = "x_" + name;
 
             return ParamPrefix + name;
         }
@@ -889,7 +852,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual IDataParameter CreateParameter(String name, Object value, Type type = null)
         {
-            //var type = field?.DataType;
             if (value == null && type == null) throw new ArgumentNullException(nameof(value));
 
             var dp = Factory.CreateParameter();
@@ -986,9 +948,6 @@ namespace XCode.DataAccessLayer
 
             return list.ToArray();
         }
-
-        /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
-        public Boolean AutoClose { get; set; } = true;
 
         /// <summary>是否支持Schema。默认true</summary>
         public Boolean SupportSchema { get; set; } = true;

@@ -358,6 +358,7 @@ namespace Test
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.MapStaticFiles("/logos", "images/");
             server.MapController<ApiController>("/api");
+            server.Map("/my", new MyHttpHandler());
             server.Map("/ws", new WebSocketHandler());
             server.Start();
 
@@ -375,6 +376,16 @@ namespace Test
             await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
             XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
 #endif
+        }
+
+        class MyHttpHandler : IHttpHandler
+        {
+            public void ProcessRequest(IHttpContext context)
+            {
+                var name = context.Parameters["name"];
+                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                context.Response.SetResult(html);
+            }
         }
 
         private static void Test6()

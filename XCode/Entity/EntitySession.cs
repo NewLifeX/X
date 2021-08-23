@@ -132,27 +132,6 @@ namespace XCode
             }
         }
 
-        //private String _TableNameWithPrefix;
-        ///// <summary>带前缀的表名</summary>
-        //public virtual String TableNameWithPrefix
-        //{
-        //    get
-        //    {
-        //        if (_TableNameWithPrefix.IsNullOrEmpty())
-        //        {
-        //            var str = TableName;
-
-        //            // 检查自动表前缀
-        //            var db = Dal.Db;
-        //            var pf = db.TablePrefix;
-        //            if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
-
-        //            _TableNameWithPrefix = str;
-        //        }
-        //        return _TableNameWithPrefix;
-        //    }
-        //}
-
         private EntitySession<TEntity> _Default;
         /// <summary>该实体类的默认会话。</summary>
         private EntitySession<TEntity> Default
@@ -266,8 +245,8 @@ namespace XCode
                     if (name.Contains(".")) name = name.Substring(".");
 
                     table.TableName = name;
-                    FixIndexName(table);
                 }
+                //FixIndexName(table);
 
                 dal.SetTables(table);
             }
@@ -278,28 +257,6 @@ namespace XCode
 #if DEBUG
                 DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.Name, dal.DbType, sw.Elapsed.TotalMilliseconds);
 #endif
-            }
-        }
-
-        void FixIndexName(IDataTable table)
-        {
-            // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-            if (table.Indexes != null)
-            {
-                foreach (var di in table.Indexes)
-                {
-                    if (!di.Name.IsNullOrEmpty()) continue;
-
-                    var sb = Pool.StringBuilder.Get();
-                    sb.AppendFormat("IX_{0}", TableName);
-                    foreach (var item in di.Columns)
-                    {
-                        sb.Append('_');
-                        sb.Append(item);
-                    }
-
-                    di.Name = sb.Put(true);
-                }
             }
         }
 

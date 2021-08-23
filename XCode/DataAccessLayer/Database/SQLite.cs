@@ -131,12 +131,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        public SQLite()
-        {
-            // SQLite不使用自动关闭，以提升性能
-            AutoClose = false;
-        }
-
         protected override void Dispose(Boolean disposing)
         {
             base.Dispose(disposing);
@@ -817,7 +811,7 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite中不同表的索引名也不能相同
                 sb.Append("IX_");
-                sb.Append(index.Table.TableName);
+                sb.Append(FormatName(index.Table));
                 foreach (var item in index.Columns)
                 {
                     sb.AppendFormat("_{0}", item);

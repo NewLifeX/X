@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Web;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -13,7 +15,7 @@ namespace NewLife.Http
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
-        private WebSocketManager _websocket;
+        private WebSocket _websocket;
         #endregion
 
         #region 收发数据
@@ -85,6 +87,9 @@ namespace NewLife.Http
             var p = path.IndexOf('?');
             if (p > 0) path = path.Substring(0, p);
 
+            // 路径安全检查，防止越界
+            if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
+
             var handler = server.MatchHandler(path);
             if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
@@ -102,7 +107,7 @@ namespace NewLife.Http
                 PrepareRequest(context);
 
                 // 处理 WebSocket 握手
-                if (_websocket == null) _websocket = WebSocketManager.Handshake(context);
+                if (_websocket == null) _websocket = WebSocket.Handshake(context);
 
                 handler.ProcessRequest(context);
             }
@@ -129,7 +134,8 @@ namespace NewLife.Http
             var p = url.IndexOf('?');
             if (p > 0)
             {
-                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&");
+                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&")
+                    .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
                 ps.Merge(qs);
             }
 
