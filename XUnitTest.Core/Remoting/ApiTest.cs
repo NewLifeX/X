@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -125,6 +126,39 @@ namespace XUnitTest.Remoting
             infs = await client2.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(infs);
             Assert.Equal(state, infs["LastState"]);
+        }
+
+        [Fact]
+        public async void BigMessage()
+        {
+            using var server = new ApiServer(12399);
+            server.Log = XTrace.Log;
+            server.EncoderLog = XTrace.Log;
+            server.Register<BigController>();
+            server.Start();
+
+            using var client = new ApiClient("http://127.0.0.1:12399");
+
+            var buf = new Byte[5 * 8 * 1024];
+            var rs = await client.InvokeAsync<Packet>("big/test", buf);
+
+            Assert.NotNull(rs);
+            Assert.Equal(buf.Length, rs.Total);
+
+            var buf2 = buf.Select(e => (Byte)(e ^ 'x')).ToArray();
+            Assert.True(rs.ToArray().SequenceEqual(buf2));
+        }
+
+        class BigController
+        {
+            public Packet Test(Packet pk)
+            {
+                Assert.Equal(5 * 8 * 1024, pk.Total);
+
+                var buf = pk.ReadBytes().Select(e => (Byte)(e ^ 'x')).ToArray();
+
+                return buf;
+            }
         }
     }
 }
