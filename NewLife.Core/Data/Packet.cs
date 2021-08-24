@@ -71,6 +71,9 @@ namespace NewLife.Data
             var buf = new Byte[stream.Length - stream.Position];
             var count = stream.Read(buf, 0, buf.Length);
             Set(buf, 0, count);
+
+            // 必须确保数据流位置不变
+            if (count > 0) stream.Seek(-count, SeekOrigin.Current);
         }
         #endregion
 
