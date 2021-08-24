@@ -42,7 +42,7 @@ namespace NewLife.Data
         public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
         /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
-        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用</remarks>
+        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
         /// <param name="stream"></param>
         public Packet(Stream stream)
         {
@@ -217,12 +217,12 @@ namespace NewLife.Data
             p.Next = pk;
         }
 
-        /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
+        /// <summary>返回字节数组。无差别复制</summary>
         /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
         /// <returns></returns>
         public virtual Byte[] ToArray()
         {
-            if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
+            //if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
 
             if (Next == null) Data.ReadBytes(Offset, Count);
 
@@ -233,13 +233,19 @@ namespace NewLife.Data
             return ms.Put(true);
         }
 
-        /// <summary>从封包中读取指定数据</summary>
+        /// <summary>从封包中读取指定数据，读取全部时直接返回缓冲区</summary>
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
         public Byte[] ReadBytes(Int32 offset = 0, Int32 count = -1)
         {
-            if (offset == 0 && count < 0) return ToArray();
+            // 读取全部
+            if (offset == 0 && count < 0)
+            {
+                if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
+
+                return ToArray();
+            }
 
             if (Next == null) return Data.ReadBytes(Offset + offset, count < 0 || count > Count ? Count : count);
 

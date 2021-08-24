@@ -671,7 +671,7 @@ namespace NewLife.Http
             var client = pool.Get();
             try
             {
-                rs = client.Send(uri, pk.ToArray());
+                rs = client.Send(uri, pk.ReadBytes());
             }
             finally
             {
