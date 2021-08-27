@@ -146,7 +146,13 @@ namespace NewLife.Http
             if (req.Method == "POST" && req.BodyLength > 0)
             {
                 var body = req.Body;
-                if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
+                if (req.ContentType.EqualIgnoreCase("application/x-www-urlencoded", "application/x-www-form-urlencoded"))
+                {
+                    var qs = body.ToStr().SplitAsDictionary("=", "&")
+                        .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
+                    ps.Merge(qs);
+                }
+                else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
                 {
                     var js = JsonParser.Decode(body.ToStr());
                     ps.Merge(js);

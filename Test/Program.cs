@@ -357,6 +357,7 @@ namespace Test
             server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.MapStaticFiles("/logos", "images/");
+            server.MapStaticFiles("/", "./");
             server.MapController<ApiController>("/api");
             server.Map("/my", new MyHttpHandler());
             server.Map("/ws", new WebSocketHandler());
