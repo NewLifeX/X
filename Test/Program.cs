@@ -385,6 +385,14 @@ namespace Test
             {
                 var name = context.Parameters["name"];
                 var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                var files = context.Request.Files;
+                if (files != null && files.Length >0)
+                {
+                    foreach (var file in files)
+                    {
+                        html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
+                    }
+                }
                 context.Response.SetResult(html);
             }
         }

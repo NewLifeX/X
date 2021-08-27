@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Web;
+using NewLife.Data;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -84,6 +85,8 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
+            if (request?.Url == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+
             // 匹配路由处理器
             var server = (this as INetSession).Host as HttpServer;
             var path = request.Url.OriginalString;
@@ -151,6 +154,13 @@ namespace NewLife.Http
                     var qs = body.ToStr().SplitAsDictionary("=", "&")
                         .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
                     ps.Merge(qs);
+                }
+                else if (req.ContentType.StartsWithIgnoreCase("multipart/form-data;"))
+                {
+                    var dic = req.ParseFormData();
+                    var fs = dic.Values.Where(e => e is FormFile).Cast<FormFile>().ToArray();
+                    if (fs.Length > 0) req.Files = fs;
+                    ps.Merge(dic);
                 }
                 else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
                 {

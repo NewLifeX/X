@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NewLife.Collections;
 using NewLife.Data;
 
@@ -19,6 +20,9 @@ namespace NewLife.Http
 
         /// <summary>保持连接</summary>
         public Boolean KeepAlive { get; set; }
+
+        /// <summary>文件集合</summary>
+        public FormFile[] Files { get; set; }
         #endregion
 
         /// <summary>分析第一行</summary>
@@ -45,6 +49,7 @@ namespace NewLife.Http
         }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+        private static readonly Byte[] NewLine2 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
         /// <summary>快速分析请求头，只分析第一行</summary>
         /// <param name="pk"></param>
         /// <returns></returns>
@@ -116,6 +121,69 @@ namespace NewLife.Http
             sb.AppendLine();
 
             return sb.Put(true);
+        }
+
+        /// <summary>分析表单数据</summary>
+        public virtual IDictionary<String, Object> ParseFormData()
+        {
+            var boundary = ContentType.Substring("boundary=", null);
+            if (boundary.IsNullOrEmpty()) return null;
+
+            var dic = new Dictionary<String, Object>();
+            var body = Body;
+            if (body == null || body.Total == 0) return dic;
+
+            /*
+             * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
+             * Content-Disposition: form-data; name="name"
+             * 
+             * 大石头
+             * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
+             * Content-Disposition: form-data; name="password"
+             * 
+             * 565656
+             * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
+             * Content-Disposition: form-data; name="avatar"; filename="logo.png"
+             * Content-Type: image/jpeg
+             * 
+             */
+
+            var bd = boundary.GetBytes();
+            var p = 0;
+            do
+            {
+                p = body.IndexOf(bd, p);
+                if (p < 0) break;
+                p += bd.Length + 2;
+
+                var pPart = body.IndexOf(bd, p);
+                var part = body.Slice(p, pPart > 0 ? pPart - p : -1);
+
+                var pHeader = part.IndexOf(NewLine2);
+                var header = part.Slice(0, pHeader);
+
+                var lines = header.ToStr().SplitAsDictionary(":", Environment.NewLine);
+                if (lines.TryGetValue("Content-Disposition", out var str))
+                {
+                    var ss = str.SplitAsDictionary("=", ";", true);
+                    var file = new FormFile
+                    {
+                        Name = ss["name"],
+                        FileName = ss["filename"],
+                        ContentDisposition = ss["[0]"],
+                    };
+
+                    if (lines.TryGetValue("Content-Type", out str))
+                        file.ContentType = str;
+
+                    file.Data = part.Slice(pHeader + NewLine2.Length);
+
+                    if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? file.Data?.ToStr() : file;
+                }
+
+            } while (p < body.Total);
+
+            return dic;
         }
 
         /// <summary>已重载。</summary>

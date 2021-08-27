@@ -161,5 +161,46 @@ namespace XUnitTest.Http
             Assert.Equal(WebSocketCloseStatus.NormalClosure, client.CloseStatus);
             Assert.Equal("Finished", client.CloseStatusDescription);
         }
+
+        [Fact]
+        public void ParseFormData()
+        {
+            var data = @"------WebKitFormBoundary3ZXeqQWNjAzojVR7
+Content-Disposition: form-data; name=""name""
+
+大石头
+------WebKitFormBoundary3ZXeqQWNjAzojVR7
+Content-Disposition: form-data; name=""password""
+
+565656
+------WebKitFormBoundary3ZXeqQWNjAzojVR7
+Content-Disposition: form-data; name=""avatar""; filename=""logo.png""
+Content-Type: image/jpeg";
+
+            var req = new HttpRequest
+            {
+                ContentType = "multipart/form-data;boundary=------WebKitFormBoundary3ZXeqQWNjAzojVR7",
+                Body = data.GetBytes()
+            };
+
+            var dic = req.ParseFormData();
+            Assert.NotNull(dic);
+
+            var rs = dic.TryGetValue("name", out var name);
+            Assert.True(rs);
+            Assert.NotEmpty((String)name);
+
+            rs = dic.TryGetValue("password", out var password);
+            Assert.True(rs);
+            Assert.NotEmpty((String)password);
+
+            rs = dic.TryGetValue("avatar", out var avatar);
+            Assert.True(rs);
+
+            var av = avatar as FormFile;
+            Assert.NotNull(av);
+            Assert.Equal("logo.png", av.FileName);
+            Assert.Equal("image/jpeg", av.ContentType);
+        }
     }
 }
