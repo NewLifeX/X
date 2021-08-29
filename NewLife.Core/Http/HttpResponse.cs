@@ -81,7 +81,7 @@ namespace NewLife.Http
 
             foreach (var item in Headers)
             {
-                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
 
             sb.AppendLine();

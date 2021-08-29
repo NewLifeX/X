@@ -47,6 +47,7 @@ namespace NewLife.Http
 
                 WriteLog("{0} {1}", request.Method, request.Url);
 
+                _websocket = null;
                 OnNewRequest(request, e);
 
                 // 后面还有数据包，克隆缓冲区
@@ -67,7 +68,12 @@ namespace NewLife.Http
                     var server = (this as INetSession).Host as HttpServer;
                     if (!server.ServerName.IsNullOrEmpty() && !rs.Headers.ContainsKey("Server")) rs.Headers["Server"] = server.ServerName;
 
+                    var closing = !req.KeepAlive && _websocket == null;
+                    if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
+
                     Send(rs.Build());
+
+                    if (closing) Dispose();
                 }
             }
 

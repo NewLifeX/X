@@ -73,7 +73,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -352,7 +352,7 @@ namespace Test
             {
                 Port = 8080,
                 Log = XTrace.Log,
-                SessionLog = XTrace.Log
+                //SessionLog = XTrace.Log,
             };
             server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
@@ -386,7 +386,7 @@ namespace Test
                 var name = context.Parameters["name"];
                 var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
                 var files = context.Request.Files;
-                if (files != null && files.Length >0)
+                if (files != null && files.Length > 0)
                 {
                     foreach (var file in files)
                     {

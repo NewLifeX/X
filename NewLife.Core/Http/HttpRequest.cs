@@ -104,7 +104,7 @@ namespace NewLife.Http
             // 构建头部
             var sb = Pool.StringBuilder.Get();
             sb.AppendFormat("{0} {1} HTTP/{2}\r\n", Method, uri, Version);
-            sb.AppendFormat("Host:{0}\r\n", Host);
+            sb.AppendFormat("Host: {0}\r\n", Host);
 
             // 内容长度
             if (length > 0) Headers["Content-Length"] = length + "";
@@ -115,7 +115,7 @@ namespace NewLife.Http
             foreach (var item in Headers)
             {
                 if (!item.Key.EqualIgnoreCase("Host"))
-                    sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                    sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
 
             sb.AppendLine();

@@ -385,7 +385,7 @@ namespace NewLife.Net
             if (ns is NetSession ns2)
             {
                 ns2.ID = Interlocked.Increment(ref _sessionID);
-                ns2.Log = SessionLog ?? Log;
+                ns2.Log = SessionLog;
             }
             ns.Host = this;
             ns.Server = session.Server;
