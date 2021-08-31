@@ -159,7 +159,8 @@ namespace NewLife.Http
 
                 // 截取整个部分，最后2个字节的换行不要，注意最后一段
                 var pPart = body.IndexOf(bd, p);
-                var part = body.Slice(p, pPart > 0 ? pPart - p - 2 : -1);
+                var part = body.Slice(p, pPart > 0 ? pPart - p : -1);
+                part = part.Slice(0, part.Total - 2);
 
                 var pHeader = part.IndexOf(NewLine2);
                 var header = part.Slice(0, pHeader);

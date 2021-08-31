@@ -182,6 +182,7 @@ Content-Type: image/jpeg
             var png = File.ReadAllBytes("http/leaf.png".GetFullPath());
             var pk = new Packet(data.GetBytes());
             pk.Next = png;
+            pk.Append("\r\n".GetBytes());
 
             var req = new HttpRequest
             {

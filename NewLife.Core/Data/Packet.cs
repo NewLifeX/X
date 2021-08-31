@@ -199,7 +199,8 @@ namespace NewLife.Data
                 //                var p = s1.IndexOf(data);
                 //                return p >= 0 ? (p + offset) : -1;
                 //#endif
-                return Data.IndexOf(data, start, count);
+                var p = Data.IndexOf(data, Offset + start, count);
+                return p >= 0 ? (p - Offset) : -1;
             }
 
             // 已匹配字节数
