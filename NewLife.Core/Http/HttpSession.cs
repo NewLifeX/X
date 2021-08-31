@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
@@ -17,6 +18,7 @@ namespace NewLife.Http
         public HttpRequest Request { get; set; }
 
         private WebSocket _websocket;
+        private MemoryStream _cache;
         #endregion
 
         #region 收发数据
@@ -51,12 +53,38 @@ namespace NewLife.Http
                 OnNewRequest(request, e);
 
                 // 后面还有数据包，克隆缓冲区
-                if (!req.IsCompleted) req.Body = req.Body.Clone();
+                if (req.IsCompleted)
+                    _cache = null;
+                else
+                {
+                    // 限制最大请求为1G
+                    if (req.ContentLength > 1 * 1024 * 1024 * 1024)
+                    {
+                        var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
+                        Send(rs.Build());
+
+                        Dispose();
+
+                        return;
+                    }
+
+                    _cache = new MemoryStream(req.ContentLength);
+                    req.Body.CopyTo(_cache);
+                    //req.Body = req.Body.Clone();
+                }
             }
             else if (req != null)
             {
                 // 链式数据包
-                req.Body.Append(e.Packet.Clone());
+                //req.Body.Append(e.Packet.Clone());
+                e.Packet.CopyTo(_cache);
+
+                if (_cache.Length >= req.ContentLength)
+                {
+                    _cache.Position = 0;
+                    req.Body = new Packet(_cache);
+                    _cache = null;
+                }
             }
 
             // 收到全部数据后，触发请求处理
