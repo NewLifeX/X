@@ -85,12 +85,16 @@ namespace NewLife.Data
         {
             get
             {
-                //超过下标直接报错,谁也不想处理了异常的数据也不知道
-                if (index >= Total || index < 0)
-                    throw new IndexOutOfRangeException($"超出Packet 索引范围 获取的索引{index} Packet最大索引{Total - 1}");
+                // 超过下标直接报错,谁也不想处理了异常的数据也不知道
+                if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
 
                 var p = Offset + index;
-                if (p >= Offset + Count && Next != null) return Next[index - Count];
+                if (p >= Offset + Count)
+                {
+                    if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+
+                    return Next[index - Count];
+                }
 
                 return Data[p];
 
@@ -100,15 +104,18 @@ namespace NewLife.Data
             }
             set
             {
-                if (index >= Total || index < 0)
-                    throw new ArgumentOutOfRangeException($"{index} 索引参数不在Packet索引给定的范围内");
+                if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
 
-                //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+                // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
                 var p = Offset + index;
-                if (p >= Offset + Count && Next != null)
+                if (p >= Offset + Count)
+                {
+                    if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+
                     Next[p - Data.Length] = value;
-                else
-                    Data[p] = value;
+                }
+
+                Data[p] = value;
                 // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
             }
         }
@@ -181,12 +188,25 @@ namespace NewLife.Data
             var length = data.Length;
 
             if (count < 0 || count > Total - offset) count = Total - offset;
+
+            // 快速查找
+            if (Next == null)
+            {
+                if (start >= Count) return -1;
+
+                //#if NETCOREAPP3_1_OR_GREATER
+                //                var s1 = new Span<Byte>(Data, Offset + offset, count);
+                //                var p = s1.IndexOf(data);
+                //                return p >= 0 ? (p + offset) : -1;
+                //#endif
+                return Data.IndexOf(data, start, count);
+            }
+
             // 已匹配字节数
             var win = 0;
-            // 索引加上data剩余字节数必须小于count
+            // 索引加上data剩余字节数必须小于count，否则就是已匹配
             for (var i = 0; i + length - win <= count; i++)
             {
-
                 if (this[start + i] == data[win])
                 {
                     win++;
@@ -200,6 +220,15 @@ namespace NewLife.Data
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
                     i -= win;
                     win = 0;
+
+                    // 本段分析未匹配，递归下一段
+                    if (start + i == Count && Next != null)
+                    {
+                        var p = Next.IndexOf(data, 0, count - i);
+                        if (p >= 0) return (start + i) + p;
+
+                        break;
+                    }
                 }
             }
 

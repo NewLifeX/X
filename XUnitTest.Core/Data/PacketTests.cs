@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -138,6 +135,22 @@ namespace XUnitTest.Data
             var p = pk.IndexOf("on".GetBytes(), 1);
 
             Assert.Equal(2, p);
+        }
+
+        [Fact]
+        public void IndexOfBigTest()
+        {
+            var buf = "Stone ------WebKitFormBoundary3ZXeqQWNjAzojVR7".GetBytes();
+
+            var pk = new Packet(new Byte[1024]);
+            for (var i = 0; i < 5 * 1024; i++)
+            {
+                pk.Append(new Byte[1024]);
+            }
+            pk.Append(buf);
+            var p = pk.IndexOf("------WebKitFormBoundary3ZXeqQWNjAzojVR7".GetBytes(), 1);
+
+            Assert.Equal(pk.Total - buf.Length + 6, p);
         }
 
         [Fact]

@@ -869,6 +869,7 @@ namespace NewLife
                 bads[i] = length;
             }
 
+            // 搜索词每个字母在坏字符中的最小位置
             var last = length - 1;
             for (var i = 0; i < last; i++)
             {
