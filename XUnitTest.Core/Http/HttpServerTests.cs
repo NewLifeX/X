@@ -182,11 +182,11 @@ Content-Type: image/jpeg
             var png = File.ReadAllBytes("http/leaf.png".GetFullPath());
             var pk = new Packet(data.GetBytes());
             pk.Next = png;
-            pk.Append("\r\n".GetBytes());
+            pk.Append("\r\n------WebKitFormBoundary3ZXeqQWNjAzojVR7--\r\n".GetBytes());
 
             var req = new HttpRequest
             {
-                ContentType = "multipart/form-data;boundary=------WebKitFormBoundary3ZXeqQWNjAzojVR7",
+                ContentType = "multipart/form-data;boundary=----WebKitFormBoundary3ZXeqQWNjAzojVR7",
                 Body = pk
             };
 

@@ -148,19 +148,21 @@ namespace NewLife.Http
              * 
              */
 
-            var bd = boundary.GetBytes();
+            // 前面加两个横杠，作为分隔符。最后一行分隔符的末尾也有两个横杠
+            var bd = ("--" + boundary).GetBytes();
             var p = 0;
             do
             {
                 // 找到开始边界
-                p = body.IndexOf(bd, p);
+                if (p == 0) p = body.IndexOf(bd, p);
                 if (p < 0) break;
                 p += bd.Length + 2;
 
-                // 截取整个部分，最后2个字节的换行不要，注意最后一段
+                // 截取整个部分，最后2个字节的换行不要
                 var pPart = body.IndexOf(bd, p);
-                var part = body.Slice(p, pPart > 0 ? pPart - p : -1);
-                part = part.Slice(0, part.Total - 2);
+                if (pPart < 0) break;
+
+                var part = body.Slice(p, pPart - p - 2);
 
                 var pHeader = part.IndexOf(NewLine2);
                 var header = part.Slice(0, pHeader);
@@ -183,6 +185,11 @@ namespace NewLife.Http
 
                     if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? file.Data?.ToStr() : file;
                 }
+
+                // 判断是否最后一个分隔符
+                if (body.Slice(pPart + bd.Length, 2).ToStr() == "--") break;
+
+                p = pPart;
 
             } while (p < body.Total);
 
