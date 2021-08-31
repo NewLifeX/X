@@ -390,6 +390,7 @@ namespace Test
                 {
                     foreach (var file in files)
                     {
+                        file.SaveToFile();
                         html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
                     }
                 }

@@ -30,5 +30,17 @@ namespace NewLife.Http
         /// <summary>打开数据读取流</summary>
         /// <returns></returns>
         public Stream OpenReadStream() => Data?.GetStream();
+
+        /// <summary>保存到文件</summary>
+        /// <param name="fileName"></param>
+        public void SaveToFile(String fileName = null)
+        {
+            if (fileName.IsNullOrEmpty()) fileName = FileName;
+            fileName.EnsureDirectory(true);
+
+            using var fs = File.OpenWrite(fileName.GetFullPath());
+            Data.CopyTo(fs);
+            fs.SetLength(fs.Position);
+        }
     }
 }

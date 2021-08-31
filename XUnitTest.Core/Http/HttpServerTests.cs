@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -175,12 +176,17 @@ Content-Disposition: form-data; name=""password""
 565656
 ------WebKitFormBoundary3ZXeqQWNjAzojVR7
 Content-Disposition: form-data; name=""avatar""; filename=""logo.png""
-Content-Type: image/jpeg";
+Content-Type: image/jpeg
+
+";
+            var png = File.ReadAllBytes("http/leaf.png".GetFullPath());
+            var pk = new Packet(data.GetBytes());
+            pk.Next = png;
 
             var req = new HttpRequest
             {
                 ContentType = "multipart/form-data;boundary=------WebKitFormBoundary3ZXeqQWNjAzojVR7",
-                Body = data.GetBytes()
+                Body = pk
             };
 
             var dic = req.ParseFormData();
@@ -189,10 +195,12 @@ Content-Type: image/jpeg";
             var rs = dic.TryGetValue("name", out var name);
             Assert.True(rs);
             Assert.NotEmpty((String)name);
+            Assert.Equal("大石头", name);
 
             rs = dic.TryGetValue("password", out var password);
             Assert.True(rs);
             Assert.NotEmpty((String)password);
+            Assert.Equal("565656", password);
 
             rs = dic.TryGetValue("avatar", out var avatar);
             Assert.True(rs);
@@ -201,6 +209,10 @@ Content-Type: image/jpeg";
             Assert.NotNull(av);
             Assert.Equal("logo.png", av.FileName);
             Assert.Equal("image/jpeg", av.ContentType);
+
+            var png2 = av.OpenReadStream().ReadBytes();
+            Assert.Equal(png.Length, png2.Length);
+            Assert.True(png.SequenceEqual(png2));
         }
     }
 }
