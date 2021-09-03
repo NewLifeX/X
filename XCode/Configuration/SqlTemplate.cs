@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using NewLife;
+using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
 {
@@ -82,6 +85,33 @@ namespace XCode.Configuration
             }
 
             return true;
+        }
+
+        /// <summary>分析嵌入资源</summary>
+        /// <param name="assembly"></param>
+        /// <param name="nameSpace"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Boolean ParseEmbedded(Assembly assembly, String nameSpace, String name)
+        {
+            var name2 = !nameSpace.IsNullOrEmpty() ? (nameSpace + "." + name) : name;
+            var ns = assembly.GetManifestResourceNames();
+            var res = ns.FirstOrDefault(e => e.EqualIgnoreCase(name2));
+            if (res.IsNullOrEmpty()) return false;
+
+            Name = Path.GetFileNameWithoutExtension(name);
+
+            return Parse(assembly.GetManifestResourceStream(res));
+        }
+
+        /// <summary>获取指定数据库的Sql，如果未指定，则返回默认</summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public String GetSql(DatabaseType type)
+        {
+            if (Sqls.TryGetValue(type + "", out var sql)) return sql;
+
+            return Sql;
         }
         #endregion
     }
