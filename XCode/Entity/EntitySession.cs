@@ -153,9 +153,6 @@ namespace XCode
 
         /// <summary>用户数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
-
-        /// <summary>是否视图。表名以#开头</summary>
-        public Boolean IsView => !TableName.IsNullOrEmpty() && TableName[0] == '#';
         #endregion
 
         #region 数据初始化
@@ -170,7 +167,7 @@ namespace XCode
         public Boolean WaitForInitData(Int32 ms = 3000)
         {
             // 已初始化
-            if (hasCheckInitData || IsView) return true;
+            if (hasCheckInitData || Table.IsView) return true;
 
             var tid = Thread.CurrentThread.ManagedThreadId;
 
@@ -268,7 +265,7 @@ namespace XCode
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
-            if (_hasCheckModel || IsView) return;
+            if (_hasCheckModel || Table.IsView) return;
             lock (_checkLock)
             {
                 if (_hasCheckModel) return;
@@ -467,7 +464,7 @@ namespace XCode
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-            if ((count <= 0 || count >= 1_000_000) && !IsView) count = dal.Session.QueryCountFast(FormatedTableName);
+            if ((count <= 0 || count >= 1_000_000) && !Table.IsView) count = dal.Session.QueryCountFast(FormatedTableName);
 
             // 查真实记录数，修正FastCount不够准确的情况
             if (/*count >= 0 &&*/ count < 10_000_000)
@@ -588,7 +585,7 @@ namespace XCode
 
         private void FixBuilder(SelectBuilder builder)
         {
-            if (IsView && builder.Table == FormatedTableName)
+            if (Table.IsView && builder.Table == FormatedTableName)
             {
                 builder.Table = $"({Factory.Template.GetSql(Dal.DbType)}) SourceTable";
             }
@@ -783,6 +780,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Insert(this, entity);
 
             var e = entity as TEntity;
@@ -801,6 +800,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Update(this, entity);
 
             var e = entity as TEntity;
@@ -819,6 +820,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Delete(this, entity);
 
             var e = entity as TEntity;
@@ -841,6 +844,8 @@ namespace XCode
         /// <returns></returns>
         public virtual async Task<Int32> InsertAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = await Factory.Persistence.InsertAsync(this, entity);
 
             var e = entity as TEntity;
@@ -859,6 +864,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Task<Int32> UpdateAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.UpdateAsync(this, entity);
 
             var e = entity as TEntity;
@@ -877,6 +884,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Task<Int32> DeleteAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.DeleteAsync(this, entity);
 
             var e = entity as TEntity;

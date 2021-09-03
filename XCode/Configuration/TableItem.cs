@@ -256,7 +256,7 @@ namespace XCode.Configuration
             //table.TableName = GetTableName(bt);
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
-            table.IsView = bt.IsView;
+            table.IsView = bt.IsView || bt.Name[0] == '#';
             table.Description = Description;
             //table.ConnName = ConnName;
 

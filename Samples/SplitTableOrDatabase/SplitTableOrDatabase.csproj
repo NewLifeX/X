@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>SplitTableOrDatabase</RootNamespace>
     <AssemblyName>SplitTableOrDatabase</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>false</Deterministic>
     <LangVersion>latest</LangVersion>
@@ -65,9 +65,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Build.log">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Build.tt</DependentUpon>
+    </None>
     <None Include="Build.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>Build.cs</LastGenOutput>
+      <LastGenOutput>Build.log</LastGenOutput>
     </None>
     <Content Include="Model.xml" />
   </ItemGroup>
