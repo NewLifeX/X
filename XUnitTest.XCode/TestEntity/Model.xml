@@ -56,7 +56,27 @@
       <Index Columns="Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Menu2" TableName="#MenuX" Description="菜单" BaseType="EntityTree">
+  <Table Name="Menu2" Description="菜单" BaseType="EntityTree">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
+      <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="FullName" DataType="String" Length="200" Description="全名" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Url" DataType="String" Length="200" Description="链接" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="Icon" DataType="String" Description="图标" />
+      <Column Name="Visible" DataType="Boolean" Description="可见" />
+      <Column Name="Necessary" DataType="Boolean" Description="必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
+      <Column Name="Permission" DataType="String" Length="200" Description="权限子项。逗号分隔，每个权限子项名值竖线分隔" />
+      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Name" />
+      <Index Columns="ParentID,Name" Unique="True" />
+    </Indexes>
+  </Table>
+  <Table Name="Menu3" TableName="#MenuX" Description="菜单3" BaseType="EntityTree">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />

@@ -10,14 +10,12 @@ using XCode.DataAccessLayer;
 
 namespace XUnitTest.XCode.TestEntity
 {
-    /// <summary>菜单</summary>
+    /// <summary>菜单3</summary>
     [Serializable]
     [DataObject]
-    [Description("菜单")]
-    [BindIndex("IX_Menu2_Name", false, "Name")]
-    [BindIndex("IU_Menu2_ParentID_Name", true, "ParentID,Name")]
-    [BindTable("Menu2", Description = "菜单", ConnName = "test", DbType = DatabaseType.None)]
-    public partial class Menu2
+    [Description("菜单3")]
+    [BindTable("#MenuX", Description = "菜单3", ConnName = "test", DbType = DatabaseType.None)]
+    public partial class Menu3
     {
         #region 属性
         private Int32 _ID;
@@ -165,7 +163,7 @@ namespace XUnitTest.XCode.TestEntity
         #endregion
 
         #region 字段名
-        /// <summary>取得菜单字段信息的快捷方式</summary>
+        /// <summary>取得菜单3字段信息的快捷方式</summary>
         public partial class _
         {
             /// <summary>编号</summary>
@@ -207,7 +205,7 @@ namespace XUnitTest.XCode.TestEntity
             static Field FindByName(String name) => Meta.Table.FindByName(name);
         }
 
-        /// <summary>取得菜单字段名称的快捷方式</summary>
+        /// <summary>取得菜单3字段名称的快捷方式</summary>
         public partial class __
         {
             /// <summary>编号</summary>

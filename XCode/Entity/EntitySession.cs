@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
@@ -154,6 +153,9 @@ namespace XCode
 
         /// <summary>用户数据</summary>
         public IDictionary<String, Object> Items { get; set; } = new Dictionary<String, Object>();
+
+        /// <summary>是否视图。表名以#开头</summary>
+        public Boolean IsView => !TableName.IsNullOrEmpty() && TableName[0] == '#';
         #endregion
 
         #region 数据初始化
@@ -168,7 +170,7 @@ namespace XCode
         public Boolean WaitForInitData(Int32 ms = 3000)
         {
             // 已初始化
-            if (hasCheckInitData) return true;
+            if (hasCheckInitData || IsView) return true;
 
             var tid = Thread.CurrentThread.ManagedThreadId;
 
@@ -266,7 +268,7 @@ namespace XCode
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
-            if (_hasCheckModel) return;
+            if (_hasCheckModel || IsView) return;
             lock (_checkLock)
             {
                 if (_hasCheckModel) return;
@@ -414,7 +416,6 @@ namespace XCode
                 }
 
                 // 来到这里，是第一次访问
-
                 CheckModel();
 
                 // 从配置读取
@@ -459,22 +460,23 @@ namespace XCode
                     Table = FormatedTableName,
                     OrderBy = TableItem.Identity.Desc()
                 };
+                FixBuilder(builder);
                 var ds = dal.Query(builder, 0, 1);
                 if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
                     count = Convert.ToInt64(ds.Rows[0][0]);
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-            if (count <= 0 || count >= 1_000_000) count = dal.Session.QueryCountFast(FormatedTableName);
+            if ((count <= 0 || count >= 1_000_000) && !IsView) count = dal.Session.QueryCountFast(FormatedTableName);
 
             // 查真实记录数，修正FastCount不够准确的情况
-            if (count >= 0 && count < 10_000_000)
+            if (/*count >= 0 &&*/ count < 10_000_000)
             {
                 var builder = new SelectBuilder
                 {
                     Table = FormatedTableName
                 };
-
+                FixBuilder(builder);
                 count = dal.SelectCount(builder);
             }
 
@@ -547,6 +549,8 @@ namespace XCode
         {
             InitData();
 
+            FixBuilder(builder);
+
             return GetDAL(true).Query(builder, startRowIndex, maximumRows);
         }
 
@@ -567,6 +571,8 @@ namespace XCode
         {
             InitData();
 
+            FixBuilder(builder);
+
             return GetDAL(true).SelectCount(builder);
         }
 
@@ -578,6 +584,14 @@ namespace XCode
             InitData();
 
             return GetDAL(true).SelectCount(sql, CommandType.Text, null);
+        }
+
+        private void FixBuilder(SelectBuilder builder)
+        {
+            if (IsView && builder.Table == FormatedTableName)
+            {
+                builder.Table = $"({Factory.Template.GetSql(Dal.DbType)}) SourceTable";
+            }
         }
 
         /// <summary>执行</summary>

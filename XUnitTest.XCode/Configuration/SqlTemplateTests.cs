@@ -15,6 +15,17 @@ namespace XUnitTest.XCode.Configuration
 {
     public class SqlTemplateTests
     {
+        private static String _mysql_ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=root";
+
+        public SqlTemplateTests()
+        {
+            var f = "Config\\mysql.config".GetFullPath();
+            if (File.Exists(f))
+                _mysql_ConnStr = File.ReadAllText(f);
+            else
+                File.WriteAllText(f, _mysql_ConnStr);
+        }
+
         [Fact]
         public void ParseString()
         {
@@ -127,20 +138,20 @@ select * from userx where id=@id
         [Fact]
         public void EntityTest()
         {
-            var fact = Menu2.Meta.Factory;
+            var fact = Menu3.Meta.Factory;
             var st = fact.Template;
             Assert.NotNull(st);
             Assert.NotEmpty(st.Name);
             Assert.NotEmpty(st.Sql);
 
-            Assert.Equal("select * from menu where visible=1", st.Sql);
+            Assert.Equal("select * from menu2 where visible=1", st.Sql);
             Assert.Equal(2, st.Sqls.Count);
 
             var sql = st.Sqls["MySql"];
-            Assert.Equal("select * from menu where 'visible'=1", sql);
+            Assert.Equal("select * from menu2 where 'visible'=1", sql);
 
             sql = st.Sqls["Sqlite"];
-            Assert.Equal("select * from menu where 'visible'=2", sql);
+            Assert.Equal("select * from menu2 where 'visible'=2", sql);
         }
 
         [Fact]
@@ -156,20 +167,43 @@ select * from userx where id=@id
         }
 
         [Fact]
-        public void EntityTest3()
+        public void EntityTestWithSqlite()
         {
             // 拦截Sql
             var sql = "";
             DAL.LocalFilter = s => sql = s;
 
-            var count = Menu2.Meta.Count;
-            Assert.Equal("", sql);
+            var count = Menu3.Meta.Count;
+            Assert.Equal("[test] Select Count(*) From (select * from menu2 where 'visible'=2) SourceTable", sql);
 
-            var menu = Menu2.FindByID(1234);
-            Assert.Equal("[test] Select * From #MenuX Order By ID Desc limit 1", sql);
+            var menu = Menu3.FindByID(1234);
+            Assert.Equal("[test] Select * From (select * from menu2 where 'visible'=2) SourceTable Order By ID Desc", sql);
 
-            var menu2 = Menu2.FindByKey(1234);
-            Assert.Equal("[test] Select * From #MenuX Order By ID Desc limit 1", sql);
+            var menu2 = Menu3.FindByKey(1234);
+            Assert.Equal("[test] Select * From (select * from menu2 where 'visible'=2) SourceTable Where ID=1234", sql);
+        }
+
+        [Fact]
+        public void EntityTestWithMySql()
+        {
+            DAL.AddConnStr("mysql_member", _mysql_ConnStr, null, "mysql");
+
+            Menu2.Meta.ConnName = "mysql_member";
+            Menu3.Meta.ConnName = "mysql_member";
+            var n = Menu2.Meta.Count;
+
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var count = Menu3.Meta.Count;
+            Assert.Equal("[mysql_member] Select Count(*) From (select * from menu2 where 'visible'=1) SourceTable", sql);
+
+            var menu = Menu3.FindByID(1234);
+            Assert.Equal("[mysql_member] Select * From (select * from menu2 where 'visible'=1) SourceTable Order By ID Desc", sql);
+
+            var menu2 = Menu3.FindByKey(1234);
+            Assert.Equal("[mysql_member] Select * From (select * from menu2 where 'visible'=1) SourceTable Where ID=1234", sql);
         }
     }
 }
