@@ -21,6 +21,7 @@
     <Compile Remove="Code\Models\UserModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Configuration\AreaX.sql" />
     <None Remove="TestEntity\Build.tt" />
     <None Remove="TestEntity\Model.xml" />
   </ItemGroup>
@@ -35,6 +36,9 @@
       <PackagePath>content\Entity\</PackagePath>
       <Pack>true</Pack>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\AreaX.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Code\BuildTT\UserTT.cs">
