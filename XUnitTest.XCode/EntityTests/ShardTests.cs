@@ -5,11 +5,10 @@ using System.Linq;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Security;
-using XCode;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 using XCode.Shards;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.EntityTests
 {

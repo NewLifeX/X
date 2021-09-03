@@ -9,6 +9,7 @@ using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {

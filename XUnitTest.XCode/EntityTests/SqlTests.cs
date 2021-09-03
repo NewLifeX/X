@@ -8,6 +8,7 @@ using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Shards;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.EntityTests
 {

@@ -8,15 +8,13 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>菜单</summary>
     [Serializable]
     [DataObject]
     [Description("菜单")]
-    [BindIndex("IX_Menu2_Name", false, "Name")]
-    [BindIndex("IU_Menu2_ParentID_Name", true, "ParentID,Name")]
-    [BindTable("Menu2", Description = "菜单", ConnName = "test", DbType = DatabaseType.None)]
+    [BindTable("#MenuX", Description = "菜单", ConnName = "test", DbType = DatabaseType.None)]
     public partial class Menu2
     {
         #region 属性

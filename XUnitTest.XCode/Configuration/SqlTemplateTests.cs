@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using NewLife;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.Configuration
 {
@@ -120,6 +122,54 @@ select * from userx where id=@id
 
             sql = st.GetSql(DatabaseType.SqlServer);
             Assert.Equal("select * from area where enable=1", st.Sql);
+        }
+
+        [Fact]
+        public void EntityTest()
+        {
+            var fact = Menu2.Meta.Factory;
+            var st = fact.Template;
+            Assert.NotNull(st);
+            Assert.NotEmpty(st.Name);
+            Assert.NotEmpty(st.Sql);
+
+            Assert.Equal("select * from menu where visible=1", st.Sql);
+            Assert.Equal(2, st.Sqls.Count);
+
+            var sql = st.Sqls["MySql"];
+            Assert.Equal("select * from menu where 'visible'=1", sql);
+
+            sql = st.Sqls["Sqlite"];
+            Assert.Equal("select * from menu where 'visible'=2", sql);
+        }
+
+        [Fact]
+        public void EntityTest2()
+        {
+            var fact = Role2.Meta.Factory;
+            var st = fact.Template;
+            Assert.NotNull(st);
+            Assert.Null(st.Name);
+            Assert.Null(st.Sql);
+
+            Assert.Equal(0, st.Sqls.Count);
+        }
+
+        [Fact]
+        public void EntityTest3()
+        {
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var count = Menu2.Meta.Count;
+            Assert.Equal("", sql);
+
+            var menu = Menu2.FindByID(1234);
+            Assert.Equal("[test] Select * From #MenuX Order By ID Desc limit 1", sql);
+
+            var menu2 = Menu2.FindByKey(1234);
+            Assert.Equal("[test] Select * From #MenuX Order By ID Desc limit 1", sql);
         }
     }
 }

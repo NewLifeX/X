@@ -348,6 +348,28 @@ namespace XCode
             /// <summary>流式Id</summary>
             [Obsolete("=>Snow")]
             public Snowflake FlowId => Snow;
+
+            private SqlTemplate _Template;
+            /// <summary>Sql模版</summary>
+            public SqlTemplate Template
+            {
+                get
+                {
+                    if (_Template == null)
+                    {
+                        var st = new SqlTemplate();
+                        if (TableName.StartsWith("#"))
+                        {
+                            var type = EntityType;
+                            st.ParseEmbedded(type.Assembly, type.Namespace, TableName.TrimStart('#') + ".sql");
+                        }
+
+                        _Template = st;
+                    }
+
+                    return _Template;
+                }
+            }
             #endregion
         }
     }
