@@ -7,8 +7,8 @@
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.11.2021.0826-beta2</Version>
-    <FileVersion>8.11.2021.0826</FileVersion>
+    <Version>8.11.2021.0904</Version>
+    <FileVersion>8.11.2021.0904</FileVersion>
     <AssemblyVersion>8.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -24,7 +24,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>修正NET40/NET45粘包处理问题</PackageReleaseNotes>
+    <PackageReleaseNotes>增强HttpServer对WebSocket和文件上传的支持；修正NET40/NET45粘包处理问题；优化Packet.IndexOf</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
