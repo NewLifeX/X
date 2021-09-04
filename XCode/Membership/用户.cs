@@ -15,6 +15,9 @@ namespace XCode.Membership
     [DataObject]
     [Description("用户。用户帐号信息")]
     [BindIndex("IU_User_Name", true, "Name")]
+    [BindIndex("IX_User_Mail", false, "Mail")]
+    [BindIndex("IX_User_Mobile", false, "Mobile")]
+    [BindIndex("IX_User_Code", false, "Code")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
     [BindTable("User", Description = "用户。用户帐号信息", ConnName = "Membership", DbType = DatabaseType.None)]
@@ -90,7 +93,7 @@ namespace XCode.Membership
         [DisplayName("头像")]
         [Description("头像")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Avatar", "头像", "")]
+        [BindColumn("Avatar", "头像", "", ItemType = "image")]
         public String Avatar { get => _Avatar; set { if (OnPropertyChanging("Avatar", value)) { _Avatar = value; OnPropertyChanged("Avatar"); } } }
 
         private Int32 _RoleID;

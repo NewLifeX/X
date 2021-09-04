@@ -468,16 +468,8 @@ namespace XCode.Membership
         /// <summary>注销</summary>
         public virtual void Logout()
         {
-            //var user = Current;
-            //var user = this;
-            //if (user != null)
-            //{
-            //    user.Online = false;
-            //    user.SaveAsync();
-            //}
-
-            //Current = null;
-            //Thread.CurrentPrincipal = null;
+            Online = false;
+            SaveAsync();
         }
 
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>
