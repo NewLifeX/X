@@ -54,6 +54,10 @@ namespace XCode.Membership
             var sc = Meta.SingleCache;
             sc.FindSlaveKeyMethod = k => Find(__.Name, k);
             sc.GetSlaveKeyMethod = e => e.Name;
+
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
