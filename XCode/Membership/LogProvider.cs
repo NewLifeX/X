@@ -174,6 +174,7 @@ namespace XCode.Membership
                 // 日志里面不要出现密码
                 if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
 
+                if (v is DateTime dt2) v = dt2.ToFullString();
                 sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 
