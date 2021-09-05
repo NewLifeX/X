@@ -153,8 +153,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
         /// <param name="table">表</param>
+        /// <param name="formatKeyword">是否格式化关键字</param>
         /// <returns></returns>
-        String FormatName(IDataTable table);
+        String FormatName(IDataTable table, Boolean formatKeyword = true);
 
         /// <summary>格式化字段名，考虑大小写</summary>
         /// <param name="column">字段</param>

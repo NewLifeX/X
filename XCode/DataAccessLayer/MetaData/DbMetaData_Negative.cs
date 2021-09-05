@@ -127,7 +127,7 @@ namespace XCode.DataAccessLayer
             IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                var tableNames = tables.Select(e => FormatName(e)).ToArray();
+                var tableNames = tables.Select(e => FormatName(e, false)).ToArray();
                 WriteLog("[{0}]待检查数据表：{1}", Database.ConnName, tableNames.Join());
                 dbtables = OnGetTables(tableNames);
             }
@@ -136,7 +136,7 @@ namespace XCode.DataAccessLayer
             {
                 try
                 {
-                    var name = FormatName(item);
+                    var name = FormatName(item, false);
 
                     // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
                     var dbtable = dbtables?.FirstOrDefault(e => e.TableName == name);

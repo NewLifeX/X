@@ -288,5 +288,17 @@ namespace XUnitTest.XCode.DataAccessLayer
             // 管理员被删除后重新插入，自增ID改变
             Assert.NotEqual(gly.ID, gly2.ID);
         }
+
+        [Fact]
+        public void GetTables()
+        {
+            DAL.AddConnStr("member", _ConnStr.Replace("Database=sys", "Database=membership"), null, "MySql");
+            var dal = DAL.Create("member");
+            var tables = dal.Tables;
+
+            Assert.True(tables.Count > 0);
+
+            dal.SetTables(User.Meta.Table.DataTable);
+        }
     }
 }

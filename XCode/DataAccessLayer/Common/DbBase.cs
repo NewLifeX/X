@@ -660,7 +660,13 @@ namespace XCode.DataAccessLayer
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
         /// <param name="table">表</param>
         /// <returns></returns>
-        public virtual String FormatName(IDataTable table)
+        public virtual String FormatName(IDataTable table) => FormatName(table, true);
+
+        /// <summary>格式化表名，考虑表前缀和Owner</summary>
+        /// <param name="table">表</param>
+        /// <param name="formatKeyword">是否格式化关键字</param>
+        /// <returns></returns>
+        public virtual String FormatName(IDataTable table, Boolean formatKeyword)
         {
             if (table == null) return null;
 
@@ -690,7 +696,7 @@ namespace XCode.DataAccessLayer
                     break;
             }
 
-            return FormatName(name);
+            return formatKeyword ? FormatName(name) : name;
         }
 
         /// <summary>格式化字段名，考虑大小写</summary>
