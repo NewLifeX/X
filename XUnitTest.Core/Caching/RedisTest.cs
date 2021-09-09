@@ -119,7 +119,12 @@ namespace XUnitTest.Caching
 
             ic.Remove(key);
             ic.Set(key, Environment.UserName, 23);
-            var rs = ic.Add(key, Environment.MachineName, 30);
+            var rs = ic.Add(key, Environment.MachineName);
+            Assert.False(rs);
+
+            ic.Remove(key);
+            ic.Set(key, Environment.UserName, 23);
+            rs = ic.Add(key, Environment.MachineName, 30);
             Assert.False(rs);
 
             var name = ic.Get<String>(key);
