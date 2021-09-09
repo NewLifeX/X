@@ -696,8 +696,8 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
-            //// 没有有效期，直接使用SETNX
-            //if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
+            // 没有有效期，直接使用SETNX
+            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
 
             // 带有有效期，需要判断版本是否支持
             var inf = Info;
