@@ -48,7 +48,7 @@ namespace XUnitTest.Net
             var client = uri.CreateRemote() as TcpSession;
             client.Open();
 
-            Assert.False(client.RemoteAddress.IsIPv4());
+            Assert.True(client.RemoteAddress.IsIPv4());
         }
 
         [Fact]
