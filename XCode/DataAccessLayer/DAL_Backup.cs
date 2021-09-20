@@ -99,7 +99,7 @@ namespace XCode.DataAccessLayer
             var rs = 0;
             if (file.EndsWithIgnoreCase(".gz"))
             {
-#if NET4
+#if NET40
                 using var gs = new GZipStream(fs, CompressionMode.Compress, true);
 #else
                 using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
@@ -133,7 +133,7 @@ namespace XCode.DataAccessLayer
             //if (tables == null) tables = Tables;
             if (tables.Count > 0)
             {
-#if !NET4
+#if !NET40
                 var file2 = file.GetFullPath();
                 file2.EnsureDirectory(true);
 
@@ -320,7 +320,7 @@ namespace XCode.DataAccessLayer
             var file2 = file.GetFullPath();
             if (!File.Exists(file2)) return null;
 
-#if !NET4
+#if !NET40
             using var fs = new FileStream(file2, FileMode.Open);
             using var zip = new ZipArchive(fs, ZipArchiveMode.Read, true, Encoding.UTF8);
 

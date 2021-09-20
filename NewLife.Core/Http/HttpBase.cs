@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using NewLife.Collections;
 using NewLife.Data;
 
@@ -10,67 +9,76 @@ namespace NewLife.Http
     public abstract class HttpBase
     {
         #region 属性
+        /// <summary>协议版本</summary>
+        public String Version { get; set; } = "1.1";
+
         /// <summary>内容长度</summary>
-        public Int32 ContentLength { get; set; }
+        public Int32 ContentLength { get; set; } = -1;
 
         /// <summary>内容类型</summary>
         public String ContentType { get; set; }
 
+        /// <summary>请求或响应的主体部分</summary>
+        public Packet Body { get; set; }
+
+        /// <summary>主体长度</summary>
+        public Int32 BodyLength => Body == null ? 0 : Body.Total;
+
+        /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
+        public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
+
         /// <summary>头部集合</summary>
-        public IDictionary<String, Object> Headers { get; set; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        public IDictionary<String, String> Headers { get; set; } = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>获取/设置 头部</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public String this[String key] { get { return Headers[key] + ""; } set { Headers[key] = value; } }
+        public String this[String key] { get => Headers[key] + ""; set => Headers[key] = value; }
         #endregion
 
         #region 解析
-        /// <summary>过期时间</summary>
-        internal DateTime Expire { get; set; }
+        /// <summary>快速验证协议头，剔除非HTTP协议。仅排除，验证通过不一定就是HTTP协议</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public static Boolean FastValidHeader(Packet pk)
+        {
+            // 性能优化，Http头部第一行以请求谓语或响应版本开头，然后是一个空格。最长谓语Options/Connect，版本HTTP/1.1，不超过10个字符
+            var p = pk.IndexOf(new[] { (Byte)' ' }, 0, 10);
+            if (p < 0) return false;
 
-        /// <summary>是否已完整</summary>
-        internal Boolean IsCompleted => ContentLength == 0 || ContentLength <= BodyLength;
-
-        /// <summary>主体长度</summary>
-        internal Int32 BodyLength { get; set; }
+            return true;
+        }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
-        internal Boolean ParseHeader(Packet pk)
+        /// <summary>分析请求头</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public Boolean Parse(Packet pk)
         {
+            if (!FastValidHeader(pk)) return false;
+
             var p = pk.IndexOf(NewLine);
             if (p < 0) return false;
 
             var str = pk.ReadBytes(0, p).ToStr();
-#if DEBUG
-            Log.XTrace.WriteLine(str);
-#endif
 
             // 截取
             var lines = str.Split("\r\n");
-            // 重构
-            p += 4;
-            pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
+            Body = pk.Slice(p + 4);
 
             // 分析头部
-            //headers.Clear();
-            var line = lines[0];
             for (var i = 1; i < lines.Length; i++)
             {
-                line = lines[i];
+                var line = lines[i];
                 p = line.IndexOf(':');
                 if (p > 0) Headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
             }
 
-            ContentLength = Headers["Content-Length"].ToInt();
-            ContentType = Headers["Content-Type"] + "";
+            ContentLength = Headers["Content-Length"].ToInt(-1);
+            ContentType = Headers["Content-Type"];
 
             // 分析第一行
             if (!OnParse(lines[0])) return false;
-
-            //// 判断主体长度
-            //BodyLength += pk.Count;
-            //if (ContentLength > 0 && BodyLength >= ContentLength) IsCompleted = true;
 
             return true;
         }
@@ -78,33 +86,18 @@ namespace NewLife.Http
         /// <summary>分析第一行</summary>
         /// <param name="firstLine"></param>
         protected abstract Boolean OnParse(String firstLine);
-
-        private MemoryStream _cache;
-        internal Boolean ParseBody(ref Packet pk)
-        {
-            BodyLength += pk.Count;
-
-            if (_cache == null) _cache = new MemoryStream();
-            pk.CopyTo(_cache);
-
-            if (!IsCompleted) return false;
-
-            pk = _cache.ToArray();
-            _cache = null;
-
-            return true;
-        }
         #endregion
 
         #region 读写
         /// <summary>创建请求响应包</summary>
-        /// <param name="data"></param>
         /// <returns></returns>
-        public Packet Build(Packet data)
+        public virtual Packet Build()
         {
-            var len = data != null ? data.Count : 0;
+            var data = Body;
+            var len = data != null ? data.Count : -1;
 
-            var rs = new Packet(BuildHeader(len).GetBytes())
+            var header = BuildHeader(len);
+            var rs = new Packet(header.GetBytes())
             {
                 Next = data
             };

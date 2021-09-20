@@ -30,7 +30,7 @@ namespace NewLife
         /// <returns></returns>
         public static T Set<T>(this Enum source, T flag, Boolean value)
         {
-            if (!(source is T)) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
+            if (source is not T) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
 
             var s = Convert.ToUInt64(source);
             var f = Convert.ToUInt64(flag);

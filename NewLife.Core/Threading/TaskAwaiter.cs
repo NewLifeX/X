@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if NET4
+#if NET40
 namespace Microsoft.Runtime.CompilerServices
 {
     /// <summary>表示等待完成的异步任务的对象，并提供结果的参数。</summary>

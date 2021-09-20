@@ -8,13 +8,15 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>日志</summary>
     [Serializable]
     [DataObject]
     [Description("日志")]
+    [BindIndex("IX_Log2_Action_Category", false, "Action,Category")]
     [BindIndex("IX_Log2_Action_Category_ID", false, "Action,Category,ID")]
+    [BindIndex("IX_Log2_Category_LinkID_ID", false, "Category,LinkID,ID")]
     [BindIndex("IX_Log2_Category_LinkID_ID", false, "Category,LinkID,ID")]
     [BindIndex("IX_Log2_CreateUserID_ID", false, "CreateUserID,ID")]
     [BindTable("Log2", Description = "日志", ConnName = "test", DbType = DatabaseType.None)]

@@ -152,8 +152,8 @@ namespace XCode.Shards
 
             if (fi.Type == typeof(DateTime))
             {
-                var sf = exps.FirstOrDefault(e => e.Action == ">" || e.Action == ">=");
-                var ef = exps.FirstOrDefault(e => e.Action == "<" || e.Action == "<=");
+                var sf = exps.FirstOrDefault(e => e.Action is ">" or ">=");
+                var ef = exps.FirstOrDefault(e => e.Action is "<" or "<=");
                 if (sf != null)
                 {
                     var start = sf.Value.ToDateTime();
@@ -173,8 +173,8 @@ namespace XCode.Shards
             }
             else if (fi.Type == typeof(Int64))
             {
-                var sf = exps.FirstOrDefault(e => e.Action == ">" || e.Action == ">=");
-                var ef = exps.FirstOrDefault(e => e.Action == "<" || e.Action == "<=");
+                var sf = exps.FirstOrDefault(e => e.Action is ">" or ">=");
+                var ef = exps.FirstOrDefault(e => e.Action is "<" or "<=");
                 if (sf != null)
                 {
                     var id = sf.Value.ToLong();

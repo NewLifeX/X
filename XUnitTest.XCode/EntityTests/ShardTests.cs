@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Security;
-using XCode;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 using XCode.Shards;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.EntityTests
 {
@@ -164,6 +165,122 @@ namespace XUnitTest.XCode.EntityTests
 
             var log2 = Log2.FindByID(log.ID);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time:yyyyMMdd} Where ID=" + log.ID, sqls[^1]);
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
+
+        [Fact]
+        public void SearchDates()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            var list = Log2.Search(null, null, -1, null, -1, time.AddDays(-3), time, null, new PageParameter { PageSize = 10000 });
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-3):yyyyMMdd} Where ID>=", sqls[^7]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where ID>=", sqls[^5]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where ID>=", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where ID>=", sqls[^1]);
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
+
+        [Fact]
+        public void SearchAutoShard()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            var start = time.AddDays(-2);
+
+            var list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
+            XTrace.WriteLine("count={0}", list.Count);
+
+            var idx = 1;
+            XTrace.WriteLine("AutoShard Start");
+            var es = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true));
+            XTrace.WriteLine("AutoShard Ready");
+            foreach (var item in es)
+            {
+                XTrace.WriteLine("AutoShard idx={0} count={1}", idx++, item.Count);
+            }
+            XTrace.WriteLine("AutoShard End");
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
+
+        [Fact]
+        public void SearchAutoShard2()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            var start = time.AddDays(-2);
+
+            var list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).FirstOrDefault(e => e.Count > 0);
+
+            list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1", sqls[^1]);
+
+            // 恢复现场，避免影响其它测试用例
+            Log2.Meta.ShardPolicy = null;
+        }
+
+        [Fact]
+        public void SearchAutoShard3()
+        {
+            // 配置自动分表策略，一般在实体类静态构造函数中配置
+            var shard = new TimeShardPolicy("ID", Log2.Meta.Factory)
+            {
+                ConnPolicy = "{0}_{1:yyyy}",
+                TablePolicy = "{0}_{1:yyyyMMdd}",
+            };
+            Log2.Meta.ShardPolicy = shard;
+
+            // 拦截Sql，仅为了断言，非业务代码
+            var sqls = new List<String>();
+            DAL.LocalFilter = s => sqls.Add(s);
+
+            var time = DateTime.Now;
+            var start = time.AddDays(-2);
+            var list = Log2.Meta.AutoShard(time, start, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1", sqls[^5]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;

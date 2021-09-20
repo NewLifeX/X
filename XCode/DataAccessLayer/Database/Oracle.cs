@@ -428,11 +428,11 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
 
 #if !NET40
@@ -468,11 +468,11 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
 #endif
 

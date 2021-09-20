@@ -59,7 +59,7 @@ namespace NewLife.Http
             if (Token == null || Expire < DateTime.Now)
             {
                 var pass = EncodePassword(UserName, Password);
-                Token = client.Post<TokenModel>(Action, new
+                Token = await client.PostAsync<TokenModel>(Action, new
                 {
                     grant_type = "password",
                     username = UserName,

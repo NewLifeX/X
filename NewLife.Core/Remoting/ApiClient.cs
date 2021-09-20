@@ -7,7 +7,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Threading;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -148,7 +148,7 @@ namespace NewLife.Remoting
         {
             // 让上层异步到这直接返回，后续代码在另一个线程执行
             //!!! Task.Yield会导致强制捕获上下文，虽然会在另一个线程执行，但在UI线程中可能无法抢占上下文导致死锁
-#if !NET4
+#if !NET40
             //await Task.Yield();
 #endif
 
@@ -279,7 +279,7 @@ namespace NewLife.Remoting
             if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0 && code != 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+            if (code is not 0 and not 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
 
             if (data == null) return default;
             if (resultType == typeof(Packet)) return (TResult)(Object)data;
@@ -377,7 +377,7 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public virtual async Task<Object> LoginAsync()
         {
-#if !NET4
+#if !NET40
             //await Task.Yield();
 #endif
 

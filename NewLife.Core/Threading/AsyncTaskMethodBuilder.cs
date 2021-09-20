@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
     /// <summary>表示生成器，用于返回任务的异步方法。</summary>

@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-#if NET4
+#if NET40
 namespace System
 {
     internal static class LightupServices

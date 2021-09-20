@@ -95,10 +95,10 @@ namespace NewLife.Serialization
 
         private void WriteValue(Object obj)
         {
-            if (obj == null || obj is DBNull)
+            if (obj is null or DBNull)
                 _Builder.Append("null");
 
-            else if (obj is String || obj is Char)
+            else if (obj is String or Char)
                 WriteString(obj + "");
 
             else if (obj is Guid)
@@ -108,11 +108,11 @@ namespace NewLife.Serialization
                 _Builder.Append((obj + "").ToLower());
 
             else if (
-                obj is Int32 || obj is Int64 || obj is Double ||
-                obj is Decimal || obj is Single ||
-                obj is Byte || obj is Int16 ||
-                obj is SByte || obj is UInt16 ||
-                obj is UInt32 || obj is UInt64
+                obj is Int32 or Int64 or Double or
+                Decimal or Single or
+                Byte or Int16 or
+                SByte or UInt16 or
+                UInt32 or UInt64
             )
                 _Builder.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
@@ -534,7 +534,7 @@ namespace NewLife.Serialization
             {
                 var c = str[index];
 
-                if (c != '\t' && c != '\n' && c != '\r' && c != '\"' && c != '\\')// && c != ':' && c!=',')
+                if (c is not '\t' and not '\n' and not '\r' and not '\"' and not '\\')// && c != ':' && c!=',')
                 {
                     if (idx == -1) idx = index;
 
@@ -586,11 +586,11 @@ namespace NewLife.Serialization
         private static IDictionary<TypeCode, Object> _def;
         private static Boolean IsNull(Object obj)
         {
-            if (obj == null || obj is DBNull) return true;
+            if (obj is null or DBNull) return true;
 
             var code = obj.GetType().GetTypeCode();
             if (code == TypeCode.Object) return false;
-            if (code == TypeCode.Empty || code == TypeCode.DBNull) return true;
+            if (code is TypeCode.Empty or TypeCode.DBNull) return true;
 
             var dic = _def;
             if (dic == null)

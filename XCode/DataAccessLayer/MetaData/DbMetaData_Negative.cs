@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -123,32 +124,25 @@ namespace XCode.DataAccessLayer
 
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
-            // 数据库表进入字典
-            //var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
             IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-                //if (dbtables != null && dbtables.Count > 0)
-                //{
-                //    foreach (var item in dbtables)
-                //    {
-                //        //dic.Add(item.TableName, item);
-                //        dic[item.TableName] = item;
-                //    }
-                //}
+                var tableNames = tables.Select(e => FormatName(e, false)).ToArray();
+                WriteLog("[{0}]待检查数据表：{1}", Database.ConnName, tableNames.Join());
+                dbtables = OnGetTables(tableNames);
             }
 
             foreach (var item in tables)
             {
                 try
                 {
+                    var name = FormatName(item, false);
+
                     // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
-                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == item.TableName);
-                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(item.TableName));
+                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == name);
+                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(name));
 
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    //if (dic.TryGetValue(item.TableName, out var dbtable))
                     if (dbtable != null)
                         CheckTable(item, dbtable, mode);
                     else
@@ -885,7 +879,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (index.Unique)
                 sb.Append("Create Unique Index ");
             else
@@ -895,7 +889,7 @@ namespace XCode.DataAccessLayer
             var dcs = index.Table.GetColumns(index.Columns);
             sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(",", FormatName));
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name} On {FormatName(index.Table)}";

@@ -1,4 +1,4 @@
-﻿#if NET4
+﻿#if NET40
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -149,7 +149,7 @@ namespace NewLife.Compression
             var v = reader.Read<UInt32>();
             if (v != ZipConstants.ZipEntrySignature)
             {
-                if (v != ZipConstants.ZipDirEntrySignature && v != ZipConstants.EndOfCentralDirectorySignature)
+                if (v is not ZipConstants.ZipDirEntrySignature and not ZipConstants.EndOfCentralDirectorySignature)
                     throw new ZipException("0x{0:X8}处签名错误！", stream.Position);
 
                 return null;
@@ -191,7 +191,7 @@ namespace NewLife.Compression
             var v = reader.Read<UInt32>();
             if (v != ZipConstants.ZipDirEntrySignature)
             {
-                if (v != ZipConstants.EndOfCentralDirectorySignature && v != ZipConstants.ZipEntrySignature)
+                if (v is not ZipConstants.EndOfCentralDirectorySignature and not ZipConstants.ZipEntrySignature)
                 {
                     throw new ZipException("0x{0:X8}处签名错误！", stream.Position);
                 }

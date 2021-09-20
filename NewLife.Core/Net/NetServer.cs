@@ -13,7 +13,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -385,7 +385,7 @@ namespace NewLife.Net
             if (ns is NetSession ns2)
             {
                 ns2.ID = Interlocked.Increment(ref _sessionID);
-                ns2.Log = SessionLog ?? Log;
+                ns2.Log = SessionLog;
             }
             ns.Host = this;
             ns.Server = session.Server;
@@ -490,6 +490,24 @@ namespace NewLife.Net
             foreach (var item in Sessions)
             {
                 ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+            }
+
+            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+        }
+
+        /// <summary>异步群发数据给所有客户端</summary>
+        /// <param name="data"></param>
+        /// <param name="predicate"></param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var ts = new List<Task>();
+            foreach (var item in Sessions)
+            {
+                if (predicate == null || predicate(item.Value))
+                    ts.Add(TaskEx.Run(() => item.Value.Send(data)));
             }
 
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);

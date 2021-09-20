@@ -21,12 +21,6 @@ namespace XCode.DataAccessLayer
         /// <summary>数据库事务</summary>
         ITransaction Transaction { get; }
 
-        /// <summary>查询次数</summary>
-        Int32 QueryTimes { get; set; }
-
-        /// <summary>执行次数</summary>
-        Int32 ExecuteTimes { get; set; }
-
         /// <summary>是否输出SQL</summary>
         Boolean ShowSQL { get; set; }
         #endregion

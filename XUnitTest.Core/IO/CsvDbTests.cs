@@ -120,8 +120,8 @@ namespace XUnitTest.IO
             }
 
             // 高级查找
-            var list3 = db.FindAll(e => e.Code >= 100 && e.Code < 1000);
-            var list4 = list.Where(e => e.Code >= 100 && e.Code < 1000).ToList();
+            var list3 = db.FindAll(e => e.Code is >= 100 and < 1000);
+            var list4 = list.Where(e => e.Code is >= 100 and < 1000).ToList();
             Assert.Equal(list4.Select(e => e.Code), list3.Select(e => e.Code));
         }
 

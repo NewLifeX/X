@@ -298,9 +298,9 @@ public class BigInteger
                 {
                         int posVal = value[i];
 
-                        if(posVal >= '0' && posVal <= '9')
+                        if(posVal is >= '0' and <= '9')
                                 posVal -= '0';
-                        else if(posVal >= 'A' && posVal <= 'Z')
+                        else if(posVal is >= 'A' and <= 'Z')
                                 posVal = (posVal - 'A') + 10;
                         else
                                 posVal = 9999999;       // arbitrary large
@@ -1475,7 +1475,7 @@ public class BigInteger
 
         public string ToString(int radix)
         {
-                if(radix < 2 || radix > 36)
+                if(radix is < 2 or > 36)
                         throw (new ArgumentException("Radix must be >= 2 and <= 36"));
 
                 string charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -1840,9 +1840,9 @@ public class BigInteger
                 if(thisVal.dataLength == 1)
                 {
                         // test small numbers
-                        if(thisVal.data[0] == 0 || thisVal.data[0] == 1)
+                        if(thisVal.data[0] is 0 or 1)
                                 return false;
-                        else if(thisVal.data[0] == 2 || thisVal.data[0] == 3)
+                        else if(thisVal.data[0] is 2 or 3)
                                 return true;
                 }
 
@@ -1930,9 +1930,9 @@ public class BigInteger
                 if(thisVal.dataLength == 1)
                 {
                         // test small numbers
-                        if(thisVal.data[0] == 0 || thisVal.data[0] == 1)
+                        if(thisVal.data[0] is 0 or 1)
                                 return false;
-                        else if(thisVal.data[0] == 2 || thisVal.data[0] == 3)
+                        else if(thisVal.data[0] is 2 or 3)
                                 return true;
                 }
 
@@ -2055,9 +2055,9 @@ public class BigInteger
                 if(thisVal.dataLength == 1)
                 {
                         // test small numbers
-                        if(thisVal.data[0] == 0 || thisVal.data[0] == 1)
+                        if(thisVal.data[0] is 0 or 1)
                                 return false;
-                        else if(thisVal.data[0] == 2 || thisVal.data[0] == 3)
+                        else if(thisVal.data[0] is 2 or 3)
                                 return true;
                 }
 
@@ -2144,9 +2144,9 @@ public class BigInteger
                 if(thisVal.dataLength == 1)
                 {
                         // test small numbers
-                        if(thisVal.data[0] == 0 || thisVal.data[0] == 1)
+                        if(thisVal.data[0] is 0 or 1)
                                 return false;
-                        else if(thisVal.data[0] == 2 || thisVal.data[0] == 3)
+                        else if(thisVal.data[0] is 2 or 3)
                                 return true;
                 }
 
@@ -2365,9 +2365,9 @@ public class BigInteger
                 if(thisVal.dataLength == 1)
                 {
                         // test small numbers
-                        if(thisVal.data[0] == 0 || thisVal.data[0] == 1)
+                        if(thisVal.data[0] is 0 or 1)
                                 return false;
-                        else if(thisVal.data[0] == 2 || thisVal.data[0] == 3)
+                        else if(thisVal.data[0] is 2 or 3)
                                 return true;
                 }
 

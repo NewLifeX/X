@@ -42,6 +42,9 @@
     <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Http\leaf.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Serialization\StarAgent.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

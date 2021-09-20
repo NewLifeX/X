@@ -153,8 +153,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
         /// <param name="table">表</param>
+        /// <param name="formatKeyword">是否格式化关键字</param>
         /// <returns></returns>
-        String FormatName(IDataTable table);
+        String FormatName(IDataTable table, Boolean formatKeyword = true);
 
         /// <summary>格式化字段名，考虑大小写</summary>
         /// <param name="column">字段</param>
@@ -207,9 +208,6 @@ namespace XCode.DataAccessLayer
         /// <param name="model"></param>
         /// <returns></returns>
         IDataParameter[] CreateParameters(Object model);
-
-        /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
-        Boolean AutoClose { get; set; }
 
         /// <summary>本连接数据只读</summary>
         Boolean Readonly { get; set; }

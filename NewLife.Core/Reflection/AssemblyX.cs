@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -129,15 +130,19 @@ namespace NewLife.Reflection
             var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
-            //try
-            //{
-            //    return Assembly.ReflectionOnlyLoad(args.Name);
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteException(ex);
+
+#if NET40_OR_GREATER
+            try
+            {
+                return Assembly.ReflectionOnlyLoad(args.Name);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+#endif
+
             return null;
-            //}
         }
 
         private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
@@ -145,15 +150,19 @@ namespace NewLife.Reflection
             var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
-            //try
-            //{
-            //    return OnResolve(args.Name);
-            //}
-            //catch (Exception ex)
-            //{
-            //    XTrace.WriteException(ex);
+
+#if NET40_OR_GREATER
+            try
+            {
+                return OnResolve(args.Name);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+#endif
+
             return null;
-            //}
         }
         #endregion
 
@@ -602,7 +611,7 @@ namespace NewLife.Reflection
             }
         }
 
-        private static readonly ICollection<String> _BakImages = new List<String>();
+        private static readonly ConcurrentHashSet<String> _BakImages = new();
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -668,7 +677,7 @@ namespace NewLife.Reflection
             }
             catch
             {
-                _BakImages.Add(file);
+                _BakImages.TryAdd(file);
                 return null;
             }
         }

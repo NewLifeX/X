@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-#if NET4
+#if NET40
 namespace Microsoft.Runtime.CompilerServices
 {
     /// <summary>配置任务await</summary>

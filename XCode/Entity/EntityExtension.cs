@@ -638,7 +638,7 @@ namespace XCode
             if (columns == null)
             {
                 var dbt = session.Dal.DbType;
-                if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
+                if (dbt is DatabaseType.SqlServer or DatabaseType.Oracle)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
                 else if (dbt == DatabaseType.MySql)
                     columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库

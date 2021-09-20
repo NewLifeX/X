@@ -163,7 +163,7 @@ namespace XCode.Membership
 
                 var v = entity[fi.Name];
                 // 空字符串不写日志
-                if (action == "添加" || action == "删除" || action == "Insert" || action == "Delete")
+                if (action is "添加" or "删除" or "Insert" or "Delete")
                 {
                     if (v + "" == "") continue;
                     if (v is Boolean b && !b) continue;
@@ -174,6 +174,7 @@ namespace XCode.Membership
                 // 日志里面不要出现密码
                 if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
 
+                if (v is DateTime dt2) v = dt2.ToFullString();
                 sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 

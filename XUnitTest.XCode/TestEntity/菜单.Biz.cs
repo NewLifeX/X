@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -23,7 +23,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>菜单</summary>
     public partial class Menu2 : Entity<Menu2>

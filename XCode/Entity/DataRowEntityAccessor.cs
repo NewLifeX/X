@@ -219,7 +219,7 @@ namespace XCode
             }
             else if (type == typeof(Guid))
             {
-                if (!(value is Guid))
+                if (value is not Guid)
                 {
                     if (value is Byte[] buf)
                         value = new Guid(buf);

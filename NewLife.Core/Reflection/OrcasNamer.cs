@@ -136,7 +136,7 @@ namespace NewLife.Reflection
             }
             WriteParameters(method.GetParameters(), writer);
             // add ~ for conversion operators
-            if ((name == "op_Implicit") || (name == "op_Explicit"))
+            if (name is "op_Implicit" or "op_Explicit")
             {
                 writer.Write("~");
                 WriteType(method.ReturnType, writer);

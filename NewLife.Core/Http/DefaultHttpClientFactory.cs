@@ -283,7 +283,7 @@ namespace NewLife.Http
                 return; // never expires.
             }
 
-#if NET4
+#if NET40
             if (_timerInitialized) return;
 #else
             if (Volatile.Read(ref _timerInitialized)) return;
@@ -298,7 +298,7 @@ namespace NewLife.Http
 
             lock (_lock)
             {
-#if NET4
+#if NET40
                 if (_timerInitialized) return;
 #else
                 if (Volatile.Read(ref _timerInitialized)) return;

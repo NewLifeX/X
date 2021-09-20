@@ -20,7 +20,7 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        /// <summary>默认缓存时间。默认0秒表示不过期</summary>
+        /// <summary>默认过期时间。避免Set操作时没有设置过期时间，默认0秒表示不过期</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>获取和设置缓存，使用默认过期时间</summary>

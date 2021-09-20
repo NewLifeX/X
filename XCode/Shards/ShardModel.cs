@@ -10,5 +10,9 @@ namespace XCode.Shards
 
         /// <summary>表名</summary>
         public String TableName { get; set; }
+
+        /// <summary>已重载。</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{ConnName} {TableName}";
     }
 }

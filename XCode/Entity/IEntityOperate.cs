@@ -244,6 +244,9 @@ namespace XCode
         /// <summary>流式Id</summary>
         [Obsolete("=>Snow")]
         Snowflake FlowId { get; }
+
+        /// <summary>Sql模版</summary>
+        SqlTemplate Template { get; }
         #endregion
     }
 }

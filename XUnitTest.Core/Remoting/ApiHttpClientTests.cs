@@ -131,7 +131,7 @@ namespace XUnitTest.Remoting
                 UserName = "starweb",
                 Password = "",
             };
-            var client = new ApiHttpClient("http://127.0.0.1:10000,http://127.0.0.1:20000,http://star.newlifex.com:6600")
+            var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:20001,http://star.newlifex.com:6600")
             {
                 Filter = filter,
                 Timeout = 3_000

@@ -15,7 +15,7 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Transform;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -291,7 +291,7 @@ namespace XCode.Membership
         /// <returns>实体列表</returns>
         public static IList<Area> FindAllByParentID(Int32 parentid)
         {
-            if (parentid < 0 || parentid > 99_99_99) return new List<Area>();
+            if (parentid is < 0 or > 99_99_99) return new List<Area>();
 
             // 实体缓存
             var rs = Meta.Cache.FindAll(e => e.ParentID == parentid);
@@ -336,8 +336,8 @@ namespace XCode.Membership
                 if (key.ToLong() > 0)
                 {
                     var exp2 = new WhereExpression();
-                    if (key.Length == 6 || key.Length == 9) exp2 |= _.ID == key;
-                    if (key.Length == 2 || key.Length == 3) exp2 |= _.TelCode == key;
+                    if (key.Length is 6 or 9) exp2 |= _.ID == key;
+                    if (key.Length is 2 or 3) exp2 |= _.TelCode == key;
                     if (key.Length == 6) exp2 |= _.ZipCode == key;
 
                     exp &= exp2;
@@ -478,7 +478,7 @@ namespace XCode.Membership
             if (id > 999999)
             {
                 // 四级地址是9位数字
-                if (parentid < 100000 || parentid > 999999) return null;
+                if (parentid is < 100000 or > 999999) return null;
                 if (id < 100000000) return null;
                 if (id > 999999999) return null;
             }
@@ -787,7 +787,7 @@ namespace XCode.Membership
             var count = 0;
             foreach (var r in list)
             {
-                if (r.ID < 10_00_00 || r.ID > 99_99_99) continue;
+                if (r.ID is < 10_00_00 or > 99_99_99) continue;
 
                 //var r2 = FindByID(r.ID);
                 var r2 = rs.FirstOrDefault(e => e.ID == r.ID);
@@ -879,7 +879,7 @@ namespace XCode.Membership
             var count = 0;
             foreach (var r in list)
             {
-                if (r.ID < 10_00_00_000 || r.ID > 99_99_99_999) continue;
+                if (r.ID is < 10_00_00_000 or > 99_99_99_999) continue;
 
                 //var r2 = FindByID(r.ID);
                 var r2 = rs.FirstOrDefault(e => e.ID == r.ID);

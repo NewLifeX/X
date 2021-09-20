@@ -238,8 +238,8 @@ namespace NewLife.Net
 
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
-            if (se.SocketError != SocketError.ConnectionReset &&
-                se.SocketError != SocketError.ConnectionAborted
+            if (se.SocketError is not SocketError.ConnectionReset and
+                not SocketError.ConnectionAborted
                 ) return true;
 
             // 关闭相应会话

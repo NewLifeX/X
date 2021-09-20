@@ -29,7 +29,7 @@ namespace NewLife.Compression
             #endregion
 
             #region 注册表
-#if __WIN__
+#if NET40_OR_GREATER
             if (p.IsNullOrEmpty())
             {
                 var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");

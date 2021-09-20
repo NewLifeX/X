@@ -39,7 +39,10 @@ namespace NewLife.IO
 
             FileName = fileName;
 
-            _zip = ZipFile.OpenRead(fileName.GetFullPath());
+            //_zip = ZipFile.OpenRead(fileName.GetFullPath());
+            // 共享访问，避免文件被其它进程打开时再次访问抛出异常
+            var fs = new FileStream(fileName.GetFullPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            _zip = new ZipArchive(fs, ZipArchiveMode.Read, true);
 
             Parse();
         }
@@ -86,10 +89,7 @@ namespace NewLife.IO
 
             // 读取sheet
             {
-                _entries = _zip.Entries.Where(e =>
-                    e.FullName.StartsWithIgnoreCase("xl/worksheets/") &&
-                    e.Name.EndsWithIgnoreCase(".xml"))
-                    .ToDictionary(e => e.Name.TrimEnd(".xml"), e => e);
+                _entries = ReadSheets(_zip);
             }
         }
 
@@ -179,11 +179,14 @@ namespace NewLife.IO
 
             var fmts = new Dictionary<Int32, String>();
             var numFmts = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "numFmts");
-            foreach (var item in numFmts.Elements())
+            if (numFmts != null)
             {
-                var id = item.Attribute("numFmtId").Value.ToInt();
-                var code = item.Attribute("formatCode").Value;
-                fmts.Add(id, code);
+                foreach (var item in numFmts.Elements())
+                {
+                    var id = item.Attribute("numFmtId").Value.ToInt();
+                    var code = item.Attribute("formatCode").Value;
+                    fmts.Add(id, code);
+                }
             }
 
             var list = new List<String>();
@@ -198,6 +201,48 @@ namespace NewLife.IO
             }
 
             return list.ToArray();
+        }
+
+        private IDictionary<String, ZipArchiveEntry> ReadSheets(ZipArchive zip)
+        {
+            var dic = new Dictionary<String, String>();
+
+            var entry = _zip.GetEntry("xl/workbook.xml");
+            if (entry != null)
+            {
+                var doc = XDocument.Load(entry.Open());
+
+                var list = new List<String>();
+                var sheets = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "sheets");
+                if (sheets != null)
+                {
+                    foreach (var item in sheets.Elements())
+                    {
+                        var id = item.Attribute("sheetId").Value;
+                        var name = item.Attribute("name").Value;
+                        dic[id] = name;
+                    }
+                }
+            }
+
+            //_entries = _zip.Entries.Where(e =>
+            //    e.FullName.StartsWithIgnoreCase("xl/worksheets/") &&
+            //    e.Name.EndsWithIgnoreCase(".xml"))
+            //    .ToDictionary(e => e.Name.TrimEnd(".xml"), e => e);
+
+            var dic2 = new Dictionary<String, ZipArchiveEntry>();
+            foreach (var item in zip.Entries)
+            {
+                if (item.FullName.StartsWithIgnoreCase("xl/worksheets/") && item.Name.EndsWithIgnoreCase(".xml"))
+                {
+                    var name = item.Name.TrimEnd(".xml");
+                    if (dic.TryGetValue(name.TrimStart("sheet"), out var str)) name = str;
+
+                    dic2[name] = item;
+                }
+            }
+
+            return dic2;
         }
         #endregion
     }

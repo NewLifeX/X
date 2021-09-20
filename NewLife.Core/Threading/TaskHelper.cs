@@ -5,7 +5,7 @@ using System.IO;
 using NewLife.Log;
 using NewLife;
 
-#if NET4
+#if NET40
 namespace System.Threading.Tasks
 {
     /// <summary>任务助手</summary>

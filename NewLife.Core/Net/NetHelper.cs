@@ -573,7 +573,7 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if !NET4
+#if !NET40
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
 #endif

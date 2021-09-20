@@ -12,7 +12,7 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -234,7 +234,7 @@ namespace NewLife.Remoting
                     break;
                 }
             }
-            if (code != 0 && code != 200)
+            if (code is not 0 and not 200)
             {
                 var message = "";
                 foreach (var item in MessageNames)
@@ -259,7 +259,7 @@ namespace NewLife.Remoting
             // 反序列化
             if (data == null) return default;
 
-            if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+            if (data is not IDictionary<String, Object> and not IList<Object>) throw new InvalidDataException("未识别响应数据");
 
             return JsonHelper.Convert<TResult>(data);
         }

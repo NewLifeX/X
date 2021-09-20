@@ -257,7 +257,7 @@ namespace NewLife.Reflection
                 {
                     // 如果不是;和}结尾，则增加分号
                     var last = code[code.Length - 1];
-                    if (last != ';' && last != '}') code += ";";
+                    if (last is not ';' and not '}') code += ";";
                 }
                 code = $"\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{code}\r\n\t\t}}";
             }

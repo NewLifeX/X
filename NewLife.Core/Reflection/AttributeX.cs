@@ -13,7 +13,7 @@ namespace NewLife
     public static class AttributeX
     {
         #region 静态方法
-#if NET4
+#if NET40
         /// <summary>获取自定义属性</summary>
         /// <typeparam name="TAttribute"></typeparam>
         /// <param name="member"></param>

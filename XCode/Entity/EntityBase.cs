@@ -47,7 +47,7 @@ namespace XCode
         /// <returns></returns>
         public abstract Int32 Delete();
 
-#if !NET4
+#if !NET40
         /// <summary>把该对象持久化到数据库</summary>
         /// <returns></returns>
         public abstract Task<Int32> InsertAsync();

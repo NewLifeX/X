@@ -24,8 +24,10 @@ using NewLife.Data;
 using System.Threading.Tasks;
 using NewLife.Configuration;
 using System.Text;
+using NewLife.Http;
+using System.Net.WebSockets;
 
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
@@ -71,7 +73,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test11();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -343,28 +345,56 @@ namespace Test
             if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
-        private static void Test5()
+        private static NetServer _server;
+        private static async void Test5()
         {
-            var type = typeof(DateTime?);
-            var tc = Type.GetTypeCode(type);
-            Console.WriteLine(tc);
-
-            var set = XCode.Setting.Current;
-            set.EntityCacheExpire = 5;
-
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-
-            for (var i = 0; i < 10; i++)
+            var server = new HttpServer
             {
-                LogProvider.Provider.WriteLog("test" + i, "test", true, "xxx");
-            }
+                Port = 8080,
+                Log = XTrace.Log,
+                //SessionLog = XTrace.Log,
+            };
+            server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
+            server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
+            server.MapStaticFiles("/logos", "images/");
+            server.MapStaticFiles("/", "./");
+            server.MapController<ApiController>("/api");
+            server.Map("/my", new MyHttpHandler());
+            server.Map("/ws", new WebSocketHandler());
+            server.Start();
 
-            for (var i = 0; i < 1000; i++)
+            _server = server;
+
+#if NET5_0_OR_GREATER
+            var client = new ClientWebSocket();
+            await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+
+            var buf = new Byte[1024];
+            var rs = await client.ReceiveAsync(buf, default);
+            XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+
+            await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
+            XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+#endif
+        }
+
+        class MyHttpHandler : IHttpHandler
+        {
+            public void ProcessRequest(IHttpContext context)
             {
-                var names = Log.FindAllCategoryName();
-                XTrace.WriteLine("names: {0}", names.Count);
-
-                Thread.Sleep(1000);
+                var name = context.Parameters["name"];
+                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                var files = context.Request.Files;
+                if (files != null && files.Length > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        file.SaveToFile();
+                        html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
+                    }
+                }
+                context.Response.SetResult(html);
             }
         }
 

@@ -36,7 +36,7 @@ namespace NewLife.Caching
         public DbCache(IEntityFactory factory = null, String keyName = null, String timeName = null)
         {
             if (factory == null) factory = MyDbCache.Meta.Factory;
-            if (!(factory.Default is IDbCache)) throw new XCodeException("实体类[{0}]需要实现[{1}]接口", factory.EntityType.FullName, typeof(IDbCache).FullName);
+            if (factory.Default is not IDbCache) throw new XCodeException("实体类[{0}]需要实现[{1}]接口", factory.EntityType.FullName, typeof(IDbCache).FullName);
 
             var name = factory.EntityType.Name;
 

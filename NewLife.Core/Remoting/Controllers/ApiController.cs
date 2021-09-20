@@ -85,12 +85,12 @@ namespace NewLife.Remoting
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
-                LastState = Session["State"],
+                LastState = Session?["State"],
                 Time = DateTime.Now,
             };
 
             // 记录上一次状态
-            Session["State"] = state;
+            if (Session != null) Session["State"] = state;
 
             // 转字典
             var dic = rs.ToDictionary();
@@ -98,7 +98,7 @@ namespace NewLife.Remoting
             // 令牌
             //var token = ctx.Parameters["Token"] + "";
             //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
-            if (!Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
+            if (Session != null && !Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
 
             // 时间和连接数
             if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
@@ -139,7 +139,7 @@ namespace NewLife.Remoting
 
         private Object GetStat()
         {
-            var svc = Host as ApiServer;
+            if (Host is not ApiServer svc) return null;
 
             var dic = new Dictionary<String, Object>
             {

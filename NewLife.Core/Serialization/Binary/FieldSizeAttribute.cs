@@ -80,7 +80,7 @@ namespace NewLife.Serialization
 
             // 目标字段必须是整型
             var tc = Type.GetTypeCode(type);
-            if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mi;
+            if (tc is >= TypeCode.SByte and <= TypeCode.UInt64) return mi;
 
             return null;
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -21,7 +21,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace STOD.Entity
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>历史</summary>
     public partial class History : Entity<History>

@@ -261,7 +261,7 @@ namespace NewLife.Yun
 
             sb.Append(resourcePath);
 
-#if NET50
+#if NET5_0_OR_GREATER
             var parameters = request.Options;
 #else
             var parameters = request.Properties;

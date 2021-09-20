@@ -221,7 +221,7 @@ namespace NewLife.Net
                 var hostAddresses = Dns.GetHostAddresses(hostname);
                 if (hostAddresses == null || hostAddresses.Length <= 0) return null;
 
-                return hostAddresses.Where(d => d.AddressFamily == AddressFamily.InterNetwork || d.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
+                return hostAddresses.Where(d => d.AddressFamily is AddressFamily.InterNetwork or AddressFamily.InterNetworkV6).ToArray();
             }
             catch (SocketException ex)
             {

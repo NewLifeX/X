@@ -475,7 +475,7 @@ namespace NewLife.Reflection
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return Invoke(target, method, null);
+            if (pis == null || pis.Length == 0) return Invoke(target, method, null);
 
             var ps = new Object[pis.Length];
             for (var i = 0; i < pis.Length; i++)
@@ -723,7 +723,7 @@ namespace NewLife.Reflection
             if (type == baseType) return true;
 
             // 如果基类是泛型定义，补充完整，例如IList<>
-#if NET4
+#if NET40
             if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
 #else
             if (baseType.IsGenericTypeDefinition

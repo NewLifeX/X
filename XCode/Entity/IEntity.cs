@@ -63,7 +63,7 @@ namespace XCode
         /// <returns>是否成功加入异步队列</returns>
         Boolean SaveAsync(Int32 msDelay = 0);
 
-#if !NET4
+#if !NET40
         /// <summary>把该对象持久化到数据库</summary>
         /// <returns></returns>
         Task<Int32> InsertAsync();

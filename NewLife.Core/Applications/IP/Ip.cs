@@ -21,8 +21,7 @@ namespace NewLife.IP
 
         static Ip()
         {
-
-#if NET50
+#if NETCOREAPP
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
             var set = Setting.Current;

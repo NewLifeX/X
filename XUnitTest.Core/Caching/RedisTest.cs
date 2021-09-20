@@ -74,7 +74,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间 " + ts);
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间 " + ts);
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
@@ -290,7 +290,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间");
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
@@ -453,17 +453,20 @@ namespace XUnitTest.Caching
             var sw = Stopwatch.StartNew();
 
             // 异步发送
-            ThreadPool.QueueUserWorkItem(s =>
+            var thread = new Thread(s =>
             {
                 Thread.Sleep(100);
 
                 rds.Execute(key, r => r.Execute<Int32>("LPUSH", key, "xxx"), true);
             });
+            thread.Start();
 
-            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 2));
+            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 5));
 
             sw.Stop();
 
+            Assert.NotNull(rs);
+            Assert.Equal(2, rs.Length);
             Assert.Equal(key, rs[0]);
             Assert.Equal("xxx", rs[1]);
             //Assert.True(sw.ElapsedMilliseconds >= 100);
@@ -506,7 +509,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间");
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];

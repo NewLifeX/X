@@ -101,7 +101,7 @@ namespace NewLife.Log
 
         private static void TaskScheduler_UnobservedTaskException(Object? sender, UnobservedTaskExceptionEventArgs e)
         {
-            if (!e.Observed)
+            if (!e.Observed && e.Exception != null)
             {
                 //WriteException(e.Exception);
                 foreach (var ex in e.Exception.Flatten().InnerExceptions)

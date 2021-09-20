@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
-#if NET4
+#if NET40
 namespace System.Runtime.CompilerServices
 {
     internal struct AsyncMethodBuilderCore

@@ -49,6 +49,17 @@ namespace NewLife
             return buf.ToHex(0, 8);
         }
 
+        /// <summary>计算文件的MD5散列</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static Byte[] MD5(this FileInfo file)
+        {
+            if (_md5 == null) _md5 = new MD5CryptoServiceProvider();
+
+            using var fs = file.OpenRead();
+            return _md5.ComputeHash(fs);
+        }
+
         /// <summary>Crc散列</summary>
         /// <param name="data"></param>
         /// <returns></returns>

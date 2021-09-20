@@ -112,8 +112,8 @@ namespace NewLife.Common
         #endregion
         #endregion
 
-#if NET50
-        static PinYin() { Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); }
+#if NETCOREAPP
+        static PinYin() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
 
         /// <summary>取拼音第一个字段</summary>        

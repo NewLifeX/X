@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;net46;netstandard2.0;net5.0</TargetFrameworks>
+    <TargetFrameworks>net40;net45;net46;netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.10.2021.0723-beta1</Version>
-    <FileVersion>8.10.2021.0723</FileVersion>
-    <AssemblyVersion>8.10.*</AssemblyVersion>
+    <Version>8.11.2021.0904</Version>
+    <FileVersion>8.11.2021.0904</FileVersion>
+    <AssemblyVersion>8.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -24,7 +24,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>增强分布式锁</PackageReleaseNotes>
+    <PackageReleaseNotes>增强HttpServer对WebSocket和文件上传的支持；修正NET40/NET45粘包处理问题；优化Packet.IndexOf</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -39,22 +39,28 @@
     </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET45</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
+    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;STD20</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
-    <DefineConstants>$(DefineConstants);__CORE__;STD21</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
+    <DefineConstants>$(DefineConstants);__CORE__;__WIN__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
@@ -83,6 +89,15 @@
     <Reference Include="System.Management" />
     <PackageReference Include="System.Net.Http" Version="2.0.20710" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Management" />
+    <PackageReference Include="Microsoft.WindowsDesktop.App.Ref" Version="5.0" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <Compile Remove="Web\OAuth\**" />
@@ -94,7 +109,6 @@
   <ItemGroup>
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\HttpClient.cs" />
-    <Compile Remove="Http\HttpSession.cs" />
     <Compile Remove="Net\NetException.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />

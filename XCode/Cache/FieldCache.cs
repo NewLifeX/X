@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XCode.Configuration;
 using NewLife;
-#if !NET4
+#if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 

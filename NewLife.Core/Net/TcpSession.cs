@@ -91,7 +91,7 @@ namespace NewLife.Net
                 var sslStream = new SslStream(ns, false);
 
                 var sp = SslProtocol;
-#if !NET50
+#if NET40_OR_GREATER
                 if (sp == SslProtocols.None) sp = SslProtocols.Default;
 #endif
 

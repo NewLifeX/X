@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
@@ -132,27 +131,6 @@ namespace XCode
             }
         }
 
-        //private String _TableNameWithPrefix;
-        ///// <summary>带前缀的表名</summary>
-        //public virtual String TableNameWithPrefix
-        //{
-        //    get
-        //    {
-        //        if (_TableNameWithPrefix.IsNullOrEmpty())
-        //        {
-        //            var str = TableName;
-
-        //            // 检查自动表前缀
-        //            var db = Dal.Db;
-        //            var pf = db.TablePrefix;
-        //            if (!pf.IsNullOrEmpty() && !str.StartsWithIgnoreCase(pf)) str = pf + str;
-
-        //            _TableNameWithPrefix = str;
-        //        }
-        //        return _TableNameWithPrefix;
-        //    }
-        //}
-
         private EntitySession<TEntity> _Default;
         /// <summary>该实体类的默认会话。</summary>
         private EntitySession<TEntity> Default
@@ -189,7 +167,7 @@ namespace XCode
         public Boolean WaitForInitData(Int32 ms = 3000)
         {
             // 已初始化
-            if (hasCheckInitData) return true;
+            if (hasCheckInitData || Table.IsView) return true;
 
             var tid = Thread.CurrentThread.ManagedThreadId;
 
@@ -266,8 +244,8 @@ namespace XCode
                     if (name.Contains(".")) name = name.Substring(".");
 
                     table.TableName = name;
-                    FixIndexName(table);
                 }
+                //FixIndexName(table);
 
                 dal.SetTables(table);
             }
@@ -281,35 +259,13 @@ namespace XCode
             }
         }
 
-        void FixIndexName(IDataTable table)
-        {
-            // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
-            if (table.Indexes != null)
-            {
-                foreach (var di in table.Indexes)
-                {
-                    if (!di.Name.IsNullOrEmpty()) continue;
-
-                    var sb = Pool.StringBuilder.Get();
-                    sb.AppendFormat("IX_{0}", TableName);
-                    foreach (var item in di.Columns)
-                    {
-                        sb.Append('_');
-                        sb.Append(item);
-                    }
-
-                    di.Name = sb.Put(true);
-                }
-            }
-        }
-
         private Boolean IsGenerated => ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null;
         Boolean _hasCheckModel = false;
         readonly Object _checkLock = new();
         /// <summary>检查模型。依据反向工程设置、是否首次使用检查、是否已常规检查等</summary>
         private void CheckModel()
         {
-            if (_hasCheckModel) return;
+            if (_hasCheckModel || Table.IsView) return;
             lock (_checkLock)
             {
                 if (_hasCheckModel) return;
@@ -457,7 +413,6 @@ namespace XCode
                 }
 
                 // 来到这里，是第一次访问
-
                 CheckModel();
 
                 // 从配置读取
@@ -502,22 +457,23 @@ namespace XCode
                     Table = FormatedTableName,
                     OrderBy = TableItem.Identity.Desc()
                 };
+                FixBuilder(builder);
                 var ds = dal.Query(builder, 0, 1);
                 if (ds.Columns.Length > 0 && ds.Rows.Count > 0)
                     count = Convert.ToInt64(ds.Rows[0][0]);
             }
 
             // 100w数据时，没有预热Select Count需要3000ms，预热后需要500ms
-            if (count <= 0 || count >= 1_000_000) count = dal.Session.QueryCountFast(FormatedTableName);
+            if ((count <= 0 || count >= 1_000_000) && !Table.IsView) count = dal.Session.QueryCountFast(FormatedTableName);
 
             // 查真实记录数，修正FastCount不够准确的情况
-            if (count >= 0 && count < 10_000_000)
+            if (/*count >= 0 &&*/ count < 10_000_000)
             {
                 var builder = new SelectBuilder
                 {
                     Table = FormatedTableName
                 };
-
+                FixBuilder(builder);
                 count = dal.SelectCount(builder);
             }
 
@@ -590,6 +546,8 @@ namespace XCode
         {
             InitData();
 
+            FixBuilder(builder);
+
             return GetDAL(true).Query(builder, startRowIndex, maximumRows);
         }
 
@@ -610,6 +568,8 @@ namespace XCode
         {
             InitData();
 
+            FixBuilder(builder);
+
             return GetDAL(true).SelectCount(builder);
         }
 
@@ -621,6 +581,14 @@ namespace XCode
             InitData();
 
             return GetDAL(true).SelectCount(sql, CommandType.Text, null);
+        }
+
+        private void FixBuilder(SelectBuilder builder)
+        {
+            if (Table.IsView && builder.Table == FormatedTableName)
+            {
+                builder.Table = $"({Factory.Template.GetSql(Dal.DbType)}) SourceTable";
+            }
         }
 
         /// <summary>执行</summary>
@@ -812,6 +780,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Insert(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Insert(this, entity);
 
             var e = entity as TEntity;
@@ -830,6 +800,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Update(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Update(this, entity);
 
             var e = entity as TEntity;
@@ -848,6 +820,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Int32 Delete(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.Delete(this, entity);
 
             var e = entity as TEntity;
@@ -870,6 +844,8 @@ namespace XCode
         /// <returns></returns>
         public virtual async Task<Int32> InsertAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = await Factory.Persistence.InsertAsync(this, entity);
 
             var e = entity as TEntity;
@@ -888,6 +864,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Task<Int32> UpdateAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.UpdateAsync(this, entity);
 
             var e = entity as TEntity;
@@ -906,6 +884,8 @@ namespace XCode
         /// <returns></returns>
         public virtual Task<Int32> DeleteAsync(IEntity entity)
         {
+            if (Table.IsView) throw new NotSupportedException("视图无法添删改！");
+
             var rs = Factory.Persistence.DeleteAsync(this, entity);
 
             var e = entity as TEntity;

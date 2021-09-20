@@ -1,160 +1,207 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
-using System.Net.Sockets;
+using System.Web;
 using NewLife.Data;
 using NewLife.Net;
+using NewLife.Serialization;
 
 namespace NewLife.Http
 {
     /// <summary>Http会话</summary>
-    public class HttpSession : TcpSession
+    public class HttpSession : NetSession
     {
         #region 属性
-        /// <summary>是否WebSocket</summary>
-        public Boolean IsWebSocket { get; set; }
-
-        ///// <summary>是否启用SSL</summary>
-        //public Boolean IsSSL { get; set; }
-
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
 
-        /// <summary>响应</summary>
-        public HttpResponse Response { get; set; }
-        #endregion
-
-        #region 构造
-        internal HttpSession(ISocketServer server, Socket client) : base(server, client)
-        {
-            Name = GetType().Name;
-            //Remote.Port = 80;
-            Remote.Type = server.Local.Type;
-            Remote.EndPoint = client.RemoteEndPoint as IPEndPoint;
-
-            //DisconnectWhenEmptyData = false;
-            ProcessAsync = false;
-            MatchEmpty = true;
-
-            // 添加过滤器
-            if (SendFilter == null) SendFilter = new HttpResponseFilter { Session = this };
-        }
+        private WebSocket _websocket;
+        private MemoryStream _cache;
         #endregion
 
         #region 收发数据
-        /// <summary>处理收到的数据</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
-        protected override Boolean OnReceive(Packet pk, IPEndPoint remote)
+        /// <summary>收到客户端发来的数据</summary>
+        /// <param name="e"></param>
+        protected override void OnReceive(ReceivedEventArgs e)
         {
-            if (pk == null || pk.Count == 0) return true;
-
-            /*
-             * 解析流程：
-             *  首次访问或过期，创建请求对象
-             *      判断头部是否完整
-             *          --判断主体是否完整
-             *              触发新的请求
-             *          --加入缓存
-             *      加入缓存
-             *  触发收到数据
-             */
-
-            var header = Request;
-
-            // 是否全新请求
-            if (header == null || !IsWebSocket && (header.Expire < DateTime.Now || header.IsCompleted))
+            if (e.Packet.Total == 0 /*|| !HttpBase.FastValidHeader(e.Packet)*/)
             {
-                var req = new HttpRequest { Expire = DateTime.Now.AddSeconds(5) };
+                base.OnReceive(e);
+                return;
+            }
 
-                // 分析头部
-                if (req.ParseHeader(pk))
+            // WebSocket 数据
+            if (_websocket != null)
+            {
+                _websocket.Process(e.Packet);
+
+                base.OnReceive(e);
+                return;
+            }
+
+            var req = Request;
+            var request = new HttpRequest();
+            if (request.Parse(e.Packet))
+            {
+                req = Request = request;
+
+                WriteLog("{0} {1}", request.Method, request.Url);
+
+                _websocket = null;
+                OnNewRequest(request, e);
+
+                // 后面还有数据包，克隆缓冲区
+                if (req.IsCompleted)
+                    _cache = null;
+                else
                 {
-                    Request = header = req;
-                    Response = new HttpResponse();
-#if DEBUG
-                    WriteLog("{0} {1}", header.Method, header.Url);
-#endif
+                    // 限制最大请求为1G
+                    if (req.ContentLength > 1 * 1024 * 1024 * 1024)
+                    {
+                        var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
+                        Send(rs.Build());
+
+                        Dispose();
+
+                        return;
+                    }
+
+                    _cache = new MemoryStream(req.ContentLength);
+                    req.Body.CopyTo(_cache);
+                    //req.Body = req.Body.Clone();
+                }
+            }
+            else if (req != null)
+            {
+                // 链式数据包
+                //req.Body.Append(e.Packet.Clone());
+                e.Packet.CopyTo(_cache);
+
+                if (_cache.Length >= req.ContentLength)
+                {
+                    _cache.Position = 0;
+                    req.Body = new Packet(_cache);
+                    _cache = null;
                 }
             }
 
-            // 增加主体长度
-            header.BodyLength += pk.Count;
-
-            // WebSocket
-            if (CheckWebSocket(ref pk, remote)) return true;
-
-            if (!IsWebSocket && !header.ParseBody(ref pk)) return true;
-
-            base.OnReceive(pk, remote);
-
-            // 如果还有响应，说明还没发出
-            var rs = Response;
-            if (rs == null) return true;
-
-            // 请求内容为空
-            //var html = "请求 {0} 内容未处理！".F(Request.Url);
-            var html = "{0} {1} {2}".F(Request.Method, Request.Url, DateTime.Now);
-            Send(new Packet(html.GetBytes()));
-
-            return true;
-        }
-        #endregion
-
-        #region Http服务端
-        class HttpResponseFilter : FilterBase
-        {
-            public HttpSession Session { get; set; }
-
-            protected override Boolean OnExecute(FilterContext context)
+            // 收到全部数据后，触发请求处理
+            if (req != null && req.IsCompleted)
             {
-                var pk = context.Packet;
-                var ss = Session;
+                var rs = ProcessRequest(req, e);
+                if (rs != null)
+                {
+                    var server = (this as INetSession).Host as HttpServer;
+                    if (!server.ServerName.IsNullOrEmpty() && !rs.Headers.ContainsKey("Server")) rs.Headers["Server"] = server.ServerName;
 
-                if (ss.IsWebSocket)
-                    pk = HttpHelper.MakeWS(pk);
-                else
-                    pk = ss.Response.Build(pk);
-                ss.Response = null;
+                    var closing = !req.KeepAlive && _websocket == null;
+                    if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
-                context.Packet = pk;
-#if DEBUG
-                //Session.WriteLog(pk.ToStr());
-#endif
+                    Send(rs.Build());
 
-                return true;
+                    if (closing) Dispose();
+                }
             }
-        }
-        #endregion
 
-        #region WebSocket
-        /// <summary>检查WebSocket</summary>
-        /// <param name="pk"></param>
-        /// <param name="remote"></param>
+            base.OnReceive(e);
+        }
+
+        /// <summary>收到新的Http请求，只有头部</summary>
+        /// <param name="request"></param>
+        /// <param name="e"></param>
+        protected virtual void OnNewRequest(HttpRequest request, ReceivedEventArgs e) { }
+
+        /// <summary>处理Http请求</summary>
+        /// <param name="request"></param>
+        /// <param name="e"></param>
         /// <returns></returns>
-        protected virtual Boolean CheckWebSocket(ref Packet pk, IPEndPoint remote)
+        protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
-            if (!IsWebSocket)
+            if (request?.Url == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+
+            // 匹配路由处理器
+            var server = (this as INetSession).Host as HttpServer;
+            var path = request.Url.OriginalString;
+            var p = path.IndexOf('?');
+            if (p > 0) path = path.Substring(0, p);
+
+            // 路径安全检查，防止越界
+            if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
+
+            var handler = server.MatchHandler(path);
+            if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+
+            var context = new DefaultHttpContext
             {
-                var key = Request["Sec-WebSocket-Key"];
-                if (key.IsNullOrEmpty()) return false;
+                Connection = this,
+                Request = request,
+                Response = new HttpResponse(),
+                Path = path,
+                Handler = handler,
+            };
 
-                WriteLog("WebSocket Handshake {0}", key);
-
-                // 发送握手
-                HttpHelper.Handshake(key, Response);
-                Send(null);
-
-                IsWebSocket = true;
-                DisconnectWhenEmptyData = false;
-            }
-            else
+            try
             {
-                pk = HttpHelper.ParseWS(pk);
+                PrepareRequest(context);
 
-                return base.OnReceive(pk, remote);
+                // 处理 WebSocket 握手
+                if (_websocket == null) _websocket = WebSocket.Handshake(context);
+
+                handler.ProcessRequest(context);
+            }
+            catch (Exception ex)
+            {
+                context.Response.SetResult(ex);
             }
 
-            return true;
+            return context.Response;
+        }
+
+        /// <summary>准备请求参数</summary>
+        /// <param name="context"></param>
+        protected virtual void PrepareRequest(IHttpContext context)
+        {
+            var req = context.Request;
+            var ps = context.Parameters;
+
+            //// 头部参数
+            //ps.Merge(req.Headers);
+
+            // 地址参数
+            var url = req.Url.OriginalString;
+            var p = url.IndexOf('?');
+            if (p > 0)
+            {
+                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&")
+                    .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
+                ps.Merge(qs);
+            }
+
+            // 提交参数
+            if (req.Method == "POST" && req.BodyLength > 0)
+            {
+                var body = req.Body;
+                if (req.ContentType.EqualIgnoreCase("application/x-www-urlencoded", "application/x-www-form-urlencoded"))
+                {
+                    var qs = body.ToStr().SplitAsDictionary("=", "&")
+                        .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
+                    ps.Merge(qs);
+                }
+                else if (req.ContentType.StartsWithIgnoreCase("multipart/form-data;"))
+                {
+                    var dic = req.ParseFormData();
+                    var fs = dic.Values.Where(e => e is FormFile).Cast<FormFile>().ToArray();
+                    if (fs.Length > 0) req.Files = fs;
+                    ps.Merge(dic);
+                }
+                else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
+                {
+                    var js = JsonParser.Decode(body.ToStr());
+                    ps.Merge(js);
+                }
+            }
         }
         #endregion
     }

@@ -112,7 +112,7 @@ namespace NewLife.Net
                 AF_INET,
                 TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL,
                 0);
-            if (ret != 0 && ret != 122) // 122 insufficient buffer size
+            if (ret is not 0 and not 122) // 122 insufficient buffer size
                 throw new Exception("bad ret on check " + ret);
             var buffTable = Marshal.AllocHGlobal(buffSize);
 

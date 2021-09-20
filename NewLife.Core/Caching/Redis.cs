@@ -170,6 +170,9 @@ namespace NewLife.Caching
 
                 if (dic.TryGetValue("MaxMessageSize", out str) && str.ToInt(-1) >= 0)
                     MaxMessageSize = str.ToInt();
+
+                if (dic.TryGetValue("Expire", out str) && str.ToInt(-1) >= 0)
+                    Expire = str.ToInt();
             }
 
             // 更换Redis连接字符串时，清空原连接池
@@ -345,7 +348,7 @@ namespace NewLife.Caching
                 }
                 catch (Exception ex)
                 {
-                    if (ex is SocketException || ex is IOException)
+                    if (ex is SocketException or IOException)
                     {
                         // 销毁连接
                         client.TryDispose();
@@ -370,7 +373,7 @@ namespace NewLife.Caching
             } while (true);
         }
 
-#if NET4
+#if NET40
         /// <summary>异步执行命令</summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">命令key，用于选择集群节点</param>
@@ -691,10 +694,10 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
-            //if (expire < 0) expire = Expire;
+            if (expire < 0) expire = Expire;
 
-            // 没有有效期，直接使用SETNX
-            if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
+            //// 没有有效期，直接使用SETNX
+            //if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
 
             // 带有有效期，需要判断版本是否支持
             var inf = Info;

@@ -35,7 +35,7 @@ namespace NewLife.Configuration
                 if (str.IsNullOrEmpty()) continue;
 
                 // 读取注释
-                if (str[0] == '#' || str[0] == ';')
+                if (str[0] is '#' or ';')
                 {
                     remark = str.TrimStart('#', ';').Trim();
                     continue;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using NewLife;
 
 namespace XCode.DataAccessLayer
 {
@@ -9,21 +8,6 @@ namespace XCode.DataAccessLayer
     abstract class FileDbBase : DbBase
     {
         #region 属性
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    builder[_.DataSource] = Path.GetTempFileName();
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
-
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             base.OnSetConnectionString(builder);
@@ -31,16 +15,13 @@ namespace XCode.DataAccessLayer
             //if (!builder.TryGetValue(_.DataSource, out file)) return;
             // 允许空，当作内存数据库处理
             //builder.TryGetValue(_.DataSource, out var file);
-            var file = builder[_.DataSource];
+            var file = builder["Data Source"];
             file = OnResolveFile(file);
-            builder[_.DataSource] = file;
+            builder["Data Source"] = file;
             DatabaseName = file;
         }
 
         protected virtual String OnResolveFile(String file) => ResolveFile(file);
-
-        ///// <summary>文件</summary>
-        //public String FileName { get; set; }
         #endregion
     }
 

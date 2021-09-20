@@ -23,7 +23,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>日志</summary>
     public partial class Log2 : Entity<Log2>

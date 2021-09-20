@@ -375,7 +375,7 @@ namespace XCode.DataAccessLayer
             if (field.RawType == "enum")
             {
                 // PostgreSQL中没有布尔型，这里处理YN枚举作为布尔型
-                if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')")
+                if (field.RawType is "enum('N','Y')" or "enum('Y','N')")
                 {
                     field.DataType = typeof(Boolean);
                     //// 处理默认值
