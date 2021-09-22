@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
+
 using NewLife.Threading;
 
 namespace NewLife.Configuration
@@ -48,17 +49,27 @@ namespace NewLife.Configuration
                             {
                                 // 创建提供者
                                 var att = typeof(TConfig).GetCustomAttribute<ConfigAttribute>(true);
-                                prv = ConfigProvider.Create(att?.Provider);
-
-                                if (prv is ConfigProvider prv2)
+                                var value = att?.Name;
+                                if (value.IsNullOrEmpty())
                                 {
-                                    var value = att?.Name;
-                                    if (value.IsNullOrEmpty())
-                                    {
-                                        value = typeof(TConfig).Name;
-                                        if (value.EndsWith("Config") && value != "Config") value = value.TrimEnd("Config");
-                                        if (value.EndsWith("Setting") && value != "Setting") value = value.TrimEnd("Setting");
-                                    }
+                                    value = typeof(TConfig).Name;
+                                    if (value.EndsWith("Config") && value != "Config") value = value.TrimEnd("Config");
+                                    if (value.EndsWith("Setting") && value != "Setting") value = value.TrimEnd("Setting");
+                                }
+                                prv = ConfigProvider.Create(att?.Provider);
+                                if (prv is HttpConfigProvider _prv && att is HttpConfigAttribute _att)
+                                {
+                                    _prv.Server = _att.Server;
+                                    _prv.Action = _att.Action;
+                                    _prv.AppId = _att.AppId;
+                                    _prv.Secret = _att.Secret;
+                                    _prv.Scope = _att.Scope;
+                                    _prv.CacheLevel = _att.CacheLevel;
+                                    _prv.Init(value);
+                                }
+                                else if (prv is ConfigProvider prv2)
+                                {
+
 
                                     prv2.Init(value);
                                 }
