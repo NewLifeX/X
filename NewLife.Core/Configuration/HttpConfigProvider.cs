@@ -17,7 +17,8 @@ namespace NewLife.Configuration
         #region 属性
         /// <summary>服务器</summary>
         public String Server { get; set; }
-
+        /// <summary>服务操作 默认:Config/GetAll</summary>
+        public String Action { get; set; } = "Config/GetAll";
         /// <summary>应用标识</summary>
         public String AppId { get; set; }
 
@@ -134,7 +135,7 @@ namespace NewLife.Configuration
             }
             else
             {
-                var rs = client.Post<IDictionary<String, Object>>("Config/GetAll", new
+                var rs = client.Post<IDictionary<String, Object>>(Action, new
                 {
                     appId = AppId,
                     secret = Secret,
@@ -170,7 +171,7 @@ namespace NewLife.Configuration
         public override void Init(String value)
         {
             // 本地缓存
-            var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
+            var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetFullPath();
             if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
             {
                 var json = File.ReadAllText(file);
