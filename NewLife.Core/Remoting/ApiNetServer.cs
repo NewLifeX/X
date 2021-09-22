@@ -109,7 +109,9 @@ namespace NewLife.Remoting
             var controller = api.Controller;
             if (controller != null) return controller;
 
-            controller = api.Type.CreateInstance();
+            controller = _Host.ServiceProvider?.GetService(api.Type);
+
+            if (controller == null) controller = api.Type.CreateInstance();
 
             return controller;
         }

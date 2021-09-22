@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -159,6 +161,49 @@ namespace XUnitTest.Remoting
 
                 return buf;
             }
+        }
+
+        [Fact]
+        public void ServiceProviderTest()
+        {
+            var cache = new MemoryCache();
+            var ioc = ObjectContainer.Current;
+            ioc.AddSingleton<ICache>(cache);
+            ioc.AddTransient<SPService>();
+
+            using var server = new ApiServer(12349);
+            server.ServiceProvider = ioc.BuildServiceProvider();
+            server.Log = XTrace.Log;
+
+            server.Register<SPController>();
+            server.Start();
+
+            using var client = new ApiClient("tcp://127.0.0.1:12349");
+            var rs = client.Invoke<Int64>("SP/Test", new { key = "stone" });
+            Assert.Equal(123, rs);
+        }
+
+        class SPController
+        {
+            private readonly ICache _cache;
+            private readonly SPService _service;
+
+            public SPController(ICache cache, SPService service)
+            {
+                _cache = cache;
+                _service = service;
+            }
+
+            public Int64 Test(String key) => _service.Test(key);
+        }
+
+        class SPService
+        {
+            private readonly ICache _cache;
+
+            public SPService(ICache cache) => _cache = cache;
+
+            public Int64 Test(String key) => _cache.Increment(key, 123);
         }
     }
 }
