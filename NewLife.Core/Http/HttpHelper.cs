@@ -248,9 +248,13 @@ namespace NewLife.Http
             HttpContent content = null;
             if (data != null)
             {
-                content = data is IDictionary<String, String> dic
-                    ? new FormUrlEncodedContent(dic)
-                    : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""));
+                content = data is String str
+                    ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
+                    : (
+                        data is IDictionary<String, String> dic
+                        ? new FormUrlEncodedContent(dic)
+                        : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
+                    );
             }
 
             client.AddHeaders(headers);

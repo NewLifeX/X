@@ -88,6 +88,8 @@ namespace NewLife.Remoting
                 pk = acc.ToPacket();
             else if (args is Byte[] buf)
                 pk = new Packet(buf);
+            else if (args is String str2)
+                pk = str2.GetBytes();
             else if (args != null)
             {
                 str = args.ToJson(false, false, false);
@@ -122,6 +124,8 @@ namespace NewLife.Remoting
                 pk = acc.ToPacket();
             else if (value is Byte[] buf)
                 pk = new Packet(buf);
+            else if (value is String str2)
+                pk = str2.GetBytes();
             else if (value != null)
             {
                 // 不支持序列化异常
