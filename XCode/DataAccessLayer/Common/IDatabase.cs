@@ -85,6 +85,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>表名、字段名大小写设置。（No 保持原样输出、Upper 全大写、Lower全小写）</summary>
         NameFormats NameFormat { get; set; }
+
+        /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
+        Int32 CommandTimeout { get; set; }
         #endregion
 
         #region 方法
