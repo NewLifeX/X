@@ -90,6 +90,7 @@
   <ItemGroup>
     <Compile Remove="DataAccessLayer\Common\ConnectionPool.cs" />
     <Compile Remove="DataAccessLayer\Database\Firebird.cs" />
+    <Compile Remove="Membership\IPasswordProvider.cs" />
     <Compile Remove="Membership\MenuProvider.cs" />
     <Compile Remove="Membership\用户在线.Biz.cs" />
     <Compile Remove="Membership\用户在线.cs" />

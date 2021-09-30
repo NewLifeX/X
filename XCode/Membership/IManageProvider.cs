@@ -4,6 +4,7 @@ using System.Threading;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Model;
+using NewLife.Security;
 
 namespace XCode.Membership
 {
