@@ -41,12 +41,16 @@ namespace NewLife.Security
         /// <summary>算法。支持md5/sha1/sha512</summary>
         public String Algorithm { get; set; } = "sha512";
 
+        /// <summary>使用Unix秒作为盐值。该值为允许的最大时间差，默认0，不使用时间盐值，而是使用随机字符串</summary>
+        /// <remarks>一般在传输中使用，避免临时盐值被截取作为它用，建议值30秒。不仅仅是传输耗时，还有两端时间差</remarks>
+        public Int32 SaltTime { get; set; }
+
         /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
         /// <param name="password">密码</param>
         /// <returns></returns>
         public String Hash(String password)
         {
-            var salt = NextString(16);
+            var salt = CreateSalt();
             var hash = Algorithm switch
             {
                 "md5" => (password.MD5() + salt).MD5(),
@@ -60,11 +64,13 @@ namespace NewLife.Security
 
         private static readonly String _cs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./";
 
-        /// <summary>返回指定长度随机字符串</summary>
-        /// <param name="length">长度</param>
+        /// <summary>创建盐值</summary>
         /// <returns></returns>
-        private static String NextString(Int32 length)
+        protected virtual String CreateSalt()
         {
+            if (SaltTime > 0) return DateTime.Now.ToUniversalTime().ToInt().ToString();
+
+            var length = 16;
             var sb = Pool.StringBuilder.Get();
             for (var i = 0; i < length; i++)
             {
@@ -90,6 +96,13 @@ namespace NewLife.Security
             if (ss.Length != 4) throw new NotSupportedException("不支持的密码哈希值");
 
             var salt = ss[2];
+            if (SaltTime > 0)
+            {
+                // Unix秒作为盐值，时间差不得超过 SaltTime
+                var t = DateTime.Now.ToUniversalTime().ToInt() - salt.ToInt();
+                if (Math.Abs(t) > SaltTime) return false;
+            }
+
             switch (ss[1])
             {
                 case "md5":
