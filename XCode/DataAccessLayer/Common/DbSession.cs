@@ -447,7 +447,8 @@ namespace XCode.DataAccessLayer
             cmd.CommandText = sql;
             if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
 
-            var timeout = Setting.Current.CommandTimeout;
+            var timeout = Database.CommandTimeout;
+            if (timeout <= 0) timeout = Setting.Current.CommandTimeout;
             if (timeout > 0) cmd.CommandTimeout = timeout;
 
             return cmd;
@@ -742,7 +743,8 @@ namespace XCode.DataAccessLayer
                 var sql = cmd.CommandText;
 
                 // 诊断信息
-                /*if (XTrace.Log.Level <= LogLevel.Debug)*/ sql = $"[{Database.ConnName}] {sql}";
+                /*if (XTrace.Log.Level <= LogLevel.Debug)*/
+                sql = $"[{Database.ConnName}] {sql}";
 
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)

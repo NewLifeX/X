@@ -138,6 +138,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove(nameof(DataCache), out value) && !value.IsNullOrEmpty()) DataCache = value.ToInt();
             // 反向工程生成sql中表名和字段名称大小写
             if (builder.TryGetAndRemove(nameof(NameFormat), out value) && !value.IsNullOrEmpty()) NameFormat = (NameFormats)Enum.Parse(typeof(NameFormats), value, true);
+            if (builder.TryGetAndRemove(nameof(CommandTimeout), out value) && !value.IsNullOrEmpty()) CommandTimeout = value.ToInt();
 
             // 连接字符串去掉provider，可能有些数据库不支持这个属性
             if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
@@ -193,6 +194,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>批大小。用于批量操作数据，默认5000</summary>
         public Int32 BatchSize { get; set; } = 5_000;
+
+        /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
+        public Int32 CommandTimeout { get; set; }
         #endregion
 
         #region 方法
