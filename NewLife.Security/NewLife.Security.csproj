@@ -6,8 +6,8 @@
     <Description>扩展加密算法</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.10.2021.0505</Version>
-    <FileVersion>8.10.2021.0505</FileVersion>
+    <Version>8.10.2021.1001</Version>
+    <FileVersion>8.10.2021.1001</FileVersion>
     <AssemblyVersion>8.10.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
