@@ -47,6 +47,26 @@ namespace XCode.DataAccessLayer
             return dt.ReadModels<T>();
         }
 
+        /// <summary>查询Sql并映射为结果集，支持分页</summary>
+        /// <typeparam name="T">实体类</typeparam>
+        /// <param name="sql">Sql语句</param>
+        /// <param name="param">参数对象</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public IEnumerable<T> Query<T>(String sql, Object param, Int64 startRowIndex, Int64 maximumRows)
+        {
+            if (IsValueTuple(typeof(T))) throw new InvalidOperationException($"不支持ValueTuple类型[{typeof(T).FullName}]");
+
+            // SqlServer的分页需要知道主键
+            var sql2 =
+                DbType == DatabaseType.SqlServer ?
+                Db.PageSplit(sql, startRowIndex, maximumRows, new SelectBuilder(sql).Key) :
+                Db.PageSplit(sql, startRowIndex, maximumRows, null);
+
+            return Query<T>(sql2, param);
+        }
+
         /// <summary>查询Sql并返回单个结果</summary>
         /// <typeparam name="T">实体类</typeparam>
         /// <param name="sql">Sql语句</param>

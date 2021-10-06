@@ -87,9 +87,11 @@ namespace XCode.DataAccessLayer
 
         #region 构造
         /// <summary>实例化一个SQL语句</summary>
-        public SelectBuilder()
-        {
-        }
+        public SelectBuilder() { }
+
+        /// <summary>实例化一个SQL语句</summary>
+        /// <param name="sql"></param>
+        public SelectBuilder(String sql) => Parse(sql);
         #endregion
 
         #region SQL查询语句基本部分
