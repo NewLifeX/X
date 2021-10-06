@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
@@ -65,6 +66,22 @@ namespace XCode.DataAccessLayer
                 Db.PageSplit(sql, startRowIndex, maximumRows, null);
 
             return Query<T>(sql2, param);
+        }
+
+        /// <summary>查询Sql并映射为结果集，支持分页</summary>
+        /// <typeparam name="T">实体类</typeparam>
+        /// <param name="sql">Sql语句</param>
+        /// <param name="param">参数对象</param>
+        /// <param name="page">分页参数</param>
+        /// <returns></returns>
+        public IEnumerable<T> Query<T>(String sql, Object param, PageParameter page)
+        {
+            if (IsValueTuple(typeof(T))) throw new InvalidOperationException($"不支持ValueTuple类型[{typeof(T).FullName}]");
+
+            var start = (page.PageIndex - 1) * page.PageSize;
+            var max = page.PageSize;
+
+            return Query<T>(sql, param, start, max);
         }
 
         /// <summary>查询Sql并返回单个结果</summary>
