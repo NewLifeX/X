@@ -244,6 +244,7 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            if (timer.Tracer != null) DefaultSpan.Current = null;
             using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:Execute", timer.Timers + "");
             var sw = Stopwatch.StartNew();
             try
@@ -297,6 +298,7 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            if (timer.Tracer != null) DefaultSpan.Current = null;
             using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:ExecuteAsync", timer.Timers + "");
             var sw = Stopwatch.StartNew();
             try
