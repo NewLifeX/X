@@ -14,7 +14,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class TDengineTests
     {
-        private static String _ConnStr = "Server=.;Port=3306;Database=sys;user=root;password=taosdata";
+        private static String _ConnStr = "Server=.;Port=3306;Database=db;user=root;password=taosdata";
 
         public TDengineTests()
         {
@@ -22,7 +22,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             if (File.Exists(f))
                 _ConnStr = File.ReadAllText(f);
             else
-                File.WriteAllText(f, _ConnStr);
+                File.WriteAllText(f.EnsureDirectory(true), _ConnStr);
         }
 
         [Fact]
@@ -74,11 +74,23 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var db = dal.Db;
             var connstr = db.ConnectionString;
-            Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith("CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr);
+            Assert.Equal("db", db.DatabaseName);
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
+        }
+
+        [Fact]
+        public void QueryTest()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var dt = dal.Query("select * from db.t");
+            Assert.NotNull(dt);
+            Assert.Equal(2, dt.Rows.Count);
+            Assert.Equal(2, dt.Columns.Length);
+            Assert.Equal("[{\"ts\":\"2019-07-15 00:00:00\",\"speed\":10},{\"ts\":\"2019-07-15 01:00:00\",\"speed\":20}]", dt.ToJson());
         }
 
         [Fact]

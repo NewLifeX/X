@@ -121,7 +121,7 @@ namespace XCode.TDengine
             var uri = new NetUri(_DataSource);
             if (port > 0) uri.Port = port;
 #if DEBUG
-            XTrace.WriteLine("连接TDengine：server={0};user={1};pass={2};db={3}", uri, user, pass, db);
+            XTrace.WriteLine("连接TDengine：server={0};user={1};pass={2};db={3}", _DataSource, user, pass, db);
 #endif
 
             _handler = TD.Connect(uri.Address + "", user, pass, db, (Int16)uri.Port);

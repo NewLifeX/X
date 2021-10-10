@@ -45,7 +45,7 @@ namespace XCode.TDengine
         public override void Prepare()
         {
             var conn = DbConnection;
-            if (conn?.State != ConnectionState.Open) throw new InvalidOperationException("数据库连接未打卡");
+            if (conn?.State != ConnectionState.Open) throw new InvalidOperationException("数据库连接未打开");
 
             if (CommandText.IsNullOrEmpty()) throw new InvalidOperationException("未设置命令文本");
         }
