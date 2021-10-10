@@ -170,7 +170,7 @@ namespace XCode.TDengine
         public override Int64 GetChars(Int32 ordinal, Int64 dataOffset, Char[] buffer, Int32 bufferOffset, Int32 length)
            => throw new NotSupportedException();
 
-#if NET4
+#if NET40
         /// <summary>获取字段值</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="ordinal"></param>
