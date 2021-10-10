@@ -40,15 +40,6 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>数据库</summary>
         public IDatabase Database { get; }
-
-        /// <summary>查询次数</summary>
-        public Int32 QueryTimes { get; set; }
-
-        /// <summary>执行次数</summary>
-        public Int32 ExecuteTimes { get; set; }
-
-        /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
-        public Int32 ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
         #endregion
 
         #region 打开/关闭
@@ -323,7 +314,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                var orderBy = DbBase.CheckOrderClause(ref sql);
+                _ = DbBase.CheckOrderClause(ref sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
                     sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
@@ -365,11 +356,6 @@ namespace XCode.DataAccessLayer
         public virtual T Execute<T>(DbCommand cmd, Boolean query, Func<DbCommand, T> callback)
         {
             Transaction?.Check(cmd, !query);
-
-            if (query)
-                QueryTimes++;
-            else
-                ExecuteTimes++;
 
             var text = WriteSQL(cmd);
 
@@ -434,7 +420,6 @@ namespace XCode.DataAccessLayer
         /// <remark>
         /// 配置了连接，并关联了事务。
         /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </remark>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -458,13 +443,12 @@ namespace XCode.DataAccessLayer
             var cmd = Database.Factory?.CreateCommand();
             if (cmd == null) return null;
 
-            //if (!Opened) Open();
-            //cmd.Connection = Conn;
             cmd.CommandType = type;
             cmd.CommandText = sql;
             if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
 
-            var timeout = Setting.Current.CommandTimeout;
+            var timeout = Database.CommandTimeout;
+            if (timeout <= 0) timeout = Setting.Current.CommandTimeout;
             if (timeout > 0) cmd.CommandTimeout = timeout;
 
             return cmd;
@@ -498,7 +482,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                var orderBy = DbBase.CheckOrderClause(ref sql);
+                _ = DbBase.CheckOrderClause(ref sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
                     sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
@@ -578,11 +562,6 @@ namespace XCode.DataAccessLayer
         {
             Transaction?.Check(cmd, !query);
 
-            if (query)
-                QueryTimes++;
-            else
-                ExecuteTimes++;
-
             var text = WriteSQL(cmd);
 
             return ProcessAsync(conn =>
@@ -652,11 +631,7 @@ namespace XCode.DataAccessLayer
         /// <summary>清空数据表，标识归零</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public virtual Int32 Truncate(String tableName)
-        {
-            var sql = $"Truncate Table {Database.FormatName(tableName)}";
-            return Execute(sql);
-        }
+        public virtual Int32 Truncate(String tableName) => Execute($"Truncate Table {Database.FormatName(tableName)}");
         #endregion
 
         #region 架构
@@ -693,8 +668,6 @@ namespace XCode.DataAccessLayer
 
         private DataTable GetSchemaInternal(DbConnection conn, String key, String collectionName, String[] restrictionValues)
         {
-            QueryTimes++;
-
             DataTable dt = null;
 
             var sw = Stopwatch.StartNew();
@@ -770,7 +743,8 @@ namespace XCode.DataAccessLayer
                 var sql = cmd.CommandText;
 
                 // 诊断信息
-                /*if (XTrace.Log.Level <= LogLevel.Debug)*/ sql = $"[{Database.ConnName}] {sql}";
+                /*if (XTrace.Log.Level <= LogLevel.Debug)*/
+                sql = $"[{Database.ConnName}] {sql}";
 
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)

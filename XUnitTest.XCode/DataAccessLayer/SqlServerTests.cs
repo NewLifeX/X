@@ -7,12 +7,13 @@ using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
     public class SqlServerTests
     {
-        private static String _ConnStr = "Server=.;Database=sys;Uid=root;Pwd=root";
+        private static String _ConnStr = "Server=127.0.0.1;Database=sys;Uid=root;Pwd=root;Connection Timeout=2";
 
         public SqlServerTests()
         {
@@ -20,7 +21,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             if (File.Exists(f))
                 _ConnStr = File.ReadAllText(f);
             else
-                File.WriteAllText(f, _ConnStr);
+                File.WriteAllText(f.EnsureDirectory(), _ConnStr);
         }
 
         [Fact]

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -50,7 +47,7 @@ namespace XUnitTest.Data
         }
 
         [Fact]
-        public void CtorTest3()
+        public void StreamCtor()
         {
             var buf = "Stone".GetBytes();
             var ms = new MemoryStream();
@@ -58,8 +55,25 @@ namespace XUnitTest.Data
             ms.Position = 1;
 
             var pk = new Packet(ms);
+            Assert.Equal(1, ms.Position);
             Assert.Equal(buf.ReadBytes(0, 4), pk.Data.ReadBytes(0, 4));
             Assert.Equal(1, pk.Offset);
+            Assert.Equal(buf.Length - 2, pk.Count);
+            Assert.Equal(buf.Length - 2, pk.Total);
+            Assert.Null(pk.Next);
+        }
+
+        [Fact]
+        public void StreamCtor2()
+        {
+            var buf = "Stone".GetBytes();
+            var ms = new MemoryStream(buf, 0, buf.Length - 1);
+            ms.Position = 1;
+
+            var pk = new Packet(ms);
+            Assert.Equal(1, ms.Position);
+            Assert.Equal(buf.ReadBytes(1, 3), pk.Data.ReadBytes(0, 3));
+            Assert.Equal(0, pk.Offset);
             Assert.Equal(buf.Length - 2, pk.Count);
             Assert.Equal(buf.Length - 2, pk.Total);
             Assert.Null(pk.Next);
@@ -121,6 +135,22 @@ namespace XUnitTest.Data
             var p = pk.IndexOf("on".GetBytes(), 1);
 
             Assert.Equal(2, p);
+        }
+
+        [Fact]
+        public void IndexOfBigTest()
+        {
+            var buf = "Stone ------WebKitFormBoundary3ZXeqQWNjAzojVR7".GetBytes();
+
+            var pk = new Packet(new Byte[1024]);
+            for (var i = 0; i < 5 * 1024; i++)
+            {
+                pk.Append(new Byte[1024]);
+            }
+            pk.Append(buf);
+            var p = pk.IndexOf("------WebKitFormBoundary3ZXeqQWNjAzojVR7".GetBytes(), 1);
+
+            Assert.Equal(pk.Total - buf.Length + 6, p);
         }
 
         [Fact]

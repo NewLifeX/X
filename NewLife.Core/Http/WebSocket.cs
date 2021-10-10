@@ -7,25 +7,33 @@ using NewLife.Security;
 
 namespace NewLife.Http
 {
+    /// <summary>WebSocket消息处理</summary>
+    /// <param name="socket"></param>
+    /// <param name="message"></param>
+    public delegate void WebSocketDelegate(WebSocket socket, WebSocketMessage message);
+
     /// <summary>WebSocket会话管理</summary>
-    public class WebSocketManager
+    public class WebSocket
     {
         #region 属性
-        /// <summary>是否WebSocket连接</summary>
-        public Boolean IsWebSocketRequest { get; set; }
+        /// <summary>是否还在连接</summary>
+        public Boolean Connected { get; set; }
 
         /// <summary>消息处理器</summary>
-        public Action<WebSocketMessage> Handler { get; set; }
+        public WebSocketDelegate Handler { get; set; }
 
         /// <summary>Http上下文</summary>
         public IHttpContext Context { get; set; }
+
+        /// <summary>活跃时间</summary>
+        public DateTime ActiveTime { get; set; }
         #endregion
 
         #region 方法
         /// <summary>WebSocket 握手</summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static WebSocketManager Handshake(IHttpContext context)
+        public static WebSocket Handshake(IHttpContext context)
         {
             var request = context.Request;
             if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return null;
@@ -39,53 +47,52 @@ namespace NewLife.Http
             response.Headers["Connection"] = "Upgrade";
             response.Headers["Sec-WebSocket-Accept"] = key;
 
-            var manager = new WebSocketManager
+            var manager = new WebSocket
             {
-                IsWebSocketRequest = true,
-                Context = context
+                Context = context,
+                Connected = true,
+                ActiveTime = DateTime.Now,
             };
-            if (context is DefaultHttpContext dhc) dhc.WebSockets = manager;
+            if (context is DefaultHttpContext dhc) dhc.WebSocket = manager;
 
             return manager;
         }
 
-        /// <summary>处理WebSocket数据包</summary>
+        /// <summary>处理WebSocket数据包，不支持超大数据帧（默认8k）</summary>
         /// <param name="pk"></param>
         public void Process(Packet pk)
         {
-            if (Handler != null)
+            var message = new WebSocketMessage();
+            if (message.Read(pk))
             {
-                var message = new WebSocketMessage();
-                if (message.Read(pk))
-                {
-                    Handler(message);
+                ActiveTime = DateTime.Now;
 
-                    var session = Context.Connection;
-                    switch (message.Type)
-                    {
-                        case WebSocketMessageType.Close:
-                            {
-                                //var msg = new WebSocketMessage { Type = WebSocketMessageType.Close, Payload = "Finished".GetBytes() };
-                                //session.Send(msg.ToPacket());
-                                Close(1000, "Finished");
-                                session.Dispose();
-                            }
-                            break;
-                        case WebSocketMessageType.Ping:
-                            {
-                                var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
-                                session.Send(msg.ToPacket());
-                            }
-                            break;
-                    }
+                Handler?.Invoke(this, message);
+
+                var session = Context.Connection;
+                switch (message.Type)
+                {
+                    case WebSocketMessageType.Close:
+                        {
+                            Close(1000, "Finished");
+                            session.Dispose();
+                            Connected = false;
+                        }
+                        break;
+                    case WebSocketMessageType.Ping:
+                        {
+                            var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
+                            session.Send(msg.ToPacket());
+                        }
+                        break;
                 }
             }
         }
 
         /// <summary>发送消息</summary>
-        /// <param name="type"></param>
         /// <param name="data"></param>
-        public void Send(WebSocketMessageType type, Packet data)
+        /// <param name="type"></param>
+        public void Send(Packet data, WebSocketMessageType type)
         {
             var msg = new WebSocketMessage { Type = type, Payload = data };
             var session = Context.Connection;
@@ -94,13 +101,13 @@ namespace NewLife.Http
 
         /// <summary>发送文本消息</summary>
         /// <param name="message"></param>
-        public void Send(String message) => Send(WebSocketMessageType.Text, message.GetBytes());
+        public void Send(String message) => Send(message.GetBytes(), WebSocketMessageType.Text);
 
         /// <summary>向所有连接发送消息</summary>
-        /// <param name="type"></param>
         /// <param name="data"></param>
+        /// <param name="type"></param>
         /// <param name="predicate"></param>
-        public void SendAll(WebSocketMessageType type, Packet data, Func<INetSession, Boolean> predicate = null)
+        public void SendAll(Packet data, WebSocketMessageType type, Func<INetSession, Boolean> predicate = null)
         {
             var msg = new WebSocketMessage { Type = type, Payload = data };
             var session = Context.Connection;
@@ -110,7 +117,7 @@ namespace NewLife.Http
         /// <summary>想所有连接发送文本消息</summary>
         /// <param name="message"></param>
         /// <param name="predicate"></param>
-        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(WebSocketMessageType.Text, message.GetBytes(), predicate);
+        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(message.GetBytes(), WebSocketMessageType.Text, predicate);
 
         /// <summary>发送关闭连接</summary>
         /// <param name="closeStatus"></param>

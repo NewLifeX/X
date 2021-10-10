@@ -4,6 +4,7 @@ using System.Threading;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Model;
+using NewLife.Security;
 
 namespace XCode.Membership
 {
@@ -176,7 +177,12 @@ namespace XCode.Membership
         }
 
         /// <summary>注销</summary>
-        public virtual void Logout() => Current = null;
+        public virtual void Logout()
+        {
+            if (Current is IUser user) user.Logout();
+
+            Current = null;
+        }
 
         /// <summary>注册用户</summary>
         /// <param name="username">用户名</param>

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NewLife.Log;
-using XCode.DataAccessLayer;
-using XCode.Membership;
-using Xunit;
-using NewLife.Serialization;
+﻿using NewLife.Log;
 using NewLife.Security;
+using XCode.DataAccessLayer;
+using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.EntityTests
 {

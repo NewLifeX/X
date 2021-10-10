@@ -25,6 +25,10 @@ namespace XCode.Membership
             EntityFactory.Register(typeof(Menu), new MenuFactory());
 
             //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
+
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>

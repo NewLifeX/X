@@ -609,7 +609,7 @@ namespace XCode.DataAccessLayer
 
                     if (list != null && list.Count > 0)
                     {
-                        WriteLog(name + "待检查表架构的实体个数：" + list.Count);
+                        WriteLog("[{0}]待检查表架构的实体个数：{1}", name, list.Count);
 
                         SetTables(list.ToArray());
                     }
@@ -639,7 +639,35 @@ namespace XCode.DataAccessLayer
             //    }
             //}
 
+            foreach (var item in tables)
+            {
+                FixIndexName(item);
+            }
+
             Db.CreateMetaData().SetTables(Db.Migration, tables);
+        }
+
+        void FixIndexName(IDataTable table)
+        {
+            // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+            if (table.Indexes != null)
+            {
+                var pf = Db.TablePrefix;
+                foreach (var di in table.Indexes)
+                {
+                    if (!di.Name.IsNullOrEmpty() && pf.IsNullOrEmpty()) continue;
+
+                    var sb = Pool.StringBuilder.Get();
+                    sb.AppendFormat("IX_{0}", Db.FormatName(table));
+                    foreach (var item in di.Columns)
+                    {
+                        sb.Append('_');
+                        sb.Append(item);
+                    }
+
+                    di.Name = sb.Put(true);
+                }
+            }
         }
         #endregion
     }

@@ -81,7 +81,7 @@ namespace NewLife.Http
 
             foreach (var item in Headers)
             {
-                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
 
             sb.AppendLine();
@@ -113,29 +113,31 @@ namespace NewLife.Http
             }
             else if (result is Packet pk)
             {
-                ContentType = contentType ?? "application/octet-stream";
+                if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
                 Body = pk;
             }
             else if (result is Byte[] buffer)
             {
-                ContentType = contentType ?? "application/octet-stream";
+                if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
                 Body = buffer;
             }
             else if (result is Stream stream)
             {
-                ContentType = contentType ?? "application/octet-stream";
+                if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
                 Body = stream.ReadBytes();
             }
             else if (result is String str)
             {
-                ContentType = contentType ?? "text/html";
+                if (contentType.IsNullOrEmpty()) contentType = "text/html";
                 Body = str.GetBytes();
             }
             else
             {
-                ContentType = contentType ?? "application/json";
+                if (contentType.IsNullOrEmpty()) contentType = "application/json";
                 Body = result.ToJson().GetBytes();
             }
+
+            if (ContentType.IsNullOrEmpty()) ContentType = contentType;
         }
 
         /// <summary>已重载。</summary>

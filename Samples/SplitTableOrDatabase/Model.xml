@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables Version="9.12.7136.19046" NameSpace="STOD.Entity" ConnName="STOD" Output="" BaseClass="Entity" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com https://raw.githubusercontent.com/NewLifeX/X/master/XCode/ModelSchema.xsd" xmlns="http://www.newlifex.com/ModelSchema.xsd">
+<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com https://raw.githubusercontent.com/NewLifeX/X/master/XCode/Model2020.xsd" NameSpace="STOD.Entity" ConnName="STOD" Output="" BaseClass="Entity" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="History" Description="历史">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />

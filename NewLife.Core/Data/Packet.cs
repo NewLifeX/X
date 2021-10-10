@@ -42,7 +42,7 @@ namespace NewLife.Data
         public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
         /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
-        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用</remarks>
+        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
         /// <param name="stream"></param>
         public Packet(Stream stream)
         {
@@ -71,6 +71,9 @@ namespace NewLife.Data
             var buf = new Byte[stream.Length - stream.Position];
             var count = stream.Read(buf, 0, buf.Length);
             Set(buf, 0, count);
+
+            // 必须确保数据流位置不变
+            if (count > 0) stream.Seek(-count, SeekOrigin.Current);
         }
         #endregion
 
@@ -82,12 +85,16 @@ namespace NewLife.Data
         {
             get
             {
-                //超过下标直接报错,谁也不想处理了异常的数据也不知道
-                if (index >= Total || index < 0)
-                    throw new IndexOutOfRangeException($"超出Packet 索引范围 获取的索引{index} Packet最大索引{Total - 1}");
+                // 超过下标直接报错,谁也不想处理了异常的数据也不知道
+                if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
 
                 var p = Offset + index;
-                if (p >= Offset + Count && Next != null) return Next[index - Count];
+                if (p >= Offset + Count)
+                {
+                    if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+
+                    return Next[index - Count];
+                }
 
                 return Data[p];
 
@@ -97,15 +104,18 @@ namespace NewLife.Data
             }
             set
             {
-                if (index >= Total || index < 0)
-                    throw new ArgumentOutOfRangeException($"{index} 索引参数不在Packet索引给定的范围内");
+                if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
 
-                //设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+                // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
                 var p = Offset + index;
-                if (p >= Offset + Count && Next != null)
+                if (p >= Offset + Count)
+                {
+                    if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+
                     Next[p - Data.Length] = value;
-                else
-                    Data[p] = value;
+                }
+
+                Data[p] = value;
                 // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
             }
         }
@@ -178,12 +188,26 @@ namespace NewLife.Data
             var length = data.Length;
 
             if (count < 0 || count > Total - offset) count = Total - offset;
+
+            // 快速查找
+            if (Next == null)
+            {
+                if (start >= Count) return -1;
+
+                //#if NETCOREAPP3_1_OR_GREATER
+                //                var s1 = new Span<Byte>(Data, Offset + offset, count);
+                //                var p = s1.IndexOf(data);
+                //                return p >= 0 ? (p + offset) : -1;
+                //#endif
+                var p = Data.IndexOf(data, Offset + start, count);
+                return p >= 0 ? (p - Offset) : -1;
+            }
+
             // 已匹配字节数
             var win = 0;
-            // 索引加上data剩余字节数必须小于count
+            // 索引加上data剩余字节数必须小于count，否则就是已匹配
             for (var i = 0; i + length - win <= count; i++)
             {
-
                 if (this[start + i] == data[win])
                 {
                     win++;
@@ -197,6 +221,15 @@ namespace NewLife.Data
                     // 不能直接清零，那样会导致数据丢失，需要逐位探测，窗口一个个字节滑动
                     i -= win;
                     win = 0;
+
+                    // 本段分析未匹配，递归下一段
+                    if (start + i == Count && Next != null)
+                    {
+                        var p = Next.IndexOf(data, 0, count - i);
+                        if (p >= 0) return (start + i) + p;
+
+                        break;
+                    }
                 }
             }
 
@@ -214,12 +247,12 @@ namespace NewLife.Data
             p.Next = pk;
         }
 
-        /// <summary>返回字节数组。如果是完整数组直接返回，否则截取</summary>
+        /// <summary>返回字节数组。无差别复制</summary>
         /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
         /// <returns></returns>
         public virtual Byte[] ToArray()
         {
-            if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
+            //if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
 
             if (Next == null) Data.ReadBytes(Offset, Count);
 
@@ -230,13 +263,19 @@ namespace NewLife.Data
             return ms.Put(true);
         }
 
-        /// <summary>从封包中读取指定数据</summary>
+        /// <summary>从封包中读取指定数据，读取全部时直接返回缓冲区</summary>
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
         public Byte[] ReadBytes(Int32 offset = 0, Int32 count = -1)
         {
-            if (offset == 0 && count < 0) return ToArray();
+            // 读取全部
+            if (offset == 0 && count < 0)
+            {
+                if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
+
+                return ToArray();
+            }
 
             if (Next == null) return Data.ReadBytes(Offset + offset, count < 0 || count > Count ? Count : count);
 
@@ -349,7 +388,11 @@ namespace NewLife.Data
         {
             if (Next == null) return new Packet(Data.ReadBytes(Offset, Count));
 
-            return new Packet(ToArray());
+            // 链式包输出
+            var ms = Pool.MemoryStream.Get();
+            CopyTo(ms);
+
+            return new Packet(ms.Put(true));
         }
 
         /// <summary>以字符串表示</summary>

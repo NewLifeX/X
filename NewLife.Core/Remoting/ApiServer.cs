@@ -33,6 +33,9 @@ namespace NewLife.Remoting
         /// <summary>是否使用Http状态。默认false，使用json包装响应码</summary>
         public Boolean UseHttpStatus { get; set; }
 
+        /// <summary>服务提供者。创建控制器实例时使用，可实现依赖注入。务必在注册控制器之前设置该属性</summary>
+        public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
+
         /// <summary>处理统计</summary>
         public ICounter StatProcess { get; set; }
 
@@ -46,6 +49,8 @@ namespace NewLife.Remoting
         {
             var type = GetType();
             Name = type.GetDisplayName() ?? type.Name.TrimEnd("Server");
+
+            Manager = new ApiManager(this);
 
             // 注册默认服务控制器
             Register(new ApiController { Host = this }, null);
@@ -73,11 +78,11 @@ namespace NewLife.Remoting
 
         #region 控制器管理
         /// <summary>接口动作管理器</summary>
-        public IApiManager Manager { get; } = new ApiManager();
+        public IApiManager Manager { get; }
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new() => Manager.Register<TService>();
+        public void Register<TService>() => Manager.Register<TService>();
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>

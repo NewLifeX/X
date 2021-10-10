@@ -48,4 +48,11 @@ namespace NewLife
         public SysConfig Sys { get; set; }
         #endregion
     }
+
+    [HttpConfig("httpCore", "http://127.0.0.1:5000", "api/Base/v1/User/GetAll", "234")]
+    public class HttpConfigModel : Config<HttpConfigModel>
+    {
+        public int id { get; set; }
+        public int ids { get; set; }
+    }
 }

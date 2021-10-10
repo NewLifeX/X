@@ -38,7 +38,7 @@ namespace XUnitTest.Net
             Assert.True(client.RemoteAddress.IsIPv4());
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void BindTest3()
         {
             var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
@@ -48,7 +48,7 @@ namespace XUnitTest.Net
             var client = uri.CreateRemote() as TcpSession;
             client.Open();
 
-            Assert.False(client.RemoteAddress.IsIPv4());
+            Assert.True(client.RemoteAddress.IsIPv4());
         }
 
         [Fact]

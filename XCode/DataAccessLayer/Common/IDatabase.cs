@@ -85,6 +85,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>表名、字段名大小写设置。（No 保持原样输出、Upper 全大写、Lower全小写）</summary>
         NameFormats NameFormat { get; set; }
+
+        /// <summary>命令超时。查询执行超时时间，默认0秒不限制</summary>
+        Int32 CommandTimeout { get; set; }
         #endregion
 
         #region 方法
@@ -153,8 +156,9 @@ namespace XCode.DataAccessLayer
 
         /// <summary>格式化表名，考虑表前缀和Owner</summary>
         /// <param name="table">表</param>
+        /// <param name="formatKeyword">是否格式化关键字</param>
         /// <returns></returns>
-        String FormatName(IDataTable table);
+        String FormatName(IDataTable table, Boolean formatKeyword = true);
 
         /// <summary>格式化字段名，考虑大小写</summary>
         /// <param name="column">字段</param>
@@ -207,9 +211,6 @@ namespace XCode.DataAccessLayer
         /// <param name="model"></param>
         /// <returns></returns>
         IDataParameter[] CreateParameters(Object model);
-
-        /// <summary>获取 或 设置 自动关闭。每次使用完数据库连接后，是否自动关闭连接，高频操作时设为false可提升性能。默认true</summary>
-        Boolean AutoClose { get; set; }
 
         /// <summary>本连接数据只读</summary>
         Boolean Readonly { get; set; }

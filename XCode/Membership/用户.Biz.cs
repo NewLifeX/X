@@ -54,6 +54,10 @@ namespace XCode.Membership
             var sc = Meta.SingleCache;
             sc.FindSlaveKeyMethod = k => Find(__.Name, k);
             sc.GetSlaveKeyMethod = e => e.Name;
+
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
@@ -468,16 +472,8 @@ namespace XCode.Membership
         /// <summary>注销</summary>
         public virtual void Logout()
         {
-            //var user = Current;
-            //var user = this;
-            //if (user != null)
-            //{
-            //    user.Online = false;
-            //    user.SaveAsync();
-            //}
-
-            //Current = null;
-            //Thread.CurrentPrincipal = null;
+            Online = false;
+            SaveAsync();
         }
 
         /// <summary>注册用户。第一注册用户自动抢管理员</summary>

@@ -9,6 +9,7 @@ using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
@@ -137,7 +138,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var dbf = db.GetFullPath();
             if (File.Exists(dbf)) File.Delete(dbf);
 
-            DAL.AddConnStr("SQLite_Table_Prefix", $"Data Source={db}", null, "SQLite");
+            DAL.AddConnStr("SQLite_Table_Prefix", $"Data Source={db};TablePrefix=member_", null, "SQLite");
 
             Role.Meta.ConnName = "SQLite_Table_Prefix";
             //Area.Meta.ConnName = "SQLite_Table_Prefix";
@@ -155,6 +156,14 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var list3 = Role.Search("用户", null);
             Assert.Equal(2, list3.Count);
+
+            User.Meta.ConnName = "SQLite_Table_Prefix";
+            count = User.Meta.Count;
+            Assert.True(count > 0);
+
+            Department.Meta.ConnName = "SQLite_Table_Prefix";
+            count = Department.Meta.Count;
+            Assert.True(count > 0);
 
             // 清理现场
             if (File.Exists(dbf)) File.Delete(dbf);

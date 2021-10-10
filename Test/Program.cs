@@ -73,7 +73,7 @@ namespace Test
                 try
                 {
 #endif
-                Test5();
+                    Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -352,12 +352,14 @@ namespace Test
             {
                 Port = 8080,
                 Log = XTrace.Log,
-                SessionLog = XTrace.Log
+                //SessionLog = XTrace.Log,
             };
             server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.MapStaticFiles("/logos", "images/");
+            server.MapStaticFiles("/", "./");
             server.MapController<ApiController>("/api");
+            server.Map("/my", new MyHttpHandler());
             server.Map("/ws", new WebSocketHandler());
             server.Start();
 
@@ -375,6 +377,25 @@ namespace Test
             await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
             XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
 #endif
+        }
+
+        class MyHttpHandler : IHttpHandler
+        {
+            public void ProcessRequest(IHttpContext context)
+            {
+                var name = context.Parameters["name"];
+                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                var files = context.Request.Files;
+                if (files != null && files.Length > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        file.SaveToFile();
+                        html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
+                    }
+                }
+                context.Response.SetResult(html);
+            }
         }
 
         private static void Test6()

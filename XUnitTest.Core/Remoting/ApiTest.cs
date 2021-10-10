@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -125,6 +128,82 @@ namespace XUnitTest.Remoting
             infs = await client2.InvokeAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(infs);
             Assert.Equal(state, infs["LastState"]);
+        }
+
+        [Fact]
+        public async void BigMessage()
+        {
+            using var server = new ApiServer(12399);
+            server.Log = XTrace.Log;
+            server.EncoderLog = XTrace.Log;
+            server.Register<BigController>();
+            server.Start();
+
+            using var client = new ApiClient("tcp://127.0.0.1:12399");
+
+            var buf = new Byte[5 * 8 * 1024];
+            var rs = await client.InvokeAsync<Packet>("big/test", buf);
+
+            Assert.NotNull(rs);
+            Assert.Equal(buf.Length, rs.Total);
+
+            var buf2 = buf.Select(e => (Byte)(e ^ 'x')).ToArray();
+            Assert.True(rs.ToArray().SequenceEqual(buf2));
+        }
+
+        class BigController
+        {
+            public Packet Test(Packet pk)
+            {
+                Assert.Equal(5 * 8 * 1024, pk.Total);
+
+                var buf = pk.ReadBytes().Select(e => (Byte)(e ^ 'x')).ToArray();
+
+                return buf;
+            }
+        }
+
+        [Fact]
+        public void ServiceProviderTest()
+        {
+            var cache = new MemoryCache();
+            var ioc = ObjectContainer.Current;
+            ioc.AddSingleton<ICache>(cache);
+            ioc.AddTransient<SPService>();
+
+            using var server = new ApiServer(12349);
+            server.ServiceProvider = ioc.BuildServiceProvider();
+            server.Log = XTrace.Log;
+
+            server.Register<SPController>();
+            server.Start();
+
+            using var client = new ApiClient("tcp://127.0.0.1:12349");
+            var rs = client.Invoke<Int64>("SP/Test", new { key = "stone" });
+            Assert.Equal(123, rs);
+        }
+
+        class SPController
+        {
+            private readonly ICache _cache;
+            private readonly SPService _service;
+
+            public SPController(ICache cache, SPService service)
+            {
+                _cache = cache;
+                _service = service;
+            }
+
+            public Int64 Test(String key) => _service.Test(key);
+        }
+
+        class SPService
+        {
+            private readonly ICache _cache;
+
+            public SPService(ICache cache) => _cache = cache;
+
+            public Int64 Test(String key) => _cache.Increment(key, 123);
         }
     }
 }

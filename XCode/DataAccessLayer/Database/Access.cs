@@ -28,25 +28,6 @@ namespace XCode.DataAccessLayer
                 return _dbProviderFactory;
             }
         }
-
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    var name = Path.GetTempFileName();
-                    //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
-
-                    builder[_.DataSource] = name;
-                    builder["Provider"] = "Microsoft.Jet.OLEDB.4.0";
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
         #endregion
 
         #region 方法

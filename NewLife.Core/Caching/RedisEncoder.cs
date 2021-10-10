@@ -60,7 +60,7 @@ namespace NewLife.Caching
             try
             {
                 if (type == typeof(Packet)) return pk;
-                if (type == typeof(Byte[])) return pk.ToArray();
+                if (type == typeof(Byte[])) return pk.ReadBytes();
                 if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
                 var str = pk.ToStr().Trim('\"');

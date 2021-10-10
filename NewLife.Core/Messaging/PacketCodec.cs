@@ -89,7 +89,10 @@ namespace NewLife.Messaging
                 // 尝试解包
                 while (ms.Position < ms.Length)
                 {
-                    var pk2 = new Packet(ms);
+                    // 该方案在NET40/NET45上会导致拷贝大量数据，而读取包头长度没必要拷贝那么多数据，不划算
+                    //var pk2 = new Packet(ms);
+                    // 这里可以肯定能够窃取内部缓冲区
+                    var pk2 = new Packet(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
                     var len = GetLength(pk2);
                     if (len <= 0 || len > pk2.Total) break;
 

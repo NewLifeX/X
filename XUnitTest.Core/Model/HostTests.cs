@@ -25,6 +25,7 @@ namespace XUnitTest.Model
             var host = services.BuildHost();
             host.Add<MyService>();
 
+            // 这里不能长时间阻塞，在应用退出之前，异步不会返回
             //host.Run();
             var task = host.RunAsync();
             task.Wait(3_000);

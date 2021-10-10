@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
+
+using NewLife;
 using NewLife.Configuration;
 using Xunit;
 
@@ -95,6 +97,13 @@ namespace XUnitTest.Configuration
             provider.LoadAll();
         }
 
+        [Fact]
+        public void TestHttpConfigAttribute()
+        {
+            var c = HttpConfigModel.Current;
+            Assert.Equal(111, c.id);
+            Assert.Equal(222, c.ids);
+        }
         private class Model2
         {
             [DataMember(Name = "test1")]

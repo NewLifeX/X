@@ -15,7 +15,7 @@ namespace XUnitTest.Log
         public void CreateTest()
         {
             var p = "LevelLog\\";
-            if (Directory.Exists(p.GetFullPath())) Directory.Delete(p, true);
+            if (Directory.Exists(p.GetFullPath())) Directory.Delete(p.GetFullPath(), true);
 
             var log = new LevelLog(p, "{1}\\{0:yyyy_MM_dd}.log");
             log.Level = LogLevel.All;

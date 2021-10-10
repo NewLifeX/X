@@ -46,7 +46,7 @@ namespace XUnitTest.Net
                 var rs = ns.Read(buf, 0, buf.Length);
             }
 
-            Thread.Sleep(10_000);
+            Thread.Sleep(3_000);
         }
     }
 }
