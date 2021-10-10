@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Log;
 
 #nullable enable
 namespace NewLife.Threading
@@ -66,6 +67,12 @@ namespace NewLife.Threading
         /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
         public Cron? Cron => _cron;
 
+        /// <summary>链路追踪。追踪每一次定时事件</summary>
+        public ITracer? Tracer {  get; set; }
+
+        /// <summary>链路追踪名称。默认使用方法名</summary>
+        public String TracerName { get; set;  }
+
         private DateTime _AbsolutelyNext;
         private Cron? _cron;
         #endregion
@@ -86,6 +93,8 @@ namespace NewLife.Threading
 
             Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             //Scheduler.Add(this);
+
+            TracerName = $"timer:{method.Name}";
         }
 
         private void Init(DateTime nextTime)
