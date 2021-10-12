@@ -63,7 +63,8 @@ namespace NewLife.Caching
                 if (type == typeof(Byte[])) return pk.ReadBytes();
                 if (type.As<IAccessor>()) return type.AccessorRead(pk);
 
-                var str = pk.ToStr().Trim('\"');
+                //var str = pk.ToStr().Trim('\"');
+                var str = pk.ToStr();
                 if (type.GetTypeCode() == TypeCode.String) return str;
                 //if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
                 if (type.GetTypeCode() != TypeCode.Object)
