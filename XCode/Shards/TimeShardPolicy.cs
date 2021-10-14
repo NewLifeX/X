@@ -210,10 +210,10 @@ namespace XCode.Shards
 
             // 构建了一个时间区间 start <= @fi < end
             // 如果两个都是日期，使用 start <= @fi <= end
-            if (start == start.Date && end == end.Date) end = end.AddSeconds(1);
+            //if (start == start.Date && end == end.Date) end = end.AddSeconds(1);
 
             var hash = new HashSet<String>();
-            for (var dt = start.Date; dt < end; dt = dt.Add(Step))
+            for (var dt = start; dt < end; dt = dt.Add(Step))
             {
                 var model = Shard(dt);
                 var key = $"{model.ConnName}#{model.TableName}";
