@@ -113,14 +113,12 @@ namespace NewLife.Log
         #endregion
 
         #region 方法
+        Int32 _inited;
         private void InitTimer()
         {
-            if (_timer == null)
+            if (Interlocked.CompareExchange(ref _inited, 1, 0) == 0)
             {
-                lock (this)
-                {
-                    if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
-                }
+                if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
             }
         }
 
