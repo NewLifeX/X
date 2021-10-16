@@ -8,6 +8,7 @@ namespace XCode.TDengine
     /// </remarks>
     public class TDengineFactory : DbProviderFactory
     {
+        #region 基础
         private TDengineFactory() { }
 
         /// <summary>实例</summary>
@@ -32,5 +33,6 @@ namespace XCode.TDengine
         /// <summary>创建数据适配器</summary>
         /// <returns></returns>
         public override DbDataAdapter CreateDataAdapter() => new TDengineDataAdapter();
+        #endregion
     }
 }

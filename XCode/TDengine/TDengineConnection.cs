@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Runtime.InteropServices;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net;
 using TDengineDriver;
@@ -109,37 +111,26 @@ namespace XCode.TDengine
             var connStr = ConnectionString;
             if (connStr.IsNullOrEmpty()) throw new InvalidOperationException("未设置连接字符串");
 
-            var builder = new ConnectionStringBuilder(connStr);
-            _DataSource = builder["DataSource"] ?? builder["Server"];
-            var port = builder["Port"].ToInt();
-            //if (port <= 0) port = 6030;
-
-            var user = builder["username"] ?? builder["user"] ?? builder["uid"];
-            var pass = builder["password"] ?? builder["pass"] ?? builder["pwd"];
-            var db = builder["database"] ?? builder["db"];
-
-            var uri = new NetUri(_DataSource);
-            if (port > 0) uri.Port = port;
-#if DEBUG
-            XTrace.WriteLine("State={4} 连接TDengine：server={0};user={1};pass={2};db={3}", _DataSource, user, pass, db, State);
-#endif
-
-            _handler = TD.Connect(uri.Address + "", user, pass, db, (Int16)uri.Port);
-            if (_handler == IntPtr.Zero) throw new XCodeException("打开数据库连接失败！");
+            var pool = GetPool(ConnectionString);
+            _handler = pool.Get();
 
             SetState(ConnectionState.Open);
 
-            ChangeDatabase(db);
+            //ChangeDatabase(db);
         }
 
         /// <summary>关闭连接</summary>
         public override void Close()
         {
 #if DEBUG
-            XTrace.WriteLine("State={1} 断开TDengine：server={0}", _DataSource, State);
+            //XTrace.WriteLine("State={1} 断开TDengine：server={0}", _DataSource, State);
 #endif
 
-            if (State != ConnectionState.Closed) TD.Close(_handler);
+            //if (State != ConnectionState.Closed) TD.Close(_handler);
+
+            var pool = GetPool(ConnectionString);
+            pool.Put(_handler);
+            _handler = IntPtr.Zero;
 
             Transaction?.Dispose();
 
@@ -154,6 +145,64 @@ namespace XCode.TDengine
             using var cmd = CreateCommand();
             cmd.CommandText = sql;
             return cmd.ExecuteNonQuery();
+        }
+        #endregion
+
+        #region 连接池
+        private class MyPool : ObjectPool<IntPtr>
+        {
+            public String ConnectionString { get; set; }
+
+            protected override IntPtr OnCreate()
+            {
+                var connStr = ConnectionString;
+                if (connStr.IsNullOrEmpty()) throw new InvalidOperationException("未设置连接字符串");
+
+                var builder = new ConnectionStringBuilder(connStr);
+                var dataSource = builder["DataSource"] ?? builder["Server"];
+                var port = builder["Port"].ToInt();
+                //if (port <= 0) port = 6030;
+
+                var user = builder["username"] ?? builder["user"] ?? builder["uid"];
+                var pass = builder["password"] ?? builder["pass"] ?? builder["pwd"];
+                var db = builder["database"] ?? builder["db"];
+
+                var uri = new NetUri(dataSource);
+                if (port > 0) uri.Port = port;
+#if DEBUG
+                XTrace.WriteLine("连接TDengine：server={0};user={1};pass={2};db={3}", dataSource, user, pass, db);
+#endif
+
+                var handler = TD.Connect(uri.Address + "", user, pass, db, (Int16)uri.Port);
+                if (handler == IntPtr.Zero) throw new XCodeException("打开数据库连接失败！");
+
+                return handler;
+            }
+
+            protected override void OnDispose(IntPtr value)
+            {
+#if DEBUG
+                XTrace.WriteLine("断开TDengine");
+#endif
+                TD.Close(value);
+            }
+        }
+
+        private static ConcurrentDictionary<String, IPool<IntPtr>> _cache = new();
+        internal static IPool<IntPtr> GetPool(String connStr)
+        {
+            return _cache.GetOrAdd(connStr, k => new MyPool
+            {
+                Name = "TDPool",
+                ConnectionString = k,
+                Min = 1,
+                Max = 1000,
+                IdleTime = 20,
+                AllIdleTime = 120,
+#if DEBUG
+                Log = XTrace.Log,
+#endif
+            });
         }
         #endregion
 

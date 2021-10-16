@@ -13,7 +13,7 @@ namespace NewLife.Collections
     /// 文档 https://www.yuque.com/smartstone/nx/object_pool
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class ObjectPool<T> : DisposeBase, IPool<T> where T : class
+    public class ObjectPool<T> : DisposeBase, IPool<T>
     {
         #region 属性
         /// <summary>名称</summary>
@@ -273,7 +273,7 @@ namespace NewLife.Collections
         #region 重载
         /// <summary>创建实例</summary>
         /// <returns></returns>
-        protected virtual T OnCreate() => typeof(T).CreateInstance() as T;
+        protected virtual T OnCreate() => (T)typeof(T).CreateInstance();
         #endregion
 
         #region 定期清理
@@ -403,7 +403,7 @@ namespace NewLife.Collections
 
     /// <summary>资源池包装项，自动归还资源到池中</summary>
     /// <typeparam name="T"></typeparam>
-    public class PoolItem<T> : DisposeBase where T : class
+    public class PoolItem<T> : DisposeBase
     {
         #region 属性
         /// <summary>数值</summary>

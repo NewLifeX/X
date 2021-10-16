@@ -62,6 +62,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
 
             Assert.NotEmpty(conn.ServerVersion);
+            XTrace.WriteLine("ServerVersion={0}", conn.ServerVersion);
         }
 
         [Fact]
@@ -122,7 +123,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var dt = dal.Query("select * from t");
             Assert.NotNull(dt);
             Assert.True(dt.Rows.Count > 20);
-            Assert.Equal(2, dt.Columns.Length);
+            Assert.Equal(3, dt.Columns.Length);
             //Assert.Equal("[{\"ts\":\"2019-07-15 00:00:00\",\"speed\":10},{\"ts\":\"2019-07-15 01:00:00\",\"speed\":20}]", dt.ToJson());
         }
 
