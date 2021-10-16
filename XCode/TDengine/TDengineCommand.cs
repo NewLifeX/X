@@ -87,7 +87,7 @@ namespace XCode.TDengine
             var handler = task.Result;
             var code = TD.ErrorNo(handler);
             if (handler == IntPtr.Zero) code = TD.ErrorNo(conn._handler);
-            if (code != 0) throw new XCodeException($"执行出错[{code}]。" + TD.Error(handler));
+            if (code != 0) throw new XCodeException(TD.Error(handler) ?? $"执行出错[{code}]。");
 
             return new TDengineDataReader(this, behavior, handler);
         }

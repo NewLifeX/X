@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NewLife.Log;
+using NewLife.Security;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -81,16 +82,76 @@ namespace XUnitTest.XCode.DataAccessLayer
         }
 
         [Fact]
+        public void CreateTable()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var rs = 0;
+            rs = dal.Execute("create table if not exists t (ts timestamp, speed int, temp float)");
+            Assert.Equal(0, rs);
+        }
+
+        [Fact]
+        public void CreateSuperTable()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var rs = 0;
+
+            // 创建超级表
+            rs = dal.Execute("create stable if not exists meters (ts timestamp, current float, voltage int, phase float) TAGS (location binary(64), groupId int)");
+            Assert.Equal(0, rs);
+
+            // 创建表
+            var ns = new[] { "北京", "上海", "广州", "深圳", "天津", "重庆", "杭州", "西安", "成都", "武汉" };
+            for (var i = 0; i < 10; i++)
+            {
+                rs = dal.Execute($"create table if not exists m{(i + 1):000} using meters tags('{ns[i]}', {Rand.Next(1, 100)})");
+                Assert.Equal(0, rs);
+            }
+        }
+
+        [Fact]
         public void QueryTest()
         {
             DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
             var dal = DAL.Create("sysTDengine");
 
-            var dt = dal.Query("select * from db.t");
+            var dt = dal.Query("select * from t");
             Assert.NotNull(dt);
-            Assert.Equal(2, dt.Rows.Count);
+            Assert.True(dt.Rows.Count > 20);
             Assert.Equal(2, dt.Columns.Length);
-            Assert.Equal("[{\"ts\":\"2019-07-15 00:00:00\",\"speed\":10},{\"ts\":\"2019-07-15 01:00:00\",\"speed\":20}]", dt.ToJson());
+            //Assert.Equal("[{\"ts\":\"2019-07-15 00:00:00\",\"speed\":10},{\"ts\":\"2019-07-15 01:00:00\",\"speed\":20}]", dt.ToJson());
+        }
+
+        [Fact]
+        public void InsertTest()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var rs = 0;
+            //rs = dal.Execute("create table t (ts timestamp, speed int)");
+            //Assert.Equal(0, rs);
+
+            var now = DateTime.Now;
+            for (var i = 0; i < 10; i++)
+            {
+                rs = dal.Execute($"insert into t values ('{now.AddMinutes(i).ToFullString()}', {Rand.Next(0, 100)}, {Rand.Next(0, 10000) / 100.0})");
+                Assert.Equal(1, rs);
+            }
+            //for (var i = 0; i < 10; i++)
+            //{
+            //    rs = dal.Execute($"insert into t values (@time, @speed, @temp)", new
+            //    {
+            //        time = now.AddMinutes(i),
+            //        speed = Rand.Next(0, 100),
+            //        temp = Rand.Next(0, 10000) / 100.0,
+            //    });
+            //    Assert.Equal(1, rs);
+            //}
         }
 
         [Fact]

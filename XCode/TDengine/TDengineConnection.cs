@@ -121,7 +121,7 @@ namespace XCode.TDengine
             var uri = new NetUri(_DataSource);
             if (port > 0) uri.Port = port;
 #if DEBUG
-            XTrace.WriteLine("连接TDengine：server={0};user={1};pass={2};db={3}", _DataSource, user, pass, db);
+            XTrace.WriteLine("State={4} 连接TDengine：server={0};user={1};pass={2};db={3}", _DataSource, user, pass, db, State);
 #endif
 
             _handler = TD.Connect(uri.Address + "", user, pass, db, (Int16)uri.Port);
@@ -135,6 +135,10 @@ namespace XCode.TDengine
         /// <summary>关闭连接</summary>
         public override void Close()
         {
+#if DEBUG
+            XTrace.WriteLine("State={1} 断开TDengine：server={0}", _DataSource, State);
+#endif
+
             if (State != ConnectionState.Closed) TD.Close(_handler);
 
             Transaction?.Dispose();
