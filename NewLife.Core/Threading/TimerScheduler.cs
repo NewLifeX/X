@@ -63,6 +63,8 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer.Method + "");
+
             timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}", timer);
 
@@ -99,6 +101,7 @@ namespace NewLife.Threading
         {
             if (timer == null || timer.Id == 0) return;
 
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Remove", reason);
             WriteLog("Timer.Remove {0} reason:{1}", timer, reason);
 
             lock (this)
@@ -224,7 +227,6 @@ namespace NewLife.Threading
 
                 return false;
             }
-            //XTrace.WriteLine("d={0}", ts.TotalMilliseconds);
 
             return true;
         }
@@ -242,8 +244,9 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            if (timer.Tracer != null) DefaultSpan.Current = null;
+            using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:Execute", timer.Timers + "");
             var sw = Stopwatch.StartNew();
-
             try
             {
                 // 弱引用判断
@@ -254,10 +257,6 @@ namespace NewLife.Threading
                     timer.Dispose();
                     return;
                 }
-
-                //timer.Calling = true;
-
-                //target.Invoke(timer.State ?? timer);
 
                 if (timer.IsAsyncTask)
                 {
@@ -273,7 +272,11 @@ namespace NewLife.Threading
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
             // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
-            catch (Exception ex) { XTrace.WriteException(ex); }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                XTrace.WriteException(ex);
+            }
             finally
             {
                 sw.Stop();
@@ -295,8 +298,9 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            if (timer.Tracer != null) DefaultSpan.Current = null;
+            using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:ExecuteAsync", timer.Timers + "");
             var sw = Stopwatch.StartNew();
-
             try
             {
                 // 弱引用判断
@@ -314,7 +318,11 @@ namespace NewLife.Threading
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
             // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
-            catch (Exception ex) { XTrace.WriteException(ex); }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                XTrace.WriteException(ex);
+            }
             finally
             {
                 sw.Stop();
