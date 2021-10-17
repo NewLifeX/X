@@ -186,16 +186,31 @@ namespace XUnitTest.XCode.DataAccessLayer
             DAL.AddConnStr("TDengine_Meta", connStr, null, "TDengine");
             var dal = DAL.Create("TDengine_Meta");
 
-            // 反向工程
-            dal.SetTables(Meter.Meta.Table.DataTable);
+            {
+                // 反向工程
+                dal.SetTables(CarMeter.Meta.Table.DataTable);
 
-            var tables = dal.Tables.OrderBy(e => e.Name).ToList();
-            Assert.NotNull(tables);
-            Assert.True(tables.Count > 0);
-            XTrace.WriteLine(tables.ToJson(false, false, false));
+                var tables = dal.Tables.OrderBy(e => e.Name).ToList();
+                Assert.NotNull(tables);
+                Assert.True(tables.Count > 0);
+                XTrace.WriteLine(tables.ToJson(false, false, false));
 
-            var tb = tables.FirstOrDefault(e => e.Name == "t");
-            Assert.NotNull(tb);
+                var tb = tables.FirstOrDefault(e => e.TableName == "car_meter");
+                Assert.NotNull(tb);
+            }
+
+            {
+                // 反向工程
+                dal.SetTables(PowerMeter.Meta.Table.DataTable);
+
+                var tables = dal.Tables.OrderBy(e => e.Name).ToList();
+                Assert.NotNull(tables);
+                Assert.True(tables.Count > 0);
+                //XTrace.WriteLine(tables.ToJson(false, false, false));
+
+                //var tb = tables.FirstOrDefault(e => e.TableName == "power_meter");
+                //Assert.NotNull(tb);
+            }
         }
 
         private IDisposable CreateForBatch(String action)
@@ -203,13 +218,13 @@ namespace XUnitTest.XCode.DataAccessLayer
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership_Batch;");
             DAL.AddConnStr("Membership_Batch", connStr, null, "TDengine");
 
-            var dt = Meter.Meta.Table.DataTable.Clone() as IDataTable;
-            dt.TableName = $"Meter_{action}";
+            var dt = CarMeter.Meta.Table.DataTable.Clone() as IDataTable;
+            dt.TableName = $"CarMeter_{action}";
 
             // 分表
-            var split = Meter.Meta.CreateSplit("Membership_Batch", dt.TableName);
+            var split = CarMeter.Meta.CreateSplit("Membership_Batch", dt.TableName);
 
-            var session = Meter.Meta.Session;
+            var session = CarMeter.Meta.Session;
             session.Dal.SetTables(dt);
 
             return split;
@@ -220,20 +235,21 @@ namespace XUnitTest.XCode.DataAccessLayer
         {
             using var split = CreateForBatch("BatchInsert");
 
-            var list = new List<Meter>
+            var now = DateTime.Now;
+            var list = new List<CarMeter>
             {
-                new Meter { Location = "管理员" },
-                new Meter { Location = "高级用户" },
-                new Meter { Location = "普通用户" }
+                new CarMeter { Ts = now.AddMilliseconds(111), Speed = 111 },
+                new CarMeter { Ts = now.AddMilliseconds(222), Speed = 222 },
+                new CarMeter { Ts = now.AddMilliseconds(333), Speed = 333 }
             };
             var rs = list.BatchInsert();
             Assert.Equal(list.Count, rs);
 
-            var list2 = Meter.FindAll();
+            var list2 = CarMeter.FindAll(null, CarMeter._.Ts.Desc(), null, 0, list.Count);
             Assert.Equal(list.Count, list2.Count);
-            Assert.Contains(list2, e => e.Location == "管理员");
-            Assert.Contains(list2, e => e.Location == "高级用户");
-            Assert.Contains(list2, e => e.Location == "普通用户");
+            Assert.Contains(list2, e => e.Speed == 333);
+            Assert.Contains(list2, e => e.Speed == 222);
+            Assert.Contains(list2, e => e.Speed == 111);
         }
     }
 }

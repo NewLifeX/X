@@ -120,7 +120,7 @@
       <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
-  <Table Name="Meter" Description="电能指标。时序数据">
+  <Table Name="PowerMeter" TableName="power_meter" Description="电能指标。时序数据">
     <Columns>
       <Column Name="Ts" DataType="DateTime" PrimaryKey="True" Description="时间戳" />
       <Column Name="Current" DataType="Single" Description="电流" />
@@ -128,6 +128,13 @@
       <Column Name="Phase" DataType="Single" Description="相位" />
       <Column Name="Location" DataType="String" Master="True" Length="64" Description="位置" />
       <Column Name="GroupId" DataType="Int32" Master="True" Description="分组" />
+    </Columns>
+  </Table>
+  <Table Name="CarMeter" TableName="Car_Meter" Description="汽车指标。时序数据">
+    <Columns>
+      <Column Name="Ts" DataType="DateTime" PrimaryKey="True" Description="时间戳" />
+      <Column Name="Speed" DataType="Int32" Description="速度" />
+      <Column Name="Temp" DataType="Single" Description="温度" />
     </Columns>
   </Table>
 </Tables>

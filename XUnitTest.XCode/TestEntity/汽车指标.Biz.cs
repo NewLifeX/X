@@ -25,15 +25,15 @@ using XCode.Membership;
 
 namespace XUnitTest.XCode.TestEntity
 {
-    /// <summary>电能指标。时序数据</summary>
-    public partial class PowerMeter : Entity<PowerMeter>
+    /// <summary>汽车指标。时序数据</summary>
+    public partial class CarMeter : Entity<CarMeter>
     {
         #region 对象操作
-        static PowerMeter()
+        static CarMeter()
         {
             // 累加字段，生成 Update xx Set Count=Count+1234 Where xxx
             //var df = Meta.Factory.AdditionalFields;
-            //df.Add(nameof(Voltage));
+            //df.Add(nameof(Speed));
 
             // 过滤器 UserModule、TimeModule、IPModule
         }
@@ -58,18 +58,15 @@ namespace XUnitTest.XCode.TestEntity
         //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
         //    if (Meta.Session.Count > 0) return;
 
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化PowerMeter[电能指标]数据……");
+        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化CarMeter[汽车指标]数据……");
 
-        //    var entity = new PowerMeter();
+        //    var entity = new CarMeter();
         //    entity.Ts = DateTime.Now;
-        //    entity.Current = 0.0;
-        //    entity.Voltage = 0;
-        //    entity.Phase = 0.0;
-        //    entity.Location = "abc";
-        //    entity.GroupId = 0;
+        //    entity.Speed = 0;
+        //    entity.Temp = 0.0;
         //    entity.Insert();
 
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化PowerMeter[电能指标]数据！");
+        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化CarMeter[汽车指标]数据！");
         //}
 
         ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
@@ -94,7 +91,7 @@ namespace XUnitTest.XCode.TestEntity
         /// <summary>根据时间戳查找</summary>
         /// <param name="ts">时间戳</param>
         /// <returns>实体对象</returns>
-        public static PowerMeter FindByTs(DateTime ts)
+        public static CarMeter FindByTs(DateTime ts)
         {
 
             // 实体缓存
@@ -109,8 +106,8 @@ namespace XUnitTest.XCode.TestEntity
 
         #region 高级查询
 
-        // Select Count(Id) as Id,Category From PowerMeter Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By Id Desc limit 20
-        //static readonly FieldCache<PowerMeter> _CategoryCache = new FieldCache<PowerMeter>(nameof(Category))
+        // Select Count(Id) as Id,Category From CarMeter Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By Id Desc limit 20
+        //static readonly FieldCache<CarMeter> _CategoryCache = new FieldCache<CarMeter>(nameof(Category))
         //{
         //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         //};

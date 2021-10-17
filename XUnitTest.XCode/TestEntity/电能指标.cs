@@ -14,8 +14,8 @@ namespace XUnitTest.XCode.TestEntity
     [Serializable]
     [DataObject]
     [Description("电能指标。时序数据")]
-    [BindTable("Meter", Description = "电能指标。时序数据", ConnName = "test", DbType = DatabaseType.None)]
-    public partial class Meter
+    [BindTable("power_meter", Description = "电能指标。时序数据", ConnName = "test", DbType = DatabaseType.None)]
+    public partial class PowerMeter
     {
         #region 属性
         private DateTime _Ts;

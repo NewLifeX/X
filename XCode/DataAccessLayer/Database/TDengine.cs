@@ -44,7 +44,7 @@ namespace XCode.DataAccessLayer
         public override Boolean Support(String providerName)
         {
             providerName = providerName.ToLower();
-            if (providerName.Contains("tdengine")) return true;
+            if (providerName.EqualIgnoreCase("TD", "TDengine")) return true;
 
             return false;
         }
