@@ -230,7 +230,7 @@ namespace XCode.TDengine
                 TDengineDataType.TSDB_DATA_TYPE_UBIGINT => (UInt64)Marshal.ReadInt64(data),
                 TDengineDataType.TSDB_DATA_TYPE_FLOAT => (Single)Marshal.PtrToStructure(data, typeof(Single)),
                 TDengineDataType.TSDB_DATA_TYPE_DOUBLE => (Double)Marshal.PtrToStructure(data, typeof(Double)),
-                TDengineDataType.TSDB_DATA_TYPE_BINARY => Marshal.PtrToStringAnsi(data, meta.size)?.Trim(),
+                TDengineDataType.TSDB_DATA_TYPE_BINARY => Marshal.PtrToStringAnsi(data, meta.size)?.TrimEnd('\0'),
                 TDengineDataType.TSDB_DATA_TYPE_TIMESTAMP => Marshal.ReadInt64(data).ToDateTime().ToLocalTime(),
                 _ => DBNull.Value,
             };

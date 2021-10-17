@@ -662,17 +662,18 @@ namespace XCode.DataAccessLayer
             {
                 case DDLSchema.CreateDatabase:
                     return CreateDatabaseSQL((String)values[0], (String)values[1]);
-                //case DDLSchema.DropDatabase:
-                //    return DropDatabaseSQL((String)values[0]);
+                case DDLSchema.DropDatabase:
+                    return DropDatabaseSQL((String)values[0]);
                 case DDLSchema.DatabaseExist:
                     return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((IDataTable)values[0]);
-                //case DDLSchema.DropTable:
-                //    if (values[0] is IDataTable)
-                //        return DropTableSQL((IDataTable)values[0]);
-                //    else
-                //        return DropTableSQL(values[0].ToString());
+                case DDLSchema.DropTable:
+                    if (values[0] is IDataTable)
+                        return DropTableSQL((IDataTable)values[0]);
+                    else
+                        //    return DropTableSQL(values[0].ToString());
+                        return String.Empty;
                 //case DDLSchema.TableExist:
                 //    if (values[0] is IDataTable)
                 //        return TableExistSQL((IDataTable)values[0]);

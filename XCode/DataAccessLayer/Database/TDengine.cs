@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using XCode.TDengine;
 
 namespace XCode.DataAccessLayer
@@ -55,6 +56,7 @@ namespace XCode.DataAccessLayer
             get
             {
                 return "ACCESSIBLE,ADD,ALL,ALTER,ANALYZE,AND,AS,ASC,ASENSITIVE,BEFORE,BETWEEN,BIGINT,BINARY,BLOB,BOTH,BY,CALL,CASCADE,CASE,CHANGE,CHAR,CHARACTER,CHECK,COLLATE,COLUMN,CONDITION,CONNECTION,CONSTRAINT,CONTINUE,CONTRIBUTORS,CONVERT,CREATE,CROSS,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,CURSOR,DATABASE,DATABASES,DAY_HOUR,DAY_MICROSECOND,DAY_MINUTE,DAY_SECOND,DEC,DECIMAL,DECLARE,DEFAULT,DELAYED,DELETE,DESC,DESCRIBE,DETERMINISTIC,DISTINCT,DISTINCTROW,DIV,DOUBLE,DROP,DUAL,EACH,ELSE,ELSEIF,ENCLOSED,ESCAPED,EXISTS,EXIT,EXPLAIN,FALSE,FETCH,FLOAT,FLOAT4,FLOAT8,FOR,FORCE,FOREIGN,FROM,FULLTEXT,GRANT,GROUP,HAVING,HIGH_PRIORITY,HOUR_MICROSECOND,HOUR_MINUTE,HOUR_SECOND,IF,IGNORE,IN,INDEX,INFILE,INNER,INOUT,INSENSITIVE,INSERT,INT,INT1,INT2,INT3,INT4,INT8,INTEGER,INTERVAL,INTO,IS,ITERATE,JOIN,KEY,KEYS,KILL,LEADING,LEAVE,LEFT,LIKE,LIMIT,LINEAR,LINES,LOAD,LOCALTIME,LOCALTIMESTAMP,LOCK,LONG,LONGBLOB,LONGTEXT,LOOP,LOW_PRIORITY,MATCH,MEDIUMBLOB,MEDIUMINT,MEDIUMTEXT,MIDDLEINT,MINUTE_MICROSECOND,MINUTE_SECOND,MOD,MODIFIES,NATURAL,NOT,NO_WRITE_TO_BINLOG,NULL,NUMERIC,ON,OPTIMIZE,OPTION,OPTIONALLY,OR,ORDER,OUT,OUTER,OUTFILE,PRECISION,PRIMARY,PROCEDURE,PURGE,RANGE,READ,READS,READ_ONLY,READ_WRITE,REAL,REFERENCES,REGEXP,RELEASE,RENAME,REPEAT,REPLACE,REQUIRE,RESTRICT,RETURN,REVOKE,RIGHT,RLIKE,SCHEMA,SCHEMAS,SECOND_MICROSECOND,SELECT,SENSITIVE,SEPARATOR,SET,SHOW,SMALLINT,SPATIAL,SPECIFIC,SQL,SQLEXCEPTION,SQLSTATE,SQLWARNING,SQL_BIG_RESULT,SQL_CALC_FOUND_ROWS,SQL_SMALL_RESULT,SSL,STARTING,STRAIGHT_JOIN,TABLE,TERMINATED,THEN,TINYBLOB,TINYINT,TINYTEXT,TO,TRAILING,TRIGGER,TRUE,UNDO,UNION,UNIQUE,UNLOCK,UNSIGNED,UPDATE,UPGRADE,USAGE,USE,USING,UTC_DATE,UTC_TIME,UTC_TIMESTAMP,VALUES,VARBINARY,VARCHAR,VARCHARACTER,VARYING,WHEN,WHERE,WHILE,WITH,WRITE,X509,XOR,YEAR_MONTH,ZEROFILL," +
+                    "TBName," +
                     "LOG,User,Role,Admin,Rank,Member";
             }
         }
@@ -90,15 +92,20 @@ namespace XCode.DataAccessLayer
             }
             else if (code == TypeCode.Boolean)
             {
-                var v = value.ToBoolean();
-                if (field.Table != null && EnumTables.Contains(field.Table.TableName))
-                    return v ? "'Y'" : "'N'";
-                else
-                    return v ? "1" : "0";
+                return value.ToBoolean() ? "1" : "0";
             }
 
             return base.FormatValue(field, value);
         }
+
+        /// <summary>格式化时间为SQL字符串</summary>
+        /// <remarks>
+        /// 优化DateTime转为全字符串，平均耗时从25.76ns降为15.07。
+        /// 调用非常频繁，每分钟都有数百万次调用。
+        /// </remarks>
+        /// <param name="dateTime">时间值</param>
+        /// <returns></returns>
+        public override String FormatDateTime(DateTime dateTime) => $"'{dateTime:yyyy-MM-dd HH:mm:ss.fff}'";
 
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength => 4000;
@@ -137,11 +144,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String StringConcat(String left, String right) => $"concat({(!String.IsNullOrEmpty(left) ? left : "\'\'")},{(!String.IsNullOrEmpty(right) ? right : "\'\'")})";
         #endregion
-
-        #region 跨版本兼容
-        /// <summary>采用枚举来表示布尔型的数据表。由正向工程赋值</summary>
-        public ICollection<String> EnumTables { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-        #endregion
     }
 
     /// <summary>TDengine数据库</summary>
@@ -149,31 +151,6 @@ namespace XCode.DataAccessLayer
     {
         #region 构造函数
         public TDengineSession(IDatabase db) : base(db) { }
-        #endregion
-
-        #region 快速查询单表记录数
-        /// <summary>快速查询单表记录数，大数据量时，稍有偏差。</summary>
-        /// <param name="tableName"></param>
-        /// <returns></returns>
-        public override Int64 QueryCountFast(String tableName)
-        {
-            tableName = tableName.Trim().Trim('`', '`').Trim();
-
-            var db = Database.DatabaseName;
-            var sql = $"select table_rows from information_schema.tables where table_schema='{db}' and table_name='{tableName}'";
-            return ExecuteScalar<Int64>(sql);
-        }
-
-#if !NET40
-        public override Task<Int64> QueryCountFastAsync(String tableName)
-        {
-            tableName = tableName.Trim().Trim('`', '`').Trim();
-
-            var db = Database.DatabaseName;
-            var sql = $"select table_rows from information_schema.tables where table_schema='{db}' and table_name='{tableName}'";
-            return ExecuteScalarAsync<Int64>(sql);
-        }
-#endif
         #endregion
 
         #region 基本方法 查询/执行
@@ -184,15 +161,13 @@ namespace XCode.DataAccessLayer
         /// <returns>新增行的自动编号</returns>
         public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            sql += ";Select LAST_INSERT_ID()";
-            return base.InsertAndGetIdentity(sql, type, ps);
+            throw new NotSupportedException();
         }
 
 #if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
-            sql += ";Select LAST_INSERT_ID()";
-            return base.InsertAndGetIdentityAsync(sql, type, ps);
+            throw new NotSupportedException();
         }
 #endif
         #endregion
@@ -215,13 +190,9 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            //if (columns == null) columns = table.Columns.ToArray();
             sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
             foreach (var dc in columns)
             {
-                // 取消对主键的过滤，避免列名和值无法一一对应的问题
-                //if (dc.Identity) continue;
-
                 sb.Append(db.FormatName(dc));
                 sb.Append(',');
             }
@@ -258,7 +229,6 @@ namespace XCode.DataAccessLayer
                     for (var i = 0; i < columns.Length; i++)
                     {
                         var dc = columns[i];
-                        //if (dc.Identity) continue;
 
                         var value = row[ids[i]];
                         sb.Append(db.FormatValue(dc, value));
@@ -275,8 +245,6 @@ namespace XCode.DataAccessLayer
                     sb.Append('(');
                     foreach (var dc in columns)
                     {
-                        //if (dc.Identity) continue;
-
                         var value = entity[dc.Name];
                         sb.Append(db.FormatValue(dc, value));
                         sb.Append(',');
@@ -343,6 +311,10 @@ namespace XCode.DataAccessLayer
             return Execute(sql);
         }
         #endregion
+
+        #region 架构
+        public override DataTable GetSchema(DbConnection conn, String collectionName, String[] restrictionValues) => null;
+        #endregion
     }
 
     /// <summary>TDengine元数据</summary>
@@ -368,23 +340,17 @@ namespace XCode.DataAccessLayer
         /// <summary>数据类型映射</summary>
         private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
-            { typeof(Byte[]), new String[] { "BLOB", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB", "binary({0})", "varbinary({0})" } },
-            //{ typeof(TimeSpan), new String[] { "TIME" } },
-            //{ typeof(SByte), new String[] { "TINYINT" } },
-            { typeof(Byte), new String[] { "TINYINT", "TINYINT UNSIGNED" } },
-            { typeof(Int16), new String[] { "SMALLINT", "SMALLINT UNSIGNED" } },
-            //{ typeof(UInt16), new String[] { "SMALLINT UNSIGNED" } },
-            { typeof(Int32), new String[] { "INT", "YEAR", "MEDIUMINT", "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            //{ typeof(UInt32), new String[] { "MEDIUMINT UNSIGNED", "INT UNSIGNED" } },
-            { typeof(Int64), new String[] { "BIGINT", "BIT", "BIGINT UNSIGNED" } },
-            //{ typeof(UInt64), new String[] { "BIT", "BIGINT UNSIGNED" } },
+            { typeof(Byte), new String[] { "TINYINT" } },
+            { typeof(Int16), new String[] { "SMALLINT" } },
+            { typeof(Int32), new String[] { "INT" } },
+            { typeof(Int64), new String[] { "BIGINT" } },
             { typeof(Single), new String[] { "FLOAT" } },
             { typeof(Double), new String[] { "DOUBLE" } },
-            { typeof(Decimal), new String[] { "DECIMAL({0}, {1})" } },
-            { typeof(DateTime), new String[] { "DATETIME", "DATE", "TIMESTAMP", "TIME" } },
-            // mysql中nvarchar会变成utf8字符集的varchar，而不会取数据库的utf8mb4
-            { typeof(String), new String[] { "VARCHAR({0})", "LONGTEXT", "TEXT", "CHAR({0})", "NCHAR({0})", "NVARCHAR({0})", "SET", "ENUM", "TINYTEXT", "TEXT", "MEDIUMTEXT" } },
-            { typeof(Boolean), new String[] { "TINYINT" } },
+            { typeof(Decimal), new String[] { "DOUBLE" } },
+            { typeof(DateTime), new String[] { "TIMESTAMP" } },
+            { typeof(String), new String[] { "NCHAR({0})" } },
+            { typeof(Boolean), new String[] { "BOOL" } },
+            { typeof(Byte[]), new String[] { "BINARY" } },
         };
         #endregion
 
@@ -399,7 +365,7 @@ namespace XCode.DataAccessLayer
             ss.ShowSQL = false;
             try
             {
-                var sql = $"SHOW TABLE STATUS FROM `{db}`";
+                var sql = $"SHOW TABLES";
                 var dt = ss.Query(sql, null);
                 if (dt.Rows.Count == 0) return null;
 
@@ -408,12 +374,12 @@ namespace XCode.DataAccessLayer
                 // 所有表
                 foreach (var dr in dt)
                 {
-                    var name = dr["Name"] + "";
+                    var name = dr["name"] + "";
                     if (name.IsNullOrEmpty() || hs.Count > 0 && !hs.Contains(name)) continue;
 
                     var table = DAL.CreateTable();
                     table.TableName = name;
-                    table.Description = dr["Comment"] + "";
+                    //table.Description = dr["Comment"] + "";
 
                     #region 字段
                     sql = $"SHOW FULL COLUMNS FROM `{db}`.`{name}`";
@@ -478,23 +444,6 @@ namespace XCode.DataAccessLayer
                 ss.ShowSQL = old;
             }
 
-            // 找到使用枚举作为布尔型的旧表
-            var es = (Database as TDengine).EnumTables;
-            foreach (var table in list)
-            {
-                if (!es.Contains(table.TableName))
-                {
-                    var dc = table.Columns.FirstOrDefault(c => c.DataType == typeof(Boolean)
-                      && c.RawType.EqualIgnoreCase("enum('N','Y')", "enum('Y','N')"));
-                    if (dc != null)
-                    {
-                        es.Add(table.TableName);
-
-                        WriteLog("发现TDengine中旧格式的布尔型字段 {0} {1}", table.TableName, dc);
-                    }
-                }
-            }
-
             return list;
         }
 
@@ -520,19 +469,21 @@ namespace XCode.DataAccessLayer
         #region 反向工程
         protected override Boolean DatabaseExist(String databaseName)
         {
-            var dt = GetSchema(_.Databases, new String[] { databaseName });
-            return dt != null && dt.Rows != null && dt.Rows.Count > 0;
+            var ss = Database.CreateSession();
+            var sql = $"SHOW DATABASES";
+            var dt = ss.Query(sql, null);
+            return dt != null && dt.Rows != null && dt.Rows.Any(e => e[0] as String == databaseName);
         }
 
-        public override String CreateDatabaseSQL(String dbname, String file) => base.CreateDatabaseSQL(dbname, file) + " DEFAULT CHARACTER SET utf8mb4";
+        public override String CreateDatabaseSQL(String dbname, String file) => $"Create Database If Not Exists {Database.FormatName(dbname)};";
+        //public override String CreateDatabaseSQL(String dbname, String file) => $"Create Database If Not Exists {Database.FormatName(dbname)} KEEP 365 DAYS 10 BLOCKS 6 UPDATE 1;";
 
-        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)}";
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)};";
 
         public override String CreateTableSQL(IDataTable table)
         {
             var fs = new List<IDataColumn>(table.Columns);
 
-            //var sb = new StringBuilder(32 + fs.Count * 20);
             var sb = Pool.StringBuilder.Get();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table));
@@ -543,13 +494,8 @@ namespace XCode.DataAccessLayer
                 sb.Append(FieldClause(fs[i], true));
                 if (i < fs.Count - 1) sb.Append(',');
             }
-            if (table.PrimaryKeys.Length > 0) sb.AppendFormat(",\r\n\tPrimary Key ({0})", table.PrimaryKeys.Join(",", FormatName));
             sb.AppendLine();
             sb.Append(')');
-
-            // 引擎和编码
-            //sb.Append(" ENGINE=InnoDB");
-            sb.Append(" DEFAULT CHARSET=utf8mb4");
             sb.Append(';');
 
             return sb.Put(true);

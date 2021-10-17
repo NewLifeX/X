@@ -83,6 +83,29 @@ namespace XUnitTest.XCode.DataAccessLayer
         }
 
         [Fact]
+        public void CreateDatabase()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var rs = dal.Execute("CREATE DATABASE if not exists power KEEP 365 DAYS 10 BLOCKS 6 UPDATE 1;");
+            Assert.Equal(0, rs);
+        }
+
+        [Fact]
+        public void CreateDatabase2()
+        {
+            DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");
+            var dal = DAL.Create("sysTDengine");
+
+            var rs = dal.Db.CreateMetaData().SetSchema(DDLSchema.CreateDatabase, "newlife");
+            Assert.Equal(1, rs);
+
+            rs = dal.Db.CreateMetaData().SetSchema(DDLSchema.DropColumn, "newlife");
+            Assert.Equal(1, rs);
+        }
+
+        [Fact]
         public void CreateTable()
         {
             DAL.AddConnStr("sysTDengine", _ConnStr, null, "TDengine");

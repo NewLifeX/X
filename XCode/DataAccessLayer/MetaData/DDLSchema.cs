@@ -7,8 +7,8 @@ namespace XCode.DataAccessLayer
         /// <summary>建立数据库</summary>
         CreateDatabase,
 
-        ///// <summary>删除数据库</summary>
-        //DropDatabase,
+        /// <summary>删除数据库</summary>
+        DropDatabase,
 
         /// <summary>数据库是否存在</summary>
         DatabaseExist,
@@ -16,8 +16,8 @@ namespace XCode.DataAccessLayer
         /// <summary>建立表</summary>
         CreateTable,
 
-        ///// <summary>删除表</summary>
-        //DropTable,
+        /// <summary>删除表</summary>
+        DropTable,
 
         ///// <summary>数据表是否存在</summary>
         //TableExist,
