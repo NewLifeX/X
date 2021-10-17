@@ -186,10 +186,15 @@ namespace XUnitTest.XCode.EntityTests
             DAL.LocalFilter = s => sqls.Add(s);
 
             var time = DateTime.Now;
-            var list = Log2.Search(null, null, -1, null, -1, time.AddDays(-3), time, null, new PageParameter { PageSize = 10000 });
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-3):yyyyMMdd} Where ID>=", sqls[^7]);
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where ID>=", sqls[^5]);
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where ID>=", sqls[^3]);
+            var start = time.AddDays(-3);
+            XTrace.WriteLine("start={0} end={1}", start, time);
+            Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
+
+            XTrace.WriteLine("Search");
+            var list = Log2.Search(null, null, -1, null, -1, start, time, null, new PageParameter { PageSize = 10000 });
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-3):yyyyMMdd} Where ID>=", sqls[^4]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where ID>=", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where ID>=", sqls[^2]);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where ID>=", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例
@@ -248,13 +253,17 @@ namespace XUnitTest.XCode.EntityTests
 
             var time = DateTime.Now;
             var start = time.AddDays(-2);
+            XTrace.WriteLine("start={0} end={1}", start, time);
+            Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
 
+            XTrace.WriteLine("FirstOrDefault");
             var list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).FirstOrDefault(e => e.Count > 0);
 
+            XTrace.WriteLine("SelectMany");
             list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1", sqls[^3]);
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1", sqls[^2]);
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1", sqls[^1]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;
@@ -277,9 +286,13 @@ namespace XUnitTest.XCode.EntityTests
 
             var time = DateTime.Now;
             var start = time.AddDays(-2);
+            XTrace.WriteLine("start={0} end={1}", time, start);
+            Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
+
+            XTrace.WriteLine("AutoShard FindAll");
             var list = Log2.Meta.AutoShard(time, start, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1", sqls[^5]);
-            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1", sqls[^2]);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例

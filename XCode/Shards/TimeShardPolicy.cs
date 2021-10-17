@@ -211,6 +211,8 @@ namespace XCode.Shards
             // 构建了一个时间区间 start <= @fi < end
             // 如果两个都是日期，使用 start <= @fi <= end
             //if (start == start.Date && end == end.Date) end = end.AddSeconds(1);
+            // 如果结束不是日期，说明那一天也需要，加一个步进
+            if (end != end.Date) end = end.Add(Step);
 
             var hash = new HashSet<String>();
             for (var dt = start; dt < end; dt = dt.Add(Step))
