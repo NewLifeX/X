@@ -14,16 +14,22 @@ namespace XUnitTest.Common
             var dt = DateTime.Now;
             Assert.Equal(DateTimeKind.Local, dt.Kind);
             Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToFullString());
+            Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), dt.ToFullString(true));
             var dt_ = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
             Assert.Equal(dt.Trim(), dt.ToFullString().ToDateTime());
             Assert.Equal(dt.Trim(), dt.ToInt().ToDateTime());
             Assert.Equal(dt.Trim("ms"), dt.ToLong().ToDateTime());
+            Assert.Empty(DateTime.MinValue.ToFullString(""));
+            Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToString("", ""));
+            Assert.Empty(DateTime.MinValue.ToString("", ""));
 
             var dto = DateTimeOffset.Now;
             Assert.Equal(dto.ToString("yyyy-MM-dd HH:mm:ss zzz"), dto.ToFullString());
+            Assert.Equal(dto.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"), dto.ToFullString(true));
             Assert.Equal(dto.Trim(), dto.ToFullString().ToDateTimeOffset());
             Assert.Equal(dto.Trim(), dto.ToInt().ToDateTimeOffset());
             Assert.Equal(dto.Trim("ms"), dto.ToLong().ToDateTimeOffset());
+            Assert.Empty(DateTimeOffset.MinValue.ToFullString(""));
 
             var dt2 = dto.ToUniversalTime();
             Assert.Equal(dt2.ToString("yyyy-MM-dd HH:mm:ss zzz"), dt2.ToFullString());

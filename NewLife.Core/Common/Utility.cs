@@ -93,21 +93,37 @@ namespace System
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value) => Convert.ToFullString(value);
+        public static String ToFullString(this DateTime value) => Convert.ToFullString(value, false);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，支持指定最小时间的字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTime value, String emptyValue = null) => Convert.ToFullString(value, emptyValue);
+        public static String ToFullString(this DateTime value, String emptyValue = null) => Convert.ToFullString(value, false, emptyValue);
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss.fff完整字符串，支持指定最小时间的字符串</summary>
+        /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="useMillisecond">是否使用毫秒</param>
+        /// <param name="emptyValue">字符串空值时（DateTime.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public static String ToFullString(this DateTime value, Boolean useMillisecond, String emptyValue = null) => Convert.ToFullString(value, useMillisecond, emptyValue);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss +08:00完整字符串，支持指定最小时间的字符串</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
         /// <param name="value">待转换对象</param>
         /// <param name="emptyValue">字符串空值时（DateTimeOffset.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public static String ToFullString(this DateTimeOffset value, String emptyValue = null) => Convert.ToFullString(value, emptyValue);
+        public static String ToFullString(this DateTimeOffset value, String emptyValue = null) => Convert.ToFullString(value, false, emptyValue);
+
+        /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss.fff +08:00完整字符串，支持指定最小时间的字符串</summary>
+        /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
+        /// <param name="value">待转换对象</param>
+        /// <param name="useMillisecond">是否使用毫秒</param>
+        /// <param name="emptyValue">字符串空值时（DateTimeOffset.MinValue）显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
+        /// <returns></returns>
+        public static String ToFullString(this DateTimeOffset value, Boolean useMillisecond, String emptyValue = null) => Convert.ToFullString(value, useMillisecond, emptyValue);
 
         /// <summary>时间日期转为指定格式字符串</summary>
         /// <param name="value">待转换对象</param>
@@ -473,9 +489,10 @@ namespace System
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <param name="value">待转换对象</param>
+        /// <param name="useMillisecond">是否使用毫秒</param>
         /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public virtual String ToFullString(DateTime value, String emptyValue = null)
+        public virtual String ToFullString(DateTime value, Boolean useMillisecond, String emptyValue = null)
         {
             if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
 
@@ -498,7 +515,9 @@ namespace System
 
             //return sb.ToString();
 
-            var cs = "yyyy-MM-dd HH:mm:ss".ToCharArray();
+            var cs = useMillisecond ?
+                "yyyy-MM-dd HH:mm:ss.fff".ToCharArray() :
+                "yyyy-MM-dd HH:mm:ss".ToCharArray();
 
             var k = 0;
             var y = value.Year;
@@ -534,6 +553,15 @@ namespace System
             m = value.Second;
             cs[k++] = (Char)('0' + (m / 10));
             cs[k++] = (Char)('0' + (m % 10));
+
+            if (useMillisecond)
+            {
+                k++;
+                m = value.Millisecond;
+                cs[k++] = (Char)('0' + (m / 100));
+                cs[k++] = (Char)('0' + ((m % 100) / 10));
+                cs[k++] = (Char)('0' + (m % 10));
+            }
 
             var str = new String(cs);
 
@@ -546,13 +574,17 @@ namespace System
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
         /// <param name="value">待转换对象</param>
+        /// <param name="useMillisecond">是否使用毫秒</param>
         /// <param name="emptyValue">字符串空值时显示的字符串，null表示原样显示最小时间，String.Empty表示不显示</param>
         /// <returns></returns>
-        public virtual String ToFullString(DateTimeOffset value, String emptyValue = null)
+        public virtual String ToFullString(DateTimeOffset value, Boolean useMillisecond, String emptyValue = null)
         {
             if (emptyValue != null && value <= DateTimeOffset.MinValue) return emptyValue;
 
-            var cs = "yyyy-MM-dd HH:mm:ss +08:00".ToCharArray();
+            //var cs = "yyyy-MM-dd HH:mm:ss +08:00".ToCharArray();
+            var cs = useMillisecond ?
+                "yyyy-MM-dd HH:mm:ss.fff +08:00".ToCharArray() :
+                "yyyy-MM-dd HH:mm:ss +08:00".ToCharArray();
 
             var k = 0;
             var y = value.Year;
@@ -589,6 +621,15 @@ namespace System
             cs[k++] = (Char)('0' + (m / 10));
             cs[k++] = (Char)('0' + (m % 10));
             k++;
+
+            if (useMillisecond)
+            {
+                m = value.Millisecond;
+                cs[k++] = (Char)('0' + (m / 100));
+                cs[k++] = (Char)('0' + ((m % 100) / 10));
+                cs[k++] = (Char)('0' + (m % 10));
+                k++;
+            }
 
             // 时区
             var offset = value.Offset;
@@ -615,7 +656,7 @@ namespace System
 
             //return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
 
-            if (format == null || format == "yyyy-MM-dd HH:mm:ss") return ToFullString(value, emptyValue);
+            if (format.IsNullOrEmpty() || format == "yyyy-MM-dd HH:mm:ss") return ToFullString(value, false, emptyValue);
 
             return value.ToString(format);
         }
