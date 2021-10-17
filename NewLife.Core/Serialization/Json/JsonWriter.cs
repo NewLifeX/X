@@ -101,6 +101,9 @@ namespace NewLife.Serialization
             else if (obj is String or Char)
                 WriteString(obj + "");
 
+            else if (obj is Type type)
+                WriteString(type.FullName.TrimStart("System."));
+
             else if (obj is Guid)
                 WriteStringFast(obj + "");
 
@@ -348,7 +351,7 @@ namespace NewLife.Serialization
                         WriteIndent();
                     }
                 }
-
+                
                 WritePair(name, value);
             }
         }
