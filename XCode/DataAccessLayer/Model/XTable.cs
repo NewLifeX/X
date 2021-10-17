@@ -93,14 +93,12 @@ namespace XCode.DataAccessLayer
 
         #region 扩展属性
         /// <summary>字段集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("字段集合")]
         [Description("字段集合")]
         public List<IDataColumn> Columns { get; private set; }
 
         /// <summary>索引集合。可以是空集合，但不能为null。</summary>
-        [XmlIgnore, IgnoreDataMember]
         [Category("集合")]
         [DisplayName("索引集合")]
         [Description("索引集合")]

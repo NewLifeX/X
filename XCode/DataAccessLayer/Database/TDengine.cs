@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Log;
 using XCode.TDengine;
 
 namespace XCode.DataAccessLayer
@@ -294,18 +293,6 @@ namespace XCode.DataAccessLayer
             return Execute(sql);
         }
 
-        public override Int32 InsertIgnore(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
-        {
-            var sql = GetBatchSql("Insert Ignore Into", table, columns, null, null, list);
-            return Execute(sql);
-        }
-
-        public override Int32 Replace(IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
-        {
-            var sql = GetBatchSql("Replace Into", table, columns, null, null, list);
-            return Execute(sql);
-        }
-
         public override Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list)
         {
             var sql = GetBatchSql("Insert Into", table, columns, updateColumns, addColumns, list);
@@ -349,9 +336,9 @@ namespace XCode.DataAccessLayer
             { typeof(Double), new String[] { "DOUBLE" } },
             { typeof(Decimal), new String[] { "DOUBLE" } },
             { typeof(DateTime), new String[] { "TIMESTAMP" } },
-            { typeof(String), new String[] { "NCHAR({0})" } },
+            { typeof(String), new String[] { "NCHAR({0})", "BINARY({0})" } },
             { typeof(Boolean), new String[] { "BOOL" } },
-            { typeof(Byte[]), new String[] { "BINARY" } },
+            //{ typeof(Byte[]), new String[] { "BINARY" } },
         };
         #endregion
 
@@ -380,13 +367,11 @@ namespace XCode.DataAccessLayer
 
                     var table = DAL.CreateTable();
                     table.TableName = name;
-                    //table.Description = dr["Comment"] + "";
                     table.Owner = dr["stable_name"] as String;
 
                     #region 字段
-                    sql = $"DECRIBE {name}";
+                    sql = $"DESCRIBE {name}";
                     var dcs = ss.Query(sql, null);
-                    XTrace.WriteLine(dcs.ToJson());
                     foreach (var dc in dcs)
                     {
                         var field = table.CreateColumn();
@@ -394,21 +379,8 @@ namespace XCode.DataAccessLayer
                         field.ColumnName = dc["Field"] + "";
                         field.RawType = dc["Type"] + "";
                         field.DataType = GetDataType(field.RawType);
-                        field.Description = dc["Comment"] + "";
-
-                        if (dc["Extra"] + "" == "auto_increment") field.Identity = true;
-                        if (dc["Key"] + "" == "PRI") field.PrimaryKey = true;
-                        if (dc["Null"] + "" == "YES") field.Nullable = true;
-
-                        field.Length = field.RawType.Substring("(", ")").ToInt();
-
-                        if (field.DataType == null)
-                        {
-                            if (field.RawType.StartsWithIgnoreCase("varchar", "nvarchar")) field.DataType = typeof(String);
-                        }
-
-                        // TDengine中没有布尔型，这里处理YN枚举作为布尔型
-                        if (field.RawType == "enum('N','Y')" || field.RawType == "enum('Y','N')") field.DataType = typeof(Boolean);
+                        field.Length = dc["Length"].ToInt();
+                        field.Master = dc["Note"] as String == "TAGS";
 
                         field.Fix();
 
@@ -488,9 +460,8 @@ namespace XCode.DataAccessLayer
 
         public override String AddTableDescriptionSQL(IDataTable table)
         {
-            if (String.IsNullOrEmpty(table.Description)) return null;
-
-            return $"Alter Table {FormatName(table)} Comment '{table.Description}'";
+            // 返回String.Empty表示已经在别的SQL中处理
+            return String.Empty;
         }
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify Column {FieldClause(field, false)}";
