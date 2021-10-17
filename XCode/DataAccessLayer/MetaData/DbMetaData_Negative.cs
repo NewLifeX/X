@@ -669,11 +669,7 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((IDataTable)values[0]);
                 case DDLSchema.DropTable:
-                    if (values[0] is IDataTable)
-                        return DropTableSQL((IDataTable)values[0]);
-                    else
-                        //    return DropTableSQL(values[0].ToString());
-                        return String.Empty;
+                    return DropTableSQL((IDataTable)values[0]);
                 //case DDLSchema.TableExist:
                 //    if (values[0] is IDataTable)
                 //        return TableExistSQL((IDataTable)values[0]);
@@ -712,33 +708,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Object SetSchema(DDLSchema schema, params Object[] values)
         {
-            //Object obj = null;
-            //switch (schema)
-            //{
-            //    case DDLSchema.CreateTable:
-            //        //if (MetaDataCollections.Contains(_.Databases))
-            //        //{
-
-            //        //}
-            //        break;
-            //    case DDLSchema.TableExist:
-            //        {
-            //            String name;
-            //            if (values[0] is IDataTable)
-            //                name = (values[0] as IDataTable).TableName;
-            //            else
-            //                name = values[0].ToString();
-
-            //            var dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
-            //            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-            //            return true;
-            //        }
-            //    case DDLSchema.BackupDatabase:
-            //        return Backup((String)values[0], (String)values[1], (Boolean)values[2]);
-            //    default:
-            //        break;
-            //}
-
             var sql = GetSchemaSQL(schema, values);
             if (String.IsNullOrEmpty(sql)) return null;
 
@@ -747,8 +716,8 @@ namespace XCode.DataAccessLayer
             if (/*schema == DDLSchema.TableExist ||*/ schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
 
             // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
-            var sqls = sql.Split(";" + Environment.NewLine);
-            if (sqls == null || sqls.Length < 1) return session.Execute(sql);
+            var sqls = sql.Split(new[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            if (sqls == null || sqls.Length <= 1) return session.Execute(sql);
 
             session.BeginTransaction(IsolationLevel.Serializable);
             try
@@ -776,7 +745,7 @@ namespace XCode.DataAccessLayer
         {
             var sb = new StringBuilder();
 
-            //字段名
+            // 字段名
             sb.AppendFormat("{0} ", FormatName(field));
 
             String typeName = null;

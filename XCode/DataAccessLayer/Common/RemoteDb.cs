@@ -158,7 +158,8 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                return callback(this, null);
+                using var conn = Database.OpenConnection();
+                return callback(this, conn);
             }
         }
 
@@ -210,13 +211,11 @@ namespace XCode.DataAccessLayer
                 //    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
 
                 case DDLSchema.DatabaseExist:
-                    //return ProcessWithSystem(s => DatabaseExist(databaseName));
                     return DatabaseExist(databaseName);
 
                 case DDLSchema.CreateDatabase:
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    //return ProcessWithSystem(s => base.SetSchema(schema, values));
                     var sql = base.GetSchemaSQL(schema, values);
                     if (sql.IsNullOrEmpty()) return null;
 
@@ -236,7 +235,6 @@ namespace XCode.DataAccessLayer
                     return 0;
 
                 //case DDLSchema.DropDatabase:
-                //    //return ProcessWithSystem(s => DropDatabase(databaseName));
                 //    return DropDatabase(databaseName);
 
                 default:
@@ -251,7 +249,14 @@ namespace XCode.DataAccessLayer
             return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
         }
 
-        //protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
+        //protected virtual Boolean DropDatabase(String databaseName)
+        //{
+        //    var session = Database.CreateSession();
+        //    var sql = DropDatabaseSQL(databaseName);
+        //    if (sql.IsNullOrEmpty()) return session.Execute(sql) > 0;
+
+        //    return true;
+        //}
 
         //Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion

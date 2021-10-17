@@ -120,4 +120,14 @@
       <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
+  <Table Name="Meter" Description="电能指标。时序数据">
+    <Columns>
+      <Column Name="Ts" DataType="DateTime" PrimaryKey="True" Description="时间戳" />
+      <Column Name="Current" DataType="Single" Description="电流" />
+      <Column Name="Voltage" DataType="Int32" Description="电压" />
+      <Column Name="Phase" DataType="Single" Description="相位" />
+      <Column Name="Location" DataType="String" Master="True" Length="64" Description="位置" />
+      <Column Name="GroupId" DataType="Int32" Master="True" Description="分组" />
+    </Columns>
+  </Table>
 </Tables>

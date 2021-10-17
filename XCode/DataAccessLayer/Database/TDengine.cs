@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
@@ -374,16 +375,18 @@ namespace XCode.DataAccessLayer
                 // 所有表
                 foreach (var dr in dt)
                 {
-                    var name = dr["name"] + "";
+                    var name = dr["table_name"] + "";
                     if (name.IsNullOrEmpty() || hs.Count > 0 && !hs.Contains(name)) continue;
 
                     var table = DAL.CreateTable();
                     table.TableName = name;
                     //table.Description = dr["Comment"] + "";
+                    table.Owner = dr["stable_name"] as String;
 
                     #region 字段
-                    sql = $"SHOW FULL COLUMNS FROM `{db}`.`{name}`";
+                    sql = $"DECRIBE {name}";
                     var dcs = ss.Query(sql, null);
+                    XTrace.WriteLine(dcs.ToJson());
                     foreach (var dc in dcs)
                     {
                         var field = table.CreateColumn();
@@ -413,26 +416,6 @@ namespace XCode.DataAccessLayer
                     }
                     #endregion
 
-                    #region 索引
-                    sql = $"SHOW INDEX FROM `{db}`.`{name}`";
-                    var dis = ss.Query(sql, null);
-                    foreach (var dr2 in dis)
-                    {
-                        var dname = dr2["Key_name"] + "";
-                        var di = table.Indexes.FirstOrDefault(e => e.Name == dname) ?? table.CreateIndex();
-                        di.Name = dname;
-                        di.Unique = dr2.Get<Int32>("Non_unique") == 0;
-
-                        var cname = dr2.Get<String>("Column_name");
-                        var cs = new List<String>();
-                        if (di.Columns != null && di.Columns.Length > 0) cs.AddRange(di.Columns);
-                        cs.Add(cname);
-                        di.Columns = cs.ToArray();
-
-                        table.Indexes.Add(di);
-                    }
-                    #endregion
-
                     // 修正关系数据
                     table.Fix();
 
@@ -449,20 +432,20 @@ namespace XCode.DataAccessLayer
 
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
-            var sql = base.FieldClause(field, onlyDefine);
-            // 加上注释
-            if (!String.IsNullOrEmpty(field.Description)) sql = $"{sql} COMMENT '{field.Description}'";
-            return sql;
-        }
+            var sb = new StringBuilder();
 
-        protected override String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
-        {
-            String str = null;
-            if (!field.Nullable) str = " NOT NULL";
+            // 字段名
+            sb.AppendFormat("{0} ", FormatName(field));
 
-            if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
+            String typeName = null;
+            // 每种数据库的自增差异太大，理应由各自处理，而不采用原始值
+            if (Database.Type == field.Table.DbType && !field.Identity) typeName = field.RawType;
 
-            return str;
+            if (String.IsNullOrEmpty(typeName)) typeName = GetFieldType(field);
+
+            sb.Append(typeName);
+
+            return sb.ToString();
         }
         #endregion
 
@@ -475,10 +458,10 @@ namespace XCode.DataAccessLayer
             return dt != null && dt.Rows != null && dt.Rows.Any(e => e[0] as String == databaseName);
         }
 
-        public override String CreateDatabaseSQL(String dbname, String file) => $"Create Database If Not Exists {Database.FormatName(dbname)};";
+        public override String CreateDatabaseSQL(String dbname, String file) => $"Create Database If Not Exists {Database.FormatName(dbname)}";
         //public override String CreateDatabaseSQL(String dbname, String file) => $"Create Database If Not Exists {Database.FormatName(dbname)} KEEP 365 DAYS 10 BLOCKS 6 UPDATE 1;";
 
-        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)};";
+        public override String DropDatabaseSQL(String dbname) => $"Drop Database If Exists {Database.FormatName(dbname)}";
 
         public override String CreateTableSQL(IDataTable table)
         {
@@ -487,15 +470,17 @@ namespace XCode.DataAccessLayer
             var sb = Pool.StringBuilder.Get();
 
             sb.AppendFormat("Create Table If Not Exists {0}(", FormatName(table));
-            for (var i = 0; i < fs.Count; i++)
-            {
-                sb.AppendLine();
-                sb.Append('\t');
-                sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(',');
-            }
-            sb.AppendLine();
+            var ss = fs.Where(e => !e.Master).ToList();
+            var ms = fs.Where(e => e.Master).ToList();
+            sb.Append(ss.Join(",", e => FieldClause(e, true)));
             sb.Append(')');
+
+            if (ms.Count > 0)
+            {
+                sb.Append(" TAGS (");
+                sb.Append(ms.Join(",", e => FieldClause(e, true)));
+                sb.Append(')');
+            }
             sb.Append(';');
 
             return sb.Put(true);

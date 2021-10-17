@@ -99,10 +99,10 @@ namespace XUnitTest.XCode.DataAccessLayer
             var dal = DAL.Create("sysTDengine");
 
             var rs = dal.Db.CreateMetaData().SetSchema(DDLSchema.CreateDatabase, "newlife");
-            Assert.Equal(1, rs);
+            Assert.Equal(0, rs);
 
-            rs = dal.Db.CreateMetaData().SetSchema(DDLSchema.DropColumn, "newlife");
-            Assert.Equal(1, rs);
+            rs = dal.Db.CreateMetaData().SetSchema(DDLSchema.DropDatabase, "newlife");
+            Assert.Equal(0, rs);
         }
 
         [Fact]
@@ -186,13 +186,13 @@ namespace XUnitTest.XCode.DataAccessLayer
             var dal = DAL.Create("TDengine_Meta");
 
             // 反向工程
-            dal.SetTables(User.Meta.Table.DataTable);
+            dal.SetTables(Meter.Meta.Table.DataTable);
 
             var tables = dal.Tables;
             Assert.NotNull(tables);
             Assert.True(tables.Count > 0);
 
-            var tb = tables.FirstOrDefault(e => e.Name == "User");
+            var tb = tables.FirstOrDefault(e => e.Name == "Meter");
             Assert.NotNull(tb);
             Assert.NotEmpty(tb.Description);
         }
