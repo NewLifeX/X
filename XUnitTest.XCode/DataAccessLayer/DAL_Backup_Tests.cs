@@ -1,4 +1,5 @@
-﻿using NewLife.Security;
+﻿using System.IO;
+using NewLife.Security;
 using XCode;
 using XCode.Membership;
 using Xunit;
@@ -24,6 +25,9 @@ namespace XUnitTest.XCode.DataAccessLayer
             var n = User.Meta.Count;
             var dal = User.Meta.Session.Dal;
             var tables = EntityFactory.GetTables(dal.ConnName, false);
+
+            var f = $"data/{dal.ConnName}.zip".GetFullPath();
+            if (File.Exists(f)) File.Delete(f);
 
             dal.BackupAll(tables, $"data/{dal.ConnName}.zip");
         }

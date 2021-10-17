@@ -45,7 +45,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(dp);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void ConnectTest()
         {
             var db = DbFactory.Create(DatabaseType.PostgreSQL);
@@ -57,7 +57,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void DALTest()
         {
             DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
@@ -75,7 +75,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(ver);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void MetaTest()
         {
             var connStr = _ConnStr.Replace("Database=postgres;", "Database=Membership;");
@@ -90,7 +90,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.True(tables.Count > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void SelectTest()
         {
             DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
@@ -132,7 +132,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             catch (Exception ex) { XTrace.WriteException(ex); }
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void TablePrefixTest()
         {
             DAL.AddConnStr("sysPgSql", _ConnStr, null, "PostgreSQL");
@@ -192,7 +192,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             return split;
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void BatchInsert()
         {
             using var split = CreateForBatch("BatchInsert");

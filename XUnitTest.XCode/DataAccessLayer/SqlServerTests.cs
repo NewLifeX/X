@@ -46,7 +46,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(dp);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void ConnectTest()
         {
             var db = DbFactory.Create(DatabaseType.SqlServer);
@@ -58,7 +58,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void DALTest()
         {
             DAL.AddConnStr("sysSqlServer", _ConnStr, null, "SqlServer");
@@ -76,7 +76,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(ver);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void MetaTest()
         {
             var connStr = _ConnStr.Replace("Database=sys;", "Database=Membership;");
@@ -95,7 +95,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(tb.Description);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void SelectTest()
         {
             DAL.AddConnStr("sysSqlServer", _ConnStr, null, "SqlServer");
@@ -137,7 +137,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             catch (Exception ex) { XTrace.WriteException(ex); }
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void TablePrefixTest()
         {
             DAL.AddConnStr("sysSqlServer", _ConnStr, null, "SqlServer");
@@ -197,7 +197,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             return split;
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void BatchInsert()
         {
             using var split = CreateForBatch("BatchInsert");
@@ -218,7 +218,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Contains(list2, e => e.Name == "普通用户");
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void BatchInsertIgnore()
         {
             using var split = CreateForBatch("InsertIgnore");
@@ -248,7 +248,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Contains(list2, e => e.Name == "游客");
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void BatchReplace()
         {
             using var split = CreateForBatch("Replace");
