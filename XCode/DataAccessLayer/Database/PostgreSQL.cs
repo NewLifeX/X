@@ -72,23 +72,6 @@ namespace XCode.DataAccessLayer
         }
         #endregion
 
-        #region 分页
-        /// <summary>已重写。获取分页</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => MySql.PageSplitByLimit(sql, startRowIndex, maximumRows);
-
-        /// <summary>构造分页SQL</summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => MySql.PageSplitByLimit(builder, startRowIndex, maximumRows);
-        #endregion
-
         #region 数据库特性
         protected override String ReservedWordsStr
         {

@@ -124,6 +124,7 @@
     <Compile Remove="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Remove="Serialization\JsonCodec.cs" />
     <Compile Remove="Serialization\JsonCodec2.cs" />
+    <Compile Remove="Serialization\Json\JsonTest.cs" />
     <Compile Remove="Web\OAuthClient.cs" />
     <Compile Remove="Web\OAuthConfig.cs" />
     <Compile Remove="Web\OAuthServer.cs" />

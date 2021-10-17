@@ -9,7 +9,7 @@ namespace XCode.TDengine
     {
         private TDengineConnection _connection;
         private readonly IsolationLevel _isolationLevel;
-        private Boolean _completed;
+        //private Boolean _completed;
 
         internal TDengineTransaction(TDengineConnection connection, IsolationLevel isolationLevel)
         {

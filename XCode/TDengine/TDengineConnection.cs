@@ -49,7 +49,7 @@ namespace XCode.TDengine
         /// <summary>事务</summary>
         protected internal virtual TDengineTransaction Transaction { get; set; }
 
-        private readonly String _Database;
+        private String _Database;
         /// <summary>数据库</summary>
         public override String Database => _Database;
 
@@ -110,6 +110,13 @@ namespace XCode.TDengine
 
             var connStr = ConnectionString;
             if (connStr.IsNullOrEmpty()) throw new InvalidOperationException("未设置连接字符串");
+
+            if (_DataSource.IsNullOrEmpty() || _Database.IsNullOrEmpty())
+            {
+                var builder = new ConnectionStringBuilder(connStr);
+                _DataSource = builder["DataSource"] ?? builder["Server"];
+                _Database = builder["Database"];
+            }
 
             var pool = GetPool(ConnectionString);
             _handler = pool.Get();
@@ -200,7 +207,7 @@ namespace XCode.TDengine
                 IdleTime = 20,
                 AllIdleTime = 120,
 #if DEBUG
-                Log = XTrace.Log,
+                //Log = XTrace.Log,
 #endif
             });
         }
