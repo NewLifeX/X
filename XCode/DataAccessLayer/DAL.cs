@@ -487,7 +487,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
 
-            CheckDatabase();
+            //CheckDatabase();
             return Db.CreateMetaData().GetTables();
         }
 
@@ -533,7 +533,7 @@ namespace XCode.DataAccessLayer
 
         #region 反向工程
         private Boolean _hasCheck;
-        /// <summary>使用数据库之前检查表架构</summary>
+        /// <summary>检查数据库，建库建表加字段</summary>
         /// <remarks>不阻塞，可能第一个线程正在检查表架构，别的线程已经开始使用数据库了</remarks>
         public void CheckDatabase()
         {
@@ -541,6 +541,7 @@ namespace XCode.DataAccessLayer
             lock (this)
             {
                 if (_hasCheck) return;
+                _hasCheck = true;
 
                 try
                 {
@@ -563,7 +564,6 @@ namespace XCode.DataAccessLayer
                 {
                     if (Debug) WriteLog(ex.GetMessage());
                 }
-                _hasCheck = true;
             }
         }
 
@@ -585,7 +585,7 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
+        /// <summary>检查数据表，建表加字段</summary>
         public void CheckTables()
         {
             var name = ConnName;
@@ -600,9 +600,6 @@ namespace XCode.DataAccessLayer
                 {
                     // 移除所有已初始化的
                     list.RemoveAll(dt => CheckAndAdd(dt.TableName));
-
-                    //// 过滤掉被排除的表名
-                    //list.RemoveAll(dt => NegativeExclude.Contains(dt.TableName));
 
                     // 过滤掉视图
                     list.RemoveAll(dt => dt.IsView);

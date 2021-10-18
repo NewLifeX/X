@@ -436,7 +436,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
@@ -490,7 +490,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:InsertIgnore:{session.TableName}");
@@ -543,7 +543,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:Replace:{session.TableName}");
@@ -596,7 +596,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
@@ -674,7 +674,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
@@ -728,7 +728,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;

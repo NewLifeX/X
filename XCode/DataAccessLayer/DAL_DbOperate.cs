@@ -331,7 +331,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
         {
-            CheckDatabase();
+            //CheckDatabase();
 
             return Session.BeginTransaction(level);
         }
@@ -386,7 +386,7 @@ namespace XCode.DataAccessLayer
                 if (Strategy.Validate(this, k1 + "", action)) return ReadOnly.QueryByCache(k1, k2, k3, callback, action);
             }
 
-            CheckDatabase();
+            //CheckDatabase();
 
             // 读缓存
             var cache = GetCache();
@@ -419,7 +419,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
 
-            CheckDatabase();
+            //CheckDatabase();
 
             var rs = Invoke(k1, k2, k3, callback, "Execute");
 
@@ -478,7 +478,7 @@ namespace XCode.DataAccessLayer
                 if (Strategy.Validate(this, k1 + "", action)) return await ReadOnly.QueryByCacheAsync(k1, k2, k3, callback, action);
             }
 
-            CheckDatabase();
+            //CheckDatabase();
 
             // 读缓存
             var cache = GetCache();
@@ -511,7 +511,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
 
-            CheckDatabase();
+            //CheckDatabase();
 
             var rs = await InvokeAsync(k1, k2, k3, callback, "Execute");
 

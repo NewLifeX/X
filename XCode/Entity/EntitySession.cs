@@ -224,10 +224,6 @@ namespace XCode
         {
             var dal = Dal;
 
-#if DEBUG
-            DAL.WriteLog("开始{2}检查表[{0}/{1}]的数据表架构……", Table.Name, dal.Db.Type, Setting.Current.Migration == Migration.ReadOnly ? "异步" : "同步");
-#endif
-
             var sw = Stopwatch.StartNew();
 
             try
@@ -252,10 +248,6 @@ namespace XCode
             finally
             {
                 sw.Stop();
-
-#if DEBUG
-                DAL.WriteLog("检查表[{0}/{1}]的数据表架构耗时{2:n0}ms", Table.Name, dal.DbType, sw.Elapsed.TotalMilliseconds);
-#endif
             }
         }
 

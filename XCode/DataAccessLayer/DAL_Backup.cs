@@ -223,6 +223,9 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Restore(Stream stream, IDataTable table, Action<Int32, DbTable> progress = null)
         {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (table == null) throw new ArgumentNullException(nameof(table));
+
             var writeDb = new WriteDbActor
             {
                 Table = table,
@@ -289,13 +292,14 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>从文件恢复数据</summary>
-        /// <param name="file"></param>
-        /// <param name="table"></param>
+        /// <param name="file">zip压缩文件</param>
+        /// <param name="table">数据表</param>
+        /// <param name="setSchema">是否设置数据表模型，自动建表</param>
         /// <returns></returns>
-        public Int64 Restore(String file, IDataTable table = null)
+        public Int64 Restore(String file, IDataTable table = null, Boolean setSchema = true)
         {
+            if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
             if (table == null) throw new ArgumentNullException(nameof(table));
-            if (file.IsNullOrEmpty()) return 0;
 
             var file2 = file.GetFullPath();
             if (!File.Exists(file2)) return 0;
@@ -303,7 +307,7 @@ namespace XCode.DataAccessLayer
 
             WriteLog("恢复[{2}]到[{0}/{1}]", table, ConnName, file);
 
-            SetTables(table);
+            if (setSchema) SetTables(table);
 
             var compressed = file.EndsWithIgnoreCase(".gz");
             return file2.AsFile().OpenRead(compressed, s => Restore(s, table));
@@ -311,11 +315,13 @@ namespace XCode.DataAccessLayer
 
         /// <summary>从指定压缩文件恢复一批数据到目标库</summary>
         /// <param name="file">zip压缩文件</param>
-        /// <param name="tables"></param>
+        /// <param name="tables">数据表。为空时从压缩包读取xml模型文件</param>
+        /// <param name="setSchema">是否设置数据表模型，自动建表</param>
         /// <returns></returns>
-        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null)
+        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true)
         {
             if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
+            if (tables == null) throw new ArgumentNullException(nameof(tables));
 
             var file2 = file.GetFullPath();
             if (!File.Exists(file2)) return null;
@@ -337,7 +343,7 @@ namespace XCode.DataAccessLayer
 
             WriteLog("恢复[{0}]从文件 {1}。{2}", ConnName, file2, tables?.Join(",", e => e.Name));
 
-            SetTables(tables);
+            if (setSchema) SetTables(tables);
 
             foreach (var item in tables)
             {
@@ -356,6 +362,7 @@ namespace XCode.DataAccessLayer
         class WriteDbActor : Actor
         {
             public DAL Dal { get; set; }
+
             public IDataTable Table { get; set; }
 
             private IDataColumn[] _Columns;
@@ -393,7 +400,10 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true, Action<Int32, DbTable> progress = null)
         {
-            var dal = connName.IsNullOrEmpty() ? null : Create(connName);
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
+            if (table == null) throw new ArgumentNullException(nameof(table));
+
+            var dal = Create(connName);
 
             var writeDb = new WriteDbActor
             {
@@ -480,6 +490,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true)
         {
+            if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
             if (tables == null) throw new ArgumentNullException(nameof(tables));
 
             var dic = new Dictionary<String, Int32>();
@@ -488,11 +499,7 @@ namespace XCode.DataAccessLayer
             if (tables.Length > 0)
             {
                 // 同步架构
-                if (syncSchema)
-                {
-                    var dal = connName.IsNullOrEmpty() ? null : Create(connName);
-                    dal.SetTables(tables);
-                }
+                if (syncSchema) Create(connName).SetTables(tables);
 
                 foreach (var item in tables)
                 {
