@@ -202,17 +202,36 @@ namespace XCode
             // 反向工程检查
             if (dal.Db.Migration > Migration.Off)
             {
-                var tables = facts.Select(e => e.Table.DataTable).ToArray();
-                dal.SetTables(tables);
+                //var tables = facts.Select(e => e.Table.DataTable).ToArray();
+                var tables = new List<IDataTable>();
+                foreach (var item in facts)
+                {
+                    // 克隆一份，防止修改
+                    var table = item.Table.DataTable;
+                    table = table.Clone() as IDataTable;
+
+                    if (table != null && table.TableName != item.TableName)
+                    {
+                        // 表名去掉前缀
+                        var name = item.TableName;
+                        if (name.Contains(".")) name = name.Substring(".");
+
+                        table.TableName = name;
+                    }
+                    tables.Add(table);
+                    dal.HasCheckTables.Add(table.TableName);
+                }
+                dal.SetTables(tables.ToArray());
             }
 
             // 实体类初始化数据
             foreach (var item in facts)
             {
-                if (item.Default is EntityBase entity)
-                {
-                    entity.InitData();
-                }
+                //if (item.Default is EntityBase entity)
+                //{
+                //    entity.InitData();
+                //}
+                item.Session.InitData();
             }
         }
         #endregion

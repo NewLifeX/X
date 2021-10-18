@@ -183,6 +183,7 @@ namespace XCode
             {
                 // 已初始化
                 if (hasCheckInitData) return true;
+                hasCheckInitData = true;
 
                 initThread = Thread.CurrentThread.ManagedThreadId;
 
@@ -213,7 +214,6 @@ namespace XCode
             finally
             {
                 initThread = 0;
-                hasCheckInitData = true;
                 Monitor.Exit(_wait_lock);
             }
         }
@@ -224,31 +224,21 @@ namespace XCode
         {
             var dal = Dal;
 
-            var sw = Stopwatch.StartNew();
+            // 检查新表名对应的数据表
+            var table = TableItem.DataTable;
+            // 克隆一份，防止修改
+            table = table.Clone() as IDataTable;
 
-            try
+            if (table != null && table.TableName != TableName)
             {
-                // 检查新表名对应的数据表
-                var table = TableItem.DataTable;
-                // 克隆一份，防止修改
-                table = table.Clone() as IDataTable;
+                // 表名去掉前缀
+                var name = TableName;
+                if (name.Contains(".")) name = name.Substring(".");
 
-                if (table != null && table.TableName != TableName)
-                {
-                    // 表名去掉前缀
-                    var name = TableName;
-                    if (name.Contains(".")) name = name.Substring(".");
-
-                    table.TableName = name;
-                }
-                //FixIndexName(table);
-
-                dal.SetTables(table);
+                table.TableName = name;
             }
-            finally
-            {
-                sw.Stop();
-            }
+
+            dal.SetTables(table);
         }
 
         private Boolean IsGenerated => ThisType.GetCustomAttribute<CompilerGeneratedAttribute>(true) != null;
@@ -261,25 +251,15 @@ namespace XCode
             lock (_checkLock)
             {
                 if (_hasCheckModel) return;
+                _hasCheckModel = true;
 
-                // 是否默认连接和默认表名，非默认则强制检查，并且不允许异步检查（异步检查会导致ConnName和TableName不对）
-                //var def = Default;
                 var cname = ConnName;
                 var tname = TableName;
-                //if (def == this)
-                //{
                 if (Dal.Db.Migration == Migration.Off || IsGenerated)
                 {
                     _hasCheckModel = true;
                     return;
                 }
-                //}
-#if DEBUG
-                else
-                {
-                    DAL.WriteLog("[{0}@{1}]非默认表名连接名，强制要求检查架构！", tname, cname);
-                }
-#endif
 
                 // CheckTableWhenFirstUse的实体类，在这里检查，有点意思，记下来
                 var mode = TableItem.ModelCheckMode;
@@ -296,10 +276,6 @@ namespace XCode
                     {
                         dal.HasCheckTables.Add(tname);
 
-#if DEBUG
-                        if (!ck && DAL.Debug) DAL.WriteLog("集中初始化表架构时没赶上，现在补上！");
-#endif
-
                         ck = true;
                     }
                 }
@@ -315,8 +291,6 @@ namespace XCode
                     else
                         ThreadPoolX.QueueUserWorkItem(CheckTable);
                 }
-
-                _hasCheckModel = true;
             }
         }
         #endregion
