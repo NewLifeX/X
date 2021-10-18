@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NewLife;
 using NewLife.Log;
@@ -13,8 +14,17 @@ namespace XCode
     /// <summary>实体工厂</summary>
     public static class EntityFactory
     {
-        #region 创建实体操作接口
+        #region 创建实体工厂
         private static readonly ConcurrentDictionary<Type, IEntityFactory> _factories = new();
+        /// <summary>实体工厂集合</summary>
+        public static IDictionary<Type, IEntityFactory> Entities => _factories;
+
+        /// <summary>创建实体操作接口</summary>
+        /// <param name="type">类型</param>
+        /// <returns></returns>
+        [Obsolete("=>CreateFactory", true)]
+        public static IEntityFactory CreateOperate(Type type) => CreateFactory(type);
+
         /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。
@@ -22,20 +32,32 @@ namespace XCode
         /// </remarks>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        public static IEntityFactory CreateOperate(Type type)
+        public static IEntityFactory CreateFactory(Type type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+
+            if (_factories.TryGetValue(type, out var factory)) return factory;
 
             // 有可能有子类直接继承实体类，这里需要找到继承泛型实体类的那一层
             while (!type.BaseType.IsGenericType) type = type.BaseType;
 
-            if (_factories.TryGetValue(type, out var factory)) return factory;
+            if (_factories.TryGetValue(type, out factory)) return factory;
 
-            // 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityOperate，所以下面的委托按理应该再也不会被执行了
-            // 先实例化，在锁里面添加到列表但不实例化，避免实体类的实例化过程中访问CreateOperate导致死锁产生
-            type.CreateInstance();
+            //// 确保实体类已被初始化，实际上，因为实体类静态构造函数中会注册IEntityFactory，所以下面的委托按理应该再也不会被执行了
+            //// 先实例化，在锁里面添加到列表但不实例化，避免实体类的实例化过程中访问CreateFactory导致死锁产生
+            //type.CreateInstance();
 
-            if (!_factories.TryGetValue(type, out factory)) throw new XCodeException("无法创建[{0}]的实体操作接口！", type.FullName);
+            //if (!_factories.TryGetValue(type, out factory)) throw new XCodeException("无法创建[{0}]的实体工厂！", type.FullName);
+
+            // 读取特性中指定的自定义工程，若未指定，则使用默认工厂
+            var att = type.GetCustomAttribute<EntityFactoryAttribute>();
+            var factoryType = att?.Type;
+            if (factoryType == null) factoryType = typeof(Entity<>).MakeGenericType(type).GetNestedType("DefaultEntityFactory").MakeGenericType(type);
+
+            factory = factoryType?.CreateInstance() as IEntityFactory;
+            if (factory == null) throw new XCodeException("无法创建[{0}]的实体工厂！", type.FullName);
+
+            _factories.TryAdd(type, factory);
 
             return factory;
         }
@@ -43,7 +65,7 @@ namespace XCode
         /// <summary>根据类型创建实体工厂</summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static IEntityFactory AsFactory(this Type type) => CreateOperate(type);
+        public static IEntityFactory AsFactory(this Type type) => CreateFactory(type);
 
         /// <summary>使用指定的实体对象创建实体操作接口，主要用于Entity内部调用，避免反射带来的损耗</summary>
         /// <param name="type">类型</param>
@@ -131,6 +153,67 @@ namespace XCode
             }
 
             return tables;
+        }
+        #endregion
+
+        #region 现代化用法
+        /// <summary>初始化所有数据库连接的实体类和数据表</summary>
+        public static void InitAll()
+        {
+            DAL.WriteLog("初始化所有数据库连接的实体类和数据表");
+
+            // 加载所有实体类
+            var types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
+            var connNames = new List<String>();
+            foreach (var item in types)
+            {
+                var ti = TableItem.Create(item);
+                if (ti == null || connNames.Contains(ti.ConnName) || ti.ModelCheckMode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+                connNames.Add(ti.ConnName);
+
+                Init(ti.ConnName, types);
+            }
+        }
+
+        /// <summary>初始化指定连接，执行反向工程检查，初始化字段</summary>
+        /// <param name="connName">连接名</param>
+        public static void Init(String connName) => Init(connName, null);
+
+        private static void Init(String connName, IList<Type> types)
+        {
+            // 加载所有实体类
+            if (types == null) types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
+
+            // 初始化工厂
+            var facts = new List<IEntityFactory>();
+            foreach (var type in types)
+            {
+                var ti = TableItem.Create(type);
+                if (ti != null && ti.ConnName == connName && ti.ModelCheckMode == ModelCheckModes.CheckAllTablesWhenInit)
+                {
+                    var fact = CreateFactory(type);
+                    facts.Add(fact);
+                }
+            }
+
+            var dal = DAL.Create(connName);
+            DAL.WriteLog("初始化数据库：{0}/{1} 实体类：{2}", connName, dal.DbType, facts.Join(",", e => e.EntityType.Name));
+
+            // 反向工程检查
+            if (dal.Db.Migration > Migration.Off)
+            {
+                var tables = facts.Select(e => e.Table.DataTable).ToArray();
+                dal.SetTables(tables);
+            }
+
+            // 实体类初始化数据
+            foreach (var item in facts)
+            {
+                if (item.Default is EntityBase entity)
+                {
+                    entity.InitData();
+                }
+            }
         }
         #endregion
     }

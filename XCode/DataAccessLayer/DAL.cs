@@ -585,7 +585,7 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        /// <summary>检查数据表，建表加字段</summary>
+        /// <summary>检查所有数据表，建表加字段</summary>
         public void CheckTables()
         {
             var name = ConnName;
@@ -620,7 +620,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>在当前连接上检查指定数据表的架构</summary>
+        /// <summary>检查指定数据表，建表加字段</summary>
         /// <param name="tables"></param>
         public void SetTables(params IDataTable[] tables)
         {

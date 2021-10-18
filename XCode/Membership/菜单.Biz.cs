@@ -14,6 +14,7 @@ using NewLife.Threading;
 namespace XCode.Membership
 {
     /// <summary>菜单</summary>
+    [EntityFactory(typeof(MenuFactory))]
     public partial class Menu : EntityTree<Menu>, IMenu
     {
         #region 对象操作
@@ -22,7 +23,7 @@ namespace XCode.Membership
             // 引发内部
             new Menu();
 
-            EntityFactory.Register(typeof(Menu), new MenuFactory());
+            //EntityFactory.Register(typeof(Menu), new MenuFactory());
 
             //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
 
@@ -330,7 +331,7 @@ namespace XCode.Membership
 
         #region 菜单工厂
         /// <summary>菜单工厂</summary>
-        public class MenuFactory : EntityOperate, IMenuFactory
+        public class MenuFactory : DefaultEntityFactory, IMenuFactory
         {
             #region IMenuFactory 成员
             IMenu IMenuFactory.Root => Root;

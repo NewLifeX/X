@@ -46,25 +46,12 @@ namespace XCode.Configuration
         {
             get
             {
-                //if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
                 if (_TableName.IsNullOrEmpty()) _TableName = _Table?.Name ?? EntityType.Name;
 
                 return _TableName;
             }
             set { _TableName = value; DataTable.TableName = value; }
         }
-
-        //private String GetTableName(BindTableAttribute table)
-        //{
-        //    var name = table != null ? table.Name : EntityType.Name;
-
-        //    // 检查自动表前缀
-        //    var dal = DAL.Create(ConnName);
-        //    var pf = dal.Db.TablePrefix;
-        //    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
-
-        //    return name;
-        //}
 
         private String _ConnName;
         /// <summary>连接名</summary>
@@ -76,69 +63,12 @@ namespace XCode.Configuration
                 {
                     var connName = _Table?.ConnName;
 
-                    //var str = FindConnMap(connName, EntityType);
-                    //if (!str.IsNullOrEmpty())
-                    //{
-                    //    DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
-
-                    //    connName = str;
-                    //}
-
                     _ConnName = connName;
                 }
                 return _ConnName;
             }
             set => _ConnName = value;
         }
-
-        //private static List<String> _ConnMaps;
-        ///// <summary>连接名映射</summary>
-        //private static List<String> ConnMaps
-        //{
-        //    get
-        //    {
-        //        // 加锁，并且先实例化本地变量，最后再赋值，避免返回空集合
-        //        // 原来的写法存在线程冲突，可能第一个线程实例化列表后，还来不及填充，后续线程就已经把集合拿走
-        //        if (_ConnMaps != null) return _ConnMaps;
-        //        lock (typeof(TableItem))
-        //        {
-        //            if (_ConnMaps != null) return _ConnMaps;
-
-        //            var list = new List<String>();
-        //            var str = Setting.Current.ConnMaps;
-        //            if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
-
-        //            var ss = str.Split(",");
-        //            foreach (var item in ss)
-        //            {
-        //                if (list.Contains(item.Trim())) continue;
-
-        //                if (item.Contains("#") && !item.EndsWith("#") ||
-        //                    item.Contains("@") && !item.EndsWith("@")) list.Add(item.Trim());
-        //            }
-        //            return _ConnMaps = list;
-        //        }
-        //    }
-        //}
-
-        ///// <summary>根据连接名和类名查找连接名映射</summary>
-        ///// <param name="connName"></param>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //private static String FindConnMap(String connName, Type type)
-        //{
-        //    var name1 = connName + "#";
-        //    var name2 = type.FullName + "@";
-        //    var name3 = type.Name + "@";
-
-        //    foreach (var item in ConnMaps)
-        //    {
-        //        if (item.StartsWith(name1)) return item.Substring(name1.Length);
-        //        if (item.StartsWith(name2)) return item.Substring(name2.Length);
-        //        if (item.StartsWith(name3)) return item.Substring(name3.Length);
-        //    }
-        //    return null;
-        //}
         #endregion
 
         #region 扩展属性

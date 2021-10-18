@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NewLife.Collections;
 using NewLife.Serialization;
 using NewLife.Threading;
 using XCode;

@@ -6,6 +6,17 @@ using XCode.Configuration;
 
 namespace XCode
 {
+    /// <summary>指定实体工厂</summary>
+    public class EntityFactoryAttribute : Attribute
+    {
+        /// <summary>实体工厂类型</summary>
+        public Type Type { get; set; }
+
+        /// <summary>指定实体工厂</summary>
+        /// <param name="type"></param>
+        public EntityFactoryAttribute(Type type) => Type = type;
+    }
+
     /// <summary>数据实体操作接口</summary>
     [Obsolete("=>IEntityFactory")]
     public interface IEntityOperate : IEntityFactory { }
@@ -28,7 +39,7 @@ namespace XCode
         #endregion
 
         #region 属性
-        /// <summary>默认实体</summary>
+        /// <summary>默认实体。用于初始化数据等扩展操作</summary>
         IEntity Default { get; set; }
 
         /// <summary>数据表元数据</summary>
@@ -49,20 +60,11 @@ namespace XCode
         /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
         FieldItem Master { get; }
 
-        /// <summary>连接名</summary>
+        /// <summary>连接名。当前线程正在使用的连接名</summary>
         String ConnName { get; set; }
 
-        /// <summary>表名</summary>
+        /// <summary>表名。当前线程正在使用的表名</summary>
         String TableName { get; set; }
-
-        ///// <summary>已格式化的表名，带有中括号等</summary>
-        //String FormatedTableName { get; }
-
-        ///// <summary>实体缓存</summary>
-        //IEntityCache Cache { get; }
-
-        ///// <summary>单对象实体缓存</summary>
-        //ISingleEntityCache SingleCache { get; }
 
         /// <summary>总记录数</summary>
         [Obsolete("=>Session.Count")]
@@ -135,7 +137,7 @@ namespace XCode
         #endregion
 
         #region 缓存查询
-        /// <summary>查找所有缓存</summary>
+        /// <summary>查找实体缓存所有数据</summary>
         /// <returns></returns>
         IList<IEntity> FindAllWithCache();
         #endregion
@@ -171,43 +173,9 @@ namespace XCode
         #endregion
 
         #region 事务
-        ///// <summary>开始事务</summary>
-        ///// <returns></returns>
-        //Int32 BeginTransaction();
-
-        ///// <summary>提交事务</summary>
-        ///// <returns></returns>
-        //Int32 Commit();
-
-        ///// <summary>回滚事务</summary>
-        ///// <returns></returns>
-        //Int32 Rollback();
-
         /// <summary>创建事务</summary>
         [Obsolete("=>Session.CreateTrans")]
         EntityTransaction CreateTrans();
-        #endregion
-
-        #region 辅助方法
-        ///// <summary>格式化关键字</summary>
-        ///// <param name="name">名称</param>
-        ///// <returns></returns>
-        //String FormatName(String name);
-
-        ///// <summary>
-        ///// 取得一个值的Sql值。
-        ///// 当这个值是字符串类型时，会在该值前后加单引号；
-        ///// </summary>
-        ///// <param name="name">字段</param>
-        ///// <param name="value">对象</param>
-        ///// <returns>Sql值的字符串形式</returns>
-        //String FormatValue(String name, Object value);
-
-        ///// <summary>格式化数据为SQL数据</summary>
-        ///// <param name="field">字段</param>
-        ///// <param name="value">数值</param>
-        ///// <returns></returns>
-        //String FormatValue(FieldItem field, Object value);
         #endregion
 
         #region 一些设置
@@ -240,10 +208,6 @@ namespace XCode
 
         /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
         Snowflake Snow { get; }
-
-        /// <summary>流式Id</summary>
-        [Obsolete("=>Snow")]
-        Snowflake FlowId { get; }
 
         /// <summary>Sql模版</summary>
         SqlTemplate Template { get; }

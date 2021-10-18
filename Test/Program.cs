@@ -26,6 +26,7 @@ using NewLife.Configuration;
 using System.Text;
 using NewLife.Http;
 using System.Net.WebSockets;
+using XCode;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -73,7 +74,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test5();
+                    Test9();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -502,6 +503,9 @@ namespace Test
 
         private static void Test9()
         {
+            EntityFactory.InitAll();
+
+            XTrace.WriteLine("TestRole");
             var r0 = Role.FindByName("Stone");
             r0?.Delete();
 

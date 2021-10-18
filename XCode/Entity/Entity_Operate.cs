@@ -13,7 +13,7 @@ namespace XCode
     public partial class Entity<TEntity>
     {
         /// <summary>默认的实体工厂</summary>
-        public class EntityOperate : IEntityFactory
+        public class DefaultEntityFactory : IEntityFactory
         {
             #region 主要属性
             /// <summary>实体类型</summary>
@@ -52,20 +52,11 @@ namespace XCode
             /// <summary>主字段。主字段作为业务主要字段，代表当前数据行意义</summary>
             public virtual FieldItem Master => Meta.Master;
 
-            /// <summary>连接名</summary>
+            /// <summary>连接名。当前线程正在使用的连接名</summary>
             public virtual String ConnName { get => Meta.ConnName; set => Meta.ConnName = value; }
 
-            /// <summary>表名</summary>
+            /// <summary>表名。当前线程正在使用的表名</summary>
             public virtual String TableName { get => Meta.TableName; set => Meta.TableName = value; }
-
-            ///// <summary>已格式化的表名，带有中括号等</summary>
-            //public virtual String FormatedTableName => Session.FormatedTableName;
-
-            ///// <summary>实体缓存</summary>
-            //public virtual IEntityCache Cache => Session.Cache;
-
-            ///// <summary>单对象实体缓存</summary>
-            //public virtual ISingleEntityCache SingleCache => Session.SingleCache;
 
             /// <summary>总记录数</summary>
             [Obsolete("=>Session.Count")]
@@ -74,7 +65,7 @@ namespace XCode
 
             #region 构造
             /// <summary>构造实体工厂</summary>
-            public EntityOperate()
+            public DefaultEntityFactory()
             {
                 //MasterTime = GetMasterTime();
                 Persistence = new EntityPersistence { Factory = this };
@@ -146,7 +137,7 @@ namespace XCode
             #endregion
 
             #region 缓存查询
-            /// <summary>查找所有缓存</summary>
+            /// <summary>查找实体缓存所有数据</summary>
             /// <returns></returns>
             public virtual IList<IEntity> FindAllWithCache() => Entity<TEntity>.FindAllWithCache().Cast<IEntity>().ToList();
             #endregion
@@ -182,43 +173,9 @@ namespace XCode
             #endregion
 
             #region 事务
-            ///// <summary>开始事务</summary>
-            ///// <returns></returns>
-            //public virtual Int32 BeginTransaction() => Session.BeginTrans();
-
-            ///// <summary>提交事务</summary>
-            ///// <returns></returns>
-            //public virtual Int32 Commit() => Session.Commit();
-
-            ///// <summary>回滚事务</summary>
-            ///// <returns></returns>
-            //public virtual Int32 Rollback() => Session.Rollback();
-
             /// <summary>创建事务</summary>
             [Obsolete("=>Session.CreateTrans")]
             public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
-            #endregion
-
-            #region 辅助方法
-            ///// <summary>格式化关键字</summary>
-            ///// <param name="name">名称</param>
-            ///// <returns></returns>
-            //public virtual String FormatName(String name) => Meta.FormatName(name);
-
-            ///// <summary>
-            ///// 取得一个值的Sql值。
-            ///// 当这个值是字符串类型时，会在该值前后加单引号；
-            ///// </summary>
-            ///// <param name="name">字段</param>
-            ///// <param name="value">对象</param>
-            ///// <returns>Sql值的字符串形式</returns>
-            //public virtual String FormatValue(String name, Object value) => Meta.FormatValue(name, value);
-
-            ///// <summary>格式化数据为SQL数据</summary>
-            ///// <param name="field">字段</param>
-            ///// <param name="value">数值</param>
-            ///// <returns></returns>
-            //public virtual String FormatValue(FieldItem field, Object value) => Meta.FormatValue(field, value);
             #endregion
 
             #region 一些设置
@@ -344,10 +301,6 @@ namespace XCode
 
             /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
             public Snowflake Snow { get; } = new Snowflake();
-
-            /// <summary>流式Id</summary>
-            [Obsolete("=>Snow")]
-            public Snowflake FlowId => Snow;
 
             private SqlTemplate _Template;
             /// <summary>Sql模版</summary>

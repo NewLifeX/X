@@ -7,10 +7,6 @@ using NewLife.Log;
 
 namespace NewLife.Data
 {
-    /// <summary>流式Id</summary>
-    [Obsolete("=>SnowFlake")]
-    public class FlowId : Snowflake { }
-
     /// <summary>雪花算法。分布式Id，业务内必须确保单例</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/snow_flake

@@ -29,7 +29,7 @@ namespace XCode
         {
             DAL.InitLog();
 
-            EntityFactory.Register(typeof(TEntity), new EntityOperate());
+            //EntityFactory.Register(typeof(TEntity), new DefaultEntityFactory());
 
             //var ioc = ObjectContainer.Current;
             //ioc.AddSingleton<IDataRowEntityAccessorProvider, DataRowEntityAccessorProvider>();
@@ -47,7 +47,6 @@ namespace XCode
         /// </remarks>
         /// <param name="forEdit">是否为了编辑而创建，如果是，可以再次做一些相关的初始化工作</param>
         /// <returns></returns>
-        //[Obsolete("=>IEntityOperate")]
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         protected virtual TEntity CreateInstance(Boolean forEdit = false)
         {
@@ -231,7 +230,7 @@ namespace XCode
         /// <returns></returns>
         public override Int32 Save()
         {
-            
+
             // 来自数据库直接Update
             if (IsFromDatabase) return Update();
 
@@ -631,11 +630,7 @@ namespace XCode
             if (field == null) throw new ArgumentNullException("Meta.Unique", "FindByKeyForEdit方法要求该表有唯一主键！");
 
             // 参数为空时，返回新实例
-            if (key == null)
-            {
-                //IEntityOperate factory = EntityFactory.CreateOperate(typeof(TEntity));
-                return Meta.Factory.Create(true) as TEntity;
-            }
+            if (key == null) return Meta.Factory.Create(true) as TEntity;
 
             var type = field.Type;
 
@@ -1031,7 +1026,7 @@ namespace XCode
         {
             var session = Meta.Session;
 
-        #region 海量数据查询优化
+            #region 海量数据查询优化
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
@@ -1051,7 +1046,7 @@ namespace XCode
                     var order2 = order;
                     var bk = false; // 是否跳过
 
-        #region 排序倒序
+                    #region 排序倒序
                     // 默认是自增字段的降序
                     var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
@@ -1099,7 +1094,7 @@ namespace XCode
 
                         order2 = sb.Put(true).Replace("★", ",");
                     }
-        #endregion
+                    #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
                     if (!order2.IsNullOrEmpty())
@@ -1122,7 +1117,7 @@ namespace XCode
                     }
                 }
             }
-        #endregion
+            #endregion
 
             var builder = CreateBuilder(where, order, selects);
             var list2 = LoadData(await session.QueryAsync(builder, startRowIndex, maximumRows));

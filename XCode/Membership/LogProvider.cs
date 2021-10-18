@@ -44,7 +44,7 @@ namespace XCode.Membership
         {
             if (category.IsNullOrEmpty()) throw new ArgumentNullException(nameof(category));
 
-            var factory = EntityFactory.CreateOperate(typeof(Log));
+            var factory = EntityFactory.CreateFactory(typeof(Log));
             var log = factory.Create() as Log;
             log.Category = category;
             log.Action = action;
@@ -98,7 +98,7 @@ namespace XCode.Membership
             var cat = "";
             if (type.As<IEntity>())
             {
-                var fact = EntityFactory.CreateOperate(type);
+                var fact = EntityFactory.CreateFactory(type);
                 if (fact != null) cat = fact.Table.DataTable.DisplayName;
             }
             if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
@@ -152,7 +152,7 @@ namespace XCode.Membership
             if (!Enable) return;
 
             var type = entity.GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = EntityFactory.CreateFactory(type);
 
             // 构造字段数据的字符串表示形式
             var sb = Pool.StringBuilder.Get();
