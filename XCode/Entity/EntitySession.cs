@@ -758,6 +758,10 @@ namespace XCode
             // 增加计数
             if (_Count >= 0) Interlocked.Increment(ref _Count);
 
+            // 清空扩展属性
+            //(entity as EntityBase)._Extends?.Clear();
+            (entity as EntityBase)._Extends = null;
+
             return rs;
         }
 
@@ -777,6 +781,9 @@ namespace XCode
 
             // 干掉缓存项，让它重新获取
             _singleCache?.Remove(e);
+
+            // 清空扩展属性
+            (entity as EntityBase)._Extends = null;
 
             return rs;
         }
@@ -800,6 +807,9 @@ namespace XCode
 
             // 减少计数
             if (_Count > 0) Interlocked.Decrement(ref _Count);
+
+            // 清空扩展属性
+            (entity as EntityBase)._Extends = null;
 
             return rs;
         }

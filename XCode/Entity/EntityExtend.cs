@@ -61,6 +61,9 @@ namespace XCode
             }
         }
 
+        /// <summary>清空扩展属性</summary>
+        public virtual void Clear() => _cache = null;
+
         #region 缓存项
         /// <summary>缓存项</summary>
         class CacheItem
