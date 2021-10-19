@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using NewLife.Remoting;
 
@@ -30,38 +30,21 @@ namespace NewLife.Http
             var fi = file.AsFile();
             if (!fi.Exists) throw new ApiException(404, "找不到文件" + context.Path);
 
-            String contentType = null;
-            switch (fi.Extension)
+            var contentType = fi.Extension switch
             {
-                case ".htm":
-                case ".html":
-                    contentType = "text/html";
-                    break;
-                case ".txt":
-                case ".log":
-                    contentType = "text/plain";
-                    break;
-                case ".xml":
-                    contentType = "text/xml";
-                    break;
-                case ".json":
-                    contentType = "text/json";
-                    break;
-                case ".png":
-                    contentType = "image/png";
-                    break;
-                case ".jpg":
-                    contentType = "image/jpeg";
-                    break;
-                case ".gif":
-                    contentType = "image/gif";
-                    break;
-                case ".css":
-                    contentType = "text/css";
-                    break;
-                default:
-                    break;
-            }
+                ".htm" => "text/html",
+                ".html" => "text/html",
+                ".txt" => "text/plain",
+                ".log" => "text/plain",
+                ".xml" => "text/xml",
+                ".json" => "text/json",
+                ".js" => "text/javascript",
+                ".css" => "text/css",
+                ".png" => "image/png",
+                ".jpg" => "image/jpg",
+                ".gif" => "image/gif",
+                _ => null,
+            };
 
             context.Response.SetResult(fi.OpenRead(), contentType);
         }
