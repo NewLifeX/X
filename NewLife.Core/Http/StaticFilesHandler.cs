@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using NewLife.Remoting;
 
@@ -55,6 +55,9 @@ namespace NewLife.Http
                     break;
                 case ".gif":
                     contentType = "image/gif";
+                    break;
+                case ".css":
+                    contentType = "text/css";
                     break;
                 default:
                     break;
