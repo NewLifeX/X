@@ -267,20 +267,10 @@ namespace XCode
                     DAL.WriteLog("检查实体{0}的数据表架构，模式：{1}", ThisType.FullName, mode);
 
                 // 第一次使用才检查的，此时检查
-                var ck = mode == ModelCheckModes.CheckTableWhenFirstUse;
+                var ck = false;
                 // 或者前面初始化的时候没有涉及的，也在这个时候检查
                 var dal = DAL.Create(cname);
-                if (!dal.HasCheckTables.Contains(tname))
-                {
-                    if (!ck)
-                    {
-                        dal.HasCheckTables.Add(tname);
-
-                        ck = true;
-                    }
-                }
-                else
-                    ck = false;
+                if (!dal.CheckAndAdd(tname)) ck = true;
 
                 if (ck)
                 {
@@ -500,7 +490,7 @@ namespace XCode
             return dal;
         }
 
-        /// <summary>初始化数据</summary>
+        /// <summary>初始化数据，执行反向工程检查，建库建表</summary>
         public void InitData() => WaitForInitData();
 
         /// <summary>执行SQL查询，返回记录集</summary>

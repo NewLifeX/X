@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
+using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -170,6 +171,8 @@ select * from userx where id=@id
         [Fact]
         public void EntityTestWithSqlite()
         {
+            EntityFactory.InitEntity(typeof(Menu2));
+
             // 拦截Sql
             var sql = "";
             DAL.LocalFilter = s => sql = s;

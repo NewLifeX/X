@@ -78,7 +78,7 @@ namespace XCode
         #endregion
 
         #region 数据库操作
-        /// <summary>初始化数据</summary>
+        /// <summary>初始化数据，执行反向工程检查，建库建表</summary>
         void InitData();
 
         /// <summary>执行SQL查询，返回记录集</summary>

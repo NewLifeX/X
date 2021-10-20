@@ -160,78 +160,118 @@ namespace XCode
         /// <summary>初始化所有数据库连接的实体类和数据表</summary>
         public static void InitAll()
         {
-            DAL.WriteLog("初始化所有数据库连接的实体类和数据表");
-
-            // 加载所有实体类
-            var types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
-            var connNames = new List<String>();
-            foreach (var item in types)
+            using var span = DefaultTracer.Instance?.NewSpan("db:InitAll");
+            try
             {
-                var ti = TableItem.Create(item);
-                if (ti == null || connNames.Contains(ti.ConnName) || ti.ModelCheckMode != ModelCheckModes.CheckAllTablesWhenInit) continue;
-                connNames.Add(ti.ConnName);
+                DAL.WriteLog("初始化所有数据库连接的实体类和数据表");
 
-                Init(ti.ConnName, types);
+                // 加载所有实体类
+                var types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
+                var connNames = new List<String>();
+                foreach (var item in types)
+                {
+                    var ti = TableItem.Create(item);
+                    if (ti == null || connNames.Contains(ti.ConnName) || ti.ModelCheckMode != ModelCheckModes.CheckAllTablesWhenInit) continue;
+                    connNames.Add(ti.ConnName);
+
+                    Init(ti.ConnName, types);
+                }
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
             }
         }
 
-        /// <summary>初始化指定连接，执行反向工程检查，初始化字段</summary>
+        /// <summary>初始化指定连接，执行反向工程检查，初始化数据</summary>
         /// <param name="connName">连接名</param>
-        public static void Init(String connName) => Init(connName, null);
+        public static void InitConnection(String connName) => Init(connName, null);
 
         private static void Init(String connName, IList<Type> types)
         {
-            // 加载所有实体类
-            if (types == null) types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
-
-            // 初始化工厂
-            var facts = new List<IEntityFactory>();
-            foreach (var type in types)
+            using var span = DefaultTracer.Instance?.NewSpan("db:InitConnection", connName);
+            try
             {
-                var ti = TableItem.Create(type);
-                if (ti != null && ti.ConnName == connName && ti.ModelCheckMode == ModelCheckModes.CheckAllTablesWhenInit)
+                // 加载所有实体类
+                if (types == null) types = typeof(IEntity).GetAllSubclasses().Where(e => e.BaseType.IsGenericType).ToList();
+
+                // 初始化工厂
+                var facts = new List<IEntityFactory>();
+                foreach (var type in types)
                 {
-                    var fact = CreateFactory(type);
-                    facts.Add(fact);
+                    var ti = TableItem.Create(type);
+                    if (ti != null && ti.ConnName == connName && ti.ModelCheckMode == ModelCheckModes.CheckAllTablesWhenInit)
+                    {
+                        var fact = CreateFactory(type);
+                        facts.Add(fact);
+                    }
                 }
-            }
 
-            var dal = DAL.Create(connName);
-            DAL.WriteLog("初始化数据库：{0}/{1} 实体类：{2}", connName, dal.DbType, facts.Join(",", e => e.EntityType.Name));
+                var dal = DAL.Create(connName);
+                DAL.WriteLog("初始化数据库：{0}/{1} 实体类：{2}", connName, dal.DbType, facts.Join(",", e => e.EntityType.Name));
 
-            // 反向工程检查
-            if (dal.Db.Migration > Migration.Off)
-            {
-                //var tables = facts.Select(e => e.Table.DataTable).ToArray();
-                var tables = new List<IDataTable>();
+                // 反向工程检查
+                if (dal.Db.Migration > Migration.Off)
+                {
+                    //var tables = facts.Select(e => e.Table.DataTable).ToArray();
+                    var tables = new List<IDataTable>();
+                    foreach (var item in facts)
+                    {
+                        // 克隆一份，防止修改
+                        var table = item.Table.DataTable;
+                        table = table.Clone() as IDataTable;
+
+                        if (table != null && table.TableName != item.TableName)
+                        {
+                            // 表名去掉前缀
+                            var name = item.TableName;
+                            if (name.Contains(".")) name = name.Substring(".");
+
+                            table.TableName = name;
+                        }
+                        tables.Add(table);
+                        dal.CheckAndAdd(table.TableName);
+                    }
+                    dal.SetTables(tables.ToArray());
+                }
+
+                // 实体类初始化数据
                 foreach (var item in facts)
                 {
-                    // 克隆一份，防止修改
-                    var table = item.Table.DataTable;
-                    table = table.Clone() as IDataTable;
-
-                    if (table != null && table.TableName != item.TableName)
-                    {
-                        // 表名去掉前缀
-                        var name = item.TableName;
-                        if (name.Contains(".")) name = name.Substring(".");
-
-                        table.TableName = name;
-                    }
-                    tables.Add(table);
-                    dal.HasCheckTables.Add(table.TableName);
+                    //if (item.Default is EntityBase entity)
+                    //{
+                    //    entity.InitData();
+                    //}
+                    item.Session.InitData();
                 }
-                dal.SetTables(tables.ToArray());
             }
-
-            // 实体类初始化数据
-            foreach (var item in facts)
+            catch (Exception ex)
             {
-                //if (item.Default is EntityBase entity)
-                //{
-                //    entity.InitData();
-                //}
-                item.Session.InitData();
+                span?.SetError(ex, null);
+                throw;
+            }
+        }
+
+        /// <summary>初始化指定实体类，执行反向工程检查，初始化数据</summary>
+        /// <param name="entityType"></param>
+        public static void InitEntity(Type entityType)
+        {
+            if (entityType == null) throw new ArgumentNullException(nameof(entityType));
+
+            using var span = DefaultTracer.Instance?.NewSpan("db:InitEntity", entityType.FullName);
+            try
+            {
+                DAL.WriteLog("初始化实体类：{0}", entityType.FullName);
+
+                var factory = entityType.AsFactory();
+
+                factory.Session.InitData();
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
             }
         }
         #endregion
