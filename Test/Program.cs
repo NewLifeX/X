@@ -27,6 +27,7 @@ using System.Text;
 using NewLife.Http;
 using System.Net.WebSockets;
 using XCode;
+using XCode.Cache;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -503,6 +504,18 @@ namespace Test
 
         private static void Test9()
         {
+            var cache = new SingleEntityCache<Int32, User> { Expire = 1 };
+
+            // 首次访问
+            var user = cache[1];
+            XTrace.WriteLine("cache.Success={0}", cache.Success);
+
+            user = cache[1];
+            XTrace.WriteLine("cache.Success={0}", cache.Success);
+
+            user = cache[1];
+            XTrace.WriteLine("cache.Success={0}", cache.Success);
+
             EntityFactory.InitAll();
 
             XTrace.WriteLine("TestRole");

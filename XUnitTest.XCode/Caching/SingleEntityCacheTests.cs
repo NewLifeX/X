@@ -38,16 +38,19 @@ namespace XUnitTest.XCode.Caching
             var cache = new SingleEntityCache<Int32, User> { Expire = 1 };
 
             // 首次访问
+            XTrace.WriteLine("首次访问");
             var user = cache[1];
             Assert.Equal(0, cache.Success);
 
             // 再次访问
+            XTrace.WriteLine("再次访问");
             var user2 = cache[1];
             Assert.Equal(1, cache.Success);
 
             Thread.Sleep(cache.Expire * 1000 + 10);
 
-            // 再次访问
+            // 三次访问
+            XTrace.WriteLine("三次访问");
             var user3 = cache[1];
             Assert.Equal(2, cache.Success);
         }

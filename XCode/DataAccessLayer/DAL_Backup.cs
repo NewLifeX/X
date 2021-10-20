@@ -321,7 +321,7 @@ namespace XCode.DataAccessLayer
         public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true)
         {
             if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
-            if (tables == null) throw new ArgumentNullException(nameof(tables));
+            //if (tables == null) throw new ArgumentNullException(nameof(tables));
 
             var file2 = file.GetFullPath();
             if (!File.Exists(file2)) return null;
