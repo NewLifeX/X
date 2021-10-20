@@ -22,7 +22,7 @@ namespace XCode
         /// <summary>创建实体操作接口</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        [Obsolete("=>CreateFactory", true)]
+        [Obsolete("=>CreateFactory")]
         public static IEntityFactory CreateOperate(Type type) => CreateFactory(type);
 
         /// <summary>创建实体操作接口</summary>
