@@ -296,6 +296,26 @@ namespace NewLife.Log
 
             return span;
         }
+
+        /// <summary>直接创建错误Span</summary>
+        /// <param name="tracer">跟踪器</param>
+        /// <param name="name">操作名</param>
+        /// <param name="error">Exception 异常对象，或错误信息</param>
+        /// <returns></returns>
+        public static ISpan NewError(this ITracer tracer, String name, Object error)
+        {
+            if (tracer == null) return null;
+
+            var span = tracer.NewSpan(name);
+            if (error is Exception ex)
+                span.SetError(ex, null);
+            else
+                span.Error = error + "";
+
+            span.Dispose();
+
+            return span;
+        }
         #endregion
     }
 }
