@@ -22,6 +22,7 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Shards;
 
 namespace XCode.Membership
 {
@@ -83,7 +84,6 @@ namespace XCode.Membership
         //    if (XTrace.Debug) XTrace.WriteLine("开始初始化User[用户]数据……");
 
         //    var entity = new User();
-        //    entity.ID = 0;
         //    entity.Name = "abc";
         //    entity.Password = "abc";
         //    entity.DisplayName = "abc";

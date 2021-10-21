@@ -185,6 +185,7 @@ namespace XCode.Code
                 us.Add("NewLife.Web");
                 us.Add("XCode.Cache");
                 us.Add("XCode.Membership");
+                us.Add("XCode.Shards");
             }
         }
 
@@ -568,6 +569,18 @@ namespace XCode.Code
                     WriteLine("//df.Add(nameof({0}));", dc.Name);
                 }
 
+                // 自动分表
+                dc = Table.Columns.FirstOrDefault(e => !e.Identity && e.PrimaryKey && e.DataType == typeof(Int64));
+                if (dc != null)
+                {
+                    WriteLine("// 按天分表");
+                    WriteLine("//Meta.ShardPolicy = new TimeShardPolicy(nameof({0}), Meta.Factory)", dc.Name);
+                    WriteLine("//{");
+                    WriteLine("//    TablePolicy = \"{{0}}_{{1:yyyyMMdd}}\",");
+                    WriteLine("//    Step = TimeSpan.FromDays(1),");
+                    WriteLine("//};");
+                }
+
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
                 WriteLine();
                 WriteLine("// 过滤器 UserModule、TimeModule、IPModule");
@@ -699,6 +712,8 @@ namespace XCode.Code
             WriteLine("//    var entity = new {0}();", name);
             foreach (var column in Table.Columns)
             {
+                if (column.Identity) continue;
+
                 // 跳过排除项
                 if (Option.Excludes.Contains(column.Name)) continue;
                 if (Option.Excludes.Contains(column.ColumnName)) continue;
