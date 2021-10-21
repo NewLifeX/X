@@ -135,6 +135,12 @@ namespace XCode.Membership
         [Map(__.DepartmentID, typeof(Department), __.ID)]
         public String DepartmentName => Department?.ToString();
 
+        /// <summary>
+        /// 地区名
+        /// </summary>
+        [Map(nameof(AreaId))]
+        public String AreaName => Area.FindByID(AreaId)?.Path;
+
         ///// <summary>兼容旧版角色组</summary>
         //[Obsolete("=>RoleIds")]
         //public String RoleIDs { get => RoleIds; set => RoleIds = value; }
