@@ -188,8 +188,13 @@ namespace NewLife.Data
             for (var i = 0; i < count; i++)
             {
                 cs[i] = bn.Read<String>();
+
+                // 复杂类型写入类型字符串
                 var tc = (TypeCode)bn.Read<Byte>();
-                ts[i] = Type.GetType("System." + tc);
+                if (tc != TypeCode.Object)
+                    ts[i] = Type.GetType("System." + tc);
+                else
+                    ts[i] = bn.Read<String>().GetTypeEx();
             }
             Columns = cs;
             Types = ts;
@@ -280,7 +285,11 @@ namespace NewLife.Data
             for (var i = 0; i < count; i++)
             {
                 bn.Write(cs[i]);
-                bn.Write((Byte)ts[i].GetTypeCode());
+
+                // 复杂类型写入类型字符串
+                var code = ts[i].GetTypeCode();
+                bn.Write((Byte)code);
+                if (code == TypeCode.Object) bn.Write(ts[i].FullName);
             }
 
             // 数据行数

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using NewLife.Data;
 using NewLife.Security;
+using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
@@ -12,6 +13,11 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class DAL_Mapper_Tests
     {
+        public DAL_Mapper_Tests()
+        {
+            EntityFactory.InitEntity(typeof(User));
+        }
+
         [Fact]
         public void Query()
         {

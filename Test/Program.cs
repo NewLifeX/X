@@ -75,7 +75,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test9();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -96,53 +96,14 @@ namespace Test
 
         private static void Test1()
         {
-            var b = (Byte)0x0F;
-            XTrace.WriteLine("{0} {0:X} {0:X2}", b);
-            // 15 F 0F
+            var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
+            var buf = guid.ToByteArray();
+            XTrace.WriteLine(buf.ToHex());
 
-            //var keys = ECDsaHelper.GenerateKey();
-            //XTrace.WriteLine("prvKey:{0}", keys[0]);
-            //XTrace.WriteLine("pubKey:{0}", keys[1]);
+            var dal = DAL.Create("test");
 
-            //"你好".SpeakAsync();
-            var ips = NetHelper.GetIPs();
-
-            XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
-            XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
-            XTrace.WriteLine("TempPath:{0}", Path.GetTempPath());
-
-            var mi = MachineInfo.Current ?? MachineInfo.RegisterAsync().Result;
-
-            foreach (var pi in mi.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-            {
-                XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
-            }
-
-            Console.WriteLine();
-
-#if __CORE__
-            foreach (var pi in typeof(RuntimeInformation).GetProperties())
-            {
-                XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
-            }
-#endif
-
-            //Console.WriteLine();
-
-            //foreach (var pi in typeof(Environment).GetProperties())
-            //{
-            //    XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
-            //}
-
-            mi = MachineInfo.Current;
-            for (var i = 0; i < 100; i++)
-            {
-                XTrace.WriteLine("CPU={0:p2} Temp={1:n2} Memory={2:n0} Disk={3} Speed={4:n0} {5:n0}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK(), mi.UplinkSpeed.ToGMK(), mi.DownlinkSpeed.ToGMK());
-                Thread.Sleep(1000);
-                mi.Refresh();
-            }
-
-            Console.ReadKey();
+            //var rs = dal.RestoreAll($"../dbbak.zip", null);
+            dal.Restore($"../data/SpringSession.table");
         }
 
         private static void Test2()

@@ -350,6 +350,8 @@ namespace XCode.DataAccessLayer
                 var entry = zip.GetEntry(item.Name + ".table");
                 if (entry != null && entry.Length > 0)
                 {
+                    WriteLog("{0} CompressedLength={1}", entry.FullName, entry.CompressedLength);
+
                     using var ms = entry.Open();
                     Restore(ms, item);
                 }
