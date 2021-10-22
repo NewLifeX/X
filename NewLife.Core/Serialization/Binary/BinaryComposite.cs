@@ -97,6 +97,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
+            if (type == typeof(Object)) return false;
             if (type == null)
             {
                 if (value == null) return false;

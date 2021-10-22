@@ -216,7 +216,7 @@ namespace NewLife.Serialization
         public virtual Object Read(Type type)
         {
             Object value = null;
-            if (!TryRead(type, ref value)) throw new Exception("读取失败！");
+            if (!TryRead(type, ref value)) throw new Exception($"读取失败，不支持类型{type}！");
 
             return value;
         }
