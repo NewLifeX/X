@@ -92,6 +92,7 @@ namespace Company.MyName
         //    entity.Mail = "abc";
         //    entity.Mobile = "abc";
         //    entity.Code = "abc";
+        //    entity.AreaId = 0;
         //    entity.Avatar = "abc";
         //    entity.RoleID = 0;
         //    entity.RoleIds = "abc";

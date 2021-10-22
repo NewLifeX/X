@@ -36,6 +36,9 @@ namespace XCode.Code
         /// <summary>代码。身份证、员工编号等</summary>
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
@@ -109,6 +112,7 @@ namespace XCode.Code
                     case "Mail": return Mail;
                     case "Mobile": return Mobile;
                     case "Code": return Code;
+                    case "AreaId": return AreaId;
                     case "Avatar": return Avatar;
                     case "RoleID": return RoleID;
                     case "RoleIds": return RoleIds;
@@ -142,6 +146,7 @@ namespace XCode.Code
                     case "Mail": Mail = Convert.ToString(value); break;
                     case "Mobile": Mobile = Convert.ToString(value); break;
                     case "Code": Code = Convert.ToString(value); break;
+                    case "AreaId": AreaId = value.ToInt(); break;
                     case "Avatar": Avatar = Convert.ToString(value); break;
                     case "RoleID": RoleID = value.ToInt(); break;
                     case "RoleIds": RoleIds = Convert.ToString(value); break;

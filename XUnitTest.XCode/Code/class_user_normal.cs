@@ -55,6 +55,11 @@ namespace Company.MyName
         [DisplayName("代码")]
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        [Description("地区。省市区")]
+        [DisplayName("地区")]
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         [Description("头像")]
         [DisplayName("头像")]

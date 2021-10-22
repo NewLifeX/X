@@ -37,7 +37,7 @@ namespace XUnitTest.XCode.EntityTests
             };
 
             var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Insert);
-            Assert.Equal(@"Insert Into User(Name,Password,DisplayName,Sex,Mail,Mobile,Code,Avatar,RoleID,RoleIds,DepartmentID,Online,Enable,Logins,LastLogin,LastLoginIP,RegisterTime,RegisterIP,Ex1,Ex2,Ex3,Ex4,Ex5,Ex6,UpdateUser,UpdateUserID,UpdateIP,UpdateTime,Remark) Values('Stone',null,'大石头',0,null,null,null,null,0,null,0,0,1,0,null,null,'2020-08-22 00:00:00',null,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
+            Assert.Equal(@"Insert Into User(Name,Password,DisplayName,Sex,Mail,Mobile,Code,AreaId,Avatar,RoleID,RoleIds,DepartmentID,Online,Enable,Logins,LastLogin,LastLoginIP,RegisterTime,RegisterIP,Ex1,Ex2,Ex3,Ex4,Ex5,Ex6,UpdateUser,UpdateUserID,UpdateIP,UpdateTime,Remark) Values('Stone',null,'大石头',0,null,null,null,0,null,0,null,0,0,1,0,null,null,'2020-08-22 00:00:00',null,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace XUnitTest.XCode.EntityTests
             };
 
             var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Insert);
-            Assert.Equal(@"Insert Into `user`(name,password,display_name,sex,mail,mobile,code,avatar,role_id,role_ids,department_id,online,enable,logins,last_login,last_login_ip,register_time,register_ip,ex1,ex2,ex3,ex4,ex5,ex6,update_user,update_user_id,update_ip,update_time,remark) Values('Stone',null,'大石头',0,null,null,null,null,0,null,0,0,1,0,null,null,'2020-08-22 00:00:00',null,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
+            Assert.Equal(@"Insert Into `user`(name,password,display_name,sex,mail,mobile,code,area_id,avatar,role_id,role_ids,department_id,online,enable,logins,last_login,last_login_ip,register_time,register_ip,ex1,ex2,ex3,ex4,ex5,ex6,update_user,update_user_id,update_ip,update_time,remark) Values('Stone',null,'大石头',0,null,null,null,0,null,0,null,0,0,1,0,null,null,'2020-08-22 00:00:00',null,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
         }
 
         [Fact]

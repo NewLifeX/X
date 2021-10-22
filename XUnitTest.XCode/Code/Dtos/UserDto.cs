@@ -35,6 +35,9 @@ namespace XCode.Code
         /// <summary>代码。身份证、员工编号等</summary>
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 

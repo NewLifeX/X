@@ -89,6 +89,14 @@ namespace Company.MyName
         [BindColumn("Code", "代码。身份证、员工编号等", "")]
         public String Code { get => _Code; set { if (OnPropertyChanging("Code", value)) { _Code = value; OnPropertyChanged("Code"); } } }
 
+        private Int32 _AreaId;
+        /// <summary>地区。省市区</summary>
+        [DisplayName("地区")]
+        [Description("地区。省市区")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("AreaId", "地区。省市区", "")]
+        public Int32 AreaId { get => _AreaId; set { if (OnPropertyChanging("AreaId", value)) { _AreaId = value; OnPropertyChanged("AreaId"); } } }
+
         private String _Avatar;
         /// <summary>头像</summary>
         [DisplayName("头像")]
@@ -285,6 +293,7 @@ namespace Company.MyName
                     case "Mail": return _Mail;
                     case "Mobile": return _Mobile;
                     case "Code": return _Code;
+                    case "AreaId": return _AreaId;
                     case "Avatar": return _Avatar;
                     case "RoleID": return _RoleID;
                     case "RoleIds": return _RoleIds;
@@ -322,6 +331,7 @@ namespace Company.MyName
                     case "Mail": _Mail = Convert.ToString(value); break;
                     case "Mobile": _Mobile = Convert.ToString(value); break;
                     case "Code": _Code = Convert.ToString(value); break;
+                    case "AreaId": _AreaId = value.ToInt(); break;
                     case "Avatar": _Avatar = Convert.ToString(value); break;
                     case "RoleID": _RoleID = value.ToInt(); break;
                     case "RoleIds": _RoleIds = Convert.ToString(value); break;
@@ -377,6 +387,9 @@ namespace Company.MyName
 
             /// <summary>代码。身份证、员工编号等</summary>
             public static readonly Field Code = FindByName("Code");
+
+            /// <summary>地区。省市区</summary>
+            public static readonly Field AreaId = FindByName("AreaId");
 
             /// <summary>头像</summary>
             public static readonly Field Avatar = FindByName("Avatar");
@@ -473,6 +486,9 @@ namespace Company.MyName
 
             /// <summary>代码。身份证、员工编号等</summary>
             public const String Code = "Code";
+
+            /// <summary>地区。省市区</summary>
+            public const String AreaId = "AreaId";
 
             /// <summary>头像</summary>
             public const String Avatar = "Avatar";
