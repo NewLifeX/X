@@ -75,7 +75,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -103,7 +103,18 @@ namespace Test
             var dal = DAL.Create("test");
 
             //var rs = dal.RestoreAll($"../dbbak.zip", null);
-            dal.Restore($"../data/SpringSession.table");
+
+            //var tables = DAL.Import(File.ReadAllText("../data/lawyer.xml".GetFullPath()));
+            //var table = tables.FirstOrDefault(e => e.Name == "SpringSession");
+            //var dc1 = table.Columns[0];
+            //var dc2 = table.Columns[1];
+            //dc1.DataType = typeof(Guid);
+            //dc2.DataType = typeof(Guid);
+            //dal.Restore($"../data/SpringSession.table", table);
+
+            var dt = dal.Query("select * from spring_session");
+            XTrace.WriteLine("字段[{0}]：{1}", dt.Columns.Length, dt.Columns.Join());
+            XTrace.WriteLine("类型[{0}]：{1}", dt.Types.Length, dt.Types.Join(",", e => e?.Name));
         }
 
         private static void Test2()

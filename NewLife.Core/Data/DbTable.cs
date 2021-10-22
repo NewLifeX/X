@@ -148,7 +148,7 @@ namespace NewLife.Data
         #endregion
 
         #region 二进制读取
-        private const Byte _Ver = 1;
+        private const Byte _Ver = 2;
 
         /// <summary>从数据流读取</summary>
         /// <param name="stream"></param>
@@ -193,7 +193,7 @@ namespace NewLife.Data
                 var tc = (TypeCode)bn.Read<Byte>();
                 if (tc != TypeCode.Object)
                     ts[i] = Type.GetType("System." + tc);
-                else
+                else if (ver >= 2)
                     ts[i] = bn.Read<String>().GetTypeEx();
             }
             Columns = cs;

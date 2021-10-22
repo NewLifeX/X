@@ -15,7 +15,7 @@ using XCode.Transform;
 
 namespace XCode.DataAccessLayer
 {
-    partial class DAL
+    public partial class DAL
     {
         #region 备份
         /// <summary>备份单表数据</summary>
@@ -163,7 +163,7 @@ namespace XCode.DataAccessLayer
             return tables.Count;
         }
 
-        class WriteFileActor : Actor
+        private class WriteFileActor : Actor
         {
             public Stream Stream { get; set; }
             public Int32 Total { get; set; }
@@ -252,8 +252,16 @@ namespace XCode.DataAccessLayer
             // 输出日志
             var cs = dt.Columns;
             var ts = dt.Types;
+            for (var i = 0; i < cs.Length; i++)
+            {
+                if (ts[i] == null || ts[i] == typeof(Object))
+                {
+                    var dc = table.Columns.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(cs[i]));
+                    if (dc != null) ts[i] = dc.DataType;
+                }
+            }
             WriteLog("字段[{0}]：{1}", cs.Length, cs.Join());
-            WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e.Name));
+            WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e?.Name));
 
             var row = 0;
             var pageSize = (Db as DbBase).BatchSize;
@@ -296,7 +304,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table">数据表</param>
         /// <param name="setSchema">是否设置数据表模型，自动建表</param>
         /// <returns></returns>
-        public Int64 Restore(String file, IDataTable table = null, Boolean setSchema = true)
+        public Int64 Restore(String file, IDataTable table, Boolean setSchema = true)
         {
             if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
             if (table == null) throw new ArgumentNullException(nameof(table));
@@ -350,8 +358,6 @@ namespace XCode.DataAccessLayer
                 var entry = zip.GetEntry(item.Name + ".table");
                 if (entry != null && entry.Length > 0)
                 {
-                    WriteLog("{0} CompressedLength={1}", entry.FullName, entry.CompressedLength);
-
                     using var ms = entry.Open();
                     Restore(ms, item);
                 }
@@ -361,7 +367,7 @@ namespace XCode.DataAccessLayer
             return tables;
         }
 
-        class WriteDbActor : Actor
+        private class WriteDbActor : Actor
         {
             public DAL Dal { get; set; }
 
