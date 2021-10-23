@@ -58,6 +58,9 @@
       <Version>3.0.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NewLife.Stardust" Version="1.5.2021.1001" />
+  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
   </Target>

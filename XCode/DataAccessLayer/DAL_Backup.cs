@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -18,7 +19,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(IDataTable table, Stream stream, Action<Int64, DbTable> progress = null)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress };
+            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
             return dpk.Backup(table, stream);
         }
 
@@ -28,7 +29,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(IDataTable table, String file = null)
         {
-            var dpk = new DbPackage { Dal = this };
+            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
             return dpk.Backup(table, file);
         }
 
@@ -40,8 +41,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this };
-            return dpk.BackupAll(tables, file, backupSchema, ignoreError);
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
+            return dpk.BackupAll(tables, file, backupSchema);
         }
         #endregion
 
@@ -53,7 +54,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Restore(Stream stream, IDataTable table, Action<Int64, DbTable> progress = null)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress };
+            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
             return dpk.Restore(stream, table);
         }
 
@@ -64,7 +65,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int64 Restore(String file, IDataTable table, Boolean setSchema = true)
         {
-            var dpk = new DbPackage { Dal = this };
+            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
             return dpk.Restore(file, table, setSchema);
         }
 
@@ -72,12 +73,12 @@ namespace XCode.DataAccessLayer
         /// <param name="file">zip压缩文件</param>
         /// <param name="tables">数据表。为空时从压缩包读取xml模型文件</param>
         /// <param name="setSchema">是否设置数据表模型，自动建表</param>
-        /// <param name="ignoreError">忽略错误，继续恢复下一张表</param>
+        /// <param name="ignoreError">忽略错误，继续下一张表</param>
         /// <returns></returns>
         public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this };
-            return dpk.RestoreAll(file, tables, setSchema, ignoreError);
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
+            return dpk.RestoreAll(file, tables, setSchema);
         }
         #endregion
 
@@ -93,7 +94,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true, Action<Int64, DbTable> progress = null)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress };
+            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
             return dpk.Sync(table, connName, syncSchema);
         }
 
@@ -101,10 +102,11 @@ namespace XCode.DataAccessLayer
         /// <param name="tables">表名集合</param>
         /// <param name="connName">目标连接名</param>
         /// <param name="syncSchema">同步架构</param>
+        /// <param name="ignoreError">忽略错误，继续下一张表</param>
         /// <returns></returns>
-        public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true)
+        public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this };
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
             return dpk.SyncAll(tables, connName, syncSchema);
         }
         #endregion

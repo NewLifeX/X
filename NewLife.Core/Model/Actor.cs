@@ -60,6 +60,11 @@ namespace NewLife.Model
         /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
 
+        /// <summary>
+        /// 父级性能追踪器。用于把内外调用链关联起来
+        /// </summary>
+        public ISpan TracerParent { get; set; }
+
         private Task _task;
         private Exception _error;
 
@@ -177,6 +182,8 @@ namespace NewLife.Model
         /// <summary>循环消费消息</summary>
         protected virtual void Loop()
         {
+            DefaultSpan.Current = TracerParent;
+
             var box = MailBox;
             while (!box.IsCompleted)
             {

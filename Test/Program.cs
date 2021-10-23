@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -11,14 +10,12 @@ using NewLife;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using XCode.Code;
-using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Data;
 using System.Threading.Tasks;
@@ -28,6 +25,8 @@ using NewLife.Http;
 using System.Net.WebSockets;
 using XCode;
 using XCode.Cache;
+using Stardust;
+using Stardust.Monitors;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -42,6 +41,11 @@ namespace Test
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             XTrace.UseConsole();
+
+            var star = new StarFactory(null, null, null);
+            DefaultTracer.Instance = star.Tracer;
+            (star.Tracer as StarTracer).AttachGlobal();
+
 #if DEBUG
             XTrace.Debug = true;
             XTrace.Log.Level = LogLevel.All;

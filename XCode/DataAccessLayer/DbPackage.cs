@@ -31,6 +31,14 @@ namespace XCode.DataAccessLayer
         /// 进度报告
         /// </summary>
         public Action<Int64, DbTable> OnProgress { get; set; }
+
+        /// <summary>批量处理时，忽略单表错误，继续处理下一个。默认true</summary>
+        public Boolean IgnoreError { get; set; } = true;
+
+        /// <summary>
+        /// 性能追踪器
+        /// </summary>
+        public ITracer Tracer { get; set; } = DAL.GlobalTracer;
         #endregion
 
         #region 备份
@@ -43,6 +51,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(IDataTable table, Stream stream)
         {
+            using var span = Tracer?.NewSpan("db:Backup", table.Name);
+
             // 并行写入文件，提升吞吐
             var writeFile = new WriteFileActor
             {
@@ -50,6 +60,7 @@ namespace XCode.DataAccessLayer
 
                 // 最多同时堆积数
                 BoundedCapacity = 4,
+                TracerParent = span,
             };
 
             // 自增
@@ -73,23 +84,31 @@ namespace XCode.DataAccessLayer
 
             var sw = Stopwatch.StartNew();
             var total = 0;
-            foreach (var dt in extracer.Fetch())
+            try
             {
-                var count = dt.Rows.Count;
-                WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, connName, extracer.Row, count);
-                if (count == 0) break;
+                foreach (var dt in extracer.Fetch())
+                {
+                    var count = dt.Rows.Count;
+                    WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, connName, extracer.Row, count);
+                    if (count == 0) break;
 
-                // 进度报告
-                OnProgress?.Invoke(extracer.Row, dt);
+                    // 进度报告
+                    OnProgress?.Invoke(extracer.Row, dt);
 
-                // 消费数据
-                writeFile.Tell(dt);
+                    // 消费数据
+                    writeFile.Tell(dt);
 
-                total += count;
+                    total += count;
+                }
+
+                // 通知写入完成
+                writeFile.Stop(-1);
             }
-
-            // 通知写入完成
-            writeFile.Stop(-1);
+            catch (Exception ex)
+            {
+                span?.SetError(ex, table);
+                throw;
+            }
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
@@ -138,11 +157,12 @@ namespace XCode.DataAccessLayer
         /// <param name="tables">数据表集合</param>
         /// <param name="file">zip压缩文件</param>
         /// <param name="backupSchema">备份架构</param>
-        /// <param name="ignoreError">忽略错误，继续恢复下一张表</param>
         /// <returns></returns>
-        public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true, Boolean ignoreError = true)
+        public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true)
         {
             if (tables == null) throw new ArgumentNullException(nameof(tables));
+
+            using var span = Tracer?.NewSpan("db:BackupAll", file);
 
             // 过滤不存在的表
             var ts = Dal.Tables.Select(e => e.TableName).ToArray();
@@ -179,28 +199,25 @@ namespace XCode.DataAccessLayer
 
                     foreach (var item in tables)
                     {
-                        if (ignoreError)
-                        {
-                            try
-                            {
-                                var entry = zip.CreateEntry(item.Name + ".table");
-                                using var ms = entry.Open();
-                                Backup(item, ms);
-
-                                count++;
-                            }
-                            catch (Exception ex)
-                            {
-                                XTrace.WriteException(ex);
-                            }
-                        }
-                        else
+                        try
                         {
                             var entry = zip.CreateEntry(item.Name + ".table");
                             using var ms = entry.Open();
                             Backup(item, ms);
+
+                            count++;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!IgnoreError) throw;
+                            XTrace.WriteException(ex);
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, null);
+                    throw;
                 }
                 finally
                 {
@@ -218,77 +235,88 @@ namespace XCode.DataAccessLayer
         /// <summary>从数据流恢复数据</summary>
         /// <param name="stream">数据流</param>
         /// <param name="table">数据表</param>
-        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Restore(Stream stream, IDataTable table, Action<Int32, DbTable> progress = null)
+        public Int32 Restore(Stream stream, IDataTable table)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (table == null) throw new ArgumentNullException(nameof(table));
+
+            using var span = Tracer?.NewSpan("db:Restore", table.Name);
 
             var writeDb = new WriteDbActor
             {
                 Table = table,
                 Dal = Dal,
+                Log = Log,
+                Tracer = Tracer,
 
                 // 最多同时堆积数页
                 BoundedCapacity = 4,
+                TracerParent = span,
             };
             var connName = Dal.ConnName;
 
             var sw = Stopwatch.StartNew();
-
-            // 二进制读写器
-            var bn = new Binary
-            {
-                EncodeInt = true,
-                Stream = stream,
-            };
-
-            var dt = new DbTable();
-            dt.ReadHeader(bn);
-            WriteLog("恢复[{0}/{1}]开始，共[{2:n0}]行", table.Name, connName, dt.Total);
-
-            // 输出日志
-            var cs = dt.Columns;
-            var ts = dt.Types;
-            for (var i = 0; i < cs.Length; i++)
-            {
-                if (ts[i] == null || ts[i] == typeof(Object))
-                {
-                    var dc = table.Columns.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(cs[i]));
-                    if (dc != null) ts[i] = dc.DataType;
-                }
-            }
-            WriteLog("字段[{0}]：{1}", cs.Length, cs.Join());
-            WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e?.Name));
-
-            var row = 0;
-            var pageSize = (Dal.Db as DbBase).BatchSize;
             var total = 0;
-            while (true)
+            try
             {
-                // 读取数据
-                dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
+                // 二进制读写器
+                var bn = new Binary
+                {
+                    EncodeInt = true,
+                    Stream = stream,
+                };
 
-                var rs = dt.Rows;
-                if (rs == null || rs.Count == 0) break;
+                var dt = new DbTable();
+                dt.ReadHeader(bn);
+                WriteLog("恢复[{0}/{1}]开始，共[{2:n0}]行", table.Name, connName, dt.Total);
 
-                WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, connName, row, rs.Count);
+                // 输出日志
+                var cs = dt.Columns;
+                var ts = dt.Types;
+                for (var i = 0; i < cs.Length; i++)
+                {
+                    if (ts[i] == null || ts[i] == typeof(Object))
+                    {
+                        var dc = table.Columns.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(cs[i]));
+                        if (dc != null) ts[i] = dc.DataType;
+                    }
+                }
+                WriteLog("字段[{0}]：{1}", cs.Length, cs.Join());
+                WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e?.Name));
 
-                // 进度报告
-                progress?.Invoke(row, dt);
+                var row = 0;
+                var pageSize = (Dal.Db as DbBase).BatchSize;
+                while (true)
+                {
+                    // 读取数据
+                    dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
 
-                // 批量写入数据库。克隆对象，避免被修改
-                writeDb.Tell(dt.Clone());
+                    var rs = dt.Rows;
+                    if (rs == null || rs.Count == 0) break;
 
-                // 下一页
-                total += rs.Count;
-                if (rs.Count < pageSize) break;
-                row += pageSize;
+                    WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, connName, row, rs.Count);
+
+                    // 进度报告
+                    OnProgress?.Invoke(row, dt);
+
+                    // 批量写入数据库。克隆对象，避免被修改
+                    writeDb.Tell(dt.Clone());
+
+                    // 下一页
+                    total += rs.Count;
+                    if (rs.Count < pageSize) break;
+                    row += pageSize;
+                }
+
+                // 通知写入完成
+                writeDb.Stop(-1);
             }
-
-            // 通知写入完成
-            writeDb.Stop(-1);
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
@@ -324,15 +352,16 @@ namespace XCode.DataAccessLayer
         /// <param name="file">zip压缩文件</param>
         /// <param name="tables">数据表。为空时从压缩包读取xml模型文件</param>
         /// <param name="setSchema">是否设置数据表模型，自动建表</param>
-        /// <param name="ignoreError">忽略错误，继续恢复下一张表</param>
         /// <returns></returns>
-        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true, Boolean ignoreError = true)
+        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true)
         {
             if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
             //if (tables == null) throw new ArgumentNullException(nameof(tables));
 
             var file2 = file.GetFullPath();
             if (!File.Exists(file2)) return null;
+
+            using var span = Tracer?.NewSpan("db:RestoreAll", file);
 
 #if !NET40
             using var fs = new FileStream(file2, FileMode.Open);
@@ -364,25 +393,23 @@ namespace XCode.DataAccessLayer
                     var entry = zip.GetEntry(item.Name + ".table");
                     if (entry != null && entry.Length > 0)
                     {
-                        if (ignoreError)
-                        {
-                            try
-                            {
-                                using var ms = entry.Open();
-                                Restore(ms, item);
-                            }
-                            catch (Exception ex)
-                            {
-                                XTrace.WriteException(ex);
-                            }
-                        }
-                        else
+                        try
                         {
                             using var ms = entry.Open();
                             Restore(ms, item);
                         }
+                        catch (Exception ex)
+                        {
+                            if (!IgnoreError) throw;
+                            XTrace.WriteException(ex);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
             }
             finally
             {
@@ -410,15 +437,20 @@ namespace XCode.DataAccessLayer
             if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
             if (table == null) throw new ArgumentNullException(nameof(table));
 
+            using var span = Tracer?.NewSpan("db:Sync", $"{table.Name}->{connName}");
+
             var dal = DAL.Create(connName);
 
             var writeDb = new WriteDbActor
             {
                 Table = table,
                 Dal = dal,
+                Log = Log,
+                Tracer = Tracer,
 
                 // 最多同时堆积数页
                 BoundedCapacity = 4,
+                TracerParent = span,
             };
 
             // 自增
@@ -430,57 +462,64 @@ namespace XCode.DataAccessLayer
                 if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
             }
 
-            var sw = Stopwatch.StartNew();
-
-            // 表结构
-            if (syncSchema) dal.SetTables(table);
-
-            var sb = new SelectBuilder
-            {
-                Table = Dal.Db.FormatName(table)
-            };
-
-            var row = 0L;
-            var pageSize = (Dal.Db as DbBase).BatchSize;
             var total = 0;
-            while (true)
+            var sw = Stopwatch.StartNew();
+            try
             {
-                var sql = "";
-                // 分割数据页，自增或分页
-                if (id != null)
+                // 表结构
+                if (syncSchema) dal.SetTables(table);
+
+                var sb = new SelectBuilder
                 {
-                    sb.Where = $"{id.ColumnName}>={row}";
-                    sql = Dal.PageSplit(sb, 0, pageSize);
+                    Table = Dal.Db.FormatName(table)
+                };
+
+                var row = 0L;
+                var pageSize = (Dal.Db as DbBase).BatchSize;
+                while (true)
+                {
+                    var sql = "";
+                    // 分割数据页，自增或分页
+                    if (id != null)
+                    {
+                        sb.Where = $"{id.ColumnName}>={row}";
+                        sql = Dal.PageSplit(sb, 0, pageSize);
+                    }
+                    else
+                        sql = Dal.PageSplit(sb, row, pageSize);
+
+                    // 查询数据
+                    var dt = Dal.Session.Query(sql, null);
+                    if (dt == null || dt.Rows.Count == 0) break;
+
+                    var count = dt.Rows.Count;
+                    WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, Dal.ConnName, row, count);
+
+                    // 进度报告
+                    progress?.Invoke((Int32)row, dt);
+
+                    // 消费数据
+                    writeDb.Tell(dt);
+
+                    // 下一页
+                    total += count;
+                    //if (count < pageSize) break;
+
+                    // 自增分割时，取最后一行
+                    if (id != null)
+                        row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
+                    else
+                        row += pageSize;
                 }
-                else
-                    sql = Dal.PageSplit(sb, row, pageSize);
 
-                // 查询数据
-                var dt = Dal.Session.Query(sql, null);
-                if (dt == null || dt.Rows.Count == 0) break;
-
-                var count = dt.Rows.Count;
-                WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, Dal.ConnName, row, count);
-
-                // 进度报告
-                progress?.Invoke((Int32)row, dt);
-
-                // 消费数据
-                writeDb.Tell(dt);
-
-                // 下一页
-                total += count;
-                //if (count < pageSize) break;
-
-                // 自增分割时，取最后一行
-                if (id != null)
-                    row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
-                else
-                    row += pageSize;
+                // 通知写入完成
+                writeDb.Stop(-1);
             }
-
-            // 通知写入完成
-            writeDb.Stop(-1);
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
@@ -500,17 +539,43 @@ namespace XCode.DataAccessLayer
             if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
             if (tables == null) throw new ArgumentNullException(nameof(tables));
 
+            using var span = Tracer?.NewSpan("db:SyncAll", connName);
+
             var dic = new Dictionary<String, Int32>();
 
-            if (tables.Length > 0)
-            {
-                // 同步架构
-                if (syncSchema) DAL.Create(connName).SetTables(tables);
+            if (tables.Length == 0) return dic;
 
+            // 同步架构
+            if (syncSchema) DAL.Create(connName).SetTables(tables);
+
+            // 临时关闭日志
+            var old = Dal.Db.ShowSQL;
+            Dal.Db.ShowSQL = false;
+            Dal.Session.ShowSQL = false;
+            try
+            {
                 foreach (var item in tables)
                 {
-                    dic[item.Name] = Sync(item, connName, false);
+                    try
+                    {
+                        dic[item.Name] = Sync(item, connName, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!IgnoreError) throw;
+                        XTrace.WriteException(ex);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+            finally
+            {
+                Dal.Db.ShowSQL = old;
+                Dal.Session.ShowSQL = old;
             }
 
             return dic;
@@ -613,6 +678,11 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public ILog Log { get; set; }
 
+            /// <summary>
+            /// 性能追踪器
+            /// </summary>
+            public ITracer Tracer { get; set; }
+
             private IDataColumn[] _Columns;
 
             /// <summary>
@@ -634,6 +704,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 批量插入
+                using var span = Tracer?.NewSpan($"db:{Dal.ConnName}:BatchInsert:{Table.TableName}");
                 Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
 
                 return null;
