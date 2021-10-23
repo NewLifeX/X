@@ -33,10 +33,10 @@ namespace XCode.Transform
         #endregion
 
         #region 构造
-        /// <summary>实例化数据抽取器</summary>
+        /// <summary>实例化自增抽取器</summary>
         public IdExtracter() { }
 
-        /// <summary>实例化数据抽取器</summary>
+        /// <summary>实例化自增抽取器</summary>
         /// <param name="dal"></param>
         /// <param name="tableName"></param>
         /// <param name="idField"></param>
