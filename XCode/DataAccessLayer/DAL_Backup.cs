@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -121,8 +122,9 @@ namespace XCode.DataAccessLayer
         /// <param name="tables">数据表集合</param>
         /// <param name="file">zip压缩文件</param>
         /// <param name="backupSchema">备份架构</param>
+        /// <param name="ignoreError">忽略错误，继续恢复下一张表</param>
         /// <returns></returns>
-        public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true)
+        public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true, Boolean ignoreError = true)
         {
             if (tables == null) throw new ArgumentNullException(nameof(tables));
 
@@ -130,6 +132,7 @@ namespace XCode.DataAccessLayer
             var ts = Tables.Select(e => e.TableName).ToArray();
             tables = tables.Where(e => e.TableName.EqualIgnoreCase(ts)).ToList();
 
+            var count = 0;
             //if (tables == null) tables = Tables;
             if (tables.Count > 0)
             {
@@ -142,25 +145,55 @@ namespace XCode.DataAccessLayer
                 using var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
                 using var zip = new ZipArchive(fs, ZipArchiveMode.Create, true, Encoding.UTF8);
 
-                // 备份架构
-                if (backupSchema)
+                // 临时关闭日志
+                var old = Db.ShowSQL;
+                Db.ShowSQL = false;
+                Session.ShowSQL = false;
+                try
                 {
-                    var xml = Export(tables);
-                    var entry = zip.CreateEntry(ConnName + ".xml");
-                    using var ms = entry.Open();
-                    ms.Write(xml.GetBytes());
-                }
+                    // 备份架构
+                    if (backupSchema)
+                    {
+                        var xml = Export(tables);
+                        var entry = zip.CreateEntry(ConnName + ".xml");
+                        using var ms = entry.Open();
+                        ms.Write(xml.GetBytes());
+                    }
 
-                foreach (var item in tables)
+                    foreach (var item in tables)
+                    {
+                        if (ignoreError)
+                        {
+                            try
+                            {
+                                var entry = zip.CreateEntry(item.Name + ".table");
+                                using var ms = entry.Open();
+                                Backup(item, ms);
+
+                                count++;
+                            }
+                            catch (Exception ex)
+                            {
+                                XTrace.WriteException(ex);
+                            }
+                        }
+                        else
+                        {
+                            var entry = zip.CreateEntry(item.Name + ".table");
+                            using var ms = entry.Open();
+                            Backup(item, ms);
+                        }
+                    }
+                }
+                finally
                 {
-                    var entry = zip.CreateEntry(item.Name + ".table");
-                    using var ms = entry.Open();
-                    Backup(item, ms);
+                    Db.ShowSQL = old;
+                    Session.ShowSQL = old;
                 }
 #endif
             }
 
-            return tables.Count;
+            return count;
         }
 
         private class WriteFileActor : Actor
@@ -325,8 +358,9 @@ namespace XCode.DataAccessLayer
         /// <param name="file">zip压缩文件</param>
         /// <param name="tables">数据表。为空时从压缩包读取xml模型文件</param>
         /// <param name="setSchema">是否设置数据表模型，自动建表</param>
+        /// <param name="ignoreError">忽略错误，继续恢复下一张表</param>
         /// <returns></returns>
-        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true)
+        public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true, Boolean ignoreError = true)
         {
             if (file.IsNullOrEmpty()) throw new ArgumentNullException(nameof(file));
             //if (tables == null) throw new ArgumentNullException(nameof(tables));
@@ -353,14 +387,41 @@ namespace XCode.DataAccessLayer
 
             if (setSchema) SetTables(tables);
 
-            foreach (var item in tables)
+            // 临时关闭日志
+            var old = Db.ShowSQL;
+            Db.ShowSQL = false;
+            Session.ShowSQL = false;
+            try
             {
-                var entry = zip.GetEntry(item.Name + ".table");
-                if (entry != null && entry.Length > 0)
+                foreach (var item in tables)
                 {
-                    using var ms = entry.Open();
-                    Restore(ms, item);
+                    var entry = zip.GetEntry(item.Name + ".table");
+                    if (entry != null && entry.Length > 0)
+                    {
+                        if (ignoreError)
+                        {
+                            try
+                            {
+                                using var ms = entry.Open();
+                                Restore(ms, item);
+                            }
+                            catch (Exception ex)
+                            {
+                                XTrace.WriteException(ex);
+                            }
+                        }
+                        else
+                        {
+                            using var ms = entry.Open();
+                            Restore(ms, item);
+                        }
+                    }
                 }
+            }
+            finally
+            {
+                Db.ShowSQL = old;
+                Session.ShowSQL = old;
             }
 #endif
 

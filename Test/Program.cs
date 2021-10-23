@@ -96,20 +96,20 @@ namespace Test
 
         private static void Test1()
         {
-            var td = DAL.Create("tdengine");
-            var tables = td.Tables;
-            XTrace.WriteLine(tables.ToJson(true));
+            //var td = DAL.Create("tdengine");
+            //var tables = td.Tables;
+            //XTrace.WriteLine(tables.ToJson(true));
 
-            var dt = td.Query("select * from t;");
-            XTrace.WriteLine(dt.Total + "");
+            //var dt = td.Query("select * from t;");
+            //XTrace.WriteLine(dt.Total + "");
 
-            //var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
-            //var buf = guid.ToByteArray();
-            //XTrace.WriteLine(buf.ToHex());
+            var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
+            var buf = guid.ToByteArray();
+            XTrace.WriteLine(buf.ToHex());
 
-            //var dal = DAL.Create("test");
+            var dal = DAL.Create("test");
 
-            //var rs = dal.RestoreAll($"../dbbak.zip", null);
+            var rs = dal.RestoreAll($"../dbbak.zip", null);
 
             //var tables = DAL.Import(File.ReadAllText("../data/lawyer.xml".GetFullPath()));
             //var table = tables.FirstOrDefault(e => e.Name == "SpringSession");
