@@ -811,7 +811,7 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite中不同表的索引名也不能相同
                 sb.Append("IX_");
-                sb.Append(FormatName(index.Table));
+                sb.Append(FormatName(index.Table, false));
                 foreach (var item in index.Columns)
                 {
                     sb.AppendFormat("_{0}", item);

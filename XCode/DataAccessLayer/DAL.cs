@@ -632,7 +632,7 @@ namespace XCode.DataAccessLayer
                     if (!di.Name.IsNullOrEmpty() && pf.IsNullOrEmpty()) continue;
 
                     var sb = Pool.StringBuilder.Get();
-                    sb.AppendFormat("IX_{0}", Db.FormatName(table));
+                    sb.AppendFormat("IX_{0}", Db.FormatName(table, false));
                     foreach (var item in di.Columns)
                     {
                         sb.Append('_');
