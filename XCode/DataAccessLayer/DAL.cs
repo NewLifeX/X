@@ -244,33 +244,10 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);
             if (File.Exists(file))
             {
-                var lines = File.ReadAllLines(file);
+                var text = File.ReadAllText(file);
 
                 // 预处理注释
-                var text = lines
-                    .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
-                    // 没考虑到链接中带双斜杠的，以下导致链接的内容被干掉
-                    //.Select(e =>
-                    //{
-                    //    // 单行注释 “//” 放在最后的情况
-                    //    var p0 = e.IndexOf("//");
-                    //    if (p0 > 0) return e.Substring(0, p0);
-
-                    //    return e;
-                    //})
-                    .Join(Environment.NewLine);
-
-                while (true)
-                {
-                    // 以下处理多行注释 “/**/” 放在一行的情况
-                    var p = text.IndexOf("/*");
-                    if (p < 0) break;
-
-                    var p2 = text.IndexOf("*/", p + 2);
-                    if (p2 < 0) break;
-
-                    text = text.Substring(0, p) + text.Substring(p2 + 2);
-                }
+                text = JsonConfigProvider.TrimComment(text);
 
                 var dic = JsonParser.Decode(text);
                 dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
