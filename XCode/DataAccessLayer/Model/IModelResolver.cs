@@ -269,29 +269,33 @@ namespace XCode.DataAccessLayer
             var dis = table.Indexes;
             dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
+            var dis2 = new List<IDataIndex>();
             var columnKeys = new List<String>();
             foreach (var di in dis)
             {
-                if (di.Columns == null) continue;
-
-                // 干掉重复索引
-                var key = di.Columns.Join();
-                if (columnKeys.Contains(key)) continue;
-                columnKeys.Add(key);
+                // 干掉无效索引
+                if (di.Columns == null || di.Columns.Length == 0) continue;
 
                 var dcs = table.GetColumns(di.Columns);
-                if (dcs == null || dcs.Length <= 0) continue;
+                if (dcs == null || dcs.Length <= 0 || dcs.Length != di.Columns.Length) continue;
+
+                // 干掉自增列的索引
+                if (dcs.Length == 1 && dcs[0].Identity) continue;
+
+                // 干掉重复索引
+                var key = di.Columns.Join().ToLower();
+                if (columnKeys.Contains(key)) continue;
+                columnKeys.Add(key);
 
                 if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
                 // 刚好该索引所有字段都是主键时，修正主键
                 if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
+
+                dis2.Add(di);
             }
 
-            // 干掉无效索引
-            dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0 || di.Columns.Length != table.GetColumns(di.Columns).Length);
-
-            // 干掉自增列的索引
-            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]) != null && table.GetColumn(di.Columns[0]).Identity);
+            dis.Clear();
+            dis.AddRange(dis2);
         }
         #endregion
 

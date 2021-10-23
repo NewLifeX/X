@@ -1,100 +1,100 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="XCode.DataAccessLayer.Access" Collapsed="true">
-    <Position X="0.75" Y="11.5" Width="1.5" />
+    <Position X="0.5" Y="11.5" Width="1.5" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
       <Compartment Name="Properties" Collapsed="true" />
       <Compartment Name="Methods" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>CAAAAAAAAACAAIAAIAABAAAAAEgAICgAAAGAAIAgBAA=</HashCode>
+      <HashCode>CAAAAAAAAAAAAIAAIAAAAAAQAEgAIAgAAQGAAIAgBAA=</HashCode>
       <FileName>DataAccessLayer\Database\Access.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.MySql" Collapsed="true">
-    <Position X="9.75" Y="11.5" Width="1.5" />
+    <Position X="9.5" Y="11.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CAAAAAAAAAAAAIAAIAABABAQAEgAIDgAAAEAAIAABgA=</HashCode>
+      <HashCode>CAAQAAAQAAACAAAAIAQAACCQAEgAIBgAAQEAAIAAAgA=</HashCode>
       <FileName>DataAccessLayer\Database\MySql.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SQLite" Collapsed="true">
-    <Position X="3" Y="11.5" Width="1.5" />
+    <Position X="2.75" Y="11.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAgAAACAAIAAIAABABAQAEgAIDEAAAEAAIAAJAA=</HashCode>
+      <HashCode>AAAAAAgQACIAAAAAIAAAABCAAEgAIBEAAQEAAIAAJAA=</HashCode>
       <FileName>DataAccessLayer\Database\SQLite.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlServer" Collapsed="true">
-    <Position X="7.5" Y="11.5" Width="1.5" />
+    <Position X="7.25" Y="11.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CAABAAAAAACAAIAAIAABAAMAAEgAoCgAAAEAAIAABgA=</HashCode>
+      <HashCode>KAABEACQAAAAAIAAIAAAAAGAAEgAIAgAAQGAAIAgBgA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlServer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.Oracle" Collapsed="true">
-    <Position X="12" Y="11.5" Width="1.5" />
+    <Position X="11.75" Y="11.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAoCAAIgAAYAAIAABABgQAEgBIDgAAgEAQIAABAA=</HashCode>
+      <HashCode>ACAQAAAQAAAAAIAAIAAAAACAAGgAIBgAAQEAAIAABAA=</HashCode>
       <FileName>DataAccessLayer\Database\Oracle.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.DbSession" Collapsed="true" BaseTypeListCollapsed="true">
     <Position X="7.25" Y="4.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AQAECFAhAGAAIAUDIGEEBBAUECBgACghECAAo0CDAAA=</HashCode>
+      <HashCode>AASgEEABAGAEIAYCCmAEAAEQQCBAAQhFAAAAIwACACA=</HashCode>
       <FileName>DataAccessLayer\Common\DbSession.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" Collapsed="true" />
   </Class>
   <Class Name="XCode.DataAccessLayer.DbBase" Collapsed="true">
-    <Position X="8.5" Y="8.5" Width="1.5" />
+    <Position X="7.25" Y="8.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CRACAgSAACCQAJAMIAABwZAABEigIDggAGXAAIAARAA=</HashCode>
+      <HashCode>CUISKASQACAwApQMIAAIQRACBeihIRkgCSXIIYABTGA=</HashCode>
       <FileName>DataAccessLayer\Common\DbBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="XCode.DataAccessLayer.RemoteDb" Collapsed="true">
-    <Position X="9.75" Y="10" Width="1.5" />
+    <Position X="9.5" Y="10" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAQAAAAAAAAAAAAAgQAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <HashCode>AAABAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAJgA=</HashCode>
       <FileName>DataAccessLayer\Common\RemoteDb.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.FileDbBase" Collapsed="true">
-    <Position X="3" Y="10" Width="1.5" />
+    <Position X="2.75" Y="10" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAgAAAAAAAAAAAAAgAAAAAAAAAQAAAAAAIBAAAA=</HashCode>
+      <HashCode>AAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAA=</HashCode>
       <FileName>DataAccessLayer\Common\FileDb.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlCe" Collapsed="true">
-    <Position X="5.25" Y="11.5" Width="1.5" />
+    <Position X="5" Y="11.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAACAAIAAIAABABAQAEgAICAAAAAAAAAABAA=</HashCode>
+      <HashCode>AAAAAAAQAAAAAAAAIAAAAACAAEgAIACAAQAAAIAEBAA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlCe.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlCeSession" Collapsed="true">
     <Position X="0.5" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAEACBAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlCe.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlCeMetaData" Collapsed="true">
     <Position X="0.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>CAAAEAAAAAAAAAAAAAAAAASQAAIAAACAAAgACAACAAA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlCe.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.FileDbSession" Collapsed="true">
     <Position X="2.75" Y="6" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAEAAAIAAAAAAAAAAEAAAAAAAAAAAAAABAAAA=</HashCode>
+      <HashCode>AAAAAAAAEAAAAAAAAAAAAAEEAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>DataAccessLayer\Common\FileDb.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -108,77 +108,77 @@
   <Class Name="XCode.DataAccessLayer.RemoteDbSession" Collapsed="true">
     <Position X="9.5" Y="6" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAgA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAABAAAAAAQAAAAAAAgA=</HashCode>
       <FileName>DataAccessLayer\Common\RemoteDb.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.RemoteDbMetaData" Collapsed="true">
     <Position X="9.5" Y="2" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAgA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAEAAAAAAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Common\RemoteDb.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.MySqlMetaData" Collapsed="true">
     <Position X="7.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BAAAEgAEAAAgQAAAIAAAAAAAEAIAAAAEAAAACCgAAEA=</HashCode>
+      <HashCode>AAAAECAECAAgAAAAIIAAAACQEAIAAAAAAAAACAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\MySql.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.OracleMeta" Collapsed="true">
     <Position X="9.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BQhLEgCEgAigQAAAIAACAACEAAAAAAgEAAAACCgIAAA=</HashCode>
+      <HashCode>BQADEACEgAggQABAIAACAAiUAAAAAAgsAAAACIgAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\Oracle.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlServerMetaData" Collapsed="true">
     <Position X="11.75" Y="3.5" Width="1.75" />
     <TypeIdentifier>
-      <HashCode>JQBBkAAECAokwAIAMIAAAAqAEAJAIAAcAQgBCLACAEA=</HashCode>
+      <HashCode>JQBBkgAECAokwAAIMIAAAACQEAMAIAAIAAgBCIAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlServer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.AccessSession" Collapsed="true">
     <Position X="2.75" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\Access.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SQLiteSession" Collapsed="true">
     <Position X="5" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAARAAAAAAAAEACAAAAAAAAAAAAgAAAA=</HashCode>
+      <HashCode>AAAgAEAAAAAAAAAAAAAAAAEEACAAAQAAAAAgAAAAACA=</HashCode>
       <FileName>DataAccessLayer\Database\SQLite.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.MySqlSession" Collapsed="true">
     <Position X="7.25" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAgAEAAAAAAAAAAAAAAAAAQACAAAQAAAAAgAAAAACA=</HashCode>
       <FileName>DataAccessLayer\Database\MySql.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.OracleSession" Collapsed="true">
     <Position X="9.5" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAQACAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAQAAEAAgAAAAQAAAAAEAAAQQCAAAQBEAAAAgAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\Oracle.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SqlServerSession" Collapsed="true">
     <Position X="11.75" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQACAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAEAAAAAAAAAAAAAEABAQACQAAQBAAAAAAAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\SqlServer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.DbMetaData" Collapsed="true">
     <Position X="6.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>B8BFEyBUmEogQAIgdGACAEqQMoNAABBcAAjACKgQAGA=</HashCode>
+      <HashCode>B8BBEiAUmEggQAAIdGgSAEKAMoNAABBsAAjASIgAACE=</HashCode>
       <FileName>DataAccessLayer\MetaData\DbMetaData.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -186,35 +186,28 @@
   <Class Name="XCode.DataAccessLayer.NetworkSession" Collapsed="true">
     <Position X="14" Y="6" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAABAAAAAAAAQAAAAEAAAQACBAAAgAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAQACBAAAgAAAAAAAACAAA=</HashCode>
       <FileName>DataAccessLayer\Database\Network.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="XCode.DataAccessLayer.Distributed" Collapsed="true">
-    <Position X="14.25" Y="10" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAiECAAAABhAAAIAAAAgCAAEAIICAAAAACAAAEAAA=</HashCode>
-      <FileName>DataAccessLayer\Database\Distributed.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="XCode.DataAccessLayer.Network" Collapsed="true">
-    <Position X="16.5" Y="10" Width="1.5" />
+    <Position X="14" Y="10" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>QAAAAAAAAEAAAAAAIAAAAAAAAEAAICAAAAAAAgAAAAA=</HashCode>
+      <HashCode>CAASAAAAAAAAAIAAIAIAAAAAAEAAIFggAQGAAoBABAA=</HashCode>
       <FileName>DataAccessLayer\Database\Network.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.AccessMetaData" Collapsed="true">
     <Position X="2.75" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BEAAEgAAgAAAQEAABgABAACEIAAAAAAkAAgACKAAAAA=</HashCode>
+      <HashCode>BAAAEAAAgAAAAAAAAAAAAACQAAAAAAAAAAgACAAAAAA=</HashCode>
       <FileName>DataAccessLayer\Database\Access.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="XCode.DataAccessLayer.SQLiteMetaData" Collapsed="true">
     <Position X="5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BQAAEAAEAAgAAgAAIAAAAAqEAAEAAAAQAAAAAAAAAAA=</HashCode>
+      <HashCode>BwAAECAEgIgAAgAAIAAIAAKUIAEAAAAAAAAAAAAAAAE=</HashCode>
       <FileName>DataAccessLayer\Database\SQLite.cs</FileName>
     </TypeIdentifier>
   </Class>

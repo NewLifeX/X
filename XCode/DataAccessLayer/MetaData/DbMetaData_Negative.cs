@@ -330,6 +330,7 @@ namespace XCode.DataAccessLayer
             var edis = entitytable.Indexes;
             if (edis != null)
             {
+                var ids = new List<String>();
                 foreach (var item in edis.ToArray())
                 {
                     if (item.PrimaryKey) continue;
@@ -342,7 +343,16 @@ namespace XCode.DataAccessLayer
                     // 如果索引全部就是主键，无需创建索引
                     if (entitytable.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 
-                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    // 索引不能重复，不缺分大小写，但字段相同而顺序不同，算作不同索引
+                    var key = item.Columns.Join(",").ToLower();
+                    if (ids.Contains(key))
+                        WriteLog("[{0}]索引重复 {1}({2})", entitytable.TableName, item.Name, item.Columns.Join(","));
+                    else
+                    {
+                        ids.Add(key);
+
+                        PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    }
 
                     if (di == null)
                         edis.Add(item.Clone(dbtable));
@@ -639,13 +649,23 @@ namespace XCode.DataAccessLayer
             // 加上索引
             if (table.Indexes != null)
             {
+                var ids = new List<String>();
                 foreach (var item in table.Indexes)
                 {
                     if (item.PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 
-                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    // 索引不能重复，不缺分大小写，但字段相同而顺序不同，算作不同索引
+                    var key = item.Columns.Join(",").ToLower();
+                    if (ids.Contains(key))
+                        WriteLog("[{0}]索引重复 {1}({2})", table.TableName, item.Name, item.Columns.Join(","));
+                    else
+                    {
+                        ids.Add(key);
+
+                        PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    }
                 }
             }
         }
