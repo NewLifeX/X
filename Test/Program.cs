@@ -75,7 +75,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -96,11 +96,18 @@ namespace Test
 
         private static void Test1()
         {
-            var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
-            var buf = guid.ToByteArray();
-            XTrace.WriteLine(buf.ToHex());
+            var td = DAL.Create("tdengine");
+            var tables = td.Tables;
+            XTrace.WriteLine(tables.ToJson(true));
 
-            var dal = DAL.Create("test");
+            var dt = td.Query("select * from t;");
+            XTrace.WriteLine(dt.Total + "");
+
+            //var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
+            //var buf = guid.ToByteArray();
+            //XTrace.WriteLine(buf.ToHex());
+
+            //var dal = DAL.Create("test");
 
             //var rs = dal.RestoreAll($"../dbbak.zip", null);
 
@@ -112,9 +119,9 @@ namespace Test
             //dc2.DataType = typeof(Guid);
             //dal.Restore($"../data/SpringSession.table", table);
 
-            var dt = dal.Query("select * from spring_session");
-            XTrace.WriteLine("字段[{0}]：{1}", dt.Columns.Length, dt.Columns.Join());
-            XTrace.WriteLine("类型[{0}]：{1}", dt.Types.Length, dt.Types.Join(",", e => e?.Name));
+            //var dt = dal.Query("select * from spring_session");
+            //XTrace.WriteLine("字段[{0}]：{1}", dt.Columns.Length, dt.Columns.Join());
+            //XTrace.WriteLine("类型[{0}]：{1}", dt.Types.Length, dt.Types.Join(",", e => e?.Name));
         }
 
         private static void Test2()

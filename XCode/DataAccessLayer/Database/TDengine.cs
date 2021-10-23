@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Web;
 using XCode.TDengine;
 
 namespace XCode.DataAccessLayer
@@ -19,8 +20,30 @@ namespace XCode.DataAccessLayer
         /// <summary>返回数据库类型。</summary>
         public override DatabaseType Type => DatabaseType.TDengine;
 
+        ///// <summary>工厂</summary>
+        //public override DbProviderFactory Factory => TDengineFactory.Instance;
+
+        private static DbProviderFactory _Factory;
         /// <summary>工厂</summary>
-        public override DbProviderFactory Factory => TDengineFactory.Instance;
+        public override DbProviderFactory Factory
+        {
+            get
+            {
+                if (_Factory == null)
+                {
+                    lock (typeof(TDengine))
+                    {
+                        //GetProviderFactory("NewLife.TDengine.dll", "NewLife.TDengine.TDengineFactory");
+                        var links = GetLinkNames("NewLife.TDengine.dll", true);
+                        var type = PluginHelper.LoadPlugin("NewLife.TDengine.TDengineFactory", null, "taos.dll", links.Join(","));
+
+                        _Factory = TDengineFactory.Instance;
+                    }
+                }
+
+                return _Factory;
+            }
+        }
 
         const String Server_Key = "Server";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)

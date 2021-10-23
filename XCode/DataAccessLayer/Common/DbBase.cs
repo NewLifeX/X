@@ -288,6 +288,50 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 下载驱动
+        protected static IList<String> GetLinkNames(String assemblyFile, Boolean strict = false)
+        {
+            var links = new List<String>();
+            var name = Path.GetFileNameWithoutExtension(assemblyFile);
+            if (!name.IsNullOrEmpty())
+            {
+                var linkName = name;
+#if __CORE__
+                var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
+                // 可能是在x64架构上跑x86
+                if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
+
+                var platform = "";
+                if (Runtime.Linux)
+                    platform = "linux";
+                else if (Runtime.OSX)
+                    platform = "osx";
+                else
+                    platform = "win";
+
+                links.Add($"{name}.{platform}-{arch}");
+                links.Add($"{name}.{platform}");
+                links.Add($"{name}_netstandard20");
+
+                var ver = Environment.Version;
+                if (ver.Major >= 3) links.Add($"{name}_netstandard21");
+                if (ver.Major < 5)
+                    links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
+                else
+                    links.Add($"{name}_net{ver.Major}{ver.Minor}");
+#else
+                    if (Environment.Is64BitProcess) linkName += "64";
+                    var ver = Environment.Version;
+                    if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+                    links.Add(linkName);
+                    links.Add($"{name}_net45");
+#endif
+                // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
+                if (!strict && !links.Contains(name)) links.Add(name);
+            }
+
+            return links;
+        }
+
         /// <summary>获取提供者工厂</summary>
         /// <param name="assemblyFile"></param>
         /// <param name="className"></param>
@@ -298,45 +342,7 @@ namespace XCode.DataAccessLayer
         {
             try
             {
-                var links = new List<String>();
-                var name = Path.GetFileNameWithoutExtension(assemblyFile);
-                if (!name.IsNullOrEmpty())
-                {
-                    var linkName = name;
-#if __CORE__
-                    var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
-                    // 可能是在x64架构上跑x86
-                    if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
-
-                    var platform = "";
-                    if (Runtime.Linux)
-                        platform = "linux";
-                    else if (Runtime.OSX)
-                        platform = "osx";
-                    else
-                        platform = "win";
-
-                    links.Add($"{name}.{platform}-{arch}");
-                    links.Add($"{name}.{platform}");
-                    links.Add($"{name}_netstandard20");
-
-                    var ver = Environment.Version;
-                    if (ver.Major >= 3) links.Add($"{name}_netstandard21");
-                    if (ver.Major < 5)
-                        links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
-                    else
-                        links.Add($"{name}_net{ver.Major}{ver.Minor}");
-#else
-                    if (Environment.Is64BitProcess) linkName += "64";
-                    var ver = Environment.Version;
-                    if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-                    links.Add(linkName);
-                    links.Add($"{name}_net45");
-#endif
-                    // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
-                    if (!strict && !links.Contains(name)) links.Add(name);
-                }
-
+                var links = GetLinkNames(assemblyFile, strict);
                 var type = PluginHelper.LoadPlugin(className, null, assemblyFile, links.Join(","));
 
                 // 反射实现获取数据库工厂
@@ -371,7 +377,7 @@ namespace XCode.DataAccessLayer
                 if (type == null) throw new XCodeException("无法加载驱动[{0}]，请从nuget正确引入数据库驱动！", assemblyFile);
 
                 var asm = type.Assembly;
-                if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, name ?? className.TrimEnd("Client", "Factory"));
+                if (DAL.Debug) DAL.WriteLog("{2}驱动{0} 版本v{1}", asm.Location, asm.GetName().Version, className.TrimEnd("Client", "Factory"));
 
                 var field = type.GetFieldEx("Instance");
                 if (field == null) return Activator.CreateInstance(type) as DbProviderFactory;

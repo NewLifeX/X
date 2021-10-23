@@ -349,7 +349,7 @@ namespace XCode.DataAccessLayer
                 }
             }
 
-            WriteLog("恢复[{0}]从文件 {1}。{2}", ConnName, file2, tables?.Join(",", e => e.Name));
+            WriteLog("恢复[{0}]从文件 {1}。数据表：{2}", ConnName, file2, tables?.Join(",", e => e.Name));
 
             if (setSchema) SetTables(tables);
 
