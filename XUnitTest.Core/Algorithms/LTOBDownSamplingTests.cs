@@ -48,7 +48,7 @@ namespace XUnitTest.Algorithms
                 var line = csv.ReadLine();
                 if (line == null) break;
 
-                data.Add(new TimePoint { Time = line[0].ToInt(), Value = (Single)line[1].ToDouble() });
+                data.Add(new TimePoint { Time = line[0].ToLong(), Value = line[1].ToDouble() });
             }
             return data.ToArray();
         }
