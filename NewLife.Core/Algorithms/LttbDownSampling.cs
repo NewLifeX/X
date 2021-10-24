@@ -34,10 +34,8 @@ namespace NewLife.Algorithms
             // 三角形第一个点
             var p = 0;
             var next_point = 0;
-            var index = 0;
-            xx[index] = xAxis[p];
-            yy[index++] = data[p];
-
+            xx[0] = xAxis[p];
+            yy[0] = data[p];
             for (var i = 0; i < threshold - 2; i++)
             {
                 // 计算下一个桶的平均点，向前对齐
@@ -57,8 +55,8 @@ namespace NewLife.Algorithms
                 avg_y /= length;
 
                 // 获取这个桶的范围
-                var start2 = (Int32)Math.Floor((i + 0) * step) + 1;
-                var end2 = (Int32)Math.Floor((i + 1) * step) + 1;
+                var offset = (Int32)Math.Floor((i + 0) * step) + 1;
+                var to = (Int32)Math.Floor((i + 1) * step) + 1;
 
                 // 计算点
                 var x = xAxis[p];
@@ -66,27 +64,27 @@ namespace NewLife.Algorithms
                 var max_area = -1.0;
                 var px = 0;
                 var py = 0.0;
-                for (; start2 < end2; start2++)
+                for (; offset < to; offset++)
                 {
                     // 计算三角形面积
-                    var area = Math.Abs((x - avg_x) * (data[start2] - y) - (x - xAxis[start2]) * (avg_y - y)) * 0.5;
+                    var area = Math.Abs((x - avg_x) * (data[offset] - y) - (x - xAxis[offset]) * (avg_y - y)) * 0.5;
                     if (area > max_area)
                     {
                         max_area = area;
-                        px = xAxis[start2];
-                        py = data[start2];
-                        next_point = start2;
+                        px = xAxis[offset];
+                        py = data[offset];
+                        next_point = offset;
                     }
                 }
 
-                xx[index] = px;
-                yy[index++] = py;
+                xx[i + 1] = px;
+                yy[i + 1] = py;
                 p = next_point;
             }
 
             // 最后一个点
-            xx[index] = xAxis[data_length - 1];
-            yy[index++] = data[data_length - 1];
+            xx[threshold - 1] = xAxis[data_length - 1];
+            yy[threshold - 1] = data[data_length - 1];
 
             return new SamplingData { XAxis = xx, Data = yy };
         }

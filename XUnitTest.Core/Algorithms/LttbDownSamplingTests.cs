@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using NewLife.Algorithms;
 using NewLife.IO;
 using Xunit;
@@ -42,6 +43,8 @@ namespace XUnitTest.Algorithms
             //    k++;
             //}
 
+            var f = "Algorithms/sampled2.csv".GetFullPath();
+            if (File.Exists(f)) File.Delete(f);
             using var csv3 = new CsvFile("Algorithms/sampled2.csv", true);
             for (var i = 0; i < sampled.XAxis.Length; i++)
             {
