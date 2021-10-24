@@ -204,6 +204,12 @@ namespace NewLife.IO
             _writer.WriteLine(str);
         }
 
+        /// <summary>
+        /// 写入一行
+        /// </summary>
+        /// <param name="values"></param>
+        public void WriteLine(params Object[] values) => WriteLine(line: values);
+
 #if !NET40
         /// <summary>异步写入一行</summary>
         /// <param name="line"></param>
