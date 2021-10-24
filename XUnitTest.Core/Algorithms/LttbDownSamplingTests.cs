@@ -23,7 +23,7 @@ namespace XUnitTest.Algorithms
                 data.Add(new TimePoint { Time = line[0].ToInt(), Value = (Single)line[1].ToDouble() });
             }
 
-            var lttb = new LttbDownSampling();
+            var lttb = new LTTBDownSampling();
             var sampled = lttb.Process(data.ToArray(), 500);
             Assert.NotNull(sampled);
             Assert.Equal(500, sampled.Length);
@@ -41,9 +41,9 @@ namespace XUnitTest.Algorithms
                 k++;
             }
 
-            //var f = "Algorithms/sampled2.csv".GetFullPath();
+            //var f = "Algorithms/lttb_sampled.csv".GetFullPath();
             //if (File.Exists(f)) File.Delete(f);
-            //using var csv3 = new CsvFile("Algorithms/sampled2.csv", true);
+            //using var csv3 = new CsvFile("Algorithms/lttb_sampled.csv", true);
             //for (var i = 0; i < sampled.Length; i++)
             //{
             //    csv3.WriteLine(sampled[i].Time, sampled[i].Value);

@@ -4,18 +4,18 @@ using NewLife.Data;
 namespace NewLife.Algorithms
 {
     /// <summary>
-    /// LTTB最大三角形三桶降采样算法
+    /// LTOB最大三角形单桶降采样算法
     /// </summary>
     /// <remarks>
-    /// Largest triangle three buckets
-    /// LTTB算法由冰岛大学的Sveinn在2013年提出，其对时序数据的降维拟合效果显著，且适用于海量数据处理，已被欧洲多家商业公司采纳
+    /// Largest-Triangle-One-Bucket
+    /// LTOB最大三角形单桶算法，使用了Whytt算法有效区域的思路，再结合直觉算法中的分桶。
     /// 算法步骤：
     /// 1） 首先确定桶的大小，并将数据点平分到桶中，注意首尾点各占一个桶确保选中
-    /// 2） 选中第一个点
-    /// 3） 从第二个桶开始，遍历桶中的点，计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点。三角形的选取为[前一个桶的选中点，当前点，后一个桶的平均点]。
-    /// 4） 选中最后一个点
+    /// 2） 其次计算每个点和邻接点形成的有效区域，去除无有效区域的点
+    /// 3） 在每个桶中选取有效区域最大的点代表当前桶
+    /// LTOB算法相比原始的Whytt算法，确保了点分布的相对均匀。每个桶都有一个代表点来表示，从而连接成为一个全局的路由。
     /// </remarks>
-    public class LttbDownSampling : IDownSampling
+    public class LTOBDownSampling : IDownSampling
     {
         /// <summary>
         /// 降采样处理
