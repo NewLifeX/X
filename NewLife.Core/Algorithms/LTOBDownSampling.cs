@@ -66,7 +66,7 @@ namespace NewLife.Algorithms
                     }
                 }
 
-                sampled[i + 1] = point;
+                sampled[i] = point;
             }
 
             // 最后一个点
