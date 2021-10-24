@@ -42,14 +42,14 @@ namespace NewLife.Algorithms
             var step = (Double)(data_length - 2) / (threshold - 2);
 
             // 三角形选择当前同相邻三个ABC点，选择B，使得三角形有效面积最大
-            for (var i = 1; i < threshold - 1; i++)
+            for (var i = 0; i < threshold - 2; i++)
             {
                 // 计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点
                 TimePoint point = default;
 
                 // 获取当前桶的范围
-                var start = (Int32)Math.Round((i - 1 + 0) * step) + 1;
-                var end = (Int32)Math.Round((i - 1 + 1) * step) + 1;
+                var start = (Int32)Math.Round((i + 0) * step) + 1;
+                var end = (Int32)Math.Round((i + 1) * step) + 1;
                 end = end < data_length ? end : data_length;
 
                 var max_area = -1.0;
@@ -70,7 +70,7 @@ namespace NewLife.Algorithms
                     }
                 }
 
-                sampled[i] = point;
+                sampled[i + 1] = point;
             }
 
             // 第一个点和最后一个点

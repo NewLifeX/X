@@ -11,7 +11,31 @@ namespace XUnitTest.Algorithms
     public class LttbDownSamplingTests
     {
         [Fact]
-        public void Test1()
+        public void Normal500()
+        {
+            var data = ReadPoints();
+            var lttb = new LTTBDownSampling();
+            var sampled = lttb.Process(data, 500);
+            Assert.NotNull(sampled);
+            Assert.Equal(500, sampled.Length);
+
+            //var k = 0;
+            //using var csv2 = new CsvFile("Algorithms/sampled.csv");
+            //while (true)
+            //{
+            //    var line = csv2.ReadLine();
+            //    if (line == null) break;
+
+            //    Assert.Equal(line[0].ToInt(), sampled[k].Time);
+            //    Assert.True(Math.Abs(line[1].ToDouble() - sampled[k].Value) < 0.0001);
+
+            //    k++;
+            //}
+
+            WritePoints(sampled, lttb.AlignMode);
+        }
+
+        private TimePoint[] ReadPoints()
         {
             using var csv = new CsvFile("Algorithms/source.csv");
             var data = new List<TimePoint>();
@@ -22,33 +46,55 @@ namespace XUnitTest.Algorithms
 
                 data.Add(new TimePoint { Time = line[0].ToInt(), Value = (Single)line[1].ToDouble() });
             }
+            return data.ToArray();
+        }
 
-            var lttb = new LTTBDownSampling();
-            var sampled = lttb.Process(data.ToArray(), 500);
+        private void WritePoints(TimePoint[] data, AlignModes mode)
+        {
+            var f = $"Algorithms/lttb_{mode}_sampled.csv".GetFullPath();
+            if (File.Exists(f)) File.Delete(f);
+            using var csv = new CsvFile(f, true);
+            for (var i = 0; i < data.Length; i++)
+            {
+                csv.WriteLine(data[i].Time, data[i].Value);
+            }
+            csv.Dispose();
+        }
+
+        [Fact]
+        public void AlignLeftTest()
+        {
+            var data = ReadPoints();
+            var lttb = new LTTBDownSampling { AlignMode = AlignModes.Left };
+            var sampled = lttb.Process(data, 100);
+            Assert.NotNull(sampled);
+            Assert.Equal(100, sampled.Length);
+
+            WritePoints(sampled, lttb.AlignMode);
+        }
+
+        [Fact]
+        public void AlignRightTest()
+        {
+            var data = ReadPoints();
+            var lttb = new LTTBDownSampling { AlignMode = AlignModes.Right };
+            var sampled = lttb.Process(data, 500);
             Assert.NotNull(sampled);
             Assert.Equal(500, sampled.Length);
 
-            var k = 0;
-            using var csv2 = new CsvFile("Algorithms/sampled.csv");
-            while (true)
-            {
-                var line = csv2.ReadLine();
-                if (line == null) break;
+            WritePoints(sampled, lttb.AlignMode);
+        }
 
-                Assert.Equal(line[0].ToInt(), sampled[k].Time);
-                Assert.True(Math.Abs(line[1].ToDouble() - sampled[k].Value) < 0.0001);
+        [Fact]
+        public void AlignCenterTest()
+        {
+            var data = ReadPoints();
+            var lttb = new LTTBDownSampling { AlignMode = AlignModes.Center };
+            var sampled = lttb.Process(data, 500);
+            Assert.NotNull(sampled);
+            Assert.Equal(500, sampled.Length);
 
-                k++;
-            }
-
-            var f = $"Algorithms/lttb_{lttb.AlignMode}_sampled.csv".GetFullPath();
-            if (File.Exists(f)) File.Delete(f);
-            using var csv3 = new CsvFile(f, true);
-            for (var i = 0; i < sampled.Length; i++)
-            {
-                csv3.WriteLine(sampled[i].Time, sampled[i].Value);
-            }
-            csv3.Dispose();
+            WritePoints(sampled, lttb.AlignMode);
         }
     }
 }

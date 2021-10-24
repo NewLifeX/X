@@ -33,14 +33,13 @@ namespace NewLife.Algorithms
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
+            if (AlignMode != AlignModes.None) return ProcessByAlign(data, threshold);
+
             var data_length = data.Length;
             var sampled = new TimePoint[threshold];
 
             // 桶大小，预留开始结束位置
             var step = (Double)(data_length - 2) / (threshold - 2);
-
-            // 第一个点
-            sampled[0] = data[0];
 
             // 三角形选择相邻三个桶的ABC点，A是前一个桶选择点，C是后一个桶平均点，当前桶选择B，使得三角形有效面积最大
             TimePoint pointA = default;
@@ -49,8 +48,8 @@ namespace NewLife.Algorithms
                 // 计算下一个桶的平均点作为C
                 TimePoint pointC = default;
                 {
-                    var start = (Int32)Math.Floor((i + 1) * step) + 1;
-                    var end = (Int32)Math.Floor((i + 2) * step) + 1;
+                    var start = (Int32)Math.Round((i + 1) * step) + 1;
+                    var end = (Int32)Math.Round((i + 2) * step) + 1;
                     end = end < data_length ? end : data_length;
 
                     var length = end - start;
@@ -67,14 +66,14 @@ namespace NewLife.Algorithms
                 TimePoint point = default;
                 {
                     // 获取当前桶的范围
-                    var start = (Int32)Math.Floor((i + 0) * step) + 1;
-                    var end = (Int32)Math.Floor((i + 1) * step) + 1;
+                    var start = (Int32)Math.Round((i + 0) * step) + 1;
+                    var end = (Int32)Math.Round((i + 1) * step) + 1;
 
                     var max_area = -1.0;
-                    for (; start < end; start++)
+                    for (var j = start; j < end; j++)
                     {
                         // 选择一个点B，计算ABC三角形面积
-                        var pointB = data[start];
+                        var pointB = data[j];
                         var area = Math.Abs(
                             (pointA.Time - pointC.Time) * (pointB.Value - pointA.Value) -
                             (pointA.Time - pointB.Time) * (pointC.Value - pointA.Value)
@@ -91,8 +90,86 @@ namespace NewLife.Algorithms
                 pointA = point;
             }
 
-            // 最后一个点
+            // 第一个和最后一个点
+            sampled[0] = data[0];
             sampled[threshold - 1] = data[data_length - 1];
+
+            return sampled;
+        }
+
+        private TimePoint[] ProcessByAlign(TimePoint[] data, Int32 threshold)
+        {
+            var data_length = data.Length;
+            var sampled = new TimePoint[threshold];
+
+            var step = (Double)data_length / threshold;
+
+            // 三角形选择相邻三个桶的ABC点，A是前一个桶选择点，C是后一个桶平均点，当前桶选择B，使得三角形有效面积最大
+            TimePoint pointA = default;
+            for (var i = 0; i < threshold; i++)
+            {
+                // 计算下一个桶的平均点作为C
+                TimePoint pointC = default;
+                if (i == threshold - 1)
+                    pointC = data[data.Length - 1];
+                else
+                {
+                    var start = (Int32)Math.Round((i + 1) * step);
+                    var end = (Int32)Math.Round((i + 2) * step);
+                    end = end < data_length ? end : data_length;
+
+                    var length = end - start;
+                    for (; start < end; start++)
+                    {
+                        pointC.Time += data[start].Time;
+                        pointC.Value += data[start].Value;
+                    }
+                    pointC.Time /= length;
+                    pointC.Value /= length;
+                }
+
+                // 计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点
+                TimePoint point = default;
+                {
+                    // 获取当前桶的范围
+                    var start = (Int32)Math.Round((i + 0) * step);
+                    var end = (Int32)Math.Round((i + 1) * step);
+
+                    var max_area = -1.0;
+                    for (var j = start; j < end; j++)
+                    {
+                        // 选择一个点B，计算ABC三角形面积
+                        var pointB = data[j];
+                        var area = Math.Abs(
+                            (pointA.Time - pointC.Time) * (pointB.Value - pointA.Value) -
+                            (pointA.Time - pointB.Time) * (pointC.Value - pointA.Value)
+                            ) / 2;
+                        if (area > max_area)
+                        {
+                            max_area = area;
+                            point = pointB;
+                        }
+                    }
+
+                    pointA = point;
+
+                    // 对齐
+                    switch (AlignMode)
+                    {
+                        case AlignModes.Left:
+                            point.Time = data[start].Time;
+                            break;
+                        case AlignModes.Right:
+                            point.Time = data[end - 1].Time;
+                            break;
+                        case AlignModes.Center:
+                            point.Time = data[(Int32)Math.Round((start + end) / 2.0)].Time;
+                            break;
+                    }
+
+                    sampled[i] = point;
+                }
+            }
 
             return sampled;
         }
