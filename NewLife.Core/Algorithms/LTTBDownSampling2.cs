@@ -36,11 +36,13 @@ namespace NewLife.Algorithms
 
             // 第一个点
             sampled[0] = data[0];
-            TimePoint prev = default;
+
+            // 三角形选择相邻三个桶的ABC点，A是前一个桶选择点，C是后一个桶平均点，当前桶选择B，使得三角形有效面积最大
+            TimePoint pointA = default;
             for (var i = 0; i < threshold - 2; i++)
             {
-                // 计算下一个桶的平均点
-                TimePoint avg = default;
+                // 计算下一个桶的平均点作为C
+                TimePoint pointC = default;
                 {
                     var start = (Int32)Math.Floor((i + 1) * step) + 1;
                     var end = (Int32)Math.Floor((i + 2) * step) + 1;
@@ -49,11 +51,11 @@ namespace NewLife.Algorithms
                     var length = end - start;
                     for (; start < end; start++)
                     {
-                        avg.Time += data[start].Time;
-                        avg.Value += data[start].Value;
+                        pointC.Time += data[start].Time;
+                        pointC.Value += data[start].Value;
                     }
-                    avg.Time /= length;
-                    avg.Value /= length;
+                    pointC.Time /= length;
+                    pointC.Value /= length;
                 }
 
                 // 计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点
@@ -66,21 +68,22 @@ namespace NewLife.Algorithms
                     var max_area = -1.0;
                     for (; start < end; start++)
                     {
-                        // 计算三角形面积
+                        // 选择一个点B，计算ABC三角形面积
+                        var pointB = data[start];
                         var area = Math.Abs(
-                            (prev.Time - avg.Time) * (data[start].Value - prev.Value) -
-                            (prev.Time - data[start].Time) * (avg.Value - prev.Value)
-                            ) * 0.5;
+                            (pointA.Time - pointC.Time) * (pointB.Value - pointA.Value) -
+                            (pointA.Time - pointB.Time) * (pointC.Value - pointA.Value)
+                            ) / 2;
                         if (area > max_area)
                         {
                             max_area = area;
-                            point = data[start];
+                            point = pointB;
                         }
                     }
                 }
 
                 sampled[i + 1] = point;
-                prev = point;
+                pointA = point;
             }
 
             // 最后一个点
