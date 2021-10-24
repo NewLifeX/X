@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Data;
 
 namespace NewLife.Algorithms
 {
@@ -10,10 +11,9 @@ namespace NewLife.Algorithms
         /// <summary>
         /// 降采样处理
         /// </summary>
-        /// <param name="times"></param>
-        /// <param name="values"></param>
-        /// <param name="threshold"></param>
+        /// <param name="data">原始数据</param>
+        /// <param name="threshold">阈值，采样数</param>
         /// <returns></returns>
-        SamplingData Process(Int32[] times, Double[] values, Int32 threshold);
+        TimePoint[] Process(TimePoint[] data, Int32 threshold);
     }
 }
