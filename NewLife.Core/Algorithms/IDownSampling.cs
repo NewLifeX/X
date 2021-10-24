@@ -9,6 +9,11 @@ namespace NewLife.Algorithms
     public interface IDownSampling
     {
         /// <summary>
+        /// 对齐模式。每个桶X轴对齐方式
+        /// </summary>
+        AlignModes AlignMode { get; set; }
+
+        /// <summary>
         /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>

@@ -41,9 +41,9 @@ namespace XUnitTest.Algorithms
                 k++;
             }
 
-            var f = "Algorithms/lttb_sampled.csv".GetFullPath();
+            var f = $"Algorithms/lttb_{lttb.AlignMode}_sampled.csv".GetFullPath();
             if (File.Exists(f)) File.Delete(f);
-            using var csv3 = new CsvFile("Algorithms/lttb_sampled.csv", true);
+            using var csv3 = new CsvFile(f, true);
             for (var i = 0; i < sampled.Length; i++)
             {
                 csv3.WriteLine(sampled[i].Time, sampled[i].Value);

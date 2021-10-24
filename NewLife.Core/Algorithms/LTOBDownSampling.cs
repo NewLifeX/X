@@ -18,6 +18,11 @@ namespace NewLife.Algorithms
     public class LTOBDownSampling : IDownSampling
     {
         /// <summary>
+        /// 对齐模式。每个桶X轴对齐方式
+        /// </summary>
+        public AlignModes AlignMode { get; set; }
+
+        /// <summary>
         /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>
@@ -28,14 +33,13 @@ namespace NewLife.Algorithms
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
+            if (AlignMode != AlignModes.None) return ProcessByAlign(data, threshold);
+
             var data_length = data.Length;
             var sampled = new TimePoint[threshold];
 
             // 桶大小，预留开始结束位置
             var step = (Double)(data_length - 2) / (threshold - 2);
-
-            // 第一个点
-            sampled[0] = data[0];
 
             // 三角形选择当前同相邻三个ABC点，选择B，使得三角形有效面积最大
             for (var i = 1; i < threshold - 1; i++)
@@ -44,17 +48,17 @@ namespace NewLife.Algorithms
                 TimePoint point = default;
 
                 // 获取当前桶的范围
-                var start = (Int32)Math.Floor((i + 0) * step) + 1;
-                var end = (Int32)Math.Floor((i + 1) * step) + 1;
-                end = end < data_length - 1 ? end : data_length - 1;
+                var start = (Int32)Math.Round((i - 1 + 0) * step) + 1;
+                var end = (Int32)Math.Round((i - 1 + 1) * step) + 1;
+                end = end < data_length ? end : data_length;
 
                 var max_area = -1.0;
-                for (; start < end; start++)
+                for (var j = start + 1; j < end - 1; j++)
                 {
                     // 选择一个点B，计算ABC三角形面积
-                    var pointA = data[start - 1];
-                    var pointB = data[start];
-                    var pointC = data[start + 1];
+                    var pointA = data[j - 1];
+                    var pointB = data[j];
+                    var pointC = data[j + 1];
                     var area = Math.Abs(
                         (pointA.Time - pointC.Time) * (pointB.Value - pointA.Value) -
                         (pointA.Time - pointB.Time) * (pointC.Value - pointA.Value)
@@ -69,8 +73,65 @@ namespace NewLife.Algorithms
                 sampled[i] = point;
             }
 
-            // 最后一个点
+            // 第一个点和最后一个点
+            sampled[0] = data[0];
             sampled[threshold - 1] = data[data_length - 1];
+
+            return sampled;
+        }
+
+        private TimePoint[] ProcessByAlign(TimePoint[] data, Int32 threshold)
+        {
+            var data_length = data.Length;
+            var sampled = new TimePoint[threshold];
+
+            var step = (Double)data_length / threshold;
+
+            // 三角形选择当前同相邻三个ABC点，选择B，使得三角形有效面积最大
+            for (var i = 0; i < threshold; i++)
+            {
+                // 计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点
+                TimePoint point = default;
+
+                // 获取当前桶的范围
+                var start = (Int32)Math.Round((i + 0) * step);
+                var end = (Int32)Math.Round((i + 1) * step);
+                end = end < data_length ? end : data_length;
+
+                var max_area = -1.0;
+                for (var j = start + 1; j < end - 1; j++)
+                {
+                    // 选择一个点B，计算ABC三角形面积
+                    var pointA = data[j - 1];
+                    var pointB = data[j];
+                    var pointC = data[j + 1];
+                    var area = Math.Abs(
+                        (pointA.Time - pointC.Time) * (pointB.Value - pointA.Value) -
+                        (pointA.Time - pointB.Time) * (pointC.Value - pointA.Value)
+                        ) / 2;
+                    if (area > max_area)
+                    {
+                        max_area = area;
+                        point = pointB;
+                    }
+                }
+
+                // 对齐
+                switch (AlignMode)
+                {
+                    case AlignModes.Left:
+                        point.Time = data[start].Time;
+                        break;
+                    case AlignModes.Right:
+                        point.Time = data[end - 1].Time;
+                        break;
+                    case AlignModes.Center:
+                        point.Time = data[(Int32)Math.Round((start + end) / 2.0)].Time;
+                        break;
+                }
+
+                sampled[i] = point;
+            }
 
             return sampled;
         }
