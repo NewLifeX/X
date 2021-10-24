@@ -41,14 +41,14 @@ namespace XUnitTest.Algorithms
                 k++;
             }
 
-            //var f = "Algorithms/lttb_sampled.csv".GetFullPath();
-            //if (File.Exists(f)) File.Delete(f);
-            //using var csv3 = new CsvFile("Algorithms/lttb_sampled.csv", true);
-            //for (var i = 0; i < sampled.Length; i++)
-            //{
-            //    csv3.WriteLine(sampled[i].Time, sampled[i].Value);
-            //}
-            //csv3.Dispose();
+            var f = "Algorithms/lttb_sampled.csv".GetFullPath();
+            if (File.Exists(f)) File.Delete(f);
+            using var csv3 = new CsvFile("Algorithms/lttb_sampled.csv", true);
+            for (var i = 0; i < sampled.Length; i++)
+            {
+                csv3.WriteLine(sampled[i].Time, sampled[i].Value);
+            }
+            csv3.Dispose();
         }
     }
 }
