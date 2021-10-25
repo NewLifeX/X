@@ -24,25 +24,17 @@ namespace NewLife.Algorithms
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
-            if (AlignMode == AlignModes.None) AlignMode = AlignModes.Left;
-
-            var data_length = data.Length;
-            var sampled = new TimePoint[threshold];
-
-            // 桶大小，预留开始结束位置
-            var step = (Double)data_length / threshold;
+            var source = new BucketSource { Data = data, Threshod = threshold, Length = data.Length };
+            source.Init();
 
             // 每个桶选择一个点作为代表
-            for (var i = 0; i < threshold; i++)
+            var i = source.Offset;
+            var sampled = new TimePoint[threshold];
+            foreach (var item in source)
             {
-                // 获取当前桶的范围
-                var start = (Int32)Math.Round((i + 0) * step);
-                var end = (Int32)Math.Round((i + 1) * step);
-                end = end < data_length ? end : data_length;
-
                 TimePoint point = default;
                 var vs = 0.0;
-                for (var j = start; j < end; j++)
+                for (var j = item.Start; j < item.End; j++)
                 {
                     vs += data[j].Value;
                 }
@@ -53,13 +45,13 @@ namespace NewLife.Algorithms
                 {
                     case AlignModes.Left:
                     default:
-                        point.Time = data[start].Time;
+                        point.Time = data[item.Start].Time;
                         break;
                     case AlignModes.Right:
-                        point.Time = data[end - 1].Time;
+                        point.Time = data[item.End - 1].Time;
                         break;
                     case AlignModes.Center:
-                        point.Time = data[(Int32)Math.Round((start + end) / 2.0)].Time;
+                        point.Time = data[(Int32)Math.Round((item.Start + item.End) / 2.0)].Time;
                         break;
                 }
 
