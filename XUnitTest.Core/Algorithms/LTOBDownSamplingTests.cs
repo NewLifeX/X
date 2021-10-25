@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NewLife.Algorithms;
 using NewLife.Data;
 using NewLife.IO;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Algorithms
@@ -63,6 +64,8 @@ namespace XUnitTest.Algorithms
                 csv.WriteLine(data[i].Time, data[i].Value);
             }
             csv.Dispose();
+
+            //XTrace.WriteLine(f);
         }
 
         [Fact]
