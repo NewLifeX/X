@@ -437,13 +437,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 正向工程
-        private List<IDataTable> _Tables;
+        private IList<IDataTable> _Tables;
         /// <summary>取得所有表和视图的构架信息（异步缓存延迟1秒）。设为null可清除缓存</summary>
         /// <remarks>
         /// 如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存。
         /// </remarks>
         /// <returns></returns>
-        public List<IDataTable> Tables
+        public IList<IDataTable> Tables
         {
             get
             {
@@ -460,12 +460,39 @@ namespace XCode.DataAccessLayer
                 _Tables = null;
         }
 
-        private List<IDataTable> GetTables()
+        private IList<IDataTable> GetTables()
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
 
-            //CheckDatabase();
-            return Db.CreateMetaData().GetTables();
+            using var span = Tracer?.NewSpan("db:GetTables", ConnName);
+            try
+            {
+                //CheckDatabase();
+                return Db.CreateMetaData().GetTables();
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 快速获取所有表名
+        /// </summary>
+        /// <returns></returns>
+        public IList<String> GetTableNames()
+        {
+            using var span = Tracer?.NewSpan("db:GetTableNames", ConnName);
+            try
+            {
+                return Db.CreateMetaData().GetTableNames();
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         /// <summary>导出模型</summary>
@@ -603,22 +630,31 @@ namespace XCode.DataAccessLayer
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return;
 
-            //// 构建DataTable时也要注意表前缀，避免反向工程用错
-            //var pf = Db.TablePrefix;
-            //if (!pf.IsNullOrEmpty())
-            //{
-            //    foreach (var tbl in tables)
-            //    {
-            //        if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
-            //    }
-            //}
-
-            foreach (var item in tables)
+            using var span = Tracer?.NewSpan("db:SetTables", tables.Join());
+            try
             {
-                FixIndexName(item);
-            }
+                //// 构建DataTable时也要注意表前缀，避免反向工程用错
+                //var pf = Db.TablePrefix;
+                //if (!pf.IsNullOrEmpty())
+                //{
+                //    foreach (var tbl in tables)
+                //    {
+                //        if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
+                //    }
+                //}
 
-            Db.CreateMetaData().SetTables(Db.Migration, tables);
+                foreach (var item in tables)
+                {
+                    FixIndexName(item);
+                }
+
+                Db.CreateMetaData().SetTables(Db.Migration, tables);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         void FixIndexName(IDataTable table)

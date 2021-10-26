@@ -189,9 +189,8 @@ namespace XCode.DataAccessLayer
             #region 查表、字段信息、索引信息、主键信息
             var session = Database.CreateSession();
 
-            //表信息
-            DataTable dt = null;
-            dt = session.Query(_AllTableNameSql).Tables[0];
+            // 表信息
+            var dt = session.Query(_AllTableNameSql).Tables[0];
 
             var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase)
             {
@@ -211,6 +210,28 @@ namespace XCode.DataAccessLayer
             if (rows == null || rows.Length < 1) return null;
 
             return GetTables(rows, names, data);
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select("TABLE_TYPE='table'");
+
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
         }
 
         /// <summary>获取索引</summary>

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 using XCode.TDengine;
 using Xunit;
 using XUnitTest.XCode.TestEntity;
@@ -250,6 +250,51 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Contains(list2, e => e.Speed == 333);
             Assert.Contains(list2, e => e.Speed == 222);
             Assert.Contains(list2, e => e.Speed == 111);
+        }
+
+        [Fact]
+        public void PositiveAndNegative()
+        {
+            var connName = GetType().Name;
+            DAL.AddConnStr(connName, _ConnStr, null, "TDengine");
+            var dal = DAL.Create(connName);
+
+            var table = DAL.CreateTable();
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+            {
+                var col = table.CreateColumn();
+                col.ColumnName = "ts";
+                col.DataType = typeof(DateTime);
+                table.Columns.Add(col);
+            }
+            {
+                var col = table.CreateColumn();
+                col.ColumnName = "speed";
+                col.DataType = typeof(Int32);
+                table.Columns.Add(col);
+            }
+            {
+                var col = table.CreateColumn();
+                col.ColumnName = "temp";
+                col.DataType = typeof(Single);
+                table.Columns.Add(col);
+            }
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

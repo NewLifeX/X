@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         #region 表构架
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        public List<IDataTable> GetTables()
+        public IList<IDataTable> GetTables()
         {
             try
             {
@@ -57,6 +57,25 @@ namespace XCode.DataAccessLayer
             {
                 throw new XDbMetaDataException(this, "取得所有表构架出错！", ex);
             }
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public virtual IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
         }
 
         /// <summary>取得所有表构架</summary>

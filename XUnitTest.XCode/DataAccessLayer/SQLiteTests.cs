@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using NewLife;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
@@ -282,6 +285,34 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Null(gly2.Remark);
             // 管理员被删除后重新插入，自增ID改变
             Assert.NotEqual(gly.ID, gly2.ID);
+        }
+
+        [Fact]
+        public void PositiveAndNegative()
+        {
+            DAL.AddConnStr("positiveSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("positiveSQLite");
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            //Thread.Sleep(10000);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

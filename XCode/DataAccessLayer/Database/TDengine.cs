@@ -369,14 +369,13 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             var ss = Database.CreateSession();
-            var db = Database.DatabaseName;
             var list = new List<IDataTable>();
 
             var old = ss.ShowSQL;
             ss.ShowSQL = false;
             try
             {
-                var sql = $"SHOW TABLES";
+                var sql = "SHOW TABLES";
                 var dt = ss.Query(sql, null);
                 if (dt.Rows.Count == 0) return null;
 
@@ -420,6 +419,27 @@ namespace XCode.DataAccessLayer
             finally
             {
                 ss.ShowSQL = old;
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = base.Database.CreateSession().Query("SHOW TABLES", null);
+            if (dt.Rows.Count == 0) return list;
+
+            // 所有表
+            foreach (var dr in dt)
+            {
+                var name = dr["table_name"] + "";
+                if (!name.IsNullOrEmpty()) list.Add(name);
             }
 
             return list;
