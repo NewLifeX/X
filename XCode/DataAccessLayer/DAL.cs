@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -73,6 +74,7 @@ namespace XCode.DataAccessLayer
         public IDbSession Session => Db.CreateSession();
 
         private String _mapTo;
+        private ICache _cache = new MemoryCache();
         #endregion
 
         #region 创建函数
@@ -478,7 +480,12 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
-        /// 快速获取所有表名
+        /// 获取所有表名，带缓存，不区分大小写
+        /// </summary>
+        public ICollection<String> TableNames => _cache.GetOrAdd("tableNames", k => new HashSet<String>(GetTableNames(), StringComparer.OrdinalIgnoreCase), 60);
+
+        /// <summary>
+        /// 快速获取所有表名，无缓存，区分大小写
         /// </summary>
         /// <returns></returns>
         public IList<String> GetTableNames()
