@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife;
 using NewLife.Log;
+using NewLife.Security;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
@@ -287,6 +289,33 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Null(gly2.Remark);
             // 管理员被删除后重新插入，自增ID改变
             Assert.NotEqual(gly.ID, gly2.ID);
+        }
+
+        [Fact(Skip = "跳过")]
+        public void PositiveAndNegative()
+        {
+            var connName = GetType().Name;
+            DAL.AddConnStr(connName, _ConnStr, null, "SqlServer");
+            var dal = DAL.Create(connName);
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

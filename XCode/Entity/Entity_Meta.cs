@@ -5,6 +5,7 @@ using System.Threading;
 using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
 using XCode.Shards;
 
 namespace XCode
@@ -241,9 +242,13 @@ namespace XCode
                 var models = ShardPolicy?.Shards(start, end);
                 if (models == null) yield break;
 
-                foreach (var model in models)
+                foreach (var shard in models)
                 {
-                    using var shard = new SplitPackge(model.ConnName, model.TableName);
+                    // 如果目标分表不存在，则不要展开查询
+                    var dal = !shard.ConnName.IsNullOrEmpty() ? DAL.Create(shard.ConnName) : Session.Dal;
+                    if (!dal.TableNames.Contains(shard.TableName)) continue;
+
+                    using var split = new SplitPackge(shard.ConnName, shard.TableName);
                     var rs = callback();
                     if (!Equals(rs, default)) yield return rs;
                 }

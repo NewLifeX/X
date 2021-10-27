@@ -735,27 +735,28 @@ namespace XCode.DataAccessLayer
             //一次性把所有的表说明查出来
             DataTable DescriptionTable = null;
 
-            //var old = session.ShowSQL;
-            //session.ShowSQL = false;
             try
             {
                 var sql = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
                 DescriptionTable = session.Query(sql).Tables[0];
             }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            //session.ShowSQL = old;
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
 
             var dt = GetSchema(_.Tables, null);
             if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
 
-            //session.ShowSQL = false;
             try
             {
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            //session.ShowSQL = old;
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
             #endregion
 
             // 列出用户表
@@ -770,6 +771,27 @@ namespace XCode.DataAccessLayer
             {
                 var drs = DescriptionTable?.Select("n='" + item.TableName + "'");
                 item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
             }
 
             return list;

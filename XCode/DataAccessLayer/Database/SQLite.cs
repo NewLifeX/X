@@ -649,6 +649,28 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var sql = "select * from sqlite_master";
+            var dt = base.Database.CreateSession().Query(sql, null);
+            if (dt.Rows.Count == 0) return list;
+
+            // 所有表
+            foreach (var dr in dt)
+            {
+                var name = dr["tbl_name"] + "";
+                if (!name.IsNullOrEmpty()) list.Add(name);
+            }
+
+            return list;
+        }
+
+        /// <summary>
         /// 获取表字段 zhangy 2018年10月23日 15:30:43
         /// </summary>
         /// <param name="table"></param>

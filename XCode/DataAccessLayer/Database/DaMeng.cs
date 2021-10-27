@@ -566,6 +566,25 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, new String[] { Owner, null });
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
+        }
+
         private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
         {
             if (ownerName.IsNullOrEmpty()) ownerName = "Owner";

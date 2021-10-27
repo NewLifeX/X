@@ -875,6 +875,10 @@ namespace XCode
                 var rs = new List<TEntity>();
                 foreach (var shard in shards)
                 {
+                    // 如果目标分表不存在，则不要展开查询
+                    var dal = !shard.ConnName.IsNullOrEmpty() ? DAL.Create(shard.ConnName) : session.Dal;
+                    if (!dal.TableNames.Contains(shard.TableName)) continue;
+
                     using var split = Meta.CreateSplit(shard.ConnName, shard.TableName);
 
                     var builder = CreateBuilder(where, order, selects);
@@ -1306,6 +1310,10 @@ namespace XCode
                 var rs = 0;
                 foreach (var shard in shards)
                 {
+                    // 如果目标分表不存在，则不要展开查询
+                    var dal = !shard.ConnName.IsNullOrEmpty() ? DAL.Create(shard.ConnName) : session.Dal;
+                    if (!dal.TableNames.Contains(shard.TableName)) continue;
+
                     using var split = Meta.CreateSplit(shard.ConnName, shard.TableName);
 
                     session = Meta.Session;

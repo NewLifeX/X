@@ -171,6 +171,28 @@ namespace XCode.DataAccessLayer
             return GetTables(rows, names);
         }
 
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
+
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
+        }
+
         /// <summary>获取索引</summary>
         /// <param name="table"></param>
         /// <param name="indexes">索引</param>
