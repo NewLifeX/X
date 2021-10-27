@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using NewLife.Data;
-using NewLife.Log;
 
 namespace NewLife.Algorithms
 {
@@ -24,23 +23,33 @@ namespace NewLife.Algorithms
         public Int32 Threshod { get; set; }
 
         public Double Step { get; private set; }
+
+        /// <summary>
+        /// 桶大小。若指定，则采用固定桶大小，例如每分钟一个桶
+        /// </summary>
+        public Int32 BucketSize { get; set; }
+
+        /// <summary>
+        /// 桶偏移。X轴对桶大小取模后的偏移量
+        /// </summary>
+        public Int32 BucketOffset { get; set; }
         #endregion
 
         #region 方法
         public void Init()
         {
-            Step = (Double)Length / Threshod;
+            if (Threshod > 0) Step = (Double)Length / Threshod;
             if (Length == 0) Length = Data.Length;
 
-            XTrace.WriteLine("offset={0} length={1} threshod={2} step={3}", Offset, Length, Threshod, Step);
+            //XTrace.WriteLine("offset={0} length={1} threshod={2} step={3}", Offset, Length, Threshod, Step);
         }
         #endregion
 
         #region 枚举
-        public IEnumerator<Range> GetEnumerator() => new BucketEnumerator(this);
+        public IEnumerator<Range> GetEnumerator() => BucketSize > 0 ? new FixedSizeBucketEnumerator(this) : new IndexBucketEnumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        private class BucketEnumerator : IEnumerator<Range>
+        private class IndexBucketEnumerator : IEnumerator<Range>
         {
             private readonly BucketSource _source;
             private Int32 _index = -1;
@@ -50,7 +59,7 @@ namespace NewLife.Algorithms
 
             Object IEnumerator.Current => Current;
 
-            public BucketEnumerator(BucketSource source) => _source = source;
+            public IndexBucketEnumerator(BucketSource source) => _source = source;
             public void Dispose() { }
 
             public Boolean MoveNext()
@@ -69,6 +78,73 @@ namespace NewLife.Algorithms
             public void Reset()
             {
                 _index = -1;
+                _current = default;
+            }
+        }
+
+        private class FixedSizeBucketEnumerator : IEnumerator<Range>
+        {
+            private readonly BucketSource _source;
+            private Boolean _inited;
+
+            private Range _current;
+            public Range Current => _current;
+
+            Object IEnumerator.Current => Current;
+
+            public FixedSizeBucketEnumerator(BucketSource source) => _source = source;
+            public void Dispose() { }
+
+            public Boolean MoveNext()
+            {
+                var data = _source.Data;
+                var size = _source.BucketSize;
+                if (!_inited)
+                {
+                    _inited = true;
+
+                    var p = (Int32)(data[0].Time % size);
+                    p -= _source.BucketOffset;
+                    if (p <= 0) p += size;
+
+                    _current.Start = 0;
+                    var flag = false;
+                    for (var i = 1; i < data.Length; i++)
+                    {
+                        if (data[i].Time > p)
+                        {
+                            flag = true;
+                            _current.End = i;
+                            break;
+                        }
+                    }
+                    if (!flag) _current.End = data.Length;
+                }
+                else
+                {
+                    if (_current.End >= data.Length) return false;
+
+                    _current.Start = _current.End;
+                    var p = _current.End + size;
+                    var flag = false;
+                    for (var i = _current.Start; i < data.Length; i++)
+                    {
+                        if (data[i].Time > p)
+                        {
+                            flag = true;
+                            _current.End = i;
+                            break;
+                        }
+                    }
+                    if (!flag) _current.End = data.Length;
+                }
+
+                return true;
+            }
+
+            public void Reset()
+            {
+                _inited = false;
                 _current = default;
             }
         }

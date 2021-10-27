@@ -14,6 +14,16 @@ namespace NewLife.Algorithms
         public AlignModes AlignMode { get; set; } = AlignModes.Left;
 
         /// <summary>
+        /// 桶大小。若指定，则采用固定桶大小，例如每分钟一个桶
+        /// </summary>
+        public Int32 BucketSize { get; set; }
+
+        /// <summary>
+        /// 桶偏移。X轴对桶大小取模后的偏移量
+        /// </summary>
+        public Int32 BucketOffset { get; set; }
+
+        /// <summary>
         /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>
@@ -24,7 +34,14 @@ namespace NewLife.Algorithms
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
-            var source = new BucketSource { Data = data, Threshod = threshold, Length = data.Length };
+            var source = new BucketSource
+            {
+                Data = data,
+                Threshod = threshold,
+                Length = data.Length,
+                BucketSize = BucketSize,
+                BucketOffset = BucketOffset
+            };
             source.Init();
 
             // 每个桶选择一个点作为代表
