@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NewLife.Data;
 
 namespace NewLife.Algorithms
@@ -7,8 +6,22 @@ namespace NewLife.Algorithms
     /// <summary>
     /// 线性插值
     /// </summary>
-    public class LinearInterpolation
+    public class LinearInterpolation : IInterpolation
     {
+        /// <summary>
+        /// 插值处理
+        /// </summary>
+        /// <param name="data">数据</param>
+        /// <param name="prev">上一个点</param>
+        /// <param name="next">下一个点</param>
+        /// <param name="current">当前点</param>
+        /// <returns></returns>
+        public Double Process(TimePoint[] data, Int32 prev, Int32 next, Int32 current)
+        {
+            var dt = (data[next].Value - data[prev].Value) / (data[next].Time - data[prev].Time);
+            return data[prev].Value + (current - data[prev].Time) * dt;
+        }
+
         /// <summary>
         /// 线性插值（返回插值后的数组，包括起止点）
         /// </summary>

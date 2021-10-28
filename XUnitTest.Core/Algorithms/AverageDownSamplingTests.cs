@@ -46,12 +46,12 @@ namespace XUnitTest.Algorithms
             //    k++;
             //}
 
-            WritePoints(rs, sample.AlignMode);
+            WritePoints(sample, rs, sample.AlignMode);
         }
 
-        private TimePoint[] ReadPoints()
+        private TimePoint[] ReadPoints(String fileName = "source.csv")
         {
-            using var csv = new CsvFile("Algorithms/source.csv");
+            using var csv = new CsvFile($"Algorithms/{fileName}");
             var data = new List<TimePoint>();
             while (true)
             {
@@ -63,9 +63,10 @@ namespace XUnitTest.Algorithms
             return data.ToArray();
         }
 
-        private void WritePoints(TimePoint[] data, AlignModes mode)
+        private void WritePoints(ISampling sample, TimePoint[] data, AlignModes mode)
         {
             var f = $"Algorithms/avg_{mode}_sampled.csv".GetFullPath();
+            //if (sample.BucketSize > 0) f = $"Algorithms/avgfill_{mode}_sampled.csv".GetFullPath();
             if (File.Exists(f)) File.Delete(f);
             using var csv = new CsvFile(f, true);
             for (var i = 0; i < data.Length; i++)
@@ -86,7 +87,7 @@ namespace XUnitTest.Algorithms
             Assert.NotNull(rs);
             Assert.Equal(100, rs.Length);
 
-            WritePoints(rs, sample.AlignMode);
+            WritePoints(sample, rs, sample.AlignMode);
         }
 
         [Fact]
@@ -98,7 +99,7 @@ namespace XUnitTest.Algorithms
             Assert.NotNull(rs);
             Assert.Equal(500, rs.Length);
 
-            WritePoints(rs, sample.AlignMode);
+            WritePoints(sample, rs, sample.AlignMode);
         }
 
         [Fact]
@@ -110,22 +111,22 @@ namespace XUnitTest.Algorithms
             Assert.NotNull(rs);
             Assert.Equal(500, rs.Length);
 
-            WritePoints(rs, sample.AlignMode);
+            WritePoints(sample, rs, sample.AlignMode);
         }
 
-        //[Fact]
-        //public void FixedBucketAlignRightTest()
-        //{
-        //    var data = ReadPoints();
-        //    var sample = new AverageDownSampling { AlignMode = AlignModes.Right, BucketSize = 60, BucketOffset = 5 };
-        //    var rs = sample.Down(data, 500);
-        //    Assert.NotNull(rs);
-        //    Assert.Equal(100, rs.Length);
-        //    Assert.Equal(5, rs[0].Time);
-        //    Assert.Equal(65, rs[1].Time);
-        //    Assert.Equal(125, rs[2].Time);
+        [Fact]
+        public void Fill500()
+        {
+            var data = ReadPoints("source2.csv");
+            var sample = new AverageSampling { AlignMode = AlignModes.Left };
+            var rs = sample.Process(data, 60, 5);
+            Assert.NotNull(rs);
+            Assert.Equal(126, rs.Length);
+            //Assert.Equal(5, rs[0].Time);
+            //Assert.Equal(65, rs[1].Time);
+            //Assert.Equal(125, rs[2].Time);
 
-        //    WritePoints(rs, sample.AlignMode);
-        //}
+            WritePoints(sample, rs, sample.AlignMode);
+        }
     }
 }

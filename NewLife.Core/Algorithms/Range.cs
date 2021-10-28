@@ -16,5 +16,11 @@ namespace NewLife.Algorithms
         /// 结束，不包含
         /// </summary>
         public Int32 End;
+
+        /// <summary>
+        /// 已重载
+        /// </summary>
+        /// <returns></returns>
+        public override String ToString() => $"({Start}, {End})";
     }
 }

@@ -15,6 +15,11 @@ namespace NewLife.Algorithms
         AlignModes AlignMode { get; set; }
 
         /// <summary>
+        /// 插值填充算法
+        /// </summary>
+        IInterpolation Interpolation { get; set; }
+
+        /// <summary>
         /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>
@@ -22,14 +27,14 @@ namespace NewLife.Algorithms
         /// <returns></returns>
         TimePoint[] Down(TimePoint[] data, Int32 threshold);
 
-        ///// <summary>
-        ///// 插值处理
-        ///// </summary>
-        ///// <param name="data">原始数据</param>
-        ///// <param name="size">桶大小。如60/3600/86400</param>
-        ///// <param name="offset">偏移量。时间不是对齐零点时使用</param>
-        ///// <returns></returns>
-        //TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0);
+        /// <summary>
+        /// 混合处理，降采样和插值
+        /// </summary>
+        /// <param name="data">原始数据</param>
+        /// <param name="size">桶大小。如60/3600/86400</param>
+        /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
+        /// <returns></returns>
+        TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0);
     }
 
     /// <summary>

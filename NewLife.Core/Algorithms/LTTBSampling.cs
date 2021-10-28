@@ -23,6 +23,11 @@ namespace NewLife.Algorithms
         public AlignModes AlignMode { get; set; }
 
         /// <summary>
+        /// 插值填充算法
+        /// </summary>
+        public IInterpolation Interpolation { get; set; } = new LinearInterpolation();
+
+        /// <summary>
         /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>
@@ -33,24 +38,20 @@ namespace NewLife.Algorithms
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
-            // 桶大小，预留开始结束位置
-            var source = AlignMode == AlignModes.None ?
-                new BucketSource { Data = data, Threshod = threshold - 2, Offset = 1, Length = data.Length - 2 } :
-                new BucketSource { Data = data, Threshod = threshold, Length = data.Length };
-            source.Init();
+            var buckets = SamplingHelper.SplitByAverage(data.Length, threshold, AlignMode == AlignModes.None);
 
             // 三角形选择相邻三个桶的ABC点，A是前一个桶选择点，C是后一个桶平均点，当前桶选择B，使得三角形有效面积最大
             TimePoint pointA = default;
             if (AlignMode == AlignModes.None) pointA = data[0];
-            var i = source.Offset;
-            var sampled = new TimePoint[threshold];
-            foreach (var item in source)
+            var sampled = new TimePoint[buckets.Length];
+            for (var i = 0; i < buckets.Length; i++)
             {
+                var item = buckets[i];
                 // 计算下一个桶的平均点作为C
                 TimePoint pointC = default;
                 {
-                    var start = (Int32)Math.Round(item.Start + source.Step);
-                    var end = (Int32)Math.Round(item.End + source.Step);
+                    var start = buckets[i + 1].Start;
+                    var end = buckets[i + 1].End;
                     end = end < data.Length ? end : data.Length;
 
                     var length = end - start;
@@ -113,6 +114,67 @@ namespace NewLife.Algorithms
             {
                 sampled[0] = data[0];
                 sampled[threshold - 1] = data[data.Length - 1];
+            }
+
+            return sampled;
+        }
+
+        /// <summary>
+        /// 混合处理，降采样和插值
+        /// </summary>
+        /// <param name="data">原始数据</param>
+        /// <param name="size">桶大小。如60/3600/86400</param>
+        /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
+        /// <returns></returns>
+        public TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0)
+        {
+            if (data == null || data.Length < 2) return data;
+            if (size <= 1) return data;
+
+            var xs = new Int64[data.Length];
+            for (var i = 0; i < data.Length; i++) xs[i] = data[i].Time;
+
+            var buckets = SamplingHelper.SplitByFixedSize(xs, size, offset);
+
+            // 每个桶选择一个点作为代表
+            var sampled = new TimePoint[buckets.Length];
+            var last = 0;
+            for (var i = 0; i < buckets.Length; i++)
+            {
+                // 断层，插值
+                var b = buckets[i];
+                if (b.Start < 0)
+                {
+                    sampled[i].Time = i * size;
+                    sampled[i].Value = Interpolation.Process(data, last, b.End, i);
+                    continue;
+                }
+
+                TimePoint point = default;
+                var vs = 0.0;
+                for (var j = b.Start; j < b.End; j++)
+                {
+                    vs += data[j].Value;
+                }
+                last = b.End - 1;
+                point.Value = vs / (b.End - b.Start);
+
+                // 对齐
+                switch (AlignMode)
+                {
+                    case AlignModes.Left:
+                    default:
+                        point.Time = i * size;
+                        break;
+                    case AlignModes.Right:
+                        point.Time = (i + 1) * size - 1;
+                        break;
+                    case AlignModes.Center:
+                        point.Time = data[(Int32)Math.Round((i + 0.5) * size)].Time;
+                        break;
+                }
+
+                sampled[i] = point;
             }
 
             return sampled;
