@@ -10,13 +10,26 @@ namespace NewLife.Algorithms
     public interface ISampling
     {
         /// <summary>
-        /// 插值处理
+        /// 对齐模式。每个桶X轴对齐方式
+        /// </summary>
+        AlignModes AlignMode { get; set; }
+
+        /// <summary>
+        /// 降采样处理
         /// </summary>
         /// <param name="data">原始数据</param>
-        /// <param name="size">桶大小。如60/3600/86400</param>
-        /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
+        /// <param name="threshold">阈值，采样数</param>
         /// <returns></returns>
-        TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0);
+        TimePoint[] Down(TimePoint[] data, Int32 threshold);
+
+        ///// <summary>
+        ///// 插值处理
+        ///// </summary>
+        ///// <param name="data">原始数据</param>
+        ///// <param name="size">桶大小。如60/3600/86400</param>
+        ///// <param name="offset">偏移量。时间不是对齐零点时使用</param>
+        ///// <returns></returns>
+        //TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0);
     }
 
     /// <summary>
@@ -25,15 +38,58 @@ namespace NewLife.Algorithms
     public static class SamplingHelper
     {
         /// <summary>
+        /// 按照指定桶数平均分，可指定保留头尾
+        /// </summary>
+        /// <param name="dataLength"></param>
+        /// <param name="threshold"></param>
+        /// <param name="retainEdge"></param>
+        /// <returns></returns>
+        public static Range[] SplitByAverage(Int32 dataLength, Int32 threshold, Boolean retainEdge = true)
+        {
+            if (dataLength == 0) throw new ArgumentNullException(nameof(dataLength));
+            if (threshold <= 2) throw new ArgumentNullException(nameof(threshold));
+
+            var buckets = new Range[threshold];
+            if (retainEdge)
+            {
+                var step = (Double)(dataLength - 2) / (threshold - 2);
+                var v = 0d;
+                for (var i = 1; i < threshold - 1; i++)
+                {
+                    buckets[i].Start = (Int32)Math.Round(v) + 1;
+                    buckets[i].End = (Int32)Math.Round(v += step) + 1;
+                    if (buckets[i].End > dataLength - 1) buckets[i].End = dataLength - 1;
+                }
+                buckets[0].Start = 0;
+                buckets[0].End = 1;
+                buckets[threshold - 1].Start = dataLength - 1;
+                buckets[threshold - 1].End = dataLength - 1 + 1;
+            }
+            else
+            {
+                var step = (Double)dataLength / threshold;
+                var v = 0d;
+                for (var i = 0; i < threshold; i++)
+                {
+                    buckets[i].Start = (Int32)Math.Round(v);
+                    buckets[i].End = (Int32)Math.Round(v += step);
+                    if (buckets[i].End > dataLength) buckets[i].End = dataLength;
+                }
+            }
+
+            return buckets;
+        }
+
+        /// <summary>
         /// 按照固定时间间隔，拆分数据轴为多个桶
         /// </summary>
         /// <param name="data">原始数据</param>
         /// <param name="size">桶大小。如60/3600/86400</param>
         /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
         /// <returns></returns>
-        public static Int64[] Split(Int64[] data, Int32 size, Int32 offset = 0)
+        public static Range[] SplitByFixedSize(Int64[] data, Int32 size, Int32 offset = 0)
         {
-            if (data == null || data.Length == 0) return data;
+            if (data == null || data.Length == 0) throw new ArgumentNullException(nameof(data));
             if (size <= 0) throw new ArgumentNullException(nameof(size));
             if (offset >= size) throw new ArgumentOutOfRangeException(nameof(offset));
 
@@ -44,29 +100,36 @@ namespace NewLife.Algorithms
             var end = last / size * size + offset;
             if (end > last) end -= size;
 
-            var list = new List<Int64>();
+            var buckets = new List<Range>();
 
             // 计算每个桶的头尾
             var idx = 0;
             for (var time = start; time <= end;)
             {
-                var v = -1;
+                Range r = default;
+                r.Start = -1;
+                r.End = -1;
                 var next = time + size;
 
                 // 顺序遍历原始数据，这里假设原始数据为升序
                 for (; idx < data.Length; idx++)
                 {
                     // 如果超过了当前桶的结尾，则换下一个桶
-                    if (data[idx] >= next) break;
+                    if (data[idx] >= next)
+                    {
+                        r.End = idx;
+                        break;
+                    }
 
-                    if (v < 0 && time <= data[idx]) v = idx;
+                    if (r.Start < 0 && time <= data[idx]) r.Start = idx;
                 }
+                if (r.End < 0) r.End = idx;
 
-                list.Add(v);
+                buckets.Add(r);
                 time = next;
             }
 
-            return list.ToArray();
+            return buckets.ToArray();
         }
     }
 }

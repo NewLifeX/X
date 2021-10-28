@@ -15,7 +15,7 @@ namespace NewLife.Algorithms
     /// 3） 从第二个桶开始，遍历桶中的点，计算每个点的有效区域，并选取有效区域最大的点作为桶的代表点。三角形的选取为[前一个桶的选中点，当前点，后一个桶的平均点]。
     /// 4） 选中最后一个点
     /// </remarks>
-    public class LTTBDownSampling : IDownSampling
+    public class LTTBSampling : ISampling
     {
         /// <summary>
         /// 对齐模式。每个桶X轴对齐方式
@@ -28,7 +28,7 @@ namespace NewLife.Algorithms
         /// <param name="data">原始数据</param>
         /// <param name="threshold">阈值，采样数</param>
         /// <returns></returns>
-        public TimePoint[] Process(TimePoint[] data, Int32 threshold)
+        public TimePoint[] Down(TimePoint[] data, Int32 threshold)
         {
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;

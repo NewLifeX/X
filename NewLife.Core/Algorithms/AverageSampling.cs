@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NewLife.Data;
 
 namespace NewLife.Algorithms
@@ -6,7 +7,7 @@ namespace NewLife.Algorithms
     /// <summary>
     /// 平均值采样算法
     /// </summary>
-    public class AverageDownSampling : IDownSampling
+    public class AverageSampling : ISampling
     {
         /// <summary>
         /// 对齐模式。每个桶X轴对齐方式
@@ -29,46 +30,44 @@ namespace NewLife.Algorithms
         /// <param name="data">原始数据</param>
         /// <param name="threshold">阈值，采样数</param>
         /// <returns></returns>
-        public TimePoint[] Process(TimePoint[] data, Int32 threshold)
+        public TimePoint[] Down(TimePoint[] data, Int32 threshold)
         {
             if (data == null || data.Length < 2) return data;
             if (threshold < 2 || threshold >= data.Length) return data;
 
-            var source = new BucketSource
-            {
-                Data = data,
-                Threshod = threshold,
-                Length = data.Length,
-                BucketSize = BucketSize,
-                BucketOffset = BucketOffset
-            };
-            source.Init();
+            var xs = new Int64[data.Length];
+            for (var i = 0; i < data.Length; i++) xs[i] = data[i].Time;
+
+            var buckets = BucketSize > 0 ?
+                SamplingHelper.SplitByFixedSize(xs, BucketSize, BucketOffset) :
+                SamplingHelper.SplitByAverage(data.Length, threshold, true);
 
             // 每个桶选择一个点作为代表
-            var i = source.Offset;
             var sampled = new TimePoint[threshold];
-            foreach (var item in source)
+            for (var i = 0; i < buckets.Length; i++)
             {
+                var b = buckets[i];
+
                 TimePoint point = default;
                 var vs = 0.0;
-                for (var j = item.Start; j < item.End; j++)
+                for (var j = b.Start; j < b.End; j++)
                 {
                     vs += data[j].Value;
                 }
-                point.Value = vs / (item.End - item.Start);
+                point.Value = vs / (b.End - b.Start);
 
                 // 对齐
                 switch (AlignMode)
                 {
                     case AlignModes.Left:
                     default:
-                        point.Time = data[item.Start].Time;
+                        point.Time = data[b.Start].Time;
                         break;
                     case AlignModes.Right:
-                        point.Time = data[item.End - 1].Time;
+                        point.Time = data[b.End - 1].Time;
                         break;
                     case AlignModes.Center:
-                        point.Time = data[(Int32)Math.Round((item.Start + item.End) / 2.0)].Time;
+                        point.Time = data[(Int32)Math.Round((b.Start + b.End - 1) / 2.0)].Time;
                         break;
                 }
 

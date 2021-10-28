@@ -28,8 +28,8 @@ namespace XUnitTest.Algorithms
         {
             var data = ReadPoints();
 
-            var sample = new AverageDownSampling();
-            var rs = sample.Process(data, 500);
+            var sample = new AverageSampling();
+            var rs = sample.Down(data, 500);
             Assert.NotNull(rs);
             Assert.Equal(500, rs.Length);
 
@@ -81,8 +81,8 @@ namespace XUnitTest.Algorithms
         public void AlignLeftTest()
         {
             var data = ReadPoints();
-            var sample = new AverageDownSampling { AlignMode = AlignModes.Left };
-            var rs = sample.Process(data, 100);
+            var sample = new AverageSampling { AlignMode = AlignModes.Left };
+            var rs = sample.Down(data, 100);
             Assert.NotNull(rs);
             Assert.Equal(100, rs.Length);
 
@@ -93,8 +93,8 @@ namespace XUnitTest.Algorithms
         public void AlignRightTest()
         {
             var data = ReadPoints();
-            var sample = new AverageDownSampling { AlignMode = AlignModes.Right };
-            var rs = sample.Process(data, 500);
+            var sample = new AverageSampling { AlignMode = AlignModes.Right };
+            var rs = sample.Down(data, 500);
             Assert.NotNull(rs);
             Assert.Equal(500, rs.Length);
 
@@ -105,27 +105,27 @@ namespace XUnitTest.Algorithms
         public void AlignCenterTest()
         {
             var data = ReadPoints();
-            var sample = new AverageDownSampling { AlignMode = AlignModes.Center };
-            var rs = sample.Process(data, 500);
+            var sample = new AverageSampling { AlignMode = AlignModes.Center };
+            var rs = sample.Down(data, 500);
             Assert.NotNull(rs);
             Assert.Equal(500, rs.Length);
 
             WritePoints(rs, sample.AlignMode);
         }
 
-        [Fact]
-        public void FixedBucketAlignRightTest()
-        {
-            var data = ReadPoints();
-            var sample = new AverageDownSampling { AlignMode = AlignModes.Right, BucketSize = 60, BucketOffset = 5 };
-            var rs = sample.Process(data, 500);
-            Assert.NotNull(rs);
-            Assert.Equal(100, rs.Length);
-            Assert.Equal(5, rs[0].Time);
-            Assert.Equal(65, rs[1].Time);
-            Assert.Equal(125, rs[2].Time);
+        //[Fact]
+        //public void FixedBucketAlignRightTest()
+        //{
+        //    var data = ReadPoints();
+        //    var sample = new AverageDownSampling { AlignMode = AlignModes.Right, BucketSize = 60, BucketOffset = 5 };
+        //    var rs = sample.Down(data, 500);
+        //    Assert.NotNull(rs);
+        //    Assert.Equal(100, rs.Length);
+        //    Assert.Equal(5, rs[0].Time);
+        //    Assert.Equal(65, rs[1].Time);
+        //    Assert.Equal(125, rs[2].Time);
 
-            WritePoints(rs, sample.AlignMode);
-        }
+        //    WritePoints(rs, sample.AlignMode);
+        //}
     }
 }

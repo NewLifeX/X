@@ -19,8 +19,8 @@ namespace XUnitTest.Algorithms
         {
             var data = ReadPoints();
 
-            var ltob = new LTOBDownSampling();
-            var sampled = ltob.Process(data, 500);
+            var ltob = new LTOBSampling();
+            var sampled = ltob.Down(data, 500);
             Assert.NotNull(sampled);
             Assert.Equal(500, sampled.Length);
 
@@ -72,8 +72,8 @@ namespace XUnitTest.Algorithms
         public void AlignLeftTest()
         {
             var data = ReadPoints();
-            var ltob = new LTOBDownSampling { AlignMode = AlignModes.Left };
-            var sampled = ltob.Process(data, 100);
+            var ltob = new LTOBSampling { AlignMode = AlignModes.Left };
+            var sampled = ltob.Down(data, 100);
             Assert.NotNull(sampled);
             Assert.Equal(100, sampled.Length);
 
@@ -84,8 +84,8 @@ namespace XUnitTest.Algorithms
         public void AlignRightTest()
         {
             var data = ReadPoints();
-            var ltob = new LTOBDownSampling { AlignMode = AlignModes.Right };
-            var sampled = ltob.Process(data, 500);
+            var ltob = new LTOBSampling { AlignMode = AlignModes.Right };
+            var sampled = ltob.Down(data, 500);
             Assert.NotNull(sampled);
             Assert.Equal(500, sampled.Length);
 
@@ -96,8 +96,8 @@ namespace XUnitTest.Algorithms
         public void AlignCenterTest()
         {
             var data = ReadPoints();
-            var ltob = new LTOBDownSampling { AlignMode = AlignModes.Center };
-            var sampled = ltob.Process(data, 500);
+            var ltob = new LTOBSampling { AlignMode = AlignModes.Center };
+            var sampled = ltob.Down(data, 500);
             Assert.NotNull(sampled);
             Assert.Equal(500, sampled.Length);
 
