@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using NewLife.Data;
 
 namespace NewLife.Algorithms
 {
@@ -24,5 +26,31 @@ namespace NewLife.Algorithms
             }
             return data;
         }
+
+        ///// <summary>
+        ///// 插值处理
+        ///// </summary>
+        ///// <param name="data">原始数据</param>
+        ///// <param name="size">桶大小。如60/3600/86400</param>
+        ///// <param name="offset">偏移量。时间不是对齐零点时使用</param>
+        ///// <returns></returns>
+        //public TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0)
+        //{
+        //    //var v = (data[0].Time / size) * size + offset;
+
+        //    TimePoint tp = default;
+        //    var s = Int64.MinValue;
+
+        //    // 遍历每一个点
+        //    var list = new List<TimePoint>();
+        //    for (var i = 0; i < data.Length; i++)
+        //    {
+        //        var v = (data[i].Time / size) * size + offset;
+        //        if (v > s)
+        //        {
+
+        //        }
+        //    }
+        //}
     }
 }

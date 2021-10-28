@@ -10,6 +10,19 @@ namespace XUnitTest.Algorithms
 {
     public class AverageDownSamplingTests
     {
+        //[Fact]
+        //public void DivTest()
+        //{
+        //    var n = 1234L;
+        //    var d1 = n / 3;
+        //    var d2 = n / 4;
+        //    Assert.Equal(411, d1);
+        //    Assert.Equal(308, d2);
+
+        //    Assert.Equal(411, (n + 1) / 3);
+        //    Assert.Equal(412, (n + 2) / 3);
+        //}
+
         [Fact]
         public void Normal500()
         {

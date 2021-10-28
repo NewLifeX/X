@@ -5,10 +5,11 @@ using NewLife.Data;
 
 namespace NewLife.Algorithms
 {
-    internal struct Range
+    public struct Range
     {
         public Int32 Start;
         public Int32 End;
+        public Int64 Time;
     }
 
     internal class BucketSource : IEnumerable<Range>
@@ -86,6 +87,8 @@ namespace NewLife.Algorithms
         {
             private readonly BucketSource _source;
             private Boolean _inited;
+            private Int32 _index = -1;
+            private Range[] _buckets;
 
             private Range _current;
             public Range Current => _current;
@@ -97,47 +100,57 @@ namespace NewLife.Algorithms
 
             public Boolean MoveNext()
             {
-                var data = _source.Data;
-                var size = _source.BucketSize;
                 if (!_inited)
                 {
                     _inited = true;
+                    _index = 0;
 
-                    var p = (Int32)(data[0].Time % size);
-                    p -= _source.BucketOffset;
-                    if (p <= 0) p += size;
+                    // 计算首尾的两个桶的值
+                    var data = _source.Data;
+                    var size = _source.BucketSize;
+                    var s = (data[0].Time / size) * size + _source.BucketOffset;
+                    var e = (data[data.Length - 1].Time / size) * size + _source.BucketOffset;
 
-                    _current.Start = 0;
-                    var flag = false;
-                    for (var i = 1; i < data.Length; i++)
+                    // 初始化所有桶
+                    var list = new List<Range>();
+                    for (var i = s; i <= e; i += size)
                     {
-                        if (data[i].Time > p)
+                        list.Add(new Range
                         {
-                            flag = true;
-                            _current.End = i;
-                            break;
+                            Start = -1,
+                            End = -1,
+                            Time = i
+                        });
+                    }
+                    _buckets = list.ToArray();
+
+                    // 计算每个桶的头尾
+                    var j = 0;
+                    for (var i = 0; i < _buckets.Length; i++)
+                    {
+                        // 顺序遍历原始数据，这里假设原始数据为升序
+                        ref var b = ref _buckets[i];
+                        for (; j < data.Length; j++)
+                        {
+                            // 如果超过了当前桶的结尾，则换下一个桶
+                            var t = data[j].Time;
+                            if (t >= b.Time + size) break;
+
+                            if (b.Time <= t)
+                            {
+                                if (b.Start < 0)
+                                    b.Start = j;
+                                else if (b.End < 0 || b.End < t)
+                                    b.End = j;
+                            }
                         }
                     }
-                    if (!flag) _current.End = data.Length;
                 }
-                else
-                {
-                    if (_current.End >= data.Length) return false;
 
-                    _current.Start = _current.End;
-                    var p = _current.End + size;
-                    var flag = false;
-                    for (var i = _current.Start; i < data.Length; i++)
-                    {
-                        if (data[i].Time > p)
-                        {
-                            flag = true;
-                            _current.End = i;
-                            break;
-                        }
-                    }
-                    if (!flag) _current.End = data.Length;
-                }
+                // 桶位置
+                if (_index >= _buckets.Length) return false;
+
+                _current = _buckets[_index++];
 
                 return true;
             }
