@@ -7,8 +7,8 @@
     <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle、Postgresql</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>10.3.2021.1020-beta2</Version>
-    <FileVersion>10.3.2021.1020</FileVersion>
+    <Version>10.3.2021.1030-beta3</Version>
+    <FileVersion>10.3.2021.1030</FileVersion>
     <AssemblyVersion>10.3.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -24,7 +24,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增支持时序数据库TDengine</PackageReleaseNotes>
+    <PackageReleaseNotes>完整支持TDengine（含添删改查和正反向工程）；反向工程检查逐步调整为主动调用；Mapper支持分页查询；强化数据备份与恢复；优化自动分表支持（跳过不存在的分表）</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
