@@ -4,9 +4,9 @@ using System.Linq;
 using NewLife;
 using NewLife.Algorithms;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Log;
 using Xunit;
-using Range = NewLife.Algorithms.Range;
 
 namespace XUnitTest.Algorithms
 {
@@ -33,7 +33,7 @@ namespace XUnitTest.Algorithms
             Assert.Equal(11, rs[3].End);
         }
 
-        private void Show(String[] times, Range[] rs)
+        private void Show(String[] times, IndexRange[] rs)
         {
             for (var i = 0; i < rs.Length; i++)
             {

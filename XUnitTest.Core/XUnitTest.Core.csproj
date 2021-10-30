@@ -19,6 +19,8 @@
     <None Remove="TestEntity\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Algorithms\LTOBDownSamplingTests.cs" />
+    <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
   </ItemGroup>

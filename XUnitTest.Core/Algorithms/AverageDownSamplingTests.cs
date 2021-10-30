@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using NewLife;
 using NewLife.Algorithms;
 using NewLife.Data;
 using NewLife.IO;
@@ -63,9 +64,10 @@ namespace XUnitTest.Algorithms
             return data.ToArray();
         }
 
-        private void WritePoints(ISampling sample, TimePoint[] data, AlignModes mode)
+        private void WritePoints(ISampling sample, TimePoint[] data, AlignModes mode, String prefix = null)
         {
-            var f = $"Algorithms/avg_{mode}_sampled.csv".GetFullPath();
+            if (prefix.IsNullOrEmpty()) prefix = "avg";
+            var f = $"Algorithms/{prefix}_{mode}_sampled.csv".GetFullPath();
             //if (sample.BucketSize > 0) f = $"Algorithms/avgfill_{mode}_sampled.csv".GetFullPath();
             if (File.Exists(f)) File.Delete(f);
             using var csv = new CsvFile(f, true);
@@ -126,7 +128,7 @@ namespace XUnitTest.Algorithms
             //Assert.Equal(65, rs[1].Time);
             //Assert.Equal(125, rs[2].Time);
 
-            WritePoints(sample, rs, sample.AlignMode);
+            WritePoints(sample, rs, sample.AlignMode, "avgfill");
         }
     }
 }

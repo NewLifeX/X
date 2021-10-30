@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using NewLife.Data;
 
 namespace NewLife.Algorithms
@@ -12,7 +11,7 @@ namespace NewLife.Algorithms
         /// <summary>
         /// 对齐模式。每个桶X轴对齐方式
         /// </summary>
-        public AlignModes AlignMode { get; set; } = AlignModes.Left;
+        public AlignModes AlignMode { get; set; }
 
         /// <summary>
         /// 插值填充算法
@@ -20,7 +19,7 @@ namespace NewLife.Algorithms
         public IInterpolation Interpolation { get; set; } = new LinearInterpolation();
 
         /// <summary>
-        /// 降采样处理
+        /// 降采样处理。保留边界两个点
         /// </summary>
         /// <param name="data">原始数据</param>
         /// <param name="threshold">阈值，采样数</param>
@@ -46,20 +45,12 @@ namespace NewLife.Algorithms
                 point.Value = vs / (item.End - item.Start);
 
                 // 对齐
-                switch (AlignMode)
+                point.Time = AlignMode switch
                 {
-                    case AlignModes.Left:
-                    default:
-                        point.Time = data[item.Start].Time;
-                        break;
-                    case AlignModes.Right:
-                        point.Time = data[item.End - 1].Time;
-                        break;
-                    case AlignModes.Center:
-                        point.Time = data[(Int32)Math.Round((item.Start + item.End - 1) / 2.0)].Time;
-                        break;
-                }
-
+                    AlignModes.Right => data[item.End - 1].Time,
+                    AlignModes.Center => data[(Int32)Math.Round((item.Start + item.End - 1) / 2.0)].Time,
+                    _ => data[item.Start].Time,
+                };
                 sampled[i] = point;
             }
 
@@ -67,7 +58,7 @@ namespace NewLife.Algorithms
         }
 
         /// <summary>
-        /// 混合处理，降采样和插值
+        /// 混合处理，降采样和插值，不保留边界节点
         /// </summary>
         /// <param name="data">原始数据</param>
         /// <param name="size">桶大小。如60/3600/86400</param>
@@ -92,6 +83,8 @@ namespace NewLife.Algorithms
                 var item = buckets[i];
                 if (item.Start < 0)
                 {
+                    // 取last用于插值起点，如果不存在，可以取0点
+                    // 此时End指向下一个有效点，即使下一个桶也是断层
                     sampled[i].Time = i * size;
                     sampled[i].Value = Interpolation.Process(data, last, item.End, i);
                     continue;
@@ -107,20 +100,12 @@ namespace NewLife.Algorithms
                 point.Value = vs / (item.End - item.Start);
 
                 // 对齐
-                switch (AlignMode)
+                point.Time = AlignMode switch
                 {
-                    case AlignModes.Left:
-                    default:
-                        point.Time = i * size;
-                        break;
-                    case AlignModes.Right:
-                        point.Time = (i + 1) * size - 1;
-                        break;
-                    case AlignModes.Center:
-                        point.Time = data[(Int32)Math.Round((i + 0.5) * size)].Time;
-                        break;
-                }
-
+                    AlignModes.Right => (i + 1) * size - 1,
+                    AlignModes.Center => data[(Int32)Math.Round((i + 0.5) * size)].Time,
+                    _ => i * size,
+                };
                 sampled[i] = point;
             }
 

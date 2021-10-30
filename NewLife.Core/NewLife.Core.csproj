@@ -107,6 +107,15 @@
     <None Remove="Web\OAuth\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Algorithms\BilinearInterpolation.cs" />
+    <Compile Remove="Algorithms\BucketModes.cs" />
+    <Compile Remove="Algorithms\BucketSource.cs" />
+    <Compile Remove="Algorithms\LagrangeInterpolation.cs" />
+    <Compile Remove="Algorithms\LTOBSampling.cs" />
+    <Compile Remove="Algorithms\LTTBSampling.cs" />
+    <Compile Remove="Algorithms\MaxSampling.cs" />
+    <Compile Remove="Algorithms\MinSampling.cs" />
+    <Compile Remove="Algorithms\SumSampling.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Net\NetException.cs" />

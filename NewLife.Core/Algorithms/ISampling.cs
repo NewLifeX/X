@@ -5,7 +5,7 @@ using NewLife.Data;
 namespace NewLife.Algorithms
 {
     /// <summary>
-    /// 采样接口
+    /// 采样接口。负责降采样和插值处理，用于处理时序数据
     /// </summary>
     public interface ISampling
     {
@@ -49,12 +49,12 @@ namespace NewLife.Algorithms
         /// <param name="threshold"></param>
         /// <param name="retainEdge"></param>
         /// <returns></returns>
-        public static Range[] SplitByAverage(Int32 dataLength, Int32 threshold, Boolean retainEdge = true)
+        public static IndexRange[] SplitByAverage(Int32 dataLength, Int32 threshold, Boolean retainEdge = true)
         {
             if (dataLength == 0) throw new ArgumentNullException(nameof(dataLength));
             if (threshold <= 2) throw new ArgumentNullException(nameof(threshold));
 
-            var buckets = new Range[threshold];
+            var buckets = new IndexRange[threshold];
             if (retainEdge)
             {
                 var step = (Double)(dataLength - 2) / (threshold - 2);
@@ -92,7 +92,7 @@ namespace NewLife.Algorithms
         /// <param name="size">桶大小。如60/3600/86400</param>
         /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
         /// <returns></returns>
-        public static Range[] SplitByFixedSize(Int64[] data, Int32 size, Int32 offset = 0)
+        public static IndexRange[] SplitByFixedSize(Int64[] data, Int32 size, Int32 offset = 0)
         {
             if (data == null || data.Length == 0) throw new ArgumentNullException(nameof(data));
             if (size <= 0) throw new ArgumentNullException(nameof(size));
@@ -105,13 +105,13 @@ namespace NewLife.Algorithms
             var end = last / size * size + offset;
             if (end > last) end -= size;
 
-            var buckets = new List<Range>();
+            var buckets = new List<IndexRange>();
 
             // 计算每个桶的头尾
             var idx = 0;
             for (var time = start; time <= end;)
             {
-                Range r = default;
+                IndexRange r = default;
                 r.Start = -1;
                 r.End = -1;
                 var next = time + size;

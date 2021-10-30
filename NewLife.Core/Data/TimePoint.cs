@@ -16,6 +16,12 @@ namespace NewLife.Data
         /// 数值
         /// </summary>
         public Double Value;
+
+        /// <summary>
+        /// 已重载
+        /// </summary>
+        /// <returns></returns>
+        public override String ToString() => $"({Time}, {Value})";
     }
 
     ///// <summary>

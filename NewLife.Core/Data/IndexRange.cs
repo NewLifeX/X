@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace NewLife.Algorithms
+namespace NewLife.Data
 {
     /// <summary>
     /// 范围
     /// </summary>
-    public struct Range
+    public struct IndexRange
     {
         /// <summary>
         /// 开始，包含
