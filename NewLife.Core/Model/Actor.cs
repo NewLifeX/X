@@ -214,11 +214,11 @@ namespace NewLife.Model
             }
         }
 
-        /// <summary>处理消息</summary>
+        /// <summary>处理消息。批大小为1时使用该方法</summary>
         /// <param name="context">上下文</param>
         protected virtual Task ReceiveAsync(ActorContext context) => CompletedTask;
 
-        /// <summary>批量处理消息</summary>
+        /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
         /// <param name="contexts">上下文集合</param>
         protected virtual Task ReceiveAsync(ActorContext[] contexts) => CompletedTask;
         #endregion
