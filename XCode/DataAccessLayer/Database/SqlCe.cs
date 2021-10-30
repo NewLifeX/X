@@ -319,36 +319,23 @@ namespace XCode.DataAccessLayer
 
         private String DBTypeToDotNetDataType(String DBType)
         {
-            switch (DBType)
+            return DBType switch
             {
-                case "smallint": return "System.Int16";
-                case "int": return "System.Int32";
-                case "bigint": return "System.Int64";
-                case "nvarchar":
-                case "char":
-                case "nchar":
-                case "ntext":
-                case "text":
-                case "varchar": return "System.String";
-                case "bit": return "System.Boolean";
-                case "smalldatetime":
-                case "datetime": return "System.DateTime";
-                case "float": return "System.Double";
-                case "decimal":
-                case "money":
-                case "smallmoney":
-                case "numeric": return "System.Decimal";
-                case "real": return "System.Single";
-                case "uniqueidentifier": return "System.Guid";
-                case "tinyint": return "System.Byte";
-                case "image":
-                case "timestamp":
-                case "binary":
-                case "varbinary": return "System.Byte[]";
-                case "variant": return "System.Object";
-                default:
-                    return "";
-            }
+                "smallint" => "System.Int16",
+                "int" => "System.Int32",
+                "bigint" => "System.Int64",
+                "nvarchar" or "char" or "nchar" or "ntext" or "text" or "varchar" => "System.String",
+                "bit" => "System.Boolean",
+                "smalldatetime" or "datetime" => "System.DateTime",
+                "float" => "System.Double",
+                "decimal" or "money" or "smallmoney" or "numeric" => "System.Decimal",
+                "real" => "System.Single",
+                "uniqueidentifier" => "System.Guid",
+                "tinyint" => "System.Byte",
+                "image" or "timestamp" or "binary" or "varbinary" => "System.Byte[]",
+                "variant" => "System.Object",
+                _ => "",
+            };
         }
 
         private readonly String _AllTableNameSql = "SELECT table_name,TABLE_TYPE FROM information_schema.tables WHERE TABLE_TYPE <> N'SYSTEM TABLE' ";

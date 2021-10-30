@@ -426,28 +426,26 @@ namespace NewLife.Reflection
                 if (parameters == null || parameters.Length == 0)
                 {
                     // 基元类型
-                    switch (type.GetTypeCode())
+                    return type.GetTypeCode() switch
                     {
-                        case TypeCode.Empty:
-                        case TypeCode.DBNull: return null;
-                        case TypeCode.Boolean: return false;
-                        case TypeCode.Char: return '\0';
-                        case TypeCode.SByte: return (SByte)0;
-                        case TypeCode.Byte: return (Byte)0;
-                        case TypeCode.Int16: return (Int16)0;
-                        case TypeCode.UInt16: return (UInt16)0;
-                        case TypeCode.Int32: return 0;
-                        case TypeCode.UInt32: return 0U;
-                        case TypeCode.Int64: return 0L;
-                        case TypeCode.UInt64: return 0UL;
-                        case TypeCode.Single: return 0F;
-                        case TypeCode.Double: return 0D;
-                        case TypeCode.Decimal: return 0M;
-                        case TypeCode.DateTime: return DateTime.MinValue;
-                        case TypeCode.String: return String.Empty;
-                    }
-
-                    return Activator.CreateInstance(type, true);
+                        TypeCode.Empty or TypeCode.DBNull => null,
+                        TypeCode.Boolean => false,
+                        TypeCode.Char => '\0',
+                        TypeCode.SByte => (SByte)0,
+                        TypeCode.Byte => (Byte)0,
+                        TypeCode.Int16 => (Int16)0,
+                        TypeCode.UInt16 => (UInt16)0,
+                        TypeCode.Int32 => 0,
+                        TypeCode.UInt32 => 0U,
+                        TypeCode.Int64 => 0L,
+                        TypeCode.UInt64 => 0UL,
+                        TypeCode.Single => 0F,
+                        TypeCode.Double => 0D,
+                        TypeCode.Decimal => 0M,
+                        TypeCode.DateTime => DateTime.MinValue,
+                        TypeCode.String => String.Empty,
+                        _ => Activator.CreateInstance(type, true),
+                    };
                 }
                 else
                     return Activator.CreateInstance(type, parameters);

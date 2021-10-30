@@ -227,7 +227,7 @@ namespace XUnitTest.XCode.Membership
         {
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
-            if (Area.Meta.Count == 0)
+            //if (Area.Meta.Count == 0)
             {
                 var file = "http://x.newlifex.com/Area.csv.gz";
 

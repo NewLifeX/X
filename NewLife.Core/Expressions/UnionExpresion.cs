@@ -24,17 +24,12 @@ namespace NewLife.Expressions
         /// <returns></returns>
         public override Int32 GetOperationLevel(String op)
         {
-            switch (op)
+            return op switch
             {
-                case "|":
-                case "&":
-                    return 1;
-                case "(":
-                case ")":
-                    return 0;
-                default:
-                    return -1;
-            }
+                "|" or "&" => 1,
+                "(" or ")" => 0,
+                _ => -1,
+            };
         }
 
         /// <summary>适配替换</summary>

@@ -16,7 +16,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class TDengineTests
     {
-        private static String _ConnStr = "Server=.;Port=6030;Database=db;user=root;password=taosdata";
+        private static String _ConnStr = "Server=gz01.newlifex.com;Port=6030;Database=db;user=root;password=taosdata";
 
         public TDengineTests()
         {

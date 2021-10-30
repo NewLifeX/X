@@ -120,15 +120,12 @@ namespace Microsoft.Runtime.CompilerServices
         private static void ThrowForNonSuccess(Task task)
         {
             Contract.Assert(task.Status != TaskStatus.RanToCompletion, null);
-            switch (task.Status)
+            throw task.Status switch
             {
-                case TaskStatus.Canceled:
-                    throw new TaskCanceledException(task);
-                case TaskStatus.Faulted:
-                    throw PrepareExceptionForRethrow(task.Exception.InnerException);
-                default:
-                    throw new InvalidOperationException("The task has not yet completed.");
-            }
+                TaskStatus.Canceled => new TaskCanceledException(task),
+                TaskStatus.Faulted => PrepareExceptionForRethrow(task.Exception.InnerException),
+                _ => new InvalidOperationException("The task has not yet completed."),
+            };
         }
 
         internal static void OnCompletedInternal(Task task, Action continuation, bool continueOnCapturedContext)
