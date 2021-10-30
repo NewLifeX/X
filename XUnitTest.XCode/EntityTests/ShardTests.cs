@@ -181,6 +181,18 @@ namespace XUnitTest.XCode.EntityTests
             };
             Log2.Meta.ShardPolicy = shard;
 
+            // 插入一点数据
+            var snow = Log2.Meta.Factory.Snow;
+            var now = DateTime.Now;
+            var log = new Log2 { ID = snow.NewId(now.AddDays(-2)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-1)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-0)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-3)) };
+            log.Insert();
+
             // 拦截Sql，仅为了断言，非业务代码
             var sqls = new List<String>();
             DAL.LocalFilter = s => sqls.Add(s);
@@ -189,6 +201,10 @@ namespace XUnitTest.XCode.EntityTests
             var start = time.AddDays(-3);
             XTrace.WriteLine("start={0} end={1}", start, time);
             Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-3):yyyyMMdd}", sqls[^4]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-1):yyyyMMdd}", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(0):yyyyMMdd}", sqls[^1]);
 
             XTrace.WriteLine("Search");
             var list = Log2.Search(null, null, -1, null, -1, start, time, null, new PageParameter { PageSize = 10000 });
@@ -212,6 +228,16 @@ namespace XUnitTest.XCode.EntityTests
             };
             Log2.Meta.ShardPolicy = shard;
 
+            // 插入一点数据
+            var snow = Log2.Meta.Factory.Snow;
+            var now = DateTime.Now;
+            var log = new Log2 { ID = snow.NewId(now.AddDays(-2)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-1)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-0)) };
+            log.Insert();
+
             // 拦截Sql，仅为了断言，非业务代码
             var sqls = new List<String>();
             DAL.LocalFilter = s => sqls.Add(s);
@@ -221,6 +247,9 @@ namespace XUnitTest.XCode.EntityTests
 
             var list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
             XTrace.WriteLine("count={0}", list.Count);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^1]);
 
             var idx = 1;
             XTrace.WriteLine("AutoShard Start");
@@ -247,6 +276,16 @@ namespace XUnitTest.XCode.EntityTests
             };
             Log2.Meta.ShardPolicy = shard;
 
+            // 插入一点数据
+            var snow = Log2.Meta.Factory.Snow;
+            var now = DateTime.Now;
+            var log = new Log2 { ID = snow.NewId(now.AddDays(-2)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-1)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-0)) };
+            log.Insert();
+
             // 拦截Sql，仅为了断言，非业务代码
             var sqls = new List<String>();
             DAL.LocalFilter = s => sqls.Add(s);
@@ -255,9 +294,15 @@ namespace XUnitTest.XCode.EntityTests
             var start = time.AddDays(-2);
             XTrace.WriteLine("start={0} end={1}", start, time);
             Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-1):yyyyMMdd}", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(0):yyyyMMdd}", sqls[^1]);
 
             XTrace.WriteLine("FirstOrDefault");
             var list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).FirstOrDefault(e => e.Count > 0);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where Success=1 Order By ID Desc", sqls[^1]);
 
             XTrace.WriteLine("SelectMany");
             list = Log2.Meta.AutoShard(start, time, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
@@ -280,6 +325,16 @@ namespace XUnitTest.XCode.EntityTests
             };
             Log2.Meta.ShardPolicy = shard;
 
+            // 插入一点数据
+            var snow = Log2.Meta.Factory.Snow;
+            var now = DateTime.Now;
+            var log = new Log2 { ID = snow.NewId(now.AddDays(-2)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-1)) };
+            log.Insert();
+            log = new Log2 { ID = snow.NewId(now.AddDays(-0)) };
+            log.Insert();
+
             // 拦截Sql，仅为了断言，非业务代码
             var sqls = new List<String>();
             DAL.LocalFilter = s => sqls.Add(s);
@@ -288,6 +343,9 @@ namespace XUnitTest.XCode.EntityTests
             var start = time.AddDays(-2);
             XTrace.WriteLine("start={0} end={1}", time, start);
             Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-1):yyyyMMdd}", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(0):yyyyMMdd}", sqls[^1]);
 
             XTrace.WriteLine("AutoShard FindAll");
             var list = Log2.Meta.AutoShard(time, start, () => Log2.FindAll(Log2._.Success == true)).SelectMany(e => e).ToList();
