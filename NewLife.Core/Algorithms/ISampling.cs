@@ -105,11 +105,12 @@ namespace NewLife.Algorithms
             var end = last / size * size + offset;
             if (end > last) end -= size;
 
-            var buckets = new List<IndexRange>();
+            var buckets = new IndexRange[(end - start) / size + 1];
 
             // 计算每个桶的头尾
+            var p = 0;
             var idx = 0;
-            for (var time = start; time <= end;)
+            for (var time = start; time <= end; p++)
             {
                 IndexRange r = default;
                 r.Start = -1;
@@ -130,7 +131,7 @@ namespace NewLife.Algorithms
                 }
                 if (r.End < 0) r.End = idx;
 
-                buckets.Add(r);
+                buckets[p] = r;
                 time = next;
             }
 
