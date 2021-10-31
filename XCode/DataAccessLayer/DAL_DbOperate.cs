@@ -562,7 +562,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private static readonly Regex reg_table = new("(?:\\s+from|insert\\s+into|update|\\s+join)\\s+[`'\"\\[]?([\\w]+)[`'\"\\[]?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_table = new("(?:\\s+from|insert\\s+into|update|\\s+join|drop\\s+table|truncate\\s+table)\\s+[`'\"\\[]?([\\w]+)[`'\"\\[]?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>从Sql语句中截取表名</summary>
         /// <param name="sql"></param>
         /// <returns></returns>
