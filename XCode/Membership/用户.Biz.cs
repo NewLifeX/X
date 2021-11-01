@@ -290,17 +290,7 @@ namespace XCode.Membership
         /// <param name="key">关键字，搜索代码、名称、昵称、手机、邮箱</param>
         /// <param name="page"></param>
         /// <returns></returns>
-        public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
-        {
-            var exp = new WhereExpression();
-            if (roleIds != null && roleIds.Length > 0) exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
-            if (departmentIds != null && departmentIds.Length > 0) exp &= _.DepartmentID.In(departmentIds);
-            if (enable != null) exp &= _.Enable == enable.Value;
-            exp &= _.LastLogin.Between(start, end);
-            if (!key.IsNullOrEmpty()) exp &= _.Code.StartsWith(key) | _.Name.StartsWith(key) | _.DisplayName.StartsWith(key) | _.Mobile.StartsWith(key) | _.Mail.StartsWith(key);
-
-            return FindAll(exp, page);
-        }
+        public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page) => Search(roleIds, departmentIds, null, enable, start, end, key, page);
 
         /// <summary>高级搜索</summary>
         /// <param name="roleIds">角色</param>
@@ -315,7 +305,17 @@ namespace XCode.Membership
         public static IList<User> Search(Int32[] roleIds, Int32[] departmentIds, Int32[] areaIds, Boolean? enable, DateTime start, DateTime end, String key, PageParameter page)
         {
             var exp = new WhereExpression();
-            if (roleIds != null && roleIds.Length > 0) exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
+            if (roleIds != null && roleIds.Length > 0)
+            {
+                //exp &= _.RoleID.In(roleIds) | _.RoleIds.Contains("," + roleIds.Join(",") + ",");
+                var exp2 = new WhereExpression();
+                exp2 |= _.RoleID.In(roleIds);
+                foreach (var rid in roleIds)
+                {
+                    exp2 |= _.RoleIds.Contains("," + rid + ",");
+                }
+                exp &= exp2;
+            }
             if (departmentIds != null && departmentIds.Length > 0) exp &= _.DepartmentID.In(departmentIds);
             if (areaIds != null && areaIds.Length > 0) exp &= _.AreaId.In(areaIds);
             if (enable != null) exp &= _.Enable == enable.Value;
@@ -570,7 +570,7 @@ namespace XCode.Membership
 
         /// <summary>角色组名</summary>
         [Map(__.RoleIds)]
-        public virtual String RoleNames => Roles.Select(s => s.Name).Join();
+        public virtual String RoleNames => Extends.Get(nameof(RoleNames), k => RoleIds.SplitAsInt().Select(e => ManageProvider.Get<IRole>()?.FindByID(e)).Where(e => e != null).Select(e => e.Name).Join());
 
         /// <summary>用户是否拥有当前菜单的指定权限</summary>
         /// <param name="menu">指定菜单</param>
