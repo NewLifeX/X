@@ -974,7 +974,7 @@ namespace XCode.Code
                 cs.Remove(dcTime);
 
                 // 可用于关键字模糊搜索的字段
-                var keys = Table.Columns.Where(e => e.DataType == typeof(String) && !cs.Contains(e)).ToList();
+                var keys = Table.Columns.Where(e => e.DataType == typeof(String)).ToList();
 
                 // 注释部分
                 WriteLine("/// <summary>高级查询</summary>");
