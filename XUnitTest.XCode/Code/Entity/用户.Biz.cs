@@ -213,7 +213,7 @@ namespace XCode.Membership
             if (!name.IsNullOrEmpty()) exp &= _.Name == name;
             if (roleId >= 0) exp &= _.RoleID == roleId;
             exp &= _.UpdateTime.Between(start, end);
-            if (!key.IsNullOrEmpty()) exp &= _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIds.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key) | _.Ex4.Contains(key) | _.Ex5.Contains(key) | _.Ex6.Contains(key) | _.UpdateUser.Contains(key) | _.UpdateIP.Contains(key) | _.Remark.Contains(key);
+            if (!key.IsNullOrEmpty()) exp &= _.Name.Contains(key) | _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIds.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key) | _.Ex4.Contains(key) | _.Ex5.Contains(key) | _.Ex6.Contains(key) | _.UpdateUser.Contains(key) | _.UpdateIP.Contains(key) | _.Remark.Contains(key);
 
             return FindAll(exp, page);
         }
