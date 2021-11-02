@@ -114,6 +114,11 @@ namespace XCode.Code
         [DisplayName("注册IP")]
         public String RegisterIP { get; set; }
 
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        [Description("在线时间。累计在线总时间，秒")]
+        [DisplayName("在线时间")]
+        public Int32 OnlineTime { get; set; }
+
         /// <summary>扩展1</summary>
         [Description("扩展1")]
         [DisplayName("扩展1")]

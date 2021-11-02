@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -104,6 +104,7 @@ namespace Company.MyName
         //    entity.LastLoginIP = "abc";
         //    entity.RegisterTime = DateTime.Now;
         //    entity.RegisterIP = "abc";
+        //    entity.OnlineTime = 0;
         //    entity.Ex1 = 0;
         //    entity.Ex2 = 0;
         //    entity.Ex3 = 0.0;

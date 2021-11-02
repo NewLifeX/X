@@ -23,7 +23,8 @@ namespace XUnitTest.XCode.DataAccessLayer
         {
             var dal = User.Meta.Session.Dal;
 
-            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
+            var list = dal.Query<MyUser>("select * from user", null, 0, 100).ToList();
+            list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
             Assert.NotNull(list);
             Assert.Single(list);
 

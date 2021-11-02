@@ -71,6 +71,9 @@ namespace XCode.Code
         /// <summary>注册IP</summary>
         String RegisterIP { get; set; }
 
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        Int32 OnlineTime { get; set; }
+
         /// <summary>扩展1</summary>
         Int32 Ex1 { get; set; }
 

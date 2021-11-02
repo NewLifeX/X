@@ -22,6 +22,16 @@ namespace XUnitTest.XCode.Code
             _table = tables.FirstOrDefault(e => e.Name == "User");
         }
 
+        private String ReadTarget(String file, String text)
+        {
+            //var file2 = @"..\..\XUnitTest.XCode\".CombinePath(file);
+            //File.WriteAllText(file2, text);
+
+            var target = File.ReadAllText(file.GetFullPath());
+
+            return target;
+        }
+
         [Fact]
         public void Normal()
         {
@@ -45,7 +55,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\entity_user_normal.cs".GetFullPath());
+            var target = ReadTarget("Code\\entity_user_normal.cs", rs);
             Assert.Equal(target, rs);
 
             // 业务类
@@ -55,7 +65,7 @@ namespace XUnitTest.XCode.Code
             rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            target = File.ReadAllText("Code\\entity_user_normal_biz.cs".GetFullPath());
+            target = ReadTarget("Code\\entity_user_normal_biz.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -80,7 +90,7 @@ namespace XUnitTest.XCode.Code
         //    var rs = builder.ToString();
         //    Assert.NotEmpty(rs);
 
-        //    var target = File.ReadAllText("Code\\entity_user_generictype.cs".GetFullPath());
+        //    var target = File.ReadAllText("Code\\entity_user_generictype.cs",rs);
         //    Assert.Equal(target, rs);
         //}
 
@@ -133,25 +143,25 @@ namespace XUnitTest.XCode.Code
 
             {
                 var rs = File.ReadAllText("Entity\\用户.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\Entity\\用户.cs".GetFullPath());
+                var target = ReadTarget("Code\\Entity\\用户.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Entity\\用户.Biz.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\Entity\\用户.Biz.cs".GetFullPath());
+                var target = ReadTarget("Code\\Entity\\用户.Biz.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Output\\EntityModels\\UserModel.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\EntityModels\\UserModel.cs".GetFullPath());
+                var target = ReadTarget("Code\\EntityModels\\UserModel.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Output\\EntityInterfaces\\IUser.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\EntityInterfaces\\IUser.cs".GetFullPath());
+                var target = ReadTarget("Code\\EntityInterfaces\\IUser.cs", rs);
                 Assert.Equal(target, rs);
             }
         }

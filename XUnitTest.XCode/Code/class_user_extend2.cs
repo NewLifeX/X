@@ -72,6 +72,9 @@ namespace XCode.Code
         /// <summary>注册IP</summary>
         public String RegisterIP { get; set; }
 
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        public Int32 OnlineTime { get; set; }
+
         /// <summary>扩展1</summary>
         public Int32 Ex1 { get; set; }
 
@@ -124,6 +127,7 @@ namespace XCode.Code
                     case "LastLoginIP": return LastLoginIP;
                     case "RegisterTime": return RegisterTime;
                     case "RegisterIP": return RegisterIP;
+                    case "OnlineTime": return OnlineTime;
                     case "Ex1": return Ex1;
                     case "Ex2": return Ex2;
                     case "Ex3": return Ex3;
@@ -158,6 +162,7 @@ namespace XCode.Code
                     case "LastLoginIP": LastLoginIP = Convert.ToString(value); break;
                     case "RegisterTime": RegisterTime = value.ToDateTime(); break;
                     case "RegisterIP": RegisterIP = Convert.ToString(value); break;
+                    case "OnlineTime": OnlineTime = value.ToInt(); break;
                     case "Ex1": Ex1 = value.ToInt(); break;
                     case "Ex2": Ex2 = value.ToInt(); break;
                     case "Ex3": Ex3 = value.ToDouble(); break;

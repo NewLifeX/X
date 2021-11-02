@@ -71,6 +71,9 @@ namespace XCode.Code
         /// <summary>注册IP</summary>
         public String RegisterIP { get; set; }
 
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        public Int32 OnlineTime { get; set; }
+
         /// <summary>扩展1</summary>
         public Int32 Ex1 { get; set; }
 
@@ -130,6 +133,7 @@ namespace XCode.Code
             LastLoginIP = model.LastLoginIP;
             RegisterTime = model.RegisterTime;
             RegisterIP = model.RegisterIP;
+            OnlineTime = model.OnlineTime;
             Ex1 = model.Ex1;
             Ex2 = model.Ex2;
             Ex3 = model.Ex3;
