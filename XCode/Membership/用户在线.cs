@@ -17,7 +17,7 @@ namespace XCode.Membership
     [BindIndex("IX_UserOnline_UserID", false, "UserID")]
     [BindIndex("IX_UserOnline_SessionID", false, "SessionID")]
     [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
-    [BindTable("UserOnline", Description = "用户在线", ConnName = "Log", DbType = DatabaseType.None)]
+    [BindTable("UserOnline", Description = "用户在线", ConnName = "Membership", DbType = DatabaseType.None)]
     public partial class UserOnline
     {
         #region 属性

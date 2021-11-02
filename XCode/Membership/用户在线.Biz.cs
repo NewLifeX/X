@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
 using NewLife;
 using NewLife.Data;
 using NewLife.Model;
@@ -20,8 +21,8 @@ namespace XCode.Membership
         #region 对象操作
         static UserOnline()
         {
-            // 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
-            var entity = new UserOnline();
+            //// 用于引发基类的静态构造函数，所有层次的泛型实体类都应该有一个
+            //var entity = new UserOnline();
 
             Meta.Modules.Add<TimeModule>();
             Meta.Modules.Add<IPModule>();
@@ -155,6 +156,8 @@ namespace XCode.Membership
             entity.OnlineTime = (Int32)(entity.UpdateTime - entity.CreateTime).TotalSeconds;
             entity.SaveAsync();
 
+            Interlocked.Increment(ref _onlines);
+
             return entity;
         }
 
@@ -179,11 +182,12 @@ namespace XCode.Membership
         }
 
         private static TimerX _timer;
+        private static Int32 _onlines;
         /// <summary>
         /// 启动定时器，定时清理离线用户
         /// </summary>
         /// <param name="period"></param>
-        public static void StartTimer(Int32 period = 30)
+        public static void StartTimer(Int32 period = 60)
         {
             if (_timer == null)
             {
@@ -208,12 +212,16 @@ namespace XCode.Membership
         /// <returns></returns>
         public static IList<UserOnline> ClearExpire(Int32 secTimeout = 20 * 60)
         {
-            if (Meta.Count == 0) return new List<UserOnline>();
+            // 无在线则不执行
+            if (_onlines == 0 || Meta.Count == 0) return new List<UserOnline>();
 
             // 10分钟不活跃将会被删除
             var exp = _.UpdateTime < DateTime.Now.AddSeconds(-secTimeout);
             var list = FindAll(exp, null, null, 0, 0);
             list.Delete();
+
+            // 修正在线数
+            _onlines = Meta.Count - list.Count;
 
             // 设置离线
             foreach (var item in list)
@@ -225,6 +233,8 @@ namespace XCode.Membership
                     user2.Save();
                 }
             }
+
+            // 设置统计
 
             return list;
         }
