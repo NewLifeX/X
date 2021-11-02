@@ -19,6 +19,8 @@ namespace XUnitTest.Common
             Assert.Equal(dt.Trim(), dt.ToFullString().ToDateTime());
             Assert.Equal(dt.Trim(), dt.ToInt().ToDateTime());
             Assert.Equal(dt.Trim("ms"), dt.ToLong().ToDateTime());
+            Assert.Equal(dt.Trim("m"), dt.ToInt().ToDateTime().AddSeconds(-dt.Second));
+            Assert.Equal(dt.Trim("h"), dt.ToInt().ToDateTime().AddSeconds(-dt.Second).AddMinutes(-dt.Minute));
             Assert.Empty(DateTime.MinValue.ToFullString(""));
             Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToString("", ""));
             Assert.Empty(DateTime.MinValue.ToString("", ""));

@@ -71,23 +71,17 @@ namespace System
         /// <returns></returns>
         public static DateTimeOffset ToDateTimeOffset(this Object value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
 
-        /// <summary>去掉时间日期秒后面部分，可指定毫秒</summary>
+        /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、分m、小时h</summary>
         /// <param name="value">时间日期</param>
         /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
         /// <returns></returns>
-        public static DateTime Trim(this DateTime value, String format = "s")
-        {
-            if (format == "s") return new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
-            if (format == "ms") return new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind);
-
-            return value;
-        }
+        public static DateTime Trim(this DateTime value, String format = "s") => Convert.Trim(value, format);
 
         /// <summary>去掉时间日期秒后面部分，可指定毫秒</summary>
         /// <param name="value">时间日期</param>
         /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
         /// <returns></returns>
-        public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new(value.DateTime.Trim(format), value.Offset);
+        public static DateTimeOffset Trim(this DateTimeOffset value, String format = "s") => new(Convert.Trim(value.DateTime, format), value.Offset);
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串，对UTC时间加后缀</summary>
         /// <remarks>最常用的时间日期格式，可以无视各平台以及系统自定义的时间格式</remarks>
@@ -485,6 +479,22 @@ namespace System
                     ch[i] = (Char)(ch[i] - 0xFEE0);
             }
             return new String(ch);
+        }
+
+        /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、分m、小时h</summary>
+        /// <param name="value">时间日期</param>
+        /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
+        /// <returns></returns>
+        public virtual DateTime Trim(DateTime value, String format)
+        {
+            return format switch
+            {
+                "ms" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind),
+                "s" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind),
+                "m" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0, value.Kind),
+                "h" => new DateTime(value.Year, value.Month, value.Day, value.Hour, 0, 0, value.Kind),
+                _ => value,
+            };
         }
 
         /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
