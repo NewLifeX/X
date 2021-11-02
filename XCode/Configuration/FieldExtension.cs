@@ -470,6 +470,27 @@ namespace XCode
         /// <param name="newName">聚合后as的新名称</param>
         /// <returns></returns>
         public static FormatExpression SumLarge(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}>{1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算大于等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLargeEqual(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}>={1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算小于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLess(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}<{1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算小于等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLessEqual(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}<={1} then 1 else 0 end) " + newName, value);
         #endregion
     }
 }

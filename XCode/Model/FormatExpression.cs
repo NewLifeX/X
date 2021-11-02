@@ -66,8 +66,8 @@ namespace XCode
                         val = sb;
                     else if (Value is IList<Object> ems)
                         val = ems.Join(",", e => db.FormatValue(Field.Field, e));
-                    //else
-                    //    val = db.FormatValue(Field.Field, Value);
+                    else if (Value is DateTime)
+                        val = db.FormatValue(Field.Field, Value);
 
                     builder.AppendFormat(Format, columnName, val);
                 }
