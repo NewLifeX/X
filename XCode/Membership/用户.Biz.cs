@@ -47,7 +47,9 @@ namespace XCode.Membership
             // 里面的EnsureInit会等待实体类实例化完成，实体类的静态构造函数还卡在这里
             // 不过这不是理由，同一个线程遇到同一个锁不会堵塞
             // 发生死锁的可能性是这里引发EnsureInit，而另一个线程提前引发EnsureInit拿到锁
-            Meta.Factory.AdditionalFields.Add(__.Logins);
+            var df = Meta.Factory.AdditionalFields;
+            df.Add(__.Logins);
+            df.Add(__.OnlineTime);
             //Meta.Factory.FullInsert = false;
 
             // 单对象缓存

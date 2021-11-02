@@ -184,6 +184,14 @@ namespace XCode.Membership
         [BindColumn("RegisterIP", "注册IP", "")]
         public String RegisterIP { get => _RegisterIP; set { if (OnPropertyChanging("RegisterIP", value)) { _RegisterIP = value; OnPropertyChanged("RegisterIP"); } } }
 
+        private Int32 _OnlineTime;
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        [DisplayName("在线时间")]
+        [Description("在线时间。累计在线总时间，秒")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("OnlineTime", "在线时间。累计在线总时间，秒", "")]
+        public Int32 OnlineTime { get => _OnlineTime; set { if (OnPropertyChanging("OnlineTime", value)) { _OnlineTime = value; OnPropertyChanged("OnlineTime"); } } }
+
         private Int32 _Ex1;
         /// <summary>扩展1</summary>
         [DisplayName("扩展1")]
@@ -304,6 +312,7 @@ namespace XCode.Membership
                     case "LastLoginIP": return _LastLoginIP;
                     case "RegisterTime": return _RegisterTime;
                     case "RegisterIP": return _RegisterIP;
+                    case "OnlineTime": return _OnlineTime;
                     case "Ex1": return _Ex1;
                     case "Ex2": return _Ex2;
                     case "Ex3": return _Ex3;
@@ -342,6 +351,7 @@ namespace XCode.Membership
                     case "LastLoginIP": _LastLoginIP = Convert.ToString(value); break;
                     case "RegisterTime": _RegisterTime = value.ToDateTime(); break;
                     case "RegisterIP": _RegisterIP = Convert.ToString(value); break;
+                    case "OnlineTime": _OnlineTime = value.ToInt(); break;
                     case "Ex1": _Ex1 = value.ToInt(); break;
                     case "Ex2": _Ex2 = value.ToInt(); break;
                     case "Ex3": _Ex3 = value.ToDouble(); break;
@@ -422,6 +432,9 @@ namespace XCode.Membership
 
             /// <summary>注册IP</summary>
             public static readonly Field RegisterIP = FindByName("RegisterIP");
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public static readonly Field OnlineTime = FindByName("OnlineTime");
 
             /// <summary>扩展1</summary>
             public static readonly Field Ex1 = FindByName("Ex1");
@@ -521,6 +534,9 @@ namespace XCode.Membership
 
             /// <summary>注册IP</summary>
             public const String RegisterIP = "RegisterIP";
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public const String OnlineTime = "OnlineTime";
 
             /// <summary>扩展1</summary>
             public const String Ex1 = "Ex1";

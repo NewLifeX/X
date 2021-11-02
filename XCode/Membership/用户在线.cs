@@ -17,7 +17,7 @@ namespace XCode.Membership
     [BindIndex("IX_UserOnline_UserID", false, "UserID")]
     [BindIndex("IX_UserOnline_SessionID", false, "SessionID")]
     [BindIndex("IX_UserOnline_CreateTime", false, "CreateTime")]
-    [BindTable("UserOnline", Description = "用户在线", ConnName = "Membership", DbType = DatabaseType.None)]
+    [BindTable("UserOnline", Description = "用户在线", ConnName = "Log", DbType = DatabaseType.None)]
     public partial class UserOnline
     {
         #region 属性
@@ -65,7 +65,7 @@ namespace XCode.Membership
         /// <summary>页面</summary>
         [DisplayName("页面")]
         [Description("页面")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Page", "页面", "")]
         public String Page { get => _Page; set { if (OnPropertyChanging("Page", value)) { _Page = value; OnPropertyChanged("Page"); } } }
 
@@ -101,6 +101,14 @@ namespace XCode.Membership
         [BindColumn("CreateTime", "创建时间", "")]
         public DateTime CreateTime { get => _CreateTime; set { if (OnPropertyChanging("CreateTime", value)) { _CreateTime = value; OnPropertyChanged("CreateTime"); } } }
 
+        private String _UpdateIP;
+        /// <summary>更新地址</summary>
+        [DisplayName("更新地址")]
+        [Description("更新地址")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("UpdateIP", "更新地址", "")]
+        public String UpdateIP { get => _UpdateIP; set { if (OnPropertyChanging("UpdateIP", value)) { _UpdateIP = value; OnPropertyChanged("UpdateIP"); } } }
+
         private DateTime _UpdateTime;
         /// <summary>修改时间</summary>
         [DisplayName("修改时间")]
@@ -130,6 +138,7 @@ namespace XCode.Membership
                     case "OnlineTime": return _OnlineTime;
                     case "CreateIP": return _CreateIP;
                     case "CreateTime": return _CreateTime;
+                    case "UpdateIP": return _UpdateIP;
                     case "UpdateTime": return _UpdateTime;
                     default: return base[name];
                 }
@@ -148,6 +157,7 @@ namespace XCode.Membership
                     case "OnlineTime": _OnlineTime = value.ToInt(); break;
                     case "CreateIP": _CreateIP = Convert.ToString(value); break;
                     case "CreateTime": _CreateTime = value.ToDateTime(); break;
+                    case "UpdateIP": _UpdateIP = Convert.ToString(value); break;
                     case "UpdateTime": _UpdateTime = value.ToDateTime(); break;
                     default: base[name] = value; break;
                 }
@@ -189,6 +199,9 @@ namespace XCode.Membership
             /// <summary>创建时间</summary>
             public static readonly Field CreateTime = FindByName("CreateTime");
 
+            /// <summary>更新地址</summary>
+            public static readonly Field UpdateIP = FindByName("UpdateIP");
+
             /// <summary>修改时间</summary>
             public static readonly Field UpdateTime = FindByName("UpdateTime");
 
@@ -227,6 +240,9 @@ namespace XCode.Membership
 
             /// <summary>创建时间</summary>
             public const String CreateTime = "CreateTime";
+
+            /// <summary>更新地址</summary>
+            public const String UpdateIP = "UpdateIP";
 
             /// <summary>修改时间</summary>
             public const String UpdateTime = "UpdateTime";

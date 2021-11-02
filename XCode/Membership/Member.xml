@@ -22,6 +22,7 @@
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
       <Column Name="RegisterTime" DataType="DateTime" Description="注册时间" />
       <Column Name="RegisterIP" DataType="String" Description="注册IP" />
+      <Column Name="OnlineTime" DataType="Int32" Description="在线时间。累计在线总时间，秒" />
       <Column Name="Ex1" DataType="Int32" Description="扩展1" />
       <Column Name="Ex2" DataType="Int32" Description="扩展2" />
       <Column Name="Ex3" DataType="Double" Description="扩展3" />
@@ -228,18 +229,19 @@
       <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
-  <Table Name="UserOnline" Description="用户在线">
+  <Table Name="UserOnline" Description="用户在线" ConnName="Log">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="UserID" DataType="Int32" Description="用户" />
       <Column Name="Name" DataType="String" Master="True" Description="名称" />
       <Column Name="SessionID" DataType="String" Description="会话。Web的SessionID或Server的会话编号" />
       <Column Name="Times" DataType="Int32" Description="次数" />
-      <Column Name="Page" DataType="String" Description="页面" />
+      <Column Name="Page" DataType="String" Length="200" Description="页面" />
       <Column Name="Status" DataType="String" Length="200" Description="状态" />
       <Column Name="OnlineTime" DataType="Int32" Description="在线时间。本次在线总时间，秒" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
       <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
+      <Column Name="UpdateIP" DataType="String" Description="更新地址" />
       <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="修改时间" />
     </Columns>
     <Indexes>
