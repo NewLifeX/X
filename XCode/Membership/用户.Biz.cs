@@ -49,7 +49,7 @@ namespace XCode.Membership
             // 发生死锁的可能性是这里引发EnsureInit，而另一个线程提前引发EnsureInit拿到锁
             var df = Meta.Factory.AdditionalFields;
             df.Add(__.Logins);
-            df.Add(__.OnlineTime);
+            //df.Add(__.OnlineTime);
             //Meta.Factory.FullInsert = false;
 
             // 单对象缓存
