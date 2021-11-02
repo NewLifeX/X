@@ -76,6 +76,7 @@ namespace XCode.Membership
             }
             if (log.CreateIP.IsNullOrEmpty()) log.CreateIP = ManageProvider.UserHost;
 
+            log.TraceId = DefaultSpan.Current?.TraceId;
             log.Remark = remark;
             log.CreateTime = DateTime.Now;
 

@@ -215,6 +215,7 @@
       <Column Name="Ex4" DataType="String" Description="扩展4" />
       <Column Name="Ex5" DataType="String" Description="扩展5" />
       <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="TraceId" DataType="String" Description="性能追踪。用于APM性能追踪定位，还原该事件的调用链" />
       <Column Name="CreateUser" DataType="String" Description="创建者" />
       <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
       <Column Name="CreateIP" DataType="String" Description="创建地址" />
@@ -227,7 +228,7 @@
       <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
-  <Table Name="UserOnline" Description="用户在线" ConnName="Log">
+  <Table Name="UserOnline" Description="用户在线">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="UserID" DataType="Int32" Description="用户" />
