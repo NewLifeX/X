@@ -229,7 +229,7 @@
       <Index Columns="CreateUserID,ID" />
     </Indexes>
   </Table>
-  <Table Name="UserOnline" Description="用户在线" ConnName="Log">
+  <Table Name="UserOnline" Description="用户在线">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="UserID" DataType="Int32" Description="用户" />
@@ -248,6 +248,27 @@
       <Index Columns="UserID" />
       <Index Columns="SessionID" />
       <Index Columns="CreateTime" />
+    </Indexes>
+  </Table>
+  <Table Name="UserStat" Description="用户统计">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Date" DataType="DateTime" Description="统计日期" />
+      <Column Name="Total" DataType="Int32" Description="总数。总用户数" />
+      <Column Name="MaxOnline" DataType="Int32" Description="最大在线。最大在线用户数" />
+      <Column Name="Actives" DataType="Int32" Description="活跃。今天活跃用户数" />
+      <Column Name="ActivesT7" DataType="Int32" Description="7天活跃。7天活跃用户数" />
+      <Column Name="ActivesT30" DataType="Int32" Description="30天活跃。30天活跃用户数" />
+      <Column Name="News" DataType="Int32" Description="新用户。今天注册新用户数" />
+      <Column Name="NewsT7" DataType="Int32" Description="7天注册。7天内注册新用户数" />
+      <Column Name="NewsT30" DataType="Int32" Description="30天注册。30天注册新用户数" />
+      <Column Name="OnlineTime" DataType="Int32" Description="在线时间。累计在线总时间，秒" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="创建时间" />
+      <Column Name="UpdateTime" DataType="DateTime" Nullable="False" Description="更新时间" />
+      <Column Name="Remark" DataType="String" Length="1000" Description="详细信息" />
+    </Columns>
+    <Indexes>
+      <Index Columns="Date" Unique="True" />
     </Indexes>
   </Table>
   <Table Name="VisitStat" Description="访问统计" ConnName="Log">

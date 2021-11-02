@@ -221,7 +221,8 @@ namespace XCode.Membership
             list.Delete();
 
             // 修正在线数
-            _onlines = Meta.Count - list.Count;
+            var total = Meta.Count;
+            _onlines = total - list.Count;
 
             // 设置离线
             foreach (var item in list)
@@ -235,6 +236,11 @@ namespace XCode.Membership
             }
 
             // 设置统计
+            var stat = UserStat.GetOrAdd(DateTime.Today);
+            if (stat != null)
+            {
+                if (total > stat.MaxOnline) stat.MaxOnline = total;
+            }
 
             return list;
         }

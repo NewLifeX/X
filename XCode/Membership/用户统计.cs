@@ -43,6 +43,14 @@ namespace XCode.Membership
         [BindColumn("Total", "总数。总用户数", "")]
         public Int32 Total { get => _Total; set { if (OnPropertyChanging("Total", value)) { _Total = value; OnPropertyChanged("Total"); } } }
 
+        private Int32 _MaxOnline;
+        /// <summary>最大在线。最大在线用户数</summary>
+        [DisplayName("最大在线")]
+        [Description("最大在线。最大在线用户数")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("MaxOnline", "最大在线。最大在线用户数", "")]
+        public Int32 MaxOnline { get => _MaxOnline; set { if (OnPropertyChanging("MaxOnline", value)) { _MaxOnline = value; OnPropertyChanged("MaxOnline"); } } }
+
         private Int32 _Actives;
         /// <summary>活跃。今天活跃用户数</summary>
         [DisplayName("活跃")]
@@ -91,6 +99,14 @@ namespace XCode.Membership
         [BindColumn("NewsT30", "30天注册。30天注册新用户数", "")]
         public Int32 NewsT30 { get => _NewsT30; set { if (OnPropertyChanging("NewsT30", value)) { _NewsT30 = value; OnPropertyChanged("NewsT30"); } } }
 
+        private Int32 _OnlineTime;
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        [DisplayName("在线时间")]
+        [Description("在线时间。累计在线总时间，秒")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("OnlineTime", "在线时间。累计在线总时间，秒", "")]
+        public Int32 OnlineTime { get => _OnlineTime; set { if (OnPropertyChanging("OnlineTime", value)) { _OnlineTime = value; OnPropertyChanged("OnlineTime"); } } }
+
         private DateTime _CreateTime;
         /// <summary>创建时间</summary>
         [DisplayName("创建时间")]
@@ -129,12 +145,14 @@ namespace XCode.Membership
                     case "ID": return _ID;
                     case "Date": return _Date;
                     case "Total": return _Total;
+                    case "MaxOnline": return _MaxOnline;
                     case "Actives": return _Actives;
                     case "ActivesT7": return _ActivesT7;
                     case "ActivesT30": return _ActivesT30;
                     case "News": return _News;
                     case "NewsT7": return _NewsT7;
                     case "NewsT30": return _NewsT30;
+                    case "OnlineTime": return _OnlineTime;
                     case "CreateTime": return _CreateTime;
                     case "UpdateTime": return _UpdateTime;
                     case "Remark": return _Remark;
@@ -148,12 +166,14 @@ namespace XCode.Membership
                     case "ID": _ID = value.ToInt(); break;
                     case "Date": _Date = value.ToDateTime(); break;
                     case "Total": _Total = value.ToInt(); break;
+                    case "MaxOnline": _MaxOnline = value.ToInt(); break;
                     case "Actives": _Actives = value.ToInt(); break;
                     case "ActivesT7": _ActivesT7 = value.ToInt(); break;
                     case "ActivesT30": _ActivesT30 = value.ToInt(); break;
                     case "News": _News = value.ToInt(); break;
                     case "NewsT7": _NewsT7 = value.ToInt(); break;
                     case "NewsT30": _NewsT30 = value.ToInt(); break;
+                    case "OnlineTime": _OnlineTime = value.ToInt(); break;
                     case "CreateTime": _CreateTime = value.ToDateTime(); break;
                     case "UpdateTime": _UpdateTime = value.ToDateTime(); break;
                     case "Remark": _Remark = Convert.ToString(value); break;
@@ -176,6 +196,9 @@ namespace XCode.Membership
             /// <summary>总数。总用户数</summary>
             public static readonly Field Total = FindByName("Total");
 
+            /// <summary>最大在线。最大在线用户数</summary>
+            public static readonly Field MaxOnline = FindByName("MaxOnline");
+
             /// <summary>活跃。今天活跃用户数</summary>
             public static readonly Field Actives = FindByName("Actives");
 
@@ -193,6 +216,9 @@ namespace XCode.Membership
 
             /// <summary>30天注册。30天注册新用户数</summary>
             public static readonly Field NewsT30 = FindByName("NewsT30");
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public static readonly Field OnlineTime = FindByName("OnlineTime");
 
             /// <summary>创建时间</summary>
             public static readonly Field CreateTime = FindByName("CreateTime");
@@ -218,6 +244,9 @@ namespace XCode.Membership
             /// <summary>总数。总用户数</summary>
             public const String Total = "Total";
 
+            /// <summary>最大在线。最大在线用户数</summary>
+            public const String MaxOnline = "MaxOnline";
+
             /// <summary>活跃。今天活跃用户数</summary>
             public const String Actives = "Actives";
 
@@ -235,6 +264,9 @@ namespace XCode.Membership
 
             /// <summary>30天注册。30天注册新用户数</summary>
             public const String NewsT30 = "NewsT30";
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public const String OnlineTime = "OnlineTime";
 
             /// <summary>创建时间</summary>
             public const String CreateTime = "CreateTime";

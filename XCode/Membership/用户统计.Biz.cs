@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -33,11 +33,16 @@ namespace XCode.Membership
         static UserStat()
         {
             // 累加字段，生成 Update xx Set Count=Count+1234 Where xxx
-            //var df = Meta.Factory.AdditionalFields;
-            //df.Add(nameof(Total));
+            var df = Meta.Factory.AdditionalFields;
+            df.Add(nameof(Total));
 
             // 过滤器 UserModule、TimeModule、IPModule
             Meta.Modules.Add<TimeModule>();
+
+            var sc = Meta.SingleCache;
+            if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
+            sc.FindSlaveKeyMethod = k => Find(__.Date, k.ToDateTime());
+            sc.GetSlaveKeyMethod = e => e.Date.ToFullString();
         }
 
         /// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>
@@ -57,46 +62,6 @@ namespace XCode.Membership
             // 检查唯一索引
             // CheckExist(isNew, nameof(Date));
         }
-
-        ///// <summary>首次连接数据库时初始化数据，仅用于实体类重载，用户不应该调用该方法</summary>
-        //[EditorBrowsable(EditorBrowsableState.Never)]
-        //protected override void InitData()
-        //{
-        //    // InitData一般用于当数据表没有数据时添加一些默认数据，该实体类的任何第一次数据库操作都会触发该方法，默认异步调用
-        //    if (Meta.Session.Count > 0) return;
-
-        //    if (XTrace.Debug) XTrace.WriteLine("开始初始化UserStat[用户统计]数据……");
-
-        //    var entity = new UserStat();
-        //    entity.Date = DateTime.Now;
-        //    entity.Total = 0;
-        //    entity.Actives = 0;
-        //    entity.ActivesT7 = 0;
-        //    entity.ActivesT30 = 0;
-        //    entity.News = 0;
-        //    entity.NewsT7 = 0;
-        //    entity.NewsT30 = 0;
-        //    entity.CreateTime = DateTime.Now;
-        //    entity.UpdateTime = DateTime.Now;
-        //    entity.Remark = "abc";
-        //    entity.Insert();
-
-        //    if (XTrace.Debug) XTrace.WriteLine("完成初始化UserStat[用户统计]数据！");
-        //}
-
-        ///// <summary>已重载。基类先调用Valid(true)验证数据，然后在事务保护内调用OnInsert</summary>
-        ///// <returns></returns>
-        //public override Int32 Insert()
-        //{
-        //    return base.Insert();
-        //}
-
-        ///// <summary>已重载。在事务保护范围内处理业务，位于Valid之后</summary>
-        ///// <returns></returns>
-        //protected override Int32 OnDelete()
-        //{
-        //    return base.OnDelete();
-        //}
         #endregion
 
         #region 扩展属性
@@ -118,6 +83,23 @@ namespace XCode.Membership
 
             //return Find(_.ID == id);
         }
+
+        /// <summary>
+        /// 根据日期查找
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="cache"></param>
+        /// <returns></returns>
+        public static UserStat FindByDate(DateTime date, Boolean cache = true)
+        {
+            if (date.Year < 2000) return null;
+
+            date = date.Date;
+            if (cache)
+                return Meta.SingleCache.GetItemWithSlaveKey(date.ToFullString()) as UserStat;
+            else
+                return Find(_.Date == date);
+        }
         #endregion
 
         #region 高级查询
@@ -127,7 +109,7 @@ namespace XCode.Membership
         /// <param name="key">关键字</param>
         /// <param name="page">分页参数信息。可携带统计和数据权限扩展查询等信息</param>
         /// <returns>实体列表</returns>
-        public static IList<UserStat> Search(, DateTime start, DateTime end, String key, PageParameter page)
+        public static IList<UserStat> SearchByDate(DateTime start, DateTime end, String key, PageParameter page)
         {
             var exp = new WhereExpression();
 
@@ -149,6 +131,19 @@ namespace XCode.Membership
         #endregion
 
         #region 业务操作
+        /// <summary>
+        /// 获取或添加指定天的统计
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        public static UserStat GetOrAdd(DateTime date)
+        {
+            var entity = GetOrAdd(date, FindByDate, k => new UserStat { Date = k, CreateTime = DateTime.Now });
+
+            entity.SaveAsync(5_000);
+
+            return entity;
+        }
         #endregion
     }
 }
