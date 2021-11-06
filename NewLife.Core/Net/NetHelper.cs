@@ -362,15 +362,20 @@ namespace NewLife
         {
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
+                // 只要物理网卡
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+                    item.NetworkInterfaceType == NetworkInterfaceType.Tunnel ||
+                    item.NetworkInterfaceType == NetworkInterfaceType.Unknown) continue;
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
                 if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
+                // 物理网卡在禁用时没有IP，如果有IP，则不能是环回
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
                     .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
                     .Select(e => e.Address)
                     .ToArray();
-                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+                if (addrs.Length > 0 && addrs.All(e => IPAddress.IsLoopback(e))) continue;
 
                 var mac = item.GetPhysicalAddress()?.GetAddressBytes();
                 if (mac != null && mac.Length == 6) yield return mac;
