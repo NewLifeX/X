@@ -37,7 +37,7 @@ namespace NewLife
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
 #else
-                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
 #endif
         }
 
@@ -330,7 +330,7 @@ namespace NewLife
 
             addrs = GetIPs().ToArray();
 
-            _Cache.Set(key, addrs);
+            _Cache.Set(key, addrs, 60);
 
             return addrs;
         }
