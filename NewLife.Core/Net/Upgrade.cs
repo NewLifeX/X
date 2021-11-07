@@ -45,6 +45,9 @@ namespace NewLife.Net
         /// <summary>超链接信息</summary>
         public Link Link { get; set; }
 
+        /// <summary>缓存文件。同名文件不再下载，默认false</summary>
+        public Boolean CacheFile { get; set; } = true;
+
         /// <summary>更新源文件</summary>
         public String SourceFile { get; set; }
         #endregion
@@ -131,6 +134,7 @@ namespace NewLife.Net
         {
             // 如果更新包不存在，则下载
             var file = UpdatePath.CombinePath(fileName).GetBasePath();
+            if (!CacheFile && File.Exists(file)) File.Delete(file); ;
             if (!File.Exists(file))
             {
                 WriteLog("准备下载 {0} 到 {1}", url, file);
