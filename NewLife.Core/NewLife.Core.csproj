@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;net46;netstandard2.0;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>net40;net45;net46;net5.0;net6.0;netstandard2.0;netcoreapp3.1</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>X组件核心库</AssemblyTitle>
     <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.11.2021.1102-beta4</Version>
-    <FileVersion>8.11.2021.1102</FileVersion>
+    <Version>8.11.2021.1109</Version>
+    <FileVersion>8.11.2021.1109</FileVersion>
     <AssemblyVersion>8.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
@@ -61,6 +61,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)'=='net5.0-windows'">
     <DefineConstants>$(DefineConstants);__CORE__;__WIN__</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
+    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>

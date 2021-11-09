@@ -16,7 +16,7 @@ namespace XUnitTest.Net
         {
             //Directory.Delete("./Update", true);
 
-            var url = "http://x.newlifex.com/staragent50.zip";
+            var url = "http://x.newlifex.com/star/staragent50.zip";
             var fileName = Path.GetFileName(url);
             //fileName = "Update".CombinePath(fileName).EnsureDirectory(true);
 
