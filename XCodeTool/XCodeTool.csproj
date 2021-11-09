@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net50</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <AssemblyName>xcodetool</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件工具</AssemblyTitle>

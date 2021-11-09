@@ -45,6 +45,9 @@ namespace NewLife.Net
         /// <summary>超链接信息</summary>
         public Link Link { get; set; }
 
+        /// <summary>缓存文件。同名文件不再下载，默认false</summary>
+        public Boolean CacheFile { get; set; } = true;
+
         /// <summary>更新源文件</summary>
         public String SourceFile { get; set; }
         #endregion
@@ -131,6 +134,7 @@ namespace NewLife.Net
         {
             // 如果更新包不存在，则下载
             var file = UpdatePath.CombinePath(fileName).GetBasePath();
+            if (!CacheFile && File.Exists(file)) File.Delete(file); ;
             if (!File.Exists(file))
             {
                 WriteLog("准备下载 {0} 到 {1}", url, file);
@@ -238,11 +242,33 @@ namespace NewLife.Net
             }
         }
 
+        /// <summary>
+        /// 解压缩
+        /// </summary>
+        /// <param name="fileName"></param>
+        public String Extract(String fileName)
+        {
+            WriteLog("Extract {0}", fileName);
+
+            var source = Path.GetTempPath().CombinePath(Path.GetFileNameWithoutExtension(fileName));
+            WriteLog("解压缩更新包到临时目录 {0}", source);
+            fileName.AsFile().Extract(source, true);
+
+            //var source = fileName.TrimEnd(".zip");
+            //if (Directory.Exists(source)) Directory.Delete(source, true);
+            //source.EnsureDirectory(false);
+            //fileName.AsFile().Extract(source, true);
+
+            return source;
+        }
+
         /// <summary>拷贝并替换。正在使用锁定的文件不可删除，但可以改名</summary>
         /// <param name="source">源目录</param>
         /// <param name="dest">目标目录</param>
         public void CopyAndReplace(String source, String dest)
         {
+            WriteLog("CopyAndReplace {0} => {1}", source, dest);
+
             var di = source.AsDirectory();
 
             // 来源目录根，用于截断
@@ -253,10 +279,11 @@ namespace NewLife.Net
                 var dst = dest.CombinePath(name).GetBasePath();
 
                 // 如果是应用配置文件，不要更新
-                if (dst.EndsWithIgnoreCase(".exe.config")) continue;
+                if (dst.EndsWithIgnoreCase(".exe.config") ||
+                    dst.EqualIgnoreCase("appsettings.json")) continue;
 
                 // 拷贝覆盖
-                WriteLog("Copy {0}", item);
+                WriteLog("Copy {0}", name);
                 try
                 {
                     item.CopyTo(dst.EnsureDirectory(true), true);

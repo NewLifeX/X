@@ -1012,6 +1012,29 @@ namespace NewLife
 
             return p.ExitCode;
         }
+
+        /// <summary>
+        /// 在Shell上执行命令。目标进程不是子进程，不会随着当前进程退出而退出
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="arguments">参数</param>
+        /// <param name="workingDirectory">工作目录。目标进程的当前目录</param>
+        /// <returns></returns>
+        public static Process ShellExecute(this String fileName, String? arguments = null, String? workingDirectory = null)
+        {
+            if (XTrace.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
+
+            var p = new Process();
+            var si = p.StartInfo;
+            si.UseShellExecute = true;
+            si.FileName = fileName;
+            si.Arguments = arguments;
+            si.WorkingDirectory = workingDirectory;
+
+            p.Start();
+
+            return p;
+        }
         #endregion
     }
 }
