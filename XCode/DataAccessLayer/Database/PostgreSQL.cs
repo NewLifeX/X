@@ -48,7 +48,7 @@ namespace XCode.DataAccessLayer
                 builder[Server_Key] = IPAddress.Loopback.ToString();
             }
 
-            if (builder.TryGetValue("Database", out var db) && db != db.ToLower()) builder["Database"] = db.ToLower();
+            //if (builder.TryGetValue("Database", out var db) && db != db.ToLower()) builder["Database"] = db.ToLower();
         }
         #endregion
 
@@ -129,6 +129,22 @@ namespace XCode.DataAccessLayer
         /// <param name="right"></param>
         /// <returns></returns>
         public override String StringConcat(String left, String right) => (!String.IsNullOrEmpty(left) ? left : "''") + "||" + (!String.IsNullOrEmpty(right) ? right : "''");
+
+        /// <summary>
+        /// 格式化数据库名称，表名称，字段名称 增加双引号（""）
+        /// PGSQL 默认情况下创建库表时自动转为小写，增加引号强制区分大小写
+        /// 以解决数据库创建查询时大小写问题
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public override String FormatName(String name)
+        {
+            name = base.FormatName(name);
+
+            if (name.StartsWith("\"") || name.EndsWith("\"")) return name;
+
+            return $"\"{name}\"";
+        }
         #endregion
     }
 
@@ -418,7 +434,8 @@ namespace XCode.DataAccessLayer
             //return base.DatabaseExist(databaseName);
 
             var session = Database.CreateSession();
-            var dt = GetSchema(_.Databases, new String[] { databaseName.ToLower() });
+            //var dt = GetSchema(_.Databases, new String[] { databaseName.ToLower() });
+            var dt = GetSchema(_.Databases, new String[] { databaseName });
             return dt != null && dt.Rows != null && dt.Rows.Count > 0;
         }
 
