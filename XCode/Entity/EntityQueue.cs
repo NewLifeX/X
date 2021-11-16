@@ -25,6 +25,11 @@ namespace XCode
         /// <summary>数据会话，分表分库时使用</summary>
         public IEntitySession Session { get; }
 
+        /// <summary>
+        /// 是否显示SQL
+        /// </summary>
+        public Boolean? ShowSQL { get; set; }
+
         /// <summary>周期。默认1000毫秒，根据繁忙程度动态调节，尽量靠近每次持久化1000个对象</summary>
         public Int32 Period { get; set; } = 1000;
 
@@ -138,11 +143,15 @@ namespace XCode
                 XTrace.WriteLine($"实体队列[{ss.TableName}/{ss.ConnName}]\t保存 {list.Count:n0}\t预测耗时 {cost:n0}ms");
             }
 
+            var dss = ss.Dal.Session;
+            var old = dss.ShowSQL;
+            if (ShowSQL != null) dss.ShowSQL = ShowSQL.Value;
+
             var sw = Stopwatch.StartNew();
 
             // 分批
             var batchSize = 10_000;
-            for (var i = 0; i < list.Count();)
+            for (var i = 0; i < list.Count;)
             {
                 var batch = list.Skip(i).Take(batchSize).ToList();
 
@@ -159,6 +168,8 @@ namespace XCode
             }
 
             sw.Stop();
+
+            dss.ShowSQL = old;
 
             // 根据繁忙程度动态调节
             // 大于1000个对象时，说明需要加快持久化间隔，缩小周期

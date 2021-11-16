@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Caching;
+using NewLife.Log;
 using NewLife.Threading;
 using Xunit;
 
@@ -15,6 +16,8 @@ namespace XUnitTest.Caching
         [Fact]
         public async void Test1()
         {
+            XTrace.WriteLine("MemoryQueueTests.Test1");
+
             var q = new MemoryQueue<String>();
 
             Assert.True(q.IsEmpty);
@@ -32,13 +35,16 @@ namespace XUnitTest.Caching
             var ss = q.Take(3).ToArray();
             Assert.Equal(2, ss.Length);
 
+            XTrace.WriteLine("begin TokeOneAsync");
             ThreadPoolX.QueueUserWorkItem(() =>
             {
                 Thread.Sleep(1100);
+                XTrace.WriteLine("add message");
                 q.Add("delay");
             });
 
             var s2 = await q.TakeOneAsync(1500);
+            XTrace.WriteLine("end TokeOneAsync");
             Assert.Equal("delay", s2);
         }
     }
