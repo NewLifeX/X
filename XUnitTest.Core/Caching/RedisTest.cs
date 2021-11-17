@@ -50,6 +50,32 @@ namespace XUnitTest.Caching
             Assert.Equal("127.0.0.1:6379", redis.Server);
             Assert.Equal("test", redis.Password);
             Assert.Equal(5000, redis.Timeout);
+
+            str = "server=127.0.0.1:6379,127.0.0.1:7000;password=test;db=9;" +
+                "timeout=5000;MaxMessageSize=1024000;Expire=3600";
+            redis = new Redis();
+            redis.Init(str);
+
+            Assert.Equal("127.0.0.1:6379,127.0.0.1:7000", redis.Server);
+            Assert.Equal("test", redis.Password);
+            Assert.Equal(5000, redis.Timeout);
+            Assert.Equal(9, redis.Db);
+            Assert.Equal(1024000, redis.MaxMessageSize);
+            Assert.Equal(3600, redis.Expire);
+        }
+
+        [Fact]
+        public void ConfigTest2()
+        {
+            var prv = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                AppId = "Test"
+            };
+
+            var rds = new Redis();
+            rds.Init(prv["redis6"]);
+            Assert.Equal(6, rds.Db);
         }
 
         [Fact(DisplayName = "基础测试")]
