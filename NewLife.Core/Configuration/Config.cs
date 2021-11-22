@@ -109,7 +109,7 @@ namespace NewLife.Configuration
         /// <summary>是否新的配置文件</summary>
         [XmlIgnore, IgnoreDataMember]
         //[Obsolete("=>_Provider.IsNew")]
-        public Boolean IsNew => Provider is FileConfigProvider fprv && fprv.IsNew;
+        public Boolean IsNew => Provider.IsNew;
         #endregion
 
         #region 成员方法

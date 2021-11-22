@@ -26,6 +26,9 @@ namespace NewLife.Configuration
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
 
+        /// <summary>是否新的配置文件</summary>
+        Boolean IsNew { get; set; }
+
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">配置名，支持冒号分隔的多级名称</param>
         /// <returns></returns>
@@ -87,6 +90,9 @@ namespace NewLife.Configuration
 
         /// <summary>缺失的键</summary>
         public ICollection<String> MissedKeys { get; } = new List<String>();
+
+        /// <summary>是否新的配置文件</summary>
+        public Boolean IsNew { get; set; }
         #endregion
 
         #region 构造

@@ -4,7 +4,9 @@ using System.IO;
 using System.Runtime.Serialization;
 
 using NewLife;
+using NewLife.Common;
 using NewLife.Configuration;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Configuration
@@ -67,12 +69,33 @@ namespace XUnitTest.Configuration
         [Fact]
         public void TestStardust()
         {
+            var set = new ConfigModel
+            {
+                Debug = true,
+                LogLevel = LogLevel.Fatal,
+                LogPath = "xxx",
+                NetworkLog = "255.255.255.255:514",
+                TempPath = "yyy",
+
+                Sys = new SysConfig
+                {
+                    Name = "NewLife.Cube",
+                    DisplayName = "魔方平台",
+                    Company = "新生命开发团队",
+                },
+            };
+
             var provider = new HttpConfigProvider
             {
-                Server = "http://star.newlifex.com:6600",
-                //Server = "http://localhost:6600",
+                //Server = "http://star.newlifex.com:6600",
+                Server = "http://localhost:6600",
                 AppId = "StarWeb"
             };
+
+            provider.Save(set);
+
+            provider.Save(new Model2 { Test = "测试", Shop = "商店", Title = "NewLife开发团队" });
+
 
             var str = provider["test1"];
             Assert.NotEmpty(str);
