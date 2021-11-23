@@ -130,7 +130,8 @@ namespace NewLife.Log
         {
             var process = System.Diagnostics.Process.GetCurrentProcess();
             var name = String.Empty;
-            var ver = "";
+            var ver = Environment.Version + "";
+            var target = "";
             var asm = Assembly.GetEntryAssembly();
             if (asm != null)
             {
@@ -153,10 +154,23 @@ namespace NewLife.Log
                 }
 
                 var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
-                if (tar != null) ver = tar.FrameworkDisplayName ?? tar.FrameworkName;
+                if (tar != null) target = !tar.FrameworkDisplayName.IsNullOrEmpty() ? tar.FrameworkDisplayName : tar.FrameworkName;
             }
 #if __CORE__
-            ver = RuntimeInformation.FrameworkDescription;
+            target = RuntimeInformation.FrameworkDescription;
+#endif
+
+#if NET40_OR_GREATER
+            // .NET45以上运行时
+            if (Runtime.Windows && Environment.Version >= new Version("4.0.30319.42000"))
+            {
+                var reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full");
+                if (reg != null)
+                {
+                    var str = reg.GetValue("Version") + "";
+                    if (!str.IsNullOrEmpty()) ver = str;
+                }
+            }
 #endif
             if (String.IsNullOrEmpty(name))
             {
@@ -222,7 +236,7 @@ namespace NewLife.Log
                 apptype = "WinForm";
 
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
-            sb.AppendFormat("#CLR: {0}, {1}\r\n", Environment.Version, ver);
+            sb.AppendFormat("#CLR: {0}, {1}\r\n", ver, target);
 
             var os = "";
             // 获取丰富的机器信息，需要提注册 MachineInfo.RegisterAsync
