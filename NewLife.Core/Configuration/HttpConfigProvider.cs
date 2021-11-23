@@ -17,8 +17,10 @@ namespace NewLife.Configuration
         #region 属性
         /// <summary>服务器</summary>
         public String Server { get; set; }
+
         /// <summary>服务操作 默认:Config/GetAll</summary>
         public String Action { get; set; } = "Config/GetAll";
+
         /// <summary>应用标识</summary>
         public String AppId { get; set; }
 
@@ -161,10 +163,23 @@ namespace NewLife.Configuration
             }
         }
 
-        ///// <summary>设置配置项，保存到服务端</summary>
-        ///// <param name="configs"></param>
-        ///// <returns></returns>
-        //protected virtual Int32 SetAll(IDictionary<String, Object> configs) => 0;
+        /// <summary>设置配置项，保存到服务端</summary>
+        /// <param name="configs"></param>
+        /// <returns></returns>
+        protected virtual Int32 SetAll(IDictionary<String, Object> configs)
+        {
+            // 特殊处理Apollo
+            if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");
+
+            var client = GetClient() as ApiHttpClient;
+
+            return client.Post<Int32>("Config/SetAll", new
+            {
+                appId = AppId,
+                secret = Secret,
+                configs,
+            });
+        }
 
         /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
         /// <param name="value"></param>
@@ -222,9 +237,13 @@ namespace NewLife.Configuration
 
             try
             {
+                IsNew = true;
+
                 var dic = GetAll();
                 if (dic != null)
                 {
+                    if (dic.Count > 0) IsNew = false;
+
                     Root = Build(dic);
 
                     // 缓存
@@ -262,21 +281,40 @@ namespace NewLife.Configuration
             }
         }
 
-        ///// <summary>保存配置树到数据源</summary>
-        //public override Boolean SaveAll()
-        //{
-        //    var dic = new Dictionary<String, Object>();
-        //    foreach (var item in Root.Childs)
-        //    {
-        //        // 只提交修改过的设置
-        //        if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
-        //            dic[item.Key] = item.Value;
-        //    }
+        /// <summary>保存配置树到数据源</summary>
+        public override Boolean SaveAll()
+        {
+            var dic = new Dictionary<String, Object>();
+            foreach (var item in Root.Childs)
+            {
+                if (item.Childs == null || item.Childs.Count == 0)
+                {
+                    // 只提交修改过的设置
+                    if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+                    {
+                        dic[item.Key] = item.Value;
+                    }
+                }
+                else
+                {
+                    // 最多只支持两层
+                    foreach (var elm in item.Childs)
+                    {
+                        var key = $"{item.Key}:{elm.Key}";
 
-        //    if (dic.Count > 0) SetAll(dic);
+                        // 只提交修改过的设置
+                        if (_cache == null || !_cache.TryGetValue(key, out var v) || v + "" != elm.Value + "")
+                        {
+                            dic[key] = elm.Value;
+                        }
+                    }
+                }
+            }
 
-        //    return true;
-        //}
+            if (dic.Count > 0) return SetAll(dic) >= 0;
+
+            return true;
+        }
         #endregion
 
         #region 绑定

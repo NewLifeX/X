@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using NewLife.Log;
 using NewLife.Threading;
@@ -15,9 +14,6 @@ namespace NewLife.Configuration
         #region 属性
         /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
         public String FileName { get; set; }
-
-        /// <summary>是否新的配置文件</summary>
-        public Boolean IsNew { get; set; }
 
         /// <summary>更新周期。默认30秒</summary>
         public Int32 Period { get; set; } = 30;
