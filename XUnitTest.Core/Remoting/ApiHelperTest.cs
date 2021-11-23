@@ -368,7 +368,7 @@ namespace XUnitTest.Remoting
 
             var ss = await _Client.PostAsync<String[]>("Api/All");
             Assert.NotNull(ss);
-            Assert.True(ss.Length >= 3);
+            Assert.True(ss.Length >= 2);
         }
 
         [Fact(DisplayName = "异常请求")]
@@ -431,7 +431,7 @@ namespace XUnitTest.Remoting
 
             var ss = await _Client.PostAsync<String[]>("Api/All");
             Assert.NotNull(ss);
-            Assert.True(ss.Length >= 3);
+            Assert.True(ss.Length >= 2);
         }
     }
 }

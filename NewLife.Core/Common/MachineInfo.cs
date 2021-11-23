@@ -77,6 +77,8 @@ namespace NewLife
         /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
         public static MachineInfo Current { get; set; }
 
+        static MachineInfo() => RegisterAsync();
+
         private static Task<MachineInfo> _task;
         /// <summary>异步注册一个初始化后的机器信息实例</summary>
         /// <returns></returns>

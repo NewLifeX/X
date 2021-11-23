@@ -87,8 +87,8 @@ namespace XUnitTest.Configuration
 
             var provider = new HttpConfigProvider
             {
-                //Server = "http://star.newlifex.com:6600",
-                Server = "http://localhost:6600",
+                Server = "http://star.newlifex.com:6600",
+                //Server = "http://localhost:6600",
                 AppId = "StarWeb"
             };
 

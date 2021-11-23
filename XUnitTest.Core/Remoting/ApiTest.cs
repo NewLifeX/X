@@ -56,10 +56,10 @@ namespace XUnitTest.Remoting
         {
             var apis = await _Client.InvokeAsync<String[]>("api/all");
             Assert.NotNull(apis);
-            Assert.Equal(3, apis.Length);
+            Assert.Equal(2, apis.Length);
             Assert.Equal("String[] Api/All()", apis[0]);
             Assert.Equal("Object Api/Info(String state)", apis[1]);
-            Assert.Equal("Packet Api/Info2(Packet state)", apis[2]);
+            //Assert.Equal("Packet Api/Info2(Packet state)", apis[2]);
         }
 
         //[Order(2)]
@@ -77,17 +77,17 @@ namespace XUnitTest.Remoting
             Assert.Null(infs["state2"]);
         }
 
-        //[Order(3)]
-        [Fact(DisplayName = "二进制测试")]
-        public async void Info2Test()
-        {
-            var buf = Rand.NextBytes(32);
+        ////[Order(3)]
+        //[Fact(DisplayName = "二进制测试")]
+        //public async void Info2Test()
+        //{
+        //    var buf = Rand.NextBytes(32);
 
-            var pk = await _Client.InvokeAsync<Packet>("api/info2", buf);
-            Assert.NotNull(pk);
-            Assert.True(pk.Total > buf.Length);
-            Assert.Equal(buf, pk.Slice(pk.Total - buf.Length, -1).ToArray());
-        }
+        //    var pk = await _Client.InvokeAsync<Packet>("api/info2", buf);
+        //    Assert.NotNull(pk);
+        //    Assert.True(pk.Total > buf.Length);
+        //    Assert.Equal(buf, pk.Slice(pk.Total - buf.Length, -1).ToArray());
+        //}
 
         //[Order(4)]
         [Fact(DisplayName = "异常请求")]
