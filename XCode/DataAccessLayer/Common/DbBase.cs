@@ -359,7 +359,7 @@ namespace XCode.DataAccessLayer
 
                 if (type == null)
                 {
-                    XTrace.WriteLine("驱动文件{0}无效或不适用于当前环境，准备删除后重新下载！", assemblyFile);
+                    XTrace.WriteLine("驱动文件[{0}]无效或不适用于当前环境，准备删除后重新加载[{1}]！", assemblyFile, file);
 
                     try
                     {

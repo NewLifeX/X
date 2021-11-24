@@ -79,7 +79,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test7();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -446,6 +446,10 @@ namespace Test
             XCode.Setting.Current.Migration = Migration.Full;
             //Role.Meta.Session.Dal.Db.Migration = Migration.Full;
             //DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
+
+            var dal = Role.Meta.Session.Dal;
+            XTrace.WriteLine("dal={0}", dal.DbType);
+            XTrace.WriteLine("db={0}", dal.Db.ServerVersion);
 
             Role.Meta.Session.Dal.Db.ShowSQL = true;
             Role.Meta.Session.Dal.Expire = 10;
