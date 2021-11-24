@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -1387,6 +1387,17 @@ namespace XCode
         /// <returns></returns>
         //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static IList<TEntity> Search(String key, PageParameter page) => FindAll(SearchWhereByKeys(key), page);
+
+
+
+         /// <summary>同时查询满足条件的指定查询列的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <param name="key"></param>
+        /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
+        /// <param name="selects">查询列</param>
+        /// <returns></returns>
+        //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
+        public static IList<TEntity> Search(String key, PageParameter page,String selects) => FindAll(SearchWhereByKeys(key), page,selects);
+
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="start">开始时间</param>
