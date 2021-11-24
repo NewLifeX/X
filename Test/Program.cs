@@ -43,8 +43,8 @@ namespace Test
             XTrace.UseConsole();
 
             var star = new StarFactory(null, null, null);
-            DefaultTracer.Instance = star.Tracer;
-            (star.Tracer as StarTracer).AttachGlobal();
+            DefaultTracer.Instance = star?.Tracer;
+            //(star.Tracer as StarTracer).AttachGlobal();
 
 #if DEBUG
             XTrace.Debug = true;
@@ -79,7 +79,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test7();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)

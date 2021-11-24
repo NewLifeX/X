@@ -85,7 +85,7 @@ namespace NewLife.Remoting
 
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
-                //State = state,
+                State = state,
                 //LastState = Session?["State"],
                 Time = DateTime.Now,
             };
@@ -101,20 +101,23 @@ namespace NewLife.Remoting
             //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
             if (Session != null && !Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
 
-            // 时间和连接数
-            if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
-            if (Host is ApiServer svr && svr.Server is NetServer nsvr)
+            if (!Session.Token.IsNullOrEmpty())
             {
-                dic["Port"] = nsvr.Port;
-                dic["Online"] = nsvr.SessionCount;
-                dic["MaxOnline"] = nsvr.MaxSessionCount;
+                // 时间和连接数
+                if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
+                if (Host is ApiServer svr && svr.Server is NetServer nsvr)
+                {
+                    dic["Port"] = nsvr.Port;
+                    dic["Online"] = nsvr.SessionCount;
+                    dic["MaxOnline"] = nsvr.MaxSessionCount;
+                }
+
+                // 进程
+                dic["Process"] = GetProcess();
+
+                // 加上统计信息
+                dic["Stat"] = GetStat();
             }
-
-            // 进程
-            dic["Process"] = GetProcess();
-
-            // 加上统计信息
-            dic["Stat"] = GetStat();
 
             return dic;
         }
