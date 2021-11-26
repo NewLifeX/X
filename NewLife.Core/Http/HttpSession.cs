@@ -127,6 +127,9 @@ namespace NewLife.Http
             var p = path.IndexOf('?');
             if (p > 0) path = path.Substring(0, p);
 
+            // 埋点
+            using var span = (this as INetSession).Host.Tracer?.NewSpan(path);
+
             // 路径安全检查，防止越界
             if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
 
@@ -146,6 +149,8 @@ namespace NewLife.Http
             {
                 PrepareRequest(context);
 
+                if (span != null && context.Parameters.Count > 0) span.SetError(null, context.Parameters);
+
                 // 处理 WebSocket 握手
                 if (_websocket == null) _websocket = WebSocket.Handshake(context);
 
@@ -153,6 +158,7 @@ namespace NewLife.Http
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, null);
                 context.Response.SetResult(ex);
             }
 
