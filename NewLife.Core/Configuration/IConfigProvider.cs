@@ -195,7 +195,7 @@ namespace NewLife.Configuration
             EnsureLoad();
 
             // 如果有命名空间则使用指定层级数据源
-            var source = GetSection(path);
+            var source = Find(path, true);
             source?.MapFrom(model);
 
             return SaveAll();
