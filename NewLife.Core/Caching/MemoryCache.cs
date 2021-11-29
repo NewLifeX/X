@@ -29,6 +29,9 @@ namespace NewLife.Caching
 
         /// <summary>定时清理时间，默认60秒</summary>
         public Int32 Period { get; set; } = 60;
+
+        /// <summary>缓存键过期</summary>
+        public event EventHandler<EventArgs<String>> KeyExpired;
         #endregion
 
         #region 静态默认实现
@@ -537,7 +540,7 @@ namespace NewLife.Caching
         private TimerX clearTimer;
 
         /// <summary>移除过期的缓存项</summary>
-        void RemoveNotAlive(Object state)
+        private void RemoveNotAlive(Object state)
         {
             var tx = clearTimer;
             if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
@@ -601,12 +604,17 @@ namespace NewLife.Caching
 
             foreach (var item in list)
             {
+                OnExpire(item);
                 _cache.Remove(item);
             }
 
             // 修正
             _count = k;
         }
+
+        /// <summary>缓存过期</summary>
+        /// <param name="key"></param>
+        protected virtual void OnExpire(String key) => KeyExpired?.Invoke(this, new EventArgs<String>(key));
         #endregion
 
         #region 持久化
@@ -753,7 +761,7 @@ namespace NewLife.Caching
     public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     {
         private readonly IProducerConsumerCollection<T> _collection;
-        private SemaphoreSlim _occupiedNodes;
+        private readonly SemaphoreSlim _occupiedNodes;
 
         /// <summary>实例化内存队列</summary>
         public MemoryQueue()
