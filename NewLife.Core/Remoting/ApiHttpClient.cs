@@ -292,11 +292,12 @@ namespace NewLife.Remoting
                 var client = service.Client;
                 if (client == null)
                 {
-                    WriteLog("使用[{0}]：{1}", service.Name, service.Address);
+                    if (service.CreateTime.Year < 2000) WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
                     client = CreateClient();
                     client.BaseAddress = service.Address;
                     service.Client = client;
+                    service.CreateTime = DateTime.Now;
                 }
 
                 return await SendOnServiceAsync(request, service, client);
@@ -386,6 +387,8 @@ namespace NewLife.Remoting
         /// <param name="error"></param>
         protected virtual void PutService(Service service, Exception error)
         {
+            if (service.CreateTime.AddMinutes(10) < DateTime.Now) service.Client = null;
+
             var ex = error;
             while (ex is AggregateException age) ex = age.InnerException;
 
@@ -399,6 +402,7 @@ namespace NewLife.Remoting
                 service.Errors++;
                 service.Client = null;
                 service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
+                service.CreateTime = DateTime.MinValue;
             }
         }
 
@@ -459,6 +463,10 @@ namespace NewLife.Remoting
 
             /// <summary>错误数</summary>
             public Int32 Errors { get; set; }
+
+            /// <summary>创建时间。每过一段时间，就清空一次客户端，让它重建连接，更新域名缓存</summary>
+            [XmlIgnore, IgnoreDataMember]
+            public DateTime CreateTime { get; set; }
 
             /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
             [XmlIgnore, IgnoreDataMember]
