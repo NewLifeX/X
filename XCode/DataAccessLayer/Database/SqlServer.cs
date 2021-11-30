@@ -31,7 +31,9 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(SqlServer))
                     {
+                        // Microsoft 是最新的跨平台版本，优先使用
                         //if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.SqlClient.dll", "Microsoft.Data.SqlClient.SqlClientFactory", false, true);
+                        if (_Factory == null) _Factory = GetProviderFactory(null, "Microsoft.Data.SqlClient.SqlClientFactory", false, true);
                         if (_Factory == null) _Factory = GetProviderFactory("System.Data.SqlClient.dll", "System.Data.SqlClient.SqlClientFactory");
                     }
                 }
