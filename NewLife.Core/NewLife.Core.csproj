@@ -3,12 +3,12 @@
     <TargetFrameworks>net40;net45;net46;net5.0;net6.0;netstandard2.0;netcoreapp3.1</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>X组件核心库</AssemblyTitle>
-    <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
+    <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
+    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.11.2021.1124-beta1</Version>
-    <FileVersion>8.11.2021.1124</FileVersion>
+    <Version>8.11.2021.1130-beta2</Version>
+    <FileVersion>8.11.2021.1130</FileVersion>
     <AssemblyVersion>8.11.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>

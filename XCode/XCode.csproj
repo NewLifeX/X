@@ -4,11 +4,11 @@
     <AssemblyName>XCode</AssemblyName>
     <RootNamespace>XCode</RootNamespace>
     <AssemblyTitle>数据中间件</AssemblyTitle>
-    <Description>数据中间件，MySQL、SQLite、SqlServer、Oracle、Postgresql</Description>
+    <Description>数据中间件，支持MySQL、SQLite、SqlServer、Oracle、Postgresql、TDengine、达梦，重点在缓存、性能、分表、自动建表</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>10.3.2021.1124-beta1</Version>
-    <FileVersion>10.3.2021.1124</FileVersion>
+    <Version>10.3.2021.1130-beta2</Version>
+    <FileVersion>10.3.2021.1130</FileVersion>
     <AssemblyVersion>10.3.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
