@@ -292,20 +292,28 @@ namespace NewLife.Configuration
                     // 只提交修改过的设置
                     if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                     {
-                        dic[item.Key] = item.Value;
+                        if (item.Comment.IsNullOrEmpty())
+                            dic[item.Key] = item.Value;
+                        else
+                            dic[item.Key] = new { item.Value, item.Comment };
                     }
                 }
                 else
                 {
-                    // 最多只支持两层
                     foreach (var elm in item.Childs)
                     {
+                        // 最多只支持两层
+                        if (elm.Childs != null && elm.Childs.Count > 0) continue;
+
                         var key = $"{item.Key}:{elm.Key}";
 
                         // 只提交修改过的设置
                         if (_cache == null || !_cache.TryGetValue(key, out var v) || v + "" != elm.Value + "")
                         {
-                            dic[key] = elm.Value;
+                            if (elm.Comment.IsNullOrEmpty())
+                                dic[key] = elm.Value;
+                            else
+                                dic[key] = new { elm.Value, elm.Comment };
                         }
                     }
                 }
