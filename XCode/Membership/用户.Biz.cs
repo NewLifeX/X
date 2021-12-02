@@ -112,6 +112,8 @@ namespace XCode.Membership
                 if (!str.IsNullOrEmpty()) str = "," + str + ",";
                 RoleIds = str;
             }
+
+            FixArea(LastLoginIP);
         }
 
         /// <summary>删除用户</summary>
@@ -359,6 +361,17 @@ namespace XCode.Membership
         /// <summary>已重载。显示友好名字</summary>
         /// <returns></returns>
         public override String ToString() => DisplayName.IsNullOrEmpty() ? Name : DisplayName;
+
+        /// <summary>
+        /// 修正地区
+        /// </summary>
+        public void FixArea(String ip)
+        {
+            if (ip.IsNullOrEmpty()) return;
+
+            var list = Area.SearchIP(ip);
+            if (list.Count > 0) AreaId = list[list.Count - 1].ID;
+        }
         #endregion
 
         #region 业务

@@ -318,5 +318,44 @@ namespace XUnitTest.XCode.Membership
                 Assert.Equal(target, r.Path);
             }
         }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450000)]
+        [InlineData("116.234.90.174", 310000)]
+        [InlineData("116.233.20.228", 310000)]
+        [InlineData("122.231.253.198", 330000)]
+        public void SearchIP(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 1);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450400)]
+        [InlineData("116.234.90.174", 310113)]
+        [InlineData("116.233.20.228", 310104)]
+        [InlineData("122.231.253.198", 330400)]
+        public void SearchIP2(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 2);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450400)]
+        [InlineData("116.234.90.174", 310113)]
+        [InlineData("116.233.20.228", 310104)]
+        [InlineData("122.231.253.198", 330424)]
+        public void SearchIP3(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 3);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
     }
 }

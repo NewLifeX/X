@@ -460,6 +460,46 @@ namespace XCode.Membership
             // 排序
             return set.OrderByDescending(e => e.Value).Take(count).ToList();
         }
+
+        /// <summary>根据IP地址搜索地区</summary>
+        /// <param name="ip"></param>
+        /// <param name="maxLevel">最大层级，默认3级</param>
+        /// <returns></returns>
+        public static IList<Area> SearchIP(String ip, Int32 maxLevel = 3)
+        {
+            var list = new List<Area>();
+
+            var address = ip.IPToAddress();
+            if (address.IsNullOrEmpty()) return list;
+
+            if (address.StartsWith("广西")) address = "广西自治区" + address.Substring(2);
+            var addrs = address.Split("省", "自治区", "市", "区", "自治县", "县", "自治州", " ");
+            if (addrs != null && addrs.Length >= 2)
+            {
+                var prov = FindByName(0, addrs[0]);
+                if (prov != null)
+                {
+                    list.Add(prov);
+
+                    if (maxLevel == 2 && addrs.Length >= 2)
+                    {
+                        var city = FindByNames(addrs.Take(2).ToArray());
+                        if (city != null && city.ID != prov.ID) list.Add(city);
+                    }
+                    else if (maxLevel == 3)
+                    {
+                        var city = FindByNames(addrs);
+                        if (city != null && city.ID != prov.ID)
+                        {
+                            if (city.ParentID != prov.ID) list.Add(city.Parent);
+                            list.Add(city);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
         #endregion
 
         #region 业务操作
@@ -994,14 +1034,14 @@ namespace XCode.Membership
         #region 大区
         private static readonly Dictionary<String, String[]> _big = new()
         {
-            { "华北", new[]{ "北京", "天津", "河北", "山西", "内蒙古" } },
-            { "东北", new[]{ "辽宁", "吉林", "黑龙江" } },
-            { "华东", new[]{ "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东" } },
-            { "华中", new[]{ "河南", "湖北", "湖南" } },
-            { "华南", new[]{ "广东", "广西", "海南" } },
-            { "西南", new[]{ "重庆", "四川", "贵州", "云南", "西藏" } },
-            { "西北", new[]{ "陕西", "甘肃", "青海", "宁夏", "新疆" } },
-            { "港澳台", new[]{ "香港", "澳门", "台湾" } }
+            { "华北", new[] { "北京", "天津", "河北", "山西", "内蒙古" } },
+            { "东北", new[] { "辽宁", "吉林", "黑龙江" } },
+            { "华东", new[] { "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东" } },
+            { "华中", new[] { "河南", "湖北", "湖南" } },
+            { "华南", new[] { "广东", "广西", "海南" } },
+            { "西南", new[] { "重庆", "四川", "贵州", "云南", "西藏" } },
+            { "西北", new[] { "陕西", "甘肃", "青海", "宁夏", "新疆" } },
+            { "港澳台", new[] { "香港", "澳门", "台湾" } }
         };
 
         /// <summary>所属大区</summary>
