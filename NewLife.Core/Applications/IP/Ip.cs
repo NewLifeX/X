@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
-using NewLife.Threading;
 using NewLife.Web;
 
 #nullable enable
@@ -32,7 +31,7 @@ namespace NewLife.IP
             // 如果本地没有IP数据库，则从网络下载
             if (DbFile.IsNullOrWhiteSpace())
             {
-                ThreadPoolX.QueueUserWorkItem(() =>
+                var task = Task.Factory.StartNew(() =>
                 {
                     var url = set.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
@@ -51,6 +50,7 @@ namespace NewLife.IP
                         _inited = null;
                     }
                 });
+                task.Wait(3_000);
             }
         }
 
