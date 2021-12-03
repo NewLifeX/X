@@ -6,7 +6,6 @@ using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -99,10 +98,10 @@ namespace NewLife.Remoting
             // 令牌
             //var token = ctx.Parameters["Token"] + "";
             //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
-            if (Session != null && !Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
-
-            if (!Session.Token.IsNullOrEmpty())
+            if (Session != null && !Session.Token.IsNullOrEmpty())
             {
+                dic["Token"] = Session.Token;
+
                 // 时间和连接数
                 if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
                 if (Host is ApiServer svr && svr.Server is NetServer nsvr)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net461;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net45;net5.0;net6.0</TargetFrameworks>
     <OutputPath>..\..\Test\</OutputPath>
     <LangVersion>latest</LangVersion>
     <Version>1.0.0.1130</Version>

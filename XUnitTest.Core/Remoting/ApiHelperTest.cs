@@ -1,17 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using NewLife;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using Xunit;
 using NewLife.Serialization;
-using System.Collections;
-using System.Runtime.Serialization;
+using Xunit;
 
 namespace XUnitTest.Remoting
 {

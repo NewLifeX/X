@@ -26,7 +26,6 @@ using System.Net.WebSockets;
 using XCode;
 using XCode.Cache;
 using Stardust;
-using Stardust.Monitors;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
