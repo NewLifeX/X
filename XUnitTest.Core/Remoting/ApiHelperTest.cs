@@ -358,7 +358,7 @@ namespace XUnitTest.Remoting
         {
             var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
-            Assert.True(dic.Count > 10);
+            Assert.True(dic.Count >= 10);
             Assert.StartsWith("testhost", (dic["Server"] + ""));
 
             var pk = await _Client.GetAsync<Packet>("api/info");

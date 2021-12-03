@@ -35,7 +35,7 @@ namespace NewLife.Configuration
     public class HttpConfigAttribute : ConfigAttribute
     {
         /// <summary>应用标识</summary>
-        public string Server { get; set; }
+        public String Server { get; set; }
         /// <summary>服务操作</summary>
         public String Action { get; set; }
         /// <summary>应用标识</summary>
@@ -46,8 +46,10 @@ namespace NewLife.Configuration
 
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
         public String Scope { get; set; }
+
         /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
         public ConfigCacheLevel CacheLevel { get; set; }
+
         /// <summary>指定配置名</summary>
         /// <param name="server">服务器地址</param>
         /// <param name="action">服务操作</param>
@@ -56,7 +58,7 @@ namespace NewLife.Configuration
         /// <param name="secret">应用密钥</param>
         /// <param name="scope">作用域。获取指定作用域下的配置值，生产、开发、测试 等</param>
         /// <param name="cacheLevel">本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</param>
-        public HttpConfigAttribute(String name, String server, String action, String appId, String secret = null, string scope = null, ConfigCacheLevel cacheLevel = ConfigCacheLevel.Encrypted) : base(name, "http")
+        public HttpConfigAttribute(String name, String server, String action, String appId, String secret = null, String scope = null, ConfigCacheLevel cacheLevel = ConfigCacheLevel.Encrypted) : base(name, "http")
         {
             Server = server;
             Action = action;

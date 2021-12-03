@@ -38,10 +38,24 @@ namespace XCode.DataAccessLayer
             // 不要判断是否存在，因为可能目录还不存在，一会下载驱动后将创建目录
             if (Runtime.Windows) SetDllDirectory(dir);
 
-            root = NewLife.Setting.Current.GetPluginPath();
-            dir = Environment.Is64BitProcess ? "x64" : "x86";
-            dir = root.CombinePath(dir);
-            if (Runtime.Windows) SetDllDirectory(dir);
+            var set = NewLife.Setting.Current;
+            root = set.GetPluginPath();
+            //dir = Environment.Is64BitProcess ? "x64" : "x86";
+            //dir = root.CombinePath(dir);
+            if (Runtime.Windows) SetDllDirectory(root);
+        }
+
+        /// <summary>实例化</summary>
+        public DbBase()
+        {
+            var set = Setting.Current;
+            Migration = set.Migration;
+            TraceSQLTime = set.TraceSQLTime;
+            RetryOnFailure = set.RetryOnFailure;
+            NameFormat = set.NameFormat;
+            ShowSQL = set.ShowSQL;
+            SQLMaxLength = set.SQLMaxLength;
+            UseParameter = set.UseParameter;
         }
 
         /// <summary>销毁资源时，回滚未提交事务，并关闭数据库连接</summary>
@@ -172,16 +186,16 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>反向工程。Off 关闭；ReadOnly 只读不执行；On 打开，新建；Full 完全，修改删除</summary>
-        public Migration Migration { get; set; } = Setting.Current.Migration;
+        public Migration Migration { get; set; }
 
         /// <summary>跟踪SQL执行时间，大于该阀值将输出日志</summary>
-        public Int32 TraceSQLTime { get; set; } = Setting.Current.TraceSQLTime;
+        public Int32 TraceSQLTime { get; set; }
 
         /// <summary>本连接数据只读</summary>
         public Boolean Readonly { get; set; }
 
         /// <summary>失败重试。执行命令超时后的重试次数，默认0不重试</summary>
-        public Int32 RetryOnFailure { get; set; } = Setting.Current.RetryOnFailure;
+        public Int32 RetryOnFailure { get; set; }
 
         /// <summary>数据层缓存有效期。单位秒</summary>
         public Int32 DataCache { get; set; }
@@ -190,7 +204,7 @@ namespace XCode.DataAccessLayer
         public String TablePrefix { get; set; }
 
         /// <summary>反向工程表名、字段名大小写设置</summary>
-        public NameFormats NameFormat { get; set; } = Setting.Current.NameFormat;
+        public NameFormats NameFormat { get; set; }
 
         /// <summary>批大小。用于批量操作数据，默认5000</summary>
         public Int32 BatchSize { get; set; } = 5_000;
@@ -319,11 +333,11 @@ namespace XCode.DataAccessLayer
                 else
                     links.Add($"{name}_net{ver.Major}{ver.Minor}");
 #else
-                    if (Environment.Is64BitProcess) linkName += "64";
-                    var ver = Environment.Version;
-                    if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-                    links.Add(linkName);
-                    links.Add($"{name}_net45");
+                if (Environment.Is64BitProcess) linkName += "64";
+                var ver = Environment.Version;
+                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
+                links.Add(linkName);
+                links.Add($"{name}_net45");
 #endif
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                 if (!strict && !links.Contains(name)) links.Add(name);
@@ -994,15 +1008,15 @@ namespace XCode.DataAccessLayer
 
         #region Sql日志输出
         /// <summary>是否输出SQL语句，默认为XCode调试开关XCode.Debug</summary>
-        public Boolean ShowSQL { get; set; } = Setting.Current.ShowSQL;
+        public Boolean ShowSQL { get; set; }
 
         /// <summary>SQL最大长度，输出日志时的SQL最大长度，超长截断，默认4096，不截断用0</summary>
-        public Int32 SQLMaxLength { get; set; } = Setting.Current.SQLMaxLength;
+        public Int32 SQLMaxLength { get; set; }
         #endregion
 
         #region 参数化
         /// <summary>参数化添删改查。默认关闭</summary>
-        public Boolean UseParameter { get; set; } = Setting.Current.UseParameter;
+        public Boolean UseParameter { get; set; }
         #endregion
     }
 }

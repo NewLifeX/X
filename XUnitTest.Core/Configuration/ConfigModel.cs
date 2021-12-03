@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -49,10 +50,12 @@ namespace NewLife
         #endregion
     }
 
-    [HttpConfig("httpCore", "http://127.0.0.1:5000", "api/Base/v1/User/GetAll", "234")]
+    [HttpConfig("httpCore", "http://star.newlifex.com:6600", "Config/GetAll", "StarWeb")]
     public class HttpConfigModel : Config<HttpConfigModel>
     {
-        public int id { get; set; }
-        public int ids { get; set; }
+        [DataMember(Name = "test1")]
+        public String Test { get; set; }
+
+        public String Title { get; set; }
     }
 }

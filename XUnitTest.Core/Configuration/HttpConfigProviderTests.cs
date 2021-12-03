@@ -124,9 +124,10 @@ namespace XUnitTest.Configuration
         public void TestHttpConfigAttribute()
         {
             var c = HttpConfigModel.Current;
-            Assert.Equal(111, c.id);
-            Assert.Equal(222, c.ids);
+            Assert.Equal("1234", c.Test);
+            Assert.Equal("NewLife开发团队", c.Title);
         }
+
         private class Model2
         {
             [DataMember(Name = "test1")]
