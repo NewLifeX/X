@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Net;
 using NewLife.Reflection;
 
@@ -67,7 +68,14 @@ namespace NewLife.Remoting
         public Object Info(String state)
         {
             var ctx = ControllerContext.Current;
+            var ps = ctx?.Parameters;
             var ns = ctx?.Session as INetSession;
+            if (ns == null && DefaultHttpContext.Current is IHttpContext http)
+            {
+                ps = http.Parameters;
+                ns = http.Connection;
+            }
+
             var asmx = AssemblyX.Entry;
             var asmx2 = AssemblyX.Create(Assembly.GetExecutingAssembly());
             var mi = MachineInfo.Current;
@@ -96,8 +104,6 @@ namespace NewLife.Remoting
             var dic = rs.ToDictionary();
 
             // 令牌
-            //var token = ctx.Parameters["Token"] + "";
-            //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
             if (Session != null && !Session.Token.IsNullOrEmpty())
             {
                 dic["Token"] = Session.Token;
@@ -117,6 +123,8 @@ namespace NewLife.Remoting
                 // 加上统计信息
                 dic["Stat"] = GetStat();
             }
+            else if (ps != null && ps.TryGetValue("Token", out var token) && token + "" != "")
+                dic["Token"] = token;
 
             return dic;
         }
@@ -156,29 +164,5 @@ namespace NewLife.Remoting
 
             return dic;
         }
-
-        //private static Packet _myInfo;
-        ///// <summary>服务器信息，用户健康检测，二进制压测</summary>
-        ///// <param name="state">状态信息</param>
-        ///// <returns></returns>
-        //public Packet Info2(Packet state)
-        //{
-        //    if (_myInfo == null)
-        //    {
-        //        // 不包含时间和远程地址
-        //        var rs = new
-        //        {
-        //            MachineName = _MachineName,
-        //            UserName = _UserName,
-        //            LocalIP = _LocalIP,
-        //        };
-        //        _myInfo = new Packet(rs.ToJson().GetBytes());
-        //    }
-
-        //    var pk = _myInfo.Slice(0, -1);
-        //    pk.Append(state);
-
-        //    return pk;
-        //}
     }
 }

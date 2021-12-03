@@ -57,5 +57,13 @@ namespace NewLife.Http
         /// <summary>请求参数</summary>
         public IDictionary<String, Object> Parameters { get; } = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
         #endregion
+
+        #region 静态
+        [ThreadStatic]
+        private static IHttpContext _current;
+
+        /// <summary>当前上下文</summary>
+        public static IHttpContext Current { get => _current; set => _current = value; }
+        #endregion
     }
 }
