@@ -153,7 +153,7 @@ namespace NewLife.Reflection
 #if NET40_OR_GREATER
             try
             {
-                return OnResolve(args.Name);
+                if (ResolveFilter == null || ResolveFilter(args.Name)) return OnResolve(args.Name);
             }
             catch (Exception ex)
             {
@@ -241,6 +241,10 @@ namespace NewLife.Reflection
         #region 静态属性
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
+        /// <summary>
+        /// 加载过滤器，如果返回 false 表示跳过加载。
+        /// </summary>
+        public static Func<string, bool> ResolveFilter { get; set; }
         #endregion
 
         #region 方法
