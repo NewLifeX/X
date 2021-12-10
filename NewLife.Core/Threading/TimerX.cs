@@ -78,10 +78,24 @@ namespace NewLife.Threading
         #endregion
 
         #region 静态
+#if NET40
         [ThreadStatic]
         private static TimerX? _Current;
         /// <summary>当前定时器</summary>
         public static TimerX? Current { get => _Current; internal set => _Current = value; }
+#elif NET45
+        private static readonly String FieldKey = typeof(TimerX).FullName;
+        /// <summary>当前定时器</summary>
+        public static TimerX? Current
+        {
+            get => ((System.Runtime.Remoting.ObjectHandle)System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(FieldKey))?.Unwrap() as TimerX;
+            set => System.Runtime.Remoting.Messaging.CallContext.LogicalSetData(FieldKey, new System.Runtime.Remoting.ObjectHandle(value));
+        }
+#else
+        private static readonly System.Threading.AsyncLocal<TimerX?> _Current = new();
+        /// <summary>当前定时器</summary>
+        public static TimerX? Current { get => _Current.Value; set => _Current.Value = value; }
+#endif
         #endregion
 
         #region 构造
