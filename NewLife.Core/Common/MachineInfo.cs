@@ -634,6 +634,7 @@ namespace NewLife
                 {
                     // UseShellExecute 必须 false，以便于后续重定向输出流
                     UseShellExecute = false,
+                    CreateNoWindow = true,
                     RedirectStandardOutput = true
                 };
                 var process = Process.Start(psi);
