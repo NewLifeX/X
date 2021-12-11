@@ -297,7 +297,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, pk.ToBase64());
+                span?.SetError(ex, pk);
 
                 if (!ex.IsDisposed())
                 {

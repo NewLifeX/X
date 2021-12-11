@@ -233,6 +233,8 @@ namespace NewLife.Log
                 Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
                 Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
+            else if (tag is Packet pk)
+                Tag = pk.ToHex(1024 / 2);
             else if (tag != null)
                 Tag = tag.ToJson().Cut(1024);
         }
