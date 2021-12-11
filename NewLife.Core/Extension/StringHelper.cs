@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife.Collections;
@@ -970,11 +971,16 @@ namespace NewLife
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
+            // 修正文件路径
+            var fileName = cmd;
+            if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
+
             var p = new Process();
             var si = p.StartInfo;
-            si.FileName = cmd;
+            si.FileName = fileName;
             if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
+            si.CreateNoWindow = true;
             if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
@@ -1023,6 +1029,9 @@ namespace NewLife
         public static Process ShellExecute(this String fileName, String? arguments = null, String? workingDirectory = null)
         {
             if (XTrace.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
+
+            // 修正文件路径
+            if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
 
             var p = new Process();
             var si = p.StartInfo;
