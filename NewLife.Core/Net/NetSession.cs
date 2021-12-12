@@ -135,7 +135,7 @@ namespace NewLife.Net
         public virtual INetSession Send(Packet data)
         {
             var ns = (this as INetSession).Host;
-            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data);
 
             Session.Send(data);
 
