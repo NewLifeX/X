@@ -96,7 +96,7 @@ namespace NewLife.Configuration
         /// <param name="section">数据源</param>
         /// <param name="model">模型</param>
         /// <param name="provider">提供者</param>
-        internal static void MapTo(this IConfigSection section, Object model, IConfigProvider provider)
+        public static void MapTo(this IConfigSection section, Object model, IConfigProvider provider)
         {
             if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
 
@@ -228,7 +228,7 @@ namespace NewLife.Configuration
         /// <summary>从实例公有属性映射到配置树</summary>
         /// <param name="section"></param>
         /// <param name="model"></param>
-        internal static void MapFrom(this IConfigSection section, Object model)
+        public static void MapFrom(this IConfigSection section, Object model)
         {
             if (section == null) return;
 
