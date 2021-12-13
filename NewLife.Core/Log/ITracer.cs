@@ -202,10 +202,10 @@ namespace NewLife.Log
                     if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
                         span.Tag = pk.ToStr(null, 0, 1024);
                     else
-                        span.Tag = pk.ToBase64().Cut(1024);
+                        span.Tag = pk.ToHex(1024 / 2);
                 }
                 else if (tag is IMessage msg)
-                    span.Tag = msg.ToPacket().ToBase64().Cut(1024);
+                    span.Tag = msg.ToPacket().ToHex(1024 / 2);
                 else
                     span.Tag = tag.ToJson().Cut(1024);
             }
