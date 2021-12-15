@@ -131,7 +131,7 @@ namespace NewLife.Log
             }
 
             // 采样周期可能改变
-            if (Period > 0 && _timer.Period != Period * 1000) _timer.Period = Period * 1000;
+            if (Period > 0 && _timer != null && _timer.Period != Period * 1000) _timer.Period = Period * 1000;
         }
 
         /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
