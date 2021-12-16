@@ -80,17 +80,17 @@ namespace NewLife.Remoting
             configProvider.Bind(this, true, name);
         }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
-        {
-            base.Dispose(disposing);
+        ///// <summary>销毁</summary>
+        ///// <param name="disposing"></param>
+        //protected override void Dispose(Boolean disposing)
+        //{
+        //    base.Dispose(disposing);
 
-            foreach (var item in Services)
-            {
-                item.Client?.TryDispose();
-            }
-        }
+        //    foreach (var item in Services)
+        //    {
+        //        item.Client?.TryDispose();
+        //    }
+        //}
         #endregion
 
         #region 方法
