@@ -317,7 +317,7 @@ namespace NewLife.Caching
         public override Int64 Increment(String key, Int64 value)
         {
             var item = GetOrAddItem(key, k => 0L);
-            return (Int64)item.Inc(value);
+            return item.Inc(value);
         }
 
         /// <summary>累加，原子操作</summary>
@@ -327,7 +327,7 @@ namespace NewLife.Caching
         public override Double Increment(String key, Double value)
         {
             var item = GetOrAddItem(key, k => 0d);
-            return (Double)item.Inc(value);
+            return item.Inc(value);
         }
 
         /// <summary>递减，原子操作</summary>
@@ -337,7 +337,7 @@ namespace NewLife.Caching
         public override Int64 Decrement(String key, Int64 value)
         {
             var item = GetOrAddItem(key, k => 0L);
-            return (Int64)item.Dec(value);
+            return item.Dec(value);
         }
 
         /// <summary>递减，原子操作</summary>
@@ -347,7 +347,7 @@ namespace NewLife.Caching
         public override Double Decrement(String key, Double value)
         {
             var item = GetOrAddItem(key, k => 0d);
-            return (Double)item.Dec(value);
+            return item.Dec(value);
         }
         #endregion
 
@@ -472,28 +472,34 @@ namespace NewLife.Caching
             /// <summary>递增</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Object Inc(Object value)
+            public Int64 Inc(Int64 value)
             {
-                var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue;
+                Int64 newValue;
                 Object oldValue;
                 do
                 {
                     oldValue = _Value ?? 0;
-                    switch (code)
-                    {
-                        case TypeCode.Int32:
-                        case TypeCode.Int64:
-                            newValue = oldValue.ToLong() + value.ToLong();
-                            break;
-                        case TypeCode.Single:
-                        case TypeCode.Double:
-                            newValue = oldValue.ToDouble() + value.ToDouble();
-                            break;
-                        default:
-                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递增");
-                    }
+                    newValue = oldValue.ToLong() + value.ToLong();
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                Visit();
+
+                return newValue;
+            }
+
+            /// <summary>递增</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public Double Inc(Double value)
+            {
+                // 原子操作
+                Double newValue;
+                Object oldValue;
+                do
+                {
+                    oldValue = _Value ?? 0;
+                    newValue = oldValue.ToDouble() + value.ToDouble();
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
                 Visit();
@@ -504,28 +510,34 @@ namespace NewLife.Caching
             /// <summary>递减</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Object Dec(Object value)
+            public Int64 Dec(Int64 value)
             {
-                var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue;
+                Int64 newValue;
                 Object oldValue;
                 do
                 {
                     oldValue = _Value ?? 0;
-                    switch (code)
-                    {
-                        case TypeCode.Int32:
-                        case TypeCode.Int64:
-                            newValue = oldValue.ToLong() - value.ToLong();
-                            break;
-                        case TypeCode.Single:
-                        case TypeCode.Double:
-                            newValue = oldValue.ToDouble() - value.ToDouble();
-                            break;
-                        default:
-                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递减");
-                    }
+                    newValue = oldValue.ToLong() - value.ToLong();
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                Visit();
+
+                return newValue;
+            }
+
+            /// <summary>递减</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public Double Dec(Double value)
+            {
+                // 原子操作
+                Double newValue;
+                Object oldValue;
+                do
+                {
+                    oldValue = _Value ?? 0;
+                    newValue = oldValue.ToDouble() - value.ToDouble();
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
                 Visit();
