@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -20,6 +21,9 @@ namespace NewLife.Http
 
         /// <summary>密钥</summary>
         public String Password { get; set; }
+
+        /// <summary>客户端唯一标识。一般是IP@进程</summary>
+        public String ClientId { get; set; }
 
         /// <summary>安全密钥。keyName$keyValue</summary>
         /// <remarks>
@@ -43,6 +47,9 @@ namespace NewLife.Http
         public IList<Int32> ErrorCodes { get; set; } = new List<Int32> { 401, 403 };
         #endregion
 
+        /// <summary>实例化令牌过滤器</summary>
+        public TokenHttpFilter() => ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+
         /// <summary>请求前</summary>
         /// <param name="client">客户端</param>
         /// <param name="request">请求消息</param>
@@ -63,7 +70,8 @@ namespace NewLife.Http
                 {
                     grant_type = "password",
                     username = UserName,
-                    password = pass
+                    password = pass,
+                    clientid = ClientId,
                 });
 
                 // 过期时间和刷新令牌的时间
