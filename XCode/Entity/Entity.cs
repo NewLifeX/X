@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -884,7 +884,7 @@ namespace XCode
                     var builder = CreateBuilder(where, order, selects);
                     var list2 = LoadData(Meta.Session.Query(builder, row, max));
                     if (list2.Count > 0) rs.AddRange(list2);
-                    if (rs.Count >= maximumRows) return rs;
+                    if (maximumRows > 0 && rs.Count >= maximumRows) return rs;
 
                     max -= list2.Count;
                 }
@@ -1030,7 +1030,7 @@ namespace XCode
         {
             var session = Meta.Session;
 
-            #region 海量数据查询优化
+        #region 海量数据查询优化
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
@@ -1050,7 +1050,7 @@ namespace XCode
                     var order2 = order;
                     var bk = false; // 是否跳过
 
-                    #region 排序倒序
+        #region 排序倒序
                     // 默认是自增字段的降序
                     var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
@@ -1098,7 +1098,7 @@ namespace XCode
 
                         order2 = sb.Put(true).Replace("★", ",");
                     }
-                    #endregion
+        #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
                     if (!order2.IsNullOrEmpty())
@@ -1121,7 +1121,7 @@ namespace XCode
                     }
                 }
             }
-            #endregion
+        #endregion
 
             var builder = CreateBuilder(where, order, selects);
             var list2 = LoadData(await session.QueryAsync(builder, startRowIndex, maximumRows));
@@ -1390,13 +1390,13 @@ namespace XCode
 
 
 
-         /// <summary>同时查询满足条件的指定查询列的记录集和记录总数。没有数据时返回空集合而不是null</summary>
+        /// <summary>同时查询满足条件的指定查询列的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
         /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
         /// <param name="selects">查询列</param>
         /// <returns></returns>
         //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
-        public static IList<TEntity> Search(String key, PageParameter page,String selects) => FindAll(SearchWhereByKeys(key), page,selects);
+        public static IList<TEntity> Search(String key, PageParameter page, String selects) => FindAll(SearchWhereByKeys(key), page, selects);
 
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
