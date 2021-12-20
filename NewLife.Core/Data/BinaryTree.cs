@@ -21,6 +21,9 @@ namespace NewLife.Data
             }
         }
 
+        /// <summary>高级操作符。如 Sqrt/Cbrt</summary>
+        public IList<String> Operations { get; set; } = new List<String>();
+
         /// <summary>遍历所有二叉树</summary>
         /// <param name="size"></param>
         /// <returns></returns>
@@ -113,7 +116,7 @@ namespace NewLife.Data
                    select new[] { operator1, operator2, operator3 };
         }
 
-        static IEnumerable<IEnumerable<Func<Expression, Expression>>> OperatorPermute(Int32 count)
+        IEnumerable<IEnumerable<Func<Expression, Expression>>> OperatorPermute(Int32 count)
         {
             var ops = new List<Func<Expression, Expression>>();
             // 有一个空的
@@ -129,11 +132,13 @@ namespace NewLife.Data
             //        ops.Add(func);
             //    }
             //}
-            ops.Add(left => Expression.Call(typeof(Math).GetMethod("Sqrt"), left));
+            if (Operations.Contains("Sqrt"))
+                ops.Add(left => Expression.Call(typeof(Math).GetMethod("Sqrt"), left));
             //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Sin"), left));
             //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Cos"), left));
             //ops.Add(left => Expression.Call(typeof(Math).GetMethod("Tan"), left));
-            ops.Add(left => Expression.Call(typeof(BinaryTree).GetMethod(nameof(Cbrt), BindingFlags.NonPublic | BindingFlags.Static), left));
+            if (Operations.Contains("Cbrt"))
+                ops.Add(left => Expression.Call(typeof(BinaryTree).GetMethod(nameof(Cbrt), BindingFlags.NonPublic | BindingFlags.Static), left));
 
             if (count == 2)
                 return from operator1 in ops
@@ -153,23 +158,15 @@ namespace NewLife.Data
                    select new[] { operator1, operator2, operator3, operator4 };
         }
 
-        static Expression Sqrt(Expression left)
-        {
-            return Expression.Call(typeof(Math).GetMethod("Sqrt"), left);
-        }
-
         /// <summary>立方根</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        static Double Cbrt(Double value)
-        {
-            return Math.Pow(value, 1.0d / 3);
-        }
+        static Double Cbrt(Double value) => Math.Pow(value, 1.0d / 3);
 
         /// <summary>数学运算</summary>
         /// <param name="numbers"></param>
         /// <param name="result"></param>
-        public static String[] Execute(Double[] numbers, Double result)
+        public String[] Execute(Double[] numbers, Double result)
         {
             var rs = new List<String>();
             var operators = new List<Func<Expression, Expression, Expression>> { Expression.Add, Expression.Subtract, Expression.Multiply, Expression.Divide, Expression.Modulo, Expression.Power };
