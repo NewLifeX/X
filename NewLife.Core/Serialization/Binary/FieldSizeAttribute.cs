@@ -91,8 +91,7 @@ namespace NewLife.Serialization
         /// <param name="encoding"></param>
         internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
         {
-            Object v = null;
-            var mi = FindReference(target, member, out v);
+            var mi = FindReference(target, member, out var v);
             if (mi == null) return;
 
             // 获取当前成员（加了特性）的值
@@ -129,8 +128,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         internal Int32 GetReferenceSize(Object target, MemberInfo member)
         {
-            Object v = null;
-            var mi = FindReference(target, member, out v);
+            var mi = FindReference(target, member, out var v);
             if (mi == null) return -1;
 
             return Convert.ToInt32(v.GetValue(mi)) + Size;

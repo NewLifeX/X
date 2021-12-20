@@ -16,33 +16,18 @@ namespace NewLife.Expressions
     /// <summary>逆波兰表达式</summary>
     public abstract class RpnExpression
     {
-        /// <summary>左括号</summary>
-        public static readonly Char LeftBracket = '(';
-        /// <summary>右括号</summary>
-        public static readonly Char RightBracket = ')';
-        /// <summary>连接符</summary>
-        public static readonly Char JoinChar = ',';
-        /// <summary>空格</summary>
-        public static readonly Char EmptyChar = ' ';
-
         /// <summary>操作符数组</summary>
         public Char[] OperationChars { get; protected set; }
 
         /// <summary>是否括号</summary>
         /// <param name="ch"></param>
         /// <returns></returns>
-        public Boolean IsBracket(String ch)
-        {
-            return ch == LeftBracket.ToString() || ch == RightBracket.ToString();
-        }
+        public Boolean IsBracket(String ch) => ch == "(" || ch == ")";
 
         /// <summary>是否括号</summary>
         /// <param name="ch"></param>
         /// <returns></returns>
-        public Boolean IsBracket(Char ch)
-        {
-            return ch == LeftBracket || ch == RightBracket;
-        }
+        public Boolean IsBracket(Char ch) => ch == '(' || ch == ')';
 
         /// <summary>计算操作等级</summary>
         /// <param name="op"></param>
@@ -63,16 +48,16 @@ namespace NewLife.Expressions
                 if (!IsBracket(ch)) continue;
 
                 // 左括号压栈
-                if (ch == LeftBracket)
+                if (ch == '(')
                 {
-                    stack.Push(LeftBracket);
+                    stack.Push('(');
                 }
                 // 右括号弹栈
                 else
                 {
                     // 无法匹配则失败
                     if (stack.Count == 0) return false;
-                    if (stack.Pop() != LeftBracket) return false;
+                    if (stack.Pop() != '(') return false;
                 }
             }
 
@@ -82,7 +67,7 @@ namespace NewLife.Expressions
         /// <summary>适配器和替换</summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        protected virtual String AdapteAndReplace(String expression) { return expression; }
+        protected virtual String AdapteAndReplace(String expression) => expression;
 
         /// <summary>值</summary>
         public String Value { get; private set; }
@@ -90,19 +75,19 @@ namespace NewLife.Expressions
         /// <summary>将中缀表达式转换为逆波兰表达式</summary>
         /// <param name="expression">标准中缀表达式</param>
         /// <returns>标准逆波兰表达式</returns>
-        public String ToExpression(String expression)
+        public String[] ToExpression(String expression)
         {
-            if (String.IsNullOrWhiteSpace(expression)) return String.Empty;
+            if (String.IsNullOrWhiteSpace(expression)) return null;
 
             var val = AdapteAndReplace(expression);
             Value = val;
 
-            if (String.IsNullOrWhiteSpace(val)) return String.Empty;
+            if (String.IsNullOrWhiteSpace(val)) return null;
 
             if (!IsBracketMatch(val)) throw new ArgumentException("括号不匹配！");
 
             var arr = val.Split(OperationChars, StringSplitOptions.RemoveEmptyEntries);
-            if (!IsValid(arr)) return String.Empty;
+            if (!IsValid(arr)) return null;
 
             var ops = new Stack<String>();
             var outs = new Stack<String>();
@@ -114,7 +99,7 @@ namespace NewLife.Expressions
                 var ch = val.Substring(idx, 1);
                 var level = GetOperationLevel(ch);
 
-                if (ch == EmptyChar.ToString())
+                if (ch == " ")
                 {
                     idx++;
                     continue;
@@ -141,7 +126,7 @@ namespace NewLife.Expressions
                 if (IsBracket(ch))
                 {
                     // 左括号入栈
-                    if (ch == LeftBracket.ToString())
+                    if (ch == "(")
                     {
                         ops.Push(ch);
                         idx++;
@@ -149,7 +134,7 @@ namespace NewLife.Expressions
                     else
                     {
                         // 处理（）,括号里面不存在任何内容的情况
-                        if (ops.Peek() == LeftBracket.ToString())
+                        if (ops.Peek() == "(")
                         {
                             idx++;
                             ops.Pop();
@@ -158,7 +143,7 @@ namespace NewLife.Expressions
 
                         idx++;
                         // 处理右括号，一直检测到左括号
-                        while (ops.Peek() != LeftBracket.ToString())
+                        while (ops.Peek() != "(")
                         {
                             outs.Push(ops.Pop());
 
@@ -205,9 +190,9 @@ namespace NewLife.Expressions
                 outs.Push(ops.Pop());
             }
 
-            if (outs.Count == 0) return String.Empty;
+            if (outs.Count == 0) return null;
 
-            return String.Join(JoinChar.ToString(), outs.ToArray().Reverse());
+            return outs.ToArray().Reverse().ToArray();
         }
 
         /// <summary>是否有效</summary>
@@ -219,6 +204,12 @@ namespace NewLife.Expressions
         /// <param name="expression"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public abstract Object Complie(String expression, params Object[] args);
+        public virtual Object Complie(String expression, params Object[] args) => Complie(expression.Split(','), args);
+
+        /// <summary>编译计算</summary>
+        /// <param name="expression"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public abstract Object Complie(String[] expression, params Object[] args);
     }
 }

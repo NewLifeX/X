@@ -29,8 +29,7 @@ namespace System
 
         public ExecutionContextLightup Capture()
         {
-            object obj;
-            if (base.TryCall<object>(ref _capture, "Capture", out obj) && obj != null)
+            if (base.TryCall<object>(ref _capture, "Capture", out var obj) && obj != null)
             {
                 return new ExecutionContextLightup(obj);
             }

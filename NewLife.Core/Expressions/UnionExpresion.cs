@@ -8,16 +8,8 @@ namespace NewLife.Expressions
     /// <summary>与或非表达式</summary>
     public class UnionExpresion : RpnExpression
     {
-        /// <summary>位与</summary>
-        public static readonly Char AndChar = '&';
-        /// <summary>位或</summary>
-        public static readonly Char OrChar = '|';
-
         /// <summary>实例化</summary>
-        public UnionExpresion()
-        {
-            OperationChars = new Char[] { OrChar, AndChar, LeftBracket, RightBracket };
-        }
+        public UnionExpresion() => OperationChars = new Char[] { '|', '&', '(', ')' };
 
         /// <summary>操作符等级</summary>
         /// <param name="op"></param>
@@ -39,7 +31,7 @@ namespace NewLife.Expressions
         {
             if (String.IsNullOrWhiteSpace(expression)) return String.Empty;
 
-            return expression.ToUpper().Replace("AND", AndChar.ToString()).Replace("OR", OrChar.ToString()).Replace(EmptyChar.ToString(), String.Empty);
+            return expression.ToUpper().Replace("AND", "&").Replace("OR", "|").Replace(" ", String.Empty);
         }
 
         /// <summary>容器</summary>
@@ -49,11 +41,11 @@ namespace NewLife.Expressions
         /// <param name="expression">标准逆波兰表达式</param>
         /// <param name="args"></param>
         /// <returns>逆波兰表达式的解</returns>
-        public override Object Complie(String expression, params Object[] args)
+        public override Object Complie(String[] expression, params Object[] args)
         {
-            if (String.IsNullOrWhiteSpace(expression)) return null;
+            if (expression == null || expression.Length == 0) return 0;
 
-            var arr = expression.Split(new Char[] { JoinChar });
+            var arr = expression;
 
             var codes = new Stack<IndexInfoResult>();
 
@@ -127,14 +119,13 @@ namespace NewLife.Expressions
             }
         }
 
-        private IEnumerable<String> ComplieRpnExp(IEnumerable<String> firstValue,
-            IEnumerable<String> lastValue, String operation)
+        private IEnumerable<String> ComplieRpnExp(IEnumerable<String> firstValue, IEnumerable<String> lastValue, String operation)
         {
             if (String.IsNullOrWhiteSpace(operation)) return new List<String>();
 
-            if (String.Equals(operation.Trim(), AndChar.ToString())) return GetAndResult(firstValue, lastValue);
+            if (String.Equals(operation.Trim(), "&")) return GetAndResult(firstValue, lastValue);
 
-            if (String.Equals(operation.Trim(), OrChar.ToString())) return GetOrResult(firstValue, lastValue);
+            if (String.Equals(operation.Trim(), "|")) return GetOrResult(firstValue, lastValue);
 
             return new List<String>();
         }
