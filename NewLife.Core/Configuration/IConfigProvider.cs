@@ -42,6 +42,12 @@ namespace NewLife.Configuration
         /// <summary>返回获取配置的委托</summary>
         GetConfigCallback GetConfig { get; }
 
+        /// <summary>从数据源加载数据到配置树</summary>
+        Boolean LoadAll();
+
+        /// <summary>保存配置树到数据源</summary>
+        Boolean SaveAll();
+
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
@@ -121,6 +127,8 @@ namespace NewLife.Configuration
         private IConfigSection Find(String key, Boolean createOnMiss)
         {
             UseKey(key);
+
+            EnsureLoad();
 
             var sec = Root.Find(key, createOnMiss);
             if (sec == null) MissKey(key);

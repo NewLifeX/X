@@ -105,6 +105,7 @@ namespace NewLife.Caching
         public Redis(IServiceProvider provider, String name)
         {
             Name = name;
+            Tracer = provider.GetService<ITracer>();
 
             var configProvider = provider.GetRequiredService<IConfigProvider>();
             configProvider.Bind(this, true, name);
