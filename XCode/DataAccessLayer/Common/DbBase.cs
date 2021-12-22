@@ -83,11 +83,7 @@ namespace XCode.DataAccessLayer
         internal void ReleaseSession()
         {
             var st = _store;
-#if NET40 || NET45
-            if (st != null) _store = new ThreadLocal<IDbSession>();
-#else
             if (st != null) _store = new AsyncLocal<IDbSession>();
-#endif
         }
         #endregion
 
@@ -214,11 +210,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-#if NET40 || NET45
-        private ThreadLocal<IDbSession> _store = new();
-#else
         private AsyncLocal<IDbSession> _store = new();
-#endif
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
@@ -286,11 +278,7 @@ namespace XCode.DataAccessLayer
 
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
-#if NET40
-            await TaskEx.Run(() => conn.Open());
-#else
             await conn.OpenAsync();
-#endif
 
             return conn;
         }
@@ -309,7 +297,6 @@ namespace XCode.DataAccessLayer
             if (!name.IsNullOrEmpty())
             {
                 var linkName = name;
-#if __CORE__
                 var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
                 // 可能是在x64架构上跑x86
                 if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
@@ -332,13 +319,7 @@ namespace XCode.DataAccessLayer
                     links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
                 else
                     links.Add($"{name}_net{ver.Major}{ver.Minor}");
-#else
-                if (Environment.Is64BitProcess) linkName += "64";
-                var ver = Environment.Version;
-                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-                links.Add(linkName);
-                links.Add($"{name}_net45");
-#endif
+
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                 if (!strict && !links.Contains(name)) links.Add(name);
             }

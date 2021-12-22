@@ -84,24 +84,9 @@ namespace NewLife.Log
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
-#if NET40
-        [ThreadStatic]
-        private static ISpan _Current;
-        /// <summary>当前线程正在使用的上下文</summary>
-        public static ISpan Current { get => _Current; set => _Current = value; }
-#elif NET45
-        private static readonly String FieldKey = typeof(DefaultSpan).FullName;
-        /// <summary>当前线程正在使用的上下文</summary>
-        public static ISpan Current
-        {
-            get => ((System.Runtime.Remoting.ObjectHandle)System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(FieldKey))?.Unwrap() as ISpan;
-            set => System.Runtime.Remoting.Messaging.CallContext.LogicalSetData(FieldKey, new System.Runtime.Remoting.ObjectHandle(value));
-        }
-#else
         private static readonly System.Threading.AsyncLocal<ISpan> _Current = new();
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
-#endif
 
         private ISpan _parent;
         private Boolean _finished;

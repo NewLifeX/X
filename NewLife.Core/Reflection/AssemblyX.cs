@@ -93,11 +93,7 @@ namespace NewLife.Reflection
             {
                 try
                 {
-#if !__CORE__
-                    return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location;
-#else
                     return Asm == null || Asm.IsDynamic ? null : Asm.Location;
-#endif
                 }
                 catch { return null; }
             }
@@ -130,16 +126,14 @@ namespace NewLife.Reflection
             if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
 
-#if NET40_OR_GREATER
-            try
-            {
-                return Assembly.ReflectionOnlyLoad(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-#endif
+            //try
+            //{
+            //    return Assembly.ReflectionOnlyLoad(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
 
             return null;
         }
@@ -150,16 +144,14 @@ namespace NewLife.Reflection
             if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
 
-#if NET40_OR_GREATER
-            try
-            {
-                return OnResolve(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-#endif
+            //try
+            //{
+            //    return OnResolve(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
 
             return null;
         }
@@ -668,11 +660,7 @@ namespace NewLife.Reflection
 
             try
             {
-#if !__CORE__
-                return Assembly.ReflectionOnlyLoadFrom(file);
-#else
                 return Assembly.LoadFrom(file);
-#endif
             }
             catch
             {
@@ -696,9 +684,7 @@ namespace NewLife.Reflection
                     if (asmx.FileVersion.IsNullOrEmpty()) continue;
 
                     var file = "";
-#if !__CORE__
-                    file = asmx.Asm.CodeBase;
-#endif
+                    //file = asmx.Asm.CodeBase;
                     if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
                     if (file.IsNullOrEmpty()) continue;
 
@@ -720,28 +706,6 @@ namespace NewLife.Reflection
                 }
                 catch { }
             }
-#if !__CORE__
-            foreach (var asmx in ReflectionOnlyGetAssemblies())
-            {
-                // 加载程序集列表很容易抛出异常，全部屏蔽
-                try
-                {
-                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                    var file = asmx.Asm.CodeBase;
-                    if (String.IsNullOrEmpty(file)) continue;
-                    file = file.TrimStart("file:///");
-                    file = file.Replace("/", "\\");
-                    if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                    if (!hs.Contains(file))
-                    {
-                        hs.Add(file);
-                        list.Add(asmx);
-                    }
-                }
-                catch { }
-            }
-#endif
             return list;
         }
 

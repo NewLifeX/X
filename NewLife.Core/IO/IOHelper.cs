@@ -25,19 +25,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET40
-            using (var stream = new DeflateStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new DeflateStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -96,19 +88,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET40
-            using (var stream = new GZipStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new GZipStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -238,11 +222,7 @@ namespace NewLife
             if (count <= 0) count = src.Length - srcOffset;
             if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
-#if MF
-            Array.Copy(src, srcOffset, dst, dstOffset, count);
-#else
             Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
-#endif
             return count;
         }
         #endregion

@@ -170,19 +170,11 @@ namespace XCode.TDengine
         public override Int64 GetChars(Int32 ordinal, Int64 dataOffset, Char[] buffer, Int32 bufferOffset, Int32 length)
            => throw new NotSupportedException();
 
-#if NET40
-        /// <summary>获取字段值</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ordinal"></param>
-        /// <returns></returns>
-        public T GetFieldValue<T>(Int32 ordinal) => (T)Convert.ChangeType(GetValue(ordinal), typeof(T));
-#else
         /// <summary>获取字段值</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="ordinal"></param>
         /// <returns></returns>
         public override T GetFieldValue<T>(Int32 ordinal) => (T)Convert.ChangeType(GetValue(ordinal), typeof(T));
-#endif
         #endregion
 
         #region 辅助

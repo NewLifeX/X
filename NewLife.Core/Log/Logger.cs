@@ -156,22 +156,8 @@ namespace NewLife.Log
                 var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
                 if (tar != null) target = !tar.FrameworkDisplayName.IsNullOrEmpty() ? tar.FrameworkDisplayName : tar.FrameworkName;
             }
-#if __CORE__
             target = RuntimeInformation.FrameworkDescription;
-#endif
 
-#if NET40_OR_GREATER
-            // .NET45以上运行时
-            if (Runtime.Windows && Environment.Version >= new Version("4.0.30319.42000"))
-            {
-                var reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full");
-                if (reg != null)
-                {
-                    var str = reg.GetValue("Version") + "";
-                    if (!str.IsNullOrEmpty()) ver = str;
-                }
-            }
-#endif
             if (String.IsNullOrEmpty(name))
             {
                 try

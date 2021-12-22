@@ -63,10 +63,8 @@ namespace XCode.TDengine
         {
             var configPath = "C:/TDengine/cfg";
 
-#if !(NET40 || NET45)
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 configPath = "/etc/taos";
-#endif
 
             TD.Options((Int32)TDengineInitOption.TDDB_OPTION_CONFIGDIR, configPath);
             TD.Options((Int32)TDengineInitOption.TDDB_OPTION_SHELL_ACTIVITY_TIMER, "60");

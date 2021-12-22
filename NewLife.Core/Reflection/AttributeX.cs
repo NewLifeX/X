@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using NewLife;
-using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife
@@ -13,54 +11,6 @@ namespace NewLife
     public static class AttributeX
     {
         #region 静态方法
-#if NET40
-        /// <summary>获取自定义属性</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <param name="member"></param>
-        /// <param name="inherit"></param>
-        /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this MemberInfo member, Boolean inherit = true) where TAttribute : Attribute
-        {
-            var atts = member.GetCustomAttributes<TAttribute>(false)?.ToArray();
-            if (atts != null && atts.Length > 0) return atts[0];
-
-            if (inherit)
-            {
-                atts = member.GetCustomAttributes<TAttribute>(inherit)?.ToArray();
-                if (atts != null && atts.Length > 0) return atts[0];
-            }
-
-            return default;
-        }
-
-        /// <summary>获取自定义属性</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <param name="assembly"></param>
-        /// <returns></returns>
-        public static TAttribute GetCustomAttribute<TAttribute>(this Assembly assembly)
-        {
-            var avs = assembly.GetCustomAttributes<TAttribute>();
-            if (avs == null || avs.Length < 1) return default;
-
-            return avs[0];
-        }
-
-        /// <summary>获取自定义特性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>
-        /// <typeparam name="TAttribute"></typeparam>
-        /// <param name="member"></param>
-        /// <param name="inherit"></param>
-        /// <returns></returns>
-        public static TAttribute[] GetCustomAttributes<TAttribute>(this MemberInfo member, Boolean inherit = true)
-        {
-            if (member == null) return new TAttribute[0];
-
-            var atts =  member.GetCustomAttributes(typeof(TAttribute), inherit).Cast<TAttribute>().ToArray();
-            if (atts == null || atts.Length <= 0) return new TAttribute[0];
-
-            return atts;
-        }
-#endif
-
         private static readonly ConcurrentDictionary<String, Object> _asmCache = new();
 
         /// <summary>获取自定义属性，带有缓存功能，避免因.Net内部GetCustomAttributes没有缓存而带来的损耗</summary>

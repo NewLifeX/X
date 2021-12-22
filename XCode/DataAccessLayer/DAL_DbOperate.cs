@@ -202,7 +202,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -314,7 +313,6 @@ namespace XCode.DataAccessLayer
         {
             return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteScalarAsync<T>(s, t, Db.CreateParameters(p)));
         }
-#endif
         #endregion
 
         #region 事务

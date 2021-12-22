@@ -33,12 +33,8 @@ namespace NewLife
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
-#if __CORE__
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#else
-            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#endif
         }
 
         private static readonly ICache _Cache = MemoryCache.Instance;
@@ -578,10 +574,8 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if !NET40
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-#endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
         }

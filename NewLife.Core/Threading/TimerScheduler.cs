@@ -150,9 +150,7 @@ namespace NewLife.Threading
 
                     var th = thread;
                     thread = null;
-#if !__CORE__
-                    th?.Abort();
-#endif
+                    //th?.Abort();
 
                     break;
                 }

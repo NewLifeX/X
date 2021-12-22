@@ -210,7 +210,6 @@ namespace NewLife.IO
         /// <param name="values"></param>
         public void WriteLine(params Object[] values) => WriteLine(line: values);
 
-#if !NET40
         /// <summary>异步写入一行</summary>
         /// <param name="line"></param>
         public async Task WriteLineAsync(IEnumerable<Object> line)
@@ -221,7 +220,6 @@ namespace NewLife.IO
 
             await _writer.WriteLineAsync(str);
         }
-#endif
 
         /// <summary>构建一行</summary>
         /// <param name="line"></param>
@@ -256,11 +254,7 @@ namespace NewLife.IO
         private StreamWriter _writer;
         private void EnsureWriter()
         {
-#if NET40
-            if (_writer == null) _writer = new StreamWriter(_stream, Encoding);
-#else
             if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, _leaveOpen);
-#endif
         }
         #endregion
     }

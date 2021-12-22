@@ -91,7 +91,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T QuerySingle<T>(String sql, Object param = null) => Query<T>(sql, param).FirstOrDefault();
 
-#if !NET40
         /// <summary>查询Sql并映射为结果集</summary>
         /// <typeparam name="T">实体类</typeparam>
         /// <param name="sql">Sql语句</param>
@@ -118,7 +117,6 @@ namespace XCode.DataAccessLayer
         /// <param name="param">参数对象</param>
         /// <returns></returns>
         public async Task<T> QuerySingleAsync<T>(String sql, Object param = null) => (await QueryAsync<T>(sql, param)).FirstOrDefault();
-#endif
 
         private static Boolean IsValueTuple(Type type)
         {
@@ -158,7 +156,6 @@ namespace XCode.DataAccessLayer
         public T ExecuteScalar<T>(String sql, Object param = null) =>
             QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
 
-#if !NET40
         /// <summary>执行Sql</summary>
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
@@ -185,7 +182,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Task<T> ExecuteScalarAsync<T>(String sql, Object param = null) =>
             QueryByCacheAsync(sql, param, "", (s, p, k3) => Session.ExecuteScalarAsync<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalarAsync));
-#endif
 
         private ConcurrentDictionary<Type, String> _tableMaps = new();
         private String OnGetTableName(Type type)
@@ -315,7 +311,6 @@ namespace XCode.DataAccessLayer
             return ExecuteByCache(sql, "", dps.ToArray(), (s, t, p) => Session.Execute(s, CommandType.Text, p));
         }
 
-#if !NET40
         /// <summary>插入数据</summary>
         /// <param name="data">实体对象</param>
         /// <param name="tableName">表名</param>
@@ -427,7 +422,6 @@ namespace XCode.DataAccessLayer
 
             return ExecuteByCacheAsync(sql, "", dps.ToArray(), (s, t, p) => Session.ExecuteAsync(s, CommandType.Text, p));
         }
-#endif
 
         /// <summary>插入数据</summary>
         /// <param name="tableName"></param>

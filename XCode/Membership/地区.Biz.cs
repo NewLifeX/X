@@ -10,14 +10,10 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Transform;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Membership
 {
@@ -769,7 +765,7 @@ namespace XCode.Membership
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
 
             var http = new HttpClient();
-            var html = TaskEx.Run(() => http.GetStringAsync(url)).Result;
+            var html = Task.Run(() => http.GetStringAsync(url)).Result;
             if (html.IsNullOrEmpty()) return 0;
 
             var rs = ParseAndSave(html);
@@ -982,7 +978,7 @@ namespace XCode.Membership
             if (csvFile.StartsWithIgnoreCase("http://", "https://"))
             {
                 var http = new HttpClient();
-                var stream = TaskEx.Run(() => http.GetStreamAsync(csvFile)).Result;
+                var stream = Task.Run(() => http.GetStreamAsync(csvFile)).Result;
                 if (csvFile.EndsWithIgnoreCase(".gz")) stream = new GZipStream(stream, CompressionMode.Decompress, true);
                 list.LoadCsv(stream);
             }

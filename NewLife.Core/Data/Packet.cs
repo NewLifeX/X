@@ -48,14 +48,12 @@ namespace NewLife.Data
         {
             if (stream is MemoryStream ms)
             {
-#if NET46_OR_GREATER || NETSTANDARD || NETCOREAPP
                 // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
                 if (ms.TryGetBuffer(out var seg))
                 {
                     Set(seg.Array, seg.Offset + (Int32)ms.Position, seg.Count - (Int32)ms.Position);
                     return;
                 }
-#endif
                 // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
                 // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
 

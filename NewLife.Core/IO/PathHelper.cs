@@ -322,11 +322,7 @@ namespace System.IO
             using var fs = file.OpenWrite();
             if (compressed)
             {
-#if NET40
-                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
-#else
                 using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
-#endif
                 func(gs);
             }
             else

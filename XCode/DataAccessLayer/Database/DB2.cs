@@ -347,7 +347,6 @@ namespace XCode.DataAccessLayer
             catch { Rollback(true); throw; }
         }
 
-#if !NET40
         public override Task<Int64> QueryCountFastAsync(String tableName)
         {
             if (String.IsNullOrEmpty(tableName)) return Task.FromResult(0L);
@@ -383,7 +382,6 @@ namespace XCode.DataAccessLayer
             }
             catch { Rollback(true); throw; }
         }
-#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>

@@ -101,7 +101,6 @@ namespace NewLife.Data
             Total = rs.Count;
         }
 
-#if !NET40
         /// <summary>读取数据</summary>
         /// <param name="dr"></param>
         public async Task ReadAsync(DbDataReader dr)
@@ -144,7 +143,6 @@ namespace NewLife.Data
 
             Total = rs.Count;
         }
-#endif
         #endregion
 
         #region 二进制读取

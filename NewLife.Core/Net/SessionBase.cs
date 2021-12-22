@@ -9,9 +9,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -534,7 +531,7 @@ namespace NewLife.Net
                 ctx["TaskSource"] = source;
 
                 var rs = (Int32)Pipeline.Write(ctx, message);
-                if (rs < 0) return TaskEx.FromResult((Object)null);
+                if (rs < 0) return Task.FromResult((Object)null);
 
                 return source.Task;
             }

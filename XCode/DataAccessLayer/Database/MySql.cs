@@ -208,7 +208,6 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(sql);
         }
 
-#if !NET40
         public override Task<Int64> QueryCountFastAsync(String tableName)
         {
             tableName = tableName.Trim().Trim('`', '`').Trim();
@@ -217,7 +216,6 @@ namespace XCode.DataAccessLayer
             var sql = $"select table_rows from information_schema.tables where table_schema='{db}' and table_name='{tableName}'";
             return ExecuteScalarAsync<Int64>(sql);
         }
-#endif
         #endregion
 
         #region 基本方法 查询/执行
@@ -232,13 +230,11 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
 
-#if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql += ";Select LAST_INSERT_ID()";
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
-#endif
         #endregion
 
         #region 批量操作

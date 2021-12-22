@@ -151,13 +151,7 @@ namespace NewLife.Http
                 Expire = DateTime.MinValue;
             }
 
-#if NET40
-            return TaskEx.FromResult(0);
-#elif NET45
-            return Task.FromResult(0);
-#else
             return Task.CompletedTask;
-#endif
         }
 
         /// <summary>发生错误时</summary>
@@ -174,13 +168,7 @@ namespace NewLife.Http
                 Expire = DateTime.MinValue;
             }
 
-#if NET40
-            return TaskEx.FromResult(0);
-#elif NET45
-            return Task.FromResult(0);
-#else
             return Task.CompletedTask;
-#endif
         }
     }
 }

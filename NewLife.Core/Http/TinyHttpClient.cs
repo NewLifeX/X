@@ -17,9 +17,6 @@ using NewLife.Data;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Http
 {
@@ -104,12 +101,7 @@ namespace NewLife.Http
 
                 tc.TryDispose();
                 tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-#if NET40
-                //tc.Connect(remote.Address, remote.Port);
-                await Task.Factory.FromAsync(tc.BeginConnect, tc.EndConnect, remote.Address, remote.Port, null);
-#else
                 await tc.ConnectAsync(remote.Address, remote.Port).ConfigureAwait(false);
-#endif
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -125,11 +117,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET40
-                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
-#else
                     await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
-#endif
                     ns = sslStream;
                 }
 
@@ -152,13 +140,9 @@ namespace NewLife.Http
 
             // 接收
             var buf = new Byte[64 * 1024];
-#if NET40
-            var count = ns.Read(buf, 0, buf.Length);
-#else
             var source = new CancellationTokenSource(Timeout);
 
             var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token).ConfigureAwait(false);
-#endif
 
             return new Packet(buf, 0, count);
         }
@@ -319,11 +303,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET40
-                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
-#else
                     sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false);
-#endif
                     ns = sslStream;
                 }
 

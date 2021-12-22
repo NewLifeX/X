@@ -419,13 +419,11 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
 
-#if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
-#endif
         #endregion
 
         #region 批量操作

@@ -21,10 +21,8 @@ namespace XCode.DataAccessLayer
             Register<DaMeng>(DatabaseType.DaMeng);
             Register<DB2>(DatabaseType.DB2);
             Register<TDengine>(DatabaseType.TDengine);
-#if !__CORE__
-            Register<Access>(DatabaseType.Access);
-            Register<SqlCe>(DatabaseType.SqlCe);
-#endif
+            //Register<Access>(DatabaseType.Access);
+            //Register<SqlCe>(DatabaseType.SqlCe);
             Register<Network>(DatabaseType.Network);
         }
         #endregion
