@@ -233,6 +233,10 @@ namespace NewLife.Reflection
         #region 静态属性
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
+        /// <summary>
+        /// 加载过滤器，如果返回 false 表示跳过加载。
+        /// </summary>
+        public static Func<string, bool> ResolveFilter { get; set; }
         #endregion
 
         #region 方法
