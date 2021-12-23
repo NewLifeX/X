@@ -112,7 +112,7 @@ namespace NewLife.Web
         public Link[] GetLinks(String url)
         {
             var html = GetHtml(url);
-            if (html.IsNullOrWhiteSpace()) return new Link[0];
+            if (html.IsNullOrWhiteSpace()) return Array.Empty<Link>();
 
             return Link.Parse(html, url);
         }

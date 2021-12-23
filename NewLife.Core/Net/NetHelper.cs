@@ -200,7 +200,7 @@ namespace NewLife
         /// <returns></returns>
         public static TcpConnectionInformation2[] GetAllTcpConnections()
         {
-            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
+            if (!Runtime.Windows) return Array.Empty<TcpConnectionInformation2>();
 
             return TcpConnectionInformation2.GetAllTcpConnections();
         }

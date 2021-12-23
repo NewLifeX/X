@@ -101,7 +101,7 @@ namespace NewLife
         /// <returns></returns>
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
-            if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
+            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<Int32>();
             if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -310,7 +310,7 @@ namespace NewLife
         public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
         {
             //if (value == null) return null;
-            if (String.IsNullOrEmpty(value)) return new Byte[0];
+            if (String.IsNullOrEmpty(value)) return Array.Empty<Byte>();
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
@@ -575,7 +575,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LevenshteinSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key)) return new String[0];
+            if (IsNullOrWhiteSpace(key)) return Array.Empty<String>();
 
             var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -646,7 +646,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LCSSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
+            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return Array.Empty<String>();
 
             var keys = key
                                 .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)

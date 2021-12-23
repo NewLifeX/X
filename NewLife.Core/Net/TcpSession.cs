@@ -273,7 +273,7 @@ namespace NewLife.Net
                 if (_Stream == null)
                 {
                     if (count == 0)
-                        rs = sock.Send(new Byte[0]);
+                        rs = sock.Send(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                     else
@@ -282,7 +282,7 @@ namespace NewLife.Net
                 else
                 {
                     if (count == 0)
-                        _Stream.Write(new Byte[0]);
+                        _Stream.Write(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         _Stream.Write(pk.Data, pk.Offset, count);
                     else

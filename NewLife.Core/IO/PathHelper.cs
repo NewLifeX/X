@@ -438,7 +438,7 @@ namespace System.IO
         /// <returns></returns>
         public static String[] CopyTo(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
-            if (!di.Exists) return new String[0];
+            if (!di.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 
@@ -467,7 +467,7 @@ namespace System.IO
         public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) return new String[0];
+            if (!dest.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 

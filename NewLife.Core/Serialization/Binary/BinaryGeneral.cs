@@ -307,7 +307,7 @@ namespace NewLife.Serialization
             {
                 //Host.WriteSize(0);
                 // 可能因为FieldSize设定需要补充0字节
-                Write(new Byte[0]);
+                Write(Array.Empty<Byte>());
                 return;
             }
 
@@ -315,7 +315,7 @@ namespace NewLife.Serialization
             {
                 //Host.WriteSize(0);
                 // 可能因为FieldSize设定需要补充0字节
-                Write(new Byte[0]);
+                Write(Array.Empty<Byte>());
                 return;
             }
 
@@ -331,7 +331,7 @@ namespace NewLife.Serialization
             if (value == null || value.Length == 0)
             {
                 //Host.WriteSize(0);
-                Write(new Byte[0]);
+                Write(Array.Empty<Byte>());
                 return;
             }
 

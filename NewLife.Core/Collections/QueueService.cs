@@ -108,7 +108,7 @@ namespace NewLife.Collections
                 }
             }
 
-            return new T[0];
+            return Array.Empty<T>();
         }
         #endregion
     }

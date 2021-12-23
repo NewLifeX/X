@@ -33,7 +33,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Packet Encode(Object value)
         {
-            if (value == null) return new Byte[0];
+            if (value == null) return Array.Empty<Byte>();
 
             if (value is Packet pk) return pk;
             if (value is Byte[] buf) return buf;

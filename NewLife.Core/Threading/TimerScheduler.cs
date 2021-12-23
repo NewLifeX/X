@@ -56,7 +56,7 @@ namespace NewLife.Threading
         private Thread? thread;
         private Int32 _tid;
 
-        private TimerX[] Timers = new TimerX[0];
+        private TimerX[] Timers = global::System.Array.Empty<global::NewLife.Threading.TimerX>();
         #endregion
 
         /// <summary>把定时器加入队列</summary>

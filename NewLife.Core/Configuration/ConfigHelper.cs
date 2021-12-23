@@ -142,7 +142,7 @@ namespace NewLife.Configuration
                         if (val == null)
                         {
                             // 如果有无参构造函数，则实例化一个
-                            var ctor = pi.PropertyType.GetConstructor(new Type[0]);
+                            var ctor = pi.PropertyType.GetConstructor(Array.Empty<Type>());
                             if (ctor != null)
                             {
                                 val = ctor.Invoke(null);

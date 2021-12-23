@@ -59,7 +59,7 @@ namespace NewLife.Http
             WriteLog("{0}<={1}", action, str);
             if (str.IsNullOrEmpty()) return null;
 
-            var ctype = new String[0];
+            var ctype = Array.Empty<String>();
             if (msg is HttpMessage hmsg && str[0] == '{')
             {
                 if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(";");
