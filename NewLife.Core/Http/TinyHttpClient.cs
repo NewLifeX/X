@@ -142,7 +142,7 @@ namespace NewLife.Http
             var buf = new Byte[64 * 1024];
             var source = new CancellationTokenSource(Timeout);
 
-            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token).ConfigureAwait(false);
+            var count = await ns.ReadAsync(buf, source.Token).ConfigureAwait(false);
 
             return new Packet(buf, 0, count);
         }

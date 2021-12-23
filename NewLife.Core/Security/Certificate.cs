@@ -89,9 +89,9 @@ namespace NewLife.Security
             var storeCertContext = IntPtr.Zero;
             var passwordPtr = IntPtr.Zero;
 
-#if !NETCOREAPP
-            RuntimeHelpers.PrepareConstrainedRegions();
-#endif
+//#if !NETCOREAPP
+//            RuntimeHelpers.PrepareConstrainedRegions();
+//#endif
 
             try
             {

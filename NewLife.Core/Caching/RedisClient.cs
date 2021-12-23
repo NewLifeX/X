@@ -368,7 +368,7 @@ namespace NewLife.Caching
             // 取巧进行异步操作，只要异步读取到第一个字节，后续同步读取
             var buf = new Byte[1];
             if (cancellationToken == CancellationToken.None) cancellationToken = new CancellationTokenSource(Host.Timeout).Token;
-            var n = await ms.ReadAsync(buf, 0, buf.Length, cancellationToken);
+            var n = await ms.ReadAsync(buf, cancellationToken);
             if (n <= 0) return list;
 
             var header = (Char)buf[0];
