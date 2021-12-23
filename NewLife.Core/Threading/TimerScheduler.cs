@@ -63,7 +63,9 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
-            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer?.ToString());
+            if (timer == null) throw new ArgumentNullException(nameof(timer));
+
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer.ToString());
 
             timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}", timer);

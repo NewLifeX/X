@@ -1037,8 +1037,8 @@ namespace NewLife
             var si = p.StartInfo;
             si.UseShellExecute = true;
             si.FileName = fileName;
-            si.Arguments = arguments;
-            si.WorkingDirectory = workingDirectory;
+            if (arguments != null) si.Arguments = arguments;
+            if (workingDirectory != null) si.WorkingDirectory = workingDirectory;
 
             p.Start();
 
