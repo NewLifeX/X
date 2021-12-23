@@ -296,7 +296,6 @@ namespace XCode.DataAccessLayer
             var name = Path.GetFileNameWithoutExtension(assemblyFile);
             if (!name.IsNullOrEmpty())
             {
-                var linkName = name;
                 var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
                 // 可能是在x64架构上跑x86
                 if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
@@ -309,16 +308,18 @@ namespace XCode.DataAccessLayer
                 else
                     platform = "win";
 
+                // 多目标匹配，不区分先后顺序，统一匹配后按照版本和时间排序
                 links.Add($"{name}.{platform}-{arch}");
                 links.Add($"{name}.{platform}");
-                links.Add($"{name}_netstandard20");
 
                 var ver = Environment.Version;
-                if (ver.Major >= 3) links.Add($"{name}_netstandard21");
-                if (ver.Major < 5)
+                if (ver.Major <= 3)
                     links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
                 else
                     links.Add($"{name}_net{ver.Major}{ver.Minor}");
+
+                if (ver.Major >= 3) links.Add($"{name}_netstandard21");
+                links.Add($"{name}_netstandard20");
 
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                 if (!strict && !links.Contains(name)) links.Add(name);
