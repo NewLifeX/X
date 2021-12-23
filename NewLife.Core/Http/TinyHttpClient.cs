@@ -508,8 +508,8 @@ namespace NewLife.Http
                 var p2 = item.IndexOf(':');
                 if (p2 <= 0) continue;
 
-                var key = item.Substring(0, p2);
-                var value = item.Substring(p2 + 1).Trim();
+                var key = item[..p2];
+                var value = item[(p2 + 1)..].Trim();
 
                 hs[key] = value;
             }

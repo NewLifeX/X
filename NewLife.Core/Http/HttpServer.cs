@@ -95,7 +95,7 @@ namespace NewLife.Http
             Routes[path2] = new StaticFilesHandler { Path = path, ContentPath = contentPath };
         }
 
-        private IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        private readonly IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         /// <summary>匹配处理器</summary>
         /// <param name="path"></param>
         /// <returns></returns>

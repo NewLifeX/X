@@ -468,7 +468,7 @@ namespace XCode.Membership
             var address = ip.IPToAddress();
             if (address.IsNullOrEmpty()) return list;
 
-            if (address.StartsWith("广西")) address = "广西自治区" + address.Substring(2);
+            if (address.StartsWith("广西")) address = "广西自治区" + address[2..];
             var addrs = address.Split("省", "自治区", "市", "区", "自治县", "县", "自治州", " ");
             if (addrs != null && addrs.Length >= 2)
             {
@@ -609,16 +609,16 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("<td", "</td>");
+                var ss = html[s..e].Split("<td", "</td>");
                 if (ss.Length > 4)
                 {
                     var id = ss[3];
                     var p2 = id.LastIndexOf('>');
-                    if (p2 >= 0) id = id.Substring(p2 + 1);
+                    if (p2 >= 0) id = id[(p2 + 1)..];
 
                     var name = ss[5];
                     var p3 = name.LastIndexOf('>');
-                    if (p3 >= 0) name = name.Substring(p3 + 1);
+                    if (p3 >= 0) name = name[(p3 + 1)..];
 
                     if (!id.IsNullOrEmpty() && id.ToInt() > 10_00_00 && !name.IsNullOrEmpty())
                     {
@@ -652,7 +652,7 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("'>", "</a>");
+                var ss = html[s..e].Split("'>", "</a>");
                 if (ss.Length > 4)
                 {
                     var id = ss[2].Trim().TrimEnd("000");

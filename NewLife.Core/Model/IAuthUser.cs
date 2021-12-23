@@ -69,8 +69,8 @@ namespace NewLife.Model
         public static Boolean CheckRC4(this IAuthUser user, String pass)
         {
             // 密码有盐值和密文两部分组成
-            var salt = pass.Substring(0, pass.Length / 2).ToHex();
-            pass = pass.Substring(pass.Length / 2);
+            var salt = pass[..(pass.Length / 2)].ToHex();
+            pass = pass[(pass.Length / 2)..];
 
             // 验证密码
             var tpass = user.Password.GetBytes();

@@ -185,7 +185,7 @@ namespace XCode.DataAccessLayer
             {
                 var str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                 if (!String.IsNullOrEmpty(str)) return str;
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
             }
             #endregion
 
@@ -1273,7 +1273,7 @@ namespace XCode.DataAccessLayer
                 if (!str.StartsWith(prefix)) return str;
                 if (!str.EndsWith(suffix)) return str;
 
-                str = str.Substring(prefix.Length, str.Length - suffix.Length - prefix.Length);
+                str = str[prefix.Length..^suffix.Length];
             }
             return str;
         }

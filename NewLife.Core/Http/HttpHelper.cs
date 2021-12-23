@@ -136,7 +136,7 @@ namespace NewLife.Http
             {
                 line = lines[i];
                 p = line.IndexOf(':');
-                if (p > 0) headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
+                if (p > 0) headers[line[..p]] = line[(p + 1)..].Trim();
             }
 
             line = lines[0];

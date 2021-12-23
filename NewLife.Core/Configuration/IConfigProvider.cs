@@ -339,7 +339,7 @@ namespace NewLife.Configuration
             if (name.IsNullOrEmpty()) name = DefaultProvider;
 
             var p = name.LastIndexOf('.');
-            var ext = p >= 0 ? name.Substring(p + 1) : name;
+            var ext = p >= 0 ? name[(p + 1)..] : name;
             if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
             if (!_providers.TryGetValue(ext, out var type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
 

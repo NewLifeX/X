@@ -94,7 +94,7 @@ namespace NewLife.Web
 
                 // 去掉后缀
                 var p = link.Name.LastIndexOf('.');
-                if (p > 0) link.Name = link.Name.Substring(0, p);
+                if (p > 0) link.Name = link.Name[..p];
 
                 list.Add(link);
             }
@@ -135,15 +135,15 @@ namespace NewLife.Web
 
                 // 分割名称，计算结尾的时间 yyyyMMddHHmmss
                 var idx = link.ParseTime();
-                if (idx > 0) link.Title = link.Title.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title[..idx];
 
                 // 分割版本，_v1.0.0.0
                 idx = link.ParseVersion();
-                if (idx > 0) link.Title = link.Title.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title[..idx];
 
                 // 去掉后缀
                 var p = link.Name.LastIndexOf('.');
-                if (p > 0) link.Name = link.Name.Substring(0, p);
+                if (p > 0) link.Name = link.Name[..p];
 
                 list.Add(link);
             }
@@ -165,7 +165,7 @@ namespace NewLife.Web
 
             // 去掉后缀
             var p = Name.LastIndexOf('.');
-            if (p > 0) Name = Name.Substring(0, p);
+            if (p > 0) Name = Name[..p];
 
             // 时间
             if (Time.Year < 2000)
@@ -184,27 +184,27 @@ namespace NewLife.Web
             var p = name.LastIndexOf("_");
             if (p <= 0) return -1;
 
-            var ts = name.Substring(p + 1);
+            var ts = name[(p + 1)..];
             if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2 + 2 + 2 + 2)
             {
                 Time = new DateTime(
-                    ts.Substring(0, 4).ToInt(),
+                    ts[..4].ToInt(),
                     ts.Substring(4, 2).ToInt(),
                     ts.Substring(6, 2).ToInt(),
                     ts.Substring(8, 2).ToInt(),
                     ts.Substring(10, 2).ToInt(),
                     ts.Substring(12, 2).ToInt());
 
-                Name = name.Substring(0, p) + name.Substring(p + 1 + 14);
+                Name = name[..p] + name[(p + 1 + 14)..];
             }
             else if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2)
             {
                 Time = new DateTime(
-                    ts.Substring(0, 4).ToInt(),
+                    ts[..4].ToInt(),
                     ts.Substring(4, 2).ToInt(),
                     ts.Substring(6, 2).ToInt());
 
-                Name = name.Substring(0, p) + name.Substring(p + 1 + 8);
+                Name = name[..p] + name[(p + 1 + 8)..];
             }
 
             return p;
@@ -250,8 +250,8 @@ namespace NewLife.Web
                         break;
                 }
 
-                var str = name.Substring(0, p);
-                if (p2 < name.Length) str += name.Substring(p2);
+                var str = name[..p];
+                if (p2 < name.Length) str += name[p2..];
                 Name = str;
             }
 

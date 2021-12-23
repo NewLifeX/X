@@ -238,12 +238,12 @@ namespace NewLife.Http
             p = url.IndexOf('?');
             if (p > 0)
             {
-                action = url.Substring(1, p - 1);
-                value = url.Substring(p + 1).GetBytes();
+                action = url[1..p];
+                value = url[(p + 1)..].GetBytes();
             }
             else
             {
-                action = url.Substring(1);
+                action = url[1..];
                 value = http.Payload;
             }
 

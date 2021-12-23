@@ -64,11 +64,11 @@ namespace NewLife
             if (String.IsNullOrEmpty(address)) return null;
 
             var p = address.IndexOf("://");
-            if (p >= 0) address = address.Substring(p + 3);
+            if (p >= 0) address = address[(p + 3)..];
 
             p = address.LastIndexOf(':');
             if (p > 0)
-                return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
+                return new IPEndPoint(ParseAddress(address[..p]), Int32.Parse(address[(p + 1)..]));
             else
                 return new IPEndPoint(ParseAddress(address), defaultPort);
         }
@@ -508,14 +508,14 @@ namespace NewLife
 
             // 有可能是NetUri
             var p = addr.IndexOf("://");
-            if (p >= 0) addr = addr.Substring(p + 3);
+            if (p >= 0) addr = addr[(p + 3)..];
 
             // 有可能是多个IP地址
             p = addr.IndexOf(",");
             if (p >= 0) addr = addr.Split(",").FirstOrDefault();
 
             // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(':')) addr = addr.Substring(0, addr.LastIndexOf(":"));
+            if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(":")];
 
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 

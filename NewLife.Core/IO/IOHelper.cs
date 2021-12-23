@@ -810,7 +810,7 @@ namespace NewLife
         {
             if (data.IsNullOrEmpty()) return Array.Empty<Byte>();
 
-            if (data[data.Length - 1] != '=')
+            if (data[^1] != '=')
             {
                 // 如果不是4的整数倍，后面补上等号
                 var n = data.Length % 4;

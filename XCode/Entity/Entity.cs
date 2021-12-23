@@ -802,8 +802,8 @@ namespace XCode
                             var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
-                                od = item.Substring(p).Trim().ToLower();
-                                fn = item.Substring(0, p).Trim();
+                                od = item[p..].Trim().ToLower();
+                                fn = item[..p].Trim();
                             }
 
                             switch (od)
@@ -1070,8 +1070,8 @@ namespace XCode
                             var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
-                                od = item.Substring(p).Trim().ToLower();
-                                fn = item.Substring(0, p).Trim();
+                                od = item[p..].Trim().ToLower();
+                                fn = item[..p].Trim();
                             }
 
                             switch (od)

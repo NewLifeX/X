@@ -392,7 +392,7 @@ namespace System
                 if (str.EndsWithIgnoreCase(" UTC"))
                 {
                     utc = true;
-                    str = str.Substring(0, str.Length - 4);
+                    str = str[0..^4];
                 }
 
                 if (!DateTime.TryParse(str, out var dt) &&

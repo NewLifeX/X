@@ -368,7 +368,7 @@ namespace NewLife.Log
                 // HierarchicalId编码取最后一段作为父级
                 var ss = (tid + "").Split(".", "_");
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
+                if (ss.Length > 1) span.ParentId = ss[^1];
             }
             else if (dic.TryGetValue("Eagleeye-Traceid", out tid))
             {

@@ -442,7 +442,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";
@@ -534,7 +534,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";

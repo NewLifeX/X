@@ -40,7 +40,7 @@ namespace XCode.Membership
             // 处理过长的备注
             if (!Remark.IsNullOrEmpty() && Remark.Length > 500)
             {
-                Remark = Remark.Substring(0, 500);
+                Remark = Remark[..500];
             }
 
             // 时间

@@ -161,7 +161,7 @@ namespace System.IO
 
             var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
-            if (dir[dir.Length - 1] == Path.DirectorySeparatorChar)
+            if (dir[^1] == Path.DirectorySeparatorChar)
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);

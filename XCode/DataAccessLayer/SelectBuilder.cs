@@ -120,13 +120,13 @@ namespace XCode.DataAccessLayer
                         var match = reg_gb.Match(_Where);
                         if (match != null && match.Success)
                         {
-                            var gb = _Where.Substring(match.Index + match.Length).Trim();
+                            var gb = _Where[(match.Index + match.Length)..].Trim();
                             if (String.IsNullOrEmpty(GroupBy))
                                 GroupBy = gb;
                             else
                                 GroupBy += ", " + gb;
 
-                            _Where = _Where.Substring(0, match.Index).Trim();
+                            _Where = _Where[..match.Index].Trim();
                         }
                     }
                 }
@@ -200,12 +200,12 @@ namespace XCode.DataAccessLayer
                     else if (item.ToLower().Contains(" as "))
                     {
                         var p = item.LastIndexOf(' ');
-                        sb.Append(item.Substring(p + 1));
+                        sb.Append(item[(p + 1)..]);
                     }
                     else if (item.Contains(" "))
                     {
                         var p = item.LastIndexOf(' ');
-                        sb.Append(item.Substring(p + 1));
+                        sb.Append(item[(p + 1)..]);
                     }
                     else
                         sb.Append(item);

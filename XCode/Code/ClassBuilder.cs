@@ -452,7 +452,7 @@ namespace XCode.Code
             if (add)
                 _Indent += "    ";
             else if (!_Indent.IsNullOrEmpty())
-                _Indent = _Indent.Substring(0, _Indent.Length - 4);
+                _Indent = _Indent[0..^4];
         }
 
         /// <summary>写入</summary>
@@ -549,7 +549,7 @@ namespace XCode.Code
         {
             if (name.EqualIgnoreCase("id")) return "id";
 
-            return Char.ToLower(name[0]) + name.Substring(1);
+            return Char.ToLower(name[0]) + name[1..];
         }
 
         /// <summary>是否调试</summary>

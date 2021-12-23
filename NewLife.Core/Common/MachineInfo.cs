@@ -503,8 +503,8 @@ namespace NewLife
                     var p = line.IndexOf(separate);
                     if (p > 0)
                     {
-                        var key = line.Substring(0, p).Trim();
-                        var value = line.Substring(p + 1).Trim();
+                        var key = line[..p].Trim();
+                        var value = line[(p + 1)..].Trim();
                         dic[key] = value;
                     }
                 }

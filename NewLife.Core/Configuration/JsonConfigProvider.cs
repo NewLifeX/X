@@ -185,7 +185,7 @@ namespace NewLife.Configuration
                 var p2 = text.IndexOf("*/", p + 2);
                 if (p2 < 0) break;
 
-                text = text.Substring(0, p) + text.Substring(p2 + 2);
+                text = text[..p] + text[(p2 + 2)..];
             }
 
             return text;

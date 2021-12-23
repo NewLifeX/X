@@ -257,10 +257,10 @@ namespace XCode.DataAccessLayer
 
             if (pos < 0) return "\"" + keyWord + "\"";
 
-            var tn = keyWord.Substring(pos + 1);
+            var tn = keyWord[(pos + 1)..];
             if (tn.StartsWith("\"")) return keyWord;
 
-            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+            return keyWord[..(pos + 1)] + "\"" + tn + "\"";
         }
         #endregion
     }
@@ -310,7 +310,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName)) return 0;
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as DB2).Owner;
@@ -352,7 +352,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName)) return Task.FromResult(0L);
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as DB2).Owner;

@@ -297,7 +297,7 @@ namespace NewLife.Log
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
                 offset = (Int32)e.Arg2[1];
-                count = (Int32)e.Arg2[e.Arg2.Length - 1];
+                count = (Int32)e.Arg2[^1];
             }
 
             if (e.Arg2.Length == 1)
@@ -387,7 +387,7 @@ namespace NewLife.Log
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
                 offset = (Int32)e.Arg2[1];
-                count = (Int32)e.Arg2[e.Arg2.Length - 1];
+                count = (Int32)e.Arg2[^1];
             }
 
             if (e.Arg2.Length == 1)

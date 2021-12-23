@@ -113,16 +113,16 @@ namespace NewLife.Remoting
             var p = url.IndexOf('=');
             if (p > 0)
             {
-                svc.Name = url.Substring(0, p);
-                url = url.Substring(p + 1);
+                svc.Name = url[..p];
+                url = url[(p + 1)..];
             }
 
             // 解析权重
             p = url.IndexOf("*http");
             if (p > 0)
             {
-                svc.Weight = url.Substring(0, p).ToInt();
-                url = url.Substring(p + 1);
+                svc.Weight = url[..p].ToInt();
+                url = url[(p + 1)..];
             }
 
             svc.Address = new Uri(url);

@@ -35,16 +35,16 @@ namespace NewLife.Data
                     var p = _Sort.LastIndexOf(" ");
                     if (p > 0)
                     {
-                        var dir = _Sort.Substring(p + 1);
+                        var dir = _Sort[(p + 1)..];
                         if (dir.EqualIgnoreCase("asc"))
                         {
                             Desc = false;
-                            _Sort = _Sort.Substring(0, p).Trim();
+                            _Sort = _Sort[..p].Trim();
                         }
                         else if (dir.EqualIgnoreCase("desc"))
                         {
                             Desc = true;
-                            _Sort = _Sort.Substring(0, p).Trim();
+                            _Sort = _Sort[..p].Trim();
                         }
                     }
                 }

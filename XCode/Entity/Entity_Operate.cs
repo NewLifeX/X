@@ -266,12 +266,12 @@ namespace XCode
                             if (name.EndsWith("ID") || name.EndsWith("Id"))
                             {
                                 // 倒数第三个字符为小写
-                                if (name.Length >= 3 && !Char.IsUpper(name[name.Length - 3])) continue;
+                                if (name.Length >= 3 && !Char.IsUpper(name[^3])) continue;
                             }
 
                             // 第二名称，去掉后面的数字，便于模式匹配
                             var name2 = item.Name;
-                            while (name2.Length > 1 && Char.IsDigit(name2[name2.Length - 1])) name2 = name2.Substring(0, name2.Length - 1);
+                            while (name2.Length > 1 && Char.IsDigit(name2[^1])) name2 = name2[0..^1];
 
                             if (name.StartsWith("Max") && name.Length > 3 && Char.IsUpper(name[3]))
                                 concat &= item.Max();

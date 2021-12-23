@@ -41,7 +41,7 @@ namespace NewLife.Reflection
                     if (!ver.IsNullOrEmpty())
                     {
                         var p = ver.IndexOf('+');
-                        if (p > 0) ver = ver.Substring(0, p);
+                        if (p > 0) ver = ver[..p];
                     }
                     _FileVersion = ver;
                 }
@@ -448,7 +448,7 @@ namespace NewLife.Reflection
             // 数组
             if (typeName.EndsWith("[]"))
             {
-                var elemType = GetType(typeName.Substring(0, typeName.Length - 2), isLoadAssembly);
+                var elemType = GetType(typeName[0..^2], isLoadAssembly);
                 if (elemType == null) return null;
 
                 return elemType.MakeArrayType();
@@ -513,7 +513,7 @@ namespace NewLife.Reflection
                         if (XTrace.Debug)
                         {
                             var root = ".".GetFullPath();
-                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                            if (file.StartsWithIgnoreCase(root)) file = file[root.Length..].TrimStart("\\");
                             XTrace.WriteLine("TypeX.GetType(\"{0}\") => {1}", typeName, file);
                         }
                     }
@@ -743,7 +743,7 @@ namespace NewLife.Reflection
             var p = name.IndexOf(", ");
             if (p > 0)
             {
-                name = name.Substring(0, p);
+                name = name[..p];
                 foreach (var item in GetAssemblies())
                 {
                     if (item.Asm.GetName().Name == name) return item.Asm;
