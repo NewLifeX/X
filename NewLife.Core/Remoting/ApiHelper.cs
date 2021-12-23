@@ -126,14 +126,14 @@ namespace NewLife.Remoting
                 if (args is Packet pk)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += pk.ToArray().ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
                 else if (args is Byte[] buf)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += buf.ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
@@ -272,7 +272,7 @@ namespace NewLife.Remoting
             {
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
-                if (action.Contains("?"))
+                if (action.Contains('?'))
                     sb.Append('&');
                 else
                     sb.Append('?');

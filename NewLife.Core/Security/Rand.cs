@@ -7,7 +7,7 @@ namespace NewLife.Security
     /// <summary>随机数</summary>
     public static class Rand
     {
-#if NETCOREAPP
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         /// <summary>返回一个小于所指定最大值的非负随机数</summary>
         /// <param name="max">返回的随机数的上界（随机数不能取该上界值）</param>
         /// <returns></returns>

@@ -515,7 +515,7 @@ namespace NewLife
             if (p >= 0) addr = addr.Split(",").FirstOrDefault();
 
             // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
+            if (addr.Replace("::", "").Contains(':')) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 

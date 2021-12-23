@@ -151,10 +151,10 @@ namespace NewLife.Log
             Current = this;
         }
 
-        private static String _myip;
+        private static readonly String _myip;
         private static Int32 _seq;
         private static Int32 _seq2;
-        private static String _pid;
+        private static readonly String _pid;
 
         /// <summary>创建分片编号</summary>
         /// <returns></returns>

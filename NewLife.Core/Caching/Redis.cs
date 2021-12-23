@@ -157,7 +157,7 @@ namespace NewLife.Caching
 
                 // 连接字符串可能独立写了port
                 var port = dic["Port"].ToInt();
-                if (port > 0 && !Server.Contains(":")) Server += ":" + port;
+                if (port > 0 && !Server.Contains(':')) Server += ":" + port;
 
                 if (dic.TryGetValue("Timeout", out var str))
                     Timeout = str.ToInt();

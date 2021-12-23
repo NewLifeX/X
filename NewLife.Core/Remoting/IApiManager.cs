@@ -106,7 +106,7 @@ namespace NewLife.Remoting
             if (Services.TryGetValue(action, out var mi)) return mi;
 
             // 局部模糊匹配
-            if (action.Contains("/"))
+            if (action.Contains('/'))
             {
                 var ctrl = action.Substring(null, "/");
                 if (Services.TryGetValue(ctrl + "/*", out mi)) return mi;

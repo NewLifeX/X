@@ -396,8 +396,8 @@ namespace System
                 }
 
                 if (!DateTime.TryParse(str, out var dt) &&
-                    !str.Contains("-") && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt) &&
-                    !str.Contains("/") && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt) &&
+                    !str.Contains('-') && DateTime.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt) &&
+                    !str.Contains('/') && DateTime.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt) &&
                     !DateTime.TryParse(str, out dt))
                 {
                     dt = defaultValue;
@@ -441,8 +441,8 @@ namespace System
                 if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (DateTimeOffset.TryParse(str, out var dt)) return dt;
-                if (str.Contains("-") && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
-                if (str.Contains("/") && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)) return dt;
+                if (str.Contains('-') && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
+                if (str.Contains('/') && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)) return dt;
 
                 return defaultValue;
             }

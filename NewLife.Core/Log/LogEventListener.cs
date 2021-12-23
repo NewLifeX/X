@@ -67,7 +67,7 @@ namespace NewLife.Log
                 _ => LogLevel.Info,
             };
 
-#if NETCOREAPP
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
             XTrace.WriteLine($"#{eventData.EventSource?.Name} ThreadID = {eventData.OSThreadId} ID = {eventData.EventId} Name = {eventData.EventName}");
             for (var i = 0; i < eventData.Payload.Count; i++)
             {

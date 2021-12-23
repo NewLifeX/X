@@ -284,7 +284,7 @@ namespace NewLife.Reflection
                     // name
                     //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
                     var typeName = type.Name;
-                    if (typeName.Contains("`"))
+                    if (typeName.Contains('`'))
                         writer.Write(typeName.Substring(0, typeName.IndexOf("`")));
                     else
                         writer.Write(typeName);

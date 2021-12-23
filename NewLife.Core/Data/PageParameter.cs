@@ -102,7 +102,7 @@ namespace NewLife.Data
                 {
                     //单字段复杂表达式排序或多字段排序清空 Sort 
                     var temp = value.ToLower().Replace("asc", "").Replace("desc", "").Trim();
-                    if (temp.Contains(",") || temp.Contains(" ") || temp.Contains("(") || temp.Contains(")") || temp.Contains("+") || temp.Contains("-") || temp.Contains("*") || temp.Contains("/") || temp.Contains("%"))
+                    if (temp.Contains(',') || temp.Contains(' ') || temp.Contains('(') || temp.Contains(')') || temp.Contains('+') || temp.Contains('-') || temp.Contains('*') || temp.Contains('/') || temp.Contains('%'))
                         Sort = null;
                     else
                         Sort = value;
@@ -140,7 +140,7 @@ namespace NewLife.Data
 
         /// <summary>通过另一个分页参数来实例化当前分页参数</summary>
         /// <param name="pm"></param>
-        public PageParameter(PageParameter pm) { CopyFrom(pm); }
+        public PageParameter(PageParameter pm) => CopyFrom(pm);
         #endregion
 
         #region 方法

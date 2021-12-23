@@ -50,7 +50,7 @@ namespace NewLife.Expressions
                 var level = GetOperationLevel(arr[i]);
                 if (level < 0)
                 {
-                    stack.Push(ToDouble(arr[i]));
+                    stack.Push(MathExpression.ToDouble(arr[i]));
                 }
                 else if (level > 0)
                 {
@@ -89,7 +89,7 @@ namespace NewLife.Expressions
         /// <summary>转为浮点数</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Double ToDouble(String value)
+        public static Double ToDouble(String value)
         {
             if (Double.TryParse(value, out var tempValue)) return tempValue;
 

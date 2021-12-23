@@ -260,7 +260,7 @@ namespace NewLife.Reflection
             if (type != null) return type;
 
             // 如果没有包含圆点，说明其不是FullName
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 //try
                 //{
@@ -455,7 +455,7 @@ namespace NewLife.Reflection
             }
 
             // 加速基础类型识别，忽略大小写
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 foreach (var item in Enum.GetNames(typeof(TypeCode)))
                 {

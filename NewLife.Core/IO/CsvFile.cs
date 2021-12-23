@@ -240,9 +240,9 @@ namespace NewLife.IO
                     _ => item + "",
                 };
 
-                if (str.Contains("\""))
+                if (str.Contains('"'))
                     sb.AppendFormat("\"{0}\"", str.Replace("\"", "\"\""));
-                else if (str.Contains(Separator) || str.Contains("\r") || str.Contains("\n"))
+                else if (str.Contains(Separator) || str.Contains('\r') || str.Contains('\n'))
                     sb.AppendFormat("\"{0}\"", str);
                 else
                     sb.Append(str);

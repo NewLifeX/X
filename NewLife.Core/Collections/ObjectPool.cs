@@ -56,7 +56,7 @@ namespace NewLife.Collections
         public ObjectPool()
         {
             var str = GetType().Name;
-            if (str.Contains("`")) str = str.Substring(null, "`");
+            if (str.Contains('`')) str = str.Substring(null, "`");
             if (str != "Pool")
                 Name = str;
             else

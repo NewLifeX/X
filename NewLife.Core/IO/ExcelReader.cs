@@ -135,7 +135,7 @@ namespace NewLife.IO
                             var si = s.Value.ToInt();
                             if (si < _styles.Length && _styles[si] != null && _styles[si].StartsWith("yy"))
                             {
-                                if (val.Contains("."))
+                                if (val.Contains('.'))
                                 {
                                     var ss = val.Split(".");
                                     var dt = _1900.AddDays(ss[0].ToInt() - 2);

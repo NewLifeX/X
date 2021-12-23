@@ -110,7 +110,7 @@ namespace NewLife.Http
             // 模糊匹配
             foreach (var item in Routes)
             {
-                if (item.Key.Contains("*") && item.Key.IsMatch(path))
+                if (item.Key.Contains('*') && item.Key.IsMatch(path))
                 {
                     if (Routes.TryGetValue(item.Key, out handler))
                     {

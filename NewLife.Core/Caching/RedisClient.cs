@@ -280,7 +280,7 @@ namespace NewLife.Caching
                 log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(ReadBlock(ms, log));
+                    list.Add(RedisClient.ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
@@ -388,7 +388,7 @@ namespace NewLife.Caching
                 log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(ReadBlock(ms, log));
+                    list.Add(RedisClient.ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
@@ -490,7 +490,7 @@ namespace NewLife.Caching
             }
         }
 
-        private Packet ReadBlock(Stream ms, StringBuilder log) => ReadPacket(ms, log);
+        private static Packet ReadBlock(Stream ms, StringBuilder log) => ReadPacket(ms, log);
 
         private Object[] ReadBlocks(Stream ms, StringBuilder log)
         {

@@ -224,7 +224,7 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = ParseChunk(pk, out var len);
+                var chunk = TinyHttpClient.ParseChunk(pk, out var len);
                 if (len <= 0) break;
 
                 // 第一个包需要替换，因为偏移量改变
@@ -408,7 +408,7 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = ParseChunk(pk, out var len);
+                var chunk = TinyHttpClient.ParseChunk(pk, out var len);
                 if (len <= 0) break;
 
                 // 第一个包需要替换，因为偏移量改变
@@ -525,7 +525,7 @@ namespace NewLife.Http
         }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
-        private Packet ParseChunk(Packet rs, out Int32 octets)
+        private static Packet ParseChunk(Packet rs, out Int32 octets)
         {
             // chunk编码
             // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
