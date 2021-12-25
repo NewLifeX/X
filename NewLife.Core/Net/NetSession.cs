@@ -78,7 +78,7 @@ namespace NewLife.Net
         {
             var ns = (this as INetSession).Host;
             var tracer = ns?.Tracer;
-            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", e.Message ?? e.Packet);
+            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", Remote + "");
 
             try
             {
@@ -86,7 +86,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, Remote + "");
+                span?.SetError(ex, e.Message ?? e.Packet);
                 throw;
             }
         }
