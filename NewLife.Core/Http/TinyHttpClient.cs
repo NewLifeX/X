@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -224,8 +225,14 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = TinyHttpClient.ParseChunk(pk, out var len);
+                var chunk = ParseChunk(pk, out var offset, out var len);
                 if (len <= 0) break;
+
+                // 更新pk，可能还有粘包数据
+                if (offset + len < pk.Total)
+                    pk = pk.Slice(offset + len);
+                else
+                    pk = null;
 
                 // 第一个包需要替换，因为偏移量改变
                 if (last == body)
@@ -248,6 +255,10 @@ namespace NewLife.Http
                     last = pk;
                     total += pk.Total;
                 }
+
+                // 还有粘包数据，继续分析
+                if (pk == null || pk.Total == 0) break;
+                if (pk.Total > 0) continue;
 
                 // 读取新的数据片段，如果不存在则跳出
                 pk = await SendDataAsync(null, null).ConfigureAwait(false);
@@ -346,6 +357,8 @@ namespace NewLife.Http
             var retry = 5;
             while (retry-- > 0)
             {
+                WriteLog("{0} => {1}", nameof(TinyHttpClient), uri);
+
                 // 发出请求
                 rs = SendData(uri, req);
                 if (rs == null || rs.Count == 0) return null;
@@ -363,7 +376,10 @@ namespace NewLife.Http
 
                         if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
+                        // 重建请求头，因为Uri改变后，头部字段也可能改变
                         uri = uri2;
+                        req = BuildRequest(uri, data);
+
                         continue;
                     }
                 }
@@ -408,8 +424,14 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = TinyHttpClient.ParseChunk(pk, out var len);
+                var chunk = ParseChunk(pk, out var offset, out var len);
                 if (len <= 0) break;
+
+                // 更新pk，可能还有粘包数据
+                if (offset + len < pk.Total)
+                    pk = pk.Slice(offset + len);
+                else
+                    pk = null;
 
                 // 第一个包需要替换，因为偏移量改变
                 if (last == body)
@@ -432,6 +454,10 @@ namespace NewLife.Http
                     last = pk;
                     total += pk.Total;
                 }
+
+                // 还有粘包数据，继续分析
+                if (pk == null || pk.Total == 0) break;
+                if (pk.Total > 0) continue;
 
                 // 读取新的数据片段，如果不存在则跳出
                 pk = SendData(null, null);
@@ -525,11 +551,12 @@ namespace NewLife.Http
         }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
-        private static Packet ParseChunk(Packet rs, out Int32 octets)
+        private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
         {
             // chunk编码
             // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
 
+            offset = 0;
             octets = 0;
             var p = rs.IndexOf(NewLine);
             if (p <= 0) return rs;
@@ -543,6 +570,7 @@ namespace NewLife.Http
 
             //if (ContentLength < 0) ContentLength = len;
 
+            offset = p + 2;
             return rs.Slice(p + 2, octets);
         }
         #endregion
@@ -682,6 +710,16 @@ namespace NewLife.Http
 
             return JsonHelper.Convert<TResult>(data);
         }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }
