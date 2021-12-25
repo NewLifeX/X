@@ -198,6 +198,7 @@ namespace NewLife.Configuration
             {
                 appId = AppId,
                 secret = Secret,
+                clientId = ClientId,
                 configs,
             });
         }
