@@ -65,14 +65,7 @@ namespace NewLife.Http
             // 申请令牌。没有令牌，或者令牌已过期
             if (Token == null || Expire < DateTime.Now)
             {
-                var pass = EncodePassword(UserName, Password);
-                Token = await client.PostAsync<TokenModel>(Action, new
-                {
-                    grant_type = "password",
-                    username = UserName,
-                    password = pass,
-                    clientid = ClientId,
-                });
+                Token = await SendAuth(client);
 
                 // 过期时间和刷新令牌的时间
                 Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
@@ -84,11 +77,7 @@ namespace NewLife.Http
             {
                 try
                 {
-                    Token = await client.PostAsync<TokenModel>(Action, new
-                    {
-                        grant_type = "refresh_token",
-                        refresh_token = Token.RefreshToken,
-                    });
+                    Token = await SendRefresh(client);
 
                     // 过期时间和刷新令牌的时间
                     Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
@@ -108,6 +97,34 @@ namespace NewLife.Http
                 if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";
                 request.Headers.Authorization = new AuthenticationHeaderValue(type, Token.AccessToken);
             }
+        }
+
+        /// <summary>发起密码认证请求</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected virtual async Task<TokenModel> SendAuth(HttpClient client)
+        {
+            var pass = EncodePassword(UserName, Password);
+            return await client.PostAsync<TokenModel>(Action, new
+            {
+                grant_type = "password",
+                username = UserName,
+                password = pass,
+                clientid = ClientId,
+            });
+        }
+
+        /// <summary>发起刷新令牌请求</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected virtual async Task<TokenModel> SendRefresh(HttpClient client)
+        {
+            return await client.PostAsync<TokenModel>(Action, new
+            {
+                grant_type = "refresh_token",
+                refresh_token = Token.RefreshToken,
+                clientid = ClientId,
+            });
         }
 
         /// <summary>编码密码，在传输中保护安全，一般使用RSA加密</summary>
