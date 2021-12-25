@@ -52,7 +52,7 @@ namespace NewLife.Remoting
         public ITracer Tracer { get; set; }
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
-        public IList<Service> Services { get; private set; } = new List<Service>();
+        public IList<Service> Services { get; set; } = new List<Service>();
 
         /// <summary>当前服务</summary>
         protected Service _currentService;
