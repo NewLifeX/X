@@ -255,7 +255,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
             using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             var rs = count;
