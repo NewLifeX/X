@@ -168,10 +168,15 @@ namespace NewLife.Net
             return this;
         }
 
+        /// <summary>通过管道发送消息，不等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
+
         /// <summary>异步发送并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<Object> SendAsync(Object message) => Session.SendMessageAsync(message);
+        public virtual Task<Object> SendMessageAsync(Object message) => Session.SendMessageAsync(message);
         #endregion
 
         #region 日志

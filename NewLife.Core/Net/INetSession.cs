@@ -51,10 +51,15 @@ namespace NewLife.Net
         /// <param name="encoding"></param>
         INetSession Send(String msg, Encoding encoding = null);
 
+        /// <summary>通过管道发送消息，不等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        Int32 SendMessage(Object message);
+
         /// <summary>异步发送并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<Object> SendAsync(Object message);
+        Task<Object> SendMessageAsync(Object message);
 
         /// <summary>数据到达事件</summary>
         event EventHandler<ReceivedEventArgs> Received;
