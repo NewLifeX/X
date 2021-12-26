@@ -64,6 +64,7 @@ namespace NewLife.Net
             LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
             BufferSize = Setting.Current.BufferSize;
+            LogDataLength = Setting.Current.LogDataLength;
         }
 
         /// <summary>销毁</summary>
@@ -423,7 +424,7 @@ namespace NewLife.Net
                 var ss = OnPreReceive(pk, remote);
                 if (ss == null) return;
 
-                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 
@@ -588,6 +589,9 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         public Boolean LogReceive { get; set; }
+
+        /// <summary>收发日志数据体长度。默认64</summary>
+        public Int32 LogDataLength { get; set; } = 64;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>
