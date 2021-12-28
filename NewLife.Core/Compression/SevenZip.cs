@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Web;
 
@@ -26,22 +24,6 @@ namespace NewLife.Compression
                 f = "7z/7z.exe".GetFullPath();
                 if (File.Exists(f)) p = f;
             }
-            #endregion
-
-            #region 注册表
-#if NET40_OR_GREATER
-            if (p.IsNullOrEmpty())
-            {
-                var reg = Registry.LocalMachine.OpenSubKey("Software\\7-Zip");
-                if (reg == null) reg = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\7-Zip");
-                if (reg != null)
-                {
-                    var d = reg.GetValue("Path") + "";
-                    var f = d.CombinePath("7z.exe");
-                    if (File.Exists(f)) p = f;
-                }
-            }
-#endif
             #endregion
 
             #region X组件缓存

@@ -185,7 +185,7 @@ namespace XCode.DataAccessLayer
             {
                 var str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                 if (!String.IsNullOrEmpty(str)) return str;
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
             }
             #endregion
 
@@ -419,13 +419,11 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
 
-#if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
-#endif
         #endregion
 
         #region 批量操作
@@ -1275,7 +1273,7 @@ namespace XCode.DataAccessLayer
                 if (!str.StartsWith(prefix)) return str;
                 if (!str.EndsWith(suffix)) return str;
 
-                str = str.Substring(prefix.Length, str.Length - suffix.Length - prefix.Length);
+                str = str[prefix.Length..^suffix.Length];
             }
             return str;
         }

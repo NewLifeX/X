@@ -83,11 +83,7 @@ namespace XCode.DataAccessLayer
         internal void ReleaseSession()
         {
             var st = _store;
-#if NET40 || NET45
-            if (st != null) _store = new ThreadLocal<IDbSession>();
-#else
             if (st != null) _store = new AsyncLocal<IDbSession>();
-#endif
         }
         #endregion
 
@@ -214,11 +210,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 方法
-#if NET40 || NET45
-        private ThreadLocal<IDbSession> _store = new();
-#else
         private AsyncLocal<IDbSession> _store = new();
-#endif
 
         /// <summary>创建数据库会话，数据库在每一个线程都有唯一的一个实例</summary>
         /// <returns></returns>
@@ -286,11 +278,7 @@ namespace XCode.DataAccessLayer
 
             var conn = Factory.CreateConnection();
             conn.ConnectionString = ConnectionString;
-#if NET40
-            await TaskEx.Run(() => conn.Open());
-#else
             await conn.OpenAsync();
-#endif
 
             return conn;
         }
@@ -308,8 +296,6 @@ namespace XCode.DataAccessLayer
             var name = Path.GetFileNameWithoutExtension(assemblyFile);
             if (!name.IsNullOrEmpty())
             {
-                var linkName = name;
-#if __CORE__
                 var arch = (RuntimeInformation.OSArchitecture + "").ToLower();
                 // 可能是在x64架构上跑x86
                 if (arch == "x64" && !Environment.Is64BitProcess) arch = "x86";
@@ -322,23 +308,19 @@ namespace XCode.DataAccessLayer
                 else
                     platform = "win";
 
+                // 多目标匹配，不区分先后顺序，统一匹配后按照版本和时间排序
                 links.Add($"{name}.{platform}-{arch}");
                 links.Add($"{name}.{platform}");
-                links.Add($"{name}_netstandard20");
 
                 var ver = Environment.Version;
-                if (ver.Major >= 3) links.Add($"{name}_netstandard21");
-                if (ver.Major < 5)
+                if (ver.Major <= 3)
                     links.Add($"{name}_netcore{ver.Major}{ver.Minor}");
                 else
                     links.Add($"{name}_net{ver.Major}{ver.Minor}");
-#else
-                if (Environment.Is64BitProcess) linkName += "64";
-                var ver = Environment.Version;
-                if (ver.Major >= 4) linkName += "Fx" + ver.Major + ver.Minor;
-                links.Add(linkName);
-                links.Add($"{name}_net45");
-#endif
+
+                if (ver.Major >= 3) links.Add($"{name}_netstandard21");
+                links.Add($"{name}_netstandard20");
+
                 // 有些数据库驱动不区分x86/x64，并且逐步以Fx4为主，所以来一个默认
                 if (!strict && !links.Contains(name)) links.Add(name);
             }
@@ -438,7 +420,7 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(str)) return str;
 
                     // 如果不能使用最大最小值分页，则砍掉排序，为TopNotIn分页做准备
-                    keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                    keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
                 }
             }
             #endregion
@@ -486,8 +468,8 @@ namespace XCode.DataAccessLayer
                 if (startRowIndex <= 0 && maximumRows > 0)
                     return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
 
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
-                sql = sql.Substring(0, ms[0].Index);
+                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
+                sql = sql[..ms[0].Index];
 
                 var strOrderBy = ms[0].Groups[1].Value.Trim();
                 // 只有一个排序字段
@@ -496,7 +478,7 @@ namespace XCode.DataAccessLayer
                     // 有asc或者desc。没有时，默认为asc
                     if (strOrderBy.ToLower().EndsWith(" desc"))
                     {
-                        var str = strOrderBy.Substring(0, strOrderBy.Length - " desc".Length).Trim();
+                        var str = strOrderBy[..^" desc".Length].Trim();
                         // 排序字段等于keyColumn
                         if (str.ToLower() == keyColumn.ToLower())
                         {
@@ -506,7 +488,7 @@ namespace XCode.DataAccessLayer
                     }
                     else if (strOrderBy.ToLower().EndsWith(" asc"))
                     {
-                        var str = strOrderBy.Substring(0, strOrderBy.Length - " asc".Length).Trim();
+                        var str = strOrderBy[..^" asc".Length].Trim();
                         // 排序字段等于keyColumn
                         if (str.ToLower() == keyColumn.ToLower())
                         {
@@ -542,7 +524,7 @@ namespace XCode.DataAccessLayer
 
                 if (!keyColumn.ToLower().EndsWith(" unknown")) canMaxMin = true;
 
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
             }
 
             if (canMaxMin)
@@ -581,8 +563,8 @@ namespace XCode.DataAccessLayer
             // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
             var ms = reg_Order.Matches(sql);
             if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
-            var orderBy = sql.Substring(ms[0].Index).Trim();
-            sql = sql.Substring(0, ms[0].Index).Trim();
+            var orderBy = sql[ms[0].Index..].Trim();
+            sql = sql[..ms[0].Index].Trim();
 
             return orderBy;
         }

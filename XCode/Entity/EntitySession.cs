@@ -575,7 +575,6 @@ namespace XCode
             return rs;
         }
 
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -625,7 +624,6 @@ namespace XCode
             DataChange("InsertAndGetIdentity " + type);
             return rs;
         }
-#endif
 
         private void DataChange(String reason)
         {
@@ -804,7 +802,6 @@ namespace XCode
             return rs;
         }
 
-#if !NET40
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存和单对象缓存，增加总计数</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
@@ -867,7 +864,6 @@ namespace XCode
 
             return rs;
         }
-#endif
         #endregion
 
         #region 队列

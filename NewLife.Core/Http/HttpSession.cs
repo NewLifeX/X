@@ -125,7 +125,7 @@ namespace NewLife.Http
             var server = (this as INetSession).Host as HttpServer;
             var path = request.Url.OriginalString;
             var p = path.IndexOf('?');
-            if (p > 0) path = path.Substring(0, p);
+            if (p > 0) path = path[..p];
 
             // 埋点
             using var span = (this as INetSession).Host.Tracer?.NewSpan(path);
@@ -180,7 +180,7 @@ namespace NewLife.Http
             var p = url.IndexOf('?');
             if (p > 0)
             {
-                var qs = url.Substring(p + 1).SplitAsDictionary("=", "&")
+                var qs = url[(p + 1)..].SplitAsDictionary("=", "&")
                     .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
                 ps.Merge(qs);
             }

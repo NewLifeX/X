@@ -88,7 +88,6 @@ namespace NewLife.Security
             return true;
         }
 
-#if __CORE__
         /// <summary>导出参数</summary>
         /// <returns></returns>
         public ECParameters ExportParameters()
@@ -104,7 +103,6 @@ namespace NewLife.Security
                 Curve = ECCurve.CreateFromFriendlyName(Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_")),
             };
         }
-#endif
         #endregion
     }
 }

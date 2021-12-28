@@ -73,7 +73,7 @@ namespace XCode.Service
 
             Int64 rs;
             if (sql.StartsWithIgnoreCase("@Insert"))
-                rs = dal.InsertAndGetIdentity(sql.Substring(1), CommandType.Text, dps);
+                rs = dal.InsertAndGetIdentity(sql[1..], CommandType.Text, dps);
             else
                 rs = dal.Execute(sql, CommandType.Text, dps);
 

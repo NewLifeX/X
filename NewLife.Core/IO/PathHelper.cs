@@ -161,7 +161,7 @@ namespace System.IO
 
             var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
-            if (dir[dir.Length - 1] == Path.DirectorySeparatorChar)
+            if (dir[^1] == Path.DirectorySeparatorChar)
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);
@@ -322,11 +322,7 @@ namespace System.IO
             using var fs = file.OpenWrite();
             if (compressed)
             {
-#if NET40
-                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
-#else
                 using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
-#endif
                 func(gs);
             }
             else
@@ -442,7 +438,7 @@ namespace System.IO
         /// <returns></returns>
         public static String[] CopyTo(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
-            if (!di.Exists) return new String[0];
+            if (!di.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 
@@ -471,7 +467,7 @@ namespace System.IO
         public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) return new String[0];
+            if (!dest.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 

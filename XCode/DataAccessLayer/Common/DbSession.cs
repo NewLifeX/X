@@ -456,7 +456,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
@@ -583,7 +582,6 @@ namespace XCode.DataAccessLayer
                 }
             });
         }
-#endif
         #endregion
 
         #region 批量操作
@@ -766,7 +764,7 @@ namespace XCode.DataAccessLayer
                                 sv = $"[{bv.Length}]0x{BitConverter.ToString(bv)}";
                         }
                         else if (v is String str && str.Length > 64)
-                            sv = $"[{str.Length}]{str.Substring(0, 64)}...";
+                            sv = $"[{str.Length}]{str[..64]}...";
                         else
                             sv = v is DateTime dt ? dt.ToFullString() : (v + "");
                         sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
@@ -778,7 +776,7 @@ namespace XCode.DataAccessLayer
                 // 截断超长字符串
                 if (max > 0)
                 {
-                    if (sql.Length > max && sql.StartsWithIgnoreCase("Insert")) sql = sql.Substring(0, max / 2) + "..." + sql.Substring(sql.Length - max / 2);
+                    if (sql.Length > max && sql.StartsWithIgnoreCase("Insert")) sql = sql[..(max / 2)] + "..." + sql[^(max / 2)..];
                 }
 
                 return sql;

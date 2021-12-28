@@ -88,9 +88,7 @@ namespace NewLife.Log
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
 
-#if !__CORE__
-            IsWeb = System.Web.HttpContext.Current != null;
-#endif
+            //IsWeb = System.Web.HttpContext.Current != null;
         }
 
         /// <summary>已重载。</summary>

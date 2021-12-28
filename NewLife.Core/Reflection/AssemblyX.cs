@@ -41,7 +41,7 @@ namespace NewLife.Reflection
                     if (!ver.IsNullOrEmpty())
                     {
                         var p = ver.IndexOf('+');
-                        if (p > 0) ver = ver.Substring(0, p);
+                        if (p > 0) ver = ver[..p];
                     }
                     _FileVersion = ver;
                 }
@@ -93,11 +93,7 @@ namespace NewLife.Reflection
             {
                 try
                 {
-#if !__CORE__
-                    return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location;
-#else
                     return Asm == null || Asm.IsDynamic ? null : Asm.Location;
-#endif
                 }
                 catch { return null; }
             }
@@ -130,16 +126,14 @@ namespace NewLife.Reflection
             if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
 
-#if NET40_OR_GREATER
-            try
-            {
-                return Assembly.ReflectionOnlyLoad(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-#endif
+            //try
+            //{
+            //    return Assembly.ReflectionOnlyLoad(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
 
             return null;
         }
@@ -150,16 +144,14 @@ namespace NewLife.Reflection
             if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
             //if (!flag) return null;
 
-#if NET40_OR_GREATER
-            try
-            {
-                return OnResolve(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
-#endif
+            //try
+            //{
+            //    return OnResolve(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
 
             return null;
         }
@@ -241,6 +233,10 @@ namespace NewLife.Reflection
         #region 静态属性
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
+        /// <summary>
+        /// 加载过滤器，如果返回 false 表示跳过加载。
+        /// </summary>
+        public static Func<string, bool> ResolveFilter { get; set; }
         #endregion
 
         #region 方法
@@ -264,7 +260,7 @@ namespace NewLife.Reflection
             if (type != null) return type;
 
             // 如果没有包含圆点，说明其不是FullName
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 //try
                 //{
@@ -452,14 +448,14 @@ namespace NewLife.Reflection
             // 数组
             if (typeName.EndsWith("[]"))
             {
-                var elemType = GetType(typeName.Substring(0, typeName.Length - 2), isLoadAssembly);
+                var elemType = GetType(typeName[0..^2], isLoadAssembly);
                 if (elemType == null) return null;
 
                 return elemType.MakeArrayType();
             }
 
             // 加速基础类型识别，忽略大小写
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 foreach (var item in Enum.GetNames(typeof(TypeCode)))
                 {
@@ -517,7 +513,7 @@ namespace NewLife.Reflection
                         if (XTrace.Debug)
                         {
                             var root = ".".GetFullPath();
-                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                            if (file.StartsWithIgnoreCase(root)) file = file[root.Length..].TrimStart("\\");
                             XTrace.WriteLine("TypeX.GetType(\"{0}\") => {1}", typeName, file);
                         }
                     }
@@ -668,11 +664,7 @@ namespace NewLife.Reflection
 
             try
             {
-#if !__CORE__
-                return Assembly.ReflectionOnlyLoadFrom(file);
-#else
                 return Assembly.LoadFrom(file);
-#endif
             }
             catch
             {
@@ -696,9 +688,7 @@ namespace NewLife.Reflection
                     if (asmx.FileVersion.IsNullOrEmpty()) continue;
 
                     var file = "";
-#if !__CORE__
-                    file = asmx.Asm.CodeBase;
-#endif
+                    //file = asmx.Asm.CodeBase;
                     if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
                     if (file.IsNullOrEmpty()) continue;
 
@@ -720,28 +710,6 @@ namespace NewLife.Reflection
                 }
                 catch { }
             }
-#if !__CORE__
-            foreach (var asmx in ReflectionOnlyGetAssemblies())
-            {
-                // 加载程序集列表很容易抛出异常，全部屏蔽
-                try
-                {
-                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                    var file = asmx.Asm.CodeBase;
-                    if (String.IsNullOrEmpty(file)) continue;
-                    file = file.TrimStart("file:///");
-                    file = file.Replace("/", "\\");
-                    if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                    if (!hs.Contains(file))
-                    {
-                        hs.Add(file);
-                        list.Add(asmx);
-                    }
-                }
-                catch { }
-            }
-#endif
             return list;
         }
 
@@ -775,7 +743,7 @@ namespace NewLife.Reflection
             var p = name.IndexOf(", ");
             if (p > 0)
             {
-                name = name.Substring(0, p);
+                name = name[..p];
                 foreach (var item in GetAssemblies())
                 {
                     if (item.Asm.GetName().Name == name) return item.Asm;

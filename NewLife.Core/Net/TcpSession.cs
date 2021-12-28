@@ -91,9 +91,6 @@ namespace NewLife.Net
                 var sslStream = new SslStream(ns, false);
 
                 var sp = SslProtocol;
-#if NET40_OR_GREATER
-                if (sp == SslProtocols.None) sp = SslProtocols.Default;
-#endif
 
                 WriteLog("服务端SSL认证 {0} {1}", sp, Certificate.Issuer);
 
@@ -258,7 +255,7 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
             using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             var rs = count;
@@ -276,7 +273,7 @@ namespace NewLife.Net
                 if (_Stream == null)
                 {
                     if (count == 0)
-                        rs = sock.Send(new Byte[0]);
+                        rs = sock.Send(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                     else
@@ -285,7 +282,7 @@ namespace NewLife.Net
                 else
                 {
                     if (count == 0)
-                        _Stream.Write(new Byte[0]);
+                        _Stream.Write(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         _Stream.Write(pk.Data, pk.Offset, count);
                     else

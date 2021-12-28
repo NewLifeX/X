@@ -33,12 +33,8 @@ namespace NewLife
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
-#if __CORE__
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#else
-            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#endif
         }
 
         private static readonly ICache _Cache = MemoryCache.Instance;
@@ -68,11 +64,11 @@ namespace NewLife
             if (String.IsNullOrEmpty(address)) return null;
 
             var p = address.IndexOf("://");
-            if (p >= 0) address = address.Substring(p + 3);
+            if (p >= 0) address = address[(p + 3)..];
 
             p = address.LastIndexOf(':');
             if (p > 0)
-                return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
+                return new IPEndPoint(ParseAddress(address[..p]), Int32.Parse(address[(p + 1)..]));
             else
                 return new IPEndPoint(ParseAddress(address), defaultPort);
         }
@@ -204,7 +200,7 @@ namespace NewLife
         /// <returns></returns>
         public static TcpConnectionInformation2[] GetAllTcpConnections()
         {
-            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
+            if (!Runtime.Windows) return Array.Empty<TcpConnectionInformation2>();
 
             return TcpConnectionInformation2.GetAllTcpConnections();
         }
@@ -512,14 +508,14 @@ namespace NewLife
 
             // 有可能是NetUri
             var p = addr.IndexOf("://");
-            if (p >= 0) addr = addr.Substring(p + 3);
+            if (p >= 0) addr = addr[(p + 3)..];
 
             // 有可能是多个IP地址
             p = addr.IndexOf(",");
             if (p >= 0) addr = addr.Split(",").FirstOrDefault();
 
             // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
+            if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(":")];
 
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
@@ -578,10 +574,8 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if !NET40
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-#endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
         }

@@ -12,9 +12,6 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Remoting
 {
@@ -42,7 +39,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(client, action, args)).Result;
+        public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => GetAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -58,7 +55,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(client, action, args)).Result;
+        public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -129,14 +126,14 @@ namespace NewLife.Remoting
                 if (args is Packet pk)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += pk.ToArray().ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
                 else if (args is Byte[] buf)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += buf.ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
@@ -275,7 +272,7 @@ namespace NewLife.Remoting
             {
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
-                if (action.Contains("?"))
+                if (action.Contains('?'))
                     sb.Append('&');
                 else
                     sb.Append('?');

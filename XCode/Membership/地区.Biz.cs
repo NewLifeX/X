@@ -10,14 +10,10 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Transform;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Membership
 {
@@ -472,7 +468,7 @@ namespace XCode.Membership
             var address = ip.IPToAddress();
             if (address.IsNullOrEmpty()) return list;
 
-            if (address.StartsWith("广西")) address = "广西自治区" + address.Substring(2);
+            if (address.StartsWith("广西")) address = "广西自治区" + address[2..];
             var addrs = address.Split("省", "自治区", "市", "区", "自治县", "县", "自治州", " ");
             if (addrs != null && addrs.Length >= 2)
             {
@@ -613,16 +609,16 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("<td", "</td>");
+                var ss = html[s..e].Split("<td", "</td>");
                 if (ss.Length > 4)
                 {
                     var id = ss[3];
                     var p2 = id.LastIndexOf('>');
-                    if (p2 >= 0) id = id.Substring(p2 + 1);
+                    if (p2 >= 0) id = id[(p2 + 1)..];
 
                     var name = ss[5];
                     var p3 = name.LastIndexOf('>');
-                    if (p3 >= 0) name = name.Substring(p3 + 1);
+                    if (p3 >= 0) name = name[(p3 + 1)..];
 
                     if (!id.IsNullOrEmpty() && id.ToInt() > 10_00_00 && !name.IsNullOrEmpty())
                     {
@@ -656,7 +652,7 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("'>", "</a>");
+                var ss = html[s..e].Split("'>", "</a>");
                 if (ss.Length > 4)
                 {
                     var id = ss[2].Trim().TrimEnd("000");
@@ -769,7 +765,7 @@ namespace XCode.Membership
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
 
             var http = new HttpClient();
-            var html = TaskEx.Run(() => http.GetStringAsync(url)).Result;
+            var html = Task.Run(() => http.GetStringAsync(url)).Result;
             if (html.IsNullOrEmpty()) return 0;
 
             var rs = ParseAndSave(html);
@@ -982,7 +978,7 @@ namespace XCode.Membership
             if (csvFile.StartsWithIgnoreCase("http://", "https://"))
             {
                 var http = new HttpClient();
-                var stream = TaskEx.Run(() => http.GetStreamAsync(csvFile)).Result;
+                var stream = Task.Run(() => http.GetStreamAsync(csvFile)).Result;
                 if (csvFile.EndsWithIgnoreCase(".gz")) stream = new GZipStream(stream, CompressionMode.Decompress, true);
                 list.LoadCsv(stream);
             }

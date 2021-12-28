@@ -169,7 +169,7 @@ namespace NewLife.Log
 
             // http 中可能有问号，需要截断。问号开头就不管了
             var p = name.IndexOf('?');
-            if (p > 0) name = name.Substring(0, p);
+            if (p > 0) name = name[..p];
 
             return _builders.GetOrAdd(name, k => OnBuildSpan(k));
         }
@@ -272,8 +272,8 @@ namespace NewLife.Log
             var url = request.RequestUri.ToString();
             var p1 = url.IndexOf('?');
             var p2 = url.IndexOf('/', "https://".Length);
-            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
-            span.Tag = p2 < 0 ? url : url.Substring(p2);
+            var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
+            span.Tag = p2 < 0 ? url : url[p2..];
             span.Attach(request);
 
             return span;
@@ -290,8 +290,8 @@ namespace NewLife.Log
             var url = request.RequestUri.ToString();
             var p1 = url.IndexOf('?');
             var p2 = url.IndexOf('/', "https://".Length);
-            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
-            span.Tag = p2 < 0 ? url : url.Substring(p2);
+            var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
+            span.Tag = p2 < 0 ? url : url[p2..];
             span.Attach(request);
 
             return span;

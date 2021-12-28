@@ -301,7 +301,6 @@ namespace XCode
             return Meta.Session.Queue.Add(this, msDelay);
         }
 
-#if !NET40
         /// <summary>插入数据，<see cref="Valid"/>后，在事务中调用<see cref="OnInsert"/>。</summary>
         /// <returns></returns>
         public override Task<Int32> InsertAsync() => DoAction(OnInsertAsync, true);
@@ -378,7 +377,6 @@ namespace XCode
 
             return func();
         }
-#endif
 
         [NonSerialized]
         Boolean enableValid = true;
@@ -804,8 +802,8 @@ namespace XCode
                             var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
-                                od = item.Substring(p).Trim().ToLower();
-                                fn = item.Substring(0, p).Trim();
+                                od = item[p..].Trim().ToLower();
+                                fn = item[..p].Trim();
                             }
 
                             switch (od)
@@ -997,7 +995,6 @@ namespace XCode
         #endregion
 
         #region 异步查询
-#if !NET40
         /// <summary>根据条件查找单个实体</summary>
         /// <param name="where">查询条件</param>
         /// <returns></returns>
@@ -1073,8 +1070,8 @@ namespace XCode
                             var p = fn.LastIndexOf(" ");
                             if (p > 0)
                             {
-                                od = item.Substring(p).Trim().ToLower();
-                                fn = item.Substring(0, p).Trim();
+                                od = item[p..].Trim().ToLower();
+                                fn = item[..p].Trim();
                             }
 
                             switch (od)
@@ -1236,7 +1233,6 @@ namespace XCode
 
             return session.QueryCountAsync(builder);
         }
-#endif
         #endregion
 
         #region 取总记录数

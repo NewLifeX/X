@@ -101,7 +101,7 @@ namespace NewLife.Algorithms
             // 计算首尾的两个桶的值
             var start = data[0] / size * size + offset;
             if (start > data[0]) start -= size;
-            var last = data[data.Length - 1];
+            var last = data[^1];
             var end = last / size * size + offset;
             if (end > last) end -= size;
 

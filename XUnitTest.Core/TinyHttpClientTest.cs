@@ -4,6 +4,7 @@ using System.Text;
 using NewLife.Http;
 using Xunit;
 using NewLife;
+using NewLife.Log;
 
 namespace XUnitTest.Core
 {
@@ -20,7 +21,7 @@ namespace XUnitTest.Core
         public void SendTest()
         {
             var uri = new Uri("http://www.newlifex.com");
-            var client = new TinyHttpClient();
+            var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3), Log = XTrace.Log };
             var html = client.Send(uri, null)?.ToStr();
 
             Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
@@ -31,7 +32,7 @@ namespace XUnitTest.Core
         public async void SendAsyncTest()
         {
             var uri = new Uri("http://www.newlifex.com");
-            var client = new TinyHttpClient();
+            var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3), Log = XTrace.Log };
             var html = (await client.SendAsync(uri, null))?.ToStr();
 
             Assert.True(!html.IsNullOrEmpty() && html.Length > 500);

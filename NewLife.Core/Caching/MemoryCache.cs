@@ -10,9 +10,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 //#nullable enable
 namespace NewLife.Caching
@@ -861,21 +858,6 @@ namespace NewLife.Caching
             return _collection.TryTake(out var item) ? item : default;
         }
 
-#if NET40
-        /// <summary>消费获取，同步阻塞</summary>
-        /// <param name="timeout">超时。默认0秒，永久等待</param>
-        /// <returns></returns>
-        public Task<T> TakeOneAsync(Int32 timeout = 0)
-        {
-            if (!_occupiedNodes.Wait(0))
-            {
-                if (timeout <= 0 || !_occupiedNodes.Wait(timeout * 1000)) return default;
-            }
-
-            var rs = _collection.TryTake(out var item) ? item : default;
-            return TaskEx.FromResult(rs);
-        }
-#else
         /// <summary>消费获取，异步阻塞</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>
@@ -906,7 +888,6 @@ namespace NewLife.Caching
 
             return _collection.TryTake(out var item) ? item : default;
         }
-#endif
 
         /// <summary>确认消费</summary>
         /// <param name="keys"></param>

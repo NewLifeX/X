@@ -21,7 +21,7 @@ namespace NewLife.Http
         {
             if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(404, "找不到文件" + context.Path);
 
-            var file = context.Path.Substring(Path.Length);
+            var file = context.Path[Path.Length..];
             file = ContentPath.CombinePath(file);
 
             // 路径安全检查，防止越界

@@ -10,11 +10,6 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using System.Net.NetworkInformation;
-#if NET40_OR_GREATER
-using System.Management;
-using Microsoft.VisualBasic.Devices;
-using Microsoft.Win32;
-#endif
 
 namespace NewLife
 {
@@ -153,17 +148,10 @@ namespace NewLife
 
             try
             {
-#if __CORE__
                 if (Runtime.Windows)
                     LoadWindowsInfo();
                 else if (Runtime.Linux)
                     LoadLinuxInfo();
-#else
-                if (Runtime.Windows)
-                    LoadWindowsInfoFx();
-                else if (Runtime.Linux)
-                    LoadLinuxInfo();
-#endif
             }
             catch (Exception ex)
             {
@@ -179,74 +167,6 @@ namespace NewLife
                 Refresh();
             }
             catch { }
-        }
-
-        private void LoadWindowsInfoFx()
-        {
-#if !__CORE__
-            var machine_guid = "";
-
-            var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-            if (machine_guid.IsNullOrEmpty())
-            {
-                reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-            }
-
-            var ci = new ComputerInfo();
-            try
-            {
-                Memory = ci.TotalPhysicalMemory;
-
-                // 系统名取WMI可能出错
-                OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
-                OSVersion = ci.OSVersion;
-            }
-            catch
-            {
-                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-                if (reg2 != null)
-                {
-                    OSName = reg2.GetValue("ProductName") + "";
-                    OSVersion = reg2.GetValue("ReleaseId") + "";
-                }
-            }
-
-            Processor = GetInfo("Win32_Processor", "Name");
-            CpuID = GetInfo("Win32_Processor", "ProcessorId");
-            var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
-            Product = GetInfo("Win32_ComputerSystemProduct", "Name");
-            DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
-
-            // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
-
-            //// 可能因WMI导致读取UUID失败
-            //if (UUID.IsNullOrEmpty())
-            //{
-            //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
-            //}
-
-            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
-
-            //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-            //var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-            //if (!str.IsNullOrEmpty())
-            //{
-            //    Temperature = str.SplitAsInt().Average();
-            //}
-            //else
-            //{
-            //    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-            //    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-            //}
-
-            //// 电池剩余
-            //str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-            //if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
-#endif
         }
 
         private void LoadWindowsInfo()
@@ -458,7 +378,6 @@ namespace NewLife
 
                 CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
 
-#if __CORE__
                 if (!_excludes.Contains(nameof(Temperature)))
                 {
                     var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
@@ -480,34 +399,6 @@ namespace NewLife
                     else
                         _excludes.Add(nameof(Battery));
                 }
-#else
-                if (!_excludes.Contains(nameof(Temperature)))
-                {
-                    // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-                    var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-                    if (!str.IsNullOrEmpty())
-                    {
-                        Temperature = str.SplitAsInt().Average();
-                    }
-                    else
-                    {
-                        str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-                        if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-                    }
-
-                    if (str.IsNullOrEmpty()) _excludes.Add(nameof(Temperature));
-                }
-
-                if (!_excludes.Contains(nameof(Battery)))
-                {
-                    // 电池剩余
-                    var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-                    if (!str.IsNullOrEmpty())
-                        Battery = str.SplitAsInt().Average() / 100.0;
-                    else
-                        _excludes.Add(nameof(Battery));
-                }
-#endif
             }
 
             RefreshSpeed();
@@ -523,11 +414,7 @@ namespace NewLife
             var received = 0L;
             foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-#if NET40
-                var st = ni.GetIPv4Statistics();
-#else
                 var st = ni.GetIPStatistics();
-#endif
                 sent += st.BytesSent;
                 received += st.BytesReceived;
             }
@@ -616,8 +503,8 @@ namespace NewLife
                     var p = line.IndexOf(separate);
                     if (p > 0)
                     {
-                        var key = line.Substring(0, p).Trim();
-                        var value = line.Substring(p + 1).Trim();
+                        var key = line[..p].Trim();
+                        var value = line[(p + 1)..].Trim();
                         dic[key] = value;
                     }
                 }
@@ -794,41 +681,6 @@ namespace NewLife
         }
 
         private SystemTime _systemTime;
-
-#if NET40_OR_GREATER
-        /// <summary>获取WMI信息</summary>
-        /// <param name="path"></param>
-        /// <param name="property"></param>
-        /// <param name="nameSpace"></param>
-        /// <returns></returns>
-        public static String GetInfo(String path, String property, String nameSpace = null)
-        {
-            // Linux Mono不支持WMI
-            if (Runtime.Mono) return "";
-
-            var bbs = new List<String>();
-            try
-            {
-                var wql = $"Select {property} From {path}";
-                var cimobject = new ManagementObjectSearcher(nameSpace, wql);
-                var moc = cimobject.Get();
-                foreach (var mo in moc)
-                {
-                    var val = mo?.Properties?[property]?.Value;
-                    if (val != null) bbs.Add(val.ToString().Trim());
-                }
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
-                return "";
-            }
-
-            bbs.Sort();
-
-            return bbs.Distinct().Join();
-        }
-#endif
         #endregion
     }
 }

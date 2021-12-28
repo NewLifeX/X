@@ -40,7 +40,7 @@ namespace XCode.Configuration
                 if (name.IsNullOrEmpty()) return Name;
 
                 var p = name.IndexOf("。");
-                if (p > 0) name = name.Substring(0, p);
+                if (p > 0) name = name[..p];
 
                 return name;
             }

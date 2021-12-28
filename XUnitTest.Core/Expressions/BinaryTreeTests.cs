@@ -57,7 +57,7 @@ namespace XUnitTest.Expressions
             //    XTrace.WriteLine(item);
             //}
 
-            Assert.Equal(653, ss.Length);
+            Assert.Equal(654, ss.Length);
             Assert.Equal("(4 * (1 + (2 + 3)))", ss[0]);
         }
     }

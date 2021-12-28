@@ -182,17 +182,9 @@ namespace XCode.DataAccessLayer
         /// <param name="type">命令类型，默认SQL文本</param>
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
-        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
-        {
-            throw new NotSupportedException();
-        }
+        public override Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps) => throw new NotSupportedException();
 
-#if !NET40
-        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
-        {
-            throw new NotSupportedException();
-        }
-#endif
+        public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps) => throw new NotSupportedException();
         #endregion
 
         #region 批量操作
@@ -501,19 +493,15 @@ namespace XCode.DataAccessLayer
             return sb.Put(true);
         }
 
-        public override String AddTableDescriptionSQL(IDataTable table)
-        {
+        public override String AddTableDescriptionSQL(IDataTable table) =>
             // 返回String.Empty表示已经在别的SQL中处理
-            return String.Empty;
-        }
+            String.Empty;
 
         public override String AlterColumnSQL(IDataColumn field, IDataColumn oldfield) => $"Alter Table {FormatName(field.Table)} Modify Column {FieldClause(field, false)}";
 
-        public override String AddColumnDescriptionSQL(IDataColumn field)
-        {
+        public override String AddColumnDescriptionSQL(IDataColumn field) =>
             // 返回String.Empty表示已经在别的SQL中处理
-            return String.Empty;
-        }
+            String.Empty;
         #endregion
     }
 }

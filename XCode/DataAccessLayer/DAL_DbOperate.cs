@@ -202,7 +202,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -314,7 +313,6 @@ namespace XCode.DataAccessLayer
         {
             return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteScalarAsync<T>(s, t, Db.CreateParameters(p)));
         }
-#endif
         #endregion
 
         #region 事务
@@ -444,7 +442,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";
@@ -536,7 +534,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";

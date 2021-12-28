@@ -164,17 +164,17 @@ namespace NewLife.Net
             var p = uri.IndexOf('/');
             if (p < 0) p = uri.IndexOf('\\');
             if (p < 0) p = uri.IndexOf('?');
-            if (p >= 0) uri = uri.Substring(0, p)?.Trim();
+            if (p >= 0) uri = uri[..p]?.Trim();
 
             // 分析端口，冒号前一个不能是冒号
             p = uri.LastIndexOf(':');
             if (p >= 0 && (p < 1 || uri[p - 1] != ':'))
             {
-                var pt = uri.Substring(p + 1);
+                var pt = uri[(p + 1)..];
                 if (Int32.TryParse(pt, out var port))
                 {
                     Port = port;
-                    uri = uri.Substring(0, p)?.Trim();
+                    uri = uri[..p]?.Trim();
                 }
             }
 

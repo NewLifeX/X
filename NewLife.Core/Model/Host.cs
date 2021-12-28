@@ -150,7 +150,6 @@ namespace NewLife.Model
         #endregion
     }
 
-#if NET45_OR_GREATER || NETSTANDARD || NETCOREAPP
     /// <summary>后台任务</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/host
@@ -177,11 +176,7 @@ namespace NewLife.Model
             {
                 return _executingTask;
             }
-#if NET45
-            return Task.FromResult(0);
-#else
             return Task.CompletedTask;
-#endif
         }
 
         /// <summary>停止</summary>
@@ -205,5 +200,4 @@ namespace NewLife.Model
         /// <summary>销毁</summary>
         public virtual void Dispose() => _stoppingCts?.Cancel();
     }
-#endif
 }

@@ -25,19 +25,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET40
-            using (var stream = new DeflateStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new DeflateStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -96,19 +88,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET40
-            using (var stream = new GZipStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new GZipStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -172,7 +156,7 @@ namespace NewLife
         public static Byte[] ReadArray(this Stream des)
         {
             var len = des.ReadEncodedInt();
-            if (len <= 0) return new Byte[0];
+            if (len <= 0) return Array.Empty<Byte>();
 
             // 避免数据错乱超长
             //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
@@ -216,7 +200,7 @@ namespace NewLife
         /// <returns>返回复制的总字节数</returns>
         public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = -1)
         {
-            if (count == 0) return new Byte[0];
+            if (count == 0) return Array.Empty<Byte>();
 
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
             if (count < 0) count = src.Length - offset;
@@ -238,11 +222,7 @@ namespace NewLife
             if (count <= 0) count = src.Length - srcOffset;
             if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
-#if MF
-            Array.Copy(src, srcOffset, dst, dstOffset, count);
-#else
             Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
-#endif
             return count;
         }
         #endregion
@@ -260,7 +240,7 @@ namespace NewLife
         public static Byte[] ReadBytes(this Stream stream, Int64 length = -1)
         {
             if (stream == null) return null;
-            if (length == 0) return new Byte[0];
+            if (length == 0) return Array.Empty<Byte>();
 
             if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
                 throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
@@ -768,7 +748,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
         {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+            if (String.IsNullOrEmpty(data)) return Array.Empty<Byte>();
 
             // 过滤特殊字符
             data = data.Trim()
@@ -828,9 +808,9 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (data.IsNullOrEmpty()) return new Byte[0];
+            if (data.IsNullOrEmpty()) return Array.Empty<Byte>();
 
-            if (data[data.Length - 1] != '=')
+            if (data[^1] != '=')
             {
                 // 如果不是4的整数倍，后面补上等号
                 var n = data.Length % 4;

@@ -11,9 +11,6 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Remoting
 {
@@ -55,7 +52,7 @@ namespace NewLife.Remoting
         public ITracer Tracer { get; set; }
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
-        public IList<Service> Services { get; private set; } = new List<Service>();
+        public IList<Service> Services { get; set; } = new List<Service>();
 
         /// <summary>当前服务</summary>
         protected Service _currentService;
@@ -116,16 +113,16 @@ namespace NewLife.Remoting
             var p = url.IndexOf('=');
             if (p > 0)
             {
-                svc.Name = url.Substring(0, p);
-                url = url.Substring(p + 1);
+                svc.Name = url[..p];
+                url = url[(p + 1)..];
             }
 
             // 解析权重
             p = url.IndexOf("*http");
             if (p > 0)
             {
-                svc.Weight = url.Substring(0, p).ToInt();
-                url = url.Substring(p + 1);
+                svc.Weight = url[..p].ToInt();
+                url = url[(p + 1)..];
             }
 
             svc.Address = new Uri(url);
@@ -165,7 +162,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public TResult Get<TResult>(String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(action, args)).Result;
+        public TResult Get<TResult>(String action, Object args = null) => Task.Run(() => GetAsync<TResult>(action, args)).Result;
 
         /// <summary>异步提交，参数Json打包在Body</summary>
         /// <param name="action">服务操作</param>
@@ -177,7 +174,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public TResult Post<TResult>(String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(action, args)).Result;
+        public TResult Post<TResult>(String action, Object args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -238,7 +235,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        TResult IApiClient.Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
+        TResult IApiClient.Invoke<TResult>(String action, Object args) => Task.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
         #endregion
 
         #region 构造请求

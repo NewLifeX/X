@@ -3,9 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NewLife.Log;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Model
 {
@@ -68,13 +65,8 @@ namespace NewLife.Model
         private Task _task;
         private Exception _error;
 
-#if NET40 || NET45
-        /// <summary>已完成任务</summary>
-        public static Task CompletedTask { get; } = TaskEx.FromResult(0);
-#else
         /// <summary>已完成任务</summary>
         public static Task CompletedTask { get; } = Task.CompletedTask;
-#endif
         #endregion
 
         #region 构造

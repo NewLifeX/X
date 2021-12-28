@@ -160,7 +160,7 @@ namespace NewLife.Messaging
             // 长度
             var p = value.IndexOf(':');
             if (p < 0) return false;
-            var header = value.Substring(0, p);
+            var header = value[..p];
 
             var ss = header.Split(',');
             if (ss.Length < 2) return false;
@@ -169,7 +169,7 @@ namespace NewLife.Messaging
             Sequence = ss[1].ToInt();
             if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
 
-            var pk = new Packet(value.Substring(p + 1).GetBytes(encoding));
+            var pk = new Packet(value[(p + 1)..].GetBytes(encoding));
             if (len > pk.Count) return false;
 
             Payload = pk.Slice(0, len);

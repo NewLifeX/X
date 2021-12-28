@@ -41,7 +41,7 @@ namespace NewLife.Configuration
                     continue;
                 }
 
-                if (str[0] == '[' && str[str.Length - 1] == ']')
+                if (str[0] == '[' && str[^1] == ']')
                 {
                     currentSection = section.GetOrAddChild(str.Trim('[', ']'));
                     currentSection.Comment = remark;
@@ -51,11 +51,11 @@ namespace NewLife.Configuration
                     var p = str.IndexOf('=');
                     if (p > 0)
                     {
-                        var name = str.Substring(0, p).Trim();
+                        var name = str[..p].Trim();
 
                         // 构建配置值和注释
                         var cfg = currentSection.AddChild(name);
-                        if (p + 1 < str.Length) cfg.Value = str.Substring(p + 1).Trim();
+                        if (p + 1 < str.Length) cfg.Value = str[(p + 1)..].Trim();
                         cfg.Comment = remark;
                     }
                 }

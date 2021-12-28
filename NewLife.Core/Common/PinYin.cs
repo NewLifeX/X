@@ -122,7 +122,7 @@ namespace NewLife.Common
         public static String GetFirst(Char ch)
         {
             var rs = Get(ch);
-            if (!String.IsNullOrEmpty(rs)) rs = rs.Substring(0, 1);
+            if (!String.IsNullOrEmpty(rs)) rs = rs[..1];
 
             return rs;
         }

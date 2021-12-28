@@ -13,9 +13,6 @@ using NewLife.Log;
 using System.Linq;
 using System.Threading;
 using NewLife.Caching;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Http
 {
@@ -126,10 +123,6 @@ namespace NewLife.Http
             var p = pk.IndexOf(NewLine);
             if (p < 0) return headers;
 
-#if DEBUG
-            //WriteLog(pk.ToStr());
-#endif
-
             // 截取
             var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
             // 重构
@@ -143,7 +136,7 @@ namespace NewLife.Http
             {
                 line = lines[i];
                 p = line.IndexOf(':');
-                if (p > 0) headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
+                if (p > 0) headers[line[..p]] = line[(p + 1)..].Trim();
             }
 
             line = lines[0];
@@ -205,7 +198,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+        public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
 
         /// <summary>异步提交Xml</summary>
         /// <param name="client">Http客户端</param>
@@ -235,7 +228,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+        public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
 
         /// <summary>异步提交表单</summary>
         /// <param name="client">Http客户端</param>
@@ -268,7 +261,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+        public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
 
         /// <summary>同步获取字符串</summary>
         /// <param name="client">Http客户端</param>
@@ -278,7 +271,7 @@ namespace NewLife.Http
         public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String> headers = null)
         {
             client.AddHeaders(headers);
-            return TaskEx.Run(() => client.GetStringAsync(requestUri)).Result;
+            return Task.Run(() => client.GetStringAsync(requestUri)).Result;
         }
 
         private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content)
@@ -346,18 +339,12 @@ namespace NewLife.Http
             var rs = await client.GetStreamAsync(address);
             fileName.EnsureDirectory(true);
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-#if NET40
-            rs.CopyTo(fs);
-            fs.Flush();
-#else
             await rs.CopyToAsync(fs);
             await fs.FlushAsync();
-#endif
         }
         #endregion
 
         #region WebSocket
-#if !NET40
         /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
         /// <param name="socket"></param>
         /// <param name="queue"></param>
@@ -443,7 +430,6 @@ namespace NewLife.Http
         /// <param name="source"></param>
         /// <returns></returns>
         public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
-#endif
         #endregion
     }
 }

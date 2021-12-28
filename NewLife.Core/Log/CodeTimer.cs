@@ -311,11 +311,7 @@ namespace NewLife.Log
             var left = Console.CursorLeft;
 
             // 设置光标不可见
-#if __CORE__
             var cursorVisible = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Console.CursorVisible;
-#else
-            var cursorVisible = Console.CursorVisible;
-#endif
             Console.CursorVisible = false;
             var sw = Stopwatch.StartNew();
             while (!_source.IsCancellationRequested)

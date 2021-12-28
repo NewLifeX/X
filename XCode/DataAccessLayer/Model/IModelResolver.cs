@@ -81,8 +81,8 @@ namespace XCode.DataAccessLayer
                         else
                         {
                             // 首字母大小写，其它小写
-                            sb.Append(item.Substring(0, 1).ToUpper());
-                            sb.Append(item.Substring(1).ToLower());
+                            sb.Append(item[..1].ToUpper());
+                            sb.Append(item[1..].ToLower());
                         }
                     }
                     else
@@ -94,7 +94,7 @@ namespace XCode.DataAccessLayer
             }
             if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
             {
-                if (Camel) name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
+                if (Camel) name = name[..1].ToUpper() + name[1..].ToLower();
             }
 
             return name;
@@ -139,7 +139,7 @@ namespace XCode.DataAccessLayer
             name = description.Trim();
             var p = name.IndexOfAny(new Char[] { '.', '。', ',', '，', '(', '（', '\r', '\n' });
             // p=0表示符号在第一位，不考虑
-            if (p > 0) name = name.Substring(0, p).Trim();
+            if (p > 0) name = name[..p].Trim();
 
             name = name.Replace("$", null);
             name = name.Replace("(", null);
@@ -150,7 +150,7 @@ namespace XCode.DataAccessLayer
             name = name.Replace("　", null);
             name = name.Replace("/", "_");
             name = name.Replace("\\", "_");
-            if (name[0] == '_') name = name.Substring(1);
+            if (name[0] == '_') name = name[1..];
 
             return name;
         }

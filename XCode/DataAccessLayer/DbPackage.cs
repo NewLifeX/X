@@ -135,11 +135,7 @@ namespace XCode.DataAccessLayer
             var rs = 0;
             if (file.EndsWithIgnoreCase(".gz"))
             {
-#if NET40
-                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
-#else
                 using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
-#endif
                 rs = Backup(table, gs);
             }
             else
@@ -173,7 +169,6 @@ namespace XCode.DataAccessLayer
             //if (tables == null) tables = Tables;
             if (tables.Count > 0)
             {
-#if !NET40
                 var file2 = file.GetFullPath();
                 file2.EnsureDirectory(true);
 
@@ -224,7 +219,6 @@ namespace XCode.DataAccessLayer
                     Dal.Db.ShowSQL = old;
                     Dal.Session.ShowSQL = old;
                 }
-#endif
             }
 
             return count;
@@ -363,7 +357,6 @@ namespace XCode.DataAccessLayer
 
             using var span = Tracer?.NewSpan("db:RestoreAll", file);
 
-#if !NET40
             using var fs = new FileStream(file2, FileMode.Open);
             using var zip = new ZipArchive(fs, ZipArchiveMode.Read, true, Encoding.UTF8);
 
@@ -416,7 +409,6 @@ namespace XCode.DataAccessLayer
                 Dal.Db.ShowSQL = old;
                 Dal.Session.ShowSQL = old;
             }
-#endif
 
             return tables;
         }

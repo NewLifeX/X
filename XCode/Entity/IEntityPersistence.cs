@@ -41,7 +41,6 @@ namespace XCode
         /// <returns></returns>
         Int32 Delete(IEntitySession session, IEntity entity);
 
-#if !NET40
         /// <summary>插入</summary>
         /// <param name="session">实体会话</param>
         /// <param name="entity">实体</param>
@@ -59,7 +58,6 @@ namespace XCode
         /// <param name="entity">实体</param>
         /// <returns></returns>
         Task<Int32> DeleteAsync(IEntitySession session, IEntity entity);
-#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>
@@ -241,7 +239,6 @@ namespace XCode
             return rs;
         }
 
-#if !NET40
         /// <summary>插入</summary>
         /// <param name="session">实体会话</param>
         /// <param name="entity">实体</param>
@@ -337,7 +334,6 @@ namespace XCode
 
             return rs;
         }
-#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>

@@ -135,7 +135,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
@@ -185,7 +184,6 @@ namespace XCode.DataAccessLayer
         /// <param name="ps">命令参数</param>
         /// <returns></returns>
         Task<T> ExecuteScalarAsync<T>(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
-#endif
         #endregion
 
         #region 批量操作

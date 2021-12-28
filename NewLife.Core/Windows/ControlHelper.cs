@@ -224,7 +224,7 @@ namespace System.Windows.Forms
                 else if (p > count)
                 {
                     // 少输出一个
-                    txt.AppendText(m.Substring(0, p - count));
+                    txt.AppendText(m[..(p - count)]);
                 }
 
                 if (p == m.Length - count)
@@ -232,7 +232,7 @@ namespace System.Windows.Forms
                     m = null;
                     break;
                 }
-                m = m.Substring(p + count);
+                m = m[(p + count)..];
             }
         }
 
@@ -249,8 +249,8 @@ namespace System.Windows.Forms
                 // 后一个是
                 if (p + 1 < m.Length && m[p + 1] == '\n')
                 {
-                    txt.AppendText(m.Substring(0, p + 2));
-                    m = m.Substring(p + 2);
+                    txt.AppendText(m[..(p + 2)]);
+                    m = m[(p + 2)..];
                     continue;
                 }
 
@@ -273,7 +273,7 @@ namespace System.Windows.Forms
                     m = null;
                     break;
                 }
-                m = m.Substring(p + 1);
+                m = m[(p + 1)..];
             }
         }
 
@@ -288,8 +288,8 @@ namespace System.Windows.Forms
 
                 if (p > 0)
                 {
-                    var str = m.Substring(0, p);
-                    if (p + 1 < m.Length) str += m.Substring(p + 1);
+                    var str = m[..p];
+                    if (p + 1 < m.Length) str += m[(p + 1)..];
                     m = str;
                 }
 

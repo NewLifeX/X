@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -26,6 +29,9 @@ namespace NewLife.Configuration
 
         /// <summary>应用密钥</summary>
         public String Secret { get; set; }
+
+        /// <summary>实例。应用可能多实例部署，ip@proccessid</summary>
+        public String ClientId { get; set; }
 
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
         public String Scope { get; set; }
@@ -50,6 +56,20 @@ namespace NewLife.Configuration
         #endregion
 
         #region 构造
+        /// <summary>实例化Http配置提供者，对接星尘和阿波罗等配置中心</summary>
+        public HttpConfigProvider()
+        {
+            try
+            {
+                var executing = AssemblyX.Create(Assembly.GetExecutingAssembly());
+                var asm = AssemblyX.Entry ?? executing;
+                if (asm != null) AppId = asm.Name;
+
+                ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+            }
+            catch { }
+        }
+
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
         protected override void Dispose(Boolean disposing)
@@ -141,6 +161,7 @@ namespace NewLife.Configuration
                 {
                     appId = AppId,
                     secret = Secret,
+                    clientId = ClientId,
                     scope = Scope,
                     version = _version,
                     usedKeys = UsedKeys.Join(),
@@ -177,6 +198,7 @@ namespace NewLife.Configuration
             {
                 appId = AppId,
                 secret = Secret,
+                clientId = ClientId,
                 configs,
             });
         }

@@ -71,8 +71,8 @@ namespace XCode.Model
             var p = value.IndexOf(" and ", StringComparison.OrdinalIgnoreCase);
             if (p > 0)
             {
-                var left = ParseField(value.Substring(0, p));
-                var right = ParseExpression(value.Substring(p + 5));
+                var left = ParseField(value[..p]);
+                var right = ParseExpression(value[(p + 5)..]);
 
                 return new WhereExpression(left, Operator.And, right);
             }
@@ -81,8 +81,8 @@ namespace XCode.Model
             p = value.IndexOf(" or ", StringComparison.OrdinalIgnoreCase);
             if (p > 0)
             {
-                var left = ParseField(value.Substring(0, p));
-                var right = ParseExpression(value.Substring(p + 4));
+                var left = ParseField(value[..p]);
+                var right = ParseExpression(value[(p + 4)..]);
 
                 return new WhereExpression(left, Operator.Or, right);
             }
@@ -122,7 +122,7 @@ namespace XCode.Model
         {
             if (exp.IsNullOrEmpty()) return null;
 
-            if (exp[0] == '{' && exp[exp.Length - 1] == '}')
+            if (exp[0] == '{' && exp[^1] == '}')
             {
                 var dt = Data;
                 var source = "Data";
@@ -134,7 +134,7 @@ namespace XCode.Model
 
                 if (dt == null) throw new ArgumentException("缺少数据源", source);
 
-                var key = exp.Substring(2, exp.Length - 3);
+                var key = exp[2..^1];
                 if (!key.Contains("."))
                 {
                     // 普通变量
@@ -190,20 +190,20 @@ namespace XCode.Model
             var p = value.IndexOf(" and ", StringComparison.OrdinalIgnoreCase);
             if (p > 0)
             {
-                var left = EvalField(value.Substring(0, p), entity);
+                var left = EvalField(value[..p], entity);
                 if (!left) return false;
 
-                return EvalParse(value.Substring(p + 5), entity);
+                return EvalParse(value[(p + 5)..], entity);
             }
 
             // 或 运算
             p = value.IndexOf(" or ", StringComparison.OrdinalIgnoreCase);
             if (p > 0)
             {
-                var left = EvalField(value.Substring(0, p), entity);
+                var left = EvalField(value[..p], entity);
                 if (left) return true;
 
-                return EvalParse(value.Substring(p + 4), entity);
+                return EvalParse(value[(p + 4)..], entity);
             }
 
             return EvalField(value, entity);
@@ -258,8 +258,8 @@ namespace XCode.Model
                 var p = exp.IndexOf(item, StringComparison.OrdinalIgnoreCase);
                 if (p >= 0)
                 {
-                    var name = exp.Substring(0, p).Trim();
-                    var value = exp.Substring(p + item.Length).Trim();
+                    var name = exp[..p].Trim();
+                    var value = exp[(p + item.Length)..].Trim();
 
                     if (Factory.Table.FindByName(name) is not FieldItem fi) throw new XCodeException($"无法识别表达式[{exp}]中的字段[{name}]，实体类[{Factory.EntityType.FullName}]中没有该字段");
 

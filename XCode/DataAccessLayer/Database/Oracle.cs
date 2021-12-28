@@ -280,10 +280,10 @@ namespace XCode.DataAccessLayer
 
             if (pos < 0) return "\"" + keyWord + "\"";
 
-            var tn = keyWord.Substring(pos + 1);
+            var tn = keyWord[(pos + 1)..];
             if (tn.StartsWith("\"")) return keyWord;
 
-            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+            return keyWord[..(pos + 1)] + "\"" + tn + "\"";
         }
 
         ///// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
@@ -380,7 +380,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName)) return 0;
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as Oracle).Owner;
@@ -435,7 +435,6 @@ namespace XCode.DataAccessLayer
             }
         }
 
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
@@ -474,7 +473,6 @@ namespace XCode.DataAccessLayer
                 throw;
             }
         }
-#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>

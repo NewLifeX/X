@@ -9,9 +9,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -64,6 +61,7 @@ namespace NewLife.Net
             LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
             BufferSize = Setting.Current.BufferSize;
+            LogDataLength = Setting.Current.LogDataLength;
         }
 
         /// <summary>销毁</summary>
@@ -423,7 +421,7 @@ namespace NewLife.Net
                 var ss = OnPreReceive(pk, remote);
                 if (ss == null) return;
 
-                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 
@@ -508,7 +506,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
             try
             {
                 var ctx = CreateContext(this);
@@ -526,7 +524,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
             try
             {
                 var ctx = CreateContext(this);
@@ -534,7 +532,7 @@ namespace NewLife.Net
                 ctx["TaskSource"] = source;
 
                 var rs = (Int32)Pipeline.Write(ctx, message);
-                if (rs < 0) return TaskEx.FromResult((Object)null);
+                if (rs < 0) return Task.FromResult((Object)null);
 
                 return source.Task;
             }
@@ -588,6 +586,9 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         public Boolean LogReceive { get; set; }
+
+        /// <summary>收发日志数据体长度。默认64</summary>
+        public Int32 LogDataLength { get; set; } = 64;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

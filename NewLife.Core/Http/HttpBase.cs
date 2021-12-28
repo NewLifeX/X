@@ -71,7 +71,7 @@ namespace NewLife.Http
             {
                 var line = lines[i];
                 p = line.IndexOf(':');
-                if (p > 0) Headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
+                if (p > 0) Headers[line[..p]] = line[(p + 1)..].Trim();
             }
 
             ContentLength = Headers["Content-Length"].ToInt(-1);

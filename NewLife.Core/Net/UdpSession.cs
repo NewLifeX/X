@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -130,7 +127,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
             try
             {
                 var ctx = Server.CreateContext(this);
@@ -138,7 +135,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, null);
+                span?.SetError(ex, message);
                 throw;
             }
         }
@@ -148,7 +145,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
             try
             {
                 var ctx = Server.CreateContext(this);
@@ -156,13 +153,13 @@ namespace NewLife.Net
                 ctx["TaskSource"] = source;
 
                 var rs = (Int32)Pipeline.Write(ctx, message);
-                if (rs < 0) return TaskEx.FromResult((Object)null);
+                if (rs < 0) return Task.FromResult((Object)null);
 
                 return source.Task;
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, null);
+                span?.SetError(ex, message);
                 throw;
             }
         }

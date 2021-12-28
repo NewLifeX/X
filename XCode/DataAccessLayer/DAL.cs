@@ -205,7 +205,7 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(fname) && fname.StartsWith("TestSourceHost: Enumerating"))
             {
                 XTrace.WriteLine($"AppDomain.CurrentDomain.FriendlyName不太友好，处理一下：{fname}");
-                fname = fname.Substring(fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)).TrimEnd(')');
+                fname = fname[fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)..].TrimEnd(')');
             }
             if (!File.Exists(file)) file = "app.config".GetFullPath();
             if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();

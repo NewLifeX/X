@@ -107,7 +107,6 @@ namespace XCode
         /// <returns>新增行的自动编号</returns>
         Int64 InsertAndGetIdentity(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
 
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -133,7 +132,6 @@ namespace XCode
         /// <param name="ps">命令参数</param>
         /// <returns>新增行的自动编号</returns>
         Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps);
-#endif
 
         /// <summary>执行Truncate语句</summary>
         /// <returns>影响的结果</returns>
@@ -187,7 +185,6 @@ namespace XCode
         /// <returns></returns>
         Int32 Delete(IEntity entity);
 
-#if !NET40
         /// <summary>把该对象持久化到数据库，添加/更新实体缓存。</summary>
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
@@ -202,7 +199,6 @@ namespace XCode
         /// <param name="entity">实体对象</param>
         /// <returns></returns>
         Task<Int32> DeleteAsync(IEntity entity);
-#endif
         #endregion
     }
 }

@@ -88,7 +88,7 @@ namespace NewLife
         public static String[] Split(this String? value, params String[] separators)
         {
             //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
-            if (value == null || String.IsNullOrEmpty(value)) return new String[0];
+            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<String>();
             if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -101,7 +101,7 @@ namespace NewLife
         /// <returns></returns>
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
-            if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
+            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<Int32>();
             if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -141,8 +141,8 @@ namespace NewLife
                 // 在前后都不行
                 if (p <= 0 || p >= item.Length - 1) continue;
 
-                var key = item.Substring(0, p).Trim();
-                dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
+                var key = item[..p].Trim();
+                dic[key] = item[(p + nameValueSeparator.Length)..].Trim();
             }
 
             return dic;
@@ -176,14 +176,14 @@ namespace NewLife
                     continue;
                 }
 
-                var key = item.Substring(0, p).Trim();
-                var val = item.Substring(p + nameValueSeparator.Length).Trim();
+                var key = item[..p].Trim();
+                var val = item[(p + nameValueSeparator.Length)..].Trim();
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
                 {
-                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
-                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                    if (val[0] == '\'' && val[^1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
                 }
 
                 k++;
@@ -217,15 +217,15 @@ namespace NewLife
                 var p = item.IndexOf(nameValueSeparator);
                 if (p <= 0) continue;
 
-                var key = item.Substring(0, p).Trim();
-                var val = item.Substring(p + 1).Trim();
+                var key = item[..p].Trim();
+                var val = item[(p + 1)..].Trim();
 
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
                 {
-                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
-                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                    if (val[0] == '\'' && val[^1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
                 }
 
                 dic[key] = val;
@@ -310,7 +310,7 @@ namespace NewLife
         public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
         {
             //if (value == null) return null;
-            if (String.IsNullOrEmpty(value)) return new Byte[0];
+            if (String.IsNullOrEmpty(value)) return Array.Empty<Byte>();
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
@@ -379,7 +379,7 @@ namespace NewLife
             }
 
             // 最后一组*允许不到边界
-            if (ps[ps.Length - 1].IsNullOrEmpty()) return p <= input.Length;
+            if (ps[^1].IsNullOrEmpty()) return p <= input.Length;
 
             // 最后一组必须结尾
             return p == input.Length;
@@ -428,7 +428,7 @@ namespace NewLife
             {
                 if (str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    str = str.Substring(starts[i].Length);
+                    str = str[starts[i].Length..];
                     if (String.IsNullOrEmpty(str)) break;
 
                     // 从头开始
@@ -451,7 +451,7 @@ namespace NewLife
             {
                 if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    str = str.Substring(0, str.Length - ends[i].Length);
+                    str = str[..^ends[i].Length];
                     if (String.IsNullOrEmpty(str)) break;
 
                     // 从头开始
@@ -491,7 +491,7 @@ namespace NewLife
                 if (positions != null && positions.Length > 0) positions[0] = p;
             }
 
-            if (String.IsNullOrEmpty(before)) return str.Substring(p);
+            if (String.IsNullOrEmpty(before)) return str[p..];
 
             var f = str.IndexOf(before, p >= 0 ? p : startIndex);
             if (f < 0) return null;
@@ -500,9 +500,9 @@ namespace NewLife
             if (positions != null && positions.Length > 1) positions[1] = f;
 
             if (p >= 0)
-                return str.Substring(p, f - p);
+                return str[p..f];
             else
-                return str.Substring(0, f);
+                return str[..f];
         }
 
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
@@ -519,7 +519,7 @@ namespace NewLife
             if (pad != null && !String.IsNullOrEmpty(pad)) len -= pad.Length;
             if (len <= 0) throw new ArgumentOutOfRangeException(nameof(maxLength));
 
-            return str.Substring(0, len) + pad;
+            return str[..len] + pad;
         }
 
         /// <summary>从当前字符串开头移除另一字符串以及之前的部分</summary>
@@ -536,7 +536,7 @@ namespace NewLife
                 var p = str.IndexOf(starts[i]);
                 if (p >= 0)
                 {
-                    str = str.Substring(p + starts[i].Length);
+                    str = str[(p + starts[i].Length)..];
                     if (str.IsNullOrEmpty()) break;
                 }
             }
@@ -557,7 +557,7 @@ namespace NewLife
                 var p = str.LastIndexOf(ends[i]);
                 if (p >= 0)
                 {
-                    str = str.Substring(0, p);
+                    str = str[..p];
                     if (String.IsNullOrEmpty(str)) break;
                 }
             }
@@ -575,7 +575,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LevenshteinSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key)) return new String[0];
+            if (IsNullOrWhiteSpace(key)) return Array.Empty<String>();
 
             var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -646,7 +646,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LCSSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
+            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return Array.Empty<String>();
 
             var keys = key
                                 .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
@@ -679,7 +679,7 @@ namespace NewLife
             var sLength = word.Length;
             var result = sLength;
             var flags = new Boolean[sLength];
-            var C = new Int32[sLength + 1, keys[keys.Length - 1].Length + 1];
+            var C = new Int32[sLength + 1, keys[^1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
             foreach (var key in keys)
             {
@@ -1037,8 +1037,8 @@ namespace NewLife
             var si = p.StartInfo;
             si.UseShellExecute = true;
             si.FileName = fileName;
-            si.Arguments = arguments;
-            si.WorkingDirectory = workingDirectory;
+            if (arguments != null) si.Arguments = arguments;
+            if (workingDirectory != null) si.WorkingDirectory = workingDirectory;
 
             p.Start();
 

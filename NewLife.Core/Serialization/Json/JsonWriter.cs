@@ -580,7 +580,7 @@ namespace NewLife.Serialization
             if (CamelCase)
             {
                 if (name == "ID") return "id";
-                return name.Substring(0, 1).ToLower() + name.Substring(1);
+                return name[..1].ToLower() + name[1..];
             }
 
             return name;

@@ -157,7 +157,7 @@ namespace NewLife.Caching
 
                 // 连接字符串可能独立写了port
                 var port = dic["Port"].ToInt();
-                if (port > 0 && !Server.Contains(":")) Server += ":" + port;
+                if (port > 0 && !Server.Contains(':')) Server += ":" + port;
 
                 if (dic.TryGetValue("Timeout", out var str))
                     Timeout = str.ToInt();
@@ -374,15 +374,6 @@ namespace NewLife.Caching
             } while (true);
         }
 
-#if NET40
-        /// <summary>异步执行命令</summary>
-        /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="key">命令key，用于选择集群节点</param>
-        /// <param name="func">回调函数</param>
-        /// <param name="write">是否写入操作</param>
-        /// <returns></returns>
-        public virtual Task<TResult> ExecuteAsync<TResult>(String key, Func<RedisClient, Task<TResult>> func, Boolean write = false) => throw new NotSupportedException();
-#else
         /// <summary>异步执行命令</summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">命令key，用于选择集群节点</param>
@@ -450,7 +441,6 @@ namespace NewLife.Caching
                 }
             } while (true);
         }
-#endif
 
         private readonly ThreadLocal<RedisClient> _client = new();
         /// <summary>开始管道模式</summary>

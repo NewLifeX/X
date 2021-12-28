@@ -27,10 +27,6 @@ using XCode;
 using XCode.Cache;
 using Stardust;
 
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
-
 namespace Test
 {
     public class Program
@@ -198,7 +194,7 @@ namespace Test
                 };
                 client.Open();
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -216,7 +212,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -234,7 +230,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -252,7 +248,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try

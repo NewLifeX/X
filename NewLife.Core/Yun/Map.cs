@@ -121,7 +121,7 @@ namespace NewLife.Yun
 
             if (_Client == null) _Client = DefaultTracer.Instance.CreateHttpClient();
 
-            if (url.Contains("?"))
+            if (url.Contains('?'))
                 url += "&";
             else
                 url += "?";

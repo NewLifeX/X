@@ -56,14 +56,16 @@ namespace NewLife.Threading
         private Thread? thread;
         private Int32 _tid;
 
-        private TimerX[] Timers = new TimerX[0];
+        private TimerX[] Timers = global::System.Array.Empty<global::NewLife.Threading.TimerX>();
         #endregion
 
         /// <summary>把定时器加入队列</summary>
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
-            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer?.ToString());
+            if (timer == null) throw new ArgumentNullException(nameof(timer));
+
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer.ToString());
 
             timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}", timer);
@@ -150,9 +152,7 @@ namespace NewLife.Threading
 
                     var th = thread;
                     thread = null;
-#if !__CORE__
-                    th?.Abort();
-#endif
+                    //th?.Abort();
 
                     break;
                 }

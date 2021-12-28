@@ -283,11 +283,7 @@ namespace NewLife.Http
                 return; // never expires.
             }
 
-#if NET40
-            if (_timerInitialized) return;
-#else
             if (Volatile.Read(ref _timerInitialized)) return;
-#endif
 
             StartExpiryTimerSlow(callback);
         }
@@ -298,11 +294,7 @@ namespace NewLife.Http
 
             lock (_lock)
             {
-#if NET40
-                if (_timerInitialized) return;
-#else
                 if (Volatile.Read(ref _timerInitialized)) return;
-#endif
 
                 _callback = callback;
                 //_timer = NonCapturingTimer.Create(_timerCallback, this, Lifetime, Timeout.InfiniteTimeSpan);

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,9 +9,6 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Web;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -142,7 +138,7 @@ namespace NewLife.Net
                 var sw = Stopwatch.StartNew();
 
                 var web = CreateClient();
-                TaskEx.Run(() => web.DownloadFileAsync(url, file)).Wait();
+                Task.Run(() => web.DownloadFileAsync(url, file)).Wait();
 
                 sw.Stop();
                 WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

@@ -167,7 +167,7 @@ namespace NewLife.Serialization
                     if (str.IsNullOrEmpty()) return str;
 
                     // 有可能是字符串或时间日期
-                    if (str[0] == '/' && str[str.Length - 1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
+                    if (str[0] == '/' && str[^1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
                     {
                         str = str.Substring(6, str.Length - 6 - 2);
                         return str.ToLong().ToDateTime();
@@ -347,7 +347,7 @@ namespace NewLife.Serialization
 
             if (dec)
             {
-                var s = _json.Substring(startIndex, index - startIndex);
+                var s = _json[startIndex..index];
                 return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
 

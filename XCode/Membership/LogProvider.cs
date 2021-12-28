@@ -224,8 +224,8 @@ namespace XCode.Membership
                 var p = msg.IndexOf(' ');
                 if (p > 0)
                 {
-                    act = msg.Substring(0, p).Trim();
-                    msg = msg.Substring(p + 1).Trim();
+                    act = msg[..p].Trim();
+                    msg = msg[(p + 1)..].Trim();
                 }
 
                 // 从参数里提取用户对象

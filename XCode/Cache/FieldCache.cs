@@ -5,9 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using XCode.Configuration;
 using NewLife;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Cache
 {
@@ -124,7 +121,7 @@ namespace XCode.Cache
             var key = $"{typeof(TEntity).Name}_{_field?.Name}";
             var dc = DataCache.Current;
 
-            if (_task == null || _task.IsCompleted) _task = TaskEx.Run(GetAll);
+            if (_task == null || _task.IsCompleted) _task = Task.Run(GetAll);
 
             // 优先从缓存读取
             if (dc.FieldCache.TryGetValue(key, out var rs)) return rs;

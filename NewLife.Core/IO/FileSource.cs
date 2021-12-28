@@ -89,11 +89,11 @@ namespace NewLife.IO
                 if (String.IsNullOrEmpty(filename))
                 {
                     filename = item;
-                    if (!String.IsNullOrEmpty(prefix)) filename = filename.Substring(prefix.Length);
-                    if (filename[0] == '.') filename = filename.Substring(1);
+                    if (!String.IsNullOrEmpty(prefix)) filename = filename[prefix.Length..];
+                    if (filename[0] == '.') filename = filename[1..];
 
                     var ext = Path.GetExtension(item);
-                    filename = filename.Substring(0, filename.Length - ext.Length);
+                    filename = filename[..^ext.Length];
                     filename = filename.Replace(".", @"\") + ext;
                     filename = Path.Combine(dest, filename);
                 }

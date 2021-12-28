@@ -13,9 +13,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -489,10 +486,10 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+                ts.Add(Task.Run(() => item.Value.Send(data)));
             }
 
-            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
 
         /// <summary>异步群发数据给所有客户端</summary>
@@ -507,10 +504,10 @@ namespace NewLife.Net
             foreach (var item in Sessions)
             {
                 if (predicate == null || predicate(item.Value))
-                    ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+                    ts.Add(Task.Run(() => item.Value.Send(data)));
             }
 
-            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
         #endregion
 

@@ -107,7 +107,7 @@ namespace NewLife.Security
             var rsa = new RSACryptoServiceProvider();
             if (key.StartsWith("<RSAKeyValue>") && key.EndsWith("</RSAKeyValue>"))
                 rsa.FromXmlString(key);
-            else if (key.StartsWith("--") || key.Contains("\r") || key.Contains("\n"))
+            else if (key.StartsWith("--") || key.Contains('\r') || key.Contains('\n'))
                 rsa.ImportParameters(ReadPem(key));
             else
                 rsa.ImportParameters(ReadParameters(key));

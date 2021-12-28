@@ -131,8 +131,8 @@ namespace NewLife.Threading
             var p = value.IndexOf('/');
             if (p > 0)
             {
-                step = value.Substring(p + 1).ToInt();
-                value = value.Substring(0, p);
+                step = value[(p + 1)..].ToInt();
+                value = value[..p];
             }
 
             // 连续范围
@@ -141,8 +141,8 @@ namespace NewLife.Threading
                 s = 0;
             else if ((p = value.IndexOf('-')) > 0)
             {
-                s = value.Substring(0, p).ToInt();
-                max = value.Substring(p + 1).ToInt() + 1;
+                s = value[..p].ToInt();
+                max = value[(p + 1)..].ToInt() + 1;
             }
             else if (Int32.TryParse(value, out n))
                 s = n;

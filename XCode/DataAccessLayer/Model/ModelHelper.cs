@@ -147,10 +147,10 @@ namespace XCode.DataAccessLayer
             if (name == name.ToUpper()) return name.ToLower();
 
             // 首字母小写
-            name = Char.ToLower(name[0]) + name.Substring(1);
+            name = Char.ToLower(name[0]) + name[1..];
 
             // 特殊处理ID结尾，改为Id，否则难看
-            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[name.Length - 3])) name = name.Substring(0, name.Length - 2) + "Id";
+            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[^3])) name = name[0..^2] + "Id";
 
             return name;
         }
