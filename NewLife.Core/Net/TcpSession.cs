@@ -223,7 +223,7 @@ namespace NewLife.Net
                 try
                 {
                     // 温和一点关闭连接
-                    //Client.Shutdown();
+                    Client.Shutdown();
                     client.Close();
 
                     // 如果是服务端，这个时候就是销毁
