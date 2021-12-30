@@ -134,10 +134,9 @@ namespace NewLife.Serialization
             else if (obj is IDictionary)
                 WriteDictionary((IDictionary)obj);
             else if (obj is Byte[] buf)
-            {
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
-            }
-
+            else if (obj is Packet pk)
+                WriteStringFast(pk.ToBase64());
             else if (obj is StringDictionary)
                 WriteSD((StringDictionary)obj);
 
@@ -351,7 +350,7 @@ namespace NewLife.Serialization
                         WriteIndent();
                     }
                 }
-                
+
                 WritePair(name, value);
             }
         }

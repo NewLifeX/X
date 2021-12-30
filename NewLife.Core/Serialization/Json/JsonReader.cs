@@ -242,9 +242,16 @@ namespace NewLife.Serialization
 
             if (type == typeof(Byte[]))
             {
-                if (value is Byte[]) return (Byte[])value;
+                if (value is Byte[] v) return v;
 
                 return Convert.FromBase64String(value + "");
+            }
+
+            if (type == typeof(Packet))
+            {
+                if (value is Packet v) return v;
+
+                return new Packet(Convert.FromBase64String(value + ""));
             }
 
             if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
