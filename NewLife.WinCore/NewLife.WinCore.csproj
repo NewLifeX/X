@@ -4,13 +4,13 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>NewLife.WinCore</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
+    <AssemblyTitle>NewLife桌面核心库</AssemblyTitle>
     <Description>为Windows桌面应用提供专有功能</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2020 NewLife</Copyright>
-    <Version>8.11.2021.1204</Version>
-    <FileVersion>8.11.2021.1204</FileVersion>
-    <AssemblyVersion>8.11.*</AssemblyVersion>
+    <Copyright>©2002-2022 NewLife</Copyright>
+    <Version>9.0.2022.0101</Version>
+    <FileVersion>9.0.2022.0101</FileVersion>
+    <AssemblyVersion>9.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
     <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
