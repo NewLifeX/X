@@ -7,7 +7,7 @@
 XCode教程：[https://www.yuque.com/smartstone/xcode](https://www.yuque.com/smartstone/xcode)  
 
 ## 新生命项目矩阵
-各项目默认支持net6.0/netstandard2.1，旧版（2021.1225）支持net5.0/netstandard2.0/net4.5/net4.0/  
+各项目默认支持net6.0/netstandard2.1，旧版（2021.1225）支持net5.0/netstandard2.0/net4.5/net4.0/net2.0  
 
 |                               项目                               | 年份  |  状态  |  .NET6  | 说明                                                                                 |
 | :--------------------------------------------------------------: | :---: | :----: | :-----: | ------------------------------------------------------------------------------------ |

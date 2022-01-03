@@ -46,5 +46,14 @@ namespace XUnitTest.Applications
             ss = addr.Split(' ');
             Assert.Equal("广东省深圳市", ss[0]);
         }
+
+        [Fact]
+        public void Test自治区()
+        {
+            var addr = "116.136.7.43".IPToAddress();
+            var ss = addr.Split(' ');
+            Assert.Equal("内蒙古赤峰市", ss[0]);
+            Assert.Equal("联通", ss[1]);
+        }
     }
 }

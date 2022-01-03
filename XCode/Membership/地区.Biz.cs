@@ -457,6 +457,7 @@ namespace XCode.Membership
             return set.OrderByDescending(e => e.Value).Take(count).ToList();
         }
 
+        private static String[] _zzq = new[] { "广西", "西藏", "新疆", "宁夏", "内蒙古" };
         /// <summary>根据IP地址搜索地区</summary>
         /// <param name="ip"></param>
         /// <param name="maxLevel">最大层级，默认3级</param>
@@ -468,7 +469,15 @@ namespace XCode.Membership
             var address = ip.IPToAddress();
             if (address.IsNullOrEmpty()) return list;
 
-            if (address.StartsWith("广西")) address = "广西自治区" + address[2..];
+            // IP数据库里，缺失自治区分隔符
+            foreach (var item in _zzq)
+            {
+                if (address.StartsWith(item) && !address.Contains("自治区"))
+                {
+                    address = item + "自治区" + address[item.Length..];
+                    break;
+                }
+            }
             var addrs = address.Split("省", "自治区", "市", "区", "自治县", "县", "自治州", " ");
             if (addrs != null && addrs.Length >= 2)
             {

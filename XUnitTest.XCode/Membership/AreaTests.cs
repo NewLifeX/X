@@ -357,5 +357,15 @@ namespace XUnitTest.XCode.Membership
             Assert.True(list.Count > 0);
             Assert.Equal(areaId, list[list.Count - 1].ID);
         }
+
+        [Theory]
+        [InlineData("116.136.7.43", 150400)]
+        public void SearchIP自治区(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 3);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
     }
 }
