@@ -105,14 +105,16 @@ namespace NewLife.Configuration
 
         /// <summary>从本地配置文件读取阿波罗地址，并得到阿波罗配置提供者</summary>
         /// <param name="fileName">阿波罗配置文件名，默认appsettings.json</param>
+        /// <param name="path">加载路径，默认apollo</param>
         /// <returns></returns>
-        public static HttpConfigProvider LoadApollo(String fileName = null)
+        public static HttpConfigProvider LoadApollo(String fileName = null, String path = "apollo")
         {
             if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
+            if (path.IsNullOrEmpty()) path = "apollo";
 
             // 读取本地配置，得到Apollo地址后，加载全部配置
             var jsonConfig = new JsonConfigProvider { FileName = fileName };
-            var apollo = jsonConfig.Load<ApolloModel>("apollo");
+            var apollo = jsonConfig.Load<ApolloModel>(path);
 
             var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
             httpConfig.SetApollo("application," + apollo.NameSpace);
