@@ -13,7 +13,7 @@ namespace NewLife.IO
     /// 文档 https://www.yuque.com/smartstone/nx/csv_file
     /// 支持整体读写以及增量式读写，目标是读写超大Csv文件
     /// </remarks>
-#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
     public class CsvFile : IDisposable, IAsyncDisposable
 #else
     public class CsvFile : IDisposable
@@ -84,7 +84,7 @@ namespace NewLife.IO
             }
         }
 
-#if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         /// <summary>异步销毁</summary>
         /// <returns></returns>
         public virtual async ValueTask DisposeAsync()
