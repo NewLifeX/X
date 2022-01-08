@@ -27,10 +27,8 @@ namespace XCode.DataAccessLayer
         /// </summary>
         public DAL Dal { get; set; }
 
-        /// <summary>
-        /// 进度报告
-        /// </summary>
-        public Action<Int64, DbTable> OnProgress { get; set; }
+        /// <summary>数据页事件</summary>
+        public event EventHandler<PageEventArgs> OnPage;
 
         /// <summary>批量处理时，忽略单表错误，继续处理下一个。默认true</summary>
         public Boolean IgnoreError { get; set; } = true;
@@ -49,7 +47,7 @@ namespace XCode.DataAccessLayer
         /// <param name="table">数据表</param>
         /// <param name="stream">目标数据流</param>
         /// <returns></returns>
-        public Int32 Backup(IDataTable table, Stream stream)
+        public virtual Int32 Backup(IDataTable table, Stream stream)
         {
             using var span = Tracer?.NewSpan("db:Backup", table.Name);
 
@@ -63,13 +61,6 @@ namespace XCode.DataAccessLayer
                 TracerParent = span,
             };
 
-            // 自增
-            var id = table.Columns.FirstOrDefault(e => e.Identity);
-            if (id == null)
-            {
-                var pks = table.PrimaryKeys;
-                if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
-            }
             var tableName = Dal.Db.FormatName(table);
             var sb = new SelectBuilder { Table = tableName };
             var connName = Dal.ConnName;
@@ -78,25 +69,26 @@ namespace XCode.DataAccessLayer
             writeFile.Total = Dal.SelectCount(sb);
             WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, connName, writeFile.Total);
 
-            IExtracter<DbTable> extracer = new PagingExtracter(Dal, tableName);
-            if (id != null)
-                extracer = new IdExtracter(Dal, tableName, id.ColumnName);
+            var extracer = GetExtracter(table);
 
-            var sw = Stopwatch.StartNew();
+            // 临时关闭日志
+            var old = Dal.Db.ShowSQL;
+            Dal.Db.ShowSQL = false;
+            Dal.Session.ShowSQL = false;
+
             var total = 0;
+            var sw = Stopwatch.StartNew();
             try
             {
                 foreach (var dt in extracer.Fetch())
                 {
+                    var row = extracer.Row;
                     var count = dt.Rows.Count;
-                    WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, connName, extracer.Row, count);
+                    WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, connName, row, count);
                     if (count == 0) break;
 
-                    // 进度报告
-                    OnProgress?.Invoke(extracer.Row, dt);
-
-                    // 消费数据
-                    writeFile.Tell(dt);
+                    // 进度报告、消费数据
+                    OnProcess(table, row, dt, writeFile);
 
                     total += count;
                 }
@@ -109,6 +101,11 @@ namespace XCode.DataAccessLayer
                 span?.SetError(ex, table);
                 throw;
             }
+            finally
+            {
+                Dal.Db.ShowSQL = old;
+                Dal.Session.ShowSQL = old;
+            }
 
             sw.Stop();
             var ms = sw.Elapsed.TotalMilliseconds;
@@ -116,6 +113,44 @@ namespace XCode.DataAccessLayer
 
             // 返回总行数
             return total;
+        }
+
+        /// <summary>处理核心。数据抽取后，需要报告进度，以及写入Actor</summary>
+        /// <param name="table">正在处理的数据表</param>
+        /// <param name="row">进度</param>
+        /// <param name="page">当前数据页</param>
+        /// <param name="actor">处理数据Actor</param>
+        /// <returns></returns>
+        protected virtual Boolean OnProcess(IDataTable table, Int64 row, DbTable page, Actor actor)
+        {
+            // 进度报告
+            OnPage?.Invoke(this, new PageEventArgs { Table = table, Row = row, Page = page });
+
+            // 消费数据。克隆对象，避免被修改
+            actor.Tell(page.Clone());
+
+            return true;
+        }
+
+        /// <summary>获取数据抽取器。优先自增，默认分页</summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        protected virtual IExtracter<DbTable> GetExtracter(IDataTable table)
+        {
+            // 自增
+            var id = table.Columns.FirstOrDefault(e => e.Identity);
+            if (id == null)
+            {
+                var pks = table.PrimaryKeys;
+                if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
+            }
+
+            var tableName = Dal.Db.FormatName(table);
+            IExtracter<DbTable> extracer = new PagingExtracter(Dal, tableName);
+            if (id != null)
+                extracer = new IdExtracter(Dal, tableName, id.ColumnName);
+
+            return extracer;
         }
 
         /// <summary>备份单表数据到文件</summary>
@@ -177,10 +212,6 @@ namespace XCode.DataAccessLayer
                 using var fs = new FileStream(file2, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
                 using var zip = new ZipArchive(fs, ZipArchiveMode.Create, true, Encoding.UTF8);
 
-                // 临时关闭日志
-                var old = Dal.Db.ShowSQL;
-                Dal.Db.ShowSQL = false;
-                Dal.Session.ShowSQL = false;
                 try
                 {
                     // 备份架构
@@ -214,11 +245,6 @@ namespace XCode.DataAccessLayer
                     span?.SetError(ex, null);
                     throw;
                 }
-                finally
-                {
-                    Dal.Db.ShowSQL = old;
-                    Dal.Session.ShowSQL = old;
-                }
             }
 
             return count;
@@ -230,7 +256,7 @@ namespace XCode.DataAccessLayer
         /// <param name="stream">数据流</param>
         /// <param name="table">数据表</param>
         /// <returns></returns>
-        public Int32 Restore(Stream stream, IDataTable table)
+        public virtual Int32 Restore(Stream stream, IDataTable table)
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (table == null) throw new ArgumentNullException(nameof(table));
@@ -250,8 +276,12 @@ namespace XCode.DataAccessLayer
             };
             var connName = Dal.ConnName;
 
-            var sw = Stopwatch.StartNew();
+            // 临时关闭日志
+            var old = Dal.Db.ShowSQL;
+            Dal.Db.ShowSQL = false;
+            Dal.Session.ShowSQL = false;
             var total = 0;
+            var sw = Stopwatch.StartNew();
             try
             {
                 // 二进制读写器
@@ -291,11 +321,8 @@ namespace XCode.DataAccessLayer
 
                     WriteLog("恢复[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, connName, row, rs.Count);
 
-                    // 进度报告
-                    OnProgress?.Invoke(row, dt);
-
-                    // 批量写入数据库。克隆对象，避免被修改
-                    writeDb.Tell(dt.Clone());
+                    // 进度报告，批量写入数据库
+                    OnProcess(table, row, dt, writeDb);
 
                     // 下一页
                     total += rs.Count;
@@ -310,6 +337,11 @@ namespace XCode.DataAccessLayer
             {
                 span?.SetError(ex, null);
                 throw;
+            }
+            finally
+            {
+                Dal.Db.ShowSQL = old;
+                Dal.Session.ShowSQL = old;
             }
 
             sw.Stop();
@@ -375,10 +407,6 @@ namespace XCode.DataAccessLayer
 
             if (setSchema) Dal.SetTables(tables);
 
-            // 临时关闭日志
-            var old = Dal.Db.ShowSQL;
-            Dal.Db.ShowSQL = false;
-            Dal.Session.ShowSQL = false;
             try
             {
                 foreach (var item in tables)
@@ -404,11 +432,6 @@ namespace XCode.DataAccessLayer
                 span?.SetError(ex, null);
                 throw;
             }
-            finally
-            {
-                Dal.Db.ShowSQL = old;
-                Dal.Session.ShowSQL = old;
-            }
 
             return tables;
         }
@@ -422,9 +445,8 @@ namespace XCode.DataAccessLayer
         /// <param name="table">数据表</param>
         /// <param name="connName">目标连接名</param>
         /// <param name="syncSchema">同步架构</param>
-        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true, Action<Int32, DbTable> progress = null)
+        public virtual Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true)
         {
             if (connName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(connName));
             if (table == null) throw new ArgumentNullException(nameof(table));
@@ -445,15 +467,12 @@ namespace XCode.DataAccessLayer
                 TracerParent = span,
             };
 
-            // 自增
-            var id = table.Columns.FirstOrDefault(e => e.Identity);
-            // 主键
-            if (id == null)
-            {
-                var pks = table.PrimaryKeys;
-                if (pks != null && pks.Length == 1 && pks[0].DataType.IsInt()) id = pks[0];
-            }
+            var extracer = GetExtracter(table);
 
+            // 临时关闭日志
+            var old = Dal.Db.ShowSQL;
+            Dal.Db.ShowSQL = false;
+            Dal.Session.ShowSQL = false;
             var total = 0;
             var sw = Stopwatch.StartNew();
             try
@@ -461,47 +480,16 @@ namespace XCode.DataAccessLayer
                 // 表结构
                 if (syncSchema) dal.SetTables(table);
 
-                var sb = new SelectBuilder
+                foreach (var dt in extracer.Fetch())
                 {
-                    Table = Dal.Db.FormatName(table)
-                };
-
-                var row = 0L;
-                var pageSize = (Dal.Db as DbBase).BatchSize;
-                while (true)
-                {
-                    var sql = "";
-                    // 分割数据页，自增或分页
-                    if (id != null)
-                    {
-                        sb.Where = $"{id.ColumnName}>={row}";
-                        sql = Dal.PageSplit(sb, 0, pageSize);
-                    }
-                    else
-                        sql = Dal.PageSplit(sb, row, pageSize);
-
-                    // 查询数据
-                    var dt = Dal.Session.Query(sql, null);
-                    if (dt == null || dt.Rows.Count == 0) break;
-
+                    var row = extracer.Row;
                     var count = dt.Rows.Count;
                     WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, Dal.ConnName, row, count);
 
-                    // 进度报告
-                    progress?.Invoke((Int32)row, dt);
+                    // 进度报告、消费数据
+                    OnProcess(table, row, dt, writeDb);
 
-                    // 消费数据
-                    writeDb.Tell(dt);
-
-                    // 下一页
                     total += count;
-                    //if (count < pageSize) break;
-
-                    // 自增分割时，取最后一行
-                    if (id != null)
-                        row = dt.Get<Int64>(count - 1, id.ColumnName) + 1;
-                    else
-                        row += pageSize;
                 }
 
                 // 通知写入完成
@@ -509,8 +497,13 @@ namespace XCode.DataAccessLayer
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, null);
+                span?.SetError(ex, table);
                 throw;
+            }
+            finally
+            {
+                Dal.Db.ShowSQL = old;
+                Dal.Session.ShowSQL = old;
             }
 
             sw.Stop();
@@ -540,10 +533,6 @@ namespace XCode.DataAccessLayer
             // 同步架构
             if (syncSchema) DAL.Create(connName).SetTables(tables);
 
-            // 临时关闭日志
-            var old = Dal.Db.ShowSQL;
-            Dal.Db.ShowSQL = false;
-            Dal.Session.ShowSQL = false;
             try
             {
                 foreach (var item in tables)
@@ -563,11 +552,6 @@ namespace XCode.DataAccessLayer
             {
                 span?.SetError(ex, null);
                 throw;
-            }
-            finally
-            {
-                Dal.Db.ShowSQL = old;
-                Dal.Session.ShowSQL = old;
             }
 
             return dic;

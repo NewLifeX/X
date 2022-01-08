@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using NewLife.Data;
 using NewLife.Log;
 
 namespace XCode.DataAccessLayer
@@ -15,11 +14,10 @@ namespace XCode.DataAccessLayer
         /// </remarks>
         /// <param name="table">数据表</param>
         /// <param name="stream">目标数据流</param>
-        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Backup(IDataTable table, Stream stream, Action<Int64, DbTable> progress = null)
+        public Int32 Backup(IDataTable table, Stream stream)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
             return dpk.Backup(table, stream);
         }
 
@@ -50,11 +48,10 @@ namespace XCode.DataAccessLayer
         /// <summary>从数据流恢复数据</summary>
         /// <param name="stream">数据流</param>
         /// <param name="table">数据表</param>
-        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Restore(Stream stream, IDataTable table, Action<Int64, DbTable> progress = null)
+        public Int32 Restore(Stream stream, IDataTable table)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
             return dpk.Restore(stream, table);
         }
 
@@ -90,11 +87,10 @@ namespace XCode.DataAccessLayer
         /// <param name="table">数据表</param>
         /// <param name="connName">目标连接名</param>
         /// <param name="syncSchema">同步架构</param>
-        /// <param name="progress">进度回调，参数为已处理行数和当前页表</param>
         /// <returns></returns>
-        public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true, Action<Int64, DbTable> progress = null)
+        public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true)
         {
-            var dpk = new DbPackage { Dal = this, OnProgress = progress, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
             return dpk.Sync(table, connName, syncSchema);
         }
 
