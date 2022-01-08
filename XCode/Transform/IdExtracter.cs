@@ -6,7 +6,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Transform
 {
-    /// <summary>自增数据抽取器</summary>
+    /// <summary>整型主键数据抽取器</summary>
     /// <remarks>
     /// 适用于带有自增字段或雪花Id字段的数据抽取器，速度飞快。
     /// </remarks>
