@@ -497,7 +497,7 @@ namespace NewLife.Net
 
         /// <summary>异步群发数据给所有客户端</summary>
         /// <param name="data"></param>
-        /// <param name="predicate"></param>
+        /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
         /// <returns>已群发客户端总数</returns>
         public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
         {
@@ -511,6 +511,31 @@ namespace NewLife.Net
             }
 
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+        }
+
+        /// <summary>群发管道消息给所有客户端。支持协议编码</summary>
+        /// <param name="message">应用消息，底层对其进行协议编码</param>
+        /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean> predicate = null)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var count = 0;
+            foreach (var item in Sessions)
+            {
+                if (predicate == null || predicate(item.Value))
+                {
+                    try
+                    {
+                        item.Value.SendMessage(message);
+                        count++;
+                    }
+                    catch { }
+                }
+            }
+
+            return count;
         }
         #endregion
 
