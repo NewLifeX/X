@@ -425,11 +425,26 @@ namespace XCode
             return new ConcatExpression($"{name} as {newName}");
         }
 
-        /// <summary>数量</summary>
+        /// <summary>计数</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Count(this FieldItem field, String newName = null) => Aggregate(field, "Count", newName);
+
+        /// <summary>计数（唯一）</summary>
+        /// <param name="field">字段</param>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression CountDistinct(this FieldItem field, String newName = null)
+        {
+            if (field == null) return null;
+
+            var name = field.FormatedName;
+            if (newName.IsNullOrEmpty()) newName = name;
+
+            return new ConcatExpression($"Count(distinct {name}) as {newName}");
+        }
+
 
         /// <summary>求和</summary>
         /// <param name="field">字段</param>
