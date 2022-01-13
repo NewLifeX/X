@@ -83,8 +83,16 @@ namespace NewLife.Net
             // 管道
             Pipeline?.Open(base.CreateContext(this));
 
-            // 服务端SSL
+            // 设置读写超时
             var sock = Client;
+            var timeout = Timeout;
+            if (timeout > 0)
+            {
+                sock.SendTimeout = timeout;
+                sock.ReceiveTimeout = timeout;
+            }
+
+            // 服务端SSL
             if (sock != null && Certificate != null)
             {
                 var ns = new NetworkStream(sock);
