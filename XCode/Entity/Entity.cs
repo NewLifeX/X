@@ -398,6 +398,16 @@ namespace XCode
                     this[pk.Name] = factory.Snow.NewId();
                 }
             }
+
+            // 校验字符串长度，超长时抛出参数异常
+            foreach (var fi in factory.Fields)
+            {
+                if (fi.Type == typeof(String) && fi.Length > 0)
+                {
+                    if (this[fi.Name] is String str && str.Length > fi.Length)
+                        throw new ArgumentOutOfRangeException(fi.Name, $"{fi.DisplayName}长度限制{fi.Length}字符");
+                }
+            }
         }
 
         /// <summary>根据指定键检查数据，返回数据是否已存在</summary>
@@ -1027,7 +1037,7 @@ namespace XCode
         {
             var session = Meta.Session;
 
-        #region 海量数据查询优化
+            #region 海量数据查询优化
             // 海量数据尾页查询优化
             // 在海量数据分页中，取越是后面页的数据越慢，可以考虑倒序的方式
             // 只有在百万数据，且开始行大于五十万时才使用
@@ -1047,7 +1057,7 @@ namespace XCode
                     var order2 = order;
                     var bk = false; // 是否跳过
 
-        #region 排序倒序
+                    #region 排序倒序
                     // 默认是自增字段的降序
                     var fi = Meta.Unique;
                     if (String.IsNullOrEmpty(order2) && fi != null && fi.IsIdentity) order2 = fi.Name + " Desc";
@@ -1095,7 +1105,7 @@ namespace XCode
 
                         order2 = sb.Put(true).Replace("★", ",");
                     }
-        #endregion
+                    #endregion
 
                     // 没有排序的实在不适合这种办法，因为没办法倒序
                     if (!order2.IsNullOrEmpty())
@@ -1118,7 +1128,7 @@ namespace XCode
                     }
                 }
             }
-        #endregion
+            #endregion
 
             var builder = CreateBuilder(where, order, selects);
             var list2 = LoadData(await session.QueryAsync(builder, startRowIndex, maximumRows));

@@ -46,5 +46,14 @@ namespace XUnitTest.XCode.Membership
             //var ids = dal.QuerySingle<Int32[]>("select roleIds from user where id=@id", new { id = user.ID });
             //Assert.Equal(new[] { 2, 3, 5, 9 }, ids);
         }
+
+        [Fact]
+        public void StringLength()
+        {
+            var user = new User { Name = Rand.NextString(64) };
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => user.Insert());
+            Assert.Equal("Name", ex.ParamName);
+            Assert.Equal("名称长度限制50字符 (Parameter 'Name')", ex.Message);
+        }
     }
 }

@@ -29,8 +29,6 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
-            base.Valid(isNew);
-
             if (isNew)
             {
                 // 自动设置当前登录用户
@@ -38,10 +36,12 @@ namespace XCode.Membership
             }
 
             // 处理过长的备注
-            if (!Remark.IsNullOrEmpty() && Remark.Length > 500)
-            {
-                Remark = Remark[..500];
-            }
+            if (!Remark.IsNullOrEmpty() && Remark.Length > 500) Remark = Remark[..500];
+
+            var len = _.UserName.Length;
+            if (len > 0 && !UserName.IsNullOrEmpty() && UserName.Length > len) UserName = UserName[..len];
+
+            base.Valid(isNew);
 
             // 时间
             if (isNew && CreateTime.Year < 2000 && !IsDirty(__.CreateTime)) CreateTime = DateTime.Now;
