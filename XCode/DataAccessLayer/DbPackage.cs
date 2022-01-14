@@ -35,6 +35,9 @@ namespace XCode.DataAccessLayer
         /// <summary>批量处理时，忽略单表错误，继续处理下一个。默认true</summary>
         public Boolean IgnoreError { get; set; } = true;
 
+        /// <summary>批量处理时，忽略单页错误，继续处理下一个。默认false</summary>
+        public Boolean IgnorePageError { get; set; }
+
         /// <summary>
         /// 性能追踪器
         /// </summary>
@@ -247,6 +250,7 @@ namespace XCode.DataAccessLayer
             {
                 Table = table,
                 Dal = Dal,
+                IgnorePageError = IgnorePageError,
                 Log = Log,
                 Tracer = Tracer,
 
@@ -445,6 +449,7 @@ namespace XCode.DataAccessLayer
             {
                 Table = table,
                 Dal = dal,
+                IgnorePageError = IgnorePageError,
                 Log = Log,
                 Tracer = Tracer,
 
@@ -673,6 +678,9 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public IDataTable Table { get; set; }
 
+            /// <summary>批量处理时，忽略单页错误，继续处理下一个。默认false</summary>
+            public Boolean IgnorePageError { get; set; }
+
             /// <summary>
             /// 日志
             /// </summary>
@@ -705,7 +713,21 @@ namespace XCode.DataAccessLayer
 
                 // 批量插入
                 using var span = Tracer?.NewSpan($"db:{Dal.ConnName}:BatchInsert:{Table.TableName}");
-                Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
+                if (IgnorePageError)
+                {
+                    try
+                    {
+                        Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
+                    }
+                    catch (Exception ex)
+                    {
+                        span?.SetError(ex, dt.Rows?.Count);
+                    }
+                }
+                else
+                {
+                    Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
+                }
 
                 return null;
             }
