@@ -299,7 +299,8 @@ namespace System.IO
             {
                 using var fs = file.OpenRead();
                 using var gs = new GZipStream(fs, CompressionMode.Decompress, true);
-                func(gs);
+                using var bs = new BufferedStream(gs);
+                func(bs);
                 return fs.Position;
             }
             else

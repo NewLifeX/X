@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
@@ -988,7 +989,11 @@ namespace XCode.Membership
             {
                 var http = new HttpClient();
                 var stream = Task.Run(() => http.GetStreamAsync(csvFile)).Result;
-                if (csvFile.EndsWithIgnoreCase(".gz")) stream = new GZipStream(stream, CompressionMode.Decompress, true);
+                if (csvFile.EndsWithIgnoreCase(".gz"))
+                {
+                    stream = new GZipStream(stream, CompressionMode.Decompress, true);
+                    stream = new BufferedStream(stream);
+                }
                 list.LoadCsv(stream);
             }
             else
