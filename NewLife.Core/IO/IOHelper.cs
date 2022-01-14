@@ -268,9 +268,17 @@ namespace NewLife
             // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
             if (length > 0)
             {
+                //!!! Stream.Read 的官方设计从未承诺填满缓冲区，需要用户自己多次读取
+                // https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+                var p = 0;
                 var buf = new Byte[length];
-                _ = stream.Read(buf, 0, buf.Length);
-                //if (n != buf.Length) buf = buf.ReadBytes(0, n);
+                while (true)
+                {
+                    var n = stream.Read(buf, p, buf.Length - p);
+                    if (n == 0 || p + n == buf.Length) break;
+
+                    p += n;
+                }
                 return buf;
             }
 

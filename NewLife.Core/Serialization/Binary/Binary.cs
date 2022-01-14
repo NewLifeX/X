@@ -269,8 +269,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Byte[] ReadBytes(Int32 count)
         {
-            var buffer = new Byte[count];
-            Stream.Read(buffer, 0, count);
+            var buffer = Stream.ReadBytes(count);
+            //if (n != count) throw new InvalidDataException($"数据不足，需要{count}，实际{n}");
 
             return buffer;
         }
