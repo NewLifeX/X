@@ -18,10 +18,6 @@ namespace XCode
     }
 
     /// <summary>数据实体操作接口</summary>
-    [Obsolete("=>IEntityFactory")]
-    public interface IEntityOperate : IEntityFactory { }
-
-    /// <summary>数据实体操作接口</summary>
     public interface IEntityFactory
     {
         #region 主要属性
@@ -65,10 +61,6 @@ namespace XCode
 
         /// <summary>表名。当前线程正在使用的表名</summary>
         String TableName { get; set; }
-
-        /// <summary>总记录数</summary>
-        [Obsolete("=>Session.Count")]
-        Int32 Count { get; }
         #endregion
 
         #region 创建实体、填充数据
@@ -170,12 +162,6 @@ namespace XCode
         /// <param name="create">创建对象</param>
         /// <returns></returns>
         IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create);
-        #endregion
-
-        #region 事务
-        /// <summary>创建事务</summary>
-        [Obsolete("=>Session.CreateTrans")]
-        EntityTransaction CreateTrans();
         #endregion
 
         #region 一些设置

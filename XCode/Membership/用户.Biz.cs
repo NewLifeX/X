@@ -27,10 +27,6 @@ namespace XCode.Membership
     }
 
     /// <summary>管理员</summary>
-    [Obsolete("UserX=>User")]
-    public class UserX : User { }
-
-    /// <summary>管理员</summary>
     /// <remarks>
     /// 基础实体类应该是只有一个泛型参数的，需要用到别的类型时，可以继承一个，也可以通过虚拟重载等手段让基类实现
     /// </remarks>

@@ -8,27 +8,27 @@ namespace System.Collections.Generic
     /// <summary>集合扩展</summary>
     public static class CollectionHelper
     {
-        /// <summary>集合转为数组，加锁确保安全</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="collection"></param>
-        /// <param name="index">数组偏移量。大于0时，新数组将空出来前面一截，把数据拷贝到后面</param>
-        /// <returns></returns>
-        [Obsolete("index参数晦涩难懂")]
-        public static T[] ToArray<T>(this ICollection<T> collection, Int32 index)
-        {
-            if (collection == null) return null;
+        ///// <summary>集合转为数组，加锁确保安全</summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="collection"></param>
+        ///// <param name="index">数组偏移量。大于0时，新数组将空出来前面一截，把数据拷贝到后面</param>
+        ///// <returns></returns>
+        //[Obsolete("index参数晦涩难懂")]
+        //public static T[] ToArray<T>(this ICollection<T> collection, Int32 index)
+        //{
+        //    if (collection == null) return null;
 
-            lock (collection)
-            {
-                var count = collection.Count;
-                if (count == 0) return Array.Empty<T>();
+        //    lock (collection)
+        //    {
+        //        var count = collection.Count;
+        //        if (count == 0) return Array.Empty<T>();
 
-                var arr = new T[count + index];
-                collection.CopyTo(arr, index);
+        //        var arr = new T[count + index];
+        //        collection.CopyTo(arr, index);
 
-                return arr;
-            }
-        }
+        //        return arr;
+        //    }
+        //}
 
         /// <summary>集合转为数组，加锁确保安全</summary>
         /// <typeparam name="T"></typeparam>

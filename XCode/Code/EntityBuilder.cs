@@ -22,29 +22,6 @@ namespace XCode.Code
         #endregion
 
         #region 静态快速
-        /// <summary>为Xml模型文件生成实体类</summary>
-        /// <param name="xmlFile">模型文件</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="nameSpace">命名空间</param>
-        /// <param name="connName">连接名</param>
-        /// <param name="chineseFileName">中文文件名</param>
-        [Obsolete("=>BuildTables")]
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
-        {
-            var option = new BuilderOption
-            {
-                Output = output,
-                Namespace = nameSpace,
-                ConnName = connName,
-                Partial = true,
-            };
-
-            var tables = ClassBuilder.LoadModels(xmlFile, option, out var atts);
-            FixModelFile(xmlFile, option, atts, tables);
-
-            return BuildTables(tables, option, chineseFileName ?? true);
-        }
-
         /// <summary>修正模型文件</summary>
         /// <param name="xmlFile"></param>
         /// <param name="option"></param>

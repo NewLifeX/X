@@ -84,7 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Build.tt" />
-    <None Remove="Build_netcore.tt" />
     <None Remove="install.ps1" />
     <None Remove="Model.xml" />
     <None Remove="Readme.MD" />
@@ -92,10 +91,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
-    <Content Include="Build_netcore.tt">
-      <PackagePath>content\Entity\</PackagePath>
-      <Pack>true</Pack>
-    </Content>
     <Content Include="Build.tt">
       <Pack>true</Pack>
       <PackagePath>content\Entity\</PackagePath>

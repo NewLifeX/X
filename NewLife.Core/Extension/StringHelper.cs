@@ -118,36 +118,6 @@ namespace NewLife
             return list.ToArray();
         }
 
-        /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分号分组，等号分隔</summary>
-        /// <param name="value">字符串</param>
-        /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
-        /// <param name="separators">分组分隔符，默认逗号分号</param>
-        /// <returns></returns>
-        [Obsolete("该扩展容易带来误解")]
-        public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", params String[] separators)
-        {
-            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value == null || value.IsNullOrWhiteSpace()) return dic;
-
-            if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
-            if (separators == null || separators.Length == 0) separators = new String[] { ",", ";" };
-
-            var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length == 0) return dic;
-
-            foreach (var item in ss)
-            {
-                var p = item.IndexOf(nameValueSeparator);
-                // 在前后都不行
-                if (p <= 0 || p >= item.Length - 1) continue;
-
-                var key = item[..p].Trim();
-                dic[key] = item[(p + nameValueSeparator.Length)..].Trim();
-            }
-
-            return dic;
-        }
-
         /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分组，等号分隔</summary>
         /// <param name="value">字符串</param>
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>

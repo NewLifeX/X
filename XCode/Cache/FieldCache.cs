@@ -30,18 +30,6 @@ namespace XCode.Cache
         public String DisplayFormat { get; set; } = "{0} ({1:n0})";
 
         /// <summary>对指定字段使用实体缓存</summary>
-        /// <param name="field"></param>
-        [Obsolete("=>FieldCache(String fieldName)")]
-        public FieldCache(FieldItem field)
-        {
-            WaitFirst = false;
-            //Expire = 10 * 60;
-            FillListMethod = Search;
-
-            _field = field;
-        }
-
-        /// <summary>对指定字段使用实体缓存</summary>
         /// <param name="fieldName"></param>
         public FieldCache(String fieldName)
         {

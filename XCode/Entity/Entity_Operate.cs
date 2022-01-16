@@ -57,10 +57,6 @@ namespace XCode
 
             /// <summary>表名。当前线程正在使用的表名</summary>
             public virtual String TableName { get => Meta.TableName; set => Meta.TableName = value; }
-
-            /// <summary>总记录数</summary>
-            [Obsolete("=>Session.Count")]
-            public virtual Int32 Count => Session.Count;
             #endregion
 
             #region 构造
@@ -170,12 +166,6 @@ namespace XCode
             /// <param name="create">创建对象</param>
             /// <returns></returns>
             public virtual IEntity GetOrAdd<TKey>(TKey key, Func<TKey, Boolean, IEntity> find, Func<TKey, IEntity> create) => Entity<TEntity>.GetOrAdd(key, (k, b) => find?.Invoke(k, b) as TEntity, k => create?.Invoke(k) as TEntity);
-            #endregion
-
-            #region 事务
-            /// <summary>创建事务</summary>
-            [Obsolete("=>Session.CreateTrans")]
-            public virtual EntityTransaction CreateTrans() => new EntityTransaction<TEntity>();
             #endregion
 
             #region 一些设置

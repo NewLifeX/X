@@ -160,28 +160,8 @@ namespace XCode
             #endregion
 
             #region 分表分库
-            /// <summary>自动分库回调，用于添删改操作</summary>
-            [Obsolete("=>AutoShard")]
-            public static Func<TEntity, String> ShardConnName { get; set; }
-
-            /// <summary>自动分表回调，用于添删改操作</summary>
-            [Obsolete("=>AutoShard")]
-            public static Func<TEntity, String> ShardTableName { get; set; }
-
             /// <summary>分表分库策略</summary>
             public static IShardPolicy ShardPolicy { get; set; }
-
-            /// <summary>在分库上执行操作，自动还原</summary>
-            /// <param name="connName"></param>
-            /// <param name="tableName"></param>
-            /// <param name="func"></param>
-            /// <returns></returns>
-            [Obsolete("=>CreateSplit")]
-            public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
-            {
-                using var split = CreateSplit(connName, tableName);
-                return func();
-            }
 
             /// <summary>创建分库会话，using结束时自动还原</summary>
             /// <param name="connName">连接名</param>
@@ -198,13 +178,7 @@ namespace XCode
                 var model = ShardPolicy?.Shard(entity);
                 if (model != null) return new SplitPackge(model.ConnName, model.TableName);
 
-#pragma warning disable CS0618 // 类型或成员已过时
-                var connName = ShardConnName?.Invoke(entity);
-                var tableName = ShardTableName?.Invoke(entity);
-                if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
-#pragma warning restore CS0618 // 类型或成员已过时
-
-                return new SplitPackge(connName, tableName);
+                return null;
             }
 
             /// <summary>为实体对象、时间、雪花Id等计算分表分库</summary>

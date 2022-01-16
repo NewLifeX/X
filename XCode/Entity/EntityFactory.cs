@@ -20,12 +20,6 @@ namespace XCode
         public static IDictionary<Type, IEntityFactory> Entities => _factories;
 
         /// <summary>创建实体操作接口</summary>
-        /// <param name="type">类型</param>
-        /// <returns></returns>
-        [Obsolete("=>CreateFactory")]
-        public static IEntityFactory CreateOperate(Type type) => CreateFactory(type);
-
-        /// <summary>创建实体操作接口</summary>
         /// <remarks>
         /// 因为只用来做实体操作，所以只需要一个实例即可。
         /// 调用平均耗时3.95ns，57.39%在EnsureInit

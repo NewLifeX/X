@@ -191,7 +191,7 @@ namespace XCode
         /// <returns></returns>
         protected virtual Int32 OnDelete() => Meta.Session.Delete(this);
 
-        Int32 DoAction(Func<Int32> func, Boolean? isnew)
+        private Int32 DoAction(Func<Int32> func, Boolean? isnew)
         {
             if (Meta.Table.DataTable.InsertOnly)
             {
@@ -349,7 +349,7 @@ namespace XCode
         /// <returns></returns>
         protected virtual Task<Int32> OnDeleteAsync() => Meta.Session.DeleteAsync(this);
 
-        Task<Int32> DoAction(Func<Task<Int32>> func, Boolean? isnew)
+        private Task<Int32> DoAction(Func<Task<Int32>> func, Boolean? isnew)
         {
             if (Meta.Table.DataTable.InsertOnly)
             {
@@ -379,7 +379,7 @@ namespace XCode
         }
 
         [NonSerialized]
-        Boolean enableValid = true;
+        private Boolean enableValid = true;
 
         /// <summary>验证并修补数据，通过抛出异常的方式提示验证失败。</summary>
         /// <remarks>建议重写者调用基类的实现，因为基类根据数据字段的唯一索引进行数据验证。</remarks>
@@ -522,7 +522,7 @@ namespace XCode
         /// <param name="value">属性值</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        public static TEntity Find(String name, Object value,string selects) => Find(new String[] { name }, new Object[] { value }, selects);
+        public static TEntity Find(String name, Object value, String selects) => Find(new String[] { name }, new Object[] { value }, selects);
 
         /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
         /// <param name="names">属性名称集合</param>
@@ -562,7 +562,7 @@ namespace XCode
         /// <param name="values">属性值集合</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        public static TEntity Find(String[] names, Object[] values,string selects)
+        public static TEntity Find(String[] names, Object[] values, String selects)
         {
             var exp = new WhereExpression();
             // 判断自增和主键
@@ -589,7 +589,7 @@ namespace XCode
             var di = Meta.Table.DataTable.GetIndex(names);
             if (di != null && di.Unique) return FindUnique(exp, selects);
 
-            return Find(exp,selects);
+            return Find(exp, selects);
         }
 
         /// <summary>根据条件查找唯一的单个实体</summary>
@@ -599,7 +599,7 @@ namespace XCode
         /// </remarks>
         /// <param name="where">查询条件</param>
         /// <returns></returns>
-        static TEntity FindUnique(Expression where)
+        private static TEntity FindUnique(Expression where)
         {
             var session = Meta.Session;
             var db = session.Dal.Db;
@@ -611,7 +611,7 @@ namespace XCode
                 Table = session.FormatedTableName,
                 // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
                 Where = wh
-               
+
             };
 
             // 使用默认选择列
@@ -642,7 +642,7 @@ namespace XCode
         /// <param name="where">查询条件</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        static TEntity FindUnique(Expression where,string selects)
+        private static TEntity FindUnique(Expression where, String selects)
         {
             var session = Meta.Session;
             var db = session.Dal.Db;
@@ -654,7 +654,7 @@ namespace XCode
                 Table = session.FormatedTableName,
                 // 谨记：某些项目中可能在where中使用了GroupBy，在分页时可能报错
                 Where = wh,
-                Column= selects
+                Column = selects
             };
 
             // 使用默认选择列
@@ -705,14 +705,14 @@ namespace XCode
         /// <param name="where">查询条件</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        public static TEntity Find(Expression where,string selects)
+        public static TEntity Find(Expression where, String selects)
         {
             var max = 1;
 
             // 优待主键查询
             if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
 
-            var list = FindAll(where, null, selects.IsNullOrWhiteSpace() ? null : selects, 0, max) ;
+            var list = FindAll(where, null, selects.IsNullOrWhiteSpace() ? null : selects, 0, max);
             return list.Count < 1 ? null : list[0];
         }
 
@@ -720,7 +720,7 @@ namespace XCode
         /// <param name="key">唯一主键的值</param>
         /// <param name="selects">查询列，默认null表示所有字段</param>
         /// <returns></returns>
-        public static TEntity FindByKey(Object key, string selects)
+        public static TEntity FindByKey(Object key, String selects)
         {
             var field = Meta.Unique;
             if (field == null) throw new ArgumentNullException(nameof(Meta.Unique), "FindByKey方法要求" + typeof(TEntity).FullName + "有唯一主键！");
@@ -816,37 +816,6 @@ namespace XCode
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
         /// <returns>实体数组</returns>
         public static IList<TEntity> FindAll() => FindAll("", null, null, 0, 0);
-
-        /// <summary>根据名称获取数据集。没有数据时返回空集合而不是null</summary>
-        /// <param name="name"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IList<TEntity> FindAll(String name, Object value)
-        {
-            var fi = Meta.Table.FindByName(name);
-            return FindAll(fi == value, null, null, 0, 0);
-        }
-
-        /// <summary>根据属性列表以及对应的值列表，查找单个实体</summary>
-        /// <param name="names">属性名称集合</param>
-        /// <param name="values">属性值集合</param>
-        /// <returns></returns>
-        [Obsolete("=>FindAll(Expression where, PageParameter page = null, String selects = null)")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static IList<TEntity> FindAll(String[] names, Object[] values)
-        {
-            var exp = new WhereExpression();
-
-            for (var i = 0; i < names.Length; i++)
-            {
-                var fi = Meta.Table.FindByName(names[i]);
-                exp &= fi == values[i];
-            }
-
-            return FindAll(exp, null, null, 0, 0);
-        }
 
         /// <summary>最标准的查询数据。没有数据时返回空集合而不是null</summary>
         /// <remarks>
@@ -1485,32 +1454,12 @@ namespace XCode
         #endregion
 
         #region 高级查询
-        /// <summary>查询满足条件的记录集，分页、排序。没有数据时返回空集合而不是null</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>实体集</returns>
-        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
-        public static IList<TEntity> Search(String key, String order, Int64 startRowIndex, Int64 maximumRows) => FindAll(SearchWhereByKeys(key, null), order, null, startRowIndex, maximumRows);
-
-        /// <summary>查询满足条件的记录总数，分页和排序无效，带参数是因为ObjectDataSource要求它跟Search统一</summary>
-        /// <param name="key">关键字</param>
-        /// <param name="order">排序，不带Order By</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>记录数</returns>
-        [Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
-        public static Int32 SearchCount(String key, String order, Int64 startRowIndex, Int64 maximumRows) => (Int32)FindCount(SearchWhereByKeys(key, null), null, null, 0, 0);
-
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
         /// <param name="page">分页排序参数，同时返回满足条件的总记录数</param>
         /// <returns></returns>
         //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static IList<TEntity> Search(String key, PageParameter page) => FindAll(SearchWhereByKeys(key), page);
-
-
 
         /// <summary>同时查询满足条件的指定查询列的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="key"></param>
@@ -1519,7 +1468,6 @@ namespace XCode
         /// <returns></returns>
         //[Obsolete("=>Search(DateTime start, DateTime end, String key, PageParameter page)")]
         public static IList<TEntity> Search(String key, PageParameter page, String selects) => FindAll(SearchWhereByKeys(key), page, selects);
-
 
         /// <summary>同时查询满足条件的记录集和记录总数。没有数据时返回空集合而不是null</summary>
         /// <param name="start">开始时间</param>
@@ -1597,25 +1545,11 @@ namespace XCode
 
         #region 静态操作
         /// <summary>把一个实体对象持久化到数据库</summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数</returns>
-        [Obsolete("=>entity.Insert()")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Insert(TEntity obj) => obj.Insert();
-
-        /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="names">更新属性列表</param>
         /// <param name="values">更新值列表</param>
         /// <returns>返回受影响的行数</returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Insert(String[] names, Object[] values) => Persistence.Insert(Meta.Session, names, values);
-
-        /// <summary>把一个实体对象更新到数据库</summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数</returns>
-        [Obsolete("=>entity.Update()")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Update(TEntity obj) => obj.Update();
 
         /// <summary>更新一批实体数据</summary>
         /// <param name="setClause">要更新的项和数据</param>
@@ -1633,16 +1567,6 @@ namespace XCode
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Update(String[] setNames, Object[] setValues, String[] whereNames, Object[] whereValues) => Persistence.Update(Meta.Session, setNames, setValues, whereNames, whereValues);
 
-        /// <summary>
-        /// 从数据库中删除指定实体对象。
-        /// 实体类应该实现该方法的另一个副本，以唯一键或主键作为参数
-        /// </summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数，可用于判断被删除了多少行，从而知道操作是否成功</returns>
-        [Obsolete("=>entity.Delete()")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Delete(TEntity obj) => obj.Delete();
-
         /// <summary>从数据库中删除指定条件的实体对象。</summary>
         /// <param name="whereClause">限制条件</param>
         /// <returns></returns>
@@ -1655,13 +1579,6 @@ namespace XCode
         /// <returns></returns>
         [EditorBrowsable(EditorBrowsableState.Advanced)]
         public static Int32 Delete(String[] names, Object[] values) => Persistence.Delete(Meta.Session, names, values);
-
-        /// <summary>把一个实体对象更新到数据库</summary>
-        /// <param name="obj">实体对象</param>
-        /// <returns>返回受影响的行数</returns>
-        [Obsolete("=>entity.Save()")]
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public static Int32 Save(TEntity obj) => obj.Save();
         #endregion
 
         #region 构造SQL语句
@@ -1683,7 +1600,7 @@ namespace XCode
             return builder;
         }
 
-        static SelectBuilder CreateBuilder(String where, String order, String selects, Boolean needOrderByID)
+        private static SelectBuilder CreateBuilder(String where, String order, String selects, Boolean needOrderByID)
         {
             var factory = Meta.Factory;
             var session = Meta.Session;
@@ -1763,7 +1680,7 @@ namespace XCode
             return builder;
         }
 
-        static SelectBuilder FixParam(SelectBuilder builder, IDictionary<String, Object> ps)
+        private static SelectBuilder FixParam(SelectBuilder builder, IDictionary<String, Object> ps)
         {
             // 提取参数
             if (ps != null)
@@ -1916,7 +1833,7 @@ namespace XCode
         /// <summary>克隆实体</summary>
         /// <param name="setDirty"></param>
         /// <returns></returns>
-        internal protected override IEntity CloneEntityInternal(Boolean setDirty = true) => CloneEntity(setDirty);
+        protected internal override IEntity CloneEntityInternal(Boolean setDirty = true) => CloneEntity(setDirty);
         #endregion
 
         #region 其它
