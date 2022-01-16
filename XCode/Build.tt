@@ -8,6 +8,8 @@
 <#@ import namespace="XCode.DataAccessLayer" #>
 <#@ output extension=".log" #>
 <#
+    // XCode代码生成模板用法： https://www.yuque.com/smartstone/xcode/model
+
     // 设置当前工作目录
 	PathHelper.BasePath = Host.ResolvePath(".");
 
