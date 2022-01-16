@@ -189,7 +189,7 @@ namespace NewLife.Http
             if (req.Method == "POST" && req.BodyLength > 0)
             {
                 var body = req.Body;
-                if (req.ContentType.EqualIgnoreCase("application/x-www-urlencoded", "application/x-www-form-urlencoded"))
+                if (req.ContentType.StartsWithIgnoreCase("application/x-www-form-urlencoded", "application/x-www-urlencoded"))
                 {
                     var qs = body.ToStr().SplitAsDictionary("=", "&")
                         .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
