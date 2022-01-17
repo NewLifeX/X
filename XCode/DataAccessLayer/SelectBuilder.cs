@@ -188,7 +188,7 @@ namespace XCode.DataAccessLayer
                 if (Column.IsNullOrEmpty() || Column == "*") return "*";
 
                 // 分解重构，把聚合函数干掉
-                var ss = Column.Split(",");
+                var ss = Column.Split(',');
                 var sb = Pool.StringBuilder.Get();
                 foreach (var item in ss)
                 {
@@ -379,7 +379,7 @@ $";
                 else
                 {
                     // 检查是否已存在该字段
-                    var selects = Column.Split(',');
+                    var selects = Column.Split(',', StringSplitOptions.RemoveEmptyEntries);
                     selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
                     Column = String.Join(",", selects);
                 }
@@ -445,7 +445,7 @@ $";
             {
                 orderby = orderby.Replace(match.Value, match.Value.Replace(",", "★"));
             }
-            var ss = orderby.Trim().Split(",");
+            var ss = orderby.Trim().Split(',');
             if (ss == null || ss.Length < 1) return null;
 
             var keys = new String[ss.Length];
@@ -453,7 +453,7 @@ $";
 
             for (var i = 0; i < ss.Length; i++)
             {
-                var ss2 = ss[i].Trim().Split(' ');
+                var ss2 = ss[i].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 // 拆分名称和排序，不知道是否存在多余一个空格的情况
                 if (ss2 != null && ss2.Length > 0)
                 {

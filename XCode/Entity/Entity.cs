@@ -1512,8 +1512,7 @@ namespace XCode
 
             if (func == null) func = SearchWhereByKey;
 
-            var ks = keys.Split(" ");
-
+            var ks = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             for (var i = 0; i < ks.Length; i++)
             {
                 if (!ks[i].IsNullOrWhiteSpace()) exp &= func(ks[i].Trim(), fields);

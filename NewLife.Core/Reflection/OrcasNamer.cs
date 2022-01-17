@@ -284,8 +284,9 @@ namespace NewLife.Reflection
                     // name
                     //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
                     var typeName = type.Name;
-                    if (typeName.Contains('`'))
-                        writer.Write(typeName[..typeName.IndexOf("`")]);
+                    var p = typeName.IndexOf('`');
+                    if (p >= 0)
+                        writer.Write(typeName[..p]);
                     else
                         writer.Write(typeName);
                     // generic parameters

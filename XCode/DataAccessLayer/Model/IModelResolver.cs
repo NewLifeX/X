@@ -70,7 +70,7 @@ namespace XCode.DataAccessLayer
             // 全大写或全小写名字，格式化为驼峰格式  包含下划线的表名和字段名生成类时自动去掉下划线
             if (name.Contains("_") && TrimUnderline)//(  name == name.ToUpper() || name == name.ToLower()))//
             {
-                var ns = name.Split("_");
+                var ns = name.Split('_', StringSplitOptions.RemoveEmptyEntries);
                 var sb = Pool.StringBuilder.Get();
                 foreach (var item in ns)
                 {

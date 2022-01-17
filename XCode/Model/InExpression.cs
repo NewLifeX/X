@@ -70,7 +70,7 @@ namespace XCode
                         val = ems.Join(",", e => db.FormatValue(column, e));
                     else if (Value is String)
                     {
-                        var list = (Value + "").Split(",").ToList();
+                        var list = (Value + "").Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
                         list.RemoveAll(e => (e + "").Trim().IsNullOrEmpty() || e.Contains("%")); //处理类似 in("xxx,xxx,xxx"),和 like "%,xxxx,%" 这两种情况下无法正常格式化查询字符串
                         val = list.Count > 1 ? list.Join(",", e => db.FormatValue(column, e)) : db.FormatValue(column, Value);
                     }

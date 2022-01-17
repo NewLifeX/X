@@ -219,7 +219,7 @@ namespace NewLife.Caching
             var svrs = _servers;
             if (svrs == null)
             {
-                var ss = svr.Split(",");
+                var ss = svr.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 var uris = new NetUri[ss.Length];
                 for (var i = 0; i < ss.Length; i++)
                 {

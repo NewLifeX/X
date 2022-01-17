@@ -140,7 +140,7 @@ namespace NewLife.Http
             }
 
             line = lines[0];
-            var ss = line.Split(" ");
+            var ss = line.Split(' ');
             // 分析请求方法 GET / HTTP/1.1
             if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
             {
@@ -285,7 +285,7 @@ namespace NewLife.Http
             if (content.Headers.TryGetValues("Content-Type", out var vs))
             {
                 // application/json; charset=utf-8
-                var type = vs.FirstOrDefault()?.Split(";").FirstOrDefault();
+                var type = vs.FirstOrDefault()?.Split(';').FirstOrDefault();
                 if (type.EqualIgnoreCase("application/json", "application/xml")) request.Headers.Accept.ParseAdd(type);
             }
 

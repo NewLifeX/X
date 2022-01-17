@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -236,11 +235,11 @@ namespace NewLife.Reflection
         /// <summary>
         /// 加载过滤器，如果返回 false 表示跳过加载。
         /// </summary>
-        public static Func<string, bool> ResolveFilter { get; set; }
+        public static Func<String, Boolean> ResolveFilter { get; set; }
         #endregion
 
         #region 方法
-        readonly ConcurrentDictionary<String, Type> typeCache2 = new();
+        private readonly ConcurrentDictionary<String, Type> typeCache2 = new();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
@@ -254,7 +253,7 @@ namespace NewLife.Reflection
         /// <summary>在程序集中查找类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        Type GetTypeInternal(String typeName)
+        private Type GetTypeInternal(String typeName)
         {
             var type = Asm.GetType(typeName);
             if (type != null) return type;
@@ -577,7 +576,7 @@ namespace NewLife.Reflection
                 }
                 return _AssemblyPaths;
             }
-            set { _AssemblyPaths = value; }
+            set => _AssemblyPaths = value;
         }
 
         /// <summary>获取当前程序域所有只反射程序集的辅助类</summary>

@@ -29,7 +29,7 @@ namespace NewLife.Http
             // HTTP/1.1 502 Bad Gateway
             if (!firstLine.StartsWith("HTTP/")) return false;
 
-            var ss = firstLine.Split(" ");
+            var ss = firstLine.Split(' ');
             //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
             if (ss.Length < 3) return false;
 

@@ -177,7 +177,7 @@ namespace XCode.Code
                 baseClass += "IExtend";
             }
 
-            var bs = baseClass?.Split(",").Select(e => e.Trim()).ToArray();
+            var bs = baseClass?.Split(',').Select(e => e.Trim()).ToArray();
 
             // 数据类的基类只有接口，业务类基类则比较复杂
             var name = "";

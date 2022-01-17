@@ -137,7 +137,7 @@ namespace NewLife.IO
                             {
                                 if (val.Contains('.'))
                                 {
-                                    var ss = val.Split(".");
+                                    var ss = val.Split('.');
                                     var dt = _1900.AddDays(ss[0].ToInt() - 2);
                                     dt = dt.AddSeconds(ss[1].ToLong() / 115740);
                                     val = dt.ToFullString();

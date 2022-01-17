@@ -110,7 +110,7 @@ namespace NewLife.Web
             if (ns.Length == 0) return list.ToArray();
 
             // 如果由很多段组成，可能是unix格式
-            _ = ns[0].Split(" ").Length >= 6;
+            _ = ns[0].Split(' ').Length >= 6;
             var buri = new Uri(url);
             foreach (var item in ns)
             {

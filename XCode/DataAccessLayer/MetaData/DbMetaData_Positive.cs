@@ -283,7 +283,7 @@ namespace XCode.DataAccessLayer
                 di.Name = name;
 
                 if (TryGetDataRowValue(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
-                    di.Columns = name.Split(",");
+                    di.Columns = name.Split(',');
                 else if (indexColumns != null)
                 {
                     String orderby = null;

@@ -52,7 +52,7 @@ namespace NewLife.Serialization
             MemberInfo mi = null;
             var type = member.DeclaringType;
             value = target;
-            var ss = ReferenceName.Split(".");
+            var ss = ReferenceName.Split('.');
             for (var i = 0; i < ss.Length; i++)
             {
                 var pi = type.GetPropertyEx(ss[i]);

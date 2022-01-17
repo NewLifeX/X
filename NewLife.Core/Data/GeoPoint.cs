@@ -32,7 +32,7 @@ namespace NewLife.Data
         {
             if (!location.IsNullOrEmpty())
             {
-                var ss = location.Split(",");
+                var ss = location.Split(',');
                 if (ss.Length >= 2)
                 {
                     Longitude = ss[0].ToDouble();

@@ -231,7 +231,7 @@ namespace XCode.Model
                         {
                             if (val is String s)
                             {
-                                return s.Split(",").Contains(eval);
+                                return s.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(eval);
                             }
                             if (val is IEnumerable e)
                             {

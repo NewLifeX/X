@@ -275,7 +275,7 @@ namespace NewLife
             //}
         }
 
-        private ICollection<String> _excludes = new List<String>();
+        private readonly ICollection<String> _excludes = new List<String>();
 
         /// <summary>获取实时数据，如CPU、内存、温度</summary>
         public void Refresh()
@@ -346,7 +346,7 @@ namespace NewLife
                     var line = reader.ReadLine();
                     if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
                     {
-                        var vs = line.TrimStart("cpu").Trim().Split(" ");
+                        var vs = line.TrimStart("cpu").Trim().Split(' ');
                         var current = new SystemTime
                         {
                             IdleTime = vs[3].ToLong(),
@@ -551,7 +551,7 @@ namespace NewLife
             var ss = str.Split(Environment.NewLine);
             foreach (var item in ss)
             {
-                var ks = item.Split("=");
+                var ks = item?.Split('=');
                 if (ks != null && ks.Length >= 2)
                 {
                     var k = ks[0].Trim();

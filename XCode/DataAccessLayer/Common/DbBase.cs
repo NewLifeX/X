@@ -420,7 +420,8 @@ namespace XCode.DataAccessLayer
                     if (!String.IsNullOrEmpty(str)) return str;
 
                     // 如果不能使用最大最小值分页，则砍掉排序，为TopNotIn分页做准备
-                    keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
+                    var p = keyColumn.IndexOf(' ');
+                    if (p > 0) keyColumn = keyColumn[..p];
                 }
             }
             #endregion
@@ -468,7 +469,8 @@ namespace XCode.DataAccessLayer
                 if (startRowIndex <= 0 && maximumRows > 0)
                     return $"Select Top {maximumRows} * From {CheckSimpleSQL(sql)}";
 
-                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
+                var p = keyColumn.IndexOf(' ');
+                if (p > 0) keyColumn = keyColumn[..p];
                 sql = sql[..ms[0].Index];
 
                 var strOrderBy = ms[0].Groups[1].Value.Trim();
@@ -524,7 +526,8 @@ namespace XCode.DataAccessLayer
 
                 if (!keyColumn.ToLower().EndsWith(" unknown")) canMaxMin = true;
 
-                keyColumn = keyColumn[..keyColumn.IndexOf(" ")];
+                var p = keyColumn.IndexOf(' ');
+                if (p > 0) keyColumn = keyColumn[..p];
             }
 
             if (canMaxMin)
@@ -611,7 +614,7 @@ namespace XCode.DataAccessLayer
                 if (_ReservedWords == null)
                 {
                     var dic = new Dictionary<String, Boolean>(StringComparer.OrdinalIgnoreCase);
-                    var ss = (ReservedWordsStr + "").Split(',');
+                    var ss = (ReservedWordsStr + "").Split(',', StringSplitOptions.RemoveEmptyEntries);
                     foreach (var item in ss)
                     {
                         var key = item.Trim();

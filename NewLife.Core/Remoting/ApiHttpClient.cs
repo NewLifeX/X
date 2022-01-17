@@ -135,7 +135,7 @@ namespace NewLife.Remoting
             if (!urls.IsNullOrEmpty() && urls != _lastUrls)
             {
                 var services = new List<Service>();
-                var ss = urls.Split(",");
+                var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 for (var i = 0; i < ss.Length; i++)
                 {
                     if (!ss[i].IsNullOrEmpty()) ParseAndAdd(services, "service" + (i + 1), ss[i]);

@@ -27,7 +27,7 @@ namespace XCode.DataAccessLayer
         /// <param name="regions"></param>
         public void AddIgnoreTimes(String regions)
         {
-            var rs = regions.Split(',');
+            var rs = regions.Split(',', StringSplitOptions.RemoveEmptyEntries);
             foreach (var item in rs)
             {
                 var ss = item.Split('-');

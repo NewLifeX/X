@@ -572,7 +572,7 @@ namespace XCode.DataAccessLayer
                 sql = sql.Substring(p1 + 1, p2 - p1 - 1);
                 if (sql.IsNullOrEmpty()) continue;
 
-                var sqls = sql.Split(",").ToList();
+                var sqls = sql.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 #region 字段
                 //GetTbFields(table);
@@ -583,7 +583,7 @@ namespace XCode.DataAccessLayer
                     // 处理外键设置
                     if (line.Contains("CONSTRAINT") && line.Contains("FOREIGN KEY")) continue;
 
-                    var fs = line.Trim().Split(" ");
+                    var fs = line.Trim().Split(' ');
                     var field = table.CreateColumn();
 
                     field.ColumnName = fs[0].TrimStart('[', '"').TrimEnd(']', '"');
@@ -629,7 +629,7 @@ namespace XCode.DataAccessLayer
 
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
-                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim().Trim(new[] { '[', '"', ']' })).ToArray();
+                    di.Columns = sql.Substring("(", ")").Split(',').Select(e => e.Trim().Trim('[', '"', ']')).ToArray();
 
                     table.Indexes.Add(di);
                 }

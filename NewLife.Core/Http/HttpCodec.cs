@@ -203,7 +203,7 @@ namespace NewLife.Http
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             var ss = pk.ToStr().Split(Environment.NewLine);
             {
-                var kv = ss[0].Split(" ");
+                var kv = ss[0].Split(' ');
                 if (kv != null && kv.Length >= 3)
                 {
                     Method = kv[0].Trim();
@@ -212,7 +212,7 @@ namespace NewLife.Http
             }
             for (var i = 1; i < ss.Length; i++)
             {
-                var kv = ss[i].Split(":");
+                var kv = ss[i].Split(':');
                 if (kv != null && kv.Length >= 2)
                 {
                     dic[kv[0].Trim()] = kv[1].Trim();

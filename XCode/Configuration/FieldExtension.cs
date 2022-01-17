@@ -290,7 +290,7 @@ namespace XCode
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
-            var ks = keys.Split(" ");
+            var ks = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             for (var i = 0; i < ks.Length; i++)
             {
@@ -311,7 +311,7 @@ namespace XCode
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
-            var ks = keys.Split(" ");
+            var ks = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             for (var i = 0; i < ks.Length; i++)
             {

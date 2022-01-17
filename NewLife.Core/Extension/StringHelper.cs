@@ -715,7 +715,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的距离
             foreach (var item in list)
@@ -770,7 +770,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的权重
             foreach (var item in list)

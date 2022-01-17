@@ -511,11 +511,11 @@ namespace NewLife
             if (p >= 0) addr = addr[(p + 3)..];
 
             // 有可能是多个IP地址
-            p = addr.IndexOf(",");
-            if (p >= 0) addr = addr.Split(",").FirstOrDefault();
+            p = addr.IndexOf(',');
+            if (p >= 0) addr = addr.Split(',').FirstOrDefault();
 
             // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(":")];
+            if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(':')];
 
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 

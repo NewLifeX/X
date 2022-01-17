@@ -62,7 +62,7 @@ namespace NewLife.Http
             var ctype = Array.Empty<String>();
             if (msg is HttpMessage hmsg && str[0] == '{')
             {
-                if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(";");
+                if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(';');
             }
 
             if (ctype.Contains("application/json"))
@@ -230,7 +230,7 @@ namespace NewLife.Http
 
             var line = http.Header.ToStr(null, 0, p);
 
-            var ss = line.Split(" ");
+            var ss = line.Split(' ');
             if (ss.Length < 3) return false;
 
             // 第二段是地址

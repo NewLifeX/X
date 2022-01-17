@@ -518,7 +518,7 @@ namespace NewLife.Http
 
             // HTTP/1.1 502 Bad Gateway
 
-            var ss = lines[0].Split(" ");
+            var ss = lines[0].Split(' ');
             if (ss.Length < 3) return null;
 
             // 分析响应码
