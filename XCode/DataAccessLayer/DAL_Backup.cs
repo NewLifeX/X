@@ -17,7 +17,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(IDataTable table, Stream stream)
         {
-            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.Backup(table, stream);
         }
 
@@ -27,7 +27,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Backup(IDataTable table, String file = null)
         {
-            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.Backup(table, file);
         }
 
@@ -39,7 +39,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 BackupAll(IList<IDataTable> tables, String file, Boolean backupSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.BackupAll(tables, file, backupSchema);
         }
         #endregion
@@ -51,7 +51,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Restore(Stream stream, IDataTable table)
         {
-            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.Restore(stream, table);
         }
 
@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int64 Restore(String file, IDataTable table, Boolean setSchema = true)
         {
-            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.Restore(file, table, setSchema);
         }
 
@@ -74,7 +74,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDataTable[] RestoreAll(String file, IDataTable[] tables = null, Boolean setSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.RestoreAll(file, tables, setSchema);
         }
         #endregion
@@ -90,7 +90,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Sync(IDataTable table, String connName, Boolean syncSchema = true)
         {
-            var dpk = new DbPackage { Dal = this, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.Sync(table, connName, syncSchema);
         }
 
@@ -102,7 +102,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public IDictionary<String, Int32> SyncAll(IDataTable[] tables, String connName, Boolean syncSchema = true, Boolean ignoreError = true)
         {
-            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Log = XTrace.Log };
+            var dpk = new DbPackage { Dal = this, IgnoreError = ignoreError, Tracer = Tracer ?? GlobalTracer, Log = XTrace.Log };
             return dpk.SyncAll(tables, connName, syncSchema);
         }
         #endregion

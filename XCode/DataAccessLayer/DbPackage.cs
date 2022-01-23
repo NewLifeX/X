@@ -62,6 +62,8 @@ namespace XCode.DataAccessLayer
                 // 最多同时堆积数
                 BoundedCapacity = 4,
                 TracerParent = span,
+                Tracer = Tracer,
+                Log = Log,
             };
 
             var tableName = Dal.Db.FormatName(table);
@@ -580,6 +582,11 @@ namespace XCode.DataAccessLayer
             public Int32 Total { get; set; }
 
             /// <summary>
+            /// 性能追踪器
+            /// </summary>
+            public ITracer Tracer { get; set; }
+
+            /// <summary>
             /// 日志
             /// </summary>
             public ILog Log { get; set; }
@@ -612,6 +619,8 @@ namespace XCode.DataAccessLayer
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
+
+                using var span = Tracer?.NewSpan($"db:WriteStream", (Stream as FileStream)?.Name);
 
                 // 写头部结构。没有数据时可以备份结构
                 if (!_writeHeader)
@@ -663,11 +672,6 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public ILog Log { get; set; }
 
-            /// <summary>
-            /// 性能追踪器
-            /// </summary>
-            public ITracer Tracer { get; set; }
-
             private IDataColumn[] _Columns;
 
             /// <summary>
@@ -677,7 +681,7 @@ namespace XCode.DataAccessLayer
             /// <returns></returns>
             protected override Task ReceiveAsync(ActorContext context)
             {
-                if (context.Message is not DbTable dt) return null;
+                if (context.Message is not DbTable dt) return Task.CompletedTask;
 
                 // 匹配要写入的列
                 if (_Columns == null)
@@ -689,7 +693,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 批量插入
-                using var span = Tracer?.NewSpan($"db:{Dal.ConnName}:BatchInsert:{Table.TableName}");
+                using var span = Tracer?.NewSpan($"db:WriteDb", Table.TableName);
                 if (IgnorePageError)
                 {
                     try
@@ -706,7 +710,7 @@ namespace XCode.DataAccessLayer
                     Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
                 }
 
-                return null;
+                return Task.CompletedTask;
             }
         }
         #endregion

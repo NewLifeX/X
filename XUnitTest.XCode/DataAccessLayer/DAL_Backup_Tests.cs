@@ -44,7 +44,7 @@ namespace XUnitTest.XCode.DataAccessLayer
 
                 var dal2 = User.Meta.Session.Dal;
 
-                var rs = dal2.RestoreAll($"data/{dal.ConnName}.zip", null);
+                var rs = dal2.RestoreAll($"data/{dal.ConnName}.zip", null, true, false);
                 Assert.NotNull(rs);
             }
             finally
