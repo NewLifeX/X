@@ -582,11 +582,6 @@ namespace XCode.DataAccessLayer
             public Int32 Total { get; set; }
 
             /// <summary>
-            /// 性能追踪器
-            /// </summary>
-            public ITracer Tracer { get; set; }
-
-            /// <summary>
             /// 日志
             /// </summary>
             public ILog Log { get; set; }

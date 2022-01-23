@@ -52,8 +52,8 @@ namespace NewLife.Model
         /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
         public Int32 BatchSize { get; set; } = 1;
 
-        ///// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
-        //public Boolean LongRunning { get; set; }
+        /// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
+        public Boolean LongRunning { get; set; }
 
         /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
@@ -106,30 +106,34 @@ namespace NewLife.Model
         public virtual Task Start()
         {
             if (Active) return _task;
-
-            if (Tracer == null && TracerParent != null) Tracer = (TracerParent as DefaultSpan).Builder?.Tracer;
-            using var span = Tracer?.NewSpan("actor:Start", Name);
-
-            _source = new CancellationTokenSource();
-            if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
-
-            // 启动异步
-            if (_task == null)
+            lock (this)
             {
-                lock (this)
+                if (Active) return _task;
+
+                if (Tracer == null && TracerParent != null) Tracer = (TracerParent as DefaultSpan).Builder?.Tracer;
+                using var span = Tracer?.NewSpan("actor:Start", Name);
+
+                _source = new CancellationTokenSource();
+                if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
+
+                // 启动异步
+                if (_task == null)
                 {
-                    if (_task == null) _task = OnStart();
+                    lock (this)
+                    {
+                        if (_task == null) _task = OnStart();
+                    }
                 }
+
+                Active = true;
+
+                return _task;
             }
-
-            Active = true;
-
-            return _task;
         }
 
         /// <summary>开始时，返回执行线程包装任务</summary>
         /// <returns></returns>
-        protected virtual Task OnStart() => Task.Run(DoActorWork);
+        protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
 
         /// <summary>通知停止添加消息，并等待处理完成</summary>
         /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
@@ -178,17 +182,17 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        private async Task DoActorWork()
+        private void DoActorWork()
         {
             DefaultSpan.Current = TracerParent;
 
             using var span = Tracer?.NewSpan("actor:Loop", Name);
             try
             {
-                await Loop();
+                Loop();
             }
-            catch (OperationCanceledException) { }
-            catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
+            catch (OperationCanceledException) { span?.SetError(null, nameof(OperationCanceledException)); }
+            catch (InvalidOperationException) { span?.SetError(null, nameof(InvalidOperationException)); /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {
                 span?.SetError(ex, null);
@@ -201,7 +205,7 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        protected virtual async Task Loop()
+        protected virtual void Loop()
         {
             var box = MailBox;
             while (!_source.IsCancellationRequested && !box.IsCompleted)
@@ -209,7 +213,8 @@ namespace NewLife.Model
                 if (BatchSize <= 1)
                 {
                     var ctx = box.Take(_source.Token);
-                    await ReceiveAsync(ctx);
+                    var task = ReceiveAsync(ctx);
+                    if (task != null) task.Wait(_source.Token);
                 }
                 else
                 {
@@ -226,7 +231,8 @@ namespace NewLife.Model
 
                         list.Add(ctx);
                     }
-                    await ReceiveAsync(list.ToArray());
+                    var task = ReceiveAsync(list.ToArray());
+                    if (task != null) task.Wait(_source.Token);
                 }
             }
         }
