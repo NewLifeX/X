@@ -68,11 +68,11 @@ namespace XCode.DataAccessLayer
             var sb = new SelectBuilder { Table = tableName };
             var connName = Dal.ConnName;
 
+            var extracer = GetExtracter(table);
+
             // 总行数
             writeFile.Total = Dal.SelectCount(sb);
-            WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, connName, writeFile.Total);
-
-            var extracer = GetExtracter(table);
+            WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行，抽取器{3}", table, connName, writeFile.Total, extracer);
 
             // 临时关闭日志
             var old = Dal.Db.ShowSQL;
@@ -608,7 +608,7 @@ namespace XCode.DataAccessLayer
             /// </summary>
             /// <param name="context"></param>
             /// <returns></returns>
-            protected override Task ReceiveAsync(ActorContext context)
+            protected override async Task ReceiveAsync(ActorContext context)
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
@@ -629,13 +629,14 @@ namespace XCode.DataAccessLayer
                 }
 
                 var rs = dt.Rows;
-                if (rs == null || rs.Count == 0) return null;
+                if (rs == null || rs.Count == 0) return;
 
                 // 写入文件
                 dt.WriteData(bn);
-                Stream.Flush();
+                //Stream.Flush();
+                await Stream.FlushAsync();
 
-                return null;
+                //return null;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
 
@@ -51,8 +52,8 @@ namespace NewLife.Model
         /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
         public Int32 BatchSize { get; set; } = 1;
 
-        /// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
-        public Boolean LongRunning { get; set; }
+        ///// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
+        //public Boolean LongRunning { get; set; }
 
         /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
         protected BlockingCollection<ActorContext> MailBox { get; set; }
@@ -64,6 +65,7 @@ namespace NewLife.Model
 
         private Task _task;
         private Exception _error;
+        private CancellationTokenSource _source;
 
         /// <summary>已完成任务</summary>
         public static Task CompletedTask { get; } = Task.CompletedTask;
@@ -100,6 +102,7 @@ namespace NewLife.Model
         {
             if (Active) return _task;
 
+            _source = new CancellationTokenSource();
             if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
 
             // 启动异步
@@ -116,15 +119,20 @@ namespace NewLife.Model
             return _task;
         }
 
-        /// <summary>开始时，返回执行线程包装任务，默认LongRunning</summary>
+        /// <summary>开始时，返回执行线程包装任务</summary>
         /// <returns></returns>
-        protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
+        protected virtual Task OnStart() => Task.Run(DoActorWork);
 
         /// <summary>通知停止添加消息，并等待处理完成</summary>
         /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
         public virtual Boolean Stop(Int32 msTimeout = 0)
         {
             MailBox?.CompleteAdding();
+
+            if (msTimeout != 0)
+                _source.CancelAfter(msTimeout);
+            else
+                _source.Cancel();
 
             if (_error != null) throw _error;
             if (msTimeout == 0 || _task == null) return true;
@@ -155,12 +163,13 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        private void DoActorWork()
+        private async Task DoActorWork()
         {
             try
             {
-                Loop();
+                await Loop();
             }
+            catch (OperationCanceledException) { }
             catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {
@@ -172,25 +181,24 @@ namespace NewLife.Model
         }
 
         /// <summary>循环消费消息</summary>
-        protected virtual void Loop()
+        protected virtual async Task Loop()
         {
             DefaultSpan.Current = TracerParent;
 
             var box = MailBox;
-            while (!box.IsCompleted)
+            while (!_source.IsCancellationRequested && !box.IsCompleted)
             {
                 if (BatchSize <= 1)
                 {
-                    var ctx = box.Take();
-                    var task = ReceiveAsync(ctx);
-                    if (task != null) task.Wait();
+                    var ctx = box.Take(_source.Token);
+                    await ReceiveAsync(ctx);
                 }
                 else
                 {
                     var list = new List<ActorContext>();
 
                     // 阻塞取一个
-                    var ctx = box.Take();
+                    var ctx = box.Take(_source.Token);
                     list.Add(ctx);
 
                     // 不阻塞取一批
@@ -200,8 +208,7 @@ namespace NewLife.Model
 
                         list.Add(ctx);
                     }
-                    var task = ReceiveAsync(list.ToArray());
-                    if (task != null) task.Wait();
+                    await ReceiveAsync(list.ToArray());
                 }
             }
         }
