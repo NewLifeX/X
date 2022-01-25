@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -122,26 +123,26 @@ namespace NewLife.Serialization
             else if (obj is TimeSpan)
                 WriteString(obj + "");
 
-            else if (obj is DateTime)
-                WriteDateTime((DateTime)obj);
+            else if (obj is DateTime time)
+                WriteDateTime(time);
 
             else if (obj is IDictionary<String, Object> sdic)
                 WriteStringDictionary(sdic);
-            else if (obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0] == typeof(String))
-                WriteStringDictionary((IDictionary)obj);
-            else if (obj is System.Dynamic.ExpandoObject)
+            else if (obj is IDictionary dictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0].GetTypeCode() != TypeCode.Object)
+                WriteStringDictionary(dictionary);
+            else if (obj is ExpandoObject)
                 WriteStringDictionary((IDictionary<String, Object>)obj);
-            else if (obj is IDictionary)
-                WriteDictionary((IDictionary)obj);
+            else if (obj is IDictionary dictionary1)
+                WriteDictionary(dictionary1);
             else if (obj is Byte[] buf)
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
             else if (obj is Packet pk)
                 WriteStringFast(pk.ToBase64());
-            else if (obj is StringDictionary)
-                WriteSD((StringDictionary)obj);
+            else if (obj is StringDictionary dictionary2)
+                WriteSD(dictionary2);
 
-            else if (obj is NameValueCollection)
-                WriteNV((NameValueCollection)obj);
+            else if (obj is NameValueCollection collection)
+                WriteNV(collection);
 
             // 列表、数组
             else if (obj is IList list)
@@ -430,7 +431,7 @@ namespace NewLife.Serialization
                     }
                     first = false;
 
-                    var name = FormatName((String)item.Key);
+                    var name = FormatName(item.Key + "");
                     WritePair(name, item.Value);
                 }
             }
