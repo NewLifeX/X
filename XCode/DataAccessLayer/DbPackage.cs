@@ -62,17 +62,19 @@ namespace XCode.DataAccessLayer
                 // 最多同时堆积数
                 BoundedCapacity = 4,
                 TracerParent = span,
+                Tracer = Tracer,
+                Log = Log,
             };
 
             var tableName = Dal.Db.FormatName(table);
             var sb = new SelectBuilder { Table = tableName };
             var connName = Dal.ConnName;
 
+            var extracer = GetExtracter(table);
+
             // 总行数
             writeFile.Total = Dal.SelectCount(sb);
-            WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行", table, connName, writeFile.Total);
-
-            var extracer = GetExtracter(table);
+            WriteLog("备份[{0}/{1}]开始，共[{2:n0}]行，抽取器{3}", table, connName, writeFile.Total, extracer);
 
             // 临时关闭日志
             var old = Dal.Db.ShowSQL;
@@ -608,10 +610,12 @@ namespace XCode.DataAccessLayer
             /// </summary>
             /// <param name="context"></param>
             /// <returns></returns>
-            protected override Task ReceiveAsync(ActorContext context)
+            protected override async Task ReceiveAsync(ActorContext context)
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
+
+                using var span = Tracer?.NewSpan($"db:WriteStream", (Stream as FileStream)?.Name);
 
                 // 写头部结构。没有数据时可以备份结构
                 if (!_writeHeader)
@@ -629,13 +633,14 @@ namespace XCode.DataAccessLayer
                 }
 
                 var rs = dt.Rows;
-                if (rs == null || rs.Count == 0) return null;
+                if (rs == null || rs.Count == 0) return;
 
                 // 写入文件
                 dt.WriteData(bn);
-                Stream.Flush();
+                //Stream.Flush();
+                await Stream.FlushAsync();
 
-                return null;
+                //return null;
             }
         }
 
@@ -662,11 +667,6 @@ namespace XCode.DataAccessLayer
             /// </summary>
             public ILog Log { get; set; }
 
-            /// <summary>
-            /// 性能追踪器
-            /// </summary>
-            public ITracer Tracer { get; set; }
-
             private IDataColumn[] _Columns;
 
             /// <summary>
@@ -676,7 +676,7 @@ namespace XCode.DataAccessLayer
             /// <returns></returns>
             protected override Task ReceiveAsync(ActorContext context)
             {
-                if (context.Message is not DbTable dt) return null;
+                if (context.Message is not DbTable dt) return Task.CompletedTask;
 
                 // 匹配要写入的列
                 if (_Columns == null)
@@ -688,7 +688,7 @@ namespace XCode.DataAccessLayer
                 }
 
                 // 批量插入
-                using var span = Tracer?.NewSpan($"db:{Dal.ConnName}:BatchInsert:{Table.TableName}");
+                using var span = Tracer?.NewSpan($"db:WriteDb", Table.TableName);
                 if (IgnorePageError)
                 {
                     try
@@ -705,7 +705,7 @@ namespace XCode.DataAccessLayer
                     Dal.Session.Insert(Table, _Columns, dt.Cast<IExtend>());
                 }
 
-                return null;
+                return Task.CompletedTask;
             }
         }
         #endregion
