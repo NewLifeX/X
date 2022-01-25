@@ -440,6 +440,8 @@ namespace XCode
                 }
 
                 name = Meta.Table.Description;
+                var p = name.IndexOfAny(new[] { '。', '，' });
+                if (p > 0) name = name[..p];
                 if (String.IsNullOrEmpty(name)) name = typeof(TEntity).Name;
                 sb.AppendFormat(" 的{0}已存在！", name);
 
@@ -492,7 +494,7 @@ namespace XCode
                 {
                     for (var i = 0; i < names.Length; i++)
                     {
-                        if (e[names[i]] != values[i]) return false;
+                        if (!Equals(e[names[i]], values[i])) return false;
                     }
                     return true;
                 });
