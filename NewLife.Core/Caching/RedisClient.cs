@@ -19,7 +19,7 @@ namespace NewLife.Caching
 {
     /// <summary>Redis客户端</summary>
     /// <remarks>
-    /// 以极简原则进行设计，每个客户端不支持并行命令处理，可通过多客户端多线程解决。
+    /// 以极简原则进行设计，每个客户端不支持并行命令处理（非线程安全），可通过多客户端多线程解决。
     /// </remarks>
     public class RedisClient : DisposeBase
     {
@@ -27,7 +27,7 @@ namespace NewLife.Caching
         /// <summary>客户端</summary>
         public TcpClient Client { get; set; }
 
-        /// <summary>内容类型</summary>
+        /// <summary>服务器地址</summary>
         public NetUri Server { get; set; }
 
         /// <summary>宿主</summary>
@@ -38,15 +38,12 @@ namespace NewLife.Caching
 
         /// <summary>登录时间</summary>
         public DateTime LoginTime { get; private set; }
-
-        /// <summary>是否正在处理命令</summary>
-        public Boolean Busy { get; private set; }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        /// <param name="redis"></param>
-        /// <param name="server"></param>
+        /// <param name="redis">宿主</param>
+        /// <param name="server">服务器地址。一个redis对象可能有多服务器，例如Cluster集群</param>
         public RedisClient(Redis redis, NetUri server)
         {
             Host = redis;
@@ -280,7 +277,7 @@ namespace NewLife.Caching
                 log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(RedisClient.ReadBlock(ms, log));
+                    list.Add(ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
@@ -388,7 +385,7 @@ namespace NewLife.Caching
                 log?.Append(header);
                 if (header == '$')
                 {
-                    list.Add(RedisClient.ReadBlock(ms, log));
+                    list.Add(ReadBlock(ms, log));
                 }
                 else if (header == '*')
                 {
@@ -458,13 +455,8 @@ namespace NewLife.Caching
             if (Logined) return;
             if (cmd.EqualIgnoreCase("Auth", "Select")) return;
 
-            if (!Host.Password.IsNullOrEmpty() /*&& cmd != "AUTH"*/)
-            {
-                //var ars = ExecuteCommand("AUTH", new Packet[] { Host.Password.GetBytes() });
-                //if (ars as String != "OK") throw new Exception("登录失败！" + ars);
-
-                if (!Auth(Host.UserName, Host.Password)) throw new Exception("登录失败！");
-            }
+            if (!Host.Password.IsNullOrEmpty() && !Auth(Host.UserName, Host.Password))
+                throw new Exception("登录失败！");
 
             if (Host.Db > 0) Select(Host.Db);
 
@@ -863,26 +855,6 @@ namespace NewLife.Caching
         #endregion
 
         #region 获取设置
-        ///// <summary>设置</summary>
-        ///// <typeparam name="T"></typeparam>
-        ///// <param name="key"></param>
-        ///// <param name="value"></param>
-        ///// <param name="secTimeout">超时时间</param>
-        ///// <returns></returns>
-        //public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
-        //{
-        //    if (secTimeout <= 0)
-        //        return Execute<String>("SET", key, value) == "OK";
-        //    else
-        //        return Execute<String>("SETEX", key, secTimeout, value) == "OK";
-        //}
-
-        ///// <summary>读取</summary>
-        ///// <typeparam name="T"></typeparam>
-        ///// <param name="key"></param>
-        ///// <returns></returns>
-        //public T Get<T>(String key) => Execute<T>("GET", key);
-
         /// <summary>批量设置</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
@@ -891,19 +863,15 @@ namespace NewLife.Caching
         {
             if (values == null || values.Count == 0) throw new ArgumentNullException(nameof(values));
 
-            //var ps = new List<Packet>();
             var ps = new List<Object>();
             foreach (var item in values)
             {
-                //ps.Add(item.Key.GetBytes());
-                //ps.Add(ToBytes(item.Value));
                 ps.Add(item.Key);
 
                 if (item.Value == null) throw new NullReferenceException();
                 ps.Add(item.Value);
             }
 
-            //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
             if (rs != "OK")
             {
