@@ -166,11 +166,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public abstract Boolean TryRead(Type type, ref Object value);
 
-        Int32 IComparable<IHandler<THost>>.CompareTo(IHandler<THost> other)
-        {
-            // 优先级较大在前面
-            return Priority.CompareTo(other.Priority);
-        }
+        Int32 IComparable<IHandler<THost>>.CompareTo(IHandler<THost> other) => Priority.CompareTo(other.Priority);
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

@@ -879,7 +879,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public async Task<T> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
         {
-            if (!_occupiedNodes.Wait(0))
+            if (!_occupiedNodes.Wait(0, cancellationToken))
             {
                 if (timeout <= 0) return default;
 

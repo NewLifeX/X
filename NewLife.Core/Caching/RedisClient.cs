@@ -470,11 +470,12 @@ namespace NewLife.Caching
             var ns = GetStream(false);
             if (ns == null) return;
 
-            // 干掉历史残留数据
-            var count = 0;
+                // 干掉历史残留数据
             if (ns is NetworkStream nss && nss.DataAvailable)
             {
                 var buf = new Byte[1024];
+
+                Int32 count;
                 do
                 {
                     count = ns.Read(buf, 0, buf.Length);
