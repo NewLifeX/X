@@ -7,9 +7,10 @@ using NewLife.Collections;
 
 namespace NewLife.Data
 {
-    /// <summary>数据包</summary>
+    /// <summary>数据包。设计于.NET2.0时代，功能上类似于NETCore的Span/Memory</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/packet
+    /// Packet的设计目标就是网络库零拷贝，所以Slice切片是其最重要功能。
     /// </remarks>
     public class Packet
     {
@@ -332,6 +333,24 @@ namespace NewLife.Data
             }
 
             return list;
+        }
+
+        /// <summary>转为Span</summary>
+        /// <returns></returns>
+        public Span<Byte> AsSpan()
+        {
+            if (Next == null) return new Span<Byte>(Data, Offset, Count);
+
+            return new Span<Byte>(ToArray());
+        }
+
+        /// <summary>转为Memory</summary>
+        /// <returns></returns>
+        public Memory<Byte> AsMemory()
+        {
+            if (Next == null) return new Memory<Byte>(Data, Offset, Count);
+
+            return new Memory<Byte>(ToArray());
         }
 
         /// <summary>获取封包的数据流形式</summary>
