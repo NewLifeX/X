@@ -14,8 +14,8 @@ namespace NewLife.Serialization
         /// <summary>小端字节序。默认false大端</summary>
         Boolean IsLittleEndian { get; set; }
 
-        /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
-        Boolean UseFieldSize { get; set; }
+        ///// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
+        //Boolean UseFieldSize { get; set; }
 
         /// <summary>要忽略的成员</summary>
         ICollection<String> IgnoreMembers { get; set; }

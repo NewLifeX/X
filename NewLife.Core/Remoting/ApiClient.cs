@@ -363,10 +363,7 @@ namespace NewLife.Remoting
         #region 登录
         /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
         /// <param name="client">会话</param>
-        public virtual void OnNewSession(ISocketClient client)
-        {
-            OnLoginAsync(client, true)?.Wait();
-        }
+        public virtual void OnNewSession(ISocketClient client) => OnLoginAsync(client, true)?.Wait();
 
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>

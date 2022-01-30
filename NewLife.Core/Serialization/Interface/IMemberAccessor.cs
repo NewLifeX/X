@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 
 namespace NewLife.Serialization
 {
@@ -8,14 +6,14 @@ namespace NewLife.Serialization
     public interface IMemberAccessor
     {
         /// <summary>从数据流中读取消息</summary>
-        /// <param name="fm">序列化</param>
-        /// <param name="member">成员</param>
+        /// <param name="formatter">序列化</param>
+        /// <param name="context">上下文</param>
         /// <returns>是否成功</returns>
-        Boolean Read(IFormatterX fm, MemberInfo member);
+        Boolean Read(IFormatterX formatter, AccessorContext context);
 
         /// <summary>把消息写入到数据流中</summary>
-        /// <param name="fm">序列化</param>
-        /// <param name="member">成员</param>
-        void Write(IFormatterX fm, MemberInfo member);
+        /// <param name="formatter">序列化</param>
+        /// <param name="context">上下文</param>
+        Boolean Write(IFormatterX formatter, AccessorContext context);
     }
 }
