@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using NewLife.Data;
 using NewLife.Log;
@@ -28,7 +29,7 @@ namespace NewLife.Serialization
         public Int32 SizeWidth { get; set; }
 
         /// <summary>要忽略的成员</summary>
-        public ICollection<String> IgnoreMembers { get; set; }
+        public ICollection<String> IgnoreMembers { get; set; } = new HashSet<String>();
 
         /// <summary>处理器列表</summary>
         public IList<IBinaryHandler> Handlers { get; private set; }
@@ -38,8 +39,6 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         public Binary()
         {
-            IgnoreMembers = new HashSet<String>();
-
             // 遍历所有处理器实现
             var list = new List<IBinaryHandler>
             {
@@ -50,9 +49,7 @@ namespace NewLife.Serialization
                 new BinaryDictionary { Host = this }
             };
             // 根据优先级排序
-            list.Sort();
-
-            Handlers = list;
+            Handlers = list.OrderBy(e => e.Priority).ToList();
         }
         #endregion
 
@@ -95,7 +92,7 @@ namespace NewLife.Serialization
         {
             foreach (var item in Handlers)
             {
-                if (item is T) return item as T;
+                if (item is T handler) return handler;
             }
 
             return default;
@@ -170,10 +167,7 @@ namespace NewLife.Serialization
                     break;
                 case 0:
                 default:
-                    //if (EncodeInt)
                     WriteEncoded(size);
-                    //else
-                    //    Write(size);
                     break;
             }
 
@@ -182,31 +176,6 @@ namespace NewLife.Serialization
 
         [ThreadStatic]
         private static Byte[] _encodes;
-
-        /// <summary>写7位压缩编码整数</summary>
-        /// <remarks>
-        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
-        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        /// </remarks>
-        /// <param name="value">数值</param>
-        /// <returns>实际写入字节数</returns>
-        private Int32 WriteEncoded(Int32 value)
-        {
-            if (_encodes == null) _encodes = new Byte[16];
-
-            var count = 0;
-            var num = (UInt32)value;
-            while (num >= 0x80)
-            {
-                _encodes[count++] = (Byte)(num | 0x80);
-                num >>= 7;
-            }
-            _encodes[count++] = (Byte)num;
-
-            Write(_encodes, 0, count);
-
-            return count;
-        }
         #endregion
 
         #region 读取
@@ -317,6 +286,31 @@ namespace NewLife.Serialization
         #endregion
 
         #region 7位压缩编码整数
+        /// <summary>写7位压缩编码整数</summary>
+        /// <remarks>
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </remarks>
+        /// <param name="value">数值</param>
+        /// <returns>实际写入字节数</returns>
+        public Int32 WriteEncoded(Int32 value)
+        {
+            if (_encodes == null) _encodes = new Byte[16];
+
+            var count = 0;
+            var num = (UInt32)value;
+            while (num >= 0x80)
+            {
+                _encodes[count++] = (Byte)(num | 0x80);
+                num >>= 7;
+            }
+            _encodes[count++] = (Byte)num;
+
+            Write(_encodes, 0, count);
+
+            return count;
+        }
+
         /// <summary>以压缩格式读取16位整数</summary>
         /// <returns></returns>
         public Int16 ReadEncodedInt16()
