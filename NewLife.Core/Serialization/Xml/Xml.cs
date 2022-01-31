@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
@@ -39,9 +40,7 @@ namespace NewLife.Serialization
                 new XmlComposite { Host = this }
             };
             // 根据优先级排序
-            list.Sort();
-
-            Handlers = list;
+            Handlers = list.OrderBy(e => e.Priority).ToList();
         }
         #endregion
 

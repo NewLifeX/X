@@ -10,6 +10,141 @@ namespace XUnitTest.Serialization
     public class BinaryTests
     {
         [Fact]
+        public void Normal()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary();
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(10, pk.Total);
+            Assert.Equal("000004D20553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream() };
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void EncodeInt()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary { EncodeInt = true, };
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(8, pk.Total);
+            Assert.Equal("D2090553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void IsLittleEndian()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary { IsLittleEndian = true, };
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(10, pk.Total);
+            Assert.Equal("D20400000553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), IsLittleEndian = true };
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void UseFieldSize()
+        {
+            var model = new MyModelWithFieldSize { Name = "Stone" };
+            var bn = new Binary { UseFieldSize = true, };
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(6, pk.Total);
+            Assert.Equal("0553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), UseFieldSize = true };
+            var model2 = bn2.Read<MyModelWithFieldSize>();
+            Assert.Equal(model.Length, model2.Length);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void SizeWidth()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary { SizeWidth = 2, };
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(11, pk.Total);
+            Assert.Equal("000004D2000553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), SizeWidth = 2 };
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void UseProperty()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary { UseProperty = false, };
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(10, pk.Total);
+            Assert.Equal("000004D20553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), UseProperty = false };
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
+        public void IgnoreMembers()
+        {
+            var model = new MyModel { Code = 1234, Name = "Stone" };
+            var bn = new Binary();
+            bn.IgnoreMembers.Add("Code");
+            Assert.Equal(5, bn.Handlers.Count);
+
+            bn.Write(model);
+
+            var pk = bn.GetPacket();
+            Assert.Equal(6, pk.Total);
+            Assert.Equal("0553746F6E65", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream() };
+            bn2.IgnoreMembers.Add("Code");
+            var model2 = bn2.Read<MyModel>();
+            Assert.Equal(0, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        [Fact]
         public void Fast()
         {
             var model = new MyModel { Code = 1234, Name = "Stone" };
@@ -150,9 +285,9 @@ namespace XUnitTest.Serialization
 
         private class MyModelWithFieldSize
         {
-            public Int32 Length { get; set; }
+            public Byte Length { get; set; }
 
-            [FieldSize(nameof(Length), 0)]
+            [FieldSize(nameof(Length))]
             public String Name { get; set; }
         }
 
