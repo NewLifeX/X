@@ -140,6 +140,7 @@ namespace XCode.Code
             us.Add("XCode");
             us.Add("XCode.Configuration");
             us.Add("XCode.DataAccessLayer");
+            us.Add("XCode.Shards");
 
             if (Business && !Option.Pure)
             {
@@ -537,6 +538,13 @@ namespace XCode.Code
             WriteLine("static {0}()", ClassName);
             WriteLine("{");
             {
+                // 只插入日志
+                if (Table.InsertOnly)
+                {
+                    WriteLine("Meta.Table.DataTable.InsertOnly = true;");
+                    WriteLine();
+                }
+
                 // 第一个非自增非主键整型字段，生成累加字段代码
                 var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
                 if (dc != null)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -8,6 +8,7 @@ using NewLife.Remoting;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
+using XCode.Shards;
 
 namespace Company.MyName
 {
