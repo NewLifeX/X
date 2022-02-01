@@ -151,7 +151,9 @@ namespace NewLife.Caching
                 Server = dic["Server"]?.Trim();
                 UserName = dic["UserName"]?.Trim();
                 Password = dic["Password"]?.Trim();
-                Db = dic["Db"].ToInt();
+                //Db = dic["Db"].ToInt();
+                if (dic.TryGetValue("Db", out var str))
+                    Db = str.ToInt();
 
                 if (Server.IsNullOrEmpty() && dic.TryGetValue("[0]", out var svr)) Server = svr;
 
@@ -159,7 +161,7 @@ namespace NewLife.Caching
                 var port = dic["Port"].ToInt();
                 if (port > 0 && !Server.Contains(":")) Server += ":" + port;
 
-                if (dic.TryGetValue("Timeout", out var str))
+                if (dic.TryGetValue("Timeout", out str))
                     Timeout = str.ToInt();
                 else if (dic.TryGetValue("responseTimeout", out str))
                     Timeout = str.ToInt();
