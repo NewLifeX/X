@@ -54,6 +54,15 @@ namespace XCodeTool
 
                 Build(file);
             }
+            else
+            {
+                // 实在没有，释放一个出来
+                var ms = Assembly.GetExecutingAssembly().GetManifestResourceStream("XCode.Model.xml");
+                var xml = ms.ToStr();
+
+                file = Environment.CurrentDirectory.CombinePath("Model.xml");
+                File.WriteAllText(file, xml);
+            }
         }
 
         static void Build(String modelFile)

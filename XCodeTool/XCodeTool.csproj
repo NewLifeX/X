@@ -35,7 +35,8 @@
     <Content Include="..\Doc\leaf.png" Link="leaf.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\XCode\Model.xml" Link="Model.xml" />
+    <EmbeddedResource Include="..\XCode\Model.xml" Link="Model.xml" />
+    <EmbeddedResource Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
