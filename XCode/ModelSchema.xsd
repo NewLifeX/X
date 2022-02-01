@@ -53,6 +53,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="ModelClass" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型类名称，如{name}Model。指定后将生成简易模型类和接口，可用于数据传输
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <!--Table-start-->
