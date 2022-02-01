@@ -86,7 +86,7 @@ namespace XUnitTest.XCode.Code
             // 数据类
             builder.Execute();
 
-            var columns = _table.Columns.Where(e => e.Properties["Interface"] == "False").ToList();
+            var columns = _table.Columns.Where(e => e.Properties["Model"] == "False").ToList();
             Assert.Equal(4, columns.Count);
 
             var rs = builder.ToString();

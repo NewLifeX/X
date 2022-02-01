@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NewLife;
+using NewLife.Log;
 using XCode.Code;
 
 namespace XCodeTool
@@ -11,7 +12,9 @@ namespace XCodeTool
     {
         static void Main(string[] args)
         {
-            if (args.Length == 0)
+            XTrace.UseConsole();
+
+            //if (args.Length == 0)
             {
                 Console.WriteLine("NewLife.XCode v{0}", Assembly.GetExecutingAssembly().GetName().Version);
                 Console.WriteLine("Usage: xcode model.xml");
@@ -27,12 +30,14 @@ namespace XCodeTool
                 //Console.WriteLine("\t-classNameTemplate <NAME>\t类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等");
                 //Console.WriteLine("\t-modelNameForCopy <NAME>\t用于生成拷贝函数的模型类。例如{name}或I{name}");
             }
-            else
+            if (args.Length > 0)
             {
-                // 设置当前工作目录
-                PathHelper.BasePath = Environment.CurrentDirectory;
-
-                var file = args.LastOrDefault().GetBasePath();
+                var file = args.LastOrDefault();
+                if (!Path.IsPathRooted(file))
+                {
+                    var file2 = Environment.CurrentDirectory.CombinePath(file);
+                    if (File.Exists(file2)) file = file2;
+                }
                 if (!File.Exists(file))
                 {
                     Console.WriteLine("文件不存在：{0}", file);
@@ -45,7 +50,12 @@ namespace XCodeTool
 
         static void Build(String modelFile)
         {
-            Console.WriteLine("正在处理模型文件：{0}", modelFile);
+            Console.WriteLine("正在处理：{0}", modelFile);
+
+            EntityBuilder.Debug = true;
+
+            // 设置当前工作目录
+            PathHelper.BasePath = Path.GetDirectoryName(modelFile);
 
             // 设置如何格式化字段名，默认去掉下划线并转驼峰命名
             //ModelResolver.Current = new ModelResolver { TrimUnderline = false, Camel = false };
@@ -57,24 +67,32 @@ namespace XCodeTool
 
             // 简易模型类名称，如{name}Model。指定后将生成简易模型类和接口，可用于数据传输
             var modelClass = atts["ModelClass"];
-            if (modelClass.IsNullOrEmpty())
-            {
-                EntityBuilder.BuildTables(tables, option, chineseFileName: true);
-            }
-            else
-            {
-                // 生成实体类
-                option.BaseClass = "I{name}";
-                option.ModelNameForCopy = "I{name}";
-                EntityBuilder.BuildTables(tables, option, chineseFileName: true);
+            var modelInterface = atts["ModelInterface"];
 
-                // 生成简易模型类
+            // 生成实体类
+            if (!modelInterface.IsNullOrEmpty())
+            {
+                option.BaseClass = modelInterface;
+                option.ModelNameForCopy = modelInterface;
+            }
+            else if (!modelClass.IsNullOrEmpty())
+            {
+                option.ModelNameForCopy = modelClass;
+            }
+            EntityBuilder.BuildTables(tables, option, chineseFileName: true);
+
+            // 生成简易模型类
+            if (!modelClass.IsNullOrEmpty())
+            {
                 option.Output = @"..\Models\";
                 option.ClassNameTemplate = modelClass;
-                option.ModelNameForCopy = "I{name}";
+                if (!modelInterface.IsNullOrEmpty()) option.ModelNameForCopy = modelInterface;
                 ClassBuilder.BuildModels(tables, option);
+            }
 
-                // 生成简易接口
+            // 生成简易接口
+            if (!modelInterface.IsNullOrEmpty())
+            {
                 option.BaseClass = null;
                 option.ClassNameTemplate = null;
                 option.Output = @"..\Interfaces\";

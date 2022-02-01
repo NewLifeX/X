@@ -43,13 +43,18 @@ namespace XCode.Code
             atts.Remove("ModelFile");
 
             // 更新xsd
-            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
-            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2020");
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022");
 
             // 保存模型文件
             var xmlContent = File.ReadAllText(xmlFile);
             var xml2 = ModelHelper.ToXml(tables, atts);
-            if (xmlContent != xml2) File.WriteAllText(xmlFile, xml2);
+            if (xmlContent != xml2)
+            {
+                if (Debug) XTrace.WriteLine("修正模型：{0}", xmlFile);
+
+                File.WriteAllText(xmlFile, xml2);
+            }
         }
 
         /// <summary>为Xml模型文件生成实体类</summary>
@@ -66,6 +71,13 @@ namespace XCode.Code
                 option = option.Clone();
             option.Partial = true;
 
+            if (Debug)
+            {
+                var output = option.Output;
+                if (output.IsNullOrEmpty()) output = ".";
+                XTrace.WriteLine("生成实体类 {0}", output.GetBasePath());
+            }
+
             var count = 0;
             foreach (var item in tables)
             {
@@ -78,6 +90,7 @@ namespace XCode.Code
                     AllTables = tables,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
 
                 builder.Load(item);
 
@@ -140,7 +153,8 @@ namespace XCode.Code
             us.Add("XCode");
             us.Add("XCode.Configuration");
             us.Add("XCode.DataAccessLayer");
-            us.Add("XCode.Shards");
+
+            if (Business) us.Add("XCode.Shards");
 
             if (Business && !Option.Pure)
             {

@@ -52,10 +52,12 @@ namespace XCode.Code
             var xmlContent = File.ReadAllText(xmlFile);
             atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
             {
-                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
+                ["xmlns"] = "http://www.newlifex.com/Model2022.xsd",
                 ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
-                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
+                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2022.xsd"
             };
+
+            if (Debug) XTrace.WriteLine("导入模型：{0}", xmlFile);
 
             // 导入模型
             var tables = ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
@@ -86,6 +88,9 @@ namespace XCode.Code
                 option = option.Clone();
 
             option.Pure = true;
+            option.Partial = true;
+
+            if (Debug) XTrace.WriteLine("生成简易模型类 {0}", option.Output.GetBasePath());
 
             var count = 0;
             foreach (var item in tables)
@@ -99,6 +104,8 @@ namespace XCode.Code
                     Table = item,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
+
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -120,6 +127,9 @@ namespace XCode.Code
                 option = option.Clone();
 
             option.Interface = true;
+            option.Partial = true;
+
+            if (Debug) XTrace.WriteLine("生成简易接口 {0}", option.Output.GetBasePath());
 
             var count = 0;
             foreach (var item in tables)
@@ -133,6 +143,8 @@ namespace XCode.Code
                     Table = item,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
+
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -154,7 +166,7 @@ namespace XCode.Code
                 else
                     ClassName = Option.Interface ? ("I" + Table.Name) : Table.Name;
             }
-            //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+            WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
 
             Clear();
             if (Writer == null) Writer = new StringWriter();
@@ -429,7 +441,7 @@ namespace XCode.Code
             foreach (var column in Table.Columns)
             {
                 // 跳过排除项
-                if (!ValidColumn(column)) continue;
+                if (!ValidColumn(column, true)) continue;
 
                 WriteLine("{0} = model.{0};", column.Name);
             }
@@ -526,12 +538,13 @@ namespace XCode.Code
         #region 辅助
         /// <summary>验证字段是否可用于生成</summary>
         /// <param name="column"></param>
+        /// <param name="validModel"></param>
         /// <returns></returns>
-        protected virtual Boolean ValidColumn(IDataColumn column)
+        protected virtual Boolean ValidColumn(IDataColumn column, Boolean validModel = false)
         {
             if (Option.Excludes.Contains(column.Name)) return false;
             if (Option.Excludes.Contains(column.ColumnName)) return false;
-            if ((Option.Pure || Option.Interface) && column.Properties["Interface"] == "False")
+            if ((validModel || Option.Pure || Option.Interface) && column.Properties["Model"] == "False")
                 return false;
 
             return true;
