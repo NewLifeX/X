@@ -267,8 +267,7 @@ namespace XCode.Code
                 var column = Table.Columns[i];
 
                 // 跳过排除项
-                if (Option.Excludes.Contains(column.Name)) continue;
-                if (Option.Excludes.Contains(column.ColumnName)) continue;
+                if (!ValidColumn(column)) continue;
 
                 if (i > 0) WriteLine();
                 BuildItem(column);
@@ -336,8 +335,7 @@ namespace XCode.Code
                 foreach (var column in Table.Columns)
                 {
                     // 跳过排除项
-                    if (Option.Excludes.Contains(column.Name)) continue;
-                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+                    if (!ValidColumn(column)) continue;
 
                     WriteLine("case \"{0}\": return {0};", column.Name);
                 }
@@ -356,8 +354,7 @@ namespace XCode.Code
                 foreach (var column in Table.Columns)
                 {
                     // 跳过排除项
-                    if (Option.Excludes.Contains(column.Name)) continue;
-                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+                    if (!ValidColumn(column)) continue;
 
                     var type = column.Properties["Type"];
                     if (type.IsNullOrEmpty()) type = column.DataType?.Name;
@@ -432,8 +429,7 @@ namespace XCode.Code
             foreach (var column in Table.Columns)
             {
                 // 跳过排除项
-                if (Option.Excludes.Contains(column.Name)) continue;
-                if (Option.Excludes.Contains(column.ColumnName)) continue;
+                if (!ValidColumn(column)) continue;
 
                 WriteLine("{0} = model.{0};", column.Name);
             }
@@ -528,6 +524,19 @@ namespace XCode.Code
         #endregion
 
         #region 辅助
+        /// <summary>验证字段是否可用于生成</summary>
+        /// <param name="column"></param>
+        /// <returns></returns>
+        protected virtual Boolean ValidColumn(IDataColumn column)
+        {
+            if (Option.Excludes.Contains(column.Name)) return false;
+            if (Option.Excludes.Contains(column.ColumnName)) return false;
+            if ((Option.Pure || Option.Interface) && column.Properties["Interface"] == "False")
+                return false;
+
+            return true;
+        }
+
         /// <summary>C#版本</summary>
         public Version CSharp { get; set; }
 

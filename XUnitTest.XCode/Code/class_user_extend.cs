@@ -93,18 +93,6 @@ namespace XCode.Code
         /// <summary>扩展6</summary>
         public String Ex6 { get; set; }
 
-        /// <summary>更新者</summary>
-        public String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        public Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        public String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        public DateTime UpdateTime { get; set; }
-
         /// <summary>备注</summary>
         public String Remark { get; set; }
         #endregion
@@ -146,10 +134,6 @@ namespace XCode.Code
                     case "Ex4": return Ex4;
                     case "Ex5": return Ex5;
                     case "Ex6": return Ex6;
-                    case "UpdateUser": return UpdateUser;
-                    case "UpdateUserID": return UpdateUserID;
-                    case "UpdateIP": return UpdateIP;
-                    case "UpdateTime": return UpdateTime;
                     case "Remark": return Remark;
                     default: throw new KeyNotFoundException($"{name} not found");
                 }
@@ -185,10 +169,6 @@ namespace XCode.Code
                     case "Ex4": Ex4 = Convert.ToString(value); break;
                     case "Ex5": Ex5 = Convert.ToString(value); break;
                     case "Ex6": Ex6 = Convert.ToString(value); break;
-                    case "UpdateUser": UpdateUser = Convert.ToString(value); break;
-                    case "UpdateUserID": UpdateUserID = value.ToInt(); break;
-                    case "UpdateIP": UpdateIP = Convert.ToString(value); break;
-                    case "UpdateTime": UpdateTime = value.ToDateTime(); break;
                     case "Remark": Remark = Convert.ToString(value); break;
                     default: throw new KeyNotFoundException($"{name} not found");
                 }
@@ -228,10 +208,6 @@ namespace XCode.Code
             Ex4 = model.Ex4;
             Ex5 = model.Ex5;
             Ex6 = model.Ex6;
-            UpdateUser = model.UpdateUser;
-            UpdateUserID = model.UpdateUserID;
-            UpdateIP = model.UpdateIP;
-            UpdateTime = model.UpdateTime;
             Remark = model.Remark;
         }
         #endregion

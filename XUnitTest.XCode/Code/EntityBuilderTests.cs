@@ -66,6 +66,46 @@ namespace XUnitTest.XCode.Code
             Assert.Equal(target, rs);
         }
 
+        [Fact]
+        public void Exclude()
+        {
+            var option = new BuilderOption
+            {
+                ConnName = "MyConn",
+                Namespace = "Company.MyName",
+                Partial = true,
+            };
+            option.Usings.Add("NewLife.Remoting");
+
+            var builder = new EntityBuilder
+            {
+                Table = _table,
+                Option = option,
+            };
+
+            // 数据类
+            builder.Execute();
+
+            var columns = _table.Columns.Where(e => e.Properties["Interface"] == "False").ToList();
+            Assert.Equal(4, columns.Count);
+
+            var rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            var target = ReadTarget("Code\\entity_user_normal.cs", rs);
+            Assert.Equal(target, rs);
+
+            // 业务类
+            builder.Business = true;
+            builder.Execute();
+
+            rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            target = ReadTarget("Code\\entity_user_normal_biz.cs", rs);
+            Assert.Equal(target, rs);
+        }
+
         //[Fact]
         //public void GenericType()
         //{

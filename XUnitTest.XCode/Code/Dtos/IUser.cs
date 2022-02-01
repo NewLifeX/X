@@ -92,18 +92,6 @@ namespace XCode.Code
         /// <summary>扩展6</summary>
         String Ex6 { get; set; }
 
-        /// <summary>更新者</summary>
-        String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
-
         /// <summary>备注</summary>
         String Remark { get; set; }
         #endregion
