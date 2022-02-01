@@ -30,9 +30,17 @@ namespace XCodeTool
                 //Console.WriteLine("\t-classNameTemplate <NAME>\t类名模板。其中{name}替换为Table.Name，如{name}Model/I{name}Dto等");
                 //Console.WriteLine("\t-modelNameForCopy <NAME>\t用于生成拷贝函数的模型类。例如{name}或I{name}");
             }
-            if (args.Length > 0)
+
+            var file = "";
+            if (args.Length > 0) file = args.LastOrDefault();
+            if (file.IsNullOrEmpty())
             {
-                var file = args.LastOrDefault();
+                var di = Environment.CurrentDirectory.AsDirectory();
+                // 选当前目录第一个
+                file = di.GetFiles("*.xml", SearchOption.TopDirectoryOnly).FirstOrDefault()?.FullName;
+            }
+            if (!file.IsNullOrEmpty())
+            {
                 if (!Path.IsPathRooted(file))
                 {
                     var file2 = Environment.CurrentDirectory.CombinePath(file);
