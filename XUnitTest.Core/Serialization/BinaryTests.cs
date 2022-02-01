@@ -308,13 +308,13 @@ namespace XUnitTest.Serialization
         {
             public Int32 Code { get; set; }
 
-            [MemberAccessor(typeof(MyAccessor))]
+            [MyAccessor]
             public String Name { get; set; }
         }
 
-        private class MyAccessor : IMemberAccessor
+        private class MyAccessorAttribute : AccessorAttribute
         {
-            public Boolean Read(IFormatterX formatter, AccessorContext context)
+            public override Boolean Read(IFormatterX formatter, AccessorContext context)
             {
                 Assert.Equal("Name", context.Member.Name);
 
@@ -326,7 +326,7 @@ namespace XUnitTest.Serialization
                 return true;
             }
 
-            public Boolean Write(IFormatterX formatter, AccessorContext context)
+            public override Boolean Write(IFormatterX formatter, AccessorContext context)
             {
                 Assert.Equal("Name", context.Member.Name);
 
@@ -337,6 +337,31 @@ namespace XUnitTest.Serialization
 
                 return true;
             }
+        }
+
+        [Fact]
+        public void FixedString()
+        {
+            var model = new MyModelWithFixed { Code = 1234, Name = "Stone" };
+
+            var bn = new Binary { EncodeInt = true };
+            bn.Write(model);
+            var pk = bn.GetPacket();
+            Assert.Equal(10, pk.Total);
+            Assert.Equal("D20953746F6E65000000", pk.ToHex());
+
+            var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
+            var model2 = bn2.Read<MyModelWithFixed>();
+            Assert.Equal(model.Code, model2.Code);
+            Assert.Equal(model.Name, model2.Name);
+        }
+
+        private class MyModelWithFixed
+        {
+            public Int32 Code { get; set; }
+
+            [FixedString(8)]
+            public String Name { get; set; }
         }
     }
 }

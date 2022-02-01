@@ -457,7 +457,7 @@ namespace NewLife.Serialization
         public void WriteFixedString(String value, Int32 max)
         {
             var buf = new Byte[max];
-            Encoding.GetBytes(value, 0, value.Length, buf, 0);
+            if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
             Write(buf, 0, buf.Length);
         }
@@ -466,7 +466,6 @@ namespace NewLife.Serialization
         /// <param name="len"></param>
         /// <returns></returns>
         public String ReadFixedString(Int32 len) => Encoding.GetString(ReadBytes(len)).Trim('\0');
-
         #endregion
 
         #region 跟踪日志
