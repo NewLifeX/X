@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using XCode.Code;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 using Xunit;
 
 namespace XUnitTest.XCode.Code
