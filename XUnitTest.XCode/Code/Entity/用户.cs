@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Shards;
 
 namespace XCode.Membership
 {

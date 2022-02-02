@@ -31,11 +31,8 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(DB2))
                     {
-#if __CORE
                         _Factory = GetProviderFactory("IBM.Data.DB2.Core.dll", "IBM.Data.DB2.Core.DB2Factory");
-#else
-                        _Factory = GetProviderFactory("IBM.Data.DB2.dll", "IBM.Data.DB2.DB2Factory");
-#endif
+                        //_Factory = GetProviderFactory("IBM.Data.DB2.dll", "IBM.Data.DB2.DB2Factory");
                     }
                 }
 

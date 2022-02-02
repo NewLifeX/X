@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 namespace XCode.Membership
 {
     /// <summary>用户。用户帐号信息</summary>
-    public class UserModel : IUser
+    public partial class UserModel : IUser
     {
         #region 属性
         /// <summary>编号</summary>

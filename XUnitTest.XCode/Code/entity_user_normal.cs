@@ -8,7 +8,6 @@ using NewLife.Remoting;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
-using XCode.Shards;
 
 namespace Company.MyName
 {

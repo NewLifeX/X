@@ -7,8 +7,8 @@
     <Description>数据中间件，支持MySQL、SQLite、SqlServer、Oracle、Postgresql、TDengine、达梦，重点在缓存、性能、分表、自动建表。旧版请找2021.1225</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
-    <Version>11.0.2022.0116-beta1</Version>
-    <FileVersion>11.0.2022.0116</FileVersion>
+    <Version>11.0.2022.0202</Version>
+    <FileVersion>11.0.2022.0202</FileVersion>
     <AssemblyVersion>11.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
