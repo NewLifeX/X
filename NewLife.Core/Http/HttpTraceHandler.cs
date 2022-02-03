@@ -28,7 +28,7 @@ namespace NewLife.Http
 
             // 如果父级已经做了ApiHelper.Invoke埋点，这里不需要再做一次
             var parent = DefaultSpan.Current;
-            if (parent != null && parent.Tag == uri + "") return await base.SendAsync(request, cancellationToken);
+            if (parent != null && parent.Tag == uri + "" || request.Headers.Contains("traceparent")) return await base.SendAsync(request, cancellationToken);
 
             using var span = Tracer?.NewSpan(request);
             try
