@@ -199,7 +199,7 @@ namespace XUnitTest.XCode.EntityTests
 
             var time = DateTime.Now;
             var start = time.AddDays(-3);
-            XTrace.WriteLine("start={0} end={1}", start, time);
+            XTrace.WriteLine("AutoShard start={0} end={1}", start, time);
             Log2.Meta.AutoShard(start, time, () => Log2.FindCount()).ToArray();
             Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-3):yyyyMMdd}", sqls[^4]);
             Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^3]);
@@ -212,6 +212,25 @@ namespace XUnitTest.XCode.EntityTests
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-2):yyyyMMdd} Where ID>=", sqls[^3]);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(-1):yyyyMMdd} Where ID>=", sqls[^2]);
             Assert.StartsWith($"[test_{time:yyyy}] Select * From Log2_{time.AddDays(0):yyyyMMdd} Where ID>=", sqls[^1]);
+
+            // 日期倒序
+            time = DateTime.Today;
+            start = time.AddDays(-3);
+            XTrace.WriteLine("AutoShard start={0} end={1}", time, start);
+            Log2.Meta.AutoShard(time, start, () => Log2.FindCount()).ToArray();
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-1):yyyyMMdd}", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-3):yyyyMMdd}", sqls[^1]);
+
+            time = DateTime.Today;
+            start = time.AddDays(-3);
+            time = time.AddSeconds(1);
+            XTrace.WriteLine("AutoShard start={0} end={1}", time, start);
+            Log2.Meta.AutoShard(time, start, () => Log2.FindCount()).ToArray();
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(0):yyyyMMdd}", sqls[^4]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-1):yyyyMMdd}", sqls[^3]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-2):yyyyMMdd}", sqls[^2]);
+            Assert.StartsWith($"[test_{time:yyyy}] Select Count(*) From Log2_{time.AddDays(-3):yyyyMMdd}", sqls[^1]);
 
             // 恢复现场，避免影响其它测试用例
             Log2.Meta.ShardPolicy = null;
