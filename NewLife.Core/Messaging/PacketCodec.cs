@@ -46,7 +46,7 @@ namespace NewLife.Messaging
             {
                 if (pk == null) return list.ToArray();
 
-                using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
+                //using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
 
                 var idx = 0;
                 while (idx < pk.Total)
