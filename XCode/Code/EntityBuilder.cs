@@ -111,27 +111,32 @@ namespace XCode.Code
         #region 方法
         /// <summary>加载数据表</summary>
         /// <param name="table"></param>
-        public void Load(IDataTable table)
+        public override void Load(IDataTable table)
         {
             Table = table;
 
             var option = Option;
 
-            // 命名空间
-            var str = table.Properties["Namespace"];
-            if (!str.IsNullOrEmpty()) option.Namespace = str;
+            base.Load(table);
 
             // 连接名
             var connName = table.ConnName;
             if (!connName.IsNullOrEmpty()) option.ConnName = connName;
 
             // 基类
-            str = table.Properties["BaseClass"];
+            var str = table.Properties["BaseClass"];
             if (!str.IsNullOrEmpty()) option.BaseClass = str;
 
-            // 输出目录
-            str = table.Properties["Output"];
-            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
+            // Copy模版
+            var modelClass = table.Properties["ModelClass"];
+            var modelInterface = table.Properties["ModelInterface"];
+            if (!modelInterface.IsNullOrEmpty())
+            {
+                option.BaseClass = modelInterface;
+                option.ModelNameForCopy = modelInterface;
+            }
+            else if (!modelClass.IsNullOrEmpty())
+                option.ModelNameForCopy = modelClass;
         }
         #endregion
 
