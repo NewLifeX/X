@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using System.Net.NetworkInformation;
+using NewLife.Collections;
 
 namespace NewLife
 {
@@ -299,9 +300,10 @@ namespace NewLife
                     if (dic.TryGetValue("MemTotal", out var str))
                         Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
 
-                    if (dic.TryGetValue("MemAvailable", out str) ||
-                        dic.TryGetValue("MemFree", out str))
+                    if (dic.TryGetValue("MemAvailable", out str))
                         AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                    else if (dic.TryGetValue("MemFree", out str))
+                        AvailableMemory = (UInt64)(str.TrimEnd(" kB").ToInt() + dic["Buffers"].TrimEnd(" kB").ToInt() + dic["Cached"].TrimEnd(" kB").ToInt()) * 1024;
                 }
 
                 // respberrypi + fedora
@@ -490,7 +492,7 @@ namespace NewLife
         {
             if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
 
-            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
             using var reader = new StreamReader(file);
             while (!reader.EndOfStream)
