@@ -421,16 +421,19 @@ namespace NewLife
                 received += st.BytesReceived;
             }
 
+            var now = DateTime.Now;
             if (_lastTime.Year > 2000)
             {
-                var interval = (DateTime.Now - _lastTime).TotalMilliseconds;
-                UplinkSpeed = (UInt64)((sent - _lastSent) * 1000 / interval);
-                DownlinkSpeed = (UInt64)((received - _lastReceived) * 1000 / interval);
+                var interval = (now - _lastTime).TotalMilliseconds;
+                var s1 = (UInt64)((sent - _lastSent) * 1000 / interval);
+                var s2 = (UInt64)((received - _lastReceived) * 1000 / interval);
+                if (s1 >= 0) UplinkSpeed = s1;
+                if (s2 >= 0) DownlinkSpeed = s2;
             }
 
             _lastSent = sent;
             _lastReceived = received;
-            _lastTime = DateTime.Now;
+            _lastTime = now;
         }
         #endregion
 
