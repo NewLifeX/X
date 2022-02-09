@@ -123,6 +123,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Code\Member2.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Code\Member.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

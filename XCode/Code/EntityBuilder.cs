@@ -41,10 +41,35 @@ namespace XCode.Code
             atts.Remove("IgnoreNameCase");
             atts.Remove("ChineseFileName");
             atts.Remove("ModelFile");
+            atts.Remove("RenderGenEntity");
+
+            foreach (var item in tables)
+            {
+                item.Properties.Remove("RenderGenEntity");
+            }
+
+            // 格式化处理字段名
+            if (Enum.TryParse(typeof(NameFormats), atts["NameFormat"], out var obj) && obj is NameFormats format && format > NameFormats.Default)
+            {
+                XTrace.WriteLine("处理表名字段名为：{0}", format);
+
+                var resolve = ModelResolver.Current;
+                foreach (var dt in tables)
+                {
+                    if (dt.TableName.IsNullOrEmpty() || dt.TableName == dt.Name)
+                        dt.TableName = resolve.GetDbName(dt.Name, format);
+
+                    foreach (var col in dt.Columns)
+                    {
+                        if (col.ColumnName.IsNullOrEmpty() || col.ColumnName == col.Name)
+                            col.ColumnName = resolve.GetDbName(col.Name, format);
+                    }
+                }
+            }
 
             // 更新xsd
-            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022");
-            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022");
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
 
             // 保存模型文件
             var xmlContent = File.ReadAllText(xmlFile);
