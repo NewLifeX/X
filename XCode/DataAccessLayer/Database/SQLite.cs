@@ -363,7 +363,7 @@ namespace XCode.DataAccessLayer
             // 优化支持DbTable
             if (list.FirstOrDefault() is DbRow)
             {
-                // 提前把列名转为索引，然后根据索引找数据
+                // 提前把列名转为索引，然后根据索引找数据。外部确保数据列在数据源中都存在
                 DbTable dt = null;
                 Int32[] ids = null;
                 foreach (DbRow dr in list)
@@ -374,10 +374,9 @@ namespace XCode.DataAccessLayer
                         var cs = new List<Int32>();
                         foreach (var dc in columns)
                         {
-                            //if (dc.Identity)
-                            //    cs.Add(0);
-                            //else
-                            cs.Add(dt.GetColumn(dc.ColumnName));
+                            var idx = dt.GetColumn(dc.Name);
+                            if (idx < 0) idx = dt.GetColumn(dc.ColumnName);
+                            cs.Add(idx);
                         }
                         ids = cs.ToArray();
                     }
@@ -386,11 +385,7 @@ namespace XCode.DataAccessLayer
                     var row = dt.Rows[dr.Index];
                     for (var i = 0; i < columns.Length; i++)
                     {
-                        var dc = columns[i];
-                        //if (dc.Identity) continue;
-
-                        var value = row[ids[i]];
-                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(db.FormatValue(columns[i], row[ids[i]]));
                         sb.Append(',');
                     }
                     sb.Length--;
@@ -404,10 +399,7 @@ namespace XCode.DataAccessLayer
                     sb.Append('(');
                     foreach (var dc in columns)
                     {
-                        //if (dc.Identity) continue;
-
-                        var value = entity[dc.Name];
-                        sb.Append(db.FormatValue(dc, value));
+                        sb.Append(db.FormatValue(dc, entity[dc.Name]));
                         sb.Append(',');
                     }
                     sb.Length--;
