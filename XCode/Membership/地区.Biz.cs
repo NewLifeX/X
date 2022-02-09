@@ -176,7 +176,7 @@ namespace XCode.Membership
         public static Area FindByID(Int32 id)
         {
             //if (id == 0) return Root;
-            if (id <= 0) return null;
+            if (id <= 10_00_00 || id > 99_99_99_999) return null;
 
             //// 实体缓存
             //var r = Meta.Cache.Find(e => e.ID == id);
