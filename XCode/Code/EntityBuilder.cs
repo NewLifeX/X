@@ -49,7 +49,7 @@ namespace XCode.Code
             }
 
             // 格式化处理字段名
-            if (Enum.TryParse(typeof(NameFormats), atts["NameFormat"], out var obj) && obj is NameFormats format && format > NameFormats.Default)
+            if (Enum.TryParse(typeof(NameFormats), atts["NameFormat"], true, out var obj) && obj is NameFormats format && format > NameFormats.Default)
             {
                 XTrace.WriteLine("处理表名字段名为：{0}", format);
 
