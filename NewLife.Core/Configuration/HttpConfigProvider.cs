@@ -126,10 +126,11 @@ namespace NewLife.Configuration
             // 读取本地配置，得到Apollo地址后，加载全部配置
             var jsonConfig = new JsonConfigProvider { FileName = fileName };
             var apollo = jsonConfig.Load<ApolloModel>(path);
+            if (apollo == null) return null;
 
             var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
             httpConfig.SetApollo("application," + apollo.NameSpace);
-            httpConfig.LoadAll();
+            if (!httpConfig.Server.IsNullOrEmpty() && !httpConfig.AppId.IsNullOrEmpty()) httpConfig.LoadAll();
 
             return httpConfig;
         }
@@ -154,7 +155,7 @@ namespace NewLife.Configuration
             // 特殊处理Apollo
             if (!NameSpace.IsNullOrEmpty())
             {
-                var ns = NameSpace.Split(",", ";").Distinct();
+                var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
                 var dic = new Dictionary<String, Object>();
                 foreach (var item in ns)
                 {
