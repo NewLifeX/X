@@ -476,7 +476,7 @@ namespace NewLife.Serialization
 
             if (s >= len || e < 0) return null;
 
-            return Encoding.GetString(buf);
+            return Encoding.GetString(buf, s, e - s + 1);
         }
         #endregion
 
