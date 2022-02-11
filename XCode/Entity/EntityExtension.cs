@@ -443,6 +443,8 @@ namespace XCode
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchInsert:{session.TableName}");
             try
             {
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
                 return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
             }
             catch (Exception ex)
@@ -496,6 +498,8 @@ namespace XCode
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:InsertIgnore:{session.TableName}");
             try
             {
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
                 return dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
             }
             catch (Exception ex)
@@ -546,9 +550,11 @@ namespace XCode
             //dal.CheckDatabase();
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
-            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Replace:{session.TableName}");
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchReplace:{session.TableName}");
             try
             {
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
                 return dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
             }
             catch (Exception ex)
@@ -603,6 +609,8 @@ namespace XCode
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpdate:{session.TableName}");
             try
             {
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
                 return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
             }
             catch (Exception ex)
@@ -681,6 +689,8 @@ namespace XCode
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpsert:{session.TableName}");
             try
             {
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
                 return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
             }
             catch (Exception ex)
