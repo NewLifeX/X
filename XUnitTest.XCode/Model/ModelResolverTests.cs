@@ -35,7 +35,7 @@ namespace XUnitTest.XCode.Model
         {
             var mr = new ModelResolver
             {
-                TrimUnderline = false
+                Underline = true
             };
 
             Assert.Equal("Class", mr.GetName("class"));
@@ -81,7 +81,7 @@ namespace XUnitTest.XCode.Model
         {
             var mr = new ModelResolver
             {
-                TrimUnderline = false,
+                Underline = true,
                 Camel = false
             };
 

@@ -41,10 +41,35 @@ namespace XCode.Code
             atts.Remove("IgnoreNameCase");
             atts.Remove("ChineseFileName");
             atts.Remove("ModelFile");
+            atts.Remove("RenderGenEntity");
+
+            foreach (var item in tables)
+            {
+                item.Properties.Remove("RenderGenEntity");
+            }
+
+            // 格式化处理字段名
+            if (Enum.TryParse(typeof(NameFormats), atts["NameFormat"], true, out var obj) && obj is NameFormats format && format > NameFormats.Default)
+            {
+                XTrace.WriteLine("处理表名字段名为：{0}", format);
+
+                var resolve = ModelResolver.Current;
+                foreach (var dt in tables)
+                {
+                    if (dt.TableName.IsNullOrEmpty() || dt.TableName == dt.Name)
+                        dt.TableName = resolve.GetDbName(dt.Name, format);
+
+                    foreach (var col in dt.Columns)
+                    {
+                        if (col.ColumnName.IsNullOrEmpty() || col.ColumnName == col.Name)
+                            col.ColumnName = resolve.GetDbName(col.Name, format);
+                    }
+                }
+            }
 
             // 更新xsd
-            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022");
-            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022");
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
 
             // 保存模型文件
             var xmlContent = File.ReadAllText(xmlFile);
@@ -111,27 +136,32 @@ namespace XCode.Code
         #region 方法
         /// <summary>加载数据表</summary>
         /// <param name="table"></param>
-        public void Load(IDataTable table)
+        public override void Load(IDataTable table)
         {
             Table = table;
 
             var option = Option;
 
-            // 命名空间
-            var str = table.Properties["Namespace"];
-            if (!str.IsNullOrEmpty()) option.Namespace = str;
+            base.Load(table);
 
             // 连接名
             var connName = table.ConnName;
             if (!connName.IsNullOrEmpty()) option.ConnName = connName;
 
             // 基类
-            str = table.Properties["BaseClass"];
+            var str = table.Properties["BaseClass"];
             if (!str.IsNullOrEmpty()) option.BaseClass = str;
 
-            // 输出目录
-            str = table.Properties["Output"];
-            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
+            // Copy模版
+            var modelClass = table.Properties["ModelClass"];
+            var modelInterface = table.Properties["ModelInterface"];
+            if (!modelInterface.IsNullOrEmpty())
+            {
+                option.BaseClass = modelInterface;
+                option.ModelNameForCopy = modelInterface;
+            }
+            else if (!modelClass.IsNullOrEmpty())
+                option.ModelNameForCopy = modelClass;
         }
         #endregion
 

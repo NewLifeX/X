@@ -465,7 +465,19 @@ namespace NewLife.Serialization
         /// <summary>读取定长字符串。多余截取，少则补零</summary>
         /// <param name="len"></param>
         /// <returns></returns>
-        public String ReadFixedString(Int32 len) => Encoding.GetString(ReadBytes(len)).Trim('\0');
+        public String ReadFixedString(Int32 len)
+        {
+            var buf = ReadBytes(len);
+
+            // 剔除头尾非法字符
+            Int32 s, e;
+            for (s = 0; s < len && (buf[s] == 0x00 || buf[s] == 0xFF); s++) ;
+            for (e = len - 1; e >= 0 && (buf[e] == 0x00 || buf[e] == 0xFF); e--) ;
+
+            if (s >= len || e < 0) return null;
+
+            return Encoding.GetString(buf, s, e - s + 1);
+        }
         #endregion
 
         #region 跟踪日志

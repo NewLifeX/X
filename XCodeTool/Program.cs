@@ -87,6 +87,9 @@ namespace XCodeTool
             var modelInterface = atts["ModelInterface"];
 
             // 生成实体类
+            option.BaseClass = null;
+            option.ClassNameTemplate = null;
+            option.ModelNameForCopy = null;
             if (!modelInterface.IsNullOrEmpty())
             {
                 option.BaseClass = modelInterface;
@@ -99,20 +102,26 @@ namespace XCodeTool
             EntityBuilder.BuildTables(tables, option, chineseFileName: true);
 
             // 生成简易模型类
-            if (!modelClass.IsNullOrEmpty())
+            option.BaseClass = null;
+            option.ClassNameTemplate = null;
+            option.ModelNameForCopy = null;
+            if (!modelClass.IsNullOrEmpty() || tables.Any(e => !e.Properties["ModelClass"].IsNullOrEmpty()))
             {
                 option.Output = @"..\Models\";
+                option.BaseClass = modelInterface;
                 option.ClassNameTemplate = modelClass;
-                if (!modelInterface.IsNullOrEmpty()) option.ModelNameForCopy = modelInterface;
+                option.ModelNameForCopy = !modelInterface.IsNullOrEmpty() ? modelInterface : modelClass;
                 ClassBuilder.BuildModels(tables, option);
             }
 
             // 生成简易接口
-            if (!modelInterface.IsNullOrEmpty())
+            option.BaseClass = null;
+            option.ClassNameTemplate = null;
+            option.ModelNameForCopy = null;
+            if (!modelInterface.IsNullOrEmpty() || tables.Any(e => !e.Properties["ModelInterface"].IsNullOrEmpty()))
             {
-                option.BaseClass = null;
-                option.ClassNameTemplate = null;
                 option.Output = @"..\Interfaces\";
+                option.ClassNameTemplate = modelInterface;
                 ClassBuilder.BuildInterfaces(tables, option);
             }
         }

@@ -67,6 +67,13 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="NameFormat" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          数据库名称格式，可选 Default/Upper/Lower/Underline
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <!--Table-start-->
@@ -159,6 +166,20 @@
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
           仅插入数据，比如日志型
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ModelClass" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型类名称，如{name}Model。指定后将生成简易模型类，可用于数据传输
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ModelInterface" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型接口名称，如{name}Model。指定后将生成简易模型接口，可用于数据传输
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>

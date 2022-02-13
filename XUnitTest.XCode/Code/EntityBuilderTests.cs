@@ -202,5 +202,22 @@ namespace XUnitTest.XCode.Code
                 Assert.Equal(target, rs);
             }
         }
+
+        [Fact]
+        public void FixModelFile()
+        {
+            // 加载模型文件，得到数据表
+            var file = @"..\..\XUnitTest.XCode\Code\Member.xml";
+            var option = new BuilderOption();
+            var tables = ClassBuilder.LoadModels(file, option, out var atts);
+            EntityBuilder.FixModelFile(file, option, atts, tables);
+
+            atts["NameFormat"] = "underline";
+            file = @"..\..\XUnitTest.XCode\Code\Member2.xml";
+            EntityBuilder.FixModelFile(file, option, atts, tables);
+
+            var xml = File.ReadAllText(file);
+            Assert.Contains("Name", xml);
+        }
     }
 }

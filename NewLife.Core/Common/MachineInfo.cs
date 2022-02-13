@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using System.Net.NetworkInformation;
+using NewLife.Collections;
 
 namespace NewLife
 {
@@ -299,9 +300,10 @@ namespace NewLife
                     if (dic.TryGetValue("MemTotal", out var str))
                         Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
 
-                    if (dic.TryGetValue("MemAvailable", out str) ||
-                        dic.TryGetValue("MemFree", out str))
+                    if (dic.TryGetValue("MemAvailable", out str))
                         AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                    else if (dic.TryGetValue("MemFree", out str))
+                        AvailableMemory = (UInt64)(str.TrimEnd(" kB").ToInt() + dic["Buffers"].TrimEnd(" kB").ToInt() + dic["Cached"].TrimEnd(" kB").ToInt()) * 1024;
                 }
 
                 // respberrypi + fedora
@@ -419,16 +421,19 @@ namespace NewLife
                 received += st.BytesReceived;
             }
 
+            var now = DateTime.Now;
             if (_lastTime.Year > 2000)
             {
-                var interval = (DateTime.Now - _lastTime).TotalMilliseconds;
-                UplinkSpeed = (UInt64)((sent - _lastSent) * 1000 / interval);
-                DownlinkSpeed = (UInt64)((received - _lastReceived) * 1000 / interval);
+                var interval = (now - _lastTime).TotalMilliseconds;
+                var s1 = (UInt64)((sent - _lastSent) * 1000 / interval);
+                var s2 = (UInt64)((received - _lastReceived) * 1000 / interval);
+                if (s1 >= 0) UplinkSpeed = s1;
+                if (s2 >= 0) DownlinkSpeed = s2;
             }
 
             _lastSent = sent;
             _lastReceived = received;
-            _lastTime = DateTime.Now;
+            _lastTime = now;
         }
         #endregion
 
@@ -490,7 +495,7 @@ namespace NewLife
         {
             if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
 
-            var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
             using var reader = new StreamReader(file);
             while (!reader.EndOfStream)

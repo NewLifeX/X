@@ -6,6 +6,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.DataAccessLayer;
 
 namespace XCode.Code
@@ -90,6 +91,8 @@ namespace XCode.Code
             option.Pure = true;
             option.Partial = true;
 
+            var oldClassName = option.ClassNameTemplate;
+
             if (Debug) XTrace.WriteLine("生成简易模型类 {0}", option.Output.GetBasePath());
 
             var count = 0;
@@ -106,10 +109,25 @@ namespace XCode.Code
                 };
                 if (Debug) builder.Log = XTrace.Log;
 
-                builder.Execute();
-                builder.Save(null, true, false);
+                builder.Load(item);
 
-                count++;
+                // 自定义模型
+                var modelClass = item.Properties["ModelClass"];
+                var modelInterface = item.Properties["ModelInterface"];
+                if (!modelClass.IsNullOrEmpty()) builder.Option.ClassNameTemplate = modelClass;
+                if (!modelInterface.IsNullOrEmpty())
+                {
+                    builder.Option.BaseClass = modelInterface;
+                    builder.Option.ModelNameForCopy = modelInterface;
+                }
+
+                if (!oldClassName.IsNullOrEmpty() || !modelClass.IsNullOrEmpty())
+                {
+                    builder.Execute();
+                    builder.Save(null, true, false);
+
+                    count++;
+                }
             }
 
             return count;
@@ -129,6 +147,8 @@ namespace XCode.Code
             option.Interface = true;
             option.Partial = true;
 
+            var oldClassName = option.ClassNameTemplate;
+
             if (Debug) XTrace.WriteLine("生成简易接口 {0}", option.Output.GetBasePath());
 
             var count = 0;
@@ -145,13 +165,41 @@ namespace XCode.Code
                 };
                 if (Debug) builder.Log = XTrace.Log;
 
-                builder.Execute();
-                builder.Save(null, true, false);
+                builder.Load(item);
 
-                count++;
+                // 自定义模型
+                var modelInterface = item.Properties["ModelInterface"];
+                if (!modelInterface.IsNullOrEmpty()) builder.Option.ClassNameTemplate = modelInterface;
+
+                if (!oldClassName.IsNullOrEmpty() || !modelInterface.IsNullOrEmpty())
+                {
+                    builder.Execute();
+                    builder.Save(null, true, false);
+
+                    count++;
+                }
             }
 
             return count;
+        }
+        #endregion
+
+        #region 方法
+        /// <summary>加载数据表</summary>
+        /// <param name="table"></param>
+        public virtual void Load(IDataTable table)
+        {
+            Table = table;
+
+            var option = Option;
+
+            // 命名空间
+            var str = table.Properties["Namespace"];
+            if (!str.IsNullOrEmpty()) option.Namespace = str;
+
+            // 输出目录
+            str = table.Properties["Output"];
+            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
         }
         #endregion
 
@@ -159,14 +207,15 @@ namespace XCode.Code
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
+            var option = Option;
             if (ClassName.IsNullOrEmpty())
             {
-                if (!Option.ClassNameTemplate.IsNullOrEmpty())
-                    ClassName = Option.ClassNameTemplate.Replace("{name}", Table.Name);
+                if (!option.ClassNameTemplate.IsNullOrEmpty())
+                    ClassName = option.ClassNameTemplate.Replace("{name}", Table.Name);
                 else
-                    ClassName = Option.Interface ? ("I" + Table.Name) : Table.Name;
+                    ClassName = option.Interface ? ("I" + Table.Name) : Table.Name;
             }
-            WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+            WriteLog("生成 {0} {1} {2}", Table.Name, Table.DisplayName, new { option.ClassNameTemplate, option.BaseClass, option.ModelNameForCopy, option.Namespace }.ToJson(false, false, false));
 
             Clear();
             if (Writer == null) Writer = new StringWriter();

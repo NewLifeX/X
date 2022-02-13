@@ -157,7 +157,7 @@ namespace NewLife.Serialization
                 if (EnumString)
                     WriteValue(obj + "");
                 else
-                    WriteValue(Convert.ToInt32(obj));
+                    WriteValue(obj.ToLong());
             }
 
             else

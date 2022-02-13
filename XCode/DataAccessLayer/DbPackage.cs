@@ -92,6 +92,13 @@ namespace XCode.DataAccessLayer
                     WriteLog("备份[{0}/{1}]数据 {2:n0} + {3:n0}", table, connName, row, count);
                     if (count == 0) break;
 
+                    // 字段名更换为属性名
+                    for (var i = 0; i < dt.Columns.Length; i++)
+                    {
+                        var dc = table.GetColumn(dt.Columns[i]);
+                        if (dc != null) dt.Columns[i] = dc.Name;
+                    }
+
                     // 进度报告、消费数据
                     OnProcess(table, row, dt, writeFile);
 
@@ -308,7 +315,7 @@ namespace XCode.DataAccessLayer
                 {
                     if (ts[i] == null || ts[i] == typeof(Object))
                     {
-                        var dc = table.Columns.FirstOrDefault(e => e.ColumnName.EqualIgnoreCase(cs[i]));
+                        var dc = table.GetColumn(cs[i]);
                         if (dc != null) ts[i] = dc.DataType;
                     }
                 }
