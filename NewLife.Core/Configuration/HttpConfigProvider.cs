@@ -65,7 +65,18 @@ namespace NewLife.Configuration
                 var asm = AssemblyX.Entry ?? executing;
                 if (asm != null) AppId = asm.Name;
 
-                ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+                ValidClientId();
+            }
+            catch { }
+        }
+
+        private void ValidClientId()
+        {
+            try
+            {
+                // 刚启动时可能还没有拿到本地IP
+                if (ClientId.IsNullOrEmpty() || ClientId[0] == '@')
+                    ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
             }
             catch { }
         }
@@ -159,6 +170,8 @@ namespace NewLife.Configuration
             }
             else
             {
+                ValidClientId();
+
                 var rs = client.Post<IDictionary<String, Object>>(Action, new
                 {
                     appId = AppId,
@@ -193,6 +206,8 @@ namespace NewLife.Configuration
         {
             // 特殊处理Apollo
             if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");
+
+            ValidClientId();
 
             var client = GetClient() as ApiHttpClient;
 
