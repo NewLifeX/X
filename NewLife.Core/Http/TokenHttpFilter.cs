@@ -48,7 +48,18 @@ namespace NewLife.Http
         #endregion
 
         /// <summary>实例化令牌过滤器</summary>
-        public TokenHttpFilter() => ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+        public TokenHttpFilter() => ValidClientId();
+
+        private void ValidClientId()
+        {
+            try
+            {
+                // 刚启动时可能还没有拿到本地IP
+                if (ClientId.IsNullOrEmpty() || ClientId[0] == '@')
+                    ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+            }
+            catch { }
+        }
 
         /// <summary>请求前</summary>
         /// <param name="client">客户端</param>
@@ -104,13 +115,15 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual async Task<TokenModel> SendAuth(HttpClient client)
         {
+            ValidClientId();
+
             var pass = EncodePassword(UserName, Password);
             return await client.PostAsync<TokenModel>(Action, new
             {
                 grant_type = "password",
                 username = UserName,
                 password = pass,
-                clientid = ClientId,
+                clientId = ClientId,
             });
         }
 
@@ -119,11 +132,13 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual async Task<TokenModel> SendRefresh(HttpClient client)
         {
+            ValidClientId();
+
             return await client.PostAsync<TokenModel>(Action, new
             {
                 grant_type = "refresh_token",
                 refresh_token = Token.RefreshToken,
-                clientid = ClientId,
+                clientId = ClientId,
             });
         }
 
