@@ -53,7 +53,7 @@ namespace NewLife.Serialization
                 handler.Host = this;
                 Handlers.Add(handler);
                 // 根据优先级排序
-                (Handlers as List<IJsonHandler>).Sort();
+                Handlers = Handlers.OrderBy(e => e.Priority).ToList();
             }
 
             return this;
