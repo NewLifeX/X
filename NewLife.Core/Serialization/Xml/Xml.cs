@@ -16,7 +16,7 @@ namespace NewLife.Serialization
         public Int32 Depth { get; set; }
 
         /// <summary>处理器列表</summary>
-        public List<IXmlHandler> Handlers { get; }
+        public List<IXmlHandler> Handlers { get; private set; }
 
         /// <summary>使用特性</summary>
         public Boolean UseAttribute { get; set; }
@@ -55,7 +55,7 @@ namespace NewLife.Serialization
                 handler.Host = this;
                 Handlers.Add(handler);
                 // 根据优先级排序
-                Handlers.Sort();
+                Handlers = Handlers.OrderBy(e => e.Priority).ToList();
             }
 
             return this;
