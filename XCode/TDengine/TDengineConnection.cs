@@ -115,7 +115,7 @@ namespace XCode.TDengine
             {
                 var builder = new ConnectionStringBuilder(connStr);
                 _DataSource = builder["DataSource"] ?? builder["Server"];
-                _Database = builder["Database"];
+                _Database = builder["Database"] ?? builder["Db"];
             }
 
             var pool = GetPool(ConnectionString);

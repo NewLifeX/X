@@ -158,7 +158,7 @@ namespace XCode.DataAccessLayer
             if (builder.TryGetAndRemove("provider", out value) && !value.IsNullOrEmpty()) { }
 
             // 数据库名称
-            var db = builder["Database"];
+            var db = builder["Database"] ?? builder["Db"];
             if (db.IsNullOrEmpty()) db = builder["Initial Catalog"];
             DatabaseName = db;
         }
