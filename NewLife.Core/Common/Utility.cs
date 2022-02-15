@@ -311,30 +311,9 @@ namespace System
                 if (Double.TryParse(str, out var n)) return n;
                 return defaultValue;
             }
-            else if (value is Byte[] buf)
+            else if (value is Byte[] buf && buf.Length <= 8)
             {
-                if (buf == null || buf.Length < 1) return defaultValue;
-
-                switch (buf.Length)
-                {
-                    case 1:
-                        return buf[0];
-                    case 2:
-                        return BitConverter.ToInt16(buf, 0);
-                    case 3:
-                        return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
-                    case 4:
-                        return BitConverter.ToInt32(buf, 0);
-                    default:
-                        // 凑够8字节
-                        if (buf.Length < 8)
-                        {
-                            var bts = new Byte[8];
-                            Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
-                            buf = bts;
-                        }
-                        return BitConverter.ToDouble(buf, 0);
-                }
+                return BitConverter.ToDouble(buf, 0);
             }
 
             try
