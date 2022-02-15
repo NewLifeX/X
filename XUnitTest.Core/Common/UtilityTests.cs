@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using NewLife;
+using System.Linq;
 
 namespace XUnitTest.Common
 {
@@ -163,6 +164,17 @@ namespace XUnitTest.Common
                         break;
                 }
             }
+        }
+
+        [Fact]
+        public void ToDouble()
+        {
+            var n = 12.34;
+            var buf = BitConverter.GetBytes(n);
+            Assert.Equal(8, buf.Length);
+
+            var v = buf.ToDouble();
+            Assert.Equal(n, v);
         }
     }
 }
