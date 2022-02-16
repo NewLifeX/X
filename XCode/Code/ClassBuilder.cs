@@ -91,8 +91,6 @@ namespace XCode.Code
             option.Pure = true;
             option.Partial = true;
 
-            var oldClassName = option.ClassNameTemplate;
-
             if (Debug) XTrace.WriteLine("生成简易模型类 {0}", option.Output.GetBasePath());
 
             var count = 0;
@@ -121,13 +119,10 @@ namespace XCode.Code
                     builder.Option.ModelNameForCopy = modelInterface;
                 }
 
-                if (!oldClassName.IsNullOrEmpty() || !modelClass.IsNullOrEmpty())
-                {
-                    builder.Execute();
-                    builder.Save(null, true, false);
+                builder.Execute();
+                builder.Save(null, true, false);
 
-                    count++;
-                }
+                count++;
             }
 
             return count;
@@ -146,8 +141,6 @@ namespace XCode.Code
 
             option.Interface = true;
             option.Partial = true;
-
-            var oldClassName = option.ClassNameTemplate;
 
             if (Debug) XTrace.WriteLine("生成简易接口 {0}", option.Output.GetBasePath());
 
@@ -171,13 +164,10 @@ namespace XCode.Code
                 var modelInterface = item.Properties["ModelInterface"];
                 if (!modelInterface.IsNullOrEmpty()) builder.Option.ClassNameTemplate = modelInterface;
 
-                if (!oldClassName.IsNullOrEmpty() || !modelInterface.IsNullOrEmpty())
-                {
-                    builder.Execute();
-                    builder.Save(null, true, false);
+                builder.Execute();
+                builder.Save(null, true, false);
 
-                    count++;
-                }
+                count++;
             }
 
             return count;

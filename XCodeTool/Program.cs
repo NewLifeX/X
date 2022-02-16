@@ -102,27 +102,39 @@ namespace XCodeTool
             EntityBuilder.BuildTables(tables, option, chineseFileName: true);
 
             // 生成简易模型类
-            option.BaseClass = null;
-            option.ClassNameTemplate = null;
-            option.ModelNameForCopy = null;
-            if (!modelClass.IsNullOrEmpty() || tables.Any(e => !e.Properties["ModelClass"].IsNullOrEmpty()))
+            option.Output = @"..\Models\";
+            option.BaseClass = modelInterface;
+            option.ClassNameTemplate = modelClass;
+            option.ModelNameForCopy = !modelInterface.IsNullOrEmpty() ? modelInterface : modelClass;
+            if (!modelClass.IsNullOrEmpty())
             {
-                option.Output = @"..\Models\";
-                option.BaseClass = modelInterface;
-                option.ClassNameTemplate = modelClass;
-                option.ModelNameForCopy = !modelInterface.IsNullOrEmpty() ? modelInterface : modelClass;
                 ClassBuilder.BuildModels(tables, option);
+            }
+            else
+            {
+                var ts = tables.Where(e => !e.Properties["ModelClass"].IsNullOrEmpty()).ToList();
+                if (ts.Count > 0)
+                {
+                    ClassBuilder.BuildModels(ts, option);
+                }
             }
 
             // 生成简易接口
+            option.Output = @"..\Interfaces\";
             option.BaseClass = null;
-            option.ClassNameTemplate = null;
+            option.ClassNameTemplate = modelInterface;
             option.ModelNameForCopy = null;
-            if (!modelInterface.IsNullOrEmpty() || tables.Any(e => !e.Properties["ModelInterface"].IsNullOrEmpty()))
+            if (!modelInterface.IsNullOrEmpty())
             {
-                option.Output = @"..\Interfaces\";
-                option.ClassNameTemplate = modelInterface;
                 ClassBuilder.BuildInterfaces(tables, option);
+            }
+            else
+            {
+                var ts = tables.Where(e => !e.Properties["ModelInterface"].IsNullOrEmpty()).ToList();
+                if (ts.Count > 0)
+                {
+                    ClassBuilder.BuildInterfaces(ts, option);
+                }
             }
         }
     }
