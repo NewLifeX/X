@@ -50,7 +50,7 @@ namespace NewLife.Caching
         public Int32 AutoPipeline { get; set; }
 
         /// <summary>编码器。决定对象存储在redis中的格式，默认json</summary>
-        public IRedisEncoder Encoder { get; set; } = new RedisJsonEncoder();
+        public IPacketEncoder Encoder { get; set; } = new RedisJsonEncoder();
 
         /// <summary>失败时抛出异常。默认true</summary>
         public Boolean ThrowOnFailure { get; set; } = true;

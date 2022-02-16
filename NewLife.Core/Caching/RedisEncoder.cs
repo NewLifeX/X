@@ -5,30 +5,30 @@ using NewLife.Serialization;
 
 namespace NewLife.Caching
 {
-    /// <summary>Redis编码器</summary>
-    public interface IRedisEncoder
-    {
-        /// <summary>数值转字节数组</summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        Packet Encode(Object value);
+    ///// <summary>Redis编码器</summary>
+    //public interface IRedisEncoder
+    //{
+    //    /// <summary>数值转字节数组</summary>
+    //    /// <param name="value"></param>
+    //    /// <returns></returns>
+    //    Packet Encode(Object value);
 
-        /// <summary>字节数组转对象</summary>
-        /// <param name="pk"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        Object Decode(Packet pk, Type type);
-    }
+    //    /// <summary>字节数组转对象</summary>
+    //    /// <param name="pk"></param>
+    //    /// <param name="type"></param>
+    //    /// <returns></returns>
+    //    Object Decode(Packet pk, Type type);
+    //}
 
     /// <summary>Redis编码器</summary>
-    public class RedisJsonEncoder : IRedisEncoder
+    public class RedisJsonEncoder : IPacketEncoder
     {
         #region 属性
         /// <summary>解码出错时抛出异常。默认false不抛出异常，仅返回默认值</summary>
         public Boolean ThrowOnError { get; set; }
         #endregion
 
-        /// <summary>数值转字节数组</summary>
+        /// <summary>数值转数据包</summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public virtual Packet Encode(Object value)
@@ -49,7 +49,7 @@ namespace NewLife.Caching
             };
         }
 
-        /// <summary>字节数组转对象</summary>
+        /// <summary>数据包转对象</summary>
         /// <param name="pk"></param>
         /// <param name="type"></param>
         /// <returns></returns>
