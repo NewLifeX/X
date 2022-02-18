@@ -84,7 +84,7 @@ namespace NewLife.Log
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
-        private static readonly System.Threading.AsyncLocal<ISpan> _Current = new();
+        private static readonly AsyncLocal<ISpan> _Current = new();
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
 
@@ -362,6 +362,8 @@ namespace NewLife.Log
                 var ss = (tid + "").Split('-');
                 if (ss.Length > 1) span.TraceId = ss[1];
                 if (ss.Length > 2) span.ParentId = ss[2];
+                if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
+                    ds.TraceFlag = ss[3].ToHex(0, 1)[0];
             }
             else if (dic.TryGetValue("Request-Id", out tid))
             {
@@ -384,7 +386,7 @@ namespace NewLife.Log
 
         /// <summary>从数据流traceId中释放片段信息</summary>
         /// <param name="span">片段</param>
-        /// <param name="traceId">W3C标准TraceId</param>
+        /// <param name="traceId">W3C标准TraceId，可以是traceparent</param>
         public static void Detach(this ISpan span, String traceId)
         {
             if (span == null || traceId.IsNullOrEmpty()) return;
@@ -393,11 +395,10 @@ namespace NewLife.Log
             if (ss.Length > 1) span.TraceId = ss[1];
             if (ss.Length > 2) span.ParentId = ss[2];
 
-            if (span is DefaultSpan ds)
+            if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
             {
                 // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
-                //if (ss.Length > 0) ds.Version = (Byte)ss[0].ToInt();
-                if (ss.Length > 3) ds.TraceFlag = (Byte)ss[3].ToInt();
+                ds.TraceFlag = ss[3].ToHex(0, 1)[0];
             }
         }
         #endregion
