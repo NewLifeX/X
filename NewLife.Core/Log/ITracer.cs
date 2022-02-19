@@ -113,7 +113,7 @@ namespace NewLife.Log
         #endregion
 
         #region 方法
-        Int32 _inited;
+        private Int32 _inited;
         private void InitTimer()
         {
             if (Interlocked.CompareExchange(ref _inited, 1, 0) == 0)
@@ -256,9 +256,16 @@ namespace NewLife.Log
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
             if (handler == null) handler = new HttpClientHandler { UseProxy = false };
-            if (tracer == null) return new HttpClient(handler);
 
-            return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+            var client = tracer == null ?
+                new HttpClient(handler) :
+                new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+
+            // 默认UserAgent
+            var userAgent = HttpHelper.DefaultUserAgent;
+            if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
+            return client;
         }
 
         /// <summary>为Http请求创建Span</summary>
@@ -269,12 +276,29 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var url = request.RequestUri.ToString();
+            var span = CreateSpan(tracer, request.RequestUri);
+            span.Attach(request);
+
+            return span;
+        }
+
+        private static ISpan CreateSpan(ITracer tracer, Uri uri)
+        {
+            var url = uri.ToString();
+
+            // 太长的Url分段，不适合作为埋点名称
+            if (url.Length > 20 + 16)
+            {
+                var ss = url.Split('/');
+                var i = 0;
+                for (i = 0; i < ss.Length && ss[i].Length <= 16; i++) ;
+                if (i > 0) url = ss.Take(i).Join("/");
+            }
+
             var p1 = url.IndexOf('?');
             var p2 = url.IndexOf('/', "https://".Length);
             var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
             span.Tag = p2 < 0 ? url : url[p2..];
-            span.Attach(request);
 
             return span;
         }
@@ -287,11 +311,7 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var url = request.RequestUri.ToString();
-            var p1 = url.IndexOf('?');
-            var p2 = url.IndexOf('/', "https://".Length);
-            var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
-            span.Tag = p2 < 0 ? url : url[p2..];
+            var span = CreateSpan(tracer, request.RequestUri);
             span.Attach(request);
 
             return span;
