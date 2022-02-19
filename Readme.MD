@@ -1,5 +1,7 @@
 ![XCode](https://www.newlifex.com/logo.png)  
-新生命核心基础组件，包括`日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪`等模块，支持`.NET Framework/.NET Core/Mono/Xamarin`。
+新生命核心基础组件，支持`.NET Framework/.NET Core/Mono/Xamarin`。  
+核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。  
+数据中间件，支持MySQL、SQLite、SqlServer、Oracle、Postgresql、TDengine、达梦，重点在缓存、性能、分表、自动建表。  
 
 新生命团队（NewLife）成立于2002年，是新时代物联网行业解决方案提供者，致力于提供软硬件应用方案咨询、系统架构规划与开发服务。  
 
