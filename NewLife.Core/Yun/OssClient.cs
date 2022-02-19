@@ -41,8 +41,7 @@ namespace NewLife.Yun
         {
             if (_Client != null) return _Client;
 
-            var handler = new HttpClientHandler { UseProxy = false };
-            var http = DefaultTracer.Instance?.CreateHttpClient(handler) ?? new HttpClient(handler);
+            var http = DefaultTracer.Instance?.CreateHttpClient();
             http.BaseAddress = new Uri(_baseAddress ?? Endpoint);
 
             var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();

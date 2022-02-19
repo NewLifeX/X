@@ -435,6 +435,10 @@ namespace NewLife.Remoting
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
 
+            // 默认UserAgent
+            var userAgent = HttpHelper.DefaultUserAgent;
+            if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
             return client;
         }
         #endregion

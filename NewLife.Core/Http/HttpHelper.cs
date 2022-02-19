@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
-using System.Net.Http;
-using NewLife.Serialization;
-using System.Text;
-using NewLife.Xml;
 using NewLife.Log;
-using System.Linq;
-using System.Threading;
-using NewLife.Caching;
+using NewLife.Serialization;
+using NewLife.Xml;
 
 namespace NewLife.Http
 {
@@ -24,6 +25,21 @@ namespace NewLife.Http
 
         /// <summary>Http过滤器</summary>
         public static IHttpFilter Filter { get; set; }
+
+        /// <summary>默认用户浏览器代理。用于内部创建的HttpClient请求</summary>
+        public static String DefaultUserAgent { get; set; }
+
+        static HttpHelper()
+        {
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            //if (asm != null) agent = $"{asm.GetName().Name}/{asm.GetName().Version}";
+            if (asm != null)
+            {
+                var aname = asm.GetName();
+                var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+                DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+            }
+        }
 
         #region Http封包解包
         /// <summary>创建请求包</summary>

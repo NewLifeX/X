@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using NewLife.Common;
+using NewLife.Http;
 using NewLife.Net;
 using NewLife.Security;
 
@@ -97,6 +98,11 @@ namespace NewLife.Log
                     };
                     http.DefaultRequestHeaders.Add("X-AppId", AppId);
                     http.DefaultRequestHeaders.Add("X-ClientId", ClientId);
+
+                    // 默认UserAgent
+                    var userAgent = HttpHelper.DefaultUserAgent;
+                    if (!userAgent.IsNullOrEmpty()) http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
                     _http = http;
                     break;
                 default:
