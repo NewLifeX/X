@@ -294,8 +294,9 @@ namespace NewLife.Log
                 if (i > 0) url = ss.Take(i).Join("/");
             }
 
+            var len = "https://".Length;
             var p1 = url.IndexOf('?');
-            var p2 = url.IndexOf('/', "https://".Length);
+            var p2 = url.Length > len ? url.IndexOf('/', len) : -1;
             var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
             span.Tag = p2 < 0 ? url : url[p2..];
 
