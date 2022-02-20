@@ -78,6 +78,7 @@ namespace NewLife.Http
 
             var handler = CreateHandler(name);
             var client = new HttpClient(handler, disposeHandler: false);
+            client.SetUserAgent();
 
             return client;
         }

@@ -100,8 +100,7 @@ namespace NewLife.Log
                     http.DefaultRequestHeaders.Add("X-ClientId", ClientId);
 
                     // 默认UserAgent
-                    var userAgent = HttpHelper.DefaultUserAgent;
-                    if (!userAgent.IsNullOrEmpty()) http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+                    http.SetUserAgent();
 
                     _http = http;
                     break;

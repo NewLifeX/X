@@ -37,7 +37,7 @@
     <Folder Include="Model\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="1.5.2021.1204" />
+    <PackageReference Include="NewLife.Stardust" Version="2.0.2022.204" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />

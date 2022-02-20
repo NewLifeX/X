@@ -436,8 +436,7 @@ namespace NewLife.Remoting
             };
 
             // 默认UserAgent
-            var userAgent = HttpHelper.DefaultUserAgent;
-            if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+            client.SetUserAgent();
 
             return client;
         }

@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Security;
+using NewLife.Serialization;
 using Xunit;
 
 namespace XUnitTest.Http
 {
     public class HttpHelperTests
     {
-        static HttpHelperTests()
-        {
-            HttpHelper.Tracer = new DefaultTracer();
-        }
+        static HttpHelperTests() => HttpHelper.Tracer = new DefaultTracer();
 
         [Fact]
         public async void PostJson()
@@ -23,14 +20,7 @@ namespace XUnitTest.Http
             var url = "http://star.newlifex.com/cube/info";
 
             var client = new HttpClient();
-
-            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-            var asmName = asm?.GetName();
-            if (asmName != null)
-            {
-                //var userAgent = $"{asmName.Name}/{asmName.Version}({Environment.OSVersion};{Environment.Version})";
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(asmName.Name, asmName.Version + ""));
-            }
+            client.SetUserAgent();
 
             var json = client.PostJson(url, new { state = "1234" });
             Assert.NotNull(json);
@@ -39,6 +29,31 @@ namespace XUnitTest.Http
             json = await client.PostJsonAsync(url, new { state = "abcd" });
             Assert.NotNull(json);
             Assert.Contains("\"server\":\"StarWeb\"", json);
+        }
+
+        [Fact]
+        public async void PostJson2()
+        {
+            var url = "https://sso.newlifex.com/cube/info";
+
+            var client = new HttpClient();
+            client.SetUserAgent();
+
+            var json = client.PostJson(url, new { state = "1234" });
+            Assert.NotNull(json);
+
+            var dic = JsonParser.Decode(json);
+            dic = dic["data"] as IDictionary<String, Object>;
+            Assert.Equal("CubeSSO", dic["server"]);
+            Assert.Equal("1234", dic["state"]);
+
+            json = await client.PostJsonAsync(url, new { state = "abcd" });
+            Assert.NotNull(json);
+
+            dic = JsonParser.Decode(json);
+            dic = dic["data"] as IDictionary<String, Object>;
+            Assert.Equal("CubeSSO", dic["server"]);
+            Assert.Equal("abcd", dic["state"]);
         }
 
         [Fact]
@@ -54,6 +69,29 @@ namespace XUnitTest.Http
             json = await client.PostXmlAsync(url, new { state = "abcd" });
             Assert.NotNull(json);
             Assert.Contains("\"server\":\"StarWeb\"", json);
+        }
+
+        [Fact]
+        public async void PostXml2()
+        {
+            var url = "https://sso.newlifex.com/cube/info";
+
+            var client = new HttpClient();
+            var json = client.PostXml(url, new { state = "1234" });
+            Assert.NotNull(json);
+
+            var dic = JsonParser.Decode(json);
+            dic = dic["data"] as IDictionary<String, Object>;
+            Assert.Equal("CubeSSO", dic["server"]);
+            Assert.Equal("1234", dic["state"]);
+
+            json = await client.PostXmlAsync(url, new { state = "abcd" });
+            Assert.NotNull(json);
+
+            dic = JsonParser.Decode(json);
+            dic = dic["data"] as IDictionary<String, Object>;
+            Assert.Equal("CubeSSO", dic["server"]);
+            Assert.Equal("abcd", dic["state"]);
         }
 
         [Fact]

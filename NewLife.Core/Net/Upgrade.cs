@@ -199,7 +199,7 @@ namespace NewLife.Net
         {
             if (_Client != null) return _Client;
 
-            return _Client = new HttpClient();
+            return _Client = new HttpClient().SetUserAgent();
         }
 
         /// <summary>删除备份文件</summary>

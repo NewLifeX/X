@@ -26,7 +26,7 @@ namespace NewLife.Http
         /// <summary>Http过滤器</summary>
         public static IHttpFilter Filter { get; set; }
 
-        /// <summary>默认用户浏览器代理。用于内部创建的HttpClient请求</summary>
+        /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
         public static String DefaultUserAgent { get; set; }
 
         static HttpHelper()
@@ -37,9 +37,25 @@ namespace NewLife.Http
             {
                 var aname = asm.GetName();
                 var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
-                DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+                if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
+                    DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+                else
+                    DefaultUserAgent = $"{aname.Name}/{aname.Version}";
             }
         }
+
+        #region 默认浏览器UserAgent
+        /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public static HttpClient SetUserAgent(this HttpClient client)
+        {
+            var userAgent = DefaultUserAgent;
+            if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
+            return client;
+        }
+        #endregion
 
         #region Http封包解包
         /// <summary>创建请求包</summary>
