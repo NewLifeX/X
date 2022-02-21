@@ -605,6 +605,8 @@ namespace XCode.DataAccessLayer
                         if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
                     }
 
+                    field.Fix();
+
                     table.Columns.Add(field);
                 }
                 #endregion

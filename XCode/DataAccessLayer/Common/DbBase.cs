@@ -757,7 +757,7 @@ namespace XCode.DataAccessLayer
                     if (Char.IsLower(name[i - 1]))
                         sb.Append('_');
                     // 后一个字母小写，新的开始
-                    else if (i < name.Length - 1 && Char.IsLower(name[i + 1]))
+                    else if (i < name.Length - 1 && Char.IsLower(name[i + 1]) && Char.IsLower(name[i - 1]))
                         sb.Append('_');
                 }
                 sb.Append(ch);

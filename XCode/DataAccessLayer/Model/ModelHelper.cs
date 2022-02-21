@@ -129,6 +129,10 @@ namespace XCode.DataAccessLayer
             if (columns.Length != columnNames.Length) return null;
 
             var names = columns.Select(e => e.Name).ToArray();
+            di = dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
+            if (di != null) return di;
+
+            names = columns.Select(e => e.ColumnName).ToArray();
             return dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
 
