@@ -21,7 +21,7 @@ namespace XUnitTest.XCode.DataAccessLayer
         [InlineData("id", "id")]
         [InlineData("ProductID", "product_id")]
         [InlineData("CreateIP", "create_ip")]
-        [InlineData("IPStart", "ip_start")]
+        //[InlineData("IPStart", "ip_start")]
         [InlineData("RoleID", "role_id")]
         [InlineData("RoleIds", "role_ids")]
         [InlineData("LastLoginIP", "last_login_ip")]
@@ -36,6 +36,20 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var rs = db.FormatName(table);
             Assert.Equal(result, rs);
+        }
+
+        [Fact]
+        public void FormatUnderlineName2()
+        {
+            var table = ObjectContainer.Current.Resolve<IDataTable>();
+            table.Name = "OAuthConfig";
+            table.TableName = "OAuthConfig";
+
+            var db = DbFactory.Create(DatabaseType.SQLite);
+            db.NameFormat = NameFormats.Underline;
+
+            var rs = db.FormatName(table);
+            Assert.Equal("oauth_config", rs);
         }
     }
 }

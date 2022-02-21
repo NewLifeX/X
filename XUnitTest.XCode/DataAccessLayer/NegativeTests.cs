@@ -7,7 +7,7 @@ using Xunit;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
-  public  class NegativeTests
+    public class NegativeTests
     {
         static NegativeTests()
         {
@@ -239,6 +239,18 @@ namespace XUnitTest.XCode.DataAccessLayer
 	update_time datetime NOT NULL DEFAULT '0001-01-01',
 	remark nvarchar(500) NULL COLLATE NOCASE
 )", rs);
+
+            table = table.Clone() as IDataTable;
+            table.TableName = db.FormatName(table);
+            foreach (var column in table.Columns)
+            {
+                column.ColumnName = db.FormatName(column);
+            }
+
+            var dal = User.Meta.Session.Dal;
+            //dal.Db.NameFormat = NameFormats.Underline;
+            //dal.SetTables(table);
+            dal.Db.CreateMetaData().SetTables(Migration.ReadOnly, table);
         }
 
         [Fact]
