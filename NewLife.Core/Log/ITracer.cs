@@ -288,10 +288,16 @@ namespace NewLife.Log
             // 太长的Url分段，不适合作为埋点名称
             if (url.Length > 20 + 16)
             {
-                var ss = url.Split('/');
-                var i = 0;
-                for (i = 0; i < ss.Length && ss[i].Length <= 16; i++) ;
-                if (i > 0) url = ss.Take(i).Join("/");
+                var ss = url.Split('/', '?');
+                // 从第三段开始查，跳过开头的http://和域名
+                for (var i = 3; i < ss.Length; i++)
+                {
+                    if (ss[i].Length > 16)
+                    {
+                        url = ss.Take(i).Join("/");
+                        break;
+                    }
+                }
             }
 
             var len = "https://".Length;
