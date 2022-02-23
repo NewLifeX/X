@@ -988,7 +988,7 @@ namespace XCode.DataAccessLayer
             return file;
         }
 
-        internal ICache _SchemaCache = new MemoryCache { Expire = 10, Period = 10 * 60, };
+        //internal ICache _SchemaCache = new MemoryCache { Expire = 10, Period = 10 * 60, };
         #endregion
 
         #region Sql日志输出

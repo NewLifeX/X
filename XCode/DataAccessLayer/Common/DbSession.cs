@@ -645,8 +645,9 @@ namespace XCode.DataAccessLayer
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
 
             var db = Database as DbBase;
-            var dt = db._SchemaCache.Get<DataTable>(key);
-            if (dt == null)
+            DataTable dt;
+            //var dt = db._SchemaCache.Get<DataTable>(key);
+            //if (dt == null)
             {
                 /*
                 * TODO: Bug
@@ -658,7 +659,7 @@ namespace XCode.DataAccessLayer
                 else
                     dt = Process(conn2 => GetSchemaInternal(conn2, key, collectionName, restrictionValues));
 
-                db._SchemaCache.Set(key, dt, 10);
+                //db._SchemaCache.Set(key, dt, 10);
             }
 
             return dt;
