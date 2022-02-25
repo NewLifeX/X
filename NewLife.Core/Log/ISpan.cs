@@ -363,7 +363,10 @@ namespace NewLife.Log
                 if (ss.Length > 1) span.TraceId = ss[1];
                 if (ss.Length > 2) span.ParentId = ss[2];
                 if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
-                    ds.TraceFlag = ss[3].ToHex(0, 1)[0];
+                {
+                    var buf = ss[3].ToHex(0, 2);
+                    if (buf.Length > 0) ds.TraceFlag = buf[0];
+                }
             }
             else if (dic.TryGetValue("Request-Id", out tid))
             {
@@ -398,7 +401,8 @@ namespace NewLife.Log
             if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
             {
                 // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
-                ds.TraceFlag = ss[3].ToHex(0, 1)[0];
+                var buf = ss[3].ToHex(0, 2);
+                if (buf.Length > 0) ds.TraceFlag = buf[0];
             }
         }
         #endregion
