@@ -536,6 +536,34 @@ namespace NewLife
             var buf = new Byte[8];
             return buf.Write((UInt64)value, 0, isLittleEndian);
         }
+
+        /// <summary>字节翻转。支持双字节和四字节多批次翻转，主要用于大小端转换</summary>
+        /// <param name="data"></param>
+        /// <param name="swap16"></param>
+        /// <param name="swap32"></param>
+        /// <returns></returns>
+        public static Byte[] Swap(this Byte[] data, Boolean swap16, Boolean swap32)
+        {
+            var buf = new Byte[data.Length];
+            Buffer.BlockCopy(data, 0, buf, 0, data.Length);
+            if (swap16)
+            {
+                for (var i = 0; i < buf.Length - 1; i += 2)
+                {
+                    (buf[i + 1], buf[i]) = (buf[i], buf[i + 1]);
+                }
+            }
+
+            if (swap32)
+            {
+                for (var i = 0; i < buf.Length - 3; i += 4)
+                {
+                    (buf[i + 2], buf[i + 3], buf[i], buf[i + 1]) = (buf[i], buf[i + 1], buf[i + 2], buf[i + 3]);
+                }
+            }
+
+            return buf;
+        }
         #endregion
 
         #region 7位压缩编码整数

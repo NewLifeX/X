@@ -48,5 +48,41 @@ namespace XUnitTest.IO
             var value = pk.Slice(p + 4).ToStr();
             Assert.Equal("大石头", value);
         }
+
+        [Fact]
+        public void Swap()
+        {
+            var data = "12345678";
+
+            var buf = data.ToHex().Swap(false, false);
+            Assert.Equal("12345678", buf.ToHex());
+
+            buf = data.ToHex().Swap(false, true);
+            Assert.Equal("56781234", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, false);
+            Assert.Equal("34127856", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, true);
+            Assert.Equal("78563412", buf.ToHex());
+        }
+
+        [Fact]
+        public void Swap64()
+        {
+            var data = "12345678AABBCCDD";
+
+            var buf = data.ToHex().Swap(false, false);
+            Assert.Equal("12345678AABBCCDD", buf.ToHex());
+
+            buf = data.ToHex().Swap(false, true);
+            Assert.Equal("56781234CCDDAABB", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, false);
+            Assert.Equal("34127856BBAADDCC", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, true);
+            Assert.Equal("78563412DDCCBBAA", buf.ToHex());
+        }
     }
 }
