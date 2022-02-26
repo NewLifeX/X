@@ -32,6 +32,9 @@ namespace NewLife.Data
         /// <summary>序列号，取12位。进程内静态，避免多个实例生成重复Id</summary>
         public Int32 Sequence => _Sequence;
 
+        /// <summary>全局机器Id。若设置，所有雪花实例都将使用该Id，可以由星尘配置中心提供本应用全局唯一机器码，且跨多环境唯一</summary>
+        public static Int32 GlobalWorkerId { get; set; }
+
         /// <summary>workerId分配集群。配置后可确保所有实例化的雪花对象得到唯一workerId，建议使用Redis</summary>
         public static ICache Cluster { get; set; }
 
@@ -43,6 +46,7 @@ namespace NewLife.Data
         #region 核心方法
         private void Init()
         {
+            if (WorkerId <= 0 && GlobalWorkerId > 0) WorkerId = GlobalWorkerId & 0x3FF;
             if (WorkerId <= 0 && Cluster != null) JoinCluster(Cluster);
 
             // 初始化WorkerId，取5位实例加上5位进程，确保同一台机器的WorkerId不同
