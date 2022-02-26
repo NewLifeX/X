@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Security;
 using Xunit;
 
 namespace XUnitTest.Data
@@ -122,6 +123,27 @@ namespace XUnitTest.Data
             XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
 
             Assert.True(sw.ElapsedMilliseconds < 20_000);
+        }
+
+        [Fact]
+        public void GlobalWorkerId()
+        {
+            {
+                var n = Rand.Next(0x400);
+                Snowflake.GlobalWorkerId = n;
+
+                var sn = new Snowflake();
+                sn.NewId();
+                Assert.Equal(n, sn.WorkerId);
+            }
+            {
+                var n = Rand.Next(0x400, Int32.MaxValue);
+                Snowflake.GlobalWorkerId = n;
+
+                var sn = new Snowflake();
+                sn.NewId();
+                Assert.Equal(n & 0x3FF, sn.WorkerId);
+            }
         }
     }
 }
