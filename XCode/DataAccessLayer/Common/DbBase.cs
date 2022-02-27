@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
-using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -834,6 +833,13 @@ namespace XCode.DataAccessLayer
 
             return value.ToString();
         }
+
+        /// <summary>格式化模糊搜索的字符串。处理转义字符</summary>
+        /// <param name="column">字段</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public virtual String FormatLike(IDataColumn column, String format, String value) => String.Format(format, FormatName(column), value);
 
         /// <summary>格式化参数名</summary>
         /// <param name="name">名称</param>

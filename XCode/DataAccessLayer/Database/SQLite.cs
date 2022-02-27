@@ -227,6 +227,31 @@ namespace XCode.DataAccessLayer
             return base.FormatValue(field, value);
         }
 
+        private static readonly Char[] _likeKeys = new[] { '/', '\'', '[', ']', '%', '&', '(', ')', '_' };
+        /// <summary>格式化模糊搜索的字符串。处理转义字符</summary>
+        /// <param name="column">字段</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public override String FormatLike(IDataColumn column, String format, String value)
+        {
+            if (value.IsNullOrEmpty()) return value;
+
+            if (value.IndexOfAny(_likeKeys) >= 0)
+                value = value
+                    .Replace("/", "//")
+                    .Replace("'", "''")
+                    .Replace("[", "/[")
+                    .Replace("]", "/]")
+                    .Replace("%", "/%")
+                    .Replace("&", "/&")
+                    .Replace("(", "/(")
+                    .Replace(")", "/)")
+                    .Replace("_", "/_");
+
+            return base.FormatLike(column, format, value);
+        }
+
         /// <summary>字符串相加</summary>
         /// <param name="left"></param>
         /// <param name="right"></param>

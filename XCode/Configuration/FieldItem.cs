@@ -237,7 +237,8 @@ namespace XCode.Configuration
         /// <param name="format"></param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        internal Expression CreateFormat(String format, Object value) => new FormatExpression(this, format, value);
+        private Expression CreateFormat(String format, Object value) => new FormatExpression(this, format, value);
+        private Expression CreateLike(String format, String value) => new LikeExpression(this, format, value);
         private Expression CreateIn(String format, Object value) => new InExpression(this, format, value);
 
         internal static Expression CreateField(FieldItem field, String action, Object value) => field == null ? new Expression() : new FieldExpression(field, action, value);
@@ -265,7 +266,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like '{1}%'", value);
+            return CreateLike("{0} Like '{1}%'", value);
         }
 
         /// <summary>以某个字符串结束，%{0}操作</summary>
@@ -279,7 +280,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like '%{1}'", value);
+            return CreateLike("{0} Like '%{1}'", value);
         }
 
         /// <summary>包含某个字符串，%{0}%操作</summary>
@@ -293,7 +294,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Like '%{1}%'", value);
+            return CreateLike("{0} Like '%{1}%'", value);
         }
 
         /// <summary>不包含某个字符串，%{0}%操作</summary>
@@ -307,7 +308,7 @@ namespace XCode.Configuration
 
             if (value == null || value + "" == "") return new Expression();
 
-            return CreateFormat("{0} Not Like '%{1}%'", value);
+            return CreateLike("{0} Not Like '%{1}%'", value);
         }
 
         /// <summary>In操作</summary>

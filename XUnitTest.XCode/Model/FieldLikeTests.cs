@@ -99,6 +99,17 @@ namespace XUnitTest.XCode.Model
         }
 
         [Fact]
+        public void StartsWithEscape()
+        {
+            var fi = User._.Name;
+            var exp = fi.StartsWith("dmi/'[]()%&_end");
+            var where = exp.GetString(_dbUser, null);
+            Assert.Equal("Name Like 'dmi//''/[/]/(/)/%/&/_end%'", where);
+
+            Assert.Equal("Name Like 'dmi//''/[/]/(/)/%/&/_end%'", exp);
+        }
+
+        [Fact]
         public void EndsWith()
         {
             var fi = User._.Name;

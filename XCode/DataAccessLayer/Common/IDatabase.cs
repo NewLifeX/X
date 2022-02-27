@@ -171,6 +171,13 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         String FormatValue(IDataColumn column, Object value);
 
+        /// <summary>格式化模糊搜索的字符串。处理转义字符</summary>
+        /// <param name="column">字段</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        String FormatLike(IDataColumn column, String format, String value);
+
         ///// <summary>格式化标识列，返回插入数据时所用的表达式，如果字段本身支持自增，则返回空</summary>
         ///// <param name="field">字段</param>
         ///// <param name="value">数值</param>
