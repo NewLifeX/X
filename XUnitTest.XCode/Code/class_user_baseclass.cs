@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -88,6 +88,16 @@ namespace XCode.Code
         [Description("启用")]
         [DisplayName("启用")]
         public Boolean Enable { get; set; }
+
+        /// <summary>年龄。周岁</summary>
+        [Description("年龄。周岁")]
+        [DisplayName("年龄")]
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        [Description("生日。公历年月日")]
+        [DisplayName("生日")]
+        public DateTime Birthday { get; set; }
 
         /// <summary>登录次数</summary>
         [Description("登录次数")]

@@ -113,7 +113,10 @@ namespace XCode.Membership
                 RoleIds = str;
             }
 
-            FixArea(LastLoginIP);
+            // 自动计算年龄
+            if (Birthday.Year > 1000) Age = (Int32)(DateTime.Now - Birthday).TotalDays;
+
+            //if (AreaId <= 0) FixArea(LastLoginIP);
         }
 
         /// <summary>删除用户</summary>
@@ -509,6 +512,8 @@ namespace XCode.Membership
             if (!ip.IsNullOrEmpty()) LastLoginIP = ip;
 
             Online = true;
+
+            if (AreaId <= 0) FixArea(LastLoginIP);
 
             return Update();
         }

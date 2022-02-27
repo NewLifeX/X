@@ -145,6 +145,22 @@ namespace Company.MyName
         [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get => _Enable; set { if (OnPropertyChanging("Enable", value)) { _Enable = value; OnPropertyChanged("Enable"); } } }
 
+        private Int32 _Age;
+        /// <summary>年龄。周岁</summary>
+        [DisplayName("年龄")]
+        [Description("年龄。周岁")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Age", "年龄。周岁", "")]
+        public Int32 Age { get => _Age; set { if (OnPropertyChanging("Age", value)) { _Age = value; OnPropertyChanged("Age"); } } }
+
+        private DateTime _Birthday;
+        /// <summary>生日。公历年月日</summary>
+        [DisplayName("生日")]
+        [Description("生日。公历年月日")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("Birthday", "生日。公历年月日", "")]
+        public DateTime Birthday { get => _Birthday; set { if (OnPropertyChanging("Birthday", value)) { _Birthday = value; OnPropertyChanged("Birthday"); } } }
+
         private Int32 _Logins;
         /// <summary>登录次数</summary>
         [DisplayName("登录次数")]
@@ -308,6 +324,8 @@ namespace Company.MyName
                     case "DepartmentID": return _DepartmentID;
                     case "Online": return _Online;
                     case "Enable": return _Enable;
+                    case "Age": return _Age;
+                    case "Birthday": return _Birthday;
                     case "Logins": return _Logins;
                     case "LastLogin": return _LastLogin;
                     case "LastLoginIP": return _LastLoginIP;
@@ -347,6 +365,8 @@ namespace Company.MyName
                     case "DepartmentID": _DepartmentID = value.ToInt(); break;
                     case "Online": _Online = value.ToBoolean(); break;
                     case "Enable": _Enable = value.ToBoolean(); break;
+                    case "Age": _Age = value.ToInt(); break;
+                    case "Birthday": _Birthday = value.ToDateTime(); break;
                     case "Logins": _Logins = value.ToInt(); break;
                     case "LastLogin": _LastLogin = value.ToDateTime(); break;
                     case "LastLoginIP": _LastLoginIP = Convert.ToString(value); break;
@@ -418,6 +438,12 @@ namespace Company.MyName
 
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName("Enable");
+
+            /// <summary>年龄。周岁</summary>
+            public static readonly Field Age = FindByName("Age");
+
+            /// <summary>生日。公历年月日</summary>
+            public static readonly Field Birthday = FindByName("Birthday");
 
             /// <summary>登录次数</summary>
             public static readonly Field Logins = FindByName("Logins");
@@ -520,6 +546,12 @@ namespace Company.MyName
 
             /// <summary>启用</summary>
             public const String Enable = "Enable";
+
+            /// <summary>年龄。周岁</summary>
+            public const String Age = "Age";
+
+            /// <summary>生日。公历年月日</summary>
+            public const String Birthday = "Birthday";
 
             /// <summary>登录次数</summary>
             public const String Logins = "Logins";

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -56,6 +56,12 @@ namespace XCode.Code
 
         /// <summary>启用</summary>
         public Boolean Enable { get; set; }
+
+        /// <summary>年龄。周岁</summary>
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        public DateTime Birthday { get; set; }
 
         /// <summary>登录次数</summary>
         public Int32 Logins { get; set; }
@@ -134,6 +140,8 @@ namespace XCode.Code
                     case "DepartmentID": return DepartmentID;
                     case "Online": return Online;
                     case "Enable": return Enable;
+                    case "Age": return Age;
+                    case "Birthday": return Birthday;
                     case "Logins": return Logins;
                     case "LastLogin": return LastLogin;
                     case "LastLoginIP": return LastLoginIP;
@@ -173,6 +181,8 @@ namespace XCode.Code
                     case "DepartmentID": DepartmentID = value.ToInt(); break;
                     case "Online": Online = value.ToBoolean(); break;
                     case "Enable": Enable = value.ToBoolean(); break;
+                    case "Age": Age = value.ToInt(); break;
+                    case "Birthday": Birthday = value.ToDateTime(); break;
                     case "Logins": Logins = value.ToInt(); break;
                     case "LastLogin": LastLogin = value.ToDateTime(); break;
                     case "LastLoginIP": LastLoginIP = Convert.ToString(value); break;
@@ -216,6 +226,8 @@ namespace XCode.Code
             DepartmentID = model.DepartmentID;
             Online = model.Online;
             Enable = model.Enable;
+            Age = model.Age;
+            Birthday = model.Birthday;
             Logins = model.Logins;
             LastLogin = model.LastLogin;
             LastLoginIP = model.LastLoginIP;

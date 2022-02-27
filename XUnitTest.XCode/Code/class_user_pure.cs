@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -55,6 +55,12 @@ namespace XCode.Code
 
         /// <summary>启用</summary>
         public Boolean Enable { get; set; }
+
+        /// <summary>年龄。周岁</summary>
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        public DateTime Birthday { get; set; }
 
         /// <summary>登录次数</summary>
         public Int32 Logins { get; set; }
@@ -128,6 +134,8 @@ namespace XCode.Code
             DepartmentID = model.DepartmentID;
             Online = model.Online;
             Enable = model.Enable;
+            Age = model.Age;
+            Birthday = model.Birthday;
             Logins = model.Logins;
             LastLogin = model.LastLogin;
             LastLoginIP = model.LastLoginIP;
