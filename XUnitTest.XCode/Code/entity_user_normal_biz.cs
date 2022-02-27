@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -99,6 +99,8 @@ namespace Company.MyName
         //    entity.DepartmentID = 0;
         //    entity.Online = true;
         //    entity.Enable = true;
+        //    entity.Age = 0;
+        //    entity.Birthday = DateTime.Now;
         //    entity.Logins = 0;
         //    entity.LastLogin = DateTime.Now;
         //    entity.LastLoginIP = "abc";

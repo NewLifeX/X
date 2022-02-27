@@ -56,6 +56,12 @@ namespace XCode.Code
         /// <summary>启用</summary>
         Boolean Enable { get; set; }
 
+        /// <summary>年龄。周岁</summary>
+        Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        DateTime Birthday { get; set; }
+
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
 

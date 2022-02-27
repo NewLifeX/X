@@ -17,6 +17,8 @@
       <Column Name="DepartmentID" DataType="Int32" Description="部门。组织机构" />
       <Column Name="Online" DataType="Boolean" Description="在线" />
       <Column Name="Enable" DataType="Boolean" Description="启用" />
+      <Column Name="Age" DataType="Int32" Description="年龄。周岁" />
+      <Column Name="Birthday" DataType="DateTime" Description="生日。公历年月日" />
       <Column Name="Logins" DataType="Int32" Description="登录次数" />
       <Column Name="LastLogin" DataType="DateTime" Description="最后登录" />
       <Column Name="LastLoginIP" DataType="String" Description="最后登录IP" />
