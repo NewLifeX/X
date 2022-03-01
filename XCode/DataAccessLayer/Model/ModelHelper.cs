@@ -200,7 +200,7 @@ namespace XCode.DataAccessLayer
 
                         writer.WriteAttributeString(keys[0], keys[1], null, item.Value);
                     }
-                    else if (!item.Key.EqualIgnoreCase("Version"))
+                    else /*if (!item.Key.EqualIgnoreCase("Version"))*/
                         writer.WriteAttributeString(item.Key, item.Value);
                     //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
                     //writer.WriteElementString(item.Key, item.Value);
