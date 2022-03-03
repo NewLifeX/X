@@ -71,5 +71,23 @@ namespace NewLife
         public static Boolean OSX { get; } = Environment.OSVersion.Platform == PlatformID.MacOSX;
 #endif
         #endregion
+
+        #region 扩展
+#if NETCOREAPP3_1_OR_GREATER
+        /// <summary>系统启动以来的毫秒数</summary>
+        public static Int64 TickCount64 => Environment.TickCount64;
+#else
+        /// <summary>系统启动以来的毫秒数</summary>
+        public static Int64 TickCount64
+        {
+            get
+            {
+                if (Stopwatch.IsHighResolution) return Stopwatch.GetTimestamp() / Stopwatch.Frequency;
+
+                return Environment.TickCount / 1000;
+            }
+        }
+#endif
+        #endregion
     }
 }
