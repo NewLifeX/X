@@ -110,7 +110,7 @@ namespace XCode.Membership
             }
 
             // 自动计算年龄
-            if (Birthday.Year > 1000) Age = (Int32)(DateTime.Now - Birthday).TotalDays;
+            if (Birthday.Year > 1000) Age = (Int32)((DateTime.Now - Birthday).TotalDays / 365);
 
             //if (AreaId <= 0) FixArea(LastLoginIP);
         }
