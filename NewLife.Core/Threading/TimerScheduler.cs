@@ -121,13 +121,13 @@ namespace NewLife.Threading
             }
         }
 
-        private AutoResetEvent? waitForTimer;
-        private Int32 period = 10;
+        private AutoResetEvent? _waitForTimer;
+        private Int32 _period = 10;
 
         /// <summary>唤醒处理</summary>
         public void Wake()
         {
-            var e = waitForTimer;
+            var e = _waitForTimer;
             if (e != null)
             {
                 var swh = e.SafeWaitHandle;
@@ -146,7 +146,7 @@ namespace NewLife.Threading
                 var arr = Timers;
 
                 // 如果没有任务，则销毁线程
-                if (arr.Length == 0 && period == 60_000)
+                if (arr.Length == 0 && _period == 60_000)
                 {
                     WriteLog("没有可用任务，销毁线程");
 
@@ -159,10 +159,10 @@ namespace NewLife.Threading
 
                 try
                 {
-                    var now = DateTime.Now;
+                    var now = Runtime.TickCount64;
 
                     // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
-                    period = 60_000;
+                    _period = 60_000;
                     foreach (var timer in arr)
                     {
                         if (!timer.Calling && CheckTime(timer, now))
@@ -195,8 +195,8 @@ namespace NewLife.Threading
                 catch (ThreadInterruptedException) { break; }
                 catch { }
 
-                if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
-                if (period > 0) waitForTimer.WaitOne(period, true);
+                if (_waitForTimer == null) _waitForTimer = new AutoResetEvent(false);
+                if (_period > 0) _waitForTimer.WaitOne(_period, true);
             }
         }
 
@@ -204,7 +204,7 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         /// <param name="now"></param>
         /// <returns></returns>
-        private Boolean CheckTime(TimerX timer, DateTime now)
+        private Boolean CheckTime(TimerX timer, Int64 now)
         {
             // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
             var p = timer.Period;
@@ -216,14 +216,11 @@ namespace NewLife.Threading
                 return false;
             }
 
-            var ts = timer.NextTime - now;
-            //var d = (Int64)ts.TotalMilliseconds;
-            //var d = Math.Ceiling(ts.TotalMilliseconds);
-            var d = ts.TotalMilliseconds;
-            if (d > 0)
+            var ts = timer.NextTick - now;
+            if (ts > 0)
             {
                 // 缩小间隔，便于快速调用
-                if (d < period) period = (Int32)d;
+                if (ts < _period) _period = (Int32)ts;
 
                 return false;
             }
@@ -365,8 +362,8 @@ namespace NewLife.Threading
                 Remove(timer, "Period<=0");
                 timer.Dispose();
             }
-            else if (p < period)
-                period = p;
+            else if (p < _period)
+                _period = p;
         }
 
         /// <summary>已重载。</summary>

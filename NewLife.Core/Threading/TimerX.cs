@@ -40,8 +40,15 @@ namespace NewLife.Threading
         /// <summary>获取/设置 用户数据</summary>
         public Object? State { get; set; }
 
+        /// <summary>基准时间。开机时间</summary>
+        private static DateTime _baseTime;
+
+        private Int64 _nextTick;
+        /// <summary>下一次执行时间。开机以来嘀嗒数，无惧时间回拨问题</summary>
+        public Int64 NextTick => _nextTick;
+
         /// <summary>获取/设置 下一次调用时间</summary>
-        public DateTime NextTime { get; set; }
+        public DateTime NextTime => _baseTime.AddMilliseconds(_nextTick);
 
         /// <summary>获取/设置 调用次数</summary>
         public Int32 Timers { get; internal set; }
@@ -68,10 +75,10 @@ namespace NewLife.Threading
         public Cron? Cron => _cron;
 
         /// <summary>链路追踪。追踪每一次定时事件</summary>
-        public ITracer? Tracer {  get; set; }
+        public ITracer? Tracer { get; set; }
 
         /// <summary>链路追踪名称。默认使用方法名</summary>
-        public String TracerName { get; set;  }
+        public String TracerName { get; set; }
 
         private DateTime _AbsolutelyNext;
         private Cron? _cron;
@@ -90,15 +97,19 @@ namespace NewLife.Threading
             Method = method;
             State = state;
 
+            // 使用开机滴答作为定时调度基准
+            _nextTick = Runtime.TickCount64;
+            _baseTime = DateTime.Now.AddMilliseconds(-_nextTick);
+
             Scheduler = (scheduler == null || scheduler.IsNullOrEmpty()) ? TimerScheduler.Default : TimerScheduler.Create(scheduler);
             //Scheduler.Add(this);
 
             TracerName = $"timer:{method.Name}";
         }
 
-        private void Init(DateTime nextTime)
+        private void Init(Int64 ms)
         {
-            NextTime = nextTime;
+            SetNextTick(ms);
 
             Scheduler.Add(this);
         }
@@ -116,7 +127,7 @@ namespace NewLife.Threading
 
             Period = period;
 
-            Init(DateTime.Now.AddMilliseconds(dueTime));
+            Init(dueTime);
         }
 
         /// <summary>实例化一个不可重入的定时器</summary>
@@ -134,7 +145,7 @@ namespace NewLife.Threading
             Async = true;
             Period = period;
 
-            Init(DateTime.Now.AddMilliseconds(dueTime));
+            Init(dueTime);
         }
 
         /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
@@ -147,6 +158,7 @@ namespace NewLife.Threading
         {
             if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
+            if (period <= 0) throw new ArgumentOutOfRangeException(nameof(period));
 
             Period = period;
             Absolutely = true;
@@ -155,7 +167,9 @@ namespace NewLife.Threading
             var next = startTime;
             while (next < now) next = next.AddMilliseconds(period);
 
-            Init(_AbsolutelyNext = next);
+            var ms = (Int64)(next - now).TotalMilliseconds;
+            _AbsolutelyNext = next;
+            Init(ms);
         }
 
         /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
@@ -168,6 +182,7 @@ namespace NewLife.Threading
         {
             if (callback == null) throw new ArgumentNullException(nameof(callback));
             if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
+            if (period <= 0) throw new ArgumentOutOfRangeException(nameof(period));
 
             IsAsyncTask = true;
             Async = true;
@@ -178,7 +193,9 @@ namespace NewLife.Threading
             var next = startTime;
             while (next < now) next = next.AddMilliseconds(period);
 
-            Init(_AbsolutelyNext = next);
+            var ms = (Int64)(next - now).TotalMilliseconds;
+            _AbsolutelyNext = next;
+            Init(ms);
         }
 
         /// <summary>实例化一个Cron定时器</summary>
@@ -196,7 +213,12 @@ namespace NewLife.Threading
 
             Absolutely = true;
 
-            Init(_AbsolutelyNext = _cron.GetNext(DateTime.Now));
+            var now = DateTime.Now;
+            var next = _cron.GetNext(now);
+            var ms = (Int64)(next - now).TotalMilliseconds;
+            _AbsolutelyNext = next;
+            Init(ms);
+            //Init(_AbsolutelyNext = _cron.GetNext(DateTime.Now));
         }
 
         /// <summary>实例化一个Cron定时器</summary>
@@ -216,7 +238,12 @@ namespace NewLife.Threading
             Async = true;
             Absolutely = true;
 
-            Init(_AbsolutelyNext = _cron.GetNext(DateTime.Now));
+            var now = DateTime.Now;
+            var next = _cron.GetNext(now);
+            var ms = (Int64)(next - now).TotalMilliseconds;
+            _AbsolutelyNext = next;
+            Init(ms);
+            //Init(_AbsolutelyNext = _cron.GetNext(DateTime.Now));
         }
 
         /// <summary>销毁定时器</summary>
@@ -246,11 +273,21 @@ namespace NewLife.Threading
         /// <summary>是否已设置下一次时间</summary>
         internal Boolean hasSetNext;
 
+        private void SetNextTick(Int64 ms)
+        {
+            // 使用开机滴答来做定时调度，无惧时间回拨，每次修正时间基准
+            var tick = Runtime.TickCount64;
+            _baseTime = DateTime.Now.AddMilliseconds(-tick);
+            _nextTick = tick + ms;
+        }
+
         /// <summary>设置下一次运行时间</summary>
         /// <param name="ms">小于等于0表示马上调度</param>
         public void SetNext(Int32 ms)
         {
-            NextTime = DateTime.Now.AddMilliseconds(ms);
+            //NextTime = DateTime.Now.AddMilliseconds(ms);
+
+            SetNextTick(ms);
 
             hasSetNext = true;
 
@@ -263,9 +300,10 @@ namespace NewLife.Threading
         {
             // 如果已设置
             var period = Period;
+            var nowTick = Runtime.TickCount64;
             if (hasSetNext)
             {
-                var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
+                var ts = (Int32)(_nextTick - nowTick);
                 return ts > 0 ? ts : period;
             }
 
@@ -273,16 +311,24 @@ namespace NewLife.Threading
             {
                 // Cron以当前时间开始计算下一次
                 // 绝对时间还没有到时，不计算下一次
+                var next = NextTime;
+                var now = DateTime.Now;
                 if (_cron != null)
-                    NextTime = _AbsolutelyNext = _cron.GetNext(DateTime.Now);
-                else if (_AbsolutelyNext < DateTime.Now)
-                    NextTime = _AbsolutelyNext = _AbsolutelyNext.AddMilliseconds(period);
-                var ts = (Int32)(NextTime - DateTime.Now).TotalMilliseconds;
-                return ts > 0 ? ts : period;
+                    next = _cron.GetNext(now);
+                else if (_AbsolutelyNext < now)
+                    next = _AbsolutelyNext.AddMilliseconds(period);
+
+                _AbsolutelyNext = next;
+                var ts = (Int64)(next - now).TotalMilliseconds;
+                SetNextTick(ts);
+
+                return ts > 0 ? (Int32)ts : period;
             }
             else
             {
-                NextTime = DateTime.Now.AddMilliseconds(period);
+                //NextTime = DateTime.Now.AddMilliseconds(period);
+                SetNextTick(period);
+
                 return period;
             }
         }
