@@ -42,7 +42,7 @@ namespace NewLife.Net.Handlers
         /// <param name="source">任务源</param>
         public virtual Task<Object> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
         {
-            var now = DateTime.Now;
+            var now = Runtime.TickCount64;
 
             // 控制超时时间，默认15秒
             if (msTimeout <= 10) msTimeout = 15_000;
@@ -51,7 +51,7 @@ namespace NewLife.Net.Handlers
             {
                 Owner = owner,
                 Request = request,
-                EndTime = now.AddMilliseconds(msTimeout),
+                EndTime = now + msTimeout,
                 Source = source,
             };
 
@@ -127,8 +127,8 @@ namespace NewLife.Net.Handlers
         {
             if (_Count <= 0) return;
 
-            var now = DateTime.Now;
             // 直接遍历，队列不会很长
+            var now = Runtime.TickCount64;
             var qs = Items;
             for (var i = 0; i < qs.Length; i++)
             {
@@ -178,7 +178,7 @@ namespace NewLife.Net.Handlers
         {
             public Object Owner { get; set; }
             public Object Request { get; set; }
-            public DateTime EndTime { get; set; }
+            public Int64 EndTime { get; set; }
             public TaskCompletionSource<Object> Source { get; set; }
         }
         struct ItemWrap

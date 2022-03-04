@@ -193,7 +193,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return false;
 
-            item.ExpiredTime = DateTime.Now.Add(expire);
+            item.ExpiredTime = Runtime.TickCount64 + (Int64)expire.TotalMilliseconds;
 
             return true;
         }
@@ -205,7 +205,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
 
-            return item.ExpiredTime - DateTime.Now;
+            return TimeSpan.FromMilliseconds(item.ExpiredTime - Runtime.TickCount64);
         }
         #endregion
 
@@ -431,13 +431,13 @@ namespace NewLife.Caching
             public Object Value { get => _Value; set => _Value = value; }
 
             /// <summary>过期时间</summary>
-            public DateTime ExpiredTime { get; set; }
+            public Int64 ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired => ExpiredTime <= DateTime.Now;
+            public Boolean Expired => ExpiredTime <= Runtime.TickCount64;
 
             /// <summary>访问时间</summary>
-            public DateTime VisitTime { get; private set; }
+            public Int64 VisitTime { get; private set; }
 
             /// <summary>构造缓存项</summary>
             /// <param name="value"></param>
@@ -446,23 +446,23 @@ namespace NewLife.Caching
 
             /// <summary>设置数值和过期时间</summary>
             /// <param name="value"></param>
-            /// <param name="expire"></param>
+            /// <param name="expire">过期时间，秒</param>
             public void Set(Object value, Int32 expire)
             {
                 Value = value;
 
-                var now = VisitTime = DateTime.Now;
+                var now = VisitTime = Runtime.TickCount64;
                 if (expire <= 0)
-                    ExpiredTime = DateTime.MaxValue;
+                    ExpiredTime = Int64.MaxValue;
                 else
-                    ExpiredTime = now.AddSeconds(expire);
+                    ExpiredTime = now + expire * 1000L;
             }
 
             /// <summary>更新访问时间并返回数值</summary>
             /// <returns></returns>
             public Object Visit()
             {
-                VisitTime = TimerX.Now;
+                VisitTime = Runtime.TickCount64;
                 return Value;
             }
 
@@ -558,14 +558,14 @@ namespace NewLife.Caching
             if (_count == 0 && !dic.Any()) return;
 
             // 过期时间升序，用于缓存满以后删除
-            var slist = new SortedList<DateTime, IList<String>>();
+            var slist = new SortedList<Int64, IList<String>>();
             // 超出个数
             var flag = true;
             if (Capacity <= 0 || _count <= Capacity) flag = false;
 
             // 60分钟之内过期的数据，进入LRU淘汰
-            var now = DateTime.Now;
-            var exp = now.AddSeconds(3600);
+            var now = Runtime.TickCount64;
+            var exp = now + 3600_000;
             var k = 0;
 
             // 这里先计算，性能很重要
@@ -654,7 +654,7 @@ namespace NewLife.Caching
                 // Key+Expire+TypeCode+Value
                 // Key+Expire+TypeCode+Type+Length+Value
                 bn.Write(item.Key);
-                bn.Write(ci.ExpiredTime.ToInt());
+                bn.Write((Int32)(ci.ExpiredTime / 1000));
 
                 var type = ci.Value?.GetType();
                 if (type == null)
@@ -705,7 +705,7 @@ namespace NewLife.Caching
                 // Key+Expire+TypeCode+Value
                 // Key+Expire+TypeCode+Type+Length+Value
                 var key = bn.Read<String>();
-                var exp = bn.Read<Int32>().ToDateTime();
+                var exp = bn.Read<Int32>();
                 var code = (TypeCode)bn.ReadByte();
 
                 Object value = null;
@@ -730,7 +730,7 @@ namespace NewLife.Caching
                     }
                 }
 
-                Set(key, value, exp - DateTime.Now);
+                Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
             }
         }
 

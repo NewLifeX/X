@@ -406,7 +406,7 @@ namespace NewLife
             RefreshSpeed();
         }
 
-        private DateTime _lastTime;
+        private Int64 _lastTime;
         private Int64 _lastSent;
         private Int64 _lastReceived;
         /// <summary>刷新网络速度</summary>
@@ -421,14 +421,17 @@ namespace NewLife
                 received += st.BytesReceived;
             }
 
-            var now = DateTime.Now;
-            if (_lastTime.Year > 2000)
+            var now = Runtime.TickCount64;
+            if (_lastTime > 0)
             {
-                var interval = (now - _lastTime).TotalMilliseconds;
-                var s1 = (UInt64)((sent - _lastSent) * 1000 / interval);
-                var s2 = (UInt64)((received - _lastReceived) * 1000 / interval);
-                if (s1 >= 0) UplinkSpeed = s1;
-                if (s2 >= 0) DownlinkSpeed = s2;
+                var interval = now - _lastTime;
+                if (interval > 0)
+                {
+                    var s1 = (sent - _lastSent) * 1000 / interval;
+                    var s2 = (received - _lastReceived) * 1000 / interval;
+                    if (s1 >= 0) UplinkSpeed = (UInt64)s1;
+                    if (s2 >= 0) DownlinkSpeed = (UInt64)s2;
+                }
             }
 
             _lastSent = sent;
