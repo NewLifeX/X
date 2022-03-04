@@ -8,8 +8,8 @@
     <Description>为Windows桌面应用提供专有功能</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
-    <Version>9.0.2022.0101</Version>
-    <FileVersion>9.0.2022.0101</FileVersion>
+    <Version>9.0.2022.0304</Version>
+    <FileVersion>9.0.2022.0304</FileVersion>
     <AssemblyVersion>9.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
