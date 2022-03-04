@@ -326,13 +326,18 @@ namespace NewLife.Threading
             {
                 // Cron以当前时间开始计算下一次
                 // 绝对时间还没有到时，不计算下一次
-                var next = NextTime;
                 var now = DateTime.Now;
+                DateTime next;
                 if (_cron != null)
                     next = _cron.GetNext(now);
-                else if (_AbsolutelyNext < now)
-                    next = _AbsolutelyNext.AddMilliseconds(period);
+                else
+                {
+                    // 能够处理基准时间变大，但不能处理基准时间变小
+                    next = _AbsolutelyNext;
+                    while (next < now) next = next.AddMilliseconds(period);
+                }
 
+                // 即使基准时间改变，也不影响绝对时间定时器的执行时刻
                 _AbsolutelyNext = next;
                 var ts = (Int64)(next - now).TotalMilliseconds;
                 SetNextTick(ts);
