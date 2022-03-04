@@ -8,8 +8,8 @@
     <Description>数据中间件，代码生成</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
-    <Version>11.0.2022.0216</Version>
-    <FileVersion>11.0.2022.0216</FileVersion>
+    <Version>11.0.2022.0304</Version>
+    <FileVersion>11.0.2022.0304</FileVersion>
     <AssemblyVersion>11.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <OutputPath>..\..\Bin</OutputPath>
