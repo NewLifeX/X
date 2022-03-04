@@ -36,22 +36,22 @@ namespace NewLife.Caching
         public Boolean Acquire(Int32 msTimeout, Int32 msExpire)
         {
             var ch = Client;
-            var now = DateTime.Now;
+            var now = Runtime.TickCount64;
 
             // 循环等待
-            var end = now.AddMilliseconds(msTimeout);
+            var end = now + msTimeout;
             while (now < end)
             {
                 // 申请加锁。没有冲突时可以直接返回
-                var rs = ch.Add(Key, now.AddMilliseconds(msExpire), msExpire / 1000);
+                var rs = ch.Add(Key, now + msExpire, msExpire / 1000);
                 if (rs) return _hasLock = true;
 
                 // 死锁超期检测
-                var dt = ch.Get<DateTime>(Key);
+                var dt = ch.Get<Int64>(Key);
                 if (dt <= now)
                 {
                     // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
-                    var old = ch.Replace(Key, now.AddMilliseconds(msExpire));
+                    var old = ch.Replace(Key, now + msExpire);
                     // 如果拿到超时值，说明抢到了锁。其它线程会抢到一个为超时的值
                     if (old <= dt)
                     {
@@ -63,7 +63,7 @@ namespace NewLife.Caching
                 // 没抢到，继续
                 Thread.Sleep(200);
 
-                now = DateTime.Now;
+                now = Runtime.TickCount64;
             }
 
             return false;
