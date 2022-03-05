@@ -161,12 +161,13 @@ namespace NewLife.Configuration
                 {
                     var action = $"/configfiles/json/{AppId}/default/{item}";
                     var rs = client.Get<IDictionary<String, Object>>(action);
-                    Info = rs;
                     foreach (var elm in rs)
                     {
                         if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
                     }
                 }
+                Info = dic;
+
                 return dic;
             }
             else
