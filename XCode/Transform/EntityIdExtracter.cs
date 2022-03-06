@@ -37,7 +37,7 @@ namespace XCode.Transform
         {
             Factory = factory;
             IdField = idField;
-            BatchSize = (factory.Session.Dal.Db as DbBase).BatchSize;
+            BatchSize = factory.Session.Dal.Db.BatchSize;
         }
         #endregion
 

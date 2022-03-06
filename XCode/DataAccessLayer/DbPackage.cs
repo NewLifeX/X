@@ -323,7 +323,7 @@ namespace XCode.DataAccessLayer
                 WriteLog("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e?.Name));
 
                 var row = 0;
-                var pageSize = (Dal.Db as DbBase).BatchSize;
+                var pageSize = Dal.Db.BatchSize;
                 while (true)
                 {
                     // 读取数据
@@ -430,7 +430,8 @@ namespace XCode.DataAccessLayer
                         try
                         {
                             using var ms = entry.Open();
-                            Restore(ms, item);
+                            using var bs = new BufferedStream(ms);
+                            Restore(bs, item);
                         }
                         catch (Exception ex)
                         {

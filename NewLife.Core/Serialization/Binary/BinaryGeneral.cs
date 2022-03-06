@@ -448,6 +448,7 @@ namespace NewLife.Serialization
         {
             // 先读长度
             var n = Host.ReadSize();
+            //if (n > 1000) n = Host.ReadSize();
             if (n <= 0) return null;
             //if (n == 0) return String.Empty;
 

@@ -74,7 +74,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test16();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -964,6 +964,30 @@ namespace Test
             var z = ConfigTest.Current.Names;
             var x = ConfigTest.Current.Sex;
             var y = ConfigTest.Current.xyf;
+        }
+
+        private static void Test16()
+        {
+            var f = "财务数据库.zip";
+            var f2 = "财务数据库/凭证库.table";
+            var f3 = "cw.zip";
+            var dal = DAL.Create("caiwu");
+
+            //var tables = dal.RestoreAll(f, null, true, false);
+
+            //dal.Db.BatchSize = 100;
+
+            var dpk = new DbPackage
+            {
+                Dal = dal,
+                IgnoreError = false,
+                Log = XTrace.Log
+            };
+            //var ts = DAL.ImportFrom("财务数据库/xxgk2.xml");
+            //var tables = dpk.Restore(f2, ts[0], true);
+            var tables = dpk.RestoreAll(f3, null, true);
+
+            //dal.BackupAll(tables, "cw.zip");
         }
     }
 }

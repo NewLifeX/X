@@ -37,7 +37,7 @@ namespace XCode.Transform
         {
             Dal = dal;
             Builder = new SelectBuilder { Table = tableName };
-            BatchSize = (dal.Db as DbBase).BatchSize;
+            BatchSize = dal.Db.BatchSize;
         }
         #endregion
 
