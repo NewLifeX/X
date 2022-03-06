@@ -381,7 +381,8 @@ namespace NewLife.Configuration
         #endregion
 
         #region 定时
-        private TimerX _timer;
+        /// <summary>定时器</summary>
+        protected TimerX _timer;
         private void InitTimer()
         {
             if (_timer != null) return;
@@ -395,7 +396,9 @@ namespace NewLife.Configuration
             }
         }
 
-        private void DoRefresh(Object state)
+        /// <summary>定时刷新配置</summary>
+        /// <param name="state"></param>
+        protected void DoRefresh(Object state)
         {
             var dic = GetAll();
             if (dic == null) return;
