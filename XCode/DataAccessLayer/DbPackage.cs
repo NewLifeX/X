@@ -158,7 +158,18 @@ namespace XCode.DataAccessLayer
             }
 
             var tableName = Dal.Db.FormatName(table);
-            IExtracter<DbTable> extracer = new PagingExtracter(Dal, tableName);
+            IExtracter<DbTable> extracer;
+            var pk = table.Columns.FirstOrDefault(e => e.PrimaryKey);
+            //新增无主键分页功能
+            if (pk == null)
+            {
+                var dc = table.Columns.FirstOrDefault();
+                extracer = new PagingExtracter(Dal, tableName, dc.ColumnName);
+            }
+            else
+            {
+                extracer = new PagingExtracter(Dal, tableName);
+            }
             if (id != null)
                 extracer = new IdExtracter(Dal, tableName, id.ColumnName);
 
