@@ -384,6 +384,37 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 查询
+        protected override DbTable OnFill(DbDataReader dr)
+        {
+            var dt = new DbTable();
+            dt.ReadHeader(dr);
+            dt.ReadData(dr, GetFields(dt, dr));
+
+            return dt;
+        }
+
+        private Int32[] GetFields(DbTable dt, DbDataReader dr)
+        {
+            // 干掉rowNumber
+            var idx = Array.FindIndex(dt.Columns, c => c.EqualIgnoreCase("rowNumber"));
+            if (idx >= 0)
+            {
+                var cs = dt.Columns.ToList();
+                var ts = dt.Types.ToList();
+                var fs = Enumerable.Range(0, cs.Count).ToList();
+
+                cs.RemoveAt(idx);
+                ts.RemoveAt(idx);
+                fs.RemoveAt(idx);
+
+                dt.Columns = cs.ToArray();
+                dt.Types = ts.ToArray();
+                return fs.ToArray();
+            }
+
+            return null;
+        }
+
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
