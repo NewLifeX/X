@@ -74,7 +74,7 @@ namespace Test
                 try
                 {
 #endif
-                Test16();
+                Test35();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -91,6 +91,18 @@ namespace Test
                 var key = Console.ReadKey(true);
                 if (key.Key != ConsoleKey.C) break;
             }
+        }
+
+        private static void Test35()
+        {
+            DAL.AddConnStr("xxgk", "Data Source=.;Initial Catalog=财务数据库;user id=sa;password=1", null, "mssql");
+            DAL.AddConnStr("xxgk2", "Data Source=.;Initial Catalog=Test;user id=sa;password=1", null, "mssql");
+            var dal = DAL.Create("xxgk");
+            var dal2 = DAL.Create("xxgk2");
+            var tables = dal.Tables.ToArray();
+            //dal.BackupAll(tables, "财务数据库", ignoreError: false);
+            var tt = dal2.RestoreAll("财务数据库", ignoreError: false);
+            int i = 0;
         }
 
         private static void Test1()
