@@ -596,6 +596,7 @@ namespace XCode.DataAccessLayer
 
             private Binary _Binary;
             private Boolean _writeHeader;
+            private String[] _columns;
 
             /// <summary>
             /// 开始
@@ -622,6 +623,7 @@ namespace XCode.DataAccessLayer
             {
                 var dt = context.Message as DbTable;
                 var bn = _Binary;
+                Int32[] fields = null;
 
                 using var span = Tracer?.NewSpan($"db:WriteStream", (Stream as FileStream)?.Name);
 
@@ -638,17 +640,29 @@ namespace XCode.DataAccessLayer
                     Log?.Info("类型[{0}]：{1}", ts.Length, ts.Join(",", e => e.Name));
 
                     _writeHeader = true;
+
+                    _columns = dt.Columns;
+                }
+                else
+                {
+                    // 计算字段写入顺序，避免出现第二页开始字段变多的问题（例如rowNumber）。实际上几乎不可能出现-1，也就是首页有而后续页没有的字段
+                    fields = new Int32[_columns.Length];
+                    for (var i = 0; i < _columns.Length; i++)
+                    {
+                        fields[i] = dt.GetColumn(_columns[i]);
+                    }
                 }
 
                 var rs = dt.Rows;
                 if (rs == null || rs.Count == 0) return;
 
                 // 写入文件
-                dt.WriteData(bn);
-                //Stream.Flush();
-                await Stream.FlushAsync();
+                if (fields != null)
+                    dt.WriteData(bn, fields);
+                else
+                    dt.WriteData(bn);
 
-                //return null;
+                await Stream.FlushAsync();
             }
         }
 

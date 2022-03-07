@@ -311,6 +311,29 @@ namespace NewLife.Data
             }
         }
 
+        /// <summary>写入数据部分到数据流</summary>
+        /// <param name="bn"></param>
+        /// <param name="fields">要写入的字段序列</param>
+        public void WriteData(Binary bn, Int32[] fields)
+        {
+            var ts = Types;
+            var rs = Rows;
+
+            // 写入数据，按照指定的顺序
+            foreach (var row in rs)
+            {
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // 找到目标顺序，实际上几乎不可能出现-1
+                    var idx = fields[i];
+                    if (idx >= 0)
+                        bn.Write(row[idx], ts[idx]);
+                    else
+                        bn.Write(null, ts[idx]);
+                }
+            }
+        }
+
         /// <summary>转数据包</summary>
         /// <returns></returns>
         public Packet ToPacket()
