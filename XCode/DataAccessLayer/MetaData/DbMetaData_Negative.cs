@@ -784,6 +784,34 @@ namespace XCode.DataAccessLayer
             return sb.ToString();
         }
 
+        /// <summary>字段片段</summary>
+        /// <param name="table">表</param>
+        /// <param name="index">序号</param>
+        /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
+        /// <returns></returns>
+        public virtual String FieldClause(IDataTable table, int index, Boolean onlyDefine)
+        {
+            var sb = new StringBuilder();
+            var field = table.Columns[index];
+            // 字段名
+            sb.AppendFormat("{0} ", FormatName(field));
+
+            String typeName = null;
+            // 如果还是原来的数据库类型，则直接使用
+            //if (Database.DbType == field.Table.DbType) typeName = field.RawType;
+            // 每种数据库的自增差异太大，理应由各自处理，而不采用原始值
+            if (Database.Type == field.Table.DbType && !field.Identity) typeName = field.RawType;
+
+            if (String.IsNullOrEmpty(typeName)) typeName = GetFieldType(field);
+
+            sb.Append(typeName);
+
+            // 约束
+            sb.Append(GetFieldConstraints(field, onlyDefine));
+
+            return sb.ToString();
+        }
+
         /// <summary>取得字段约束</summary>
         /// <param name="field">字段</param>
         /// <param name="onlyDefine">仅仅定义</param>
@@ -832,16 +860,16 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateTableSQL(IDataTable table)
         {
-            var fs = new List<IDataColumn>(table.Columns);
+            //var fs = new List<IDataColumn>(table.Columns);
             var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table));
-            for (var i = 0; i < fs.Count; i++)
+            for (var i = 0; i < table.Columns.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append('\t');
-                sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(',');
+                sb.Append(FieldClause(table, i, true));
+                if (i < table.Columns.Count - 1) sb.Append(',');
             }
             sb.AppendLine();
             sb.Append(')');
