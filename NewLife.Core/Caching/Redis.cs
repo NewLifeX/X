@@ -179,6 +179,7 @@ namespace NewLife.Caching
             }
 
             // 更换Redis连接字符串时，清空原连接池
+            _servers = null;
             if (!_configOld.IsNullOrEmpty()) _Pool = null;
 
             _configOld = config;
@@ -215,13 +216,14 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual RedisClient OnCreate()
         {
-            var svr = Server?.Trim();
-            if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
+            var server = Server?.Trim();
+            if (server.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
 
+            // 初始化服务器地址列表
             var svrs = _servers;
             if (svrs == null)
             {
-                var ss = svr.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var ss = server.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 var uris = new NetUri[ss.Length];
                 for (var i = 0; i < ss.Length; i++)
                 {
@@ -256,7 +258,11 @@ namespace NewLife.Caching
                 _idxLast = idx;
             }
 
-            var rc = new RedisClient(this, svrs[idx % svrs.Length])
+            // 选择服务器，修改实例名，后面用于埋点
+            var svr = svrs[idx % svrs.Length];
+            if (Name.IsNullOrEmpty() || Name.EqualIgnoreCase("Redis", "FullRedis")) Name = svr.Host ?? svr.Address.ToString();
+
+            var rc = new RedisClient(this, svr)
             {
                 Log = Log
             };
