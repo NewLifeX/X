@@ -296,8 +296,8 @@ namespace XCode
             /// <summary>实体模块集合</summary>
             public EntityModules Modules => Meta.Modules;
 
-            /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
-            public Boolean FullInsert { get; set; } = true;
+            /// <summary>是否完全插入所有字段。默认false表示不插入没有脏数据的字段</summary>
+            public Boolean FullInsert { get; set; }
 
             /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
             public Snowflake Snow { get; } = new Snowflake();

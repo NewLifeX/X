@@ -203,7 +203,7 @@ namespace XCode
         /// <summary>实体模块集合</summary>
         EntityModules Modules { get; }
 
-        /// <summary>是否完全插入所有字段。false表示不插入没有脏数据的字段，默认true</summary>
+        /// <summary>是否完全插入所有字段。默认false表示不插入没有脏数据的字段</summary>
         Boolean FullInsert { get; set; }
 
         /// <summary>雪花Id生成器。Int64主键非自增时，自动填充</summary>
