@@ -294,6 +294,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatName(String name)
         {
+            if (name.IsNullOrEmpty()) return name;
+
             // SqlServer数据库名和表名可以用横线。。。
             if (name.Contains("-")) return $"[{name}]";
 
