@@ -84,7 +84,10 @@ namespace XCode
             Table = TableItem.DataTable.Clone() as IDataTable;
             Table.TableName = tableName;
 
-            Queue = new EntityQueue(this);
+            Queue = new EntityQueue(this)
+            {
+                InsertOnly = Table.InsertOnly
+            };
         }
 
         private static readonly ConcurrentDictionary<String, EntitySession<TEntity>> _es = new(StringComparer.OrdinalIgnoreCase);
