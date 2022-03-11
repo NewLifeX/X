@@ -25,6 +25,9 @@ namespace XCode
         /// <summary>数据会话，分表分库时使用</summary>
         public IEntitySession Session { get; }
 
+        /// <summary>是否仅插入。默认false</summary>
+        public Boolean InsertOnly { get; set; }
+
         /// <summary>
         /// 是否显示SQL
         /// </summary>
@@ -209,7 +212,7 @@ namespace XCode
             var ss = Session;
 
             // 实体队列SaveAsync异步保存时，如果只插入表，直接走批量Insert，而不是Upsert
-            if (ss.Table.InsertOnly)
+            if (InsertOnly || ss.Table.InsertOnly)
                 batch.Insert(null, ss);
             else
                 batch.SaveWithoutValid(null, ss);
