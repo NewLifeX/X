@@ -520,6 +520,9 @@ namespace XCode
                 {
                     if (!factory.FullInsert) continue;
 
+                    // 2，没有脏数据，允许空的字段不参与
+                    if (fi.IsNullable && fi.Type == typeof(String)) continue;
+
                     //// 不允许空时，插入空值没有意义
                     //if (!fi.IsNullable) continue;
                 }
