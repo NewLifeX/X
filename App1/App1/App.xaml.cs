@@ -12,6 +12,8 @@ namespace App1
 
         public App()
         {
+            // 可以使用雷电模拟器测试，启动进入桌面时，PC上迅速执行 adb tcpip 5555
+
             var log = new NetworkLog { Server = "udp://255.255.255.255:514" };
             XTrace.Log = new CompositeLog(XTrace.Log, log);
             XTrace.WriteLine("App");
