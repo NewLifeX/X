@@ -427,7 +427,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -483,7 +483,7 @@ namespace XCode
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -538,7 +538,7 @@ namespace XCode
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -588,7 +588,7 @@ namespace XCode
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                 // 创建时间等字段不参与Update
                 dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
@@ -661,7 +661,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -669,7 +669,7 @@ namespace XCode
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                 // 创建时间等字段不参与Update
                 dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
@@ -727,7 +727,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, new[] { entity });
+                    var dirtys = GetInsertColumns(fact, new[] { entity });
                     columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -754,23 +754,22 @@ namespace XCode
             }
         }
 
-        /// <summary>获取脏数据列</summary>
+        /// <summary>获取可用于插入的数据列</summary>
         /// <param name="fact"></param>
         /// <param name="list"></param>
         /// <returns></returns>
-        private static String[] GetDirtyColumns(IEntityFactory fact, IEnumerable<IEntity> list)
+        private static String[] GetInsertColumns(IEntityFactory fact, IEnumerable<IEntity> list)
         {
-            //var fact = list.FirstOrDefault().GetType().AsFactory();
-
             // 获取所有带有脏数据的字段
             var ns = new List<String>();
             foreach (var entity in list)
             {
                 foreach (var fi in fact.Fields)
                 {
-                    if (!ns.Contains(fi.Name) && entity.Dirtys[fi.Name])
+                    // 脏数据，或者非空非string
+                    if (entity.Dirtys[fi.Name] || !fi.IsNullable && fi.Type != typeof(String) && fi.Type != typeof(DateTime))
                     {
-                        ns.Add(fi.Name);
+                        if (!ns.Contains(fi.Name)) ns.Add(fi.Name);
                     }
                 }
             }

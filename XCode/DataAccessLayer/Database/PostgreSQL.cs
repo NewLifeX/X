@@ -456,6 +456,12 @@ namespace XCode.DataAccessLayer
 
             if (field.Identity) str = " serial NOT NULL";
 
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str += GetDefault(field, onlyDefine);
+            }
+
             return str;
         }
 
