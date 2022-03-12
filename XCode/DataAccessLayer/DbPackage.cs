@@ -159,9 +159,8 @@ namespace XCode.DataAccessLayer
 
             var tableName = Dal.Db.FormatName(table);
             IExtracter<DbTable> extracer;
-            var pk = table.Columns.FirstOrDefault(e => e.PrimaryKey);
-            //新增无主键分页功能
-            if (pk == null)
+            //兼容SqlServer2008R2分页功能
+            if (Dal.DbType == DatabaseType.SqlServer)
             {
                 var dc = table.Columns.FirstOrDefault();
                 extracer = new PagingExtracter(Dal, tableName, dc.ColumnName);
