@@ -468,8 +468,8 @@ namespace XCode.DataAccessLayer
                 var k = 0;
                 foreach (var entity in list)
                 {
-                    //vs.Add(entity[dc.Name]);
-                    arr.SetValue(entity[dc.Name], k++);
+                    //vs.Add(entity[dc.ColumnName]);
+                    arr.SetValue(entity[dc.ColumnName], k++);
                 }
                 var dp = db.CreateParameter(dc.Name, arr, dc);
 

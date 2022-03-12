@@ -95,13 +95,15 @@ namespace Test
 
         private static void Test35()
         {
-            DAL.AddConnStr("xxgk", "Data Source=.;Initial Catalog=财务数据库;user id=sa;password=1", null, "mssql");
-            DAL.AddConnStr("xxgk2", "Data Source=.;Initial Catalog=Test;user id=sa;password=1", null, "mssql");
+            //DAL.AddConnStr("xxgk", "user id=ORCL;password=1;data source=//127.0.0.1/ORCL;Pooling=true;Max Pool Size=5", null, "System.Data.OracleClient");
+            DAL.AddConnStr("xxgk", "Data Source=.;Initial Catalog=LXR;user id=sa;password=1", null, "System.Data.SqlClient");
+            DAL.AddConnStr("xxgk2", "Data Source=.;Initial Catalog=Test2;user id=sa;password=1", null, "System.Data.SqlClient");
             var dal = DAL.Create("xxgk");
             var dal2 = DAL.Create("xxgk2");
             var tables = dal.Tables.ToArray();
             //dal.BackupAll(tables, "财务数据库", ignoreError: false);
-            var tt = dal2.RestoreAll("财务数据库", ignoreError: false);
+            //var tt = dal2.RestoreAll("财务数据库", ignoreError: false);
+            dal.Sync(tables[1], "xxgk2");
             int i = 0;
         }
 
