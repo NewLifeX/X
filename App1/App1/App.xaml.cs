@@ -12,7 +12,8 @@ namespace App1
 
         public App()
         {
-            XTrace.Log = new NetworkLog { Server = "udp://255.255.255.255:514" };
+            var log = new NetworkLog { Server = "udp://255.255.255.255:514" };
+            XTrace.Log = new CompositeLog(XTrace.Log, log);
             XTrace.WriteLine("App");
 
             InitializeComponent();
