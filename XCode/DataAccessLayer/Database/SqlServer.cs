@@ -15,7 +15,7 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlServer : RemoteDb
+    internal class SqlServer : RemoteDb
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
@@ -62,7 +62,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据目录</summary>
         public String DataPath { get; set; }
 
-        const String Application_Name = "Application Name";
+        private const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             // 获取数据目录，用于反向工程创建数据库
@@ -679,7 +679,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 批量操作帮助类
         /// </summary>
-        class SqlBatcher
+        private class SqlBatcher
         {
             private DataAdapter mAdapter;
             private static readonly DbProviderFactory _Factory;
@@ -756,7 +756,7 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>SqlServer元数据</summary>
-    class SqlServerMetaData : RemoteDbMetaData
+    internal class SqlServerMetaData : RemoteDbMetaData
     {
         public SqlServerMetaData() => Types = _DataTypes;
 
@@ -1243,7 +1243,7 @@ namespace XCode.DataAccessLayer
 
         public override String DropColumnDescriptionSQL(IDataColumn field) => $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{field.Table.TableName}', @level2type=N'COLUMN',@level2name=N'{field.ColumnName}'";
 
-        String DeletePrimaryKeySQL(IDataColumn field)
+        private String DeletePrimaryKeySQL(IDataColumn field)
         {
             if (!field.PrimaryKey) return String.Empty;
 

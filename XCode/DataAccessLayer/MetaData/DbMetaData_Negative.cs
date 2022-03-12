@@ -57,7 +57,7 @@ namespace XCode.DataAccessLayer
      *              CheckAndGetDefaultDateTimeNow
      */
 
-    partial class DbMetaData
+    internal partial class DbMetaData
     {
         #region 属性
         private String ConnName => Database.ConnName;
@@ -82,7 +82,7 @@ namespace XCode.DataAccessLayer
             CheckAllTables(tables, mode, dbExist);
         }
 
-        Boolean? hasCheckedDatabase;
+        private Boolean? hasCheckedDatabase;
         private Boolean CheckDatabase(Migration mode)
         {
             if (hasCheckedDatabase != null) return hasCheckedDatabase.Value;
@@ -789,7 +789,7 @@ namespace XCode.DataAccessLayer
         /// <param name="index">序号</param>
         /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
         /// <returns></returns>
-        public virtual String FieldClause(IDataTable table, int index, Boolean onlyDefine)
+        public virtual String FieldClause(IDataTable table, Int32 index, Boolean onlyDefine)
         {
             var sb = new StringBuilder();
             var field = table.Columns[index];
@@ -818,7 +818,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
+            if (field.PrimaryKey && field.Table.PrimaryKeys.Length <= 1) return " Primary Key";
 
             // 是否为空
             var str = field.Nullable ? " NULL" : " NOT NULL";
@@ -846,6 +846,8 @@ namespace XCode.DataAccessLayer
                 return " DEFAULT 0";
             else if (field.DataType == typeof(DateTime))
                 return " DEFAULT '0001-01-01'";
+            else if (field.DataType == typeof(String))
+                return " DEFAULT ''";
 
             return null;
         }

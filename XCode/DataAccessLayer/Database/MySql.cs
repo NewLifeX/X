@@ -160,7 +160,7 @@ namespace XCode.DataAccessLayer
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength => 4000;
 
-        internal protected override String ParamPrefix => "?";
+        protected internal override String ParamPrefix => "?";
 
         /// <summary>创建参数</summary>
         /// <param name="name">名称</param>
@@ -576,8 +576,10 @@ namespace XCode.DataAccessLayer
         public override String FieldClause(IDataColumn field, Boolean onlyDefine)
         {
             var sql = base.FieldClause(field, onlyDefine);
+
             // 加上注释
             if (!String.IsNullOrEmpty(field.Description)) sql = $"{sql} COMMENT '{field.Description}'";
+
             return sql;
         }
 
@@ -586,7 +588,13 @@ namespace XCode.DataAccessLayer
             String str = null;
             if (!field.Nullable) str = " NOT NULL";
 
-            if (field.Identity) str = " NOT NULL AUTO_INCREMENT";
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str += GetDefault(field, onlyDefine);
+            }
+
+            if (field.Identity) str += " AUTO_INCREMENT";
 
             return str;
         }

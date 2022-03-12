@@ -37,7 +37,7 @@ namespace XUnitTest.XCode.EntityTests
             };
 
             var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Insert);
-            Assert.Equal(@"Insert Into User(Name,Password,DisplayName,Sex,Mail,Mobile,Code,AreaId,Avatar,RoleID,RoleIds,DepartmentID,Online,Enable,Age,Birthday,Logins,LastLogin,LastLoginIP,RegisterTime,RegisterIP,OnlineTime,Ex1,Ex2,Ex3,Ex4,Ex5,Ex6,UpdateUser,UpdateUserID,UpdateIP,UpdateTime,Remark) Values('Stone',null,'大石头',0,null,null,null,0,null,0,null,0,0,1,0,null,0,null,null,'2020-08-22 00:00:00',null,0,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
+            Assert.Equal(@"Insert Into User(Name,DisplayName,Sex,AreaId,RoleID,DepartmentID,Online,Enable,Age,Logins,RegisterTime,OnlineTime,Ex1,Ex2,Ex3,UpdateUserID,UpdateTime) Values('Stone','大石头',0,0,0,0,0,1,0,0,'2020-08-22 00:00:00',0,0,0,0,0,'2020-09-01 00:00:00')", sql);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace XUnitTest.XCode.EntityTests
             };
 
             var sql = factory.Persistence.GetSql(session, user, DataObjectMethodType.Insert);
-            Assert.Equal(@"Insert Into `user`(name,password,display_name,sex,mail,mobile,code,area_id,avatar,role_id,role_ids,department_id,online,enable,age,birthday,logins,last_login,last_login_ip,register_time,register_ip,online_time,ex1,ex2,ex3,ex4,ex5,ex6,update_user,update_user_id,update_ip,update_time,remark) Values('Stone',null,'大石头',0,null,null,null,0,null,0,null,0,0,1,0,null,0,null,null,'2020-08-22 00:00:00',null,0,0,0,0,null,null,null,null,0,null,'2020-09-01 00:00:00',null)", sql);
+            Assert.Equal(@"Insert Into `user`(name,display_name,sex,area_id,role_id,department_id,online,enable,age,logins,register_time,online_time,ex1,ex2,ex3,update_user_id,update_time) Values('Stone','大石头',0,0,0,0,0,1,0,0,'2020-08-22 00:00:00',0,0,0,0,0,'2020-09-01 00:00:00')", sql);
         }
 
         [Fact]
