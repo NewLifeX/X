@@ -23,7 +23,7 @@
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
-    <ProjectUrl>https://www.yuque.com/smartstone/xcode</ProjectUrl>
+    <PackageProjectUrl>https://www.yuque.com/smartstone/xcode</PackageProjectUrl>
     <PackageIcon>content\leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
