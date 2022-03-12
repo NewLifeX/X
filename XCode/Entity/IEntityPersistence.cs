@@ -538,6 +538,10 @@ namespace XCode
 
                             value = String.Empty;
                         }
+                        if (fi.Type == typeof(DateTime))
+                        {
+                            if (!factory.FullInsert) continue;
+                        }
 
                         // 4，没有脏数据，不允许空，其它类型参与插入
                     }

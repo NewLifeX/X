@@ -767,7 +767,7 @@ namespace XCode
                 foreach (var fi in fact.Fields)
                 {
                     // 脏数据，或者非空非string
-                    if (entity.Dirtys[fi.Name] || !fi.IsNullable && fi.Type != typeof(String))
+                    if (entity.Dirtys[fi.Name] || !fi.IsNullable && fi.Type != typeof(String) && fi.Type != typeof(DateTime))
                     {
                         if (!ns.Contains(fi.Name)) ns.Add(fi.Name);
                     }
