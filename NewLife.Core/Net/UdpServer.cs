@@ -121,7 +121,7 @@ namespace NewLife.Net
                 var sock = Client;
                 lock (sock)
                 {
-                    if (sock.Connected)
+                    if (sock.Connected && !sock.EnableBroadcast)
                     {
                         if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 

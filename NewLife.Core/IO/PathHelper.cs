@@ -49,8 +49,17 @@ namespace System.IO
 
             // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
             if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
+            if (dir.IsNullOrEmpty()) dir = Environment.CurrentDirectory;
+            //if (dir.IsNullOrEmpty() || dir == "/")
+            //{
+            //    if (args != null && args.Length > 0) dir = Path.GetDirectoryName(args[0]);
+            //}
+            if (dir.IsNullOrEmpty() || dir == "/")
+            {
+                dir = Path.GetTempPath();
+            }
 
-            BasePath = GetPath(dir, 1);
+            if (!dir.IsNullOrEmpty()) BasePath = GetPath(dir, 1);
         }
         #endregion
 

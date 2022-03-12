@@ -41,7 +41,7 @@ namespace NewLife
 
             foreach (var item in strs)
             {
-                if (value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+                if (!String.IsNullOrEmpty(item) && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
         }

@@ -70,8 +70,12 @@ namespace NewLife.Configuration
 
                     config.OnLoaded();
 
-                    // OnLoad 中可能有变化，存回去
-                    prv.Save(config);
+                    try
+                    {
+                        // OnLoad 中可能有变化，存回去
+                        prv.Save(config);
+                    }
+                    catch { }
 
                     return _Current = config;
                 }
