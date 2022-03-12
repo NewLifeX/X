@@ -38,6 +38,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NewLife.Stardust" Version="2.0.2022.204" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.50" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
