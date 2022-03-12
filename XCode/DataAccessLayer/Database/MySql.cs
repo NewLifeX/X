@@ -331,7 +331,7 @@ namespace XCode.DataAccessLayer
                     sb.Append('(');
                     foreach (var dc in columns)
                     {
-                        sb.Append(db.FormatValue(dc, entity[dc.Name]));
+                        sb.Append(db.FormatValue(dc, entity[dc.ColumnName]));
                         sb.Append(',');
                     }
                     sb.Length--;
