@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text.RegularExpressions;
 using NewLife;
-using NewLife.Caching;
 using NewLife.Collections;
 
 namespace XCode.DataAccessLayer
@@ -20,56 +18,56 @@ namespace XCode.DataAccessLayer
         /// <summary>分页主键</summary>
         public String Key
         {
-            get { return Keys != null && Keys.Length > 0 ? Keys[0] : null; }
-            set { Keys = new String[] { value }; }
+            get => Keys != null && Keys.Length > 0 ? Keys[0] : null;
+            set => Keys = new String[] { value };
         }
 
         /// <summary>分页主键组</summary>
         public String[] Keys { get; set; }
 
-        /// <summary>是否降序</summary>
-        public Boolean IsDesc
-        {
-            get { return IsDescs != null && IsDescs.Length > 0 && IsDescs[0]; }
-            set { IsDescs = new Boolean[] { value }; }
-        }
+        ///// <summary>是否降序</summary>
+        //public Boolean IsDesc
+        //{
+        //    get => IsDescs != null && IsDescs.Length > 0 && IsDescs[0];
+        //    set => IsDescs = new Boolean[] { value };
+        //}
 
-        /// <summary>主键组是否降序</summary>
-        public Boolean[] IsDescs { get; set; }
+        ///// <summary>主键组是否降序</summary>
+        //public Boolean[] IsDescs { get; set; }
 
-        /// <summary>是否整数自增主键</summary>
-        public Boolean IsInt { get; set; }
+        ///// <summary>是否整数自增主键</summary>
+        //public Boolean IsInt { get; set; }
 
-        /// <summary>分页主键排序</summary>
-        public String KeyOrder
-        {
-            get
-            {
-                if (Keys == null || Keys.Length < 1) return null;
+        ///// <summary>分页主键排序</summary>
+        //public String KeyOrder
+        //{
+        //    get
+        //    {
+        //        if (Keys == null || Keys.Length < 1) return null;
 
-                return Join(Keys, IsDescs);
-            }
-        }
+        //        return Join(Keys, IsDescs);
+        //    }
+        //}
 
-        /// <summary>分页主键反排序</summary>
-        public String ReverseKeyOrder
-        {
-            get
-            {
-                if (Keys == null || Keys.Length < 1) return null;
+        ///// <summary>分页主键反排序</summary>
+        //public String ReverseKeyOrder
+        //{
+        //    get
+        //    {
+        //        if (Keys == null || Keys.Length < 1) return null;
 
-                // 把排序反过来
-                var isdescs = new Boolean[Keys.Length];
-                for (var i = 0; i < isdescs.Length; i++)
-                {
-                    if (IsDescs != null && IsDescs.Length > i)
-                        isdescs[i] = !IsDescs[i];
-                    else
-                        isdescs[i] = true;
-                }
-                return Join(Keys, isdescs);
-            }
-        }
+        //        // 把排序反过来
+        //        var isdescs = new Boolean[Keys.Length];
+        //        for (var i = 0; i < isdescs.Length; i++)
+        //        {
+        //            if (IsDescs != null && IsDescs.Length > i)
+        //                isdescs[i] = !IsDescs[i];
+        //            else
+        //                isdescs[i] = true;
+        //        }
+        //        return Join(Keys, isdescs);
+        //    }
+        //}
 
         /// <summary>排序字段是否唯一且就是主键</summary>
         public Boolean KeyIsOrderBy
@@ -78,7 +76,7 @@ namespace XCode.DataAccessLayer
             {
                 if (String.IsNullOrEmpty(Key)) return false;
 
-                var keys = Split(OrderBy, out var isdescs);
+                var keys = Split(_OrderBy, out _);
 
                 return keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(Key);
             }
@@ -106,7 +104,7 @@ namespace XCode.DataAccessLayer
         /// <summary>条件</summary>
         public String Where
         {
-            get { return _Where; }
+            get => _Where;
             set
             {
                 _Where = value;
@@ -146,7 +144,7 @@ namespace XCode.DataAccessLayer
         /// <remarks>给排序赋值时，如果没有指定分页主键，则自动采用排序中的字段</remarks>
         public String OrderBy
         {
-            get { return _OrderBy; }
+            get => _OrderBy;
             set
             {
                 _OrderBy = value;
@@ -165,7 +163,7 @@ namespace XCode.DataAccessLayer
                         if (Keys == null || Keys.Length < 1)
                         {
                             Keys = keys;
-                            IsDescs = isdescs;
+                            //IsDescs = isdescs;
                         }
                     }
                 }
@@ -180,40 +178,40 @@ namespace XCode.DataAccessLayer
         /// <summary>选择列，为空时为*</summary>
         public String ColumnOrDefault => Column.IsNullOrEmpty() ? "*" : Column;
 
-        /// <summary>选择列，去除聚合，为空时为*</summary>
-        public String ColumnNoAggregate
-        {
-            get
-            {
-                if (Column.IsNullOrEmpty() || Column == "*") return "*";
+        ///// <summary>选择列，去除聚合，为空时为*</summary>
+        //public String ColumnNoAggregate
+        //{
+        //    get
+        //    {
+        //        if (Column.IsNullOrEmpty() || Column == "*") return "*";
 
-                // 分解重构，把聚合函数干掉
-                var ss = Column.Split(',');
-                var sb = Pool.StringBuilder.Get();
-                foreach (var item in ss)
-                {
-                    if (sb.Length > 0) sb.Append(", ");
+        //        // 分解重构，把聚合函数干掉
+        //        var ss = Column.Split(',');
+        //        var sb = Pool.StringBuilder.Get();
+        //        foreach (var item in ss)
+        //        {
+        //            if (sb.Length > 0) sb.Append(", ");
 
-                    // 聚合函数有三种，等号、AS、空格
-                    if (item.Contains("="))
-                        sb.Append(item.Substring(null, "="));
-                    else if (item.ToLower().Contains(" as "))
-                    {
-                        var p = item.LastIndexOf(' ');
-                        sb.Append(item[(p + 1)..]);
-                    }
-                    else if (item.Contains(" "))
-                    {
-                        var p = item.LastIndexOf(' ');
-                        sb.Append(item[(p + 1)..]);
-                    }
-                    else
-                        sb.Append(item);
-                }
+        //            // 聚合函数有三种，等号、AS、空格
+        //            if (item.Contains("="))
+        //                sb.Append(item.Substring(null, "="));
+        //            else if (item.ToLower().Contains(" as "))
+        //            {
+        //                var p = item.LastIndexOf(' ');
+        //                sb.Append(item[(p + 1)..]);
+        //            }
+        //            else if (item.Contains(" "))
+        //            {
+        //                var p = item.LastIndexOf(' ');
+        //                sb.Append(item[(p + 1)..]);
+        //            }
+        //            else
+        //                sb.Append(item);
+        //        }
 
-                return sb.Put(true);
-            }
-        }
+        //        return sb.Put(true);
+        //    }
+        //}
 
         /// <summary>参数集合</summary>
         public List<IDataParameter> Parameters { get; set; } = new List<IDataParameter>();
@@ -258,29 +256,29 @@ $";
             return false;
         }
 
-        /// <summary>缓存存储</summary>
-        public static ICache Store { get; set; } = MemoryCache.Instance;
+        ///// <summary>缓存存储</summary>
+        //public static ICache Store { get; set; } = MemoryCache.Instance;
 
-        /// <summary>根据SQL创建，带缓存</summary>
-        /// <remarks>
-        /// 对于非常复杂的查询语句，正则平衡的处理器消耗很大
-        /// </remarks>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        public static SelectBuilder Create(String sql)
-        {
-            var key = $"SelectBuilder#{sql}";
+        ///// <summary>根据SQL创建，带缓存</summary>
+        ///// <remarks>
+        ///// 对于非常复杂的查询语句，正则平衡的处理器消耗很大
+        ///// </remarks>
+        ///// <param name="sql"></param>
+        ///// <returns></returns>
+        //public static SelectBuilder Create(String sql)
+        //{
+        //    var key = $"SelectBuilder#{sql}";
 
-            var sb = Store.Get<SelectBuilder>(key);
-            if (sb != null) return sb;
+        //    var sb = Store.Get<SelectBuilder>(key);
+        //    if (sb != null) return sb;
 
-            sb = new SelectBuilder();
-            sb.Parse(sql);
+        //    sb = new SelectBuilder();
+        //    sb.Parse(sql);
 
-            Store.Set(key, sb, 10 * 60);
+        //    Store.Set(key, sb, 10 * 60);
 
-            return sb;
-        }
+        //    return sb;
+        //}
         #endregion
 
         #region 导出SQL
@@ -340,8 +338,8 @@ $";
                 Limit = Limit,
 
                 Keys = Keys,
-                IsDescs = IsDescs,
-                IsInt = IsInt
+                //IsDescs = IsDescs,
+                //IsInt = IsInt
             };
 
             sb.Parameters.AddRange(Parameters);
@@ -367,25 +365,25 @@ $";
             return this;
         }
 
-        /// <summary>增加多个字段，必须是当前表普通字段，如果内部是*则不加</summary>
-        /// <param name="columns"></param>
-        /// <returns></returns>
-        public SelectBuilder AppendColumn(params String[] columns)
-        {
-            if (ColumnOrDefault != "*" && columns != null && columns.Length > 0)
-            {
-                if (String.IsNullOrEmpty(Column))
-                    Column = String.Join(",", columns.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
-                else
-                {
-                    // 检查是否已存在该字段
-                    var selects = Column.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                    selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-                    Column = String.Join(",", selects);
-                }
-            }
-            return this;
-        }
+        ///// <summary>增加多个字段，必须是当前表普通字段，如果内部是*则不加</summary>
+        ///// <param name="columns"></param>
+        ///// <returns></returns>
+        //public SelectBuilder AppendColumn(params String[] columns)
+        //{
+        //    if (ColumnOrDefault != "*" && columns != null && columns.Length > 0)
+        //    {
+        //        if (String.IsNullOrEmpty(Column))
+        //            Column = String.Join(",", columns.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
+        //        else
+        //        {
+        //            // 检查是否已存在该字段
+        //            var selects = Column.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        //            selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        //            Column = String.Join(",", selects);
+        //        }
+        //    }
+        //    return this;
+        //}
 
         /// <summary>作为子查询</summary>
         /// <param name="alias">别名，某些数据库可能需要使用as</param>

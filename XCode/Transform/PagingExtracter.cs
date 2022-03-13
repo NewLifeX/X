@@ -43,11 +43,11 @@ namespace XCode.Transform
         /// <summary>实例化分页抽取器</summary>
         /// <param name="dal"></param>
         /// <param name="tableName"></param>
-        /// <param name="OrderBy"></param>
-        public PagingExtracter(DAL dal, String tableName, string OrderBy)
+        /// <param name="orderBy"></param>
+        public PagingExtracter(DAL dal, String tableName, String orderBy)
         {
             Dal = dal;
-            Builder = new SelectBuilder { Table = tableName, OrderBy = OrderBy };
+            Builder = new SelectBuilder { Table = tableName, OrderBy = orderBy };
             BatchSize = dal.Db.BatchSize;
         }
         #endregion

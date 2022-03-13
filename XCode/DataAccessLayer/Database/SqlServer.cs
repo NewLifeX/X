@@ -212,7 +212,7 @@ namespace XCode.DataAccessLayer
             var builder = new SelectBuilder();
             builder.Parse(sql);
 
-            var sb = NewLife.Collections.Pool.StringBuilder.Get();
+            var sb = Pool.StringBuilder.Get();
             sb.Append("Select ");
             sb.Append(builder.ColumnOrDefault);
             sb.Append(" From ");
@@ -253,7 +253,7 @@ namespace XCode.DataAccessLayer
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理

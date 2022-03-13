@@ -1644,7 +1644,7 @@ namespace XCode
             var fi = Meta.Unique;
             if (fi != null && fi.Type.IsInt())
             {
-                builder.Key = db.FormatName(fi.Field);
+                var key = builder.Key = db.FormatName(fi.Field);
 
                 // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
@@ -1656,11 +1656,13 @@ namespace XCode
                 {
                     // 数字降序，其它升序
                     var b = fi.Type.IsInt();
-                    builder.IsDesc = b;
-                    // 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
-                    builder.IsInt = b;
+                    //builder.IsDesc = b;
+                    //builder.IsDescs = new[] { b };
+                    //// 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
+                    //builder.IsInt = b;
 
-                    builder.OrderBy = builder.KeyOrder;
+                    //builder.OrderBy = builder.KeyOrder;
+                    builder.OrderBy = b ? (key + " Desc") : key;
                 }
             }
             else
@@ -1671,10 +1673,10 @@ namespace XCode
                     var pks = Meta.Table.PrimaryKeys;
                     if (pks != null && pks.Length > 0)
                     {
-                        builder.Key = db.FormatName(pks[0].Field);
+                        var key = builder.Key = db.FormatName(pks[0].Field);
 
                         //chenqi [2017-5-7] 非自增列 + order为空时，指定order by 主键
-                        builder.OrderBy = builder.Key;
+                        builder.OrderBy = key;
                     }
                 }
             }
