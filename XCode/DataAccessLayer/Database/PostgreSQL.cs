@@ -473,7 +473,7 @@ namespace XCode.DataAccessLayer
         //        IDbSession session = Database.CreateSession();
 
         //        DataTable dt = GetSchema(_.Databases, new String[] { values != null && values.Length > 0 ? (String)values[0] : session.DatabaseName });
-        //        if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
+        //        if (dt == null || dt.Rows == null || dt.Rows.Count <= 0) return false;
         //        return true;
         //    }
 

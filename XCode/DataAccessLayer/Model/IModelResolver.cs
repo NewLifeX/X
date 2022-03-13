@@ -161,7 +161,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetName(IDataIndex di)
         {
-            if (di.Columns == null || di.Columns.Length < 1) return null;
+            if (di.Columns == null || di.Columns.Length <= 0) return null;
 
             var sb = Pool.StringBuilder.Get();
             if (di.PrimaryKey)
@@ -230,7 +230,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 最后修复主键
-            if (table.PrimaryKeys.Length < 1)
+            if (table.PrimaryKeys.Length <= 0)
             {
                 // 自增作为主键，没办法，如果没有主键，整个实体层都会面临大问题！
                 var dc = table.Columns.FirstOrDefault(c => c.Identity);
@@ -275,7 +275,7 @@ namespace XCode.DataAccessLayer
         protected virtual void FixPrimaryByIndex(IDataTable table)
         {
             var pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
+            if (pks == null || pks.Length <= 0)
             {
                 var dis = table.Indexes;
                 // 在索引中找唯一索引作为主键

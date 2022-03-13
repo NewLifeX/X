@@ -67,7 +67,7 @@ namespace XCode
         /// <returns>实体数组</returns>
         public static IList<TEntity> LoadData(DataSet ds)
         {
-            if (ds == null || ds.Tables.Count < 1) return new List<TEntity>();
+            if (ds == null || ds.Tables.Count <= 0) return new List<TEntity>();
 
             return LoadData(ds.Tables[0]);
         }
@@ -479,7 +479,7 @@ namespace XCode
                 }
 
                 var list = FindAll(exp, null, null, 0, 0);
-                if (list == null || list.Count < 1) return false;
+                if (list == null || list.Count <= 0) return false;
                 if (list.Count > 1) return true;
 
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
@@ -500,7 +500,7 @@ namespace XCode
                 });
                 if (IsNullKey) return list.Count > 0;
 
-                if (list == null || list.Count < 1) return false;
+                if (list == null || list.Count <= 0) return false;
                 if (list.Count > 1) return true;
 
                 // 如果是Guid等主键，可能提前赋值，插入操作不能比较主键，直接判断判断存在的唯一索引即可
@@ -624,7 +624,7 @@ namespace XCode
 
             var list = LoadData(session.Query(builder, 0, 0));
             //var list = session.Query(builder, 0, 0, LoadData);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             // 如果正在使用单对象缓存，则批量进入
             LoadSingleCache(list);
@@ -667,7 +667,7 @@ namespace XCode
 
             var list = LoadData(session.Query(builder, 0, 0));
             //var list = session.Query(builder, 0, 0, LoadData);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             // 如果正在使用单对象缓存，则批量进入
             LoadSingleCache(list);
@@ -686,7 +686,7 @@ namespace XCode
         public static TEntity Find(String whereClause)
         {
             var list = FindAll(whereClause, null, null, 0, 1);
-            return list.Count < 1 ? null : list[0];
+            return list.Count <= 0 ? null : list[0];
         }
 
         /// <summary>根据条件查找单个实体</summary>
@@ -700,7 +700,7 @@ namespace XCode
             if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
 
             var list = FindAll(where, null, null, 0, max);
-            return list.Count < 1 ? null : list[0];
+            return list.Count <= 0 ? null : list[0];
         }
 
         /// <summary>根据条件查找单个实体</summary>
@@ -715,7 +715,7 @@ namespace XCode
             if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
 
             var list = FindAll(where, null, selects.IsNullOrWhiteSpace() ? null : selects, 0, max);
-            return list.Count < 1 ? null : list[0];
+            return list.Count <= 0 ? null : list[0];
         }
 
         /// <summary>根据主键查找单个实体</summary>
@@ -799,7 +799,7 @@ namespace XCode
         {
             var fd = Meta.Table.FindByName(field);
             var list = FindAll(where, fd, null, 0, 1);
-            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
+            return list.Count <= 0 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
 
         /// <summary>查询指定字段的最大值</summary>
@@ -810,7 +810,7 @@ namespace XCode
         {
             var fd = Meta.Table.FindByName(field);
             var list = FindAll(where, fd.Desc(), null, 0, 1);
-            return list.Count < 1 ? 0 : Convert.ToInt32(list[0][fd.Name]);
+            return list.Count <= 0 ? 0 : Convert.ToInt32(list[0][fd.Name]);
         }
         #endregion
 
@@ -936,7 +936,7 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
                         var builder2 = CreateBuilder(where, order2, selects);
                         var list = LoadData(session.Query(builder2, start, max));
-                        if (list == null || list.Count < 1) return list;
+                        if (list == null || list.Count <= 0) return list;
 
                         // 如果正在使用单对象缓存，则批量进入
                         if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
@@ -1103,7 +1103,7 @@ namespace XCode
             if (where is FieldExpression fe && fe.Field != null && fe.Field.PrimaryKey) max = 0;
 
             var list = await FindAllAsync(where, null, null, 0, max);
-            return list.Count < 1 ? null : list[0];
+            return list.Count <= 0 ? null : list[0];
         }
 
         /// <summary>获取所有数据。获取大量数据时会非常慢，慎用。没有数据时返回空集合而不是null</summary>
@@ -1204,7 +1204,7 @@ namespace XCode
                         var start = (Int32)(count - (startRowIndex + maximumRows));
                         var builder2 = CreateBuilder(where, order2, selects);
                         var list = LoadData(await session.QueryAsync(builder2, start, max));
-                        if (list == null || list.Count < 1) return list;
+                        if (list == null || list.Count <= 0) return list;
 
                         // 如果正在使用单对象缓存，则批量进入
                         if (selects.IsNullOrEmpty() || selects == "*") LoadSingleCache(list);
@@ -1644,7 +1644,7 @@ namespace XCode
             var fi = Meta.Unique;
             if (fi != null && fi.Type.IsInt())
             {
-                builder.Key = db.FormatName(fi.Field);
+                var key = builder.Key = db.FormatName(fi.Field);
 
                 // 默认获取数据时，还是需要指定按照自增字段降序，符合使用习惯
                 // 有GroupBy也不能加排序
@@ -1656,11 +1656,13 @@ namespace XCode
                 {
                     // 数字降序，其它升序
                     var b = fi.Type.IsInt();
-                    builder.IsDesc = b;
-                    // 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
-                    builder.IsInt = b;
+                    //builder.IsDesc = b;
+                    //builder.IsDescs = new[] { b };
+                    //// 修正没有设置builder.IsInt导致分页没有选择最佳的MaxMin的BUG，感谢 @RICH(20371423)
+                    //builder.IsInt = b;
 
-                    builder.OrderBy = builder.KeyOrder;
+                    //builder.OrderBy = builder.KeyOrder;
+                    builder.OrderBy = b ? (key + " Desc") : key;
                 }
             }
             else
@@ -1671,10 +1673,10 @@ namespace XCode
                     var pks = Meta.Table.PrimaryKeys;
                     if (pks != null && pks.Length > 0)
                     {
-                        builder.Key = db.FormatName(pks[0].Field);
+                        var key = builder.Key = db.FormatName(pks[0].Field);
 
                         //chenqi [2017-5-7] 非自增列 + order为空时，指定order by 主键
-                        builder.OrderBy = builder.Key;
+                        builder.OrderBy = key;
                     }
                 }
             }
@@ -1854,10 +1856,10 @@ namespace XCode
                 foreach (var item in dis)
                 {
                     if (!item.Unique) continue;
-                    if (item.Columns == null || item.Columns.Length < 1) continue;
+                    if (item.Columns == null || item.Columns.Length <= 0) continue;
 
                     var columns = table.GetColumns(item.Columns);
-                    if (columns == null || columns.Length < 1) continue;
+                    if (columns == null || columns.Length <= 0) continue;
 
                     di = item;
 

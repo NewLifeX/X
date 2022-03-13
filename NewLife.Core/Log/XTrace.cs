@@ -82,6 +82,14 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
             ThreadPoolX.Init();
+
+            try
+            {
+                var set = Setting.Current;
+                Debug = set.Debug;
+                LogPath = set.LogPath;
+            }
+            catch { }
         }
 
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
@@ -293,10 +301,10 @@ namespace NewLife.Log
 
         #region 属性
         /// <summary>是否调试。</summary>
-        public static Boolean Debug { get; set; } = Setting.Current.Debug;
+        public static Boolean Debug { get; set; }
 
         /// <summary>文本日志目录</summary>
-        public static String LogPath { get; set; } = Setting.Current.LogPath;
+        public static String? LogPath { get; set; }
 
         ///// <summary>临时目录</summary>
         //public static String TempPath { get; set; } = Setting.Current.TempPath;

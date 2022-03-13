@@ -510,7 +510,7 @@ namespace XCode.DataAccessLayer
         {
             var list = Tables;
 
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             return Export(list);
         }

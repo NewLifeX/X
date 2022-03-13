@@ -154,7 +154,7 @@ namespace XCode.DataAccessLayer
             }
             //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
             //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            //if (ms == null || ms.Count <= 0 || ms[0].Index < 1)
             var sql2 = sql;
             var orderBy = CheckOrderClause(ref sql2);
             if (String.IsNullOrEmpty(orderBy))
@@ -212,9 +212,9 @@ namespace XCode.DataAccessLayer
             var builder = new SelectBuilder();
             builder.Parse(sql);
 
-            var sb = NewLife.Collections.Pool.StringBuilder.Get();
+            var sb = Pool.StringBuilder.Get();
             sb.Append("Select ");
-            sb.Append(builder.ColumnOrDefault);
+            sb.Append(builder.Column.IsNullOrEmpty() ? "*" : builder.Column);
             sb.Append(" From ");
             sb.Append(builder.Table);
             if (!String.IsNullOrEmpty(builder.Where))
@@ -238,22 +238,18 @@ namespace XCode.DataAccessLayer
 
             if (startRowIndex <= 0)
             {
-                if (maximumRows < 1)
-                {
-                    return builder;
-                }
-                else if (builder.KeyIsOrderBy)
-                {
-                    return builder.Clone().Top(maximumRows);
-                }
+                if (maximumRows < 1) return builder;
+
+                return builder.Clone().Top(maximumRows);
             }
 
-            if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+            if (builder.Key.IsNullOrEmpty()) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+
             // 如果包含分组，则必须作为子查询
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
@@ -792,7 +788,7 @@ namespace XCode.DataAccessLayer
             }
 
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt == null || dt.Rows == null || dt.Rows.Count <= 0) return null;
 
             try
             {
@@ -807,16 +803,16 @@ namespace XCode.DataAccessLayer
 
             // 列出用户表
             var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             var list = GetTables(rows, names);
-            if (list == null || list.Count < 1) return list;
+            if (list == null || list.Count <= 0) return list;
 
             // 修正备注
             foreach (var item in list)
             {
                 var drs = DescriptionTable?.Select("n='" + item.TableName + "'");
-                item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
+                item.Description = drs == null || drs.Length <= 0 ? "" : drs[0][1].ToString();
             }
 
             return list;
@@ -831,7 +827,7 @@ namespace XCode.DataAccessLayer
             var list = new List<String>();
 
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             // 默认列出所有字段
             var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
@@ -1248,7 +1244,7 @@ namespace XCode.DataAccessLayer
             if (!field.PrimaryKey) return String.Empty;
 
             var dis = field.Table.Indexes;
-            if (dis == null || dis.Count < 1) return String.Empty;
+            if (dis == null || dis.Count <= 0) return String.Empty;
 
             var di = dis.FirstOrDefault(e => e.Columns.Any(x => x.EqualIgnoreCase(field.ColumnName, field.Name)));
             if (di == null) return String.Empty;

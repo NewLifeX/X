@@ -290,7 +290,7 @@ namespace NewLife
             if (encoding == null) encoding = Encoding.UTF8;
 
             var buf = stream.ReadBytes();
-            if (buf == null || buf.Length < 1) return null;
+            if (buf == null || buf.Length <= 0) return null;
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
@@ -311,7 +311,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
-            if (buf == null || buf.Length < 1 || offset >= buf.Length) return null;
+            if (buf == null || buf.Length <= 0 || offset >= buf.Length) return null;
             if (encoding == null) encoding = Encoding.UTF8;
 
             var size = buf.Length - offset;
@@ -695,7 +695,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (count < 0)
                 count = data.Length - offset;
@@ -724,7 +724,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (groupSize < 0) groupSize = 0;
 
@@ -816,7 +816,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1, Boolean lineBreak = false)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (count <= 0)
                 count = data.Length - offset;

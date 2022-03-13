@@ -670,7 +670,7 @@ namespace XCode.DataAccessLayer
             var list = new List<String>();
 
             var dt = GetSchema(_.Tables, new String[] { Owner, null });
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             foreach (DataRow dr in dt.Rows)
             {
@@ -728,7 +728,7 @@ namespace XCode.DataAccessLayer
         String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
             var dt = data?["TableComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"TABLE_NAME='{name}'";
             var drs = dt.Select(where);
@@ -745,7 +745,7 @@ namespace XCode.DataAccessLayer
         protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
             var list = base.GetFields(table, columns, data);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             // 字段注释
             if (list != null && list.Count > 0)
@@ -763,7 +763,7 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             var owner = Owner;
             if (owner.IsNullOrEmpty() || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
@@ -780,7 +780,7 @@ namespace XCode.DataAccessLayer
         String GetColumnComment(String tableName, String columnName, IDictionary<String, DataTable> data)
         {
             var dt = data?["ColumnComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"{_.TalbeName}='{tableName}' AND {_.ColumnName}='{columnName}'";
             var drs = dt.Select(where);

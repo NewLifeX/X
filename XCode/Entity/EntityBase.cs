@@ -134,9 +134,9 @@ namespace XCode
             var fact1 = src.GetType().AsFactory();
             var fact2 = entity.GetType().AsFactory();
             var nsSrc = fact1.FieldNames;
-            //if (nsSrc == null || nsSrc.Count < 1) return 0;
+            //if (nsSrc == null || nsSrc.Count <= 0) return 0;
             var nsDes = fact2.FieldNames;
-            if (nsDes == null || nsDes.Count < 1) return 0;
+            if (nsDes == null || nsDes.Count <= 0) return 0;
 
             var n = 0;
             foreach (var item in nsDes)
@@ -273,7 +273,7 @@ namespace XCode
             var op = GetType().AsFactory();
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
-            if (ps == null || ps.Length < 1) ps = op.Table.Fields;
+            if (ps == null || ps.Length <= 0) ps = op.Table.Fields;
             foreach (var item in ps)
             {
                 var v1 = this[item.Name];

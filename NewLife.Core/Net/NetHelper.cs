@@ -422,7 +422,7 @@ namespace NewLife
         /// <param name="macs"></param>
         public static void Wake(params String[] macs)
         {
-            if (macs == null || macs.Length < 1) return;
+            if (macs == null || macs.Length <= 0) return;
 
             foreach (var item in macs)
             {

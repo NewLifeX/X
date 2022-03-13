@@ -68,7 +68,7 @@ namespace XCode.DataAccessLayer
             var list = new List<String>();
 
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             foreach (DataRow dr in dt.Rows)
             {
@@ -85,7 +85,7 @@ namespace XCode.DataAccessLayer
             var list = new List<IDataTable>();
 
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             // 默认列出所有表
             var rows = dt?.Rows.ToArray();
@@ -272,7 +272,7 @@ namespace XCode.DataAccessLayer
             if (indexes == null) return null;
 
             var drs = indexes.Select($"{_.TalbeName}='{table.TableName}'");
-            if (drs == null || drs.Length < 1) return null;
+            if (drs == null || drs.Length <= 0) return null;
 
             var list = new List<IDataIndex>();
             foreach (var dr in drs)
@@ -301,7 +301,7 @@ namespace XCode.DataAccessLayer
                         {
                             if (TryGetDataRowValue(item, _.ColumnName, out String dcname) && !dcname.IsNullOrEmpty() && !ns.Contains(dcname)) ns.Add(dcname);
                         }
-                        if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
+                        if (ns.Count <= 0) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }

@@ -596,7 +596,7 @@ namespace XCode
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
-            if ((updateColumns == null || updateColumns.Count < 1) && (addColumns == null || addColumns.Count < 1)) return 0;
+            if ((updateColumns == null || updateColumns.Count <= 0) && (addColumns == null || addColumns.Count <= 0)) return 0;
 
             session ??= fact.Session;
             session.InitData();

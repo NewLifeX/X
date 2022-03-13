@@ -205,7 +205,7 @@ namespace System
 
             if (value is Byte[] buf)
             {
-                if (buf == null || buf.Length < 1) return defaultValue;
+                if (buf == null || buf.Length <= 0) return defaultValue;
 
                 switch (buf.Length)
                 {
@@ -267,7 +267,7 @@ namespace System
 
             if (value is Byte[] buf)
             {
-                if (buf == null || buf.Length < 1) return defaultValue;
+                if (buf == null || buf.Length <= 0) return defaultValue;
 
                 switch (buf.Length)
                 {
@@ -342,7 +342,7 @@ namespace System
             }
             else if (value is Byte[] buf)
             {
-                if (buf == null || buf.Length < 1) return defaultValue;
+                if (buf == null || buf.Length <= 0) return defaultValue;
 
                 switch (buf.Length)
                 {

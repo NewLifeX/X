@@ -163,7 +163,7 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             // 默认列出所有字段
             var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
@@ -180,7 +180,7 @@ namespace XCode.DataAccessLayer
             var list = new List<String>();
 
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             // 默认列出所有字段
             var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");

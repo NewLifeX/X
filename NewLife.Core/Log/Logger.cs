@@ -86,7 +86,7 @@ namespace NewLife.Log
                     }
                 }
             }
-            if (args == null || args.Length < 1) return format;
+            if (args == null || args.Length <= 0) return format;
 
             //format = format.Replace("{", "{{").Replace("}", "}}");
 

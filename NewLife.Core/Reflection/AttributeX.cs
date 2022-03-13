@@ -66,7 +66,7 @@ namespace NewLife
             try
             {
                 var list = CustomAttributeData.GetCustomAttributes(target);
-                if (list == null || list.Count < 1) return default;
+                if (list == null || list.Count <= 0) return default;
 
                 foreach (var item in list)
                 {

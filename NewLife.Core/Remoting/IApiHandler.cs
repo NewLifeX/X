@@ -194,7 +194,7 @@ namespace NewLife.Remoting
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return null;
+            if (pis == null || pis.Length <= 0) return null;
 
             var ps = new Dictionary<String, Object>();
             foreach (var pi in pis)

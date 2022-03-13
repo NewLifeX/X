@@ -677,7 +677,7 @@ namespace NewLife.Net
         public override String ToString()
         {
             var servers = Servers;
-            if (servers == null || servers.Count < 1) return Name;
+            if (servers == null || servers.Count <= 0) return Name;
 
             if (servers.Count == 1) return Name + " " + servers[0].ToString();
 

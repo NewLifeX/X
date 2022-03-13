@@ -66,7 +66,7 @@ namespace NewLife.IO
 
             // 找到符合条件的资源
             var names = asm.GetManifestResourceNames();
-            if (names == null || names.Length < 1) return;
+            if (names == null || names.Length <= 0) return;
             IEnumerable<String> ns = null;
             if (prefix.IsNullOrWhiteSpace())
                 ns = names.AsEnumerable();

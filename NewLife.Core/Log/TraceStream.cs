@@ -354,7 +354,7 @@ namespace NewLife.Log
 
         Byte[] Format(Byte[] buffer)
         {
-            if (buffer == null || buffer.Length < 1) return buffer;
+            if (buffer == null || buffer.Length <= 0) return buffer;
 
             if (IsLittleEndian) return buffer;
 
