@@ -373,56 +373,6 @@ namespace System
             catch { return defaultValue; }
         }
 
-        /// <summary>转为高精度浮点数</summary>
-        /// <param name="value">待转换对象</param>
-        /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
-        /// <returns></returns>
-        public virtual Decimal ToDecimal(Object value, Decimal defaultValue)
-        {
-            if (value == null || value == DBNull.Value) return defaultValue;
-
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                str = ToDBC(str).Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
-
-                if (Decimal.TryParse(str, out var n)) return n;
-                return defaultValue;
-            }
-            else if (value is Byte[] buf)
-            {
-                if (buf == null || buf.Length < 1) return defaultValue;
-
-                switch (buf.Length)
-                {
-                    case 1:
-                        return buf[0];
-                    case 2:
-                        return BitConverter.ToInt16(buf, 0);
-                    case 3:
-                        return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
-                    case 4:
-                        return BitConverter.ToInt32(buf, 0);
-                    default:
-                        // 凑够8字节
-                        if (buf.Length < 8)
-                        {
-                            var bts = new Byte[8];
-                            Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
-                            buf = bts;
-                        }
-                        return BitConverter.ToDouble(buf, 0).ToDecimal();
-                }
-            }
-
-            try
-            {
-                return Convert.ToDecimal(value);
-            }
-            catch { return defaultValue; }
-        }
-
         /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
         /// <param name="value">待转换对象</param>
         /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
