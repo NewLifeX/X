@@ -16,122 +16,17 @@ namespace XCode.DataAccessLayer
     {
         #region 属性
         /// <summary>分页主键</summary>
-        public String Key
-        {
-            get => Keys != null && Keys.Length > 0 ? Keys[0] : null;
-            set => Keys = new String[] { value };
-        }
+        public String Key { get; set; }
 
-        /// <summary>分页主键组</summary>
-        public String[] Keys { get; set; }
-
-        ///// <summary>是否降序</summary>
-        //public Boolean IsDesc
-        //{
-        //    get => IsDescs != null && IsDescs.Length > 0 && IsDescs[0];
-        //    set => IsDescs = new Boolean[] { value };
-        //}
-
-        ///// <summary>主键组是否降序</summary>
-        //public Boolean[] IsDescs { get; set; }
-
-        ///// <summary>是否整数自增主键</summary>
-        //public Boolean IsInt { get; set; }
-
-        ///// <summary>分页主键排序</summary>
-        //public String KeyOrder
-        //{
-        //    get
-        //    {
-        //        if (Keys == null || Keys.Length < 1) return null;
-
-        //        return Join(Keys, IsDescs);
-        //    }
-        //}
-
-        ///// <summary>分页主键反排序</summary>
-        //public String ReverseKeyOrder
-        //{
-        //    get
-        //    {
-        //        if (Keys == null || Keys.Length < 1) return null;
-
-        //        // 把排序反过来
-        //        var isdescs = new Boolean[Keys.Length];
-        //        for (var i = 0; i < isdescs.Length; i++)
-        //        {
-        //            if (IsDescs != null && IsDescs.Length > i)
-        //                isdescs[i] = !IsDescs[i];
-        //            else
-        //                isdescs[i] = true;
-        //        }
-        //        return Join(Keys, isdescs);
-        //    }
-        //}
-
-        /// <summary>排序字段是否唯一且就是主键</summary>
-        public Boolean KeyIsOrderBy
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(Key)) return false;
-
-                var keys = Split(_OrderBy, out _);
-
-                return keys != null && keys.Length == 1 && keys[0].EqualIgnoreCase(Key);
-            }
-        }
-        #endregion
-
-        #region 构造
-        /// <summary>实例化一个SQL语句</summary>
-        public SelectBuilder() { }
-
-        /// <summary>实例化一个SQL语句</summary>
-        /// <param name="sql"></param>
-        public SelectBuilder(String sql) => Parse(sql);
-        #endregion
-
-        #region SQL查询语句基本部分
         /// <summary>选择列</summary>
         public String Column { get; set; }
 
         /// <summary>数据表</summary>
         public String Table { get; set; }
 
-        private static readonly Regex reg_gb = new(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private String _Where;
         /// <summary>条件</summary>
-        public String Where
-        {
-            get => _Where;
-            set
-            {
-                _Where = value;
-
-                // 里面可能含有分组
-                if (!String.IsNullOrEmpty(_Where))
-                {
-                    var where = _Where.ToLower();
-                    if (where.Contains("group") && where.Contains("by"))
-                    {
-                        var match = reg_gb.Match(_Where);
-                        if (match != null && match.Success)
-                        {
-                            var gb = _Where[(match.Index + match.Length)..].Trim();
-                            if (String.IsNullOrEmpty(GroupBy))
-                                GroupBy = gb;
-                            else
-                                GroupBy += ", " + gb;
-
-                            _Where = _Where[..match.Index].Trim();
-                        }
-                    }
-                }
-
-                if (_Where == "1=1") _Where = null;
-            }
-        }
+        public String Where { get => _Where; set => _Where = ParseWhere(value); }
 
         /// <summary>分组</summary>
         public String GroupBy { get; set; }
@@ -142,79 +37,22 @@ namespace XCode.DataAccessLayer
         private String _OrderBy;
         /// <summary>排序</summary>
         /// <remarks>给排序赋值时，如果没有指定分页主键，则自动采用排序中的字段</remarks>
-        public String OrderBy
-        {
-            get => _OrderBy;
-            set
-            {
-                _OrderBy = value;
-
-                // 分析排序字句，从中分析出分页用的主键
-                if (!String.IsNullOrEmpty(_OrderBy))
-                {
-                    var keys = Split(_OrderBy, out var isdescs);
-
-                    if (keys != null && keys.Length > 0)
-                    {
-                        // 2012-02-16 排序字句里面可能包含有SQLite等的分页字句，不能随便的优化
-                        //// 如果排序不包含括号，可以优化排序
-                        //if (!_OrderBy.Contains("(")) _OrderBy = Join(keys, isdescs);
-
-                        if (Keys == null || Keys.Length < 1)
-                        {
-                            Keys = keys;
-                            //IsDescs = isdescs;
-                        }
-                    }
-                }
-            }
-        }
+        public String OrderBy { get => _OrderBy; set => _OrderBy = ParseOrderBy(value); }
 
         /// <summary>分页用的Limit语句</summary>
         public String Limit { get; set; }
-        #endregion
-
-        #region 扩展属性
-        /// <summary>选择列，为空时为*</summary>
-        public String ColumnOrDefault => Column.IsNullOrEmpty() ? "*" : Column;
-
-        ///// <summary>选择列，去除聚合，为空时为*</summary>
-        //public String ColumnNoAggregate
-        //{
-        //    get
-        //    {
-        //        if (Column.IsNullOrEmpty() || Column == "*") return "*";
-
-        //        // 分解重构，把聚合函数干掉
-        //        var ss = Column.Split(',');
-        //        var sb = Pool.StringBuilder.Get();
-        //        foreach (var item in ss)
-        //        {
-        //            if (sb.Length > 0) sb.Append(", ");
-
-        //            // 聚合函数有三种，等号、AS、空格
-        //            if (item.Contains("="))
-        //                sb.Append(item.Substring(null, "="));
-        //            else if (item.ToLower().Contains(" as "))
-        //            {
-        //                var p = item.LastIndexOf(' ');
-        //                sb.Append(item[(p + 1)..]);
-        //            }
-        //            else if (item.Contains(" "))
-        //            {
-        //                var p = item.LastIndexOf(' ');
-        //                sb.Append(item[(p + 1)..]);
-        //            }
-        //            else
-        //                sb.Append(item);
-        //        }
-
-        //        return sb.Put(true);
-        //    }
-        //}
 
         /// <summary>参数集合</summary>
-        public List<IDataParameter> Parameters { get; set; } = new List<IDataParameter>();
+        public List<IDataParameter> Parameters { get; set; } = new();
+        #endregion
+
+        #region 构造
+        /// <summary>实例化一个SQL语句</summary>
+        public SelectBuilder() { }
+
+        /// <summary>实例化一个SQL语句</summary>
+        /// <param name="sql"></param>
+        public SelectBuilder(String sql) => Parse(sql);
         #endregion
 
         #region 导入SQL
@@ -256,29 +94,45 @@ $";
             return false;
         }
 
-        ///// <summary>缓存存储</summary>
-        //public static ICache Store { get; set; } = MemoryCache.Instance;
+        private static readonly Regex reg_gb = new(@"\bgroup\b\s*\bby\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        String ParseWhere(String value)
+        {
+            // 里面可能含有分组
+            if (!value.IsNullOrEmpty())
+            {
+                var where = value.ToLower();
+                if (where.Contains("group") && where.Contains("by"))
+                {
+                    var match = reg_gb.Match(value);
+                    if (match != null && match.Success)
+                    {
+                        var gb = value[(match.Index + match.Length)..].Trim();
+                        if (GroupBy.IsNullOrEmpty())
+                            GroupBy = gb;
+                        else
+                            GroupBy += ", " + gb;
 
-        ///// <summary>根据SQL创建，带缓存</summary>
-        ///// <remarks>
-        ///// 对于非常复杂的查询语句，正则平衡的处理器消耗很大
-        ///// </remarks>
-        ///// <param name="sql"></param>
-        ///// <returns></returns>
-        //public static SelectBuilder Create(String sql)
-        //{
-        //    var key = $"SelectBuilder#{sql}";
+                        value = value[..match.Index].Trim();
+                    }
+                }
+            }
 
-        //    var sb = Store.Get<SelectBuilder>(key);
-        //    if (sb != null) return sb;
+            if (value == "1=1") value = null;
 
-        //    sb = new SelectBuilder();
-        //    sb.Parse(sql);
+            return value?.Trim();
+        }
 
-        //    Store.Set(key, sb, 10 * 60);
+        String ParseOrderBy(String value)
+        {
+            // 分析排序字句，从中分析出分页用的主键
+            if (!value.IsNullOrEmpty() && Key.IsNullOrEmpty())
+            {
+                var p = value.IndexOfAny(new[] { ',', ' ' });
+                if (p > 0) Key = value[..p];
+            }
 
-        //    return sb;
-        //}
+            return value?.Trim();
+        }
         #endregion
 
         #region 导出SQL
@@ -288,7 +142,7 @@ $";
         {
             var sb = Pool.StringBuilder.Get();
             sb.Append("Select ");
-            sb.Append(ColumnOrDefault);
+            sb.Append(Column.IsNullOrEmpty() ? "*" : Column);
             sb.Append(" From ");
             sb.Append(Table);
             if (!Where.IsNullOrEmpty()) sb.Append(" Where " + Where);
@@ -328,18 +182,17 @@ $";
         {
             var sb = new SelectBuilder
             {
+                Key = Key,
                 Column = Column,
                 Table = Table,
+
                 // 直接拷贝字段，避免属性set时触发分析代码
                 _Where = _Where,
                 _OrderBy = _OrderBy,
+
                 GroupBy = GroupBy,
                 Having = Having,
                 Limit = Limit,
-
-                Keys = Keys,
-                //IsDescs = IsDescs,
-                //IsInt = IsInt
             };
 
             sb.Parameters.AddRange(Parameters);
@@ -365,26 +218,6 @@ $";
             return this;
         }
 
-        ///// <summary>增加多个字段，必须是当前表普通字段，如果内部是*则不加</summary>
-        ///// <param name="columns"></param>
-        ///// <returns></returns>
-        //public SelectBuilder AppendColumn(params String[] columns)
-        //{
-        //    if (ColumnOrDefault != "*" && columns != null && columns.Length > 0)
-        //    {
-        //        if (String.IsNullOrEmpty(Column))
-        //            Column = String.Join(",", columns.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
-        //        else
-        //        {
-        //            // 检查是否已存在该字段
-        //            var selects = Column.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        //            selects = selects.Concat(columns).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        //            Column = String.Join(",", selects);
-        //        }
-        //    }
-        //    return this;
-        //}
-
         /// <summary>作为子查询</summary>
         /// <param name="alias">别名，某些数据库可能需要使用as</param>
         /// <param name="trimOrder">SqlServer需要转移OrderBy到外层，Oracle则不能</param>
@@ -394,7 +227,7 @@ $";
             var t = this;
             // 如果包含排序，则必须有Top，否则去掉
             var hasOrderWithoutTop = false;
-            if (trimOrder) hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !ColumnOrDefault.StartsWithIgnoreCase("top ");
+            if (trimOrder) hasOrderWithoutTop = !String.IsNullOrEmpty(t.OrderBy) && !Column.StartsWithIgnoreCase("top ");
             if (hasOrderWithoutTop)
             {
                 t = Clone();
@@ -429,60 +262,6 @@ $";
         #endregion
 
         #region 辅助方法
-        /// <summary>拆分排序字句</summary>
-        /// <param name="orderby"></param>
-        /// <param name="isdescs"></param>
-        /// <returns></returns>
-        public static String[] Split(String orderby, out Boolean[] isdescs)
-        {
-            isdescs = null;
-            if (orderby.IsNullOrWhiteSpace()) return null;
-            //2014-01-04 Modify by Apex
-            //处理order by带有函数的情况，避免分隔时将函数拆分导致错误
-            foreach (Match match in Regex.Matches(orderby, @"\([^\)]*\)", RegexOptions.Singleline))
-            {
-                orderby = orderby.Replace(match.Value, match.Value.Replace(",", "★"));
-            }
-            var ss = orderby.Trim().Split(',');
-            if (ss == null || ss.Length < 1) return null;
-
-            var keys = new String[ss.Length];
-            isdescs = new Boolean[ss.Length];
-
-            for (var i = 0; i < ss.Length; i++)
-            {
-                var ss2 = ss[i].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                // 拆分名称和排序，不知道是否存在多余一个空格的情况
-                if (ss2 != null && ss2.Length > 0)
-                {
-                    keys[i] = ss2[0].Replace("★", ",");
-                    if (ss2.Length > 1 && ss2[1].EqualIgnoreCase("desc")) isdescs[i] = true;
-                }
-            }
-            return keys;
-        }
-
-        /// <summary>连接排序字句</summary>
-        /// <param name="keys"></param>
-        /// <param name="isdescs"></param>
-        /// <returns></returns>
-        public static String Join(String[] keys, Boolean[] isdescs)
-        {
-            if (keys == null || keys.Length < 1) return null;
-
-            if (keys.Length == 1) return isdescs != null && isdescs.Length > 0 && isdescs[0] ? keys[0] + " Desc" : keys[0];
-
-            var sb = Pool.StringBuilder.Get();
-            for (var i = 0; i < keys.Length; i++)
-            {
-                if (sb.Length > 0) sb.Append(", ");
-
-                sb.Append(keys[i]);
-                if (isdescs != null && isdescs.Length > i && isdescs[i]) sb.Append(" Desc");
-            }
-            return sb.Put(true);
-        }
-
         internal SelectBuilder Top(Int64 top, String keyColumn = null)
         {
             var builder = this;
