@@ -22,8 +22,8 @@ jobs:
         dotnet restore XCode/XCode.csproj
     - name: Build
       run: |
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d-beta%H%M") -o out NewLife.Core/NewLife.Core.csproj
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d-beta%H%M") -o out XCode/XCode.csproj
+        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d-beta%H%M") -c Release -o out NewLife.Core/NewLife.Core.csproj
+        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d-beta%H%M") -c Release -o out XCode/XCode.csproj
     - name: Publish
       run: |
         dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}

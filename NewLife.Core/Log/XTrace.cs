@@ -304,7 +304,7 @@ namespace NewLife.Log
         public static Boolean Debug { get; set; }
 
         /// <summary>文本日志目录</summary>
-        public static String LogPath { get; set; }
+        public static String? LogPath { get; set; }
 
         ///// <summary>临时目录</summary>
         //public static String TempPath { get; set; } = Setting.Current.TempPath;
