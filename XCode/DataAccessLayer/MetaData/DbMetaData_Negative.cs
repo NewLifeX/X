@@ -161,7 +161,7 @@ namespace XCode.DataAccessLayer
             if (dbtable == null)
             {
                 // 没有字段的表不创建
-                if (entitytable.Columns.Count < 1) return;
+                if (entitytable.Columns.Count <= 0) return;
 
                 WriteLog("创建表：{0}({1})", entitytable.TableName, entitytable.Description);
 
@@ -685,7 +685,7 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.DropDatabase:
                     return DropDatabaseSQL((String)values[0]);
                 case DDLSchema.DatabaseExist:
-                    return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
+                    return DatabaseExistSQL(values == null || values.Length <= 0 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((IDataTable)values[0]);
                 case DDLSchema.DropTable:

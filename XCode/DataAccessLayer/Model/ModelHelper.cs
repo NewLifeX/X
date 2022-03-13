@@ -36,7 +36,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataColumn[] GetColumns(this IDataTable table, String[] names)
         {
-            if (names == null || names.Length < 1) return new IDataColumn[0];
+            if (names == null || names.Length <= 0) return new IDataColumn[0];
 
             //return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
             var dcs = new List<IDataColumn>();
@@ -119,7 +119,7 @@ namespace XCode.DataAccessLayer
         public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
             var dis = table?.Indexes;
-            if (dis == null || dis.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
+            if (dis == null || dis.Count <= 0 || columnNames == null || columnNames.Length <= 0) return null;
 
             var di = dis.FirstOrDefault(e => e != null && e.Columns.EqualIgnoreCase(columnNames));
             if (di != null) return di;

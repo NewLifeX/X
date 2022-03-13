@@ -219,7 +219,7 @@ namespace XCode.DataAccessLayer
             if (field.DataType == typeof(Byte[]))
             {
                 var bts = (Byte[])value;
-                if (bts == null || bts.Length < 1) return "0x0";
+                if (bts == null || bts.Length <= 0) return "0x0";
 
                 return "X'" + BitConverter.ToString(bts).Replace("-", null) + "'";
             }
@@ -554,11 +554,11 @@ namespace XCode.DataAccessLayer
             if ((Database as SQLite).IsMemoryDatabase) return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
 
             //var dt = GetSchema(_.Tables, null);
-            //if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            //if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             //// 默认列出所有字段
             //var rows = dt.Select("TABLE_TYPE='table'");
-            //if (rows == null || rows.Length < 1) return null;
+            //if (rows == null || rows.Length <= 0) return null;
 
             //return GetTables(rows, names);
 

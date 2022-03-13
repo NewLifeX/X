@@ -192,7 +192,7 @@ namespace NewLife.Serialization
         /// <param name="count">要写入的字节数。</param>
         public virtual void Write(Byte[] buffer, Int32 offset, Int32 count)
         {
-            if (buffer == null || buffer.Length < 1 || count <= 0 || offset >= buffer.Length) return;
+            if (buffer == null || buffer.Length <= 0 || count <= 0 || offset >= buffer.Length) return;
 
             Host.Write(buffer, offset, count);
         }
@@ -245,7 +245,7 @@ namespace NewLife.Serialization
         /// <param name="buffer">缓冲区</param>
         private void WriteIntBytes(Byte[] buffer)
         {
-            if (buffer == null || buffer.Length < 1) return;
+            if (buffer == null || buffer.Length <= 0) return;
 
             // 如果不是小端字节顺序，则倒序
             if (!Host.IsLittleEndian) Array.Reverse(buffer);
@@ -311,7 +311,7 @@ namespace NewLife.Serialization
                 return;
             }
 
-            if (chars.Length < 1 || count <= 0 || index >= chars.Length)
+            if (chars.Length <= 0 || count <= 0 || index >= chars.Length)
             {
                 //Host.WriteSize(0);
                 // 可能因为FieldSize设定需要补充0字节

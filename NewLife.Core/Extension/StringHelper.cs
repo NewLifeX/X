@@ -89,7 +89,7 @@ namespace NewLife
         {
             //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
             if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<String>();
-            if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
@@ -102,7 +102,7 @@ namespace NewLife
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
             if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<Int32>();
-            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length <= 0) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             var list = new List<Int32>();
@@ -130,10 +130,10 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             var k = 0;
             foreach (var item in ss)
@@ -177,10 +177,10 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             //if (nameValueSeparator == null) nameValueSeparator = '=';
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             foreach (var item in ss)
             {
@@ -392,7 +392,7 @@ namespace NewLife
         public static String TrimStart(this String str, params String[] starts)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+            if (starts == null || starts.Length <= 0 || String.IsNullOrEmpty(starts[0])) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
@@ -415,7 +415,7 @@ namespace NewLife
         public static String TrimEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {
@@ -499,7 +499,7 @@ namespace NewLife
         public static String CutStart(this String str, params String[] starts)
         {
             if (str.IsNullOrEmpty()) return str;
-            if (starts == null || starts.Length < 1 || starts[0].IsNullOrEmpty()) return str;
+            if (starts == null || starts.Length <= 0 || starts[0].IsNullOrEmpty()) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
@@ -520,7 +520,7 @@ namespace NewLife
         public static String CutEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {

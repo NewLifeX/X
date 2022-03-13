@@ -671,7 +671,7 @@ namespace XCode.DataAccessLayer
 
             var sw = Stopwatch.StartNew();
 
-            if (restrictionValues == null || restrictionValues.Length < 1)
+            if (restrictionValues == null || restrictionValues.Length <= 0)
             {
                 if (String.IsNullOrEmpty(collectionName))
                 {

@@ -180,7 +180,7 @@ namespace NewLife.Reflection
                     }
                     ts = ex.Types;
                 }
-                if (ts == null || ts.Length < 1) yield break;
+                if (ts == null || ts.Length <= 0) yield break;
 
                 // 先遍历一次ts，避免取内嵌类型带来不必要的性能损耗
                 foreach (var item in ts)
@@ -538,7 +538,7 @@ namespace NewLife.Reflection
             if (domain == null) domain = AppDomain.CurrentDomain;
 
             var asms = domain.GetAssemblies();
-            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
+            if (asms == null || asms.Length <= 0) return Enumerable.Empty<AssemblyX>();
 
             //return asms.Select(item => Create(item));
             return from e in asms select Create(e);
@@ -618,7 +618,7 @@ namespace NewLife.Reflection
 
             // 再去遍历目录
             var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (ss == null || ss.Length < 1) yield break;
+            if (ss == null || ss.Length <= 0) yield break;
 
             var loadeds = GetAssemblies().ToList();
 

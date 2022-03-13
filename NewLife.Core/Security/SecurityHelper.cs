@@ -128,7 +128,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] Encrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+            if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
 
             if (pass != null && pass.Length > 0)
             {
@@ -188,7 +188,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] Decrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+            if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
 
             if (pass != null && pass.Length > 0)
             {

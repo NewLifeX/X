@@ -182,7 +182,7 @@ namespace NewLife.Xml
         //    if (encoding == null) return encoding;
 
         //    var bts = encoding.GetPreamble();
-        //    if (bts == null || bts.Length < 1) return encoding;
+        //    if (bts == null || bts.Length <= 0) return encoding;
 
         //    if (encoding is UTF8Encoding) return _utf8Encoding ?? (_utf8Encoding = new UTF8Encoding(false));
         //    if (encoding is UTF32Encoding) return _utf32Encoding ?? (_utf32Encoding = new UTF32Encoding(false, false));

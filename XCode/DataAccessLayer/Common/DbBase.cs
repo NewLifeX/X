@@ -549,7 +549,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(sql)) return sql;
 
             var ms = reg_SimpleSQL.Matches(sql);
-            if (ms == null || ms.Count < 1 || ms[0].Groups.Count < 2 ||
+            if (ms == null || ms.Count <= 0 || ms[0].Groups.Count < 2 ||
                 String.IsNullOrEmpty(ms[0].Groups[1].Value)) return $"({sql}) XCode_Temp_a";
             return ms[0].Groups[1].Value;
         }
@@ -564,7 +564,7 @@ namespace XCode.DataAccessLayer
 
             // 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
             var ms = reg_Order.Matches(sql);
-            if (ms == null || ms.Count < 1 || ms[0].Index < 1) return null;
+            if (ms == null || ms.Count <= 0 || ms[0].Index < 1) return null;
             var orderBy = sql[ms[0].Index..].Trim();
             sql = sql[..ms[0].Index].Trim();
 
@@ -811,7 +811,7 @@ namespace XCode.DataAccessLayer
             else if (type == typeof(Byte[]))
             {
                 var bts = (Byte[])value;
-                if (bts == null || bts.Length < 1) return isNullable ? "null" : "0x0";
+                if (bts == null || bts.Length <= 0) return isNullable ? "null" : "0x0";
 
                 return "0x" + BitConverter.ToString(bts).Replace("-", null);
             }

@@ -158,7 +158,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Execute(String code, IDictionary<String, Object> parameters)
         {
-            if (parameters == null || parameters.Count < 1) return Execute(code);
+            if (parameters == null || parameters.Count <= 0) return Execute(code);
 
             var ps = parameters.Values.ToArray();
 
@@ -183,7 +183,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Execute(String code, Object[] parameters)
         {
-            if (parameters == null || parameters.Length < 1) return Execute(code);
+            if (parameters == null || parameters.Length <= 0) return Execute(code);
 
             var se = Create(code);
             if (se != null && se.Method != null) return se.Invoke(parameters);

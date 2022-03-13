@@ -231,7 +231,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Role FindByID(Int32 id)
         {
-            if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+            if (id <= 0 || Meta.Cache.Entities == null || Meta.Cache.Entities.Count <= 0) return null;
 
             return Meta.Cache.Entities.ToArray().FirstOrDefault(e => e.ID == id);
         }
@@ -246,7 +246,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static Role FindByName(String name)
         {
-            if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count < 1) return null;
+            if (String.IsNullOrEmpty(name) || Meta.Cache.Entities == null || Meta.Cache.Entities.Count <= 0) return null;
 
             return Meta.Cache.Find(e => e.Name.EqualIgnoreCase(name));
         }

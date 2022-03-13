@@ -204,10 +204,10 @@ namespace XCode.Membership
         public IList<IMenu> GetSubMenus(Int32[] filters, Boolean inclInvisible = false)
         {
             var list = Childs;
-            if (list == null || list.Count < 1) return new List<IMenu>();
+            if (list == null || list.Count <= 0) return new List<IMenu>();
 
             if (!inclInvisible) list = list.Where(e => e.Visible).ToList();
-            if (list == null || list.Count < 1) return new List<IMenu>();
+            if (list == null || list.Count <= 0) return new List<IMenu>();
 
             return list.Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
@@ -374,7 +374,7 @@ namespace XCode.Membership
                 if (menu == null)
                 {
                     menu = root;
-                    if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return new List<IMenu>();
+                    if (menu == null || menu.Childs == null || menu.Childs.Count <= 0) return new List<IMenu>();
                 }
 
                 return menu.GetSubMenus(rs.SelectMany(e => e.Resources).ToArray(), inclInvisible);
