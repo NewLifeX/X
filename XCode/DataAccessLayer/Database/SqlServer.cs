@@ -642,7 +642,7 @@ namespace XCode.DataAccessLayer
                         if (dc.Identity || dc.PrimaryKey)
                         {
                             //更新时添加主键做为查询条件
-                            dps.Add(db.CreateParameter(dc.Name, entity[dc.ColumnName], dc));
+                            dps.Add(db.CreateParameter(dc.Name, entity[dc.Name], dc));
                             continue;
                         }
                     }
@@ -653,7 +653,7 @@ namespace XCode.DataAccessLayer
                     if (!ps.Contains(dc.Name)) continue;
 
                     // 用于参数化的字符串不能为null
-                    var val = entity[dc.ColumnName];
+                    var val = entity[dc.Name];
                     if (dc.DataType == typeof(String))
                         val += "";
                     else if (dc.DataType == typeof(DateTime))

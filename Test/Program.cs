@@ -102,8 +102,7 @@ namespace Test
             var dal2 = DAL.Create("xxgk2");
             var tables = dal.Tables.ToArray();
             //dal.BackupAll(tables, "财务数据库", ignoreError: false);
-            //var tt = dal2.RestoreAll("财务数据库", ignoreError: false);
-            dal.Sync(tables[1], "xxgk2");
+            var tt = dal2.RestoreAll("财务数据库", ignoreError: false);
             int i = 0;
         }
 
