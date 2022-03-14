@@ -180,7 +180,11 @@ namespace NewLife.Caching
 
             // 更换Redis连接字符串时，清空原连接池
             _servers = null;
-            if (!_configOld.IsNullOrEmpty()) _Pool = null;
+            if (!_configOld.IsNullOrEmpty())
+            {
+                _Pool = null;
+                _Info = null;
+            }
 
             _configOld = config;
         }
