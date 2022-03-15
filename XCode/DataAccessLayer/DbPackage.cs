@@ -512,6 +512,12 @@ namespace XCode.DataAccessLayer
                     var count = dt.Rows.Count;
                     WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, Dal.ConnName, row, count);
 
+                    //修复表的列名带下划线的会出现问题
+                    for (var i=0;i< dt.Columns.Length;i++)
+                    {
+                        dt.Columns[i] = dt.Columns[i].Replace("_", "");
+                    }
+
                     // 进度报告、消费数据
                     OnProcess(table, row, dt, writeDb);
 
