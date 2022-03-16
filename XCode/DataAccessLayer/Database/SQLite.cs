@@ -378,50 +378,7 @@ namespace XCode.DataAccessLayer
             BuildBatchValues(sb, db, action, table, columns, list);
 
             // 重复键执行update
-            if (updateColumns != null || addColumns != null)
-            {
-                sb.Append(" On Conflict");
-
-                // 先找唯一索引，再用主键
-                //var table = columns.FirstOrDefault()?.Table;
-                var di = table.Indexes?.FirstOrDefault(e => e.Unique);
-                if (di != null && di.Columns != null && di.Columns.Length > 0)
-                {
-                    var dcs = table.GetColumns(di.Columns);
-                    sb.AppendFormat("({0})", dcs.Join(",", e => db.FormatName(e)));
-                }
-                else
-                {
-                    var pks = table.PrimaryKeys;
-                    if (pks != null && pks.Length > 0)
-                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e)));
-                }
-
-                sb.Append(" Do Update Set ");
-                if (updateColumns != null)
-                {
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-                if (addColumns != null)
-                {
-                    sb.Append(',');
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (addColumns.Contains(dc.Name))
-                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-            }
+            BuildDuplicateKey(sb, db, columns, updateColumns, addColumns);
 
             return sb.Put(true);
         }
