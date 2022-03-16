@@ -243,7 +243,8 @@ namespace XCode.DataAccessLayer
                 return builder.Clone().Top(maximumRows);
             }
 
-            if (builder.Key.IsNullOrEmpty()) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+            //修复无主键分页报错的情况
+            if (builder.Key.IsNullOrEmpty() && builder.OrderBy.IsNullOrEmpty()) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
 
             // 如果包含分组，则必须作为子查询
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
