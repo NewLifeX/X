@@ -337,6 +337,8 @@ namespace XCode.DataAccessLayer
                 var pageSize = Dal.Db.BatchSize;
                 while (true)
                 {
+                    //修复总行数是pageSize的倍数无法退出循环的情况
+                    if (dt.Total == row) break;
                     // 读取数据
                     dt.ReadData(bn, Math.Min(dt.Total - row, pageSize));
 
