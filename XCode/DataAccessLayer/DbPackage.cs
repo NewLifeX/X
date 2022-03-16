@@ -512,12 +512,6 @@ namespace XCode.DataAccessLayer
                     var count = dt.Rows.Count;
                     WriteLog("同步[{0}/{1}]数据 {2:n0} + {3:n0}", table.Name, Dal.ConnName, row, count);
 
-                    //修复表的列名带下划线的会出现问题
-                    for (var i=0;i< dt.Columns.Length;i++)
-                    {
-                        dt.Columns[i] = dt.Columns[i].Replace("_", "");
-                    }
-
                     // 进度报告、消费数据
                     OnProcess(table, row, dt, writeDb);
 
@@ -720,7 +714,25 @@ namespace XCode.DataAccessLayer
                 // 匹配要写入的列
                 if (_Columns == null)
                 {
-                    _Columns = Table.GetColumns(dt.Columns);
+                    //_Columns = Table.GetColumns(dt.Columns);
+
+                    var columns = new List<IDataColumn>();
+                    foreach (var item in dt.Columns)
+                    {
+                        var dc = Table.GetColumn(item);
+                        if (dc != null)
+                        {
+                            // 内部构建批量插入语句时，将从按照dc.Name从dt取值，Name可能与ColumnName不同，这里需要改名
+                            dc = dc.Clone(Table);
+                            dc.Name = item;
+
+                            columns.Add(dc);
+                        }
+                    }
+
+                    _Columns = columns.ToArray();
+
+                    // 这里的匹配列是目标表字段名，而DbTable数据取值是Name，两者可能不同
 
                     Log?.Info("数据表：{0}/{1}", Table.Name, Table);
                     Log?.Info("匹配列：{0}", _Columns.Join(",", e => e.ColumnName));
