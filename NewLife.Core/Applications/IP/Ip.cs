@@ -36,18 +36,26 @@ namespace NewLife.IP
                     var url = set.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
 
-                    var client = new WebClientX
+                    // 无法下载ip地址库时，不要抛出异常影响业务层
+                    try
                     {
-                        Log = XTrace.Log
-                    };
-                    var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
+                        var client = new WebClientX
+                        {
+                            Log = XTrace.Log
+                        };
+                        var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
 
-                    if (File.Exists(file))
+                        if (File.Exists(file))
+                        {
+                            DbFile = file;
+                            zip = null;
+                            // 让它重新初始化
+                            _inited = null;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        DbFile = file;
-                        zip = null;
-                        // 让它重新初始化
-                        _inited = null;
+                        XTrace.WriteException(ex);
                     }
                 });
                 task.Wait(3_000);
@@ -85,10 +93,10 @@ namespace NewLife.IP
                         return false;
                     }
                 }
-                zip = z;
+                if (z.Stream != null) zip = z;
             }
 
-            if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + DbFile + "！");
+            //if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + DbFile + "！");
 
             _inited = true;
             return true;
