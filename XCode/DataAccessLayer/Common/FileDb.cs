@@ -104,9 +104,9 @@ namespace XCode.DataAccessLayer
                 case DDLSchema.CreateDatabase:
                     CreateDatabase();
                     return null;
-                //case DDLSchema.DropDatabase:
-                //    DropDatabase();
-                //    return null;
+                case DDLSchema.DropDatabase:
+                    DropDatabase();
+                    return null;
                 case DDLSchema.DatabaseExist:
                     return File.Exists(FileName);
                 default:
