@@ -655,6 +655,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
+        public override Object SetSchema(DDLSchema schema, params Object[] values)
+        {
+            switch (schema)
+            {
+                case DDLSchema.BackupDatabase:
+                    var dbname = FileName;
+                    if (!dbname.IsNullOrEmpty()) dbname = Path.GetFileNameWithoutExtension(dbname);
+                    var file = "";
+                    if (values != null && values.Length > 0) file = values[0] as String;
+                    return Backup(dbname, file, false);
+
+                default:
+                    break;
+            }
+            return base.SetSchema(schema, values);
+        }
+
         protected override void CreateDatabase()
         {
             if (!(Database as SQLite).IsMemoryDatabase) base.CreateDatabase();
@@ -878,6 +895,8 @@ namespace XCode.DataAccessLayer
 
             base.CheckTable(entitytable, dbtable, mode);
         }
+
+        public override String CompactDatabaseSQL() => "VACUUM";
 
         public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion

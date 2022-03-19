@@ -119,7 +119,9 @@ $";
 
             if (value == "1=1") value = null;
 
-            return value?.Trim();
+            // 不要轻易Trim掉空白，可能外部用来拼接And语句
+            //return value?.Trim();
+            return value;
         }
 
         String ParseOrderBy(String value)
@@ -128,7 +130,10 @@ $";
             if (!value.IsNullOrEmpty() && Key.IsNullOrEmpty())
             {
                 var p = value.IndexOfAny(new[] { ',', ' ' });
-                if (p > 0) Key = value[..p];
+                if (p > 0)
+                    Key = value[..p];
+                else
+                    Key = value;
             }
 
             return value?.Trim();

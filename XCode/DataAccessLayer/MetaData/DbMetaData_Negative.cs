@@ -713,8 +713,8 @@ namespace XCode.DataAccessLayer
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
                     return DropIndexSQL((IDataIndex)values[0]);
-                //case DDLSchema.CompactDatabase:
-                //    return CompactDatabaseSQL();
+                case DDLSchema.CompactDatabase:
+                    return CompactDatabaseSQL();
                 default:
                     break;
             }
@@ -914,13 +914,13 @@ namespace XCode.DataAccessLayer
 
         public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name} On {FormatName(index.Table)}";
 
-        //public virtual String CompactDatabaseSQL() => null;
+        public virtual String CompactDatabaseSQL() => null;
         #endregion
 
         #region 操作
-        public virtual String Backup(String dbname, String bakfile, Boolean compressed) => throw new NotImplementedException();
+        public virtual String Backup(String dbname, String bakfile, Boolean compressed) => null;
 
-        public virtual Int32 CompactDatabase() => throw new NotImplementedException();
+        public virtual Int32 CompactDatabase() => -1;
         #endregion
     }
 }

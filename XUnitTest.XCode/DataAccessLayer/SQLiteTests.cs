@@ -314,5 +314,37 @@ namespace XUnitTest.XCode.DataAccessLayer
             XTrace.WriteLine("tableNames: {0}", tableNames.Join());
             Assert.DoesNotContain(table.TableName, tableNames);
         }
+
+        [Fact]
+        public void Backup()
+        {
+            DAL.AddConnStr("bakSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("bakSQLite");
+
+            var meta = dal.Db.CreateMetaData();
+
+            var file = meta.SetSchema(DDLSchema.BackupDatabase) as String;
+            Assert.NotEmpty(file);
+            Assert.True(File.Exists(file));
+            File.Delete(file);
+
+            file = $"bak_{Rand.NextString(8)}.db";
+            var file2 = meta.SetSchema(DDLSchema.BackupDatabase, file) as String;
+            Assert.Equal(file, Path.GetFileName(file2));
+            Assert.True(File.Exists(file2));
+            File.Delete(file2);
+        }
+
+        [Fact]
+        public void CompactDatabase()
+        {
+            DAL.AddConnStr("compactSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("compactSQLite");
+
+            var meta = dal.Db.CreateMetaData();
+
+            var rs = meta.SetSchema(DDLSchema.CompactDatabase);
+            Assert.Equal(0, rs);
+        }
     }
 }

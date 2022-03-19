@@ -445,7 +445,15 @@ namespace XCode
             {
                 if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
 
-                return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+                var rs = dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -500,7 +508,15 @@ namespace XCode
             {
                 if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
 
-                return dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+                var rs = dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -555,7 +571,15 @@ namespace XCode
             {
                 if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
 
-                return dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+                var rs = dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -611,7 +635,15 @@ namespace XCode
             {
                 if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
 
-                return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+                var rs = dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -691,7 +723,15 @@ namespace XCode
             {
                 if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
 
-                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+                var rs = dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -1015,7 +1055,7 @@ namespace XCode
                 for (var i = 0; i < fields.Length && i < line.Length; i++)
                 {
                     var fi = fields[i];
-                    if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
+                    if (fi != null && !line[i].IsNullOrEmpty()) entity.SetItem(fi.Name, line[i].ChangeType(fi.Type));
                 }
 
                 list.Add(entity);
