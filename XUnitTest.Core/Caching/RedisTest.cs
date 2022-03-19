@@ -12,6 +12,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.UnitTest;
 using Xunit;
 
 namespace XUnitTest.Caching
@@ -40,7 +41,7 @@ namespace XUnitTest.Caching
 #endif
         }
 
-        [TestPriority(0)]
+        [TestOrder(0)]
         [Fact]
         public void ConfigTest()
         {
@@ -65,7 +66,7 @@ namespace XUnitTest.Caching
             Assert.Equal(3600, redis.Expire);
         }
 
-        [TestPriority(2)]
+        [TestOrder(2)]
         [Fact]
         public void ConfigTest2()
         {
@@ -80,7 +81,7 @@ namespace XUnitTest.Caching
             Assert.Equal(6, rds.Db);
         }
 
-        [TestPriority(4)]
+        [TestOrder(4)]
         [Fact(DisplayName = "基础测试")]
         public void BasicTest()
         {
@@ -116,7 +117,7 @@ namespace XUnitTest.Caching
             Assert.True(ic.Count == 0);
         }
 
-        [TestPriority(6)]
+        [TestOrder(6)]
         [Fact(DisplayName = "集合测试")]
         public void DictionaryTest()
         {
@@ -139,7 +140,7 @@ namespace XUnitTest.Caching
             }
         }
 
-        [TestPriority(8)]
+        [TestOrder(8)]
         [Fact(DisplayName = "高级添加")]
         public void AddReplace()
         {
@@ -170,7 +171,7 @@ namespace XUnitTest.Caching
             Assert.NotEqual(Environment.UserName, name);
         }
 
-        [TestPriority(10)]
+        [TestOrder(10)]
         [Fact]
         public void TryGet()
         {
@@ -212,7 +213,7 @@ namespace XUnitTest.Caching
             Assert.Null(v6);
         }
 
-        [TestPriority(12)]
+        [TestOrder(12)]
         [Fact(DisplayName = "累加累减")]
         public void IncDec()
         {
@@ -229,7 +230,7 @@ namespace XUnitTest.Caching
             Assert.True(Math.Round((45.6d + 2.2d) - ic.Get<Double>(key2), 4) < 0.0001);
         }
 
-        [TestPriority(14)]
+        [TestOrder(14)]
         [Fact(DisplayName = "复杂对象")]
         public void TestObject()
         {
@@ -260,7 +261,7 @@ namespace XUnitTest.Caching
             public DateTime UpdateTime { get; set; }
         }
 
-        [TestPriority(20)]
+        [TestOrder(20)]
         [Fact(DisplayName = "字节数组")]
         public void TestBuffer()
         {
@@ -276,7 +277,7 @@ namespace XUnitTest.Caching
             Assert.Equal(buf.ToHex(), buf2.ToHex());
         }
 
-        [TestPriority(30)]
+        [TestOrder(30)]
         [Fact(DisplayName = "数据包")]
         public void TestPacket()
         {
@@ -292,7 +293,7 @@ namespace XUnitTest.Caching
             Assert.Equal(pk.ToHex(), pk2.ToHex());
         }
 
-        [TestPriority(40)]
+        [TestOrder(40)]
         [Fact(DisplayName = "管道")]
         public void TestPipeline()
         {
@@ -304,7 +305,7 @@ namespace XUnitTest.Caching
             _redis.AutoPipeline = ap;
         }
 
-        [TestPriority(42)]
+        [TestOrder(42)]
         [Fact(DisplayName = "管道2")]
         public void TestPipeline2()
         {
@@ -348,7 +349,7 @@ namespace XUnitTest.Caching
             _redis.AutoPipeline = ap;
         }
 
-        [TestPriority(50)]
+        [TestOrder(50)]
         [Fact(DisplayName = "正常锁")]
         public void TestLock1()
         {
@@ -374,7 +375,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey(k2.Key));
         }
 
-        [TestPriority(52)]
+        [TestOrder(52)]
         [Fact(DisplayName = "抢锁失败")]
         public void TestLock2()
         {
@@ -400,7 +401,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey("lock:TestLock2"));
         }
 
-        [TestPriority(54)]
+        [TestOrder(54)]
         [Fact(DisplayName = "抢锁失败2")]
         public void TestLock22()
         {
@@ -427,7 +428,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey("lock:TestLock2"));
         }
 
-        [TestPriority(56)]
+        [TestOrder(56)]
         [Fact(DisplayName = "抢死锁")]
         public void TestLock3()
         {
@@ -443,7 +444,7 @@ namespace XUnitTest.Caching
             Assert.NotNull(ck2);
         }
 
-        [TestPriority(60)]
+        [TestOrder(60)]
         [Fact(DisplayName = "搜索测试")]
         public void SearchTest()
         {
@@ -490,7 +491,7 @@ namespace XUnitTest.Caching
             return null;
         }
 
-        [TestPriority(70)]
+        [TestOrder(70)]
         [Fact]
         public async void PopAsync()
         {
@@ -521,7 +522,7 @@ namespace XUnitTest.Caching
             //Assert.True(sw.ElapsedMilliseconds >= 100);
         }
 
-        [TestPriority(80)]
+        [TestOrder(80)]
         [Fact(DisplayName = "从机测试")]
         public void SlaveTest()
         {
@@ -572,7 +573,7 @@ namespace XUnitTest.Caching
             Assert.True(ic.Count == 0);
         }
 
-        [TestPriority(90)]
+        [TestOrder(90)]
         [Fact]
         public void AddRedis()
         {
@@ -600,7 +601,7 @@ namespace XUnitTest.Caching
             Assert.Equal(13, rds.Db);
         }
 
-        [TestPriority(100)]
+        [TestOrder(100)]
         [Fact]
         public void MaxMessageSizeTest()
         {

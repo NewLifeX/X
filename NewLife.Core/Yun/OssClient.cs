@@ -41,7 +41,7 @@ namespace NewLife.Yun
         {
             if (_Client != null) return _Client;
 
-            var http = DefaultTracer.Instance?.CreateHttpClient();
+            var http = DefaultTracer.Instance.CreateHttpClient();
             http.BaseAddress = new Uri(_baseAddress ?? Endpoint);
 
             var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
