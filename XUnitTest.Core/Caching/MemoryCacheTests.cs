@@ -13,12 +13,14 @@ using Xunit;
 
 namespace XUnitTest.Caching
 {
+    [TestCaseOrderer("XUnitTest.PriorityOrderer", "XUnitTest.Core")]
     public class MemoryCacheTests
     {
         public MemoryCache Cache { get; set; }
 
         public MemoryCacheTests() => Cache = new MemoryCache();
 
+        [TestPriority(0)]
         [Fact(DisplayName = "基础测试")]
         public void Test1()
         {
@@ -52,6 +54,7 @@ namespace XUnitTest.Caching
             Assert.True(ic.Count == 0);
         }
 
+        [TestPriority(2)]
         [Fact(DisplayName = "集合测试")]
         public void DictionaryTest()
         {
@@ -74,6 +77,7 @@ namespace XUnitTest.Caching
             }
         }
 
+        [TestPriority(4)]
         [Fact(DisplayName = "高级添加")]
         public void AddReplace()
         {
@@ -96,6 +100,7 @@ namespace XUnitTest.Caching
             Assert.NotEqual(Environment.UserName, name);
         }
 
+        [TestPriority(6)]
         [Fact]
         public void TryGet()
         {
@@ -120,6 +125,7 @@ namespace XUnitTest.Caching
             Assert.Equal(v1, v4);
         }
 
+        [TestPriority(8)]
         [Fact(DisplayName = "累加累减")]
         public void IncDec()
         {
@@ -140,6 +146,7 @@ namespace XUnitTest.Caching
             Assert.Equal(3.14 + 0.3, ic.Get<Double>("cc"));
         }
 
+        [TestPriority(10)]
         [Fact(DisplayName = "复杂对象")]
         public void TestObject()
         {
@@ -170,6 +177,7 @@ namespace XUnitTest.Caching
             public DateTime UpdateTime { get; set; }
         }
 
+        [TestPriority(20)]
         [Fact(DisplayName = "字节数组")]
         public void TestBuffer()
         {
@@ -185,6 +193,7 @@ namespace XUnitTest.Caching
             Assert.Equal(buf.ToHex(), buf2.ToHex());
         }
 
+        [TestPriority(30)]
         [Fact(DisplayName = "数据包")]
         public void TestPacket()
         {
@@ -200,6 +209,7 @@ namespace XUnitTest.Caching
             Assert.Equal(pk.ToHex(), pk2.ToHex());
         }
 
+        [TestPriority(80)]
         [Fact(DisplayName = "正常锁")]
         public void TestLock1()
         {
@@ -225,6 +235,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey(k2.Key));
         }
 
+        [TestPriority(80)]
         [Fact(DisplayName = "抢锁失败")]
         public void TestLock2()
         {
@@ -252,6 +263,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey("lock:TestLock2"));
         }
 
+        [TestPriority(80)]
         [Fact(DisplayName = "抢死锁")]
         public void TestLock3()
         {
@@ -279,6 +291,7 @@ namespace XUnitTest.Caching
             //Assert.True(sw.ElapsedMilliseconds <= 1000);
         }
 
+        [TestPriority(90)]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -311,6 +324,7 @@ namespace XUnitTest.Caching
             Assert.Equal("NewLife", ga.Name);
         }
 
+        [TestPriority(100)]
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
