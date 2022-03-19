@@ -1055,7 +1055,7 @@ namespace XCode
                 for (var i = 0; i < fields.Length && i < line.Length; i++)
                 {
                     var fi = fields[i];
-                    if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
+                    if (fi != null && !line[i].IsNullOrEmpty()) entity.SetItem(fi.Name, line[i].ChangeType(fi.Type));
                 }
 
                 list.Add(entity);

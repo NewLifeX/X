@@ -257,7 +257,7 @@ namespace XCode.Membership
             return r;
         }
 
-        /// <summary>根据名称从高向低分级查找，广度搜索</summary>
+        /// <summary>根据名称从高向低分级查找，广度搜索，仅搜索三级</summary>
         /// <param name="name">名称</param>
         /// <returns>实体列表</returns>
         public static Area FindByFullName(String name)
@@ -276,7 +276,8 @@ namespace XCode.Membership
                     {
                         if (item.Name == name || item.FullName == name) return item;
 
-                        q.Enqueue(item);
+                        // 仅搜索三级
+                        if (item.Level < 3) q.Enqueue(item);
                     }
                 }
             }
