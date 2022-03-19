@@ -276,98 +276,15 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
-            foreach (var dc in columns)
-            {
-                // 取消对主键的过滤，避免列名和值无法一一对应的问题
-                //if (dc.Identity) continue;
-
-                sb.Append(db.FormatName(dc));
-                sb.Append(',');
-            }
-            sb.Length--;
-            sb.Append(')');
+            if (columns == null) columns = table.Columns.ToArray();
+            BuildInsert(sb, db, action, table, columns);
 
             // 值列表
             sb.Append(" Values");
-
-            // 优化支持DbTable
-            if (list.FirstOrDefault() is DbRow)
-            {
-                // 提前把列名转为索引，然后根据索引找数据。外部确保数据列在数据源中都存在
-                DbTable dt = null;
-                Int32[] ids = null;
-                foreach (DbRow dr in list)
-                {
-                    if (dr.Table != dt)
-                    {
-                        dt = dr.Table;
-                        var cs = new List<Int32>();
-                        foreach (var dc in columns)
-                        {
-                            var idx = dt.GetColumn(dc.Name);
-                            if (idx < 0) idx = dt.GetColumn(dc.ColumnName);
-                            cs.Add(idx);
-                        }
-                        ids = cs.ToArray();
-                    }
-
-                    sb.Append('(');
-                    var row = dt.Rows[dr.Index];
-                    for (var i = 0; i < columns.Length; i++)
-                    {
-                        sb.Append(db.FormatValue(columns[i], row[ids[i]]));
-                        sb.Append(',');
-                    }
-                    sb.Length--;
-                    sb.Append("),");
-                }
-            }
-            else
-            {
-                foreach (var entity in list)
-                {
-                    sb.Append('(');
-                    foreach (var dc in columns)
-                    {
-                        sb.Append(db.FormatValue(dc, entity[dc.Name]));
-                        sb.Append(',');
-                    }
-                    sb.Length--;
-                    sb.Append("),");
-                }
-            }
-            sb.Length--;
+            BuildBatchValues(sb, db, action, table, columns, list);
 
             // 重复键执行update
-            if ((updateColumns != null && updateColumns.Count > 0) || (addColumns != null && addColumns.Count > 0))
-            {
-                sb.Append(" On Duplicate Key Update ");
-                if (updateColumns != null && updateColumns.Count > 0)
-                {
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-                if (addColumns != null && addColumns.Count > 0)
-                {
-                    sb.Append(',');
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (addColumns.Contains(dc.Name))
-                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-            }
+            BuildDuplicateKey(sb, db, columns, updateColumns, addColumns);
 
             return sb.Put(true);
         }
