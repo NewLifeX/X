@@ -57,26 +57,6 @@ namespace NewLife.Reflection
         /// <summary>编译时间</summary>
         public DateTime Compile => _Compile ??= GetCompileTime(Version);
 
-        private Version _CompileVersion;
-        /// <summary>编译版本</summary>
-        public Version CompileVersion
-        {
-            get
-            {
-                if (_CompileVersion == null)
-                {
-                    var ver = Asm.GetName().Version;
-                    if (ver == null) ver = new Version(1, 0);
-
-                    var dt = Compile;
-                    ver = new Version(ver.Major, ver.Minor, dt.Year, dt.Month * 100 + dt.Day);
-
-                    _CompileVersion = ver;
-                }
-                return _CompileVersion;
-            }
-        }
-
         private String _Company;
         /// <summary>公司名称</summary>
         public String Company => _Company ??= "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
@@ -798,13 +778,51 @@ namespace NewLife.Reflection
             var ss = version?.Split(new Char[] { '.' });
             if (ss == null || ss.Length < 4) return DateTime.MinValue;
 
-            var d = Convert.ToInt32(ss[2]);
-            var s = Convert.ToInt32(ss[3]);
+            var d = ss[2].ToInt();
+            var s = ss[3].ToInt();
+            var y = DateTime.Today.Year;
 
-            var dt = new DateTime(2000, 1, 1);
-            dt = dt.AddDays(d).AddSeconds(s * 2);
+            // 指定年月日的版本格式 1.0.yyyy.mmdd-betaHHMM
+            if (d <= y && d >= y - 10)
+            {
+                var dt = new DateTime(y, 1, 1);
+                if (s > 0)
+                {
+                    if (s >= 200) dt = dt.AddMonths(s / 100 - 1);
+                    s %= 100;
+                    if (s > 1) dt = dt.AddDays(s - 1);
+                }
+                else
+                {
+                    var str = ss[3];
+                    var p = str.IndexOf('-');
+                    if (p > 0)
+                    {
+                        s = str[..p].ToInt();
+                        if (s > 0)
+                        {
+                            if (s >= 200) dt = dt.AddMonths(s / 100 - 1);
+                            s %= 100;
+                            if (s > 1) dt = dt.AddDays(s - 1);
+                        }
 
-            return dt;
+                        if (str.Length >= 4 + 1 + 4)
+                        {
+                            s = str[^4].ToInt();
+                            if (s > 0) dt = dt.AddHours(s / 100).AddMinutes(s % 100);
+                        }
+                    }
+                }
+
+                return dt;
+            }
+            else
+            {
+                var dt = new DateTime(2000, 1, 1);
+                dt = dt.AddDays(d).AddSeconds(s * 2);
+
+                return dt;
+            }
         }
         #endregion
     }
