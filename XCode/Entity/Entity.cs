@@ -395,7 +395,7 @@ namespace XCode
                 var pk = pks[0];
                 if (!pk.IsIdentity && pk.Type == typeof(Int64) && this[pk.Name].ToLong() == 0)
                 {
-                    this[pk.Name] = factory.Snow.NewId();
+                    SetItem(pk.Name, factory.Snow.NewId());
                 }
             }
 
@@ -1778,7 +1778,7 @@ namespace XCode
             foreach (var fi in fs)
             {
                 // 顺序要求很高
-                this[fi.Name] = bn.Read(fi.Type);
+                SetItem(fi.Name, bn.Read(fi.Type));
             }
 
             return true;
