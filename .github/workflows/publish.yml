@@ -19,17 +19,13 @@ jobs:
     - name: Restore
       run: |
         dotnet restore NewLife.Core/NewLife.Core.csproj
-        dotnet restore XCode/XCode.csproj
         dotnet restore NewLife.WinCore/NewLife.WinCore.csproj
         dotnet restore NewLife.Security/NewLife.Security.csproj
-        dotnet restore XCodeTool/XCodeTool.csproj
     - name: Build
       run: |
         dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release -o out NewLife.Core/NewLife.Core.csproj
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release -o out XCode/XCode.csproj
         dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release -o out NewLife.WinCore/NewLife.WinCore.csproj
         dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release -o out NewLife.Security/NewLife.Security.csproj
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release -o out XCodeTool/XCodeTool.csproj
     - name: Publish
       run: |
         dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
