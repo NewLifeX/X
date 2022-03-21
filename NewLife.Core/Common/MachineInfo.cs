@@ -683,13 +683,21 @@ namespace NewLife
             }
 
             // 排序，避免多个磁盘序列号时，顺序变动
+            //foreach (var item in dic)
+            //{
+            //    if (item.Value.Contains(','))
+            //        dic[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
+            //}
+            var dic2 = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in dic)
             {
                 if (item.Value.Contains(','))
-                    dic[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
+                    dic2[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
+                else
+                    dic2[item.Key] = item.Value;
             }
 
-            return dic;
+            return dic2;
         }
         #endregion
 
