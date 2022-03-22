@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -109,6 +110,24 @@ namespace NewLife.Caching
 
             var configProvider = provider.GetRequiredService<IConfigProvider>();
             configProvider.Bind(this, true, name);
+        }
+
+        /// <summary>实例化Redis，指定名称，支持从环境变量Redis_{Name}读取配置，或者逐个属性配置</summary>
+        /// <param name="name"></param>
+        public Redis(String name)
+        {
+            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+
+            Name = name;
+
+            // 从环境变量加载连接字符
+            foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+            {
+                if (item.Key is String key && item.Value is String value && key.EqualIgnoreCase($"Redis_{name}"))
+                {
+                    Init(value);
+                }
+            }
         }
 
         /// <summary>销毁</summary>

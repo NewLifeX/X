@@ -145,3 +145,6 @@ rand 参数，是否随机产生key/value。
 batch 批大小，分批执行读写操作，借助GetAll/SetAll进行优化。  
 
 Redis默认设置AutoPipeline=100，无分批时打开管道操作，对添删改优化。  
+
+### 容器化部署
+支持从环境变量 `Redis_{Name}` 中加载配置，用于容器化部署。  
