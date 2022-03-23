@@ -17,6 +17,7 @@ using Xunit;
 
 namespace XUnitTest.Caching
 {
+    [TestCaseOrderer("NewLife.UnitTest.PriorityOrderer", "NewLife.UnitTest")]
     public class RedisTest
     {
         private Redis _redis;

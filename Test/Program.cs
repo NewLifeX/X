@@ -55,9 +55,6 @@ namespace Test
             //    //"System.Data.DataCommonEventSource",
             //    //"Microsoft-Diagnostics-DiagnosticSource",
             //});
-
-            var set2 = XCode.Setting.Current;
-            set2.Debug = true;
 #endif
             while (true)
             {
@@ -66,7 +63,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)

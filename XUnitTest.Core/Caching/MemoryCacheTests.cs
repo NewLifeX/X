@@ -14,7 +14,7 @@ using Xunit;
 
 namespace XUnitTest.Caching
 {
-    [TestCaseOrderer("NewLife.UnitTest.TestOrderer", "NewLife.UnitTest")]
+    [TestCaseOrderer("NewLife.UnitTest.PriorityOrderer", "NewLife.UnitTest")]
     public class MemoryCacheTests
     {
         public MemoryCache Cache { get; set; }
