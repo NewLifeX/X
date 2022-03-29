@@ -963,7 +963,7 @@ namespace NewLife
                     p.OutputDataReceived += (s, e) => output(e.Data);
                     p.ErrorDataReceived += (s, e) => output(e.Data);
                 }
-                else if (NewLife.Runtime.IsConsole)
+                else
                 {
                     p.OutputDataReceived += (s, e) => { if (e.Data != null) XTrace.WriteLine(e.Data); };
                     p.ErrorDataReceived += (s, e) => { if (e.Data != null) XTrace.Log.Error(e.Data); };
@@ -972,7 +972,7 @@ namespace NewLife
             if (onExit != null) p.Exited += (s, e) => { if (s is Process proc) onExit(proc); };
 
             p.Start();
-            if (msWait > 0 && (output != null || NewLife.Runtime.IsConsole))
+            if (msWait > 0)
             {
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();

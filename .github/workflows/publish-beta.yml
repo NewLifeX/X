@@ -3,6 +3,12 @@ name: publish-beta
 on:
   push:
     branches: [ master ]
+    paths:
+        - 'NewLife.Core/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+        - 'NewLife.Core/**'
 
 jobs:
   build-publish:
@@ -10,12 +16,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
-        include-prerelease: true
     - name: Restore
       run: |
         dotnet restore NewLife.Core/NewLife.Core.csproj

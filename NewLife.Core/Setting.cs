@@ -68,11 +68,9 @@ namespace NewLife
         /// <summary>加载完成后</summary>
         protected override void OnLoaded()
         {
-            var web = Runtime.IsWeb;
-
-            if (LogPath.IsNullOrEmpty()) LogPath = web ? "..\\Log" : "Log";
-            if (DataPath.IsNullOrEmpty()) DataPath = web ? "..\\Data" : "Data";
-            if (BackupPath.IsNullOrEmpty()) BackupPath = web ? "..\\Backup" : "Backup";
+            if (LogPath.IsNullOrEmpty()) LogPath = "Log";
+            if (DataPath.IsNullOrEmpty()) DataPath = "Data";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = "Backup";
             //if (TempPath.IsNullOrEmpty()) TempPath = web ? "..\\Temp" : "Temp";
             if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
