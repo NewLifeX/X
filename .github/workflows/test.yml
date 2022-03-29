@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  build-publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore
+      run: |
+        dotnet restore NewLife.Core/NewLife.Core.csproj
+        dotnet restore NewLife.WinCore/NewLife.WinCore.csproj
+        dotnet restore NewLife.Security/NewLife.Security.csproj
+    - name: Build
+      run: |
+        dotnet build --no-restore NewLife.Core/NewLife.Core.csproj
+        dotnet build --no-restore NewLife.WinCore/NewLife.WinCore.csproj
+        dotnet build --no-restore NewLife.Security/NewLife.Security.csproj
