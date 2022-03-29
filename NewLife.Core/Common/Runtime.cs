@@ -82,9 +82,9 @@ namespace NewLife
         {
             get
             {
-                if (Stopwatch.IsHighResolution) return Stopwatch.GetTimestamp() / Stopwatch.Frequency;
+                if (Stopwatch.IsHighResolution) return Stopwatch.GetTimestamp() / Stopwatch.Frequency * 1000;
 
-                return Environment.TickCount / 1000;
+                return Environment.TickCount;
             }
         }
 #endif
