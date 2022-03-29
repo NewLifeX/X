@@ -51,10 +51,13 @@ namespace XCode.Service
 
                 Servers = new[] { $"{u.Scheme}://{u.Host}:{u.Port}" };
 
-                Db = u.PathAndQuery.Split("/").FirstOrDefault();
-                var us = u.UserInfo.Split(":");
-                UserName = us.Length > 0 ? us[0] : null;
-                Password = us.Length > 1 ? us[1] : null;
+                Db = u.PathAndQuery.Split('/').FirstOrDefault();
+                var us = u.UserInfo.Split(':');
+                if (us != null)
+                {
+                    if (us.Length > 0) UserName = us[0];
+                    if (us.Length > 1) Password = us[1];
+                }
             }
         }
         #endregion
@@ -117,12 +120,7 @@ namespace XCode.Service
         /// <remarks>借助索引快速查询，但略有偏差</remarks>
         /// <param name="tableName">数据表</param>
         /// <returns></returns>
-        public async Task<Int64> QueryCountAsync(String tableName)
-        {
-            //var arg = Encode(tableName, null);
-
-            return await InvokeAsync<Int64>("Db/QueryCount", new { tableName }).ConfigureAwait(false);
-        }
+        public async Task<Int64> QueryCountAsync(String tableName) => await InvokeAsync<Int64>("Db/QueryCount", new { tableName }).ConfigureAwait(false);
 
         /// <summary>异步执行</summary>
         /// <param name="sql">语句</param>

@@ -8,9 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Configuration;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -72,6 +74,7 @@ namespace XCode.DataAccessLayer
         public IDbSession Session => Db.CreateSession();
 
         private String _mapTo;
+        private ICache _cache = new MemoryCache();
         #endregion
 
         #region 创建函数
@@ -106,7 +109,7 @@ namespace XCode.DataAccessLayer
                 if (ConnStr.IsNullOrEmpty()) throw new XCodeException("请在使用数据库前设置[" + connName + "]连接字符串");
 
                 // 连接映射
-                var vs = ConnStr.SplitAsDictionary("=", ",");
+                var vs = ConnStr.SplitAsDictionary("=", ",", true);
                 if (vs.TryGetValue("MapTo", out var map) && !map.IsNullOrEmpty()) _mapTo = map;
 
                 if (_connTypes.TryGetValue(connName, out var t))
@@ -128,7 +131,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 静态管理
-        private static readonly ConcurrentDictionary<String, DAL> _dals = new ConcurrentDictionary<String, DAL>(StringComparer.OrdinalIgnoreCase);
+        private static readonly ConcurrentDictionary<String, DAL> _dals = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>创建一个数据访问层对象。</summary>
         /// <param name="connName">配置名</param>
         /// <returns>对应于指定链接的全局唯一的数据访问层对象</returns>
@@ -143,7 +146,7 @@ namespace XCode.DataAccessLayer
             dal.Init();
 
             // 映射到另一个连接
-            if (!dal._mapTo.IsNullOrEmpty()) dal = _dals.GetOrAdd(dal._mapTo, k => new DAL(k));
+            if (!dal._mapTo.IsNullOrEmpty()) dal = _dals.GetOrAdd(dal._mapTo, Create);
 
             return dal;
         }
@@ -202,7 +205,7 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(fname) && fname.StartsWith("TestSourceHost: Enumerating"))
             {
                 XTrace.WriteLine($"AppDomain.CurrentDomain.FriendlyName不太友好，处理一下：{fname}");
-                fname = fname.Substring(fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)).TrimEnd(')');
+                fname = fname[fname.IndexOf(AppDomain.CurrentDomain.BaseDirectory, StringComparison.Ordinal)..].TrimEnd(')');
             }
             if (!File.Exists(file)) file = "app.config".GetFullPath();
             if (!File.Exists(file)) file = $"{fname}.config".GetFullPath();
@@ -243,33 +246,10 @@ namespace XCode.DataAccessLayer
             if (!File.Exists(file)) file = Path.Combine(Directory.GetCurrentDirectory(), fileName);
             if (File.Exists(file))
             {
-                var lines = File.ReadAllLines(file);
+                var text = File.ReadAllText(file);
 
                 // 预处理注释
-                var text = lines
-                    .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
-                    // 没考虑到链接中带双斜杠的，以下导致链接的内容被干掉
-                    //.Select(e =>
-                    //{
-                    //    // 单行注释 “//” 放在最后的情况
-                    //    var p0 = e.IndexOf("//");
-                    //    if (p0 > 0) return e.Substring(0, p0);
-
-                    //    return e;
-                    //})
-                    .Join(Environment.NewLine);
-
-                while (true)
-                {
-                    // 以下处理多行注释 “/**/” 放在一行的情况
-                    var p = text.IndexOf("/*");
-                    if (p < 0) break;
-
-                    var p2 = text.IndexOf("*/", p + 2);
-                    if (p2 < 0) break;
-
-                    text = text.Substring(0, p) + text.Substring(p2 + 2);
-                }
+                text = JsonConfigProvider.TrimComment(text);
 
                 var dic = JsonParser.Decode(text);
                 dic = dic?["ConnectionStrings"] as IDictionary<String, Object>;
@@ -329,20 +309,48 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>找不到连接名时调用。支持用户自定义默认连接</summary>
+        [Obsolete]
         public static event EventHandler<ResolveEventArgs> OnResolve;
 
         /// <summary>获取连接字符串的委托。可以二次包装在连接名前后加上标识，存放在配置中心</summary>
         public static GetConfigCallback GetConfig { get; set; }
 
-        private static readonly ConcurrentHashSet<String> _conns = new ConcurrentHashSet<String>();
+        private static IConfigProvider _configProvider;
+        /// <summary>设置配置提供者。可对接配置中心，DAL内部自动从内置对象容器中取得星尘配置提供者</summary>
+        /// <param name="configProvider"></param>
+        public static void SetConfig(IConfigProvider configProvider)
+        {
+            WriteLog("DAL绑定配置提供者 {0}", configProvider);
+
+            configProvider.Bind(new MyDAL());
+            _configProvider = configProvider;
+        }
+
+        private static readonly ConcurrentHashSet<String> _conns = new();
         private static TimerX _timerGetConfig;
         /// <summary>从配置中心加载连接字符串，并支持定时刷新</summary>
         /// <param name="connName"></param>
         /// <returns></returns>
         private static Boolean GetFromConfigCenter(String connName)
         {
+            var getConfig = GetConfig;
+
+            // 自动从对象容器里取得配置提供者
+            if (getConfig == null && _configProvider == null)
             {
-                var str = GetConfig?.Invoke(connName);
+                var prv = ObjectContainer.Provider.GetService<IConfigProvider>();
+                if (prv != null)
+                {
+                    WriteLog("DAL自动绑定配置提供者 {0}", prv);
+
+                    prv.Bind(new MyDAL());
+                    _configProvider = prv;
+                }
+            }
+
+            if (getConfig == null) getConfig = _configProvider?.GetConfig;
+            {
+                var str = getConfig?.Invoke(connName);
                 if (str.IsNullOrEmpty()) return false;
 
                 AddConnStr(connName, str, null, null);
@@ -355,14 +363,14 @@ namespace XCode.DataAccessLayer
             if (!connName.EndsWithIgnoreCase(".readonly"))
             {
                 var connName2 = connName + ".readonly";
-                var str = GetConfig?.Invoke(connName2);
+                var str = getConfig?.Invoke(connName2);
                 if (!str.IsNullOrEmpty()) AddConnStr(connName2, str, null, null);
 
                 // 加入集合，定时更新
                 if (!_conns.Contains(connName2)) _conns.TryAdd(connName2);
             }
 
-            if (_timerGetConfig == null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
+            if (_timerGetConfig == null && GetConfig != null) _timerGetConfig = new TimerX(DoGetConfig, null, 5_000, 60_000) { Async = true };
 
             return true;
         }
@@ -373,6 +381,18 @@ namespace XCode.DataAccessLayer
             {
                 var str = GetConfig?.Invoke(item);
                 if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
+            }
+        }
+
+        class MyDAL : IConfigMapping
+        {
+            public void MapConfig(IConfigProvider provider, IConfigSection section)
+            {
+                foreach (var item in _conns)
+                {
+                    var str = section[item];
+                    if (!str.IsNullOrEmpty()) AddConnStr(item, str, null, null);
+                }
             }
         }
         #endregion
@@ -419,13 +439,13 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 正向工程
-        private List<IDataTable> _Tables;
+        private IList<IDataTable> _Tables;
         /// <summary>取得所有表和视图的构架信息（异步缓存延迟1秒）。设为null可清除缓存</summary>
         /// <remarks>
         /// 如果不存在缓存，则获取后返回；否则使用线程池线程获取，而主线程返回缓存。
         /// </remarks>
         /// <returns></returns>
-        public List<IDataTable> Tables
+        public IList<IDataTable> Tables
         {
             get
             {
@@ -442,12 +462,46 @@ namespace XCode.DataAccessLayer
                 _Tables = null;
         }
 
-        private List<IDataTable> GetTables()
+        private IList<IDataTable> GetTables()
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return new List<IDataTable>();
 
-            CheckDatabase();
-            return Db.CreateMetaData().GetTables();
+            var tracer = Tracer ?? GlobalTracer;
+            using var span = tracer?.NewSpan("db:GetTables", ConnName);
+            try
+            {
+                //CheckDatabase();
+                return Db.CreateMetaData().GetTables();
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 获取所有表名，带缓存，不区分大小写
+        /// </summary>
+        public ICollection<String> TableNames => _cache.GetOrAdd("tableNames", k => new HashSet<String>(GetTableNames(), StringComparer.OrdinalIgnoreCase), 60);
+
+        /// <summary>
+        /// 快速获取所有表名，无缓存，区分大小写
+        /// </summary>
+        /// <returns></returns>
+        public IList<String> GetTableNames()
+        {
+            var tracer = Tracer ?? GlobalTracer;
+            using var span = tracer?.NewSpan("db:GetTableNames", ConnName);
+            try
+            {
+                return Db.CreateMetaData().GetTableNames();
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         /// <summary>导出模型</summary>
@@ -456,7 +510,7 @@ namespace XCode.DataAccessLayer
         {
             var list = Tables;
 
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             return Export(list);
         }
@@ -492,7 +546,7 @@ namespace XCode.DataAccessLayer
 
         #region 反向工程
         private Boolean _hasCheck;
-        /// <summary>使用数据库之前检查表架构</summary>
+        /// <summary>检查数据库，建库建表加字段</summary>
         /// <remarks>不阻塞，可能第一个线程正在检查表架构，别的线程已经开始使用数据库了</remarks>
         public void CheckDatabase()
         {
@@ -500,6 +554,7 @@ namespace XCode.DataAccessLayer
             lock (this)
             {
                 if (_hasCheck) return;
+                _hasCheck = true;
 
                 try
                 {
@@ -522,11 +577,10 @@ namespace XCode.DataAccessLayer
                 {
                     if (Debug) WriteLog(ex.GetMessage());
                 }
-                _hasCheck = true;
             }
         }
 
-        internal List<String> HasCheckTables = new List<String>();
+        internal List<String> HasCheckTables = new();
         /// <summary>检查是否已存在，如果不存在则添加</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
@@ -544,7 +598,7 @@ namespace XCode.DataAccessLayer
             return false;
         }
 
-        /// <summary>检查数据表架构，不受反向工程启用开关限制，仅检查未经过常规检查的表</summary>
+        /// <summary>检查所有数据表，建表加字段</summary>
         public void CheckTables()
         {
             var name = ConnName;
@@ -560,15 +614,12 @@ namespace XCode.DataAccessLayer
                     // 移除所有已初始化的
                     list.RemoveAll(dt => CheckAndAdd(dt.TableName));
 
-                    //// 过滤掉被排除的表名
-                    //list.RemoveAll(dt => NegativeExclude.Contains(dt.TableName));
-
                     // 过滤掉视图
                     list.RemoveAll(dt => dt.IsView);
 
                     if (list != null && list.Count > 0)
                     {
-                        WriteLog(name + "待检查表架构的实体个数：" + list.Count);
+                        WriteLog("[{0}]待检查表架构的实体个数：{1}", name, list.Count);
 
                         SetTables(list.ToArray());
                     }
@@ -582,23 +633,61 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        /// <summary>在当前连接上检查指定数据表的架构</summary>
+        /// <summary>检查指定数据表，建表加字段</summary>
         /// <param name="tables"></param>
         public void SetTables(params IDataTable[] tables)
         {
             if (Db is DbBase db2 && !db2.SupportSchema) return;
 
-            //// 构建DataTable时也要注意表前缀，避免反向工程用错
-            //var pf = Db.TablePrefix;
-            //if (!pf.IsNullOrEmpty())
-            //{
-            //    foreach (var tbl in tables)
-            //    {
-            //        if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
-            //    }
-            //}
+            var tracer = Tracer ?? GlobalTracer;
+            using var span = tracer?.NewSpan("db:SetTables", tables.Join());
+            try
+            {
+                //// 构建DataTable时也要注意表前缀，避免反向工程用错
+                //var pf = Db.TablePrefix;
+                //if (!pf.IsNullOrEmpty())
+                //{
+                //    foreach (var tbl in tables)
+                //    {
+                //        if (!tbl.TableName.StartsWithIgnoreCase(pf)) tbl.TableName = pf + tbl.TableName;
+                //    }
+                //}
 
-            Db.CreateMetaData().SetTables(Db.Migration, tables);
+                foreach (var item in tables)
+                {
+                    FixIndexName(item);
+                }
+
+                Db.CreateMetaData().SetTables(Db.Migration, tables);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
+        }
+
+        void FixIndexName(IDataTable table)
+        {
+            // 修改一下索引名，否则，可能因为同一个表里面不同的索引冲突
+            if (table.Indexes != null)
+            {
+                var pf = Db.TablePrefix;
+                foreach (var di in table.Indexes)
+                {
+                    if (!di.Name.IsNullOrEmpty() && pf.IsNullOrEmpty()) continue;
+
+                    var sb = Pool.StringBuilder.Get();
+                    sb.AppendFormat("IX_{0}", Db.FormatName(table, false));
+                    foreach (var item in di.Columns)
+                    {
+                        sb.Append('_');
+                        sb.Append(item);
+                    }
+
+                    di.Name = sb.Put(true);
+                }
+            }
         }
         #endregion
     }

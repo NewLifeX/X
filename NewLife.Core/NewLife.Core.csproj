@@ -1,88 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net40;net45;net46;netstandard2.0;net5.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0;netstandard2.1</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
-    <AssemblyTitle>X组件核心库</AssemblyTitle>
-    <Description>算法、日志、网络、RPC、序列化、缓存、线程池</Description>
+    <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
+    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。旧版请找2021.1225</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2021 NewLife</Copyright>
-    <Version>8.10.2021.0310-beta1</Version>
-    <FileVersion>8.10.2021.0310</FileVersion>
-    <AssemblyVersion>8.10.*</AssemblyVersion>
-    <Deterministic>false</Deterministic>
+    <Copyright>©2002-2022 NewLife</Copyright>
+    <VersionPrefix>9.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(VersionPrefix).$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</AssemblyVersion>
     <OutputPath>..\..\Bin</OutputPath>
-    <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <Authors>$(Company)</Authors>
-    <ProjectUrl>https://www.yuque.com/smartstone/nx</ProjectUrl>
+    <PackageProjectUrl>https://www.yuque.com/smartstone/nx</PackageProjectUrl>
     <PackageIcon>leaf.png</PackageIcon>
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>ICache支持GetOrAdd;ApiHttpClient支持负载均衡</PackageReleaseNotes>
+    <PackageReleaseNotes>优化HTTP相关埋点；TimerX规避时间回拨</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSources>true</IncludeSources>
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat> 
-  </PropertyGroup>
+  </PropertyGroup>  
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET4</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET45</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net46'">
-    <DefineConstants>$(DefineConstants);__WIN__;NET46</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;STD20</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.1'">
-    <DefineConstants>$(DefineConstants);__CORE__;STD21</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <DefineConstants>$(DefineConstants);__CORE__;NET50</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
-  </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net45' Or '$(TargetFramework)'=='net46'">
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System.Management" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net40'">
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System.Management" />
-    <PackageReference Include="System.Net.Http" Version="2.0.20710" />
-  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <Compile Remove="Web\OAuth\**" />
@@ -92,9 +47,17 @@
     <None Remove="Web\OAuth\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Algorithms\BilinearInterpolation.cs" />
+    <Compile Remove="Algorithms\BucketModes.cs" />
+    <Compile Remove="Algorithms\BucketSource.cs" />
+    <Compile Remove="Algorithms\LagrangeInterpolation.cs" />
+    <Compile Remove="Algorithms\LTOBSampling.cs" />
+    <Compile Remove="Algorithms\LTTBSampling.cs" />
+    <Compile Remove="Algorithms\MaxSampling.cs" />
+    <Compile Remove="Algorithms\MinSampling.cs" />
+    <Compile Remove="Algorithms\SumSampling.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\HttpClient.cs" />
-    <Compile Remove="Http\HttpSession.cs" />
     <Compile Remove="Net\NetException.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />
@@ -106,9 +69,11 @@
     <Compile Remove="Security\ECDsaHelper.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
+    <Compile Remove="Serialization\Binary\BinaryPair.cs" />
     <Compile Remove="Serialization\Binary\BinaryUnknown.cs" />
     <Compile Remove="Serialization\JsonCodec.cs" />
     <Compile Remove="Serialization\JsonCodec2.cs" />
+    <Compile Remove="Serialization\Json\JsonTest.cs" />
     <Compile Remove="Web\OAuthClient.cs" />
     <Compile Remove="Web\OAuthConfig.cs" />
     <Compile Remove="Web\OAuthServer.cs" />

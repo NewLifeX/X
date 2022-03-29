@@ -13,7 +13,11 @@ namespace NewLife.IO
     /// 文档 https://www.yuque.com/smartstone/nx/csv_file
     /// 支持整体读写以及增量式读写，目标是读写超大Csv文件
     /// </remarks>
-    public class CsvFile : DisposeBase
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    public class CsvFile : IDisposable, IAsyncDisposable
+#else
+    public class CsvFile : IDisposable
+#endif
     {
         #region 属性
         /// <summary>文件编码</summary>
@@ -52,11 +56,20 @@ namespace NewLife.IO
                 _stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
 
+        private Boolean _disposed;
+        /// <summary>销毁</summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>销毁</summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
+        protected virtual void Dispose(Boolean disposing)
         {
-            base.Dispose(disposing);
+            if (_disposed) return;
+            _disposed = true;
 
             // 必须刷新写入器，否则可能丢失一截数据
             _writer?.Flush();
@@ -70,6 +83,30 @@ namespace NewLife.IO
                 _stream.Close();
             }
         }
+
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>异步销毁</summary>
+        /// <returns></returns>
+        public virtual async ValueTask DisposeAsync()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            // 必须刷新写入器，否则可能丢失一截数据
+            await _writer?.FlushAsync();
+
+            if (!_leaveOpen && _stream != null)
+            {
+                _reader.TryDispose();
+
+                await _writer.DisposeAsync();
+
+                await _stream.DisposeAsync();
+            }
+
+            GC.SuppressFinalize(this);
+        }
+#endif
         #endregion
 
         #region 读取
@@ -167,7 +204,12 @@ namespace NewLife.IO
             _writer.WriteLine(str);
         }
 
-#if !NET4
+        /// <summary>
+        /// 写入一行
+        /// </summary>
+        /// <param name="values"></param>
+        public void WriteLine(params Object[] values) => WriteLine(line: values);
+
         /// <summary>异步写入一行</summary>
         /// <param name="line"></param>
         public async Task WriteLineAsync(IEnumerable<Object> line)
@@ -178,7 +220,6 @@ namespace NewLife.IO
 
             await _writer.WriteLineAsync(str);
         }
-#endif
 
         /// <summary>构建一行</summary>
         /// <param name="line"></param>
@@ -199,9 +240,9 @@ namespace NewLife.IO
                     _ => item + "",
                 };
 
-                if (str.Contains("\""))
+                if (str.Contains('"'))
                     sb.AppendFormat("\"{0}\"", str.Replace("\"", "\"\""));
-                else if (str.Contains(Separator) || str.Contains("\r") || str.Contains("\n"))
+                else if (str.Contains(Separator) || str.Contains('\r') || str.Contains('\n'))
                     sb.AppendFormat("\"{0}\"", str);
                 else
                     sb.Append(str);
@@ -213,11 +254,7 @@ namespace NewLife.IO
         private StreamWriter _writer;
         private void EnsureWriter()
         {
-#if NET4
-            if (_writer == null) _writer = new StreamWriter(_stream, Encoding);
-#else
-            if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, true);
-#endif
+            if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, _leaveOpen);
         }
         #endregion
     }

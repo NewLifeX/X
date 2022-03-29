@@ -2,7 +2,7 @@
 后续例程与使用说明均以Redis为例，各缓存实现类似。  
 
 ### 内存缓存 MemoryCache
-MemoryCache核心是并行字典ConcurrentDictionary，由于省去了序列化和网络通信，使得它具有千万级超高性能。  
+MemoryCache核心是并发字典ConcurrentDictionary，由于省去了序列化和网络通信，使得它具有千万级超高性能。  
 MemoryCache支持过期时间，默认容量10万个，未过期key超过该值后，每60秒根据LRU清理溢出部分。  
 常用于进程内千万级以下数据缓存场景。  
 
@@ -145,3 +145,6 @@ rand 参数，是否随机产生key/value。
 batch 批大小，分批执行读写操作，借助GetAll/SetAll进行优化。  
 
 Redis默认设置AutoPipeline=100，无分批时打开管道操作，对添删改优化。  
+
+### 容器化部署
+支持从环境变量 `Redis_{Name}` 中加载配置，用于容器化部署。  

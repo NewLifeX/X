@@ -33,12 +33,8 @@ namespace NewLife
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
-#if __CORE__
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#else
-                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#endif
         }
 
         private static readonly ICache _Cache = MemoryCache.Instance;
@@ -68,11 +64,11 @@ namespace NewLife
             if (String.IsNullOrEmpty(address)) return null;
 
             var p = address.IndexOf("://");
-            if (p >= 0) address = address.Substring(p + 3);
+            if (p >= 0) address = address[(p + 3)..];
 
             p = address.LastIndexOf(':');
             if (p > 0)
-                return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
+                return new IPEndPoint(ParseAddress(address[..p]), Int32.Parse(address[(p + 1)..]));
             else
                 return new IPEndPoint(ParseAddress(address), defaultPort);
         }
@@ -204,7 +200,7 @@ namespace NewLife
         /// <returns></returns>
         public static TcpConnectionInformation2[] GetAllTcpConnections()
         {
-            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
+            if (!Runtime.Windows) return Array.Empty<TcpConnectionInformation2>();
 
             return TcpConnectionInformation2.GetAllTcpConnections();
         }
@@ -218,6 +214,7 @@ namespace NewLife
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
 
                 var ip = item.GetIPProperties();
                 if (ip != null) yield return ip;
@@ -289,12 +286,16 @@ namespace NewLife
         public static IEnumerable<IPAddress> GetIPs()
         {
             var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
-            foreach (var item in GetActiveInterfaces())
+            foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (item != null && item.UnicastAddresses.Count > 0)
+                if (item.OperationalStatus != OperationalStatus.Up) continue;
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                var ipp = item.GetIPProperties();
+                if (ipp != null && ipp.UnicastAddresses.Count > 0)
                 {
-                    var gw = item.GatewayAddresses.Count;
-                    foreach (var elm in item.UnicastAddresses)
+                    var gw = ipp.GatewayAddresses.Count;
+                    foreach (var elm in ipp.UnicastAddresses)
                     {
                         try
                         {
@@ -325,7 +326,7 @@ namespace NewLife
 
             addrs = GetIPs().ToArray();
 
-            _Cache.Set(key, addrs);
+            _Cache.Set(key, addrs, 60);
 
             return addrs;
         }
@@ -357,15 +358,20 @@ namespace NewLife
         {
             foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
             {
+                // 只要物理网卡
+                if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+                    item.NetworkInterfaceType == NetworkInterfaceType.Tunnel ||
+                    item.NetworkInterfaceType == NetworkInterfaceType.Unknown) continue;
                 if (_Excludes.Any(e => item.Description.Contains(e))) continue;
                 if (NewLife.Runtime.Windows && item.Speed < 1_000_000) continue;
 
+                // 物理网卡在禁用时没有IP，如果有IP，则不能是环回
                 var ips = item.GetIPProperties();
                 var addrs = ips.UnicastAddresses
                     .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
                     .Select(e => e.Address)
                     .ToArray();
-                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+                if (addrs.Length > 0 && addrs.All(e => IPAddress.IsLoopback(e))) continue;
 
                 var mac = item.GetPhysicalAddress()?.GetAddressBytes();
                 if (mac != null && mac.Length == 6) yield return mac;
@@ -416,7 +422,7 @@ namespace NewLife
         /// <param name="macs"></param>
         public static void Wake(params String[] macs)
         {
-            if (macs == null || macs.Length < 1) return;
+            if (macs == null || macs.Length <= 0) return;
 
             foreach (var item in macs)
             {
@@ -502,14 +508,14 @@ namespace NewLife
 
             // 有可能是NetUri
             var p = addr.IndexOf("://");
-            if (p >= 0) addr = addr.Substring(p + 3);
+            if (p >= 0) addr = addr[(p + 3)..];
 
             // 有可能是多个IP地址
-            p = addr.IndexOf(",");
-            if (p >= 0) addr = addr.Split(",").FirstOrDefault();
+            p = addr.IndexOf(',');
+            if (p >= 0) addr = addr.Split(',').FirstOrDefault();
 
             // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
+            if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(':')];
 
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
@@ -568,17 +574,15 @@ namespace NewLife
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if !NET4
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-#endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
         }
 
-        internal static Socket CreateTcp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+        internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
-        internal static Socket CreateUdp(Boolean ipv4 = true) => new Socket(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+        internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         #endregion
     }
 }

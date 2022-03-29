@@ -78,8 +78,8 @@ namespace NewLife.Web
 
             // Base64拆分数据和签名
             var p = token.IndexOf('.');
-            var data = token.Substring(0, p).ToBase64();
-            var sig = token.Substring(p + 1).ToBase64();
+            var data = token[..p].ToBase64();
+            var sig = token[(p + 1)..].ToBase64();
 
             // 验证签名
             //if (!DSAHelper.Verify(data, Key, sig)) throw new InvalidOperationException("签名验证失败！");
@@ -89,8 +89,8 @@ namespace NewLife.Web
             var str = data.ToStr();
             p = str.LastIndexOf(',');
 
-            var user = str.Substring(0, p);
-            var secs = str.Substring(p + 1).ToInt();
+            var user = str[..p];
+            var secs = str[(p + 1)..].ToInt();
             expire = secs.ToDateTime();
 
             return user;
@@ -108,15 +108,15 @@ namespace NewLife.Web
 
             // Base64拆分数据和签名
             var p = token.IndexOf('.');
-            var data = token.Substring(0, p).ToBase64();
-            var sig = token.Substring(p + 1).ToBase64();
+            var data = token[..p].ToBase64();
+            var sig = token[(p + 1)..].ToBase64();
 
             // 拆分数据和有效期
             var str = data.ToStr();
             p = str.LastIndexOf(',');
 
-            user = str.Substring(0, p);
-            var secs = str.Substring(p + 1).ToInt();
+            user = str[..p];
+            var secs = str[(p + 1)..].ToInt();
             expire = secs.ToDateTime();
 
             if (Key.IsNullOrEmpty()) return false;

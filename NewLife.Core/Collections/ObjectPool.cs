@@ -13,7 +13,7 @@ namespace NewLife.Collections
     /// 文档 https://www.yuque.com/smartstone/nx/object_pool
     /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class ObjectPool<T> : DisposeBase, IPool<T> where T : class
+    public class ObjectPool<T> : DisposeBase, IPool<T>
     {
         #region 属性
         /// <summary>名称</summary>
@@ -40,15 +40,15 @@ namespace NewLife.Collections
         public Int32 AllIdleTime { get; set; } = 0;
 
         /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
-        private readonly ConcurrentStack<Item> _free = new ConcurrentStack<Item>();
+        private readonly ConcurrentStack<Item> _free = new();
 
         /// <summary>扩展空闲集合。保存最小个数以外部分</summary>
-        private readonly ConcurrentQueue<Item> _free2 = new ConcurrentQueue<Item>();
+        private readonly ConcurrentQueue<Item> _free2 = new();
 
         /// <summary>借出去的放在这</summary>
-        private readonly ConcurrentDictionary<T, Item> _busy = new ConcurrentDictionary<T, Item>();
+        private readonly ConcurrentDictionary<T, Item> _busy = new();
 
-        private readonly Object SyncRoot = new Object();
+        private readonly Object SyncRoot = new();
         #endregion
 
         #region 构造
@@ -56,7 +56,7 @@ namespace NewLife.Collections
         public ObjectPool()
         {
             var str = GetType().Name;
-            if (str.Contains("`")) str = str.Substring(null, "`");
+            if (str.Contains('`')) str = str.Substring(null, "`");
             if (str != "Pool")
                 Name = str;
             else
@@ -181,7 +181,7 @@ namespace NewLife.Collections
 
         /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
         /// <returns></returns>
-        public PoolItem<T> GetItem() => new PoolItem<T>(this, Get());
+        public PoolItem<T> GetItem() => new(this, Get());
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
@@ -273,7 +273,7 @@ namespace NewLife.Collections
         #region 重载
         /// <summary>创建实例</summary>
         /// <returns></returns>
-        protected virtual T OnCreate() => typeof(T).CreateInstance() as T;
+        protected virtual T OnCreate() => (T)typeof(T).CreateInstance();
         #endregion
 
         #region 定期清理
@@ -403,7 +403,7 @@ namespace NewLife.Collections
 
     /// <summary>资源池包装项，自动归还资源到池中</summary>
     /// <typeparam name="T"></typeparam>
-    public class PoolItem<T> : DisposeBase where T : class
+    public class PoolItem<T> : DisposeBase
     {
         #region 属性
         /// <summary>数值</summary>

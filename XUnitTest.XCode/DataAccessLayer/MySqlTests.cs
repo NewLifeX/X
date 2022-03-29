@@ -2,17 +2,20 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NewLife;
 using NewLife.Log;
+using NewLife.Security;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
     public class MySqlTests
     {
-        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=root;Pwd=root";
+        private static String _ConnStr = "Server=.;Port=3306;Database=sys;Uid=data;Pwd=Pass@word";
 
         public MySqlTests()
         {
@@ -69,7 +72,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var db = dal.Db;
             var connstr = db.ConnectionString;
             Assert.Equal("sys", db.DatabaseName);
-            Assert.EndsWith(";Port=3306;Database=sys;Uid=data;Pwd=root;CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr.Replace("Pass@word", "root"));
+            Assert.EndsWith("CharSet=utf8mb4;Sslmode=none;AllowPublicKeyRetrieval=true", connstr);
 
             var ver = db.ServerVersion;
             Assert.NotEmpty(ver);
@@ -88,6 +91,10 @@ namespace XUnitTest.XCode.DataAccessLayer
             var tables = dal.Tables;
             Assert.NotNull(tables);
             Assert.True(tables.Count > 0);
+
+            var tb = tables.FirstOrDefault(e => e.Name == "User");
+            Assert.NotNull(tb);
+            Assert.NotEmpty(tb.Description);
         }
 
         [Fact]
@@ -282,6 +289,45 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Null(gly2.Remark);
             // 管理员被删除后重新插入，自增ID改变
             Assert.NotEqual(gly.ID, gly2.ID);
+        }
+
+        [Fact]
+        public void GetTables()
+        {
+            DAL.AddConnStr("member", _ConnStr.Replace("Database=sys", "Database=membership"), null, "MySql");
+            var dal = DAL.Create("member");
+            var tables = dal.Tables;
+
+            Assert.True(tables.Count > 0);
+
+            dal.SetTables(User.Meta.Table.DataTable);
+        }
+
+        [Fact]
+        public void PositiveAndNegative()
+        {
+            var connName = GetType().Name;
+            DAL.AddConnStr(connName, _ConnStr, null, "MySql");
+            var dal = DAL.Create(connName);
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

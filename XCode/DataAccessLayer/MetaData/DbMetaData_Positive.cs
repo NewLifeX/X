@@ -47,7 +47,7 @@ namespace XCode.DataAccessLayer
         #region 表构架
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
-        public List<IDataTable> GetTables()
+        public IList<IDataTable> GetTables()
         {
             try
             {
@@ -59,6 +59,25 @@ namespace XCode.DataAccessLayer
             }
         }
 
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public virtual IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
+        }
+
         /// <summary>取得所有表构架</summary>
         /// <returns></returns>
         protected virtual List<IDataTable> OnGetTables(String[] names)
@@ -66,7 +85,7 @@ namespace XCode.DataAccessLayer
             var list = new List<IDataTable>();
 
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return list;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
 
             // 默认列出所有表
             var rows = dt?.Rows.ToArray();
@@ -253,7 +272,7 @@ namespace XCode.DataAccessLayer
             if (indexes == null) return null;
 
             var drs = indexes.Select($"{_.TalbeName}='{table.TableName}'");
-            if (drs == null || drs.Length < 1) return null;
+            if (drs == null || drs.Length <= 0) return null;
 
             var list = new List<IDataIndex>();
             foreach (var dr in drs)
@@ -264,7 +283,7 @@ namespace XCode.DataAccessLayer
                 di.Name = name;
 
                 if (TryGetDataRowValue(dr, _.ColumnName, out name) && !String.IsNullOrEmpty(name))
-                    di.Columns = name.Split(",");
+                    di.Columns = name.Split(',');
                 else if (indexColumns != null)
                 {
                     String orderby = null;
@@ -282,7 +301,7 @@ namespace XCode.DataAccessLayer
                         {
                             if (TryGetDataRowValue(item, _.ColumnName, out String dcname) && !dcname.IsNullOrEmpty() && !ns.Contains(dcname)) ns.Add(dcname);
                         }
-                        if (ns.Count < 1) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
+                        if (ns.Count <= 0) DAL.WriteLog("表{0}的索引{1}无法取得字段列表！", table, di.Name);
                         di.Columns = ns.ToArray();
                     }
                 }

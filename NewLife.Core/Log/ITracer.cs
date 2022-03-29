@@ -6,7 +6,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using NewLife.Data;
 using NewLife.Http;
+using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -88,7 +90,7 @@ namespace NewLife.Log
         public String AttachParameter { get; set; } = "traceparent";
 
         /// <summary>Span构建器集合</summary>
-        protected ConcurrentDictionary<String, ISpanBuilder> _builders = new ConcurrentDictionary<String, ISpanBuilder>();
+        protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
         /// <summary>采样定时器</summary>
         protected TimerX _timer;
@@ -105,18 +107,18 @@ namespace NewLife.Log
             base.Dispose(disposing);
 
             _timer.TryDispose();
+
+            DoProcessSpans();
         }
         #endregion
 
         #region 方法
+        private Int32 _inited;
         private void InitTimer()
         {
-            if (_timer == null)
+            if (Interlocked.CompareExchange(ref _inited, 1, 0) == 0)
             {
-                lock (this)
-                {
-                    if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
-                }
+                if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
             }
         }
 
@@ -129,7 +131,7 @@ namespace NewLife.Log
             }
 
             // 采样周期可能改变
-            if (Period > 0 && _timer.Period != Period * 1000) _timer.Period = Period * 1000;
+            if (Period > 0 && _timer != null && _timer.Period != Period * 1000) _timer.Period = Period * 1000;
         }
 
         /// <summary>处理Span集合。默认输出日志，可重定义输出控制台</summary>
@@ -143,7 +145,7 @@ namespace NewLife.Log
                 {
                     var ms = bd.EndTime - bd.StartTime;
                     var speed = ms == 0 ? 0 : bd.Total * 1000d / ms;
-                    WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Throughput={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
+                    WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
 
 #if DEBUG
                     foreach (var span in bd.Samples)
@@ -167,7 +169,7 @@ namespace NewLife.Log
 
             // http 中可能有问号，需要截断。问号开头就不管了
             var p = name.IndexOf('?');
-            if (p > 0) name = name.Substring(0, p);
+            if (p > 0) name = name[..p];
 
             return _builders.GetOrAdd(name, k => OnBuildSpan(k));
         }
@@ -192,9 +194,21 @@ namespace NewLife.Log
             if (tag is String str)
                 span.Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
-                span.Tag = builder.ToString().Cut(1024);
+                span.Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
-                span.Tag = tag.ToJson().Cut(1024);
+            {
+                if (tag is Packet pk)
+                {
+                    if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
+                        span.Tag = pk.ToStr(null, 0, 1024);
+                    else
+                        span.Tag = pk.ToHex(1024 / 2);
+                }
+                else if (tag is IMessage msg)
+                    span.Tag = msg.ToPacket().ToHex(1024 / 2);
+                else
+                    span.Tag = tag.ToJson().Cut(1024);
+            }
 
             return span;
         }
@@ -242,9 +256,15 @@ namespace NewLife.Log
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
             if (handler == null) handler = new HttpClientHandler { UseProxy = false };
-            if (tracer == null) return new HttpClient(handler);
 
-            return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+            var client = tracer == null ?
+                new HttpClient(handler) :
+                new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+
+            // 默认UserAgent
+            client.SetUserAgent();
+
+            return client;
         }
 
         /// <summary>为Http请求创建Span</summary>
@@ -255,12 +275,36 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var url = request.RequestUri.ToString();
-            var p1 = url.IndexOf('?');
-            var p2 = url.IndexOf('/', "https://".Length);
-            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
-            span.Tag = p2 < 0 ? url : url.Substring(p2);
+            var span = CreateSpan(tracer, request.RequestUri);
             span.Attach(request);
+
+            return span;
+        }
+
+        private static ISpan CreateSpan(ITracer tracer, Uri uri)
+        {
+            var url = uri.ToString();
+
+            // 太长的Url分段，不适合作为埋点名称
+            if (url.Length > 20 + 16)
+            {
+                var ss = url.Split('/', '?');
+                // 从第三段开始查，跳过开头的http://和域名
+                for (var i = 3; i < ss.Length; i++)
+                {
+                    if (ss[i].Length > 16)
+                    {
+                        url = ss.Take(i).Join("/");
+                        break;
+                    }
+                }
+            }
+
+            var len = "https://".Length;
+            var p1 = url.IndexOf('?');
+            var p2 = url.Length > len ? url.IndexOf('/', len) : -1;
+            var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
+            span.Tag = p2 < 0 ? url : url[p2..];
 
             return span;
         }
@@ -273,12 +317,28 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var url = request.RequestUri.ToString();
-            var p1 = url.IndexOf('?');
-            var p2 = url.IndexOf('/', "https://".Length);
-            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
-            span.Tag = p2 < 0 ? url : url.Substring(p2);
+            var span = CreateSpan(tracer, request.RequestUri);
             span.Attach(request);
+
+            return span;
+        }
+
+        /// <summary>直接创建错误Span</summary>
+        /// <param name="tracer">跟踪器</param>
+        /// <param name="name">操作名</param>
+        /// <param name="error">Exception 异常对象，或错误信息</param>
+        /// <returns></returns>
+        public static ISpan NewError(this ITracer tracer, String name, Object error)
+        {
+            if (tracer == null) return null;
+
+            var span = tracer.NewSpan(name);
+            if (error is Exception ex)
+                span.SetError(ex, null);
+            else
+                span.Error = error + "";
+
+            span.Dispose();
 
             return span;
         }

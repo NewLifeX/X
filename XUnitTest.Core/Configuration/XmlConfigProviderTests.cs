@@ -183,7 +183,7 @@ namespace XUnitTest.Configuration
             var prv = new XmlConfigProvider { FileName = "Config/OAuth2.xml" };
 
             var cfg = new OAuthConfig();
-            cfg.Items = new OAuthItem[0];
+            cfg.Items = System.Array.Empty<OAuthItem>();
 
             prv.Save(cfg);
 

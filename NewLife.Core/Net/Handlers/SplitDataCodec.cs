@@ -72,7 +72,15 @@ namespace NewLife.Net.Handlers
         protected IList<Packet> Decode(IHandlerContext context, Packet pk)
         {
             var ss = context.Owner as IExtend;
-            if (ss["Codec"] is not PacketCodec pc) ss["Codec"] = pc = new PacketCodec { MaxCache = MaxCacheDataLength, GetLength = GetLineLength };
+            if (ss["Codec"] is not PacketCodec pc)
+            {
+                ss["Codec"] = pc = new PacketCodec
+                {
+                    MaxCache = MaxCacheDataLength,
+                    GetLength = GetLineLength,
+                    Tracer = (context.Owner as ISocket)?.Tracer
+                };
+            }
 
             return pc.Parse(pk);
         }

@@ -95,9 +95,12 @@ namespace NewLife.Configuration
         /// <summary>映射配置树到实例公有属性</summary>
         /// <param name="section">数据源</param>
         /// <param name="model">模型</param>
-        internal static void MapTo(this IConfigSection section, Object model)
+        /// <param name="provider">提供者</param>
+        public static void MapTo(this IConfigSection section, Object model, IConfigProvider provider)
         {
             if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
+
+            var prv = provider as ConfigProvider;
 
             // 反射公有实例属性
             foreach (var pi in model.GetType().GetProperties(true))
@@ -110,8 +113,13 @@ namespace NewLife.Configuration
                 var name = SerialHelper.GetName(pi);
                 if (name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
+                prv?.UseKey(name);
                 var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
-                if (cfg == null) continue;
+                if (cfg == null)
+                {
+                    prv?.MissKey(name);
+                    continue;
+                }
 
                 // 分别处理基本类型、数组类型、复杂类型
                 if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
@@ -123,9 +131,9 @@ namespace NewLife.Configuration
                     if (pi.PropertyType.As<IList>())
                     {
                         if (pi.PropertyType.IsArray)
-                            MapArray(cfg, model, pi);
+                            MapArray(cfg, model, pi, provider);
                         else
-                            MapList(cfg, model, pi);
+                            MapList(cfg, model, pi, provider);
                     }
                     else
                     {
@@ -134,7 +142,7 @@ namespace NewLife.Configuration
                         if (val == null)
                         {
                             // 如果有无参构造函数，则实例化一个
-                            var ctor = pi.PropertyType.GetConstructor(new Type[0]);
+                            var ctor = pi.PropertyType.GetConstructor(Array.Empty<Type>());
                             if (ctor != null)
                             {
                                 val = ctor.Invoke(null);
@@ -143,25 +151,26 @@ namespace NewLife.Configuration
                         }
 
                         // 递归映射
-                        if (val != null) MapTo(cfg, val);
+                        if (val != null) MapTo(cfg, val, provider);
                     }
                 }
             }
         }
 
-        private static void MapArray(IConfigSection section, Object model, PropertyInfo pi)
+        private static void MapArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
         {
             var elementType = pi.PropertyType.GetElementTypeEx();
+            var count = section.Childs.Count;
 
             // 实例化数组
-            if (pi.GetValue(model, null) is not Array arr)
+            if (pi.GetValue(model, null) is not Array arr || arr.Length == 0)
             {
-                arr = Array.CreateInstance(elementType, section.Childs.Count);
+                arr = Array.CreateInstance(elementType, count);
                 pi.SetValue(model, arr, null);
             }
 
             // 逐个映射
-            for (var i = 0; i < section.Childs.Count; i++)
+            for (var i = 0; i < count && i < arr.Length; i++)
             {
                 var sec = section.Childs[i];
 
@@ -176,13 +185,13 @@ namespace NewLife.Configuration
                 else
                 {
                     var val = elementType.CreateInstance();
-                    MapTo(sec, val);
+                    MapTo(sec, val, provider);
                     arr.SetValue(val, i);
                 }
             }
         }
 
-        private static void MapList(IConfigSection section, Object model, PropertyInfo pi)
+        private static void MapList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
         {
             var elementType = pi.PropertyType.GetElementTypeEx();
 
@@ -203,15 +212,23 @@ namespace NewLife.Configuration
             for (var i = 0; i < section.Childs.Count; i++)
             {
                 var val = elementType.CreateInstance();
-                MapTo(section.Childs[i], val);
-                list[i] = val;
+                if (elementType.GetTypeCode() != TypeCode.Object)
+                {
+                    val = section.Childs[i].Value;
+                }
+                else
+                {
+                    MapTo(section.Childs[i], val, provider);
+                    //list[i] = val;
+                }
+                list.Add(val);
             }
         }
 
         /// <summary>从实例公有属性映射到配置树</summary>
         /// <param name="section"></param>
         /// <param name="model"></param>
-        internal static void MapFrom(this IConfigSection section, Object model)
+        public static void MapFrom(this IConfigSection section, Object model)
         {
             if (section == null) return;
 

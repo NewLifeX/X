@@ -59,10 +59,10 @@ namespace NewLife.Http
             WriteLog("{0}<={1}", action, str);
             if (str.IsNullOrEmpty()) return null;
 
-            var ctype = new String[0];
+            var ctype = Array.Empty<String>();
             if (msg is HttpMessage hmsg && str[0] == '{')
             {
-                if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(";");
+                if (hmsg.ParseHeaders()) ctype = (hmsg.Headers["Content-type"] + "").Split(';');
             }
 
             if (ctype.Contains("application/json"))
@@ -230,7 +230,7 @@ namespace NewLife.Http
 
             var line = http.Header.ToStr(null, 0, p);
 
-            var ss = line.Split(" ");
+            var ss = line.Split(' ');
             if (ss.Length < 3) return false;
 
             // 第二段是地址
@@ -238,12 +238,12 @@ namespace NewLife.Http
             p = url.IndexOf('?');
             if (p > 0)
             {
-                action = url.Substring(1, p - 1);
-                value = url.Substring(p + 1).GetBytes();
+                action = url[1..p];
+                value = url[(p + 1)..].GetBytes();
             }
             else
             {
-                action = url.Substring(1);
+                action = url[1..];
                 value = http.Payload;
             }
 

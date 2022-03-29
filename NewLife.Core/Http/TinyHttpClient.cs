@@ -14,12 +14,10 @@ using System.Threading.Tasks;
 using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Http
 {
@@ -104,12 +102,7 @@ namespace NewLife.Http
 
                 tc.TryDispose();
                 tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-#if NET4
-                //tc.Connect(remote.Address, remote.Port);
-                await Task.Factory.FromAsync(tc.BeginConnect, tc.EndConnect, remote.Address, remote.Port, null);
-#else
                 await tc.ConnectAsync(remote.Address, remote.Port).ConfigureAwait(false);
-#endif
 
                 Client = tc;
                 ns = tc.GetStream();
@@ -125,11 +118,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET4
-                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
-#else
                     await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
-#endif
                     ns = sslStream;
                 }
 
@@ -152,13 +141,9 @@ namespace NewLife.Http
 
             // 接收
             var buf = new Byte[64 * 1024];
-#if NET4
-            var count = ns.Read(buf, 0, buf.Length);
-#else
             var source = new CancellationTokenSource(Timeout);
 
-            var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token).ConfigureAwait(false);
-#endif
+            var count = await ns.ReadAsync(buf, source.Token).ConfigureAwait(false);
 
             return new Packet(buf, 0, count);
         }
@@ -186,7 +171,7 @@ namespace NewLife.Http
                 rs = ParseResponse(rs);
 
                 // 跳转
-                if (StatusCode == 301 || StatusCode == 302)
+                if (StatusCode is 301 or 302)
                 {
                     if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                     {
@@ -240,8 +225,14 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = ParseChunk(pk, out var len);
+                var chunk = ParseChunk(pk, out var offset, out var len);
                 if (len <= 0) break;
+
+                // 更新pk，可能还有粘包数据
+                if (offset + len < pk.Total)
+                    pk = pk.Slice(offset + len);
+                else
+                    pk = null;
 
                 // 第一个包需要替换，因为偏移量改变
                 if (last == body)
@@ -264,6 +255,10 @@ namespace NewLife.Http
                     last = pk;
                     total += pk.Total;
                 }
+
+                // 还有粘包数据，继续分析
+                if (pk == null || pk.Total == 0) break;
+                if (pk.Total > 0) continue;
 
                 // 读取新的数据片段，如果不存在则跳出
                 pk = await SendDataAsync(null, null).ConfigureAwait(false);
@@ -319,11 +314,7 @@ namespace NewLife.Http
                 if (uri.Scheme.EqualIgnoreCase("https"))
                 {
                     var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-#if NET4
-                    sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls, false);
-#else
                     sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false);
-#endif
                     ns = sslStream;
                 }
 
@@ -366,6 +357,8 @@ namespace NewLife.Http
             var retry = 5;
             while (retry-- > 0)
             {
+                WriteLog("{0} => {1}", nameof(TinyHttpClient), uri);
+
                 // 发出请求
                 rs = SendData(uri, req);
                 if (rs == null || rs.Count == 0) return null;
@@ -374,7 +367,7 @@ namespace NewLife.Http
                 rs = ParseResponse(rs);
 
                 // 跳转
-                if (StatusCode == 301 || StatusCode == 302)
+                if (StatusCode is 301 or 302)
                 {
                     if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                     {
@@ -383,7 +376,10 @@ namespace NewLife.Http
 
                         if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
+                        // 重建请求头，因为Uri改变后，头部字段也可能改变
                         uri = uri2;
+                        req = BuildRequest(uri, data);
+
                         continue;
                     }
                 }
@@ -428,8 +424,14 @@ namespace NewLife.Http
             while (true)
             {
                 // 分析一个片段，如果该片段数据不足，则需要多次读取
-                var chunk = ParseChunk(pk, out var len);
+                var chunk = ParseChunk(pk, out var offset, out var len);
                 if (len <= 0) break;
+
+                // 更新pk，可能还有粘包数据
+                if (offset + len < pk.Total)
+                    pk = pk.Slice(offset + len);
+                else
+                    pk = null;
 
                 // 第一个包需要替换，因为偏移量改变
                 if (last == body)
@@ -452,6 +454,10 @@ namespace NewLife.Http
                     last = pk;
                     total += pk.Total;
                 }
+
+                // 还有粘包数据，继续分析
+                if (pk == null || pk.Total == 0) break;
+                if (pk.Total > 0) continue;
 
                 // 读取新的数据片段，如果不存在则跳出
                 pk = SendData(null, null);
@@ -512,7 +518,7 @@ namespace NewLife.Http
 
             // HTTP/1.1 502 Bad Gateway
 
-            var ss = lines[0].Split(" ");
+            var ss = lines[0].Split(' ');
             if (ss.Length < 3) return null;
 
             // 分析响应码
@@ -528,8 +534,8 @@ namespace NewLife.Http
                 var p2 = item.IndexOf(':');
                 if (p2 <= 0) continue;
 
-                var key = item.Substring(0, p2);
-                var value = item.Substring(p2 + 1).Trim();
+                var key = item[..p2];
+                var value = item[(p2 + 1)..].Trim();
 
                 hs[key] = value;
             }
@@ -545,11 +551,12 @@ namespace NewLife.Http
         }
 
         private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
-        private Packet ParseChunk(Packet rs, out Int32 octets)
+        private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
         {
             // chunk编码
             // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
 
+            offset = 0;
             octets = 0;
             var p = rs.IndexOf(NewLine);
             if (p <= 0) return rs;
@@ -563,6 +570,7 @@ namespace NewLife.Http
 
             //if (ContentLength < 0) ContentLength = len;
 
+            offset = p + 2;
             return rs.Slice(p + 2, octets);
         }
         #endregion
@@ -671,7 +679,7 @@ namespace NewLife.Http
             var client = pool.Get();
             try
             {
-                rs = client.Send(uri, pk.ToArray());
+                rs = client.Send(uri, pk.ReadBytes());
             }
             finally
             {
@@ -702,6 +710,16 @@ namespace NewLife.Http
 
             return JsonHelper.Convert<TResult>(data);
         }
+        #endregion
+
+        #region 日志
+        /// <summary>日志</summary>
+        public ILog Log { get; set; }
+
+        /// <summary>写日志</summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
         #endregion
     }
 }

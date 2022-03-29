@@ -297,7 +297,7 @@ namespace NewLife.Log
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
                 offset = (Int32)e.Arg2[1];
-                count = (Int32)e.Arg2[e.Arg2.Length - 1];
+                count = (Int32)e.Arg2[^1];
             }
 
             if (e.Arg2.Length == 1)
@@ -354,7 +354,7 @@ namespace NewLife.Log
 
         Byte[] Format(Byte[] buffer)
         {
-            if (buffer == null || buffer.Length < 1) return buffer;
+            if (buffer == null || buffer.Length <= 0) return buffer;
 
             if (IsLittleEndian) return buffer;
 
@@ -387,7 +387,7 @@ namespace NewLife.Log
             {
                 if (e.Arg2[0] is Byte[]) buffer = (Byte[])e.Arg2[0];
                 offset = (Int32)e.Arg2[1];
-                count = (Int32)e.Arg2[e.Arg2.Length - 1];
+                count = (Int32)e.Arg2[^1];
             }
 
             if (e.Arg2.Length == 1)

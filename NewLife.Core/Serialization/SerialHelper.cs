@@ -12,7 +12,7 @@ namespace NewLife.Serialization
     /// <summary>序列化助手</summary>
     public static class SerialHelper
     {
-        private static readonly ConcurrentDictionary<PropertyInfo, String> _cache = new ConcurrentDictionary<PropertyInfo, String>();
+        private static readonly ConcurrentDictionary<PropertyInfo, String> _cache = new();
         /// <summary>获取序列化名称</summary>
         /// <param name="pi"></param>
         /// <returns></returns>
@@ -61,7 +61,7 @@ namespace NewLife.Serialization
             foreach (var item in dic)
             {
                 var name = item.Key;
-                if (Char.IsLower(name[0])) name = Char.ToUpper(name[0]) + name.Substring(1);
+                if (Char.IsLower(name[0])) name = Char.ToUpper(name[0]) + name[1..];
 
                 if (line++ > 0) sb.AppendLine();
 

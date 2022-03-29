@@ -26,7 +26,7 @@ namespace NewLife.Data
         #region 属性
         private static readonly Int32[] BITS = { 16, 8, 4, 2, 1 };
         private const String _base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
-        private static readonly Dictionary<Char, Int32> _decode = new Dictionary<Char, Int32>();
+        private static readonly Dictionary<Char, Int32> _decode = new();
         #endregion
 
         #region 构造

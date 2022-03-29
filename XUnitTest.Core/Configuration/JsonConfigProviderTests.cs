@@ -182,7 +182,7 @@ namespace XUnitTest.Configuration
             var prv = new JsonConfigProvider { FileName = "Config/OAuth2.json" };
 
             var cfg = new OAuthConfig();
-            cfg.Items = new OAuthItem[0];
+            cfg.Items = System.Array.Empty<OAuthItem>();
 
             prv.Save(cfg);
 

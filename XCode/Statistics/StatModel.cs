@@ -115,16 +115,16 @@ namespace XCode.Statistics
         public override String ToString()
         {
             var dt = Time;
-            switch (Level)
+            return Level switch
             {
-                case StatLevels.All: return "全局";
-                case StatLevels.Year: return $"{dt:yyyy}";
-                case StatLevels.Month: return $"{dt:yyyy-MM}";
-                case StatLevels.Day: return $"{dt:yyyy-MM-dd}";
-                case StatLevels.Hour: return $"{dt:yyyy-MM-dd HH}";
-                case StatLevels.Minute: return $"{dt:yyyy-MM-dd HH:mm}";
-                default: return Level + "";
-            }
+                StatLevels.All => "全局",
+                StatLevels.Year => $"{dt:yyyy}",
+                StatLevels.Month => $"{dt:yyyy-MM}",
+                StatLevels.Day => $"{dt:yyyy-MM-dd}",
+                StatLevels.Hour => $"{dt:yyyy-MM-dd HH}",
+                StatLevels.Minute => $"{dt:yyyy-MM-dd HH:mm}",
+                _ => Level + "",
+            };
         }
 
         /// <summary>使用参数填充</summary>

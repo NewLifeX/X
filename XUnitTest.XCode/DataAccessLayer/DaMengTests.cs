@@ -8,6 +8,9 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 using XCode.Membership;
+using NewLife.Security;
+using NewLife;
+using NewLife.Log;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
@@ -52,7 +55,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(dp);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void ConnectTest()
         {
             var db = DbFactory.Create(DatabaseType.DaMeng);
@@ -63,7 +66,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void DALTest()
         {
             DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
@@ -81,7 +84,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(ver);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void MetaTest()
         {
             DAL.AddConnStr("DaMeng", _ConnStr, null, "DaMeng");
@@ -92,7 +95,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.True(tables.Count > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void SelectTest()
         {
             //DAL.AddConnStr("Membership", _ConnStr, null, "DaMeng");
@@ -117,6 +120,33 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             // 来个耗时操作，把前面堵住
             Area.FetchAndSave();
+        }
+
+        [Fact(Skip = "跳过")]
+        public void PositiveAndNegative()
+        {
+            var connName = GetType().Name;
+            DAL.AddConnStr(connName, _ConnStr, null, "DaMeng");
+            var dal = DAL.Create(connName);
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

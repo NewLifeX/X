@@ -37,7 +37,18 @@ namespace XCode.Transform
         {
             Dal = dal;
             Builder = new SelectBuilder { Table = tableName };
-            BatchSize = (dal.Db as DbBase).BatchSize;
+            BatchSize = dal.Db.BatchSize;
+        }
+
+        /// <summary>实例化分页抽取器</summary>
+        /// <param name="dal"></param>
+        /// <param name="tableName"></param>
+        /// <param name="orderBy"></param>
+        public PagingExtracter(DAL dal, String tableName, String orderBy)
+        {
+            Dal = dal;
+            Builder = new SelectBuilder { Table = tableName, OrderBy = orderBy };
+            BatchSize = dal.Db.BatchSize;
         }
         #endregion
 

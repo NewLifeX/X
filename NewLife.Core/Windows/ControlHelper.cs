@@ -105,7 +105,7 @@ namespace System.Windows.Forms
         #endregion
 
         #region 文本控件扩展
-        private static readonly Regex _line = new Regex("(?:[^\n])\r", RegexOptions.Compiled);
+        private static readonly Regex _line = new("(?:[^\n])\r", RegexOptions.Compiled);
         /// <summary>附加文本到文本控件末尾。主要解决非UI线程以及滚动控件等问题</summary>
         /// <param name="txt">控件</param>
         /// <param name="msg">消息</param>
@@ -224,7 +224,7 @@ namespace System.Windows.Forms
                 else if (p > count)
                 {
                     // 少输出一个
-                    txt.AppendText(m.Substring(0, p - count));
+                    txt.AppendText(m[..(p - count)]);
                 }
 
                 if (p == m.Length - count)
@@ -232,7 +232,7 @@ namespace System.Windows.Forms
                     m = null;
                     break;
                 }
-                m = m.Substring(p + count);
+                m = m[(p + count)..];
             }
         }
 
@@ -249,8 +249,8 @@ namespace System.Windows.Forms
                 // 后一个是
                 if (p + 1 < m.Length && m[p + 1] == '\n')
                 {
-                    txt.AppendText(m.Substring(0, p + 2));
-                    m = m.Substring(p + 2);
+                    txt.AppendText(m[..(p + 2)]);
+                    m = m[(p + 2)..];
                     continue;
                 }
 
@@ -273,7 +273,7 @@ namespace System.Windows.Forms
                     m = null;
                     break;
                 }
-                m = m.Substring(p + 1);
+                m = m[(p + 1)..];
             }
         }
 
@@ -288,8 +288,8 @@ namespace System.Windows.Forms
 
                 if (p > 0)
                 {
-                    var str = m.Substring(0, p);
-                    if (p + 1 < m.Length) str += m.Substring(p + 1);
+                    var str = m[..p];
+                    if (p + 1 < m.Length) str += m[(p + 1)..];
                     m = str;
                 }
 
@@ -405,7 +405,7 @@ namespace System.Windows.Forms
         }
 
         // 正则匹配，数字开头的词。支持0x开头的十六进制
-        static readonly Regex _reg = new Regex(@"(?i)\b(0x|[0-9])([0-9a-fA-F\-]*)(.*?)\b", RegexOptions.Compiled);
+        static readonly Regex _reg = new(@"(?i)\b(0x|[0-9])([0-9a-fA-F\-]*)(.*?)\b", RegexOptions.Compiled);
         static void ChangeNumColor(RichTextBox rtb, Int32 start)
         {
             //var ms = _reg.Matches(rtb.Text, start);
@@ -425,7 +425,7 @@ namespace System.Windows.Forms
             rtb.Colour(_reg, start, _Num, _Num, _Key);
         }
 
-        static readonly Regex _reg2 = new Regex(@"(?i)(\b\w+\b)(\s*::\s*)(\b\w+\b)", RegexOptions.Compiled);
+        static readonly Regex _reg2 = new(@"(?i)(\b\w+\b)(\s*::\s*)(\b\w+\b)", RegexOptions.Compiled);
         /// <summary>改变C++类名方法名颜色</summary>
         static void ChangeCppColor(RichTextBox rtb, Int32 start)
         {
@@ -449,7 +449,7 @@ namespace System.Windows.Forms
             rtb.Colour(_reg2, start, color, _Key, color3);
         }
 
-        static readonly Regex _reg3 = new Regex(@"(?i)(\b\w+\b)(\s*[=:])[^:]\s*", RegexOptions.Compiled);
+        static readonly Regex _reg3 = new(@"(?i)(\b\w+\b)(\s*[=:])[^:]\s*", RegexOptions.Compiled);
         static void ChangeKeyNameColor(RichTextBox rtb, Int32 start)
         {
             //var ms = _reg3.Matches(rtx.Text, _pColor);

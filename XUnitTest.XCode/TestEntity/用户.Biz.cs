@@ -23,8 +23,21 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
+    /// <summary>性别</summary>
+    public enum SexKinds
+    {
+        /// <summary>未知</summary>
+        未知 = 0,
+
+        /// <summary>男</summary>
+        男 = 1,
+
+        /// <summary>女</summary>
+        女 = 2
+    }
+
     /// <summary>用户</summary>
     public partial class User2 : Entity<User2>
     {

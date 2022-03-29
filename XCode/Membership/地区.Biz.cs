@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
@@ -10,14 +11,10 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Threading;
 using XCode.Transform;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Membership
 {
@@ -175,7 +172,7 @@ namespace XCode.Membership
         public static Area FindByID(Int32 id)
         {
             //if (id == 0) return Root;
-            if (id <= 0) return null;
+            if (id <= 10_00_00 || id > 99_99_99_999) return null;
 
             //// 实体缓存
             //var r = Meta.Cache.Find(e => e.ID == id);
@@ -256,7 +253,7 @@ namespace XCode.Membership
             return r;
         }
 
-        /// <summary>根据名称从高向低分级查找，广度搜索</summary>
+        /// <summary>根据名称从高向低分级查找，广度搜索，仅搜索三级</summary>
         /// <param name="name">名称</param>
         /// <returns>实体列表</returns>
         public static Area FindByFullName(String name)
@@ -275,7 +272,8 @@ namespace XCode.Membership
                     {
                         if (item.Name == name || item.FullName == name) return item;
 
-                        q.Enqueue(item);
+                        // 仅搜索三级
+                        if (item.Level < 3) q.Enqueue(item);
                     }
                 }
             }
@@ -291,7 +289,7 @@ namespace XCode.Membership
         /// <returns>实体列表</returns>
         public static IList<Area> FindAllByParentID(Int32 parentid)
         {
-            if (parentid < 0 || parentid > 99_99_99) return new List<Area>();
+            if (parentid is < 0 or > 99_99_99) return new List<Area>();
 
             // 实体缓存
             var rs = Meta.Cache.FindAll(e => e.ParentID == parentid);
@@ -336,8 +334,8 @@ namespace XCode.Membership
                 if (key.ToLong() > 0)
                 {
                     var exp2 = new WhereExpression();
-                    if (key.Length == 6 || key.Length == 9) exp2 |= _.ID == key;
-                    if (key.Length == 2 || key.Length == 3) exp2 |= _.TelCode == key;
+                    if (key.Length is 6 or 9) exp2 |= _.ID == key;
+                    if (key.Length is 2 or 3) exp2 |= _.TelCode == key;
                     if (key.Length == 6) exp2 |= _.ZipCode == key;
 
                     exp &= exp2;
@@ -460,6 +458,55 @@ namespace XCode.Membership
             // 排序
             return set.OrderByDescending(e => e.Value).Take(count).ToList();
         }
+
+        private static String[] _zzq = new[] { "广西", "西藏", "新疆", "宁夏", "内蒙古" };
+        /// <summary>根据IP地址搜索地区</summary>
+        /// <param name="ip"></param>
+        /// <param name="maxLevel">最大层级，默认3级</param>
+        /// <returns></returns>
+        public static IList<Area> SearchIP(String ip, Int32 maxLevel = 3)
+        {
+            var list = new List<Area>();
+
+            var address = ip.IPToAddress();
+            if (address.IsNullOrEmpty()) return list;
+
+            // IP数据库里，缺失自治区分隔符
+            foreach (var item in _zzq)
+            {
+                if (address.StartsWith(item) && !address.Contains("自治区"))
+                {
+                    address = item + "自治区" + address[item.Length..];
+                    break;
+                }
+            }
+            var addrs = address.Split("省", "自治区", "市", "区", "自治县", "县", "自治州", " ");
+            if (addrs != null && addrs.Length >= 2)
+            {
+                var prov = FindByName(0, addrs[0]);
+                if (prov != null)
+                {
+                    list.Add(prov);
+
+                    if (maxLevel == 2 && addrs.Length >= 2)
+                    {
+                        var city = FindByNames(addrs.Take(2).ToArray());
+                        if (city != null && city.ID != prov.ID) list.Add(city);
+                    }
+                    else if (maxLevel == 3)
+                    {
+                        var city = FindByNames(addrs);
+                        if (city != null && city.ID != prov.ID)
+                        {
+                            if (city.ParentID != prov.ID) list.Add(city.Parent);
+                            list.Add(city);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
         #endregion
 
         #region 业务操作
@@ -478,7 +525,7 @@ namespace XCode.Membership
             if (id > 999999)
             {
                 // 四级地址是9位数字
-                if (parentid < 100000 || parentid > 999999) return null;
+                if (parentid is < 100000 or > 999999) return null;
                 if (id < 100000000) return null;
                 if (id > 999999999) return null;
             }
@@ -573,16 +620,16 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("<td", "</td>");
+                var ss = html[s..e].Split("<td", "</td>");
                 if (ss.Length > 4)
                 {
                     var id = ss[3];
                     var p2 = id.LastIndexOf('>');
-                    if (p2 >= 0) id = id.Substring(p2 + 1);
+                    if (p2 >= 0) id = id[(p2 + 1)..];
 
                     var name = ss[5];
                     var p3 = name.LastIndexOf('>');
-                    if (p3 >= 0) name = name.Substring(p3 + 1);
+                    if (p3 >= 0) name = name[(p3 + 1)..];
 
                     if (!id.IsNullOrEmpty() && id.ToInt() > 10_00_00 && !name.IsNullOrEmpty())
                     {
@@ -616,7 +663,7 @@ namespace XCode.Membership
                 if (e < 0) break;
 
                 // 分析数据
-                var ss = html.Substring(s, e - s).Split("'>", "</a>");
+                var ss = html[s..e].Split("'>", "</a>");
                 if (ss.Length > 4)
                 {
                     var id = ss[2].Trim().TrimEnd("000");
@@ -729,7 +776,7 @@ namespace XCode.Membership
             if (url.IsNullOrEmpty()) url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
 
             var http = new HttpClient();
-            var html = TaskEx.Run(() => http.GetStringAsync(url)).Result;
+            var html = Task.Run(() => http.GetStringAsync(url)).Result;
             if (html.IsNullOrEmpty()) return 0;
 
             var rs = ParseAndSave(html);
@@ -787,7 +834,7 @@ namespace XCode.Membership
             var count = 0;
             foreach (var r in list)
             {
-                if (r.ID < 10_00_00 || r.ID > 99_99_99) continue;
+                if (r.ID is < 10_00_00 or > 99_99_99) continue;
 
                 //var r2 = FindByID(r.ID);
                 var r2 = rs.FirstOrDefault(e => e.ID == r.ID);
@@ -879,7 +926,7 @@ namespace XCode.Membership
             var count = 0;
             foreach (var r in list)
             {
-                if (r.ID < 10_00_00_000 || r.ID > 99_99_99_999) continue;
+                if (r.ID is < 10_00_00_000 or > 99_99_99_999) continue;
 
                 //var r2 = FindByID(r.ID);
                 var r2 = rs.FirstOrDefault(e => e.ID == r.ID);
@@ -942,8 +989,12 @@ namespace XCode.Membership
             if (csvFile.StartsWithIgnoreCase("http://", "https://"))
             {
                 var http = new HttpClient();
-                var stream = TaskEx.Run(() => http.GetStreamAsync(csvFile)).Result;
-                if (csvFile.EndsWithIgnoreCase(".gz")) stream = new GZipStream(stream, CompressionMode.Decompress, true);
+                var stream = Task.Run(() => http.GetStreamAsync(csvFile)).Result;
+                if (csvFile.EndsWithIgnoreCase(".gz"))
+                {
+                    stream = new GZipStream(stream, CompressionMode.Decompress, true);
+                    stream = new BufferedStream(stream);
+                }
                 list.LoadCsv(stream);
             }
             else
@@ -992,16 +1043,16 @@ namespace XCode.Membership
         #endregion
 
         #region 大区
-        private static readonly Dictionary<String, String[]> _big = new Dictionary<String, String[]>
+        private static readonly Dictionary<String, String[]> _big = new()
         {
-            { "华北", new[]{ "北京", "天津", "河北", "山西", "内蒙古" } },
-            { "东北", new[]{ "辽宁", "吉林", "黑龙江" } },
-            { "华东", new[]{ "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东" } },
-            { "华中", new[]{ "河南", "湖北", "湖南" } },
-            { "华南", new[]{ "广东", "广西", "海南" } },
-            { "西南", new[]{ "重庆", "四川", "贵州", "云南", "西藏" } },
-            { "西北", new[]{ "陕西", "甘肃", "青海", "宁夏", "新疆" } },
-            { "港澳台", new[]{ "香港", "澳门", "台湾" } }
+            { "华北", new[] { "北京", "天津", "河北", "山西", "内蒙古" } },
+            { "东北", new[] { "辽宁", "吉林", "黑龙江" } },
+            { "华东", new[] { "上海", "江苏", "浙江", "安徽", "福建", "江西", "山东" } },
+            { "华中", new[] { "河南", "湖北", "湖南" } },
+            { "华南", new[] { "广东", "广西", "海南" } },
+            { "西南", new[] { "重庆", "四川", "贵州", "云南", "西藏" } },
+            { "西北", new[] { "陕西", "甘肃", "青海", "宁夏", "新疆" } },
+            { "港澳台", new[] { "香港", "澳门", "台湾" } }
         };
 
         /// <summary>所属大区</summary>
@@ -1038,7 +1089,8 @@ namespace XCode.Membership
 
         private static readonly String[] minzu = new String[] { "汉族", "壮族", "满族", "回族", "苗族", "维吾尔族", "土家族", "彝族", "蒙古族", "藏族", "布依族", "侗族", "瑶族", "朝鲜族", "白族", "哈尼族", "哈萨克族", "黎族", "傣族", "畲族", "傈僳族", "仡佬族", "东乡族", "高山族", "拉祜族", "水族", "佤族", "纳西族", "羌族", "土族", "仫佬族", "锡伯族", "柯尔克孜族", "达斡尔族", "景颇族", "毛南族", "撒拉族", "布朗族", "塔吉克族", "阿昌族", "普米族", "鄂温克族", "怒族", "京族", "基诺族", "德昂族", "保安族", "俄罗斯族", "裕固族", "乌孜别克族", "门巴族", "鄂伦春族", "独龙族", "塔塔尔族", "赫哲族", "珞巴族" };
 
-        private static readonly Dictionary<String, String> _map = new Dictionary<String, String> {
+        private static readonly Dictionary<String, String> _map = new()
+        {
             { "市辖区", "市辖区" },
             { "直辖县", "直辖县" },
             { "直辖镇", "直辖镇" },

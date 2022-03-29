@@ -10,9 +10,6 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 //#nullable enable
 namespace NewLife.Caching
@@ -29,6 +26,9 @@ namespace NewLife.Caching
 
         /// <summary>定时清理时间，默认60秒</summary>
         public Int32 Period { get; set; } = 60;
+
+        /// <summary>缓存键过期</summary>
+        public event EventHandler<EventArgs<String>> KeyExpired;
         #endregion
 
         #region 静态默认实现
@@ -193,7 +193,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return false;
 
-            item.ExpiredTime = DateTime.Now.Add(expire);
+            item.ExpiredTime = Runtime.TickCount64 + (Int64)expire.TotalMilliseconds;
 
             return true;
         }
@@ -205,7 +205,7 @@ namespace NewLife.Caching
         {
             if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
 
-            return item.ExpiredTime - DateTime.Now;
+            return TimeSpan.FromMilliseconds(item.ExpiredTime - Runtime.TickCount64);
         }
         #endregion
 
@@ -248,6 +248,8 @@ namespace NewLife.Caching
                 if (_cache.TryGetValue(key, out var item))
                 {
                     var rs = item.Value;
+                    // 如果已经过期，不要返回旧值
+                    if (item.Expired) rs = default(T);
                     item.Set(value, expire);
                     return (T)rs;
                 }
@@ -286,15 +288,18 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="callback"></param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public override T GetOrAdd<T>(String key, Func<String, T> callback)
+        public override T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
         {
+            if (expire < 0) expire = Expire;
+
             CacheItem ci = null;
             do
             {
                 if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
 
-                if (ci == null) ci = new CacheItem(callback(key), Expire);
+                if (ci == null) ci = new CacheItem(callback(key), expire);
             } while (!_cache.TryAdd(key, ci));
 
             Interlocked.Increment(ref _count);
@@ -309,7 +314,7 @@ namespace NewLife.Caching
         public override Int64 Increment(String key, Int64 value)
         {
             var item = GetOrAddItem(key, k => 0L);
-            return (Int64)item.Inc(value);
+            return item.Inc(value);
         }
 
         /// <summary>累加，原子操作</summary>
@@ -319,7 +324,7 @@ namespace NewLife.Caching
         public override Double Increment(String key, Double value)
         {
             var item = GetOrAddItem(key, k => 0d);
-            return (Double)item.Inc(value);
+            return item.Inc(value);
         }
 
         /// <summary>递减，原子操作</summary>
@@ -329,7 +334,7 @@ namespace NewLife.Caching
         public override Int64 Decrement(String key, Int64 value)
         {
             var item = GetOrAddItem(key, k => 0L);
-            return (Int64)item.Dec(value);
+            return item.Dec(value);
         }
 
         /// <summary>递减，原子操作</summary>
@@ -339,7 +344,7 @@ namespace NewLife.Caching
         public override Double Decrement(String key, Double value)
         {
             var item = GetOrAddItem(key, k => 0d);
-            return (Double)item.Dec(value);
+            return item.Dec(value);
         }
         #endregion
 
@@ -426,13 +431,13 @@ namespace NewLife.Caching
             public Object Value { get => _Value; set => _Value = value; }
 
             /// <summary>过期时间</summary>
-            public DateTime ExpiredTime { get; set; }
+            public Int64 ExpiredTime { get; set; }
 
             /// <summary>是否过期</summary>
-            public Boolean Expired => ExpiredTime <= DateTime.Now;
+            public Boolean Expired => ExpiredTime <= Runtime.TickCount64;
 
             /// <summary>访问时间</summary>
-            public DateTime VisitTime { get; private set; }
+            public Int64 VisitTime { get; private set; }
 
             /// <summary>构造缓存项</summary>
             /// <param name="value"></param>
@@ -441,51 +446,57 @@ namespace NewLife.Caching
 
             /// <summary>设置数值和过期时间</summary>
             /// <param name="value"></param>
-            /// <param name="expire"></param>
+            /// <param name="expire">过期时间，秒</param>
             public void Set(Object value, Int32 expire)
             {
                 Value = value;
 
-                var now = VisitTime = DateTime.Now;
+                var now = VisitTime = Runtime.TickCount64;
                 if (expire <= 0)
-                    ExpiredTime = DateTime.MaxValue;
+                    ExpiredTime = Int64.MaxValue;
                 else
-                    ExpiredTime = now.AddSeconds(expire);
+                    ExpiredTime = now + expire * 1000L;
             }
 
             /// <summary>更新访问时间并返回数值</summary>
             /// <returns></returns>
             public Object Visit()
             {
-                VisitTime = TimerX.Now;
+                VisitTime = Runtime.TickCount64;
                 return Value;
             }
 
             /// <summary>递增</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Object Inc(Object value)
+            public Int64 Inc(Int64 value)
             {
-                var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue;
+                Int64 newValue;
                 Object oldValue;
                 do
                 {
                     oldValue = _Value ?? 0;
-                    switch (code)
-                    {
-                        case TypeCode.Int32:
-                        case TypeCode.Int64:
-                            newValue = oldValue.ToLong() + value.ToLong();
-                            break;
-                        case TypeCode.Single:
-                        case TypeCode.Double:
-                            newValue = oldValue.ToDouble() + value.ToDouble();
-                            break;
-                        default:
-                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递增");
-                    }
+                    newValue = oldValue.ToLong() + value.ToLong();
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                Visit();
+
+                return newValue;
+            }
+
+            /// <summary>递增</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public Double Inc(Double value)
+            {
+                // 原子操作
+                Double newValue;
+                Object oldValue;
+                do
+                {
+                    oldValue = _Value ?? 0;
+                    newValue = oldValue.ToDouble() + value.ToDouble();
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
                 Visit();
@@ -496,28 +507,34 @@ namespace NewLife.Caching
             /// <summary>递减</summary>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Object Dec(Object value)
+            public Int64 Dec(Int64 value)
             {
-                var code = value.GetType().GetTypeCode();
                 // 原子操作
-                Object newValue;
+                Int64 newValue;
                 Object oldValue;
                 do
                 {
                     oldValue = _Value ?? 0;
-                    switch (code)
-                    {
-                        case TypeCode.Int32:
-                        case TypeCode.Int64:
-                            newValue = oldValue.ToLong() - value.ToLong();
-                            break;
-                        case TypeCode.Single:
-                        case TypeCode.Double:
-                            newValue = oldValue.ToDouble() - value.ToDouble();
-                            break;
-                        default:
-                            throw new NotSupportedException($"不支持类型[{value.GetType().FullName}]的递减");
-                    }
+                    newValue = oldValue.ToLong() - value.ToLong();
+                } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
+
+                Visit();
+
+                return newValue;
+            }
+
+            /// <summary>递减</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public Double Dec(Double value)
+            {
+                // 原子操作
+                Double newValue;
+                Object oldValue;
+                do
+                {
+                    oldValue = _Value ?? 0;
+                    newValue = oldValue.ToDouble() - value.ToDouble();
                 } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
                 Visit();
@@ -532,7 +549,7 @@ namespace NewLife.Caching
         private TimerX clearTimer;
 
         /// <summary>移除过期的缓存项</summary>
-        void RemoveNotAlive(Object state)
+        private void RemoveNotAlive(Object state)
         {
             var tx = clearTimer;
             if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
@@ -541,14 +558,14 @@ namespace NewLife.Caching
             if (_count == 0 && !dic.Any()) return;
 
             // 过期时间升序，用于缓存满以后删除
-            var slist = new SortedList<DateTime, IList<String>>();
+            var slist = new SortedList<Int64, IList<String>>();
             // 超出个数
             var flag = true;
             if (Capacity <= 0 || _count <= Capacity) flag = false;
 
             // 60分钟之内过期的数据，进入LRU淘汰
-            var now = DateTime.Now;
-            var exp = now.AddSeconds(3600);
+            var now = Runtime.TickCount64;
+            var exp = now + 3600_000;
             var k = 0;
 
             // 这里先计算，性能很重要
@@ -596,12 +613,17 @@ namespace NewLife.Caching
 
             foreach (var item in list)
             {
+                OnExpire(item);
                 _cache.Remove(item);
             }
 
             // 修正
             _count = k;
         }
+
+        /// <summary>缓存过期</summary>
+        /// <param name="key"></param>
+        protected virtual void OnExpire(String key) => KeyExpired?.Invoke(this, new EventArgs<String>(key));
         #endregion
 
         #region 持久化
@@ -632,7 +654,7 @@ namespace NewLife.Caching
                 // Key+Expire+TypeCode+Value
                 // Key+Expire+TypeCode+Type+Length+Value
                 bn.Write(item.Key);
-                bn.Write(ci.ExpiredTime.ToInt());
+                bn.Write((Int32)(ci.ExpiredTime / 1000));
 
                 var type = ci.Value?.GetType();
                 if (type == null)
@@ -683,7 +705,7 @@ namespace NewLife.Caching
                 // Key+Expire+TypeCode+Value
                 // Key+Expire+TypeCode+Type+Length+Value
                 var key = bn.Read<String>();
-                var exp = bn.Read<Int32>().ToDateTime();
+                var exp = bn.Read<Int32>();
                 var code = (TypeCode)bn.ReadByte();
 
                 Object value = null;
@@ -708,7 +730,7 @@ namespace NewLife.Caching
                     }
                 }
 
-                Set(key, value, exp - DateTime.Now);
+                Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
             }
         }
 
@@ -745,30 +767,48 @@ namespace NewLife.Caching
 
     /// <summary>生产者消费者</summary>
     /// <typeparam name="T"></typeparam>
-    public class MemoryQueue<T> : IProducerConsumer<T>
+    public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     {
-        private readonly IProducerConsumerCollection<T> _Collection;
+        private readonly IProducerConsumerCollection<T> _collection;
+        private readonly SemaphoreSlim _occupiedNodes;
 
         /// <summary>实例化内存队列</summary>
-        public MemoryQueue() => _Collection = new ConcurrentQueue<T>();
+        public MemoryQueue()
+        {
+            _collection = new ConcurrentQueue<T>();
+            _occupiedNodes = new SemaphoreSlim(0);
+        }
 
         /// <summary>实例化内存队列</summary>
         /// <param name="collection"></param>
-        public MemoryQueue(IProducerConsumerCollection<T> collection) => _Collection = collection;
+        public MemoryQueue(IProducerConsumerCollection<T> collection)
+        {
+            _collection = collection;
+            _occupiedNodes = new SemaphoreSlim(collection.Count);
+        }
 
         /// <summary>元素个数</summary>
-        public Int32 Count => _Collection.Count;
+        public Int32 Count => _collection.Count;
 
         /// <summary>集合是否为空</summary>
         public Boolean IsEmpty
         {
             get
             {
-                if (_Collection is ConcurrentQueue<T> queue) return queue.IsEmpty;
-                if (_Collection is ConcurrentStack<T> stack) return stack.IsEmpty;
+                if (_collection is ConcurrentQueue<T> queue) return queue.IsEmpty;
+                if (_collection is ConcurrentStack<T> stack) return stack.IsEmpty;
 
                 throw new NotSupportedException();
             }
+        }
+
+        /// <summary>销毁</summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(Boolean disposing)
+        {
+            base.Dispose(disposing);
+
+            _occupiedNodes.TryDispose();
         }
 
         /// <summary>生产添加</summary>
@@ -779,7 +819,11 @@ namespace NewLife.Caching
             var count = 0;
             foreach (var item in values)
             {
-                if (_Collection.TryAdd(item)) count++;
+                if (_collection.TryAdd(item))
+                {
+                    count++;
+                    _occupiedNodes.Release();
+                }
             }
 
             return count;
@@ -794,7 +838,8 @@ namespace NewLife.Caching
 
             for (var i = 0; i < count; i++)
             {
-                if (!_Collection.TryTake(out var item)) break;
+                if (!_occupiedNodes.Wait(0)) break;
+                if (!_collection.TryTake(out var item)) break;
 
                 yield return item;
             }
@@ -803,12 +848,46 @@ namespace NewLife.Caching
         /// <summary>消费一个</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>
-        public T TakeOne(Int32 timeout = 0) => _Collection.TryTake(out var item) ? item : default;
+        public T TakeOne(Int32 timeout = 0)
+        {
+            if (!_occupiedNodes.Wait(0))
+            {
+                if (timeout <= 0 || !_occupiedNodes.Wait(timeout * 1000)) return default;
+            }
 
-        /// <summary>消费获取</summary>
+            return _collection.TryTake(out var item) ? item : default;
+        }
+
+        /// <summary>消费获取，异步阻塞</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>
         /// <returns></returns>
-        public Task<T> TakeOneAsync(Int32 timeout = 0) => TaskEx.FromResult(TakeOne(timeout));
+        public async Task<T> TakeOneAsync(Int32 timeout = 0)
+        {
+            if (!_occupiedNodes.Wait(0))
+            {
+                if (timeout <= 0) return default;
+
+                if (!await _occupiedNodes.WaitAsync(timeout * 1000)) return default;
+            }
+
+            return _collection.TryTake(out var item) ? item : default;
+        }
+
+        /// <summary>消费获取，异步阻塞</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <param name="cancellationToken">取消令牌</param>
+        /// <returns></returns>
+        public async Task<T> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
+        {
+            if (!_occupiedNodes.Wait(0, cancellationToken))
+            {
+                if (timeout <= 0) return default;
+
+                if (!await _occupiedNodes.WaitAsync(timeout * 1000, cancellationToken)) return default;
+            }
+
+            return _collection.TryTake(out var item) ? item : default;
+        }
 
         /// <summary>确认消费</summary>
         /// <param name="keys"></param>

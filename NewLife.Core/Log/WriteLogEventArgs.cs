@@ -88,9 +88,7 @@ namespace NewLife.Log
             var tid = Task.CurrentId;
             TaskID = tid != null ? tid.Value : -1;
 
-#if !__CORE__
-            IsWeb = System.Web.HttpContext.Current != null;
-#endif
+            //IsWeb = System.Web.HttpContext.Current != null;
         }
 
         /// <summary>已重载。</summary>
@@ -101,8 +99,9 @@ namespace NewLife.Log
 
             var name = ThreadName;
             if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
-            if (name.EqualIgnoreCase("Threadpool worker")) name = "P";
+            if (name.EqualIgnoreCase("Threadpool worker", ".NET ThreadPool Worker")) name = "P";
             if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
+            if (name.EqualIgnoreCase(".NET Long Running Task")) name = "LongTask";
 
             return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
         }

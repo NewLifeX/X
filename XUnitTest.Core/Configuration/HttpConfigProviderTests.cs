@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
+
+using NewLife;
+using NewLife.Common;
 using NewLife.Configuration;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Configuration
@@ -22,7 +26,7 @@ namespace XUnitTest.Configuration
             }
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void TestApollo()
         {
             var provider = new HttpConfigProvider
@@ -65,12 +69,33 @@ namespace XUnitTest.Configuration
         [Fact]
         public void TestStardust()
         {
+            var set = new ConfigModel
+            {
+                Debug = true,
+                LogLevel = LogLevel.Fatal,
+                LogPath = "xxx",
+                NetworkLog = "255.255.255.255:514",
+                TempPath = "yyy",
+
+                Sys = new SysConfig
+                {
+                    Name = "NewLife.Cube",
+                    DisplayName = "魔方平台",
+                    Company = "新生命开发团队",
+                },
+            };
+
             var provider = new HttpConfigProvider
             {
                 Server = "http://star.newlifex.com:6600",
                 //Server = "http://localhost:6600",
                 AppId = "StarWeb"
             };
+
+            provider.Save(set);
+
+            provider.Save(new Model2 { Test = "测试", Shop = "商店", Title = "NewLife开发团队" });
+
 
             var str = provider["test1"];
             Assert.NotEmpty(str);
@@ -91,6 +116,16 @@ namespace XUnitTest.Configuration
             Assert.Equal(str, model2.Test);
             Assert.NotEmpty(model.Shop);
             Assert.Equal("NewLife开发团队", model.Title);
+
+            provider.LoadAll();
+        }
+
+        [Fact]
+        public void TestHttpConfigAttribute()
+        {
+            var c = HttpConfigModel.Current;
+            Assert.Equal("1234", c.Test);
+            Assert.Equal("NewLife开发团队", c.Title);
         }
 
         private class Model2
@@ -102,6 +137,69 @@ namespace XUnitTest.Configuration
             public String Shop { get; set; }
 
             public String Title { get; set; }
+        }
+
+        [Fact]
+        public void TestLayers()
+        {
+            var dic = new Dictionary<String, Object>
+            {
+                ["name"] = "stone",
+                ["cls:server"] = "http://127.0.0.1",
+                ["cls:topic"] = "mytopic"
+            };
+
+            var prv = new HttpConfigProvider();
+            var rs = prv.Build(dic);
+
+            Assert.Equal(2, rs.Childs.Count);
+            Assert.Equal("name", rs.Childs[0].Key);
+            Assert.Equal("stone", rs.Childs[0].Value);
+
+            var section = rs.Childs[1];
+            Assert.Equal("cls", section.Key);
+            Assert.Null(section.Value);
+            Assert.Equal(2, section.Childs.Count);
+            Assert.Equal("server", section.Childs[0].Key);
+            Assert.Equal("http://127.0.0.1", section.Childs[0].Value);
+            Assert.Equal("topic", section.Childs[1].Key);
+            Assert.Equal("mytopic", section.Childs[1].Value);
+
+            prv.Root = rs;
+
+            var cls = prv.Load<MyCls>("cls");
+            Assert.NotNull(cls);
+            Assert.Equal("http://127.0.0.1", cls.Server);
+            Assert.Equal("mytopic", cls.Topic);
+
+            Assert.Equal("http://127.0.0.1", prv["cls:Server"]);
+            Assert.Equal("mytopic", prv["cls:Topic"]);
+        }
+
+        [Fact]
+        public void TestStardustLayers()
+        {
+            var prv = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                //Server = "http://localhost:6600",
+                AppId = "StarWeb"
+            };
+
+            var cls = prv.Load<MyCls>("cls");
+            Assert.NotNull(cls);
+            Assert.Equal("http://127.0.0.1", cls.Server);
+            Assert.Equal("mytopic", cls.Topic);
+
+            Assert.Equal("http://127.0.0.1", prv["cls:Server"]);
+            Assert.Equal("mytopic", prv["cls:Topic"]);
+        }
+
+        class MyCls
+        {
+            public String Server { get; set; }
+
+            public String Topic { get; set; }
         }
     }
 }

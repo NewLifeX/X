@@ -31,9 +31,6 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(DaMeng))
                     {
-#if !__CORE__
-                        _Factory = DbProviderFactories.GetFactory("Dm");
-#endif
                         if (_Factory == null) _Factory = GetProviderFactory("DmProvider.dll", "Dm.DmClientFactory");
                     }
                 }
@@ -71,61 +68,6 @@ namespace XCode.DataAccessLayer
             if (providerName == "dm") return true;
 
             return false;
-        }
-        #endregion
-
-        #region 分页
-        /// <summary>已重写。获取分页</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <param name="keyColumn">主键列。用于not in分页</param>
-        /// <returns></returns>
-        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => PageSplitByLimit(sql, startRowIndex, maximumRows);
-
-        /// <summary>构造分页SQL</summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => PageSplitByLimit(builder, startRowIndex, maximumRows);
-
-        /// <summary>已重写。获取分页</summary>
-        /// <param name="sql">SQL语句</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns></returns>
-        public static String PageSplitByLimit(String sql, Int64 startRowIndex, Int64 maximumRows)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows < 1) return sql;
-
-                return $"{sql} limit {maximumRows}";
-            }
-            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-
-            return $"{sql} limit {startRowIndex}, {maximumRows}";
-        }
-
-        /// <summary>构造分页SQL</summary>
-        /// <param name="builder">查询生成器</param>
-        /// <param name="startRowIndex">开始行，0表示第一行</param>
-        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
-        /// <returns>分页SQL</returns>
-        public static SelectBuilder PageSplitByLimit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
-        {
-            // 从第一行开始，不需要分页
-            if (startRowIndex <= 0)
-            {
-                if (maximumRows > 0) builder.Limit = $"limit {maximumRows}";
-                return builder;
-            }
-            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
-
-            builder.Limit = $"limit {startRowIndex}, {maximumRows}";
-            return builder;
         }
         #endregion
 
@@ -238,10 +180,10 @@ namespace XCode.DataAccessLayer
 
             if (pos < 0) return "\"" + keyWord + "\"";
 
-            var tn = keyWord.Substring(pos + 1);
+            var tn = keyWord[(pos + 1)..];
             if (tn.StartsWith("\"")) return keyWord;
 
-            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+            return keyWord[..(pos + 1)] + "\"" + tn + "\"";
         }
         #endregion
     }
@@ -262,7 +204,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName)) return 0;
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as DaMeng).Owner;
@@ -276,7 +218,7 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(sql);
         }
 
-        static readonly Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex reg_SEQ = new(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -300,13 +242,12 @@ namespace XCode.DataAccessLayer
             catch { Rollback(true); throw; }
         }
 
-#if !NET40
         public override Task<Int64> QueryCountFastAsync(String tableName)
         {
             if (String.IsNullOrEmpty(tableName)) return Task.FromResult(0L);
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as DaMeng).Owner;
@@ -335,7 +276,6 @@ namespace XCode.DataAccessLayer
             }
             catch { Rollback(true); throw; }
         }
-#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>
@@ -621,6 +561,25 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, new String[] { Owner, null });
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
+        }
+
         private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
         {
             if (ownerName.IsNullOrEmpty()) ownerName = "Owner";
@@ -669,7 +628,7 @@ namespace XCode.DataAccessLayer
         String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
             var dt = data?["TableComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"TABLE_NAME='{name}'";
             var drs = dt.Select(where);
@@ -686,7 +645,7 @@ namespace XCode.DataAccessLayer
         protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
             var list = base.GetFields(table, columns, data);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             // 字段注释
             if (list != null && list.Count > 0)
@@ -704,7 +663,7 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             var owner = Owner;
             if (owner.IsNullOrEmpty() || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
@@ -721,7 +680,7 @@ namespace XCode.DataAccessLayer
         String GetColumnComment(String tableName, String columnName, IDictionary<String, DataTable> data)
         {
             var dt = data?["ColumnComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"{_.TalbeName}='{tableName}' AND {_.ColumnName}='{columnName}'";
             var drs = dt.Select(where);
@@ -760,7 +719,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "BLOB", "BINARY", "VARBINARY" } },
             { typeof(Boolean), new String[] { "BIT" } },
@@ -801,6 +760,12 @@ namespace XCode.DataAccessLayer
             var str = field.Nullable ? " NULL" : " NOT NULL";
 
             if (field.Identity) str = " IDENTITY NOT NULL";
+
+            // 默认值
+            if (!field.Nullable && !field.Identity)
+            {
+                str += GetDefault(field, onlyDefine);
+            }
 
             return str;
         }

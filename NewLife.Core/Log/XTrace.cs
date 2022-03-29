@@ -82,6 +82,14 @@ namespace NewLife.Log
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
             ThreadPoolX.Init();
+
+            try
+            {
+                var set = Setting.Current;
+                Debug = set.Debug;
+                LogPath = set.LogPath;
+            }
+            catch { }
         }
 
         static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
@@ -101,7 +109,7 @@ namespace NewLife.Log
 
         private static void TaskScheduler_UnobservedTaskException(Object? sender, UnobservedTaskExceptionEventArgs e)
         {
-            if (!e.Observed)
+            if (!e.Observed && e.Exception != null)
             {
                 //WriteException(e.Exception);
                 foreach (var ex in e.Exception.Flatten().InnerExceptions)
@@ -121,7 +129,7 @@ namespace NewLife.Log
             }
         }
 
-        static readonly Object _lock = new Object();
+        static readonly Object _lock = new();
         static Int32 _initing = 0;
 
         /// <summary>
@@ -185,16 +193,11 @@ namespace NewLife.Log
             // 适当加大控制台窗口
             try
             {
-#if __CORE__
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
                     if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
                 }
-#else
-                    if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
-                    if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
-#endif
             }
             catch { }
 
@@ -298,10 +301,10 @@ namespace NewLife.Log
 
         #region 属性
         /// <summary>是否调试。</summary>
-        public static Boolean Debug { get; set; } = Setting.Current.Debug;
+        public static Boolean Debug { get; set; }
 
         /// <summary>文本日志目录</summary>
-        public static String LogPath { get; set; } = Setting.Current.LogPath;
+        public static String? LogPath { get; set; }
 
         ///// <summary>临时目录</summary>
         //public static String TempPath { get; set; } = Setting.Current.TempPath;

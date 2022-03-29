@@ -69,7 +69,7 @@ namespace NewLife.Remoting
             att = method.GetCustomAttribute<ApiAttribute>();
             if (att != null) miName = att.Name;
 
-            if (typeName.IsNullOrEmpty() || miName.Contains("/"))
+            if (typeName.IsNullOrEmpty() || miName.Contains('/'))
                 return miName;
             else
                 return $"{typeName}/{miName}";

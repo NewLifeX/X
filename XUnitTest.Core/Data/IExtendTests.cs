@@ -202,7 +202,7 @@ namespace XUnitTest.Data
 
         class ExtendTest5 : IExtend
         {
-            private readonly NullableDictionary<String, Object> _ms = new NullableDictionary<String, Object>();
+            private readonly NullableDictionary<String, Object> _ms = new();
 
             public Object this[String item]
             {

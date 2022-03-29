@@ -15,7 +15,7 @@ namespace XUnitTest.Log
         public void CreateTest()
         {
             var p = "LevelLog\\";
-            if (Directory.Exists(p.GetFullPath())) Directory.Delete(p, true);
+            if (Directory.Exists(p.GetFullPath())) Directory.Delete(p.GetFullPath(), true);
 
             var log = new LevelLog(p, "{1}\\{0:yyyy_MM_dd}.log");
             log.Level = LogLevel.All;
@@ -31,7 +31,7 @@ namespace XUnitTest.Log
             log.Fatal("fatal");
 
             // 等待日志落盘
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
 
             var f = p + $"debug\\{DateTime.Today:yyyy_MM_dd}.log";
             Assert.True(File.Exists(f.GetFullPath()));

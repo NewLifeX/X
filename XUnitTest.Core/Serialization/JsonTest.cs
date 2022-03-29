@@ -41,7 +41,8 @@ namespace XUnitTest.Serialization
         ""AdAmount"": 0.43,
         ""isGive"": false,
         ""AdLinkUrl"": ""http://www.baidu.com"",
-        ""AdImgUrl"": ""/uploader/swiperPic/405621836.jpg""
+        ""AdImgUrl"": ""/uploader/swiperPic/405621836.jpg"",
+        ""Type"": ""NewLife.Common.PinYin"",
     },
     {
         ""ID"": 0,
@@ -51,7 +52,8 @@ namespace XUnitTest.Serialization
         ""AdAmount"": 0.41,
         ""isGive"": false,
         ""AdLinkUrl"": ""http://www.baidu.com"",
-        ""AdImgUrl"": ""/uploader/swiperPic/1978468752.jpg""
+        ""AdImgUrl"": ""/uploader/swiperPic/1978468752.jpg"",
+        ""Type"": ""String"",
     }
 ]";
 
@@ -66,6 +68,8 @@ namespace XUnitTest.Serialization
             Assert.False(m.IsGive);
             Assert.Equal("http://www.baidu.com", m.AdLinkUrl);
             Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
+            Assert.Equal(typeof(NewLife.Common.PinYin), m.Type);
+            Assert.Equal(typeof(String), models[1].Type);
         }
 
         class Model
@@ -78,6 +82,7 @@ namespace XUnitTest.Serialization
             public Boolean IsGive { get; set; }
             public String AdLinkUrl { get; set; }
             public String AdImgUrl { get; set; }
+            public Type Type { get; set; }
         }
 
         [Fact]

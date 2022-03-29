@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NewLife;
+using NewLife.Caching;
 using NewLife.Configuration;
 using Xunit;
 
@@ -83,9 +84,26 @@ namespace XUnitTest.Configuration
             Assert.Equal(ci2, ci3);
         }
 
-        //public void GetSet()
-        //{
+        [Fact]
+        public void TestBind()
+        {
+            var config = new ConfigProvider();
+            config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
 
-        //}
+            var rds = new Redis();
+
+            config.Bind(rds, true, "orderRedis");
+
+            Assert.Equal("127.0.0.1:6379", rds.Server);
+            Assert.Equal("pass", rds.Password);
+            Assert.Equal(7, rds.Db);
+
+            config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
+            config.SaveAll();
+
+            Assert.Equal("10.0.0.1:6379", rds.Server);
+            Assert.Equal("word", rds.Password);
+            Assert.Equal(13, rds.Db);
+        }
     }
 }

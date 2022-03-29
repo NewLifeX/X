@@ -2,10 +2,10 @@
 
 namespace System
 {
-    /// <summary>并行字典扩展</summary>
+    /// <summary>并发字典扩展</summary>
     public static class ConcurrentDictionaryExtensions
     {
-        /// <summary>从并行字典中删除</summary>
+        /// <summary>从并发字典中删除</summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="dict"></param>

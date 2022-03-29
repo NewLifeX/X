@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Net;
 using NewLife.Reflection;
-using NewLife.Serialization;
 
 namespace NewLife.Remoting
 {
@@ -58,9 +58,9 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
-        private readonly static String _OS = Environment.OSVersion + "";
+        //private readonly static String _OS = Environment.OSVersion + "";
         private readonly static String _MachineName = Environment.MachineName;
-        private readonly static String _UserName = Environment.UserName;
+        //private readonly static String _UserName = Environment.UserName;
         private readonly static String _LocalIP = NetHelper.MyIP() + "";
         /// <summary>服务器信息，用户健康检测</summary>
         /// <param name="state">状态信息</param>
@@ -68,52 +68,63 @@ namespace NewLife.Remoting
         public Object Info(String state)
         {
             var ctx = ControllerContext.Current;
+            var ps = ctx?.Parameters;
             var ns = ctx?.Session as INetSession;
+            if (ns == null && DefaultHttpContext.Current is IHttpContext http)
+            {
+                ps = http.Parameters;
+                ns = http.Connection;
+            }
+
             var asmx = AssemblyX.Entry;
             var asmx2 = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            var mi = MachineInfo.Current;
 
             var rs = new
             {
                 Server = asmx?.Name,
-                asmx?.Version,
+                asmx?.FileVersion,
                 asmx?.Compile,
-                OS = _OS,
+                OS = mi?.OSName,
                 MachineName = _MachineName,
-                UserName = _UserName,
-                ApiVersion = asmx2?.Version,
+                //UserName = _UserName,
+                ApiVersion = asmx2?.FileVersion,
 
                 LocalIP = _LocalIP,
                 Remote = ns?.Remote?.EndPoint + "",
                 State = state,
-                LastState = Session["State"],
+                //LastState = Session?["State"],
                 Time = DateTime.Now,
             };
 
             // 记录上一次状态
-            Session["State"] = state;
+            if (Session != null) Session["State"] = state;
 
             // 转字典
             var dic = rs.ToDictionary();
 
             // 令牌
-            //var token = ctx.Parameters["Token"] + "";
-            //if (ctx.Parameters.TryGetValue("Token", out var token) && token + "" != "") dic["Token"] = token;
-            if (!Session.Token.IsNullOrEmpty()) dic["Token"] = Session.Token;
-
-            // 时间和连接数
-            if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
-            if (Host is ApiServer svr && svr.Server is NetServer nsvr)
+            if (Session != null && !Session.Token.IsNullOrEmpty())
             {
-                dic["Port"] = nsvr.Port;
-                dic["Online"] = nsvr.SessionCount;
-                dic["MaxOnline"] = nsvr.MaxSessionCount;
+                dic["Token"] = Session.Token;
+
+                // 时间和连接数
+                if (Host is ApiHost ah) dic["Uptime"] = (DateTime.Now - ah.StartTime).ToString();
+                if (Host is ApiServer svr && svr.Server is NetServer nsvr)
+                {
+                    dic["Port"] = nsvr.Port;
+                    dic["Online"] = nsvr.SessionCount;
+                    dic["MaxOnline"] = nsvr.MaxSessionCount;
+                }
+
+                // 进程
+                dic["Process"] = GetProcess();
+
+                // 加上统计信息
+                dic["Stat"] = GetStat();
             }
-
-            // 进程
-            dic["Process"] = GetProcess();
-
-            // 加上统计信息
-            dic["Stat"] = GetStat();
+            else if (ps != null && ps.TryGetValue("Token", out var token) && token + "" != "")
+                dic["Token"] = token;
 
             return dic;
         }
@@ -139,7 +150,7 @@ namespace NewLife.Remoting
 
         private Object GetStat()
         {
-            var svc = Host as ApiServer;
+            if (Host is not ApiServer svc) return null;
 
             var dic = new Dictionary<String, Object>
             {
@@ -152,30 +163,6 @@ namespace NewLife.Remoting
             }
 
             return dic;
-        }
-
-        private static Packet _myInfo;
-        /// <summary>服务器信息，用户健康检测，二进制压测</summary>
-        /// <param name="state">状态信息</param>
-        /// <returns></returns>
-        public Packet Info2(Packet state)
-        {
-            if (_myInfo == null)
-            {
-                // 不包含时间和远程地址
-                var rs = new
-                {
-                    MachineNam = _MachineName,
-                    UserName = _UserName,
-                    LocalIP = _LocalIP,
-                };
-                _myInfo = new Packet(rs.ToJson().GetBytes());
-            }
-
-            var pk = _myInfo.Slice(0, -1);
-            pk.Append(state);
-
-            return pk;
         }
     }
 }

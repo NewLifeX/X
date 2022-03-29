@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +27,7 @@ namespace NewLife.Serialization
             var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
             WriteLog("BinaryWrite类{0} 共有成员{1}个", type.Name, ms.Count);
 
-            if (Host.UseFieldSize)
+            if (Host is Binary b && b.UseFieldSize)
             {
                 // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
                 foreach (var member in ms)
@@ -42,14 +43,20 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
+            var context = new AccessorContext { Host = Host, Type = type, Value = value };
+
             // 获取成员
             foreach (var member in ms)
             {
                 var mtype = GetMemberType(member);
-                Host.Member = member;
+                context.Member = Host.Member = member;
 
                 var v = value.GetValue(member);
                 WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+
+                // 成员访问器优先
+                if (value is IMemberAccessor ac && ac.Write(Host, context)) continue;
+                if (TryGetAccessor(member, out var acc) && acc.Write(Host, context)) continue;
 
                 if (!Host.Write(v, mtype))
                 {
@@ -97,6 +104,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
+            if (type == typeof(Object)) return false;
             if (type == null)
             {
                 if (value == null) return false;
@@ -105,6 +113,7 @@ namespace NewLife.Serialization
 
             // 不支持基本类型
             if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+
             // 不支持基类不是Object的特殊类型
             if (!type.As<Object>()) return false;
 
@@ -120,7 +129,7 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
-            // 成员序列化访问器
+            var context = new AccessorContext { Host = Host, Type = type, Value = value };
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
@@ -128,11 +137,12 @@ namespace NewLife.Serialization
                 var member = ms[i];
 
                 var mtype = GetMemberType(member);
-                Host.Member = member;
+                context.Member = Host.Member = member;
                 WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
 
                 // 成员访问器优先
-                if (value is IMemberAccessor ac && TryReadAccessor(member, ref value, ref ac, ref ms)) continue;
+                if (value is IMemberAccessor ac && ac.Read(Host, context)) continue;
+                if (TryGetAccessor(member, out var acc) && acc.Read(Host, context)) continue;
 
                 // 数据流不足时，放弃读取目标成员，并认为整体成功
                 var hs = Host.Stream;
@@ -178,23 +188,6 @@ namespace NewLife.Serialization
             return true;
         }
 
-        private Boolean TryReadAccessor(MemberInfo member, ref Object value, ref IMemberAccessor ac, ref List<MemberInfo> ms)
-        {
-            // 访问器直接写入成员
-            if (!ac.Read(Host, member)) return false;
-
-            // 访问器内部可能直接操作Hosts修改了父级对象，典型应用在于某些类需要根据某个字段值决定采用哪个派生类
-            var obj = Host.Hosts.Peek();
-            if (obj != value)
-            {
-                value = obj;
-                ms = GetMembers(value.GetType());
-                ac = value as IMemberAccessor;
-            }
-
-            return true;
-        }
-
         #region 获取成员
         /// <summary>获取成员</summary>
         /// <param name="type"></param>
@@ -216,6 +209,19 @@ namespace NewLife.Serialization
                 MemberTypes.Property => (member as PropertyInfo).PropertyType,
                 _ => throw new NotSupportedException(),
             };
+        }
+
+        private static readonly ConcurrentDictionary<MemberInfo, IMemberAccessor> _cache = new();
+        private static Boolean TryGetAccessor(MemberInfo member, out IMemberAccessor acc)
+        {
+            if (_cache.TryGetValue(member, out acc)) return acc != null;
+
+            var atts = member.GetCustomAttributes();
+            acc = atts.FirstOrDefault(e => e is IMemberAccessor) as IMemberAccessor;
+
+            _cache[member] = acc;
+
+            return acc != null;
         }
         #endregion
     }

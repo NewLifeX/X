@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using NewLife.Data;
 using NewLife.Log;
@@ -28,7 +29,7 @@ namespace NewLife.Serialization
         public Int32 SizeWidth { get; set; }
 
         /// <summary>要忽略的成员</summary>
-        public ICollection<String> IgnoreMembers { get; set; }
+        public ICollection<String> IgnoreMembers { get; set; } = new HashSet<String>();
 
         /// <summary>处理器列表</summary>
         public IList<IBinaryHandler> Handlers { get; private set; }
@@ -38,8 +39,6 @@ namespace NewLife.Serialization
         /// <summary>实例化</summary>
         public Binary()
         {
-            IgnoreMembers = new HashSet<String>();
-
             // 遍历所有处理器实现
             var list = new List<IBinaryHandler>
             {
@@ -50,9 +49,7 @@ namespace NewLife.Serialization
                 new BinaryDictionary { Host = this }
             };
             // 根据优先级排序
-            list.Sort();
-
-            Handlers = list;
+            Handlers = list.OrderBy(e => e.Priority).ToList();
         }
         #endregion
 
@@ -67,7 +64,7 @@ namespace NewLife.Serialization
                 handler.Host = this;
                 Handlers.Add(handler);
                 // 根据优先级排序
-                (Handlers as List<IBinaryHandler>).Sort();
+                Handlers = Handlers.OrderBy(e => e.Priority).ToList();
             }
 
             return this;
@@ -95,7 +92,7 @@ namespace NewLife.Serialization
         {
             foreach (var item in Handlers)
             {
-                if (item is T) return item as T;
+                if (item is T handler) return handler;
             }
 
             return default;
@@ -170,10 +167,7 @@ namespace NewLife.Serialization
                     break;
                 case 0:
                 default:
-                    //if (EncodeInt)
                     WriteEncoded(size);
-                    //else
-                    //    Write(size);
                     break;
             }
 
@@ -182,31 +176,6 @@ namespace NewLife.Serialization
 
         [ThreadStatic]
         private static Byte[] _encodes;
-
-        /// <summary>写7位压缩编码整数</summary>
-        /// <remarks>
-        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
-        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-        /// </remarks>
-        /// <param name="value">数值</param>
-        /// <returns>实际写入字节数</returns>
-        private Int32 WriteEncoded(Int32 value)
-        {
-            if (_encodes == null) _encodes = new Byte[16];
-
-            var count = 0;
-            var num = (UInt32)value;
-            while (num >= 0x80)
-            {
-                _encodes[count++] = (Byte)(num | 0x80);
-                num >>= 7;
-            }
-            _encodes[count++] = (Byte)num;
-
-            Write(_encodes, 0, count);
-
-            return count;
-        }
         #endregion
 
         #region 读取
@@ -216,7 +185,7 @@ namespace NewLife.Serialization
         public virtual Object Read(Type type)
         {
             Object value = null;
-            if (!TryRead(type, ref value)) throw new Exception("读取失败！");
+            if (!TryRead(type, ref value)) throw new Exception($"读取失败，不支持类型{type}！");
 
             return value;
         }
@@ -269,8 +238,8 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public virtual Byte[] ReadBytes(Int32 count)
         {
-            var buffer = new Byte[count];
-            Stream.Read(buffer, 0, count);
+            var buffer = Stream.ReadBytes(count);
+            //if (n != count) throw new InvalidDataException($"数据不足，需要{count}，实际{n}");
 
             return buffer;
         }
@@ -317,6 +286,31 @@ namespace NewLife.Serialization
         #endregion
 
         #region 7位压缩编码整数
+        /// <summary>写7位压缩编码整数</summary>
+        /// <remarks>
+        /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+        /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+        /// </remarks>
+        /// <param name="value">数值</param>
+        /// <returns>实际写入字节数</returns>
+        public Int32 WriteEncoded(Int32 value)
+        {
+            if (_encodes == null) _encodes = new Byte[16];
+
+            var count = 0;
+            var num = (UInt32)value;
+            while (num >= 0x80)
+            {
+                _encodes[count++] = (Byte)(num | 0x80);
+                num >>= 7;
+            }
+            _encodes[count++] = (Byte)num;
+
+            Write(_encodes, 0, count);
+
+            return count;
+        }
+
         /// <summary>以压缩格式读取16位整数</summary>
         /// <returns></returns>
         public Int16 ReadEncodedInt16()
@@ -378,12 +372,120 @@ namespace NewLife.Serialization
         }
         #endregion
 
+        #region 专用扩展
+        /// <summary>读取无符号短整数</summary>
+        /// <returns></returns>
+        public UInt16 ReadUInt16() => Read<UInt16>();
+
+        /// <summary>读取短整数</summary>
+        /// <returns></returns>
+        public Int16 ReadInt16() => Read<Int16>();
+
+        /// <summary>读取无符号整数</summary>
+        /// <returns></returns>
+        public UInt32 ReadUInt32() => Read<UInt32>();
+
+        /// <summary>读取整数</summary>
+        /// <returns></returns>
+        public Int32 ReadInt32() => Read<Int32>();
+
+        /// <summary>写入字节</summary>
+        /// <param name="value"></param>
+        public void WriteByte(Byte value) => Write(value);
+
+        /// <summary>写入无符号短整数</summary>
+        /// <param name="value"></param>
+        public void WriteUInt16(UInt16 value) => Write(value);
+
+        /// <summary>写入短整数</summary>
+        /// <param name="value"></param>
+        public void WriteInt16(Int16 value) => Write(value);
+
+        /// <summary>写入无符号整数</summary>
+        /// <param name="value"></param>
+        public void WriteUInt32(UInt32 value) => Write(value);
+
+        /// <summary>写入整数</summary>
+        /// <param name="value"></param>
+        public void WriteInt32(Int32 value) => Write(value);
+
+        /// <summary>BCD字节转十进制数字</summary>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Int32 FromBCD(Byte b) => (b >> 4) * 10 + (b & 0x0F);
+
+        /// <summary>十进制数字转BCD字节</summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static Byte ToBCD(Int32 n) => (Byte)(((n / 10) << 4) | (n % 10));
+
+        /// <summary>读取指定长度的BCD字符串。BCD每个字节存放两个数字</summary>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public String ReadBCD(Int32 len)
+        {
+            var buf = ReadBytes(len);
+            var cs = new Char[len * 2];
+            for (var i = 0; i < len; i++)
+            {
+                cs[i * 2] = (Char)('0' + (buf[i] >> 4));
+                cs[i * 2 + 1] = (Char)('0' + (buf[i] & 0x0F));
+            }
+
+            return new String(cs).Trim('\0');
+        }
+
+        /// <summary>写入指定长度的BCD字符串。BCD每个字节存放两个数字</summary>
+        /// <param name="value"></param>
+        /// <param name="max"></param>
+        public void WriteBCD(String value, Int32 max)
+        {
+            var buf = new Byte[max];
+            for (Int32 i = 0, j = 0; i < max && j + 1 < value.Length; i++, j += 2)
+            {
+                var a = (Byte)(value[j] - '0');
+                var b = (Byte)(value[j + 1] - '0');
+                buf[i] = (Byte)((a << 4) | (b & 0x0F));
+            }
+
+            Write(buf, 0, buf.Length);
+        }
+
+        /// <summary>写入定长字符串。多余截取，少则补零</summary>
+        /// <param name="value"></param>
+        /// <param name="max"></param>
+        public void WriteFixedString(String value, Int32 max)
+        {
+            var buf = new Byte[max];
+            if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
+
+            Write(buf, 0, buf.Length);
+        }
+
+        /// <summary>读取定长字符串。多余截取，少则补零</summary>
+        /// <param name="len"></param>
+        /// <returns></returns>
+        public String ReadFixedString(Int32 len)
+        {
+            var buf = ReadBytes(len);
+
+            // 剔除头尾非法字符
+            Int32 s, e;
+            for (s = 0; s < len && (buf[s] == 0x00 || buf[s] == 0xFF); s++) ;
+            for (e = len - 1; e >= 0 && (buf[e] == 0x00 || buf[e] == 0xFF); e--) ;
+
+            if (s >= len || e < 0) return null;
+
+            return Encoding.GetString(buf, s, e - s + 1);
+        }
+        #endregion
+
         #region 跟踪日志
         /// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream后，使用之前</summary>
         public virtual void EnableTrace()
         {
             var stream = Stream;
-            if (stream == null || stream is TraceStream) return;
+            if (stream is null or TraceStream) return;
 
             Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
         }

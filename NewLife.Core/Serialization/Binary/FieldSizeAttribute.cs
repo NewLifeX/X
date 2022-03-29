@@ -14,21 +14,20 @@ namespace NewLife.Serialization
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class FieldSizeAttribute : Attribute
     {
-        private Int32 _Size;
         /// <summary>大小。使用<see cref="ReferenceName"/>时，作为偏移量；0表示自动计算大小</summary>
-        public Int32 Size { get { return _Size; } set { _Size = value; } }
+        public Int32 Size { get; set; }
 
         private String _ReferenceName;
         /// <summary>参考大小字段名</summary>
-        public String ReferenceName { get { return _ReferenceName; } set { _ReferenceName = value; } }
+        public String ReferenceName { get => _ReferenceName; set => _ReferenceName = value; }
 
         /// <summary>通过Size指定字符串或数组的固有大小，为0表示自动计算</summary>
         /// <param name="size"></param>
-        public FieldSizeAttribute(Int32 size) { Size = size; }
+        public FieldSizeAttribute(Int32 size) => Size = size;
 
         /// <summary>指定参考字段ReferenceName，然后从其中获取大小</summary>
         /// <param name="referenceName"></param>
-        public FieldSizeAttribute(String referenceName) { ReferenceName = referenceName; }
+        public FieldSizeAttribute(String referenceName) => ReferenceName = referenceName;
 
         /// <summary>指定参考字段ReferenceName，然后从其中获取大小</summary>
         /// <param name="referenceName"></param>
@@ -41,7 +40,7 @@ namespace NewLife.Serialization
         /// <param name="member">目标对象的成员</param>
         /// <param name="value">数值</param>
         /// <returns></returns>
-        MemberInfo FindReference(Object target, MemberInfo member, out Object value)
+        private MemberInfo FindReference(Object target, MemberInfo member, out Object value)
         {
             value = null;
 
@@ -52,7 +51,7 @@ namespace NewLife.Serialization
             MemberInfo mi = null;
             var type = member.DeclaringType;
             value = target;
-            var ss = ReferenceName.Split(".");
+            var ss = ReferenceName.Split('.');
             for (var i = 0; i < ss.Length; i++)
             {
                 var pi = type.GetPropertyEx(ss[i]);
@@ -80,7 +79,7 @@ namespace NewLife.Serialization
 
             // 目标字段必须是整型
             var tc = Type.GetTypeCode(type);
-            if (tc >= TypeCode.SByte && tc <= TypeCode.UInt64) return mi;
+            if (tc is >= TypeCode.SByte and <= TypeCode.UInt64) return mi;
 
             return null;
         }
@@ -91,8 +90,7 @@ namespace NewLife.Serialization
         /// <param name="encoding"></param>
         internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
         {
-            Object v = null;
-            var mi = FindReference(target, member, out v);
+            var mi = FindReference(target, member, out var v);
             if (mi == null) return;
 
             // 获取当前成员（加了特性）的值
@@ -129,8 +127,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         internal Int32 GetReferenceSize(Object target, MemberInfo member)
         {
-            Object v = null;
-            var mi = FindReference(target, member, out v);
+            var mi = FindReference(target, member, out var v);
             if (mi == null) return -1;
 
             return Convert.ToInt32(v.GetValue(mi)) + Size;

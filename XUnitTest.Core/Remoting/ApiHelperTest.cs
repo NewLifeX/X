@@ -1,17 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Serialization;
 using NewLife;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
-using Xunit;
 using NewLife.Serialization;
-using System.Collections;
-using System.Runtime.Serialization;
+using Xunit;
 
 namespace XUnitTest.Remoting
 {
@@ -359,7 +358,7 @@ namespace XUnitTest.Remoting
         {
             var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
-            Assert.True(dic.Count > 10);
+            Assert.True(dic.Count >= 10);
             Assert.StartsWith("testhost", (dic["Server"] + ""));
 
             var pk = await _Client.GetAsync<Packet>("api/info");
@@ -368,7 +367,7 @@ namespace XUnitTest.Remoting
 
             var ss = await _Client.PostAsync<String[]>("Api/All");
             Assert.NotNull(ss);
-            Assert.True(ss.Length >= 3);
+            Assert.True(ss.Length >= 2);
         }
 
         [Fact(DisplayName = "异常请求")]
@@ -431,7 +430,7 @@ namespace XUnitTest.Remoting
 
             var ss = await _Client.PostAsync<String[]>("Api/All");
             Assert.NotNull(ss);
-            Assert.True(ss.Length >= 3);
+            Assert.True(ss.Length >= 2);
         }
     }
 }

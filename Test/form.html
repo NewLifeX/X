@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>表单提交</title>
+</head>
+<body>
+    <h2>用户信息</h2>
+    <div>
+        <form action="/my" method="post" enctype="multipart/form-data">
+            <label for="name">用户名：</label>
+            <input type="text" name="name" placeholder="输入用户名" />
+            <label for="password">密码：</label>
+            <input type="password" name="password" />
+            <label for="avatar">头像：</label>
+            <input type="file" name="avatar" placeholder="上传头像" />
+            <label for="avatar2">头像：</label>
+            <input type="file" name="avatar2" placeholder="上传头像2" />
+
+            <input type="submit" value="保存" />
+        </form>
+    </div>
+</body>
+</html>

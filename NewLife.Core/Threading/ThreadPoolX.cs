@@ -14,8 +14,13 @@ namespace NewLife.Threading
         static ThreadPoolX()
         {
             // 在这个同步异步大量混合使用的时代，需要更多的初始线程来屏蔽各种对TPL的不合理使用
-            ThreadPool.GetMinThreads(out var wt, out _);
-            if (wt < 32) ThreadPool.SetMinThreads(32, 32);
+            ThreadPool.GetMinThreads(out var wt, out var io);
+            if (wt < 32 || io < 32)
+            {
+                if (wt < 32) wt = 32;
+                if (io < 32) io = 32;
+                ThreadPool.SetMinThreads(wt, io);
+            }
         }
 
         /// <summary>初始化线程池
@@ -117,7 +122,7 @@ namespace NewLife.Threading
 
             /// <summary>创建实例</summary>
             /// <returns></returns>
-            protected override ThreadItem OnCreate() => new ThreadItem(Host);
+            protected override ThreadItem OnCreate() => new(Host);
         }
         #endregion
 
@@ -230,10 +235,8 @@ namespace NewLife.Threading
                 Active = false;
                 waitForTimer?.Set();
 
-#if !NET50
-                var th = Thread;
-                if (th != null && th.IsAlive) th.Abort();
-#endif
+                //var th = Thread;
+                //if (th != null && th.IsAlive) th.Abort();
             }
             catch { }
         }

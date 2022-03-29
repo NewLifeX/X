@@ -55,7 +55,7 @@ namespace NewLife.Log
         #region 属性
         /// <summary>构建器</summary>
         [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-        public ISpanBuilder Builder { get; }
+        public ISpanBuilder Builder { get; private set; }
 
         /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
         public String Id { get; set; }
@@ -84,24 +84,9 @@ namespace NewLife.Log
         /// <summary>错误信息</summary>
         public String Error { get; set; }
 
-#if NET40
-        [ThreadStatic]
-        private static ISpan _Current;
-        /// <summary>当前线程正在使用的上下文</summary>
-        public static ISpan Current { get => _Current; set => _Current = value; }
-#elif NET45
-        private static readonly String FieldKey = typeof(DefaultSpan).FullName;
-        /// <summary>当前线程正在使用的上下文</summary>
-        public static ISpan Current
-        {
-            get => ((System.Runtime.Remoting.ObjectHandle)System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(FieldKey))?.Unwrap() as ISpan;
-            set => System.Runtime.Remoting.Messaging.CallContext.LogicalSetData(FieldKey, new System.Runtime.Remoting.ObjectHandle(value));
-        }
-#else
-        private static readonly System.Threading.AsyncLocal<ISpan> _Current = new System.Threading.AsyncLocal<ISpan>();
+        private static readonly AsyncLocal<ISpan> _Current = new();
         /// <summary>当前线程正在使用的上下文</summary>
         public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
-#endif
 
         private ISpan _parent;
         private Boolean _finished;
@@ -149,10 +134,9 @@ namespace NewLife.Log
 
             // 设置父级
             var span = Current;
+            _parent = span;
             if (span != null && span != this)
             {
-                _parent = span;
-
                 ParentId = span.Id;
                 TraceId = span.TraceId;
 
@@ -167,10 +151,10 @@ namespace NewLife.Log
             Current = this;
         }
 
-        private static String _myip;
+        private static readonly String _myip;
         private static Int32 _seq;
         private static Int32 _seq2;
-        private static String _pid;
+        private static readonly String _pid;
 
         /// <summary>创建分片编号</summary>
         /// <returns></returns>
@@ -218,6 +202,10 @@ namespace NewLife.Log
             // Builder这一批可能已经上传，重新取一次，以防万一
             var builder = Builder.Tracer.BuildSpan(Builder.Name);
             builder.Finish(this);
+
+            // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
+            // 也有可能原来的Builder已经上传，现在加入了新的builder集合
+            Builder = null;
         }
 
         /// <summary>设置错误信息</summary>
@@ -229,7 +217,9 @@ namespace NewLife.Log
             if (tag is String str)
                 Tag = str.Cut(1024);
             else if (tag is StringBuilder builder)
-                Tag = builder.ToString().Cut(1024);
+                Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
+            else if (tag is Packet pk)
+                Tag = pk.ToHex(1024 / 2);
             else if (tag != null)
                 Tag = tag.ToJson().Cut(1024);
         }
@@ -369,20 +359,25 @@ namespace NewLife.Log
             // 不区分大小写比较头部
             if (dic.TryGetValue("traceparent", out var tid))
             {
-                var ss = (tid + "").Split("-");
+                var ss = (tid + "").Split('-');
                 if (ss.Length > 1) span.TraceId = ss[1];
                 if (ss.Length > 2) span.ParentId = ss[2];
+                if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
+                {
+                    var buf = ss[3].ToHex(0, 2);
+                    if (buf.Length > 0) ds.TraceFlag = buf[0];
+                }
             }
             else if (dic.TryGetValue("Request-Id", out tid))
             {
                 // HierarchicalId编码取最后一段作为父级
-                var ss = (tid + "").Split(".", "_");
+                var ss = (tid + "").Split('.', '_');
                 if (ss.Length > 0) span.TraceId = ss[0].TrimStart('|');
-                if (ss.Length > 1) span.ParentId = ss[ss.Length - 1];
+                if (ss.Length > 1) span.ParentId = ss[^1];
             }
             else if (dic.TryGetValue("Eagleeye-Traceid", out tid))
             {
-                var ss = (tid + "").Split("-");
+                var ss = (tid + "").Split('-');
                 if (ss.Length > 0) span.TraceId = ss[0];
                 if (ss.Length > 1) span.ParentId = ss[1];
             }
@@ -394,7 +389,7 @@ namespace NewLife.Log
 
         /// <summary>从数据流traceId中释放片段信息</summary>
         /// <param name="span">片段</param>
-        /// <param name="traceId">W3C标准TraceId</param>
+        /// <param name="traceId">W3C标准TraceId，可以是traceparent</param>
         public static void Detach(this ISpan span, String traceId)
         {
             if (span == null || traceId.IsNullOrEmpty()) return;
@@ -403,11 +398,11 @@ namespace NewLife.Log
             if (ss.Length > 1) span.TraceId = ss[1];
             if (ss.Length > 2) span.ParentId = ss[2];
 
-            if (span is DefaultSpan ds)
+            if (ss.Length > 3 && !ss[3].IsNullOrEmpty() && span is DefaultSpan ds && ds.TraceFlag == 0)
             {
                 // 识别跟踪标识，该TraceId之下，全量采样，确保链路采样完整
-                //if (ss.Length > 0) ds.Version = (Byte)ss[0].ToInt();
-                if (ss.Length > 3) ds.TraceFlag = (Byte)ss[3].ToInt();
+                var buf = ss[3].ToHex(0, 2);
+                if (buf.Length > 0) ds.TraceFlag = buf[0];
             }
         }
         #endregion

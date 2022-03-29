@@ -315,8 +315,8 @@ namespace NewLife.Reflection
         #endregion
 
         #region 反射获取 字段/属性
-        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
-        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new ConcurrentDictionary<Type, IList<FieldInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache1 = new();
+        private readonly ConcurrentDictionary<Type, IList<FieldInfo>> _cache2 = new();
         /// <summary>获取字段</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -351,8 +351,8 @@ namespace NewLife.Reflection
             return list;
         }
 
-        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
-        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new ConcurrentDictionary<Type, IList<PropertyInfo>>();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache3 = new();
+        private readonly ConcurrentDictionary<Type, IList<PropertyInfo>> _cache4 = new();
         /// <summary>获取属性</summary>
         /// <param name="type"></param>
         /// <param name="baseFirst"></param>
@@ -426,28 +426,26 @@ namespace NewLife.Reflection
                 if (parameters == null || parameters.Length == 0)
                 {
                     // 基元类型
-                    switch (type.GetTypeCode())
+                    return type.GetTypeCode() switch
                     {
-                        case TypeCode.Empty:
-                        case TypeCode.DBNull: return null;
-                        case TypeCode.Boolean: return false;
-                        case TypeCode.Char: return '\0';
-                        case TypeCode.SByte: return (SByte)0;
-                        case TypeCode.Byte: return (Byte)0;
-                        case TypeCode.Int16: return (Int16)0;
-                        case TypeCode.UInt16: return (UInt16)0;
-                        case TypeCode.Int32: return 0;
-                        case TypeCode.UInt32: return 0U;
-                        case TypeCode.Int64: return 0L;
-                        case TypeCode.UInt64: return 0UL;
-                        case TypeCode.Single: return 0F;
-                        case TypeCode.Double: return 0D;
-                        case TypeCode.Decimal: return 0M;
-                        case TypeCode.DateTime: return DateTime.MinValue;
-                        case TypeCode.String: return String.Empty;
-                    }
-
-                    return Activator.CreateInstance(type, true);
+                        TypeCode.Empty or TypeCode.DBNull => null,
+                        TypeCode.Boolean => false,
+                        TypeCode.Char => '\0',
+                        TypeCode.SByte => (SByte)0,
+                        TypeCode.Byte => (Byte)0,
+                        TypeCode.Int16 => (Int16)0,
+                        TypeCode.UInt16 => (UInt16)0,
+                        TypeCode.Int32 => 0,
+                        TypeCode.UInt32 => 0U,
+                        TypeCode.Int64 => 0L,
+                        TypeCode.UInt64 => 0UL,
+                        TypeCode.Single => 0F,
+                        TypeCode.Double => 0D,
+                        TypeCode.Decimal => 0M,
+                        TypeCode.DateTime => DateTime.MinValue,
+                        TypeCode.String => String.Empty,
+                        _ => Activator.CreateInstance(type, true),
+                    };
                 }
                 else
                     return Activator.CreateInstance(type, parameters);
@@ -475,7 +473,7 @@ namespace NewLife.Reflection
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return Invoke(target, method, null);
+            if (pis == null || pis.Length == 0) return Invoke(target, method, null);
 
             var ps = new Object[pis.Length];
             for (var i = 0; i < pis.Length; i++)
@@ -723,14 +721,10 @@ namespace NewLife.Reflection
             if (type == baseType) return true;
 
             // 如果基类是泛型定义，补充完整，例如IList<>
-#if NET4
-            if (baseType.IsGenericTypeDefinition && type.IsGenericType && !type.IsGenericTypeDefinition) type = type.GetGenericTypeDefinition();
-#else
             if (baseType.IsGenericTypeDefinition
                 && type.IsGenericType && !type.IsGenericTypeDefinition
                 && baseType is TypeInfo inf && inf.GenericTypeParameters.Length == type.GenericTypeArguments.Length)
                 baseType = baseType.MakeGenericType(type.GenericTypeArguments);
-#endif
 
             if (type == baseType) return true;
 

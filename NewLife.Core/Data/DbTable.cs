@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
 
@@ -100,7 +101,6 @@ namespace NewLife.Data
             Total = rs.Count;
         }
 
-#if !NET40
         /// <summary>读取数据</summary>
         /// <param name="dr"></param>
         public async Task ReadAsync(DbDataReader dr)
@@ -143,11 +143,10 @@ namespace NewLife.Data
 
             Total = rs.Count;
         }
-#endif
         #endregion
 
         #region 二进制读取
-        private const Byte _Ver = 1;
+        private const Byte _Ver = 2;
 
         /// <summary>从数据流读取</summary>
         /// <param name="stream"></param>
@@ -187,8 +186,13 @@ namespace NewLife.Data
             for (var i = 0; i < count; i++)
             {
                 cs[i] = bn.Read<String>();
+
+                // 复杂类型写入类型字符串
                 var tc = (TypeCode)bn.Read<Byte>();
-                ts[i] = Type.GetType("System." + tc);
+                if (tc != TypeCode.Object)
+                    ts[i] = Type.GetType("System." + tc);
+                else if (ver >= 2)
+                    ts[i] = bn.Read<String>().GetTypeEx();
             }
             Columns = cs;
             Types = ts;
@@ -279,7 +283,11 @@ namespace NewLife.Data
             for (var i = 0; i < count; i++)
             {
                 bn.Write(cs[i]);
-                bn.Write((Byte)ts[i].GetTypeCode());
+
+                // 复杂类型写入类型字符串
+                var code = ts[i].GetTypeCode();
+                bn.Write((Byte)code);
+                if (code == TypeCode.Object) bn.Write(ts[i].FullName);
             }
 
             // 数据行数
@@ -299,6 +307,29 @@ namespace NewLife.Data
                 for (var i = 0; i < row.Length; i++)
                 {
                     bn.Write(row[i], ts[i]);
+                }
+            }
+        }
+
+        /// <summary>写入数据部分到数据流</summary>
+        /// <param name="bn"></param>
+        /// <param name="fields">要写入的字段序列</param>
+        public void WriteData(Binary bn, Int32[] fields)
+        {
+            var ts = Types;
+            var rs = Rows;
+
+            // 写入数据，按照指定的顺序
+            foreach (var row in rs)
+            {
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // 找到目标顺序，实际上几乎不可能出现-1
+                    var idx = fields[i];
+                    if (idx >= 0)
+                        bn.Write(row[idx], ts[idx]);
+                    else
+                        bn.Write(null, ts[idx]);
                 }
             }
         }
@@ -356,6 +387,26 @@ namespace NewLife.Data
             }
 
             return list;
+        }
+        #endregion
+
+        #region Csv序列化
+        /// <summary>保存到Csv文件</summary>
+        /// <param name="file"></param>
+        public void SaveCsv(String file)
+        {
+            using var csv = new CsvFile(file, true);
+            csv.WriteLine(Columns);
+            csv.WriteAll(Rows);
+        }
+
+        /// <summary>从Csv文件加载</summary>
+        /// <param name="file"></param>
+        public void LoadCsv(String file)
+        {
+            using var csv = new CsvFile(file, false);
+            Columns = csv.ReadLine();
+            Rows = csv.ReadAll();
         }
         #endregion
 

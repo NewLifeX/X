@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using XCode.Code;
 using XCode.DataAccessLayer;
-using XCode.Membership;
 using Xunit;
 
 namespace XUnitTest.XCode.Code
@@ -20,6 +17,16 @@ namespace XUnitTest.XCode.Code
             _option = new BuilderOption();
             var tables = ClassBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", _option, out _);
             _table = tables.FirstOrDefault(e => e.Name == "User");
+        }
+
+        private String ReadTarget(String file, String text)
+        {
+            //var file2 = @"..\..\XUnitTest.XCode\".CombinePath(file);
+            //File.WriteAllText(file2, text);
+
+            var target = File.ReadAllText(file.GetFullPath());
+
+            return target;
         }
 
         [Fact]
@@ -45,7 +52,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\entity_user_normal.cs".GetFullPath());
+            var target = ReadTarget("Code\\entity_user_normal.cs", rs);
             Assert.Equal(target, rs);
 
             // 业务类
@@ -55,7 +62,47 @@ namespace XUnitTest.XCode.Code
             rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            target = File.ReadAllText("Code\\entity_user_normal_biz.cs".GetFullPath());
+            target = ReadTarget("Code\\entity_user_normal_biz.cs", rs);
+            Assert.Equal(target, rs);
+        }
+
+        [Fact]
+        public void Exclude()
+        {
+            var option = new BuilderOption
+            {
+                ConnName = "MyConn",
+                Namespace = "Company.MyName",
+                Partial = true,
+            };
+            option.Usings.Add("NewLife.Remoting");
+
+            var builder = new EntityBuilder
+            {
+                Table = _table,
+                Option = option,
+            };
+
+            // 数据类
+            builder.Execute();
+
+            var columns = _table.Columns.Where(e => e.Properties["Model"] == "False").ToList();
+            Assert.Equal(4, columns.Count);
+
+            var rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            var target = ReadTarget("Code\\entity_user_normal.cs", rs);
+            Assert.Equal(target, rs);
+
+            // 业务类
+            builder.Business = true;
+            builder.Execute();
+
+            rs = builder.ToString();
+            Assert.NotEmpty(rs);
+
+            target = ReadTarget("Code\\entity_user_normal_biz.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -80,7 +127,7 @@ namespace XUnitTest.XCode.Code
         //    var rs = builder.ToString();
         //    Assert.NotEmpty(rs);
 
-        //    var target = File.ReadAllText("Code\\entity_user_generictype.cs".GetFullPath());
+        //    var target = File.ReadAllText("Code\\entity_user_generictype.cs",rs);
         //    Assert.Equal(target, rs);
         //}
 
@@ -133,27 +180,44 @@ namespace XUnitTest.XCode.Code
 
             {
                 var rs = File.ReadAllText("Entity\\用户.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\Entity\\用户.cs".GetFullPath());
+                var target = ReadTarget("Code\\Entity\\用户.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Entity\\用户.Biz.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\Entity\\用户.Biz.cs".GetFullPath());
+                var target = ReadTarget("Code\\Entity\\用户.Biz.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Output\\EntityModels\\UserModel.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\EntityModels\\UserModel.cs".GetFullPath());
+                var target = ReadTarget("Code\\EntityModels\\UserModel.cs", rs);
                 Assert.Equal(target, rs);
             }
 
             {
                 var rs = File.ReadAllText("Output\\EntityInterfaces\\IUser.cs".GetFullPath());
-                var target = File.ReadAllText("Code\\EntityInterfaces\\IUser.cs".GetFullPath());
+                var target = ReadTarget("Code\\EntityInterfaces\\IUser.cs", rs);
                 Assert.Equal(target, rs);
             }
+        }
+
+        [Fact]
+        public void FixModelFile()
+        {
+            // 加载模型文件，得到数据表
+            var file = @"..\..\XUnitTest.XCode\Code\Member.xml";
+            var option = new BuilderOption();
+            var tables = ClassBuilder.LoadModels(file, option, out var atts);
+            EntityBuilder.FixModelFile(file, option, atts, tables);
+
+            atts["NameFormat"] = "underline";
+            file = @"..\..\XUnitTest.XCode\Code\Member2.xml";
+            EntityBuilder.FixModelFile(file, option, atts, tables);
+
+            var xml = File.ReadAllText(file);
+            Assert.Contains("Name", xml);
         }
     }
 }

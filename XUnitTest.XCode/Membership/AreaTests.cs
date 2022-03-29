@@ -29,10 +29,12 @@ namespace XUnitTest.XCode.Membership
             Assert.Equal(34, r.Childs.Count);
             Assert.Equal("北京", r.Childs[0].Name);
 
+            XTrace.WriteLine("北京");
             r = Area.FindByName(0, "北京");
             Assert.Equal(17, r.AllChilds.Count);
             Assert.Equal("北京/延庆", r.AllChilds[^1].Path);
 
+            XTrace.WriteLine("容县");
             r = Area.FindByID(450921);
             Assert.Equal("容县", r.Name);
             Assert.Equal(2, r.AllParents.Count);
@@ -46,14 +48,17 @@ namespace XUnitTest.XCode.Membership
             var r3 = Area.FindByName(450900, "北流");
             Assert.Equal("北流", r3.Name);
 
+            XTrace.WriteLine("FindAllByName 华容");
             var rs = Area.FindAllByName("华容");
             Assert.Equal(2, rs.Count);
             Assert.Equal("湖北/鄂州/华容", rs[0].Path);
             Assert.Equal("湖南/岳阳/华容", rs[1].Path);
 
+            XTrace.WriteLine("FindByFullName 华容县");
             var r4 = Area.FindByFullName("华容县");
             Assert.Equal("湖南/岳阳/华容", r4.Path);
 
+            XTrace.WriteLine("南宁");
             var rs2 = Area.FindAllByParentID(450000);
             Assert.Equal(14, rs2.Count);
             Assert.Equal("南宁", rs2[0].Name);
@@ -227,7 +232,7 @@ namespace XUnitTest.XCode.Membership
         {
             Area.Meta.Session.Dal.Db.ShowSQL = false;
 
-            if (Area.Meta.Count == 0)
+            //if (Area.Meta.Count == 0)
             {
                 var file = "http://x.newlifex.com/Area.csv.gz";
 
@@ -317,6 +322,55 @@ namespace XUnitTest.XCode.Membership
                 Assert.Equal(rid, r.ID);
                 Assert.Equal(target, r.Path);
             }
+        }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450000)]
+        [InlineData("116.234.90.174", 310000)]
+        [InlineData("116.233.20.228", 310000)]
+        [InlineData("122.231.253.198", 330000)]
+        public void SearchIP(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 1);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450400)]
+        [InlineData("116.234.90.174", 310113)]
+        [InlineData("116.233.20.228", 310104)]
+        [InlineData("122.231.253.198", 330400)]
+        public void SearchIP2(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 2);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
+
+        [Theory]
+        [InlineData("182.90.206.131", 450400)]
+        [InlineData("116.234.90.174", 310113)]
+        [InlineData("116.233.20.228", 310104)]
+        [InlineData("122.231.253.198", 330424)]
+        public void SearchIP3(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 3);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
+        }
+
+        [Theory]
+        [InlineData("116.136.7.43", 150400)]
+        public void SearchIP自治区(String ip, Int32 areaId)
+        {
+            var list = Area.SearchIP(ip, 3);
+
+            Assert.True(list.Count > 0);
+            Assert.Equal(areaId, list[list.Count - 1].ID);
         }
     }
 }

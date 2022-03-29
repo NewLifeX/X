@@ -36,8 +36,8 @@ namespace NewLife.Web
         #endregion
 
         #region 方法
-        static readonly Regex _regA = new Regex("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        static readonly Regex _regTitle = new Regex("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regA = new("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        static readonly Regex _regTitle = new("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>分析HTML中的链接</summary>
         /// <param name="html">Html文本</param>
@@ -94,7 +94,7 @@ namespace NewLife.Web
 
                 // 去掉后缀
                 var p = link.Name.LastIndexOf('.');
-                if (p > 0) link.Name = link.Name.Substring(0, p);
+                if (p > 0) link.Name = link.Name[..p];
 
                 list.Add(link);
             }
@@ -110,7 +110,7 @@ namespace NewLife.Web
             if (ns.Length == 0) return list.ToArray();
 
             // 如果由很多段组成，可能是unix格式
-            _ = ns[0].Split(" ").Length >= 6;
+            _ = ns[0].Split(' ').Length >= 6;
             var buri = new Uri(url);
             foreach (var item in ns)
             {
@@ -135,15 +135,15 @@ namespace NewLife.Web
 
                 // 分割名称，计算结尾的时间 yyyyMMddHHmmss
                 var idx = link.ParseTime();
-                if (idx > 0) link.Title = link.Title.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title[..idx];
 
                 // 分割版本，_v1.0.0.0
                 idx = link.ParseVersion();
-                if (idx > 0) link.Title = link.Title.Substring(0, idx);
+                if (idx > 0) link.Title = link.Title[..idx];
 
                 // 去掉后缀
                 var p = link.Name.LastIndexOf('.');
-                if (p > 0) link.Name = link.Name.Substring(0, p);
+                if (p > 0) link.Name = link.Name[..p];
 
                 list.Add(link);
             }
@@ -165,7 +165,7 @@ namespace NewLife.Web
 
             // 去掉后缀
             var p = Name.LastIndexOf('.');
-            if (p > 0) Name = Name.Substring(0, p);
+            if (p > 0) Name = Name[..p];
 
             // 时间
             if (Time.Year < 2000)
@@ -184,18 +184,27 @@ namespace NewLife.Web
             var p = name.LastIndexOf("_");
             if (p <= 0) return -1;
 
-            var ts = name.Substring(p + 1);
+            var ts = name[(p + 1)..];
             if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2 + 2 + 2 + 2)
             {
                 Time = new DateTime(
-                    ts.Substring(0, 4).ToInt(),
+                    ts[..4].ToInt(),
                     ts.Substring(4, 2).ToInt(),
                     ts.Substring(6, 2).ToInt(),
                     ts.Substring(8, 2).ToInt(),
                     ts.Substring(10, 2).ToInt(),
                     ts.Substring(12, 2).ToInt());
 
-                Name = name.Substring(0, p) + name.Substring(p + 1 + 14);
+                Name = name[..p] + name[(p + 1 + 14)..];
+            }
+            else if (ts.StartsWith("20") && ts.Length >= 4 + 2 + 2)
+            {
+                Time = new DateTime(
+                    ts[..4].ToInt(),
+                    ts.Substring(4, 2).ToInt(),
+                    ts.Substring(6, 2).ToInt());
+
+                Name = name[..p] + name[(p + 1 + 8)..];
             }
 
             return p;
@@ -241,8 +250,8 @@ namespace NewLife.Web
                         break;
                 }
 
-                var str = name.Substring(0, p);
-                if (p2 < name.Length) str += name.Substring(p2);
+                var str = name[..p];
+                if (p2 < name.Length) str += name[p2..];
                 Name = str;
             }
 

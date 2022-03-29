@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -151,7 +151,7 @@ namespace XCode
     public abstract class EntityModule : IEntityModule
     {
         #region IEntityModule 成员
-        private readonly Dictionary<Type, Boolean> _Inited = new Dictionary<Type, Boolean>();
+        private readonly Dictionary<Type, Boolean> _Inited = new();
         /// <summary>为指定实体类初始化模块，返回是否支持</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -223,8 +223,10 @@ namespace XCode
         /// <returns>返回是否成功设置了数据</returns>
         protected virtual Boolean SetNoDirtyItem(ICollection<FieldItem> fields, IEntity entity, String name, Object value)
         {
-            if (!entity.IsDirty(name) && fields.Any(e => e.Name.EqualIgnoreCase(name))) return entity.SetItem(name, value);
-
+            var fi = fields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+            if (fi == null) { return false; }
+            name = fi.Name;
+            if (!entity.IsDirty(name)) return entity.SetItem(name, value);
             return false;
         }
 
@@ -239,7 +241,7 @@ namespace XCode
             // 没有这个字段，就不想了
             var fi = fields.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
             if (fi == null) return false;
-
+            name = fi.Name;
             // 如果是默认值则覆盖，无视脏数据，此时很可能是新增
             if (fi.Type.IsInt())
             {
@@ -257,7 +259,7 @@ namespace XCode
             return entity.SetItem(name, value);
         }
 
-        private static readonly ConcurrentDictionary<Type, FieldItem[]> _fieldNames = new ConcurrentDictionary<Type, FieldItem[]>();
+        private static readonly ConcurrentDictionary<Type, FieldItem[]> _fieldNames = new();
         /// <summary>获取实体类的字段名。带缓存</summary>
         /// <param name="entityType"></param>
         /// <returns></returns>

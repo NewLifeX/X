@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
@@ -15,7 +16,7 @@ namespace NewLife.Serialization
         public Int32 Depth { get; set; }
 
         /// <summary>处理器列表</summary>
-        public List<IXmlHandler> Handlers { get; }
+        public List<IXmlHandler> Handlers { get; private set; }
 
         /// <summary>使用特性</summary>
         public Boolean UseAttribute { get; set; }
@@ -39,9 +40,7 @@ namespace NewLife.Serialization
                 new XmlComposite { Host = this }
             };
             // 根据优先级排序
-            list.Sort();
-
-            Handlers = list;
+            Handlers = list.OrderBy(e => e.Priority).ToList();
         }
         #endregion
 
@@ -56,7 +55,7 @@ namespace NewLife.Serialization
                 handler.Host = this;
                 Handlers.Add(handler);
                 // 根据优先级排序
-                Handlers.Sort();
+                Handlers = Handlers.OrderBy(e => e.Priority).ToList();
             }
 
             return this;
@@ -219,7 +218,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object Read(Type type)
         {
-            var value = type.CreateInstance();
+            var value = type.As<Array>() ? null : type.CreateInstance();
             if (!TryRead(type, ref value)) throw new Exception("读取失败！");
 
             return value;
@@ -286,7 +285,7 @@ namespace NewLife.Serialization
             else
                 reader.ReadStartElement();
 
-            while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+            while (reader.NodeType is XmlNodeType.Comment or XmlNodeType.Whitespace) reader.Skip();
         }
 
         /// <summary>读取结束</summary>

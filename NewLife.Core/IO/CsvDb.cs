@@ -40,15 +40,10 @@ namespace NewLife.IO
         #endregion
 
         #region 方法
-        /// <summary>尾部插入数据，性能极好</summary>
-        /// <param name="model"></param>
-        public void Add(T model) => Add(new[] { model });
-
-        /// <summary>尾部插入数据，性能极好</summary>
-        /// <param name="models"></param>
-        public void Add(IEnumerable<T> models) => Write(models, true);
-
-        private void Write(IEnumerable<T> models, Boolean append)
+        /// <summary>强行写入数据</summary>
+        /// <param name="models">要写入的数据</param>
+        /// <param name="append">是否附加在尾部</param>
+        public void Write(IEnumerable<T> models, Boolean append)
         {
             var file = GetFile();
             file.EnsureDirectory(true);
@@ -72,6 +67,14 @@ namespace NewLife.IO
             csv.TryDispose();
             fs.SetLength(fs.Position);
         }
+
+        /// <summary>尾部插入数据，性能极好</summary>
+        /// <param name="model"></param>
+        public void Add(T model) => Add(new[] { model });
+
+        /// <summary>尾部插入数据，性能极好</summary>
+        /// <param name="models"></param>
+        public void Add(IEnumerable<T> models) => Write(models, true);
 
         /// <summary>删除数据，性能很差，全部读取剔除后保存</summary>
         /// <param name="model"></param>
@@ -107,35 +110,28 @@ namespace NewLife.IO
                 // 删除文件，重新写回去
                 if (list.Count < count)
                 {
-                    // 如果没有了数据，直接删除文件
-                    if (list.Count == 0)
-                    {
-                        var file = GetFile();
-                        try
-                        {
-                            File.Delete(file);
-                        }
-                        catch (Exception ex)
-                        {
-                            XTrace.WriteException(ex);
-                            File.Move(file, file + ".del");
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        Write(list, false);
-                    }
+                    // 如果没有了数据，只写头部
+                    Write(list, false);
                 }
 
                 return count - list.Count;
             }
         }
 
+        /// <summary>清空数据。只写头部</summary>
+        public void Clear() => Write(Array.Empty<T>(), false);
+
         /// <summary>更新指定数据行，性能很差，全部读取替换后保存</summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public Boolean Update(T model)
+        public Boolean Update(T model) => Set(model, false);
+
+        /// <summary>设置（添加或更新）指定数据行，性能很差，全部读取替换后保存</summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public Boolean Set(T model) => Set(model, true);
+
+        private Boolean Set(T model, Boolean add)
         {
             if (Comparer == null) throw new ArgumentNullException(nameof(Comparer));
 
@@ -155,7 +151,12 @@ namespace NewLife.IO
                         break;
                     }
                 }
-                if (!flag) return false;
+                if (!flag)
+                {
+                    if (!add) return false;
+
+                    list.Add(model);
+                }
 
                 // 重新写回去
                 Write(list, false);
@@ -270,7 +271,7 @@ namespace NewLife.IO
         #region 辅助
         private String GetFile() => FileName.GetFullPath();
 
-        class MyComparer : IEqualityComparer<T>
+        private class MyComparer : IEqualityComparer<T>
         {
             public Func<T, T, Boolean> Comparer;
 

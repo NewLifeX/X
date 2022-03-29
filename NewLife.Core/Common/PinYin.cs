@@ -112,13 +112,17 @@ namespace NewLife.Common
         #endregion
         #endregion
 
+#if NETCOREAPP
+        static PinYin() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+
         /// <summary>取拼音第一个字段</summary>        
         /// <param name="ch"></param>        
         /// <returns></returns>        
         public static String GetFirst(Char ch)
         {
             var rs = Get(ch);
-            if (!String.IsNullOrEmpty(rs)) rs = rs.Substring(0, 1);
+            if (!String.IsNullOrEmpty(rs)) rs = rs[..1];
 
             return rs;
         }

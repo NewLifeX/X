@@ -28,25 +28,6 @@ namespace XCode.DataAccessLayer
                 return _dbProviderFactory;
             }
         }
-
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    var name = Path.GetTempFileName();
-                    //FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "Database.mdb", name, true);
-
-                    builder[_.DataSource] = name;
-                    builder["Provider"] = "Microsoft.Jet.OLEDB.4.0";
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
         #endregion
 
         #region 方法
@@ -182,12 +163,34 @@ namespace XCode.DataAccessLayer
         protected override List<IDataTable> OnGetTables(String[] names)
         {
             var dt = GetSchema(_.Tables, null);
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             // 默认列出所有字段
             var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
 
             return GetTables(rows, names);
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select($"TABLE_TYPE='Table' Or TABLE_TYPE='View'");
+
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
         }
 
         /// <summary>获取索引</summary>
@@ -284,7 +287,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
             { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },

@@ -35,8 +35,8 @@ namespace NewLife.Extension
             {
                 try
                 {
-                    synth = _type.CreateInstance(new Object[0]);
-                    synth.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
+                    synth = _type.CreateInstance(Array.Empty<Object>());
+                    synth.Invoke("SetOutputToDefaultAudioDevice", Array.Empty<Object>());
                 }
                 catch (Exception ex)
                 {

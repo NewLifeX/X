@@ -52,7 +52,7 @@ namespace NewLife.Http
 
             // 该连接第一包检查是否Http
             var ext = context.Owner as IExtend;
-            if (!(ext["Encoder"] is HttpEncoder))
+            if (ext["Encoder"] is not HttpEncoder)
             {
                 // 第一个请求必须是GET/POST，才执行后续操作
                 if (!isGet && !isPost) return base.Read(context, message);
@@ -190,13 +190,6 @@ namespace NewLife.Http
             Header = pk.Slice(0, p);
             Payload = pk.Slice(p + 4);
 
-            //var isGet = pk.Count >= 4 && pk[0] == 'G' && pk[1] == 'E' && pk[2] == 'T' && pk[3] == ' ';
-            //var isPost = pk.Count >= 5 && pk[0] == 'P' && pk[1] == 'O' && pk[2] == 'S' && pk[3] == 'T' && pk[4] == ' ';
-            //if (isGet)
-            //    Method = "GET";
-            //else if (isPost)
-            //    Method = "POST";
-
             return true;
         }
 
@@ -210,7 +203,7 @@ namespace NewLife.Http
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
             var ss = pk.ToStr().Split(Environment.NewLine);
             {
-                var kv = ss[0].Split(" ");
+                var kv = ss[0].Split(' ');
                 if (kv != null && kv.Length >= 3)
                 {
                     Method = kv[0].Trim();
@@ -219,7 +212,7 @@ namespace NewLife.Http
             }
             for (var i = 1; i < ss.Length; i++)
             {
-                var kv = ss[i].Split(":");
+                var kv = ss[i].Split(':');
                 if (kv != null && kv.Length >= 2)
                 {
                     dic[kv[0].Trim()] = kv[1].Trim();

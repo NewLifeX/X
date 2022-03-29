@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
@@ -47,5 +48,14 @@ namespace NewLife
         [Description("系统配置")]
         public SysConfig Sys { get; set; }
         #endregion
+    }
+
+    [HttpConfig("httpCore", "http://star.newlifex.com:6600", "Config/GetAll", "StarWeb")]
+    public class HttpConfigModel : Config<HttpConfigModel>
+    {
+        [DataMember(Name = "test1")]
+        public String Test { get; set; }
+
+        public String Title { get; set; }
     }
 }

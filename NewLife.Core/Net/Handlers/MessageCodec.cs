@@ -91,17 +91,15 @@ namespace NewLife.Net.Handlers
                 else
                     message = msg;
 
-                // 后续处理器，得到最终结果，匹配请求队列
-                //var rs = base.Read(context, message);
                 var rs = message;
-
                 if (msg is IMessage msg3)
                 {
-                    // 匹配
+                    // 匹配请求队列
                     if (msg3.Reply)
                     {
-                        ////!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
-                        //if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+                        //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
+                        // Match里面TrySetResult时，必然唤醒原来阻塞的Task，如果不是当前io线程执行后续代码，必然导致两个线程共用了数据区，因此需要拷贝
+                        if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
 
                         Queue.Match(context.Owner, msg, rs, IsMatch);
                     }
@@ -114,7 +112,6 @@ namespace NewLife.Net.Handlers
 
                 // 匹配输入回调，让上层事件收到分包信息。
                 // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
-                //context.FireRead(rs);
                 base.Read(context, rs);
             }
 

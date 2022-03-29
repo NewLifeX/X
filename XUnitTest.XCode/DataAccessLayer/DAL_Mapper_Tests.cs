@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using NewLife.Data;
 using NewLife.Security;
+using XCode;
+using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
 
@@ -10,12 +13,18 @@ namespace XUnitTest.XCode.DataAccessLayer
 {
     public class DAL_Mapper_Tests
     {
+        public DAL_Mapper_Tests()
+        {
+            EntityFactory.InitEntity(typeof(User));
+        }
+
         [Fact]
         public void Query()
         {
             var dal = User.Meta.Session.Dal;
 
-            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
+            var list = dal.Query<MyUser>("select * from user", null, 0, 100).ToList();
+            list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }).ToList();
             Assert.NotNull(list);
             Assert.Single(list);
 
@@ -34,6 +43,46 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var id3 = dal.QuerySingle<Int32?>("select id from user where name='xxx'");
             Assert.Null(id3);
+        }
+
+        [Fact]
+        public void QueryPage()
+        {
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var dal = User.Meta.Session.Dal;
+
+            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }, 0, 5).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
+
+            var user = list[0];
+            Assert.Equal(1, user.Id);
+            Assert.Equal("admin", user.Name);
+
+            Assert.Equal("[Membership] select * from user where name=@name limit 5 [@Name=admin]", sql);
+        }
+
+        [Fact]
+        public void QueryPage2()
+        {
+            // 拦截Sql
+            var sql = "";
+            DAL.LocalFilter = s => sql = s;
+
+            var dal = User.Meta.Session.Dal;
+
+            var list = dal.Query<MyUser>("select * from user where name=@name", new { Name = "admin" }, new PageParameter { PageIndex = 1, PageSize = 20 }).ToList();
+            Assert.NotNull(list);
+            Assert.Single(list);
+
+            var user = list[0];
+            Assert.Equal(1, user.Id);
+            Assert.Equal("admin", user.Name);
+
+            Assert.Equal("[Membership] select * from user where name=@name limit 20 [@Name=admin]", sql);
         }
 
         [Fact]

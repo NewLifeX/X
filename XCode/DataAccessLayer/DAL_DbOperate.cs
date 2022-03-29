@@ -202,7 +202,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="builder">SQL语句</param>
         /// <param name="startRowIndex">开始行，0表示第一行</param>
@@ -314,7 +313,6 @@ namespace XCode.DataAccessLayer
         {
             return ExecuteByCacheAsync(sql, type, ps, (s, t, p) => Session.ExecuteScalarAsync<T>(s, t, Db.CreateParameters(p)));
         }
-#endif
         #endregion
 
         #region 事务
@@ -331,7 +329,7 @@ namespace XCode.DataAccessLayer
         /// <returns>剩下的事务计数</returns>
         public Int32 BeginTransaction(IsolationLevel level = IsolationLevel.ReadCommitted)
         {
-            CheckDatabase();
+            //CheckDatabase();
 
             return Session.BeginTransaction(level);
         }
@@ -386,7 +384,7 @@ namespace XCode.DataAccessLayer
                 if (Strategy.Validate(this, k1 + "", action)) return ReadOnly.QueryByCache(k1, k2, k3, callback, action);
             }
 
-            CheckDatabase();
+            //CheckDatabase();
 
             // 读缓存
             var cache = GetCache();
@@ -419,7 +417,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
 
-            CheckDatabase();
+            //CheckDatabase();
 
             var rs = Invoke(k1, k2, k3, callback, "Execute");
 
@@ -444,7 +442,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";
@@ -478,7 +476,7 @@ namespace XCode.DataAccessLayer
                 if (Strategy.Validate(this, k1 + "", action)) return await ReadOnly.QueryByCacheAsync(k1, k2, k3, callback, action);
             }
 
-            CheckDatabase();
+            //CheckDatabase();
 
             // 读缓存
             var cache = GetCache();
@@ -511,7 +509,7 @@ namespace XCode.DataAccessLayer
         {
             if (Db.Readonly) throw new InvalidOperationException($"数据连接[{ConnName}]只读，禁止执行{k1}");
 
-            CheckDatabase();
+            //CheckDatabase();
 
             var rs = await InvokeAsync(k1, k2, k3, callback, "Execute");
 
@@ -536,7 +534,7 @@ namespace XCode.DataAccessLayer
                 {
                     // 使用 Insert/Update/Delete 作为埋点操作名
                     var p = sql.IndexOf(' ');
-                    if (p > 0) action = sql.Substring(0, p);
+                    if (p > 0) action = sql[..p];
                 }
 
                 traceName = $"db:{ConnName}:{action}";
@@ -562,7 +560,7 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        private static readonly Regex reg_table = new Regex("(?:\\s+from|insert\\s+into|update|\\s+join)\\s+[`'\"\\[]?([\\w]+)[`'\"\\[]?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_table = new("(?:\\s+from|insert\\s+into|update|\\s+join|drop\\s+table|truncate\\s+table)\\s+[`'\"\\[]?([\\w]+)[`'\"\\[]?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>从Sql语句中截取表名</summary>
         /// <param name="sql"></param>
         /// <returns></returns>

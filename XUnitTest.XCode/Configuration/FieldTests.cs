@@ -20,7 +20,7 @@ namespace XUnitTest.XCode.Configuration
             Assert.False(fi.PrimaryKey);
             Assert.False(fi.Master);
             Assert.True(fi.IsNullable);
-            Assert.Equal(50, fi.Length);
+            Assert.Equal(200, fi.Length);
             Assert.True(fi.IsDataObjectField);
             Assert.False(fi.IsDynamic);
             Assert.Equal("Password", fi.ColumnName);

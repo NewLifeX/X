@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Security;
@@ -27,7 +26,7 @@ namespace XUnitTest.Data
             Assert.Equal(f.WorkerId, wid);
 
             var seq = id & 0x0FFF;
-            Assert.Equal(f.Sequence, seq);
+            //Assert.Equal(f.Sequence, seq);
 
             // 时间转编号
             var id2 = f.GetId(tt);
@@ -48,16 +47,20 @@ namespace XUnitTest.Data
 
             //var ws = new ConcurrentBag<Int32>();
             var ws = new ConcurrentDictionary<Int32, Snowflake>();
-            var repeat = new ConcurrentBag<Int64>();
+            //var repeat = new ConcurrentBag<Int64>();
             var hash = new ConcurrentDictionary<Int64, Snowflake>();
 
             var ts = new List<Task>();
-            for (var k = 0; k < 10; k++)
+            var ss = new Int64[2];
+            var rs = new List<Int64>[ss.Length];
+            for (var k = 0; k < ss.Length; k++)
             {
                 // 提前计算workerId到本地变量，避免匿名函数闭包里面产生重复
                 var wid = (k + 1) & 0x3FF;
+                var idx = k;
                 ts.Add(Task.Run(() =>
                 {
+                    var repeat = new List<Int64>();
                     var f = new Snowflake { StartTimestamp = new DateTime(2020, 1, 1), WorkerId = wid };
                     //ws.Add(f.WorkerId);
                     Assert.True(ws.TryAdd(f.WorkerId, f));
@@ -66,8 +69,15 @@ namespace XUnitTest.Data
                     for (var i = 0; i < 100_000; i++)
                     {
                         var id = f.NewId();
-                        if (!hash.TryAdd(id, f)) repeat.Add(id);
+                        if (!hash.TryAdd(id, f))
+                        {
+                            hash.TryGetValue(id, out var f2);
+                            repeat.Add(id);
+                        }
+
+                        ss[wid - 1]++;
                     }
+                    rs[wid - 1] = repeat;
                 }));
             }
             Task.WaitAll(ts.ToArray());
@@ -75,8 +85,12 @@ namespace XUnitTest.Data
             sw.Stop();
 
             Assert.True(sw.ElapsedMilliseconds < 10_000);
-            var count = repeat.Count;
-            Assert.Equal(0, count);
+            //var count = repeat.Count;
+            //Assert.Equal(0, count);
+            for (var i = 0; i < ss.Length; i++)
+            {
+                Assert.Empty(rs[i]);
+            }
         }
 
         [Fact]
@@ -84,10 +98,11 @@ namespace XUnitTest.Data
         {
             var sw = Stopwatch.StartNew();
 
+            var cpu = Environment.ProcessorCount * 4;
             var count = 10_000_000L;
 
             var ts = new List<Task>();
-            for (var i = 0; i < 1; i++)
+            for (var i = 0; i < cpu; i++)
             {
                 ts.Add(Task.Run(() =>
                 {
@@ -107,7 +122,28 @@ namespace XUnitTest.Data
             count *= ts.Count;
             XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
 
-            Assert.True(sw.ElapsedMilliseconds < 10_000);
+            Assert.True(sw.ElapsedMilliseconds < 20_000);
+        }
+
+        [Fact]
+        public void GlobalWorkerId()
+        {
+            {
+                var n = Rand.Next(0x400);
+                Snowflake.GlobalWorkerId = n;
+
+                var sn = new Snowflake();
+                sn.NewId();
+                Assert.Equal(n, sn.WorkerId);
+            }
+            {
+                var n = Rand.Next(0x400, Int32.MaxValue);
+                Snowflake.GlobalWorkerId = n;
+
+                var sn = new Snowflake();
+                sn.NewId();
+                Assert.Equal(n & 0x3FF, sn.WorkerId);
+            }
         }
     }
 }

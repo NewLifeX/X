@@ -47,7 +47,6 @@ namespace XCode
         /// <returns></returns>
         public abstract Int32 Delete();
 
-#if !NET4
         /// <summary>把该对象持久化到数据库</summary>
         /// <returns></returns>
         public abstract Task<Int32> InsertAsync();
@@ -59,7 +58,6 @@ namespace XCode
         /// <summary>从数据库中删除该对象</summary>
         /// <returns></returns>
         public abstract Task<Int32> DeleteAsync();
-#endif
 
         /// <summary>保存。根据主键检查数据库中是否已存在该对象，再决定调用Insert或Update</summary>
         /// <returns></returns>
@@ -136,9 +134,9 @@ namespace XCode
             var fact1 = src.GetType().AsFactory();
             var fact2 = entity.GetType().AsFactory();
             var nsSrc = fact1.FieldNames;
-            //if (nsSrc == null || nsSrc.Count < 1) return 0;
+            //if (nsSrc == null || nsSrc.Count <= 0) return 0;
             var nsDes = fact2.FieldNames;
-            if (nsDes == null || nsDes.Count < 1) return 0;
+            if (nsDes == null || nsDes.Count <= 0) return 0;
 
             var n = 0;
             foreach (var item in nsDes)
@@ -275,7 +273,7 @@ namespace XCode
             var op = GetType().AsFactory();
             var ps = op.Table.PrimaryKeys;
             // 如果没有主键，则判断所有字段
-            if (ps == null || ps.Length < 1) ps = op.Table.Fields;
+            if (ps == null || ps.Length <= 0) ps = op.Table.Fields;
             foreach (var item in ps)
             {
                 var v1 = this[item.Name];

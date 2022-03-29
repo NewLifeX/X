@@ -7,40 +7,21 @@ namespace NewLife.Expressions
     /// <summary>数学表达式</summary>
     public class MathExpression : RpnExpression
     {
-        /// <summary>加法</summary>
-        public static readonly Char AddChar = '+';
-        /// <summary>减法</summary>
-        public static readonly Char SubtractChar = '-';
-        /// <summary>乘法</summary>
-        public static readonly Char MultiplyChar = '*';
-        /// <summary>除法</summary>
-        public static readonly Char DivideChar = '/';
-
         /// <summary>实例化</summary>
-        public MathExpression()
-        {
-            OperationChars = new Char[] { AddChar, SubtractChar, MultiplyChar, DivideChar, LeftBracket, RightBracket };
-        }
+        public MathExpression() => OperationChars = new Char[] { '+', '-', '*', '/', '(', ')' };
 
         /// <summary>计算运算符优先级</summary>
         /// <param name="op"></param>
         /// <returns></returns>
         public override Int32 GetOperationLevel(String op)
         {
-            switch (op)
+            return op switch
             {
-                case "*":
-                case "/":
-                    return 2;
-                case "+":
-                case "-":
-                    return 1;
-                case "(":
-                case ")":
-                    return 0;
-                default:
-                    return -1;
-            }
+                "*" or "/" => 2,
+                "+" or "-" => 1,
+                "(" or ")" => 0,
+                _ => -1,
+            };
         }
 
         /// <summary>适配和替换</summary>
@@ -57,11 +38,11 @@ namespace NewLife.Expressions
         /// <param name="expression">标准逆波兰表达式</param>
         /// <param name="args"></param>
         /// <returns>逆波兰表达式的解</returns>
-        public override Object Complie(String expression, params Object[] args)
+        public override Object Complie(String[] expression, params Object[] args)
         {
-            if (String.IsNullOrWhiteSpace(expression)) return 0;
+            if (expression == null || expression.Length == 0) return 0;
 
-            var arr = expression.Split(new Char[] { JoinChar });
+            var arr = expression;
 
             var stack = new Stack<Double>();
             for (var i = 0; i < arr.Length; i++)
@@ -69,7 +50,7 @@ namespace NewLife.Expressions
                 var level = GetOperationLevel(arr[i]);
                 if (level < 0)
                 {
-                    stack.Push(ToDouble(arr[i]));
+                    stack.Push(MathExpression.ToDouble(arr[i]));
                 }
                 else if (level > 0)
                 {
@@ -108,11 +89,9 @@ namespace NewLife.Expressions
         /// <summary>转为浮点数</summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Double ToDouble(String value)
+        public static Double ToDouble(String value)
         {
-            Double tempValue;
-
-            if (Double.TryParse(value, out tempValue)) return tempValue;
+            if (Double.TryParse(value, out var tempValue)) return tempValue;
 
             return 0;
         }

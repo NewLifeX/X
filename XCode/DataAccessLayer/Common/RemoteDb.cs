@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.Common;
 using NewLife;
+using NewLife.Log;
 
 namespace XCode.DataAccessLayer
 {
@@ -11,21 +12,6 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>系统数据库名</summary>
         public virtual String SystemDatabaseName => "master";
-
-        ///// <summary>数据库服务器版本</summary>
-        //public override String ServerVersion
-        //{
-        //    get
-        //    {
-        //        var ver = _ServerVersion;
-        //        if (ver != null) return ver;
-        //        _ServerVersion = String.Empty;
-
-        //        ver = _ServerVersion = Pool.Execute(conn => conn.ServerVersion);
-
-        //        return ver;
-        //    }
-        //}
 
         private String _User;
         /// <summary>用户名UserID</summary>
@@ -54,50 +40,61 @@ namespace XCode.DataAccessLayer
                 return _User;
             }
         }
+        #endregion
 
-        protected override String DefaultConnectionString
+        #region 分页
+        /// <summary>已重写。获取分页</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <param name="keyColumn">主键列。用于not in分页</param>
+        /// <returns></returns>
+        public override String PageSplit(String sql, Int64 startRowIndex, Int64 maximumRows, String keyColumn) => PageSplitByLimit(sql, startRowIndex, maximumRows);
+
+        /// <summary>构造分页SQL</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>分页SQL</returns>
+        public override SelectBuilder PageSplit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows) => PageSplitByLimit(builder, startRowIndex, maximumRows);
+
+        /// <summary>已重写。获取分页</summary>
+        /// <param name="sql">SQL语句</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public static String PageSplitByLimit(String sql, Int64 startRowIndex, Int64 maximumRows)
         {
-            get
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
             {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    builder["Server"] = "127.0.0.1";
-                    // Oracle连接字符串不支持Database关键字
-                    if (Type != DatabaseType.Oracle) builder["Database"] = SystemDatabaseName;
-                    return builder.ToString();
-                }
+                if (maximumRows < 1) return sql;
 
-                return base.DefaultConnectionString;
+                return $"{sql} limit {maximumRows}";
             }
+            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
+
+            return $"{sql} limit {startRowIndex}, {maximumRows}";
         }
 
-        //const String Pooling = "Pooling";
-        //protected override void OnSetConnectionString(ConnectionStringBuilder builder)
-        //{
-        //    base.OnSetConnectionString(builder);
+        /// <summary>构造分页SQL</summary>
+        /// <param name="builder">查询生成器</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns>分页SQL</returns>
+        public static SelectBuilder PageSplitByLimit(SelectBuilder builder, Int64 startRowIndex, Int64 maximumRows)
+        {
+            // 从第一行开始，不需要分页
+            if (startRowIndex <= 0)
+            {
+                if (maximumRows > 0) builder.Limit = $"limit {maximumRows}";
+                return builder;
+            }
+            if (maximumRows < 1) throw new NotSupportedException("不支持取第几条数据之后的所有数据！");
 
-        //    // 关闭底层连接池，使用XCode连接池
-        //    builder.TryAdd(Pooling, "false");
-        //}
-
-        ///// <summary>格式化表名，考虑表前缀和Owner</summary>
-        ///// <param name="tableName">名称</param>
-        ///// <returns></returns>
-        //public override String FormatTableName(String tableName)
-        //{
-        //    tableName = base.FormatTableName(tableName);
-
-        //    // 特殊处理Oracle数据库，在表名前加上方案名（用户名）
-        //    if (!tableName.Contains("."))
-        //    {
-        //        // 角色名作为点前缀来约束表名，支持所有数据库
-        //        var owner = Owner;
-        //        if (!owner.IsNullOrEmpty() && !owner.EqualIgnoreCase(User)) tableName = FormatKeyWord(owner) + "." + tableName;
-        //    }
-
-        //    return tableName;
-        //}
+            builder.Limit = $"limit {startRowIndex}, {maximumRows}";
+            return builder;
+        }
         #endregion
     }
 
@@ -149,6 +146,11 @@ namespace XCode.DataAccessLayer
 
                     return callback(this, conn);
                 }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                    throw;
+                }
                 finally
                 {
                     if (DAL.Debug) WriteLog("退出系统库[{0}]，回到[{1}]", sysdbname, dbname);
@@ -156,7 +158,8 @@ namespace XCode.DataAccessLayer
             }
             else
             {
-                return callback(this, null);
+                using var conn = Database.OpenConnection();
+                return callback(this, conn);
             }
         }
 
@@ -208,13 +211,11 @@ namespace XCode.DataAccessLayer
                 //    return session.QueryCount(GetSchemaSQL(schema, values)) > 0;
 
                 case DDLSchema.DatabaseExist:
-                    //return ProcessWithSystem(s => DatabaseExist(databaseName));
                     return DatabaseExist(databaseName);
 
                 case DDLSchema.CreateDatabase:
                     values = new Object[] { databaseName, values == null || values.Length < 2 ? null : values[1] };
 
-                    //return ProcessWithSystem(s => base.SetSchema(schema, values));
                     var sql = base.GetSchemaSQL(schema, values);
                     if (sql.IsNullOrEmpty()) return null;
 
@@ -234,7 +235,6 @@ namespace XCode.DataAccessLayer
                     return 0;
 
                 //case DDLSchema.DropDatabase:
-                //    //return ProcessWithSystem(s => DropDatabase(databaseName));
                 //    return DropDatabase(databaseName);
 
                 default:
@@ -249,7 +249,14 @@ namespace XCode.DataAccessLayer
             return session.QueryCount(GetSchemaSQL(DDLSchema.DatabaseExist, new Object[] { databaseName })) > 0;
         }
 
-        //protected virtual Boolean DropDatabase(String databaseName) => (Boolean)base.SetSchema(DDLSchema.DropDatabase, new Object[] { databaseName });
+        //protected virtual Boolean DropDatabase(String databaseName)
+        //{
+        //    var session = Database.CreateSession();
+        //    var sql = DropDatabaseSQL(databaseName);
+        //    if (sql.IsNullOrEmpty()) return session.Execute(sql) > 0;
+
+        //    return true;
+        //}
 
         //Object ProcessWithSystem(Func<IDbSession, Object> callback) => (Database.CreateSession() as RemoteDbSession).ProcessWithSystem((s, c) => callback(s));
         #endregion

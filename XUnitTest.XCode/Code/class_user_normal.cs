@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -55,6 +55,11 @@ namespace Company.MyName
         [DisplayName("代码")]
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        [Description("地区。省市区")]
+        [DisplayName("地区")]
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         [Description("头像")]
         [DisplayName("头像")]
@@ -85,6 +90,16 @@ namespace Company.MyName
         [DisplayName("启用")]
         public Boolean Enable { get; set; }
 
+        /// <summary>年龄。周岁</summary>
+        [Description("年龄。周岁")]
+        [DisplayName("年龄")]
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        [Description("生日。公历年月日")]
+        [DisplayName("生日")]
+        public DateTime Birthday { get; set; }
+
         /// <summary>登录次数</summary>
         [Description("登录次数")]
         [DisplayName("登录次数")]
@@ -109,6 +124,11 @@ namespace Company.MyName
         [Description("注册IP")]
         [DisplayName("注册IP")]
         public String RegisterIP { get; set; }
+
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        [Description("在线时间。累计在线总时间，秒")]
+        [DisplayName("在线时间")]
+        public Int32 OnlineTime { get; set; }
 
         /// <summary>扩展1</summary>
         [Description("扩展1")]

@@ -12,13 +12,14 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 //#nullable enable
 namespace NewLife.Caching
 {
     /// <summary>Redis客户端</summary>
     /// <remarks>
-    /// 以极简原则进行设计，每个客户端不支持并行命令处理，可通过多客户端多线程解决。
+    /// 以极简原则进行设计，每个客户端不支持并行命令处理（非线程安全），可通过多客户端多线程解决。
     /// </remarks>
     public class RedisClient : DisposeBase
     {
@@ -26,7 +27,7 @@ namespace NewLife.Caching
         /// <summary>客户端</summary>
         public TcpClient Client { get; set; }
 
-        /// <summary>内容类型</summary>
+        /// <summary>服务器地址</summary>
         public NetUri Server { get; set; }
 
         /// <summary>宿主</summary>
@@ -37,15 +38,12 @@ namespace NewLife.Caching
 
         /// <summary>登录时间</summary>
         public DateTime LoginTime { get; private set; }
-
-        /// <summary>是否正在处理命令</summary>
-        public Boolean Busy { get; private set; }
         #endregion
 
         #region 构造
         /// <summary>实例化</summary>
-        /// <param name="redis"></param>
-        /// <param name="server"></param>
+        /// <param name="redis">宿主</param>
+        /// <param name="server">服务器地址。一个redis对象可能有多服务器，例如Cluster集群</param>
         public RedisClient(Redis redis, NetUri server)
         {
             Host = redis;
@@ -138,7 +136,6 @@ namespace NewLife.Caching
             return ns;
         }
 
-#if !NET4
         private async Task<Stream> GetStreamAsync(Boolean create)
         {
             var tc = Client;
@@ -177,7 +174,6 @@ namespace NewLife.Caching
 
             return ns;
         }
-#endif
 
         private static readonly Byte[] _NewLine = new[] { (Byte)'\r', (Byte)'\n' };
 
@@ -293,7 +289,7 @@ namespace NewLife.Caching
                     var str = ReadLine(ms);
                     log?.Append(str);
 
-                    if (header == '+' || header == ':')
+                    if (header is '+' or ':')
                         list.Add(str);
                     else if (header == '-')
                         throw new Exception(str);
@@ -330,6 +326,9 @@ namespace NewLife.Caching
                 var ms = Pool.MemoryStream.Get();
                 GetRequest(ms, cmd, args, oriArgs);
 
+                var max = Host.MaxMessageSize;
+                if (max > 0 && ms.Length > max) throw new InvalidOperationException($"命令[{cmd}]的数据包大小[{ms.Length}]超过最大限制[{max}]，大key会拖累整个Redis实例，可通过Redis.MaxMessageSize调节。");
+
                 // WriteTo与位置无关，CopyTo与位置相关
                 //ms.Position = 0;
                 if (ms.Length > 0) ms.WriteTo(ns);
@@ -343,7 +342,6 @@ namespace NewLife.Caching
             return rs.FirstOrDefault();
         }
 
-#if !NET4
         /// <summary>异步接收响应</summary>
         /// <param name="ns">网络数据流</param>
         /// <param name="count">响应个数</param>
@@ -367,7 +365,7 @@ namespace NewLife.Caching
             // 取巧进行异步操作，只要异步读取到第一个字节，后续同步读取
             var buf = new Byte[1];
             if (cancellationToken == CancellationToken.None) cancellationToken = new CancellationTokenSource(Host.Timeout).Token;
-            var n = await ms.ReadAsync(buf, 0, buf.Length, cancellationToken);
+            var n = await ms.ReadAsync(buf, cancellationToken);
             if (n <= 0) return list;
 
             var header = (Char)buf[0];
@@ -399,7 +397,7 @@ namespace NewLife.Caching
                     var str = ReadLine(ms);
                     log?.Append(str);
 
-                    if (header == '+' || header == ':')
+                    if (header is '+' or ':')
                         list.Add(str);
                     else if (header == '-')
                         throw new Exception(str);
@@ -451,20 +449,14 @@ namespace NewLife.Caching
 
             return rs.FirstOrDefault();
         }
-#endif
 
         private void CheckLogin(String cmd)
         {
             if (Logined) return;
             if (cmd.EqualIgnoreCase("Auth", "Select")) return;
 
-            if (!Host.Password.IsNullOrEmpty() /*&& cmd != "AUTH"*/)
-            {
-                //var ars = ExecuteCommand("AUTH", new Packet[] { Host.Password.GetBytes() });
-                //if (ars as String != "OK") throw new Exception("登录失败！" + ars);
-
-                if (!Auth(Host.UserName, Host.Password)) throw new Exception("登录失败！");
-            }
+            if (!Host.Password.IsNullOrEmpty() && !Auth(Host.UserName, Host.Password))
+                throw new Exception("登录失败！");
 
             if (Host.Db > 0) Select(Host.Db);
 
@@ -478,11 +470,12 @@ namespace NewLife.Caching
             var ns = GetStream(false);
             if (ns == null) return;
 
-            // 干掉历史残留数据
-            var count = 0;
+                // 干掉历史残留数据
             if (ns is NetworkStream nss && nss.DataAvailable)
             {
                 var buf = new Byte[1024];
+
+                Int32 count;
                 do
                 {
                     count = ns.Read(buf, 0, buf.Length);
@@ -490,14 +483,14 @@ namespace NewLife.Caching
             }
         }
 
-        private Packet ReadBlock(Stream ms, StringBuilder log) => ReadPacket(ms, log);
+        private static Packet ReadBlock(Stream ms, StringBuilder log) => ReadPacket(ms, log);
 
         private Object[] ReadBlocks(Stream ms, StringBuilder log)
         {
             // 结果集数量
             var len = ReadLine(ms).ToInt(-1);
             log?.Append(len);
-            if (len < 0) return new Object[0];
+            if (len < 0) return Array.Empty<Object>();
 
             var arr = new Object[len];
             for (var i = 0; i < len; i++)
@@ -512,7 +505,7 @@ namespace NewLife.Caching
                 {
                     arr[i] = ReadPacket(ms, log);
                 }
-                else if (header == '+' || header == ':')
+                else if (header is '+' or ':')
                 {
                     arr[i] = ReadLine(ms);
                     log?.Append(arr[i]);
@@ -530,6 +523,12 @@ namespace NewLife.Caching
         {
             var len = ReadLine(ms).ToInt(-1);
             log?.Append(len);
+            if (len == 0)
+            {
+                // 某些字段即使长度是0，还是要把换行符读走
+                ReadLine(ms);
+                return null;
+            }
             if (len <= 0) return null;
             //if (len <= 0) throw new InvalidDataException();
 
@@ -649,14 +648,6 @@ namespace NewLife.Caching
             return default;
         }
 
-#if NET4
-        /// <summary>异步执行命令。返回基本类型、对象、对象数组</summary>
-        /// <param name="cmd">命令</param>
-        /// <param name="args">参数数组</param>
-        /// <param name="cancellationToken">取消通知</param>
-        /// <returns></returns>
-        public virtual Task<TResult> ExecuteAsync<TResult>(String cmd, Object[] args, CancellationToken cancellationToken = default) => throw new NotSupportedException();
-#else
         /// <summary>异步执行命令。返回字符串、Packet、Packet[]</summary>
         /// <param name="cmd">命令</param>
         /// <param name="args">参数数组</param>
@@ -715,7 +706,6 @@ namespace NewLife.Caching
 
             return default;
         }
-#endif
 
         /// <summary>尝试转换类型</summary>
         /// <param name="value"></param>
@@ -730,7 +720,11 @@ namespace NewLife.Caching
             {
                 try
                 {
-                    target = value.ChangeType(type);
+                    //target = value.ChangeType(type);
+                    if (type == typeof(Boolean) && str == "OK")
+                        target = true;
+                    else
+                        target = Convert.ChangeType(str, type);
                     return true;
                 }
                 catch (Exception ex)
@@ -862,26 +856,6 @@ namespace NewLife.Caching
         #endregion
 
         #region 获取设置
-        /// <summary>设置</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <param name="secTimeout">超时时间</param>
-        /// <returns></returns>
-        public Boolean Set<T>(String key, T value, Int32 secTimeout = 0)
-        {
-            if (secTimeout <= 0)
-                return Execute<String>("SET", key, value) == "OK";
-            else
-                return Execute<String>("SETEX", key, secTimeout, value) == "OK";
-        }
-
-        /// <summary>读取</summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public T Get<T>(String key) => Execute<T>("GET", key);
-
         /// <summary>批量设置</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="values"></param>
@@ -890,20 +864,21 @@ namespace NewLife.Caching
         {
             if (values == null || values.Count == 0) throw new ArgumentNullException(nameof(values));
 
-            //var ps = new List<Packet>();
             var ps = new List<Object>();
             foreach (var item in values)
             {
-                //ps.Add(item.Key.GetBytes());
-                //ps.Add(ToBytes(item.Value));
                 ps.Add(item.Key);
 
                 if (item.Value == null) throw new NullReferenceException();
                 ps.Add(item.Value);
             }
 
-            //var rs = ExecuteCommand("MSET", ps.ToArray());
             var rs = Execute<String>("MSET", ps.ToArray());
+            if (rs != "OK")
+            {
+                using var span = Host.Tracer?.NewSpan("redis:ErrorSetAll", values);
+                if (Host.ThrowOnFailure) throw new XException("Redis.SetAll({0})失败。{1}", values.ToJson(), rs);
+            }
 
             return rs == "OK";
         }
@@ -931,10 +906,10 @@ namespace NewLife.Caching
         #endregion
 
         #region 辅助
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new ConcurrentDictionary<String, Byte[]>();
-        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new ConcurrentDictionary<String, Byte[]>();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache0 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache1 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache2 = new();
+        private static readonly ConcurrentDictionary<String, Byte[]> _cache3 = new();
         /// <summary>获取命令对应的字节数组，全局缓存</summary>
         /// <param name="cmd"></param>
         /// <param name="args"></param>

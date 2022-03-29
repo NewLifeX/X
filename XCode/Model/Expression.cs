@@ -19,7 +19,7 @@ namespace XCode
         public virtual Boolean IsEmpty => Text.IsNullOrEmpty();
 
         /// <summary>空表达式，一般用于表达式连写</summary>
-        public static Expression Empty = new Expression();
+        public static Expression Empty = new();
         #endregion
 
         #region 构造
@@ -33,7 +33,7 @@ namespace XCode
 
         #region 方法
         /// <summary>用于匹配Or关键字的正则表达式</summary>
-        internal protected static Regex _regOr = new Regex(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal protected static Regex _regOr = new(@"\bOr\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>获取表达式的文本表示</summary>
         /// <param name="db">数据库</param>
         /// <param name="ps">参数字典</param>

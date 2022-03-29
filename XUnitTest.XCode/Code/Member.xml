@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="Entity" BaseClass="Entity" xmlns="http://www.newlifex.com/Model2020.xsd">
-  <Table Name="User" Description="用户。用户帐号信息" RenderGenEntity="True">
+<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2022.xsd" NameSpace="XCode.Membership" ConnName="Membership" Output="Entity" BaseClass="Entity" Document="https://www.yuque.com/smartstone/xcode/model" Version="11.0.2022.0216-beta2" xmlns="http://www.newlifex.com/Model2022.xsd">
+  <Table Name="User" Description="用户。用户帐号信息">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
@@ -39,7 +39,7 @@
       <Index Columns="UpdateTime" />
     </Indexes>
   </Table>
-  <Table Name="Department" Description="部门。组织机构，多级树状结构" RenderGenEntity="True">
+  <Table Name="Department" Description="部门。组织机构，多级树状结构">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Code" DataType="String" Description="代码" />
@@ -74,7 +74,7 @@
       <Index Columns="UpdateTime" />
     </Indexes>
   </Table>
-  <Table Name="Role" Description="角色" RenderGenEntity="True">
+  <Table Name="Role" Description="角色">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -101,7 +101,7 @@
       <Index Columns="Name" Unique="True" />
     </Indexes>
   </Table>
-  <Table Name="Menu" Description="菜单" BaseType="EntityTree" RenderGenEntity="True">
+  <Table Name="Menu" Description="菜单" BaseType="EntityTree">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
@@ -189,7 +189,7 @@
       <Index Columns="UpdateTime,ID" />
     </Indexes>
   </Table>
-  <Table Name="Log" Description="日志" ConnName="Log" RenderGenEntity="True">
+  <Table Name="Log" Description="日志" ConnName="Log">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using NewLife.Log;
 using NewLife.Threading;
@@ -16,9 +15,6 @@ namespace NewLife.Configuration
         /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
         public String FileName { get; set; }
 
-        /// <summary>是否新的配置文件</summary>
-        public Boolean IsNew { get; set; }
-
         /// <summary>更新周期。默认30秒</summary>
         public Int32 Period { get; set; } = 30;
         #endregion
@@ -32,6 +28,10 @@ namespace NewLife.Configuration
 
             _timer.TryDispose();
         }
+
+        /// <summary>已重载。输出友好信息</summary>
+        /// <returns></returns>
+        public override String ToString() => $"{GetType().Name} FileName={FileName}";
         #endregion
 
         #region 方法
@@ -96,6 +96,9 @@ namespace NewLife.Configuration
             OnWrite(fileName, Root);
             _lastTime = fileName.AsFile().LastWriteTime;
 
+            // 通知绑定对象，配置数据有改变
+            NotifyChange();
+
             return true;
         }
 
@@ -145,12 +148,7 @@ namespace NewLife.Configuration
         {
             base.Bind<T>(model, autoReload, path);
 
-            if (autoReload && !_models.ContainsKey(model))
-            {
-                _models.Add(model, path);
-
-                InitTimer();
-            }
+            if (autoReload) InitTimer();
         }
 
         private TimerX _timer;
@@ -167,7 +165,6 @@ namespace NewLife.Configuration
             }
         }
 
-        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
         private Boolean _reading;
         private DateTime _lastTime;
         private void DoRefresh(Object state)
@@ -191,10 +188,7 @@ namespace NewLife.Configuration
                 OnRead(fileName, section);
                 Root = section;
 
-                foreach (var item in _models)
-                {
-                    base.Bind(item.Key, false, item.Value);
-                }
+                NotifyChange();
             }
             catch (Exception ex)
             {

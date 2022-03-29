@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -72,6 +69,9 @@ namespace NewLife.Net
 
         /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
         public DateTime LastTime { get; private set; } = DateTime.Now;
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -81,6 +81,7 @@ namespace NewLife.Net
 
             Server = server;
             Remote = new NetUri(NetType.Udp, remote);
+            Tracer = server.Tracer;
 
             // 检查并开启广播
             server.Client.CheckBroadcast(remote.Address);
@@ -126,8 +127,17 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            var ctx = Server.CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
+            try
+            {
+                var ctx = Server.CreateContext(this);
+                return (Int32)Pipeline.Write(ctx, message);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         /// <summary>发送消息并等待响应</summary>
@@ -135,14 +145,23 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            var ctx = Server.CreateContext(this);
-            var source = new TaskCompletionSource<Object>();
-            ctx["TaskSource"] = source;
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
+            try
+            {
+                var ctx = Server.CreateContext(this);
+                var source = new TaskCompletionSource<Object>();
+                ctx["TaskSource"] = source;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return TaskEx.FromResult((Object)null);
+                var rs = (Int32)Pipeline.Write(ctx, message);
+                if (rs < 0) return Task.FromResult((Object)null);
 
-            return source.Task;
+                return source.Task;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         #endregion
@@ -154,11 +173,20 @@ namespace NewLife.Net
         {
             if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-            var ep = Remote.EndPoint as EndPoint;
-            var buf = new Byte[Server.BufferSize];
-            var size = Server.Client.ReceiveFrom(buf, ref ep);
+            using var span = Tracer?.NewSpan($"net:{Name}:Receive", Server.BufferSize + "");
+            try
+            {
+                var ep = Remote.EndPoint as EndPoint;
+                var buf = new Byte[Server.BufferSize];
+                var size = Server.Client.ReceiveFrom(buf, ref ep);
 
-            return new Packet(buf, 0, size);
+                return new Packet(buf, 0, size);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         public event EventHandler<ReceivedEventArgs> Received;
@@ -208,7 +236,7 @@ namespace NewLife.Net
         #endregion
 
         #region 扩展接口
-        private readonly ConcurrentDictionary<String, Object> _Items = new ConcurrentDictionary<String, Object>();
+        private readonly ConcurrentDictionary<String, Object> _Items = new();
         /// <summary>数据项</summary>
         public IDictionary<String, Object> Items => _Items;
 

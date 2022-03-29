@@ -36,17 +36,17 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public static IDataColumn[] GetColumns(this IDataTable table, String[] names)
         {
-            if (names == null || names.Length < 1) return new IDataColumn[0];
+            if (names == null || names.Length <= 0) return new IDataColumn[0];
 
             //return table.Columns.Where(c => names.Any(n => c.Is(n))).ToArray();
-            var dcs = new IDataColumn[names.Length];
-            for (var i = 0; i < names.Length; i++)
+            var dcs = new List<IDataColumn>();
+            foreach (var name in names)
             {
-                dcs[i] = table.GetColumn(names[i]);
-                if (dcs[i] == null) return new IDataColumn[0];
+                var dc = table.GetColumn(name);
+                if (dc != null) dcs.Add(dc);
             }
 
-            return dcs;
+            return dcs.ToArray();
         }
 
         /// <summary>获取全部字段，包括继承的父类</summary>
@@ -101,7 +101,7 @@ namespace XCode.DataAccessLayer
             return name.EqualIgnoreCase(column.ColumnName, column.Name);
         }
 
-        static Boolean EqualIgnoreCase(this String[] src, String[] des)
+        private static Boolean EqualIgnoreCase(this String[] src, String[] des)
         {
             if (src == null || src.Length == 0) return des == null || des.Length == 0;
             if (des == null || des.Length == 0) return false;
@@ -119,7 +119,7 @@ namespace XCode.DataAccessLayer
         public static IDataIndex GetIndex(this IDataTable table, params String[] columnNames)
         {
             var dis = table?.Indexes;
-            if (dis == null || dis.Count < 1 || columnNames == null || columnNames.Length < 1) return null;
+            if (dis == null || dis.Count <= 0 || columnNames == null || columnNames.Length <= 0) return null;
 
             var di = dis.FirstOrDefault(e => e != null && e.Columns.EqualIgnoreCase(columnNames));
             if (di != null) return di;
@@ -129,6 +129,10 @@ namespace XCode.DataAccessLayer
             if (columns.Length != columnNames.Length) return null;
 
             var names = columns.Select(e => e.Name).ToArray();
+            di = dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
+            if (di != null) return di;
+
+            names = columns.Select(e => e.ColumnName).ToArray();
             return dis.FirstOrDefault(e => e.Columns.EqualIgnoreCase(names));
         }
 
@@ -147,10 +151,10 @@ namespace XCode.DataAccessLayer
             if (name == name.ToUpper()) return name.ToLower();
 
             // 首字母小写
-            name = Char.ToLower(name[0]) + name.Substring(1);
+            name = Char.ToLower(name[0]) + name[1..];
 
             // 特殊处理ID结尾，改为Id，否则难看
-            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[name.Length - 3])) name = name.Substring(0, name.Length - 2) + "Id";
+            if (name.Length > 3 && name.EndsWith("ID") && Char.IsLower(name[^3])) name = name[0..^2] + "Id";
 
             return name;
         }
@@ -196,7 +200,7 @@ namespace XCode.DataAccessLayer
 
                         writer.WriteAttributeString(keys[0], keys[1], null, item.Value);
                     }
-                    else if (!item.Key.EqualIgnoreCase("Version"))
+                    else /*if (!item.Key.EqualIgnoreCase("Version"))*/
                         writer.WriteAttributeString(item.Key, item.Value);
                     //if (!String.IsNullOrEmpty(item.Value)) writer.WriteElementString(item.Key, item.Value);
                     //writer.WriteElementString(item.Key, item.Value);
@@ -424,7 +428,7 @@ namespace XCode.DataAccessLayer
                     value.SetValue(pi, v.ChangeType(pi.PropertyType));
             }
             var pi1 = pis.FirstOrDefault(e => e.Name == "Name");
-            var pi2 = pis.FirstOrDefault(e => e.Name == "TableName" || e.Name == "ColumnName");
+            var pi2 = pis.FirstOrDefault(e => e.Name is "TableName" or "ColumnName");
             if (pi1 != null && pi2 != null)
             {
                 // 写入的时候省略了相同的TableName/ColumnName
@@ -455,7 +459,7 @@ namespace XCode.DataAccessLayer
             // 剩余特性作为扩展属性
             if (reader.MoveToFirstAttribute())
             {
-                if (value is IDataTable || value is IDataColumn)
+                if (value is IDataTable or IDataColumn)
                 {
                     var dic = (value is IDataTable) ? (value as IDataTable).Properties : (value as IDataColumn).Properties;
                     do
@@ -527,7 +531,7 @@ namespace XCode.DataAccessLayer
                     // 改为区分大小写，避免linux环境下 mysql 数据库存在
                     if (pi.Name == "Name")
                         name = (String)obj;
-                    else if (pi.Name == "TableName" || pi.Name == "ColumnName")
+                    else if (pi.Name is "TableName" or "ColumnName")
                     {
                         if (name == (String)obj) continue;
                         if (/*ignoreNameCase &&*/ name.EqualIgnoreCase((String)obj)) continue;
@@ -589,11 +593,9 @@ namespace XCode.DataAccessLayer
             }
         }
 
-        static readonly ConcurrentDictionary<Type, Object> cache = new ConcurrentDictionary<Type, Object>();
-        static Object GetDefault(Type type)
-        {
-            return cache.GetOrAdd(type, item => item.CreateInstance());
-        }
+        private static readonly ConcurrentDictionary<Type, Object> cache = new();
+
+        private static Object GetDefault(Type type) => cache.GetOrAdd(type, item => item.CreateInstance());
         #endregion
 
         #region 修正连接
@@ -601,7 +603,7 @@ namespace XCode.DataAccessLayer
         /// <param name="dc"></param>
         /// <param name="oridc"></param>
         /// <returns></returns>
-        static IDataColumn FixDefaultByType(this IDataColumn dc, IDataColumn oridc)
+        private static IDataColumn FixDefaultByType(this IDataColumn dc, IDataColumn oridc)
         {
             if (dc?.DataType == null) return dc;
 

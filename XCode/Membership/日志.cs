@@ -117,6 +117,14 @@ namespace XCode.Membership
         [BindColumn("Ex6", "扩展6", "")]
         public String Ex6 { get => _Ex6; set { if (OnPropertyChanging("Ex6", value)) { _Ex6 = value; OnPropertyChanged("Ex6"); } } }
 
+        private String _TraceId;
+        /// <summary>性能追踪。用于APM性能追踪定位，还原该事件的调用链</summary>
+        [DisplayName("性能追踪")]
+        [Description("性能追踪。用于APM性能追踪定位，还原该事件的调用链")]
+        [DataObjectField(false, false, true, 50)]
+        [BindColumn("TraceId", "性能追踪。用于APM性能追踪定位，还原该事件的调用链", "")]
+        public String TraceId { get => _TraceId; set { if (OnPropertyChanging("TraceId", value)) { _TraceId = value; OnPropertyChanged("TraceId"); } } }
+
         private String _CreateUser;
         /// <summary>创建者</summary>
         [DisplayName("创建者")]
@@ -153,7 +161,7 @@ namespace XCode.Membership
         /// <summary>详细信息</summary>
         [DisplayName("详细信息")]
         [Description("详细信息")]
-        [DataObjectField(false, false, true, 500)]
+        [DataObjectField(false, false, true, 2000)]
         [BindColumn("Remark", "详细信息", "")]
         public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
         #endregion
@@ -180,6 +188,7 @@ namespace XCode.Membership
                     case "Ex4": return _Ex4;
                     case "Ex5": return _Ex5;
                     case "Ex6": return _Ex6;
+                    case "TraceId": return _TraceId;
                     case "CreateUser": return _CreateUser;
                     case "CreateUserID": return _CreateUserID;
                     case "CreateIP": return _CreateIP;
@@ -204,6 +213,7 @@ namespace XCode.Membership
                     case "Ex4": _Ex4 = Convert.ToString(value); break;
                     case "Ex5": _Ex5 = Convert.ToString(value); break;
                     case "Ex6": _Ex6 = Convert.ToString(value); break;
+                    case "TraceId": _TraceId = Convert.ToString(value); break;
                     case "CreateUser": _CreateUser = Convert.ToString(value); break;
                     case "CreateUserID": _CreateUserID = value.ToInt(); break;
                     case "CreateIP": _CreateIP = Convert.ToString(value); break;
@@ -254,6 +264,9 @@ namespace XCode.Membership
 
             /// <summary>扩展6</summary>
             public static readonly Field Ex6 = FindByName("Ex6");
+
+            /// <summary>性能追踪。用于APM性能追踪定位，还原该事件的调用链</summary>
+            public static readonly Field TraceId = FindByName("TraceId");
 
             /// <summary>创建者</summary>
             public static readonly Field CreateUser = FindByName("CreateUser");
@@ -311,6 +324,9 @@ namespace XCode.Membership
 
             /// <summary>扩展6</summary>
             public const String Ex6 = "Ex6";
+
+            /// <summary>性能追踪。用于APM性能追踪定位，还原该事件的调用链</summary>
+            public const String TraceId = "TraceId";
 
             /// <summary>创建者</summary>
             public const String CreateUser = "CreateUser";

@@ -54,7 +54,7 @@ namespace NewLife.Configuration
             {
                 var remark = "";
                 if (reader.NodeType == XmlNodeType.Comment) remark = reader.Value;
-                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+                while (reader.NodeType is XmlNodeType.Comment or XmlNodeType.Whitespace) reader.Skip();
                 if (reader.NodeType != XmlNodeType.Element) break;
 
                 var name = reader.Name;
@@ -91,7 +91,7 @@ namespace NewLife.Configuration
                 while (reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
 
                 // 遇到下一层节点
-                if (reader.NodeType == XmlNodeType.Element || reader.NodeType == XmlNodeType.Comment)
+                if (reader.NodeType is XmlNodeType.Element or XmlNodeType.Comment)
                     ReadNode(reader, cfg);
                 else if (reader.NodeType == XmlNodeType.Text)
                     cfg.Value = reader.ReadContentAsString();

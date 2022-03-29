@@ -290,7 +290,7 @@ namespace XCode
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
-            var ks = keys.Split(" ");
+            var ks = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             for (var i = 0; i < ks.Length; i++)
             {
@@ -311,7 +311,7 @@ namespace XCode
             var exp = new WhereExpression();
             if (String.IsNullOrEmpty(keys)) return exp;
 
-            var ks = keys.Split(" ");
+            var ks = keys.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             for (var i = 0; i < ks.Length; i++)
             {
@@ -425,11 +425,26 @@ namespace XCode
             return new ConcatExpression($"{name} as {newName}");
         }
 
-        /// <summary>数量</summary>
+        /// <summary>计数</summary>
         /// <param name="field">字段</param>
         /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
         /// <returns></returns>
         public static ConcatExpression Count(this FieldItem field, String newName = null) => Aggregate(field, "Count", newName);
+
+        /// <summary>计数（唯一）</summary>
+        /// <param name="field">字段</param>
+        /// <param name="newName">聚合后as的新名称，默认空，表示跟前面字段名一致</param>
+        /// <returns></returns>
+        public static ConcatExpression CountDistinct(this FieldItem field, String newName = null)
+        {
+            if (field == null) return null;
+
+            var name = field.FormatedName;
+            if (newName.IsNullOrEmpty()) newName = name;
+
+            return new ConcatExpression($"Count(distinct {name}) as {newName}");
+        }
+
 
         /// <summary>求和</summary>
         /// <param name="field">字段</param>
@@ -462,14 +477,35 @@ namespace XCode
         /// <param name="value">值</param>
         /// <param name="newName">聚合后as的新名称</param>
         /// <returns></returns>
-        public static FormatExpression SumCase(this FieldItem field, Object value, String newName) => new FormatExpression(field, "sum(case when {0}={1} then 1 else 0 end) " + newName, value);
+        public static FormatExpression SumCase(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}={1} then 1 else 0 end) " + newName, value);
 
         /// <summary>sumCase子句，计算大于某个值的数量</summary>
         /// <param name="field">字段</param>
         /// <param name="value">值</param>
         /// <param name="newName">聚合后as的新名称</param>
         /// <returns></returns>
-        public static FormatExpression SumLarge(this FieldItem field, Object value, String newName) => new FormatExpression(field, "sum(case when {0}>{1} then 1 else 0 end) " + newName, value);
+        public static FormatExpression SumLarge(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}>{1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算大于等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLargeEqual(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}>={1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算小于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLess(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}<{1} then 1 else 0 end) " + newName, value);
+
+        /// <summary>sumCase子句，计算小于等于某个值的数量</summary>
+        /// <param name="field">字段</param>
+        /// <param name="value">值</param>
+        /// <param name="newName">聚合后as的新名称</param>
+        /// <returns></returns>
+        public static FormatExpression SumLessEqual(this FieldItem field, Object value, String newName) => new(field, "sum(case when {0}<={1} then 1 else 0 end) " + newName, value);
         #endregion
     }
 }

@@ -5,6 +5,7 @@ using NewLife.Caching;
 namespace XCode.Extension
 {
     /// <summary>数据缓存</summary>
+    [ModelCheckMode(ModelCheckModes.CheckTableWhenFirstUse)]
     public partial class MyDbCache : Entity<MyDbCache>, IDbCache
     {
         #region 对象操作

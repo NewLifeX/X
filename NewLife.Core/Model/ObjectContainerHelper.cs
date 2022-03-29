@@ -65,7 +65,7 @@ namespace NewLife.Model
         /// <param name="container"></param>
         /// <param name="factory"></param>
         /// <returns></returns>
-        public static IObjectContainer AddSingleton<TService>(this IObjectContainer container, Func<IServiceProvider, Object> factory) where TService : class => container.AddSingleton(typeof(TService), factory);
+        public static IObjectContainer AddSingleton<TService>(this IObjectContainer container, Func<IServiceProvider, TService> factory) where TService : class => container.AddSingleton(typeof(TService), factory);
 
         /// <summary>添加单实例，指定实例</summary>
         /// <param name="container"></param>

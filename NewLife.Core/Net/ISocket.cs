@@ -46,6 +46,9 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         Boolean LogReceive { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        ITracer Tracer { get; set; }
         #endregion
 
         #region 方法
@@ -123,7 +126,7 @@ namespace NewLife.Net
         {
             // 空数据直接发出
             var remain = stream.Length - stream.Position;
-            if (remain == 0) return session.Send(new Byte[0]);
+            if (remain == 0) return session.Send(Array.Empty<Byte>());
 
             var rs = 0;
             var buffer = new Byte[8192];
@@ -149,7 +152,7 @@ namespace NewLife.Net
         /// <returns>返回自身，用于链式写法</returns>
         public static Int32 Send(this ISocketRemote session, String msg, Encoding encoding = null)
         {
-            if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
+            if (String.IsNullOrEmpty(msg)) return session.Send(Array.Empty<Byte>());
 
             if (encoding == null) encoding = Encoding.UTF8;
             return session.Send(encoding.GetBytes(msg));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,21 +7,23 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Collections;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Reflection;
 
 namespace NewLife.Caching
 {
-    /// <summary>Redi客户端</summary>
+    /// <summary>Redis客户端</summary>
     /// <remarks>
     /// 文档 https://www.yuque.com/smartstone/nx/redis
     /// 
     /// 强烈建议保持唯一的Redis对象供多次使用，Redis内部有连接池并且支持多线程并发访问。
     /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
     /// </remarks>
-    public class Redis : Cache
+    public class Redis : Cache, IConfigMapping
     {
         #region 属性
         /// <summary>服务器，带端口。例如127.0.0.1:6397，支持逗号分隔的多地址，网络异常时，自动切换到其它节点，60秒后切回来</summary>
@@ -48,7 +51,13 @@ namespace NewLife.Caching
         public Int32 AutoPipeline { get; set; }
 
         /// <summary>编码器。决定对象存储在redis中的格式，默认json</summary>
-        public IRedisEncoder Encoder { get; set; } = new RedisJsonEncoder();
+        public IPacketEncoder Encoder { get; set; } = new RedisJsonEncoder();
+
+        /// <summary>失败时抛出异常。默认true</summary>
+        public Boolean ThrowOnFailure { get; set; } = true;
+
+        /// <summary>最大消息大小。超过时抛出异常，默认1024*1024字节，行业标准是32k算大Value，这里超过1m报错</summary>
+        public Int32 MaxMessageSize { get; set; } = 1024 * 1024;
 
         /// <summary>性能计数器</summary>
         public PerfCounter Counter { get; set; }
@@ -91,35 +100,33 @@ namespace NewLife.Caching
             Db = db;
         }
 
-        /// <summary>使用连接字符串初始化</summary>
-        /// <param name="config"></param>
-        public override void Init(String config)
+        /// <summary>按照配置服务实例化Redis，用于NETCore依赖注入</summary>
+        /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+        /// <param name="name">缓存名称，也是配置中心key</param>
+        public Redis(IServiceProvider provider, String name)
         {
-            if (config.IsNullOrEmpty()) return;
+            Name = name;
+            Tracer = provider.GetService<ITracer>();
 
-            var dic =
-                config.Contains(',') && !config.Contains(';') ?
-                config.SplitAsDictionary("=", ",", true) :
-                config.SplitAsDictionary("=", ";", true);
-            if (dic.Count > 0)
+            var configProvider = provider.GetRequiredService<IConfigProvider>();
+            configProvider.Bind(this, true, name);
+        }
+
+        /// <summary>实例化Redis，指定名称，支持从环境变量Redis_{Name}读取配置，或者逐个属性配置</summary>
+        /// <param name="name"></param>
+        public Redis(String name)
+        {
+            if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+
+            Name = name;
+
+            // 从环境变量加载连接字符
+            foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
             {
-                Server = dic["Server"]?.Trim();
-                UserName = dic["UserName"]?.Trim();
-                Password = dic["Password"]?.Trim();
-                Db = dic["Db"].ToInt();
-
-                if (Server.IsNullOrEmpty() && dic.TryGetValue("[0]", out var svr)) Server = svr;
-
-                // 连接字符串可能独立写了port
-                var port = dic["Port"].ToInt();
-                if (port > 0 && !Server.Contains(":")) Server += ":" + port;
-
-                if (dic.TryGetValue("Timeout", out var str))
-                    Timeout = str.ToInt();
-                else if (dic.TryGetValue("responseTimeout", out str))
-                    Timeout = str.ToInt();
-                else if (dic.TryGetValue("connectTimeout", out str))
-                    Timeout = str.ToInt();
+                if (item.Key is String key && item.Value is String value && key.EqualIgnoreCase($"Redis_{name}"))
+                {
+                    Init(value);
+                }
             }
         }
 
@@ -141,6 +148,70 @@ namespace NewLife.Caching
         /// <summary>已重载。</summary>
         /// <returns></returns>
         public override String ToString() => $"{Name} Server={Server} Db={Db}";
+        #endregion
+
+        #region 配置方法
+        private String _configOld;
+        /// <summary>使用连接字符串初始化</summary>
+        /// <param name="config"></param>
+        public override void Init(String config)
+        {
+            if (config.IsNullOrEmpty()) return;
+
+            if (config == _configOld) return;
+            if (!_configOld.IsNullOrEmpty()) XTrace.WriteLine("Redis[{0}]连接字符串改变！", Name);
+
+            var dic =
+                config.Contains(',') && !config.Contains(';') ?
+                config.SplitAsDictionary("=", ",", true) :
+                config.SplitAsDictionary("=", ";", true);
+            if (dic.Count > 0)
+            {
+                Server = dic["Server"]?.Trim();
+                UserName = dic["UserName"]?.Trim();
+                Password = dic["Password"]?.Trim();
+                //Db = dic["Db"].ToInt();
+                if (dic.TryGetValue("Db", out var str))
+                    Db = str.ToInt();
+
+                if (Server.IsNullOrEmpty() && dic.TryGetValue("[0]", out var svr)) Server = svr;
+
+                // 连接字符串可能独立写了port
+                var port = dic["Port"].ToInt();
+                if (port > 0 && !Server.Contains(':')) Server += ":" + port;
+
+                if (dic.TryGetValue("Timeout", out str))
+                    Timeout = str.ToInt();
+                else if (dic.TryGetValue("responseTimeout", out str))
+                    Timeout = str.ToInt();
+                else if (dic.TryGetValue("connectTimeout", out str))
+                    Timeout = str.ToInt();
+
+                if (dic.TryGetValue("ThrowOnFailure", out str))
+                    ThrowOnFailure = str.ToBoolean();
+
+                if (dic.TryGetValue("MaxMessageSize", out str) && str.ToInt(-1) >= 0)
+                    MaxMessageSize = str.ToInt();
+
+                if (dic.TryGetValue("Expire", out str) && str.ToInt(-1) >= 0)
+                    Expire = str.ToInt();
+            }
+
+            // 更换Redis连接字符串时，清空原连接池
+            _servers = null;
+            if (!_configOld.IsNullOrEmpty())
+            {
+                _Pool = null;
+                _Info = null;
+            }
+
+            _configOld = config;
+        }
+
+        void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
+        {
+            if (section != null && section.Value != null) Init(section.Value);
+        }
         #endregion
 
         #region 客户端池
@@ -168,13 +239,14 @@ namespace NewLife.Caching
         /// <returns></returns>
         protected virtual RedisClient OnCreate()
         {
-            var svr = Server?.Trim();
-            if (svr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
+            var server = Server?.Trim();
+            if (server.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
 
+            // 初始化服务器地址列表
             var svrs = _servers;
             if (svrs == null)
             {
-                var ss = svr.Split(",");
+                var ss = server.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 var uris = new NetUri[ss.Length];
                 for (var i = 0; i < ss.Length; i++)
                 {
@@ -209,7 +281,11 @@ namespace NewLife.Caching
                 _idxLast = idx;
             }
 
-            var rc = new RedisClient(this, svrs[idx % svrs.Length])
+            // 选择服务器，修改实例名，后面用于埋点
+            var svr = svrs[idx % svrs.Length];
+            if (Name.IsNullOrEmpty() || Name.EqualIgnoreCase("Redis", "FullRedis")) Name = svr.Host ?? svr.Address.ToString();
+
+            var rc = new RedisClient(this, svr)
             {
                 Log = Log
             };
@@ -281,10 +357,12 @@ namespace NewLife.Caching
             var sw = Counter?.StartCount();
 
             var i = 0;
+            var delay = 100;
             do
             {
                 // 每次重试都需要重新从池里借出连接
-                var client = Pool.Get();
+                var pool = Pool;
+                var client = pool.Get();
                 try
                 {
                     client.Reset();
@@ -293,39 +371,40 @@ namespace NewLife.Caching
                 catch (InvalidDataException)
                 {
                     if (i++ >= Retry) throw;
+
+                    // 销毁连接
+                    client.TryDispose();
+
+                    Thread.Sleep(delay);
+                    delay *= 2;
                 }
                 catch (Exception ex)
                 {
-                    if (ex is SocketException || ex is IOException)
+                    if (ex is SocketException or IOException)
                     {
                         // 销毁连接
                         client.TryDispose();
 
                         // 网络异常时，自动切换到其它节点
                         _idxServer++;
-                        if (++i < _servers.Length) continue;
+                        if (++i < _servers.Length)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
                     }
 
                     throw;
                 }
                 finally
                 {
-                    Pool.Put(client);
+                    pool.Put(client);
 
                     Counter?.StopCount(sw);
                 }
             } while (true);
         }
 
-#if NET4
-        /// <summary>异步执行命令</summary>
-        /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="key">命令key，用于选择集群节点</param>
-        /// <param name="func">回调函数</param>
-        /// <param name="write">是否写入操作</param>
-        /// <returns></returns>
-        public virtual Task<TResult> ExecuteAsync<TResult>(String key, Func<RedisClient, Task<TResult>> func, Boolean write = false) => throw new NotSupportedException();
-#else
         /// <summary>异步执行命令</summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="key">命令key，用于选择集群节点</param>
@@ -362,6 +441,7 @@ namespace NewLife.Caching
             var sw = Counter?.StartCount();
 
             var i = 0;
+            var delay = 100;
             do
             {
                 // 每次重试都需要重新从池里借出连接
@@ -374,6 +454,9 @@ namespace NewLife.Caching
                 catch (InvalidDataException)
                 {
                     if (i++ >= Retry) throw;
+
+                    await Task.Delay(delay);
+                    delay *= 2;
                 }
                 catch (SocketException)
                 {
@@ -389,9 +472,8 @@ namespace NewLife.Caching
                 }
             } while (true);
         }
-#endif
 
-        private readonly ThreadLocal<RedisClient> _client = new ThreadLocal<RedisClient>();
+        private readonly ThreadLocal<RedisClient> _client = new();
         /// <summary>开始管道模式</summary>
         public virtual RedisClient StartPipeline()
         {
@@ -463,6 +545,7 @@ namespace NewLife.Caching
             rds.Timeout = Timeout;
             rds.Retry = Retry;
             rds.Tracer = Tracer;
+            rds.Log = Log;
 
             return rds;
         }
@@ -505,10 +588,19 @@ namespace NewLife.Caching
         {
             if (expire < 0) expire = Expire;
 
+            var rs = "";
             if (expire <= 0)
-                return Execute(key, rds => rds.Execute<String>("SET", key, value) == "OK", true);
+                rs = Execute(key, rds => rds.Execute<String>("SET", key, value), true);
             else
-                return Execute(key, rds => rds.Execute<String>("SETEX", key, expire, value) == "OK", true);
+                rs = Execute(key, rds => rds.Execute<String>("SETEX", key, expire, value), true);
+
+            if (rs == "OK") return true;
+            if (rs.IsNullOrEmpty()) return false;
+
+            using var span = Tracer?.NewSpan("redis:ErrorSet", new { key, value });
+            if (ThrowOnFailure) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
+
+            return false;
         }
 
         /// <summary>获取单体</summary>
@@ -624,7 +716,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public override Boolean Add<T>(String key, T value, Int32 expire = -1)
         {
-            //if (expire < 0) expire = Expire;
+            if (expire < 0) expire = Expire;
 
             // 没有有效期，直接使用SETNX
             if (expire <= 0) return Execute(key, rds => rds.Execute<Int32>("SETNX", key, value), true) > 0;
@@ -642,8 +734,8 @@ namespace NewLife.Caching
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
-                // 记录异常返回
-                XTrace.WriteLine("Redis.Add({0}, {1}, {2}) => {3}", key, value, expire, result);
+                using var span = Tracer?.NewSpan("redis:ErrorAdd", new { key, value });
+                if (ThrowOnFailure) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
 
                 return false;
             }
@@ -737,9 +829,7 @@ namespace NewLife.Caching
         /// <param name="key">键</param>
         /// <param name="value">变化量</param>
         /// <returns></returns>
-        public override Double Decrement(String key, Double value) =>
-            //return (Double)Decrement(key, (Int64)(value * 100)) / 100;
-            Increment(key, -value);
+        public override Double Decrement(String key, Double value) => Increment(key, -value);
         #endregion
 
         #region 性能测试

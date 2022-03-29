@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 using NewLife;
+using System.Linq;
 
 namespace XUnitTest.Extension
 {
@@ -74,6 +75,31 @@ namespace XUnitTest.Extension
             Assert.True(rs);
             rs = "aa*aa".IsMatch("aaaaa");
             Assert.True(rs);
+        }
+
+        [Fact]
+        public void SplitAsDictionary()
+        {
+            var str = "IP=172.17.0.6,172.17.0.7,172.17.16.7";
+            var dic = str.SplitAsDictionary("=", ";");
+
+            Assert.Equal(1, dic.Count);
+            foreach (var item in dic)
+            {
+                Assert.Equal("IP", item.Key);
+            }
+
+            Assert.True(dic.ContainsKey("IP"));
+            Assert.True(dic.ContainsKey("Ip"));
+            Assert.True(dic.ContainsKey("ip"));
+            Assert.True(dic.ContainsKey("iP"));
+          
+            var rules = dic.ToDictionary(e => e.Key, e => e.Value.Split(","));
+
+            Assert.True(rules.ContainsKey("IP"));
+            Assert.False(rules.ContainsKey("Ip"));
+            Assert.False(rules.ContainsKey("ip"));
+            Assert.False(rules.ContainsKey("iP"));
         }
     }
 }

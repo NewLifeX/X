@@ -2,7 +2,7 @@
   "profiles": {
     "XCodeTool": {
       "commandName": "Project",
-      "commandLineArgs": "show"
+      "commandLineArgs": "../../Src/XCode/Membership/Member.xml"
     }
   }
 }

@@ -78,7 +78,7 @@ namespace NewLife.Net
         {
             var ns = (this as INetSession).Host;
             var tracer = ns?.Tracer;
-            var span = tracer?.NewSpan($"net:{ns.Name}:Receive");
+            using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", Remote + "");
 
             try
             {
@@ -86,12 +86,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, Remote + "");
+                span?.SetError(ex, e.Message ?? e.Packet);
                 throw;
-            }
-            finally
-            {
-                span?.Dispose();
             }
         }
 
@@ -139,7 +135,7 @@ namespace NewLife.Net
         public virtual INetSession Send(Packet data)
         {
             var ns = (this as INetSession).Host;
-            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send");
+            using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data);
 
             Session.Send(data);
 
@@ -172,10 +168,15 @@ namespace NewLife.Net
             return this;
         }
 
+        /// <summary>通过管道发送消息，不等待响应</summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
+
         /// <summary>异步发送并等待响应</summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public virtual Task<Object> SendAsync(Object message) => Session.SendMessageAsync(message);
+        public virtual Task<Object> SendMessageAsync(Object message) => Session.SendMessageAsync(message);
         #endregion
 
         #region 日志

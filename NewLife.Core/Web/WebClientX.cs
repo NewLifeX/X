@@ -6,9 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NewLife.Log;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Web
 {
@@ -26,31 +23,11 @@ namespace NewLife.Web
         #region 构造
         static WebClientX()
         {
-#if NET4
-            try
-            {
-                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls;
-            }
-            catch
-            {
-                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls;
-            }
-#elif NET50
             try
             {
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             }
             catch { }
-#else
-            try
-            {
-                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            }
-            catch
-            {
-                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            }
-#endif
         }
 
         /// <summary>实例化</summary>
@@ -127,7 +104,7 @@ namespace NewLife.Web
         /// <summary>获取指定地址的Html，自动处理文本编码</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public String GetHtml(String url) => TaskEx.Run(() => DownloadStringAsync(url)).Result;
+        public String GetHtml(String url) => Task.Run(() => DownloadStringAsync(url)).Result;
 
         /// <summary>获取指定地址的Html，分析所有超链接</summary>
         /// <param name="url"></param>
@@ -135,7 +112,7 @@ namespace NewLife.Web
         public Link[] GetLinks(String url)
         {
             var html = GetHtml(url);
-            if (html.IsNullOrWhiteSpace()) return new Link[0];
+            if (html.IsNullOrWhiteSpace()) return Array.Empty<Link>();
 
             return Link.Parse(html, url);
         }
@@ -165,15 +142,17 @@ namespace NewLife.Web
                     if (ls.Length == 0) return file;
 
                     // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
-                    foreach (var item in names)
-                    {
-                        link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
-                           .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
-                           .OrderByDescending(e => e.Version)
-                           .ThenByDescending(e => e.Time)
-                           .FirstOrDefault();
-                        if (link != null) break;
-                    }
+                    //foreach (var item in names)
+                    //{
+                    //    link = ls.Where(e => !e.Url.IsNullOrWhiteSpace())
+                    //       .Where(e => e.Name.EqualIgnoreCase(item) || e.FullName.Equals(item))
+                    //       .OrderByDescending(e => e.Version)
+                    //       .ThenByDescending(e => e.Time)
+                    //       .FirstOrDefault();
+                    //    if (link != null) break;
+                    //}
+                    ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
+                    link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
                 }
                 catch (WebException ex)
                 {
@@ -213,7 +192,7 @@ namespace NewLife.Web
             file2 = file2.EnsureDirectory();
 
             var sw = Stopwatch.StartNew();
-            TaskEx.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+            Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
             sw.Stop();
 
             if (File.Exists(file2))

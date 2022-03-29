@@ -141,7 +141,7 @@ namespace XCode
 
         internal static PropertyDescriptorCollection Fix(Type type, PropertyDescriptorCollection pdc)
         {
-            if (pdc == null || pdc.Count < 1) return pdc;
+            if (pdc == null || pdc.Count <= 0) return pdc;
 
             var factory = type.AsFactory();
 
@@ -177,7 +177,7 @@ namespace XCode
 
         static Boolean ContainAttribute(AttributeCollection attributes, Type type)
         {
-            if (attributes == null || attributes.Count < 1 || type == null) return false;
+            if (attributes == null || attributes.Count <= 0 || type == null) return false;
 
             foreach (Attribute item in attributes)
             {

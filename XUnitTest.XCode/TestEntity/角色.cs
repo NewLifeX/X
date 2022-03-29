@@ -8,7 +8,7 @@ using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>角色</summary>
     [Serializable]

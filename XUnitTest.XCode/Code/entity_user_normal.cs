@@ -16,6 +16,9 @@ namespace Company.MyName
     [DataObject]
     [Description("用户。用户帐号信息")]
     [BindIndex("IU_User_Name", true, "Name")]
+    [BindIndex("IX_User_Mail", false, "Mail")]
+    [BindIndex("IX_User_Mobile", false, "Mobile")]
+    [BindIndex("IX_User_Code", false, "Code")]
     [BindIndex("IX_User_RoleID", false, "RoleID")]
     [BindIndex("IX_User_UpdateTime", false, "UpdateTime")]
     [BindTable("User", Description = "用户。用户帐号信息", ConnName = "MyConn", DbType = DatabaseType.None)]
@@ -42,7 +45,7 @@ namespace Company.MyName
         /// <summary>密码</summary>
         [DisplayName("密码")]
         [Description("密码")]
-        [DataObjectField(false, false, true, 50)]
+        [DataObjectField(false, false, true, 200)]
         [BindColumn("Password", "密码", "")]
         public String Password { get => _Password; set { if (OnPropertyChanging("Password", value)) { _Password = value; OnPropertyChanged("Password"); } } }
 
@@ -86,12 +89,20 @@ namespace Company.MyName
         [BindColumn("Code", "代码。身份证、员工编号等", "")]
         public String Code { get => _Code; set { if (OnPropertyChanging("Code", value)) { _Code = value; OnPropertyChanged("Code"); } } }
 
+        private Int32 _AreaId;
+        /// <summary>地区。省市区</summary>
+        [DisplayName("地区")]
+        [Description("地区。省市区")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("AreaId", "地区。省市区", "")]
+        public Int32 AreaId { get => _AreaId; set { if (OnPropertyChanging("AreaId", value)) { _AreaId = value; OnPropertyChanged("AreaId"); } } }
+
         private String _Avatar;
         /// <summary>头像</summary>
         [DisplayName("头像")]
         [Description("头像")]
         [DataObjectField(false, false, true, 200)]
-        [BindColumn("Avatar", "头像", "")]
+        [BindColumn("Avatar", "头像", "", ItemType = "image")]
         public String Avatar { get => _Avatar; set { if (OnPropertyChanging("Avatar", value)) { _Avatar = value; OnPropertyChanged("Avatar"); } } }
 
         private Int32 _RoleID;
@@ -134,6 +145,22 @@ namespace Company.MyName
         [BindColumn("Enable", "启用", "")]
         public Boolean Enable { get => _Enable; set { if (OnPropertyChanging("Enable", value)) { _Enable = value; OnPropertyChanged("Enable"); } } }
 
+        private Int32 _Age;
+        /// <summary>年龄。周岁</summary>
+        [DisplayName("年龄")]
+        [Description("年龄。周岁")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("Age", "年龄。周岁", "")]
+        public Int32 Age { get => _Age; set { if (OnPropertyChanging("Age", value)) { _Age = value; OnPropertyChanged("Age"); } } }
+
+        private DateTime _Birthday;
+        /// <summary>生日。公历年月日</summary>
+        [DisplayName("生日")]
+        [Description("生日。公历年月日")]
+        [DataObjectField(false, false, true, 0)]
+        [BindColumn("Birthday", "生日。公历年月日", "")]
+        public DateTime Birthday { get => _Birthday; set { if (OnPropertyChanging("Birthday", value)) { _Birthday = value; OnPropertyChanged("Birthday"); } } }
+
         private Int32 _Logins;
         /// <summary>登录次数</summary>
         [DisplayName("登录次数")]
@@ -173,6 +200,14 @@ namespace Company.MyName
         [DataObjectField(false, false, true, 50)]
         [BindColumn("RegisterIP", "注册IP", "")]
         public String RegisterIP { get => _RegisterIP; set { if (OnPropertyChanging("RegisterIP", value)) { _RegisterIP = value; OnPropertyChanged("RegisterIP"); } } }
+
+        private Int32 _OnlineTime;
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        [DisplayName("在线时间")]
+        [Description("在线时间。累计在线总时间，秒")]
+        [DataObjectField(false, false, false, 0)]
+        [BindColumn("OnlineTime", "在线时间。累计在线总时间，秒", "")]
+        public Int32 OnlineTime { get => _OnlineTime; set { if (OnPropertyChanging("OnlineTime", value)) { _OnlineTime = value; OnPropertyChanged("OnlineTime"); } } }
 
         private Int32 _Ex1;
         /// <summary>扩展1</summary>
@@ -259,7 +294,7 @@ namespace Company.MyName
         /// <summary>备注</summary>
         [DisplayName("备注")]
         [Description("备注")]
-        [DataObjectField(false, false, true, 200)]
+        [DataObjectField(false, false, true, 500)]
         [BindColumn("Remark", "备注", "")]
         public String Remark { get => _Remark; set { if (OnPropertyChanging("Remark", value)) { _Remark = value; OnPropertyChanged("Remark"); } } }
         #endregion
@@ -282,17 +317,21 @@ namespace Company.MyName
                     case "Mail": return _Mail;
                     case "Mobile": return _Mobile;
                     case "Code": return _Code;
+                    case "AreaId": return _AreaId;
                     case "Avatar": return _Avatar;
                     case "RoleID": return _RoleID;
                     case "RoleIds": return _RoleIds;
                     case "DepartmentID": return _DepartmentID;
                     case "Online": return _Online;
                     case "Enable": return _Enable;
+                    case "Age": return _Age;
+                    case "Birthday": return _Birthday;
                     case "Logins": return _Logins;
                     case "LastLogin": return _LastLogin;
                     case "LastLoginIP": return _LastLoginIP;
                     case "RegisterTime": return _RegisterTime;
                     case "RegisterIP": return _RegisterIP;
+                    case "OnlineTime": return _OnlineTime;
                     case "Ex1": return _Ex1;
                     case "Ex2": return _Ex2;
                     case "Ex3": return _Ex3;
@@ -319,17 +358,21 @@ namespace Company.MyName
                     case "Mail": _Mail = Convert.ToString(value); break;
                     case "Mobile": _Mobile = Convert.ToString(value); break;
                     case "Code": _Code = Convert.ToString(value); break;
+                    case "AreaId": _AreaId = value.ToInt(); break;
                     case "Avatar": _Avatar = Convert.ToString(value); break;
                     case "RoleID": _RoleID = value.ToInt(); break;
                     case "RoleIds": _RoleIds = Convert.ToString(value); break;
                     case "DepartmentID": _DepartmentID = value.ToInt(); break;
                     case "Online": _Online = value.ToBoolean(); break;
                     case "Enable": _Enable = value.ToBoolean(); break;
+                    case "Age": _Age = value.ToInt(); break;
+                    case "Birthday": _Birthday = value.ToDateTime(); break;
                     case "Logins": _Logins = value.ToInt(); break;
                     case "LastLogin": _LastLogin = value.ToDateTime(); break;
                     case "LastLoginIP": _LastLoginIP = Convert.ToString(value); break;
                     case "RegisterTime": _RegisterTime = value.ToDateTime(); break;
                     case "RegisterIP": _RegisterIP = Convert.ToString(value); break;
+                    case "OnlineTime": _OnlineTime = value.ToInt(); break;
                     case "Ex1": _Ex1 = value.ToInt(); break;
                     case "Ex2": _Ex2 = value.ToInt(); break;
                     case "Ex3": _Ex3 = value.ToDouble(); break;
@@ -375,6 +418,9 @@ namespace Company.MyName
             /// <summary>代码。身份证、员工编号等</summary>
             public static readonly Field Code = FindByName("Code");
 
+            /// <summary>地区。省市区</summary>
+            public static readonly Field AreaId = FindByName("AreaId");
+
             /// <summary>头像</summary>
             public static readonly Field Avatar = FindByName("Avatar");
 
@@ -393,6 +439,12 @@ namespace Company.MyName
             /// <summary>启用</summary>
             public static readonly Field Enable = FindByName("Enable");
 
+            /// <summary>年龄。周岁</summary>
+            public static readonly Field Age = FindByName("Age");
+
+            /// <summary>生日。公历年月日</summary>
+            public static readonly Field Birthday = FindByName("Birthday");
+
             /// <summary>登录次数</summary>
             public static readonly Field Logins = FindByName("Logins");
 
@@ -407,6 +459,9 @@ namespace Company.MyName
 
             /// <summary>注册IP</summary>
             public static readonly Field RegisterIP = FindByName("RegisterIP");
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public static readonly Field OnlineTime = FindByName("OnlineTime");
 
             /// <summary>扩展1</summary>
             public static readonly Field Ex1 = FindByName("Ex1");
@@ -471,6 +526,9 @@ namespace Company.MyName
             /// <summary>代码。身份证、员工编号等</summary>
             public const String Code = "Code";
 
+            /// <summary>地区。省市区</summary>
+            public const String AreaId = "AreaId";
+
             /// <summary>头像</summary>
             public const String Avatar = "Avatar";
 
@@ -489,6 +547,12 @@ namespace Company.MyName
             /// <summary>启用</summary>
             public const String Enable = "Enable";
 
+            /// <summary>年龄。周岁</summary>
+            public const String Age = "Age";
+
+            /// <summary>生日。公历年月日</summary>
+            public const String Birthday = "Birthday";
+
             /// <summary>登录次数</summary>
             public const String Logins = "Logins";
 
@@ -503,6 +567,9 @@ namespace Company.MyName
 
             /// <summary>注册IP</summary>
             public const String RegisterIP = "RegisterIP";
+
+            /// <summary>在线时间。累计在线总时间，秒</summary>
+            public const String OnlineTime = "OnlineTime";
 
             /// <summary>扩展1</summary>
             public const String Ex1 = "Ex1";

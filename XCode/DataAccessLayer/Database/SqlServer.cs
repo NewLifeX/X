@@ -15,7 +15,7 @@ using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    class SqlServer : RemoteDb
+    internal class SqlServer : RemoteDb
     {
         #region 属性
         /// <summary>返回数据库类型。外部DAL数据库类请使用Other</summary>
@@ -31,8 +31,10 @@ namespace XCode.DataAccessLayer
                 {
                     lock (typeof(SqlServer))
                     {
-                        if (_Factory == null) _Factory = GetProviderFactory(null, "Microsoft.Data.SqlClient.SqlClientFactory");
-                        if (_Factory == null) _Factory = GetProviderFactory(null, "System.Data.SqlClient.SqlClientFactory");
+                        // Microsoft 是最新的跨平台版本，优先使用
+                        //if (_Factory == null) _Factory = GetProviderFactory("Microsoft.Data.SqlClient.dll", "Microsoft.Data.SqlClient.SqlClientFactory", false, true);
+                        if (_Factory == null) _Factory = GetProviderFactory(null, "Microsoft.Data.SqlClient.SqlClientFactory", false, true);
+                        if (_Factory == null) _Factory = GetProviderFactory("System.Data.SqlClient.dll", "System.Data.SqlClient.SqlClientFactory");
                     }
                 }
 
@@ -52,23 +54,6 @@ namespace XCode.DataAccessLayer
                 if (_Version == null)
                 {
                     _Version = new Version(ServerVersion);
-
-                    //var session = CreateSession();
-                    //try
-                    //{
-                    //    // 取数据库版本
-                    //    if (!session.Opened) session.Open();
-                    //    var ver = session.Conn.ServerVersion;
-                    //    session.AutoClose();
-
-                    //    _Version = new Version(ver);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    XTrace.WriteLine("查询[{0}]的版本时出错，将按MSSQL2000进行分页处理！{1}", ConnName, ex);
-                    //    _Version = new Version();
-                    //}
-                    //finally { session.Dispose(); }
                 }
                 return _Version;
             }
@@ -77,7 +62,7 @@ namespace XCode.DataAccessLayer
         /// <summary>数据目录</summary>
         public String DataPath { get; set; }
 
-        const String Application_Name = "Application Name";
+        private const String Application_Name = "Application Name";
         protected override void OnSetConnectionString(ConnectionStringBuilder builder)
         {
             // 获取数据目录，用于反向工程创建数据库
@@ -169,7 +154,7 @@ namespace XCode.DataAccessLayer
             }
             //// 使用正则进行严格判断。必须包含Order By，并且它右边没有右括号)，表明有order by，且不是子查询的，才需要特殊处理
             //MatchCollection ms = Regex.Matches(sql, @"\border\s*by\b([^)]+)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //if (ms == null || ms.Count < 1 || ms[0].Index < 1)
+            //if (ms == null || ms.Count <= 0 || ms[0].Index < 1)
             var sql2 = sql;
             var orderBy = CheckOrderClause(ref sql2);
             if (String.IsNullOrEmpty(orderBy))
@@ -200,7 +185,9 @@ namespace XCode.DataAccessLayer
             {
                 var str = PageSplitMaxMin(sql, startRowIndex, maximumRows, keyColumn);
                 if (!String.IsNullOrEmpty(str)) return str;
-                keyColumn = keyColumn.Substring(0, keyColumn.IndexOf(" "));
+
+                var p = keyColumn.IndexOf(' ');
+                if (p > 0) keyColumn = keyColumn[..p];
             }
             #endregion
 
@@ -225,9 +212,9 @@ namespace XCode.DataAccessLayer
             var builder = new SelectBuilder();
             builder.Parse(sql);
 
-            var sb = NewLife.Collections.Pool.StringBuilder.Get();
+            var sb = Pool.StringBuilder.Get();
             sb.Append("Select ");
-            sb.Append(builder.ColumnOrDefault);
+            sb.Append(builder.Column.IsNullOrEmpty() ? "*" : builder.Column);
             sb.Append(" From ");
             sb.Append(builder.Table);
             if (!String.IsNullOrEmpty(builder.Where))
@@ -251,22 +238,19 @@ namespace XCode.DataAccessLayer
 
             if (startRowIndex <= 0)
             {
-                if (maximumRows < 1)
-                {
-                    return builder;
-                }
-                else if (builder.KeyIsOrderBy)
-                {
-                    return builder.Clone().Top(maximumRows);
-                }
+                if (maximumRows < 1) return builder;
+
+                return builder.Clone().Top(maximumRows);
             }
 
-            if (builder.Keys == null || builder.Keys.Length < 1) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+            //修复无主键分页报错的情况
+            if (builder.Key.IsNullOrEmpty() && builder.OrderBy.IsNullOrEmpty()) throw new XCodeException("分页算法要求指定排序列！" + builder.ToString());
+
             // 如果包含分组，则必须作为子查询
             var builder1 = builder.CloneWithGroupBy("XCode_T0", true);
             //builder1.Column = String.Format("{0}, row_number() over(Order By {1}) as rowNumber", builder.ColumnOrDefault, builder.OrderBy ?? builder.KeyOrder);
             // 不必追求极致，把所有列放出来
-            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy ?? builder.KeyOrder}) as rowNumber";
+            builder1.Column = $"*, row_number() over(Order By {builder.OrderBy}) as rowNumber";
 
             var builder2 = builder1.AsChild("XCode_T1", true);
             // 结果列处理
@@ -291,14 +275,8 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据库特性
-        protected override String ReservedWordsStr
-        {
-            get
-            {
-                return "ADD,EXCEPT,PERCENT,ALL,EXEC,PLAN,ALTER,EXECUTE,PRECISION,AND,EXISTS,PRIMARY,ANY,EXIT,PRINT,AS,FETCH,PROC,ASC,FILE,PROCEDURE,AUTHORIZATION,FILLFACTOR,PUBLIC,BACKUP,FOR,RAISERROR,BEGIN,FOREIGN,READ,BETWEEN,FREETEXT,READTEXT,BREAK,FREETEXTTABLE,RECONFIGURE,BROWSE,FROM,REFERENCES,BULK,FULL,REPLICATION,BY,FUNCTION,RESTORE,CASCADE,GOTO,RESTRICT,CASE,GRANT,RETURN,CHECK,GROUP,REVOKE,CHECKPOINT,HAVING,RIGHT,CLOSE,HOLDLOCK,ROLLBACK,CLUSTERED,IDENTITY,ROWCOUNT,COALESCE,IDENTITY_INSERT,ROWGUIDCOL,COLLATE,IDENTITYCOL,RULE,COLUMN,IF,SAVE,COMMIT,IN,SCHEMA,COMPUTE,INDEX,SELECT,CONSTRAINT,INNER,SESSION_USER,CONTAINS,INSERT,SET,CONTAINSTABLE,INTERSECT,SETUSER,CONTINUE,INTO,SHUTDOWN,CONVERT,IS,SOME,CREATE,JOIN,STATISTICS,CROSS,KEY,SYSTEM_USER,CURRENT,KILL,TABLE,CURRENT_DATE,LEFT,TEXTSIZE,CURRENT_TIME,LIKE,THEN,CURRENT_TIMESTAMP,LINENO,TO,CURRENT_USER,LOAD,TOP,CURSOR,NATIONAL ,TRAN,DATABASE,NOCHECK,TRANSACTION,DBCC,NONCLUSTERED,TRIGGER,DEALLOCATE,NOT,TRUNCATE,DECLARE,NULL,TSEQUAL,DEFAULT,NULLIF,UNION,DELETE,OF,UNIQUE,DENY,OFF,UPDATE,DESC,OFFSETS,UPDATETEXT,DISK,ON,USE,DISTINCT,OPEN,USER,DISTRIBUTED,OPENDATASOURCE,VALUES,DOUBLE,OPENQUERY,VARYING,DROP,OPENROWSET,VIEW,DUMMY,OPENXML,WAITFOR,DUMP,OPTION,WHEN,ELSE,OR,WHERE,END,ORDER,WHILE,ERRLVL,OUTER,WITH,ESCAPE,OVER,WRITETEXT,ABSOLUTE,FOUND,PRESERVE,ACTION,FREE,PRIOR,ADMIN,GENERAL,PRIVILEGES,AFTER,GET,READS,AGGREGATE,GLOBAL,REAL,ALIAS,GO,RECURSIVE,ALLOCATE,GROUPING,REF,ARE,HOST,REFERENCING,ARRAY,HOUR,RELATIVE,ASSERTION,IGNORE,RESULT,AT,IMMEDIATE,RETURNS,BEFORE,INDICATOR,ROLE,BINARY,INITIALIZE,ROLLUP,BIT,INITIALLY,ROUTINE,BLOB,INOUT,ROW,BOOLEAN,INPUT,ROWS,BOTH,INT,SAVEPOINT,BREADTH,INTEGER,SCROLL,CALL,INTERVAL,SCOPE,CASCADED,ISOLATION,SEARCH,CAST,ITERATE,SECOND,CATALOG,LANGUAGE,SECTION,CHAR,LARGE,SEQUENCE,CHARACTER,LAST,SESSION,CLASS,LATERAL,SETS,CLOB,LEADING,SIZE,COLLATION,LESS,SMALLINT,COMPLETION,LEVEL,SPACE,CONNECT,LIMIT,SPECIFIC,CONNECTION,LOCAL,SPECIFICTYPE,CONSTRAINTS,LOCALTIME,SQL,CONSTRUCTOR,LOCALTIMESTAMP,SQLEXCEPTION,CORRESPONDING,LOCATOR,SQLSTATE,CUBE,MAP,SQLWARNING,CURRENT_PATH,MATCH,START,CURRENT_ROLE,MINUTE,STATE,CYCLE,MODIFIES,STATEMENT,DATA,MODIFY,STATIC,DATE,MODULE,STRUCTURE,DAY,MONTH,TEMPORARY,DEC,NAMES,TERMINATE,DECIMAL,NATURAL,THAN,DEFERRABLE,NCHAR,TIME,DEFERRED,NCLOB,TIMESTAMP,DEPTH,NEW,TIMEZONE_HOUR,DEREF,NEXT,TIMEZONE_MINUTE,DESCRIBE,NO,TRAILING,DESCRIPTOR,NONE,TRANSLATION,DESTROY,NUMERIC,TREAT,DESTRUCTOR,OBJECT,TRUE,DETERMINISTIC,OLD,UNDER,DICTIONARY,ONLY,UNKNOWN,DIAGNOSTICS,OPERATION,UNNEST,DISCONNECT,ORDINALITY,USAGE,DOMAIN,OUT,USING,DYNAMIC,OUTPUT,VALUE,EACH,PAD,VARCHAR,END-EXEC,PARAMETER,VARIABLE,EQUALS,PARAMETERS,WHENEVER,EVERY,PARTIAL,WITHOUT,EXCEPTION,PATH,WORK,EXTERNAL,POSTFIX,WRITE,FALSE,PREFIX,YEAR,FIRST,PREORDER,ZONE,FLOAT,PREPARE,ADA,AVG,BIT_LENGTH,CHAR_LENGTH,CHARACTER_LENGTH,COUNT,EXTRACT,FORTRAN,INCLUDE,INSENSITIVE,LOWER,MAX,MIN,OCTET_LENGTH,OVERLAPS,PASCAL,POSITION,SQLCA,SQLCODE,SQLERROR,SUBSTRING,SUM,TRANSLATE,TRIM,UPPER," +
+        protected override String ReservedWordsStr => "ADD,EXCEPT,PERCENT,ALL,EXEC,PLAN,ALTER,EXECUTE,PRECISION,AND,EXISTS,PRIMARY,ANY,EXIT,PRINT,AS,FETCH,PROC,ASC,FILE,PROCEDURE,AUTHORIZATION,FILLFACTOR,PUBLIC,BACKUP,FOR,RAISERROR,BEGIN,FOREIGN,READ,BETWEEN,FREETEXT,READTEXT,BREAK,FREETEXTTABLE,RECONFIGURE,BROWSE,FROM,REFERENCES,BULK,FULL,REPLICATION,BY,FUNCTION,RESTORE,CASCADE,GOTO,RESTRICT,CASE,GRANT,RETURN,CHECK,GROUP,REVOKE,CHECKPOINT,HAVING,RIGHT,CLOSE,HOLDLOCK,ROLLBACK,CLUSTERED,IDENTITY,ROWCOUNT,COALESCE,IDENTITY_INSERT,ROWGUIDCOL,COLLATE,IDENTITYCOL,RULE,COLUMN,IF,SAVE,COMMIT,IN,SCHEMA,COMPUTE,INDEX,SELECT,CONSTRAINT,INNER,SESSION_USER,CONTAINS,INSERT,SET,CONTAINSTABLE,INTERSECT,SETUSER,CONTINUE,INTO,SHUTDOWN,CONVERT,IS,SOME,CREATE,JOIN,STATISTICS,CROSS,KEY,SYSTEM_USER,CURRENT,KILL,TABLE,CURRENT_DATE,LEFT,TEXTSIZE,CURRENT_TIME,LIKE,THEN,CURRENT_TIMESTAMP,LINENO,TO,CURRENT_USER,LOAD,TOP,CURSOR,NATIONAL ,TRAN,DATABASE,NOCHECK,TRANSACTION,DBCC,NONCLUSTERED,TRIGGER,DEALLOCATE,NOT,TRUNCATE,DECLARE,NULL,TSEQUAL,DEFAULT,NULLIF,UNION,DELETE,OF,UNIQUE,DENY,OFF,UPDATE,DESC,OFFSETS,UPDATETEXT,DISK,ON,USE,DISTINCT,OPEN,USER,DISTRIBUTED,OPENDATASOURCE,VALUES,DOUBLE,OPENQUERY,VARYING,DROP,OPENROWSET,VIEW,DUMMY,OPENXML,WAITFOR,DUMP,OPTION,WHEN,ELSE,OR,WHERE,END,ORDER,WHILE,ERRLVL,OUTER,WITH,ESCAPE,OVER,WRITETEXT,ABSOLUTE,FOUND,PRESERVE,ACTION,FREE,PRIOR,ADMIN,GENERAL,PRIVILEGES,AFTER,GET,READS,AGGREGATE,GLOBAL,REAL,ALIAS,GO,RECURSIVE,ALLOCATE,GROUPING,REF,ARE,HOST,REFERENCING,ARRAY,HOUR,RELATIVE,ASSERTION,IGNORE,RESULT,AT,IMMEDIATE,RETURNS,BEFORE,INDICATOR,ROLE,BINARY,INITIALIZE,ROLLUP,BIT,INITIALLY,ROUTINE,BLOB,INOUT,ROW,BOOLEAN,INPUT,ROWS,BOTH,INT,SAVEPOINT,BREADTH,INTEGER,SCROLL,CALL,INTERVAL,SCOPE,CASCADED,ISOLATION,SEARCH,CAST,ITERATE,SECOND,CATALOG,LANGUAGE,SECTION,CHAR,LARGE,SEQUENCE,CHARACTER,LAST,SESSION,CLASS,LATERAL,SETS,CLOB,LEADING,SIZE,COLLATION,LESS,SMALLINT,COMPLETION,LEVEL,SPACE,CONNECT,LIMIT,SPECIFIC,CONNECTION,LOCAL,SPECIFICTYPE,CONSTRAINTS,LOCALTIME,SQL,CONSTRUCTOR,LOCALTIMESTAMP,SQLEXCEPTION,CORRESPONDING,LOCATOR,SQLSTATE,CUBE,MAP,SQLWARNING,CURRENT_PATH,MATCH,START,CURRENT_ROLE,MINUTE,STATE,CYCLE,MODIFIES,STATEMENT,DATA,MODIFY,STATIC,DATE,MODULE,STRUCTURE,DAY,MONTH,TEMPORARY,DEC,NAMES,TERMINATE,DECIMAL,NATURAL,THAN,DEFERRABLE,NCHAR,TIME,DEFERRED,NCLOB,TIMESTAMP,DEPTH,NEW,TIMEZONE_HOUR,DEREF,NEXT,TIMEZONE_MINUTE,DESCRIBE,NO,TRAILING,DESCRIPTOR,NONE,TRANSLATION,DESTROY,NUMERIC,TREAT,DESTRUCTOR,OBJECT,TRUE,DETERMINISTIC,OLD,UNDER,DICTIONARY,ONLY,UNKNOWN,DIAGNOSTICS,OPERATION,UNNEST,DISCONNECT,ORDINALITY,USAGE,DOMAIN,OUT,USING,DYNAMIC,OUTPUT,VALUE,EACH,PAD,VARCHAR,END-EXEC,PARAMETER,VARIABLE,EQUALS,PARAMETERS,WHENEVER,EVERY,PARTIAL,WITHOUT,EXCEPTION,PATH,WORK,EXTERNAL,POSTFIX,WRITE,FALSE,PREFIX,YEAR,FIRST,PREORDER,ZONE,FLOAT,PREPARE,ADA,AVG,BIT_LENGTH,CHAR_LENGTH,CHARACTER_LENGTH,COUNT,EXTRACT,FORTRAN,INCLUDE,INSENSITIVE,LOWER,MAX,MIN,OCTET_LENGTH,OVERLAPS,PASCAL,POSITION,SQLCA,SQLCODE,SQLERROR,SUBSTRING,SUM,TRANSLATE,TRIM,UPPER," +
                   "Sort,Level,User,Online";
-            }
-        }
 
         /// <summary>长文本长度</summary>
         public override Int32 LongTextLength => 4000;
@@ -313,6 +291,8 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public override String FormatName(String name)
         {
+            if (name.IsNullOrEmpty()) return name;
+
             // SqlServer数据库名和表名可以用横线。。。
             if (name.Contains("-")) return $"[{name}]";
 
@@ -372,6 +352,26 @@ namespace XCode.DataAccessLayer
 
             return base.FormatValue(field, value);
         }
+
+        private static readonly Char[] _likeKeys = new[] { '[', ']', '%', '_' };
+        /// <summary>格式化模糊搜索的字符串。处理转义字符</summary>
+        /// <param name="column">字段</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public override String FormatLike(IDataColumn column, String format, String value)
+        {
+            if (value.IsNullOrEmpty()) return value;
+
+            if (value.IndexOfAny(_likeKeys) >= 0)
+                value = value
+                    .Replace("[", "[[]")
+                    .Replace("]", "[]]")
+                    .Replace("%", "[%]")
+                    .Replace("_", "[_]");
+
+            return base.FormatLike(column, format, value);
+        }
         #endregion
     }
 
@@ -383,6 +383,37 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 查询
+        protected override DbTable OnFill(DbDataReader dr)
+        {
+            var dt = new DbTable();
+            dt.ReadHeader(dr);
+            dt.ReadData(dr, GetFields(dt, dr));
+
+            return dt;
+        }
+
+        private Int32[] GetFields(DbTable dt, DbDataReader dr)
+        {
+            // 干掉rowNumber
+            var idx = Array.FindIndex(dt.Columns, c => c.EqualIgnoreCase("rowNumber"));
+            if (idx >= 0)
+            {
+                var cs = dt.Columns.ToList();
+                var ts = dt.Types.ToList();
+                var fs = Enumerable.Range(0, cs.Count).ToList();
+
+                cs.RemoveAt(idx);
+                ts.RemoveAt(idx);
+                fs.RemoveAt(idx);
+
+                dt.Columns = cs.ToArray();
+                dt.Types = ts.ToArray();
+                return fs.ToArray();
+            }
+
+            return null;
+        }
+
         /// <summary>快速查询单表记录数，稍有偏差</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
@@ -434,13 +465,11 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
 
-#if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql = "SET NOCOUNT ON;" + sql + ";Select SCOPE_IDENTITY()";
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
-#endif
         #endregion
 
         #region 批量操作
@@ -647,7 +676,7 @@ namespace XCode.DataAccessLayer
         /// <summary>
         /// 批量操作帮助类
         /// </summary>
-        class SqlBatcher
+        private class SqlBatcher
         {
             private DataAdapter mAdapter;
             private static readonly DbProviderFactory _Factory;
@@ -724,12 +753,9 @@ namespace XCode.DataAccessLayer
     }
 
     /// <summary>SqlServer元数据</summary>
-    class SqlServerMetaData : RemoteDbMetaData
+    internal class SqlServerMetaData : RemoteDbMetaData
     {
-        public SqlServerMetaData()
-        {
-            Types = _DataTypes;
-        }
+        public SqlServerMetaData() => Types = _DataTypes;
 
         #region 属性
         ///// <summary>是否SQL2005</summary>
@@ -752,41 +778,63 @@ namespace XCode.DataAccessLayer
             //一次性把所有的表说明查出来
             DataTable DescriptionTable = null;
 
-            //var old = session.ShowSQL;
-            //session.ShowSQL = false;
             try
             {
                 var sql = "select b.name n, a.value v from sys.extended_properties a inner join sysobjects b on a.major_id=b.id and a.minor_id=0 and a.name = 'MS_Description'";
                 DescriptionTable = session.Query(sql).Tables[0];
             }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            //session.ShowSQL = old;
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
 
             var dt = GetSchema(_.Tables, null);
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt == null || dt.Rows == null || dt.Rows.Count <= 0) return null;
 
-            //session.ShowSQL = false;
             try
             {
                 AllFields = session.Query(SchemaSql).Tables[0];
                 AllIndexes = session.Query(IndexSql).Tables[0];
             }
-            catch (Exception ex) { XTrace.WriteException(ex); }
-            //session.ShowSQL = old;
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
             #endregion
 
             // 列出用户表
             var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             var list = GetTables(rows, names);
-            if (list == null || list.Count < 1) return list;
+            if (list == null || list.Count <= 0) return list;
 
             // 修正备注
             foreach (var item in list)
             {
                 var drs = DescriptionTable?.Select("n='" + item.TableName + "'");
-                item.Description = drs == null || drs.Length < 1 ? "" : drs[0][1].ToString();
+                item.Description = drs == null || drs.Length <= 0 ? "" : drs[0][1].ToString();
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select($"(TABLE_TYPE='BASE TABLE' Or TABLE_TYPE='VIEW') AND TABLE_NAME<>'Sysdiagrams'");
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
             }
 
             return list;
@@ -1088,15 +1136,9 @@ namespace XCode.DataAccessLayer
             return String.Join("; " + Environment.NewLine, ss);
         }
 
-        public override String AddTableDescriptionSQL(IDataTable table)
-        {
-            return $"EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{table.Description}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
-        }
+        public override String AddTableDescriptionSQL(IDataTable table) => $"EXEC dbo.sp_addextendedproperty @name=N'MS_Description', @value=N'{table.Description}' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
 
-        public override String DropTableDescriptionSQL(IDataTable table)
-        {
-            return $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
-        }
+        public override String DropTableDescriptionSQL(IDataTable table) => $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{table.TableName}'";
 
         public override String AddColumnSQL(IDataColumn field) => $"Alter Table {FormatName(field.Table)} Add {FieldClause(field, true)}";
 
@@ -1198,12 +1240,12 @@ namespace XCode.DataAccessLayer
 
         public override String DropColumnDescriptionSQL(IDataColumn field) => $"EXEC dbo.sp_dropextendedproperty @name=N'MS_Description', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'{field.Table.TableName}', @level2type=N'COLUMN',@level2name=N'{field.ColumnName}'";
 
-        String DeletePrimaryKeySQL(IDataColumn field)
+        private String DeletePrimaryKeySQL(IDataColumn field)
         {
             if (!field.PrimaryKey) return String.Empty;
 
             var dis = field.Table.Indexes;
-            if (dis == null || dis.Count < 1) return String.Empty;
+            if (dis == null || dis.Count <= 0) return String.Empty;
 
             var di = dis.FirstOrDefault(e => e.Columns.Any(x => x.EqualIgnoreCase(field.ColumnName, field.Name)));
             if (di == null) return String.Empty;
@@ -1236,7 +1278,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary({0})", "image", "varbinary({0})", "timestamp" } },
             //{ typeof(DateTimeOffset), new String[] { "datetimeoffset({0})" } },
@@ -1268,7 +1310,7 @@ namespace XCode.DataAccessLayer
                 if (!str.StartsWith(prefix)) return str;
                 if (!str.EndsWith(suffix)) return str;
 
-                str = str.Substring(prefix.Length, str.Length - suffix.Length - prefix.Length);
+                str = str[prefix.Length..^suffix.Length];
             }
             return str;
         }

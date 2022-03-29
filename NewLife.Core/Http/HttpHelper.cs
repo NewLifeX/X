@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Security;
-using System.Net.Http;
-using NewLife.Serialization;
-using System.Text;
-using NewLife.Xml;
 using NewLife.Log;
-using System.Linq;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
+using NewLife.Serialization;
+using NewLife.Xml;
 
 namespace NewLife.Http
 {
@@ -24,6 +22,40 @@ namespace NewLife.Http
     {
         /// <summary>性能跟踪器</summary>
         public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+
+        /// <summary>Http过滤器</summary>
+        public static IHttpFilter Filter { get; set; }
+
+        /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
+        public static String DefaultUserAgent { get; set; }
+
+        static HttpHelper()
+        {
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            //if (asm != null) agent = $"{asm.GetName().Name}/{asm.GetName().Version}";
+            if (asm != null)
+            {
+                var aname = asm.GetName();
+                var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+                if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
+                    DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+                else
+                    DefaultUserAgent = $"{aname.Name}/{aname.Version}";
+            }
+        }
+
+        #region 默认浏览器UserAgent
+        /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public static HttpClient SetUserAgent(this HttpClient client)
+        {
+            var userAgent = DefaultUserAgent;
+            if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
+            return client;
+        }
+        #endregion
 
         #region Http封包解包
         /// <summary>创建请求包</summary>
@@ -123,10 +155,6 @@ namespace NewLife.Http
             var p = pk.IndexOf(NewLine);
             if (p < 0) return headers;
 
-#if DEBUG
-            //WriteLog(pk.ToStr());
-#endif
-
             // 截取
             var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
             // 重构
@@ -140,11 +168,11 @@ namespace NewLife.Http
             {
                 line = lines[i];
                 p = line.IndexOf(':');
-                if (p > 0) headers[line.Substring(0, p)] = line.Substring(p + 1).Trim();
+                if (p > 0) headers[line[..p]] = line[(p + 1)..].Trim();
             }
 
             line = lines[0];
-            var ss = line.Split(" ");
+            var ss = line.Split(' ');
             // 分析请求方法 GET / HTTP/1.1
             if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
             {
@@ -202,7 +230,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+        public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
 
         /// <summary>异步提交Xml</summary>
         /// <param name="client">Http客户端</param>
@@ -232,7 +260,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+        public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
 
         /// <summary>异步提交表单</summary>
         /// <param name="client">Http客户端</param>
@@ -245,9 +273,13 @@ namespace NewLife.Http
             HttpContent content = null;
             if (data != null)
             {
-                content = data is IDictionary<String, String> dic
-                    ? new FormUrlEncodedContent(dic)
-                    : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""));
+                content = data is String str
+                    ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
+                    : (
+                        data is IDictionary<String, String> dic
+                        ? new FormUrlEncodedContent(dic)
+                        : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
+                    );
             }
 
             client.AddHeaders(headers);
@@ -261,7 +293,7 @@ namespace NewLife.Http
         /// <param name="data">数据</param>
         /// <param name="headers">附加头部</param>
         /// <returns></returns>
-        public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+        public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
 
         /// <summary>同步获取字符串</summary>
         /// <param name="client">Http客户端</param>
@@ -271,7 +303,7 @@ namespace NewLife.Http
         public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String> headers = null)
         {
             client.AddHeaders(headers);
-            return TaskEx.Run(() => client.GetStringAsync(requestUri)).Result;
+            return Task.Run(() => client.GetStringAsync(requestUri)).Result;
         }
 
         private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content)
@@ -285,22 +317,30 @@ namespace NewLife.Http
             if (content.Headers.TryGetValues("Content-Type", out var vs))
             {
                 // application/json; charset=utf-8
-                var type = vs.FirstOrDefault()?.Split(";").FirstOrDefault();
+                var type = vs.FirstOrDefault()?.Split(';').FirstOrDefault();
                 if (type.EqualIgnoreCase("application/json", "application/xml")) request.Headers.Accept.ParseAdd(type);
             }
 
             // 开始跟踪，注入TraceId
             using var span = Tracer?.NewSpan(request);
             if (span != null) span.SetError(null, content.ReadAsStringAsync().Result);
+            var filter = Filter;
             try
             {
-                var rs = await client.SendAsync(request);
-                return await rs.Content.ReadAsStringAsync();
+                if (filter != null) await filter.OnRequest(client, request, null);
+
+                var response = await client.SendAsync(request);
+
+                if (filter != null) await filter.OnResponse(client, response, request);
+
+                return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
                 // 跟踪异常
                 span?.SetError(ex, null);
+
+                if (filter != null) await filter.OnError(client, ex, request);
 
                 throw;
             }
@@ -313,6 +353,9 @@ namespace NewLife.Http
 
             foreach (var item in headers)
             {
+                //判断请求头中是否已存在，存在先删除，再添加
+                if (client.DefaultRequestHeaders.Contains(item.Key))
+                    client.DefaultRequestHeaders.Remove(item.Key);
                 client.DefaultRequestHeaders.Add(item.Key, item.Value);
             }
 
@@ -328,136 +371,97 @@ namespace NewLife.Http
             var rs = await client.GetStreamAsync(address);
             fileName.EnsureDirectory(true);
             using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-#if NET4
-            rs.CopyTo(fs);
-            rs.Flush();
-#else
             await rs.CopyToAsync(fs);
-            await rs.FlushAsync();
-#endif
+            await fs.FlushAsync();
         }
         #endregion
 
         #region WebSocket
-        /// <summary>建立握手包</summary>
-        /// <param name="request"></param>
-        public static void MakeHandshake(HttpRequest request)
-        {
-            request["Upgrade"] = "websocket";
-            request["Connection"] = "Upgrade";
-            request["Sec-WebSocket-Key"] = Rand.NextBytes(16).ToBase64();
-            request["Sec-WebSocket-Version"] = "13";
-        }
-
-        /// <summary>握手</summary>
-        /// <param name="key"></param>
-        /// <param name="response"></param>
-        public static void Handshake(String key, HttpResponse response)
-        {
-            if (key.IsNullOrEmpty()) return;
-
-            var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
-            key = buf.ToBase64();
-
-            //var sb = new StringBuilder();
-            //sb.AppendLine("HTTP/1.1 101 Switching Protocols");
-            //sb.AppendLine("Upgrade: websocket");
-            //sb.AppendLine("Connection: Upgrade");
-            //sb.AppendLine("Sec-WebSocket-Accept: " + key);
-            //sb.AppendLine();
-
-            //return sb.ToString().GetBytes();
-
-            response.StatusCode = HttpStatusCode.SwitchingProtocols;
-            response.Headers["Upgrade"] = "websocket";
-            response.Headers["Connection"] = "Upgrade";
-            response.Headers["Sec-WebSocket-Accept"] = key;
-        }
-
-        /// <summary>分析WS数据包</summary>
-        /// <param name="pk"></param>
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="queue"></param>
+        /// <param name="source"></param>
         /// <returns></returns>
-        public static Packet ParseWS(Packet pk)
+        public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
         {
-            if (pk.Count < 2) return null;
-
-            var ms = pk.GetStream();
-
-            // 仅处理一个包
-            var fin = (ms.ReadByte() & 0x80) == 0x80;
-            if (!fin) return null;
-
-            var len = ms.ReadByte();
-
-            var mask = (len & 0x80) == 0x80;
-
-            /*
-             * 数据长度
-             * len < 126    单字节表示长度
-             * len = 126    后续2字节表示长度，大端
-             * len = 127    后续8字节表示长度
-             */
-            len &= 0x7F;
-            if (len == 126)
-                len = ms.ReadBytes(2).ToUInt16(0, false);
-            else if (len == 127)
-                // 没有人会传输超大数据
-                len = (Int32)BitConverter.ToUInt64(ms.ReadBytes(8), 0);
-
-            // 如果mask，剩下的就是数据，避免拷贝，提升性能
-            if (!mask) return new Packet(pk.Data, pk.Offset + (Int32)ms.Position, len);
-
-            var masks = new Byte[4];
-            if (mask) masks = ms.ReadBytes(4);
-
-            // 读取数据
-            var data = ms.ReadBytes(len);
-
-            if (mask)
+            var token = source.Token;
+            //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
+            try
             {
-                for (var i = 0; i < len; i++)
+                while (!token.IsCancellationRequested && socket.Connected)
                 {
-                    data[i] = (Byte)(data[i] ^ masks[i % 4]);
+                    var msg = await queue.TakeOneAsync(30_000);
+                    if (msg != null)
+                    {
+                        socket.Send(msg.GetBytes(), WebSocketMessageType.Text);
+                    }
+                    else
+                    {
+                        await Task.Delay(100, token);
+                    }
                 }
             }
-
-            return data;
-        }
-
-        /// <summary>创建WS请求包</summary>
-        /// <param name="pk"></param>
-        /// <returns></returns>
-        public static Packet MakeWS(Packet pk)
-        {
-            if (pk == null) return null;
-
-            var size = pk.Count;
-
-            var ms = new MemoryStream();
-            ms.WriteByte(0x81);
-
-            /*
-             * 数据长度
-             * len < 126    单字节表示长度
-             * len = 126    后续2字节表示长度，大端
-             * len = 127    后续8字节表示长度
-             */
-            if (size < 126)
-                ms.WriteByte((Byte)size);
-            else if (size < 0xFFFF)
+            catch (Exception ex)
             {
-                ms.WriteByte(126);
-                ms.Write(((Int16)size).GetBytes(false));
+                XTrace.WriteException(ex);
             }
-            else
-                throw new NotSupportedException();
-
-            //pk.WriteTo(ms);
-
-            //return new Packet(ms.ToArray());
-
-            return new Packet(ms.ToArray()) { Next = pk };
+            finally
+            {
+                //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
+                source.Cancel();
+            }
         }
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="host"></param>
+        /// <param name="topic"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="queue"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
+        {
+            var token = source.Token;
+            //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
+            try
+            {
+                while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
+                {
+                    var msg = await queue.TakeOneAsync(30_000);
+                    if (msg != null)
+                    {
+                        await socket.SendAsync(new ArraySegment<Byte>(msg.GetBytes()), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+                    }
+                    else
+                    {
+                        await Task.Delay(100, token);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+            finally
+            {
+                //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
+                source.Cancel();
+            }
+        }
+
+        /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+        /// <param name="socket"></param>
+        /// <param name="host"></param>
+        /// <param name="topic"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
         #endregion
     }
 }

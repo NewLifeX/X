@@ -30,7 +30,7 @@ namespace NewLife
         /// <returns></returns>
         public static T Set<T>(this Enum source, T flag, Boolean value)
         {
-            if (!(source is T)) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
+            if (source is not T) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
 
             var s = Convert.ToUInt64(source);
             var f = Convert.ToUInt64(flag);
@@ -56,7 +56,7 @@ namespace NewLife
 
             var type = value.GetType();
             var item = type.GetField(value.ToString(), BindingFlags.Public | BindingFlags.Static);
-			//云飞扬 2017-07-06 传的枚举值可能并不存在，需要判断是否为null
+            //云飞扬 2017-07-06 传的枚举值可能并不存在，需要判断是否为null
             if (item == null) return null;
             //var att = AttributeX.GetCustomAttribute<DescriptionAttribute>(item, false);
             var att = item.GetCustomAttribute<DescriptionAttribute>(false);
@@ -74,7 +74,7 @@ namespace NewLife
 
             foreach (var item in GetDescriptions(typeof(TEnum)))
             {
-                dic.Add((TEnum)(Object)item.Key, item.Value);
+                dic.Add((TEnum)Enum.ToObject(typeof(TEnum), item.Key), item.Value);
             }
 
             return dic;

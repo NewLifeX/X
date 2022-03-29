@@ -1,5 +1,4 @@
-﻿#if !NET4
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 
@@ -8,8 +7,8 @@ namespace NewLife.Log
     /// <summary>日志事件监听器。用于监听内置事件并写入日志</summary>
     public class LogEventListener : EventListener
     {
-        private readonly HashSet<String> _hash = new HashSet<String>();
-        private readonly HashSet<String> _hash2 = new HashSet<String>();
+        private readonly HashSet<String> _hash = new();
+        private readonly HashSet<String> _hash2 = new();
 
         /// <summary>实例化</summary>
         /// <param name="sources"></param>
@@ -68,28 +67,13 @@ namespace NewLife.Log
                 _ => LogLevel.Info,
             };
 
-#if NET45
-            XTrace.WriteLine($"#{eventData.EventSource?.Name} ID = {eventData.EventId}");
-            for (var i = 0; i < eventData.Payload.Count; i++)
-            {
-                XTrace.WriteLine($"\tPayload = \"{eventData.Payload[i]}\"");
-            }
-#elif NET50
             XTrace.WriteLine($"#{eventData.EventSource?.Name} ThreadID = {eventData.OSThreadId} ID = {eventData.EventId} Name = {eventData.EventName}");
             for (var i = 0; i < eventData.Payload.Count; i++)
             {
                 XTrace.WriteLine($"\tName = \"{eventData.PayloadNames[i]}\" Value = \"{eventData.Payload[i]}\"");
             }
-#else
-            XTrace.WriteLine($"#{eventData.EventSource?.Name} ID = {eventData.EventId} Name = {eventData.EventName}");
-            for (var i = 0; i < eventData.Payload.Count; i++)
-            {
-                XTrace.WriteLine($"\tName = \"{eventData.PayloadNames[i]}\" Value = \"{eventData.Payload[i]}\"");
-            }
-#endif
 
             if (!eventData.Message.IsNullOrEmpty()) log.Write(level, eventData.Message);
         }
     }
 }
-#endif

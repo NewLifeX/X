@@ -35,5 +35,13 @@ namespace XUnitTest.IO
                 Assert.Equal(values[i], row1[i]);
             }
         }
+
+        //[Fact]
+        public void Test2()
+        {
+            var reader = new ExcelReader("test.xlsx");
+            var rows = reader.ReadRows().ToList();
+            Assert.Equal(927, rows.Count);
+        }
     }
 }

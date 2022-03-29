@@ -24,10 +24,7 @@ namespace NewLife.Expressions
             Value = value;
         }
 
-        public IndexInfo(String code)
-        {
-            StockCode = code;
-        }
+        public IndexInfo(String code) => StockCode = code;
 
         public String StockCode { get; set; }
 

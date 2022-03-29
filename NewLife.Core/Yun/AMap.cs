@@ -130,7 +130,7 @@ namespace NewLife.Yun
 
             var gp = new GeoPoint();
 
-            var ds = (rs["location"] + "").Split(",");
+            var ds = (rs["location"] + "").Split(',');
             if (ds != null && ds.Length >= 2)
             {
                 gp.Longitude = ds[0].ToDouble();

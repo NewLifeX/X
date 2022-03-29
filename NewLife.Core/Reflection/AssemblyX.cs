@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using NewLife.Collections;
 using NewLife.Log;
 
 namespace NewLife.Reflection
@@ -31,31 +30,32 @@ namespace NewLife.Reflection
 
         private String _FileVersion;
         /// <summary>文件版本</summary>
-        public String FileVersion => _FileVersion ??= "" + Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+        public String FileVersion
+        {
+            get
+            {
+                if (_FileVersion == null)
+                {
+                    var ver = Asm.GetCustomAttributeValue<AssemblyInformationalVersionAttribute, String>();
+                    if (!ver.IsNullOrEmpty())
+                    {
+                        var p = ver.IndexOf('+');
+                        if (p > 0) ver = ver[..p];
+                    }
+                    _FileVersion = ver;
+                }
+
+                if (_FileVersion == null) _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+
+                if (_FileVersion == null) _FileVersion = "";
+
+                return _FileVersion;
+            }
+        }
 
         private DateTime? _Compile;
         /// <summary>编译时间</summary>
         public DateTime Compile => _Compile ??= GetCompileTime(Version);
-
-        private Version _CompileVersion;
-        /// <summary>编译版本</summary>
-        public Version CompileVersion
-        {
-            get
-            {
-                if (_CompileVersion == null)
-                {
-                    var ver = Asm.GetName().Version;
-                    if (ver == null) ver = new Version(1, 0);
-
-                    var dt = Compile;
-                    ver = new Version(ver.Major, ver.Minor, dt.Year, dt.Month * 100 + dt.Day);
-
-                    _CompileVersion = ver;
-                }
-                return _CompileVersion;
-            }
-        }
 
         private String _Company;
         /// <summary>公司名称</summary>
@@ -72,11 +72,7 @@ namespace NewLife.Reflection
             {
                 try
                 {
-#if !__CORE__
-                    return Asm == null || Asm is _AssemblyBuilder || Asm.IsDynamic ? null : Asm.Location;
-#else
                     return Asm == null || Asm.IsDynamic ? null : Asm.Location;
-#endif
                 }
                 catch { return null; }
             }
@@ -86,7 +82,7 @@ namespace NewLife.Reflection
         #region 构造
         private AssemblyX(Assembly asm) => Asm = asm;
 
-        private static readonly ConcurrentDictionary<Assembly, AssemblyX> cache = new ConcurrentDictionary<Assembly, AssemblyX>();
+        private static readonly ConcurrentDictionary<Assembly, AssemblyX> cache = new();
         /// <summary>创建程序集辅助对象</summary>
         /// <param name="asm"></param>
         /// <returns></returns>
@@ -105,32 +101,38 @@ namespace NewLife.Reflection
 
         private static Assembly OnReflectionOnlyAssemblyResolve(Object sender, ResolveEventArgs args)
         {
-            var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
+            var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-            try
-            {
-                return Assembly.ReflectionOnlyLoad(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-                return null;
-            }
+            //if (!flag) return null;
+
+            //try
+            //{
+            //    return Assembly.ReflectionOnlyLoad(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
+
+            return null;
         }
 
         private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
         {
-            var flag = XTrace.Debug && XTrace.Log.Level <= LogLevel.Debug;
+            var flag = XTrace.Log.Level <= LogLevel.Debug;
             if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-            try
-            {
-                return OnResolve(args.Name);
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-                return null;
-            }
+            //if (!flag) return null;
+
+            //try
+            //{
+            //    return OnResolve(args.Name);
+            //}
+            //catch (Exception ex)
+            //{
+            //    XTrace.WriteException(ex);
+            //}
+
+            return null;
         }
         #endregion
 
@@ -158,7 +160,7 @@ namespace NewLife.Reflection
                     }
                     ts = ex.Types;
                 }
-                if (ts == null || ts.Length < 1) yield break;
+                if (ts == null || ts.Length <= 0) yield break;
 
                 // 先遍历一次ts，避免取内嵌类型带来不必要的性能损耗
                 foreach (var item in ts)
@@ -210,10 +212,14 @@ namespace NewLife.Reflection
         #region 静态属性
         /// <summary>入口程序集</summary>
         public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
+        /// <summary>
+        /// 加载过滤器，如果返回 false 表示跳过加载。
+        /// </summary>
+        public static Func<String, Boolean> ResolveFilter { get; set; }
         #endregion
 
         #region 方法
-        readonly ConcurrentDictionary<String, Type> typeCache2 = new ConcurrentDictionary<String, Type>();
+        private readonly ConcurrentDictionary<String, Type> typeCache2 = new();
         /// <summary>从程序集中查找指定名称的类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
@@ -227,13 +233,13 @@ namespace NewLife.Reflection
         /// <summary>在程序集中查找类型</summary>
         /// <param name="typeName"></param>
         /// <returns></returns>
-        Type GetTypeInternal(String typeName)
+        private Type GetTypeInternal(String typeName)
         {
             var type = Asm.GetType(typeName);
             if (type != null) return type;
 
             // 如果没有包含圆点，说明其不是FullName
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 //try
                 //{
@@ -421,14 +427,14 @@ namespace NewLife.Reflection
             // 数组
             if (typeName.EndsWith("[]"))
             {
-                var elemType = GetType(typeName.Substring(0, typeName.Length - 2), isLoadAssembly);
+                var elemType = GetType(typeName[0..^2], isLoadAssembly);
                 if (elemType == null) return null;
 
                 return elemType.MakeArrayType();
             }
 
             // 加速基础类型识别，忽略大小写
-            if (!typeName.Contains("."))
+            if (!typeName.Contains('.'))
             {
                 foreach (var item in Enum.GetNames(typeof(TypeCode)))
                 {
@@ -486,7 +492,7 @@ namespace NewLife.Reflection
                         if (XTrace.Debug)
                         {
                             var root = ".".GetFullPath();
-                            if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                            if (file.StartsWithIgnoreCase(root)) file = file[root.Length..].TrimStart("\\");
                             XTrace.WriteLine("TypeX.GetType(\"{0}\") => {1}", typeName, file);
                         }
                     }
@@ -512,7 +518,7 @@ namespace NewLife.Reflection
             if (domain == null) domain = AppDomain.CurrentDomain;
 
             var asms = domain.GetAssemblies();
-            if (asms == null || asms.Length < 1) return Enumerable.Empty<AssemblyX>();
+            if (asms == null || asms.Length <= 0) return Enumerable.Empty<AssemblyX>();
 
             //return asms.Select(item => Create(item));
             return from e in asms select Create(e);
@@ -550,7 +556,7 @@ namespace NewLife.Reflection
                 }
                 return _AssemblyPaths;
             }
-            set { _AssemblyPaths = value; }
+            set => _AssemblyPaths = value;
         }
 
         /// <summary>获取当前程序域所有只反射程序集的辅助类</summary>
@@ -579,7 +585,7 @@ namespace NewLife.Reflection
             }
         }
 
-        private static readonly ICollection<String> _BakImages = new List<String>();
+        private static readonly ConcurrentHashSet<String> _BakImages = new();
         /// <summary>只反射加载指定路径的所有程序集</summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -592,7 +598,7 @@ namespace NewLife.Reflection
 
             // 再去遍历目录
             var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
-            if (ss == null || ss.Length < 1) yield break;
+            if (ss == null || ss.Length <= 0) yield break;
 
             var loadeds = GetAssemblies().ToList();
 
@@ -637,15 +643,11 @@ namespace NewLife.Reflection
 
             try
             {
-#if !__CORE__
-                return Assembly.ReflectionOnlyLoadFrom(file);
-#else
                 return Assembly.LoadFrom(file);
-#endif
             }
             catch
             {
-                _BakImages.Add(file);
+                _BakImages.TryAdd(file);
                 return null;
             }
         }
@@ -665,9 +667,7 @@ namespace NewLife.Reflection
                     if (asmx.FileVersion.IsNullOrEmpty()) continue;
 
                     var file = "";
-#if !__CORE__
-                    file = asmx.Asm.CodeBase;
-#endif
+                    //file = asmx.Asm.CodeBase;
                     if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
                     if (file.IsNullOrEmpty()) continue;
 
@@ -689,28 +689,6 @@ namespace NewLife.Reflection
                 }
                 catch { }
             }
-#if !__CORE__
-            foreach (var asmx in ReflectionOnlyGetAssemblies())
-            {
-                // 加载程序集列表很容易抛出异常，全部屏蔽
-                try
-                {
-                    if (String.IsNullOrEmpty(asmx.FileVersion)) continue;
-                    var file = asmx.Asm.CodeBase;
-                    if (String.IsNullOrEmpty(file)) continue;
-                    file = file.TrimStart("file:///");
-                    file = file.Replace("/", "\\");
-                    if (!file.StartsWithIgnoreCase(cur)) continue;
-
-                    if (!hs.Contains(file))
-                    {
-                        hs.Add(file);
-                        list.Add(asmx);
-                    }
-                }
-                catch { }
-            }
-#endif
             return list;
         }
 
@@ -744,7 +722,7 @@ namespace NewLife.Reflection
             var p = name.IndexOf(", ");
             if (p > 0)
             {
-                name = name.Substring(0, p);
+                name = name[..p];
                 foreach (var item in GetAssemblies())
                 {
                     if (item.Asm.GetName().Name == name) return item.Asm;
@@ -800,13 +778,51 @@ namespace NewLife.Reflection
             var ss = version?.Split(new Char[] { '.' });
             if (ss == null || ss.Length < 4) return DateTime.MinValue;
 
-            var d = Convert.ToInt32(ss[2]);
-            var s = Convert.ToInt32(ss[3]);
+            var d = ss[2].ToInt();
+            var s = ss[3].ToInt();
+            var y = DateTime.Today.Year;
 
-            var dt = new DateTime(2000, 1, 1);
-            dt = dt.AddDays(d).AddSeconds(s * 2);
+            // 指定年月日的版本格式 1.0.yyyy.mmdd-betaHHMM
+            if (d <= y && d >= y - 10)
+            {
+                var dt = new DateTime(y, 1, 1);
+                if (s > 0)
+                {
+                    if (s >= 200) dt = dt.AddMonths(s / 100 - 1);
+                    s %= 100;
+                    if (s > 1) dt = dt.AddDays(s - 1);
+                }
+                else
+                {
+                    var str = ss[3];
+                    var p = str.IndexOf('-');
+                    if (p > 0)
+                    {
+                        s = str[..p].ToInt();
+                        if (s > 0)
+                        {
+                            if (s >= 200) dt = dt.AddMonths(s / 100 - 1);
+                            s %= 100;
+                            if (s > 1) dt = dt.AddDays(s - 1);
+                        }
 
-            return dt;
+                        if (str.Length >= 4 + 1 + 4)
+                        {
+                            s = str[^4].ToInt();
+                            if (s > 0) dt = dt.AddHours(s / 100).AddMinutes(s % 100);
+                        }
+                    }
+                }
+
+                return dt;
+            }
+            else
+            {
+                var dt = new DateTime(2000, 1, 1);
+                dt = dt.AddDays(d).AddSeconds(s * 2);
+
+                return dt;
+            }
         }
         #endregion
     }

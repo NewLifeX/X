@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -35,6 +35,9 @@ namespace XCode.Code
         /// <summary>代码。身份证、员工编号等</summary>
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
@@ -53,6 +56,12 @@ namespace XCode.Code
         /// <summary>启用</summary>
         public Boolean Enable { get; set; }
 
+        /// <summary>年龄。周岁</summary>
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        public DateTime Birthday { get; set; }
+
         /// <summary>登录次数</summary>
         public Int32 Logins { get; set; }
 
@@ -67,6 +76,9 @@ namespace XCode.Code
 
         /// <summary>注册IP</summary>
         public String RegisterIP { get; set; }
+
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        public Int32 OnlineTime { get; set; }
 
         /// <summary>扩展1</summary>
         public Int32 Ex1 { get; set; }
@@ -86,18 +98,6 @@ namespace XCode.Code
         /// <summary>扩展6</summary>
         public String Ex6 { get; set; }
 
-        /// <summary>更新者</summary>
-        public String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        public Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        public String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        public DateTime UpdateTime { get; set; }
-
         /// <summary>备注</summary>
         public String Remark { get; set; }
         #endregion
@@ -115,27 +115,27 @@ namespace XCode.Code
             Mail = model.Mail;
             Mobile = model.Mobile;
             Code = model.Code;
+            AreaId = model.AreaId;
             Avatar = model.Avatar;
             RoleID = model.RoleID;
             RoleIds = model.RoleIds;
             DepartmentID = model.DepartmentID;
             Online = model.Online;
             Enable = model.Enable;
+            Age = model.Age;
+            Birthday = model.Birthday;
             Logins = model.Logins;
             LastLogin = model.LastLogin;
             LastLoginIP = model.LastLoginIP;
             RegisterTime = model.RegisterTime;
             RegisterIP = model.RegisterIP;
+            OnlineTime = model.OnlineTime;
             Ex1 = model.Ex1;
             Ex2 = model.Ex2;
             Ex3 = model.Ex3;
             Ex4 = model.Ex4;
             Ex5 = model.Ex5;
             Ex6 = model.Ex6;
-            UpdateUser = model.UpdateUser;
-            UpdateUserID = model.UpdateUserID;
-            UpdateIP = model.UpdateIP;
-            UpdateTime = model.UpdateTime;
             Remark = model.Remark;
         }
         #endregion

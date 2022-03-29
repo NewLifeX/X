@@ -57,10 +57,11 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
+                var uri = Remote;
                 // 根据目标地址适配本地IPv4/IPv6
-                if (Remote != null && !Remote.Address.IsAny())
+                if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
                 {
-                    Local.Address = Local.Address.GetRightAny(Remote.Address.AddressFamily);
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
                 }
 
                 Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
@@ -113,15 +114,16 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             try
             {
                 var rs = 0;
                 var sock = Client;
                 lock (sock)
                 {
-                    if (sock.Connected)
+                    if (sock.Connected && !sock.EnableBroadcast)
                     {
-                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
+                        if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
                         if (pk.Next == null)
                             rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
@@ -131,7 +133,7 @@ namespace NewLife.Net
                     else
                     {
                         sock.CheckBroadcast(remote.Address);
-                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(), remote);
+                        if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(LogDataLength), remote);
 
                         if (pk.Next == null)
                             rs = sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
@@ -144,6 +146,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk);
+
                 if (!ex.IsDisposed())
                 {
                     OnError("Send", ex);
@@ -216,7 +220,7 @@ namespace NewLife.Net
             else
             {
                 // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(32, null));
+                if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(LogDataLength));
             }
 
             if (session != null) RaiseReceive(session, e);
@@ -234,8 +238,8 @@ namespace NewLife.Net
 
             // Udp服务器不能关闭自己，但是要关闭会话
             // Udp客户端一般不关闭自己
-            if (se.SocketError != SocketError.ConnectionReset &&
-                se.SocketError != SocketError.ConnectionAborted
+            if (se.SocketError is not SocketError.ConnectionReset and
+                not SocketError.ConnectionAborted
                 ) return true;
 
             // 关闭相应会话
@@ -300,6 +304,7 @@ namespace NewLife.Net
                     Log = Log,
                     LogSend = LogSend,
                     LogReceive = LogReceive,
+                    Tracer = Tracer,
                 };
 
                 session = us;
@@ -321,6 +326,7 @@ namespace NewLife.Net
                     //us.ID = g_ID++;
                     // 会话改为原子操作，避免多线程冲突
                     us.ID = Interlocked.Increment(ref g_ID);
+                    us.Tracer = Tracer;
                     us.Start();
 
                     // 触发新会话事件
@@ -456,7 +462,7 @@ namespace NewLife.Net
         {
             IPEndPoint ep = null;
             var buffer = udp.Receive(ref ep);
-            if (buffer == null || buffer.Length < 1) return null;
+            if (buffer == null || buffer.Length <= 0) return null;
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buffer);

@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife;
-using NewLife.Collections;
+using NewLife.Log;
 using XCode.DataAccessLayer;
 
 namespace XCode.Configuration
@@ -46,25 +46,12 @@ namespace XCode.Configuration
         {
             get
             {
-                //if (_TableName.IsNullOrEmpty()) _TableName = GetTableName(_Table);
                 if (_TableName.IsNullOrEmpty()) _TableName = _Table?.Name ?? EntityType.Name;
 
                 return _TableName;
             }
             set { _TableName = value; DataTable.TableName = value; }
         }
-
-        //private String GetTableName(BindTableAttribute table)
-        //{
-        //    var name = table != null ? table.Name : EntityType.Name;
-
-        //    // 检查自动表前缀
-        //    var dal = DAL.Create(ConnName);
-        //    var pf = dal.Db.TablePrefix;
-        //    if (!pf.IsNullOrEmpty() && !name.StartsWithIgnoreCase(pf)) name = pf + name;
-
-        //    return name;
-        //}
 
         private String _ConnName;
         /// <summary>连接名</summary>
@@ -76,69 +63,12 @@ namespace XCode.Configuration
                 {
                     var connName = _Table?.ConnName;
 
-                    //var str = FindConnMap(connName, EntityType);
-                    //if (!str.IsNullOrEmpty())
-                    //{
-                    //    DAL.WriteLog($"实体 {EntityType.FullName}/{connName} 映射到 {str}");
-
-                    //    connName = str;
-                    //}
-
                     _ConnName = connName;
                 }
                 return _ConnName;
             }
-            set { _ConnName = value; }
+            set => _ConnName = value;
         }
-
-        //private static List<String> _ConnMaps;
-        ///// <summary>连接名映射</summary>
-        //private static List<String> ConnMaps
-        //{
-        //    get
-        //    {
-        //        // 加锁，并且先实例化本地变量，最后再赋值，避免返回空集合
-        //        // 原来的写法存在线程冲突，可能第一个线程实例化列表后，还来不及填充，后续线程就已经把集合拿走
-        //        if (_ConnMaps != null) return _ConnMaps;
-        //        lock (typeof(TableItem))
-        //        {
-        //            if (_ConnMaps != null) return _ConnMaps;
-
-        //            var list = new List<String>();
-        //            var str = Setting.Current.ConnMaps;
-        //            if (String.IsNullOrEmpty(str)) return _ConnMaps = list;
-
-        //            var ss = str.Split(",");
-        //            foreach (var item in ss)
-        //            {
-        //                if (list.Contains(item.Trim())) continue;
-
-        //                if (item.Contains("#") && !item.EndsWith("#") ||
-        //                    item.Contains("@") && !item.EndsWith("@")) list.Add(item.Trim());
-        //            }
-        //            return _ConnMaps = list;
-        //        }
-        //    }
-        //}
-
-        ///// <summary>根据连接名和类名查找连接名映射</summary>
-        ///// <param name="connName"></param>
-        ///// <param name="type"></param>
-        ///// <returns></returns>
-        //private static String FindConnMap(String connName, Type type)
-        //{
-        //    var name1 = connName + "#";
-        //    var name2 = type.FullName + "@";
-        //    var name3 = type.Name + "@";
-
-        //    foreach (var item in ConnMaps)
-        //    {
-        //        if (item.StartsWith(name1)) return item.Substring(name1.Length);
-        //        if (item.StartsWith(name2)) return item.Substring(name2.Length);
-        //        if (item.StartsWith(name3)) return item.Substring(name3.Length);
-        //    }
-        //    return null;
-        //}
         #endregion
 
         #region 扩展属性
@@ -234,7 +164,7 @@ namespace XCode.Configuration
             InitFields();
         }
 
-        static readonly ConcurrentDictionary<Type, TableItem> cache = new ConcurrentDictionary<Type, TableItem>();
+        private static readonly ConcurrentDictionary<Type, TableItem> cache = new();
         /// <summary>创建</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
@@ -246,7 +176,7 @@ namespace XCode.Configuration
             return cache.GetOrAdd(type, key => key.GetCustomAttribute<BindTableAttribute>(true) != null ? new TableItem(key) : null);
         }
 
-        void InitFields()
+        private void InitFields()
         {
             var bt = _Table;
             var table = DAL.CreateTable();
@@ -256,7 +186,7 @@ namespace XCode.Configuration
             //table.TableName = GetTableName(bt);
             table.Name = EntityType.Name;
             table.DbType = bt.DbType;
-            table.IsView = bt.IsView;
+            table.IsView = bt.IsView || bt.Name[0] == '#';
             table.Description = Description;
             //table.ConnName = ConnName;
 
@@ -303,9 +233,11 @@ namespace XCode.Configuration
                     }
                 }
             }
-            if (_Indexes != null && _Indexes.Length > 0)
+
+            var ids = _Indexes;
+            if (ids != null)
             {
-                foreach (var item in _Indexes)
+                foreach (var item in ids)
                 {
                     var di = table.CreateIndex();
                     item.Fill(di);
@@ -316,6 +248,33 @@ namespace XCode.Configuration
                     if (table.GetColumns(di.Columns).All(e => e.PrimaryKey)) continue;
 
                     table.Indexes.Add(di);
+                }
+
+                // 检查索引重复，最左原则
+                for (var i = 0; i < table.Indexes.Count; i++)
+                {
+                    var di = table.Indexes[i];
+                    for (var j = i + 1; j < table.Indexes.Count; j++)
+                    {
+                        var di2 = table.Indexes[j];
+                        //var flag = true;
+                        //for (int k = 0; k < di.Columns.Length && k < di2.Columns.Length; k++)
+                        //{
+                        //    if (!di.Columns[k].Equals(di2.Columns[k]))
+                        //    {
+                        //        flag = false;
+                        //        break;
+                        //    }
+                        //}
+                        // 取最小长度，如果序列相等，说明前缀相同
+                        var count = Math.Min(di.Columns.Length, di2.Columns.Length);
+                        if (count > 0 && di.Columns.Take(count).SequenceEqual(di2.Columns.Take(count), StringComparer.OrdinalIgnoreCase))
+                        {
+                            var cs = di.Columns.Length == count ? di.Columns : di2.Columns;
+                            var cs2 = di.Columns.Length == count ? di2.Columns : di.Columns;
+                            XTrace.WriteLine("实体类[{0}]/数据表[{1}]的索引重复，可去除({2})，保留({3})", EntityType.FullName, TableName, cs.Join(), cs2.Join());
+                        }
+                    }
                 }
             }
 
@@ -328,7 +287,7 @@ namespace XCode.Configuration
         /// <summary>获取属性，保证基类属性在前</summary>
         /// <param name="type">类型</param>
         /// <returns></returns>
-        IEnumerable<Field> GetFields(Type type)
+        private IEnumerable<Field> GetFields(Type type)
         {
             // 先拿到所有属性，可能是先排子类，再排父类
             var list = new List<Field>();

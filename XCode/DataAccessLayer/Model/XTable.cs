@@ -166,11 +166,7 @@ namespace XCode.DataAccessLayer
 
         /// <summary>初始化</summary>
         /// <param name="name">名称</param>
-        public XTable(String name)
-            : this()
-        {
-            TableName = name;
-        }
+        public XTable(String name) : this() => TableName = name;
         #endregion
 
         #region 方法

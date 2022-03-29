@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
-using NewLife.Log;
+
 using NewLife.Threading;
 
 namespace NewLife.Configuration
@@ -21,7 +21,36 @@ namespace NewLife.Configuration
         /// <summary>当前使用的提供者</summary>
         public static IConfigProvider Provider { get; set; }
 
-        private static Boolean _loading;
+        static Config()
+        {
+            // 创建提供者
+            var att = typeof(TConfig).GetCustomAttribute<ConfigAttribute>(true);
+            var value = att?.Name;
+            if (value.IsNullOrEmpty())
+            {
+                value = typeof(TConfig).Name;
+                if (value.EndsWith("Config") && value != "Config") value = value.TrimEnd("Config");
+                if (value.EndsWith("Setting") && value != "Setting") value = value.TrimEnd("Setting");
+            }
+            var prv = ConfigProvider.Create(att?.Provider);
+            if (prv is HttpConfigProvider _prv && att is HttpConfigAttribute _att)
+            {
+                _prv.Server = _att.Server;
+                _prv.Action = _att.Action;
+                _prv.AppId = _att.AppId;
+                _prv.Secret = _att.Secret;
+                _prv.Scope = _att.Scope;
+                _prv.CacheLevel = _att.CacheLevel;
+                _prv.Init(value);
+            }
+            else if (prv is ConfigProvider prv2)
+            {
+                prv2.Init(value);
+            }
+
+            Provider = prv;
+        }
+
         private static TConfig _Current;
         /// <summary>当前实例。通过置空可以使其重新加载。</summary>
         public static TConfig Current
@@ -29,66 +58,27 @@ namespace NewLife.Configuration
             get
             {
                 if (_Current != null) return _Current;
-
-                // 如果正在加载中，需要返回默认值。因为在加载配置的过程中，可能循环触发导致再次加载配置
-                var config = new TConfig();
-                if (_Current == null) _Current = config;
-                if (_loading) return _Current;
-                _loading = true;
-
-                try
+                lock (typeof(TConfig))
                 {
-                    var flag = false;
+                    if (_Current != null) return _Current;
+
+                    var config = new TConfig();
                     var prv = Provider;
-                    if (prv == null)
-                    {
-                        lock (typeof(Config<TConfig>))
-                        {
-                            if (prv == null)
-                            {
-                                // 创建提供者
-                                var att = typeof(TConfig).GetCustomAttribute<ConfigAttribute>(true);
-                                prv = ConfigProvider.Create(att?.Provider);
-
-                                if (prv is ConfigProvider prv2)
-                                {
-                                    var value = att?.Name;
-                                    if (value.IsNullOrEmpty())
-                                    {
-                                        value = typeof(TConfig).Name;
-                                        if (value.EndsWith("Config") && value != "Config") value = value.TrimEnd("Config");
-                                        if (value.EndsWith("Setting") && value != "Setting") value = value.TrimEnd("Setting");
-                                    }
-
-                                    prv2.Init(value);
-                                }
-
-                                Provider = prv;
-                                flag = true;
-                            }
-                        }
-                    }
-
-                    if (!flag) return _Current;
-
-                    //// 加载配置数据到提供者
-                    //if (!prv.LoadAll())
-                    //{
-                    //    XTrace.WriteLine("初始化{0}的配置 {1}", typeof(TConfig).FullName, prv);
-                    //    //prv.Save(config);
-                    //}
 
                     // 绑定提供者数据到配置对象
                     prv.Bind(config, true);
 
                     config.OnLoaded();
 
-                    // OnLoad 中可能有变化，存回去
-                    prv.Save(config);
+                    try
+                    {
+                        // OnLoad 中可能有变化，存回去
+                        prv.Save(config);
+                    }
+                    catch { }
 
                     return _Current = config;
                 }
-                finally { _loading = false; }
             }
             set { _Current = value; }
         }
@@ -98,7 +88,7 @@ namespace NewLife.Configuration
         /// <summary>是否新的配置文件</summary>
         [XmlIgnore, IgnoreDataMember]
         //[Obsolete("=>_Provider.IsNew")]
-        public Boolean IsNew => Provider is FileConfigProvider fprv && fprv.IsNew;
+        public Boolean IsNew => Provider.IsNew;
         #endregion
 
         #region 成员方法

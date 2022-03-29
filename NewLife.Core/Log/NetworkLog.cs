@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using NewLife.Common;
+using NewLife.Http;
 using NewLife.Net;
 using NewLife.Security;
 
@@ -25,7 +26,7 @@ namespace NewLife.Log
 
         private ISocketRemote _client;
         private HttpClient _http;
-        private readonly ConcurrentQueue<String> _Logs = new ConcurrentQueue<String>();
+        private readonly ConcurrentQueue<String> _Logs = new();
         private volatile Int32 _logCount;
         private Int32 _writing;
 
@@ -97,6 +98,10 @@ namespace NewLife.Log
                     };
                     http.DefaultRequestHeaders.Add("X-AppId", AppId);
                     http.DefaultRequestHeaders.Add("X-ClientId", ClientId);
+
+                    // 默认UserAgent
+                    http.SetUserAgent();
+
                     _http = http;
                     break;
                 default:

@@ -8,12 +8,10 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Remoting
 {
@@ -23,6 +21,9 @@ namespace NewLife.Remoting
         #region 远程调用
         /// <summary>性能跟踪器</summary>
         public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+
+        /// <summary>Http过滤器</summary>
+        public static IHttpFilter Filter { get; set; }
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -38,7 +39,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(client, action, args)).Result;
+        public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => GetAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -54,7 +55,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(client, action, args)).Result;
+        public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -85,16 +86,24 @@ namespace NewLife.Remoting
 
             // 开始跟踪，注入TraceId
             using var span = Tracer?.NewSpan(request);
+            var filter = Filter;
             try
             {
                 // 发起请求
-                var msg = await client.SendAsync(request);
-                return await ProcessResponse<TResult>(msg, dataName);
+                if (filter != null) await filter.OnRequest(client, request, null);
+
+                var response = await client.SendAsync(request);
+
+                if (filter != null) await filter.OnResponse(client, response, request);
+
+                return await ProcessResponse<TResult>(response, dataName);
             }
             catch (Exception ex)
             {
                 // 跟踪异常
                 span?.SetError(ex, args);
+
+                if (filter != null) await filter.OnError(client, ex, request);
 
                 throw;
             }
@@ -117,14 +126,14 @@ namespace NewLife.Remoting
                 if (args is Packet pk)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += pk.ToArray().ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
                 else if (args is Byte[] buf)
                 {
                     var url = action;
-                    url += url.Contains("?") ? "&" : "?";
+                    url += url.Contains('?') ? "&" : "?";
                     url += buf.ToUrlBase64();
                     request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
                 }
@@ -222,7 +231,7 @@ namespace NewLife.Remoting
                     break;
                 }
             }
-            if (code != 0 && code != 200)
+            if (code is not 0 and not 200)
             {
                 var message = "";
                 foreach (var item in MessageNames)
@@ -247,7 +256,7 @@ namespace NewLife.Remoting
             // 反序列化
             if (data == null) return default;
 
-            if (!(data is IDictionary<String, Object>) && !(data is IList<Object>)) throw new InvalidDataException("未识别响应数据");
+            if (data is not IDictionary<String, Object> and not IList<Object>) throw new InvalidDataException("未识别响应数据");
 
             return JsonHelper.Convert<TResult>(data);
         }
@@ -263,7 +272,7 @@ namespace NewLife.Remoting
             {
                 var sb = Pool.StringBuilder.Get();
                 sb.Append(action);
-                if (action.Contains("?"))
+                if (action.Contains('?'))
                     sb.Append('&');
                 else
                     sb.Append('?');

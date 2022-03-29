@@ -6,17 +6,16 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
+using NewLife.Model;
 
 namespace NewLife.Remoting
 {
     /// <summary>Http应用接口客户端</summary>
-    public class ApiHttpClient : DisposeBase, IApiClient
+    public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping
     {
         #region 属性
         /// <summary>令牌。每次请求携带</summary>
@@ -31,8 +30,14 @@ namespace NewLife.Remoting
         /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
         public Boolean RoundRobin { get; set; }
 
+        /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
+        public Int32 ShieldingTime { get; set; } = 60;
+
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
+
+        /// <summary>Http过滤器</summary>
+        public IHttpFilter Filter { get; set; }
 
         /// <summary>服务器源。正在使用的服务器</summary>
         public String Source { get; private set; }
@@ -47,7 +52,7 @@ namespace NewLife.Remoting
         public ITracer Tracer { get; set; }
 
         /// <summary>服务列表。用于负载均衡和故障转移</summary>
-        public IList<Service> Services { get; } = new List<Service>();
+        public IList<Service> Services { get; set; } = new List<Service>();
 
         /// <summary>当前服务</summary>
         protected Service _currentService;
@@ -59,36 +64,44 @@ namespace NewLife.Remoting
 
         /// <summary>实例化</summary>
         /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
-        public ApiHttpClient(String urls)
+        public ApiHttpClient(String urls) => Init(urls);
+
+        /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
+        /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+        /// <param name="name">缓存名称，也是配置中心key</param>
+        public ApiHttpClient(IServiceProvider provider, String name)
         {
-            if (!urls.IsNullOrEmpty())
-            {
-                var ss = urls.Split(",");
-                for (var i = 0; i < ss.Length; i++)
-                {
-                    if (!ss[i].IsNullOrEmpty()) Add("service" + (i + 1), ss[i]);
-                }
-            }
+            //Name = name;
+
+            var configProvider = provider.GetRequiredService<IConfigProvider>();
+            configProvider.Bind(this, true, name);
         }
 
-        /// <summary>销毁</summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(Boolean disposing)
-        {
-            base.Dispose(disposing);
+        ///// <summary>销毁</summary>
+        ///// <param name="disposing"></param>
+        //protected override void Dispose(Boolean disposing)
+        //{
+        //    base.Dispose(disposing);
 
-            foreach (var item in Services)
-            {
-                item.Client?.TryDispose();
-            }
-        }
+        //    foreach (var item in Services)
+        //    {
+        //        item.Client?.TryDispose();
+        //    }
+        //}
         #endregion
 
         #region 方法
         /// <summary>添加服务地址</summary>
         /// <param name="name">名称</param>
         /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-        public void Add(String name, String address)
+        public void Add(String name, String address) => ParseAndAdd(Services, name, address);
+
+        /// <summary>添加服务地址</summary>
+        /// <param name="name"></param>
+        /// <param name="address"></param>
+        public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+
+        private void ParseAndAdd(IList<Service> services, String name, String address)
         {
             var url = address;
             var svc = new Service
@@ -100,26 +113,42 @@ namespace NewLife.Remoting
             var p = url.IndexOf('=');
             if (p > 0)
             {
-                svc.Name = url.Substring(0, p);
-                url = url.Substring(p + 1);
+                svc.Name = url[..p];
+                url = url[(p + 1)..];
             }
 
             // 解析权重
             p = url.IndexOf("*http");
             if (p > 0)
             {
-                svc.Weight = url.Substring(0, p).ToInt();
-                url = url.Substring(p + 1);
+                svc.Weight = url[..p].ToInt();
+                url = url[(p + 1)..];
             }
 
             svc.Address = new Uri(url);
-            Services.Add(svc);
+            services.Add(svc);
         }
 
-        /// <summary>添加服务地址</summary>
-        /// <param name="name"></param>
-        /// <param name="address"></param>
-        public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+        private String _lastUrls;
+        private void Init(String urls)
+        {
+            if (!urls.IsNullOrEmpty() && urls != _lastUrls)
+            {
+                var services = new List<Service>();
+                var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                for (var i = 0; i < ss.Length; i++)
+                {
+                    if (!ss[i].IsNullOrEmpty()) ParseAndAdd(services, "service" + (i + 1), ss[i]);
+                }
+                Services = services;
+                _lastUrls = urls;
+            }
+        }
+
+        void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
+        {
+            if (section != null && section.Value != null) Init(section.Value);
+        }
         #endregion
 
         #region 核心方法
@@ -133,7 +162,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public TResult Get<TResult>(String action, Object args = null) => TaskEx.Run(() => GetAsync<TResult>(action, args)).Result;
+        public TResult Get<TResult>(String action, Object args = null) => Task.Run(() => GetAsync<TResult>(action, args)).Result;
 
         /// <summary>异步提交，参数Json打包在Body</summary>
         /// <param name="action">服务操作</param>
@@ -145,7 +174,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public TResult Post<TResult>(String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(action, args)).Result;
+        public TResult Post<TResult>(String action, Object args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
 
         /// <summary>异步调用，等待返回结果</summary>
         /// <typeparam name="TResult"></typeparam>
@@ -166,24 +195,31 @@ namespace NewLife.Remoting
                 var request = BuildRequest(method, action, args, returnType);
                 onRequest?.Invoke(request);
 
+                var filter = Filter;
                 try
                 {
                     var msg = await SendAsync(request);
 
                     return await ApiHelper.ProcessResponse<TResult>(msg);
                 }
-                catch (ApiException ex)
+                catch (Exception ex)
                 {
-                    ex.Source = _currentService?.Address + "/" + action;
-                    throw;
-                }
-                catch (HttpRequestException)
-                {
-                    if (++i >= svrs.Count) throw;
-                }
-                catch (TaskCanceledException)
-                {
-                    if (++i >= svrs.Count) throw;
+                    while (ex is AggregateException age) ex = age.InnerException;
+
+                    if (ex is ApiException)
+                    {
+                        if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
+
+                        ex.Source = _currentService?.Address + "/" + action;
+                        throw;
+                    }
+                    else if (ex is HttpRequestException or TaskCanceledException)
+                    {
+                        if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
+                        if (++i >= svrs.Count) throw;
+                    }
+                    else
+                        throw;
                 }
             } while (true);
         }
@@ -199,7 +235,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        TResult IApiClient.Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
+        TResult IApiClient.Invoke<TResult>(String action, Object args) => Task.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
         #endregion
 
         #region 构造请求
@@ -253,11 +289,12 @@ namespace NewLife.Remoting
                 var client = service.Client;
                 if (client == null)
                 {
-                    WriteLog("使用[{0}]：{1}", service.Name, service.Address);
+                    if (service.CreateTime.Year < 2000) WriteLog("使用[{0}]：{1}", service.Name, service.Address);
 
                     client = CreateClient();
                     client.BaseAddress = service.Address;
                     service.Client = client;
+                    service.CreateTime = DateTime.Now;
                 }
 
                 return await SendOnServiceAsync(request, service, client);
@@ -285,8 +322,16 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual Service GetService()
         {
+            // 在可用服务节点中选择，如果全部节点不可用，则启用全部节点，避免网络恢复后无法及时通信
             var svrs = Services;
-            if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
+            //if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
+            if (!svrs.Any(e => e.NextTime < DateTime.Now))
+            {
+                foreach (var item in svrs)
+                {
+                    item.NextTime = DateTime.MinValue;
+                }
+            }
 
             if (RoundRobin)
             {
@@ -304,7 +349,9 @@ namespace NewLife.Remoting
                     svc = null;
                     _idxServer++;
                 }
-                if (svc == null) throw new XException("没有可用服务节点！");
+                // 如果都没有可用节点，默认选第一个
+                if (svc == null && svrs.Count > 0) svc = svrs[0];
+                //if (svc == null) throw new XException("没有可用服务节点！");
 
                 svc.Times++;
 
@@ -325,7 +372,10 @@ namespace NewLife.Remoting
                 var idx = _idxServer;
                 if (idx > 0 && svrs[0].NextTime < DateTime.Now) idx = _idxServer = 0;
 
-                return svrs[idx % svrs.Count];
+                var svc = svrs[idx % svrs.Count];
+                svc.Times++;
+
+                return svc;
             }
         }
 
@@ -334,15 +384,22 @@ namespace NewLife.Remoting
         /// <param name="error"></param>
         protected virtual void PutService(Service service, Exception error)
         {
-            if (error is HttpRequestException || error is TaskCanceledException)
+            if (service.CreateTime.AddMinutes(10) < DateTime.Now) service.Client = null;
+
+            var ex = error;
+            while (ex is AggregateException age) ex = age.InnerException;
+
+            if (ex is HttpRequestException or TaskCanceledException)
             {
                 // 网络异常时，自动切换到其它节点
                 _idxServer++;
             }
             if (error != null)
             {
+                service.Errors++;
                 service.Client = null;
-                service.NextTime = DateTime.Now.AddSeconds(RoundRobin ? 60 : 300);
+                service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
+                service.CreateTime = DateTime.MinValue;
             }
         }
 
@@ -353,11 +410,17 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client)
         {
-            var rs = await client.SendAsync(request);
-            // 业务层只会返回200 OK
-            rs.EnsureSuccessStatusCode();
+            var filter = Filter;
+            if (filter != null) await filter.OnRequest(client, request, this);
 
-            return rs;
+            var response = await client.SendAsync(request);
+
+            if (filter != null) await filter.OnResponse(client, response, this);
+
+            // 业务层只会返回200 OK
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
 
         /// <summary>创建客户端</summary>
@@ -371,6 +434,9 @@ namespace NewLife.Remoting
             {
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
+
+            // 默认UserAgent
+            client.SetUserAgent();
 
             return client;
         }
@@ -395,6 +461,13 @@ namespace NewLife.Remoting
             /// <summary>总次数</summary>
             public Int32 Times { get; set; }
 
+            /// <summary>错误数</summary>
+            public Int32 Errors { get; set; }
+
+            /// <summary>创建时间。每过一段时间，就清空一次客户端，让它重建连接，更新域名缓存</summary>
+            [XmlIgnore, IgnoreDataMember]
+            public DateTime CreateTime { get; set; }
+
             /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
             [XmlIgnore, IgnoreDataMember]
             public DateTime NextTime { get; set; }
@@ -402,6 +475,10 @@ namespace NewLife.Remoting
             /// <summary>客户端</summary>
             [XmlIgnore, IgnoreDataMember]
             public HttpClient Client { get; set; }
+
+            /// <summary>已重载。友好显示</summary>
+            /// <returns></returns>
+            public override String ToString() => $"{Name} {Address}";
         }
         #endregion
 

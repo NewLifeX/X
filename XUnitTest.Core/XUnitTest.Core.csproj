@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>XUnitTest</RootNamespace>
     <DebugType>pdbonly</DebugType>
@@ -19,6 +19,8 @@
     <None Remove="TestEntity\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Algorithms\LTOBDownSamplingTests.cs" />
+    <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
   </ItemGroup>
@@ -29,8 +31,9 @@
     <EmbeddedResource Include="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
-    <PackageReference Include="Moq" Version="4.15.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Moq" Version="4.17.2" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.319-beta1053" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -40,5 +43,22 @@
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\NewLife.Security\NewLife.Security.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Algorithms\sampled.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Algorithms\source2.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Algorithms\source.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Http\leaf.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Serialization\StarAgent.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

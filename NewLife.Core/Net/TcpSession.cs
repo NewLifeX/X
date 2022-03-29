@@ -17,6 +17,9 @@ namespace NewLife.Net
     public class TcpSession : SessionBase, ISocketSession
     {
         #region 属性
+        /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
+        public IPAddress RemoteAddress { get; private set; }
+
         /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
         public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
@@ -80,17 +83,22 @@ namespace NewLife.Net
             // 管道
             Pipeline?.Open(base.CreateContext(this));
 
-            // 服务端SSL
+            // 设置读写超时
             var sock = Client;
+            var timeout = Timeout;
+            if (timeout > 0)
+            {
+                sock.SendTimeout = timeout;
+                sock.ReceiveTimeout = timeout;
+            }
+
+            // 服务端SSL
             if (sock != null && Certificate != null)
             {
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false);
 
                 var sp = SslProtocol;
-#if !NET50
-                if (sp == SslProtocols.None) sp = SslProtocols.Default;
-#endif
 
                 WriteLog("服务端SSL认证 {0} {1}", sp, Certificate.Issuer);
 
@@ -114,6 +122,12 @@ namespace NewLife.Net
             var sock = Client;
             if (sock == null || !sock.IsBound)
             {
+                // 根据目标地址适配本地IPv4/IPv6
+                if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+                {
+                    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+                }
+
                 sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 if (NoDelay) sock.NoDelay = true;
@@ -138,7 +152,13 @@ namespace NewLife.Net
                     var address = uri.GetAddresses().FirstOrDefault(_ => !_.IsIPv4());
                     if (address != null) ep = new IPEndPoint(address, ep.Port);
                 }
+                else if (Local.Address.IsIPv4() && !ep.Address.IsIPv4())
+                {
+                    var address = uri.GetAddresses().FirstOrDefault(_ => _.IsIPv4());
+                    if (address != null) ep = new IPEndPoint(address, ep.Port);
+                }
 
+                RemoteAddress = ep.Address;
                 if (timeout <= 0)
                     sock.Connect(ep);
                 else
@@ -208,7 +228,7 @@ namespace NewLife.Net
                 try
                 {
                     // 温和一点关闭连接
-                    //Client.Shutdown();
+                    Client.Shutdown();
                     client.Close();
 
                     // 如果是服务端，这个时候就是销毁
@@ -231,7 +251,7 @@ namespace NewLife.Net
 
         #region 发送
         private Int32 _bsize;
-        private SpinLock _spinLock = new SpinLock();
+        private SpinLock _spinLock = new();
 
         /// <summary>发送数据</summary>
         /// <remarks>
@@ -243,8 +263,9 @@ namespace NewLife.Net
         {
             var count = pk.Total;
 
-            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex());
+            if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
             var rs = count;
             var sock = Client;
             var gotLock = false;
@@ -260,7 +281,7 @@ namespace NewLife.Net
                 if (_Stream == null)
                 {
                     if (count == 0)
-                        rs = sock.Send(new Byte[0]);
+                        rs = sock.Send(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                     else
@@ -269,7 +290,7 @@ namespace NewLife.Net
                 else
                 {
                     if (count == 0)
-                        _Stream.Write(new Byte[0]);
+                        _Stream.Write(Array.Empty<Byte>());
                     else if (pk.Next == null)
                         _Stream.Write(pk.Data, pk.Offset, count);
                     else
@@ -281,6 +302,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk);
+
                 if (!ex.IsDisposed())
                 {
                     OnError("Send", ex);
@@ -348,7 +371,7 @@ namespace NewLife.Net
                 return;
             }
 
-            ProcessEvent(se, bytes);
+            ProcessEvent(se, bytes, true);
         }
 
         //private Int32 _empty;
@@ -360,6 +383,8 @@ namespace NewLife.Net
         {
             if (pk.Count == 0)
             {
+                using var span = Tracer?.NewSpan($"net:{Name}:EmptyData");
+
                 // 连续多次空数据，则断开
                 if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
                 {
@@ -400,11 +425,15 @@ namespace NewLife.Net
 
             WriteLog("Reconnect {0}", this);
 
+            using var span = Tracer?.NewSpan($"net:{Name}:Reconnect", _Reconnect + "");
             try
             {
                 Open();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+            }
         }
         #endregion
 

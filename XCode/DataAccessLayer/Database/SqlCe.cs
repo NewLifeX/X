@@ -77,24 +77,6 @@ namespace XCode.DataAccessLayer
                 }
             }
         }
-
-        protected override String DefaultConnectionString
-        {
-            get
-            {
-                var builder = Factory.CreateConnectionStringBuilder();
-                if (builder != null)
-                {
-                    var name = Path.GetTempFileName();
-                    FileSource.ReleaseFile(Assembly.GetExecutingAssembly(), "SqlCe.sdf", name, true);
-
-                    builder[_.DataSource] = name;
-                    return builder.ToString();
-                }
-
-                return base.DefaultConnectionString;
-            }
-        }
         #endregion
 
         #region 方法
@@ -176,11 +158,11 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
 
         /// <summary>返回数据源的架构信息</summary>
@@ -207,9 +189,8 @@ namespace XCode.DataAccessLayer
             #region 查表、字段信息、索引信息、主键信息
             var session = Database.CreateSession();
 
-            //表信息
-            DataTable dt = null;
-            dt = session.Query(_AllTableNameSql).Tables[0];
+            // 表信息
+            var dt = session.Query(_AllTableNameSql).Tables[0];
 
             var data = new NullableDictionary<String, DataTable>(StringComparer.OrdinalIgnoreCase)
             {
@@ -222,13 +203,35 @@ namespace XCode.DataAccessLayer
             //    DataTypes = CreateSqlCeDataType(session.Query(_DataTypeSql).Tables[0]);
             #endregion
 
-            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt == null || dt.Rows == null || dt.Rows.Count <= 0) return null;
 
             // 默认列出所有字段
             var rows = dt.Select("TABLE_TYPE='table'");
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             return GetTables(rows, names, data);
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, null);
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            // 默认列出所有字段
+            var rows = dt.Select("TABLE_TYPE='table'");
+
+            foreach (var dr in rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
         }
 
         /// <summary>获取索引</summary>
@@ -316,36 +319,23 @@ namespace XCode.DataAccessLayer
 
         private String DBTypeToDotNetDataType(String DBType)
         {
-            switch (DBType)
+            return DBType switch
             {
-                case "smallint": return "System.Int16";
-                case "int": return "System.Int32";
-                case "bigint": return "System.Int64";
-                case "nvarchar":
-                case "char":
-                case "nchar":
-                case "ntext":
-                case "text":
-                case "varchar": return "System.String";
-                case "bit": return "System.Boolean";
-                case "smalldatetime":
-                case "datetime": return "System.DateTime";
-                case "float": return "System.Double";
-                case "decimal":
-                case "money":
-                case "smallmoney":
-                case "numeric": return "System.Decimal";
-                case "real": return "System.Single";
-                case "uniqueidentifier": return "System.Guid";
-                case "tinyint": return "System.Byte";
-                case "image":
-                case "timestamp":
-                case "binary":
-                case "varbinary": return "System.Byte[]";
-                case "variant": return "System.Object";
-                default:
-                    return "";
-            }
+                "smallint" => "System.Int16",
+                "int" => "System.Int32",
+                "bigint" => "System.Int64",
+                "nvarchar" or "char" or "nchar" or "ntext" or "text" or "varchar" => "System.String",
+                "bit" => "System.Boolean",
+                "smalldatetime" or "datetime" => "System.DateTime",
+                "float" => "System.Double",
+                "decimal" or "money" or "smallmoney" or "numeric" => "System.Decimal",
+                "real" => "System.Single",
+                "uniqueidentifier" => "System.Guid",
+                "tinyint" => "System.Byte",
+                "image" or "timestamp" or "binary" or "varbinary" => "System.Byte[]",
+                "variant" => "System.Object",
+                _ => "",
+            };
         }
 
         private readonly String _AllTableNameSql = "SELECT table_name,TABLE_TYPE FROM information_schema.tables WHERE TABLE_TYPE <> N'SYSTEM TABLE' ";
@@ -372,7 +362,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "varbinary({0})", "timestamp", "binary({0})", "image" } },
             { typeof(Guid), new String[] { "uniqueidentifier" } },
@@ -408,7 +398,7 @@ namespace XCode.DataAccessLayer
     /// <summary>SqlCe辅助类</summary>
     public static class SqlCeHelper
     {
-        static readonly Dictionary<Int32, SQLCEVersion> versionDictionary = new Dictionary<Int32, SQLCEVersion>
+        static readonly Dictionary<Int32, SQLCEVersion> versionDictionary = new()
         {
             { 0x73616261, SQLCEVersion.SQLCE20 },
             { 0x002dd714, SQLCEVersion.SQLCE30 },

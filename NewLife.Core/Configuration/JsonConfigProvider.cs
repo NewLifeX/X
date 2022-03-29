@@ -28,6 +28,10 @@ namespace NewLife.Configuration
         protected override void OnRead(String fileName, IConfigSection section)
         {
             var txt = File.ReadAllText(fileName);
+
+            // 预处理注释
+            txt = TrimComment(txt);
+
             var src = JsonParser.Decode(txt);
 
             Map(src, section);
@@ -149,6 +153,42 @@ namespace NewLife.Configuration
                     dst[item.Key] = item.Value;
                 }
             }
+        }
+
+        /// <summary>
+        /// 清理json字符串中的注释，避免json解析错误
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static String TrimComment(String text)
+        {            
+            var lines = text.Split(Environment.NewLine,"\n","\r");//增加 \r以及\n的处理， 处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
+            text = lines
+                .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
+                // 没考虑到链接中带双斜杠的，以下导致链接的内容被干掉
+                //.Select(e =>
+                //{
+                //    // 单行注释 “//” 放在最后的情况
+                //    var p0 = e.IndexOf("//");
+                //    if (p0 > 0) return e.Substring(0, p0);
+
+                //    return e;
+                //})
+                .Join(Environment.NewLine);
+
+            while (true)
+            {
+                // 以下处理多行注释 “/**/” 放在一行的情况
+                var p = text.IndexOf("/*");
+                if (p < 0) break;
+
+                var p2 = text.IndexOf("*/", p + 2);
+                if (p2 < 0) break;
+
+                text = text[..p] + text[(p2 + 2)..];
+            }
+
+            return text;
         }
         #endregion
     }

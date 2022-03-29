@@ -20,10 +20,9 @@ namespace XCode.DataAccessLayer
             Register<PostgreSQL>(DatabaseType.PostgreSQL);
             Register<DaMeng>(DatabaseType.DaMeng);
             Register<DB2>(DatabaseType.DB2);
-#if !__CORE__
-            Register<Access>(DatabaseType.Access);
-            Register<SqlCe>(DatabaseType.SqlCe);
-#endif
+            Register<TDengine>(DatabaseType.TDengine);
+            //Register<Access>(DatabaseType.Access);
+            //Register<SqlCe>(DatabaseType.SqlCe);
             Register<Network>(DatabaseType.Network);
         }
         #endregion

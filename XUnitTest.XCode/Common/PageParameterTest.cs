@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using NewLife.Data;
-using NewLife.Log;
 using NewLife.Security;
-using STOD.Entity;
 using XCode;
 using XCode.DataAccessLayer;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode
 {

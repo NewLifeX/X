@@ -280,10 +280,10 @@ namespace XCode.DataAccessLayer
 
             if (pos < 0) return "\"" + keyWord + "\"";
 
-            var tn = keyWord.Substring(pos + 1);
+            var tn = keyWord[(pos + 1)..];
             if (tn.StartsWith("\"")) return keyWord;
 
-            return keyWord.Substring(0, pos + 1) + "\"" + tn + "\"";
+            return keyWord[..(pos + 1)] + "\"" + tn + "\"";
         }
 
         ///// <summary>是否忽略大小写，如果不忽略则在表名字段名外面加上双引号</summary>
@@ -299,7 +299,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 辅助
-        readonly Dictionary<String, DateTime> cache = new Dictionary<String, DateTime>();
+        readonly Dictionary<String, DateTime> cache = new();
         public Boolean NeedAnalyzeStatistics(String tableName)
         {
             var owner = Owner;
@@ -380,7 +380,7 @@ namespace XCode.DataAccessLayer
             if (String.IsNullOrEmpty(tableName)) return 0;
 
             var p = tableName.LastIndexOf(".");
-            if (p >= 0 && p < tableName.Length - 1) tableName = tableName.Substring(p + 1);
+            if (p >= 0 && p < tableName.Length - 1) tableName = tableName[(p + 1)..];
             tableName = tableName.ToUpper();
 
             var owner = (Database as Oracle).Owner;
@@ -407,7 +407,7 @@ namespace XCode.DataAccessLayer
             return ExecuteScalar<Int64>(sql);
         }
 
-        static readonly Regex reg_SEQ = new Regex(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex reg_SEQ = new(@"\b(\w+)\.nextval\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>执行插入语句并返回新增行的自动编号</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -428,14 +428,13 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
 
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
@@ -468,13 +467,12 @@ namespace XCode.DataAccessLayer
                 Commit();
                 return rs;
             }
-            catch { Rollback(true); throw; }
-            //finally
-            //{
-            //    AutoClose();
-            //}
+            catch
+            {
+                Rollback(true);
+                throw;
+            }
         }
-#endif
 
         /// <summary>重载支持批量操作</summary>
         /// <param name="sql"></param>
@@ -762,6 +760,25 @@ namespace XCode.DataAccessLayer
             return list;
         }
 
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var dt = GetSchema(_.Tables, new String[] { Owner, null });
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return list;
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                list.Add(GetDataRowValue<String>(dr, _.TalbeName));
+            }
+
+            return list;
+        }
+
         private DataTable Get(String name, String owner, String tableName, String mulTable = null, String ownerName = null)
         {
             if (ownerName.IsNullOrEmpty()) ownerName = "Owner";
@@ -828,7 +845,7 @@ namespace XCode.DataAccessLayer
 
         //    var dt = data?["Sequences"];
         //    if (dt?.Rows == null) dt = Database.CreateSession().Query("Select * From ALL_SEQUENCES Where SEQUENCE_OWNER='{0}' And SEQUENCE_NAME='{1}'".F(Owner, name)).Tables[0];
-        //    if (dt?.Rows == null || dt.Rows.Count < 1) return false;
+        //    if (dt?.Rows == null || dt.Rows.Count <= 0) return false;
 
         //    var where = String.Format("SEQUENCE_NAME='{0}'", name);
         //    var drs = dt.Select(where);
@@ -838,7 +855,7 @@ namespace XCode.DataAccessLayer
         String GetTableComment(String name, IDictionary<String, DataTable> data)
         {
             var dt = data?["TableComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"TABLE_NAME='{name}'";
             var drs = dt.Select(where);
@@ -855,7 +872,7 @@ namespace XCode.DataAccessLayer
         protected override List<IDataColumn> GetFields(IDataTable table, DataTable columns, IDictionary<String, DataTable> data)
         {
             var list = base.GetFields(table, columns, data);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             // 字段注释
             if (list != null && list.Count > 0)
@@ -873,7 +890,7 @@ namespace XCode.DataAccessLayer
 
         protected override List<IDataColumn> GetFields(IDataTable table, DataRow[] rows)
         {
-            if (rows == null || rows.Length < 1) return null;
+            if (rows == null || rows.Length <= 0) return null;
 
             var owner = Owner;
             if (owner.IsNullOrEmpty() || !rows[0].Table.Columns.Contains(KEY_OWNER)) return base.GetFields(table, rows);
@@ -890,7 +907,7 @@ namespace XCode.DataAccessLayer
         String GetColumnComment(String tableName, String columnName, IDictionary<String, DataTable> data)
         {
             var dt = data?["ColumnComment"];
-            if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             var where = $"{_.TalbeName}='{tableName}' AND {_.ColumnName}='{columnName}'";
             var drs = dt.Select(where);
@@ -1010,7 +1027,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "RAW({0})", "BFILE", "BLOB", "LONG RAW" } },
             { typeof(Boolean), new String[] { "NUMBER(1,0)" } },

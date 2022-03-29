@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -37,9 +38,7 @@ namespace NewLife.Serialization
             };
             //list.Add(new JsonDictionary { Host = this });
             // 根据优先级排序
-            list.Sort();
-
-            Handlers = list;
+            Handlers = list.OrderBy(e => e.Priority).ToList();
         }
         #endregion
 
@@ -54,7 +53,7 @@ namespace NewLife.Serialization
                 handler.Host = this;
                 Handlers.Add(handler);
                 // 根据优先级排序
-                (Handlers as List<IJsonHandler>).Sort();
+                Handlers = Handlers.OrderBy(e => e.Priority).ToList();
             }
 
             return this;

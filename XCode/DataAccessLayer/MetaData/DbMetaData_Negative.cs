@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Security;
 
@@ -56,7 +57,7 @@ namespace XCode.DataAccessLayer
      *              CheckAndGetDefaultDateTimeNow
      */
 
-    partial class DbMetaData
+    internal partial class DbMetaData
     {
         #region 属性
         private String ConnName => Database.ConnName;
@@ -81,7 +82,7 @@ namespace XCode.DataAccessLayer
             CheckAllTables(tables, mode, dbExist);
         }
 
-        Boolean? hasCheckedDatabase;
+        private Boolean? hasCheckedDatabase;
         private Boolean CheckDatabase(Migration mode)
         {
             if (hasCheckedDatabase != null) return hasCheckedDatabase.Value;
@@ -123,32 +124,25 @@ namespace XCode.DataAccessLayer
 
         private void CheckAllTables(IDataTable[] tables, Migration mode, Boolean dbExit)
         {
-            // 数据库表进入字典
-            //var dic = new Dictionary<String, IDataTable>(StringComparer.OrdinalIgnoreCase);
             IList<IDataTable> dbtables = null;
             if (dbExit)
             {
-                dbtables = OnGetTables(tables.Select(t => t.TableName).ToArray());
-                //if (dbtables != null && dbtables.Count > 0)
-                //{
-                //    foreach (var item in dbtables)
-                //    {
-                //        //dic.Add(item.TableName, item);
-                //        dic[item.TableName] = item;
-                //    }
-                //}
+                var tableNames = tables.Select(e => FormatName(e, false)).ToArray();
+                WriteLog("[{0}]待检查数据表：{1}", Database.ConnName, tableNames.Join());
+                dbtables = OnGetTables(tableNames);
             }
 
             foreach (var item in tables)
             {
                 try
                 {
+                    var name = FormatName(item, false);
+
                     // 在MySql中，可能存在同名表（大小写不一致），需要先做确定查找，再做不区分大小写的查找
-                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == item.TableName);
-                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(item.TableName));
+                    var dbtable = dbtables?.FirstOrDefault(e => e.TableName == name);
+                    if (dbtable == null) dbtable = dbtables?.FirstOrDefault(e => e.TableName.EqualIgnoreCase(name));
 
                     // 判断指定表是否存在于数据库中，以决定是创建表还是修改表
-                    //if (dic.TryGetValue(item.TableName, out var dbtable))
                     if (dbtable != null)
                         CheckTable(item, dbtable, mode);
                     else
@@ -167,7 +161,7 @@ namespace XCode.DataAccessLayer
             if (dbtable == null)
             {
                 // 没有字段的表不创建
-                if (entitytable.Columns.Count < 1) return;
+                if (entitytable.Columns.Count <= 0) return;
 
                 WriteLog("创建表：{0}({1})", entitytable.TableName, entitytable.Description);
 
@@ -336,6 +330,7 @@ namespace XCode.DataAccessLayer
             var edis = entitytable.Indexes;
             if (edis != null)
             {
+                var ids = new List<String>();
                 foreach (var item in edis.ToArray())
                 {
                     if (item.PrimaryKey) continue;
@@ -348,7 +343,16 @@ namespace XCode.DataAccessLayer
                     // 如果索引全部就是主键，无需创建索引
                     if (entitytable.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 
-                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    // 索引不能重复，不缺分大小写，但字段相同而顺序不同，算作不同索引
+                    var key = item.Columns.Join(",").ToLower();
+                    if (ids.Contains(key))
+                        WriteLog("[{0}]索引重复 {1}({2})", entitytable.TableName, item.Name, item.Columns.Join(","));
+                    else
+                    {
+                        ids.Add(key);
+
+                        PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    }
 
                     if (di == null)
                         edis.Add(item.Clone(dbtable));
@@ -645,13 +649,23 @@ namespace XCode.DataAccessLayer
             // 加上索引
             if (table.Indexes != null)
             {
+                var ids = new List<String>();
                 foreach (var item in table.Indexes)
                 {
                     if (item.PrimaryKey) continue;
                     // 如果索引全部就是主键，无需创建索引
                     if (table.GetColumns(item.Columns).All(e => e.PrimaryKey)) continue;
 
-                    PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    // 索引不能重复，不缺分大小写，但字段相同而顺序不同，算作不同索引
+                    var key = item.Columns.Join(",").ToLower();
+                    if (ids.Contains(key))
+                        WriteLog("[{0}]索引重复 {1}({2})", table.TableName, item.Name, item.Columns.Join(","));
+                    else
+                    {
+                        ids.Add(key);
+
+                        PerformSchema(sb, onlySql, DDLSchema.CreateIndex, item);
+                    }
                 }
             }
         }
@@ -668,17 +682,14 @@ namespace XCode.DataAccessLayer
             {
                 case DDLSchema.CreateDatabase:
                     return CreateDatabaseSQL((String)values[0], (String)values[1]);
-                //case DDLSchema.DropDatabase:
-                //    return DropDatabaseSQL((String)values[0]);
+                case DDLSchema.DropDatabase:
+                    return DropDatabaseSQL((String)values[0]);
                 case DDLSchema.DatabaseExist:
-                    return DatabaseExistSQL(values == null || values.Length < 1 ? null : (String)values[0]);
+                    return DatabaseExistSQL(values == null || values.Length <= 0 ? null : (String)values[0]);
                 case DDLSchema.CreateTable:
                     return CreateTableSQL((IDataTable)values[0]);
-                //case DDLSchema.DropTable:
-                //    if (values[0] is IDataTable)
-                //        return DropTableSQL((IDataTable)values[0]);
-                //    else
-                //        return DropTableSQL(values[0].ToString());
+                case DDLSchema.DropTable:
+                    return DropTableSQL((IDataTable)values[0]);
                 //case DDLSchema.TableExist:
                 //    if (values[0] is IDataTable)
                 //        return TableExistSQL((IDataTable)values[0]);
@@ -702,8 +713,8 @@ namespace XCode.DataAccessLayer
                     return CreateIndexSQL((IDataIndex)values[0]);
                 case DDLSchema.DropIndex:
                     return DropIndexSQL((IDataIndex)values[0]);
-                //case DDLSchema.CompactDatabase:
-                //    return CompactDatabaseSQL();
+                case DDLSchema.CompactDatabase:
+                    return CompactDatabaseSQL();
                 default:
                     break;
             }
@@ -717,33 +728,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual Object SetSchema(DDLSchema schema, params Object[] values)
         {
-            //Object obj = null;
-            //switch (schema)
-            //{
-            //    case DDLSchema.CreateTable:
-            //        //if (MetaDataCollections.Contains(_.Databases))
-            //        //{
-
-            //        //}
-            //        break;
-            //    case DDLSchema.TableExist:
-            //        {
-            //            String name;
-            //            if (values[0] is IDataTable)
-            //                name = (values[0] as IDataTable).TableName;
-            //            else
-            //                name = values[0].ToString();
-
-            //            var dt = GetSchema(_.Tables, new String[] { null, null, name, "TABLE" });
-            //            if (dt == null || dt.Rows == null || dt.Rows.Count < 1) return false;
-            //            return true;
-            //        }
-            //    case DDLSchema.BackupDatabase:
-            //        return Backup((String)values[0], (String)values[1], (Boolean)values[2]);
-            //    default:
-            //        break;
-            //}
-
             var sql = GetSchemaSQL(schema, values);
             if (String.IsNullOrEmpty(sql)) return null;
 
@@ -752,8 +736,8 @@ namespace XCode.DataAccessLayer
             if (/*schema == DDLSchema.TableExist ||*/ schema == DDLSchema.DatabaseExist) return session.QueryCount(sql) > 0;
 
             // 分隔符是分号加换行，如果不想被拆开执行（比如有事务），可以在分号和换行之间加一个空格
-            var sqls = sql.Split(";" + Environment.NewLine);
-            if (sqls == null || sqls.Length < 1) return session.Execute(sql);
+            var sqls = sql.Split(new[] { ";" + Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            if (sqls == null || sqls.Length <= 1) return session.Execute(sql);
 
             session.BeginTransaction(IsolationLevel.Serializable);
             try
@@ -781,7 +765,35 @@ namespace XCode.DataAccessLayer
         {
             var sb = new StringBuilder();
 
-            //字段名
+            // 字段名
+            sb.AppendFormat("{0} ", FormatName(field));
+
+            String typeName = null;
+            // 如果还是原来的数据库类型，则直接使用
+            //if (Database.DbType == field.Table.DbType) typeName = field.RawType;
+            // 每种数据库的自增差异太大，理应由各自处理，而不采用原始值
+            if (Database.Type == field.Table.DbType && !field.Identity) typeName = field.RawType;
+
+            if (String.IsNullOrEmpty(typeName)) typeName = GetFieldType(field);
+
+            sb.Append(typeName);
+
+            // 约束
+            sb.Append(GetFieldConstraints(field, onlyDefine));
+
+            return sb.ToString();
+        }
+
+        /// <summary>字段片段</summary>
+        /// <param name="table">表</param>
+        /// <param name="index">序号</param>
+        /// <param name="onlyDefine">仅仅定义。定义操作才允许设置自增和使用默认值</param>
+        /// <returns></returns>
+        public virtual String FieldClause(IDataTable table, Int32 index, Boolean onlyDefine)
+        {
+            var sb = new StringBuilder();
+            var field = table.Columns[index];
+            // 字段名
             sb.AppendFormat("{0} ", FormatName(field));
 
             String typeName = null;
@@ -806,7 +818,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         protected virtual String GetFieldConstraints(IDataColumn field, Boolean onlyDefine)
         {
-            if (field.PrimaryKey && field.Table.PrimaryKeys.Length < 2) return " Primary Key";
+            if (field.PrimaryKey && field.Table.PrimaryKeys.Length <= 1) return " Primary Key";
 
             // 是否为空
             var str = field.Nullable ? " NULL" : " NOT NULL";
@@ -834,6 +846,8 @@ namespace XCode.DataAccessLayer
                 return " DEFAULT 0";
             else if (field.DataType == typeof(DateTime))
                 return " DEFAULT '0001-01-01'";
+            else if (field.DataType == typeof(String))
+                return " DEFAULT ''";
 
             return null;
         }
@@ -848,16 +862,16 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateTableSQL(IDataTable table)
         {
-            var fs = new List<IDataColumn>(table.Columns);
+            //var fs = new List<IDataColumn>(table.Columns);
             var sb = new StringBuilder();
 
             sb.AppendFormat("Create Table {0}(", FormatName(table));
-            for (var i = 0; i < fs.Count; i++)
+            for (var i = 0; i < table.Columns.Count; i++)
             {
                 sb.AppendLine();
                 sb.Append('\t');
-                sb.Append(FieldClause(fs[i], true));
-                if (i < fs.Count - 1) sb.Append(',');
+                sb.Append(FieldClause(table, i, true));
+                if (i < table.Columns.Count - 1) sb.Append(',');
             }
             sb.AppendLine();
             sb.Append(')');
@@ -885,7 +899,7 @@ namespace XCode.DataAccessLayer
 
         public virtual String CreateIndexSQL(IDataIndex index)
         {
-            var sb = new StringBuilder();
+            var sb = Pool.StringBuilder.Get();
             if (index.Unique)
                 sb.Append("Create Unique Index ");
             else
@@ -895,18 +909,18 @@ namespace XCode.DataAccessLayer
             var dcs = index.Table.GetColumns(index.Columns);
             sb.AppendFormat(" On {0} ({1})", FormatName(index.Table), dcs.Join(",", FormatName));
 
-            return sb.ToString();
+            return sb.Put(true);
         }
 
         public virtual String DropIndexSQL(IDataIndex index) => $"Drop Index {index.Name} On {FormatName(index.Table)}";
 
-        //public virtual String CompactDatabaseSQL() => null;
+        public virtual String CompactDatabaseSQL() => null;
         #endregion
 
         #region 操作
-        public virtual String Backup(String dbname, String bakfile, Boolean compressed) => throw new NotImplementedException();
+        public virtual String Backup(String dbname, String bakfile, Boolean compressed) => null;
 
-        public virtual Int32 CompactDatabase() => throw new NotImplementedException();
+        public virtual Int32 CompactDatabase() => -1;
         #endregion
     }
 }

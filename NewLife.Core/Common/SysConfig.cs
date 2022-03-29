@@ -90,6 +90,9 @@ namespace NewLife.Common
             {
                 try
                 {
+                    var asm = AssemblyX.Entry;
+                    if (asm != null) return asm;
+
                     var list = AssemblyX.GetMyAssemblies();
 
                     // 最后编译那一个
@@ -98,6 +101,7 @@ namespace NewLife.Common
                         .ToList();
 
                     return list.FirstOrDefault();
+
                 }
                 catch { return null; }
             }

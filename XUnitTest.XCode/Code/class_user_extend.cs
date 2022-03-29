@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -36,6 +36,9 @@ namespace XCode.Code
         /// <summary>代码。身份证、员工编号等</summary>
         public String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        public Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         public String Avatar { get; set; }
 
@@ -54,6 +57,12 @@ namespace XCode.Code
         /// <summary>启用</summary>
         public Boolean Enable { get; set; }
 
+        /// <summary>年龄。周岁</summary>
+        public Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        public DateTime Birthday { get; set; }
+
         /// <summary>登录次数</summary>
         public Int32 Logins { get; set; }
 
@@ -68,6 +77,9 @@ namespace XCode.Code
 
         /// <summary>注册IP</summary>
         public String RegisterIP { get; set; }
+
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        public Int32 OnlineTime { get; set; }
 
         /// <summary>扩展1</summary>
         public Int32 Ex1 { get; set; }
@@ -86,18 +98,6 @@ namespace XCode.Code
 
         /// <summary>扩展6</summary>
         public String Ex6 { get; set; }
-
-        /// <summary>更新者</summary>
-        public String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        public Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        public String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        public DateTime UpdateTime { get; set; }
 
         /// <summary>备注</summary>
         public String Remark { get; set; }
@@ -121,27 +121,27 @@ namespace XCode.Code
                     case "Mail": return Mail;
                     case "Mobile": return Mobile;
                     case "Code": return Code;
+                    case "AreaId": return AreaId;
                     case "Avatar": return Avatar;
                     case "RoleID": return RoleID;
                     case "RoleIds": return RoleIds;
                     case "DepartmentID": return DepartmentID;
                     case "Online": return Online;
                     case "Enable": return Enable;
+                    case "Age": return Age;
+                    case "Birthday": return Birthday;
                     case "Logins": return Logins;
                     case "LastLogin": return LastLogin;
                     case "LastLoginIP": return LastLoginIP;
                     case "RegisterTime": return RegisterTime;
                     case "RegisterIP": return RegisterIP;
+                    case "OnlineTime": return OnlineTime;
                     case "Ex1": return Ex1;
                     case "Ex2": return Ex2;
                     case "Ex3": return Ex3;
                     case "Ex4": return Ex4;
                     case "Ex5": return Ex5;
                     case "Ex6": return Ex6;
-                    case "UpdateUser": return UpdateUser;
-                    case "UpdateUserID": return UpdateUserID;
-                    case "UpdateIP": return UpdateIP;
-                    case "UpdateTime": return UpdateTime;
                     case "Remark": return Remark;
                     default: throw new KeyNotFoundException($"{name} not found");
                 }
@@ -158,27 +158,27 @@ namespace XCode.Code
                     case "Mail": Mail = Convert.ToString(value); break;
                     case "Mobile": Mobile = Convert.ToString(value); break;
                     case "Code": Code = Convert.ToString(value); break;
+                    case "AreaId": AreaId = value.ToInt(); break;
                     case "Avatar": Avatar = Convert.ToString(value); break;
                     case "RoleID": RoleID = value.ToInt(); break;
                     case "RoleIds": RoleIds = Convert.ToString(value); break;
                     case "DepartmentID": DepartmentID = value.ToInt(); break;
                     case "Online": Online = value.ToBoolean(); break;
                     case "Enable": Enable = value.ToBoolean(); break;
+                    case "Age": Age = value.ToInt(); break;
+                    case "Birthday": Birthday = value.ToDateTime(); break;
                     case "Logins": Logins = value.ToInt(); break;
                     case "LastLogin": LastLogin = value.ToDateTime(); break;
                     case "LastLoginIP": LastLoginIP = Convert.ToString(value); break;
                     case "RegisterTime": RegisterTime = value.ToDateTime(); break;
                     case "RegisterIP": RegisterIP = Convert.ToString(value); break;
+                    case "OnlineTime": OnlineTime = value.ToInt(); break;
                     case "Ex1": Ex1 = value.ToInt(); break;
                     case "Ex2": Ex2 = value.ToInt(); break;
                     case "Ex3": Ex3 = value.ToDouble(); break;
                     case "Ex4": Ex4 = Convert.ToString(value); break;
                     case "Ex5": Ex5 = Convert.ToString(value); break;
                     case "Ex6": Ex6 = Convert.ToString(value); break;
-                    case "UpdateUser": UpdateUser = Convert.ToString(value); break;
-                    case "UpdateUserID": UpdateUserID = value.ToInt(); break;
-                    case "UpdateIP": UpdateIP = Convert.ToString(value); break;
-                    case "UpdateTime": UpdateTime = value.ToDateTime(); break;
                     case "Remark": Remark = Convert.ToString(value); break;
                     default: throw new KeyNotFoundException($"{name} not found");
                 }
@@ -199,27 +199,27 @@ namespace XCode.Code
             Mail = model.Mail;
             Mobile = model.Mobile;
             Code = model.Code;
+            AreaId = model.AreaId;
             Avatar = model.Avatar;
             RoleID = model.RoleID;
             RoleIds = model.RoleIds;
             DepartmentID = model.DepartmentID;
             Online = model.Online;
             Enable = model.Enable;
+            Age = model.Age;
+            Birthday = model.Birthday;
             Logins = model.Logins;
             LastLogin = model.LastLogin;
             LastLoginIP = model.LastLoginIP;
             RegisterTime = model.RegisterTime;
             RegisterIP = model.RegisterIP;
+            OnlineTime = model.OnlineTime;
             Ex1 = model.Ex1;
             Ex2 = model.Ex2;
             Ex3 = model.Ex3;
             Ex4 = model.Ex4;
             Ex5 = model.Ex5;
             Ex6 = model.Ex6;
-            UpdateUser = model.UpdateUser;
-            UpdateUserID = model.UpdateUserID;
-            UpdateIP = model.UpdateIP;
-            UpdateTime = model.UpdateTime;
             Remark = model.Remark;
         }
         #endregion

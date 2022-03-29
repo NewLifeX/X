@@ -1,5 +1,4 @@
-﻿#if !NET40
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -39,7 +38,10 @@ namespace NewLife.IO
 
             FileName = fileName;
 
-            _zip = ZipFile.OpenRead(fileName.GetFullPath());
+            //_zip = ZipFile.OpenRead(fileName.GetFullPath());
+            // 共享访问，避免文件被其它进程打开时再次访问抛出异常
+            var fs = new FileStream(fileName.GetFullPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            _zip = new ZipArchive(fs, ZipArchiveMode.Read, true);
 
             Parse();
         }
@@ -86,14 +88,11 @@ namespace NewLife.IO
 
             // 读取sheet
             {
-                _entries = _zip.Entries.Where(e =>
-                    e.FullName.StartsWithIgnoreCase("xl/worksheets/") &&
-                    e.Name.EndsWithIgnoreCase(".xml"))
-                    .ToDictionary(e => e.Name.TrimEnd(".xml"), e => e);
+                _entries = ReadSheets(_zip);
             }
         }
 
-        private static DateTime _1900 = new DateTime(1900, 1, 1);
+        private static DateTime _1900 = new(1900, 1, 1);
 
         /// <summary>逐行读取数据，第一行很可能是表头</summary>
         /// <param name="sheet">工作表名。一般是sheet1/sheet2/sheet3，默认空，使用第一个数据表</param>
@@ -136,9 +135,9 @@ namespace NewLife.IO
                             var si = s.Value.ToInt();
                             if (si < _styles.Length && _styles[si] != null && _styles[si].StartsWith("yy"))
                             {
-                                if (val.Contains("."))
+                                if (val.Contains('.'))
                                 {
-                                    var ss = val.Split(".");
+                                    var ss = val.Split('.');
                                     var dt = _1900.AddDays(ss[0].ToInt() - 2);
                                     dt = dt.AddSeconds(ss[1].ToLong() / 115740);
                                     val = dt.ToFullString();
@@ -179,11 +178,14 @@ namespace NewLife.IO
 
             var fmts = new Dictionary<Int32, String>();
             var numFmts = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "numFmts");
-            foreach (var item in numFmts.Elements())
+            if (numFmts != null)
             {
-                var id = item.Attribute("numFmtId").Value.ToInt();
-                var code = item.Attribute("formatCode").Value;
-                fmts.Add(id, code);
+                foreach (var item in numFmts.Elements())
+                {
+                    var id = item.Attribute("numFmtId").Value.ToInt();
+                    var code = item.Attribute("formatCode").Value;
+                    fmts.Add(id, code);
+                }
             }
 
             var list = new List<String>();
@@ -199,7 +201,48 @@ namespace NewLife.IO
 
             return list.ToArray();
         }
+
+        private IDictionary<String, ZipArchiveEntry> ReadSheets(ZipArchive zip)
+        {
+            var dic = new Dictionary<String, String>();
+
+            var entry = _zip.GetEntry("xl/workbook.xml");
+            if (entry != null)
+            {
+                var doc = XDocument.Load(entry.Open());
+
+                var list = new List<String>();
+                var sheets = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "sheets");
+                if (sheets != null)
+                {
+                    foreach (var item in sheets.Elements())
+                    {
+                        var id = item.Attribute("sheetId").Value;
+                        var name = item.Attribute("name").Value;
+                        dic[id] = name;
+                    }
+                }
+            }
+
+            //_entries = _zip.Entries.Where(e =>
+            //    e.FullName.StartsWithIgnoreCase("xl/worksheets/") &&
+            //    e.Name.EndsWithIgnoreCase(".xml"))
+            //    .ToDictionary(e => e.Name.TrimEnd(".xml"), e => e);
+
+            var dic2 = new Dictionary<String, ZipArchiveEntry>();
+            foreach (var item in zip.Entries)
+            {
+                if (item.FullName.StartsWithIgnoreCase("xl/worksheets/") && item.Name.EndsWithIgnoreCase(".xml"))
+                {
+                    var name = item.Name.TrimEnd(".xml");
+                    if (dic.TryGetValue(name.TrimStart("sheet"), out var str)) name = str;
+
+                    dic2[name] = item;
+                }
+            }
+
+            return dic2;
+        }
         #endregion
     }
 }
-#endif

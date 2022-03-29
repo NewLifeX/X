@@ -315,7 +315,7 @@ namespace XCode
                 if (includeSelf || item != entity) list.Add(item);
 
                 var childs = item.Childs;
-                if (childs == null || childs.Count < 1) continue;
+                if (childs == null || childs.Count <= 0) continue;
 
                 // 反向入队
                 for (var i = childs.Count - 1; i >= 0; i--)
@@ -371,7 +371,7 @@ namespace XCode
         {
             if (String.IsNullOrEmpty(path)) return null;
 
-            if (keys == null || keys.Length < 1)
+            if (keys == null || keys.Length <= 0)
             {
                 if (String.IsNullOrEmpty(Setting.Name)) return null;
 
@@ -380,14 +380,14 @@ namespace XCode
 
             //var list = Childs;
             var list = FindChilds();
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             //// 尝试一次性查找
             //TEntity entity = list.Find(name, path);
             //if (entity != null) return entity;
 
             var ss = path.Split(new Char[] { '.', '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return null;
+            if (ss == null || ss.Length <= 0) return null;
 
             // 找第一级
             TEntity entity = null;
@@ -440,7 +440,7 @@ namespace XCode
         public String GetFullPath(Boolean includeSelf = true, String separator = @"\", Func<TEntity, String> func = null)
         {
             var list = FindAllParents(this, includeSelf);
-            if (list == null || list.Count < 1) return null;
+            if (list == null || list.Count <= 0) return null;
 
             var namekey = Setting.Name;
 
@@ -465,7 +465,7 @@ namespace XCode
         public virtual void ClearRelation()
         {
             var list = Childs;
-            if (list == null || list.Count < 1) return;
+            if (list == null || list.Count <= 0) return;
 
             foreach (var item in list)
             {
@@ -507,7 +507,7 @@ namespace XCode
         public void Up()
         {
             var list = FindAllByParent((TKey)this[Setting.Parent]);
-            if (list == null || list.Count < 1) return;
+            if (list == null || list.Count <= 0) return;
 
             var n = Setting.BigSort ? 1 : -1;
 
@@ -527,7 +527,7 @@ namespace XCode
         public void Down()
         {
             var list = FindAllByParent((TKey)this[Setting.Parent]);
-            if (list == null || list.Count < 1) return;
+            if (list == null || list.Count <= 0) return;
 
             var n = Setting.BigSort ? 1 : -1;
 

@@ -203,7 +203,7 @@ namespace XCode.DataAccessLayer
         //    return Database.FormatName(name);
         //}
 
-        protected String FormatName(IDataTable table) => Database.FormatName(table);
+        protected String FormatName(IDataTable table, Boolean formatKeyword = true) => Database.FormatName(table, formatKeyword);
 
         protected String FormatName(IDataColumn column) => Database.FormatName(column);
         #endregion

@@ -21,7 +21,13 @@ namespace XCode.DataAccessLayer
         #region 构架
         /// <summary>取得表模型，正向工程</summary>
         /// <returns></returns>
-        List<IDataTable> GetTables();
+        IList<IDataTable> GetTables();
+
+        /// <summary>
+        /// 取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        IList<String> GetTableNames();
 
         /// <summary>设置表模型，检查数据表是否匹配表模型，反向工程</summary>
         /// <param name="setting">设置</param>

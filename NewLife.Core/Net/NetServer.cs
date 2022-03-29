@@ -13,9 +13,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -45,7 +42,7 @@ namespace NewLife.Net
         /// <summary>服务名</summary>
         public String Name { get; set; }
 
-        private NetUri _Local = new NetUri();
+        private NetUri _Local = new();
         /// <summary>本地结点</summary>
         public NetUri Local
         {
@@ -108,7 +105,7 @@ namespace NewLife.Net
         /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
         public X509Certificate Certificate { get; set; }
 
-        /// <summary>APM跟踪器</summary>
+        /// <summary>APM性能追踪器</summary>
         public ITracer Tracer { get; set; }
 
         /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
@@ -216,6 +213,7 @@ namespace NewLife.Net
             if (SocketLog != null) server.Log = SocketLog;
             server.LogSend = LogSend;
             server.LogReceive = LogReceive;
+            server.Tracer = Tracer;
 
             server.Error += OnError;
 
@@ -384,7 +382,7 @@ namespace NewLife.Net
             if (ns is NetSession ns2)
             {
                 ns2.ID = Interlocked.Increment(ref _sessionID);
-                ns2.Log = SessionLog ?? Log;
+                ns2.Log = SessionLog;
             }
             ns.Host = this;
             ns.Server = session.Server;
@@ -408,6 +406,7 @@ namespace NewLife.Net
             var session = sender as INetSession;
 
             OnReceive(session, e.Packet);
+            OnReceive(session, e);
 
             Received?.Invoke(sender, e);
         }
@@ -416,6 +415,11 @@ namespace NewLife.Net
         /// <param name="session"></param>
         /// <param name="pk"></param>
         protected virtual void OnReceive(INetSession session, Packet pk) { }
+
+        /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
+        protected virtual void OnReceive(INetSession session, ReceivedEventArgs e) { }
 
         /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
         public event EventHandler<ExceptionEventArgs> Error;
@@ -432,7 +436,7 @@ namespace NewLife.Net
         #endregion
 
         #region 会话
-        private ConcurrentDictionary<Int32, INetSession> _Sessions = new ConcurrentDictionary<Int32, INetSession>();
+        private ConcurrentDictionary<Int32, INetSession> _Sessions = new();
         /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
         public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
@@ -488,10 +492,53 @@ namespace NewLife.Net
             var ts = new List<Task>();
             foreach (var item in Sessions)
             {
-                ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+                ts.Add(Task.Run(() => item.Value.Send(data)));
             }
 
-            return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
+        }
+
+        /// <summary>异步群发数据给所有客户端</summary>
+        /// <param name="data"></param>
+        /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var ts = new List<Task>();
+            foreach (var item in Sessions)
+            {
+                if (predicate == null || predicate(item.Value))
+                    ts.Add(Task.Run(() => item.Value.Send(data)));
+            }
+
+            return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
+        }
+
+        /// <summary>群发管道消息给所有客户端。支持协议编码</summary>
+        /// <param name="message">应用消息，底层对其进行协议编码</param>
+        /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
+        /// <returns>已群发客户端总数</returns>
+        public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean> predicate = null)
+        {
+            if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+
+            var count = 0;
+            foreach (var item in Sessions)
+            {
+                if (predicate == null || predicate(item.Value))
+                {
+                    try
+                    {
+                        item.Value.SendMessage(message);
+                        count++;
+                    }
+                    catch { }
+                }
+            }
+
+            return count;
         }
         #endregion
 
@@ -502,7 +549,7 @@ namespace NewLife.Net
         /// <param name="protocol"></param>
         /// <param name="family"></param>
         /// <returns></returns>
-        protected static ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
+        protected ISocketServer[] CreateServer(IPAddress address, Int32 port, NetType protocol, AddressFamily family)
         {
             switch (protocol)
             {
@@ -530,7 +577,7 @@ namespace NewLife.Net
             }
         }
 
-        static ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
+        ISocketServer[] CreateServer<TServer>(IPAddress address, Int32 port, AddressFamily family) where TServer : ISocketServer, new()
         {
             var list = new List<ISocketServer>();
             switch (family)
@@ -544,6 +591,7 @@ namespace NewLife.Net
                         svr.Local.Address = addr;
                         svr.Local.Port = port;
                         //svr.AddressFamily = family;
+                        svr.Tracer = Tracer;
 
                         // 协议端口不能是已经被占用
                         if (!svr.Local.CheckPort()) list.Add(svr);
@@ -629,7 +677,7 @@ namespace NewLife.Net
         public override String ToString()
         {
             var servers = Servers;
-            if (servers == null || servers.Count < 1) return Name;
+            if (servers == null || servers.Count <= 0) return Name;
 
             if (servers.Count == 1) return Name + " " + servers[0].ToString();
 

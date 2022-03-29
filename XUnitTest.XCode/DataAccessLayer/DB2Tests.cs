@@ -2,6 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NewLife;
+using NewLife.Log;
+using NewLife.Security;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
@@ -12,7 +15,7 @@ namespace XUnitTest.XCode.DataAccessLayer
     {
         private static String _ConnStr = "Database=localhost;Uid=myUsername;Pwd=myPassword;";
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void LoadDllTest()
         {
             var file = "Plugins\\IBM.Data.DB2.Core.dll".GetFullPath();
@@ -27,7 +30,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(type);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void InitTest()
         {
             var db = DbFactory.Create(DatabaseType.DB2);
@@ -49,7 +52,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotNull(dp);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void ConnectTest()
         {
             var db = DbFactory.Create(DatabaseType.DB2);
@@ -60,7 +63,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             conn.Open();
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void DALTest()
         {
             DAL.AddConnStr("db2", _ConnStr, null, "db2");
@@ -78,7 +81,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.NotEmpty(ver);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void MetaTest()
         {
             DAL.AddConnStr("db2", _ConnStr, null, "db2");
@@ -89,7 +92,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.True(tables.Count > 0);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void SelectTest()
         {
             //DAL.AddConnStr("Membership", _ConnStr, null, "db2");
@@ -114,6 +117,33 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             // 来个耗时操作，把前面堵住
             Area.FetchAndSave();
+        }
+
+        [Fact(Skip = "跳过")]
+        public void PositiveAndNegative()
+        {
+            var connName = GetType().Name;
+            DAL.AddConnStr(connName, _ConnStr, null, "DB2");
+            var dal = DAL.Create(connName);
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
         }
     }
 }

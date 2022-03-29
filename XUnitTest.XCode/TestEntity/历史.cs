@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using XCode;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 
-namespace STOD.Entity
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>历史</summary>
     [Serializable]

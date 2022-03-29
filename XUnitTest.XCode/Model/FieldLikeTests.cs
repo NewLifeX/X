@@ -20,109 +20,120 @@ namespace XUnitTest.XCode.Model
         [Fact]
         public void Contains()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.Contains(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.Contains("dmi");
             var where = exp.GetString(_dbUser, null);
-            Assert.Equal("RoleIds Like '%,1,2,3,%'", where);
+            Assert.Equal("Name Like '%dmi%'", where);
 
-            Assert.Equal("RoleIds Like '%,1,2,3,%'", exp);
+            Assert.Equal("Name Like '%dmi%'", exp);
         }
 
         [Fact]
         public void ContainsWithParameter()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.Contains(",1,");
+            var fi = User._.Name;
+            var exp = fi.Contains("dmi");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
-            Assert.Equal("RoleIds Like @RoleIds", where);
+            Assert.Equal("Name Like '%@Name%'", where);
 
-            Assert.Equal("RoleIds Like '%,1,%'", exp);
+            Assert.Equal("Name Like '%dmi%'", exp);
 
             Assert.Single(ps);
-            Assert.True(ps.ContainsKey("RoleIds"));
-            Assert.Equal("%,1,%", ps["RoleIds"]);
+            Assert.True(ps.ContainsKey("Name"));
+            Assert.Equal("dmi", ps["Name"]);
         }
 
         [Fact]
         public void NotContains()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.NotContains(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.NotContains("dmi");
             var where = exp.GetString(_dbUser, null);
-            Assert.Equal("RoleIds Not Like '%,1,2,3,%'", where);
+            Assert.Equal("Name Not Like '%dmi%'", where);
 
-            Assert.Equal("RoleIds Not Like '%,1,2,3,%'", exp);
+            Assert.Equal("Name Not Like '%dmi%'", exp);
         }
 
         [Fact]
         public void NotContainsWithParameter()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.NotContains(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.NotContains("dmi");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
-            Assert.Equal("RoleIds Not Like @RoleIds", where);
+            Assert.Equal("Name Not Like '%@Name%'", where);
 
-            Assert.Equal("RoleIds Not Like '%,1,2,3,%'", exp);
+            Assert.Equal("Name Not Like '%dmi%'", exp);
 
             Assert.Single(ps);
-            Assert.True(ps.ContainsKey("RoleIds"));
-            Assert.Equal("%,1,2,3,%", ps["RoleIds"]);
+            Assert.True(ps.ContainsKey("Name"));
+            Assert.Equal("dmi", ps["Name"]);
         }
 
         [Fact]
         public void StartsWith()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.StartsWith(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.StartsWith("dmi");
             var where = exp.GetString(_dbUser, null);
-            Assert.Equal("RoleIds Like ',1,2,3,%'", where);
+            Assert.Equal("Name Like 'dmi%'", where);
 
-            Assert.Equal("RoleIds Like ',1,2,3,%'", exp);
+            Assert.Equal("Name Like 'dmi%'", exp);
         }
 
         [Fact]
         public void StartsWithWithParameter()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.StartsWith(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.StartsWith("dmi");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
-            Assert.Equal("RoleIds Like @RoleIds", where);
+            Assert.Equal("Name Like '@Name%'", where);
 
-            Assert.Equal("RoleIds Like ',1,2,3,%'", exp);
+            Assert.Equal("Name Like 'dmi%'", exp);
 
             Assert.Single(ps);
-            Assert.True(ps.ContainsKey("RoleIds"));
-            Assert.Equal(",1,2,3,%", ps["RoleIds"]);
+            Assert.True(ps.ContainsKey("Name"));
+            Assert.Equal("dmi", ps["Name"]);
+        }
+
+        [Fact]
+        public void StartsWithEscape()
+        {
+            var fi = User._.Name;
+            var exp = fi.StartsWith("dmi/'[]()%&_end");
+            var where = exp.GetString(_dbUser, null);
+            Assert.Equal("Name Like 'dmi//''/[/]/(/)/%/&/_end%'", where);
+
+            Assert.Equal("Name Like 'dmi//''/[/]/(/)/%/&/_end%'", exp);
         }
 
         [Fact]
         public void EndsWith()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.EndsWith(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.EndsWith("dmi");
             var where = exp.GetString(_dbUser, null);
-            Assert.Equal("RoleIds Like '%,1,2,3,'", where);
+            Assert.Equal("Name Like '%dmi'", where);
 
-            Assert.Equal("RoleIds Like '%,1,2,3,'", exp);
+            Assert.Equal("Name Like '%dmi'", exp);
         }
 
         [Fact]
         public void EndsWithWithParameter()
         {
-            var fi = User._.RoleIds;
-            var exp = fi.EndsWith(",1,2,3,");
+            var fi = User._.Name;
+            var exp = fi.EndsWith("dmi");
             var ps = new Dictionary<String, Object>();
             var where = exp.GetString(_dbUser, ps);
-            Assert.Equal("RoleIds Like @RoleIds", where);
+            Assert.Equal("Name Like '%@Name'", where);
 
-            Assert.Equal("RoleIds Like '%,1,2,3,'", exp);
+            Assert.Equal("Name Like '%dmi'", exp);
 
             Assert.Single(ps);
-            Assert.True(ps.ContainsKey("RoleIds"));
-            Assert.Equal("%,1,2,3,", ps["RoleIds"]);
+            Assert.True(ps.ContainsKey("Name"));
+            Assert.Equal("dmi", ps["Name"]);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Serialization
@@ -59,7 +60,7 @@ namespace NewLife.Serialization
 
     /// <summary>序列化处理器接口</summary>
     /// <typeparam name="THost"></typeparam>
-    public interface IHandler<THost> : IComparable<IHandler<THost>> where THost : IFormatterX
+    public interface IHandler<THost> where THost : IFormatterX
     {
         /// <summary>宿主读写器</summary>
         THost Host { get; set; }
@@ -85,30 +86,19 @@ namespace NewLife.Serialization
     {
         #region 属性
         /// <summary>数据流。默认实例化一个内存数据流</summary>
-        public virtual Stream Stream { get; set; }
+        public virtual Stream Stream { get; set; } = new MemoryStream();
 
         /// <summary>主对象</summary>
-        public Stack<Object> Hosts { get; private set; }
+        public Stack<Object> Hosts { get; private set; } = new Stack<Object>();
 
         /// <summary>成员</summary>
         public MemberInfo Member { get; set; }
 
         /// <summary>字符串编码，默认utf-8</summary>
-        public Encoding Encoding { get; set; }
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
 
         /// <summary>序列化属性而不是字段。默认true</summary>
-        public Boolean UseProperty { get; set; }
-        #endregion
-
-        #region 构造
-        /// <summary>实例化</summary>
-        public FormatterBase()
-        {
-            Stream = new MemoryStream();
-            Hosts = new Stack<Object>();
-            Encoding = Encoding.UTF8;
-            UseProperty = true;
-        }
+        public Boolean UseProperty { get; set; } = true;
         #endregion
 
         #region 方法
@@ -119,13 +109,24 @@ namespace NewLife.Serialization
             var ms = Stream;
             var pos = ms.Position;
             var start = 0;
-            if (pos == 0 || pos == start) return new Byte[0];
+            if (pos == 0 || pos == start) return Array.Empty<Byte>();
 
-            if (ms is MemoryStream && pos == ms.Length && start == 0)
-                return (ms as MemoryStream).ToArray();
+            if (ms is MemoryStream ms2 && pos == ms.Length && start == 0)
+                return ms2.ToArray();
 
             ms.Position = start;
-            return ms.ReadBytes(pos - start);
+
+            var buf = new Byte[pos - start];
+            ms.Read(buf, 0, buf.Length);
+            return buf;
+        }
+
+        /// <summary>获取流里面的数据包</summary>
+        /// <returns></returns>
+        public Packet GetPacket()
+        {
+            Stream.Position = 0;
+            return new(Stream);
         }
         #endregion
 
@@ -162,12 +163,6 @@ namespace NewLife.Serialization
         /// <param name="value"></param>
         /// <returns></returns>
         public abstract Boolean TryRead(Type type, ref Object value);
-
-        Int32 IComparable<IHandler<THost>>.CompareTo(IHandler<THost> other)
-        {
-            // 优先级较大在前面
-            return Priority.CompareTo(other.Priority);
-        }
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

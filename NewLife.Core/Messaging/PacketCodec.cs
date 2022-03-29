@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using NewLife.Data;
 using NewLife.Log;
-using NewLife.Threading;
 
 namespace NewLife.Messaging
 {
@@ -28,6 +27,9 @@ namespace NewLife.Messaging
 
         /// <summary>最大缓存待处理数据。默认0无限制</summary>
         public Int32 MaxCache { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         /// <summary>分析数据流，得到一帧数据</summary>
@@ -43,6 +45,8 @@ namespace NewLife.Messaging
             if (nodata)
             {
                 if (pk == null) return list.ToArray();
+
+                //using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
 
                 var idx = 0;
                 while (idx < pk.Total)
@@ -71,6 +75,8 @@ namespace NewLife.Messaging
                 CheckCache();
                 ms = Stream;
 
+                using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData={pk.Total}");
+
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
                 {
@@ -83,7 +89,10 @@ namespace NewLife.Messaging
                 // 尝试解包
                 while (ms.Position < ms.Length)
                 {
-                    var pk2 = new Packet(ms);
+                    // 该方案在NET40/NET45上会导致拷贝大量数据，而读取包头长度没必要拷贝那么多数据，不划算
+                    //var pk2 = new Packet(ms);
+                    // 这里可以肯定能够窃取内部缓冲区
+                    var pk2 = new Packet(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
                     var len = GetLength(pk2);
                     if (len <= 0 || len > pk2.Total) break;
 
@@ -118,6 +127,9 @@ namespace NewLife.Messaging
             var now = DateTime.Now;
             if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
             {
+                using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"Position={ms.Position} Length={ms.Length} MaxCache={MaxCache}");
+                span?.SetError(new Exception("数据包编码器放弃数据"), null);
+
                 if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
 
                 ms.SetLength(0);

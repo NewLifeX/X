@@ -25,19 +25,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET4
-            using (var stream = new DeflateStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new DeflateStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -46,6 +38,7 @@ namespace NewLife
         }
 
         /// <summary>解压缩数据流</summary>
+        /// <returns>Deflate算法，如果是ZLIB格式，则前面多两个字节，解压缩之前去掉，RocketMQ中有用到</returns>
         /// <param name="inStream">输入流</param>
         /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
         /// <remarks>返回输出流，注意此时指针位于末端</remarks>
@@ -76,6 +69,7 @@ namespace NewLife
         }
 
         /// <summary>解压缩字节数组</summary>
+        /// <returns>Deflate算法，如果是ZLIB格式，则前面多两个字节，解压缩之前去掉，RocketMQ中有用到</returns>
         /// <param name="data">字节数组</param>
         /// <returns></returns>
         public static Byte[] Decompress(this Byte[] data)
@@ -94,19 +88,11 @@ namespace NewLife
             var ms = outStream ?? new MemoryStream();
 
             // 第三个参数为true，保持数据流打开，内部不应该干涉外部，不要关闭外部的数据流
-#if NET4
-            using (var stream = new GZipStream(ms, CompressionMode.Compress, true))
-            {
-                inStream.CopyTo(stream);
-                stream.Flush();
-            }
-#else
             using (var stream = new GZipStream(ms, CompressionLevel.Optimal, true))
             {
                 inStream.CopyTo(stream);
                 stream.Flush();
             }
-#endif
 
             // 内部数据流需要把位置指向开头
             if (outStream == null) ms.Position = 0;
@@ -170,7 +156,7 @@ namespace NewLife
         public static Byte[] ReadArray(this Stream des)
         {
             var len = des.ReadEncodedInt();
-            if (len <= 0) return new Byte[0];
+            if (len <= 0) return Array.Empty<Byte>();
 
             // 避免数据错乱超长
             //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
@@ -178,7 +164,9 @@ namespace NewLife
 
             if (len > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, 1024 * 2);
 
-            return des.ReadBytes(len);
+            var buf = new Byte[len];
+            des.Read(buf, 0, buf.Length);
+            return buf;
         }
 
         /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
@@ -212,7 +200,7 @@ namespace NewLife
         /// <returns>返回复制的总字节数</returns>
         public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = -1)
         {
-            if (count == 0) return new Byte[0];
+            if (count == 0) return Array.Empty<Byte>();
 
             // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
             if (count < 0) count = src.Length - offset;
@@ -234,11 +222,7 @@ namespace NewLife
             if (count <= 0) count = src.Length - srcOffset;
             if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
-#if MF
-            Array.Copy(src, srcOffset, dst, dstOffset, count);
-#else
             Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
-#endif
             return count;
         }
         #endregion
@@ -256,7 +240,7 @@ namespace NewLife
         public static Byte[] ReadBytes(this Stream stream, Int64 length = -1)
         {
             if (stream == null) return null;
-            if (length == 0) return new Byte[0];
+            if (length == 0) return Array.Empty<Byte>();
 
             if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
                 throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
@@ -264,9 +248,17 @@ namespace NewLife
             // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
             if (length > 0)
             {
+                //!!! Stream.Read 的官方设计从未承诺填满缓冲区，需要用户自己多次读取
+                // https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+                var p = 0;
                 var buf = new Byte[length];
-                _ = stream.Read(buf, 0, buf.Length);
-                //if (n != buf.Length) buf = buf.ReadBytes(0, n);
+                while (true)
+                {
+                    var n = stream.Read(buf, p, buf.Length - p);
+                    if (n == 0 || p + n == buf.Length) break;
+
+                    p += n;
+                }
                 return buf;
             }
 
@@ -298,7 +290,7 @@ namespace NewLife
             if (encoding == null) encoding = Encoding.UTF8;
 
             var buf = stream.ReadBytes();
-            if (buf == null || buf.Length < 1) return null;
+            if (buf == null || buf.Length <= 0) return null;
 
             // 可能数据流前面有编码字节序列，需要先去掉
             var idx = 0;
@@ -319,7 +311,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
         {
-            if (buf == null || buf.Length < 1 || offset >= buf.Length) return null;
+            if (buf == null || buf.Length <= 0 || offset >= buf.Length) return null;
             if (encoding == null) encoding = Encoding.UTF8;
 
             var size = buf.Length - offset;
@@ -544,6 +536,34 @@ namespace NewLife
             var buf = new Byte[8];
             return buf.Write((UInt64)value, 0, isLittleEndian);
         }
+
+        /// <summary>字节翻转。支持双字节和四字节多批次翻转，主要用于大小端转换</summary>
+        /// <param name="data"></param>
+        /// <param name="swap16"></param>
+        /// <param name="swap32"></param>
+        /// <returns></returns>
+        public static Byte[] Swap(this Byte[] data, Boolean swap16, Boolean swap32)
+        {
+            var buf = new Byte[data.Length];
+            Buffer.BlockCopy(data, 0, buf, 0, data.Length);
+            if (swap16)
+            {
+                for (var i = 0; i < buf.Length - 1; i += 2)
+                {
+                    (buf[i + 1], buf[i]) = (buf[i], buf[i + 1]);
+                }
+            }
+
+            if (swap32)
+            {
+                for (var i = 0; i < buf.Length - 3; i += 4)
+                {
+                    (buf[i + 2], buf[i + 3], buf[i], buf[i + 1]) = (buf[i], buf[i + 1], buf[i + 2], buf[i + 3]);
+                }
+            }
+
+            return buf;
+        }
         #endregion
 
         #region 7位压缩编码整数
@@ -675,7 +695,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (count < 0)
                 count = data.Length - offset;
@@ -704,7 +724,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (groupSize < 0) groupSize = 0;
 
@@ -764,7 +784,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
         {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+            if (String.IsNullOrEmpty(data)) return Array.Empty<Byte>();
 
             // 过滤特殊字符
             data = data.Trim()
@@ -796,7 +816,7 @@ namespace NewLife
         /// <returns></returns>
         public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1, Boolean lineBreak = false)
         {
-            if (data == null || data.Length < 1) return "";
+            if (data == null || data.Length <= 0) return "";
 
             if (count <= 0)
                 count = data.Length - offset;
@@ -824,9 +844,9 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] ToBase64(this String data)
         {
-            if (data.IsNullOrEmpty()) return new Byte[0];
+            if (data.IsNullOrEmpty()) return Array.Empty<Byte>();
 
-            if (data[data.Length - 1] != '=')
+            if (data[^1] != '=')
             {
                 // 如果不是4的整数倍，后面补上等号
                 var n = data.Length % 4;
@@ -837,6 +857,55 @@ namespace NewLife
             data = data.Replace('-', '+').Replace('_', '/');
 
             return Convert.FromBase64String(data);
+        }
+        #endregion
+
+        #region 搜索
+        /// <summary>Boyer Moore 字符串搜索算法，比KMP更快，常用于IDE工具的查找</summary>
+        /// <param name="source"></param>
+        /// <param name="pattern"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static Int32 IndexOf(this Byte[] source, Byte[] pattern, Int32 offset = 0, Int32 count = -1)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+
+            var total = source.Length;
+            var length = pattern.Length;
+
+            if (count > 0 && total > offset + count) total = offset + count;
+            if (total == 0 || length == 0 || length > total) return -1;
+
+            // 初始化坏字符，即不匹配字符
+            var bads = new Int32[256];
+            for (var i = 0; i < 256; i++)
+            {
+                bads[i] = length;
+            }
+
+            // 搜索词每个字母在坏字符中的最小位置
+            var last = length - 1;
+            for (var i = 0; i < last; i++)
+            {
+                bads[pattern[i]] = last - i;
+            }
+
+            var index = offset;
+            while (index <= total - length)
+            {
+                // 尾部开始比较
+                for (var i = last; source[index + i] == pattern[i]; i--)
+                {
+                    if (i == 0) return index;
+                }
+
+                // 坏字符规则：后移位数 = 坏字符的位置 - 搜索词中的上一次出现位置
+                index += bads[source[index + last]];
+            }
+
+            return -1;
         }
         #endregion
     }

@@ -65,6 +65,9 @@ namespace NewLife.Net
         /// <summary>SSL证书。服务端使用</summary>
         /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
         public X509Certificate Certificate { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -103,35 +106,44 @@ namespace NewLife.Net
 
             if (Active || Disposed) return;
 
-            var sock = Client;
-
-            // 开始监听
-            //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
-
-            WriteLog("Start {0}", this);
-
-            // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
-            // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
-            //Server.Start();
-            sock.Bind(Local.EndPoint);
-            //sock.Listen(Int32.MaxValue);
-            sock.Listen(65535);
-
-            if (Runtime.Windows)
+            using var span = Tracer?.NewSpan($"net:{Name}:Start");
+            try
             {
-                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+                var sock = Client;
+
+                // 开始监听
+                //if (Server == null) Server = new TcpListener(Local.EndPoint);
+                if (sock == null) Client = sock = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+
+                WriteLog("Start {0}", this);
+
+                // 三次握手之后，Accept之前的总连接个数，队列满之后，新连接将得到主动拒绝ConnectionRefused错误
+                // 在我（大石头）的开发机器上，实际上这里的最大值只能是200，大于200跟200一个样
+                //Server.Start();
+                sock.Bind(Local.EndPoint);
+                //sock.Listen(Int32.MaxValue);
+                sock.Listen(65535);
+
+                if (Runtime.Windows)
+                {
+                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+                }
+
+                Active = true;
+
+                for (var i = 0; i < MaxAsync; i++)
+                {
+                    var se = new SocketAsyncEventArgs();
+                    se.Completed += (s, e) => ProcessAccept(e);
+
+                    StartAccept(se, false);
+                }
             }
-
-            Active = true;
-
-            for (var i = 0; i < MaxAsync; i++)
+            catch (Exception ex)
             {
-                var se = new SocketAsyncEventArgs();
-                se.Completed += (s, e) => ProcessAccept(e);
-
-                StartAccept(se, false);
+                span?.SetError(ex, null);
+                throw;
             }
         }
 
@@ -143,13 +155,22 @@ namespace NewLife.Net
 
             WriteLog("Stop {0} {1}", reason, this);
 
-            // 关闭的时候会除非一系列异步回调，提前清空Client
-            Active = false;
+            using var span = Tracer?.NewSpan($"net:{Name}:Stop");
+            try
+            {
+                // 关闭的时候会除非一系列异步回调，提前清空Client
+                Active = false;
 
-            CloseAllSession();
+                CloseAllSession();
 
-            Client.Shutdown();
-            Client = null;
+                Client.Shutdown();
+                Client = null;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
         #endregion
 
@@ -169,6 +190,7 @@ namespace NewLife.Net
                 return false;
             }
 
+            using var span = Tracer?.NewSpan($"net:{Name}:StartAccept");
             var rs = false;
             try
             {
@@ -177,6 +199,8 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, null);
+
                 if (!ex.IsDisposed()) OnError("AcceptAsync", ex);
 
                 if (!io) throw;
@@ -203,6 +227,8 @@ namespace NewLife.Net
                 return;
             }
 
+            using var span = Tracer?.NewSpan($"net:{Name}:ProcessAccept");
+
             // 判断成功失败
             if (se.SocketError != SocketError.Success)
             {
@@ -225,6 +251,8 @@ namespace NewLife.Net
                 }
                 catch (Exception ex)
                 {
+                    span?.SetError(ex, null);
+
                     if (!ex.IsDisposed()) OnError("EndAccept", ex);
                 }
             }
@@ -254,6 +282,7 @@ namespace NewLife.Net
                 // 自动开始异步接收处理
                 session.SslProtocol = SslProtocol;
                 session.Certificate = Certificate;
+                session.Tracer = Tracer;
                 session.Start();
             }
         }
@@ -278,7 +307,8 @@ namespace NewLife.Net
                 Log = Log,
                 LogSend = LogSend,
                 LogReceive = LogReceive,
-                Pipeline = Pipeline
+                Pipeline = Pipeline,
+                Tracer = Tracer,
             };
 
             // 为了降低延迟，服务端不要合并小包

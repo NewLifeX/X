@@ -52,7 +52,7 @@ namespace NewLife.Serialization
 
             while (true)
             {
-                while (reader.NodeType == XmlNodeType.Comment || reader.NodeType == XmlNodeType.Whitespace) reader.Skip();
+                while (reader.NodeType is XmlNodeType.Comment or XmlNodeType.Whitespace) reader.Skip();
                 if (reader.NodeType != XmlNodeType.Element) break;
 
                 var name = reader.Name;
@@ -72,7 +72,7 @@ namespace NewLife.Serialization
 
                 // 遇到下一层节点
                 Object val = null;
-                if (reader.NodeType == XmlNodeType.Element || reader.NodeType == XmlNodeType.Comment)
+                if (reader.NodeType is XmlNodeType.Element or XmlNodeType.Comment)
                     val = ParseObject();
                 else if (reader.NodeType == XmlNodeType.Text)
                     val = reader.ReadContentAsString();

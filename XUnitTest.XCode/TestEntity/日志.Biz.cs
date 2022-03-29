@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -23,7 +23,7 @@ using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 
-namespace XCode.Membership
+namespace XUnitTest.XCode.TestEntity
 {
     /// <summary>日志</summary>
     public partial class Log2 : Entity<Log2>
@@ -111,13 +111,13 @@ namespace XCode.Membership
         {
             if (id <= 0) return null;
 
-            // 实体缓存
-            if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
+            //// 实体缓存
+            //if (Meta.Session.Count < 1000) return Meta.Cache.Find(e => e.ID == id);
 
-            // 单对象缓存
-            return Meta.SingleCache[id];
+            //// 单对象缓存
+            //return Meta.SingleCache[id];
 
-            //return Find(_.ID == id);
+            return Find(_.ID == id);
         }
 
         /// <summary>根据类别查找</summary>
@@ -144,35 +144,38 @@ namespace XCode.Membership
         #endregion
 
         #region 高级查询
-        /// <summary>高级查询</summary>
-        /// <param name="category">类别</param>
-        /// <param name="createUserId">用户编号</param>
-        /// <param name="start">时间开始</param>
-        /// <param name="end">时间结束</param>
-        /// <param name="key">关键字</param>
-        /// <param name="page">分页参数信息。可携带统计和数据权限扩展查询等信息</param>
-        /// <returns>实体列表</returns>
-        public static IList<Log2> Search(String category, Int32 createUserId, DateTime start, DateTime end, String key, PageParameter page)
+        /// <summary>查询</summary>
+        /// <param name="category"></param>
+        /// <param name="action"></param>
+        /// <param name="linkId"></param>
+        /// <param name="success"></param>
+        /// <param name="userid"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="key"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public static IList<Log2> Search(String category, String action, Int32 linkId, Boolean? success, Int32 userid, DateTime start, DateTime end, String key, PageParameter p)
         {
             var exp = new WhereExpression();
 
-            if (!category.IsNullOrEmpty()) exp &= _.Category == category;
-            if (createUserId >= 0) exp &= _.CreateUserID == createUserId;
-            exp &= _.CreateTime.Between(start, end);
-            if (!key.IsNullOrEmpty()) exp &= _.Action.Contains(key) | _.UserName.Contains(key) | _.CreateIP.Contains(key);
+            if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
+            if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
+            if (linkId >= 0) exp &= _.LinkID == linkId;
+            if (success != null) exp &= _.Success == success;
+            if (userid >= 0) exp &= _.CreateUserID == userid;
 
-            return FindAll(exp, page);
+            // 主键带有时间戳
+            var snow = Meta.Factory.Snow;
+            if (snow != null)
+                exp &= _.ID.Between(start, end, snow);
+            else
+                exp &= _.CreateTime.Between(start, end);
+
+            if (!key.IsNullOrEmpty()) exp &= _.Remark.Contains(key);
+
+            return FindAll(exp, p);
         }
-
-        // Select Count(Id) as Id,Category From Log2 Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By Id Desc limit 20
-        static readonly FieldCache<Log2> _CategoryCache = new FieldCache<Log2>(nameof(Category))
-        {
-            //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
-        };
-
-        /// <summary>获取类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
-        /// <returns></returns>
-        public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();
         #endregion
 
         #region 业务操作

@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using NewLife;
 using NewLife.Log;
+using NewLife.Security;
 using NewLife.Serialization;
 using XCode;
 using XCode.DataAccessLayer;
 using XCode.Membership;
 using Xunit;
+using XUnitTest.XCode.TestEntity;
 
 namespace XUnitTest.XCode.DataAccessLayer
 {
@@ -137,7 +141,7 @@ namespace XUnitTest.XCode.DataAccessLayer
             var dbf = db.GetFullPath();
             if (File.Exists(dbf)) File.Delete(dbf);
 
-            DAL.AddConnStr("SQLite_Table_Prefix", $"Data Source={db}", null, "SQLite");
+            DAL.AddConnStr("SQLite_Table_Prefix", $"Data Source={db};TablePrefix=member_", null, "SQLite");
 
             Role.Meta.ConnName = "SQLite_Table_Prefix";
             //Area.Meta.ConnName = "SQLite_Table_Prefix";
@@ -155,6 +159,14 @@ namespace XUnitTest.XCode.DataAccessLayer
 
             var list3 = Role.Search("用户", null);
             Assert.Equal(2, list3.Count);
+
+            User.Meta.ConnName = "SQLite_Table_Prefix";
+            count = User.Meta.Count;
+            Assert.True(count > 0);
+
+            Department.Meta.ConnName = "SQLite_Table_Prefix";
+            count = Department.Meta.Count;
+            Assert.True(count > 0);
 
             // 清理现场
             if (File.Exists(dbf)) File.Delete(dbf);
@@ -273,6 +285,66 @@ namespace XUnitTest.XCode.DataAccessLayer
             Assert.Null(gly2.Remark);
             // 管理员被删除后重新插入，自增ID改变
             Assert.NotEqual(gly.ID, gly2.ID);
+        }
+
+        [Fact]
+        public void PositiveAndNegative()
+        {
+            DAL.AddConnStr("positiveSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("positiveSQLite");
+
+            var table = User.Meta.Table.DataTable.Clone() as IDataTable;
+            table.TableName = $"user_{Rand.Next(1000, 10000)}";
+
+            dal.SetTables(table);
+
+            var tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.Contains(table.TableName, tableNames);
+
+            var tables = dal.Tables;
+            XTrace.WriteLine("tables: {0}", tables.Join());
+            Assert.Contains(tables, t => t.TableName == table.TableName);
+
+            dal.Db.CreateMetaData().SetSchema(DDLSchema.DropTable, table);
+
+            //Thread.Sleep(10000);
+
+            tableNames = dal.GetTableNames();
+            XTrace.WriteLine("tableNames: {0}", tableNames.Join());
+            Assert.DoesNotContain(table.TableName, tableNames);
+        }
+
+        [Fact]
+        public void Backup()
+        {
+            DAL.AddConnStr("bakSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("bakSQLite");
+
+            var meta = dal.Db.CreateMetaData();
+
+            var file = meta.SetSchema(DDLSchema.BackupDatabase) as String;
+            Assert.NotEmpty(file);
+            Assert.True(File.Exists(file));
+            File.Delete(file);
+
+            file = $"bak_{Rand.NextString(8)}.db";
+            var file2 = meta.SetSchema(DDLSchema.BackupDatabase, file) as String;
+            Assert.Equal(file, Path.GetFileName(file2));
+            Assert.True(File.Exists(file2));
+            File.Delete(file2);
+        }
+
+        [Fact]
+        public void CompactDatabase()
+        {
+            DAL.AddConnStr("compactSQLite", "Data Source=Data\\Membership.db", null, "SQLite");
+            var dal = DAL.Create("compactSQLite");
+
+            var meta = dal.Db.CreateMetaData();
+
+            var rs = meta.SetSchema(DDLSchema.CompactDatabase);
+            Assert.Equal(0, rs);
         }
     }
 }

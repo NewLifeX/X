@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NewLife.Model;
 using NewLife.Reflection;
 
 namespace NewLife.Remoting
@@ -13,7 +14,7 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        void Register<TService>() where TService : class, new();
+        void Register<TService>();
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
@@ -28,11 +29,25 @@ namespace NewLife.Remoting
 
     class ApiManager : IApiManager
     {
+        private readonly ApiServer _server;
+
         /// <summary>可提供服务的方法</summary>
         public IDictionary<String, ApiAction> Services { get; } = new Dictionary<String, ApiAction>(StringComparer.OrdinalIgnoreCase);
 
+        public ApiManager(ApiServer server) => _server = server;
+
         private void RegisterAll(Object controller, Type type)
         {
+            // 找到容器，注册控制器
+            var container = _server?.ServiceProvider?.GetService<IObjectContainer>();
+            if (container != null)
+            {
+                if (controller == null)
+                    container.AddTransient(type, type);
+                else
+                    container.AddSingleton(type, controller);
+            }
+
             // 是否要求Api特性
             var requireApi = type.GetCustomAttribute<ApiAttribute>() != null;
 
@@ -56,7 +71,7 @@ namespace NewLife.Remoting
 
         /// <summary>注册服务提供类。该类的所有公开方法将直接暴露</summary>
         /// <typeparam name="TService"></typeparam>
-        public void Register<TService>() where TService : class, new() => RegisterAll(null, typeof(TService));
+        public void Register<TService>() => RegisterAll(null, typeof(TService));
 
         /// <summary>注册服务</summary>
         /// <param name="controller">控制器对象</param>
@@ -91,7 +106,7 @@ namespace NewLife.Remoting
             if (Services.TryGetValue(action, out var mi)) return mi;
 
             // 局部模糊匹配
-            if (action.Contains("/"))
+            if (action.Contains('/'))
             {
                 var ctrl = action.Substring(null, "/");
                 if (Services.TryGetValue(ctrl + "/*", out mi)) return mi;

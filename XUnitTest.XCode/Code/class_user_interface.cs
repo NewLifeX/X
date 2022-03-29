@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -35,6 +35,9 @@ namespace XCode.Code
         /// <summary>代码。身份证、员工编号等</summary>
         String Code { get; set; }
 
+        /// <summary>地区。省市区</summary>
+        Int32 AreaId { get; set; }
+
         /// <summary>头像</summary>
         String Avatar { get; set; }
 
@@ -53,6 +56,12 @@ namespace XCode.Code
         /// <summary>启用</summary>
         Boolean Enable { get; set; }
 
+        /// <summary>年龄。周岁</summary>
+        Int32 Age { get; set; }
+
+        /// <summary>生日。公历年月日</summary>
+        DateTime Birthday { get; set; }
+
         /// <summary>登录次数</summary>
         Int32 Logins { get; set; }
 
@@ -67,6 +76,9 @@ namespace XCode.Code
 
         /// <summary>注册IP</summary>
         String RegisterIP { get; set; }
+
+        /// <summary>在线时间。累计在线总时间，秒</summary>
+        Int32 OnlineTime { get; set; }
 
         /// <summary>扩展1</summary>
         Int32 Ex1 { get; set; }

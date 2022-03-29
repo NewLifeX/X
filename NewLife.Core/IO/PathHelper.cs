@@ -49,8 +49,17 @@ namespace System.IO
 
             // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
             if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
+            if (dir.IsNullOrEmpty()) dir = Environment.CurrentDirectory;
+            //if (dir.IsNullOrEmpty() || dir == "/")
+            //{
+            //    if (args != null && args.Length > 0) dir = Path.GetDirectoryName(args[0]);
+            //}
+            if (dir.IsNullOrEmpty() || dir == "/")
+            {
+                dir = Path.GetTempPath();
+            }
 
-            BasePath = GetPath(dir, 1);
+            if (!dir.IsNullOrEmpty()) BasePath = GetPath(dir, 1);
         }
         #endregion
 
@@ -161,7 +170,7 @@ namespace System.IO
 
             var dir = path;
             // 斜杠结尾的路径一定是目录，无视第二参数
-            if (dir[dir.Length - 1] == Path.DirectorySeparatorChar)
+            if (dir[^1] == Path.DirectorySeparatorChar)
                 dir = Path.GetDirectoryName(path);
             else if (isfile)
                 dir = Path.GetDirectoryName(path);
@@ -188,7 +197,7 @@ namespace System.IO
         /// <returns></returns>
         public static String CombinePath(this String path, params String[] ps)
         {
-            if (ps == null || ps.Length < 1) return path;
+            if (ps == null || ps.Length <= 0) return path;
             if (path == null) path = String.Empty;
 
             //return Path.Combine(path, path2);
@@ -204,7 +213,7 @@ namespace System.IO
         /// <summary>文件路径作为文件信息</summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static FileInfo AsFile(this String file) => new FileInfo(file.GetFullPath());
+        public static FileInfo AsFile(this String file) => new(file.GetFullPath());
 
         /// <summary>从文件中读取数据</summary>
         /// <param name="file"></param>
@@ -218,7 +227,9 @@ namespace System.IO
 
             if (count <= 0) count = (Int32)(fs.Length - offset);
 
-            return fs.ReadBytes(count);
+            var buf = new Byte[count];
+            fs.Read(buf, 0, buf.Length);
+            return buf;
         }
 
         /// <summary>把数据写入文件指定位置</summary>
@@ -297,7 +308,8 @@ namespace System.IO
             {
                 using var fs = file.OpenRead();
                 using var gs = new GZipStream(fs, CompressionMode.Decompress, true);
-                func(gs);
+                using var bs = new BufferedStream(gs);
+                func(bs);
                 return fs.Position;
             }
             else
@@ -320,11 +332,7 @@ namespace System.IO
             using var fs = file.OpenWrite();
             if (compressed)
             {
-#if NET4
-                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
-#else
                 using var gs = new GZipStream(fs, CompressionLevel.Optimal, true);
-#endif
                 func(gs);
             }
             else
@@ -408,7 +416,7 @@ namespace System.IO
         /// <summary>路径作为目录信息</summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public static DirectoryInfo AsDirectory(this String dir) => new DirectoryInfo(dir.GetFullPath());
+        public static DirectoryInfo AsDirectory(this String dir) => new(dir.GetFullPath());
 
         /// <summary>获取目录内所有符合条件的文件，支持多文件扩展匹配</summary>
         /// <param name="di">目录</param>
@@ -440,7 +448,7 @@ namespace System.IO
         /// <returns></returns>
         public static String[] CopyTo(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
-            if (!di.Exists) return new String[0];
+            if (!di.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 
@@ -469,7 +477,7 @@ namespace System.IO
         public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
         {
             var dest = destDirName.AsDirectory();
-            if (!dest.Exists) return new String[0];
+            if (!dest.Exists) return Array.Empty<String>();
 
             var list = new List<String>();
 

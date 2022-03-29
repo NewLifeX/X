@@ -36,7 +36,7 @@ namespace XCode.DataAccessLayer
                         {
                             // Mono有自己的驱动，因为SQLite是混合编译，里面的C++代码与平台相关，不能通用;注意大小写问题
                             if (Runtime.Mono)
-                                _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "Mono.Data.Sqlite.SqliteFactory");
+                                _Factory = GetProviderFactory("Mono.Data.Sqlite.dll", "System.Data.SqliteFactory");
                             else
                             {
                                 //_Factory = GetProviderFactory(null, "System.Data.SQLite.SQLiteFactory", true);
@@ -131,12 +131,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 构造
-        public SQLite()
-        {
-            // SQLite不使用自动关闭，以提升性能
-            AutoClose = false;
-        }
-
         protected override void Dispose(Boolean disposing)
         {
             base.Dispose(disposing);
@@ -225,12 +219,37 @@ namespace XCode.DataAccessLayer
             if (field.DataType == typeof(Byte[]))
             {
                 var bts = (Byte[])value;
-                if (bts == null || bts.Length < 1) return "0x0";
+                if (bts == null || bts.Length <= 0) return "0x0";
 
                 return "X'" + BitConverter.ToString(bts).Replace("-", null) + "'";
             }
 
             return base.FormatValue(field, value);
+        }
+
+        private static readonly Char[] _likeKeys = new[] { '/', '\'', '[', ']', '%', '&', '(', ')', '_' };
+        /// <summary>格式化模糊搜索的字符串。处理转义字符</summary>
+        /// <param name="column">字段</param>
+        /// <param name="format">格式化字符串</param>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        public override String FormatLike(IDataColumn column, String format, String value)
+        {
+            if (value.IsNullOrEmpty()) return value;
+
+            if (value.IndexOfAny(_likeKeys) >= 0)
+                value = value
+                    .Replace("/", "//")
+                    .Replace("'", "''")
+                    .Replace("[", "/[")
+                    .Replace("]", "/]")
+                    .Replace("%", "/%")
+                    .Replace("&", "/&")
+                    .Replace("(", "/(")
+                    .Replace(")", "/)")
+                    .Replace("_", "/_");
+
+            return base.FormatLike(column, format, value);
         }
 
         /// <summary>字符串相加</summary>
@@ -298,13 +317,11 @@ namespace XCode.DataAccessLayer
             return base.InsertAndGetIdentity(sql, type, ps);
         }
 
-#if !NET40
         public override Task<Int64> InsertAndGetIdentityAsync(String sql, CommandType type = CommandType.Text, params IDataParameter[] ps)
         {
             sql += ";Select last_insert_rowid() newid";
             return base.InsertAndGetIdentityAsync(sql, type, ps);
         }
-#endif
         #endregion
 
         #region 高级
@@ -353,122 +370,15 @@ namespace XCode.DataAccessLayer
             var db = Database as DbBase;
 
             // 字段列表
-            //if (columns == null) columns = table.Columns.ToArray();
-            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
-            foreach (var dc in columns)
-            {
-                //if (dc.Identity) continue;
-
-                sb.Append(db.FormatName(dc));
-                sb.Append(',');
-            }
-            sb.Length--;
-            sb.Append(')');
+            if (columns == null) columns = table.Columns.ToArray();
+            BuildInsert(sb, db, action, table, columns);
 
             // 值列表
             sb.Append(" Values");
-
-            // 优化支持DbTable
-            if (list.FirstOrDefault() is DbRow)
-            {
-                // 提前把列名转为索引，然后根据索引找数据
-                DbTable dt = null;
-                Int32[] ids = null;
-                foreach (DbRow dr in list)
-                {
-                    if (dr.Table != dt)
-                    {
-                        dt = dr.Table;
-                        var cs = new List<Int32>();
-                        foreach (var dc in columns)
-                        {
-                            //if (dc.Identity)
-                            //    cs.Add(0);
-                            //else
-                            cs.Add(dt.GetColumn(dc.ColumnName));
-                        }
-                        ids = cs.ToArray();
-                    }
-
-                    sb.Append('(');
-                    var row = dt.Rows[dr.Index];
-                    for (var i = 0; i < columns.Length; i++)
-                    {
-                        var dc = columns[i];
-                        //if (dc.Identity) continue;
-
-                        var value = row[ids[i]];
-                        sb.Append(db.FormatValue(dc, value));
-                        sb.Append(',');
-                    }
-                    sb.Length--;
-                    sb.Append("),");
-                }
-            }
-            else
-            {
-                foreach (var entity in list)
-                {
-                    sb.Append('(');
-                    foreach (var dc in columns)
-                    {
-                        //if (dc.Identity) continue;
-
-                        var value = entity[dc.Name];
-                        sb.Append(db.FormatValue(dc, value));
-                        sb.Append(',');
-                    }
-                    sb.Length--;
-                    sb.Append("),");
-                }
-            }
-            sb.Length--;
+            BuildBatchValues(sb, db, action, table, columns, list);
 
             // 重复键执行update
-            if (updateColumns != null || addColumns != null)
-            {
-                sb.Append(" On Conflict");
-
-                // 先找唯一索引，再用主键
-                //var table = columns.FirstOrDefault()?.Table;
-                var di = table.Indexes?.FirstOrDefault(e => e.Unique);
-                if (di != null && di.Columns != null && di.Columns.Length > 0)
-                {
-                    var dcs = table.GetColumns(di.Columns);
-                    sb.AppendFormat("({0})", dcs.Join(",", e => db.FormatName(e)));
-                }
-                else
-                {
-                    var pks = table.PrimaryKeys;
-                    if (pks != null && pks.Length > 0)
-                        sb.AppendFormat("({0})", pks.Join(",", e => db.FormatName(e)));
-                }
-
-                sb.Append(" Do Update Set ");
-                if (updateColumns != null)
-                {
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
-                            sb.AppendFormat("{0}=excluded.{0},", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-                if (addColumns != null)
-                {
-                    sb.Append(',');
-                    foreach (var dc in columns)
-                    {
-                        if (dc.Identity || dc.PrimaryKey) continue;
-
-                        if (addColumns.Contains(dc.Name))
-                            sb.AppendFormat("{0}={0}+excluded.{0},", db.FormatName(dc));
-                    }
-                    sb.Length--;
-                }
-            }
+            BuildDuplicateKey(sb, db, columns, updateColumns, addColumns);
 
             return sb.Put(true);
         }
@@ -521,7 +431,7 @@ namespace XCode.DataAccessLayer
         }
 
         /// <summary>数据类型映射</summary>
-        private static readonly Dictionary<Type, String[]> _DataTypes = new Dictionary<Type, String[]>
+        private static readonly Dictionary<Type, String[]> _DataTypes = new()
         {
             { typeof(Byte[]), new String[] { "binary", "varbinary", "blob", "image", "general", "oleobject" } },
             { typeof(Guid), new String[] { "uniqueidentifier", "guid" } },
@@ -545,11 +455,11 @@ namespace XCode.DataAccessLayer
             if ((Database as SQLite).IsMemoryDatabase) return memoryTables.Where(t => names.Contains(t.TableName)).ToList();
 
             //var dt = GetSchema(_.Tables, null);
-            //if (dt?.Rows == null || dt.Rows.Count < 1) return null;
+            //if (dt?.Rows == null || dt.Rows.Count <= 0) return null;
 
             //// 默认列出所有字段
             //var rows = dt.Select("TABLE_TYPE='table'");
-            //if (rows == null || rows.Length < 1) return null;
+            //if (rows == null || rows.Length <= 0) return null;
 
             //return GetTables(rows, names);
 
@@ -580,7 +490,7 @@ namespace XCode.DataAccessLayer
                 sql = sql.Substring(p1 + 1, p2 - p1 - 1);
                 if (sql.IsNullOrEmpty()) continue;
 
-                var sqls = sql.Split(",").ToList();
+                var sqls = sql.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 #region 字段
                 //GetTbFields(table);
@@ -591,7 +501,7 @@ namespace XCode.DataAccessLayer
                     // 处理外键设置
                     if (line.Contains("CONSTRAINT") && line.Contains("FOREIGN KEY")) continue;
 
-                    var fs = line.Trim().Split(" ");
+                    var fs = line.Trim().Split(' ');
                     var field = table.CreateColumn();
 
                     field.ColumnName = fs[0].TrimStart('[', '"').TrimEnd(']', '"');
@@ -621,6 +531,8 @@ namespace XCode.DataAccessLayer
                         if (field.RawType.StartsWithIgnoreCase("varchar2", "nvarchar2")) field.DataType = typeof(String);
                     }
 
+                    field.Fix();
+
                     table.Columns.Add(field);
                 }
                 #endregion
@@ -637,7 +549,7 @@ namespace XCode.DataAccessLayer
 
                     if (sql.Contains(" UNIQUE ")) di.Unique = true;
 
-                    di.Columns = sql.Substring("(", ")").Split(",").Select(e => e.Trim().Trim(new[] { '[', '"', ']' })).ToArray();
+                    di.Columns = sql.Substring("(", ")").Split(',').Select(e => e.Trim().Trim('[', '"', ']')).ToArray();
 
                     table.Indexes.Add(di);
                 }
@@ -649,6 +561,28 @@ namespace XCode.DataAccessLayer
                 table.Fix();
 
                 list.Add(table);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 快速取得所有表名
+        /// </summary>
+        /// <returns></returns>
+        public override IList<String> GetTableNames()
+        {
+            var list = new List<String>();
+
+            var sql = "select * from sqlite_master";
+            var dt = base.Database.CreateSession().Query(sql, null);
+            if (dt.Rows.Count == 0) return list;
+
+            // 所有表
+            foreach (var dr in dt)
+            {
+                var name = dr["tbl_name"] + "";
+                if (!name.IsNullOrEmpty()) list.Add(name);
             }
 
             return list;
@@ -721,6 +655,23 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 数据定义
+        public override Object SetSchema(DDLSchema schema, params Object[] values)
+        {
+            switch (schema)
+            {
+                case DDLSchema.BackupDatabase:
+                    var dbname = FileName;
+                    if (!dbname.IsNullOrEmpty()) dbname = Path.GetFileNameWithoutExtension(dbname);
+                    var file = "";
+                    if (values != null && values.Length > 0) file = values[0] as String;
+                    return Backup(dbname, file, false);
+
+                default:
+                    break;
+            }
+            return base.SetSchema(schema, values);
+        }
+
         protected override void CreateDatabase()
         {
             if (!(Database as SQLite).IsMemoryDatabase) base.CreateDatabase();
@@ -817,7 +768,7 @@ namespace XCode.DataAccessLayer
             {
                 // SQLite中不同表的索引名也不能相同
                 sb.Append("IX_");
-                sb.Append(index.Table.TableName);
+                sb.Append(FormatName(index.Table, false));
                 foreach (var item in index.Columns)
                 {
                     sb.AppendFormat("_{0}", item);
@@ -928,7 +879,7 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 反向工程
-        private readonly List<IDataTable> memoryTables = new List<IDataTable>();
+        private readonly List<IDataTable> memoryTables = new();
         /// <summary>已重载。因为内存数据库无法检测到架构，不知道表是否已存在，所以需要自己维护</summary>
         /// <param name="entitytable"></param>
         /// <param name="dbtable"></param>
@@ -944,6 +895,8 @@ namespace XCode.DataAccessLayer
 
             base.CheckTable(entitytable, dbtable, mode);
         }
+
+        public override String CompactDatabaseSQL() => "VACUUM";
 
         public override Int32 CompactDatabase() => Database.CreateSession().Execute("VACUUM");
         #endregion

@@ -6,6 +6,7 @@ using NewLife;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Reflection;
+using NewLife.Serialization;
 using XCode.DataAccessLayer;
 
 namespace XCode.Code
@@ -52,10 +53,12 @@ namespace XCode.Code
             var xmlContent = File.ReadAllText(xmlFile);
             atts = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase)
             {
-                ["xmlns"] = "http://www.newlifex.com/Model2020.xsd",
+                ["xmlns"] = "http://www.newlifex.com/Model2022.xsd",
                 ["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema-instance",
-                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2020.xsd"
+                ["xs:schemaLocation"] = "http://www.newlifex.com http://www.newlifex.com/Model2022.xsd"
             };
+
+            if (Debug) XTrace.WriteLine("导入模型：{0}", xmlFile);
 
             // 导入模型
             var tables = ModelHelper.FromXml(xmlContent, DAL.CreateTable, atts);
@@ -86,6 +89,9 @@ namespace XCode.Code
                 option = option.Clone();
 
             option.Pure = true;
+            option.Partial = true;
+
+            if (Debug) XTrace.WriteLine("生成简易模型类 {0}", option.Output.GetBasePath());
 
             var count = 0;
             foreach (var item in tables)
@@ -99,6 +105,20 @@ namespace XCode.Code
                     Table = item,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
+
+                builder.Load(item);
+
+                // 自定义模型
+                var modelClass = item.Properties["ModelClass"];
+                var modelInterface = item.Properties["ModelInterface"];
+                if (!modelClass.IsNullOrEmpty()) builder.Option.ClassNameTemplate = modelClass;
+                if (!modelInterface.IsNullOrEmpty())
+                {
+                    builder.Option.BaseClass = modelInterface;
+                    builder.Option.ModelNameForCopy = modelInterface;
+                }
+
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -120,6 +140,9 @@ namespace XCode.Code
                 option = option.Clone();
 
             option.Interface = true;
+            option.Partial = true;
+
+            if (Debug) XTrace.WriteLine("生成简易接口 {0}", option.Output.GetBasePath());
 
             var count = 0;
             foreach (var item in tables)
@@ -133,6 +156,14 @@ namespace XCode.Code
                     Table = item,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
+
+                builder.Load(item);
+
+                // 自定义模型
+                var modelInterface = item.Properties["ModelInterface"];
+                if (!modelInterface.IsNullOrEmpty()) builder.Option.ClassNameTemplate = modelInterface;
+
                 builder.Execute();
                 builder.Save(null, true, false);
 
@@ -143,18 +174,38 @@ namespace XCode.Code
         }
         #endregion
 
+        #region 方法
+        /// <summary>加载数据表</summary>
+        /// <param name="table"></param>
+        public virtual void Load(IDataTable table)
+        {
+            Table = table;
+
+            var option = Option;
+
+            // 命名空间
+            var str = table.Properties["Namespace"];
+            if (!str.IsNullOrEmpty()) option.Namespace = str;
+
+            // 输出目录
+            str = table.Properties["Output"];
+            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
+        }
+        #endregion
+
         #region 主方法
         /// <summary>执行生成</summary>
         public virtual void Execute()
         {
+            var option = Option;
             if (ClassName.IsNullOrEmpty())
             {
-                if (!Option.ClassNameTemplate.IsNullOrEmpty())
-                    ClassName = Option.ClassNameTemplate.Replace("{name}", Table.Name);
+                if (!option.ClassNameTemplate.IsNullOrEmpty())
+                    ClassName = option.ClassNameTemplate.Replace("{name}", Table.Name);
                 else
-                    ClassName = Option.Interface ? ("I" + Table.Name) : Table.Name;
+                    ClassName = option.Interface ? ("I" + Table.Name) : Table.Name;
             }
-            //WriteLog("生成 {0} {1}", Table.Name, Table.DisplayName);
+            WriteLog("生成 {0} {1} {2}", Table.Name, Table.DisplayName, new { option.ClassNameTemplate, option.BaseClass, option.ModelNameForCopy, option.Namespace }.ToJson(false, false, false));
 
             Clear();
             if (Writer == null) Writer = new StringWriter();
@@ -267,8 +318,7 @@ namespace XCode.Code
                 var column = Table.Columns[i];
 
                 // 跳过排除项
-                if (Option.Excludes.Contains(column.Name)) continue;
-                if (Option.Excludes.Contains(column.ColumnName)) continue;
+                if (!ValidColumn(column)) continue;
 
                 if (i > 0) WriteLine();
                 BuildItem(column);
@@ -336,8 +386,7 @@ namespace XCode.Code
                 foreach (var column in Table.Columns)
                 {
                     // 跳过排除项
-                    if (Option.Excludes.Contains(column.Name)) continue;
-                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+                    if (!ValidColumn(column)) continue;
 
                     WriteLine("case \"{0}\": return {0};", column.Name);
                 }
@@ -356,8 +405,7 @@ namespace XCode.Code
                 foreach (var column in Table.Columns)
                 {
                     // 跳过排除项
-                    if (Option.Excludes.Contains(column.Name)) continue;
-                    if (Option.Excludes.Contains(column.ColumnName)) continue;
+                    if (!ValidColumn(column)) continue;
 
                     var type = column.Properties["Type"];
                     if (type.IsNullOrEmpty()) type = column.DataType?.Name;
@@ -432,8 +480,7 @@ namespace XCode.Code
             foreach (var column in Table.Columns)
             {
                 // 跳过排除项
-                if (Option.Excludes.Contains(column.Name)) continue;
-                if (Option.Excludes.Contains(column.ColumnName)) continue;
+                if (!ValidColumn(column, true)) continue;
 
                 WriteLine("{0} = model.{0};", column.Name);
             }
@@ -452,7 +499,7 @@ namespace XCode.Code
             if (add)
                 _Indent += "    ";
             else if (!_Indent.IsNullOrEmpty())
-                _Indent = _Indent.Substring(0, _Indent.Length - 4);
+                _Indent = _Indent[0..^4];
         }
 
         /// <summary>写入</summary>
@@ -528,6 +575,20 @@ namespace XCode.Code
         #endregion
 
         #region 辅助
+        /// <summary>验证字段是否可用于生成</summary>
+        /// <param name="column"></param>
+        /// <param name="validModel"></param>
+        /// <returns></returns>
+        protected virtual Boolean ValidColumn(IDataColumn column, Boolean validModel = false)
+        {
+            if (Option.Excludes.Contains(column.Name)) return false;
+            if (Option.Excludes.Contains(column.ColumnName)) return false;
+            if ((validModel || Option.Pure || Option.Interface) && column.Properties["Model"] == "False")
+                return false;
+
+            return true;
+        }
+
         /// <summary>C#版本</summary>
         public Version CSharp { get; set; }
 
@@ -549,7 +610,7 @@ namespace XCode.Code
         {
             if (name.EqualIgnoreCase("id")) return "id";
 
-            return Char.ToLower(name[0]) + name.Substring(1);
+            return Char.ToLower(name[0]) + name[1..];
         }
 
         /// <summary>是否调试</summary>

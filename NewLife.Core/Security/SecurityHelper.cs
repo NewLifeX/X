@@ -20,7 +20,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] MD5(this Byte[] data)
         {
-            if (_md5 == null) _md5 = new MD5CryptoServiceProvider();
+            if (_md5 == null) _md5 = System.Security.Cryptography.MD5.Create();
 
             return _md5.ComputeHash(data);
         }
@@ -47,6 +47,17 @@ namespace NewLife
 
             var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex(0, 8);
+        }
+
+        /// <summary>计算文件的MD5散列</summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static Byte[] MD5(this FileInfo file)
+        {
+            if (_md5 == null) _md5 = System.Security.Cryptography.MD5.Create();
+
+            using var fs = file.OpenRead();
+            return _md5.ComputeHash(fs);
         }
 
         /// <summary>Crc散列</summary>
@@ -117,7 +128,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] Encrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+            if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
 
             if (pass != null && pass.Length > 0)
             {
@@ -177,7 +188,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] Decrypt(this SymmetricAlgorithm sa, Byte[] data, Byte[] pass = null, CipherMode mode = CipherMode.CBC, PaddingMode padding = PaddingMode.PKCS7)
         {
-            if (data == null || data.Length < 1) throw new ArgumentNullException(nameof(data));
+            if (data == null || data.Length <= 0) throw new ArgumentNullException(nameof(data));
 
             if (pass != null && pass.Length > 0)
             {

@@ -4,22 +4,27 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace XCode.DataAccessLayer
 {
-    /// <summary>根据实体类获取表名的委托</summary>
+    /// <summary>根据实体类获取表名或主键名的委托</summary>
     /// <param name="entityType">实体类</param>
     /// <returns></returns>
-    public delegate String GetTableNameCallback(Type entityType);
+    public delegate String GetNameCallback(Type entityType);
 
     public partial class DAL
     {
         /// <summary>根据实体类获取表名的委托，用于Mapper的Insert/Update</summary>
-        public static GetTableNameCallback GetTableName { get; set; }
+        public static GetNameCallback GetTableName { get; set; }
+
+        /// <summary>根据实体类获取主键名的委托，用于Mapper的Update</summary>
+        public static GetNameCallback GetKeyName { get; set; }
 
         #region 添删改查
         /// <summary>查询Sql并映射为结果集</summary>
@@ -43,6 +48,42 @@ namespace XCode.DataAccessLayer
             return dt.ReadModels<T>();
         }
 
+        /// <summary>查询Sql并映射为结果集，支持分页</summary>
+        /// <typeparam name="T">实体类</typeparam>
+        /// <param name="sql">Sql语句</param>
+        /// <param name="param">参数对象</param>
+        /// <param name="startRowIndex">开始行，0表示第一行</param>
+        /// <param name="maximumRows">最大返回行数，0表示所有行</param>
+        /// <returns></returns>
+        public IEnumerable<T> Query<T>(String sql, Object param, Int64 startRowIndex, Int64 maximumRows)
+        {
+            if (IsValueTuple(typeof(T))) throw new InvalidOperationException($"不支持ValueTuple类型[{typeof(T).FullName}]");
+
+            // SqlServer的分页需要知道主键
+            var sql2 =
+                DbType == DatabaseType.SqlServer ?
+                Db.PageSplit(sql, startRowIndex, maximumRows, new SelectBuilder(sql).Key) :
+                Db.PageSplit(sql, startRowIndex, maximumRows, null);
+
+            return Query<T>(sql2, param);
+        }
+
+        /// <summary>查询Sql并映射为结果集，支持分页</summary>
+        /// <typeparam name="T">实体类</typeparam>
+        /// <param name="sql">Sql语句</param>
+        /// <param name="param">参数对象</param>
+        /// <param name="page">分页参数</param>
+        /// <returns></returns>
+        public IEnumerable<T> Query<T>(String sql, Object param, PageParameter page)
+        {
+            if (IsValueTuple(typeof(T))) throw new InvalidOperationException($"不支持ValueTuple类型[{typeof(T).FullName}]");
+
+            var start = (page.PageIndex - 1) * page.PageSize;
+            var max = page.PageSize;
+
+            return Query<T>(sql, param, start, max);
+        }
+
         /// <summary>查询Sql并返回单个结果</summary>
         /// <typeparam name="T">实体类</typeparam>
         /// <param name="sql">Sql语句</param>
@@ -50,7 +91,6 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public T QuerySingle<T>(String sql, Object param = null) => Query<T>(sql, param).FirstOrDefault();
 
-#if !NET40
         /// <summary>查询Sql并映射为结果集</summary>
         /// <typeparam name="T">实体类</typeparam>
         /// <param name="sql">Sql语句</param>
@@ -77,7 +117,6 @@ namespace XCode.DataAccessLayer
         /// <param name="param">参数对象</param>
         /// <returns></returns>
         public async Task<T> QuerySingleAsync<T>(String sql, Object param = null) => (await QueryAsync<T>(sql, param)).FirstOrDefault();
-#endif
 
         private static Boolean IsValueTuple(Type type)
         {
@@ -117,7 +156,6 @@ namespace XCode.DataAccessLayer
         public T ExecuteScalar<T>(String sql, Object param = null) =>
             QueryByCache(sql, param, "", (s, p, k3) => Session.ExecuteScalar<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalar));
 
-#if !NET40
         /// <summary>执行Sql</summary>
         /// <param name="sql">Sql语句</param>
         /// <param name="param">参数对象</param>
@@ -144,14 +182,21 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Task<T> ExecuteScalarAsync<T>(String sql, Object param = null) =>
             QueryByCacheAsync(sql, param, "", (s, p, k3) => Session.ExecuteScalarAsync<T>(s, CommandType.Text, Db.CreateParameters(p)), nameof(ExecuteScalarAsync));
-#endif
 
         private ConcurrentDictionary<Type, String> _tableMaps = new();
-        private String GetName(Type type)
+        private String OnGetTableName(Type type)
         {
             if (GetTableName == null) return null;
 
             return _tableMaps.GetOrAdd(type, t => GetTableName(t));
+        }
+
+        private ConcurrentDictionary<Type, String> _keyMaps = new();
+        private String OnGetKeyName(Type type)
+        {
+            if (GetKeyName == null) return null;
+
+            return _keyMaps.GetOrAdd(type, t => GetKeyName(t));
         }
 
         /// <summary>插入数据</summary>
@@ -160,7 +205,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public Int32 Insert(Object data, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var pis = data.ToDictionary();
@@ -174,12 +219,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>更新数据。不支持自动识别主键</summary>
         /// <param name="data">实体对象</param>
-        /// <param name="where">查询条件</param>
+        /// <param name="where">查询条件。默认使用Id字段</param>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Int32 Update(Object data, Object where, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var sb = Pool.StringBuilder.Get();
@@ -213,6 +258,20 @@ namespace XCode.DataAccessLayer
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
+            }
+            else
+            {
+                var name = OnGetKeyName(data.GetType());
+                if (name.IsNullOrEmpty()) name = "Id";
+
+                var pi = data.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi == null) throw new XCodeException($"更新实体对象时未标记主键且未设置where");
+
+                sb.Append(" Where ");
+
+                var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
+                dps.Add(p);
+                sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
             }
 
             var sql = sb.Put(true);
@@ -252,14 +311,13 @@ namespace XCode.DataAccessLayer
             return ExecuteByCache(sql, "", dps.ToArray(), (s, t, p) => Session.Execute(s, CommandType.Text, p));
         }
 
-#if !NET40
         /// <summary>插入数据</summary>
         /// <param name="data">实体对象</param>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Task<Int32> InsertAsync(Object data, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var pis = data.ToDictionary();
@@ -273,12 +331,12 @@ namespace XCode.DataAccessLayer
 
         /// <summary>更新数据。不支持自动识别主键</summary>
         /// <param name="data">实体对象</param>
-        /// <param name="where">查询条件</param>
+        /// <param name="where">查询条件。默认使用Id字段</param>
         /// <param name="tableName">表名</param>
         /// <returns></returns>
         public Task<Int32> UpdateAsync(Object data, Object where, String tableName = null)
         {
-            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = GetName(data.GetType());
+            if (tableName.IsNullOrEmpty() && GetTableName != null) tableName = OnGetTableName(data.GetType());
             if (tableName.IsNullOrEmpty()) tableName = data.GetType().Name;
 
             var sb = Pool.StringBuilder.Get();
@@ -312,6 +370,20 @@ namespace XCode.DataAccessLayer
                     dps.Add(p);
                     sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
                 }
+            }
+            else
+            {
+                var name = OnGetKeyName(data.GetType());
+                if (name.IsNullOrEmpty()) name = "Id";
+
+                var pi = data.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (pi == null) throw new XCodeException($"更新实体对象时未标记主键且未设置where");
+
+                sb.Append(" Where ");
+
+                var p = Db.CreateParameter(pi.Name, pi.GetValue(data, null), pi.PropertyType);
+                dps.Add(p);
+                sb.AppendFormat("{0}={1}", pi.Name, p.ParameterName);
             }
 
             var sql = sb.Put(true);
@@ -350,7 +422,6 @@ namespace XCode.DataAccessLayer
 
             return ExecuteByCacheAsync(sql, "", dps.ToArray(), (s, t, p) => Session.ExecuteAsync(s, CommandType.Text, p));
         }
-#endif
 
         /// <summary>插入数据</summary>
         /// <param name="tableName"></param>

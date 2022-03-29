@@ -20,7 +20,7 @@ namespace NewLife.Caching
         /// <summary>名称</summary>
         public String Name { get; set; }
 
-        /// <summary>默认缓存时间。默认0秒表示不过期</summary>
+        /// <summary>默认过期时间。避免Set操作时没有设置过期时间，默认0秒表示不过期</summary>
         public Int32 Expire { get; set; }
 
         /// <summary>获取和设置缓存，使用默认过期时间</summary>
@@ -190,8 +190,9 @@ namespace NewLife.Caching
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="callback"></param>
+        /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
         /// <returns></returns>
-        public virtual T GetOrAdd<T>(String key, Func<String, T> callback)
+        public virtual T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
         {
             var value = Get<T>(key);
             if (!Equals(value, default)) return value;
@@ -200,7 +201,8 @@ namespace NewLife.Caching
 
             value = callback(key);
 
-            if (Add(key, value)) return value;
+            if (expire < 0) expire = Expire;
+            if (Add(key, value, expire)) return value;
 
             return Get<T>(key);
         }
@@ -277,12 +279,31 @@ namespace NewLife.Caching
 
         /// <summary>申请分布式锁</summary>
         /// <param name="key">要锁定的key</param>
-        /// <param name="msTimeout">锁等待时间</param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
         /// <returns></returns>
         public IDisposable AcquireLock(String key, Int32 msTimeout)
         {
             var rlock = new CacheLock(this, key);
-            if (!rlock.Acquire(msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+            if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+
+            return rlock;
+        }
+
+        /// <summary>申请分布式锁</summary>
+        /// <param name="key">要锁定的key</param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
+        /// <param name="msExpire">锁超时时间，单位毫秒</param>
+        /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
+        /// <returns></returns>
+        public IDisposable AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure)
+        {
+            var rlock = new CacheLock(this, key);
+            if (!rlock.Acquire(msTimeout, msExpire))
+            {
+                if (throwOnFailure) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+
+                return null;
+            }
 
             return rlock;
         }

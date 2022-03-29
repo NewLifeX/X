@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NewLife;
 using NewLife.Collections;
@@ -9,10 +10,16 @@ namespace XCode.DataAccessLayer
     public interface IModelResolver
     {
         #region 名称处理
-        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀。</summary>
+        /// <summary>获取别名。过滤特殊符号，过滤_之类的前缀</summary>
         /// <param name="name">名称</param>
         /// <returns></returns>
         String GetName(String name);
+
+        /// <summary>获取数据库名字。可以加上下划线</summary>
+        /// <param name="name">名称</param>
+        /// <param name="format">格式风格</param>
+        /// <returns></returns>
+        String GetDbName(String name, NameFormats format);
 
         /// <summary>根据字段名等信息计算索引的名称</summary>
         /// <param name="di"></param>
@@ -41,8 +48,8 @@ namespace XCode.DataAccessLayer
     public class ModelResolver : IModelResolver
     {
         #region 属性
-        /// <summary>去掉下划线。默认true，下划线前后单词用驼峰命名</summary>
-        public Boolean TrimUnderline { get; set; } = true;
+        /// <summary>下划线。默认false不用下划线，下划线前后单词用驼峰命名</summary>
+        public Boolean Underline { get; set; }
 
         /// <summary>使用驼峰命名。默认true</summary>
         public Boolean Camel { get; set; } = true;
@@ -67,9 +74,9 @@ namespace XCode.DataAccessLayer
             name = name.Replace("\\", "_");
 
             // 全大写或全小写名字，格式化为驼峰格式  包含下划线的表名和字段名生成类时自动去掉下划线
-            if (name.Contains("_") && TrimUnderline)//(  name == name.ToUpper() || name == name.ToLower()))//
+            if (name.Contains("_") && !Underline)
             {
-                var ns = name.Split("_");
+                var ns = name.Split('_', StringSplitOptions.RemoveEmptyEntries);
                 var sb = Pool.StringBuilder.Get();
                 foreach (var item in ns)
                 {
@@ -80,8 +87,8 @@ namespace XCode.DataAccessLayer
                         else
                         {
                             // 首字母大小写，其它小写
-                            sb.Append(item.Substring(0, 1).ToUpper());
-                            sb.Append(item.Substring(1).ToLower());
+                            sb.Append(item[..1].ToUpper());
+                            sb.Append(item[1..].ToLower());
                         }
                     }
                     else
@@ -91,12 +98,62 @@ namespace XCode.DataAccessLayer
                 }
                 name = sb.Put(true);
             }
-            if (name != "ID" && name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
+            if (name.Length > 2 && (name == name.ToUpper() || name == name.ToLower()))
             {
-                if (Camel) name = name.Substring(0, 1).ToUpper() + name.Substring(1).ToLower();
+                if (Camel) name = name[..1].ToUpper() + name[1..].ToLower();
             }
 
             return name;
+        }
+
+        /// <summary>获取数据库名字。可以加上下划线</summary>
+        /// <param name="name">名称</param>
+        /// <param name="format">格式风格</param>
+        /// <returns></returns>
+        public virtual String GetDbName(String name, NameFormats format)
+        {
+            switch (format)
+            {
+                case NameFormats.Upper:
+                    name = name.ToUpper();
+                    break;
+                case NameFormats.Lower:
+                    name = name.ToLower();
+                    break;
+                case NameFormats.Underline:
+                    name = ChangeUnderline(name).ToLower();
+                    break;
+                case NameFormats.Default:
+                default:
+                    break;
+            }
+            return name;
+        }
+
+        /// <summary>把驼峰命名转为下划线</summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private static String ChangeUnderline(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+
+            // 遇到大写字母时，表示新一段开始，增加下划线
+            for (var i = 0; i < name.Length; i++)
+            {
+                var ch = name[i];
+                if (i > 0 && Char.IsUpper(ch))
+                {
+                    // 前一个小写字母，新的开始
+                    if (Char.IsLower(name[i - 1]))
+                        sb.Append('_');
+                    // 后一个字母小写，新的开始
+                    else if (i < name.Length - 1 && Char.IsLower(name[i + 1]))
+                        sb.Append('_');
+                }
+                sb.Append(ch);
+            }
+
+            return sb.Put(true);
         }
 
         /// <summary>根据字段名等信息计算索引的名称</summary>
@@ -104,7 +161,7 @@ namespace XCode.DataAccessLayer
         /// <returns></returns>
         public virtual String GetName(IDataIndex di)
         {
-            if (di.Columns == null || di.Columns.Length < 1) return null;
+            if (di.Columns == null || di.Columns.Length <= 0) return null;
 
             var sb = Pool.StringBuilder.Get();
             if (di.PrimaryKey)
@@ -138,7 +195,7 @@ namespace XCode.DataAccessLayer
             name = description.Trim();
             var p = name.IndexOfAny(new Char[] { '.', '。', ',', '，', '(', '（', '\r', '\n' });
             // p=0表示符号在第一位，不考虑
-            if (p > 0) name = name.Substring(0, p).Trim();
+            if (p > 0) name = name[..p].Trim();
 
             name = name.Replace("$", null);
             name = name.Replace("(", null);
@@ -149,7 +206,7 @@ namespace XCode.DataAccessLayer
             name = name.Replace("　", null);
             name = name.Replace("/", "_");
             name = name.Replace("\\", "_");
-            if (name[0] == '_') name = name.Substring(1);
+            if (name[0] == '_') name = name[1..];
 
             return name;
         }
@@ -173,7 +230,7 @@ namespace XCode.DataAccessLayer
             }
 
             // 最后修复主键
-            if (table.PrimaryKeys.Length < 1)
+            if (table.PrimaryKeys.Length <= 0)
             {
                 // 自增作为主键，没办法，如果没有主键，整个实体层都会面临大问题！
                 var dc = table.Columns.FirstOrDefault(c => c.Identity);
@@ -218,7 +275,7 @@ namespace XCode.DataAccessLayer
         protected virtual void FixPrimaryByIndex(IDataTable table)
         {
             var pks = table.PrimaryKeys;
-            if (pks == null || pks.Length < 1)
+            if (pks == null || pks.Length <= 0)
             {
                 var dis = table.Indexes;
                 // 在索引中找唯一索引作为主键
@@ -268,23 +325,33 @@ namespace XCode.DataAccessLayer
             var dis = table.Indexes;
             dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0);
 
+            var dis2 = new List<IDataIndex>();
+            var columnKeys = new List<String>();
             foreach (var di in dis)
             {
-                if (di.Columns == null) continue;
+                // 干掉无效索引
+                if (di.Columns == null || di.Columns.Length == 0) continue;
 
                 var dcs = table.GetColumns(di.Columns);
-                if (dcs == null || dcs.Length <= 0) continue;
+                if (dcs == null || dcs.Length <= 0 || dcs.Length != di.Columns.Length) continue;
+
+                // 干掉自增列的索引
+                if (dcs.Length == 1 && dcs[0].Identity) continue;
+
+                // 干掉重复索引
+                var key = di.Columns.Join().ToLower();
+                if (columnKeys.Contains(key)) continue;
+                columnKeys.Add(key);
 
                 if (!di.Unique) di.Unique = dcs.All(dc => dc.Identity);
                 // 刚好该索引所有字段都是主键时，修正主键
                 if (!di.PrimaryKey) di.PrimaryKey = dcs.All(dc => dc.PrimaryKey) && di.Columns.Length == table.Columns.Count(e => e.PrimaryKey);
+
+                dis2.Add(di);
             }
 
-            // 干掉无效索引
-            dis.RemoveAll(di => di.Columns == null || di.Columns.Length == 0 || di.Columns.Length != table.GetColumns(di.Columns).Length);
-
-            // 干掉自增列的索引
-            dis.RemoveAll(di => di.Columns.Length == 1 && table.GetColumn(di.Columns[0]) != null && table.GetColumn(di.Columns[0]).Identity);
+            dis.Clear();
+            dis.AddRange(dis2);
         }
         #endregion
 

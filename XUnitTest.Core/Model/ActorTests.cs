@@ -10,7 +10,7 @@ namespace XUnitTest.Model
 {
     public class ActorTests
     {
-        [Fact]
+        [Fact(DisplayName = "1,基础Actor生成Excel数据")]
         public async void Test1()
         {
             var sw = Stopwatch.StartNew();
@@ -49,8 +49,8 @@ namespace XUnitTest.Model
             }
         }
 
-        [Fact]
-        public void TestCount()
+        [Fact(DisplayName = "2,累加计数Actor")]
+        public void TestInc()
         {
             using var actor = new TestActor();
             actor.BoundedCapacity = 200;

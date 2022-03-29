@@ -5,6 +5,8 @@ using System.Threading;
 using NewLife;
 using XCode.Cache;
 using XCode.Configuration;
+using XCode.DataAccessLayer;
+using XCode.Shards;
 
 namespace XCode
 {
@@ -41,15 +43,11 @@ namespace XCode
             #endregion
 
             #region 基本属性
-            private static readonly Lazy<TableItem> _Table = new Lazy<TableItem>(() => TableItem.Create(ThisType));
+            private static readonly Lazy<TableItem> _Table = new(() => TableItem.Create(ThisType));
             /// <summary>表信息</summary>
             public static TableItem Table => _Table.Value;
 
-#if NET40 || NET45
-            private static readonly ThreadLocal<String> _ConnName = new();
-#else
             private static readonly AsyncLocal<String> _ConnName = new();
-#endif
             /// <summary>链接名。线程内允许修改，修改者负责还原。若要还原默认值，设为null即可</summary>
             public static String ConnName
             {
@@ -57,11 +55,7 @@ namespace XCode
                 set { _Session.Value = null; _ConnName.Value = value; }
             }
 
-#if NET40 || NET45
-            private static readonly ThreadLocal<String> _TableName = new();
-#else
             private static readonly AsyncLocal<String> _TableName = new();
-#endif
             /// <summary>表名。线程内允许修改，修改者负责还原</summary>
             public static String TableName
             {
@@ -95,11 +89,7 @@ namespace XCode
             #endregion
 
             #region 会话
-#if NET40 || NET45
-            private static readonly ThreadLocal<EntitySession<TEntity>> _Session = new();
-#else
             private static readonly AsyncLocal<EntitySession<TEntity>> _Session = new();
-#endif
             /// <summary>实体会话。线程静态</summary>
             public static EntitySession<TEntity> Session => _Session.Value ??= EntitySession<TEntity>.Create(ConnName, TableName);
             #endregion
@@ -170,23 +160,8 @@ namespace XCode
             #endregion
 
             #region 分表分库
-            /// <summary>自动分库回调，用于添删改操作</summary>
-            public static Func<TEntity, String> ShardConnName { get; set; }
-
-            /// <summary>自动分表回调，用于添删改操作</summary>
-            public static Func<TEntity, String> ShardTableName { get; set; }
-
-            /// <summary>在分库上执行操作，自动还原</summary>
-            /// <param name="connName"></param>
-            /// <param name="tableName"></param>
-            /// <param name="func"></param>
-            /// <returns></returns>
-            [Obsolete("=>CreateSplit")]
-            public static T ProcessWithSplit<T>(String connName, String tableName, Func<T> func)
-            {
-                using var split = CreateSplit(connName, tableName);
-                return func();
-            }
+            /// <summary>分表分库策略</summary>
+            public static IShardPolicy ShardPolicy { get; set; }
 
             /// <summary>创建分库会话，using结束时自动还原</summary>
             /// <param name="connName">连接名</param>
@@ -197,13 +172,48 @@ namespace XCode
             /// <summary>针对实体对象自动分库分表</summary>
             /// <param name="entity"></param>
             /// <returns></returns>
-            public static IDisposable AutoSplit(TEntity entity)
+            public static IDisposable CreateShard(TEntity entity)
             {
-                var connName = ShardConnName?.Invoke(entity);
-                var tableName = ShardTableName?.Invoke(entity);
-                if (connName.IsNullOrEmpty() && tableName.IsNullOrEmpty()) return null;
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Shard(entity);
+                if (model != null) return new SplitPackge(model.ConnName, model.TableName);
 
-                return new SplitPackge(connName, tableName);
+                return null;
+            }
+
+            /// <summary>为实体对象、时间、雪花Id等计算分表分库</summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static IDisposable CreateShard(Object value)
+            {
+                // 使用自动分表分库策略
+                var model = ShardPolicy?.Shard(value);
+                if (model == null) return null;
+
+                return new SplitPackge(model.ConnName, model.TableName);
+            }
+
+            /// <summary>针对时间区间自动分库分表，常用于多表顺序查询，支持倒序</summary>
+            /// <param name="start"></param>
+            /// <param name="end"></param>
+            /// <param name="callback"></param>
+            /// <returns></returns>
+            public static IEnumerable<T> AutoShard<T>(DateTime start, DateTime end, Func<T> callback)
+            {
+                // 使用自动分表分库策略
+                var models = ShardPolicy?.Shards(start, end);
+                if (models == null) yield break;
+
+                foreach (var shard in models)
+                {
+                    // 如果目标分表不存在，则不要展开查询
+                    var dal = !shard.ConnName.IsNullOrEmpty() ? DAL.Create(shard.ConnName) : Session.Dal;
+                    if (!dal.TableNames.Contains(shard.TableName)) continue;
+
+                    using var split = new SplitPackge(shard.ConnName, shard.TableName);
+                    var rs = callback();
+                    if (!Equals(rs, default)) yield return rs;
+                }
             }
 
             private class SplitPackge : IDisposable
@@ -232,7 +242,7 @@ namespace XCode
             #endregion
 
             #region 模块
-            internal static EntityModules _Modules = new EntityModules(typeof(TEntity));
+            internal static EntityModules _Modules = new(typeof(TEntity));
             /// <summary>实体模块集合</summary>
             public static EntityModules Modules => _Modules;
             #endregion

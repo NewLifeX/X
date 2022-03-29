@@ -23,6 +23,7 @@ using XCode.Cache;
 using XCode.Configuration;
 using XCode.DataAccessLayer;
 using XCode.Membership;
+using XCode.Shards;
 
 namespace Company.MyName
 {
@@ -84,7 +85,6 @@ namespace Company.MyName
         //    if (XTrace.Debug) XTrace.WriteLine("开始初始化User[用户]数据……");
 
         //    var entity = new User();
-        //    entity.ID = 0;
         //    entity.Name = "abc";
         //    entity.Password = "abc";
         //    entity.DisplayName = "abc";
@@ -92,17 +92,21 @@ namespace Company.MyName
         //    entity.Mail = "abc";
         //    entity.Mobile = "abc";
         //    entity.Code = "abc";
+        //    entity.AreaId = 0;
         //    entity.Avatar = "abc";
         //    entity.RoleID = 0;
         //    entity.RoleIds = "abc";
         //    entity.DepartmentID = 0;
         //    entity.Online = true;
         //    entity.Enable = true;
+        //    entity.Age = 0;
+        //    entity.Birthday = DateTime.Now;
         //    entity.Logins = 0;
         //    entity.LastLogin = DateTime.Now;
         //    entity.LastLoginIP = "abc";
         //    entity.RegisterTime = DateTime.Now;
         //    entity.RegisterIP = "abc";
+        //    entity.OnlineTime = 0;
         //    entity.Ex1 = 0;
         //    entity.Ex2 = 0;
         //    entity.Ex3 = 0.0;
@@ -168,6 +172,39 @@ namespace Company.MyName
             return Find(_.Name == name);
         }
 
+        /// <summary>根据邮件查找</summary>
+        /// <param name="mail">邮件</param>
+        /// <returns>实体列表</returns>
+        public static IList<User> FindAllByMail(String mail)
+        {
+            // 实体缓存
+            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Mail.EqualIgnoreCase(mail));
+
+            return FindAll(_.Mail == mail);
+        }
+
+        /// <summary>根据手机查找</summary>
+        /// <param name="mobile">手机</param>
+        /// <returns>实体列表</returns>
+        public static IList<User> FindAllByMobile(String mobile)
+        {
+            // 实体缓存
+            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Mobile.EqualIgnoreCase(mobile));
+
+            return FindAll(_.Mobile == mobile);
+        }
+
+        /// <summary>根据代码查找</summary>
+        /// <param name="code">代码</param>
+        /// <returns>实体列表</returns>
+        public static IList<User> FindAllByCode(String code)
+        {
+            // 实体缓存
+            if (Meta.Session.Count < 1000) return Meta.Cache.FindAll(e => e.Code.EqualIgnoreCase(code));
+
+            return FindAll(_.Code == code);
+        }
+
         /// <summary>根据角色查找</summary>
         /// <param name="roleId">角色</param>
         /// <returns>实体列表</returns>
@@ -183,33 +220,59 @@ namespace Company.MyName
         #region 高级查询
         /// <summary>高级查询</summary>
         /// <param name="name">名称。登录用户名</param>
+        /// <param name="mail">邮件</param>
+        /// <param name="mobile">手机</param>
+        /// <param name="code">代码。身份证、员工编号等</param>
         /// <param name="roleId">角色。主要角色</param>
         /// <param name="start">更新时间开始</param>
         /// <param name="end">更新时间结束</param>
         /// <param name="key">关键字</param>
         /// <param name="page">分页参数信息。可携带统计和数据权限扩展查询等信息</param>
         /// <returns>实体列表</returns>
-        public static IList<User> Search(String name, Int32 roleId, DateTime start, DateTime end, String key, PageParameter page)
+        public static IList<User> Search(String name, String mail, String mobile, String code, Int32 roleId, DateTime start, DateTime end, String key, PageParameter page)
         {
             var exp = new WhereExpression();
 
             if (!name.IsNullOrEmpty()) exp &= _.Name == name;
+            if (!mail.IsNullOrEmpty()) exp &= _.Mail == mail;
+            if (!mobile.IsNullOrEmpty()) exp &= _.Mobile == mobile;
+            if (!code.IsNullOrEmpty()) exp &= _.Code == code;
             if (roleId >= 0) exp &= _.RoleID == roleId;
             exp &= _.UpdateTime.Between(start, end);
-            if (!key.IsNullOrEmpty()) exp &= _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIds.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key) | _.Ex4.Contains(key) | _.Ex5.Contains(key) | _.Ex6.Contains(key) | _.UpdateUser.Contains(key) | _.UpdateIP.Contains(key) | _.Remark.Contains(key);
+            if (!key.IsNullOrEmpty()) exp &= _.Name.Contains(key) | _.Password.Contains(key) | _.DisplayName.Contains(key) | _.Mail.Contains(key) | _.Mobile.Contains(key) | _.Code.Contains(key) | _.Avatar.Contains(key) | _.RoleIds.Contains(key) | _.LastLoginIP.Contains(key) | _.RegisterIP.Contains(key) | _.Ex4.Contains(key) | _.Ex5.Contains(key) | _.Ex6.Contains(key) | _.UpdateUser.Contains(key) | _.UpdateIP.Contains(key) | _.Remark.Contains(key);
 
             return FindAll(exp, page);
         }
 
-        // Select Count(ID) as ID,Category From User Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
-        //static readonly FieldCache<User> _CategoryCache = new FieldCache<User>(nameof(Category))
-        //{
-        //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
-        //};
+        // Select Count(ID) as ID,Mail From User Where CreateTime>'2020-01-24 00:00:00' Group By Mail Order By ID Desc limit 20
+        static readonly FieldCache<User> _MailCache = new FieldCache<User>(nameof(Mail))
+        {
+            //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
 
-        ///// <summary>获取类别列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
-        ///// <returns></returns>
-        //public static IDictionary<String, String> GetCategoryList() => _CategoryCache.FindAllName();
+        /// <summary>获取邮件列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> GetMailList() => _MailCache.FindAllName();
+
+        // Select Count(ID) as ID,Mobile From User Where CreateTime>'2020-01-24 00:00:00' Group By Mobile Order By ID Desc limit 20
+        static readonly FieldCache<User> _MobileCache = new FieldCache<User>(nameof(Mobile))
+        {
+            //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
+
+        /// <summary>获取手机列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> GetMobileList() => _MobileCache.FindAllName();
+
+        // Select Count(ID) as ID,Code From User Where CreateTime>'2020-01-24 00:00:00' Group By Code Order By ID Desc limit 20
+        static readonly FieldCache<User> _CodeCache = new FieldCache<User>(nameof(Code))
+        {
+            //Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
+        };
+
+        /// <summary>获取代码列表，字段缓存10分钟，分组统计数据最多的前20种，用于魔方前台下拉选择</summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> GetCodeList() => _CodeCache.FindAllName();
         #endregion
 
         #region 业务操作

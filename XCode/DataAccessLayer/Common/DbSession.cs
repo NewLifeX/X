@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -40,15 +41,6 @@ namespace XCode.DataAccessLayer
         #region 属性
         /// <summary>数据库</summary>
         public IDatabase Database { get; }
-
-        /// <summary>查询次数</summary>
-        public Int32 QueryTimes { get; set; }
-
-        /// <summary>执行次数</summary>
-        public Int32 ExecuteTimes { get; set; }
-
-        /// <summary>线程编号，每个数据库会话应该只属于一个线程，该属性用于检查错误的跨线程操作</summary>
-        public Int32 ThreadID { get; } = Thread.CurrentThread.ManagedThreadId;
         #endregion
 
         #region 打开/关闭
@@ -313,7 +305,7 @@ namespace XCode.DataAccessLayer
             return dt;
         }
 
-        private static readonly Regex reg_QueryCount = new Regex(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex reg_QueryCount = new(@"^\s*select\s+\*\s+from\s+([\w\W]+)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         /// <summary>执行SQL查询，返回总记录数</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -323,7 +315,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                var orderBy = DbBase.CheckOrderClause(ref sql);
+                _ = DbBase.CheckOrderClause(ref sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
                     sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
@@ -365,11 +357,6 @@ namespace XCode.DataAccessLayer
         public virtual T Execute<T>(DbCommand cmd, Boolean query, Func<DbCommand, T> callback)
         {
             Transaction?.Check(cmd, !query);
-
-            if (query)
-                QueryTimes++;
-            else
-                ExecuteTimes++;
 
             var text = WriteSQL(cmd);
 
@@ -434,7 +421,6 @@ namespace XCode.DataAccessLayer
         /// <remark>
         /// 配置了连接，并关联了事务。
         /// 连接已打开。
-        /// 使用完毕后，必须调用AutoClose方法，以使得在非事务及设置了自动关闭的情况下关闭连接
         /// </remark>
         /// <param name="sql">SQL语句</param>
         /// <param name="type">命令类型，默认SQL文本</param>
@@ -458,13 +444,12 @@ namespace XCode.DataAccessLayer
             var cmd = Database.Factory?.CreateCommand();
             if (cmd == null) return null;
 
-            //if (!Opened) Open();
-            //cmd.Connection = Conn;
             cmd.CommandType = type;
             cmd.CommandText = sql;
             if (ps != null && ps.Length > 0) cmd.Parameters.AddRange(ps);
 
-            var timeout = Setting.Current.CommandTimeout;
+            var timeout = Database.CommandTimeout;
+            if (timeout <= 0) timeout = Setting.Current.CommandTimeout;
             if (timeout > 0) cmd.CommandTimeout = timeout;
 
             return cmd;
@@ -472,7 +457,6 @@ namespace XCode.DataAccessLayer
         #endregion
 
         #region 异步操作
-#if !NET40
         /// <summary>执行SQL查询，返回记录集</summary>
         /// <param name="sql">SQL语句</param>
         /// <param name="ps">命令参数</param>
@@ -498,7 +482,7 @@ namespace XCode.DataAccessLayer
         {
             if (sql.Contains(" "))
             {
-                var orderBy = DbBase.CheckOrderClause(ref sql);
+                _ = DbBase.CheckOrderClause(ref sql);
                 var ms = reg_QueryCount.Matches(sql);
                 if (ms != null && ms.Count > 0)
                     sql = $"Select Count(*) From {ms[0].Groups[1].Value}";
@@ -578,11 +562,6 @@ namespace XCode.DataAccessLayer
         {
             Transaction?.Check(cmd, !query);
 
-            if (query)
-                QueryTimes++;
-            else
-                ExecuteTimes++;
-
             var text = WriteSQL(cmd);
 
             return ProcessAsync(conn =>
@@ -604,7 +583,6 @@ namespace XCode.DataAccessLayer
                 }
             });
         }
-#endif
         #endregion
 
         #region 批量操作
@@ -646,17 +624,111 @@ namespace XCode.DataAccessLayer
         /// <param name="list">实体列表</param>
         /// <returns></returns>
         public virtual Int32 Upsert(IDataTable table, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns, IEnumerable<IExtend> list) => throw new NotSupportedException();
+
+        protected virtual void BuildInsert(StringBuilder sb, DbBase db, String action, IDataTable table, IDataColumn[] columns)
+        {
+            // 字段列表
+            sb.AppendFormat("{0} {1}(", action, db.FormatName(table));
+            foreach (var dc in columns)
+            {
+                sb.Append(db.FormatName(dc));
+                sb.Append(',');
+            }
+            sb.Length--;
+            sb.Append(')');
+        }
+
+        protected virtual void BuildBatchValues(StringBuilder sb, DbBase db, String action, IDataTable table, IDataColumn[] columns, IEnumerable<IExtend> list)
+        {
+            // 优化支持DbTable
+            if (list.FirstOrDefault() is DbRow)
+            {
+                // 提前把列名转为索引，然后根据索引找数据。外部确保数据列在数据源中都存在
+                DbTable dt = null;
+                Int32[] ids = null;
+                foreach (DbRow dr in list)
+                {
+                    if (dr.Table != dt)
+                    {
+                        dt = dr.Table;
+                        var cs = new List<Int32>();
+                        foreach (var dc in columns)
+                        {
+                            var idx = dt.GetColumn(dc.Name);
+                            if (idx < 0) idx = dt.GetColumn(dc.ColumnName);
+                            if (idx < 0) throw new XCodeException($"DbTable中不存在名为[{dc.Name}/{dc.ColumnName}]的字段");
+
+                            cs.Add(idx);
+                        }
+                        ids = cs.ToArray();
+                    }
+
+                    sb.Append('(');
+                    var row = dt.Rows[dr.Index];
+                    for (var i = 0; i < columns.Length; i++)
+                    {
+                        sb.Append(db.FormatValue(columns[i], row[ids[i]]));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            else
+            {
+                foreach (var entity in list)
+                {
+                    sb.Append('(');
+                    foreach (var dc in columns)
+                    {
+                        sb.Append(db.FormatValue(dc, entity[dc.Name]));
+                        sb.Append(',');
+                    }
+                    sb.Length--;
+                    sb.Append("),");
+                }
+            }
+            sb.Length--;
+        }
+
+        protected virtual void BuildDuplicateKey(StringBuilder sb, DbBase db, IDataColumn[] columns, ICollection<String> updateColumns, ICollection<String> addColumns)
+        {
+            // 重复键执行update
+            if ((updateColumns != null && updateColumns.Count > 0) || (addColumns != null && addColumns.Count > 0))
+            {
+                sb.Append(" On Duplicate Key Update ");
+                if (updateColumns != null && updateColumns.Count > 0)
+                {
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (updateColumns.Contains(dc.Name) && (addColumns == null || !addColumns.Contains(dc.Name)))
+                            sb.AppendFormat("{0}=Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+                if (addColumns != null && addColumns.Count > 0)
+                {
+                    sb.Append(',');
+                    foreach (var dc in columns)
+                    {
+                        if (dc.Identity || dc.PrimaryKey) continue;
+
+                        if (addColumns.Contains(dc.Name))
+                            sb.AppendFormat("{0}={0}+Values({0}),", db.FormatName(dc));
+                    }
+                    sb.Length--;
+                }
+            }
+        }
         #endregion
 
         #region 高级
         /// <summary>清空数据表，标识归零</summary>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public virtual Int32 Truncate(String tableName)
-        {
-            var sql = $"Truncate Table {Database.FormatName(tableName)}";
-            return Execute(sql);
-        }
+        public virtual Int32 Truncate(String tableName) => Execute($"Truncate Table {Database.FormatName(tableName)}");
         #endregion
 
         #region 架构
@@ -672,8 +744,9 @@ namespace XCode.DataAccessLayer
             if (restrictionValues != null && restrictionValues.Length > 0) key += "_" + String.Join("_", restrictionValues);
 
             var db = Database as DbBase;
-            var dt = db._SchemaCache.Get<DataTable>(key);
-            if (dt == null)
+            DataTable dt;
+            //var dt = db._SchemaCache.Get<DataTable>(key);
+            //if (dt == null)
             {
                 /*
                 * TODO: Bug
@@ -685,7 +758,7 @@ namespace XCode.DataAccessLayer
                 else
                     dt = Process(conn2 => GetSchemaInternal(conn2, key, collectionName, restrictionValues));
 
-                db._SchemaCache.Set(key, dt, 10);
+                //db._SchemaCache.Set(key, dt, 10);
             }
 
             return dt;
@@ -693,13 +766,11 @@ namespace XCode.DataAccessLayer
 
         private DataTable GetSchemaInternal(DbConnection conn, String key, String collectionName, String[] restrictionValues)
         {
-            QueryTimes++;
-
             DataTable dt = null;
 
             var sw = Stopwatch.StartNew();
 
-            if (restrictionValues == null || restrictionValues.Length < 1)
+            if (restrictionValues == null || restrictionValues.Length <= 0)
             {
                 if (String.IsNullOrEmpty(collectionName))
                 {
@@ -770,7 +841,8 @@ namespace XCode.DataAccessLayer
                 var sql = cmd.CommandText;
 
                 // 诊断信息
-                if (XTrace.Log.Level <= LogLevel.Debug) sql = $"[{Database.ConnName}]{sql}";
+                /*if (XTrace.Log.Level <= LogLevel.Debug)*/
+                sql = $"[{Database.ConnName}] {sql}";
 
                 var ps = cmd.Parameters;
                 if (ps != null && ps.Count > 0)
@@ -792,7 +864,7 @@ namespace XCode.DataAccessLayer
                                 sv = $"[{bv.Length}]0x{BitConverter.ToString(bv)}";
                         }
                         else if (v is String str && str.Length > 64)
-                            sv = $"[{str.Length}]{str.Substring(0, 64)}...";
+                            sv = $"[{str.Length}]{str[..64]}...";
                         else
                             sv = v is DateTime dt ? dt.ToFullString() : (v + "");
                         sb.AppendFormat("{0}={1}", ps[i].ParameterName, sv);
@@ -804,7 +876,7 @@ namespace XCode.DataAccessLayer
                 // 截断超长字符串
                 if (max > 0)
                 {
-                    if (sql.Length > max && sql.StartsWithIgnoreCase("Insert")) sql = sql.Substring(0, max / 2) + "..." + sql.Substring(sql.Length - max / 2);
+                    if (sql.Length > max && sql.StartsWithIgnoreCase("Insert")) sql = sql[..(max / 2)] + "..." + sql[^(max / 2)..];
                 }
 
                 return sql;
@@ -832,7 +904,7 @@ namespace XCode.DataAccessLayer
 
         #region SQL时间跟踪
         private Stopwatch _swSql;
-        private static readonly HashSet<String> _trace_sqls = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<String> _trace_sqls = new(StringComparer.OrdinalIgnoreCase);
 
         protected void BeginTrace()
         {

@@ -42,9 +42,11 @@ namespace XCode.Membership
         /// <param name="ip">地址</param>
         public virtual Log CreateLog(String category, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null)
         {
-            var factory = EntityFactory.CreateOperate(typeof(Log));
+            if (category.IsNullOrEmpty()) throw new ArgumentNullException(nameof(category));
+
+            var factory = EntityFactory.CreateFactory(typeof(Log));
             var log = factory.Create() as Log;
-            log.Category = category ?? throw new ArgumentNullException(nameof(category));
+            log.Category = category;
             log.Action = action;
             log.Success = success;
 
@@ -74,8 +76,36 @@ namespace XCode.Membership
             }
             if (log.CreateIP.IsNullOrEmpty()) log.CreateIP = ManageProvider.UserHost;
 
+            log.TraceId = DefaultSpan.Current?.TraceId;
             log.Remark = remark;
             log.CreateTime = DateTime.Now;
+
+            return log;
+        }
+
+        /// <summary>创建日志，未写入</summary>
+        /// <param name="type">实体类型</param>
+        /// <param name="action">操作</param>
+        /// <param name="success">成功</param>
+        /// <param name="remark">备注</param>
+        /// <param name="userid">用户</param>
+        /// <param name="name">名称</param>
+        /// <param name="ip">地址</param>
+        /// <param name="linkid">关联编号</param>
+        public virtual Log CreateLog(Type type, String action, Boolean success, String remark, Int32 userid = 0, String name = null, String ip = null, Int32 linkid = 0)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            var cat = "";
+            if (type.As<IEntity>())
+            {
+                var fact = EntityFactory.CreateFactory(type);
+                if (fact != null) cat = fact.Table.DataTable.DisplayName;
+            }
+            if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
+
+            var log = CreateLog(cat, action, success, remark, userid, name, ip);
+            if (linkid > 0) log.LinkID = linkid;
 
             return log;
         }
@@ -109,15 +139,7 @@ namespace XCode.Membership
         {
             if (!Enable) return;
 
-            var cat = "";
-            if (type.As<IEntity>())
-            {
-                var fact = EntityFactory.CreateOperate(type);
-                if (fact != null) cat = fact.Table.DataTable.DisplayName;
-            }
-            if (cat.IsNullOrEmpty()) cat = type.GetDisplayName() ?? type.GetDescription() ?? type.Name;
-
-            var log = CreateLog(cat, action, success, remark, userid, name, ip);
+            var log = CreateLog(type, action, success, remark, userid, name, ip);
 
             log.SaveAsync();
         }
@@ -131,7 +153,7 @@ namespace XCode.Membership
             if (!Enable) return;
 
             var type = entity.GetType();
-            var fact = EntityFactory.CreateOperate(type);
+            var fact = EntityFactory.CreateFactory(type);
 
             // 构造字段数据的字符串表示形式
             var sb = Pool.StringBuilder.Get();
@@ -142,7 +164,7 @@ namespace XCode.Membership
 
                 var v = entity[fi.Name];
                 // 空字符串不写日志
-                if (action == "添加" || action == "删除" || action == "Insert" || action == "Delete")
+                if (action is "添加" or "删除" or "Insert" or "Delete")
                 {
                     if (v + "" == "") continue;
                     if (v is Boolean b && !b) continue;
@@ -153,6 +175,7 @@ namespace XCode.Membership
                 // 日志里面不要出现密码
                 if (fi.Name.EqualIgnoreCase("pass", "password")) v = null;
 
+                if (v is DateTime dt2) v = dt2.ToFullString();
                 sb.Separate(",").AppendFormat("{0}={1}", fi.Name, v);
             }
 
@@ -201,8 +224,8 @@ namespace XCode.Membership
                 var p = msg.IndexOf(' ');
                 if (p > 0)
                 {
-                    act = msg.Substring(0, p).Trim();
-                    msg = msg.Substring(p + 1).Trim();
+                    act = msg[..p].Trim();
+                    msg = msg[(p + 1)..].Trim();
                 }
 
                 // 从参数里提取用户对象

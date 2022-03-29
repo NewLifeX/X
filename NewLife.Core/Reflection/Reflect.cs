@@ -364,22 +364,15 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Type GetMemberType(this MemberInfo member)
         {
-            switch (member.MemberType)
+            return member.MemberType switch
             {
-                case MemberTypes.Constructor:
-                    return (member as ConstructorInfo).DeclaringType;
-                case MemberTypes.Field:
-                    return (member as FieldInfo).FieldType;
-                case MemberTypes.Method:
-                    return (member as MethodInfo).ReturnType;
-                case MemberTypes.Property:
-                    return (member as PropertyInfo).PropertyType;
-                case MemberTypes.TypeInfo:
-                case MemberTypes.NestedType:
-                    return member as Type;
-                default:
-                    return null;
-            }
+                MemberTypes.Constructor => (member as ConstructorInfo).DeclaringType,
+                MemberTypes.Field => (member as FieldInfo).FieldType,
+                MemberTypes.Method => (member as MethodInfo).ReturnType,
+                MemberTypes.Property => (member as PropertyInfo).PropertyType,
+                MemberTypes.TypeInfo or MemberTypes.NestedType => member as Type,
+                _ => null,
+            };
         }
 
         /// <summary>获取类型代码</summary>

@@ -87,6 +87,9 @@ namespace XCode.Configuration
             }
             list.Save();
 
+            // 通知绑定对象，配置数据有改变
+            NotifyChange();
+
             return true;
         }
         #endregion

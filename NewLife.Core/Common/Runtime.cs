@@ -16,10 +16,8 @@ namespace NewLife
             {
                 if (_IsConsole != null) return _IsConsole.Value;
 
-#if __CORE__
                 // netcore 默认都是控制台，除非主动设置
                 _IsConsole = true;
-#else
 
                 try
                 {
@@ -33,7 +31,6 @@ namespace NewLife
                 {
                     _IsConsole = false;
                 }
-#endif
 
                 return _IsConsole.Value;
             }
@@ -45,7 +42,6 @@ namespace NewLife
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
-#if __CORE__
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb => false;
 
@@ -57,18 +53,23 @@ namespace NewLife
 
         /// <summary>是否OSX环境</summary>
         public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        #endregion
+
+        #region 扩展
+#if NETCOREAPP3_1_OR_GREATER
+        /// <summary>系统启动以来的毫秒数</summary>
+        public static Int64 TickCount64 => Environment.TickCount64;
 #else
-        /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
+        /// <summary>系统启动以来的毫秒数</summary>
+        public static Int64 TickCount64
+        {
+            get
+            {
+                if (Stopwatch.IsHighResolution) return Stopwatch.GetTimestamp() / Stopwatch.Frequency;
 
-        /// <summary>是否Windows环境</summary>
-        public static Boolean Windows { get; } = Environment.OSVersion.Platform <= PlatformID.WinCE;
-
-        /// <summary>是否Linux环境</summary>
-        public static Boolean Linux { get; } = Environment.OSVersion.Platform == PlatformID.Unix;
-
-        /// <summary>是否OSX环境</summary>
-        public static Boolean OSX { get; } = Environment.OSVersion.Platform == PlatformID.MacOSX;
+                return Environment.TickCount / 1000;
+            }
+        }
 #endif
         #endregion
     }

@@ -29,8 +29,8 @@ namespace XUnitTest.XCode.Model
             Assert.Equal("RoleID In(1,2,3,4)", exp);
 
             Assert.Throws<ArgumentNullException>(() => fi.In((IEnumerable)null));
-            Assert.Throws<ArgumentNullException>(() => fi.In(new Int32[0]));
-            Assert.Throws<ArgumentNullException>(() => fi.In(new Object[0]));
+            Assert.Throws<ArgumentNullException>(() => fi.In(Array.Empty<Int32>()));
+            Assert.Throws<ArgumentNullException>(() => fi.In(Array.Empty<Object>()));
         }
 
         [Fact]
@@ -44,8 +44,8 @@ namespace XUnitTest.XCode.Model
             Assert.Equal("Category In('登录','注册','同步')", exp);
 
             Assert.Throws<ArgumentNullException>(() => fi.In((IEnumerable)null));
-            Assert.Throws<ArgumentNullException>(() => fi.In(new String[0]));
-            Assert.Throws<ArgumentNullException>(() => fi.In(new Object[0]));
+            Assert.Throws<ArgumentNullException>(() => fi.In(Array.Empty<String>()));
+            Assert.Throws<ArgumentNullException>(() => fi.In(Array.Empty<Object>()));
         }
 
         [Fact]
@@ -73,8 +73,8 @@ namespace XUnitTest.XCode.Model
             Assert.Equal("RoleID Not In(1,2,3,4)", exp);
 
             Assert.Throws<ArgumentNullException>(() => fi.NotIn((IEnumerable)null));
-            Assert.Throws<ArgumentNullException>(() => fi.NotIn(new Int32[0]));
-            Assert.Throws<ArgumentNullException>(() => fi.NotIn(new Object[0]));
+            Assert.Throws<ArgumentNullException>(() => fi.NotIn(Array.Empty<Int32>()));
+            Assert.Throws<ArgumentNullException>(() => fi.NotIn(Array.Empty<Object>()));
         }
 
         [Fact]
@@ -88,8 +88,8 @@ namespace XUnitTest.XCode.Model
             Assert.Equal("Category Not In('登录','注册','同步')", exp);
 
             Assert.Throws<ArgumentNullException>(() => fi.NotIn((IEnumerable)null));
-            Assert.Throws<ArgumentNullException>(() => fi.NotIn(new String[0]));
-            Assert.Throws<ArgumentNullException>(() => fi.NotIn(new Object[0]));
+            Assert.Throws<ArgumentNullException>(() => fi.NotIn(Array.Empty<String>()));
+            Assert.Throws<ArgumentNullException>(() => fi.NotIn(Array.Empty<Object>()));
         }
 
         [Fact]

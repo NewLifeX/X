@@ -3,29 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Net.WebSockets;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using XCode.DataAccessLayer;
-using XCode.Membership;
-using XCode.Code;
-using System.Reflection;
-using System.Security.Cryptography;
-using NewLife.Data;
-using System.Threading.Tasks;
-
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace Test
 {
@@ -36,6 +28,11 @@ namespace Test
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             XTrace.UseConsole();
+
+            //var star = new StarFactory(null, null, null);
+            //DefaultTracer.Instance = star?.Tracer;
+            //(star.Tracer as StarTracer).AttachGlobal();
+
 #if DEBUG
             XTrace.Debug = true;
             XTrace.Log.Level = LogLevel.All;
@@ -44,20 +41,20 @@ namespace Test
             set.Debug = true;
             set.LogLevel = LogLevel.All;
 
-            new LogEventListener(new[] {
-                "System.Runtime",
-                "System.Diagnostics.Eventing.FrameworkEventSource",
-                "System.Transactions.TransactionsEventSource",
-                "Microsoft-Windows-DotNETRuntime",
-                //"Private.InternalDiagnostics.System.Net.Sockets",
-                "System.Net.NameResolution",
-                //"Private.InternalDiagnostics.System.Net.NameResolution",
-                "System.Net.Sockets",
-                //"Private.InternalDiagnostics.System.Net.Http",
-                "System.Net.Http",
-                //"System.Data.DataCommonEventSource",
-                //"Microsoft-Diagnostics-DiagnosticSource",
-            });
+            //new LogEventListener(new[] {
+            //    "System.Runtime",
+            //    "System.Diagnostics.Eventing.FrameworkEventSource",
+            //    "System.Transactions.TransactionsEventSource",
+            //    "Microsoft-Windows-DotNETRuntime",
+            //    //"Private.InternalDiagnostics.System.Net.Sockets",
+            //    "System.Net.NameResolution",
+            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
+            //    "System.Net.Sockets",
+            //    //"Private.InternalDiagnostics.System.Net.Http",
+            //    "System.Net.Http",
+            //    //"System.Data.DataCommonEventSource",
+            //    //"Microsoft-Diagnostics-DiagnosticSource",
+            //});
 
             var set2 = XCode.Setting.Current;
             set2.Debug = true;
@@ -69,7 +66,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test4();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -90,52 +87,8 @@ namespace Test
 
         private static void Test1()
         {
-            var b = (Byte)0x0F;
-            XTrace.WriteLine("{0} {0:X} {0:X2}", b);
-            // 15 F 0F
-
-            //var keys = ECDsaHelper.GenerateKey();
-            //XTrace.WriteLine("prvKey:{0}", keys[0]);
-            //XTrace.WriteLine("pubKey:{0}", keys[1]);
-
-            //"你好".SpeakAsync();
-
-            XTrace.WriteLine("FullPath:{0}", ".".GetFullPath());
-            XTrace.WriteLine("BasePath:{0}", ".".GetBasePath());
-            XTrace.WriteLine("TempPath:{0}", Path.GetTempPath());
-
-            var mi = MachineInfo.Current ?? MachineInfo.RegisterAsync().Result;
-
-            foreach (var pi in mi.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
-            {
-                XTrace.WriteLine("{0}:\t{1}", pi.Name, mi.GetValue(pi));
-            }
-
-            Console.WriteLine();
-
-#if __CORE__
-            foreach (var pi in typeof(RuntimeInformation).GetProperties())
-            {
-                XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
-            }
-#endif
-
-            //Console.WriteLine();
-
-            //foreach (var pi in typeof(Environment).GetProperties())
-            //{
-            //    XTrace.WriteLine("{0}:\t{1}", pi.Name, pi.GetValue(null));
-            //}
-
-            mi = MachineInfo.Current;
-            for (var i = 0; i < 100; i++)
-            {
-                XTrace.WriteLine("CPU={0:p2} Temp={1} Memory={2:n0} Disk={3}", mi.CpuRate, mi.Temperature, mi.AvailableMemory.ToGMK(), MachineInfo.GetFreeSpace().ToGMK());
-                Thread.Sleep(1000);
-                mi.Refresh();
-            }
-
-            Console.ReadKey();
+            var mi = MachineInfo.Current;
+            XTrace.WriteLine(mi.ToJson(true));
         }
 
         private static void Test2()
@@ -169,19 +122,19 @@ namespace Test
 
         private static void Test3()
         {
-            var tracer = DefaultTracer.Instance ?? new DefaultTracer();
+            using var tracer = new DefaultTracer { Log = XTrace.Log };
             tracer.MaxSamples = 100;
             tracer.MaxErrors = 100;
 
             if (Console.ReadLine() == "1")
             {
-                var svr = new ApiServer(1234)
+                var svr = new ApiServer(12345)
                 //var svr = new ApiServer("http://*:1234")
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
-                    Tracer = DefaultTracer.Instance,
+                    Tracer = tracer,
                 };
 
                 // http状态
@@ -198,18 +151,18 @@ namespace Test
             }
             else
             {
-                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:1234")
+                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:12345")
                 {
                     Log = XTrace.Log,
                     //EncoderLog = XTrace.Log,
                     StatPeriod = 10,
-                    Tracer = DefaultTracer.Instance,
+                    Tracer = tracer,
 
                     UsePool = true,
                 };
                 client.Open();
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -227,7 +180,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -245,7 +198,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -263,7 +216,7 @@ namespace Test
                     XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
                 });
 
-                TaskEx.Run(() =>
+                Task.Run(() =>
                 {
                     var sw = Stopwatch.StartNew();
                     try
@@ -306,9 +259,6 @@ namespace Test
                 case '1':
                     ch = new MemoryCache();
                     break;
-                case '2':
-                    ch = new DbCache();
-                    break;
                 case '3':
                     var rds = new Redis("127.0.0.1", null, 9)
                     {
@@ -340,28 +290,56 @@ namespace Test
             if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
-        private static void Test5()
+        private static NetServer _server;
+        private static async void Test5()
         {
-            var type = typeof(DateTime?);
-            var tc = Type.GetTypeCode(type);
-            Console.WriteLine(tc);
-
-            var set = XCode.Setting.Current;
-            set.EntityCacheExpire = 5;
-
-            Log.Meta.Session.Dal.Db.ShowSQL = true;
-
-            for (var i = 0; i < 10; i++)
+            var server = new HttpServer
             {
-                LogProvider.Provider.WriteLog("test" + i, "test", true, "xxx");
-            }
+                Port = 8080,
+                Log = XTrace.Log,
+                //SessionLog = XTrace.Log,
+            };
+            server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
+            server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
+            server.MapStaticFiles("/logos", "images/");
+            server.MapStaticFiles("/", "./");
+            server.MapController<ApiController>("/api");
+            server.Map("/my", new MyHttpHandler());
+            server.Map("/ws", new WebSocketHandler());
+            server.Start();
 
-            for (var i = 0; i < 1000; i++)
+            _server = server;
+
+#if NET5_0_OR_GREATER
+            var client = new ClientWebSocket();
+            await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+
+            var buf = new Byte[1024];
+            var rs = await client.ReceiveAsync(buf, default);
+            XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+
+            await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
+            XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+#endif
+        }
+
+        class MyHttpHandler : IHttpHandler
+        {
+            public void ProcessRequest(IHttpContext context)
             {
-                var names = Log.FindAllCategoryName();
-                XTrace.WriteLine("names: {0}", names.Count);
-
-                Thread.Sleep(1000);
+                var name = context.Parameters["name"];
+                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+                var files = context.Request.Files;
+                if (files != null && files.Length > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        file.SaveToFile();
+                        html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
+                    }
+                }
+                context.Response.SetResult(html);
             }
         }
 
@@ -415,86 +393,15 @@ namespace Test
 
         private static void Test7()
         {
-#if __CORE__
-            XTrace.WriteLine(RuntimeInformation.OSDescription);
-#endif
 
-            XCode.Setting.Current.Migration = Migration.Full;
-            //Role.Meta.Session.Dal.Db.Migration = Migration.Full;
-            //DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
-
-            Role.Meta.Session.Dal.Db.ShowSQL = true;
-            Role.Meta.Session.Dal.Expire = 10;
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            list = Role.FindAll(Role._.Name.NotContains("abc"));
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            var r = list.Last();
-            r.IsSystem = !r.IsSystem;
-            r.Update();
-
-            Thread.Sleep(5000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
         }
 
         private static async void Test8()
         {
-            Area.Meta.Session.Dal.Db.ShowSQL = false;
-
-            //var url = "http://www.mca.gov.cn/article/sj/xzqh/2020/2020/2020092500801.html";
-            //Area.FetchAndSave(url);
-
-            //var file = "../Area20200929.csv";
-            //var file = "Area.csv.gz";
-            var file = "http://x.newlifex.com/Area.csv.gz";
-            //var list = new List<Area>();
-            //list.LoadCsv(file);
-
-            //Area.MergeLevel3(list, true);
-            //Area.MergeLevel4(list, true);
-
-            Area.Import(file, true);
-
-            Area.Export($"Area_{DateTime.Now:yyyyMMddHHmmss}.csv.gz");
         }
 
         private static void Test9()
         {
-            var r0 = Role.FindByName("Stone");
-            r0?.Delete();
-
-            var r = new Role
-            {
-                Name = "Stone"
-            };
-            r.Insert();
-
-            var r2 = Role.FindByName("Stone");
-            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
-
-            r.Enable = true;
-            r.Update();
-
-            var r3 = Role.Find(Role._.Name == "STONE");
-            XTrace.WriteLine("Find: {0}", r3.ToJson());
-
-            r.Delete();
-
-            var n = Role.FindCount();
-            XTrace.WriteLine("count={0}", n);
         }
 
         private static void Test10()
@@ -524,14 +431,25 @@ namespace Test
 
         private static void Test11()
         {
+            var sb = new StringBuilder();
+            for (var i = 0; i < 26; i++)
+            {
+                sb.Append((Char)('a' + i));
+            }
+            for (var i = 0; i < 26; i++)
+            {
+                sb.Append((Char)('A' + i));
+            }
+            for (var i = 0; i < 10; i++)
+            {
+                sb.Append((Char)('0' + i));
+            }
+            Console.WriteLine(sb);
         }
 
         /// <summary>测试序列化</summary>
         private static void Test12()
         {
-            var option = new BuilderOption();
-            var tables = ClassBuilder.LoadModels("../../NewLife.Cube/CubeDemoNC/Areas/School/Models/Model.xml", option, out var atts);
-            EntityBuilder.BuildTables(tables, option);
         }
 
         private static void Test13()
@@ -557,9 +475,11 @@ namespace Test
 
         private static void Test14()
         {
-            var str = "E59E4316-7E81-4A43-94D6-32480C83ACE7@fa6ad071-6f0a-498f-8875-b9fb65625e15@70-8B-CD-0B-4D-D5,74-C6-3B-87-3F-8D";
-            var result = str.GetBytes().RC4("设备".GetBytes()).Crc().GetBytes().ToHex();
-            Console.WriteLine(result);
+            var rds = new Redis("127.0.0.1", null, 3)
+            {
+                Log = XTrace.Log
+            };
+            var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
         }
 
         ///// <summary>
@@ -893,9 +813,34 @@ namespace Test
 
         private static void TestReadAppSettings()
         {
-            var str = DAL.ConnStrs["MySQL.AppSettings"];
-            Console.WriteLine(str);
-            Console.WriteLine(DAL.ConnStrs["MySQL.AppSettings.default"]);
+        }
+
+        /// <summary>测试config文件的写入</summary>
+        private static void TestWriteConfig()
+        {
+            ConfigTest.Current.Names = new List<String> { "1", "2" };
+            ConfigTest.Current.Sex = "1";
+            ConfigTest.Current.xyf = new List<XYF>() { new XYF() { name = "123" }, new XYF() { name = "321" } };
+            ConfigTest.Current.Save();
+
+            //Class1.Current.Names = "123";
+            //Class1.Current.Save();
+
+            //Class1.Provider = XmlConfig;
+
+
+        }
+
+        /// <summary>测试config文件的读取</summary>
+        private static void TestReadConfig()
+        {
+            var z = ConfigTest.Current.Names;
+            var x = ConfigTest.Current.Sex;
+            var y = ConfigTest.Current.xyf;
+        }
+
+        private static void Test16()
+        {
         }
     }
 }

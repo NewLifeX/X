@@ -163,7 +163,7 @@ namespace XUnitTest.Data
                 dt2.Read(pk);
             });
 
-            Assert.Equal("DbTable[ver=1]无法支持较新的版本[2]", ex.Message);
+            Assert.Equal("DbTable[ver=2]无法支持较新的版本[3]", ex.Message);
         }
 
         [Fact]

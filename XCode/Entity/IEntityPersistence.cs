@@ -41,7 +41,6 @@ namespace XCode
         /// <returns></returns>
         Int32 Delete(IEntitySession session, IEntity entity);
 
-#if !NET40
         /// <summary>插入</summary>
         /// <param name="session">实体会话</param>
         /// <param name="entity">实体</param>
@@ -59,7 +58,6 @@ namespace XCode
         /// <param name="entity">实体</param>
         /// <returns></returns>
         Task<Int32> DeleteAsync(IEntitySession session, IEntity entity);
-#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>
@@ -241,7 +239,6 @@ namespace XCode
             return rs;
         }
 
-#if !NET40
         /// <summary>插入</summary>
         /// <param name="session">实体会话</param>
         /// <param name="entity">实体</param>
@@ -337,7 +334,6 @@ namespace XCode
 
             return rs;
         }
-#endif
 
         /// <summary>把一个实体对象持久化到数据库</summary>
         /// <param name="session">实体会话</param>
@@ -504,8 +500,8 @@ namespace XCode
             * 插入数据原则：
             * 1，有脏数据的字段一定要参与
             * 2，没有脏数据，允许空的字段不参与
-            * 3，没有脏数据，不允许空，有默认值的不参与
-            * 4，没有脏数据，不允许空，没有默认值的参与，需要智能识别并添加相应字段的默认数据
+            * 3，没有脏数据，不允许空，字符串类型不参与，如果数据库也没有默认值则报错
+            * 4，没有脏数据，不允许空，其它类型参与插入
             */
 
             var sbNames = Pool.StringBuilder.Get();
@@ -522,10 +518,29 @@ namespace XCode
                 // 1，有脏数据的字段一定要参与
                 if (!entity.IsDirty(fi.Name))
                 {
-                    if (!factory.FullInsert) continue;
+                    //if (!factory.FullInsert) continue;
 
-                    //// 不允许空时，插入空值没有意义
-                    //if (!fi.IsNullable) continue;
+                    // 2，没有脏数据，允许空的字段不参与
+                    if (fi.IsNullable)
+                    {
+                        if (!factory.FullInsert) continue;
+                    }
+                    else
+                    {
+                        // 3，没有脏数据，不允许空，字符串类型不参与，如果数据库也没有默认值则报错
+                        if (fi.Type == typeof(String) && value == null)
+                        {
+                            if (!factory.FullInsert) continue;
+
+                            value = String.Empty;
+                        }
+                        if (fi.Type == typeof(DateTime))
+                        {
+                            if (!factory.FullInsert) continue;
+                        }
+
+                        // 4，没有脏数据，不允许空，其它类型参与插入
+                    }
                 }
 
                 sbNames.Separate(",").Append(db.FormatName(fi.Field));
@@ -702,7 +717,7 @@ namespace XCode
             //// 是否使用参数化
             //if (Setting.Current.UserParameter) return true;
 
-            if (fi.Length > 0 && fi.Length < 4000) return false;
+            if (fi.Length is > 0 and < 4000) return false;
 
             // 虽然是大字段，但数据量不大时不用参数
             if (fi.Type == typeof(String))
@@ -822,7 +837,7 @@ namespace XCode
             // 主键作为查询关键字
             var ps = factory.Table.PrimaryKeys;
             // 没有标识列和主键，返回取所有数据的语句
-            if (ps == null || ps.Length < 1) ps = factory.Table.Fields;
+            if (ps == null || ps.Length <= 0) ps = factory.Table.Fields;
 
             foreach (var item in ps)
             {

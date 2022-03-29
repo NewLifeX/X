@@ -127,7 +127,7 @@ namespace NewLife.Model
         public void Init()
         {
             var ps = Plugins;
-            if (ps == null || ps.Count < 1) return;
+            if (ps == null || ps.Count <= 0) return;
 
             for (var i = ps.Count - 1; i >= 0; i--)
             {

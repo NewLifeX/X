@@ -78,6 +78,7 @@ namespace NewLife.Http
 
             var handler = CreateHandler(name);
             var client = new HttpClient(handler, disposeHandler: false);
+            client.SetUserAgent();
 
             return client;
         }
@@ -283,11 +284,7 @@ namespace NewLife.Http
                 return; // never expires.
             }
 
-#if NET4
-            if (_timerInitialized) return;
-#else
             if (Volatile.Read(ref _timerInitialized)) return;
-#endif
 
             StartExpiryTimerSlow(callback);
         }
@@ -298,11 +295,7 @@ namespace NewLife.Http
 
             lock (_lock)
             {
-#if NET4
-                if (_timerInitialized) return;
-#else
                 if (Volatile.Read(ref _timerInitialized)) return;
-#endif
 
                 _callback = callback;
                 //_timer = NonCapturingTimer.Create(_timerCallback, this, Lifetime, Timeout.InfiniteTimeSpan);

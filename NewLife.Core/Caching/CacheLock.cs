@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Caching
 {
@@ -7,6 +8,11 @@ namespace NewLife.Caching
     public class CacheLock : DisposeBase
     {
         private ICache Client { get; set; }
+
+        /// <summary>
+        /// 是否持有锁
+        /// </summary>
+        private Boolean _hasLock = false;
 
         /// <summary>键</summary>
         public String Key { get; set; }
@@ -24,46 +30,40 @@ namespace NewLife.Caching
         }
 
         /// <summary>申请锁</summary>
-        /// <param name="msTimeout">锁等待时间</param>
+        /// <param name="msTimeout">锁等待时间，单位毫秒</param>
+        /// <param name="msExpire">锁过期时间，单位毫秒</param>
         /// <returns></returns>
-        public Boolean Acquire(Int32 msTimeout)
+        public Boolean Acquire(Int32 msTimeout, Int32 msExpire)
         {
             var ch = Client;
-            var now = DateTime.Now;
-            var sTimeout = (Int32)Math.Round((Double)msTimeout / 1000);
+            var now = Runtime.TickCount64;
 
             // 循环等待
-            var end = now.AddMilliseconds(msTimeout);
+            var end = now + msTimeout;
             while (now < end)
             {
-                var expire = now.AddMilliseconds(msTimeout);
-
                 // 申请加锁。没有冲突时可以直接返回
-                var rs = ch.Add(Key, expire, sTimeout);
-                if (rs) return true;
+                var rs = ch.Add(Key, now + msExpire, msExpire / 1000);
+                if (rs) return _hasLock = true;
 
                 // 死锁超期检测
-                var dt = ch.Get<DateTime>(Key);
+                var dt = ch.Get<Int64>(Key);
                 if (dt <= now)
                 {
-#if DEBUG
-                    Log.XTrace.WriteLine("[{0}]抢超期死锁，{1}=>{2}", Key, dt, expire);
-#endif
                     // 开抢死锁。所有竞争者都会修改该锁的时间戳，但是只有一个能拿到旧的超时的值
-                    expire = now.AddMilliseconds(msTimeout);
-                    var old = ch.Replace(Key, expire);
+                    var old = ch.Replace(Key, now + msExpire);
                     // 如果拿到超时值，说明抢到了锁。其它线程会抢到一个为超时的值
-                    if (old <= now)
+                    if (old <= dt)
                     {
-                        ch.SetExpire(Key, TimeSpan.FromMilliseconds(msTimeout));
-                        return true;
+                        ch.SetExpire(Key, TimeSpan.FromMilliseconds(msExpire));
+                        return _hasLock = true;
                     }
                 }
 
                 // 没抢到，继续
                 Thread.Sleep(200);
 
-                now = DateTime.Now;
+                now = Runtime.TickCount64;
             }
 
             return false;
@@ -81,7 +81,10 @@ namespace NewLife.Caching
             }
             else
             {
-                Client.Remove(Key);
+                if (_hasLock)
+                {
+                    Client.Remove(Key);
+                }
             }
         }
     }

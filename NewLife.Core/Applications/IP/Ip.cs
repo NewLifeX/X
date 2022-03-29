@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using NewLife.Log;
-using NewLife.Threading;
 using NewLife.Web;
 
 #nullable enable
@@ -12,7 +12,7 @@ namespace NewLife.IP
     /// <summary>IP搜索</summary>
     public static class Ip
     {
-        private static readonly Object lockHelper = new Object();
+        private static readonly Object lockHelper = new();
         private static Zip? zip;
 
         /// <summary>数据文件</summary>
@@ -20,6 +20,9 @@ namespace NewLife.IP
 
         static Ip()
         {
+#if NETCOREAPP
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
             var set = Setting.Current;
             var dir = set.DataPath;
             var ip = dir.CombinePath("ip.gz").GetBasePath();
@@ -28,25 +31,34 @@ namespace NewLife.IP
             // 如果本地没有IP数据库，则从网络下载
             if (DbFile.IsNullOrWhiteSpace())
             {
-                ThreadPoolX.QueueUserWorkItem(() =>
+                var task = Task.Factory.StartNew(() =>
                 {
                     var url = set.PluginServer;
                     XTrace.WriteLine("没有找到IP数据库{0}，准备联网获取 {1}", ip, url);
 
-                    var client = new WebClientX
+                    // 无法下载ip地址库时，不要抛出异常影响业务层
+                    try
                     {
-                        Log = XTrace.Log
-                    };
-                    var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
+                        var client = new WebClientX
+                        {
+                            Log = XTrace.Log
+                        };
+                        var file = client.DownloadLink(url, "ip.gz", dir.GetBasePath());
 
-                    if (File.Exists(file))
+                        if (File.Exists(file))
+                        {
+                            DbFile = file;
+                            zip = null;
+                            // 让它重新初始化
+                            _inited = null;
+                        }
+                    }
+                    catch (Exception ex)
                     {
-                        DbFile = file;
-                        zip = null;
-                        // 让它重新初始化
-                        _inited = null;
+                        XTrace.WriteException(ex);
                     }
                 });
+                task.Wait(3_000);
             }
         }
 
@@ -81,10 +93,10 @@ namespace NewLife.IP
                         return false;
                     }
                 }
-                zip = z;
+                if (z.Stream != null) zip = z;
             }
 
-            if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + DbFile + "！");
+            //if (zip.Stream == null) throw new InvalidOperationException("无法打开IP数据库" + DbFile + "！");
 
             _inited = true;
             return true;

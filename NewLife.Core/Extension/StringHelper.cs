@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using NewLife.Collections;
@@ -40,7 +41,7 @@ namespace NewLife
 
             foreach (var item in strs)
             {
-                if (value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+                if (!String.IsNullOrEmpty(item) && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
         }
@@ -87,8 +88,8 @@ namespace NewLife
         public static String[] Split(this String? value, params String[] separators)
         {
             //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
-            if (value == null || String.IsNullOrEmpty(value)) return new String[0];
-            if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
+            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<String>();
+            if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
@@ -100,8 +101,8 @@ namespace NewLife
         /// <returns></returns>
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
-            if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
-            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<Int32>();
+            if (separators == null || separators.Length <= 0) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             var list = new List<Int32>();
@@ -117,36 +118,6 @@ namespace NewLife
             return list.ToArray();
         }
 
-        /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分号分组，等号分隔</summary>
-        /// <param name="value">字符串</param>
-        /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
-        /// <param name="separators">分组分隔符，默认逗号分号</param>
-        /// <returns></returns>
-        [Obsolete("该扩展容易带来误解")]
-        public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", params String[] separators)
-        {
-            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value == null || value.IsNullOrWhiteSpace()) return dic;
-
-            if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
-            if (separators == null || separators.Length == 0) separators = new String[] { ",", ";" };
-
-            var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length == 0) return dic;
-
-            foreach (var item in ss)
-            {
-                var p = item.IndexOf(nameValueSeparator);
-                // 在前后都不行
-                if (p <= 0 || p >= item.Length - 1) continue;
-
-                var key = item.Substring(0, p).Trim();
-                dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
-            }
-
-            return dic;
-        }
-
         /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分组，等号分隔</summary>
         /// <param name="value">字符串</param>
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
@@ -159,10 +130,10 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             var k = 0;
             foreach (var item in ss)
@@ -175,14 +146,14 @@ namespace NewLife
                     continue;
                 }
 
-                var key = item.Substring(0, p).Trim();
-                var val = item.Substring(p + nameValueSeparator.Length).Trim();
+                var key = item[..p].Trim();
+                var val = item[(p + nameValueSeparator.Length)..].Trim();
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
                 {
-                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
-                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                    if (val[0] == '\'' && val[^1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
                 }
 
                 k++;
@@ -206,25 +177,25 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             //if (nameValueSeparator == null) nameValueSeparator = '=';
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             foreach (var item in ss)
             {
                 var p = item.IndexOf(nameValueSeparator);
                 if (p <= 0) continue;
 
-                var key = item.Substring(0, p).Trim();
-                var val = item.Substring(p + 1).Trim();
+                var key = item[..p].Trim();
+                var val = item[(p + 1)..].Trim();
 
 
                 // 处理单引号双引号
                 if (trimQuotation && !val.IsNullOrEmpty())
                 {
-                    if (val[0] == '\'' && val[val.Length - 1] == '\'') val = val.Trim('\'');
-                    if (val[0] == '"' && val[val.Length - 1] == '"') val = val.Trim('"');
+                    if (val[0] == '\'' && val[^1] == '\'') val = val.Trim('\'');
+                    if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
                 }
 
                 dic[key] = val;
@@ -309,7 +280,7 @@ namespace NewLife
         public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
         {
             //if (value == null) return null;
-            if (String.IsNullOrEmpty(value)) return new Byte[0];
+            if (String.IsNullOrEmpty(value)) return Array.Empty<Byte>();
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
@@ -378,7 +349,7 @@ namespace NewLife
             }
 
             // 最后一组*允许不到边界
-            if (ps[ps.Length - 1].IsNullOrEmpty()) return p <= input.Length;
+            if (ps[^1].IsNullOrEmpty()) return p <= input.Length;
 
             // 最后一组必须结尾
             return p == input.Length;
@@ -421,13 +392,13 @@ namespace NewLife
         public static String TrimStart(this String str, params String[] starts)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+            if (starts == null || starts.Length <= 0 || String.IsNullOrEmpty(starts[0])) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
                 if (str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    str = str.Substring(starts[i].Length);
+                    str = str[starts[i].Length..];
                     if (String.IsNullOrEmpty(str)) break;
 
                     // 从头开始
@@ -444,13 +415,13 @@ namespace NewLife
         public static String TrimEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {
                 if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
                 {
-                    str = str.Substring(0, str.Length - ends[i].Length);
+                    str = str[..^ends[i].Length];
                     if (String.IsNullOrEmpty(str)) break;
 
                     // 从头开始
@@ -490,7 +461,7 @@ namespace NewLife
                 if (positions != null && positions.Length > 0) positions[0] = p;
             }
 
-            if (String.IsNullOrEmpty(before)) return str.Substring(p);
+            if (String.IsNullOrEmpty(before)) return str[p..];
 
             var f = str.IndexOf(before, p >= 0 ? p : startIndex);
             if (f < 0) return null;
@@ -499,9 +470,9 @@ namespace NewLife
             if (positions != null && positions.Length > 1) positions[1] = f;
 
             if (p >= 0)
-                return str.Substring(p, f - p);
+                return str[p..f];
             else
-                return str.Substring(0, f);
+                return str[..f];
         }
 
         /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
@@ -518,7 +489,7 @@ namespace NewLife
             if (pad != null && !String.IsNullOrEmpty(pad)) len -= pad.Length;
             if (len <= 0) throw new ArgumentOutOfRangeException(nameof(maxLength));
 
-            return str.Substring(0, len) + pad;
+            return str[..len] + pad;
         }
 
         /// <summary>从当前字符串开头移除另一字符串以及之前的部分</summary>
@@ -528,14 +499,14 @@ namespace NewLife
         public static String CutStart(this String str, params String[] starts)
         {
             if (str.IsNullOrEmpty()) return str;
-            if (starts == null || starts.Length < 1 || starts[0].IsNullOrEmpty()) return str;
+            if (starts == null || starts.Length <= 0 || starts[0].IsNullOrEmpty()) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
                 var p = str.IndexOf(starts[i]);
                 if (p >= 0)
                 {
-                    str = str.Substring(p + starts[i].Length);
+                    str = str[(p + starts[i].Length)..];
                     if (str.IsNullOrEmpty()) break;
                 }
             }
@@ -549,14 +520,14 @@ namespace NewLife
         public static String CutEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {
                 var p = str.LastIndexOf(ends[i]);
                 if (p >= 0)
                 {
-                    str = str.Substring(0, p);
+                    str = str[..p];
                     if (String.IsNullOrEmpty(str)) break;
                 }
             }
@@ -574,7 +545,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LevenshteinSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key)) return new String[0];
+            if (IsNullOrWhiteSpace(key)) return Array.Empty<String>();
 
             var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -645,7 +616,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LCSSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
+            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return Array.Empty<String>();
 
             var keys = key
                                 .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
@@ -678,7 +649,7 @@ namespace NewLife
             var sLength = word.Length;
             var result = sLength;
             var flags = new Boolean[sLength];
-            var C = new Int32[sLength + 1, keys[keys.Length - 1].Length + 1];
+            var C = new Int32[sLength + 1, keys[^1].Length + 1];
             //int[,] C = new int[sLength + 1, words.Select(s => s.Length).Max() + 1];
             foreach (var key in keys)
             {
@@ -744,7 +715,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的距离
             foreach (var item in list)
@@ -799,7 +770,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的权重
             foreach (var item in list)
@@ -970,18 +941,23 @@ namespace NewLife
         {
             if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
+            // 修正文件路径
+            var fileName = cmd;
+            if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
+
             var p = new Process();
             var si = p.StartInfo;
-            si.FileName = cmd;
+            si.FileName = fileName;
             if (arguments != null) si.Arguments = arguments;
             si.WindowStyle = ProcessWindowStyle.Hidden;
+            si.CreateNoWindow = true;
             if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
             // 对于控制台项目，这里需要捕获输出
             if (msWait > 0)
             {
+                si.UseShellExecute = false;
                 si.RedirectStandardOutput = true;
                 si.RedirectStandardError = true;
-                si.UseShellExecute = false;
                 if (output != null)
                 {
                     p.OutputDataReceived += (s, e) => output(e.Data);
@@ -1011,6 +987,32 @@ namespace NewLife
                 return -1;
 
             return p.ExitCode;
+        }
+
+        /// <summary>
+        /// 在Shell上执行命令。目标进程不是子进程，不会随着当前进程退出而退出
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <param name="arguments">参数</param>
+        /// <param name="workingDirectory">工作目录。目标进程的当前目录</param>
+        /// <returns></returns>
+        public static Process ShellExecute(this String fileName, String? arguments = null, String? workingDirectory = null)
+        {
+            if (XTrace.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
+
+            // 修正文件路径
+            if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
+
+            var p = new Process();
+            var si = p.StartInfo;
+            si.UseShellExecute = true;
+            si.FileName = fileName;
+            if (arguments != null) si.Arguments = arguments;
+            if (workingDirectory != null) si.WorkingDirectory = workingDirectory;
+
+            p.Start();
+
+            return p;
         }
         #endregion
     }

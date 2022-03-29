@@ -7,9 +7,6 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Remoting
 {
@@ -70,7 +67,7 @@ namespace NewLife.Remoting
         #endregion
 
         #region 打开关闭
-        private readonly Object Root = new Object();
+        private readonly Object Root = new();
         /// <summary>打开客户端</summary>
         public virtual Boolean Open()
         {
@@ -148,9 +145,7 @@ namespace NewLife.Remoting
         {
             // 让上层异步到这直接返回，后续代码在另一个线程执行
             //!!! Task.Yield会导致强制捕获上下文，虽然会在另一个线程执行，但在UI线程中可能无法抢占上下文导致死锁
-#if !NET4
             //await Task.Yield();
-#endif
 
             Open();
 
@@ -183,7 +178,7 @@ namespace NewLife.Remoting
         /// <param name="action">服务操作</param>
         /// <param name="args">参数</param>
         /// <returns></returns>
-        public virtual TResult Invoke<TResult>(String action, Object args = null) => TaskEx.Run(() => InvokeAsync<TResult>(action, args)).Result;
+        public virtual TResult Invoke<TResult>(String action, Object args = null) => Task.Run(() => InvokeAsync<TResult>(action, args)).Result;
 
         /// <summary>单向发送。同步调用，不等待返回</summary>
         /// <param name="action">服务操作</param>
@@ -219,11 +214,11 @@ namespace NewLife.Remoting
             if (!Token.IsNullOrEmpty())
             {
                 var dic = args.ToDictionary();
-                if (!dic.ContainsKey(nameof(Token))) dic[nameof(Token)] = Token;
+                if (!dic.ContainsKey("Token")) dic["Token"] = Token;
                 args = dic;
             }
 
-            var span = Tracer?.NewSpan("rpc:" + action);
+            var span = Tracer?.NewSpan("rpc:" + action, args);
             args = span.Attach(args);
 
             // 编码请求，构造消息
@@ -279,7 +274,7 @@ namespace NewLife.Remoting
             if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
 
             // 是否成功
-            if (code != 0 && code != 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+            if (code is not 0 and not 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
 
             if (data == null) return default;
             if (resultType == typeof(Packet)) return (TResult)(Object)data;
@@ -305,7 +300,7 @@ namespace NewLife.Remoting
             // 性能计数器，次数、TPS、平均耗时
             var st = StatInvoke;
 
-            var span = Tracer?.NewSpan("rpc:" + action);
+            var span = Tracer?.NewSpan("rpc:" + action, args);
             args = span.Attach(args);
 
             // 编码请求
@@ -363,26 +358,16 @@ namespace NewLife.Remoting
         #region 登录
         /// <summary>新会话。客户端每次连接或断线重连后，可用InvokeWithClientAsync做登录</summary>
         /// <param name="client">会话</param>
-        public virtual void OnNewSession(ISocketClient client)
-        {
-            OnLoginAsync(client, true)?.Wait();
-        }
+        public virtual void OnNewSession(ISocketClient client) => OnLoginAsync(client, true)?.Wait();
 
         /// <summary>连接后自动登录</summary>
         /// <param name="client">客户端</param>
         /// <param name="force">强制登录</param>
-        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => TaskEx.FromResult<Object>(null);
+        protected virtual Task<Object> OnLoginAsync(ISocketClient client, Boolean force) => Task.FromResult<Object>(null);
 
         /// <summary>登录</summary>
         /// <returns></returns>
-        public virtual async Task<Object> LoginAsync()
-        {
-#if !NET4
-            //await Task.Yield();
-#endif
-
-            return await Cluster.InvokeAsync(client => OnLoginAsync(client, false)).ConfigureAwait(false);
-        }
+        public virtual async Task<Object> LoginAsync() => await Cluster.InvokeAsync(client => OnLoginAsync(client, false)).ConfigureAwait(false);
         #endregion
 
         #region 连接池
@@ -393,6 +378,7 @@ namespace NewLife.Remoting
             var client = new NetUri(svr).CreateRemote();
             // 网络层采用消息层超时
             client.Timeout = Timeout;
+            client.Tracer = Tracer;
 
             client.Add(GetMessageCodec());
 

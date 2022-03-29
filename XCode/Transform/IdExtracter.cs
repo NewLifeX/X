@@ -6,7 +6,7 @@ using XCode.DataAccessLayer;
 
 namespace XCode.Transform
 {
-    /// <summary>自增数据抽取器</summary>
+    /// <summary>整型主键数据抽取器</summary>
     /// <remarks>
     /// 适用于带有自增字段或雪花Id字段的数据抽取器，速度飞快。
     /// </remarks>
@@ -33,10 +33,10 @@ namespace XCode.Transform
         #endregion
 
         #region 构造
-        /// <summary>实例化数据抽取器</summary>
+        /// <summary>实例化自增抽取器</summary>
         public IdExtracter() { }
 
-        /// <summary>实例化数据抽取器</summary>
+        /// <summary>实例化自增抽取器</summary>
         /// <param name="dal"></param>
         /// <param name="tableName"></param>
         /// <param name="idField"></param>
@@ -45,7 +45,7 @@ namespace XCode.Transform
             Dal = dal;
             Builder = new SelectBuilder { Table = tableName, OrderBy = idField + " asc" };
             IdField = idField;
-            BatchSize = (dal.Db as DbBase).BatchSize;
+            BatchSize = dal.Db.BatchSize;
         }
         #endregion
 

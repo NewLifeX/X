@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -50,7 +51,7 @@ namespace NewLife.Serialization
         /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
-        private readonly StringBuilder _Builder = new StringBuilder();
+        private readonly StringBuilder _Builder = new();
         #endregion
 
         #region 构造
@@ -95,11 +96,14 @@ namespace NewLife.Serialization
 
         private void WriteValue(Object obj)
         {
-            if (obj == null || obj is DBNull)
+            if (obj is null or DBNull)
                 _Builder.Append("null");
 
-            else if (obj is String || obj is Char)
+            else if (obj is String or Char)
                 WriteString(obj + "");
+
+            else if (obj is Type type)
+                WriteString(type.FullName.TrimStart("System."));
 
             else if (obj is Guid)
                 WriteStringFast(obj + "");
@@ -108,38 +112,37 @@ namespace NewLife.Serialization
                 _Builder.Append((obj + "").ToLower());
 
             else if (
-                obj is Int32 || obj is Int64 || obj is Double ||
-                obj is Decimal || obj is Single ||
-                obj is Byte || obj is Int16 ||
-                obj is SByte || obj is UInt16 ||
-                obj is UInt32 || obj is UInt64
+                obj is Int32 or Int64 or Double or
+                Decimal or Single or
+                Byte or Int16 or
+                SByte or UInt16 or
+                UInt32 or UInt64
             )
                 _Builder.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
             else if (obj is TimeSpan)
                 WriteString(obj + "");
 
-            else if (obj is DateTime)
-                WriteDateTime((DateTime)obj);
+            else if (obj is DateTime time)
+                WriteDateTime(time);
 
             else if (obj is IDictionary<String, Object> sdic)
                 WriteStringDictionary(sdic);
-            else if (obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0] == typeof(String))
-                WriteStringDictionary((IDictionary)obj);
-            else if (obj is System.Dynamic.ExpandoObject)
+            else if (obj is IDictionary dictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0].GetTypeCode() != TypeCode.Object)
+                WriteStringDictionary(dictionary);
+            else if (obj is ExpandoObject)
                 WriteStringDictionary((IDictionary<String, Object>)obj);
-            else if (obj is IDictionary)
-                WriteDictionary((IDictionary)obj);
+            else if (obj is IDictionary dictionary1)
+                WriteDictionary(dictionary1);
             else if (obj is Byte[] buf)
-            {
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
-            }
+            else if (obj is Packet pk)
+                WriteStringFast(pk.ToBase64());
+            else if (obj is StringDictionary dictionary2)
+                WriteSD(dictionary2);
 
-            else if (obj is StringDictionary)
-                WriteSD((StringDictionary)obj);
-
-            else if (obj is NameValueCollection)
-                WriteNV((NameValueCollection)obj);
+            else if (obj is NameValueCollection collection)
+                WriteNV(collection);
 
             // 列表、数组
             else if (obj is IList list)
@@ -154,7 +157,7 @@ namespace NewLife.Serialization
                 if (EnumString)
                     WriteValue(obj + "");
                 else
-                    WriteValue(Convert.ToInt32(obj));
+                    WriteValue(obj.ToLong());
             }
 
             else
@@ -428,7 +431,7 @@ namespace NewLife.Serialization
                     }
                     first = false;
 
-                    var name = FormatName((String)item.Key);
+                    var name = FormatName(item.Key + "");
                     WritePair(name, item.Value);
                 }
             }
@@ -534,7 +537,7 @@ namespace NewLife.Serialization
             {
                 var c = str[index];
 
-                if (c != '\t' && c != '\n' && c != '\r' && c != '\"' && c != '\\')// && c != ':' && c!=',')
+                if (c is not '\t' and not '\n' and not '\r' and not '\"' and not '\\')// && c != ':' && c!=',')
                 {
                     if (idx == -1) idx = index;
 
@@ -577,7 +580,7 @@ namespace NewLife.Serialization
             if (CamelCase)
             {
                 if (name == "ID") return "id";
-                return name.Substring(0, 1).ToLower() + name.Substring(1);
+                return name[..1].ToLower() + name[1..];
             }
 
             return name;
@@ -586,11 +589,11 @@ namespace NewLife.Serialization
         private static IDictionary<TypeCode, Object> _def;
         private static Boolean IsNull(Object obj)
         {
-            if (obj == null || obj is DBNull) return true;
+            if (obj is null or DBNull) return true;
 
             var code = obj.GetType().GetTypeCode();
             if (code == TypeCode.Object) return false;
-            if (code == TypeCode.Empty || code == TypeCode.DBNull) return true;
+            if (code is TypeCode.Empty or TypeCode.DBNull) return true;
 
             var dic = _def;
             if (dic == null)

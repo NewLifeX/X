@@ -15,7 +15,7 @@ namespace NewLife.Threading
         #region 静态
         private TimerScheduler(String name) => Name = name;
 
-        private static readonly Dictionary<String, TimerScheduler> _cache = new Dictionary<String, TimerScheduler>();
+        private static readonly Dictionary<String, TimerScheduler> _cache = new();
 
         /// <summary>创建指定名称的调度器</summary>
         /// <param name="name"></param>
@@ -56,13 +56,17 @@ namespace NewLife.Threading
         private Thread? thread;
         private Int32 _tid;
 
-        private TimerX[] Timers = new TimerX[0];
+        private TimerX[] Timers = global::System.Array.Empty<global::NewLife.Threading.TimerX>();
         #endregion
 
         /// <summary>把定时器加入队列</summary>
         /// <param name="timer"></param>
         public void Add(TimerX timer)
         {
+            if (timer == null) throw new ArgumentNullException(nameof(timer));
+
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Add", timer.ToString());
+
             timer.Id = Interlocked.Increment(ref _tid);
             WriteLog("Timer.Add {0}", timer);
 
@@ -99,6 +103,7 @@ namespace NewLife.Threading
         {
             if (timer == null || timer.Id == 0) return;
 
+            using var span = DefaultTracer.Instance?.NewSpan("timer:Remove", reason + " " + timer);
             WriteLog("Timer.Remove {0} reason:{1}", timer, reason);
 
             lock (this)
@@ -116,13 +121,13 @@ namespace NewLife.Threading
             }
         }
 
-        private AutoResetEvent? waitForTimer;
-        private Int32 period = 10;
+        private AutoResetEvent? _waitForTimer;
+        private Int32 _period = 10;
 
         /// <summary>唤醒处理</summary>
         public void Wake()
         {
-            var e = waitForTimer;
+            var e = _waitForTimer;
             if (e != null)
             {
                 var swh = e.SafeWaitHandle;
@@ -141,25 +146,23 @@ namespace NewLife.Threading
                 var arr = Timers;
 
                 // 如果没有任务，则销毁线程
-                if (arr.Length == 0 && period == 60_000)
+                if (arr.Length == 0 && _period == 60_000)
                 {
                     WriteLog("没有可用任务，销毁线程");
 
                     var th = thread;
                     thread = null;
-#if !__CORE__
-                    th?.Abort();
-#endif
+                    //th?.Abort();
 
                     break;
                 }
 
                 try
                 {
-                    var now = DateTime.Now;
+                    var now = Runtime.TickCount64;
 
                     // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
-                    period = 60_000;
+                    _period = 60_000;
                     foreach (var timer in arr)
                     {
                         if (!timer.Calling && CheckTime(timer, now))
@@ -192,8 +195,8 @@ namespace NewLife.Threading
                 catch (ThreadInterruptedException) { break; }
                 catch { }
 
-                if (waitForTimer == null) waitForTimer = new AutoResetEvent(false);
-                if (period > 0) waitForTimer.WaitOne(period, true);
+                if (_waitForTimer == null) _waitForTimer = new AutoResetEvent(false);
+                if (_period > 0) _waitForTimer.WaitOne(_period, true);
             }
         }
 
@@ -201,7 +204,7 @@ namespace NewLife.Threading
         /// <param name="timer"></param>
         /// <param name="now"></param>
         /// <returns></returns>
-        private Boolean CheckTime(TimerX timer, DateTime now)
+        private Boolean CheckTime(TimerX timer, Int64 now)
         {
             // 删除过期的，为了避免占用过多CPU资源，TimerX禁止小于10ms的任务调度
             var p = timer.Period;
@@ -213,18 +216,14 @@ namespace NewLife.Threading
                 return false;
             }
 
-            var ts = timer.NextTime - now;
-            //var d = (Int64)ts.TotalMilliseconds;
-            //var d = Math.Ceiling(ts.TotalMilliseconds);
-            var d = ts.TotalMilliseconds;
-            if (d > 0)
+            var ts = timer.NextTick - now;
+            if (ts > 0)
             {
                 // 缩小间隔，便于快速调用
-                if (d < period) period = (Int32)d;
+                if (ts < _period) _period = (Int32)ts;
 
                 return false;
             }
-            //XTrace.WriteLine("d={0}", ts.TotalMilliseconds);
 
             return true;
         }
@@ -242,8 +241,9 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            DefaultSpan.Current = null;
+            using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:Execute", timer.Timers + "");
             var sw = Stopwatch.StartNew();
-
             try
             {
                 // 弱引用判断
@@ -254,10 +254,6 @@ namespace NewLife.Threading
                     timer.Dispose();
                     return;
                 }
-
-                //timer.Calling = true;
-
-                //target.Invoke(timer.State ?? timer);
 
                 if (timer.IsAsyncTask)
                 {
@@ -273,7 +269,11 @@ namespace NewLife.Threading
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
             // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
-            catch (Exception ex) { XTrace.WriteException(ex); }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                XTrace.WriteException(ex);
+            }
             finally
             {
                 sw.Stop();
@@ -295,8 +295,9 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
+            if (timer.Tracer != null) DefaultSpan.Current = null;
+            using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:ExecuteAsync", timer.Timers + "");
             var sw = Stopwatch.StartNew();
-
             try
             {
                 // 弱引用判断
@@ -314,7 +315,11 @@ namespace NewLife.Threading
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
             // 如果用户代码没有拦截错误，则这里拦截，避免出错了都不知道怎么回事
-            catch (Exception ex) { XTrace.WriteException(ex); }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                XTrace.WriteException(ex);
+            }
             finally
             {
                 sw.Stop();
@@ -357,8 +362,8 @@ namespace NewLife.Threading
                 Remove(timer, "Period<=0");
                 timer.Dispose();
             }
-            else if (p < period)
-                period = p;
+            else if (p < _period)
+                _period = p;
         }
 
         /// <summary>已重载。</summary>

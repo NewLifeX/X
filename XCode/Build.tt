@@ -1,12 +1,15 @@
 ﻿<#@ template language="C#" hostSpecific="true" debug="true" #>
-<#@ assembly name="$(ProjectDir)\$(OutputPath)\NewLife.Core.dll" #>
-<#@ assembly name="$(ProjectDir)\$(OutputPath)\XCode.dll" #>
+<#@ assembly name="netstandard" #>
+<#@ assembly name="$(SolutionDir)\DLL\NewLife.Core.dll" #>
+<#@ assembly name="$(SolutionDir)\DLL\XCode.dll" #>
 <#@ import namespace="System.Diagnostics" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="XCode.Code" #>
 <#@ import namespace="XCode.DataAccessLayer" #>
 <#@ output extension=".log" #>
 <#
+    // XCode代码生成模板用法： https://www.yuque.com/smartstone/xcode/model
+
     // 设置当前工作目录
 	PathHelper.BasePath = Host.ResolvePath(".");
 

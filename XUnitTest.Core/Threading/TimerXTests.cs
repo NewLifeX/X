@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NewLife;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Threading;
@@ -25,30 +26,59 @@ namespace XUnitTest.Threading
                 Interlocked.Increment(ref count);
 
                 //Assert.Equal(s, TimerX.Current);
-            }, null, 10, 100, "Test");
+            }, "NewLife", 1000, 3000, "Test");
 
             Assert.True(timer.Id > 0);
             Assert.Equal("Test", timer.Scheduler.Name);
             //Assert.NotNull(timer.Callback);
-            Assert.Null(timer.State);
-            Assert.True(timer.NextTime > now.AddMilliseconds(10));
-            Assert.True(timer.NextTime < now.AddMilliseconds(20));
+            Assert.Equal("NewLife", timer.State);
+            Assert.True(timer.NextTick > Runtime.TickCount64);
+            Assert.True(timer.NextTick <= Runtime.TickCount64 + 1000);
+            Assert.True(timer.NextTime > now.AddMilliseconds(100));
+            //Assert.True(timer.NextTime < now.AddMilliseconds(20));
             Assert.Equal(0, timer.Timers);
-            Assert.Equal(100, timer.Period);
+            Assert.Equal(3000, timer.Period);
             Assert.False(timer.Async);
             Assert.False(timer.Absolutely);
 
-            Thread.Sleep(1050);
+            Thread.Sleep(3050);
 
             //Assert.Equal(10, count);
             //Assert.Equal(10, timer.Timers);
         }
 
         [Fact]
+        public void SyncTest()
+        {
+            XTrace.WriteLine("SyncTest");
+            using var timer = new TimerX(DoSyncTest, "SyncStone", 100, 200);
+
+            var ms = Runtime.TickCount64;
+            ms = ms + 100 - timer.NextTick;
+            Assert.InRange(ms, 0, 5);
+
+            Thread.Sleep(1000);
+        }
+
+        private static void DoSyncTest(Object state)
+        {
+            var key = Rand.NextString(8);
+            XTrace.WriteLine("Begin {0} {1}", state, key);
+
+            Thread.Sleep(100);
+
+            XTrace.WriteLine("End {0} {1}", state, key);
+        }
+
+        [Fact]
         public void AsyncTest()
         {
             XTrace.WriteLine("AsyncTest");
-            using var timer = new TimerX(DoAsyncTest, "Stone", 10, 100);
+            using var timer = new TimerX(DoAsyncTest, "AsyncStone", 100, 200) { Async = true };
+
+            var ms = Runtime.TickCount64;
+            ms = ms + 100 - timer.NextTick;
+            Assert.InRange(ms, 0, 5);
 
             Thread.Sleep(1000);
         }
@@ -58,21 +88,24 @@ namespace XUnitTest.Threading
             var key = Rand.NextString(8);
             XTrace.WriteLine("Begin {0} {1}", state, key);
 
-            await Task.Delay(110);
+            await Task.Delay(100);
 
             XTrace.WriteLine("End {0} {1}", state, key);
         }
 
         [Fact]
-        public void AsyncTest2()
+        public void AbsolutelyTest()
         {
-            XTrace.WriteLine("AsyncTest2");
-            using var timer = new TimerX(DoAsyncTest2, "Stone2", DateTime.Now, 100);
+            XTrace.WriteLine("AbsolutelyTest");
+            using var timer = new TimerX(DoAbsolutelyTest, "Stone2", DateTime.Today, 100);
+
+            var ms = timer.NextTick - Runtime.TickCount64;
+            Assert.InRange(ms, 0, 99);
 
             Thread.Sleep(1000);
         }
 
-        private static async Task DoAsyncTest2(Object state)
+        private static async Task DoAbsolutelyTest(Object state)
         {
             var key = Rand.NextString(8);
             XTrace.WriteLine("Begin {0} {1}", state, key);
@@ -86,9 +119,22 @@ namespace XUnitTest.Threading
         public void CronTest()
         {
             XTrace.WriteLine("CronTest");
-            using var timer = new TimerX(DoAsyncTest2, "CronTest", "1/2 * * * *");
+            using var timer = new TimerX(DoCronTest, "CronTest", "1/2 * * * *");
+
+            var ms = timer.NextTick - Runtime.TickCount64;
+            Assert.InRange(ms, 0, 1999);
 
             Thread.Sleep(5500);
+        }
+
+        private static async Task DoCronTest(Object state)
+        {
+            var key = Rand.NextString(8);
+            XTrace.WriteLine("Begin {0} {1}", state, key);
+
+            await Task.Delay(110);
+
+            XTrace.WriteLine("End {0} {1}", state, key);
         }
     }
 }

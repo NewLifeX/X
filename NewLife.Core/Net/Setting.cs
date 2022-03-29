@@ -21,6 +21,10 @@ namespace NewLife.Net
         /// <summary>缓冲区大小。默认8k</summary>
         [Description("缓冲区大小。默认8k")]
         public Int32 BufferSize { get; set; } = 8 * 1024;
+
+        /// <summary>收发日志数据体长度。默认64</summary>
+        [Description("收发日志数据体长度。默认64")]
+        public Int32 LogDataLength { get; set; } = 64;
         #endregion
 
         #region 方法

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using XCode.Code;
-using XCode.Membership;
-using Xunit;
 using System.IO;
-using NewLife.Security;
-using XCode.DataAccessLayer;
 using System.Linq;
+using XCode.Code;
+using XCode.DataAccessLayer;
+using Xunit;
 
 namespace XUnitTest.XCode.Code
 {
@@ -22,6 +19,16 @@ namespace XUnitTest.XCode.Code
             _option = new BuilderOption();
             _tables = ClassBuilder.LoadModels(@"..\..\XCode\Membership\Member.xml", _option, out _);
             _table = _tables.FirstOrDefault(e => e.Name == "User");
+        }
+
+        private String ReadTarget(String file, String text)
+        {
+            //var file2 = @"..\..\XUnitTest.XCode\".CombinePath(file);
+            //File.WriteAllText(file2, text);
+
+            var target = File.ReadAllText(file.GetFullPath());
+
+            return target;
         }
 
         [Fact]
@@ -39,7 +46,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_normal.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_normal.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -58,7 +65,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_baseclass.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_baseclass.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -85,7 +92,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_pure.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_pure.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -114,7 +121,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_interface.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_interface.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -141,7 +148,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_extend.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_extend.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -172,7 +179,7 @@ namespace XUnitTest.XCode.Code
             var rs = builder.ToString();
             Assert.NotEmpty(rs);
 
-            var target = File.ReadAllText("Code\\class_user_extend2.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_extend2.cs", rs);
             Assert.Equal(target, rs);
         }
 
@@ -198,7 +205,7 @@ namespace XUnitTest.XCode.Code
             Assert.True(File.Exists(file));
 
             var rs = File.ReadAllText(file);
-            var target = File.ReadAllText("Code\\class_user_save.cs".GetFullPath());
+            var target = ReadTarget("Code\\class_user_save.cs", rs);
             Assert.Equal(target, rs);
 
             file = (option.Output + "\\" + builder.Table.Name + ".xs").GetFullPath();
@@ -236,7 +243,7 @@ namespace XUnitTest.XCode.Code
                 if (item.Name == "User")
                 {
                     var rs = File.ReadAllText(file);
-                    var target = File.ReadAllText("Code\\Models\\UserModel.cs".GetFullPath());
+                    var target = ReadTarget("Code\\Models\\UserModel.cs", rs);
                     Assert.Equal(target, rs);
                 }
 
@@ -246,7 +253,7 @@ namespace XUnitTest.XCode.Code
                 if (item.Name == "User")
                 {
                     var rs = File.ReadAllText(file);
-                    var target = File.ReadAllText("Code\\Models\\IUserModel.cs".GetFullPath());
+                    var target = ReadTarget("Code\\Models\\IUserModel.cs", rs);
                     Assert.Equal(target, rs);
                 }
             }
@@ -277,7 +284,7 @@ namespace XUnitTest.XCode.Code
                 if (item.Name == "User")
                 {
                     var rs = File.ReadAllText(file);
-                    var target = File.ReadAllText("Code\\Dtos\\UserDto.cs".GetFullPath());
+                    var target = ReadTarget("Code\\Dtos\\UserDto.cs", rs);
                     Assert.Equal(target, rs);
                 }
 
@@ -287,7 +294,7 @@ namespace XUnitTest.XCode.Code
                 if (item.Name == "User")
                 {
                     var rs = File.ReadAllText(file);
-                    var target = File.ReadAllText("Code\\Dtos\\IUser.cs".GetFullPath());
+                    var target = ReadTarget("Code\\Dtos\\IUser.cs", rs);
                     Assert.Equal(target, rs);
                 }
             }
@@ -325,7 +332,7 @@ namespace XUnitTest.XCode.Code
                 if (item.Name == "User")
                 {
                     var rs = File.ReadAllText(file);
-                    var target = File.ReadAllText("Code\\BuildTT\\UserTT.cs".GetFullPath());
+                    var target = ReadTarget("Code\\BuildTT\\UserTT.cs", rs);
                     Assert.Equal(target, rs);
                 }
             }

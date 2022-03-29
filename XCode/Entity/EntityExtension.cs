@@ -427,7 +427,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -436,14 +436,24 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchInsert:{session.TableName}");
             try
             {
-                return dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
+                var rs = dal.Session.Insert(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -481,7 +491,7 @@ namespace XCode
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -490,13 +500,23 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:InsertIgnore:{session.TableName}");
             try
             {
-                return dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
+                var rs = dal.Session.InsertIgnore(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -534,7 +554,7 @@ namespace XCode
                 // 每个列要么有脏数据，要么允许空。不允许空又没有脏数据的字段插入没有意义
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -543,13 +563,23 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
-            using var span = tracer?.NewSpan($"db:{dal.ConnName}:Replace:{session.TableName}");
+            using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchReplace:{session.TableName}");
             try
             {
-                return dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
+                var rs = dal.Session.Replace(session.Table, columns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -582,7 +612,7 @@ namespace XCode
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                 // 创建时间等字段不参与Update
                 dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
@@ -590,20 +620,30 @@ namespace XCode
             }
             if (addColumns == null) addColumns = fact.AdditionalFields;
 
-            if ((updateColumns == null || updateColumns.Count < 1) && (addColumns == null || addColumns.Count < 1)) return 0;
+            if ((updateColumns == null || updateColumns.Count <= 0) && (addColumns == null || addColumns.Count <= 0)) return 0;
 
             session ??= fact.Session;
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpdate:{session.TableName}");
             try
             {
-                return dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
+                var rs = dal.Session.Update(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -638,7 +678,7 @@ namespace XCode
             if (columns == null)
             {
                 var dbt = session.Dal.DbType;
-                if (dbt == DatabaseType.SqlServer || dbt == DatabaseType.Oracle)
+                if (dbt is DatabaseType.SqlServer or DatabaseType.Oracle)
                     columns = fact.Fields.Select(e => e.Field).Where(e => !e.Identity || e.PrimaryKey).ToArray();
                 else if (dbt == DatabaseType.MySql)
                     columns = fact.Fields.Select(e => e.Field).ToArray(); //只有标识键的情况下会导致重复执行insert方法 目前只测试了Mysql库
@@ -653,7 +693,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                    var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                     columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -661,7 +701,7 @@ namespace XCode
             if (updateColumns == null)
             {
                 // 所有实体对象的脏字段作为更新字段
-                var dirtys = GetDirtyColumns(fact, list.Cast<IEntity>());
+                var dirtys = GetInsertColumns(fact, list.Cast<IEntity>());
                 // 创建时间等字段不参与Update
                 dirtys = dirtys.Where(e => !e.StartsWithIgnoreCase("Create")).ToArray();
 
@@ -674,14 +714,24 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
             using var span = tracer?.NewSpan($"db:{dal.ConnName}:BatchUpsert:{session.TableName}");
             try
             {
-                return dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+                if (span != null && list is ICollection collection) span.Tag = collection.Count + "";
+
+                var rs = dal.Session.Upsert(session.Table, columns, updateColumns, addColumns, list.Cast<IExtend>());
+
+                // 清除脏数据，避免重复提交保存
+                foreach (var item in list)
+                {
+                    item.Dirtys.Clear();
+                }
+
+                return rs;
             }
             catch (Exception ex)
             {
@@ -717,7 +767,7 @@ namespace XCode
                 //    columns = columns.Where(e => dirtys.Contains(e.Name)).ToArray();
                 if (!fact.FullInsert)
                 {
-                    var dirtys = GetDirtyColumns(fact, new[] { entity });
+                    var dirtys = GetInsertColumns(fact, new[] { entity });
                     columns = columns.Where(e => e.PrimaryKey || dirtys.Contains(e.Name)).ToArray();
                 }
             }
@@ -728,7 +778,7 @@ namespace XCode
             session.InitData();
 
             var dal = session.Dal;
-            dal.CheckDatabase();
+            //dal.CheckDatabase();
             //var tableName = dal.Db.FormatTableName(session.TableName);
 
             var tracer = dal.Tracer ?? DAL.GlobalTracer;
@@ -744,23 +794,22 @@ namespace XCode
             }
         }
 
-        /// <summary>获取脏数据列</summary>
+        /// <summary>获取可用于插入的数据列</summary>
         /// <param name="fact"></param>
         /// <param name="list"></param>
         /// <returns></returns>
-        private static String[] GetDirtyColumns(IEntityFactory fact, IEnumerable<IEntity> list)
+        private static String[] GetInsertColumns(IEntityFactory fact, IEnumerable<IEntity> list)
         {
-            //var fact = list.FirstOrDefault().GetType().AsFactory();
-
             // 获取所有带有脏数据的字段
             var ns = new List<String>();
             foreach (var entity in list)
             {
                 foreach (var fi in fact.Fields)
                 {
-                    if (!ns.Contains(fi.Name) && entity.Dirtys[fi.Name])
+                    // 脏数据，或者非空非string
+                    if (entity.Dirtys[fi.Name] || !fi.IsNullable && fi.Type != typeof(String) && fi.Type != typeof(DateTime))
                     {
-                        ns.Add(fi.Name);
+                        if (!ns.Contains(fi.Name)) ns.Add(fi.Name);
                     }
                 }
             }
@@ -1006,7 +1055,7 @@ namespace XCode
                 for (var i = 0; i < fields.Length && i < line.Length; i++)
                 {
                     var fi = fields[i];
-                    if (fi != null && !line[i].IsNullOrEmpty()) entity[fi.Name] = line[i].ChangeType(fi.Type);
+                    if (fi != null && !line[i].IsNullOrEmpty()) entity.SetItem(fi.Name, line[i].ChangeType(fi.Type));
                 }
 
                 list.Add(entity);

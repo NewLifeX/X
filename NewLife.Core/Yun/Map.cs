@@ -121,7 +121,7 @@ namespace NewLife.Yun
 
             if (_Client == null) _Client = DefaultTracer.Instance.CreateHttpClient();
 
-            if (url.Contains("?"))
+            if (url.Contains('?'))
                 url += "&";
             else
                 url += "?";
@@ -170,7 +170,7 @@ namespace NewLife.Yun
             if (AppKey.IsNullOrEmpty()) return String.Empty;
 
             var ks = _Keys;
-            if (ks == null) ks = _Keys = AppKey?.Split(",");
+            if (ks == null) ks = _Keys = AppKey?.Split(',', StringSplitOptions.RemoveEmptyEntries);
             if (ks == null) return String.Empty;
 
             //var key = _Keys[_KeyIndex++];

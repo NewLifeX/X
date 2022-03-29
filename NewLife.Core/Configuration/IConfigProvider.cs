@@ -20,8 +20,14 @@ namespace NewLife.Configuration
         /// <summary>名称</summary>
         String Name { get; set; }
 
+        /// <summary>根元素</summary>
+        IConfigSection Root { get; set; }
+
         /// <summary>所有键</summary>
         ICollection<String> Keys { get; }
+
+        /// <summary>是否新的配置文件</summary>
+        Boolean IsNew { get; set; }
 
         /// <summary>获取 或 设置 配置值</summary>
         /// <param name="key">配置名，支持冒号分隔的多级名称</param>
@@ -35,6 +41,12 @@ namespace NewLife.Configuration
 
         /// <summary>返回获取配置的委托</summary>
         GetConfigCallback GetConfig { get; }
+
+        /// <summary>从数据源加载数据到配置树</summary>
+        Boolean LoadAll();
+
+        /// <summary>保存配置树到数据源</summary>
+        Boolean SaveAll();
 
         /// <summary>加载配置到模型</summary>
         /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
@@ -54,6 +66,13 @@ namespace NewLife.Configuration
         /// <param name="autoReload">是否自动更新。默认true</param>
         /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
         void Bind<T>(T model, Boolean autoReload = true, String path = null);
+
+        /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+        /// <param name="model">模型实例</param>
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="onChange">配置改变时执行的委托</param>
+        void Bind<T>(T model, String path, Action<IConfigSection> onChange);
     }
 
     /// <summary>配置提供者基类</summary>
@@ -67,10 +86,19 @@ namespace NewLife.Configuration
         public String Name { get; set; }
 
         /// <summary>根元素</summary>
-        public IConfigSection Root { get; protected set; } = new ConfigSection { Childs = new List<IConfigSection>() };
+        public IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
         /// <summary>所有键</summary>
         public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
+
+        /// <summary>已使用的键</summary>
+        public ICollection<String> UsedKeys { get; } = new List<String>();
+
+        /// <summary>缺失的键</summary>
+        public ICollection<String> MissedKeys { get; } = new List<String>();
+
+        /// <summary>是否新的配置文件</summary>
+        public Boolean IsNew { get; set; }
         #endregion
 
         #region 构造
@@ -84,17 +112,39 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public virtual String this[String key]
         {
-            get { EnsureLoad(); return Root.Find(key, false)?.Value; }
-            set => Root.Find(key, true).Value = value;
+            get { EnsureLoad(); return Find(key, false)?.Value; }
+            set => Find(key, true).Value = value;
         }
 
         /// <summary>查找配置项。可得到子级和配置</summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public virtual IConfigSection GetSection(String key) => Root.Find(key, false);
+        public virtual IConfigSection GetSection(String key) => Find(key, false);
 
         /// <summary>返回获取配置的委托</summary>
-        public virtual GetConfigCallback GetConfig => key => Root.Find(key, false)?.Value;
+        public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
+
+        private IConfigSection Find(String key, Boolean createOnMiss)
+        {
+            UseKey(key);
+
+            EnsureLoad();
+
+            var sec = Root.Find(key, createOnMiss);
+            if (sec == null) MissKey(key);
+
+            return sec;
+        }
+
+        internal void UseKey(String key)
+        {
+            if (!key.IsNullOrEmpty() && !UsedKeys.Contains(key)) UsedKeys.Add(key);
+        }
+
+        internal void MissKey(String key)
+        {
+            if (!key.IsNullOrEmpty() && !MissedKeys.Contains(key)) MissedKeys.Add(key);
+        }
 
         /// <summary>初始化提供者</summary>
         /// <param name="value"></param>
@@ -131,13 +181,18 @@ namespace NewLife.Configuration
             if (model is IConfigMapping map)
                 map.MapConfig(this, source);
             else
-                source.MapTo(model);
+                source.MapTo(model, this);
 
             return model;
         }
 
         /// <summary>保存配置树到数据源</summary>
-        public virtual Boolean SaveAll() => true;
+        public virtual Boolean SaveAll()
+        {
+            NotifyChange();
+
+            return true;
+        }
 
         /// <summary>保存模型实例</summary>
         /// <typeparam name="T">模型</typeparam>
@@ -148,7 +203,7 @@ namespace NewLife.Configuration
             EnsureLoad();
 
             // 如果有命名空间则使用指定层级数据源
-            var source = GetSection(path);
+            var source = Find(path, true);
             source?.MapFrom(model);
 
             return SaveAll();
@@ -156,6 +211,8 @@ namespace NewLife.Configuration
         #endregion
 
         #region 绑定
+        private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
+        private readonly IDictionary<Object, ModelWrap> _models2 = new Dictionary<Object, ModelWrap>();
         /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
         /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
         /// <param name="model">模型实例</param>
@@ -172,7 +229,67 @@ namespace NewLife.Configuration
                 if (model is IConfigMapping map)
                     map.MapConfig(this, source);
                 else
-                    source.MapTo(model);
+                    source.MapTo(model, this);
+            }
+
+            if (autoReload && !_models.ContainsKey(model))
+            {
+                _models.Add(model, path);
+            }
+        }
+
+        /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
+        /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+        /// <param name="model">模型实例</param>
+        /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+        /// <param name="onChange">配置改变时执行的委托</param>
+        public virtual void Bind<T>(T model, String path, Action<IConfigSection> onChange)
+        {
+            EnsureLoad();
+
+            // 如果有命名空间则使用指定层级数据源
+            var source = GetSection(path);
+            if (source != null)
+            {
+                if (model is IConfigMapping map)
+                    map.MapConfig(this, source);
+                else
+                    source.MapTo(model, this);
+            }
+
+            if (onChange != null && !_models2.ContainsKey(model))
+            {
+                _models2.Add(model, new ModelWrap { Path = path, OnChange = onChange });
+            }
+        }
+
+        class ModelWrap
+        {
+            public String Path { get; set; }
+
+            public Action<IConfigSection> OnChange { get; set; }
+        }
+
+        /// <summary>通知绑定对象，配置数据有改变</summary>
+        protected virtual void NotifyChange()
+        {
+            foreach (var item in _models)
+            {
+                var model = item.Key;
+                var source = GetSection(item.Value);
+                if (source != null)
+                {
+                    if (model is IConfigMapping map)
+                        map.MapConfig(this, source);
+                    else
+                        source.MapTo(model, this);
+                }
+            }
+            foreach (var item in _models2)
+            {
+                var model = item.Key;
+                var source = GetSection(item.Value.Path);
+                if (source != null) item.Value.OnChange(source);
             }
         }
         #endregion
@@ -222,7 +339,7 @@ namespace NewLife.Configuration
             if (name.IsNullOrEmpty()) name = DefaultProvider;
 
             var p = name.LastIndexOf('.');
-            var ext = p >= 0 ? name.Substring(p + 1) : name;
+            var ext = p >= 0 ? name[(p + 1)..] : name;
             if (!_providers.TryGetValue(ext, out _)) ext = DefaultProvider;
             if (!_providers.TryGetValue(ext, out var type)) throw new Exception($"无法为[{name}]找到适配的配置提供者！");
 

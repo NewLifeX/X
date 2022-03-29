@@ -136,7 +136,7 @@ namespace NewLife.Reflection
             }
             WriteParameters(method.GetParameters(), writer);
             // add ~ for conversion operators
-            if ((name == "op_Implicit") || (name == "op_Explicit"))
+            if (name is "op_Implicit" or "op_Explicit")
             {
                 writer.Write("~");
                 WriteType(method.ReturnType, writer);
@@ -284,8 +284,9 @@ namespace NewLife.Reflection
                     // name
                     //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
                     var typeName = type.Name;
-                    if (typeName.Contains("`"))
-                        writer.Write(typeName.Substring(0, typeName.IndexOf("`")));
+                    var p = typeName.IndexOf('`');
+                    if (p >= 0)
+                        writer.Write(typeName[..p]);
                     else
                         writer.Write(typeName);
                     // generic parameters

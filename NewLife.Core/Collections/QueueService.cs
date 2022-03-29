@@ -43,7 +43,7 @@ namespace NewLife.Collections
         public ICache Cache { get; set; } = MemoryCache.Instance;
 
         /// <summary>每个主题的所有订阅者</summary>
-        private readonly ConcurrentDictionary<String, ConcurrentDictionary<String, IProducerConsumer<T>>> _topics = new ConcurrentDictionary<String, ConcurrentDictionary<String, IProducerConsumer<T>>>();
+        private readonly ConcurrentDictionary<String, ConcurrentDictionary<String, IProducerConsumer<T>>> _topics = new();
         #endregion
 
         #region 方法
@@ -108,7 +108,7 @@ namespace NewLife.Collections
                 }
             }
 
-            return new T[0];
+            return Array.Empty<T>();
         }
         #endregion
     }

@@ -9,9 +9,6 @@ using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Threading;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net
 {
@@ -51,6 +48,9 @@ namespace NewLife.Net
 
         /// <summary>缓冲区大小。默认8k</summary>
         public Int32 BufferSize { get; set; }
+
+        /// <summary>APM性能追踪器</summary>
+        public ITracer Tracer { get; set; }
         #endregion
 
         #region 构造
@@ -61,6 +61,7 @@ namespace NewLife.Net
             LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
             BufferSize = Setting.Current.BufferSize;
+            LogDataLength = Setting.Current.LogDataLength;
         }
 
         /// <summary>销毁</summary>
@@ -95,27 +96,36 @@ namespace NewLife.Net
             {
                 if (Active) return true;
 
-                _RecvCount = 0;
-
-                var rs = OnOpen();
-                if (!rs) return false;
-
-                var timeout = Timeout;
-                if (timeout > 0)
+                using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote);
+                try
                 {
-                    Client.SendTimeout = timeout;
-                    Client.ReceiveTimeout = timeout;
+                    _RecvCount = 0;
+
+                    var rs = OnOpen();
+                    if (!rs) return false;
+
+                    var timeout = Timeout;
+                    if (timeout > 0)
+                    {
+                        Client.SendTimeout = timeout;
+                        Client.ReceiveTimeout = timeout;
+                    }
+
+                    // Tcp需要初始化管道
+                    if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
+
+                    Active = true;
+
+                    ReceiveAsync();
+
+                    // 触发打开完成的事件
+                    Opened?.Invoke(this, EventArgs.Empty);
                 }
-
-                // Tcp需要初始化管道
-                if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
-
-                Active = true;
-
-                ReceiveAsync();
-
-                // 触发打开完成的事件
-                Opened?.Invoke(this, EventArgs.Empty);
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, null);
+                    throw;
+                }
             }
 
             return true;
@@ -135,20 +145,29 @@ namespace NewLife.Net
             {
                 if (!Active) return true;
 
-                // 管道
-                Pipeline?.Close(CreateContext(this), reason);
+                using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote);
+                try
+                {
+                    // 管道
+                    Pipeline?.Close(CreateContext(this), reason);
 
-                var rs = true;
-                if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
+                    var rs = true;
+                    if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
 
-                _RecvCount = 0;
+                    _RecvCount = 0;
 
-                // 触发关闭完成的事件
-                Closed?.Invoke(this, EventArgs.Empty);
+                    // 触发关闭完成的事件
+                    Closed?.Invoke(this, EventArgs.Empty);
 
-                Active = rs;
+                    Active = rs;
 
-                return !rs;
+                    return !rs;
+                }
+                catch (Exception ex)
+                {
+                    span?.SetError(ex, null);
+                    throw;
+                }
             }
         }
 
@@ -199,10 +218,19 @@ namespace NewLife.Net
 
             if (!Open()) return null;
 
-            var buf = new Byte[BufferSize];
-            var size = Client.Receive(buf);
+            using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
+            try
+            {
+                var buf = new Byte[BufferSize];
+                var size = Client.Receive(buf);
 
-            return new Packet(buf, 0, size);
+                return new Packet(buf, 0, size);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         /// <summary>当前异步接收个数</summary>
@@ -234,7 +262,7 @@ namespace NewLife.Net
                 var buf = new Byte[BufferSize];
                 var se = new SocketAsyncEventArgs();
                 se.SetBuffer(buf, 0, buf.Length);
-                se.Completed += (s, e) => ProcessEvent(e, -1);
+                se.Completed += (s, e) => ProcessEvent(e, -1, true);
                 se.UserToken = count;
 
                 if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
@@ -255,14 +283,15 @@ namespace NewLife.Net
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
             if (_RecvCount > 0) Interlocked.Decrement(ref _RecvCount);
+            se.SetBuffer(null, 0, 0);
             se.TryDispose();
         }
 
         /// <summary>用一个事件参数来开始异步接收</summary>
         /// <param name="se">事件参数</param>
-        /// <param name="io">是否在IO线程调用</param>
+        /// <param name="ioThread">是否在线程池调用</param>
         /// <returns></returns>
-        Boolean StartReceive(SocketAsyncEventArgs se, Boolean io)
+        Boolean StartReceive(SocketAsyncEventArgs se, Boolean ioThread)
         {
             if (Disposed)
             {
@@ -302,10 +331,10 @@ namespace NewLife.Net
             // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
             if (!rs)
             {
-                if (io)
-                    ProcessEvent(se, -1);
+                if (ioThread)
+                    ProcessEvent(se, -1, true);
                 else
-                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1), se);
+                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1, false), se);
             }
 
             return true;
@@ -314,9 +343,15 @@ namespace NewLife.Net
         internal abstract Boolean OnReceiveAsync(SocketAsyncEventArgs se);
 
         /// <summary>同步或异步收到数据</summary>
+        /// <remarks>
+        /// ioThread:
+        /// 如果在StartReceive的时候线程池调用ProcessEvent，则处于worker线程；
+        /// 如果在IOCP的时候调用ProcessEvent，则处于completionPort线程。
+        /// </remarks>
         /// <param name="se"></param>
         /// <param name="bytes"></param>
-        internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes)
+        /// <param name="ioThread">是否在IO线程池里面</param>
+        internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, Boolean ioThread)
         {
             try
             {
@@ -353,13 +388,19 @@ namespace NewLife.Net
 
                 // 开始新的监听
                 if (Active && !Disposed)
-                    StartReceive(se, true);
+                    StartReceive(se, ioThread);
                 else
                     ReleaseRecv(se, "!Active || Disposed");
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
+
+                // 如果数据处理异常，并且Error处理也抛出异常，则这里可能出错，导致整个接收链毁掉。
+                // 但是这个可能性极低
+                ReleaseRecv(se, "ProcessEventError " + ex.Message);
+                Close("ProcessEventError");
+                Dispose();
             }
         }
 
@@ -368,6 +409,10 @@ namespace NewLife.Net
         /// <param name="remote"></param>
         private void ProcessReceive(Packet pk, IPEndPoint remote)
         {
+            // 打断上下文调用链，这里必须是起点
+            DefaultSpan.Current = null;
+
+            using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "");
             try
             {
                 LastTime = DateTime.Now;
@@ -376,7 +421,7 @@ namespace NewLife.Net
                 var ss = OnPreReceive(pk, remote);
                 if (ss == null) return;
 
-                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(32, null));
+                if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
 
                 if (Local.IsTcp) remote = Remote.EndPoint;
 
@@ -397,6 +442,7 @@ namespace NewLife.Net
             }
             catch (Exception ex)
             {
+                span?.SetError(ex, pk.ToHex());
                 if (!ex.IsDisposed()) OnError("OnReceive", ex);
             }
         }
@@ -460,8 +506,17 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            var ctx = CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
+            try
+            {
+                var ctx = CreateContext(this);
+                return (Int32)Pipeline.Write(ctx, message);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         /// <summary>通过管道发送消息并等待响应</summary>
@@ -469,14 +524,23 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            var ctx = CreateContext(this);
-            var source = new TaskCompletionSource<Object>();
-            ctx["TaskSource"] = source;
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
+            try
+            {
+                var ctx = CreateContext(this);
+                var source = new TaskCompletionSource<Object>();
+                ctx["TaskSource"] = source;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return TaskEx.FromResult((Object)null);
+                var rs = (Int32)Pipeline.Write(ctx, message);
+                if (rs < 0) return Task.FromResult((Object)null);
 
-            return source.Task;
+                return source.Task;
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, message);
+                throw;
+            }
         }
 
         /// <summary>处理数据帧</summary>
@@ -522,6 +586,9 @@ namespace NewLife.Net
 
         /// <summary>是否输出接收日志。默认false</summary>
         public Boolean LogReceive { get; set; }
+
+        /// <summary>收发日志数据体长度。默认64</summary>
+        public Int32 LogDataLength { get; set; } = 64;
 
         /// <summary>输出日志</summary>
         /// <param name="format"></param>

@@ -59,19 +59,21 @@ namespace XCode
             if (ps == null)
             {
                 // 可能不需要参数，比如 Is Null
-                var val = "";
                 if (Format.Contains("{1}"))
                 {
-                    //var op = fi.Factory;
+                    var val = Value;
                     if (Value is SelectBuilder sb)
                         val = sb;
                     else if (Value is IList<Object> ems)
                         val = ems.Join(",", e => db.FormatValue(Field.Field, e));
-                    else
+                    else if (Value is DateTime)
                         val = db.FormatValue(Field.Field, Value);
-                }
 
-                builder.AppendFormat(Format, columnName, val);
+                    builder.AppendFormat(Format, columnName, val);
+                }
+                else
+                    builder.AppendFormat(Format, columnName);
+
                 return;
             }
 

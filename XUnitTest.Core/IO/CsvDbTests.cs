@@ -120,8 +120,8 @@ namespace XUnitTest.IO
             }
 
             // 高级查找
-            var list3 = db.FindAll(e => e.Code >= 100 && e.Code < 1000);
-            var list4 = list.Where(e => e.Code >= 100 && e.Code < 1000).ToList();
+            var list3 = db.FindAll(e => e.Code is >= 100 and < 1000);
+            var list4 = list.Where(e => e.Code is >= 100 and < 1000).ToList();
             Assert.Equal(list4.Select(e => e.Code), list3.Select(e => e.Code));
         }
 
@@ -272,6 +272,78 @@ namespace XUnitTest.IO
             var model2 = db.Find(list[idx]);
             Assert.NotNull(model2);
             Assert.Equal(model.ParentCode, model2.ParentCode);
+        }
+
+        [Fact]
+        public void WriteTest()
+        {
+            var db = GetDb("Write");
+
+            var list = new List<GeoArea>();
+            var count = Rand.Next(2, 100);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(GetModel());
+            }
+
+            db.Add(list);
+
+            // 再次覆盖写入
+            list.Clear();
+            for (var i = 0; i < 10; i++)
+            {
+                list.Add(GetModel());
+            }
+            db.Write(list, false);
+
+            // 把文件读出来
+            var lines = File.ReadAllLines(db.FileName.GetFullPath());
+            Assert.Equal(list.Count + 1, lines.Length);
+        }
+
+        [Fact]
+        public void ClearTest()
+        {
+            var db = GetDb("Clear");
+
+            var list = new List<GeoArea>();
+            var count = Rand.Next(2, 100);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(GetModel());
+            }
+
+            db.Add(list);
+
+            // 清空
+            db.Clear();
+
+            // 把文件读出来
+            var lines = File.ReadAllLines(db.FileName.GetFullPath());
+            Assert.Single(lines);
+        }
+
+        [Fact]
+        public void SetTest()
+        {
+            var db = GetDb("Set");
+
+            var list = new List<GeoArea>();
+            var count = Rand.Next(2, 100);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(GetModel());
+            }
+
+            db.Add(list);
+
+            // 设置新的
+            var model = GetModel();
+            db.Set(model);
+
+            // 把文件读出来
+            var lines = File.ReadAllLines(db.FileName.GetFullPath());
+            Assert.Equal(list.Count + 1 + 1, lines.Length);
         }
     }
 }

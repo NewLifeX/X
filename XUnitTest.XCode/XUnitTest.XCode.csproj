@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputPath>..\BinXCodeTest</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Code\BuildTT\UserTT.cs" />
@@ -21,7 +27,9 @@
     <Compile Remove="Code\Models\UserModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Configuration\AreaX.sql" />
     <None Remove="TestEntity\Build.tt" />
+    <None Remove="TestEntity\MenuX.sql" />
     <None Remove="TestEntity\Model.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +43,10 @@
       <PackagePath>content\Entity\</PackagePath>
       <Pack>true</Pack>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\AreaX.sql" />
+    <EmbeddedResource Include="TestEntity\MenuX.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Code\BuildTT\UserTT.cs">
@@ -84,7 +96,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -110,6 +123,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Code\Member2.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Code\Member.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

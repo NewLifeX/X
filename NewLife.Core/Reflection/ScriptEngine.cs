@@ -109,7 +109,7 @@ namespace NewLife.Reflection
             IsExpression = isExpression;
         }
 
-        static readonly ConcurrentDictionary<String, ScriptEngine> _cache = new ConcurrentDictionary<String, ScriptEngine>(StringComparer.OrdinalIgnoreCase);
+        static readonly ConcurrentDictionary<String, ScriptEngine> _cache = new(StringComparer.OrdinalIgnoreCase);
         /// <summary>为指定代码片段创建脚本引擎实例。采用缓存，避免同一脚本重复创建引擎。</summary>
         /// <param name="code">代码片段</param>
         /// <param name="isExpression">是否表达式，表达式将编译成为一个Main方法</param>
@@ -158,7 +158,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Execute(String code, IDictionary<String, Object> parameters)
         {
-            if (parameters == null || parameters.Count < 1) return Execute(code);
+            if (parameters == null || parameters.Count <= 0) return Execute(code);
 
             var ps = parameters.Values.ToArray();
 
@@ -183,7 +183,7 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public static Object Execute(String code, Object[] parameters)
         {
-            if (parameters == null || parameters.Length < 1) return Execute(code);
+            if (parameters == null || parameters.Length <= 0) return Execute(code);
 
             var se = Create(code);
             if (se != null && se.Method != null) return se.Invoke(parameters);
@@ -256,8 +256,8 @@ namespace NewLife.Reflection
                 if (!code.Contains(Environment.NewLine))
                 {
                     // 如果不是;和}结尾，则增加分号
-                    var last = code[code.Length - 1];
-                    if (last != ';' && last != '}') code += ";";
+                    var last = code[^1];
+                    if (last is not ';' and not '}') code += ";";
                 }
                 code = $"\t\tstatic void Main()\r\n\t\t{{\r\n\t\t\t{code}\r\n\t\t}}";
             }

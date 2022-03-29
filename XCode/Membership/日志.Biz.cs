@@ -21,7 +21,7 @@ namespace XCode.Membership
 
 #if !DEBUG
             // 关闭SQL日志
-            Meta.Session.Dal.Db.ShowSQL = false;
+            NewLife.Threading.ThreadPoolX.QueueUserWorkItem(() => { Meta.Session.Dal.Db.ShowSQL = false; });
 #endif
         }
 
@@ -29,8 +29,6 @@ namespace XCode.Membership
         /// <param name="isNew"></param>
         public override void Valid(Boolean isNew)
         {
-            base.Valid(isNew);
-
             if (isNew)
             {
                 // 自动设置当前登录用户
@@ -38,10 +36,12 @@ namespace XCode.Membership
             }
 
             // 处理过长的备注
-            if (!Remark.IsNullOrEmpty() && Remark.Length > 500)
-            {
-                Remark = Remark.Substring(0, 500);
-            }
+            if (!Remark.IsNullOrEmpty() && Remark.Length > 500) Remark = Remark[..500];
+
+            var len = _.UserName.Length;
+            if (len > 0 && !UserName.IsNullOrEmpty() && UserName.Length > len) UserName = UserName[..len];
+
+            base.Valid(isNew);
 
             // 时间
             if (isNew && CreateTime.Year < 2000 && !IsDirty(__.CreateTime)) CreateTime = DateTime.Now;
@@ -74,7 +74,7 @@ namespace XCode.Membership
             var exp = new WhereExpression();
             //if (!key.IsNullOrEmpty()) exp &= (_.Action == key | _.Remark.Contains(key));
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
-            if (userid >= 0) exp &= _.CreateUserID == userid;
+            if (userid > 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
             var snow = Meta.Factory.Snow;
@@ -113,7 +113,7 @@ namespace XCode.Membership
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
             if (success != null) exp &= _.Success == success;
-            if (userid >= 0) exp &= _.CreateUserID == userid;
+            if (userid > 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
             var snow = Meta.Factory.Snow;
@@ -144,9 +144,9 @@ namespace XCode.Membership
 
             if (!category.IsNullOrEmpty() && category != "全部") exp &= _.Category == category;
             if (!action.IsNullOrEmpty() && action != "全部") exp &= _.Action == action;
-            if (linkId >= 0) exp &= _.LinkID == linkId;
+            if (linkId > 0) exp &= _.LinkID == linkId;
             if (success != null) exp &= _.Success == success;
-            if (userid >= 0) exp &= _.CreateUserID == userid;
+            if (userid > 0) exp &= _.CreateUserID == userid;
 
             // 主键带有时间戳
             var snow = Meta.Factory.Snow;
@@ -163,7 +163,7 @@ namespace XCode.Membership
 
         #region 扩展操作
         // Select Count(ID) as ID,Category From Log Where CreateTime>'2020-01-24 00:00:00' Group By Category Order By ID Desc limit 20
-        static readonly FieldCache<Log> CategoryCache = new FieldCache<Log>(__.Category)
+        static readonly FieldCache<Log> CategoryCache = new(__.Category)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };
@@ -172,7 +172,7 @@ namespace XCode.Membership
         /// <returns></returns>
         public static IDictionary<String, String> FindAllCategoryName() => CategoryCache.FindAllName();
 
-        static readonly FieldCache<Log> ActionCache = new FieldCache<Log>(__.Action)
+        static readonly FieldCache<Log> ActionCache = new(__.Action)
         {
             Where = _.CreateTime > DateTime.Today.AddDays(-30) & Expression.Empty
         };

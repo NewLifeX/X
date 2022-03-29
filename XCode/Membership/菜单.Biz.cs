@@ -14,6 +14,7 @@ using NewLife.Threading;
 namespace XCode.Membership
 {
     /// <summary>菜单</summary>
+    [EntityFactory(typeof(MenuFactory))]
     public partial class Menu : EntityTree<Menu>, IMenu
     {
         #region 对象操作
@@ -22,9 +23,13 @@ namespace XCode.Membership
             // 引发内部
             new Menu();
 
-            EntityFactory.Register(typeof(Menu), new MenuFactory());
+            //EntityFactory.Register(typeof(Menu), new MenuFactory());
 
             //ObjectContainer.Current.AutoRegister<IMenuFactory, MenuFactory>();
+
+            Meta.Modules.Add<UserModule>();
+            Meta.Modules.Add<TimeModule>();
+            Meta.Modules.Add<IPModule>();
         }
 
         /// <summary>验证数据，通过抛出异常的方式提示验证失败。</summary>
@@ -199,10 +204,10 @@ namespace XCode.Membership
         public IList<IMenu> GetSubMenus(Int32[] filters, Boolean inclInvisible = false)
         {
             var list = Childs;
-            if (list == null || list.Count < 1) return new List<IMenu>();
+            if (list == null || list.Count <= 0) return new List<IMenu>();
 
             if (!inclInvisible) list = list.Where(e => e.Visible).ToList();
-            if (list == null || list.Count < 1) return new List<IMenu>();
+            if (list == null || list.Count <= 0) return new List<IMenu>();
 
             return list.Where(e => filters.Contains(e.ID)).Cast<IMenu>().ToList();
         }
@@ -326,7 +331,7 @@ namespace XCode.Membership
 
         #region 菜单工厂
         /// <summary>菜单工厂</summary>
-        public class MenuFactory : EntityOperate, IMenuFactory
+        public class MenuFactory : DefaultEntityFactory, IMenuFactory
         {
             #region IMenuFactory 成员
             IMenu IMenuFactory.Root => Root;
@@ -369,7 +374,7 @@ namespace XCode.Membership
                 if (menu == null)
                 {
                     menu = root;
-                    if (menu == null || menu.Childs == null || menu.Childs.Count < 1) return new List<IMenu>();
+                    if (menu == null || menu.Childs == null || menu.Childs.Count <= 0) return new List<IMenu>();
                 }
 
                 return menu.GetSubMenus(rs.SelectMany(e => e.Resources).ToArray(), inclInvisible);
@@ -533,86 +538,6 @@ namespace XCode.Membership
     /// <summary>菜单接口</summary>
     public partial interface IMenu
     {
-        #region 属性
-        /// <summary>编号</summary>
-        Int32 ID { get; set; }
-
-        /// <summary>名称</summary>
-        String Name { get; set; }
-
-        /// <summary>显示名</summary>
-        String DisplayName { get; set; }
-
-        /// <summary>全名</summary>
-        String FullName { get; set; }
-
-        /// <summary>父编号</summary>
-        Int32 ParentID { get; set; }
-
-        /// <summary>链接</summary>
-        String Url { get; set; }
-
-        /// <summary>排序</summary>
-        Int32 Sort { get; set; }
-
-        /// <summary>图标</summary>
-        String Icon { get; set; }
-
-        /// <summary>可见</summary>
-        Boolean Visible { get; set; }
-
-        /// <summary>必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色</summary>
-        Boolean Necessary { get; set; }
-
-        /// <summary>权限子项。逗号分隔，每个权限子项名值竖线分隔</summary>
-        String Permission { get; set; }
-
-        /// <summary>扩展1</summary>
-        Int32 Ex1 { get; set; }
-
-        /// <summary>扩展2</summary>
-        Int32 Ex2 { get; set; }
-
-        /// <summary>扩展3</summary>
-        Double Ex3 { get; set; }
-
-        /// <summary>扩展4</summary>
-        String Ex4 { get; set; }
-
-        /// <summary>扩展5</summary>
-        String Ex5 { get; set; }
-
-        /// <summary>扩展6</summary>
-        String Ex6 { get; set; }
-
-        /// <summary>创建者</summary>
-        String CreateUser { get; set; }
-
-        /// <summary>创建用户</summary>
-        Int32 CreateUserID { get; set; }
-
-        /// <summary>创建地址</summary>
-        String CreateIP { get; set; }
-
-        /// <summary>创建时间</summary>
-        DateTime CreateTime { get; set; }
-
-        /// <summary>更新者</summary>
-        String UpdateUser { get; set; }
-
-        /// <summary>更新用户</summary>
-        Int32 UpdateUserID { get; set; }
-
-        /// <summary>更新地址</summary>
-        String UpdateIP { get; set; }
-
-        /// <summary>更新时间</summary>
-        DateTime UpdateTime { get; set; }
-
-        /// <summary>备注</summary>
-        String Remark { get; set; }
-        #endregion
-
         /// <summary>取得全路径的实体，由上向下排序</summary>
         /// <param name="includeSelf">是否包含自己</param>
         /// <param name="separator">分隔符</param>

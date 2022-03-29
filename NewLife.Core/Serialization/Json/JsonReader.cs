@@ -52,7 +52,7 @@ namespace NewLife.Serialization
         {
             if (type == null && target != null) type = target.GetType();
 
-            if (type.IsAssignableFrom(jobj.GetType())) return jobj;
+            if (jobj == null || type.IsAssignableFrom(jobj.GetType())) return jobj;
 
             // Json对象是字典，目标类型可以是字典或复杂对象
             if (jobj is IDictionary<String, Object> vdic)
@@ -158,8 +158,8 @@ namespace NewLife.Serialization
             return target;
         }
 
-        private readonly Dictionary<Object, Int32> _circobj = new Dictionary<Object, Int32>();
-        private readonly Dictionary<Int32, Object> _cirrev = new Dictionary<Int32, Object>();
+        private readonly Dictionary<Object, Int32> _circobj = new();
+        private readonly Dictionary<Int32, Object> _cirrev = new();
         /// <summary>字典转复杂对象，反射属性赋值</summary>
         /// <param name="dic"></param>
         /// <param name="type"></param>
@@ -233,6 +233,7 @@ namespace NewLife.Serialization
             if (type == typeof(Int32)) return value.ToInt();
             if (type == typeof(Int64)) return value.ToLong();
             if (type == typeof(String)) return value + "";
+            if (type == typeof(Type) && value is String str) return str.GetTypeEx();
 
             if (type.IsEnum) return Enum.Parse(type, value + "");
             if (type == typeof(DateTime)) return CreateDateTime(value);
@@ -241,9 +242,16 @@ namespace NewLife.Serialization
 
             if (type == typeof(Byte[]))
             {
-                if (value is Byte[]) return (Byte[])value;
+                if (value is Byte[] v) return v;
 
                 return Convert.FromBase64String(value + "");
+            }
+
+            if (type == typeof(Packet))
+            {
+                if (value is Packet v) return v;
+
+                return new Packet(Convert.FromBase64String(value + ""));
             }
 
             if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
@@ -318,7 +326,7 @@ namespace NewLife.Serialization
         private DateTime CreateDateTime(Object value)
         {
             if (value is DateTime) return (DateTime)value;
-            if (value is Int64 || value is Int32)
+            if (value is Int64 or Int32)
             {
                 var dt = value.ToDateTime();
                 if (UseUTCDateTime) dt = dt.ToUniversalTime();
@@ -362,7 +370,7 @@ namespace NewLife.Serialization
                     if (str.Length > 21 && str[19] == '.')
                         ms = CreateInteger(str, 20, 3);
 
-                    if (str[str.Length - 1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
+                    if (str[^1] == 'Z' || str.EndsWithIgnoreCase("UTC")) utc = true;
                 }
 
                 if (!UseUTCDateTime && !utc)

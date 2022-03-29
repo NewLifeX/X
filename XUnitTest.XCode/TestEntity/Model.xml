@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XCode.Membership" ConnName="test" Output="" BaseClass="Entity" xmlns="http://www.newlifex.com/Model2020.xsd">
+<Tables xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.newlifex.com http://www.newlifex.com/Model2020.xsd" NameSpace="XUnitTest.XCode.TestEntity" ConnName="test" Output="" BaseClass="Entity" xmlns="http://www.newlifex.com/Model2020.xsd">
   <Table Name="User2" Description="用户">
     <Columns>
       <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
       <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称。登录用户名" />
       <Column Name="Password" DataType="String" Description="密码" />
       <Column Name="DisplayName" DataType="String" Description="昵称" />
-      <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" Type="XCode.Membership.SexKinds" />
+      <Column Name="Sex" DataType="Int32" Description="性别。未知、男、女" Type="SexKinds" />
       <Column Name="Mail" DataType="String" ItemType="mail" Description="邮件" />
       <Column Name="Mobile" DataType="String" ItemType="mobile" Description="手机" />
       <Column Name="Code" DataType="String" Description="代码。身份证、员工编号等" />
@@ -76,22 +76,65 @@
       <Index Columns="ParentID,Name" Unique="True" />
     </Indexes>
   </Table>
+  <Table Name="Menu3" TableName="#MenuX" Description="菜单3" BaseType="EntityTree">
+    <Columns>
+      <Column Name="ID" DataType="Int32" Identity="True" PrimaryKey="True" Description="编号" />
+      <Column Name="Name" DataType="String" Master="True" Nullable="False" Description="名称" />
+      <Column Name="DisplayName" DataType="String" Description="显示名" />
+      <Column Name="FullName" DataType="String" Length="200" Description="全名" />
+      <Column Name="ParentID" DataType="Int32" Description="父编号" />
+      <Column Name="Url" DataType="String" Length="200" Description="链接" />
+      <Column Name="Sort" DataType="Int32" Description="排序" />
+      <Column Name="Icon" DataType="String" Description="图标" />
+      <Column Name="Visible" DataType="Boolean" Description="可见" />
+      <Column Name="Necessary" DataType="Boolean" Description="必要。必要的菜单，必须至少有角色拥有这些权限，如果没有则自动授权给系统角色" />
+      <Column Name="Permission" DataType="String" Length="200" Description="权限子项。逗号分隔，每个权限子项名值竖线分隔" />
+      <Column Name="Remark" DataType="String" Length="200" Description="备注" />
+    </Columns>
+  </Table>
   <Table Name="Log2" Description="日志">
     <Columns>
       <Column Name="ID" DataType="Int64" PrimaryKey="True" Description="编号" />
       <Column Name="Category" DataType="String" Description="类别" />
       <Column Name="Action" DataType="String" Description="操作" />
       <Column Name="LinkID" DataType="Int32" Description="链接" />
+      <Column Name="Success" DataType="Boolean" Description="成功" />
       <Column Name="UserName" DataType="String" Description="用户名" />
-      <Column Name="CreateUserID" DataType="Int32" Description="用户编号" />
-      <Column Name="CreateIP" DataType="String" Description="IP地址" />
-      <Column Name="CreateTime" DataType="DateTime" Description="时间" />
+      <Column Name="Ex1" DataType="Int32" Description="扩展1" />
+      <Column Name="Ex2" DataType="Int32" Description="扩展2" />
+      <Column Name="Ex3" DataType="Double" Description="扩展3" />
+      <Column Name="Ex4" DataType="String" Description="扩展4" />
+      <Column Name="Ex5" DataType="String" Description="扩展5" />
+      <Column Name="Ex6" DataType="String" Description="扩展6" />
+      <Column Name="CreateUser" DataType="String" Description="创建者" />
+      <Column Name="CreateUserID" DataType="Int32" Description="创建用户" />
+      <Column Name="CreateIP" DataType="String" Description="创建地址" />
+      <Column Name="CreateTime" DataType="DateTime" Nullable="False" Description="时间" />
       <Column Name="Remark" DataType="Byte[]" Description="详细信息" />
     </Columns>
     <Indexes>
-      <Index Columns="Category" />
-      <Index Columns="CreateUserID" />
-      <Index Columns="CreateTime" />
+      <Index Columns="Action,Category" />
+      <Index Columns="Action,Category,ID" />
+      <Index Columns="Category,LinkID,ID" />
+      <Index Columns="Category,LinkID,ID" />
+      <Index Columns="CreateUserID,ID" />
     </Indexes>
+  </Table>
+  <Table Name="PowerMeter" TableName="power_meter" Description="电能指标。时序数据">
+    <Columns>
+      <Column Name="Ts" DataType="DateTime" PrimaryKey="True" Description="时间戳" />
+      <Column Name="Current" DataType="Single" Description="电流" />
+      <Column Name="Voltage" DataType="Int32" Description="电压" />
+      <Column Name="Phase" DataType="Single" Description="相位" />
+      <Column Name="Location" DataType="String" Master="True" Length="64" Description="位置" />
+      <Column Name="GroupId" DataType="Int32" Master="True" Description="分组" />
+    </Columns>
+  </Table>
+  <Table Name="CarMeter" TableName="Car_Meter" Description="汽车指标。时序数据">
+    <Columns>
+      <Column Name="Ts" DataType="DateTime" PrimaryKey="True" Description="时间戳" />
+      <Column Name="Speed" DataType="Int32" Description="速度" />
+      <Column Name="Temp" DataType="Single" Description="温度" />
+    </Columns>
   </Table>
 </Tables>

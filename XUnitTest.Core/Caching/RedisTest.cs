@@ -6,9 +6,13 @@ using System.Linq;
 using System.Threading;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
+using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.UnitTest;
 using Xunit;
 
 namespace XUnitTest.Caching
@@ -37,6 +41,7 @@ namespace XUnitTest.Caching
 #endif
         }
 
+        [TestOrder(0)]
         [Fact]
         public void ConfigTest()
         {
@@ -47,8 +52,36 @@ namespace XUnitTest.Caching
             Assert.Equal("127.0.0.1:6379", redis.Server);
             Assert.Equal("test", redis.Password);
             Assert.Equal(5000, redis.Timeout);
+
+            str = "server=127.0.0.1:6379,127.0.0.1:7000;password=test;db=9;" +
+                "timeout=5000;MaxMessageSize=1024000;Expire=3600";
+            redis = new Redis();
+            redis.Init(str);
+
+            Assert.Equal("127.0.0.1:6379,127.0.0.1:7000", redis.Server);
+            Assert.Equal("test", redis.Password);
+            Assert.Equal(5000, redis.Timeout);
+            Assert.Equal(9, redis.Db);
+            Assert.Equal(1024000, redis.MaxMessageSize);
+            Assert.Equal(3600, redis.Expire);
         }
 
+        [TestOrder(2)]
+        [Fact]
+        public void ConfigTest2()
+        {
+            var prv = new HttpConfigProvider
+            {
+                Server = "http://star.newlifex.com:6600",
+                AppId = "Test"
+            };
+
+            var rds = new Redis();
+            rds.Init(prv["redis6"]);
+            Assert.Equal(6, rds.Db);
+        }
+
+        [TestOrder(4)]
         [Fact(DisplayName = "基础测试")]
         public void BasicTest()
         {
@@ -71,7 +104,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间 " + ts);
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
@@ -84,6 +117,7 @@ namespace XUnitTest.Caching
             Assert.True(ic.Count == 0);
         }
 
+        [TestOrder(6)]
         [Fact(DisplayName = "集合测试")]
         public void DictionaryTest()
         {
@@ -106,6 +140,7 @@ namespace XUnitTest.Caching
             }
         }
 
+        [TestOrder(8)]
         [Fact(DisplayName = "高级添加")]
         public void AddReplace()
         {
@@ -116,7 +151,12 @@ namespace XUnitTest.Caching
 
             ic.Remove(key);
             ic.Set(key, Environment.UserName, 23);
-            var rs = ic.Add(key, Environment.MachineName, 30);
+            var rs = ic.Add(key, Environment.MachineName);
+            Assert.False(rs);
+
+            ic.Remove(key);
+            ic.Set(key, Environment.UserName, 23);
+            rs = ic.Add(key, Environment.MachineName, 30);
             Assert.False(rs);
 
             var name = ic.Get<String>(key);
@@ -131,6 +171,7 @@ namespace XUnitTest.Caching
             Assert.NotEqual(Environment.UserName, name);
         }
 
+        [TestOrder(10)]
         [Fact]
         public void TryGet()
         {
@@ -172,6 +213,7 @@ namespace XUnitTest.Caching
             Assert.Null(v6);
         }
 
+        [TestOrder(12)]
         [Fact(DisplayName = "累加累减")]
         public void IncDec()
         {
@@ -185,9 +227,10 @@ namespace XUnitTest.Caching
 
             ic.Set(key2, 45.6d);
             ic.Increment(key2, 2.2d);
-            Assert.Equal(45.6d + 2.2d, ic.Get<Double>(key2));
+            Assert.True(Math.Round((45.6d + 2.2d) - ic.Get<Double>(key2), 4) < 0.0001);
         }
 
+        [TestOrder(14)]
         [Fact(DisplayName = "复杂对象")]
         public void TestObject()
         {
@@ -218,6 +261,7 @@ namespace XUnitTest.Caching
             public DateTime UpdateTime { get; set; }
         }
 
+        [TestOrder(20)]
         [Fact(DisplayName = "字节数组")]
         public void TestBuffer()
         {
@@ -233,6 +277,7 @@ namespace XUnitTest.Caching
             Assert.Equal(buf.ToHex(), buf2.ToHex());
         }
 
+        [TestOrder(30)]
         [Fact(DisplayName = "数据包")]
         public void TestPacket()
         {
@@ -248,6 +293,7 @@ namespace XUnitTest.Caching
             Assert.Equal(pk.ToHex(), pk2.ToHex());
         }
 
+        [TestOrder(40)]
         [Fact(DisplayName = "管道")]
         public void TestPipeline()
         {
@@ -259,6 +305,7 @@ namespace XUnitTest.Caching
             _redis.AutoPipeline = ap;
         }
 
+        [TestOrder(42)]
         [Fact(DisplayName = "管道2")]
         public void TestPipeline2()
         {
@@ -287,7 +334,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间");
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
@@ -302,6 +349,7 @@ namespace XUnitTest.Caching
             _redis.AutoPipeline = ap;
         }
 
+        [TestOrder(50)]
         [Fact(DisplayName = "正常锁")]
         public void TestLock1()
         {
@@ -327,6 +375,7 @@ namespace XUnitTest.Caching
             Assert.False(ic.ContainsKey(k2.Key));
         }
 
+        [TestOrder(52)]
         [Fact(DisplayName = "抢锁失败")]
         public void TestLock2()
         {
@@ -346,12 +395,40 @@ namespace XUnitTest.Caching
             XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
             Assert.True(sw.ElapsedMilliseconds >= 1000);
 
-            Thread.Sleep(2000 - 1000 + 1);
+            Thread.Sleep(2000 - 1000 + 100);
 
             // 那个锁其实已经不在了，缓存应该把它干掉
             Assert.False(ic.ContainsKey("lock:TestLock2"));
         }
 
+        [TestOrder(54)]
+        [Fact(DisplayName = "抢锁失败2")]
+        public void TestLock22()
+        {
+            var ic = _redis;
+
+            var ck1 = ic.AcquireLock("lock:TestLock2", 2000);
+            // 故意不用using，验证GC是否能回收
+            //using var ck1 = ic.AcquireLock("TestLock2", 3000);
+
+            var sw = Stopwatch.StartNew();
+
+            // 抢相同锁，不可能成功。超时时间必须小于3000，否则前面的锁过期后，这里还是可以抢到的
+            var ck2 = ic.AcquireLock("lock:TestLock2", 1000, 1000, false);
+            Assert.Null(ck2);
+
+            // 耗时必须超过有效期
+            sw.Stop();
+            XTrace.WriteLine("TestLock2 ElapsedMilliseconds={0}ms", sw.ElapsedMilliseconds);
+            Assert.True(sw.ElapsedMilliseconds >= 1000);
+
+            Thread.Sleep(2000 - 1000 + 100);
+
+            // 那个锁其实已经不在了，缓存应该把它干掉
+            Assert.False(ic.ContainsKey("lock:TestLock2"));
+        }
+
+        [TestOrder(56)]
         [Fact(DisplayName = "抢死锁")]
         public void TestLock3()
         {
@@ -367,6 +444,7 @@ namespace XUnitTest.Caching
             Assert.NotNull(ck2);
         }
 
+        [TestOrder(60)]
         [Fact(DisplayName = "搜索测试")]
         public void SearchTest()
         {
@@ -413,6 +491,7 @@ namespace XUnitTest.Caching
             return null;
         }
 
+        [TestOrder(70)]
         [Fact]
         public async void PopAsync()
         {
@@ -424,22 +503,26 @@ namespace XUnitTest.Caching
             var sw = Stopwatch.StartNew();
 
             // 异步发送
-            ThreadPool.QueueUserWorkItem(s =>
+            var thread = new Thread(s =>
             {
                 Thread.Sleep(100);
 
                 rds.Execute(key, r => r.Execute<Int32>("LPUSH", key, "xxx"), true);
             });
+            thread.Start();
 
-            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 2));
+            var rs = await rds.ExecuteAsync(key, r => r.ExecuteAsync<String[]>("BRPOP", key, 5));
 
             sw.Stop();
 
+            Assert.NotNull(rs);
+            Assert.Equal(2, rs.Length);
             Assert.Equal(key, rs[0]);
             Assert.Equal("xxx", rs[1]);
-            Assert.True(sw.ElapsedMilliseconds >= 100);
+            //Assert.True(sw.ElapsedMilliseconds >= 100);
         }
 
+        [TestOrder(80)]
         [Fact(DisplayName = "从机测试")]
         public void SlaveTest()
         {
@@ -477,7 +560,7 @@ namespace XUnitTest.Caching
             // 过期时间
             ic.SetExpire(key, TimeSpan.FromSeconds(1));
             var ts = ic.GetExpire(key);
-            Assert.True(ts.TotalSeconds > 0 && ts.TotalSeconds < 2, "过期时间");
+            Assert.True(ts.TotalSeconds is > 0 and < 2, "过期时间");
 
             var rs = ic.Remove(key2);
             if (ic.AutoPipeline > 0) rs = (Int32)ic.StopPipeline(true)[0];
@@ -488,6 +571,47 @@ namespace XUnitTest.Caching
             ic.Clear();
             ic.StopPipeline(true);
             Assert.True(ic.Count == 0);
+        }
+
+        [TestOrder(90)]
+        [Fact]
+        public void AddRedis()
+        {
+            var ioc = new ObjectContainer();
+
+            var config = new ConfigProvider();
+            config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
+            ioc.AddSingleton<IConfigProvider>(config);
+            ioc.AddSingleton(provider => new Redis(provider, "orderRedis"));
+
+            var prv = ioc.BuildServiceProvider();
+
+            var rds = prv.GetService<Redis>();
+
+            Assert.Equal("127.0.0.1:6379", rds.Server);
+            Assert.Equal("pass", rds.Password);
+            Assert.Equal(7, rds.Db);
+
+            // 改变配置数据，影响对象属性
+            config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
+            config.SaveAll();
+
+            Assert.Equal("10.0.0.1:6379", rds.Server);
+            Assert.Equal("word", rds.Password);
+            Assert.Equal(13, rds.Db);
+        }
+
+        [TestOrder(100)]
+        [Fact]
+        public void MaxMessageSizeTest()
+        {
+            var ic = _redis;
+
+            ic.MaxMessageSize = 1028;
+
+            var ex = Assert.Throws<InvalidOperationException>(() => ic.Set("ttt", Rand.NextString(1029)));
+            Assert.NotNull(ex);
+            Assert.Equal("命令[SET]的数据包大小[1060]超过最大限制[1028]，大key会拖累整个Redis实例，可通过Redis.MaxMessageSize调节。", ex.Message);
         }
     }
 }

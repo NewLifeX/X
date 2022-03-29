@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using NewLife;
 using NewLife.Log;
@@ -22,29 +23,6 @@ namespace XCode.Code
         #endregion
 
         #region 静态快速
-        /// <summary>为Xml模型文件生成实体类</summary>
-        /// <param name="xmlFile">模型文件</param>
-        /// <param name="output">输出目录</param>
-        /// <param name="nameSpace">命名空间</param>
-        /// <param name="connName">连接名</param>
-        /// <param name="chineseFileName">中文文件名</param>
-        [Obsolete("=>BuildTables")]
-        public static Int32 Build(String xmlFile = null, String output = null, String nameSpace = null, String connName = null, Boolean? chineseFileName = null)
-        {
-            var option = new BuilderOption
-            {
-                Output = output,
-                Namespace = nameSpace,
-                ConnName = connName,
-                Partial = true,
-            };
-
-            var tables = ClassBuilder.LoadModels(xmlFile, option, out var atts);
-            FixModelFile(xmlFile, option, atts, tables);
-
-            return BuildTables(tables, option, chineseFileName ?? true);
-        }
-
         /// <summary>修正模型文件</summary>
         /// <param name="xmlFile"></param>
         /// <param name="option"></param>
@@ -64,15 +42,50 @@ namespace XCode.Code
             atts.Remove("IgnoreNameCase");
             atts.Remove("ChineseFileName");
             atts.Remove("ModelFile");
+            atts.Remove("RenderGenEntity");
+
+            foreach (var item in tables)
+            {
+                item.Properties.Remove("RenderGenEntity");
+            }
+
+            // 格式化处理字段名
+            if (Enum.TryParse(typeof(NameFormats), atts["NameFormat"], true, out var obj) && obj is NameFormats format && format > NameFormats.Default)
+            {
+                XTrace.WriteLine("处理表名字段名为：{0}", format);
+
+                var resolve = ModelResolver.Current;
+                foreach (var dt in tables)
+                {
+                    if (dt.TableName.IsNullOrEmpty() || dt.TableName == dt.Name)
+                        dt.TableName = resolve.GetDbName(dt.Name, format);
+
+                    foreach (var col in dt.Columns)
+                    {
+                        if (col.ColumnName.IsNullOrEmpty() || col.ColumnName == col.Name)
+                            col.ColumnName = resolve.GetDbName(col.Name, format);
+                    }
+                }
+            }
 
             // 更新xsd
-            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2020");
-            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2020");
+            atts["xmlns"] = atts["xmlns"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
+            atts["xs:schemaLocation"] = atts["xs:schemaLocation"].Replace("ModelSchema", "Model2022").Replace("Model2020", "Model2022");
+
+            // 版本和教程
+            var asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            if (!atts.ContainsKey("Version")) atts["Version"] = asm.FileVersion + "";
+            if (!atts.ContainsKey("Document")) atts["Document"] = "https://www.yuque.com/smartstone/xcode/model";
 
             // 保存模型文件
             var xmlContent = File.ReadAllText(xmlFile);
             var xml2 = ModelHelper.ToXml(tables, atts);
-            if (xmlContent != xml2) File.WriteAllText(xmlFile, xml2);
+            if (xmlContent != xml2)
+            {
+                if (Debug) XTrace.WriteLine("修正模型：{0}", xmlFile);
+
+                File.WriteAllText(xmlFile, xml2);
+            }
         }
 
         /// <summary>为Xml模型文件生成实体类</summary>
@@ -89,6 +102,13 @@ namespace XCode.Code
                 option = option.Clone();
             option.Partial = true;
 
+            if (Debug)
+            {
+                var output = option.Output;
+                if (output.IsNullOrEmpty()) output = ".";
+                XTrace.WriteLine("生成实体类 {0}", output.GetBasePath());
+            }
+
             var count = 0;
             foreach (var item in tables)
             {
@@ -101,6 +121,7 @@ namespace XCode.Code
                     AllTables = tables,
                     Option = option.Clone(),
                 };
+                if (Debug) builder.Log = XTrace.Log;
 
                 builder.Load(item);
 
@@ -121,27 +142,32 @@ namespace XCode.Code
         #region 方法
         /// <summary>加载数据表</summary>
         /// <param name="table"></param>
-        public void Load(IDataTable table)
+        public override void Load(IDataTable table)
         {
             Table = table;
 
             var option = Option;
 
-            // 命名空间
-            var str = table.Properties["Namespace"];
-            if (!str.IsNullOrEmpty()) option.Namespace = str;
+            base.Load(table);
 
             // 连接名
             var connName = table.ConnName;
             if (!connName.IsNullOrEmpty()) option.ConnName = connName;
 
             // 基类
-            str = table.Properties["BaseClass"];
+            var str = table.Properties["BaseClass"];
             if (!str.IsNullOrEmpty()) option.BaseClass = str;
 
-            // 输出目录
-            str = table.Properties["Output"];
-            if (!str.IsNullOrEmpty()) option.Output = str.GetBasePath();
+            // Copy模版
+            var modelClass = table.Properties["ModelClass"];
+            var modelInterface = table.Properties["ModelInterface"];
+            if (!modelInterface.IsNullOrEmpty())
+            {
+                option.BaseClass = modelInterface;
+                option.ModelNameForCopy = modelInterface;
+            }
+            else if (!modelClass.IsNullOrEmpty())
+                option.ModelNameForCopy = modelClass;
         }
         #endregion
 
@@ -164,6 +190,8 @@ namespace XCode.Code
             us.Add("XCode.Configuration");
             us.Add("XCode.DataAccessLayer");
 
+            if (Business) us.Add("XCode.Shards");
+
             if (Business && !Option.Pure)
             {
                 us.Add("System.IO");
@@ -185,6 +213,7 @@ namespace XCode.Code
                 us.Add("NewLife.Web");
                 us.Add("XCode.Cache");
                 us.Add("XCode.Membership");
+                us.Add("XCode.Shards");
             }
         }
 
@@ -199,7 +228,7 @@ namespace XCode.Code
                 baseClass += "IExtend";
             }
 
-            var bs = baseClass?.Split(",").Select(e => e.Trim()).ToArray();
+            var bs = baseClass?.Split(',').Select(e => e.Trim()).ToArray();
 
             // 数据类的基类只有接口，业务类基类则比较复杂
             var name = "";
@@ -559,6 +588,13 @@ namespace XCode.Code
             WriteLine("static {0}()", ClassName);
             WriteLine("{");
             {
+                // 只插入日志
+                if (Table.InsertOnly)
+                {
+                    WriteLine("Meta.Table.DataTable.InsertOnly = true;");
+                    WriteLine();
+                }
+
                 // 第一个非自增非主键整型字段，生成累加字段代码
                 var dc = Table.Columns.FirstOrDefault(e => !e.Identity && !e.PrimaryKey && (e.DataType == typeof(Int32) || e.DataType == typeof(Int64)));
                 if (dc != null)
@@ -566,6 +602,18 @@ namespace XCode.Code
                     WriteLine("// 累加字段，生成 Update xx Set Count=Count+1234 Where xxx");
                     WriteLine("//var df = Meta.Factory.AdditionalFields;");
                     WriteLine("//df.Add(nameof({0}));", dc.Name);
+                }
+
+                // 自动分表
+                dc = Table.Columns.FirstOrDefault(e => !e.Identity && e.PrimaryKey && e.DataType == typeof(Int64));
+                if (dc != null)
+                {
+                    WriteLine("// 按天分表");
+                    WriteLine("//Meta.ShardPolicy = new TimeShardPolicy(nameof({0}), Meta.Factory)", dc.Name);
+                    WriteLine("//{");
+                    WriteLine("//    TablePolicy = \"{{0}}_{{1:yyyyMMdd}}\",");
+                    WriteLine("//    Step = TimeSpan.FromDays(1),");
+                    WriteLine("//};");
                 }
 
                 var ns = new HashSet<String>(Table.Columns.Select(e => e.Name), StringComparer.OrdinalIgnoreCase);
@@ -699,6 +747,8 @@ namespace XCode.Code
             WriteLine("//    var entity = new {0}();", name);
             foreach (var column in Table.Columns)
             {
+                if (column.Identity) continue;
+
                 // 跳过排除项
                 if (Option.Excludes.Contains(column.Name)) continue;
                 if (Option.Excludes.Contains(column.ColumnName)) continue;
@@ -959,7 +1009,7 @@ namespace XCode.Code
                 cs.Remove(dcTime);
 
                 // 可用于关键字模糊搜索的字段
-                var keys = Table.Columns.Where(e => e.DataType == typeof(String) && !cs.Contains(e)).ToList();
+                var keys = Table.Columns.Where(e => e.DataType == typeof(String)).ToList();
 
                 // 注释部分
                 WriteLine("/// <summary>高级查询</summary>");

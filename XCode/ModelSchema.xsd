@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<xs:schema id="Model2020"
-    targetNamespace="http://www.newlifex.com/Model2020.xsd"
+<xs:schema id="Model2022"
+    targetNamespace="http://www.newlifex.com/Model2022.xsd"
     elementFormDefault="qualified"
-    xmlns="http://www.newlifex.com/Model2020.xsd"
-    xmlns:mstns="http://www.newlifex.com/Model2020.xsd"
+    xmlns="http://www.newlifex.com/Model2022.xsd"
+    xmlns:mstns="http://www.newlifex.com/Model2022.xsd"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
 >
   <xs:annotation>
@@ -18,17 +18,10 @@
     <xs:sequence>
       <xs:element name="Table" type="TableType" maxOccurs="unbounded" ></xs:element>
     </xs:sequence>
-    <xs:attribute name="Version" type="xs:string">
-      <xs:annotation>
-        <xs:documentation xml:lang="zh-cn">
-          使用该模型文件的XCode版本
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
     <xs:attribute name="NameSpace" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          所生成实体类的命名空间
+          实体类的命名空间
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -42,7 +35,7 @@
     <xs:attribute name="Output" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          输出目录，绝对或相对地址，相对的是模型文件所在目录
+          输出目录，绝对或相对地址，相对模型文件所在目录
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -57,6 +50,41 @@
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
           是否使用中文作为实体类文件名
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ModelClass" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型类名称，如{name}Model。指定后将生成简易模型类，可用于数据传输
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ModelInterface" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型接口名称，如{name}Model。指定后将生成简易模型接口，可用于数据传输
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="NameFormat" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          数据库名称格式，可选 Default/Upper/Lower/Underline
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Version" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          XCode版本
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Document" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          文档教程
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -155,11 +183,17 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <!--以下是拓展属性-->
-    <xs:attribute name="RenderGenEntity" type="BooleanType">
+    <xs:attribute name="ModelClass" type="xs:string">
       <xs:annotation>
         <xs:documentation xml:lang="zh-cn">
-          是否生成泛型，生成泛型自动添加模型检查模式（控制实体类是在初始化连接时还是第一次使用该实体类的数据表时检查模型）
+          简易模型类名称，如{name}Model。指定后将生成简易模型类，可用于数据传输
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="ModelInterface" type="xs:string">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          简易模型接口名称，如{name}Model。指定后将生成简易模型接口，可用于数据传输
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -175,12 +209,15 @@
     </xs:annotation>
     <xs:restriction base="xs:string">
       <xs:enumeration value="Access" ></xs:enumeration>
-      <xs:enumeration value="MySql" ></xs:enumeration>
+      <xs:enumeration value="SqlServer" ></xs:enumeration>
       <xs:enumeration value="Oracle" ></xs:enumeration>
-      <xs:enumeration value="PostgreSQL" ></xs:enumeration>
+      <xs:enumeration value="MySql" ></xs:enumeration>
       <xs:enumeration value="SqlCe" ></xs:enumeration>
       <xs:enumeration value="SQLite" ></xs:enumeration>
-      <xs:enumeration value="SqlServer" ></xs:enumeration>
+      <xs:enumeration value="PostgreSQL" ></xs:enumeration>
+      <xs:enumeration value="DaMeng" ></xs:enumeration>
+      <xs:enumeration value="DB2" ></xs:enumeration>
+      <xs:enumeration value="TDengine" ></xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
 
@@ -195,7 +232,7 @@
     <xs:attribute name="Name" type="xs:string">
       <xs:annotation>
         <xs:documentation>
-          名称，对应实体类属性名，ColumnName为空时使用此属性
+          名称，对应实体类属性名，ColumnName为空时使用该名称
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -220,17 +257,10 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute name="ItemType" type="ItemTypeType">
-      <xs:annotation>
-        <xs:documentation xml:lang="zh-cn">
-          元素类型，用于魔方表单展示
-        </xs:documentation>
-      </xs:annotation>
-    </xs:attribute>
     <xs:attribute name="Identity" type="BooleanType">
       <xs:annotation>
         <xs:documentation>
-          自增标识
+          自增标识。使用雪花Id时不要设置
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
@@ -304,6 +334,20 @@
         </xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="ItemType" type="ItemTypeType">
+      <xs:annotation>
+        <xs:documentation xml:lang="zh-cn">
+          元素类型，用于魔方表单展示
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="Model" type="BooleanType">
+      <xs:annotation>
+        <xs:documentation>
+          在简易接口和模型类中是否使用该属性
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
   <!--Column-end-->
 
@@ -345,6 +389,10 @@
       <xs:enumeration value="image" ></xs:enumeration>
       <xs:enumeration value="file" ></xs:enumeration>
       <xs:enumeration value="html" ></xs:enumeration>
+      <xs:enumeration value="mail" ></xs:enumeration>
+      <xs:enumeration value="mobile" ></xs:enumeration>
+      <xs:enumeration value="phone" ></xs:enumeration>
+      <xs:enumeration value="url" ></xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <!--ItemType-end-->

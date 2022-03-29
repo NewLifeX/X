@@ -5,9 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using XCode.Configuration;
 using NewLife;
-#if !NET4
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace XCode.Cache
 {
@@ -31,18 +28,6 @@ namespace XCode.Cache
 
         /// <summary>显示名格式化字符串，两个参数是名称和个数</summary>
         public String DisplayFormat { get; set; } = "{0} ({1:n0})";
-
-        /// <summary>对指定字段使用实体缓存</summary>
-        /// <param name="field"></param>
-        [Obsolete("=>FieldCache(String fieldName)")]
-        public FieldCache(FieldItem field)
-        {
-            WaitFirst = false;
-            //Expire = 10 * 60;
-            FillListMethod = Search;
-
-            _field = field;
-        }
 
         /// <summary>对指定字段使用实体缓存</summary>
         /// <param name="fieldName"></param>
@@ -124,7 +109,7 @@ namespace XCode.Cache
             var key = $"{typeof(TEntity).Name}_{_field?.Name}";
             var dc = DataCache.Current;
 
-            if (_task == null || _task.IsCompleted) _task = TaskEx.Run(GetAll);
+            if (_task == null || _task.IsCompleted) _task = Task.Run(GetAll);
 
             // 优先从缓存读取
             if (dc.FieldCache.TryGetValue(key, out var rs)) return rs;
