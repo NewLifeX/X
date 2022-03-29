@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace NewLife
@@ -42,8 +43,28 @@ namespace NewLife
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
+        private static Boolean? _IsWeb;
         /// <summary>是否Web环境</summary>
-        public static Boolean IsWeb => false;
+        public static Boolean IsWeb
+        {
+            get
+            {
+                if (_IsWeb == null)
+                {
+                    try
+                    {
+                        var asm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(e => e.GetName().Name == "Microsoft.AspNetCore");
+                        _IsWeb = asm != null;
+                    }
+                    catch
+                    {
+                        _IsWeb = false;
+                    }
+                }
+
+                return _IsWeb.Value;
+            }
+        }
 
         /// <summary>是否Windows环境</summary>
         public static Boolean Windows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
