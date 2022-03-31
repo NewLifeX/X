@@ -10,18 +10,6 @@
 
 核心库教程：[https://www.yuque.com/smartstone/nx](https://www.yuque.com/smartstone/nx)  
 
-# NewLife.XCode - 数据中间件
-
-![GitHub top language](https://img.shields.io/github/languages/top/newlifex/x?logo=github)
-![GitHub License](https://img.shields.io/github/license/newlifex/x?logo=github)
-![Nuget Downloads](https://img.shields.io/nuget/dt/newlife.xcode?logo=nuget)
-![Nuget](https://img.shields.io/nuget/v/newlife.xcode?logo=nuget)
-![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.xcode?label=dev%20nuget&logo=nuget)
-
-数据中间件，支持MySQL、SQLite、SqlServer、Oracle、Postgresql、TDengine、达梦，重点在缓存、性能、分表、自动建表。  
-
-XCode教程：[https://www.yuque.com/smartstone/xcode](https://www.yuque.com/smartstone/xcode)  
-
 ## 新生命项目矩阵
 各项目默认支持net6.0/netstandard2.1，旧版（2021.1225）支持net5.0/netstandard2.0/net4.5/net4.0/net2.0  
 
@@ -29,7 +17,7 @@ XCode教程：[https://www.yuque.com/smartstone/xcode](https://www.yuque.com/sma
 | :--------------------------------------------------------------: | :---: | :----: | :-----: | ------------------------------------------------------------------------------------ |
 |                             基础组件                             |       |        |         | 支撑其它中间件以及产品项目                                                           |
 |          [NewLife.Core](https://github.com/NewLifeX/X)           | 2002  | 维护中 |    √    | 日志、配置、缓存、网络、RPC、序列化、APM性能追踪                                     |
-|              [XCode](https://github.com/NewLifeX/X)              | 2005  | 维护中 |    √    | 大数据中间件，MySQL/SQLite/SqlServer/Oracle/TDengine/达梦，自动建表分表              |
+|    [NewLife.XCode](https://github.com/NewLifeX/NewLife.XCode)    | 2005  | 维护中 |    √    | 大数据中间件，MySQL/SQLite/SqlServer/Oracle/TDengine/达梦，自动建表分表              |
 |      [NewLife.Net](https://github.com/NewLifeX/NewLife.Net)      | 2005  | 维护中 |    √    | 网络库，单机千万级吞吐率（2266万tps），单机百万级连接（400万Tcp）                    |
 |     [NewLife.Cube](https://github.com/NewLifeX/NewLife.Cube)     | 2010  | 维护中 |    √    | 魔方快速开发平台，集成了用户权限、SSO登录、OAuth服务端等，单表100亿级项目验证        |
 |    [NewLife.Agent](https://github.com/NewLifeX/NewLife.Agent)    | 2008  | 维护中 |    √    | 服务管理框架，把应用安装成为操作系统守护进程，Windows服务、Linux的Systemd            |
@@ -70,12 +58,6 @@ XCode教程：[https://www.yuque.com/smartstone/xcode](https://www.yuque.com/sma
 [多线程]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Threading
 [APM]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Log
 [序列化]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Serialization
-
-## 大数据中间件
-[NewLife.XCode](https://github.com/NewLifeX/X/tree/master/XCode) 主要特点：  
-1，超高性能，极致的缓存设计，批量操作优化，插入速度最高77万tps，查询速度最高18亿qps。[飞仙](http://feixian.newlifex.com)  
-2，反向工程，根据实体类主动建立数据库表结构并初始化数据，支持多种数据库  
-3，自动分表分库，支持任意数据库，无需修改业务代码  
 
 ## 新生命开发团队
 ![XCode](https://www.newlifex.com/logo.png)  

@@ -3,29 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using XCode.DataAccessLayer;
-using XCode.Membership;
-using XCode.Code;
-using System.Security.Cryptography;
-using NewLife.Data;
-using System.Threading.Tasks;
-using NewLife.Configuration;
-using System.Text;
-using NewLife.Http;
-using System.Net.WebSockets;
-using XCode;
-using XCode.Cache;
-using Stardust;
 
 namespace Test
 {
@@ -37,8 +29,8 @@ namespace Test
 
             XTrace.UseConsole();
 
-            var star = new StarFactory(null, null, null);
-            DefaultTracer.Instance = star?.Tracer;
+            //var star = new StarFactory(null, null, null);
+            //DefaultTracer.Instance = star?.Tracer;
             //(star.Tracer as StarTracer).AttachGlobal();
 
 #if DEBUG
@@ -63,9 +55,6 @@ namespace Test
             //    //"System.Data.DataCommonEventSource",
             //    //"Microsoft-Diagnostics-DiagnosticSource",
             //});
-
-            var set2 = XCode.Setting.Current;
-            set2.Debug = true;
 #endif
             while (true)
             {
@@ -74,7 +63,7 @@ namespace Test
                 try
                 {
 #endif
-                Test35();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -93,48 +82,10 @@ namespace Test
             }
         }
 
-        private static void Test35()
-        {
-            //DAL.AddConnStr("xxgk", "user id=ORCL;password=1;data source=//127.0.0.1/ORCL;Pooling=true;Max Pool Size=5", null, "System.Data.OracleClient");
-            DAL.AddConnStr("xxgk", "Data Source=.;Initial Catalog=Test2;user id=sa;password=1", null, "System.Data.SqlClient");
-            DAL.AddConnStr("xxgk2", "Data Source=.;Initial Catalog=Test;user id=sa;password=1", null, "System.Data.SqlClient");
-            var dal = DAL.Create("xxgk");
-            var dal2 = DAL.Create("xxgk2");
-            var tables = dal.Tables.ToArray();
-            dal.BackupAll(tables, "财政数据库", ignoreError: false);
-            var tt = dal2.RestoreAll("财政数据库", ignoreError: false);
-            //dal.Sync(tables[1], "xxgk");
-            int i = 0;
-        }
-
         private static void Test1()
         {
-            //var td = DAL.Create("tdengine");
-            //var tables = td.Tables;
-            //XTrace.WriteLine(tables.ToJson(true));
-
-            //var dt = td.Query("select * from t;");
-            //XTrace.WriteLine(dt.Total + "");
-
-            var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
-            var buf = guid.ToByteArray();
-            XTrace.WriteLine(buf.ToHex());
-
-            var dal = DAL.Create("test");
-
-            var rs = dal.RestoreAll($"../dbbak.zip", null);
-
-            //var tables = DAL.Import(File.ReadAllText("../data/lawyer.xml".GetFullPath()));
-            //var table = tables.FirstOrDefault(e => e.Name == "SpringSession");
-            //var dc1 = table.Columns[0];
-            //var dc2 = table.Columns[1];
-            //dc1.DataType = typeof(Guid);
-            //dc2.DataType = typeof(Guid);
-            //dal.Restore($"../data/SpringSession.table", table);
-
-            //var dt = dal.Query("select * from spring_session");
-            //XTrace.WriteLine("字段[{0}]：{1}", dt.Columns.Length, dt.Columns.Join());
-            //XTrace.WriteLine("类型[{0}]：{1}", dt.Types.Length, dt.Types.Join(",", e => e?.Name));
+            var mi = MachineInfo.Current;
+            XTrace.WriteLine(mi.ToJson(true));
         }
 
         private static void Test2()
@@ -305,9 +256,6 @@ namespace Test
                 case '1':
                     ch = new MemoryCache();
                     break;
-                case '2':
-                    ch = new DbCache();
-                    break;
                 case '3':
                     var rds = new Redis("127.0.0.1", null, 9)
                     {
@@ -442,101 +390,15 @@ namespace Test
 
         private static void Test7()
         {
-            var config = new HttpConfigProvider
-            {
-                Server = "http://star.newlifex.com:6600",
-                AppId = "Test",
-                Period = 5,
-            };
-            //config.LoadAll();
-            DAL.SetConfig(config);
-            //DAL.GetConfig = config.GetConfig;
 
-            XCode.Setting.Current.Migration = Migration.Full;
-            //Role.Meta.Session.Dal.Db.Migration = Migration.Full;
-            //DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
-
-            var dal = Role.Meta.Session.Dal;
-            XTrace.WriteLine("dal={0}", dal.DbType);
-            XTrace.WriteLine("db={0}", dal.Db.ServerVersion);
-
-            Role.Meta.Session.Dal.Db.ShowSQL = true;
-            Role.Meta.Session.Dal.Expire = 10;
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            list = Role.FindAll(Role._.Name.NotContains("abc"));
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            var r = list.Last();
-            r.IsSystem = !r.IsSystem;
-            r.Update();
-
-            Thread.Sleep(5000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
         }
 
         private static async void Test8()
         {
-            var di = "Plugins".AsDirectory();
-            if (di.Exists) di.Delete(true);
-
-            //var db = DbFactory.Create(DatabaseType.MySql);
-            //var db = DbFactory.Create(DatabaseType.PostgreSQL);
-            var db = DbFactory.Create(DatabaseType.SQLite);
-            var factory = db.Factory;
         }
 
         private static void Test9()
         {
-            var cache = new SingleEntityCache<Int32, User> { Expire = 1 };
-
-            // 首次访问
-            var user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            EntityFactory.InitAll();
-
-            XTrace.WriteLine("TestRole");
-            var r0 = Role.FindByName("Stone");
-            r0?.Delete();
-
-            var r = new Role
-            {
-                Name = "Stone"
-            };
-            r.Insert();
-
-            var r2 = Role.FindByName("Stone");
-            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
-
-            r.Enable = true;
-            r.Update();
-
-            var r3 = Role.Find(Role._.Name == "STONE");
-            XTrace.WriteLine("Find: {0}", r3.ToJson());
-
-            r.Delete();
-
-            var n = Role.FindCount();
-            XTrace.WriteLine("count={0}", n);
         }
 
         private static void Test10()
@@ -585,9 +447,6 @@ namespace Test
         /// <summary>测试序列化</summary>
         private static void Test12()
         {
-            var option = new BuilderOption();
-            var tables = ClassBuilder.LoadModels("../../NewLife.Cube/CubeDemoNC/Areas/School/Models/Model.xml", option, out var atts);
-            EntityBuilder.BuildTables(tables, option);
         }
 
         private static void Test13()
@@ -951,9 +810,6 @@ namespace Test
 
         private static void TestReadAppSettings()
         {
-            var str = DAL.ConnStrs["MySQL.AppSettings"];
-            Console.WriteLine(str);
-            Console.WriteLine(DAL.ConnStrs["MySQL.AppSettings.default"]);
         }
 
         /// <summary>测试config文件的写入</summary>
@@ -982,26 +838,6 @@ namespace Test
 
         private static void Test16()
         {
-            var f = "财务数据库.zip";
-            var f2 = "财务数据库/凭证库.table";
-            var f3 = "cw.zip";
-            var dal = DAL.Create("caiwu");
-
-            //var tables = dal.RestoreAll(f, null, true, false);
-
-            //dal.Db.BatchSize = 100;
-
-            var dpk = new DbPackage
-            {
-                Dal = dal,
-                IgnoreError = false,
-                Log = XTrace.Log
-            };
-            //var ts = DAL.ImportFrom("财务数据库/xxgk2.xml");
-            //var tables = dpk.Restore(f2, ts[0], true);
-            var tables = dpk.RestoreAll(f3, null, true);
-
-            //dal.BackupAll(tables, "cw.zip");
         }
     }
 }
