@@ -89,7 +89,7 @@ namespace XUnitTest.Configuration
             {
                 Server = "http://star.newlifex.com:6600",
                 //Server = "http://localhost:6600",
-                AppId = "StarWeb"
+                AppId = "Test"
             };
 
             provider.Save(set);

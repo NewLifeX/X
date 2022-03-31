@@ -128,7 +128,7 @@ namespace XUnitTest.Remoting
         {
             var filter = new TokenHttpFilter
             {
-                UserName = "starweb",
+                UserName = "test",
                 Password = "",
             };
             var client = new ApiHttpClient("http://127.0.0.1:10001,http://127.0.0.1:20001,http://star.newlifex.com:6600")
@@ -236,7 +236,7 @@ namespace XUnitTest.Remoting
         {
             var filter = new TokenHttpFilter
             {
-                UserName = "starweb",
+                UserName = "test",
                 Password = "",
             };
 
