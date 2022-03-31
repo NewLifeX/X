@@ -111,7 +111,7 @@ namespace NewLife.Yun
         /// <returns></returns>
         public async Task<IDictionary<String, Object>> GetGeocoderAsync(GeoPoint point)
         {
-            if (point == null || point.Longitude < 0.1 || point.Latitude < 0.1) throw new ArgumentNullException(nameof(point));
+            if (point == null || point.Longitude == 0 || point.Latitude == 0) throw new ArgumentNullException(nameof(point));
 
             var url = $"http://api.map.baidu.com/geocoder/v2/?location={point.Latitude},{point.Longitude}&extensions_town=true&latest_admin=1&coord_type={CoordType}&output=json";
 
