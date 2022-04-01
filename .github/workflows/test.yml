@@ -21,8 +21,8 @@ jobs:
       run: |
         dotnet build -c Release NewLife.Core/NewLife.Core.csproj
         dotnet build -c Release NewLife.Security/NewLife.Security.csproj
-    - name: Redis Server
-      uses: supercharge/redis-github-action@1.4.0
-    - name: Test
-      run: |
-        dotnet test -c Release XUnitTest.Core/XUnitTest.Core.csproj
+    #- name: Redis Server
+    #  uses: supercharge/redis-github-action@1.4.0
+    #- name: Test
+    #  run: |
+    #    dotnet test -c Release XUnitTest.Core/XUnitTest.Core.csproj
