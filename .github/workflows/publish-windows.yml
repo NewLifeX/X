@@ -21,5 +21,5 @@ jobs:
         dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.WinCore/NewLife.WinCore.csproj
     - name: Publish
       run: |
-        dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
-        dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
+        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
+        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
