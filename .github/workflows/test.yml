@@ -7,9 +7,9 @@ on:
     branches: [ '*' ]
 
 jobs:
-  build-publish:
+  build-test:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -21,6 +21,7 @@ jobs:
       run: |
         dotnet build -c Release NewLife.Core/NewLife.Core.csproj
         dotnet build -c Release NewLife.Security/NewLife.Security.csproj
+        dotnet build -c Release NewLife.WinCore/NewLife.WinCore.csproj
     #- name: Redis Server
     #  uses: supercharge/redis-github-action@1.4.0
     #- name: Test
