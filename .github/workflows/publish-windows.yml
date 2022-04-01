@@ -7,7 +7,7 @@ on:
 jobs:
   build-publish:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -17,12 +17,10 @@ jobs:
         dotnet-version: 6.0.x
     - name: Restore
       run: |
-        dotnet restore NewLife.Core/NewLife.Core.csproj
-        dotnet restore NewLife.Security/NewLife.Security.csproj
+        dotnet restore NewLife.WinCore/NewLife.WinCore.csproj
     - name: Build
       run: |
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.Core/NewLife.Core.csproj
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.Security/NewLife.Security.csproj
+        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.WinCore/NewLife.WinCore.csproj
     - name: Publish
       run: |
         dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
