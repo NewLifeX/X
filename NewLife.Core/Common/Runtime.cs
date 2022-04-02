@@ -35,8 +35,11 @@ namespace NewLife
 
                 return _IsConsole.Value;
             }
-            set { _IsConsole = value; }
+            set => _IsConsole = value;
         }
+
+        /// <summary>是否在容器中运行</summary>
+        public static Boolean Container => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
         #endregion
 
         #region 系统特性

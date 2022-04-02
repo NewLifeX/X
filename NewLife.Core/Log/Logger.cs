@@ -221,6 +221,8 @@ namespace NewLife.Log
             else
                 apptype = "WinForm";
 
+            if (Runtime.Container) apptype += "(Container)";
+
             sb.AppendFormat("#ApplicationType: {0}\r\n", apptype);
             sb.AppendFormat("#CLR: {0}, {1}\r\n", ver, target);
 
