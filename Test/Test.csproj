@@ -34,6 +34,9 @@
     <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Speech" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
     <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>

@@ -159,12 +159,12 @@ namespace NewLife.Threading
         }
 
         /// <summary>获得指定时间之后的下一次执行时间，不含指定时间</summary>
-        /// <param name="time"></param>
-        /// <returns></returns>
+        /// <param name="time">从该时间秒的下一秒算起的下一个执行时间</param>
+        /// <returns>下一次执行时间（秒级），如果没有匹配则返回最小时间</returns>
         public DateTime GetNext(DateTime time)
         {
             // 设置末尾，避免死循环越界
-            var end = time.AddYears(10);
+            var end = time.AddYears(1);
             for (var dt = time.Trim().AddSeconds(1); dt < end; dt = dt.AddSeconds(1))
             {
                 if (IsTime(dt)) return dt;

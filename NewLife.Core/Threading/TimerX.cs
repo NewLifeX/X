@@ -329,7 +329,12 @@ namespace NewLife.Threading
                 var now = DateTime.Now;
                 DateTime next;
                 if (_cron != null)
+                {
                     next = _cron.GetNext(now);
+
+                    // 如果cron计算得到的下一次时间过近，则需要重新计算
+                    if ((next - now).TotalMilliseconds < 1000) next = _cron.GetNext(next);
+                }
                 else
                 {
                     // 能够处理基准时间变大，但不能处理基准时间变小
@@ -339,10 +344,10 @@ namespace NewLife.Threading
 
                 // 即使基准时间改变，也不影响绝对时间定时器的执行时刻
                 _AbsolutelyNext = next;
-                var ts = (Int64)(next - now).TotalMilliseconds;
+                var ts = (Int32)Math.Round((next - now).TotalMilliseconds);
                 SetNextTick(ts);
 
-                return ts > 0 ? (Int32)ts : period;
+                return ts > 0 ? ts : period;
             }
             else
             {
