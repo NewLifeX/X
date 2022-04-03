@@ -15,6 +15,15 @@ namespace NewLife
     /// </remarks>
     public static class IOHelper
     {
+        #region 属性
+        /// <summary>最大安全数组大小。超过该大小时，读取数据操作将强制失败，默认1024*1024</summary>
+        /// <remarks>
+        /// 这是一个保护性设置，避免解码错误数据时读取了超大数组导致应用崩溃。
+        /// 需要解码较大二进制数据时，可以适当放宽该阈值。
+        /// </remarks>
+        public static Int32 MaxSafeArraySize { get; set; } = 1024 * 1024;
+        #endregion
+
         #region 压缩/解压缩 数据
         /// <summary>压缩数据流</summary>
         /// <param name="inStream">输入流</param>
@@ -162,7 +171,7 @@ namespace NewLife
             //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
             if (des.CanSeek && len > des.Length - des.Position) throw new XException("ReadArray错误，变长数组长度为{0}，但数据流可用数据只有{1}", len, des.Length - des.Position);
 
-            if (len > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, 1024 * 2);
+            if (len > MaxSafeArraySize) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, MaxSafeArraySize);
 
             var buf = new Byte[len];
             des.Read(buf, 0, buf.Length);

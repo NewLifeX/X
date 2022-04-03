@@ -357,7 +357,8 @@ namespace NewLife.Serialization
 
             if (count <= 0) return null;
 
-            if (count > 1024 * 2) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", count, 1024 * 2);
+            var max = IOHelper.MaxSafeArraySize;
+            if (count > max) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", count, max);
 
             var buffer = Host.ReadBytes(count);
 
