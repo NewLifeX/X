@@ -14,18 +14,20 @@ namespace NewLife.Extension
         {
             try
             {
-                // 新版系统内置
-                Assembly asm = null;
-                if (Environment.OSVersion.Version.Major >= 6)
-                    asm = Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
-
                 //_type = typeName.GetTypeEx(true);
-                _type = Type.GetType(typeName) ?? asm?.GetType(typeName);
+                _type = Type.GetType(typeName);
+                if (_type == null)
+                {
+                    var asm = Assembly.Load("System.Speech");
+                    _type = asm?.GetType(typeName);
+                }
             }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
             }
+
+            if (_type == null) XTrace.WriteLine("找不到语音库System.Speech，需要从nuget引用");
         }
 
         private Object synth;
