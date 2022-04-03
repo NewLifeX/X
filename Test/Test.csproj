@@ -24,6 +24,9 @@
     <None Remove="Model\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Speech" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

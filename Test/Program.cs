@@ -18,6 +18,7 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
 
 namespace Test
 {
@@ -28,6 +29,8 @@ namespace Test
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             XTrace.UseConsole();
+
+            TimerScheduler.Default.Log = XTrace.Log;
 
             //var star = new StarFactory(null, null, null);
             //DefaultTracer.Instance = star?.Tracer;
@@ -63,7 +66,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -82,10 +85,23 @@ namespace Test
             }
         }
 
+        static TimerX _timer;
+        static Int64 _baseTick;
         private static void Test1()
         {
-            var mi = MachineInfo.Current;
-            XTrace.WriteLine(mi.ToJson(true));
+            var ms = Runtime.TickCount64;
+            var baseTime = DateTime.Now.AddMilliseconds(-ms);
+            XTrace.WriteLine("tick={0} baseTime={1}", ms, baseTime.ToString("HH:mm:ss.fff"));
+
+            "学无先后达者为师".SpeakAsync();
+
+            _timer = new TimerX(s =>
+            {
+                var ms2 = Runtime.TickCount64;
+                if (_baseTick == 0) _baseTick = ms2;
+
+                XTrace.WriteLine("hello {0} {1} {2:HH:mm:ss.fff}", ms2 - _baseTick, ms2, DateTime.Now);
+            }, null, "0/5 * * * *");
         }
 
         private static void Test2()
