@@ -13,6 +13,7 @@ using NewLife;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Http;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
@@ -36,53 +37,58 @@ namespace Test
             //DefaultTracer.Instance = star?.Tracer;
             //(star.Tracer as StarTracer).AttachGlobal();
 
-#if DEBUG
-            XTrace.Debug = true;
-            XTrace.Log.Level = LogLevel.All;
 
-            var set = NewLife.Setting.Current;
-            set.Debug = true;
-            set.LogLevel = LogLevel.All;
+            Test17();
 
-            //new LogEventListener(new[] {
-            //    "System.Runtime",
-            //    "System.Diagnostics.Eventing.FrameworkEventSource",
-            //    "System.Transactions.TransactionsEventSource",
-            //    "Microsoft-Windows-DotNETRuntime",
-            //    //"Private.InternalDiagnostics.System.Net.Sockets",
-            //    "System.Net.NameResolution",
-            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
-            //    "System.Net.Sockets",
-            //    //"Private.InternalDiagnostics.System.Net.Http",
-            //    "System.Net.Http",
-            //    //"System.Data.DataCommonEventSource",
-            //    //"Microsoft-Diagnostics-DiagnosticSource",
-            //});
-#endif
-            while (true)
-            {
-                var sw = Stopwatch.StartNew();
-#if !DEBUG
-                try
-                {
-#endif
-                    Test1();
-#if !DEBUG
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex?.GetTrue());
-                }
-#endif
+            Test16();
 
-                sw.Stop();
-                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-                //Thread.Sleep(5000);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                var key = Console.ReadKey(true);
-                if (key.Key != ConsoleKey.C) break;
-            }
+            //#if DEBUG
+            //            XTrace.Debug = true;
+            //            XTrace.Log.Level = LogLevel.All;
+
+            //            var set = NewLife.Setting.Current;
+            //            set.Debug = true;
+            //            set.LogLevel = LogLevel.All;
+
+            //            //new LogEventListener(new[] {
+            //            //    "System.Runtime",
+            //            //    "System.Diagnostics.Eventing.FrameworkEventSource",
+            //            //    "System.Transactions.TransactionsEventSource",
+            //            //    "Microsoft-Windows-DotNETRuntime",
+            //            //    //"Private.InternalDiagnostics.System.Net.Sockets",
+            //            //    "System.Net.NameResolution",
+            //            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
+            //            //    "System.Net.Sockets",
+            //            //    //"Private.InternalDiagnostics.System.Net.Http",
+            //            //    "System.Net.Http",
+            //            //    //"System.Data.DataCommonEventSource",
+            //            //    //"Microsoft-Diagnostics-DiagnosticSource",
+            //            //});
+            //#endif
+            //            while (true)
+            //            {
+            //                var sw = Stopwatch.StartNew();
+            //#if !DEBUG
+            //                try
+            //                {
+            //#endif
+            //                Test1();
+            //#if !DEBUG
+            //                }
+            //                catch (Exception ex)
+            //                {
+            //                    XTrace.WriteException(ex?.GetTrue());
+            //                }
+            //#endif
+
+            //                sw.Stop();
+            //                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+            //                //Thread.Sleep(5000);
+            //                GC.Collect();
+            //                GC.WaitForPendingFinalizers();
+            //                var key = Console.ReadKey(true);
+            //                if (key.Key != ConsoleKey.C) break;
+            //            }
         }
 
         static TimerX _timer;
@@ -854,6 +860,28 @@ namespace Test
 
         private static void Test16()
         {
+            using var fs = new FileStream("d:\\1233.csv", FileMode.OpenOrCreate, FileAccess.Read);
+
+            var csv = new CsvFile(fs);
+
+            var obj = csv.ReadLine();
+
+            csv.Dispose();
+
+        }
+
+        /// <summary>测试写入CSV文件</summary>
+        private static void Test17()
+        {
+            using var fs = new FileStream("d:\\1233.csv", FileMode.OpenOrCreate, FileAccess.Write);
+
+            var csv = new CsvFile(fs);
+
+            csv.WriteLine("123", true, 111111111, DateTime.Now.ToString("yyyyMMdd"), "2222222222222222222222222222");
+        
+
+            csv.Dispose();
+
         }
     }
 }
