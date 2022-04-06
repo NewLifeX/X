@@ -159,13 +159,23 @@ namespace NewLife.Threading
         }
 
         /// <summary>获得指定时间之后的下一次执行时间，不含指定时间</summary>
+        /// <remarks>
+        /// 如果指定时间带有毫秒，则向前对齐。如09:14.123的"15 * * *"下一次是10:15而不是09：15
+        /// </remarks>
         /// <param name="time">从该时间秒的下一秒算起的下一个执行时间</param>
         /// <returns>下一次执行时间（秒级），如果没有匹配则返回最小时间</returns>
         public DateTime GetNext(DateTime time)
         {
+            // 如果指定时间带有毫秒，则向前对齐。如09:14.123格式化为09:15，计算下一次就从09:16开始
+            var start = time.Trim();
+            if (start != time)
+                start = start.AddSeconds(2);
+            else
+                start = start.AddSeconds(1);
+
             // 设置末尾，避免死循环越界
             var end = time.AddYears(1);
-            for (var dt = time.Trim().AddSeconds(1); dt < end; dt = dt.AddSeconds(1))
+            for (var dt = start; dt < end; dt = dt.AddSeconds(1))
             {
                 if (IsTime(dt)) return dt;
             }
