@@ -597,7 +597,7 @@ namespace NewLife.Caching
             if (rs == "OK") return true;
             if (rs.IsNullOrEmpty()) return false;
 
-            using var span = Tracer?.NewSpan("redis:ErrorSet", new { key, value });
+            using var span = Tracer?.NewSpan($"redis:{Name}:ErrorSet", new { key, value });
             if (ThrowOnFailure) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
 
             return false;
@@ -734,7 +734,7 @@ namespace NewLife.Caching
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
-                using var span = Tracer?.NewSpan("redis:ErrorAdd", new { key, value });
+                using var span = Tracer?.NewSpan($"redis:{Name}:ErrorAdd", new { key, value });
                 if (ThrowOnFailure) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
 
                 return false;
