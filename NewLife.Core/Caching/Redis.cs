@@ -21,6 +21,8 @@ namespace NewLife.Caching
     /// 
     /// 强烈建议保持唯一的Redis对象供多次使用，Redis内部有连接池并且支持多线程并发访问。
     /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
+    /// 
+    /// 网络层Broken pipe异常，可以在Server设置多个一样的地址（逗号隔开），让Redis客户端在遇到网络错误时进行重试。
     /// </remarks>
     public class Redis : Cache, IConfigMapping
     {
