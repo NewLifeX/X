@@ -19,7 +19,7 @@ namespace NewLife.Net
     /// 
     /// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="NewSession"/>事件订阅者决定何时开始处理数据。
     /// </remarks>
-    public class TcpServer : DisposeBase, ISocketServer
+    public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         #region 属性
         /// <summary>名称</summary>

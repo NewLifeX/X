@@ -16,7 +16,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Net
 {
     /// <summary>会话基类</summary>
-    public abstract class SessionBase : DisposeBase, ISocketClient, ITransport
+    public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILogFeature
     {
         #region 属性
         /// <summary>标识</summary>

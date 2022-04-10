@@ -57,7 +57,7 @@ namespace NewLife.Log
     }
 
     /// <summary>性能跟踪器。轻量级APM</summary>
-    public class DefaultTracer : DisposeBase, ITracer
+    public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     {
         #region 静态
         /// <summary>全局实例。可影响X组件各模块的跟踪器</summary>

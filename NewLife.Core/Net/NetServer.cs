@@ -39,7 +39,7 @@ namespace NewLife.Net
     /// 如果协议<see cref="ProtocolType"/>指定为Tcp和Udp以外的值，将同时创建Tcp和Udp两个Socket服务；
     /// 默认情况下，地址族<see cref="AddressFamily"/>和协议<see cref="ProtocolType"/>都是其它值，所以一共将会创建四个Socket服务（Tcp、Tcpv6、Udp、Udpv6）。
     /// </remarks>
-    public class NetServer : DisposeBase, IServer
+    public class NetServer : DisposeBase, IServer, ILogFeature
     {
         #region 属性
         /// <summary>服务名</summary>

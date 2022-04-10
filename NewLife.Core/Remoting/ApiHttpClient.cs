@@ -18,7 +18,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Remoting
 {
     /// <summary>Http应用接口客户端</summary>
-    public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping
+    public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature
     {
         #region 属性
         /// <summary>令牌。每次请求携带</summary>

@@ -24,7 +24,7 @@ namespace NewLife.Caching
     /// 
     /// 网络层Broken pipe异常，可以在Server设置多个一样的地址（逗号隔开），让Redis客户端在遇到网络错误时进行重试。
     /// </remarks>
-    public class Redis : Cache, IConfigMapping
+    public class Redis : Cache, IConfigMapping, ILogFeature
     {
         #region 属性
         /// <summary>服务器，带端口。例如127.0.0.1:6397，支持逗号分隔的多地址，网络异常时，自动切换到其它节点，60秒后切回来</summary>
