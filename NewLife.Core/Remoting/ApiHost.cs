@@ -9,7 +9,7 @@ using NewLife.Net.Handlers;
 namespace NewLife.Remoting
 {
     /// <summary>Api主机</summary>
-    public abstract class ApiHost : DisposeBase, IApiHost, IExtend3
+    public abstract class ApiHost : DisposeBase, IApiHost, IExtend3, ILogFeature
     {
         #region 属性
         /// <summary>名称</summary>
