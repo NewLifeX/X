@@ -65,8 +65,8 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog Create(String path, String fileFormat = null)
         {
-            if (path.IsNullOrEmpty()) path = XTrace.LogPath;
-            if (path.IsNullOrEmpty()) path = Runtime.IsWeb ? "../Log" : "Log";
+            //if (path.IsNullOrEmpty()) path = XTrace.LogPath;
+            if (path.IsNullOrEmpty()) path = "Log";
 
             var key = (path + fileFormat).ToLower();
             return cache.GetOrAdd(key, k => new TextFileLog(path, false, fileFormat));
