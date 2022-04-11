@@ -20,16 +20,38 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Yun;
 
 namespace Test
 {
     public class Program
     {
-        private static void Main(String[] args)
+        private static async Task Main(String[] args)
         {
             //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
             XTrace.UseConsole();
+
+            {
+                var weMap = new AMap();
+                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
+                //weMap.AppKey += $",sssssssssss";
+                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
+            }
+            {
+                var weMap = new BaiduMap();
+                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
+
+                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
+            }
+            {
+                var weMap = new WeMap();
+                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
+
+                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
+            }
+
+
 
             TimerScheduler.Default.Log = XTrace.Log;
 
@@ -878,7 +900,7 @@ namespace Test
             var csv = new CsvFile(fs);
 
             csv.WriteLine("123", true, 111111111, DateTime.Now.ToString("yyyyMMdd"), "2222222222222222222222222222");
-        
+
 
             csv.Dispose();
 
