@@ -157,6 +157,7 @@ namespace NewLife.Log
                 _initing = Thread.CurrentThread.ManagedThreadId;
 
                 var set = Setting.Current;
+                if (LogPath.IsNullOrEmpty() || LogPath == "Log") LogPath = set.LogPath;
                 if (set.LogFileFormat.Contains("{1}"))
                     _Log = new LevelLog(LogPath, set.LogFileFormat);
                 else
