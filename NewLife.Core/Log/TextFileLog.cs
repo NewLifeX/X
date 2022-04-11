@@ -65,7 +65,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static TextFileLog Create(String path, String fileFormat = null)
         {
-            if (path.IsNullOrEmpty()) path = XTrace.LogPath;
+            //if (path.IsNullOrEmpty()) path = XTrace.LogPath;
             if (path.IsNullOrEmpty()) path = "Log";
 
             var key = (path + fileFormat).ToLower();
@@ -99,29 +99,38 @@ namespace NewLife.Log
         #region 内部方法
         private StreamWriter LogWriter;
         private String CurrentLogFile;
+        private Int32 _logFileError;
 
         /// <summary>初始化日志记录文件</summary>
-        private StreamWriter InitLog()
+        private StreamWriter InitLog(String logfile)
         {
-            var logfile = GetLogFile();
-            logfile.EnsureDirectory(true);
-
-            var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            var writer = new StreamWriter(stream, Encoding.UTF8);
-
-            // 写日志头
-            if (!_isFirst)
+            try
             {
-                _isFirst = true;
+                logfile.EnsureDirectory(true);
 
-                // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
-                if (writer.BaseStream.Length > 10) writer.WriteLine();
+                var stream = new FileStream(logfile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                var writer = new StreamWriter(stream, Encoding.UTF8);
 
-                writer.Write(GetHead());
+                // 写日志头
+                if (!_isFirst)
+                {
+                    _isFirst = true;
+
+                    // 因为指定了编码，比如UTF8，开头就会写入3个字节，所以这里不能拿长度跟0比较
+                    if (writer.BaseStream.Length > 10) writer.WriteLine();
+
+                    writer.Write(GetHead());
+                }
+
+                _logFileError = 0;
+                return LogWriter = writer;
             }
-
-            CurrentLogFile = logfile;
-            return LogWriter = writer;
+            catch (Exception ex)
+            {
+                _logFileError++;
+                Console.WriteLine("创建日志文件失败：{0}", ex.Message);
+                return null;
+            }
         }
 
         /// <summary>获取日志文件路径</summary>
@@ -166,14 +175,22 @@ namespace NewLife.Log
             var writer = LogWriter;
 
             var now = TimerX.Now;
-            if (!_isFile && GetLogFile() != CurrentLogFile)
+            var logFile = GetLogFile();
+            if (!_isFile && logFile != CurrentLogFile)
             {
                 writer.TryDispose();
                 writer = null;
+
+                CurrentLogFile = logFile;
+                _logFileError = 0;
             }
 
+            // 错误过多时不再尝试创建日志文件。下一天更换日志文件名后，将会再次尝试
+            if (writer == null && _logFileError >= 3) return;
+
             // 初始化日志读写器
-            if (writer == null) writer = InitLog();
+            if (writer == null) writer = InitLog(logFile);
+            if (writer == null) return;
 
             // 依次把队列日志写入文件
             while (_Logs.TryDequeue(out var str))

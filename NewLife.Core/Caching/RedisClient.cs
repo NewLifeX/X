@@ -582,7 +582,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual Object Execute(String cmd, params Object[] args)
         {
-            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
+            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Host.Name}:{cmd}", args);
 
             return ExecuteCommand(cmd, args?.Select(e => Host.Encoder.Encode(e)).ToArray(), args);
         }
@@ -655,7 +655,7 @@ namespace NewLife.Caching
         /// <returns></returns>
         public virtual async Task<Object> ExecuteAsync(String cmd, Object[] args, CancellationToken cancellationToken = default)
         {
-            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Server.Host ?? Server.Address.ToString()}:{cmd}", args);
+            using var span = cmd.IsNullOrEmpty() ? null : Host.Tracer?.NewSpan($"redis:{Host.Name}:{cmd}", args);
 
             return await ExecuteCommandAsync(cmd, args?.Select(e => Host.Encoder.Encode(e)).ToArray(), args, cancellationToken);
         }
@@ -876,7 +876,7 @@ namespace NewLife.Caching
             var rs = Execute<String>("MSET", ps.ToArray());
             if (rs != "OK")
             {
-                using var span = Host.Tracer?.NewSpan("redis:ErrorSetAll", values);
+                using var span = Host.Tracer?.NewSpan($"redis:{Host.Name}:ErrorSetAll", values);
                 if (Host.ThrowOnFailure) throw new XException("Redis.SetAll({0})失败。{1}", values.ToJson(), rs);
             }
 

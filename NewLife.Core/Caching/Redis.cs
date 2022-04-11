@@ -22,8 +22,10 @@ namespace NewLife.Caching
     /// 
     /// 强烈建议保持唯一的Redis对象供多次使用，Redis内部有连接池并且支持多线程并发访问。
     /// 高级功能需要引用NewLife.Redis，然后实例化FullRedis类。
+    /// 
+    /// 网络层Broken pipe异常，可以在Server设置多个一样的地址（逗号隔开），让Redis客户端在遇到网络错误时进行重试。
     /// </remarks>
-    public class Redis : Cache, IConfigMapping
+    public class Redis : Cache, IConfigMapping, ILogFeature
     {
         #region 属性
         /// <summary>服务器，带端口。例如127.0.0.1:6397，支持逗号分隔的多地址，网络异常时，自动切换到其它节点，60秒后切回来</summary>
@@ -597,7 +599,7 @@ namespace NewLife.Caching
             if (rs == "OK") return true;
             if (rs.IsNullOrEmpty()) return false;
 
-            using var span = Tracer?.NewSpan("redis:ErrorSet", new { key, value });
+            using var span = Tracer?.NewSpan($"redis:{Name}:ErrorSet", new { key, value });
             if (ThrowOnFailure) throw new XException("Redis.Set({0},{1})失败。{2}", key, value, rs);
 
             return false;
@@ -734,7 +736,7 @@ namespace NewLife.Caching
                 if (result.IsNullOrEmpty()) return false;
                 if (result == "OK") return true;
 
-                using var span = Tracer?.NewSpan("redis:ErrorAdd", new { key, value });
+                using var span = Tracer?.NewSpan($"redis:{Name}:ErrorAdd", new { key, value });
                 if (ThrowOnFailure) throw new XException("Redis.Add({0},{1})失败。{2}", key, value, result);
 
                 return false;

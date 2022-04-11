@@ -61,6 +61,22 @@ namespace XUnitTest.Common
             var str = "2020-03-09T21:16:17.88";
             var dt = str.ToDateTime();
             Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880), dt);
+
+            str = "20220406135923";
+            dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2022, 4, 6, 13, 59, 23), dt);
+
+            str = "20220406";
+            dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2022, 4, 6), dt);
+
+            str = "2022-4-6";
+            dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2022, 4, 6), dt);
+
+            str = "2022/4/6";
+            dt = str.ToDateTime();
+            Assert.Equal(new DateTime(2022, 4, 6), dt);
         }
 
         [Fact]

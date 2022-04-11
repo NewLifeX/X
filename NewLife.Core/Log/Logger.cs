@@ -257,6 +257,7 @@ namespace NewLife.Log
             sb.AppendFormat("#ThreadPool: Min={0}/{1}, Max={2}/{3}, Available={4}/{5}\r\n", minWorker, minIO, maxWorker, maxIO, avaWorker, avaIO);
 
             sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
+            sb.AppendFormat("#详解：{0}\r\n", "https://www.yuque.com/smartstone/nx/log");
             sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N/定时T 线程名/任务ID 消息内容\r\n");
             sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");
 
