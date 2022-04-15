@@ -17,7 +17,7 @@ namespace NewLife.Data
 {
     /// <summary>数据表</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/dbtable
+    /// 文档 https://newlifex.com/core/dbtable
     /// </remarks>
     public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {

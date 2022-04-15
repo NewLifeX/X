@@ -8,7 +8,7 @@ namespace NewLife
 {
     /// <summary>安全算法</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/security_helper
+    /// 文档 https://newlifex.com/core/security_helper
     /// </remarks>
     public static class SecurityHelper
     {

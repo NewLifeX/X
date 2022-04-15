@@ -11,7 +11,7 @@ namespace NewLife.Serialization
 {
     /// <summary>Json读取器</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// 文档 https://newlifex.com/core/json
     /// </remarks>
     public class JsonReader
     {

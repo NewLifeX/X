@@ -9,7 +9,7 @@ namespace NewLife.Reflection
 {
     /// <summary>反射工具类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/reflect
+    /// 文档 https://newlifex.com/core/reflect
     /// </remarks>
     public static class Reflect
     {

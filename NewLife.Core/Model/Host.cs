@@ -8,7 +8,7 @@ namespace NewLife.Model
 {
     /// <summary>轻量级主机服务</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// 文档 https://newlifex.com/core/host
     /// </remarks>
     public interface IHostedService
     {
@@ -25,7 +25,7 @@ namespace NewLife.Model
 
     /// <summary>轻量级应用主机</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// 文档 https://newlifex.com/core/host
     /// </remarks>
     public interface IHost
     {
@@ -47,7 +47,7 @@ namespace NewLife.Model
 
     /// <summary>轻量级应用主机</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// 文档 https://newlifex.com/core/host
     /// </remarks>
     public class Host : IHost
     {
@@ -152,7 +152,7 @@ namespace NewLife.Model
 
     /// <summary>后台任务</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/host
+    /// 文档 https://newlifex.com/core/host
     /// </remarks>
     public abstract class BackgroundService : IHostedService, IDisposable
     {

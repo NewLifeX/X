@@ -9,7 +9,7 @@ namespace NewLife.Data
 {
     /// <summary>雪花算法。分布式Id，业务内必须确保单例</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/snow_flake
+    /// 文档 https://newlifex.com/core/snow_flake
     /// 
     /// 使用一个 64 bit 的 long 型的数字作为全局唯一 id。在分布式系统中的应用十分广泛，且ID 引入了时间戳，基本上保持自增。
     /// 1bit保留 + 41bit时间戳 + 10bit机器 + 12bit序列号

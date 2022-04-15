@@ -11,7 +11,7 @@ namespace NewLife.Serialization
 {
     /// <summary>Json序列化</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// 文档 https://newlifex.com/core/json
     /// </remarks>
     public class Json : FormatterBase, IJson
     {

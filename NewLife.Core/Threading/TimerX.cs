@@ -9,7 +9,7 @@ namespace NewLife.Threading
 {
     /// <summary>不可重入的定时器，支持Cron</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/timerx
+    /// 文档 https://newlifex.com/core/timerx
     /// 
     /// 为了避免系统的Timer可重入的问题，差别在于本地调用完成后才开始计算时间间隔。这实际上也是经常用到的。
     /// 

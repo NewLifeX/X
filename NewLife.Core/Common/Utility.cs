@@ -8,7 +8,7 @@ namespace System
 {
     /// <summary>工具类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/utility
+    /// 文档 https://newlifex.com/core/utility
     /// 
     /// 采用静态架构，允许外部重载工具类的各种实现<seealso cref="DefaultConvert"/>。
     /// 所有类型转换均支持默认值，默认值为该default(T)，在转换失败时返回默认值。

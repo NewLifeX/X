@@ -11,7 +11,7 @@ namespace NewLife
 {
     /// <summary>IO工具类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/io_helper
+    /// 文档 https://newlifex.com/core/io_helper
     /// </remarks>
     public static class IOHelper
     {

@@ -20,7 +20,7 @@ namespace XUnitTest.Core
         [Fact(DisplayName = "同步请求")]
         public void SendTest()
         {
-            var uri = new Uri("http://www.newlifex.com");
+            var uri = new Uri("http://newlifex.com");
             var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3), Log = XTrace.Log };
             var html = client.Send(uri, null)?.ToStr();
 
@@ -31,7 +31,7 @@ namespace XUnitTest.Core
         [Fact(DisplayName = "异步请求")]
         public async void SendAsyncTest()
         {
-            var uri = new Uri("http://www.newlifex.com");
+            var uri = new Uri("http://newlifex.com");
             var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3), Log = XTrace.Log };
             var html = (await client.SendAsync(uri, null))?.ToStr();
 

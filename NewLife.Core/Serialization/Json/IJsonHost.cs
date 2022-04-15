@@ -6,7 +6,7 @@ namespace NewLife.Serialization
 {
     /// <summary>Json序列化接口</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// 文档 https://newlifex.com/core/json
     /// </remarks>
     public interface IJsonHost
     {
@@ -33,7 +33,7 @@ namespace NewLife.Serialization
 
     /// <summary>Json助手</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/json
+    /// 文档 https://newlifex.com/core/json
     /// </remarks>
     public static class JsonHelper
     {

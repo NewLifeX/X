@@ -294,7 +294,7 @@ namespace XUnitTest.Log
             var http = tracer.CreateHttpClient();
             http.DefaultRequestHeaders.UserAgent.ParseAdd("tracer_test v1.3");
 
-            await http.GetStringAsync("https://www.newlifex.com?id=1234");
+            await http.GetStringAsync("https://newlifex.com?id=1234");
             await Assert.ThrowsAnyAsync<Exception>(async () =>
             {
                 // 故意写错地址，让它抛出异常
@@ -305,7 +305,7 @@ namespace XUnitTest.Log
             var bs = tracer.TakeAll();
             var keys = bs.Select(e => e.Name).ToArray();
             Assert.Equal(2, bs.Length);
-            Assert.Contains("https://www.newlifex.com/", keys);
+            Assert.Contains("https://newlifex.com/", keys);
             Assert.Contains("https://www.newlifexxx.com/notfound", keys);
 
             // 其中一项

@@ -22,7 +22,7 @@ namespace NewLife
 
     /// <summary>具有销毁资源处理的抽象基类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/disposebase
+    /// 文档 https://newlifex.com/core/disposebase
     /// </remarks>
     /// <example>
     /// <code>

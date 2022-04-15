@@ -8,7 +8,7 @@ namespace NewLife.Model
 {
     /// <summary>轻量级对象容器，支持注入</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/object_container
+    /// 文档 https://newlifex.com/core/object_container
     /// </remarks>
     public class ObjectContainer : IObjectContainer
     {

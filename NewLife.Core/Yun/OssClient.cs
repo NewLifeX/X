@@ -14,7 +14,7 @@ namespace NewLife.Yun
 {
     /// <summary>阿里云文件存储</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/oss
+    /// 文档 https://newlifex.com/core/oss
     /// </remarks>
     public class OssClient
     {

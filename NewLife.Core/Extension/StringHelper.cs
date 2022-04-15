@@ -13,7 +13,7 @@ namespace NewLife
 {
     /// <summary>字符串助手类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/string_helper
+    /// 文档 https://newlifex.com/core/string_helper
     /// </remarks>
     public static class StringHelper
     {

@@ -30,7 +30,7 @@ namespace XUnitTest.Net
             var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
             Assert.NotNull(addr);
 
-            var uri = new NetUri("https://www.newlifex.com");
+            var uri = new NetUri("https://newlifex.com");
             var client = uri.CreateRemote() as TcpSession;
             client.Local.Address = addr;
             client.Open();
@@ -44,7 +44,7 @@ namespace XUnitTest.Net
             var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => e.IsIPv4() && !IPAddress.IsLoopback(e));
             Assert.NotNull(addr);
 
-            var uri = new NetUri("https://www.newlifex.com");
+            var uri = new NetUri("https://newlifex.com");
             var client = uri.CreateRemote() as TcpSession;
             client.Open();
 
@@ -57,8 +57,8 @@ namespace XUnitTest.Net
             Assert.True(Socket.OSSupportsIPv4);
             Assert.True(Socket.OSSupportsIPv6);
 
-            var entry = Dns.GetHostEntry("www.newlifex.com");
-            //var entry = Dns.GetHostEntry("www.newlifex.com.w.cdngslb.com");
+            var entry = Dns.GetHostEntry("newlifex.com");
+            //var entry = Dns.GetHostEntry("newlifex.com.w.cdngslb.com");
             Assert.NotNull(entry);
 
             var addr = NetHelper.GetIPsWithCache().FirstOrDefault(e => !e.IsIPv4() && !IPAddress.IsLoopback(e));
@@ -66,7 +66,7 @@ namespace XUnitTest.Net
 
             if (entry.AddressList.Any(_ => !_.IsIPv4()))
             {
-                var uri = new NetUri("https://www.newlifex.com");
+                var uri = new NetUri("https://newlifex.com");
                 var client = uri.CreateRemote();
                 client.Local.Address = addr;
                 client.Open();

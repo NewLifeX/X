@@ -5,7 +5,7 @@ namespace NewLife.Log
 {
     /// <summary>日志接口</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/log
+    /// 文档 https://newlifex.com/core/log
     /// </remarks>
     public interface ILog
     {

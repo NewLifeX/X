@@ -9,7 +9,7 @@ namespace System.IO
 {
     /// <summary>路径操作帮助</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/path_helper
+    /// 文档 https://newlifex.com/core/path_helper
     /// </remarks>
     public static class PathHelper
     {

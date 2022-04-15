@@ -12,7 +12,7 @@ namespace NewLife.IO
 {
     /// <summary>Csv文件轻量级数据库</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/csv_db
+    /// 文档 https://newlifex.com/core/csv_db
     /// 适用于大量数据需要快速存储、快速查找，很少修改和删除的场景。
     /// 在桌面客户端中，关系型数据库SQLite很容易因非法关机而损坏，本数据库能跳过损坏行，自动恢复。
     /// </remarks>

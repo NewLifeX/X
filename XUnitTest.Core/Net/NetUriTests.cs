@@ -55,7 +55,7 @@ namespace XUnitTest.Net
         [Fact]
         public void ParseAddress()
         {
-            var addrs = NetUri.ParseAddress("www.newlifex.com");
+            var addrs = NetUri.ParseAddress("newlifex.com");
             Assert.NotNull(addrs);
             //Assert.Equal(3, addrs.Length);
             Assert.True(addrs.Length > 0);
@@ -68,8 +68,8 @@ namespace XUnitTest.Net
             Assert.Single(addrs2);
             Assert.Equal("240e:e0:9930:2100:9914:b410:c7d8:c0a6", addrs2[0] + "");
 
-            var uri = new NetUri("https://www.newlifex.com");
-            Assert.Equal("www.newlifex.com", uri.Host);
+            var uri = new NetUri("https://newlifex.com");
+            Assert.Equal("newlifex.com", uri.Host);
             var addrs3 = uri.GetAddresses();
             //Assert.Equal(3, addrs3.Length);
             Assert.True(addrs.Length > 0);

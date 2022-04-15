@@ -8,7 +8,7 @@
 
 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。  
 
-核心库教程：[https://www.yuque.com/smartstone/nx](https://www.yuque.com/smartstone/nx)  
+核心库教程：[https://newlifex.com/core](https://newlifex.com/core)  
 
 ## 新生命项目矩阵
 各项目默认支持net6.0/netstandard2.1，旧版（2021.1225）支持net5.0/netstandard2.0/net4.5/net4.0/net2.0  
@@ -60,7 +60,7 @@
 [序列化]:https://github.com/NewLifeX/X/tree/master/NewLife.Core/Serialization
 
 ## 新生命开发团队
-![XCode](https://www.newlifex.com/logo.png)  
+![XCode](https://newlifex.com/logo.png)  
 
 新生命团队（NewLife）成立于2002年，是新时代物联网行业解决方案提供者，致力于提供软硬件应用方案咨询、系统架构规划与开发服务。  
 团队主导的开源NewLife系列组件已被广泛应用于各行业，Nuget累计下载量高达60余万次。  
@@ -69,10 +69,8 @@
 我们将不断通过服务的持续改进，成为客户长期信赖的合作伙伴，通过不断的创新和发展，成为国内优秀的IT服务供应商。  
 
 `新生命团队始于2002年，部分开源项目具有20年以上漫长历史，源码库保留有2010年以来所有修改记录`  
-网站：https://www.NewLifeX.com  
-开源：https://github.com/NewLifeX  
-教程：https://www.yuque.com/smartstone  
-博客：https://nnhy.cnblogs.com  
+网站：https://newlifex.com  
+开源：https://github.com/newlifex  
 QQ群：1600800/1600838  
 微信公众号：  
-![智能大石头](https://www.newlifex.com/stone.jpg)  
+![智能大石头](https://newlifex.com/stone.jpg)  

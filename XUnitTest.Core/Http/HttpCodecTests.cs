@@ -13,10 +13,10 @@ namespace XUnitTest.Http
     public class HttpCodecTests
     {
         [Theory(DisplayName = "读取GET")]
-        [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n")]
-        [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:0\r\n\r\n")]
-        //[InlineData("GET /123.html\r\nHost: www.newlifex.com\r\n")]
-        //[InlineData("GET /123.html\r\nHost: www.newlifex.com")]
+        [InlineData("GET /123.html HTTP/1.1\r\nHost: newlifex.com\r\n\r\n")]
+        [InlineData("GET /123.html HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:0\r\n\r\n")]
+        //[InlineData("GET /123.html\r\nHost: newlifex.com\r\n")]
+        //[InlineData("GET /123.html\r\nHost: newlifex.com")]
         public void ReadGetMessge(String http)
         {
             var msg = new HttpMessage();
@@ -28,13 +28,13 @@ namespace XUnitTest.Http
 
             Assert.Equal("GET", msg.Method);
             Assert.Equal("/123.html", msg.Uri);
-            Assert.Equal("www.newlifex.com", msg.Headers["host"]);
+            Assert.Equal("newlifex.com", msg.Headers["host"]);
         }
 
         [Theory(DisplayName = "读取POST")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:0\r\n\r\n")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:0\r\n\r\n")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\n\r\n")]
         public void ReadPostMessage(String http)
         {
             var msg = new HttpMessage();
@@ -46,7 +46,7 @@ namespace XUnitTest.Http
 
             Assert.Equal("POST", msg.Method);
             Assert.Equal("/123.ashx", msg.Uri);
-            Assert.Equal("www.newlifex.com", msg.Headers["host"]);
+            Assert.Equal("newlifex.com", msg.Headers["host"]);
 
             var body = msg.Payload;
             Assert.NotNull(body);
@@ -67,8 +67,8 @@ namespace XUnitTest.Http
         }
 
         [Theory(DisplayName = "写入编码")]
-        [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd")]
+        [InlineData("GET /123.html HTTP/1.1\r\nHost: newlifex.com\r\n\r\n")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd")]
         public void WriteCodec(String http)
         {
             var pk = http.GetBytes();
@@ -83,7 +83,7 @@ namespace XUnitTest.Http
         }
 
         [Theory(DisplayName = "读取编码")]
-        [InlineData("GET /123.html HTTP/1.1\r\nHost: www.newlifex.com\r\n\r\n", null)]
+        [InlineData("GET /123.html HTTP/1.1\r\nHost: newlifex.com\r\n\r\n", null)]
         public void ReadCodec(String http, String http2)
         {
             var pk = new Packet(http.GetBytes());
@@ -120,7 +120,7 @@ namespace XUnitTest.Http
         }
 
         [Theory(DisplayName = "读取编码")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd", null)]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:9\r\n\r\ncode=abcd", null)]
         public void ReadCodec2(String http, String http2)
         {
             var pk = new Packet(http.GetBytes());
@@ -157,7 +157,7 @@ namespace XUnitTest.Http
         }
 
         [Theory(DisplayName = "读取编码")]
-        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: www.newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
+        [InlineData("POST /123.ashx HTTP/1.1\r\nHost: newlifex.com\r\nContent-Length:9\r\n\r\n", "code=abcd")]
         public void ReadCodec3(String http, String http2)
         {
             var pk = new Packet(http.GetBytes());
