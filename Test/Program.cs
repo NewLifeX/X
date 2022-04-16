@@ -102,7 +102,7 @@ namespace Test
 
             XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf, 0));
             XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, false), 0));
-            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, true), 0));
+            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(false, true), 0));
             XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, true), 0));
         }
 
