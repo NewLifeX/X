@@ -32,104 +32,78 @@ namespace Test
 
             XTrace.UseConsole();
 
-            {
-                var weMap = new AMap();
-                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
-                //weMap.AppKey += $",sssssssssss";
-                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
-            }
-            {
-                var weMap = new BaiduMap();
-                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
-
-                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
-            }
-            {
-                var weMap = new WeMap();
-                weMap.AppKey = $"sssssssssss,{ weMap.AppKey }";
-
-                var cc = await weMap.GetGeoAsync("龙祥路保利公园九号", "哈尔滨", true);
-            }
-
-
-
             TimerScheduler.Default.Log = XTrace.Log;
 
             //var star = new StarFactory(null, null, null);
             //DefaultTracer.Instance = star?.Tracer;
             //(star.Tracer as StarTracer).AttachGlobal();
 
+#if DEBUG
+            XTrace.Debug = true;
+            XTrace.Log.Level = LogLevel.All;
 
-            Test17();
+            var set = NewLife.Setting.Current;
+            set.Debug = true;
+            set.LogLevel = LogLevel.All;
 
-            Test16();
+            //new LogEventListener(new[] {
+            //    "System.Runtime",
+            //    "System.Diagnostics.Eventing.FrameworkEventSource",
+            //    "System.Transactions.TransactionsEventSource",
+            //    "Microsoft-Windows-DotNETRuntime",
+            //    //"Private.InternalDiagnostics.System.Net.Sockets",
+            //    "System.Net.NameResolution",
+            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
+            //    "System.Net.Sockets",
+            //    //"Private.InternalDiagnostics.System.Net.Http",
+            //    "System.Net.Http",
+            //    //"System.Data.DataCommonEventSource",
+            //    //"Microsoft-Diagnostics-DiagnosticSource",
+            //});
+#endif
+            while (true)
+            {
+                var sw = Stopwatch.StartNew();
+#if !DEBUG
+                try
+                {
+#endif
+                Test1();
+#if !DEBUG
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex?.GetTrue());
+                }
+#endif
 
-            //#if DEBUG
-            //            XTrace.Debug = true;
-            //            XTrace.Log.Level = LogLevel.All;
-
-            //            var set = NewLife.Setting.Current;
-            //            set.Debug = true;
-            //            set.LogLevel = LogLevel.All;
-
-            //            //new LogEventListener(new[] {
-            //            //    "System.Runtime",
-            //            //    "System.Diagnostics.Eventing.FrameworkEventSource",
-            //            //    "System.Transactions.TransactionsEventSource",
-            //            //    "Microsoft-Windows-DotNETRuntime",
-            //            //    //"Private.InternalDiagnostics.System.Net.Sockets",
-            //            //    "System.Net.NameResolution",
-            //            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
-            //            //    "System.Net.Sockets",
-            //            //    //"Private.InternalDiagnostics.System.Net.Http",
-            //            //    "System.Net.Http",
-            //            //    //"System.Data.DataCommonEventSource",
-            //            //    //"Microsoft-Diagnostics-DiagnosticSource",
-            //            //});
-            //#endif
-            //            while (true)
-            //            {
-            //                var sw = Stopwatch.StartNew();
-            //#if !DEBUG
-            //                try
-            //                {
-            //#endif
-            //                Test1();
-            //#if !DEBUG
-            //                }
-            //                catch (Exception ex)
-            //                {
-            //                    XTrace.WriteException(ex?.GetTrue());
-            //                }
-            //#endif
-
-            //                sw.Stop();
-            //                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-            //                //Thread.Sleep(5000);
-            //                GC.Collect();
-            //                GC.WaitForPendingFinalizers();
-            //                var key = Console.ReadKey(true);
-            //                if (key.Key != ConsoleKey.C) break;
-            //            }
+                sw.Stop();
+                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+                //Thread.Sleep(5000);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                var key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.C) break;
+            }
         }
 
         static TimerX _timer;
         static Int64 _baseTick;
         private static void Test1()
         {
-            var ms = Runtime.TickCount64;
-            var baseTime = DateTime.Now.AddMilliseconds(-ms);
-            XTrace.WriteLine("tick={0} baseTime={1}", ms, baseTime.ToString("HH:mm:ss.fff"));
+            var flag = true;
+            XTrace.WriteLine("flag={0}", flag);
+            XTrace.WriteLine("flag={0}", flag.ToString());
+            XTrace.WriteLine("flag={0:b}", flag);
 
-            "学无先后达者为师".SpeakAsync();
+            var buf = "33334013".ToHex();
+            XTrace.WriteLine("uint={0}", buf.ToUInt32(0, true));
+            XTrace.WriteLine("uint={0}", buf.ToUInt32(0, false));
 
-            _timer = new TimerX(s =>
-            {
-                var ms2 = Runtime.TickCount64;
-                if (_baseTick == 0) _baseTick = ms2;
-
-                XTrace.WriteLine("hello {0} {1} {2:HH:mm:ss.fff}", ms2 - _baseTick, ms2, DateTime.Now);
-            }, null, "0/5 * * * *");
+            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf, 0));
+            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, false), 0));
+            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, true), 0));
+            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, true), 0));
         }
 
         private static void Test2()
