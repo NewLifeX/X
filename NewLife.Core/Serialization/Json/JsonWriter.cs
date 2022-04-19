@@ -48,6 +48,9 @@ namespace NewLife.Serialization
         /// <summary>智能缩进，内层不换行。默认false</summary>
         public Boolean SmartIndented { get; set; }
 
+        /// <summary>缩进字符数。默认2</summary>
+        public Int32 IndentedLength { get; set; } = 4;
+
         /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
         public Int32 MaxDepth { get; set; } = 5;
 
@@ -637,7 +640,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                if (_level > 0) _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * IndentedLength);
             }
         }
 
@@ -652,7 +655,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                if (_level > 0) _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * IndentedLength);
             }
         }
 
@@ -667,7 +670,7 @@ namespace NewLife.Serialization
             else
             {
                 _Builder.AppendLine();
-                if (_level > 0) _Builder.Append(' ', _level * 4);
+                if (_level > 0) _Builder.Append(' ', _level * IndentedLength);
             }
         }
         #endregion

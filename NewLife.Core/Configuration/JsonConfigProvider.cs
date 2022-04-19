@@ -114,8 +114,8 @@ namespace NewLife.Configuration
         {
             foreach (var item in section.Childs)
             {
-                // 注释
-                if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
+                //// 注释
+                //if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
 
                 var cs = item.Childs;
                 if (cs != null)
