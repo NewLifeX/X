@@ -6,6 +6,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -291,8 +292,21 @@ namespace NewLife.Serialization
                 }
             }
 
+            // 字典数据源
+            if(obj is IDictionarySource source)
+            {
+                var dic = source.ToDictionary();
+                foreach (var item in dic)
+                {
+                    if (!hs.Contains(item.Key))
+                    {
+                        hs.Add(item.Key);
+                        WriteMember(item.Key, item.Value, null, ref first);
+                    }
+                }
+            }
             // 扩展数据
-            if (obj is IExtend3 ext3 && ext3.Items != null)
+            else if (obj is IExtend3 ext3 && ext3.Items != null)
             {
                 // 提前拷贝，避免遍历中改变集合
                 var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
