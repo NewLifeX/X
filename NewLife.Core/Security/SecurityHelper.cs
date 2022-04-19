@@ -133,12 +133,15 @@ namespace NewLife
 
             if (pass != null && pass.Length > 0)
             {
-                var keySize = sa.KeySize / 8;
-                sa.Key = Pad(pass, keySize);
+                if (sa.LegalKeySizes != null && sa.LegalKeySizes.Length > 0)
+                    sa.Key = Pad(pass, sa.LegalKeySizes[0]);
+                else
+                    sa.Key = pass;
 
                 // CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要
-                var ivSize = sa.IV.Length;
-                sa.IV = Pad(pass, ivSize);
+                var iv = new Byte[sa.IV.Length];
+                iv.Write(0, pass);
+                sa.IV = iv;
 
                 sa.Mode = mode;
                 sa.Padding = padding;
@@ -195,12 +198,15 @@ namespace NewLife
 
             if (pass != null && pass.Length > 0)
             {
-                var keySize = sa.KeySize / 8;
-                sa.Key = Pad(pass, keySize);
+                if (sa.LegalKeySizes != null && sa.LegalKeySizes.Length > 0)
+                    sa.Key = Pad(pass, sa.LegalKeySizes[0]);
+                else
+                    sa.Key = pass;
 
                 // CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要
-                var ivSize = sa.IV.Length;
-                sa.IV = Pad(pass, ivSize);
+                var iv = new Byte[sa.IV.Length];
+                iv.Write(0, pass);
+                sa.IV = iv;
 
                 sa.Mode = mode;
                 sa.Padding = padding;
@@ -210,11 +216,28 @@ namespace NewLife
             return stream.ReadBytes();
         }
 
-        private static Byte[] Pad(Byte[] buf, Int32 length)
+        private static Byte[] Pad(Byte[] buf, KeySizes keySize)
         {
-            if (buf.Length == length) return buf;
+            var psize = buf.Length * 8;
+            var size = 0;
+            for (var i = keySize.MinSize; i <= keySize.MaxSize; i += keySize.SkipSize)
+            {
+                if (i >= psize)
+                {
+                    size = i / 8;
+                    break;
+                }
 
-            var buf2 = new Byte[length];
+                // DES的SkipSize为0
+                if (keySize.SkipSize == 0) break;
+            }
+
+            // 所有key大小都不合适，取最大值，此时密码过长，需要截断
+            if (size == 0) size = keySize.MaxSize / 8;
+
+            if (buf.Length == size) return buf;
+
+            var buf2 = new Byte[size];
             buf2.Write(0, buf);
 
             return buf2;
