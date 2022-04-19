@@ -160,7 +160,7 @@ namespace XUnitTest.Configuration
             Assert.NotEmpty(txt);
             Assert.DoesNotContain("Items: []", txt);
             Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
-            Assert.Contains("{ \"Name\": \"Baidu\", \"Server\": null, \"AccessServer\": null, \"AppID\": null, \"Secret\": null, \"Scope\": null },", txt);
+            //Assert.Contains("{ \"Name\": \"Baidu\", \"Server\": null, \"AccessServer\": null, \"AppID\": null, \"Secret\": null, \"Scope\": null },", txt);
 
             var prv2 = new JsonConfigProvider { FileName = prv.FileName };
             var cfg2 = prv2.Load<OAuthConfig>();
