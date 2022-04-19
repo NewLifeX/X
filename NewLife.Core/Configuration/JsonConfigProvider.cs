@@ -52,7 +52,7 @@ namespace NewLife.Configuration
                 IgnoreNullValues = false,
                 IgnoreComment = false,
                 Indented = true,
-                SmartIndented = true,
+                //SmartIndented = true,
             };
 
             jw.Write(rs);
