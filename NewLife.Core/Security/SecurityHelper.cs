@@ -120,6 +120,7 @@ namespace NewLife
         }
 
         /// <summary>对称加密算法扩展</summary>
+        /// <remarks>CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要</remarks>
         /// <param name="sa">算法</param>
         /// <param name="data">数据</param>
         /// <param name="pass">密码</param>
@@ -135,6 +136,7 @@ namespace NewLife
                 var keySize = sa.KeySize / 8;
                 sa.Key = Pad(pass, keySize);
 
+                // CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要
                 var ivSize = sa.IV.Length;
                 sa.IV = Pad(pass, ivSize);
 
@@ -180,6 +182,7 @@ namespace NewLife
         }
 
         /// <summary>对称解密算法扩展</summary>
+        /// <remarks>CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要</remarks>
         /// <param name="sa">算法</param>
         /// <param name="data">数据</param>
         /// <param name="pass">密码</param>
@@ -195,6 +198,7 @@ namespace NewLife
                 var keySize = sa.KeySize / 8;
                 sa.Key = Pad(pass, keySize);
 
+                // CBC填充依赖IV，要求加解密的IV一致，而ECB填充则不需要
                 var ivSize = sa.IV.Length;
                 sa.IV = Pad(pass, ivSize);
 
