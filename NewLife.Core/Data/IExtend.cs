@@ -6,7 +6,7 @@ using NewLife.Reflection;
 
 namespace NewLife.Data
 {
-    /// <summary>具有可读性的扩展数据</summary>
+    /// <summary>具有可读写的扩展数据</summary>
     public interface IExtend
     {
         /// <summary>设置 或 获取 数据项</summary>
@@ -43,6 +43,9 @@ namespace NewLife.Data
         }
 
         /// <summary>扩展接口转名值字典</summary>
+        /// <remarks>
+        /// 需要注意，还有一个 Object.ToDictionary() 扩展，位于 CollectionHelper
+        /// </remarks>
         /// <param name="extend">扩展对象</param>
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this IExtend extend)

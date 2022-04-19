@@ -93,6 +93,9 @@ namespace System.Collections.Generic
         }
 
         /// <summary>目标匿名参数对象转为字典</summary>
+        /// <remarks>
+        /// 需要注意，还有一个 IExtend.ToDictionary() 扩展
+        /// </remarks>
         /// <param name="target"></param>
         /// <returns></returns>
         public static IDictionary<String, Object> ToDictionary(this Object target)

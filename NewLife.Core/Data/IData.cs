@@ -3,7 +3,7 @@ using System.Net;
 
 namespace NewLife.Data
 {
-    /// <summary>数据帧接口</summary>
+    /// <summary>数据帧接口。用于网络通信领域，定义数据帧的必要字段</summary>
     public interface IData
     {
         #region 属性
