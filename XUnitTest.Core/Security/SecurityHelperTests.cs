@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 using System.Text;
 using NewLife;
 using Xunit;
@@ -34,7 +35,7 @@ namespace XUnitTest.Security
                 var aes = Aes.Create();
                 data = aes.Encrypt(buf, key, CipherMode.CBC, PaddingMode.PKCS7).ToHex();
 
-                Assert.Equal("E2A0060216CE56429E723B5396BDF847", data);
+                Assert.Equal("50A7CF869354EC317327671B34543AD8", data);
             }
             {
                 var aes = Aes.Create();
@@ -59,7 +60,8 @@ namespace XUnitTest.Security
                 aes.IV = key;
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.PKCS7;
-                data = aes.CreateEncryptor().TransformFinalBlock(buf, 0, buf.Length).ToHex();
+                var transform = aes.CreateEncryptor();
+                data = transform.TransformFinalBlock(buf, 0, buf.Length).ToHex();
 
                 Assert.Equal("50A7CF869354EC317327671B34543AD8", data);
             }
@@ -70,7 +72,8 @@ namespace XUnitTest.Security
                 aes.IV = key;
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.PKCS7;
-                data = aes.CreateDecryptor().TransformFinalBlock(buf, 0, buf.Length).ToHex();
+                var transform = aes.CreateDecryptor();
+                data = transform.TransformFinalBlock(buf, 0, buf.Length).ToHex();
 
                 Assert.Equal("123456", data);
             }
@@ -88,7 +91,7 @@ namespace XUnitTest.Security
                 var aes = Aes.Create();
                 data = aes.Encrypt(buf, key, CipherMode.ECB, PaddingMode.PKCS7).ToHex();
 
-                Assert.Equal("4CD22ABAA4C27E63D965981026C97801", data);
+                Assert.Equal("C0041698AD73EADC75FB886CEF6385A5", data);
             }
             {
                 var aes = Aes.Create();
@@ -111,7 +114,8 @@ namespace XUnitTest.Security
                 aes.Key = key;
                 aes.Mode = CipherMode.ECB;
                 aes.Padding = PaddingMode.PKCS7;
-                data = aes.CreateEncryptor().TransformFinalBlock(buf, 0, buf.Length).ToHex();
+                var transform = aes.CreateEncryptor();
+                data = transform.TransformFinalBlock(buf, 0, buf.Length).ToHex();
 
                 Assert.Equal("C0041698AD73EADC75FB886CEF6385A5", data);
             }
@@ -121,7 +125,19 @@ namespace XUnitTest.Security
                 aes.Key = key;
                 aes.Mode = CipherMode.ECB;
                 aes.Padding = PaddingMode.PKCS7;
-                data = aes.CreateDecryptor().TransformFinalBlock(buf, 0, buf.Length).ToHex();
+                var transform = aes.CreateDecryptor();
+                //data = transform.TransformFinalBlock(buf, 0, buf.Length).ToHex();
+
+                var buf2 = new Byte[buf.Length];
+                var rs = transform.TransformBlock(buf, 0, buf.Length, buf2, 0);
+                var buf3 = transform.TransformFinalBlock(new Byte[1024], 0, 0);
+                data = buf3.ToHex();
+
+                Assert.Equal("123456", data);
+            }
+            {
+                var aes = Aes.Create();
+                data = aes.Decrypt(buf, key, CipherMode.ECB, PaddingMode.PKCS7).ToHex();
 
                 Assert.Equal("123456", data);
             }
