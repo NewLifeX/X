@@ -255,7 +255,17 @@ namespace NewLife.Log
         /// <returns></returns>
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
-            if (handler == null) handler = new HttpClientHandler { UseProxy = false };
+            if (handler == null)
+            {
+                var handler2 = new HttpClientHandler { UseProxy = false };
+
+#if NETCOREAPP3_0_OR_GREATER
+                if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.All;
+#else
+                if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.GZip;
+#endif
+                handler = handler2;
+            }
 
             var client = tracer == null ?
                 new HttpClient(handler) :

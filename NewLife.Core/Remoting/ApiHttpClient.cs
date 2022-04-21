@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
@@ -26,6 +27,10 @@ namespace NewLife.Remoting
 
         /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
         public Boolean UseProxy { get; set; }
+
+        /// <summary>是否使用压缩。默认true</summary>
+        /// <remarks>将来可能取消该设置项，默认启用压缩</remarks>
+        public Boolean Compressed { get; set; } = true;
 
         /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
         public Boolean RoundRobin { get; set; }
@@ -255,6 +260,9 @@ namespace NewLife.Remoting
             else
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            //// 压缩
+            //if (Compressed) request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+
             // 加上令牌或其它身份验证
             var auth = Authentication;
             if (auth == null && !Token.IsNullOrEmpty()) auth = new AuthenticationHeaderValue("Bearer", Token);
@@ -427,10 +435,18 @@ namespace NewLife.Remoting
         /// <returns></returns>
         protected virtual HttpClient CreateClient()
         {
-            HttpMessageHandler handler = new HttpClientHandler { UseProxy = UseProxy };
-            if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
+            var handler = new HttpClientHandler { UseProxy = UseProxy };
 
-            var client = new HttpClient(handler)
+#if NETCOREAPP3_0_OR_GREATER
+            if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.All;
+#else
+            if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.GZip;
+#endif
+
+            HttpMessageHandler handler2 = handler;
+            if (Tracer != null) handler2 = new HttpTraceHandler(handler2) { Tracer = Tracer };
+
+            var client = new HttpClient(handler2)
             {
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };

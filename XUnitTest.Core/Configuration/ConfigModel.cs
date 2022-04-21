@@ -50,7 +50,7 @@ namespace NewLife
         #endregion
     }
 
-    [HttpConfig("httpCore", "http://star.newlifex.com:6600", "Config/GetAll", "StarWeb")]
+    [HttpConfig("httpCore", "http://star.newlifex.com:6600", "Config/GetAll", "test")]
     public class HttpConfigModel : Config<HttpConfigModel>
     {
         [DataMember(Name = "test1")]

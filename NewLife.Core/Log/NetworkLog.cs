@@ -92,7 +92,15 @@ namespace NewLife.Log
                 case NetType.Http:
                 case NetType.Https:
                 case NetType.WebSocket:
-                    var http = new HttpClient(new HttpClientHandler { UseProxy = false })
+                    var handler = new HttpClientHandler { UseProxy = false };
+
+#if NETCOREAPP3_0_OR_GREATER
+                    if (handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.All;
+#else
+                    if (handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.GZip;
+#endif
+
+                    var http = new HttpClient(handler)
                     {
                         BaseAddress = new Uri(Server)
                     };
