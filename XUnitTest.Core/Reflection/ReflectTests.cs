@@ -26,7 +26,7 @@ namespace XUnitTest.Reflection
         public void GetTypeExTest(Type type)
         {
             var name = type.Name;
-            var t2 = name.GetTypeEx(false);
+            var t2 = name.GetTypeEx();
             Assert.Equal(type, t2);
         }
 

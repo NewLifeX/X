@@ -23,9 +23,23 @@ namespace NewLife.Reflection
         #region 反射获取
         /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
         /// <param name="typeName">类型名</param>
+        /// <returns></returns>
+        public static Type GetTypeEx(this String typeName)
+        {
+            if (String.IsNullOrEmpty(typeName)) return null;
+
+            var type = Type.GetType(typeName);
+            if (type != null) return type;
+
+            return Provider.GetType(typeName, false);
+        }
+
+        /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
+        /// <param name="typeName">类型名</param>
         /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
         /// <returns></returns>
-        public static Type GetTypeEx(this String typeName, Boolean isLoadAssembly = true)
+        [Obsolete("不再支持isLoadAssembly")]
+        public static Type GetTypeEx(this String typeName, Boolean isLoadAssembly)
         {
             if (String.IsNullOrEmpty(typeName)) return null;
 

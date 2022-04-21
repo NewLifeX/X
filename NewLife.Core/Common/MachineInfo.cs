@@ -206,18 +206,6 @@ namespace NewLife
             // 从注册表读取 MachineGuid
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
-
-            //var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-            //if (temp != null)
-            //{
-            //    if (temp.TryGetValue("CurrentTemperature", out str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-            //}
-
-            //var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-            //if (battery != null)
-            //{
-            //    if (battery.TryGetValue("EstimatedChargeRemaining", out str)) Battery = str.SplitAsInt().Average() / 100.0;
-            //}
         }
 
         private void LoadLinuxInfo()
@@ -530,7 +518,9 @@ namespace NewLife
                     // UseShellExecute 必须 false，以便于后续重定向输出流
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    RedirectStandardOutput = true,
+                    //RedirectStandardError = true,
                 };
                 var process = Process.Start(psi);
                 if (!process.WaitForExit(3_000))

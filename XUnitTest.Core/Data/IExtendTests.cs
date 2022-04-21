@@ -66,7 +66,8 @@ namespace XUnitTest.Data
         [Fact]
         public void ToDictionary_ExtendDictionary()
         {
-            var ext = "NewLife.Data.ExtendDictionary".GetTypeEx().CreateInstance() as IExtend;
+            //var ext = Type.GetType("NewLife.Data.ExtendDictionary").CreateInstance() as IExtend;
+            var ext = typeof(ExtendDictionary).CreateInstance() as IExtend;
             ext["aaa"] = 1234;
 
             var dic = ext.ToDictionary();

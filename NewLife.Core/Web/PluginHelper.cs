@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using NewLife.Log;
-using NewLife.Reflection;
 
 namespace NewLife.Web
 {
@@ -17,24 +17,43 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Type LoadPlugin(String typeName, String disname, String dll, String linkName, String urls = null)
         {
-            var type = typeName.GetTypeEx(true);
+            //var type = typeName.GetTypeEx(true);
+            var type = Type.GetType(typeName);
             if (type != null) return type;
 
             if (dll.IsNullOrEmpty()) return null;
 
+            var set = Setting.Current;
+
+            var file = "";
+            if (!dll.IsNullOrEmpty())
+            {
+                // 先检查当前目录，再检查插件目录
+                file = dll.GetFullPath();
+                if (!File.Exists(file)) file = dll.GetBasePath();
+                if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetFullPath();
+                if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetBasePath();
+            }
+
+            // 尝试直接加载DLL
+            if (File.Exists(file))
+            {
+                try
+                {
+                    var asm = Assembly.LoadFile(file);
+                    type = asm.GetType(typeName);
+                    if (type != null) return type;
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                }
+            }
+
+            if (linkName.IsNullOrEmpty()) return null;
+
             lock (typeName)
             {
-                var set = Setting.Current;
-
-                var file = "";
-                if (!dll.IsNullOrEmpty())
-                {
-                    // 先检查当前目录，再检查插件目录
-                    file = dll.GetFullPath();
-                    if (!File.Exists(file)) file = set.PluginPath.GetFullPath().CombinePath(dll);
-                    if (!File.Exists(file)) file = set.PluginPath.GetBasePath().CombinePath(dll);
-                }
-
                 if (urls.IsNullOrEmpty()) urls = set.PluginServer;
 
                 // 如果本地没有数据库，则从网络下载
@@ -57,7 +76,26 @@ namespace NewLife.Web
                 }
 
                 //return Assembly.LoadFrom(file).GetType(typeName);
-                return typeName.GetTypeEx(true);
+
+                type = Type.GetType(typeName);
+                if (type != null) return type;
+
+                // 尝试直接加载DLL
+                if (File.Exists(file))
+                {
+                    try
+                    {
+                        var asm = Assembly.LoadFile(file);
+                        type = asm.GetType(typeName);
+                        if (type != null) return type;
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                }
+
+                return null;
             }
         }
     }

@@ -192,7 +192,7 @@ namespace NewLife.Data
                 if (tc != TypeCode.Object)
                     ts[i] = Type.GetType("System." + tc);
                 else if (ver >= 2)
-                    ts[i] = bn.Read<String>().GetTypeEx();
+                    ts[i] = Type.GetType(bn.Read<String>());
             }
             Columns = cs;
             Types = ts;
