@@ -259,12 +259,15 @@ namespace NewLife.Log
             {
                 var handler2 = new HttpClientHandler { UseProxy = false };
 
+                if (Net.Setting.Current.EnableHttpCompression)
+                {
 #if NETCOREAPP3_0_OR_GREATER
-                if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.All;
+                    if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.All;
 #else
-                if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.GZip;
+                    if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.GZip;
 #endif
-                handler = handler2;
+                    handler = handler2;
+                }
             }
 
             var client = tracer == null ?

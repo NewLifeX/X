@@ -65,16 +65,16 @@ namespace NewLife.Remoting
 
         #region 构造
         /// <summary>实例化</summary>
-        public ApiHttpClient() { }
+        public ApiHttpClient() => Compressed = Net.Setting.Current.EnableHttpCompression;
 
         /// <summary>实例化</summary>
         /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
-        public ApiHttpClient(String urls) => Init(urls);
+        public ApiHttpClient(String urls) : this() => Init(urls);
 
         /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
         /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
         /// <param name="name">缓存名称，也是配置中心key</param>
-        public ApiHttpClient(IServiceProvider provider, String name)
+        public ApiHttpClient(IServiceProvider provider, String name) : this()
         {
             //Name = name;
 
