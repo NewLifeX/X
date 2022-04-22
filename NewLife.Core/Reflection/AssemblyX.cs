@@ -134,7 +134,7 @@ namespace NewLife.Reflection
                     if (p > 0) name = name[..p];
 
                     file = Path.GetDirectoryName(file).CombinePath(name + ".dll");
-                    if (File.Exists(file)) return Assembly.LoadFile(file);
+                    if (File.Exists(file)) return Assembly.LoadFrom(file);
                 }
 
                 return OnResolve(args.Name);
@@ -368,7 +368,7 @@ namespace NewLife.Reflection
                     try
                     {
                         type = null;
-                        var asm2 = Assembly.LoadFile(file);
+                        var asm2 = Assembly.LoadFrom(file);
                         var type2 = Create(asm2).GetType(typeName);
                         if (type2 == null) continue;
                         type = type2;
@@ -603,7 +603,7 @@ namespace NewLife.Reflection
                     {
                         try
                         {
-                            var asm = Assembly.LoadFile(file);
+                            var asm = Assembly.LoadFrom(file);
                             //var asm = Assembly.Load(File.ReadAllBytes(file));
                             if (asm != null && asm.GetName().Name == name) return asm;
                         }

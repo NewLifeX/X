@@ -40,7 +40,7 @@ namespace NewLife.Web
             {
                 try
                 {
-                    var asm = Assembly.LoadFile(file);
+                    var asm = Assembly.LoadFrom(file);
                     type = asm.GetType(typeName);
                     if (type != null) return type;
                 }
@@ -85,7 +85,7 @@ namespace NewLife.Web
                 {
                     try
                     {
-                        var asm = Assembly.LoadFile(file);
+                        var asm = Assembly.LoadFrom(file);
                         type = asm.GetType(typeName);
                         if (type != null) return type;
                     }
