@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -88,6 +89,25 @@ namespace NewLife
             }
         }
 #endif
+
+        /// <summary>
+        /// 获取环境变量。不区分大小写
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <returns></returns>
+        public static String GetEnvironmentVariable(String variable)
+        {
+            var val = Environment.GetEnvironmentVariable(variable);
+            if (!val.IsNullOrEmpty()) return val;
+
+            foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+            {
+                var key = item.Key as String;
+                if (key.EqualIgnoreCase(variable)) return item.Value as String;
+            }
+
+            return null;
+        }
         #endregion
     }
 }

@@ -311,7 +311,7 @@ namespace NewLife.Configuration
                     break;
                 }
             }
-            if (str.IsNullOrEmpty()) str = Environment.GetEnvironmentVariable("DefaultConfig");
+            if (str.IsNullOrEmpty()) str = NewLife.Runtime.GetEnvironmentVariable("DefaultConfig");
             if (!str.IsNullOrEmpty()) DefaultProvider = str;
 
             Register<InIConfigProvider>("ini");
