@@ -339,6 +339,11 @@ namespace NewLife
                 {
                     Battery = capacity.ToDouble() / 100.0;
                 }
+                else if (Runtime.Mono)
+                {
+                    var battery = ReadAndroidBattery();
+                    if (battery.TryGetValue("ChargeLevel", out var obj)) Battery = obj.ToDouble();
+                }
 
                 //var upt = Execute("uptime");
                 //if (!upt.IsNullOrEmpty())
@@ -624,6 +629,22 @@ namespace NewLife
             foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
             {
                 dic[item.Name] = item.GetValue(null) + "";
+            }
+
+            return dic;
+        }
+
+        private static IDictionary<String, Object> ReadAndroidBattery()
+        {
+            var dic = new Dictionary<String, Object>();
+            if (!Runtime.Mono) return dic;
+
+            var type = "Xamarin.Essentials.Battery".GetTypeEx();
+            if (type == null) return dic;
+
+            foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            {
+                dic[item.Name] = item.GetValue(null);
             }
 
             return dic;

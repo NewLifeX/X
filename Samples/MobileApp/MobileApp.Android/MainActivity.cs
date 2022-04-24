@@ -8,6 +8,7 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 using System.Runtime.InteropServices;
+using Xamarin.Essentials;
 
 namespace MobileApp.Droid
 {
@@ -21,25 +22,9 @@ namespace MobileApp.Droid
 
             base.OnCreate(savedInstanceState);
 
-            var id = Build.Id;
-            var serial = Build.Serial;
-            var model = Build.Model;
-            var prd = Build.Product;
+            var level = Battery.ChargeLevel; // returns 0.0 to 1.0 or 1.0 when on AC or no battery.
 
-            var deviceId = Android.Provider.Settings.Secure.GetString(Application.Context.ContentResolver, Android.Provider.Settings.Secure.AndroidId);
-
-            var type = "Android.Provider.Settings".GetTypeEx();
-            type = type.GetNestedType("Secure");
-            var aid = type.GetValue("AndroidId");
-            var resolver = "Android.App.Application".GetTypeEx().GetValue("Context").GetValue("ContentResolver");
-            var did = type.Invoke("GetString", resolver, aid);
-
-            var str1 = RuntimeInformation.FrameworkDescription;
-            var str2 = RuntimeInformation.ProcessArchitecture;
-            var str3 = RuntimeInformation.OSArchitecture;
-            var str4 = RuntimeInformation.OSDescription;
-
-            //var osName = typeof(RuntimeInformation).Invoke("GetOSName") as String;
+            var state = Battery.State;
 
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
