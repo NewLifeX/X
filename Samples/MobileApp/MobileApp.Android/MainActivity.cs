@@ -1,13 +1,13 @@
 ﻿using System;
-using NewLife.Reflection;
-
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Android.App;
 using Android.Content.PM;
-using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using Android.OS;
-using System.Runtime.InteropServices;
+using Android.Runtime;
+using NewLife;
+using NewLife.Serialization;
 using Xamarin.Essentials;
 
 namespace MobileApp.Droid
@@ -22,9 +22,18 @@ namespace MobileApp.Droid
 
             base.OnCreate(savedInstanceState);
 
-            var level = Battery.ChargeLevel; // returns 0.0 to 1.0 or 1.0 when on AC or no battery.
+            var path = ".".GetFullPath();
+            var driveInfo = DriveInfo.GetDrives().FirstOrDefault(e => path.StartsWithIgnoreCase(e.Name));
 
-            var state = Battery.State;
+            var deviceId = Android.Provider.Settings.Secure.GetString(Application.Context.ContentResolver, Android.Provider.Settings.Secure.AndroidId);
+
+            var device = DeviceInfo.Model;
+            var dic = new Dictionary<String, Object>();
+            foreach (var item in typeof(DeviceInfo).GetProperties())
+            {
+                dic[item.Name] = item.GetValue(device);
+            }
+            var js = dic.ToJson(true);
 
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);

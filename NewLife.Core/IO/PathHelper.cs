@@ -100,14 +100,10 @@ namespace System.IO
             }
             else
             {
-                if (!path.StartsWith(dir))
+                if (path[0] == sep2 || !Path.IsPathRooted(path))
                 {
-                    // path目录存在，不用再次拼接
-                    if (!Directory.Exists(path))
-                    {
-                        path = path.TrimStart(sep);
-                        path = Path.Combine(dir, path);
-                    }
+                    path = path.TrimStart(sep);
+                    path = Path.Combine(dir, path);
                 }
             }
 

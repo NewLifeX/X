@@ -37,13 +37,13 @@ namespace NewLife
         /// <summary>处理器型号</summary>
         public String Processor { get; set; }
 
-        /// <summary>处理器序列号</summary>
+        /// <summary>处理器序列号。PC处理器序列号绝大部分重复，实际存储处理器的其它信息</summary>
         public String CpuID { get; set; }
 
-        /// <summary>硬件唯一标识</summary>
+        /// <summary>硬件唯一标识。取主板编码，部分品牌存在重复</summary>
         public String UUID { get; set; }
 
-        /// <summary>系统标识</summary>
+        /// <summary>系统标识。操作系统重装后更新，Linux系统的machine_id，Android的android_id，Ghost系统存在重复</summary>
         public String Guid { get; set; }
 
         /// <summary>磁盘序列号</summary>
@@ -169,7 +169,11 @@ namespace NewLife
             {
                 Refresh();
             }
+#if DEBUG
+            catch (Exception ex) { XTrace.WriteException(ex); }
+#else
             catch { }
+#endif
         }
 
         private void LoadWindowsInfo()
@@ -215,7 +219,13 @@ namespace NewLife
             var str = GetLinuxName();
             if (!str.IsNullOrEmpty()) OSName = str;
 
-            var android = ReadAndroidInfo();
+            var device = ReadDeviceInfo();
+            //var js = device.ToJson(true);
+
+            if (device.TryGetValue("Platform", out str))
+                OSName = str;
+            if (device.TryGetValue("Version", out str))
+                OSVersion = str;
 
             // 树莓派的Hardware无法区分P0/P4
             var dic = ReadInfo("/proc/cpuinfo");
@@ -226,15 +236,15 @@ namespace NewLife
                     dic.TryGetValue("model name", out str))
                     Processor = str?.TrimStart("vendor ");
 
-                if (android.TryGetValue("Product", out str))
+                if (device.TryGetValue("Product", out str))
                     Product = str;
                 else if (dic.TryGetValue("vendor_id", out str))
                     Product = str;
                 else if (dic.TryGetValue("Model", out str))
                     Product = str;
 
-                //if (android.TryGetValue("Device", out str))
-                //    CpuID = str;
+                if (device.TryGetValue("Board", out str) && !str.IsNullOrEmpty())
+                    CpuID = str;
                 if (dic.TryGetValue("Serial", out str))
                     CpuID = str;
             }
@@ -243,8 +253,8 @@ namespace NewLife
             if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
             if (TryRead(mid, out var value))
                 Guid = value;
-            //else if (android.TryGetValue("Serial", out str) && str != "unknown")
-            //    Guid = str;
+            else if (device.TryGetValue("android_id", out str) && !str.IsNullOrEmpty() && str != "unknown")
+                Guid = str;
             //else if (android.TryGetValue("Id", out str))
             //    Guid = str;
 
@@ -252,9 +262,8 @@ namespace NewLife
             if (!File.Exists(file)) file = "/proc/serial_num";  // miui12支持/proc/serial_num
             if (TryRead(file, out value))
                 UUID = value;
-            else
-                // 支持 Android
-                UUID = ReadAndroidSecure("android_id");
+            else if (device.TryGetValue("Serial", out str) && str != "unknown")
+                UUID = str;
 
             file = "/sys/class/dmi/id/product_name";
             if (TryRead(file, out value)) Product = value;
@@ -341,7 +350,7 @@ namespace NewLife
                 }
                 else if (Runtime.Mono)
                 {
-                    var battery = ReadAndroidBattery();
+                    var battery = ReadDeviceBattery();
                     if (battery.TryGetValue("ChargeLevel", out var obj)) Battery = obj.ToDouble();
                 }
 
@@ -433,9 +442,13 @@ namespace NewLife
             var received = 0L;
             foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                var st = ni.GetIPStatistics();
-                sent += st.BytesSent;
-                received += st.BytesReceived;
+                try
+                {
+                    var st = ni.GetIPStatistics();
+                    sent += st.BytesSent;
+                    received += st.BytesReceived;
+                }
+                catch { }
             }
 
             var now = Runtime.TickCount64;
@@ -618,23 +631,64 @@ namespace NewLife
             return dic2;
         }
 
-        private static IDictionary<String, String> ReadAndroidInfo()
+        /// <summary>
+        /// 获取设备信息。用于Xamarin
+        /// </summary>
+        /// <returns></returns>
+        public static IDictionary<String, String> ReadDeviceInfo()
         {
             var dic = new Dictionary<String, String>();
             if (!Runtime.Mono) return dic;
 
-            var type = "Android.OS.Build".GetTypeEx();
-            if (type == null) return dic;
-
-            foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
             {
-                dic[item.Name] = item.GetValue(null) + "";
+                var type = "Android.OS.Build".GetTypeEx();
+                if (type != null)
+                {
+                    foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
+                    {
+                        try
+                        {
+                            dic[item.Name] = item.GetValue(null) + "";
+                        }
+                        catch { }
+                    }
+                }
+            }
+            {
+                var type = "Xamarin.Essentials.DeviceInfo".GetTypeEx();
+                if (type != null)
+                {
+                    foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
+                    {
+                        try
+                        {
+                            dic[item.Name] = item.GetValue(null) + "";
+                        }
+                        catch { }
+                    }
+                }
+            }
+            {
+                var type = "Android.Provider.Settings".GetTypeEx()?.GetNestedType("Secure");
+                if (type != null)
+                {
+                    var resolver = "Android.App.Application".GetTypeEx()?.GetValue("Context")?.GetValue("ContentResolver");
+                    if (resolver != null)
+                    {
+                        var name = "android_id";
+                        dic[name] = type.Invoke("GetString", resolver, name) as String;
+                    }
+                }
             }
 
             return dic;
         }
 
-        private static IDictionary<String, Object> ReadAndroidBattery()
+        /// <summary>
+        /// 获取设备电量。用于 Xamarin
+        /// </summary>
+        /// <returns></returns>
+        public static IDictionary<String, Object> ReadDeviceBattery()
         {
             var dic = new Dictionary<String, Object>();
             if (!Runtime.Mono) return dic;
@@ -644,22 +698,14 @@ namespace NewLife
 
             foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
             {
-                dic[item.Name] = item.GetValue(null);
+                try
+                {
+                    dic[item.Name] = item.GetValue(null);
+                }
+                catch { }
             }
 
             return dic;
-        }
-
-        private static String ReadAndroidSecure(String name)
-        {
-            var type = "Android.Provider.Settings".GetTypeEx()?.GetNestedType("Secure");
-            if (type == null) return null;
-
-            //var aid = type.GetValue("AndroidId");
-            var resolver = "Android.App.Application".GetTypeEx()?.GetValue("Context")?.GetValue("ContentResolver");
-            if (resolver == null) return null;
-
-            return type.Invoke("GetString", resolver, name) as String;
         }
         #endregion
 
