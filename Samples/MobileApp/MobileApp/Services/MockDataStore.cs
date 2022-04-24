@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MobileApp.Models;
+using NewLife;
+using NewLife.Serialization;
 
 namespace MobileApp.Services
 {
@@ -21,6 +23,9 @@ namespace MobileApp.Services
                 new Item { Id = Guid.NewGuid().ToString(), Text = "Fifth item", Description="This is an item description." },
                 new Item { Id = Guid.NewGuid().ToString(), Text = "Sixth item", Description="This is an item description." }
             };
+
+            items[0].Text = "设备信息";
+            items[0].Description = MachineInfo.GetCurrent().ToJson(true);
         }
 
         public async Task<bool> AddItemAsync(Item item)

@@ -5,6 +5,8 @@ using Xamarin.Forms.Xaml;
 
 using MobileApp.Models;
 using MobileApp.ViewModels;
+using NewLife;
+using NewLife.Serialization;
 
 namespace MobileApp.Views
 {
@@ -31,6 +33,9 @@ namespace MobileApp.Views
                 Text = "Item 1",
                 Description = "This is an item description."
             };
+
+            item.Text = "设备信息";
+            item.Description = MachineInfo.GetCurrent().ToJson(true);
 
             viewModel = new ItemDetailViewModel(item);
             BindingContext = viewModel;
