@@ -87,6 +87,10 @@
     <AndroidResource Include="Resources\drawable\icon_feed.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj">
+      <Project>{5813c22e-eeb3-4dee-a45c-bb218041193a}</Project>
+      <Name>NewLife.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\App1\App1.csproj">
       <Project>{5E74306D-4BC7-4989-A59D-A0C0AF0DA15A}</Project>
       <Name>App1</Name>

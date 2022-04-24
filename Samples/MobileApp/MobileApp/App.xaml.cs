@@ -18,6 +18,9 @@ namespace MobileApp
             XTrace.UseConsole(false, false);
 #endif
 
+            var log = new NetworkLog { Server = "udp://255.255.255.255:514" };
+            XTrace.Log = new CompositeLog(XTrace.Log, log);
+
             var js = MachineInfo.GetCurrent().ToJson(true);
             XTrace.WriteLine(js);
 

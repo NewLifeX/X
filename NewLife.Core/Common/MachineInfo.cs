@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Reflection;
 using NewLife.Serialization;
-using System.Net.NetworkInformation;
-using NewLife.Collections;
 
 namespace NewLife
 {
@@ -213,6 +215,8 @@ namespace NewLife
             var str = GetLinuxName();
             if (!str.IsNullOrEmpty()) OSName = str;
 
+            var android = ReadAndroidInfo();
+
             // 树莓派的Hardware无法区分P0/P4
             var dic = ReadInfo("/proc/cpuinfo");
             if (dic != null)
@@ -220,18 +224,38 @@ namespace NewLife
                 if (dic.TryGetValue("Hardware", out str) ||
                     dic.TryGetValue("cpu model", out str) ||
                     dic.TryGetValue("model name", out str))
-                    Processor = str;
+                    Processor = str?.TrimStart("vendor ");
 
-                if (dic.TryGetValue("Model", out str)) Product = str;
-                if (dic.TryGetValue("Serial", out str)) CpuID = str;
+                if (android.TryGetValue("Product", out str))
+                    Product = str;
+                else if (dic.TryGetValue("vendor_id", out str))
+                    Product = str;
+                else if (dic.TryGetValue("Model", out str))
+                    Product = str;
+
+                //if (android.TryGetValue("Device", out str))
+                //    CpuID = str;
+                if (dic.TryGetValue("Serial", out str))
+                    CpuID = str;
             }
 
             var mid = "/etc/machine-id";
             if (!File.Exists(mid)) mid = "/var/lib/dbus/machine-id";
-            if (TryRead(mid, out var value)) Guid = value;
+            if (TryRead(mid, out var value))
+                Guid = value;
+            //else if (android.TryGetValue("Serial", out str) && str != "unknown")
+            //    Guid = str;
+            //else if (android.TryGetValue("Id", out str))
+            //    Guid = str;
 
             var file = "/sys/class/dmi/id/product_uuid";
-            if (TryRead(file, out value)) UUID = value;
+            if (!File.Exists(file)) file = "/proc/serial_num";  // miui12支持/proc/serial_num
+            if (TryRead(file, out value))
+                UUID = value;
+            else
+                // 支持 Android
+                UUID = ReadAndroidSecure("android_id");
+
             file = "/sys/class/dmi/id/product_name";
             if (TryRead(file, out value)) Product = value;
 
@@ -443,7 +467,17 @@ namespace NewLife
             if (TryRead(sr, out value)) return value?.SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
 
             var uname = Execute("uname", "-sr")?.Trim();
-            if (!uname.IsNullOrEmpty()) return uname;
+            if (!uname.IsNullOrEmpty())
+            {
+                // 支持Android系统名
+                var ss = uname.Split('-');
+                foreach (var item in ss)
+                {
+                    if (!item.IsNullOrEmpty() && item.StartsWithIgnoreCase("Android")) return item;
+                }
+
+                return uname;
+            }
 
             return null;
         }
@@ -577,6 +611,34 @@ namespace NewLife
             }
 
             return dic2;
+        }
+
+        private static IDictionary<String, String> ReadAndroidInfo()
+        {
+            var dic = new Dictionary<String, String>();
+            if (!Runtime.Mono) return dic;
+
+            var type = "Android.OS.Build".GetTypeEx();
+            if (type == null) return dic;
+
+            foreach (var item in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            {
+                dic[item.Name] = item.GetValue(null) + "";
+            }
+
+            return dic;
+        }
+
+        private static String ReadAndroidSecure(String name)
+        {
+            var type = "Android.Provider.Settings".GetTypeEx()?.GetNestedType("Secure");
+            if (type == null) return null;
+
+            //var aid = type.GetValue("AndroidId");
+            var resolver = "Android.App.Application".GetTypeEx()?.GetValue("Context")?.GetValue("ContentResolver");
+            if (resolver == null) return null;
+
+            return type.Invoke("GetString", resolver, name) as String;
         }
         #endregion
 
