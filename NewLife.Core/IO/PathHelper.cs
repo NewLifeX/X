@@ -45,11 +45,13 @@ namespace System.IO
             }
 
             // 环境变量
-            if (dir.IsNullOrEmpty()) dir = Environment.GetEnvironmentVariable("BasePath");
+            if (dir.IsNullOrEmpty()) dir = NewLife.Runtime.GetEnvironmentVariable("BasePath");
 
             // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
             if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
             if (dir.IsNullOrEmpty()) dir = Environment.CurrentDirectory;
+
+            // Xamarin 在 Android 上无法使用应用所在目录写入各种文件，改用临时目录
             //if (dir.IsNullOrEmpty() || dir == "/")
             //{
             //    if (args != null && args.Length > 0) dir = Path.GetDirectoryName(args[0]);
@@ -71,21 +73,13 @@ namespace System.IO
             var sep2 = sep == '/' ? '\\' : '/';
             path = path.Replace(sep2, sep);
 
-            var dir = "";
-            switch (mode)
+            var dir = mode switch
             {
-                case 1:
-                    dir = AppDomain.CurrentDomain.BaseDirectory;
-                    break;
-                case 2:
-                    dir = BasePath;
-                    break;
-                case 3:
-                    dir = Environment.CurrentDirectory;
-                    break;
-                default:
-                    break;
-            }
+                1 => AppDomain.CurrentDomain.BaseDirectory ?? BasePath,
+                2 => BasePath,
+                3 => Environment.CurrentDirectory,
+                _ => "",
+            };
             if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
 
             // 处理网络路径

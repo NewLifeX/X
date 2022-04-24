@@ -1,9 +1,9 @@
-﻿using System;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
-using MobileApp.Services;
+﻿using MobileApp.Services;
 using MobileApp.Views;
+using NewLife;
 using NewLife.Log;
+using NewLife.Serialization;
+using Xamarin.Forms;
 
 namespace MobileApp
 {
@@ -12,10 +12,18 @@ namespace MobileApp
 
         public App()
         {
+#if DEBUG
+            XTrace.UseConsole();
+#else
+            XTrace.UseConsole(false, false);
+#endif
+
+            var js = MachineInfo.GetCurrent().ToJson(true);
+            XTrace.WriteLine(js);
+
             InitializeComponent();
 
             DependencyService.Register<MockDataStore>();
-            XTrace.UseConsole(false, false);
             MainPage = new MainPage();
         }
 
