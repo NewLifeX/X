@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
 using NewLife;
+using NewLife.Reflection;
 using NewLife.Serialization;
 using Xamarin.Essentials;
 
@@ -34,6 +36,9 @@ namespace MobileApp.Droid
                 dic[item.Name] = item.GetValue(device);
             }
             var js = dic.ToJson(true);
+
+            var asm = AssemblyX.Entry;
+            if (asm == null) asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
 
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);

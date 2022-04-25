@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Input;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace MobileApp.ViewModels
@@ -9,9 +9,9 @@ namespace MobileApp.ViewModels
     {
         public AboutViewModel()
         {
-            Title = "About";
+            Title = "关于";
 
-            OpenWebCommand = new Command(() => Device.OpenUri(new Uri("https://xamarin.com/platform")));
+            OpenWebCommand = new Command(() => Launcher.OpenAsync(new Uri("https://newlifex.com")));
         }
 
         public ICommand OpenWebCommand { get; }

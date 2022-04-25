@@ -34,9 +34,6 @@ namespace MobileApp.Views
                 Description = "This is an item description."
             };
 
-            item.Text = "设备信息";
-            item.Description = MachineInfo.GetCurrent().ToJson(true);
-
             viewModel = new ItemDetailViewModel(item);
             BindingContext = viewModel;
         }
