@@ -223,7 +223,8 @@ namespace NewLife.Reflection
 
         #region 静态属性
         /// <summary>入口程序集</summary>
-        public static AssemblyX Entry => Create(Assembly.GetEntryAssembly());
+        public static AssemblyX Entry { get; set; } = Create(Assembly.GetEntryAssembly());
+
         /// <summary>
         /// 加载过滤器，如果返回 false 表示跳过加载。
         /// </summary>

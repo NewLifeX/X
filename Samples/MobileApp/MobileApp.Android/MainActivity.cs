@@ -37,8 +37,9 @@ namespace MobileApp.Droid
             }
             var js = dic.ToJson(true);
 
-            var asm = AssemblyX.Entry;
-            if (asm == null) asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            // 设置入口程序集
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            if (asm != null) AssemblyX.Entry = AssemblyX.Create(asm);
 
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);

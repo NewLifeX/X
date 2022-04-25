@@ -30,7 +30,7 @@ namespace MobileApp.Services
             items[0].Description = MachineInfo.GetCurrent().ToJson(true);
 
             var asm = AssemblyX.Entry;
-            if (asm == null) asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
+            //if (asm == null) asm = AssemblyX.Create(Assembly.GetExecutingAssembly());
             items[1].Text = "版本信息";
             items[1].Description = new { asm.Name, asm.Version, asm.Compile }.ToJson(true);
         }
