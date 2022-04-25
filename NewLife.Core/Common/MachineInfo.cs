@@ -220,7 +220,7 @@ namespace NewLife
             if (!str.IsNullOrEmpty()) OSName = str;
 
             var device = ReadDeviceInfo();
-            //var js = device.ToJson(true);
+            var js = device.ToJson(true);
 
             if (device.TryGetValue("Platform", out str))
                 OSName = str;
@@ -243,7 +243,7 @@ namespace NewLife
                 else if (dic.TryGetValue("Model", out str))
                     Product = str;
 
-                if (device.TryGetValue("Board", out str) && !str.IsNullOrEmpty())
+                if (device.TryGetValue("Fingerprint", out str) && !str.IsNullOrEmpty())
                     CpuID = str;
                 if (dic.TryGetValue("Serial", out str))
                     CpuID = str;
@@ -365,28 +365,31 @@ namespace NewLife
                 //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
 
                 var file = "/proc/stat";
-                if (File.Exists(file))
+                if (!_excludes.Contains(nameof(CpuRate)) && File.Exists(file))
                 {
                     // CPU指标：user，nice, system, idle, iowait, irq, softirq
                     // cpu  57057 0 14420 1554816 0 443 0 0 0 0
-
-                    using var reader = new StreamReader(file);
-                    var line = reader.ReadLine();
-                    if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
+                    try
                     {
-                        var vs = line.TrimStart("cpu").Trim().Split(' ');
-                        var current = new SystemTime
+                        using var reader = new StreamReader(file);
+                        var line = reader.ReadLine();
+                        if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
                         {
-                            IdleTime = vs[3].ToLong(),
-                            TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
-                        };
+                            var vs = line.TrimStart("cpu").Trim().Split(' ');
+                            var current = new SystemTime
+                            {
+                                IdleTime = vs[3].ToLong(),
+                                TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
+                            };
 
-                        var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
-                        var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
-                        _systemTime = current;
+                            var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
+                            var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
+                            _systemTime = current;
 
-                        CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+                            CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+                        }
                     }
+                    catch { _excludes.Add(nameof(_excludes)); }
                 }
             }
 
