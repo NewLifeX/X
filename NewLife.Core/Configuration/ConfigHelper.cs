@@ -208,6 +208,9 @@ namespace NewLife.Configuration
                 pi.SetValue(model, list, null);
             }
 
+            // 映射前清空原有数据
+            list.Clear();
+
             // 逐个映射
             for (var i = 0; i < section.Childs.Count; i++)
             {
