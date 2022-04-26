@@ -31,6 +31,9 @@ namespace NewLife.Log
         /// <summary>超时时间。超过该时间时强制采样，毫秒</summary>
         Int32 Timeout { get; set; }
 
+        /// <summary>最大标签长度。超过该长度时将截断，默认1024字符</summary>
+        Int32 MaxTagLength { get; set; }
+
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
         String AttachParameter { get; set; }
         #endregion
@@ -86,6 +89,9 @@ namespace NewLife.Log
         /// <summary>超时时间。超过该时间时强制采样，默认15000毫秒</summary>
         public Int32 Timeout { get; set; } = 15000;
 
+        /// <summary>最大标签长度。超过该长度时将截断，默认1024字符</summary>
+        public Int32 MaxTagLength { get; set; } = 1024;
+
         /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
         public String AttachParameter { get; set; } = "traceparent";
 
@@ -118,7 +124,7 @@ namespace NewLife.Log
         {
             if (Interlocked.CompareExchange(ref _inited, 1, 0) == 0)
             {
-                if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 10_000, Period * 1000) { Async = true };
+                if (_timer == null) _timer = new TimerX(s => DoProcessSpans(), null, 5_000, Period * 1000) { Async = true };
             }
         }
 
@@ -191,23 +197,27 @@ namespace NewLife.Log
         public virtual ISpan NewSpan(String name, Object tag)
         {
             var span = BuildSpan(name).Start();
+
+            var len = MaxTagLength;
+            if (len <= 0) return span;
+
             if (tag is String str)
-                span.Tag = str.Cut(1024);
+                span.Tag = str.Cut(len);
             else if (tag is StringBuilder builder)
-                span.Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
+                span.Tag = builder.Length < len ? builder.ToString() : builder.ToString(0, len);
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
             {
                 if (tag is Packet pk)
                 {
                     if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
-                        span.Tag = pk.ToStr(null, 0, 1024);
+                        span.Tag = pk.ToStr(null, 0, len);
                     else
-                        span.Tag = pk.ToHex(1024 / 2);
+                        span.Tag = pk.ToHex(len / 2);
                 }
                 else if (tag is IMessage msg)
-                    span.Tag = msg.ToPacket().ToHex(1024 / 2);
+                    span.Tag = msg.ToPacket().ToHex(len / 2);
                 else
-                    span.Tag = tag.ToJson().Cut(1024);
+                    span.Tag = tag.ToJson().Cut(len);
             }
 
             return span;
