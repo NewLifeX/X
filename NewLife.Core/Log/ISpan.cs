@@ -214,14 +214,18 @@ namespace NewLife.Log
         public virtual void SetError(Exception ex, Object tag)
         {
             Error = ex?.GetMessage();
+
+            var len = Builder?.Tracer?.MaxTagLength ?? 0;
+            if (len <= 0) return;
+
             if (tag is String str)
-                Tag = str.Cut(1024);
+                Tag = str.Cut(len);
             else if (tag is StringBuilder builder)
-                Tag = builder.Length < 1024 ? builder.ToString() : builder.ToString(0, 1024);
+                Tag = builder.Length < len ? builder.ToString() : builder.ToString(0, len);
             else if (tag is Packet pk)
-                Tag = pk.ToHex(1024 / 2);
+                Tag = pk.ToHex(len / 2);
             else if (tag != null)
-                Tag = tag.ToJson().Cut(1024);
+                Tag = tag.ToJson().Cut(len);
         }
 
         /// <summary>已重载。</summary>
