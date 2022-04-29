@@ -55,7 +55,20 @@ namespace NewLife.Reflection
 
         private DateTime? _Compile;
         /// <summary>编译时间</summary>
-        public DateTime Compile => _Compile ??= GetCompileTime(Version);
+        public DateTime Compile
+        {
+            get
+            {
+                if (_Compile == null)
+                {
+                    var time = GetCompileTime(Version);
+                    if (time == time.Date && FileVersion.Contains("-beta")) time = GetCompileTime(FileVersion);
+
+                    _Compile = time;
+                }
+                return _Compile.Value;
+            }
+        }
 
         private String _Company;
         /// <summary>公司名称</summary>
@@ -682,8 +695,8 @@ namespace NewLife.Reflection
 
                         if (str.Length >= 4 + 1 + 4)
                         {
-                            s = str[^4].ToInt();
-                            if (s > 0) dt = dt.AddHours(s / 100).AddMinutes(s % 100);
+                            s = str[^4..].ToInt();
+                            if (s > 0) dt = dt.AddHours(s / 100).AddMinutes(s % 100).ToLocalTime();
                         }
                     }
                 }
