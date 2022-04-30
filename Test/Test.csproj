@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <OutputPath>..\..\Test\</OutputPath>
     <LangVersion>latest</LangVersion>
-    <Version>1.0.0.1130</Version>
-    <FileVersion>1.0.0.1130</FileVersion>
-    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <VersionPrefix>9.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -40,7 +42,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />
-  </Target>
 </Project>

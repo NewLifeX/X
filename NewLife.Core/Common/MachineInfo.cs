@@ -417,7 +417,11 @@ namespace NewLife
                         if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
                     }
                     else
+                    {
+                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
                         _excludes.Add(nameof(Temperature));
+                        Temperature = 0;
+                    }
                 }
 
                 if (!_excludes.Contains(nameof(Battery)))
@@ -428,7 +432,11 @@ namespace NewLife
                         if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
                     }
                     else
+                    {
+                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
                         _excludes.Add(nameof(Battery));
+                        Battery = 0;
+                    }
                 }
             }
 

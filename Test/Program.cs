@@ -8,6 +8,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
@@ -18,9 +19,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
-using NewLife.Serialization;
 using NewLife.Threading;
-using NewLife.Yun;
 
 namespace Test
 {
@@ -68,7 +67,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -87,23 +86,15 @@ namespace Test
             }
         }
 
-        static TimerX _timer;
-        static Int64 _baseTick;
         private static void Test1()
         {
-            var flag = true;
-            XTrace.WriteLine("flag={0}", flag);
-            XTrace.WriteLine("flag={0}", flag.ToString());
-            XTrace.WriteLine("flag={0:b}", flag);
-
-            var buf = "33334013".ToHex();
-            XTrace.WriteLine("uint={0}", buf.ToUInt32(0, true));
-            XTrace.WriteLine("uint={0}", buf.ToUInt32(0, false));
-
-            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf, 0));
-            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, false), 0));
-            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(false, true), 0));
-            XTrace.WriteLine("float={0}", BitConverter.ToSingle(buf.Swap(true, true), 0));
+            var mi = MachineInfo.GetCurrent();
+            for (var i = 0; i < 1000; i++)
+            {
+                XTrace.WriteLine("Temperature: {0:n2} Cpu: {1:p2}", mi.Temperature, mi.CpuRate);
+                Thread.Sleep(1000);
+                mi.Refresh();
+            }
         }
 
         private static void Test2()
@@ -339,7 +330,7 @@ namespace Test
 #endif
         }
 
-        class MyHttpHandler : IHttpHandler
+        private class MyHttpHandler : IHttpHandler
         {
             public void ProcessRequest(IHttpContext context)
             {
