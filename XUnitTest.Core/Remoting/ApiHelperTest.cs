@@ -359,7 +359,7 @@ namespace XUnitTest.Remoting
             var dic = await _Client.GetAsync<IDictionary<String, Object>>("api/info");
             Assert.NotNull(dic);
             Assert.True(dic.Count >= 10);
-            Assert.StartsWith("testhost", (dic["Server"] + ""));
+            Assert.StartsWith("testhost", (dic["Name"] + ""));
 
             var pk = await _Client.GetAsync<Packet>("api/info");
             Assert.NotNull(pk);
@@ -421,7 +421,7 @@ namespace XUnitTest.Remoting
             var dic = await _Client.InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, "api/info", null, r => r.Headers.Authorization = auth);
             Assert.NotNull(dic);
             Assert.True(dic.Count > 10);
-            Assert.StartsWith("testhost", (dic["Server"] + ""));
+            Assert.StartsWith("testhost", (dic["Name"] + ""));
             Assert.Equal("12345678", (dic["token"] + ""));
 
             var pk = await _Client.GetAsync<Packet>("api/info");

@@ -6,6 +6,7 @@ using System.Reflection;
 using NewLife;
 using NewLife.Data;
 using NewLife.IO;
+using NewLife.Reflection;
 using NewLife.Security;
 using Xunit;
 
@@ -50,7 +51,10 @@ namespace XUnitTest.IO
             for (var i = 0; i < pis.Length; i++)
             {
                 arr[i] = pis[i].GetValue(model, null);
-                if (pis[i].PropertyType == typeof(Boolean)) arr[i] = (Boolean)arr[i] ? "1" : "0";
+                if (pis[i].PropertyType == typeof(Boolean))
+                    arr[i] = (Boolean)arr[i] ? "1" : "0";
+                else if (pis[i].Name == "Code" && arr[i].ToString().Length > 9)
+                    arr[i] = "\t" + arr[i];
             }
             return arr;
         }
