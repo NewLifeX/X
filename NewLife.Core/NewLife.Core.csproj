@@ -25,7 +25,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>优化HTTP相关埋点；TimerX规避时间回拨</PackageReleaseNotes>
+    <PackageReleaseNotes>修正路径助手及机器信息对Android的支持；修正对称加密时密码块填充的错误；增加腾讯地图封装；修正最大安全数组大小导致的数据库恢复错误；优化CSV导出科学计数法的支持；HttpClient请求默认支持压缩</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
