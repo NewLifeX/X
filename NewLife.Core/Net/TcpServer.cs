@@ -301,8 +301,8 @@ namespace NewLife.Net
             //var session = EnableHttp ? new HttpSession(this, client) : new TcpSession(this, client);
             var session = new TcpSession(this, client)
             {
-                // 服务端不支持掉线重连
-                AutoReconnect = 0,
+                //// 服务端不支持掉线重连
+                //AutoReconnect = 0,
                 NoDelay = NoDelay,
                 Log = Log,
                 LogSend = LogSend,
