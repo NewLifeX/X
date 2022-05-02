@@ -32,28 +32,24 @@ namespace NewLife.Model
 
         /// <summary>实例化</summary>
         /// <param name="identity"></param>
-        public PluginAttribute(String identity) { Identity = identity; }
+        public PluginAttribute(String identity) => Identity = identity;
     }
 
     /// <summary>插件管理器</summary>
     public class PluginManager : DisposeBase, IServiceProvider
     {
         #region 属性
-        private String _Identity;
         /// <summary>宿主标识，用于供插件区分不同宿主</summary>
-        public String Identity { get { return _Identity; } set { _Identity = value; } }
+        public String Identity { get; set; }
 
-        private IServiceProvider _Provider;
         /// <summary>宿主服务提供者</summary>
-        public IServiceProvider Provider { get { return _Provider; } set { _Provider = value; } }
+        public IServiceProvider Provider { get; set; }
 
-        private List<IPlugin> _Plugins;
         /// <summary>插件集合</summary>
-        public List<IPlugin> Plugins { get { return _Plugins ??= new List<IPlugin>(); } }
+        public IPlugin[] Plugins { get; set; }
 
-        private ILog _Log = XTrace.Log;
         /// <summary>日志提供者</summary>
-        public ILog Log { get { return _Log; } set { _Log = value; } }
+        public ILog Log { get; set; } = XTrace.Log;
         #endregion
 
         #region 构造
@@ -80,8 +76,8 @@ namespace NewLife.Model
 
             if (disposing)
             {
-                _Plugins.TryDispose();
-                _Plugins = null;
+                Plugins.TryDispose();
+                Plugins = null;
             }
         }
         #endregion
@@ -96,20 +92,23 @@ namespace NewLife.Model
             {
                 if (item != null)
                 {
-                    list.Add(item.CreateInstance() as IPlugin);
+                    try
+                    {
+                        if (item.CreateInstance() is IPlugin plugin) list.Add(plugin);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log?.Debug(null, ex);
+                    }
                 }
             }
-            _Plugins = list;
+            Plugins = list.ToArray();
         }
 
-        IList<Type> pluginTypes;
         IEnumerable<Type> LoadPlugins()
         {
-            if (pluginTypes != null) return pluginTypes;
-
-            var list = new List<Type>();
             // 此时是加载所有插件，无法识别哪些是需要的
-            foreach (var item in typeof(IPlugin).GetAllSubclasses())
+            foreach (var item in AssemblyX.FindAllPlugins(typeof(IPlugin), true))
             {
                 if (item != null)
                 {
@@ -117,32 +116,31 @@ namespace NewLife.Model
                     var atts = item.GetCustomAttributes<PluginAttribute>(true);
                     if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
 
-                    list.Add(item);
+                    yield return item;
                 }
             }
-            return pluginTypes = list;
         }
 
         /// <summary>开始初始化。初始化之后，不属于当前宿主的插件将会被过滤掉</summary>
         public void Init()
         {
             var ps = Plugins;
-            if (ps == null || ps.Count <= 0) return;
+            if (ps == null || ps.Length <= 0) return;
 
-            for (var i = ps.Count - 1; i >= 0; i--)
+            var list = new List<IPlugin>();
+            foreach (var item in ps)
             {
                 try
                 {
-                    if (!ps[i].Init(Identity, Provider)) ps.RemoveAt(i);
+                    if (item.Init(Identity, Provider)) list.Add(item);
                 }
                 catch (Exception ex)
                 {
-                    //XTrace.WriteExceptionWhenDebug(ex);
-                    Log.Debug(null, ex);
-
-                    ps.RemoveAt(i);
+                    Log?.Debug(null, ex);
                 }
             }
+
+            Plugins = list.ToArray();
         }
         #endregion
 
