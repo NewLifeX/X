@@ -88,12 +88,19 @@ namespace Test
 
         private static void Test1()
         {
-            var mi = MachineInfo.GetCurrent();
-            for (var i = 0; i < 1000; i++)
+            var uri = new NetUri("tcp://127.0.0.1:666");
+            var client = uri.CreateRemote();
+            client.Timeout = 15_000;
+            client.Log = XTrace.Log;
+            client.LogSend = true;
+            client.LogReceive = true;
+            if (client is TcpSession tcp) tcp.DisconnectWhenEmptyData = false;
+
+            for (var i = 0; i < 100; i++)
             {
-                XTrace.WriteLine("Temperature: {0:n2} Cpu: {1:p2}", mi.Temperature, mi.CpuRate);
+                client.Send($"Hello {i + 1}".GetBytes());
+
                 Thread.Sleep(1000);
-                mi.Refresh();
             }
         }
 

@@ -27,8 +27,8 @@ namespace NewLife.Net
         /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
         ISocketServer ISocketSession.Server => _Server;
 
-        /// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
-        public Int32 AutoReconnect { get; set; } = 3;
+        ///// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
+        //public Int32 AutoReconnect { get; set; } = 3;
 
         /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
         public Boolean NoDelay { get; set; }
@@ -195,7 +195,7 @@ namespace NewLife.Net
                 throw;
             }
 
-            _Reconnect = 0;
+            //_Reconnect = 0;
 
             return true;
         }
@@ -311,8 +311,8 @@ namespace NewLife.Net
                     // 发送异常可能是连接出了问题，需要关闭
                     Close("发送出错");
 
-                    // 异步重连
-                    ThreadPoolX.QueueUserWorkItem(Reconnect);
+                    //// 异步重连
+                    //ThreadPoolX.QueueUserWorkItem(Reconnect);
 
                     //if (ThrowException) throw;
                 }
@@ -415,26 +415,26 @@ namespace NewLife.Net
         #endregion
 
         #region 自动重连
-        /// <summary>重连次数</summary>
-        private Int32 _Reconnect;
-        void Reconnect()
-        {
-            if (Disposed) return;
-            // 如果重连次数达到最大重连次数，则退出
-            if (Interlocked.Increment(ref _Reconnect) > AutoReconnect) return;
+        ///// <summary>重连次数</summary>
+        //private Int32 _Reconnect;
+        //void Reconnect()
+        //{
+        //    if (Disposed) return;
+        //    // 如果重连次数达到最大重连次数，则退出
+        //    if (Interlocked.Increment(ref _Reconnect) > AutoReconnect) return;
 
-            WriteLog("Reconnect {0}", this);
+        //    WriteLog("Reconnect {0}", this);
 
-            using var span = Tracer?.NewSpan($"net:{Name}:Reconnect", _Reconnect + "");
-            try
-            {
-                Open();
-            }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-            }
-        }
+        //    using var span = Tracer?.NewSpan($"net:{Name}:Reconnect", _Reconnect + "");
+        //    try
+        //    {
+        //        Open();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        span?.SetError(ex, null);
+        //    }
+        //}
         #endregion
 
         #region 辅助
