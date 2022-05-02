@@ -785,28 +785,7 @@ namespace NewLife.Reflection
             if (asm == null) throw new ArgumentNullException(nameof(asm));
             if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-            Type[] ts;
-            try
-            {
-                ts = asm.GetTypes();
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug)
-                {
-                    XTrace.WriteLine("asm.GetTypes({1}) 出错：{0}", asm.Location, baseType.FullName);
-                    XTrace.WriteException(ex);
-                }
-                yield break;
-            }
-
-            foreach (var item in ts)
-            {
-                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-                if (baseType != item && baseType.IsAssignableFrom(item))
-                    yield return item;
-            }
-            //return AssemblyX.Create(asm).FindPlugins(baseType);
+            return AssemblyX.Create(asm).FindPlugins(baseType);
         }
 
         /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>
