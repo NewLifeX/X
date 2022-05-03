@@ -399,6 +399,15 @@ public class AssemblyX
                 var ts = item.FindPlugins(baseType);
                 if (ts != null && ts.Count > 0)
                 {
+                    // 真实加载
+                    if (XTrace.Debug)
+                    {
+                        // 如果是本目录的程序集，去掉目录前缀
+                        var file = item.Asm.Location;
+                        var root = ".".GetFullPath();
+                        if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                        XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
+                    }
                     var asm2 = Assembly.LoadFrom(item.Asm.Location);
                     ts = Create(asm2).FindPlugins(baseType);
 
