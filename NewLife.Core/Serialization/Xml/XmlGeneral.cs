@@ -38,7 +38,7 @@ namespace NewLife.Serialization
                 case TypeCode.Byte:
                 case TypeCode.SByte:
                 case TypeCode.Char:
-                    writer.WriteValue((Char)value);
+                    writer.WriteValue(Convert.ToChar(value));
                     return true;
                 case TypeCode.DBNull:
                 case TypeCode.Empty:

@@ -324,10 +324,17 @@ public class AssemblyX
         if (_plugins.TryGetValue(baseType, out var list)) return list;
 
         list = new List<Type>();
-        foreach (var item in Asm.GetTypes())
+        try
         {
-            if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-            if (item != baseType && item.As(baseType)) list.Add(item);
+            foreach (var item in Asm.GetTypes())
+            {
+                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
+                if (item != baseType && item.As(baseType)) list.Add(item);
+            }
+        }
+        catch (Exception ex)
+        {
+            XTrace.WriteException(ex);
         }
 
         _plugins.TryAdd(baseType, list);
