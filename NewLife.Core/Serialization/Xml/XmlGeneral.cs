@@ -26,7 +26,11 @@ namespace NewLife.Serialization
             // 枚举 写入字符串
             if (type.IsEnum)
             {
-                writer.WriteValue(value + "");
+                if (Host is Xml xml && xml.EnumString)
+                    writer.WriteValue(value + "");
+                else
+                    writer.WriteValue(value.ToLong());
+
                 return true;
             }
 

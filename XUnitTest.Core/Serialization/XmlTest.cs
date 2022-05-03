@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using NewLife;
+using NewLife.IoT.Drivers;
+using NewLife.IoT.Protocols;
 using NewLife.Log;
 using NewLife.Xml;
 using Xunit;
@@ -68,6 +71,56 @@ namespace XUnitTest.Serialization
             var cfgs = xml.ToXmlEntity<FDLibBaseCfg[]>();
             Assert.NotNull(cfgs);
             Assert.Equal(2, cfgs.Length);
+        }
+
+        [Fact]
+        public void EnumTest()
+        {
+            var pm = new ModbusTcpParameter
+            {
+                Server = "127.0.0.1:502",
+
+                Host = 1,
+                ReadCode = FunctionCodes.ReadRegister,
+                WriteCode = FunctionCodes.WriteRegister,
+            };
+
+            var xml = new NewLife.Serialization.Xml
+            {
+                //Encoding = encoding,
+                UseAttribute = false,
+                UseComment = true
+            };
+            xml.Write(pm);
+
+            var str = xml.GetString();
+            Assert.Equal(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ModbusTcpParameter>
+  <Host>1</Host>
+  <ReadCode>ReadRegister</ReadCode>
+  <WriteCode>WriteRegister</WriteCode>
+  <Server>127.0.0.1:502</Server>
+  <ProtocolId>0</ProtocolId>
+</ModbusTcpParameter>", str);
+
+            var xml2 = new NewLife.Serialization.Xml
+            {
+                //Encoding = encoding,
+                UseAttribute = false,
+                UseComment = true,
+                EnumString = false,
+            };
+            xml2.Write(pm);
+
+            var str2 = xml2.GetString();
+            Assert.Equal(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<ModbusTcpParameter>
+  <Host>1</Host>
+  <ReadCode>3</ReadCode>
+  <WriteCode>6</WriteCode>
+  <Server>127.0.0.1:502</Server>
+  <ProtocolId>0</ProtocolId>
+</ModbusTcpParameter>", str2);
         }
     }
 }
