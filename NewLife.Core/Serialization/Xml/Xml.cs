@@ -24,6 +24,9 @@ namespace NewLife.Serialization
         /// <summary>使用注释</summary>
         public Boolean UseComment { get; set; }
 
+        /// <summary>枚举使用字符串。false时使用数字，默认true</summary>
+        public Boolean EnumString { get; set; } = true;
+
         /// <summary>当前名称</summary>
         public String CurrentName { get; set; }
         #endregion
