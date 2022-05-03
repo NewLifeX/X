@@ -60,11 +60,11 @@ namespace NewLife.Serialization
                 case TypeCode.UInt16:
                 case TypeCode.Int32:
                 case TypeCode.UInt32:
-                    writer.WriteValue((Int32)value);
+                    writer.WriteValue(Convert.ToInt32(value));
                     return true;
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    writer.WriteValue((Int64)value);
+                    writer.WriteValue(Convert.ToInt64(value));
                     return true;
                 case TypeCode.String:
                     writer.WriteValue(value + "");
