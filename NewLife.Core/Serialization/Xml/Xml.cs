@@ -203,6 +203,7 @@ namespace NewLife.Serialization
             {
                 var set = new XmlWriterSettings
                 {
+                    OmitXmlDeclaration = true,
                     //set.Encoding = Encoding.TrimPreamble();
                     Encoding = Encoding,
                     Indent = true

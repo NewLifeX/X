@@ -345,7 +345,7 @@ namespace XUnitTest.Data
             var table = GetTable();
 
             var dt = new DbTable();
-            var rs = dt.FromDataTable(table);
+            var rs = dt.Read(table);
 
             Assert.Equal(4, rs);
             Assert.Equal(4, dt.Rows.Count);
@@ -371,9 +371,9 @@ namespace XUnitTest.Data
             var sch = table.DataSet.GetXmlSchema();
 
             var dt = new DbTable();
-            var rs = dt.FromDataTable(table);
+            var rs = dt.Read(table);
 
-            var dt2 = dt.ToDataTable(new DataTable("Table"));
+            var dt2 = dt.Write(new DataTable("Table"));
             var ds = new DataSet();
             ds.Tables.Add(dt2);
             var xml2 = ds.GetXml();
@@ -381,6 +381,109 @@ namespace XUnitTest.Data
 
             Assert.Equal(xml, xml2);
             Assert.Equal(sch, sch2);
+        }
+
+        [Fact]
+        public void GetXml()
+        {
+            var table = GetTable();
+
+            var dt = new DbTable();
+            var rs = dt.Read(table);
+
+            var xml = dt.GetXml();
+
+            var xml2 = @"<DbTable>
+  <Table>
+    <ID>1</ID>
+    <Name>管理员</Name>
+    <Enable>true</Enable>
+    <IsSystem>true</IsSystem>
+    <Permission></Permission>
+    <Ex1>0</Ex1>
+    <Ex2>0</Ex2>
+    <Ex3>0</Ex3>
+    <Ex4></Ex4>
+    <Ex5></Ex5>
+    <Ex6></Ex6>
+    <CreateUser></CreateUser>
+    <CreateUserID>0</CreateUserID>
+    <CreateIP></CreateIP>
+    <CreateTime>2022-04-24T00:04:27</CreateTime>
+    <UpdateUser></UpdateUser>
+    <UpdateUserID>0</UpdateUserID>
+    <UpdateIP></UpdateIP>
+    <UpdateTime>2022-04-24T00:04:27</UpdateTime>
+    <Remark>默认拥有全部最高权限，由系统工程师使用，安装配置整个系统</Remark>
+  </Table>
+  <Table>
+    <ID>2</ID>
+    <Name>高级用户</Name>
+    <Enable>true</Enable>
+    <IsSystem>false</IsSystem>
+    <Permission></Permission>
+    <Ex1>0</Ex1>
+    <Ex2>0</Ex2>
+    <Ex3>0</Ex3>
+    <Ex4></Ex4>
+    <Ex5></Ex5>
+    <Ex6></Ex6>
+    <CreateUser></CreateUser>
+    <CreateUserID>0</CreateUserID>
+    <CreateIP></CreateIP>
+    <CreateTime>2022-04-24T00:04:27</CreateTime>
+    <UpdateUser></UpdateUser>
+    <UpdateUserID>0</UpdateUserID>
+    <UpdateIP></UpdateIP>
+    <UpdateTime>2022-04-24T00:04:27</UpdateTime>
+    <Remark>业务管理人员，可以管理业务模块，可以分配授权用户等级</Remark>
+  </Table>
+  <Table>
+    <ID>3</ID>
+    <Name>普通用户</Name>
+    <Enable>true</Enable>
+    <IsSystem>false</IsSystem>
+    <Permission></Permission>
+    <Ex1>0</Ex1>
+    <Ex2>0</Ex2>
+    <Ex3>0</Ex3>
+    <Ex4></Ex4>
+    <Ex5></Ex5>
+    <Ex6></Ex6>
+    <CreateUser></CreateUser>
+    <CreateUserID>0</CreateUserID>
+    <CreateIP></CreateIP>
+    <CreateTime>2022-04-24T00:04:27</CreateTime>
+    <UpdateUser></UpdateUser>
+    <UpdateUserID>0</UpdateUserID>
+    <UpdateIP></UpdateIP>
+    <UpdateTime>2022-04-24T00:04:27</UpdateTime>
+    <Remark>普通业务人员，可以使用系统常规业务模块功能</Remark>
+  </Table>
+  <Table>
+    <ID>4</ID>
+    <Name>游客</Name>
+    <Enable>true</Enable>
+    <IsSystem>false</IsSystem>
+    <Permission></Permission>
+    <Ex1>0</Ex1>
+    <Ex2>0</Ex2>
+    <Ex3>0</Ex3>
+    <Ex4></Ex4>
+    <Ex5></Ex5>
+    <Ex6></Ex6>
+    <CreateUser></CreateUser>
+    <CreateUserID>0</CreateUserID>
+    <CreateIP></CreateIP>
+    <CreateTime>2022-04-24T00:04:27</CreateTime>
+    <UpdateUser></UpdateUser>
+    <UpdateUserID>0</UpdateUserID>
+    <UpdateIP></UpdateIP>
+    <UpdateTime>2022-04-24T00:04:27</UpdateTime>
+    <Remark>新注册默认属于游客</Remark>
+  </Table>
+</DbTable>";
+            Assert.Equal(xml2, xml);
         }
     }
 }

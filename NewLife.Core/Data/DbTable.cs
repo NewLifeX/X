@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using NewLife.IO;
 using NewLife.Reflection;
@@ -148,7 +149,7 @@ namespace NewLife.Data
         #region DataTable互转
         /// <summary>从DataTable读取数据</summary>
         /// <param name="dataTable">数据表</param>
-        public Int32 FromDataTable(DataTable dataTable)
+        public Int32 Read(DataTable dataTable)
         {
             if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
 
@@ -174,12 +175,12 @@ namespace NewLife.Data
 
         /// <summary>转换为DataTable</summary>
         /// <returns></returns>
-        public DataTable ToDataTable() => ToDataTable(new DataTable());
+        public DataTable ToDataTable() => Write(new DataTable());
 
         /// <summary>转换为DataTable</summary>
         /// <param name="dataTable">数据表</param>
         /// <returns></returns>
-        public DataTable ToDataTable(DataTable dataTable)
+        public DataTable Write(DataTable dataTable)
         {
             if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
 
@@ -447,6 +448,76 @@ namespace NewLife.Data
             }
 
             return list;
+        }
+        #endregion
+
+        #region Xml序列化
+        /// <summary>转Xml字符串</summary>
+        /// <returns></returns>
+        public String GetXml()
+        {
+            //var doc = new XmlDocument();
+            //var root = doc.CreateElement("DbTable");
+            //doc.AppendChild(root);
+
+            //foreach (var row in Rows)
+            //{
+            //    var dr = doc.CreateElement("Table");
+            //    for (var i = 0; i < Columns.Length; i++)
+            //    {
+            //        var elm = doc.CreateElement(Columns[i]);
+            //        elm.InnerText = row[i] + "";
+            //        dr.AppendChild(elm);
+            //    }
+            //    root.AppendChild(dr);
+            //}
+
+            //return doc.OuterXml;
+
+            var ms = new MemoryStream();
+            WriteXml(ms).Wait();
+
+            return ms.ToArray().ToStr();
+        }
+
+        /// <summary>以Xml格式写入数据流中</summary>
+        /// <param name="stream"></param>
+        public async Task WriteXml(Stream stream)
+        {
+            var set = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Indent = true,
+                Async = true,
+            };
+            using var writer = XmlWriter.Create(stream, set);
+
+            await writer.WriteStartDocumentAsync();
+            await writer.WriteStartElementAsync(null, "DbTable", null);
+
+            foreach (var row in Rows)
+            {
+                await writer.WriteStartElementAsync(null, "Table", null);
+                for (var i = 0; i < Columns.Length; i++)
+                {
+                    //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
+                    await writer.WriteStartElementAsync(null, Columns[i], null);
+
+                    //writer.WriteValue(row[i]);
+                    if (Types[i] == typeof(Boolean))
+                        writer.WriteValue((Boolean)row[i]);
+                    else if (Types[i] == typeof(DateTime))
+                        writer.WriteValue((DateTime)row[i]);
+                    else
+                        await writer.WriteStringAsync(row[i] + "");
+
+                    await writer.WriteEndElementAsync();
+                }
+                await writer.WriteEndElementAsync();
+            }
+
+            await writer.WriteEndElementAsync();
+            await writer.WriteEndDocumentAsync();
         }
         #endregion
 
