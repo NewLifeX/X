@@ -145,6 +145,66 @@ namespace NewLife.Data
         }
         #endregion
 
+        #region DataTable互转
+        /// <summary>从DataTable读取数据</summary>
+        /// <param name="dataTable">数据表</param>
+        public Int32 FromDataTable(DataTable dataTable)
+        {
+            if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
+
+            var cs = new List<String>();
+            var ts = new List<Type>();
+            foreach (DataColumn dc in dataTable.Columns)
+            {
+                cs.Add(dc.ColumnName);
+                ts.Add(dc.DataType);
+            }
+            Columns = cs.ToArray();
+            Types = ts.ToArray();
+
+            var rs = new List<Object[]>();
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                rs.Add(dr.ItemArray);
+            }
+            Rows = rs;
+
+            return rs.Count;
+        }
+
+        /// <summary>转换为DataTable</summary>
+        /// <returns></returns>
+        public DataTable ToDataTable() => ToDataTable(new DataTable());
+
+        /// <summary>转换为DataTable</summary>
+        /// <param name="dataTable">数据表</param>
+        /// <returns></returns>
+        public DataTable ToDataTable(DataTable dataTable)
+        {
+            if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
+
+            var cs = Columns;
+            var ts = Types;
+            for (var i = 0; i < cs.Length; i++)
+            {
+                var dc = new DataColumn(cs[i], ts[i]);
+
+                dataTable.Columns.Add(dc);
+            }
+
+            var rs = Rows;
+            for (var i = 0; i < rs.Count; i++)
+            {
+                var dr = dataTable.NewRow();
+                dr.ItemArray = rs[i];
+
+                dataTable.Rows.Add(dr);
+            }
+
+            return dataTable;
+        }
+        #endregion
+
         #region 二进制读取
         private const Byte _Ver = 2;
 
@@ -577,6 +637,11 @@ namespace NewLife.Data
 
             return dt;
         }
+
+        /// <summary>获取数据行</summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public DbRow GetRow(Int32 index) => new(this, index);
         #endregion
 
         #region 枚举
