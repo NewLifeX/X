@@ -39,26 +39,26 @@ namespace NewLife
         /// <summary>处理器型号</summary>
         public String Processor { get; set; }
 
-        /// <summary>处理器序列号。PC处理器序列号绝大部分重复，实际存储处理器的其它信息</summary>
-        public String CpuID { get; set; }
+        ///// <summary>处理器序列号。PC处理器序列号绝大部分重复，实际存储处理器的其它信息</summary>
+        //public String CpuID { get; set; }
 
         /// <summary>硬件唯一标识。取主板编码，部分品牌存在重复</summary>
         public String UUID { get; set; }
 
-        /// <summary>系统标识。操作系统重装后更新，Linux系统的machine_id，Android的android_id，Ghost系统存在重复</summary>
+        /// <summary>软件唯一标识。系统标识，操作系统重装后更新，Linux系统的machine_id，Android的android_id，Ghost系统存在重复</summary>
         public String Guid { get; set; }
 
         /// <summary>磁盘序列号</summary>
         public String DiskID { get; set; }
 
-        /// <summary>内存总量</summary>
+        /// <summary>内存总量。单位Byte</summary>
         public UInt64 Memory { get; set; }
 
-        /// <summary>可用内存</summary>
-        public UInt64 AvailableMemory { get; private set; }
+        /// <summary>可用内存。单位Byte</summary>
+        public UInt64 AvailableMemory { get; set; }
 
         /// <summary>CPU占用率</summary>
-        public Single CpuRate { get; private set; }
+        public Single CpuRate { get; set; }
 
         /// <summary>网络上行速度。字节每秒，初始化后首次读取为0</summary>
         public UInt64 UplinkSpeed { get; set; }
@@ -66,10 +66,10 @@ namespace NewLife
         /// <summary>网络下行速度。字节每秒，初始化后首次读取为0</summary>
         public UInt64 DownlinkSpeed { get; set; }
 
-        /// <summary>温度</summary>
+        /// <summary>温度。单位度</summary>
         public Double Temperature { get; set; }
 
-        /// <summary>电池剩余</summary>
+        /// <summary>电池剩余。小于1的小数，常用百分比表示</summary>
         public Double Battery { get; set; }
         #endregion
 
@@ -205,13 +205,14 @@ namespace NewLife
                 OSVersion = Environment.OSVersion.Version.ToString();
 
             Processor = GetInfo("Win32_Processor", "Name");
-            CpuID = GetInfo("Win32_Processor", "ProcessorId");
+            //CpuID = GetInfo("Win32_Processor", "ProcessorId");
             var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
             DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
             // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
+            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF", "00000000-0000-0000-0000-000000000000")) 
+                UUID = uuid;
 
             //// 可能因WMI导致读取UUID失败
             //if (UUID.IsNullOrEmpty())
@@ -229,7 +230,6 @@ namespace NewLife
             if (!str.IsNullOrEmpty()) OSName = str;
 
             var device = ReadDeviceInfo();
-            var js = device.ToJson(true);
 
             if (device.TryGetValue("Platform", out str))
                 OSName = str;
@@ -252,10 +252,10 @@ namespace NewLife
                 else if (dic.TryGetValue("Model", out str))
                     Product = str;
 
-                if (device.TryGetValue("Fingerprint", out str) && !str.IsNullOrEmpty())
-                    CpuID = str;
-                if (dic.TryGetValue("Serial", out str))
-                    CpuID = str;
+                //if (device.TryGetValue("Fingerprint", out str) && !str.IsNullOrEmpty())
+                //    CpuID = str;
+                //if (dic.TryGetValue("Serial", out str))
+                //    CpuID = str;
             }
 
             var mid = "/etc/machine-id";
@@ -267,12 +267,14 @@ namespace NewLife
             //else if (android.TryGetValue("Id", out str))
             //    Guid = str;
 
+            var uuid = "";
             var file = "/sys/class/dmi/id/product_uuid";
             if (!File.Exists(file)) file = "/proc/serial_num";  // miui12支持/proc/serial_num
             if (TryRead(file, out value))
-                UUID = value;
+                uuid = value;
             else if (device.TryGetValue("Serial", out str) && str != "unknown")
-                UUID = str;
+                uuid = str;
+            if (uuid.IsNullOrEmpty()) UUID = uuid;
 
             file = "/sys/class/dmi/id/product_name";
             if (TryRead(file, out value)) Product = value;
@@ -281,18 +283,21 @@ namespace NewLife
             if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
             if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
 
-            var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
-            if (dmi != null)
-            {
-                if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-                if (dmi.TryGetValue("UUID", out str)) UUID = str;
-                if (dmi.TryGetValue("Product Name", out str)) Product = str;
-                //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
-            }
-
             // 从release文件读取产品
             var prd = GetProductByRelease();
             if (!prd.IsNullOrEmpty()) Product = prd;
+
+            if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
+            {
+                var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
+                if (dmi != null)
+                {
+                    //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+                    if (dmi.TryGetValue("UUID", out str)) UUID = str;
+                    if (dmi.TryGetValue("Product Name", out str)) Product = str;
+                    //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
+                }
+            }
         }
 
         private readonly ICollection<String> _excludes = new List<String>();
