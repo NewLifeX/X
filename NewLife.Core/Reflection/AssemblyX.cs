@@ -363,8 +363,8 @@ public class AssemblyX
             signs = item.Asm.GetName().GetPublicKey();
             if (hasNotSign && signs != null && signs.Length > 0) continue;
 
-            // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-            if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+            //// 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+            //if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
             // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
             if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
@@ -383,8 +383,8 @@ public class AssemblyX
         {
             foreach (var item in ReflectionOnlyGetAssemblies())
             {
-                // 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
-                if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
+                //// 如果excludeGlobalTypes为true，则指检查来自非GAC引用的程序集
+                //if (excludeGlobalTypes && item.Asm.GlobalAssemblyCache) continue;
 
                 // 不搜索系统程序集，不搜索未引用基类所在程序集的程序集，优化性能
                 if (item.IsSystemAssembly || !IsReferencedFrom(item.Asm, baseAssemblyName)) continue;
