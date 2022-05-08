@@ -8,11 +8,16 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+#if __WIN__
+using System.Management;
+using Microsoft.VisualBasic.Devices;
+#endif
 
 namespace NewLife
 {
@@ -176,6 +181,57 @@ namespace NewLife
 #endif
         }
 
+#if __WIN__
+        private void LoadWindowsInfo()
+        {
+            var machine_guid = "";
+
+            var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
+            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            if (machine_guid.IsNullOrEmpty())
+            {
+                reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            }
+
+            var ci = new ComputerInfo();
+            try
+            {
+                Memory = ci.TotalPhysicalMemory;
+
+                // 系统名取WMI可能出错
+                OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
+                OSVersion = ci.OSVersion;
+            }
+            catch
+            {
+                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                if (reg2 != null)
+                {
+                    OSName = reg2.GetValue("ProductName") + "";
+                    OSVersion = reg2.GetValue("ReleaseId") + "";
+                }
+            }
+
+            Processor = GetInfo("Win32_Processor", "Name");
+            CpuID = GetInfo("Win32_Processor", "ProcessorId");
+            var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
+            Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+            DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
+
+            // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
+
+            //// 可能因WMI导致读取UUID失败
+            //if (UUID.IsNullOrEmpty())
+            //{
+            //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
+            //}
+
+            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+        }
+#else
         private void LoadWindowsInfo()
         {
             var str = "";
@@ -213,6 +269,7 @@ namespace NewLife
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
         }
+#endif
 
         private void LoadLinuxInfo()
         {
@@ -303,119 +360,52 @@ namespace NewLife
         public void Refresh()
         {
             if (Runtime.Windows)
-            {
-                MEMORYSTATUSEX ms = default;
-                ms.Init();
-                if (GlobalMemoryStatusEx(ref ms))
-                {
-                    Memory = ms.ullTotalPhys;
-                    AvailableMemory = ms.ullAvailPhys;
-                }
-            }
+                RefreshWindows();
             // 特别识别Linux发行版
             else if (Runtime.Linux)
+                RefreshLinux();
+
+            RefreshSpeed();
+        }
+
+        private void RefreshWindows()
+        {
+            MEMORYSTATUSEX ms = default;
+            ms.Init();
+            if (GlobalMemoryStatusEx(ref ms))
             {
-                var dic = ReadInfo("/proc/meminfo");
-                if (dic != null)
-                {
-                    if (dic.TryGetValue("MemTotal", out var str))
-                        Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-
-                    if (dic.TryGetValue("MemAvailable", out str))
-                        AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-                    else if (dic.TryGetValue("MemFree", out str))
-                        AvailableMemory = (UInt64)(str.TrimEnd(" kB").ToInt() + dic["Buffers"].TrimEnd(" kB").ToInt() + dic["Cached"].TrimEnd(" kB").ToInt()) * 1024;
-                }
-
-                // respberrypi + fedora
-                if (TryRead("/sys/class/thermal/thermal_zone0/temp", out var value) ||
-                    TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
-                    TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
-                    TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
-                    TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
-                    Temperature = value.ToDouble() / 1000;
-                // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
-                else if (TryRead("/sys/class/hwmon/hwmon0/device/temp_value", out value))
-                    Temperature = value.Substring(null, ":").ToDouble();
-
-                // 电池剩余
-                if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
-                    TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
-                {
-                    Battery = energy_now.ToDouble() / energy_full.ToDouble();
-                }
-                else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
-                {
-                    Battery = capacity.ToDouble() / 100.0;
-                }
-                else if (Runtime.Mono)
-                {
-                    var battery = ReadDeviceBattery();
-                    if (battery.TryGetValue("ChargeLevel", out var obj)) Battery = obj.ToDouble();
-                }
-
-                //var upt = Execute("uptime");
-                //if (!upt.IsNullOrEmpty())
-                //{
-                //    str = upt.Substring("load average:");
-                //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-                //}
-
-                //file = "/proc/loadavg";
-                //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
-
-                var file = "/proc/stat";
-                if (!_excludes.Contains(nameof(CpuRate)) && File.Exists(file))
-                {
-                    // CPU指标：user，nice, system, idle, iowait, irq, softirq
-                    // cpu  57057 0 14420 1554816 0 443 0 0 0 0
-                    try
-                    {
-                        using var reader = new StreamReader(file);
-                        var line = reader.ReadLine();
-                        if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
-                        {
-                            var vs = line.TrimStart("cpu").Trim().Split(' ');
-                            var current = new SystemTime
-                            {
-                                IdleTime = vs[3].ToLong(),
-                                TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
-                            };
-
-                            var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
-                            var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
-                            _systemTime = current;
-
-                            CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
-                        }
-                    }
-                    catch { _excludes.Add(nameof(_excludes)); }
-                }
+                Memory = ms.ullTotalPhys;
+                AvailableMemory = ms.ullAvailPhys;
             }
 
-            if (Runtime.Windows)
+            GetSystemTimes(out var idleTime, out var kernelTime, out var userTime);
+
+            var current = new SystemTime
             {
-                GetSystemTimes(out var idleTime, out var kernelTime, out var userTime);
+                IdleTime = idleTime.ToLong(),
+                TotalTime = kernelTime.ToLong() + userTime.ToLong(),
+            };
 
-                var current = new SystemTime
+            var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
+            var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
+            _systemTime = current;
+
+            CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+
+#if __WIN__
+            if (!_excludes.Contains(nameof(Temperature)))
+            {
+                // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+                var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+                if (!str.IsNullOrEmpty())
                 {
-                    IdleTime = idleTime.ToLong(),
-                    TotalTime = kernelTime.ToLong() + userTime.ToLong(),
-                };
-
-                var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
-                var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
-                _systemTime = current;
-
-                CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
-
-                if (!_excludes.Contains(nameof(Temperature)))
+                    Temperature = str.SplitAsInt().Average();
+                }
+                else
                 {
-                    var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-                    if (temp != null && temp.Count > 0)
-                    {
-                        if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-                    }
+                    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+                    if (!str.IsNullOrEmpty())
+                        Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
                     else
                     {
                         if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
@@ -423,24 +413,132 @@ namespace NewLife
                         Temperature = 0;
                     }
                 }
+            }
 
-                if (!_excludes.Contains(nameof(Battery)))
+            if (!_excludes.Contains(nameof(Battery)))
+            {
+                // 电池剩余
+                var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+                if (!str.IsNullOrEmpty())
+                    Battery = str.SplitAsInt().Average() / 100.0;
+                else
                 {
-                    var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-                    if (battery != null && battery.Count > 0)
-                    {
-                        if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
-                    }
-                    else
-                    {
-                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
-                        _excludes.Add(nameof(Battery));
-                        Battery = 0;
-                    }
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                    _excludes.Add(nameof(Battery));
+                    Battery = 0;
+                }
+            }
+#else
+            if (!_excludes.Contains(nameof(Temperature)))
+            {
+                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                if (temp != null && temp.Count > 0)
+                {
+                    if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                }
+                else
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                    _excludes.Add(nameof(Temperature));
+                    Temperature = 0;
                 }
             }
 
-            RefreshSpeed();
+            if (!_excludes.Contains(nameof(Battery)))
+            {
+                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+                if (battery != null && battery.Count > 0)
+                {
+                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                }
+                else
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                    _excludes.Add(nameof(Battery));
+                    Battery = 0;
+                }
+            }
+#endif
+        }
+
+        private void RefreshLinux()
+        {
+            var dic = ReadInfo("/proc/meminfo");
+            if (dic != null)
+            {
+                if (dic.TryGetValue("MemTotal", out var str))
+                    Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+
+                if (dic.TryGetValue("MemAvailable", out str))
+                    AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                else if (dic.TryGetValue("MemFree", out str))
+                    AvailableMemory = (UInt64)(str.TrimEnd(" kB").ToInt() + dic["Buffers"].TrimEnd(" kB").ToInt() + dic["Cached"].TrimEnd(" kB").ToInt()) * 1024;
+            }
+
+            // respberrypi + fedora
+            if (TryRead("/sys/class/thermal/thermal_zone0/temp", out var value) ||
+                TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
+                TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
+                TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
+                TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
+                Temperature = value.ToDouble() / 1000;
+            // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
+            else if (TryRead("/sys/class/hwmon/hwmon0/device/temp_value", out value))
+                Temperature = value.Substring(null, ":").ToDouble();
+
+            // 电池剩余
+            if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
+                TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
+            {
+                Battery = energy_now.ToDouble() / energy_full.ToDouble();
+            }
+            else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
+            {
+                Battery = capacity.ToDouble() / 100.0;
+            }
+            else if (Runtime.Mono)
+            {
+                var battery = ReadDeviceBattery();
+                if (battery.TryGetValue("ChargeLevel", out var obj)) Battery = obj.ToDouble();
+            }
+
+            //var upt = Execute("uptime");
+            //if (!upt.IsNullOrEmpty())
+            //{
+            //    str = upt.Substring("load average:");
+            //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
+            //}
+
+            //file = "/proc/loadavg";
+            //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
+
+            var file = "/proc/stat";
+            if (!_excludes.Contains(nameof(CpuRate)) && File.Exists(file))
+            {
+                // CPU指标：user，nice, system, idle, iowait, irq, softirq
+                // cpu  57057 0 14420 1554816 0 443 0 0 0 0
+                try
+                {
+                    using var reader = new StreamReader(file);
+                    var line = reader.ReadLine();
+                    if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
+                    {
+                        var vs = line.TrimStart("cpu").Trim().Split(' ');
+                        var current = new SystemTime
+                        {
+                            IdleTime = vs[3].ToLong(),
+                            TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
+                        };
+
+                        var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
+                        var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
+                        _systemTime = current;
+
+                        CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+                    }
+                }
+                catch { _excludes.Add(nameof(_excludes)); }
+            }
         }
 
         private Int64 _lastTime;
@@ -597,6 +695,7 @@ namespace NewLife
             catch { return null; }
         }
 
+#if !__WIN__
         /// <summary>通过WMIC命令读取信息</summary>
         /// <param name="type"></param>
         /// <param name="keys"></param>
@@ -641,6 +740,8 @@ namespace NewLife
 
             return dic2;
         }
+
+#endif
 
         /// <summary>
         /// 获取设备信息。用于Xamarin
@@ -827,6 +928,41 @@ namespace NewLife
         }
 
         private SystemTime _systemTime;
+
+#if __WIN__
+        /// <summary>获取WMI信息</summary>
+        /// <param name="path"></param>
+        /// <param name="property"></param>
+        /// <param name="nameSpace"></param>
+        /// <returns></returns>
+        public static String GetInfo(String path, String property, String nameSpace = null)
+        {
+            // Linux Mono不支持WMI
+            if (Runtime.Mono) return "";
+
+            var bbs = new List<String>();
+            try
+            {
+                var wql = $"Select {property} From {path}";
+                var cimobject = new ManagementObjectSearcher(nameSpace, wql);
+                var moc = cimobject.Get();
+                foreach (var mo in moc)
+                {
+                    var val = mo?.Properties?[property]?.Value;
+                    if (val != null) bbs.Add(val.ToString().Trim());
+                }
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
+                return "";
+            }
+
+            bbs.Sort();
+
+            return bbs.Distinct().Join();
+        }
+#endif
         #endregion
     }
 }
