@@ -8,7 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{32891F
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		.github\workflows\publish-beta.yml = .github\workflows\publish-beta.yml
-		.github\workflows\publish-windows.yml = .github\workflows\publish-windows.yml
 		.github\workflows\publish.yml = .github\workflows\publish.yml
 		Readme.MD = Readme.MD
 		.github\workflows\test.yml = .github\workflows\test.yml
@@ -21,8 +20,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTest.Core", "XUnitTest.Core\XUnitTest.Core.csproj", "{EDAB9A50-37C7-4CB0-8643-D57A577C1461}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{7CAA8099-FDA8-40A8-A17E-31DD95D4D13D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.WinCore", "NewLife.WinCore\NewLife.WinCore.csproj", "{3D30240B-E87F-4DFC-844A-8D74C6E6D454}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Security", "NewLife.Security\NewLife.Security.csproj", "{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}"
 EndProject
@@ -68,18 +65,6 @@ Global
 		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Release|iPhone.ActiveCfg = Release|Any CPU
 		{EDAB9A50-37C7-4CB0-8643-D57A577C1461}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|iPhone.Build.0 = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{3D30240B-E87F-4DFC-844A-8D74C6E6D454}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Debug|iPhone.ActiveCfg = Debug|Any CPU

@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -21,20 +21,6 @@ jobs:
       run: |
         dotnet build -c Release NewLife.Core/NewLife.Core.csproj
         dotnet build -c Release NewLife.Security/NewLife.Security.csproj
-
-  build-windows:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 6.0.x
-    - name: Build
-      run: |
-        dotnet build -c Release NewLife.WinCore/NewLife.WinCore.csproj
 
   test-redis:
     runs-on: ubuntu-latest
