@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -14,10 +15,6 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
-#if __WIN__
-using System.Management;
-using Microsoft.VisualBasic.Devices;
-#endif
 
 namespace NewLife
 {
@@ -181,11 +178,12 @@ namespace NewLife
 #endif
         }
 
-#if __WIN__
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
         private void LoadWindowsInfo()
         {
             var machine_guid = "";
 
+#if NETCOREAPP3_1_OR_GREATER
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
             if (machine_guid.IsNullOrEmpty())
@@ -193,25 +191,18 @@ namespace NewLife
                 reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
                 if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
             }
-
-            var ci = new ComputerInfo();
-            try
+            var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            if (reg2 != null)
             {
-                Memory = ci.TotalPhysicalMemory;
+                OSName = reg2.GetValue("ProductName") + "";
+                //OSVersion = reg2.GetValue("CurrentBuild") + "";
+            }
+#endif
 
-                // 系统名取WMI可能出错
-                OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
-                OSVersion = ci.OSVersion;
-            }
-            catch
-            {
-                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-                if (reg2 != null)
-                {
-                    OSName = reg2.GetValue("ProductName") + "";
-                    OSVersion = reg2.GetValue("ReleaseId") + "";
-                }
-            }
+            if (OSName.IsNullOrEmpty())
+                OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
+            if (OSVersion.IsNullOrEmpty())
+                OSVersion = Environment.OSVersion.Version.ToString();
 
             Processor = GetInfo("Win32_Processor", "Name");
             CpuID = GetInfo("Win32_Processor", "ProcessorId");
@@ -231,45 +222,6 @@ namespace NewLife
 
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
         }
-#else
-        private void LoadWindowsInfo()
-        {
-            var str = "";
-
-            var os = ReadWmic("os", "Caption", "Version");
-            if (os != null)
-            {
-                if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
-                if (os.TryGetValue("Version", out str)) OSVersion = str;
-            }
-
-            var csproduct = ReadWmic("csproduct", "Name", "UUID");
-            if (csproduct != null)
-            {
-                if (csproduct.TryGetValue("Name", out str)) Product = str;
-                if (csproduct.TryGetValue("UUID", out str)) UUID = str;
-            }
-
-            var disk = ReadWmic("diskdrive", "serialnumber");
-            if (disk != null)
-            {
-                if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
-            }
-
-            // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
-            var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-            if (cpu != null)
-            {
-                if (cpu.TryGetValue("Name", out str)) Processor = str;
-                if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-                if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-            }
-
-            // 从注册表读取 MachineGuid
-            str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
-            if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
-        }
-#endif
 
         private void LoadLinuxInfo()
         {
@@ -327,7 +279,7 @@ namespace NewLife
 
             var disks = GetFiles("/dev/disk/by-id", true);
             if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
-            if (disks.Count > 0) DiskID = disks.Join(",");
+            if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
 
             var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
             if (dmi != null)
@@ -341,17 +293,6 @@ namespace NewLife
             // 从release文件读取产品
             var prd = GetProductByRelease();
             if (!prd.IsNullOrEmpty()) Product = prd;
-
-            //// 电池剩余
-            //if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
-            //    TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
-            //{
-            //    Battery = energy_now.ToDouble() / energy_full.ToDouble();
-            //}
-            //else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
-            //{
-            //    Battery = capacity.ToDouble() / 100.0;
-            //}
         }
 
         private readonly ICollection<String> _excludes = new List<String>();
@@ -392,7 +333,6 @@ namespace NewLife
 
             CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
 
-#if __WIN__
             if (!_excludes.Contains(nameof(Temperature)))
             {
                 // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
@@ -428,37 +368,6 @@ namespace NewLife
                     Battery = 0;
                 }
             }
-#else
-            if (!_excludes.Contains(nameof(Temperature)))
-            {
-                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-                if (temp != null && temp.Count > 0)
-                {
-                    if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-                }
-                else
-                {
-                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
-                    _excludes.Add(nameof(Temperature));
-                    Temperature = 0;
-                }
-            }
-
-            if (!_excludes.Contains(nameof(Battery)))
-            {
-                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-                if (battery != null && battery.Count > 0)
-                {
-                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
-                }
-                else
-                {
-                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
-                    _excludes.Add(nameof(Battery));
-                    Battery = 0;
-                }
-            }
-#endif
         }
 
         private void RefreshLinux()
@@ -501,16 +410,6 @@ namespace NewLife
                 var battery = ReadDeviceBattery();
                 if (battery.TryGetValue("ChargeLevel", out var obj)) Battery = obj.ToDouble();
             }
-
-            //var upt = Execute("uptime");
-            //if (!upt.IsNullOrEmpty())
-            //{
-            //    str = upt.Substring("load average:");
-            //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-            //}
-
-            //file = "/proc/loadavg";
-            //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
 
             var file = "/proc/stat";
             if (!_excludes.Contains(nameof(CpuRate)) && File.Exists(file))
@@ -695,7 +594,6 @@ namespace NewLife
             catch { return null; }
         }
 
-#if !__WIN__
         /// <summary>通过WMIC命令读取信息</summary>
         /// <param name="type"></param>
         /// <param name="keys"></param>
@@ -740,8 +638,6 @@ namespace NewLife
 
             return dic2;
         }
-
-#endif
 
         /// <summary>
         /// 获取设备信息。用于Xamarin
@@ -929,12 +825,13 @@ namespace NewLife
 
         private SystemTime _systemTime;
 
-#if __WIN__
+
         /// <summary>获取WMI信息</summary>
         /// <param name="path"></param>
         /// <param name="property"></param>
         /// <param name="nameSpace"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
         public static String GetInfo(String path, String property, String nameSpace = null)
         {
             // Linux Mono不支持WMI
@@ -962,7 +859,6 @@ namespace NewLife
 
             return bbs.Distinct().Join();
         }
-#endif
         #endregion
     }
 }

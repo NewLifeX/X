@@ -287,7 +287,7 @@ namespace NewLife.Log
         /// <returns></returns>
         public static ILog Combine(this Control control, ILog log, Int32 maxLines = 1000)
         {
-            if (control == null || log == null) return log;
+            //if (control == null || log == null) return log;
 
             var clg = new TextControlLog
             {

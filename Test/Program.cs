@@ -19,6 +19,7 @@ using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
+using NewLife.Serialization;
 using NewLife.Threading;
 
 namespace Test
@@ -88,20 +89,8 @@ namespace Test
 
         private static void Test1()
         {
-            var uri = new NetUri("tcp://127.0.0.1:666");
-            var client = uri.CreateRemote();
-            client.Timeout = 15_000;
-            client.Log = XTrace.Log;
-            client.LogSend = true;
-            client.LogReceive = true;
-            if (client is TcpSession tcp) tcp.DisconnectWhenEmptyData = false;
-
-            for (var i = 0; i < 100; i++)
-            {
-                client.Send($"Hello {i + 1}".GetBytes());
-
-                Thread.Sleep(1000);
-            }
+            var mi = MachineInfo.GetCurrent();
+            XTrace.WriteLine(mi.ToJson(true));
         }
 
         private static void Test2()
