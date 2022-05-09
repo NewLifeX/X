@@ -14,8 +14,8 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 #if NETCOREAPP
-using System.Management;
-using Microsoft.Win32;
+//using System.Management;
+//using Microsoft.Win32;
 #endif
 
 namespace NewLife
@@ -184,41 +184,76 @@ namespace NewLife
         private void LoadWindowsInfo()
         {
 #if NETCOREAPP
-            var machine_guid = "";
+            //var machine_guid = "";
 
-            var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-            if (machine_guid.IsNullOrEmpty())
-            {
-                reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-            }
-            var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            if (reg2 != null)
-            {
-                OSName = reg2.GetValue("ProductName") + "";
-                //OSVersion = reg2.GetValue("CurrentBuild") + "";
-            }
-
-            Processor = GetInfo("Win32_Processor", "Name");
-            //CpuID = GetInfo("Win32_Processor", "ProcessorId");
-            var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
-            Product = GetInfo("Win32_ComputerSystemProduct", "Name");
-            DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
-
-            // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF", "00000000-0000-0000-0000-000000000000"))
-                UUID = uuid;
-
-            //// 可能因WMI导致读取UUID失败
-            //if (UUID.IsNullOrEmpty())
+            //var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
+            //if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            //if (machine_guid.IsNullOrEmpty())
             //{
-            //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
+            //    reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            //    if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            //}
+            //var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            //if (reg2 != null)
+            //{
+            //    OSName = reg2.GetValue("ProductName") + "";
+            //    //OSVersion = reg2.GetValue("CurrentBuild") + "";
             //}
 
-            if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+            //Processor = GetInfo("Win32_Processor", "Name");
+            ////CpuID = GetInfo("Win32_Processor", "ProcessorId");
+            //var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
+            //Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+            //DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
+
+            //// UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+            //if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF", "00000000-0000-0000-0000-000000000000"))
+            //    UUID = uuid;
+
+            ////// 可能因WMI导致读取UUID失败
+            ////if (UUID.IsNullOrEmpty())
+            ////{
+            ////    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            ////    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
+            ////}
+
+            //if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 #endif
+
+            var str = "";
+
+            var os = ReadWmic("os", "Caption", "Version");
+            if (os != null)
+            {
+                if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
+                if (os.TryGetValue("Version", out str)) OSVersion = str;
+            }
+
+            var csproduct = ReadWmic("csproduct", "Name", "UUID");
+            if (csproduct != null)
+            {
+                if (csproduct.TryGetValue("Name", out str)) Product = str;
+                if (csproduct.TryGetValue("UUID", out str)) UUID = str;
+            }
+
+            var disk = ReadWmic("diskdrive", "serialnumber");
+            if (disk != null)
+            {
+                if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
+            }
+
+            // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
+            var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+            if (cpu != null)
+            {
+                if (cpu.TryGetValue("Name", out str)) Processor = str;
+                //if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+            }
+
+            // 从注册表读取 MachineGuid
+            str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
+            if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
 
             if (OSName.IsNullOrEmpty())
                 OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
@@ -341,34 +376,64 @@ namespace NewLife
             CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
 
 #if NETCOREAPP
+            //if (!_excludes.Contains(nameof(Temperature)))
+            //{
+            //    // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            //    var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+            //    if (!str.IsNullOrEmpty())
+            //    {
+            //        Temperature = str.SplitAsInt().Average();
+            //    }
+            //    else
+            //    {
+            //        str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+            //        if (!str.IsNullOrEmpty())
+            //            Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+            //        else
+            //        {
+            //            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+            //            _excludes.Add(nameof(Temperature));
+            //            Temperature = 0;
+            //        }
+            //    }
+            //}
+
+            //if (!_excludes.Contains(nameof(Battery)))
+            //{
+            //    // 电池剩余
+            //    var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+            //    if (!str.IsNullOrEmpty())
+            //        Battery = str.SplitAsInt().Average() / 100.0;
+            //    else
+            //    {
+            //        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+            //        _excludes.Add(nameof(Battery));
+            //        Battery = 0;
+            //    }
+            //}
+#endif
             if (!_excludes.Contains(nameof(Temperature)))
             {
-                // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-                var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-                if (!str.IsNullOrEmpty())
+                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
+                if (temp != null && temp.Count > 0)
                 {
-                    Temperature = str.SplitAsInt().Average();
+                    if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
                 }
                 else
                 {
-                    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-                    if (!str.IsNullOrEmpty())
-                        Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-                    else
-                    {
-                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
-                        _excludes.Add(nameof(Temperature));
-                        Temperature = 0;
-                    }
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                    _excludes.Add(nameof(Temperature));
+                    Temperature = 0;
                 }
             }
 
             if (!_excludes.Contains(nameof(Battery)))
             {
-                // 电池剩余
-                var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-                if (!str.IsNullOrEmpty())
-                    Battery = str.SplitAsInt().Average() / 100.0;
+                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
+                if (battery != null && battery.Count > 0)
+                {
+                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                }
                 else
                 {
                     if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
@@ -376,7 +441,6 @@ namespace NewLife
                     Battery = 0;
                 }
             }
-#endif
         }
 
         private void RefreshLinux()
@@ -835,39 +899,39 @@ namespace NewLife
         private SystemTime _systemTime;
 
 #if NETCOREAPP
-        /// <summary>获取WMI信息</summary>
-        /// <param name="path"></param>
-        /// <param name="property"></param>
-        /// <param name="nameSpace"></param>
-        /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
-        public static String GetInfo(String path, String property, String nameSpace = null)
-        {
-            // Linux Mono不支持WMI
-            if (Runtime.Mono) return "";
+        ///// <summary>获取WMI信息</summary>
+        ///// <param name="path"></param>
+        ///// <param name="property"></param>
+        ///// <param name="nameSpace"></param>
+        ///// <returns></returns>
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
+        //public static String GetInfo(String path, String property, String nameSpace = null)
+        //{
+        //    // Linux Mono不支持WMI
+        //    if (Runtime.Mono) return "";
 
-            var bbs = new List<String>();
-            try
-            {
-                var wql = $"Select {property} From {path}";
-                var cimobject = new ManagementObjectSearcher(nameSpace, wql);
-                var moc = cimobject.Get();
-                foreach (var mo in moc)
-                {
-                    var val = mo?.Properties?[property]?.Value;
-                    if (val != null) bbs.Add(val.ToString().Trim());
-                }
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
-                return "";
-            }
+        //    var bbs = new List<String>();
+        //    try
+        //    {
+        //        var wql = $"Select {property} From {path}";
+        //        var cimobject = new ManagementObjectSearcher(nameSpace, wql);
+        //        var moc = cimobject.Get();
+        //        foreach (var mo in moc)
+        //        {
+        //            var val = mo?.Properties?[property]?.Value;
+        //            if (val != null) bbs.Add(val.ToString().Trim());
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
+        //        return "";
+        //    }
 
-            bbs.Sort();
+        //    bbs.Sort();
 
-            return bbs.Distinct().Join();
-        }
+        //    return bbs.Distinct().Join();
+        //}
 #endif
         #endregion
     }
