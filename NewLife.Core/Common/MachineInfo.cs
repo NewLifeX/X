@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+#if NETCOREAPP
+using System.Management;
+using Microsoft.Win32;
+#endif
 
 namespace NewLife
 {
@@ -181,9 +183,9 @@ namespace NewLife
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
         private void LoadWindowsInfo()
         {
+#if NETCOREAPP
             var machine_guid = "";
 
-#if NETCOREAPP3_1_OR_GREATER
             var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
             if (machine_guid.IsNullOrEmpty())
@@ -197,12 +199,6 @@ namespace NewLife
                 OSName = reg2.GetValue("ProductName") + "";
                 //OSVersion = reg2.GetValue("CurrentBuild") + "";
             }
-#endif
-
-            if (OSName.IsNullOrEmpty())
-                OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
-            if (OSVersion.IsNullOrEmpty())
-                OSVersion = Environment.OSVersion.Version.ToString();
 
             Processor = GetInfo("Win32_Processor", "Name");
             //CpuID = GetInfo("Win32_Processor", "ProcessorId");
@@ -211,7 +207,7 @@ namespace NewLife
             DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
             // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF", "00000000-0000-0000-0000-000000000000")) 
+            if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF", "00000000-0000-0000-0000-000000000000"))
                 UUID = uuid;
 
             //// 可能因WMI导致读取UUID失败
@@ -222,6 +218,12 @@ namespace NewLife
             //}
 
             if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+#endif
+
+            if (OSName.IsNullOrEmpty())
+                OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
+            if (OSVersion.IsNullOrEmpty())
+                OSVersion = Environment.OSVersion.Version.ToString();
         }
 
         private void LoadLinuxInfo()
@@ -338,6 +340,7 @@ namespace NewLife
 
             CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
 
+#if NETCOREAPP
             if (!_excludes.Contains(nameof(Temperature)))
             {
                 // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
@@ -373,6 +376,7 @@ namespace NewLife
                     Battery = 0;
                 }
             }
+#endif
         }
 
         private void RefreshLinux()
@@ -830,7 +834,7 @@ namespace NewLife
 
         private SystemTime _systemTime;
 
-
+#if NETCOREAPP
         /// <summary>获取WMI信息</summary>
         /// <param name="path"></param>
         /// <param name="property"></param>
@@ -864,6 +868,7 @@ namespace NewLife
 
             return bbs.Distinct().Join();
         }
+#endif
         #endregion
     }
 }
