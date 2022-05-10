@@ -1,9 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System;
 using System.IO;
 using NewLife;
 using NewLife.IoT.Drivers;
 using NewLife.IoT.Protocols;
 using NewLife.Log;
+using NewLife.Serialization;
 using NewLife.Xml;
 using Xunit;
 
@@ -94,12 +95,16 @@ namespace XUnitTest.Serialization
             xml.Write(pm);
 
             var str = xml.GetString();
-            Assert.Equal(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<ModbusTcpParameter>
+            Assert.Equal(@"<ModbusTcpParameter>
+  <!--主机/站号-->
   <Host>1</Host>
+  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
   <ReadCode>ReadRegister</ReadCode>
+  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
   <WriteCode>WriteRegister</WriteCode>
+  <!--地址。tcp地址如127.0.0.1:502-->
   <Server>127.0.0.1:502</Server>
+  <!--协议标识。默认0-->
   <ProtocolId>0</ProtocolId>
 </ModbusTcpParameter>", str);
 
@@ -113,14 +118,41 @@ namespace XUnitTest.Serialization
             xml2.Write(pm);
 
             var str2 = xml2.GetString();
-            Assert.Equal(@"<?xml version=""1.0"" encoding=""utf-8""?>
-<ModbusTcpParameter>
+            Assert.Equal(@"<ModbusTcpParameter>
+  <!--主机/站号-->
   <Host>1</Host>
+  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
   <ReadCode>3</ReadCode>
+  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
   <WriteCode>6</WriteCode>
+  <!--地址。tcp地址如127.0.0.1:502-->
   <Server>127.0.0.1:502</Server>
+  <!--协议标识。默认0-->
   <ProtocolId>0</ProtocolId>
 </ModbusTcpParameter>", str2);
+        }
+
+        [Fact]
+        public void XmlParserDecode()
+        {
+            var str = @"﻿<ModbusRtuParameter>
+  <!--主机/站号-->
+  <Host>1</Host>
+  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
+  <ReadCode>ReadRegister</ReadCode>
+  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
+  <WriteCode>WriteRegister</WriteCode>
+  <!--串口-->
+  <PortName>COM1</PortName>
+  <!--主机波特率站号-->
+  <Baudrate>9600</Baudrate>
+</ModbusRtuParameter>";
+
+            //str = str.Trim().Trim((Char)0xFEFF).Trim();
+            var dic = XmlParser.Decode(str);
+
+            Assert.NotNull(dic);
+            Assert.Equal(5, dic.Count);
         }
     }
 }
