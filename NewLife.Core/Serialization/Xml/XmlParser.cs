@@ -17,13 +17,15 @@ namespace NewLife.Serialization
         /// <param name="xml"></param>
         public XmlParser(String xml)
         {
-            _reader = XmlReader.Create(new StringReader(xml));
+            var set = new XmlReaderSettings();
+            _reader = XmlReader.Create(new StringReader(xml), set);
         }
 
         /// <summary>解码</summary>
         /// <returns></returns>
         public static IDictionary<String, Object> Decode(String xml)
         {
+            xml = xml.TrimStart((Char)0xFEFF);
             var parser = new XmlParser(xml);
             return parser.ParseValue();
         }

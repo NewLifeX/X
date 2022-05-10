@@ -27,7 +27,8 @@ namespace NewLife.Xml
 
             using var stream = new MemoryStream();
             ToXml(obj, stream, encoding, attachComment, useAttribute);
-            return encoding.GetString(stream.ToArray());
+            //return encoding.GetString(stream.ToArray());
+            return stream.ToArray().ToStr();
         }
 
         /// <summary>序列化为Xml数据流</summary>
