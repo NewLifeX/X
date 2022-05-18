@@ -109,26 +109,8 @@ public class AssemblyX
 
     static AssemblyX()
     {
-        AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
+        //AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
         AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-    }
-
-    private static Assembly OnReflectionOnlyAssemblyResolve(Object sender, ResolveEventArgs args)
-    {
-        var flag = XTrace.Log.Level <= LogLevel.Debug;
-        if (flag) XTrace.WriteLine("[{0}]请求只反射加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-        //if (!flag) return null;
-
-        //try
-        //{
-        //    return Assembly.ReflectionOnlyLoad(args.Name);
-        //}
-        //catch (Exception ex)
-        //{
-        //    XTrace.WriteException(ex);
-        //}
-
-        return null;
     }
 
     private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
@@ -533,13 +515,7 @@ public class AssemblyX
         var asms = domain.GetAssemblies();
         if (asms == null || asms.Length <= 0) return Enumerable.Empty<AssemblyX>();
 
-        //return asms.Select(item => Create(item));
-        return from e in asms select Create(e);
-
-        //foreach (var item in asms)
-        //{
-        //    yield return Create(item);
-        //}
+        return asms.Select(item => Create(item));
     }
 
     private static ICollection<String> _AssemblyPaths;
@@ -553,17 +529,17 @@ public class AssemblyX
                 var set = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
                 var basedir = AppDomain.CurrentDomain.BaseDirectory;
-                set.Add(basedir);
-
-                //var bin = "bin".GetFullPath();
-                //if (Directory.Exists(bin)) set.Add(bin);
+                if (!basedir.IsNullOrEmpty()) set.Add(basedir);
 
                 var cfg = Setting.Current;
-                var plugin = cfg.PluginPath.GetFullPath();
-                if (!set.Contains(plugin)) set.Add(plugin);
+                if (!cfg.PluginPath.IsNullOrEmpty())
+                {
+                    var plugin = cfg.PluginPath.GetFullPath();
+                    if (!set.Contains(plugin)) set.Add(plugin);
 
-                plugin = cfg.PluginPath.GetBasePath();
-                if (!set.Contains(plugin)) set.Add(plugin);
+                    plugin = cfg.PluginPath.GetBasePath();
+                    if (!set.Contains(plugin)) set.Add(plugin);
+                }
 
                 _AssemblyPaths = set;
             }
@@ -572,7 +548,7 @@ public class AssemblyX
         set => _AssemblyPaths = value;
     }
 
-    /// <summary>获取当前程序域所有只反射程序集的辅助类</summary>
+    /// <summary>获取当前程序域所有只反射程序集的辅助类。NETCore不支持只反射加载，该方法动态加载DLL后返回</summary>
     /// <returns></returns>
     public static IEnumerable<AssemblyX> ReflectionOnlyGetAssemblies()
     {
@@ -599,7 +575,7 @@ public class AssemblyX
     }
 
     private static readonly ConcurrentHashSet<String> _BakImages = new();
-    /// <summary>只反射加载指定路径的所有程序集</summary>
+    /// <summary>只反射加载指定路径的所有程序集。NETCore不支持只反射加载，该方法动态加载DLL后返回</summary>
     /// <param name="path"></param>
     /// <returns></returns>
     public static IEnumerable<AssemblyX> ReflectionOnlyLoad(String path)
@@ -626,7 +602,15 @@ public class AssemblyX
             if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                 loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-            var asm = ReflectionOnlyLoadFrom(item, ver);
+            Assembly asm = null;
+            try
+            {
+                asm = Assembly.LoadFrom(item);
+            }
+            catch
+            {
+                _BakImages.TryAdd(item);
+            }
             if (asm == null) continue;
 
             // 不搜索系统程序集，优化性能
@@ -642,26 +626,6 @@ public class AssemblyX
 
             var asmx = Create(asm);
             if (asmx != null) yield return asmx;
-        }
-    }
-
-    /// <summary>只反射加载指定路径的所有程序集</summary>
-    /// <param name="file"></param>
-    /// <param name="ver"></param>
-    /// <returns></returns>
-    public static Assembly ReflectionOnlyLoadFrom(String file, Version ver = null)
-    {
-        //// 仅加载.Net文件，并且小于等于当前版本
-        //if (!PEImage.CanLoad(file, ver, XTrace.Debug)) return null;
-
-        try
-        {
-            return Assembly.LoadFrom(file);
-        }
-        catch
-        {
-            _BakImages.TryAdd(file);
-            return null;
         }
     }
 
