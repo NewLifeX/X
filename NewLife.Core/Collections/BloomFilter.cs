@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using NewLife.Reflection;
 
 namespace NewLife.Collections
 {
     /// <summary>布隆过滤器</summary>
     /// <remarks>
     /// 以极小内存进行海量键值的存在判断，碰撞几率很小。
+    /// 依赖于Murmur128哈希算法。
     /// </remarks>
     public class BloomFilter
     {
@@ -13,6 +15,12 @@ namespace NewLife.Collections
         private readonly BitArray container = null;
         private readonly Int32 _M;
         private readonly Int32 _K;
+
+        /// <summary>位数组大小</summary>
+        public Int32 Length => _M;
+
+        /// <summary>K值，循环哈希次数</summary>
+        public Int32 K => _K;
 
         /// <summary>实例化布隆过滤器</summary>
         /// <param name="length">位数组大小。建议为预估数据量的32倍，可得到0.004%的误判率</param>
@@ -35,6 +43,14 @@ namespace NewLife.Collections
             _K = Math.Max(1, (Int32)Math.Round(_M / n * Math.Log(2)));
 
             container = new BitArray(_M);
+        }
+
+        /// <summary>初始化布隆过滤器</summary>
+        /// <param name="values"></param>
+        public BloomFilter(Byte[] values)
+        {
+            container = new BitArray(values);
+            _M = container.Length;
         }
         #endregion
 
@@ -75,6 +91,24 @@ namespace NewLife.Collections
 
             return true;
         }
+
+        /// <summary>获取内部字符串</summary>
+        /// <returns></returns>
+        public Byte[] GetBytes()
+        {
+            var arr = container.GetValue("m_array") as Int32[];
+            var buf = new Byte[arr.Length * 32];
+            for (var i = 0; i < arr.Length; i++)
+            {
+                buf.Write((UInt32)arr[i], K << 5);
+            }
+
+            return buf;
+        }
+
+        /// <summary>获取内部字符串</summary>
+        /// <returns></returns>
+        public String GetString() => GetBytes().ToBase64();
         #endregion
 
         #region 哈希函数
