@@ -255,16 +255,8 @@ namespace NewLife.Threading
                     return;
                 }
 
-                if (timer.IsAsyncTask)
-                {
-                    var func = timer.Method.As<Func<Object?, Task>>(target);
-                    func(timer.State).Wait();
-                }
-                else
-                {
-                    var func = timer.Method.As<TimerCallback>(target);
-                    func(timer.State);
-                }
+                var func = timer.Method.As<TimerCallback>(target);
+                func(timer.State);
             }
             catch (ThreadAbortException) { throw; }
             catch (ThreadInterruptedException) { throw; }
@@ -295,7 +287,7 @@ namespace NewLife.Threading
 
             timer.hasSetNext = false;
 
-            if (timer.Tracer != null) DefaultSpan.Current = null;
+            DefaultSpan.Current = null;
             using var span = timer.Tracer?.NewSpan(timer.TracerName ?? $"timer:ExecuteAsync", timer.Timers + "");
             var sw = Stopwatch.StartNew();
             try
