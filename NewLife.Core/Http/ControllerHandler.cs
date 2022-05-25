@@ -19,11 +19,11 @@ namespace NewLife.Http
         public virtual void ProcessRequest(IHttpContext context)
         {
             var ss = context.Path.Split('/');
-            var methodName = ss[2];
+            var methodName = ss.Length >= 3 ? ss[2] : null;
 
             var controller = ControllerType.CreateInstance();
 
-            var method = ControllerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            var method = methodName == null ? null : ControllerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
             if (method == null) throw new ApiException(404, $"控制器[{ControllerType.FullName}]内无法找到操作[{methodName}]");
 
             var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
