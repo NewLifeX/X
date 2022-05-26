@@ -233,14 +233,14 @@ namespace NewLife.Net
         /// <returns></returns>
         public override String ToString()
         {
-            var p = Type + "";
+            var protocol = Type.ToString().ToLower();
             switch (Type)
             {
                 case NetType.Unknown:
-                    p = "";
+                    protocol = "";
                     break;
                 case NetType.WebSocket:
-                    p = Port == 443 ? "wss" : "ws";
+                    protocol = Port == 443 ? "wss" : "ws";
                     break;
             }
             var host = Host;
@@ -253,9 +253,9 @@ namespace NewLife.Net
             }
 
             if (Port > 0)
-                return $"{p}://{host}:{Port}";
+                return $"{protocol}://{host}:{Port}";
             else
-                return $"{p}://{host}";
+                return $"{protocol}://{host}";
         }
         #endregion
 

@@ -298,13 +298,14 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var span = CreateSpan(tracer, request.RequestUri);
+            var span = CreateSpan(tracer, request.Method.Method, request.RequestUri, request);
             span.Attach(request);
 
             return span;
         }
 
-        private static ISpan CreateSpan(ITracer tracer, Uri uri)
+        static String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
+        private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage request)
         {
             var url = uri.ToString();
 
@@ -323,11 +324,25 @@ namespace NewLife.Log
                 }
             }
 
-            var len = "https://".Length;
             var p1 = url.IndexOf('?');
-            var p2 = url.Length > len ? url.IndexOf('/', len) : -1;
             var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
-            span.Tag = p2 < 0 ? url : url[p2..];
+            span.Tag = $"{method} {uri}";
+
+            if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
+            {
+                if (request.Content != null)
+                {
+                    // 既然都读出来了，不管多长，都要前面1024字符
+                    var str = request.Content.ReadAsStringAsync().Result;
+                    if (!str.IsNullOrEmpty()) span.Tag += Environment.NewLine + (str.Length > 1024 ? str[..1024] : str);
+                }
+
+                if (span.Tag.Length < 500)
+                {
+                    var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(_ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value.Join(";"));
+                    span.Tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}: {e.Value}");
+                }
+            }
 
             return span;
         }
@@ -340,7 +355,7 @@ namespace NewLife.Log
         {
             if (tracer == null) return null;
 
-            var span = CreateSpan(tracer, request.RequestUri);
+            var span = CreateSpan(tracer, request.Method, request.RequestUri, null);
             span.Attach(request);
 
             return span;
