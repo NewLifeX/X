@@ -84,7 +84,7 @@ namespace NewLife.Http
                 sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
 
-            sb.AppendLine();
+            sb.Append("\r\n");
 
             return sb.Put(true);
         }

@@ -75,7 +75,7 @@ namespace NewLife.Http
                 sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
             }
 
-            sb.AppendLine();
+            sb.Append("\r\n");
 
             //return sb.ToString();
             var rs = new Packet(sb.Put(true).GetBytes())
@@ -104,7 +104,7 @@ namespace NewLife.Http
                 sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
             }
 
-            sb.AppendLine();
+            sb.Append("\r\n");
 
             //return sb.ToString();
             var rs = new Packet(sb.Put(true).GetBytes())

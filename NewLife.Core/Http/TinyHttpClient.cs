@@ -511,7 +511,7 @@ namespace NewLife.Http
             // 保持连接
             if (KeepAlive) header.AppendLine("Connection: keep-alive");
 
-            header.AppendLine();
+            header.Append("\r\n");
 
             var req = new Packet(header.Put(true).GetBytes());
 
