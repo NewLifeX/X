@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,9 @@ namespace NewLife.Http
         #region 属性
         /// <summary>APM跟踪器</summary>
         public ITracer Tracer { get; set; }
+
+        /// <summary>异常过滤器。仅记录满足条件的异常，默认空记录所有异常</summary>
+        public Predicate<Exception> ExceptionFilter { get; set; }
         #endregion
 
         /// <summary>实例化一个支持APM的HttpClient处理器</summary>
@@ -37,7 +41,8 @@ namespace NewLife.Http
             }
             catch (Exception ex)
             {
-                span?.SetError(ex, request.Content?.ReadAsStringAsync().Result);
+                if (ExceptionFilter == null || ExceptionFilter(ex))
+                    span?.SetError(ex, null);
 
                 throw;
             }

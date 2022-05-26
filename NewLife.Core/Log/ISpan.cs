@@ -89,8 +89,7 @@ namespace NewLife.Log
         public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
 
         private ISpan _parent;
-        private Boolean _finished;
-        //private static Int64 _gid;
+        private Int32 _finished;
         #endregion
 
         #region 构造
@@ -191,8 +190,7 @@ namespace NewLife.Log
         /// <summary>完成跟踪</summary>
         protected virtual void Finish()
         {
-            if (_finished) return;
-            _finished = true;
+            if (Interlocked.CompareExchange(ref _finished, 1, 0) != 0) return;
 
             EndTime = DateTime.UtcNow.ToLong();
 
