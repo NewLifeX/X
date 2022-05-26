@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Net;
 using NewLife.Serialization;
 
@@ -16,6 +17,11 @@ namespace NewLife.Http
         #region 属性
         /// <summary>请求</summary>
         public HttpRequest Request { get; set; }
+
+        /// <summary>忽略的头部</summary>
+        public static String[] ExcludeHeaders { get; set; } = new[] {
+            "traceparent", "Authorization", "Cookie"
+        };
 
         private WebSocket _websocket;
         private MemoryStream _cache;
@@ -129,6 +135,26 @@ namespace NewLife.Http
 
             // 埋点
             using var span = (this as INetSession).Host.Tracer?.NewSpan(path);
+            if (span != null)
+            {
+                // 解析上游请求链路
+                span.Detach(request.Headers);
+
+                if (span is DefaultSpan ds && ds.TraceFlag > 0)
+                {
+                    if (request.BodyLength > 0 && request.Body != null && request.Body.Total < 8 * 1024)
+                    {
+                        span.Tag = request.Body.ToStr(null, 0, 1024);
+                    }
+                    else
+                    {
+                        span.Tag = $"{Remote.EndPoint} {request.Method} {request.Url.OriginalString}";
+
+                        var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
+                        span.Tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}:{e.Value}");
+                    }
+                }
+            }
 
             // 路径安全检查，防止越界
             if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
@@ -149,7 +175,7 @@ namespace NewLife.Http
             {
                 PrepareRequest(context);
 
-                if (span != null && context.Parameters.Count > 0) span.SetError(null, context.Parameters);
+                //if (span != null && context.Parameters.Count > 0) span.SetError(null, context.Parameters);
 
                 // 处理 WebSocket 握手
                 if (_websocket == null) _websocket = WebSocket.Handshake(context);
@@ -185,7 +211,7 @@ namespace NewLife.Http
                 ps.Merge(qs);
             }
 
-            // 提交参数
+            // POST提交参数，支持Url编码、表单提交、Json主体
             if (req.Method == "POST" && req.BodyLength > 0)
             {
                 var body = req.Body;
