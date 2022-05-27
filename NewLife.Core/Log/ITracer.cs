@@ -209,7 +209,8 @@ namespace NewLife.Log
             {
                 if (tag is Packet pk)
                 {
-                    if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
+                    // 头尾是Xml/Json时，使用字符串格式
+                    if (pk.Total >= 2 && (pk[0] == '{' || pk[0] == '<' || pk[pk.Total - 1] == '}' || pk[pk.Total - 1] == '>'))
                         span.Tag = pk.ToStr(null, 0, len);
                     else
                         span.Tag = pk.ToHex(len / 2);
