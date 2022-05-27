@@ -146,13 +146,13 @@ namespace NewLife.Http
 
                     if (request.BodyLength > 0 && request.Body != null && request.Body.Total < 8 * 1024)
                     {
-                        tag += Environment.NewLine + request.Body.ToStr(null, 0, 1024);
+                        tag += "\r\n" + request.Body.ToStr(null, 0, 1024);
                     }
 
                     if (tag.Length < 500)
                     {
                         var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
-                        tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}: {e.Value}");
+                        tag += "\r\n" + vs.Join("\r\n", e => $"{e.Key}: {e.Value}");
                     }
 
                     span.SetTag(tag);

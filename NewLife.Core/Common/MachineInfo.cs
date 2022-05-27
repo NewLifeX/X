@@ -679,7 +679,7 @@ namespace NewLife
             var str = Execute("wmic", args)?.Trim();
             if (str.IsNullOrEmpty()) return dic;
 
-            var ss = str.Split(Environment.NewLine);
+            var ss = str.Split("\r\n");
             foreach (var item in ss)
             {
                 var ks = item?.Split('=');

@@ -167,7 +167,7 @@ namespace NewLife.Http
                 var pHeader = part.IndexOf(NewLine2);
                 var header = part.Slice(0, pHeader);
 
-                var lines = header.ToStr().SplitAsDictionary(":", Environment.NewLine);
+                var lines = header.ToStr().SplitAsDictionary(":", "\r\n");
                 if (lines.TryGetValue("Content-Disposition", out var str))
                 {
                     var ss = str.SplitAsDictionary("=", ";", true);

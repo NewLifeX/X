@@ -161,8 +161,9 @@ namespace NewLife.Configuration
         /// <param name="text"></param>
         /// <returns></returns>
         public static String TrimComment(String text)
-        {            
-            var lines = text.Split(Environment.NewLine,"\n","\r");//增加 \r以及\n的处理， 处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
+        {
+            // 增加 \r以及\n的处理， 处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
+            var lines = text.Split("\r\n", "\n", "\r");
             text = lines
                 .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))
                 // 没考虑到链接中带双斜杠的，以下导致链接的内容被干掉
