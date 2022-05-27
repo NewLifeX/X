@@ -199,12 +199,12 @@ namespace NewLife.Log
             var span = BuildSpan(name).Start();
 
             var len = MaxTagLength;
-            if (len <= 0) return span;
+            if (len <= 0 || tag == null) return span;
 
             if (tag is String str)
                 span.Tag = str.Cut(len);
             else if (tag is StringBuilder builder)
-                span.Tag = builder.Length < len ? builder.ToString() : builder.ToString(0, len);
+                span.Tag = builder.Length <= len ? builder.ToString() : builder.ToString(0, len);
             else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
             {
                 if (tag is Packet pk)
@@ -326,7 +326,7 @@ namespace NewLife.Log
 
             var p1 = url.IndexOf('?');
             var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
-            span.Tag = $"{method} {uri}";
+            var tag = $"{method} {uri}";
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
             {
@@ -334,15 +334,16 @@ namespace NewLife.Log
                 {
                     // 既然都读出来了，不管多长，都要前面1024字符
                     var str = request.Content.ReadAsStringAsync().Result;
-                    if (!str.IsNullOrEmpty()) span.Tag += Environment.NewLine + (str.Length > 1024 ? str[..1024] : str);
+                    if (!str.IsNullOrEmpty()) tag += Environment.NewLine + (str.Length > 1024 ? str[..1024] : str);
                 }
 
-                if (span.Tag.Length < 500)
+                if (tag.Length < 500)
                 {
                     var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(_ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value.Join(";"));
-                    span.Tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}: {e.Value}");
+                    tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}: {e.Value}");
                 }
             }
+            span.SetTag(tag);
 
             return span;
         }

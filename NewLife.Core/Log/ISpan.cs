@@ -44,6 +44,10 @@ namespace NewLife.Log
         /// <param name="ex">异常</param>
         /// <param name="tag">标签</param>
         void SetError(Exception ex, Object tag);
+
+        /// <summary>设置数据标签。内部根据长度截断</summary>
+        /// <param name="tag">标签</param>
+        void SetTag(Object tag);
     }
 
     /// <summary>性能跟踪片段。轻量级APM</summary>
@@ -213,16 +217,30 @@ namespace NewLife.Log
         {
             Error = ex?.GetMessage();
 
+            SetTag(tag);
+        }
+
+        /// <summary>设置数据标签。内部根据长度截断</summary>
+        /// <param name="tag">标签</param>
+        public virtual void SetTag(Object tag)
+        {
+            if (tag == null) return;
+
             var len = Builder?.Tracer?.MaxTagLength ?? 0;
             if (len <= 0) return;
 
             if (tag is String str)
                 Tag = str.Cut(len);
             else if (tag is StringBuilder builder)
-                Tag = builder.Length < len ? builder.ToString() : builder.ToString(0, len);
+                Tag = builder.Length <= len ? builder.ToString() : builder.ToString(0, len);
             else if (tag is Packet pk)
-                Tag = pk.ToHex(len / 2);
-            else if (tag != null)
+            {
+                if (pk.Total >= 2 && pk[0] == '{' && pk[pk.Total - 1] == '}')
+                    Tag = pk.ToStr(null, 0, len);
+                else
+                    Tag = pk.ToHex(len / 2);
+            }
+            else
                 Tag = tag.ToJson().Cut(len);
         }
 
