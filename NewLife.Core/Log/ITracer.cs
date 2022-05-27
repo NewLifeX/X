@@ -319,13 +319,13 @@ namespace NewLife.Log
                 {
                     // 既然都读出来了，不管多长，都要前面1024字符
                     var str = request.Content.ReadAsStringAsync().Result;
-                    if (!str.IsNullOrEmpty()) tag += Environment.NewLine + (str.Length > 1024 ? str.Substring(0, 1024) : str);
+                    if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > 1024 ? str.Substring(0, 1024) : str);
                 }
 
                 if (tag.Length < 500)
                 {
                     var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(_ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value.Join(";"));
-                    tag += Environment.NewLine + vs.Join(Environment.NewLine, e => $"{e.Key}: {e.Value}");
+                    tag += "\r\n" + vs.Join("\r\n", e => $"{e.Key}: {e.Value}");
                 }
             }
             span.SetTag(tag);

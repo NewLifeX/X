@@ -106,7 +106,7 @@ namespace NewLife.Web
         {
             var list = new List<Link>();
 
-            var ns = html.Split(Environment.NewLine);
+            var ns = html.Split("\r\n", "\r", "\n");
             if (ns.Length == 0) return list.ToArray();
 
             // 如果由很多段组成，可能是unix格式

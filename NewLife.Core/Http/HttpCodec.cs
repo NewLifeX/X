@@ -201,7 +201,7 @@ namespace NewLife.Http
 
             // 请求方法 GET / HTTP/1.1
             var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            var ss = pk.ToStr().Split(Environment.NewLine);
+            var ss = pk.ToStr().Split("\r\n");
             {
                 var kv = ss[0].Split(" ");
                 if (kv != null && kv.Length >= 3)
