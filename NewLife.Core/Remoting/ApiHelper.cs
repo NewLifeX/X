@@ -214,6 +214,8 @@ namespace NewLife.Remoting
             var rtype = typeof(TResult);
 
             var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : JsonParser.Decode(response);
+            if (dic == null) return default;
+
             var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
 
             // 未指定有效数据名时，整体返回
