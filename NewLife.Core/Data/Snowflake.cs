@@ -83,7 +83,7 @@ namespace NewLife.Data
             var t = _lastTime - ms;
             if (t > 0)
             {
-                XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
+                //XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
                 if (t > 10_000) throw new InvalidOperationException($"时间倒退过大({t}ms)，为确保唯一性，Snowflake拒绝生成新Id");
 
                 ms = _lastTime;
