@@ -56,16 +56,16 @@ namespace NewLife.Model
         /// <summary>实例化一个插件管理器</summary>
         public PluginManager() { }
 
-        /// <summary>使用宿主对象实例化一个插件管理器</summary>
-        /// <param name="host"></param>
-        public PluginManager(Object host)
-        {
-            if (host != null)
-            {
-                Identity = host.ToString();
-                Provider = host as IServiceProvider;
-            }
-        }
+        ///// <summary>使用宿主对象实例化一个插件管理器</summary>
+        ///// <param name="host"></param>
+        //public PluginManager(Object host)
+        //{
+        //    if (host != null)
+        //    {
+        //        Identity = host.ToString();
+        //        Provider = host as IServiceProvider;
+        //    }
+        //}
 
         /// <summary>子类重载实现资源释放逻辑时必须首先调用基类方法</summary>
         /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）。
@@ -132,7 +132,7 @@ namespace NewLife.Model
             {
                 try
                 {
-                    if (item.Init(Identity, Provider)) list.Add(item);
+                    if (item.Init(Identity, this)) list.Add(item);
                 }
                 catch (Exception ex)
                 {
