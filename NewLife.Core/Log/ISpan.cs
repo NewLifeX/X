@@ -121,7 +121,8 @@ namespace NewLife.Log
             }
             if (ip == null) ip = IPAddress.Parse("127.0.0.1");
             _myip = ip.GetAddressBytes().ToHex().ToLower().PadLeft(8, '0');
-            _pid = Process.GetCurrentProcess().Id.ToString("x4").PadLeft(4, '0');
+            var pid = Process.GetCurrentProcess().Id;
+            _pid = (pid & 0xFFFF).ToString("x4").PadLeft(4, '0');
         }
 
         /// <summary>释放资源</summary>
@@ -164,7 +165,7 @@ namespace NewLife.Log
         protected virtual String CreateId()
         {
             // IPv4(8) + PID(4) + 顺序数(4)
-            var id = Interlocked.Increment(ref _seq);
+            var id = Interlocked.Increment(ref _seq) & 0xFFFF;
             return _myip + _pid + id.ToString("x4").PadLeft(4, '0');
         }
 
@@ -182,7 +183,7 @@ namespace NewLife.Log
             var sb = Pool.StringBuilder.Get();
             sb.Append(_myip);
             sb.Append(DateTime.UtcNow.ToLong());
-            var id = Interlocked.Increment(ref _seq2);
+            var id = Interlocked.Increment(ref _seq2) & 0xFFFF;
             sb.Append(id.ToString("x4").PadLeft(4, '0'));
             sb.Append('e');
             sb.Append(_pid);
