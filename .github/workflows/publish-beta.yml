@@ -5,6 +5,10 @@ on:
     branches: [ master ]
     paths:
         - 'NewLife.Core/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+        - 'NewLife.Core/**'
   workflow_dispatch:
 
 jobs:
