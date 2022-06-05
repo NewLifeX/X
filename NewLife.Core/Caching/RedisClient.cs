@@ -470,7 +470,7 @@ namespace NewLife.Caching
             var ns = GetStream(false);
             if (ns == null) return;
 
-                // 干掉历史残留数据
+            // 干掉历史残留数据
             if (ns is NetworkStream nss && nss.DataAvailable)
             {
                 var buf = new Byte[1024];
@@ -786,15 +786,22 @@ namespace NewLife.Caching
             var ns = GetStream(true);
             if (ns == null) return null;
 
+            using var span = Host.Tracer?.NewSpan($"redis:{Host.Name}:Pipeline", null);
+
             // 验证登录
             CheckLogin(null);
 
             // 整体打包所有命令
             var ms = Pool.MemoryStream.Get();
+            var cmds = new List<String>(ps.Count);
             foreach (var item in ps)
             {
+                cmds.Add(item.Name);
                 GetRequest(ms, item.Name, item.Args.Select(e => Host.Encoder.Encode(e)).ToArray(), item.Args);
             }
+
+            // 设置数据标签
+            if (span != null) span.SetTag(cmds);
 
             // 整体发出
             if (ms.Length > 0) ms.WriteTo(ns);
