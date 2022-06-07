@@ -39,6 +39,9 @@ namespace NewLife.Configuration
         /// <returns></returns>
         IConfigSection GetSection(String key);
 
+        /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
+        event EventHandler Changed;
+
         /// <summary>返回获取配置的委托</summary>
         GetConfigCallback GetConfig { get; }
 
@@ -96,6 +99,9 @@ namespace NewLife.Configuration
 
         /// <summary>缺失的键</summary>
         public ICollection<String> MissedKeys { get; } = new List<String>();
+
+        /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
+        public event EventHandler Changed;
 
         /// <summary>是否新的配置文件</summary>
         public Boolean IsNew { get; set; }
@@ -291,6 +297,9 @@ namespace NewLife.Configuration
                 var source = GetSection(item.Value.Path);
                 if (source != null) item.Value.OnChange(source);
             }
+
+            // 通过事件通知外部
+            Changed?.Invoke(this, EventArgs.Empty);
         }
         #endregion
 
