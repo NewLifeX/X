@@ -114,8 +114,9 @@ namespace NewLife.Data
 
                     Next[p - Data.Length] = value;
                 }
-
-                Data[p] = value;
+                if(p < Count)
+                    Data[p] = value;
+                
                 // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
             }
         }
