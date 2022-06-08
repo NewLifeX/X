@@ -49,6 +49,9 @@ namespace NewLife.Serialization
         ///// <summary>智能缩进，内层不换行。默认false</summary>
         //public Boolean SmartIndented { get; set; }
 
+        /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，默认false</summary>
+        public Boolean Int64AsString { get; set; }
+
         /// <summary>缩进字符数。默认2</summary>
         public Int32 IndentedLength { get; set; } = 4;
 
@@ -114,6 +117,9 @@ namespace NewLife.Serialization
 
             else if (obj is Boolean)
                 _Builder.Append((obj + "").ToLower());
+
+            else if ((obj is Int64 or UInt64) && Int64AsString)
+                WriteStringFast(obj + "");
 
             else if (
                 obj is Int32 or Int64 or Double or
@@ -293,7 +299,7 @@ namespace NewLife.Serialization
             }
 
             // 字典数据源
-            if(obj is IDictionarySource source)
+            if (obj is IDictionarySource source)
             {
                 var dic = source.ToDictionary();
                 foreach (var item in dic)
