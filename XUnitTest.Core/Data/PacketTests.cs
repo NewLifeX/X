@@ -166,6 +166,18 @@ namespace XUnitTest.Data
         }
 
         [Fact]
+        public void AfterAppendSetTest()
+        {
+            var buf = "Stone".GetBytes();
+
+            var pk = new Packet(buf);
+            pk.Append("11111".GetBytes());
+            pk.Append("22222".GetBytes());
+            pk[12] = 0x11;
+            Assert.NotNull(pk.Next);
+            Assert.Equal(pk[12],(byte)0x11);
+        }
+        [Fact]
         public void NextTest()
         {
             var buf = "Stone".GetBytes();
