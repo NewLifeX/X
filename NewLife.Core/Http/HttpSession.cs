@@ -23,6 +23,11 @@ namespace NewLife.Http
             "traceparent", "Authorization", "Cookie"
         };
 
+        /// <summary>支持作为标签数据的内容类型</summary>
+        public static String[] TagTypes { get; set; } = new[] {
+            "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
+        };
+
         private WebSocket _websocket;
         private MemoryStream _cache;
         #endregion
@@ -144,7 +149,10 @@ namespace NewLife.Http
                 {
                     var tag = $"{Remote.EndPoint} {request.Method} {request.Url.OriginalString}";
 
-                    if (request.BodyLength > 0 && request.Body != null && request.Body.Total < 8 * 1024)
+                    if (request.BodyLength > 0 && 
+                        request.Body != null && 
+                        request.Body.Total < 8 * 1024 && 
+                        request.ContentType.EqualIgnoreCase(TagTypes))
                     {
                         tag += "\r\n" + request.Body.ToStr(null, 0, 1024);
                     }
