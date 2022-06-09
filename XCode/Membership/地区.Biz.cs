@@ -38,7 +38,7 @@ namespace XCode.Membership
             Meta.Factory.MasterTime = _.UpdateTime;
 
             var sc = Meta.SingleCache;
-            sc.MaxEntity = 100000;
+            sc.MaxEntity = 100_000;
             if (sc.Expire < 20 * 60) sc.Expire = 20 * 60;
             sc.Using = true;
 
