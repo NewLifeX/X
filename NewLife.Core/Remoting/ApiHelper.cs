@@ -148,18 +148,11 @@ namespace NewLife.Remoting
             {
                 if (args is Packet pk)
                 {
-                    var content =
-                        pk.Next == null ?
-                        new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
-                        new ByteArrayContent(pk.ToArray());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                    request.Content = content;
+                    request.Content = BuildContent(pk);
                 }
                 else if (args is Byte[] buf)
                 {
-                    var content = new ByteArrayContent(buf);
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                    request.Content = content;
+                    request.Content = BuildContent(buf);
                 }
                 else if (args != null)
                 {
@@ -170,6 +163,30 @@ namespace NewLife.Remoting
             }
 
             return request;
+        }
+
+        /// <summary>为二进制数据生成请求体内容。对超长内容进行压缩</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public static HttpContent BuildContent(Packet pk)
+        {
+            var gzip = NewLife.Net.Setting.Current.AutoGZip;
+            if (gzip > 0 && pk.Total >= gzip)
+            {
+                var buf = pk.ReadBytes();
+                buf = buf.CompressGZip();
+                var content = new ByteArrayContent(buf);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/x-gzip");
+                return content;
+            }
+            else
+            {
+                var content = pk.Next == null ?
+                    new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
+                    new ByteArrayContent(pk.ToArray());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                return content;
+            }
         }
 
         /// <summary>结果代码名称。默认 code/errcode</summary>
