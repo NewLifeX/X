@@ -58,6 +58,10 @@ namespace NewLife
         /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
         [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件")]
         public String PluginServer { get; set; } = "http://x.newlifex.com/";
+
+        /// <summary>辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false</summary>
+        [Description("辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false")]
+        public Boolean AssemblyResolve { get; set; }
         #endregion
 
         #region 方法
