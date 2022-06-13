@@ -297,7 +297,7 @@ namespace NewLife.Remoting
                 var client = service.Client;
                 if (client == null)
                 {
-                    if (service.CreateTime.Year < 2000) WriteLog("使用[{0}]：{1}", service.Name, service.Address);
+                    if (service.CreateTime.Year < 2000) Log?.Debug("使用[{0}]：{1}", service.Name, service.Address);
 
                     client = CreateClient();
                     client.BaseAddress = service.Address;
