@@ -9,6 +9,9 @@ using NewLife.Model;
 namespace NewLife.Net.Handlers
 {
     /// <summary>消息封包编码器</summary>
+    /// <remarks>
+    /// 该编码器向基于请求响应模型的协议提供了匹配队列，能够根据响应序列号去匹配请求
+    /// </remarks>
     public class MessageCodec<T> : Handler
     {
         /// <summary>消息队列。用于匹配请求响应包</summary>
@@ -31,8 +34,13 @@ namespace NewLife.Net.Handlers
                 message = Encode(context, msg);
                 if (message == null) return null;
 
-                // 加入队列
-                AddToQueue(context, msg);
+                // 加入队列，忽略请求消息
+                if (message is IMessage msg2)
+                {
+                    if (!msg2.Reply) AddToQueue(context, msg);
+                }
+                else
+                    AddToQueue(context, msg);
             }
 
             return base.Write(context, message);
