@@ -785,10 +785,10 @@ namespace NewLife
             {
                 if (sb.Length > 0)
                 {
-                    if (groupSize > 0 && i % groupSize == 0)
-                        sb.AppendLine();
-                    else
+                    if (groupSize <= 0 || i % groupSize == 0)
                         sb.Append(separate);
+                    //else
+                    //    sb.AppendLine();
                 }
 
                 var b = data[i];

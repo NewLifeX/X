@@ -52,6 +52,12 @@ namespace NewLife.Serialization
         /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，默认false</summary>
         public Boolean Int64AsString { get; set; }
 
+        ///// <summary>整数序列化为十六进制</summary>
+        //public Boolean IntAsHex { get; set; }
+
+        /// <summary>字节数组序列化为HEX。默认false，使用base64</summary>
+        public Boolean ByteArrayAsHex { get; set; }
+
         /// <summary>缩进字符数。默认2</summary>
         public Int32 IndentedLength { get; set; } = 4;
 
@@ -145,9 +151,14 @@ namespace NewLife.Serialization
             else if (obj is IDictionary dictionary1)
                 WriteDictionary(dictionary1);
             else if (obj is Byte[] buf)
-                WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            {
+                if (ByteArrayAsHex)
+                    WriteStringFast(buf.ToHex());
+                else
+                    WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            }
             else if (obj is Packet pk)
-                WriteStringFast(pk.ToBase64());
+                WriteStringFast(ByteArrayAsHex ? pk.ToHex(-1) : pk.ToBase64());
             else if (obj is StringDictionary dictionary2)
                 WriteSD(dictionary2);
 
