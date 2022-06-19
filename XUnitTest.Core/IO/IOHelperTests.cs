@@ -49,33 +49,25 @@ public class IOHelperTests
         Assert.Equal("大石头", value);
     }
 
-    [Fact]
-    public void ToHex()
-    {
-        var buf = "NewLife".GetBytes();
-        var hex = buf.ToHex();
+        [Fact]
+        public void ToHex()
+        {
+            var buf="NewLife".GetBytes();
+            var hex = buf.ToHex();
 
-        Assert.Equal("4E65774C696665", hex);
+            Assert.Equal("4E65774C696665", hex);
 
-        hex = buf.ToHex("-");
-        Assert.Equal("4E-65-77-4C-69-66-65", hex);
+            hex = buf.ToHex("-");
+            Assert.Equal("4E-65-77-4C-69-66-65", hex);
 
-        hex = buf.ToHex("-", 4, 6);
-        Assert.Equal("4E65774C-6966", hex);
+            hex = buf.ToHex("-", 4, 6);
+            Assert.Equal("4E65774C-6966", hex);
+        }
 
-        Byte b = 0x05;
-        var str = b.ToHex();
-        Assert.Equal("05", str);
-
-        b = 0xab;
-        str = b.ToHex();
-        Assert.Equal("AB", str);
-    }
-
-    [Fact]
-    public void Swap()
-    {
-        var data = "12345678";
+        [Fact]
+        public void Swap()
+        {
+            var data = "12345678";
 
         var buf = data.ToHex().Swap(false, false);
         Assert.Equal("12345678", buf.ToHex());
