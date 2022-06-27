@@ -22,8 +22,8 @@ namespace NewLife.Serialization
         /// <summary>使用指定大小的FieldSizeAttribute特性，默认false</summary>
         public Boolean UseFieldSize { get; set; }
 
-        /// <summary>使用对象引用，默认true</summary>
-        public Boolean UseRef { get; set; } = true;
+        /// <summary>使用对象引用，默认false</summary>
+        public Boolean UseRef { get; set; } = false;
 
         /// <summary>大小宽度。可选0/1/2/4，默认0表示压缩编码整数</summary>
         public Int32 SizeWidth { get; set; }
