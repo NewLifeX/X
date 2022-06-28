@@ -43,7 +43,7 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
-            var context = new AccessorContext { Host = Host, Type = type, Value = value };
+            var context = new AccessorContext { Host = Host, Type = type, Value = value, UserState = Host.UserState };
 
             // 获取成员
             foreach (var member in ms)
@@ -129,7 +129,7 @@ namespace NewLife.Serialization
 
             Host.Hosts.Push(value);
 
-            var context = new AccessorContext { Host = Host, Type = type, Value = value };
+            var context = new AccessorContext { Host = Host, Type = type, Value = value, UserState = Host.UserState };
 
             // 获取成员
             for (var i = 0; i < ms.Count; i++)
