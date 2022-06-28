@@ -26,6 +26,9 @@ namespace NewLife.Serialization
 
         /// <summary>序列化属性而不是字段。默认true</summary>
         Boolean UseProperty { get; set; }
+
+        /// <summary>用户对象。存放序列化过程中使用的用户自定义对象</summary>
+        Object UserState { get; set; }
         #endregion
 
         #region 方法
@@ -99,6 +102,9 @@ namespace NewLife.Serialization
 
         /// <summary>序列化属性而不是字段。默认true</summary>
         public Boolean UseProperty { get; set; } = true;
+
+        /// <summary>用户对象。存放序列化过程中使用的用户自定义对象</summary>
+        public Object UserState { get; set; }
         #endregion
 
         #region 方法
