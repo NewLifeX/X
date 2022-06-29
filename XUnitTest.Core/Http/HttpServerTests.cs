@@ -148,9 +148,11 @@ namespace XUnitTest.Http
         {
             _server.Map("/ws", new WebSocketHandler());
 
+            var content = "Hello NewLife".GetBytes();
+
             var client = new ClientWebSocket();
             await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
-            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+            await client.SendAsync(content, System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
             var buf = new Byte[1024];
             var rs = await client.ReceiveAsync(buf, default);
