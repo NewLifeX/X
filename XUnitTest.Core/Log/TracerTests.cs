@@ -315,7 +315,7 @@ namespace XUnitTest.Log
 
             var span = builder.ErrorSamples[0];
             //Assert.Equal("tracer_test v1.3", span.Tag);
-            Assert.Equal("/notfound?name=stone", span.Tag);
+            Assert.StartsWith("GET https://www.newlifexxx.com/notfound?name=stone", span.Tag);
         }
 
         [Fact]
@@ -374,7 +374,7 @@ namespace XUnitTest.Log
                 var span = tracer.NewSpan(request) as DefaultSpan;
 
                 Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
-                Assert.Equal("/user/query?id=12345", span.Tag);
+                Assert.StartsWith("GET http://sso.newlifex.com/user/query?id=12345", span.Tag);
             }
 
             {
@@ -383,7 +383,7 @@ namespace XUnitTest.Log
                 var span = tracer.NewSpan(request) as DefaultSpan;
 
                 Assert.Equal("user/query", span.Builder.Name);
-                Assert.Equal("user/query?id=12345", span.Tag);
+                Assert.StartsWith("GET user/query?id=12345", span.Tag);
             }
         }
 
@@ -398,7 +398,7 @@ namespace XUnitTest.Log
                 var span = tracer.NewSpan(request) as DefaultSpan;
 
                 Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
-                Assert.Equal("/user/query?id=12345", span.Tag);
+                Assert.Equal("GET http://sso.newlifex.com/user/query?id=12345", span.Tag);
             }
 
             //{
