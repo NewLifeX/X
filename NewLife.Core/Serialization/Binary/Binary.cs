@@ -28,6 +28,9 @@ namespace NewLife.Serialization
         /// <summary>大小宽度。可选0/1/2/4，默认0表示压缩编码整数</summary>
         public Int32 SizeWidth { get; set; }
 
+        /// <summary>协议版本。用于支持多版本协议序列化。例如JT/T808的2011/2019</summary>
+        public String Version { get; set; }
+
         /// <summary>要忽略的成员</summary>
         public ICollection<String> IgnoreMembers { get; set; } = new HashSet<String>();
 
@@ -269,15 +272,22 @@ namespace NewLife.Serialization
             if (Member is MemberInfo member)
             {
                 // 获取FieldSizeAttribute特性
-                var att = member.GetCustomAttribute<FieldSizeAttribute>();
-                if (att != null)
+                var atts = member.GetCustomAttributes<FieldSizeAttribute>();
+                if (atts != null)
                 {
-                    // 如果指定了固定大小，直接返回
-                    if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
+                    foreach (var att in atts)
+                    {
+                        // 检查版本是否匹配
+                        if (att.Version.IsNullOrEmpty() || att.Version == Version)
+                        {
+                            // 如果指定了固定大小，直接返回
+                            if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
 
-                    // 如果指定了引用字段，则找引用字段所表示的长度
-                    var size = att.GetReferenceSize(Hosts.Peek(), member);
-                    if (size >= 0) return size;
+                            // 如果指定了引用字段，则找引用字段所表示的长度
+                            var size = att.GetReferenceSize(Hosts.Peek(), member);
+                            if (size >= 0) return size;
+                        }
+                    }
                 }
             }
 

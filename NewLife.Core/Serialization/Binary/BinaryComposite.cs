@@ -33,8 +33,15 @@ namespace NewLife.Serialization
                 foreach (var member in ms)
                 {
                     // 获取FieldSizeAttribute特性
-                    var att = member.GetCustomAttribute<FieldSizeAttribute>();
-                    if (att != null) att.SetReferenceSize(value, member, Host.Encoding);
+                    var atts = member.GetCustomAttributes<FieldSizeAttribute>();
+                    if (atts != null)
+                    {
+                        foreach (var att in atts)
+                        {
+                            if (att.Version.IsNullOrEmpty() || att.Version == (Host as Binary).Version)
+                                att.SetReferenceSize(value, member, Host.Encoding);
+                        }
+                    }
                 }
             }
 
