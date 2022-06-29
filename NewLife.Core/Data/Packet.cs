@@ -108,15 +108,17 @@ namespace NewLife.Data
 
                 // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
                 var p = Offset + index;
-                if (p >= Offset + Count)
+                if (index >= Count)
                 {
                     if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
 
                     Next[p - Data.Length] = value;
                 }
-                if(p < Count)
+                else
+                {
                     Data[p] = value;
-                
+                }
+
                 // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
             }
         }
