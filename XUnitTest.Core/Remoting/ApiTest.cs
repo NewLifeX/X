@@ -149,6 +149,9 @@ namespace XUnitTest.Remoting
 
             var buf2 = buf.Select(e => (Byte)(e ^ 'x')).ToArray();
             Assert.True(rs.ToArray().SequenceEqual(buf2));
+
+            var ret = client.InvokeOneWay("big/TestOneWay", buf);
+
         }
 
         class BigController
@@ -160,6 +163,11 @@ namespace XUnitTest.Remoting
                 var buf = pk.ReadBytes().Select(e => (Byte)(e ^ 'x')).ToArray();
 
                 return buf;
+            }
+
+            public void TestOneWay(Packet pk)
+            {
+                Assert.Equal(5 * 8 * 1024, pk.Total);
             }
         }
 
