@@ -191,7 +191,12 @@ namespace NewLife.Remoting
 
             var act = action;
 
-            return Invoke(this, act, args, flag);
+            var rs = Cluster.Invoke(client =>
+            {
+                return Invoke(client, act, args, flag);
+            });
+            return rs;
+            //return Invoke(this, act, args, flag);//这里的参数是否是传错了? 本类没有实现 IApiSession 接口  ,修改如上
         }
 
         /// <summary>指定客户端的异步调用，等待返回结果</summary>
