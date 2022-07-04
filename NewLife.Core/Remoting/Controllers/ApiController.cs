@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
@@ -58,10 +59,11 @@ namespace NewLife.Remoting
             return _all = list.ToArray();
         }
 
+        private static readonly Int32 _pid = Process.GetCurrentProcess().Id;
         //private readonly static String _OS = Environment.OSVersion + "";
-        private readonly static String _MachineName = Environment.MachineName;
+        private static readonly String _MachineName = Environment.MachineName;
         //private readonly static String _UserName = Environment.UserName;
-        private readonly static String _LocalIP = NetHelper.MyIP() + "";
+        private static readonly String _LocalIP = NetHelper.GetIPs().Where(e => e.IsIPv4()).Join();
         /// <summary>服务器信息，用户健康检测</summary>
         /// <param name="state">状态信息</param>
         /// <returns></returns>
@@ -82,7 +84,8 @@ namespace NewLife.Remoting
 
             var rs = new
             {
-                Server = asmx?.Name,
+                Id = _pid,
+                asmx?.Name,
                 asmx?.FileVersion,
                 asmx?.Compile,
                 OS = mi?.OSName,
@@ -117,8 +120,8 @@ namespace NewLife.Remoting
                     dic["MaxOnline"] = nsvr.MaxSessionCount;
                 }
 
-                // 进程
-                dic["Process"] = GetProcess();
+                //// 进程
+                //dic["Process"] = GetProcess();
 
                 // 加上统计信息
                 dic["Stat"] = GetStat();
@@ -129,24 +132,24 @@ namespace NewLife.Remoting
             return dic;
         }
 
-        private Object GetProcess()
-        {
-            var proc = Process.GetCurrentProcess();
+        //private Object GetProcess()
+        //{
+        //    var proc = Process.GetCurrentProcess();
 
-            return new
-            {
-                Environment.ProcessorCount,
-                ProcessId = proc.Id,
-                Threads = proc.Threads.Count,
-                Handles = proc.HandleCount,
-                WorkingSet = proc.WorkingSet64,
-                PrivateMemory = proc.PrivateMemorySize64,
-                GCMemory = GC.GetTotalMemory(false),
-                GC0 = GC.GetGeneration(0),
-                GC1 = GC.GetGeneration(1),
-                GC2 = GC.GetGeneration(2),
-            };
-        }
+        //    return new
+        //    {
+        //        Environment.ProcessorCount,
+        //        //ProcessId = proc.Id,
+        //        Threads = proc.Threads.Count,
+        //        Handles = proc.HandleCount,
+        //        WorkingSet = proc.WorkingSet64,
+        //        PrivateMemory = proc.PrivateMemorySize64,
+        //        GCMemory = GC.GetTotalMemory(false),
+        //        GC0 = GC.GetGeneration(0),
+        //        GC1 = GC.GetGeneration(1),
+        //        GC2 = GC.GetGeneration(2),
+        //    };
+        //}
 
         private Object GetStat()
         {
