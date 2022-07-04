@@ -120,8 +120,8 @@ namespace NewLife.Remoting
                     dic["MaxOnline"] = nsvr.MaxSessionCount;
                 }
 
-                // 进程
-                dic["Process"] = GetProcess();
+                //// 进程
+                //dic["Process"] = GetProcess();
 
                 // 加上统计信息
                 dic["Stat"] = GetStat();
@@ -132,24 +132,24 @@ namespace NewLife.Remoting
             return dic;
         }
 
-        private Object GetProcess()
-        {
-            var proc = Process.GetCurrentProcess();
+        //private Object GetProcess()
+        //{
+        //    var proc = Process.GetCurrentProcess();
 
-            return new
-            {
-                Environment.ProcessorCount,
-                //ProcessId = proc.Id,
-                Threads = proc.Threads.Count,
-                Handles = proc.HandleCount,
-                WorkingSet = proc.WorkingSet64,
-                PrivateMemory = proc.PrivateMemorySize64,
-                GCMemory = GC.GetTotalMemory(false),
-                GC0 = GC.GetGeneration(0),
-                GC1 = GC.GetGeneration(1),
-                GC2 = GC.GetGeneration(2),
-            };
-        }
+        //    return new
+        //    {
+        //        Environment.ProcessorCount,
+        //        //ProcessId = proc.Id,
+        //        Threads = proc.Threads.Count,
+        //        Handles = proc.HandleCount,
+        //        WorkingSet = proc.WorkingSet64,
+        //        PrivateMemory = proc.PrivateMemorySize64,
+        //        GCMemory = GC.GetTotalMemory(false),
+        //        GC0 = GC.GetGeneration(0),
+        //        GC1 = GC.GetGeneration(1),
+        //        GC2 = GC.GetGeneration(2),
+        //    };
+        //}
 
         private Object GetStat()
         {
