@@ -282,10 +282,10 @@ namespace NewLife.Caching
                     {
                         Name = Name + "Pool",
                         Instance = this,
-                        Min = 2,
-                        Max = 1000,
-                        IdleTime = 20,
-                        AllIdleTime = 120,
+                        Min = 10,
+                        Max = 100000,
+                        IdleTime = 30,
+                        AllIdleTime = 300,
                         Log = Log,
                     };
 

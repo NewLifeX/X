@@ -613,7 +613,7 @@ namespace NewLife.Http
             return _Cache.GetOrAdd(host, k => new ObjectPool<TinyHttpClient>
             {
                 Min = 0,
-                Max = 1000,
+                Max = 100000,
                 IdleTime = 10,
                 AllIdleTime = 60
             });
