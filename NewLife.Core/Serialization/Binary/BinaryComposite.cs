@@ -216,7 +216,7 @@ namespace NewLife.Serialization
         {
             if (_cache.TryGetValue(member, out acc)) return acc != null;
 
-            var atts = member.GetCustomAttributes();
+            var atts = member.GetCustomAttributes(false);
             acc = atts.FirstOrDefault(e => e is IMemberAccessor) as IMemberAccessor;
 
             _cache[member] = acc;
