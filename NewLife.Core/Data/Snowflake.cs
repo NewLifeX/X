@@ -2,8 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using NewLife.Caching;
-using NewLife.Common;
-using NewLife.Log;
+using NewLife.Security;
 
 namespace NewLife.Data
 {
@@ -43,6 +42,24 @@ namespace NewLife.Data
         private Int64 _lastTime;
         #endregion
 
+        #region 静态构造
+        private static readonly Int32 _instance;
+        static Snowflake()
+        {
+            try
+            {
+                var ip = NetHelper.MyIP();
+                var buf = ip.GetAddressBytes();
+                _instance = (buf[2] << 8) | buf[3];
+            }
+            catch
+            {
+                // 异常时随机
+                _instance = Rand.Next(1, 1024);
+            }
+        }
+        #endregion
+
         #region 核心方法
         private void Init()
         {
@@ -52,7 +69,7 @@ namespace NewLife.Data
             // 初始化WorkerId，取5位实例加上5位进程，确保同一台机器的WorkerId不同
             if (WorkerId <= 0)
             {
-                var nodeId = SysConfig.Current.Instance;
+                var nodeId = _instance;
                 var pid = Process.GetCurrentProcess().Id;
                 var tid = Thread.CurrentThread.ManagedThreadId;
                 //WorkerId = ((nodeId & 0x1F) << 5) | (pid & 0x1F);
