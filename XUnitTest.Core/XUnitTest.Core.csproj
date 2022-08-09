@@ -16,14 +16,17 @@
   <ItemGroup>
     <Compile Remove="Expressions\**" />
     <Compile Remove="Json\**" />
+    <Compile Remove="Remoting\**" />
     <Compile Remove="TestEntity\**" />
     <Compile Remove="Yun\**" />
     <EmbeddedResource Remove="Expressions\**" />
     <EmbeddedResource Remove="Json\**" />
+    <EmbeddedResource Remove="Remoting\**" />
     <EmbeddedResource Remove="TestEntity\**" />
     <EmbeddedResource Remove="Yun\**" />
     <None Remove="Expressions\**" />
     <None Remove="Json\**" />
+    <None Remove="Remoting\**" />
     <None Remove="TestEntity\**" />
     <None Remove="Yun\**" />
   </ItemGroup>
@@ -32,6 +35,7 @@
     <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
     <Compile Remove="Caching\RedisTest.cs" />
     <Compile Remove="Collections\BloomFilterTests.cs" />
+    <Compile Remove="Http\HttpCodecTests.cs" />
     <Compile Remove="Http\TinyHttpClientTest.cs" />
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />

@@ -57,17 +57,23 @@
     <Compile Remove="Compression\**" />
     <Compile Remove="Expressions\**" />
     <Compile Remove="Json\**" />
+    <Compile Remove="Remoting\Controllers\**" />
+    <Compile Remove="Remoting\Filters\**" />
     <Compile Remove="Web\OAuth\**" />
     <Compile Remove="Yun\**" />
     <EmbeddedResource Remove="Applications\**" />
     <EmbeddedResource Remove="Compression\**" />
     <EmbeddedResource Remove="Expressions\**" />
     <EmbeddedResource Remove="Json\**" />
+    <EmbeddedResource Remove="Remoting\Controllers\**" />
+    <EmbeddedResource Remove="Remoting\Filters\**" />
     <EmbeddedResource Remove="Yun\**" />
     <None Remove="Applications\**" />
     <None Remove="Compression\**" />
     <None Remove="Expressions\**" />
     <None Remove="Json\**" />
+    <None Remove="Remoting\Controllers\**" />
+    <None Remove="Remoting\Filters\**" />
     <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
@@ -85,6 +91,7 @@
     <Compile Remove="Caching\RedisEncoder.cs" />
     <Compile Remove="Collections\BloomFilter.cs" />
     <Compile Remove="Collections\DictionaryCache.cs" />
+    <Compile Remove="Collections\ICluster.cs" />
     <Compile Remove="Collections\QueueService.cs" />
     <Compile Remove="Data\BinaryTree.cs" />
     <Compile Remove="Data\GeoAddress.cs" />
@@ -93,6 +100,8 @@
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />
+    <Compile Remove="Http\HttpCodec.cs" />
+    <Compile Remove="Http\HttpEncoder.cs" />
     <Compile Remove="Http\IHttpClientFactory.cs" />
     <Compile Remove="Http\TinyHttpClient.cs" />
     <Compile Remove="IO\EncodingHelper.cs" />
@@ -109,6 +118,23 @@
     <Compile Remove="Reflection\EmitHelper.cs" />
     <Compile Remove="Reflection\EmitReflect.cs" />
     <Compile Remove="Reflection\IIndexAccessor.cs" />
+    <Compile Remove="Remoting\ApiAction.cs" />
+    <Compile Remove="Remoting\ApiAttribute.cs" />
+    <Compile Remove="Remoting\ApiClient.cs" />
+    <Compile Remove="Remoting\ApiHost.cs" />
+    <Compile Remove="Remoting\ApiHttpServer.cs" />
+    <Compile Remove="Remoting\ApiNetServer.cs" />
+    <Compile Remove="Remoting\ApiServer.cs" />
+    <Compile Remove="Remoting\ClientPoolCluster.cs" />
+    <Compile Remove="Remoting\ClientSingleCluster.cs" />
+    <Compile Remove="Remoting\IApi.cs" />
+    <Compile Remove="Remoting\IApiHandler.cs" />
+    <Compile Remove="Remoting\IApiHost.cs" />
+    <Compile Remove="Remoting\IApiManager.cs" />
+    <Compile Remove="Remoting\IApiServer.cs" />
+    <Compile Remove="Remoting\IApiSession.cs" />
+    <Compile Remove="Remoting\IEncoder.cs" />
+    <Compile Remove="Remoting\JsonEncoder.cs" />
     <Compile Remove="Security\AlgorithmKeyBlob.cs" />
     <Compile Remove="Security\Certificate.cs" />
     <Compile Remove="Security\ECDsaHelper.cs" />
@@ -132,6 +158,8 @@
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Remoting\ApiClient.cd" />
+    <None Remove="Remoting\ApiServer.cd" />
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
     <None Remove="说明.txt" />

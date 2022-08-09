@@ -205,44 +205,44 @@ namespace XUnitTest.Model
             public MyService(ICache cache, ILog log) => Kind = 3;
         }
 
-        [Fact]
-        public void AddApiHttpClient()
-        {
-            var ioc = new ObjectContainer();
+        //[Fact]
+        //public void AddApiHttpClient()
+        //{
+        //    var ioc = new ObjectContainer();
 
-            var config = new ConfigProvider();
-            config["orderService"] = "3*http://127.0.0.1:1234,5*http://10.0.0.1:1234";
-            ioc.AddSingleton<IConfigProvider>(config);
-            ioc.AddSingleton<IApiClient>(provider => new ApiHttpClient(provider, "orderService"));
+        //    var config = new ConfigProvider();
+        //    config["orderService"] = "3*http://127.0.0.1:1234,5*http://10.0.0.1:1234";
+        //    ioc.AddSingleton<IConfigProvider>(config);
+        //    ioc.AddSingleton<IApiClient>(provider => new ApiHttpClient(provider, "orderService"));
 
-            var prv = ioc.BuildServiceProvider();
+        //    var prv = ioc.BuildServiceProvider();
 
-            var client = prv.GetService<IApiClient>() as ApiHttpClient;
-            var ss = client.Services;
-            Assert.Equal(2, ss.Count);
-            Assert.Equal(3, ss[0].Weight);
-            Assert.Equal("http://127.0.0.1:1234/", ss[0].Address + "");
-            Assert.Equal(5, ss[1].Weight);
-            Assert.Equal("http://10.0.0.1:1234/", ss[1].Address + "");
+        //    var client = prv.GetService<IApiClient>() as ApiHttpClient;
+        //    var ss = client.Services;
+        //    Assert.Equal(2, ss.Count);
+        //    Assert.Equal(3, ss[0].Weight);
+        //    Assert.Equal("http://127.0.0.1:1234/", ss[0].Address + "");
+        //    Assert.Equal(5, ss[1].Weight);
+        //    Assert.Equal("http://10.0.0.1:1234/", ss[1].Address + "");
 
-            // 改变无关配置，不影响对象属性
-            config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
-            config.SaveAll();
-            Assert.Equal(ss, client.Services);
+        //    // 改变无关配置，不影响对象属性
+        //    config["orderRedis"] = "server=10.0.0.1:6379;password=word;db=13";
+        //    config.SaveAll();
+        //    Assert.Equal(ss, client.Services);
 
-            // 改变配置数据，影响对象属性
-            config["orderService"] = "3*http://127.0.0.1:1234,7*http://192.168.0.1:1234,5*http://10.0.0.1:1234";
-            config.SaveAll();
+        //    // 改变配置数据，影响对象属性
+        //    config["orderService"] = "3*http://127.0.0.1:1234,7*http://192.168.0.1:1234,5*http://10.0.0.1:1234";
+        //    config.SaveAll();
 
-            Assert.NotEqual(ss, client.Services);
-            ss = client.Services;
-            Assert.Equal(3, ss.Count);
-            Assert.Equal(3, ss[0].Weight);
-            Assert.Equal("http://127.0.0.1:1234/", ss[0].Address + "");
-            Assert.Equal(7, ss[1].Weight);
-            Assert.Equal("http://192.168.0.1:1234/", ss[1].Address + "");
-            Assert.Equal(5, ss[2].Weight);
-            Assert.Equal("http://10.0.0.1:1234/", ss[2].Address + "");
-        }
+        //    Assert.NotEqual(ss, client.Services);
+        //    ss = client.Services;
+        //    Assert.Equal(3, ss.Count);
+        //    Assert.Equal(3, ss[0].Weight);
+        //    Assert.Equal("http://127.0.0.1:1234/", ss[0].Address + "");
+        //    Assert.Equal(7, ss[1].Weight);
+        //    Assert.Equal("http://192.168.0.1:1234/", ss[1].Address + "");
+        //    Assert.Equal(5, ss[2].Weight);
+        //    Assert.Equal("http://10.0.0.1:1234/", ss[2].Address + "");
+        //}
     }
 }
