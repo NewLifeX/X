@@ -80,6 +80,8 @@
     <Compile Remove="Http\HttpClient.cs" />
     <Compile Remove="Http\IHttpClientFactory.cs" />
     <Compile Remove="Http\TinyHttpClient.cs" />
+    <Compile Remove="IO\EncodingHelper.cs" />
+    <Compile Remove="IO\FileSource.cs" />
     <Compile Remove="Log\CodeTimer.cs" />
     <Compile Remove="Log\TimeCost.cs" />
     <Compile Remove="Log\TraceStream.cs" />

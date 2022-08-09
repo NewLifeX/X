@@ -239,33 +239,33 @@ namespace System.IO
             return file;
         }
 
-        /// <summary>读取所有文本，自动检测编码</summary>
-        /// <remarks>性能较File.ReadAllText略慢，可通过提前检测BOM编码来优化</remarks>
-        /// <param name="file"></param>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        public static String ReadText(this FileInfo file, Encoding encoding = null)
-        {
-            using var fs = file.OpenRead();
-            if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
-            using var reader = new StreamReader(fs, encoding);
-            return reader.ReadToEnd();
-        }
+        ///// <summary>读取所有文本，自动检测编码</summary>
+        ///// <remarks>性能较File.ReadAllText略慢，可通过提前检测BOM编码来优化</remarks>
+        ///// <param name="file"></param>
+        ///// <param name="encoding"></param>
+        ///// <returns></returns>
+        //public static String ReadText(this FileInfo file, Encoding encoding = null)
+        //{
+        //    using var fs = file.OpenRead();
+        //    if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+        //    using var reader = new StreamReader(fs, encoding);
+        //    return reader.ReadToEnd();
+        //}
 
-        /// <summary>把文本写入文件，自动检测编码</summary>
-        /// <param name="file"></param>
-        /// <param name="text"></param>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        public static FileInfo WriteText(this FileInfo file, String text, Encoding encoding = null)
-        {
-            using var fs = file.OpenWrite();
-            if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
-            using var writer = new StreamWriter(fs, encoding);
-            writer.Write(text);
+        ///// <summary>把文本写入文件，自动检测编码</summary>
+        ///// <param name="file"></param>
+        ///// <param name="text"></param>
+        ///// <param name="encoding"></param>
+        ///// <returns></returns>
+        //public static FileInfo WriteText(this FileInfo file, String text, Encoding encoding = null)
+        //{
+        //    using var fs = file.OpenWrite();
+        //    if (encoding == null) encoding = fs.Detect() ?? Encoding.UTF8;
+        //    using var writer = new StreamWriter(fs, encoding);
+        //    writer.Write(text);
 
-            return file;
-        }
+        //    return file;
+        //}
 
         /// <summary>复制到目标文件，目标文件必须已存在，且源文件较新</summary>
         /// <param name="fi">源文件</param>
