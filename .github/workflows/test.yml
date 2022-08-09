@@ -25,19 +25,3 @@ jobs:
       run: |
         dotnet build -c Release NewLife.Core\NewLife.Core.csproj
         dotnet build -c Release NewLife.Security\NewLife.Security.csproj
-
-  test-redis:
-    runs-on: windows-latest
-    needs: build
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 6.0.x
-    - name: Redis Server
-      uses: nnhy/redis-github-action@v1.0
-    - name: Test
-      run: |
-        dotnet test -c Release XUnitTest.Core\XUnitTest.Core.csproj
