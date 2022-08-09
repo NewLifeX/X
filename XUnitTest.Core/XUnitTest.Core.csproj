@@ -33,6 +33,7 @@
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
+    <Compile Remove="Yun\BaiduMapTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="IO\excel.xlsx" />

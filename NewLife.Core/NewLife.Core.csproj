@@ -84,6 +84,9 @@
     <Compile Remove="Collections\DictionaryCache.cs" />
     <Compile Remove="Collections\QueueService.cs" />
     <Compile Remove="Data\BinaryTree.cs" />
+    <Compile Remove="Data\GeoAddress.cs" />
+    <Compile Remove="Data\GeoArea.cs" />
+    <Compile Remove="Data\GeoPoint.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />
@@ -123,6 +126,11 @@
     <Compile Remove="Windows\MySpeech.cs" />
     <Compile Remove="Windows\SpeechRecognition.cs" />
     <Compile Remove="Xml\SerializableDictionary.cs" />
+    <Compile Remove="Yun\AMap.cs" />
+    <Compile Remove="Yun\BaiduMap.cs" />
+    <Compile Remove="Yun\Driving.cs" />
+    <Compile Remove="Yun\Map.cs" />
+    <Compile Remove="Yun\WeMap.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
