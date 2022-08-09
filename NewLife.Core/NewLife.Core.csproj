@@ -56,13 +56,16 @@
     <Compile Remove="Applications\**" />
     <Compile Remove="Compression\**" />
     <Compile Remove="Expressions\**" />
+    <Compile Remove="Json\**" />
     <Compile Remove="Web\OAuth\**" />
     <EmbeddedResource Remove="Applications\**" />
     <EmbeddedResource Remove="Compression\**" />
     <EmbeddedResource Remove="Expressions\**" />
+    <EmbeddedResource Remove="Json\**" />
     <None Remove="Applications\**" />
     <None Remove="Compression\**" />
     <None Remove="Expressions\**" />
+    <None Remove="Json\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\BilinearInterpolation.cs" />

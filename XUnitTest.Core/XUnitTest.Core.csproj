@@ -15,10 +15,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Expressions\**" />
+    <Compile Remove="Json\**" />
     <Compile Remove="TestEntity\**" />
     <EmbeddedResource Remove="Expressions\**" />
+    <EmbeddedResource Remove="Json\**" />
     <EmbeddedResource Remove="TestEntity\**" />
     <None Remove="Expressions\**" />
+    <None Remove="Json\**" />
     <None Remove="TestEntity\**" />
   </ItemGroup>
   <ItemGroup>
