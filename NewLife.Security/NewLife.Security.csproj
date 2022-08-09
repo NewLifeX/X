@@ -39,10 +39,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Security\AlgorithmKeyBlob.cs" Link="AlgorithmKeyBlob.cs" />
     <Compile Include="..\NewLife.Core\Security\ECDsaHelper.cs" Link="ECDsaHelper.cs" />
+    <Compile Include="..\NewLife.Core\Security\ECKey.cs" Link="ECKey.cs" />
   </ItemGroup>
 
-  <ItemGroup >
+  <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.Cng">
       <Version>5.0.0</Version>
     </PackageReference>

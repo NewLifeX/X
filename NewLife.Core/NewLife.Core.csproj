@@ -88,7 +88,10 @@
     <Compile Remove="Reflection\EmitHelper.cs" />
     <Compile Remove="Reflection\EmitReflect.cs" />
     <Compile Remove="Reflection\IIndexAccessor.cs" />
+    <Compile Remove="Security\AlgorithmKeyBlob.cs" />
+    <Compile Remove="Security\Certificate.cs" />
     <Compile Remove="Security\ECDsaHelper.cs" />
+    <Compile Remove="Security\ECKey.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
     <Compile Remove="Serialization\Binary\BinaryPair.cs" />
