@@ -334,7 +334,7 @@ namespace NewLife.Net
                 if (ioThread)
                     ProcessEvent(se, -1, true);
                 else
-                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1, false), se);
+                    ThreadPool.QueueUserWorkItem(s => ProcessEvent(s as SocketAsyncEventArgs, -1, false), se);
             }
 
             return true;

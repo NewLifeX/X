@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Http;
 using NewLife.Log;
@@ -136,9 +137,9 @@ namespace NewLife.Remoting
                     }
                 }
 
-                ThreadPoolX.QueueUserWorkItem(m =>
+                ThreadPool.QueueUserWorkItem(m =>
                 {
-                    var rs = _Host.Process(this, m);
+                    var rs = _Host.Process(this, m as IMessage);
                     if (rs != null && Session != null && !Session.Disposed) Session?.SendMessage(rs);
                 }, msg);
             }

@@ -36,7 +36,7 @@ namespace XUnitTest.Caching
             Assert.Equal(2, ss.Length);
 
             XTrace.WriteLine("begin TokeOneAsync");
-            ThreadPoolX.QueueUserWorkItem(() =>
+            ThreadPool.QueueUserWorkItem(s =>
             {
                 Thread.Sleep(1100);
                 XTrace.WriteLine("add message");

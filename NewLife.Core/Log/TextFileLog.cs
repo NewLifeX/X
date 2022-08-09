@@ -322,7 +322,7 @@ namespace NewLife.Log
                 }
                 else
                 {
-                    ThreadPoolX.QueueUserWorkItem(() =>
+                    ThreadPool.QueueUserWorkItem(s =>
                     {
                         try
                         {
