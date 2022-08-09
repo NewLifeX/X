@@ -58,14 +58,17 @@
     <Compile Remove="Expressions\**" />
     <Compile Remove="Json\**" />
     <Compile Remove="Web\OAuth\**" />
+    <Compile Remove="Yun\**" />
     <EmbeddedResource Remove="Applications\**" />
     <EmbeddedResource Remove="Compression\**" />
     <EmbeddedResource Remove="Expressions\**" />
     <EmbeddedResource Remove="Json\**" />
+    <EmbeddedResource Remove="Yun\**" />
     <None Remove="Applications\**" />
     <None Remove="Compression\**" />
     <None Remove="Expressions\**" />
     <None Remove="Json\**" />
+    <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\BilinearInterpolation.cs" />
@@ -126,11 +129,6 @@
     <Compile Remove="Windows\MySpeech.cs" />
     <Compile Remove="Windows\SpeechRecognition.cs" />
     <Compile Remove="Xml\SerializableDictionary.cs" />
-    <Compile Remove="Yun\AMap.cs" />
-    <Compile Remove="Yun\BaiduMap.cs" />
-    <Compile Remove="Yun\Driving.cs" />
-    <Compile Remove="Yun\Map.cs" />
-    <Compile Remove="Yun\WeMap.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>

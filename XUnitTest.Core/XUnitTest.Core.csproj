@@ -17,12 +17,15 @@
     <Compile Remove="Expressions\**" />
     <Compile Remove="Json\**" />
     <Compile Remove="TestEntity\**" />
+    <Compile Remove="Yun\**" />
     <EmbeddedResource Remove="Expressions\**" />
     <EmbeddedResource Remove="Json\**" />
     <EmbeddedResource Remove="TestEntity\**" />
+    <EmbeddedResource Remove="Yun\**" />
     <None Remove="Expressions\**" />
     <None Remove="Json\**" />
     <None Remove="TestEntity\**" />
+    <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\LTOBDownSamplingTests.cs" />
@@ -33,7 +36,6 @@
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
-    <Compile Remove="Yun\BaiduMapTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="IO\excel.xlsx" />
