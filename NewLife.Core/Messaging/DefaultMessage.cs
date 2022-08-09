@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -17,20 +16,6 @@ namespace NewLife.Messaging
     /// 如：
     /// Open => OK
     /// 01-01-04-00-"Open" => 81-01-02-00-"OK"
-    /// 
-    /// 
-    /// 字符串协议最大优势是可读性极强，适用于物联网模组的AT指令通信。
-    /// 缺点是字符串序列化成本很高，且指令比较长。
-    /// 字符串封包协议：Length,Sequence[,Flag]:Payload
-    /// 字符串表示的负载长度，逗号之后是字符串表示的序列号，然后分号隔开字符串负载。
-    /// 负载长度是字节长度；
-    /// 标记位根据需要可选；
-    /// 如：
-    /// Open => 执行成功
-    /// 4,1,1:Open => 12,1,129:执行成功
-    /// 简化版：
-    /// 4,1:Open => 12,1:执行成功
-    /// 
     /// </remarks>
     public class DefaultMessage : Message
     {
@@ -145,82 +130,6 @@ namespace NewLife.Messaging
             }
 
             return pk;
-        }
-        #endregion
-
-        #region 字符串指令格式
-        /// <summary>从字符串中读取字符串消息</summary>
-        /// <param name="encoding">编码</param>
-        /// <param name="value">字符串</param>
-        /// <returns>是否成功</returns>
-        public Boolean Decode(String value, Encoding encoding = null)
-        {
-            if (value.IsNullOrEmpty() || value.Length < 4) throw new ArgumentOutOfRangeException(nameof(value), "数据包长度不足4字节");
-
-            // 长度
-            var p = value.IndexOf(':');
-            if (p < 0) return false;
-            var header = value[..p];
-
-            var ss = header.Split(',');
-            if (ss.Length < 2) return false;
-
-            var len = ss[0].ToInt();
-            Sequence = ss[1].ToInt();
-            if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
-
-            var pk = new Packet(value[(p + 1)..].GetBytes(encoding));
-            if (len > pk.Count) return false;
-
-            Payload = pk.Slice(0, len);
-
-            return true;
-        }
-
-        /// <summary>从数据包中读取字符串消息</summary>
-        /// <param name="pk">数据包</param>
-        /// <returns>是否成功</returns>
-        public Boolean Decode(Packet pk)
-        {
-            if (pk == null || pk.Total < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包长度不足4字节");
-
-            // 头部
-            var p = pk.IndexOf(new[] { (Byte)':' });
-            if (p < 0) return false;
-            var header = pk.Slice(0, p).ToStr();
-
-            var ss = header.Split(',');
-            if (ss.Length < 2) return false;
-
-            var len = ss[0].ToInt();
-            Sequence = ss[1].ToInt();
-            if (ss.Length > 2) Flag = (Byte)ss[2].ToInt();
-
-            if (p + 1 + len > pk.Total) return false;
-
-            Payload = pk.Slice(p + 1, len);
-
-            return true;
-        }
-
-        /// <summary>把消息转为字符串封包</summary>
-        /// <param name="encoding">编码</param>
-        /// <param name="includeFlag">是否包含标识位</param>
-        /// <returns></returns>
-        public String Encode(Encoding encoding = null, Boolean includeFlag = true)
-        {
-            var pk = Payload;
-            var len = 0;
-            if (pk != null) len = pk.Total;
-
-            if (!includeFlag) return $"{len},{Sequence}:{pk?.ToStr(encoding)}";
-
-            // 标记位
-            var b = Flag & 0b0011_1111;
-            if (Reply) b |= 0x80;
-            if (Error || OneWay) b |= 0x40;
-
-            return $"{len},{Sequence},{b}:{pk?.ToStr(encoding)}";
         }
         #endregion
 
