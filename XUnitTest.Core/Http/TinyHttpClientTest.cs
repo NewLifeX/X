@@ -6,7 +6,7 @@ using Xunit;
 using NewLife;
 using NewLife.Log;
 
-namespace XUnitTest.Core
+namespace XUnitTest.Http
 {
     public class TinyHttpClientTest
     {

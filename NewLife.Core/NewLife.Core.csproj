@@ -69,7 +69,10 @@
     <Compile Remove="Caching\RedisClient.cs" />
     <Compile Remove="Caching\RedisEncoder.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
+    <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />
+    <Compile Remove="Http\IHttpClientFactory.cs" />
+    <Compile Remove="Http\TinyHttpClient.cs" />
     <Compile Remove="Net\NetException.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />
@@ -97,14 +100,13 @@
   <ItemGroup>
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
+    <None Remove="说明.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UpdateInfo.txt" />
     <EmbeddedResource Include="Windows\MySpeech.cs" />
-    <EmbeddedResource Include="X组件.txt" />
   </ItemGroup>
 
 </Project>

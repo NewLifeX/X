@@ -7,6 +7,7 @@ using NewLife.Http;
 using NewLife.Yun;
 using Xunit;
 using NewLife;
+using System.Net.Http;
 
 namespace XUnitTest.Yun
 {
@@ -15,7 +16,7 @@ namespace XUnitTest.Yun
         [Fact]
         public async void IpLocation()
         {
-            var html = new TinyHttpClient().GetString("http://myip.ipip.net");
+            var html = new HttpClient().GetString("http://myip.ipip.net");
             var ip = html?.Substring("IP：", " ");
             Assert.NotEmpty(ip);
 
