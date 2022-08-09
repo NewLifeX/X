@@ -119,6 +119,7 @@
     <Compile Remove="Web\WebHelper.cs" />
     <Compile Remove="Windows\MySpeech.cs" />
     <Compile Remove="Windows\SpeechRecognition.cs" />
+    <Compile Remove="Xml\SerializableDictionary.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
