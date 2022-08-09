@@ -25,6 +25,7 @@
     <Compile Remove="Algorithms\LTOBDownSamplingTests.cs" />
     <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
     <Compile Remove="Caching\RedisTest.cs" />
+    <Compile Remove="Collections\BloomFilterTests.cs" />
     <Compile Remove="Http\TinyHttpClientTest.cs" />
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />

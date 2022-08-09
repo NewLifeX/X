@@ -71,6 +71,7 @@
     <Compile Remove="Caching\Redis.cs" />
     <Compile Remove="Caching\RedisClient.cs" />
     <Compile Remove="Caching\RedisEncoder.cs" />
+    <Compile Remove="Collections\BloomFilter.cs" />
     <Compile Remove="Data\BinaryTree.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\DefaultHttpClientFactory.cs" />
@@ -80,6 +81,7 @@
     <Compile Remove="Log\CodeTimer.cs" />
     <Compile Remove="Log\TimeCost.cs" />
     <Compile Remove="Log\TraceStream.cs" />
+    <Compile Remove="Model\IFactory.cs" />
     <Compile Remove="Net\NetException.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />
