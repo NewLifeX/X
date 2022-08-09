@@ -68,6 +68,7 @@
     <Compile Remove="Caching\Redis.cs" />
     <Compile Remove="Caching\RedisClient.cs" />
     <Compile Remove="Caching\RedisEncoder.cs" />
+    <Compile Remove="Data\BinaryTree.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />
