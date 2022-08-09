@@ -299,6 +299,8 @@ namespace XUnitTest.Caching
 
             Assert.True(File.Exists(file));
 
+            var type = Type.GetType("NewLife.Data.GeoArea");
+
             var mc2 = new MemoryCache();
             mc2.Load(file, compressed);
 
