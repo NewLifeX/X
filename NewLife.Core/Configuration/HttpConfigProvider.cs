@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
@@ -47,7 +46,7 @@ public class HttpConfigProvider : ConfigProvider
     public Int32 Period { get; set; } = 60;
 
     /// <summary>Api客户端</summary>
-    public HttpClient Client { get; set; }
+    public IApiClient Client { get; set; }
 
     /// <summary>服务器信息。配置中心最后一次接口响应，包含配置数据以外的其它内容</summary>
     public IDictionary<String, Object> Info { get; set; }
@@ -98,14 +97,13 @@ public class HttpConfigProvider : ConfigProvider
     #endregion
 
     #region 方法
-    private HttpClient GetClient()
+    private IApiClient GetClient()
     {
         if (Client == null)
         {
-            Client = new HttpClient
+            Client = new ApiHttpClient(Server)
             {
-                BaseAddress = new Uri(Server),
-                Timeout = TimeSpan.FromSeconds(3),
+                Timeout = 3_000
             };
         }
 
@@ -152,7 +150,7 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected virtual IDictionary<String, Object> GetAll()
     {
-        var client = GetClient();
+        var client = GetClient() as ApiHttpClient;
 
         // 特殊处理Apollo
         if (!NameSpace.IsNullOrEmpty())
@@ -213,7 +211,7 @@ public class HttpConfigProvider : ConfigProvider
 
         ValidClientId();
 
-        var client = GetClient();
+        var client = GetClient() as ApiHttpClient;
 
         return client.Post<Int32>("Config/SetAll", new
         {
