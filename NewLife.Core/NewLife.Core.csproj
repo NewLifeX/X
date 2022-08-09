@@ -139,6 +139,7 @@
     <Compile Remove="Security\Certificate.cs" />
     <Compile Remove="Security\ECDsaHelper.cs" />
     <Compile Remove="Security\ECKey.cs" />
+    <Compile Remove="Serialization\Accessor.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
     <Compile Remove="Serialization\Binary\BinaryPair.cs" />
