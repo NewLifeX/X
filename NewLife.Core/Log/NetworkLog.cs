@@ -8,6 +8,7 @@ using System.Threading;
 using NewLife.Common;
 using NewLife.Http;
 using NewLife.Net;
+using NewLife.Reflection;
 using NewLife.Security;
 
 namespace NewLife.Log
@@ -66,8 +67,8 @@ namespace NewLife.Log
         {
             if (_inited) return;
 
-            var sys = SysConfig.Current;
-            if (AppId.IsNullOrEmpty()) AppId = sys.Name;
+            //var sys = SysConfig.Current;
+            if (AppId.IsNullOrEmpty()) AppId = AssemblyX.Entry.Name;
             if (ClientId.IsNullOrEmpty())
             {
                 try
