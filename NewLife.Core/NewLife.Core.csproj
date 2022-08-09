@@ -111,6 +111,7 @@
     <Compile Remove="Web\Pager.cs" />
     <Compile Remove="Web\WebHelper.cs" />
     <Compile Remove="Windows\MySpeech.cs" />
+    <Compile Remove="Windows\SpeechRecognition.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -120,9 +121,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Windows\MySpeech.cs" />
   </ItemGroup>
 
 </Project>
