@@ -8,8 +8,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using NewLife.Caching;
-using NewLife.Collections;
-using NewLife.IP;
 using NewLife.Log;
 using NewLife.Net;
 
@@ -483,7 +481,7 @@ namespace NewLife
 
         #region IP地理位置
         /// <summary>IP地址提供者</summary>
-        public static IPProvider IpProvider { get; set; }
+        public static IIPResolver IpResolver { get; set; }
 
         /// <summary>获取IP地址的物理地址位置</summary>
         /// <param name="addr"></param>
@@ -494,9 +492,9 @@ namespace NewLife
             if (IPAddress.IsLoopback(addr)) return "本地环回";
             if (addr.IsLocal()) return "本机地址";
 
-            if (IpProvider == null) IpProvider = new MyIpProvider();
+            //if (IpProvider == null) IpProvider = new MyIpProvider();
 
-            return IpProvider.GetAddress(addr);
+            return IpResolver?.GetAddress(addr);
         }
 
         /// <summary>根据字符串形式IP地址转为物理地址</summary>
@@ -520,30 +518,6 @@ namespace NewLife
             if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
             return ip.GetAddress();
-        }
-
-        /// <summary>IP地址提供者</summary>
-        public class IPProvider
-        {
-            /// <summary>获取IP地址的物理地址位置</summary>
-            /// <param name="addr"></param>
-            /// <returns></returns>
-            public virtual String GetAddress(IPAddress addr)
-            {
-                // 判断局域网地址
-                var ip = addr.ToString();
-                var myip = MyIP().ToString();
-                if (ip.CutEnd(".") == myip.CutEnd(".")) return "本地局域网";
-
-                var f = addr.GetAddressBytes()[0];
-                if ((f & 0x7F) == 0) return "A类地址";
-                if ((f & 0xC0) == 0x80) return "B类地址";
-                if ((f & 0xE0) == 0xC0) return "C类地址";
-                if ((f & 0xF0) == 0xE0) return "D类地址";
-                if ((f & 0xF8) == 0xF0) return "E类地址";
-
-                return "";
-            }
         }
         #endregion
 
