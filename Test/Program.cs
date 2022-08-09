@@ -261,14 +261,14 @@ namespace Test
                 case '1':
                     ch = new MemoryCache();
                     break;
-                case '3':
-                    var rds = new Redis("127.0.0.1", null, 9)
-                    {
-                        Counter = new PerfCounter(),
-                        Tracer = new DefaultTracer { Log = XTrace.Log },
-                    };
-                    ch = rds;
-                    break;
+                //case '3':
+                //    var rds = new Redis("127.0.0.1", null, 9)
+                //    {
+                //        Counter = new PerfCounter(),
+                //        Tracer = new DefaultTracer { Log = XTrace.Log },
+                //    };
+                //    ch = rds;
+                //    break;
             }
 
             var mode = false;
@@ -289,7 +289,7 @@ namespace Test
             var rs = ch.Bench(mode, batch);
 
             XTrace.WriteLine("总测试数据：{0:n0}", rs);
-            if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
+            //if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
         private static NetServer _server;
@@ -475,14 +475,14 @@ namespace Test
             //}
         }
 
-        private static void Test14()
-        {
-            var rds = new Redis("127.0.0.1", null, 3)
-            {
-                Log = XTrace.Log
-            };
-            var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
-        }
+        //private static void Test14()
+        //{
+        //    var rds = new Redis("127.0.0.1", null, 3)
+        //    {
+        //        Log = XTrace.Log
+        //    };
+        //    var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
+        //}
 
         ///// <summary>
         ///// 私钥XML2PEM
