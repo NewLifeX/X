@@ -53,7 +53,10 @@
 
   <ItemGroup>
     <Compile Remove="Agent\**" />
+    <Compile Remove="Expressions\**" />
     <Compile Remove="Web\OAuth\**" />
+    <EmbeddedResource Remove="Expressions\**" />
+    <None Remove="Expressions\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\BilinearInterpolation.cs" />
