@@ -719,7 +719,8 @@ namespace NewLife.Caching
                 else
                 {
                     var typeName = bn.Read<String>();
-                    var type = Type.GetType(typeName);
+                    //var type = Type.GetType(typeName);
+                    var type = typeName.GetTypeEx();
 
                     var pk = bn.Read<Packet>();
                     value = pk;
