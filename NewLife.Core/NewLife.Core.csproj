@@ -53,9 +53,12 @@
 
   <ItemGroup>
     <Compile Remove="Agent\**" />
+    <Compile Remove="Compression\**" />
     <Compile Remove="Expressions\**" />
     <Compile Remove="Web\OAuth\**" />
+    <EmbeddedResource Remove="Compression\**" />
     <EmbeddedResource Remove="Expressions\**" />
+    <None Remove="Compression\**" />
     <None Remove="Expressions\**" />
   </ItemGroup>
   <ItemGroup>

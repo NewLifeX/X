@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO.Compression;
-using System.Text;
 using NewLife;
-using NewLife.Compression;
-using NewLife.IO;
 
 namespace System.IO
 {
@@ -376,7 +373,8 @@ namespace System.IO
             }
             else
             {
-                new SevenZip().Extract(fi.FullName, destDir);
+                throw new NotSupportedException();
+                //new SevenZip().Extract(fi.FullName, destDir);
             }
         }
 
@@ -397,7 +395,8 @@ namespace System.IO
             }
             else
             {
-                new SevenZip().Compress(fi.FullName, destFile);
+                throw new NotSupportedException();
+                //new SevenZip().Compress(fi.FullName, destFile);
             }
         }
         #endregion
@@ -535,7 +534,8 @@ namespace System.IO
             if (destFile.EndsWithIgnoreCase(".zip"))
                 ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
             else
-                new SevenZip().Compress(di.FullName, destFile);
+                //new SevenZip().Compress(di.FullName, destFile);
+                throw new NotSupportedException();
         }
         #endregion
     }
