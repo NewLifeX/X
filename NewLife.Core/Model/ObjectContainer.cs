@@ -204,7 +204,7 @@ namespace NewLife.Model
     }
 
     /// <summary>对象映射</summary>
-    internal class ObjectMap : IObject
+    public class ObjectMap : IObject
     {
         #region 属性
         /// <summary>服务类型</summary>
