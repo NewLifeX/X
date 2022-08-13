@@ -18,7 +18,6 @@
     <!--<Nullable>enable</Nullable>-->
     <ImplicitUsings>enable</ImplicitUsings>
     <SignAssembly>True</SignAssembly>
-    <DelaySign>True</DelaySign>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
