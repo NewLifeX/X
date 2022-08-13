@@ -31,7 +31,7 @@ namespace NewLife
             BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
             BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
-#if NETSTANDARD || NETCOREAPP
+#if !NETFRAMEWORK
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
 #endif

@@ -47,7 +47,7 @@ namespace NewLife
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
-#if NETSTANDARD || NETCOREAPP
+#if !NETFRAMEWORK
         private static Boolean? _IsWeb;
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb

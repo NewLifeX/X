@@ -156,7 +156,7 @@ namespace NewLife.Log
                 var tar = asm.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
                 if (tar != null) target = !tar.FrameworkDisplayName.IsNullOrEmpty() ? tar.FrameworkDisplayName : tar.FrameworkName;
             }
-#if NETSTANDARD || NETCOREAPP
+#if !NETFRAMEWORK
             target = RuntimeInformation.FrameworkDescription;
 #endif
 
