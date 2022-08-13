@@ -194,11 +194,16 @@ namespace NewLife.Log
             // 适当加大控制台窗口
             try
             {
+#if NETSTANDARD || NETCOREAPP
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
                     if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
                 }
+#else
+                if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+                if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+#endif
             }
             catch { }
 

@@ -255,8 +255,10 @@ namespace NewLife
             str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
             if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
 
+#if NETSTANDARD || NETCOREAPP
             if (OSName.IsNullOrEmpty())
                 OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
+#endif
             if (OSVersion.IsNullOrEmpty())
                 OSVersion = Environment.OSVersion.Version.ToString();
         }

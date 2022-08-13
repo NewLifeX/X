@@ -12,7 +12,7 @@
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</AssemblyVersion>
-    <OutputPath>..\..\Bin</OutputPath>
+    <OutputPath>..\Bin</OutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
@@ -28,7 +28,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>合并WinCore项目；DbTable支持Xml序列化；DbTable支持DataTable互转；Http协议兼容性修正；HttpClient优化埋点数据标签</PackageReleaseNotes>
+    <PackageReleaseNotes>恢复支持net461和netstandard2.0；独立实现IndexRange</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -43,7 +43,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
@@ -56,18 +56,20 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='netstandard2.0'">
-    <PackageReference Include="IndexRange" Version="1.0.2" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <!--<PackageReference Include="IndexRange" Version="1.0.2" />-->
+    <!--<PackageReference Include="System.Memory" Version="4.5.5" />-->
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net461'">
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <!--<PackageReference Include="System.Net.Http" Version="4.3.4" />-->
+    <!--<PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />-->
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)'=='net461'">
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
   <ItemGroup>
@@ -116,6 +118,7 @@
     <Compile Remove="Data\GeoAddress.cs" />
     <Compile Remove="Data\GeoArea.cs" />
     <Compile Remove="Data\GeoPoint.cs" />
+    <Compile Remove="Data\IMemoryEncoder.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
     <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />

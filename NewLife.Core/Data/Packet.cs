@@ -338,6 +338,7 @@ namespace NewLife.Data
             return list;
         }
 
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
         /// <summary>转为Span</summary>
         /// <returns></returns>
         public Span<Byte> AsSpan()
@@ -355,6 +356,7 @@ namespace NewLife.Data
 
             return new Memory<Byte>(ToArray());
         }
+#endif
 
         /// <summary>获取封包的数据流形式</summary>
         /// <returns></returns>

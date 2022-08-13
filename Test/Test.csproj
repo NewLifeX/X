@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0</TargetFrameworks>
-    <OutputPath>..\..\Test\</OutputPath>
+    <OutputPath>..\Bin\Test\</OutputPath>
     <LangVersion>latest</LangVersion>
     <VersionPrefix>9.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
