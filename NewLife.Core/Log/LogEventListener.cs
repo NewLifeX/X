@@ -67,7 +67,11 @@ namespace NewLife.Log
                 _ => LogLevel.Info,
             };
 
+#if NETFRAMEWORK || NETSTANDARD2_0
+            XTrace.WriteLine($"#{eventData.EventSource?.Name} ID = {eventData.EventId} Name = {eventData.EventName}");
+#else
             XTrace.WriteLine($"#{eventData.EventSource?.Name} ThreadID = {eventData.OSThreadId} ID = {eventData.EventId} Name = {eventData.EventName}");
+#endif
             for (var i = 0; i < eventData.Payload.Count; i++)
             {
                 XTrace.WriteLine($"\tName = \"{eventData.PayloadNames[i]}\" Value = \"{eventData.Payload[i]}\"");
