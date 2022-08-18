@@ -96,7 +96,7 @@ public static class ApiHelper
 
             if (filter != null) await filter.OnResponse(client, response, request);
 
-            return await ProcessResponse<TResult>(response, dataName);
+            return await ProcessResponse<TResult>(response, null, dataName);
         }
         catch (Exception ex)
         {
@@ -190,7 +190,7 @@ public static class ApiHelper
     }
 
     /// <summary>结果代码名称。默认 code/errcode</summary>
-    public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode" };
+    public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode", "status" };
 
     /// <summary>结果消息名称。默认 message/msg/errmsg</summary>
     public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg", "error" };
@@ -200,7 +200,15 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data")
+    public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data") => await ProcessResponse<TResult>(response, null, dataName);
+
+    /// <summary>处理响应。统一识别code/message</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="codeName">状态码字段名</param>
+    /// <param name="response">Http响应消息</param>
+    /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+    /// <returns></returns>
+    public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String codeName, String dataName)
     {
         var rtype = typeof(TResult);
         if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
@@ -216,15 +224,16 @@ public static class ApiHelper
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
         var str = buf.ToStr()?.Trim();
-        return ProcessResponse<TResult>(str, dataName);
+        return ProcessResponse<TResult>(str, codeName, dataName ?? "data");
     }
 
     /// <summary>处理响应。</summary>
     /// <typeparam name="TResult">响应类型，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
     /// <param name="response">文本响应消息</param>
+    /// <param name="codeName">状态码字段名</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static TResult ProcessResponse<TResult>(String response, String dataName = "data")
+    public static TResult ProcessResponse<TResult>(String response, String codeName, String dataName)
     {
         if (response.IsNullOrEmpty()) return default;
 
@@ -242,12 +251,28 @@ public static class ApiHelper
         var data = nodata ? dic : dic[dataName];
 
         var code = 0;
-        foreach (var item in CodeNames)
+        if (!codeName.IsNullOrEmpty())
         {
-            if (dic.TryGetValue(item, out var v))
+            if (dic.TryGetValue(codeName, out var v))
             {
-                code = v.ToInt();
-                break;
+                if (v is Boolean b)
+                    code = b ? 0 : -1;
+                else
+                    code = v.ToInt();
+            }
+        }
+        else
+        {
+            foreach (var item in CodeNames)
+            {
+                if (dic.TryGetValue(item, out var v))
+                {
+                    if (v is Boolean b)
+                        code = b ? 0 : -1;
+                    else
+                        code = v.ToInt();
+                    break;
+                }
             }
         }
         if (code is not 0 and not 200)
