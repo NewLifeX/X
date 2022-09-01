@@ -37,7 +37,7 @@ public class PathHelperTests
         Assert.True(dst.Exists);
 
         var dst2 = "Xml".AsDirectory();
-        if (dst2.Exists) dst2.Delete();
+        if (dst2.Exists) dst2.Delete(true);
 
         dst.Extract(dst2.FullName, true);
 
