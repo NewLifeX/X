@@ -136,8 +136,9 @@ namespace NewLife.Log
             // 总次数
             var total = Interlocked.Increment(ref _Total);
 
-            // 累计耗时
+            // 累计耗时。时间回退的耗时，一律清零，避免出现负数耗时
             var cost = (Int32)(span.EndTime - span.StartTime);
+            if (cost < 0) cost = 0;
             Interlocked.Add(ref _Cost, cost);
 
             // 最大最小耗时
