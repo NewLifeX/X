@@ -116,7 +116,7 @@ namespace NewLife.Log
         #endregion
 
         #region 方法
-        /// <summary>开始一个Span</summary>
+        /// <summary>开始一个Span，开始计时</summary>
         /// <returns></returns>
         public virtual ISpan Start()
         {
@@ -129,7 +129,7 @@ namespace NewLife.Log
             return span;
         }
 
-        /// <summary>完成Span</summary>
+        /// <summary>完成Span，每一个埋点结束都进入这里</summary>
         /// <param name="span"></param>
         public virtual void Finish(ISpan span)
         {
