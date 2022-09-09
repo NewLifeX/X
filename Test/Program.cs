@@ -124,6 +124,18 @@ namespace Test
 
         private static void Test3()
         {
+            var server = new NetServer(3377);
+            server.Log = XTrace.Log;
+            server.SessionLog = XTrace.Log;
+            //server.SocketLog = XTrace.Log;
+            server.LogSend = true;
+            server.LogReceive = true;
+            server.Received += (s, e) =>
+            {
+                XTrace.WriteLine(e.Packet.ToStr());
+            };
+            server.Start();
+
             //using var tracer = new DefaultTracer { Log = XTrace.Log };
             //tracer.MaxSamples = 100;
             //tracer.MaxErrors = 100;
@@ -261,14 +273,14 @@ namespace Test
                 case '1':
                     ch = new MemoryCache();
                     break;
-                //case '3':
-                //    var rds = new Redis("127.0.0.1", null, 9)
-                //    {
-                //        Counter = new PerfCounter(),
-                //        Tracer = new DefaultTracer { Log = XTrace.Log },
-                //    };
-                //    ch = rds;
-                //    break;
+                    //case '3':
+                    //    var rds = new Redis("127.0.0.1", null, 9)
+                    //    {
+                    //        Counter = new PerfCounter(),
+                    //        Tracer = new DefaultTracer { Log = XTrace.Log },
+                    //    };
+                    //    ch = rds;
+                    //    break;
             }
 
             var mode = false;
