@@ -4,7 +4,7 @@
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
-    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。</Description>
+    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存、网络（Tcp/Udp/Http）、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
     <VersionPrefix>10.0</VersionPrefix>
@@ -127,7 +127,6 @@
     <Compile Remove="Http\HttpCodec.cs" />
     <Compile Remove="Http\HttpEncoder.cs" />
     <Compile Remove="Http\IHttpClientFactory.cs" />
-    <Compile Remove="Http\TinyHttpClient.cs" />
     <Compile Remove="IO\EncodingHelper.cs" />
     <Compile Remove="IO\FileSource.cs" />
     <Compile Remove="Log\CodeTimer.cs" />

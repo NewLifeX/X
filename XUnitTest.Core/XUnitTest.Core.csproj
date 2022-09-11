@@ -39,7 +39,6 @@
     <Compile Remove="Caching\RedisTest.cs" />
     <Compile Remove="Collections\BloomFilterTests.cs" />
     <Compile Remove="Http\HttpCodecTests.cs" />
-    <Compile Remove="Http\TinyHttpClientTest.cs" />
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
@@ -51,11 +50,11 @@
     <EmbeddedResource Include="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageReference Include="Moq" Version="4.17.2" />
-    <PackageReference Include="NewLife.Modbus" Version="1.1.2022.510-beta1117" />
-    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.401" />
-    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
+    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="NewLife.Modbus" Version="1.2.2022.901" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.901" />
+    <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
