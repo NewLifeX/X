@@ -135,11 +135,17 @@ public class BinaryComposite : BinaryHandlerBase
         // 读取对象引用
         if (ReadRef(ref value)) return true;
 
-        if (value == null) value = type.CreateInstance();
+        value ??= type.CreateInstance();
 
         Host.Hosts.Push(value);
 
-        var context = new AccessorContext { Host = Host, Type = type, Value = value, UserState = Host.UserState };
+        var context = new AccessorContext
+        {
+            Host = Host,
+            Type = type,
+            Value = value,
+            UserState = Host.UserState
+        };
 
         // 获取成员
         for (var i = 0; i < ms.Count; i++)
