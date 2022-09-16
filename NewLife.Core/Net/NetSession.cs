@@ -54,7 +54,7 @@ public class NetSession : DisposeBase, INetSession, IExtend3
         WriteLog("Connected {0}", Session);
 
         var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect");
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect", Remote + "");
 
         OnConnected();
 
@@ -74,7 +74,7 @@ public class NetSession : DisposeBase, INetSession, IExtend3
     {
         var ns = (this as INetSession).Host;
         var tracer = ns?.Tracer;
-        using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", Remote + "");
+        using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", e.Message);
 
         try
         {

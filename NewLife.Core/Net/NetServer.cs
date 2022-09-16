@@ -103,6 +103,9 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <summary>APM性能追踪器</summary>
     public ITracer Tracer { get; set; }
 
+    /// <summary>用于内部Socket服务器的APM性能追踪器</summary>
+    public ITracer SocketTracer { get; set; }
+
     /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
     public Int32 StatPeriod { get; set; } = 600;
 
@@ -206,9 +209,10 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
         // 内部服务器日志更多是为了方便网络库调试，而网络服务器日志用于应用开发
         if (SocketLog != null) server.Log = SocketLog;
+        if (SocketTracer != null) server.Tracer = SocketTracer;
         server.LogSend = LogSend;
         server.LogReceive = LogReceive;
-        server.Tracer = Tracer;
+        //server.Tracer = Tracer;
 
         server.Error += OnError;
 
