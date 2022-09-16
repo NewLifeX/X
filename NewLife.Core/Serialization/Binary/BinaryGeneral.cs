@@ -455,7 +455,10 @@ namespace NewLife.Serialization
             var buffer = ReadBytes(n);
             var enc = Host.Encoding ?? Encoding.UTF8;
 
-            return enc.GetString(buffer);
+            var str = enc.GetString(buffer);
+            if ((Host as Binary).TrimZero && str != null) str = str.Trim('\0');
+
+            return str;
         }
         #endregion
 
