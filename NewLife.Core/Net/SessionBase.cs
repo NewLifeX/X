@@ -509,7 +509,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
             try
             {
                 var ctx = CreateContext(this);
@@ -527,7 +527,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
             try
             {
                 var ctx = CreateContext(this);

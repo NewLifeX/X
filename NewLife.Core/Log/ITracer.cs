@@ -214,8 +214,8 @@ namespace NewLife.Log
                     else
                         span.Tag = pk.ToHex(len / 2);
                 }
-                else if (tag is IMessage msg)
-                    span.Tag = msg.ToPacket().ToHex(len / 2);
+                //else if (tag is IMessage msg)
+                //    span.Tag = msg.ToPacket().ToHex(len / 2);
                 else
                     span.Tag = tag.ToJson().Cut(len);
             }
