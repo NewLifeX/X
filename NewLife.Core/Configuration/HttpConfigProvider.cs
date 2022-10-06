@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -124,7 +119,7 @@ public class HttpConfigProvider : ConfigProvider
         if (path.IsNullOrEmpty()) path = "apollo";
 
         // 读取本地配置，得到Apollo地址后，加载全部配置
-        var jsonConfig = new JsonConfigProvider { FileName = fileName };
+        var jsonConfig = JsonConfigProvider.LoadAppSettings(fileName);
         var apollo = jsonConfig.Load<ApolloModel>(path);
         if (apollo == null) return null;
 
