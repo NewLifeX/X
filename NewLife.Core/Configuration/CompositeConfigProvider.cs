@@ -148,20 +148,93 @@ public class CompositeConfigProvider : IConfigProvider
 
         return false;
     }
+    #endregion
 
+    #region 绑定
+    private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
+    private readonly IDictionary<Object, ModelWrap> _models2 = new Dictionary<Object, ModelWrap>();
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    public void Bind<T>(T model, Boolean autoReload = true, String path = null) => throw new NotImplementedException();
+    public virtual void Bind<T>(T model, Boolean autoReload = true, String path = null)
+    {
+        // 如果有命名空间则使用指定层级数据源
+        var source = GetSection(path);
+        if (source != null)
+        {
+            if (model is IConfigMapping map)
+                map.MapConfig(this, source);
+            else
+                source.MapTo(model, this);
+        }
+
+        if (autoReload && !_models.ContainsKey(model))
+        {
+            _models.Add(model, path);
+        }
+
+        AddChanged();
+    }
 
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
-    public void Bind<T>(T model, String path, Action<IConfigSection> onChange) => throw new NotImplementedException();
+    public virtual void Bind<T>(T model, String path, Action<IConfigSection> onChange)
+    {
+        // 如果有命名空间则使用指定层级数据源
+        var source = GetSection(path);
+        if (source != null)
+        {
+            if (model is IConfigMapping map)
+                map.MapConfig(this, source);
+            else
+                source.MapTo(model, this);
+        }
+
+        if (onChange != null && !_models2.ContainsKey(model))
+        {
+            _models2.Add(model, new ModelWrap { Path = path, OnChange = onChange });
+        }
+
+        AddChanged();
+    }
+
+    class ModelWrap
+    {
+        public String Path { get; set; }
+
+        public Action<IConfigSection> OnChange { get; set; }
+    }
+
+    /// <summary>通知绑定对象，配置数据有改变</summary>
+    protected virtual void NotifyChange()
+    {
+        foreach (var item in _models)
+        {
+            var model = item.Key;
+            var source = GetSection(item.Value);
+            if (source != null)
+            {
+                if (model is IConfigMapping map)
+                    map.MapConfig(this, source);
+                else
+                    source.MapTo(model, this);
+            }
+        }
+        foreach (var item in _models2)
+        {
+            var model = item.Key;
+            var source = GetSection(item.Value.Path);
+            if (source != null) item.Value.OnChange(source);
+        }
+
+        // 通过事件通知外部
+        _Changed?.Invoke(this, EventArgs.Empty);
+    }
     #endregion
 
     #region 配置变化
@@ -176,13 +249,7 @@ public class CompositeConfigProvider : IConfigProvider
             _Changed += value;
 
             // 首次注册事件时，向内部提供者注册事件
-            if (Interlocked.Increment(ref _count) == 1)
-            {
-                foreach (var cfg in Configs)
-                {
-                    cfg.Changed += OnChange;
-                }
-            }
+            AddChanged();
         }
         remove
         {
@@ -199,6 +266,17 @@ public class CompositeConfigProvider : IConfigProvider
         }
     }
 
-    private void OnChange(Object sender, EventArgs e) => _Changed?.Invoke(this, EventArgs.Empty);
+    private void AddChanged()
+    {
+        if (Interlocked.Increment(ref _count) == 1)
+        {
+            foreach (var cfg in Configs)
+            {
+                cfg.Changed += OnChange;
+            }
+        }
+    }
+
+    private void OnChange(Object sender, EventArgs e) => NotifyChange();
     #endregion
 }
