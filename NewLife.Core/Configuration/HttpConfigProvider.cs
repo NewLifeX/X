@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
@@ -123,10 +118,10 @@ namespace NewLife.Configuration
             if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
             if (path.IsNullOrEmpty()) path = "apollo";
 
-            // 读取本地配置，得到Apollo地址后，加载全部配置
-            var jsonConfig = new JsonConfigProvider { FileName = fileName };
-            var apollo = jsonConfig.Load<ApolloModel>(path);
-            if (apollo == null) return null;
+        // 读取本地配置，得到Apollo地址后，加载全部配置
+        var jsonConfig = JsonConfigProvider.LoadAppSettings(fileName);
+        var apollo = jsonConfig.Load<ApolloModel>(path);
+        if (apollo == null) return null;
 
             var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
             httpConfig.SetApollo("application," + apollo.NameSpace);
