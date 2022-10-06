@@ -86,16 +86,19 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public String Name { get; set; }
 
     /// <summary>根元素</summary>
-    public IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
+    public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
     /// <summary>所有键</summary>
-    public ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
+    public virtual ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
 
     /// <summary>已使用的键</summary>
     public ICollection<String> UsedKeys { get; } = new List<String>();
 
     /// <summary>缺失的键</summary>
     public ICollection<String> MissedKeys { get; } = new List<String>();
+
+    /// <summary>返回获取配置的委托</summary>
+    public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
 
     /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
     public event EventHandler Changed;
@@ -123,9 +126,6 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="key"></param>
     /// <returns></returns>
     public virtual IConfigSection GetSection(String key) => Find(key, false);
-
-    /// <summary>返回获取配置的委托</summary>
-    public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
 
     private IConfigSection Find(String key, Boolean createOnMiss)
     {
