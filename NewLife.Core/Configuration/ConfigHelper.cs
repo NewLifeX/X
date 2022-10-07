@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.ComponentModel;
 using System.Reflection;
+using System.Xml.Linq;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using static System.Collections.Specialized.BitVector32;
 
 namespace NewLife.Configuration;
 
@@ -97,6 +99,20 @@ public static class ConfigHelper
     {
         if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
 
+        // 支持字典
+        if (model is IDictionary<String, Object> dic)
+        {
+            foreach (var cfg in section.Childs)
+            {
+                dic[cfg.Key] = cfg.Value;
+
+                if (cfg.Childs != null && cfg.Childs.Count > 0)
+                    dic[cfg.Key] = cfg.Childs;
+            }
+
+            return;
+        }
+
         var prv = provider as ConfigProvider;
 
         // 反射公有实例属性
@@ -119,42 +135,48 @@ public static class ConfigHelper
             }
 
             // 分别处理基本类型、数组类型、复杂类型
-            if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
-            {
-                pi.SetValue(model, cfg.Value.ChangeType(pi.PropertyType), null);
-            }
-            else if (cfg.Childs != null)
-            {
-                if (pi.PropertyType.As<IList>())
-                {
-                    if (pi.PropertyType.IsArray)
-                        MapArray(cfg, model, pi, provider);
-                    else
-                        MapList(cfg, model, pi, provider);
-                }
-                else
-                {
-                    // 复杂类型需要递归处理
-                    var val = pi.GetValue(model, null);
-                    if (val == null)
-                    {
-                        // 如果有无参构造函数，则实例化一个
-                        var ctor = pi.PropertyType.GetConstructor(Array.Empty<Type>());
-                        if (ctor != null)
-                        {
-                            val = ctor.Invoke(null);
-                            pi.SetValue(model, val, null);
-                        }
-                    }
+            MapToObject(cfg, model, pi, provider);
+        }
+    }
 
-                    // 递归映射
-                    if (val != null) MapTo(cfg, val, provider);
+    private static void MapToObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
+    {
+        // 分别处理基本类型、数组类型、复杂类型
+        if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
+        {
+            pi.SetValue(model, cfg.Value.ChangeType(pi.PropertyType), null);
+        }
+        else if (cfg.Childs != null)
+        {
+            if (pi.PropertyType.As<IList>())
+            {
+                if (pi.PropertyType.IsArray)
+                    MapToArray(cfg, model, pi, provider);
+                else
+                    MapToList(cfg, model, pi, provider);
+            }
+            else
+            {
+                // 复杂类型需要递归处理
+                var val = pi.GetValue(model, null);
+                if (val == null)
+                {
+                    // 如果有无参构造函数，则实例化一个
+                    var ctor = pi.PropertyType.GetConstructor(Array.Empty<Type>());
+                    if (ctor != null)
+                    {
+                        val = ctor.Invoke(null);
+                        pi.SetValue(model, val, null);
+                    }
                 }
+
+                // 递归映射
+                if (val != null) MapTo(cfg, val, provider);
             }
         }
     }
 
-    private static void MapArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
+    private static void MapToArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();
         var count = section.Childs.Count;
@@ -188,7 +210,7 @@ public static class ConfigHelper
         }
     }
 
-    private static void MapList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
+    private static void MapToList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();
 
@@ -232,6 +254,21 @@ public static class ConfigHelper
     {
         if (section == null) return;
 
+        // 支持字典
+        if (model is IDictionary<String, Object> dic)
+        {
+            foreach (var item in dic)
+            {
+                var cfg = section.GetOrAddChild(item.Key);
+                var value = item.Value;
+
+                // 分别处理基本类型、数组类型、复杂类型
+                if (value != null) MapObject(section, cfg, value, value.GetType());
+            }
+
+            return;
+        }
+
         // 反射公有实例属性
         foreach (var pi in model.GetType().GetProperties(true))
         {
@@ -247,7 +284,7 @@ public static class ConfigHelper
             var cfg = section.GetOrAddChild(name);
 
             // 反射获取属性值
-            var val = pi.GetValue(model, null);
+            var value = pi.GetValue(model, null);
             var att = pi.GetCustomAttribute<DescriptionAttribute>();
             cfg.Comment = att?.Description;
             if (cfg.Comment.IsNullOrEmpty())
@@ -260,19 +297,25 @@ public static class ConfigHelper
             //if (val == null) continue;
 
             // 分别处理基本类型、数组类型、复杂类型
-            if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
-            {
-                cfg.SetValue(val);
-            }
-            else if (pi.PropertyType.As<IList>())
-            {
-                if (val is IList list) MapArray(section, cfg, list, pi.PropertyType.GetElementTypeEx());
-            }
-            else
-            {
-                // 递归映射
-                MapFrom(cfg, val);
-            }
+            MapObject(section, cfg, value, pi.PropertyType);
+        }
+    }
+
+    private static void MapObject(IConfigSection section, IConfigSection cfg, Object val, Type type)
+    {
+        // 分别处理基本类型、数组类型、复杂类型
+        if (type.GetTypeCode() != TypeCode.Object)
+        {
+            cfg.SetValue(val);
+        }
+        else if (type.As<IList>())
+        {
+            if (val is IList list) MapArray(section, cfg, list, type.GetElementTypeEx());
+        }
+        else if (val != null)
+        {
+            // 递归映射
+            MapFrom(cfg, val);
         }
     }
 

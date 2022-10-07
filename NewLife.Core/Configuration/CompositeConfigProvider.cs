@@ -5,7 +5,8 @@ public class CompositeConfigProvider : IConfigProvider
 {
     #region 属性
     /// <summary>日志提供者集合</summary>
-    public List<IConfigProvider> Configs { get; set; } = new List<IConfigProvider>();
+    /// <remarks>为了线程安全，使用数组</remarks>
+    public IConfigProvider[] Configs { get; set; } = new IConfigProvider[0];
 
     /// <summary>名称</summary>
     public String Name { get; set; }
@@ -35,7 +36,7 @@ public class CompositeConfigProvider : IConfigProvider
     public Boolean IsNew { get => Configs[0].IsNew; set => Configs[0].IsNew = value; }
 
     /// <summary>返回获取配置的委托</summary>
-    public GetConfigCallback GetConfig => Configs[0].GetConfig;
+    public GetConfigCallback GetConfig => key => GetSection(key)?.Value;
     #endregion
 
     #region 构造
@@ -45,10 +46,16 @@ public class CompositeConfigProvider : IConfigProvider
     /// <summary>实例化</summary>
     /// <param name="configProvider1"></param>
     /// <param name="configProvider2"></param>
-    public CompositeConfigProvider(IConfigProvider configProvider1, IConfigProvider configProvider2)
+    public CompositeConfigProvider(IConfigProvider configProvider1, IConfigProvider configProvider2) : this() => Configs = new IConfigProvider[] { configProvider1, configProvider2 };
+
+    /// <summary>添加</summary>
+    /// <param name="configProviders"></param>
+    public void Add(params IConfigProvider[] configProviders)
     {
-        Configs.Add(configProvider1);
-        Configs.Add(configProvider2);
+        var list = new List<IConfigProvider>(Configs);
+        list.AddRange(configProviders);
+
+        Configs = list.ToArray();
     }
     #endregion
 
@@ -203,7 +210,7 @@ public class CompositeConfigProvider : IConfigProvider
         AddChanged();
     }
 
-    class ModelWrap
+    private class ModelWrap
     {
         public String Path { get; set; }
 
