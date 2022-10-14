@@ -427,6 +427,26 @@ namespace NewLife.Log
                 if (buf.Length > 0) ds.TraceFlag = buf[0];
             }
         }
+
+        /// <summary>附加Tag信息在原Tag信息后面</summary>
+        /// <param name="span">片段</param>
+        /// <param name="tag">Tag信息</param>
+        public static void AppendTag(this ISpan span, Object tag)
+        {
+            if (span == null || tag == null) return;
+
+            if (span is DefaultSpan ds && ds.TraceFlag > 0)
+            {
+                if (span.Tag.IsNullOrEmpty())
+                    span.SetTag(tag);
+                else if (span.Tag.Length < 1024)
+                {
+                    var old = span.Tag;
+                    span.SetTag(tag);
+                    span.Tag = (old + "\r\n\r\n" + span.Tag).Cut(1024);
+                }
+            }
+        }
         #endregion
     }
 }
