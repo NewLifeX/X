@@ -70,16 +70,16 @@ namespace XUnitTest.Http
             Assert.Equal(93917, rs.ReadBytes().Length);
         }
 
-        [Fact]
-        public async void MapController()
-        {
-            _server.MapController<ApiController>("/api");
+        //[Fact]
+        //public async void MapController()
+        //{
+        //    _server.MapController<ApiController>("/api");
 
-            var client = new HttpClient { BaseAddress = _baseUri };
-            var rs = await client.GetAsync<IDictionary<String, Object>>("/api/info", new { state = 1234 });
+        //    var client = new HttpClient { BaseAddress = _baseUri };
+        //    var rs = await client.GetAsync<IDictionary<String, Object>>("/api/info", new { state = 1234 });
 
-            Assert.Equal("1234", rs["state"]);
-        }
+        //    Assert.Equal("1234", rs["state"]);
+        //}
 
         [Fact]
         public async void MapMyHttpHandler()
@@ -148,9 +148,11 @@ namespace XUnitTest.Http
         {
             _server.Map("/ws", new WebSocketHandler());
 
+            var content = "Hello NewLife".GetBytes();
+
             var client = new ClientWebSocket();
             await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
-            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+            await client.SendAsync(content, System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
             var buf = new Byte[1024];
             var rs = await client.ReceiveAsync(buf, default);

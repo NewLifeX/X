@@ -15,8 +15,8 @@ namespace NewLife.Configuration
         /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
         public String FileName { get; set; }
 
-        /// <summary>更新周期。默认30秒</summary>
-        public Int32 Period { get; set; } = 30;
+        /// <summary>更新周期。默认5秒</summary>
+        public Int32 Period { get; set; } = 5;
         #endregion
 
         #region 构造

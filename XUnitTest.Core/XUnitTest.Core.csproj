@@ -6,7 +6,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
-    <OutputPath>..\BinCoreTest</OutputPath>
+    <OutputPath>..\Bin\UnitTest</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
@@ -14,13 +14,32 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Applications\**" />
+    <Compile Remove="Expressions\**" />
+    <Compile Remove="Json\**" />
+    <Compile Remove="Remoting\**" />
     <Compile Remove="TestEntity\**" />
+    <Compile Remove="Yun\**" />
+    <EmbeddedResource Remove="Applications\**" />
+    <EmbeddedResource Remove="Expressions\**" />
+    <EmbeddedResource Remove="Json\**" />
+    <EmbeddedResource Remove="Remoting\**" />
     <EmbeddedResource Remove="TestEntity\**" />
+    <EmbeddedResource Remove="Yun\**" />
+    <None Remove="Applications\**" />
+    <None Remove="Expressions\**" />
+    <None Remove="Json\**" />
+    <None Remove="Remoting\**" />
     <None Remove="TestEntity\**" />
+    <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\LTOBDownSamplingTests.cs" />
     <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
+    <Compile Remove="Caching\RedisTest.cs" />
+    <Compile Remove="Collections\BloomFilterTests.cs" />
+    <Compile Remove="Http\HttpCodecTests.cs" />
+    <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />
     <Compile Remove="PageParameterTest.cs" />
   </ItemGroup>
@@ -31,11 +50,11 @@
     <EmbeddedResource Include="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageReference Include="Moq" Version="4.17.2" />
-    <PackageReference Include="NewLife.Modbus" Version="1.1.2022.510-beta1117" />
-    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.401" />
-    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
+    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="NewLife.Modbus" Version="1.2.2022.901" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.901" />
+    <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

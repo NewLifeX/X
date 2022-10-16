@@ -18,20 +18,22 @@ namespace NewLife.Data
         /// <returns></returns>
         Object Decode(Packet data, Type type);
 
+#if !(NETFRAMEWORK || NETSTANDARD2_0)
         /// <summary>数据包转对象</summary>
         /// <typeparam name="T">目标类型</typeparam>
         /// <param name="data">数据包</param>
         /// <returns></returns>
         public T Decode<T>(Packet data) => (T)Decode(data, typeof(T));
+#endif
     }
 
     /// <summary>默认数据包编码器。基础类型直接转，复杂类型Json序列化</summary>
     public class DefaultPacketEncoder : IPacketEncoder
     {
-        #region 属性
+#region 属性
         /// <summary>解码出错时抛出异常。默认false不抛出异常，仅返回默认值</summary>
         public Boolean ThrowOnError { get; set; }
-        #endregion
+#endregion
 
         /// <summary>数值转数据包</summary>
         /// <param name="value"></param>

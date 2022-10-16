@@ -2,17 +2,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net6.0</TargetFrameworks>
-    <OutputPath>..\..\Test\</OutputPath>
-    <LangVersion>latest</LangVersion>
     <VersionPrefix>9.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
+    <OutputPath>..\Bin\Test</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>latest</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

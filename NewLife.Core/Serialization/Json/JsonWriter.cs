@@ -49,6 +49,15 @@ namespace NewLife.Serialization
         ///// <summary>智能缩进，内层不换行。默认false</summary>
         //public Boolean SmartIndented { get; set; }
 
+        /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，默认false</summary>
+        public Boolean Int64AsString { get; set; }
+
+        ///// <summary>整数序列化为十六进制</summary>
+        //public Boolean IntAsHex { get; set; }
+
+        /// <summary>字节数组序列化为HEX。默认false，使用base64</summary>
+        public Boolean ByteArrayAsHex { get; set; }
+
         /// <summary>缩进字符数。默认2</summary>
         public Int32 IndentedLength { get; set; } = 4;
 
@@ -115,6 +124,9 @@ namespace NewLife.Serialization
             else if (obj is Boolean)
                 _Builder.Append((obj + "").ToLower());
 
+            else if ((obj is Int64 or UInt64) && Int64AsString)
+                WriteStringFast(obj + "");
+
             else if (
                 obj is Int32 or Int64 or Double or
                 Decimal or Single or
@@ -139,9 +151,14 @@ namespace NewLife.Serialization
             else if (obj is IDictionary dictionary1)
                 WriteDictionary(dictionary1);
             else if (obj is Byte[] buf)
-                WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            {
+                if (ByteArrayAsHex)
+                    WriteStringFast(buf.ToHex());
+                else
+                    WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            }
             else if (obj is Packet pk)
-                WriteStringFast(pk.ToBase64());
+                WriteStringFast(ByteArrayAsHex ? pk.ToHex(-1) : pk.ToBase64());
             else if (obj is StringDictionary dictionary2)
                 WriteSD(dictionary2);
 
@@ -293,7 +310,7 @@ namespace NewLife.Serialization
             }
 
             // 字典数据源
-            if(obj is IDictionarySource source)
+            if (obj is IDictionarySource source)
             {
                 var dic = source.ToDictionary();
                 foreach (var item in dic)

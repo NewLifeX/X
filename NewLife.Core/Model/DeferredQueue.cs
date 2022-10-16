@@ -33,8 +33,8 @@ namespace NewLife.Model
         /// <summary>周期。默认10_000毫秒</summary>
         public Int32 Period { get; set; } = 10_000;
 
-        /// <summary>最大个数。超过该个数时，进入队列将产生堵塞。默认100_000</summary>
-        public Int32 MaxEntity { get; set; } = 100_000;
+        /// <summary>最大个数。超过该个数时，进入队列将产生堵塞。默认10_000_000</summary>
+        public Int32 MaxEntity { get; set; } = 10_000_000;
 
         /// <summary>批大小。默认5_000</summary>
         public Int32 BatchSize { get; set; } = 5_000;
@@ -172,6 +172,8 @@ namespace NewLife.Model
         private void CheckMax()
         {
             if (_count < MaxEntity) return;
+
+            using var span = DefaultTracer.Instance?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
 
             // 超过最大值时，堵塞一段时间，等待消费完成
             var t = WaitForBusy * 5;

@@ -127,7 +127,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
             try
             {
                 var ctx = Server.CreateContext(this);
@@ -145,7 +145,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
             try
             {
                 var ctx = Server.CreateContext(this);
@@ -200,7 +200,7 @@ namespace NewLife.Net
 
         /// <summary>处理数据帧</summary>
         /// <param name="data">数据帧</param>
-        void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
+        void ISocketRemote.Process(IData data) => (Server as ISocketRemote).Process(data);
         #endregion
 
         #region 异常处理

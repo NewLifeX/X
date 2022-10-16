@@ -119,12 +119,14 @@ namespace XUnitTest.Threading
         public void CronTest()
         {
             XTrace.WriteLine("CronTest");
-            using var timer = new TimerX(DoCronTest, "CronTest", "1/2 * * * *");
+            using var timer = new TimerX(DoCronTest, "CronTest", "1/4 * * * *");
 
             var ms = timer.NextTick - Runtime.TickCount64;
-            Assert.InRange(ms, 0, 1999);
+            Assert.InRange(ms, 0, 3999);
 
+#if DEBUG
             Thread.Sleep(5500);
+#endif
         }
 
         private static async Task DoCronTest(Object state)

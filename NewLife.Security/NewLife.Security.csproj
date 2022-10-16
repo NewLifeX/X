@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <AssemblyTitle>NewLife加密库</AssemblyTitle>
     <Description>扩展加密算法</Description>
     <Company>新生命开发团队</Company>
@@ -12,9 +12,11 @@
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <OutputPath>..\..\Bin</OutputPath>
+    <OutputPath>..\Bin</OutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
@@ -24,7 +26,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>这是NETSTANDARD2.1起步的主力版本，旧版NET40/NET45/NETSTANDARD2.0请找2021.1225，源码分支net40_45_std20。</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -39,10 +41,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NewLife.Core\Security\AlgorithmKeyBlob.cs" Link="AlgorithmKeyBlob.cs" />
     <Compile Include="..\NewLife.Core\Security\ECDsaHelper.cs" Link="ECDsaHelper.cs" />
+    <Compile Include="..\NewLife.Core\Security\ECKey.cs" Link="ECKey.cs" />
   </ItemGroup>
 
-  <ItemGroup >
+  <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.Cng">
       <Version>5.0.0</Version>
     </PackageReference>

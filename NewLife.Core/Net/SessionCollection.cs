@@ -93,27 +93,23 @@ namespace NewLife.Net
             if (Server != null) timeout = Server.SessionTimeout;
             var keys = new List<String>();
             var values = new List<ISocketSession>();
-            // 估算完成时间，执行过长时提示
-            using (var tc = new TimeCost($"{GetType().Name}.RemoveNotAlive", 100))
-            {
-                tc.Log = Server.Log;
 
-                foreach (var elm in _dic)
+            foreach (var elm in _dic)
+            {
+                var item = elm.Value;
+                // 判断是否已超过最大不活跃时间
+                if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
                 {
-                    var item = elm.Value;
-                    // 判断是否已超过最大不活跃时间
-                    if (item == null || item.Disposed || timeout > 0 && IsNotAlive(item, timeout))
-                    {
-                        keys.Add(elm.Key);
-                        values.Add(elm.Value);
-                    }
-                }
-                // 从会话集合里删除这些键值，现在在锁内部，操作安全
-                foreach (var item in keys)
-                {
-                    _dic.Remove(item);
+                    keys.Add(elm.Key);
+                    values.Add(elm.Value);
                 }
             }
+            // 从会话集合里删除这些键值，现在在锁内部，操作安全
+            foreach (var item in keys)
+            {
+                _dic.Remove(item);
+            }
+
             // 已经离开了锁，慢慢释放各个会话
             foreach (var item in values)
             {

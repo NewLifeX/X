@@ -339,7 +339,7 @@ namespace NewLife.Net
                 if (ioThread)
                     ProcessEvent(se, -1, true);
                 else
-                    ThreadPoolX.QueueUserWorkItem(s => ProcessEvent(s, -1, false), se);
+                    ThreadPool.QueueUserWorkItem(s => ProcessEvent(s as SocketAsyncEventArgs, -1, false), se);
             }
 
             return true;
@@ -511,7 +511,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Int32 SendMessage(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
             try
             {
                 var ctx = CreateContext(this);
@@ -529,7 +529,7 @@ namespace NewLife.Net
         /// <returns></returns>
         public virtual Task<Object> SendMessageAsync(Object message)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message + "");
+            using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
             try
             {
                 var ctx = CreateContext(this);

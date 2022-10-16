@@ -47,6 +47,7 @@ namespace NewLife
         /// <summary>是否Mono环境</summary>
         public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
+#if !NETFRAMEWORK
         private static Boolean? _IsWeb;
         /// <summary>是否Web环境</summary>
         public static Boolean IsWeb
@@ -78,6 +79,19 @@ namespace NewLife
 
         /// <summary>是否OSX环境</summary>
         public static Boolean OSX => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+#else
+        /// <summary>是否Web环境</summary>
+        public static Boolean IsWeb => !String.IsNullOrEmpty(System.Web.HttpRuntime.AppDomainAppId);
+
+        /// <summary>是否Windows环境</summary>
+        public static Boolean Windows { get; } = Environment.OSVersion.Platform <= PlatformID.WinCE;
+
+        /// <summary>是否Linux环境</summary>
+        public static Boolean Linux { get; } = Environment.OSVersion.Platform == PlatformID.Unix;
+
+        /// <summary>是否OSX环境</summary>
+        public static Boolean OSX { get; } = Environment.OSVersion.Platform == PlatformID.MacOSX;
+#endif
         #endregion
 
         #region 扩展

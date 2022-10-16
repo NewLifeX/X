@@ -215,8 +215,8 @@ namespace NewLife.Log
                     else
                         span.Tag = pk.ToHex(len / 2);
                 }
-                else if (tag is IMessage msg)
-                    span.Tag = msg.ToPacket().ToHex(len / 2);
+                //else if (tag is IMessage msg)
+                //    span.Tag = msg.ToPacket().ToHex(len / 2);
                 else
                     span.Tag = tag.ToJson().Cut(len);
             }
@@ -305,6 +305,10 @@ namespace NewLife.Log
             return span;
         }
 
+        /// <summary>支持作为标签数据的内容类型</summary>
+        static String[] _TagTypes = new[] {
+            "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
+        };
         static String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
         private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage request)
         {
@@ -331,7 +335,11 @@ namespace NewLife.Log
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
             {
-                if (request.Content != null)
+                if (request.Content is ByteArrayContent content &&
+                    content.Headers.ContentLength != null &&
+                    content.Headers.ContentLength < 1024 * 8 &&
+                    content.Headers.ContentType != null &&
+                    content.Headers.ContentType.MediaType.StartsWithIgnoreCase(_TagTypes))
                 {
                     // 既然都读出来了，不管多长，都要前面1024字符
                     var str = request.Content.ReadAsStringAsync().Result;

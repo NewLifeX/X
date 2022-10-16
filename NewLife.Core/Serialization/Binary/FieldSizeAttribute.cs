@@ -8,18 +8,24 @@ namespace NewLife.Serialization
 {
     /// <summary>字段大小特性。</summary>
     /// <remarks>
-    /// 可以通过Size指定字符串或数组的固有大小，为0表示自动计算；也可以通过指定参考字段ReferenceName，然后从其中获取大小。
-    /// 支持_Header._Questions形式的多层次引用字段
+    /// 可以通过Size指定字符串或数组的固有大小，为0表示自动计算；
+    /// 也可以通过指定参考字段ReferenceName，然后从其中获取大小。
+    /// 支持_Header._Questions形式的多层次引用字段。
+    /// 
+    /// 支持针对单个成员使用多个FieldSize特性，各自指定不同Version版本，以支持不同版本协议的序列化。
+    /// 例如JT/T808协议，2011/2019版的相同字段使用不同长度。
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
     public class FieldSizeAttribute : Attribute
     {
         /// <summary>大小。使用<see cref="ReferenceName"/>时，作为偏移量；0表示自动计算大小</summary>
         public Int32 Size { get; set; }
 
-        private String _ReferenceName;
-        /// <summary>参考大小字段名</summary>
-        public String ReferenceName { get => _ReferenceName; set => _ReferenceName = value; }
+        /// <summary>参考大小字段名，其中存储了实际大小，使用时获取</summary>
+        public String ReferenceName { get; set; }
+
+        /// <summary>协议版本。用于支持多版本协议序列化。例如JT/T808的2011/2019</summary>
+        public String Version { get; set; }
 
         /// <summary>通过Size指定字符串或数组的固有大小，为0表示自动计算</summary>
         /// <param name="size"></param>
@@ -33,6 +39,15 @@ namespace NewLife.Serialization
         /// <param name="referenceName"></param>
         /// <param name="size">在参考字段值基础上的增量，可以是正数负数</param>
         public FieldSizeAttribute(String referenceName, Int32 size) { ReferenceName = referenceName; Size = size; }
+
+        /// <summary>指定大小，指定协议版本，用于支持多版本协议序列化</summary>
+        /// <param name="size"></param>
+        /// <param name="version"></param>
+        public FieldSizeAttribute(Int32 size, String version)
+        {
+            Size = size;
+            Version = version;
+        }
 
         #region 方法
         /// <summary>找到所引用的参考字段</summary>

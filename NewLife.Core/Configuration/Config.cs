@@ -99,9 +99,9 @@ namespace NewLife.Configuration
         //[Obsolete("=>Provider.Save")]
         public virtual void Save() => Provider.Save(this);
 
-        /// <summary>异步保存</summary>
-        [Obsolete("=>Provider.Save")]
-        public virtual void SaveAsync() => ThreadPoolX.QueueUserWorkItem(() => Provider.Save(this));
+        ///// <summary>异步保存</summary>
+        //[Obsolete("=>Provider.Save")]
+        //public virtual void SaveAsync() => ThreadPoolX.QueueUserWorkItem(() => Provider.Save(this));
         #endregion
     }
 }

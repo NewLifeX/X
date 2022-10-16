@@ -23,7 +23,7 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using var tc = new TimeCost("Control.Invoke", 500);
+                //using var tc = new TimeCost("Control.Invoke", 500);
                 method();
             }));
         }
@@ -52,7 +52,7 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using var tc = new TimeCost("Control.Invoke", 500);
+                //using var tc = new TimeCost("Control.Invoke", 500);
                 method(arg);
             }));
         }
@@ -84,7 +84,7 @@ namespace System.Windows.Forms
 
             control.BeginInvoke(new Action(() =>
             {
-                using var tc = new TimeCost("Control.Invoke", 500);
+                //using var tc = new TimeCost("Control.Invoke", 500);
                 method(arg, arg2);
             }));
         }

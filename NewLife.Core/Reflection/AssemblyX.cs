@@ -133,7 +133,9 @@ public class AssemblyX
                 if (File.Exists(file)) return Assembly.LoadFrom(file);
             }
 
-            return OnResolve(args.Name);
+            // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
+            if (Setting.Current.AssemblyResolve)
+                return OnResolve(args.Name);
         }
         catch (Exception ex)
         {

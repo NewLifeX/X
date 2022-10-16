@@ -1,28 +1,69 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Xunit;
 
-namespace XUnitTest.IO
+namespace XUnitTest.IO;
+
+public class PathHelperTests
 {
-    public class PathHelperTests
+    [Fact]
+    public void BasePath()
     {
-        [Fact]
-        public void BasePath()
-        {
-            var bpath = PathHelper.BasePath;
+        var bpath = PathHelper.BasePath;
 
-            Assert.NotEmpty(bpath);
-            Assert.Equal(bpath, AppDomain.CurrentDomain.BaseDirectory);
+        Assert.NotEmpty(bpath);
+        Assert.Equal(bpath, AppDomain.CurrentDomain.BaseDirectory);
 
-            Assert.Equal("config".GetFullPath(), "config".GetBasePath());
+        Assert.Equal("config".GetFullPath(), "config".GetBasePath());
 
-            // 改变
-            PathHelper.BasePath = "../xx";
-            Assert.Equal("../xx/config".GetFullPath(), "config".GetBasePath());
+        // 改变
+        PathHelper.BasePath = "../xx";
+        Assert.Equal("../xx/config".GetFullPath(), "config".GetBasePath());
 
-            PathHelper.BasePath = bpath;
-        }
+        PathHelper.BasePath = bpath;
+    }
+
+    [Fact]
+    public void FileCompress()
+    {
+        var dst = "xml.zip".AsFile();
+        var src = "NewLife.Core.xml".AsFile();
+
+        if (dst.Exists) dst.Delete();
+
+        src.Compress(dst.FullName);
+
+        dst.Refresh();
+        Assert.True(dst.Exists);
+
+        var dst2 = "Xml".AsDirectory();
+        if (dst2.Exists) dst2.Delete(true);
+
+        dst.Extract(dst2.FullName, true);
+
+        dst2.Refresh();
+        Assert.True(dst2.Exists);
+    }
+
+    [Fact]
+    public void DirectoryCompress()
+    {
+        var dst = "alg.zip".AsFile();
+        var src = "Algorithms".AsDirectory();
+
+        if (dst.Exists) dst.Delete();
+
+        src.Compress(dst.FullName);
+
+        dst.Refresh();
+        Assert.True(dst.Exists);
+
+        var di2 = "Algorithms2".AsDirectory();
+        if (di2.Exists) di2.Delete(true);
+
+        dst.Extract(di2.FullName, true);
+
+        di2.Refresh();
+        Assert.True(di2.Exists);
     }
 }

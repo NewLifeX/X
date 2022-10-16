@@ -25,6 +25,9 @@ namespace NewLife.Http
         /// <summary>Http上下文</summary>
         public IHttpContext Context { get; set; }
 
+        /// <summary>版本</summary>
+        public String Version { get; set; }
+
         /// <summary>活跃时间</summary>
         public DateTime ActiveTime { get; set; }
         #endregion
@@ -54,6 +57,8 @@ namespace NewLife.Http
                 ActiveTime = DateTime.Now,
             };
             if (context is DefaultHttpContext dhc) dhc.WebSocket = manager;
+
+            if (request.Headers.TryGetValue("Sec-WebSocket-Version", out var ver)) manager.Version = ver;
 
             return manager;
         }

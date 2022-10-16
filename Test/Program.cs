@@ -124,120 +124,132 @@ namespace Test
 
         private static void Test3()
         {
-            using var tracer = new DefaultTracer { Log = XTrace.Log };
-            tracer.MaxSamples = 100;
-            tracer.MaxErrors = 100;
-
-            if (Console.ReadLine() == "1")
+            var server = new NetServer(3377);
+            server.Log = XTrace.Log;
+            server.SessionLog = XTrace.Log;
+            //server.SocketLog = XTrace.Log;
+            server.LogSend = true;
+            server.LogReceive = true;
+            server.Received += (s, e) =>
             {
-                var svr = new ApiServer(12345)
-                //var svr = new ApiServer("http://*:1234")
-                {
-                    Log = XTrace.Log,
-                    //EncoderLog = XTrace.Log,
-                    StatPeriod = 10,
-                    Tracer = tracer,
-                };
+                XTrace.WriteLine(e.Packet.ToStr());
+            };
+            server.Start();
 
-                // http状态
-                svr.UseHttpStatus = true;
+            //using var tracer = new DefaultTracer { Log = XTrace.Log };
+            //tracer.MaxSamples = 100;
+            //tracer.MaxErrors = 100;
 
-                var ns = svr.EnsureCreate() as NetServer;
-                ns.EnsureCreateServer();
-                var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
-                //ts.ProcessAsync = true;
+            //if (Console.ReadLine() == "1")
+            //{
+            //    var svr = new ApiServer(12345)
+            //    //var svr = new ApiServer("http://*:1234")
+            //    {
+            //        Log = XTrace.Log,
+            //        //EncoderLog = XTrace.Log,
+            //        StatPeriod = 10,
+            //        Tracer = tracer,
+            //    };
 
-                svr.Start();
+            //    // http状态
+            //    svr.UseHttpStatus = true;
 
-                Console.ReadKey();
-            }
-            else
-            {
-                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:12345")
-                {
-                    Log = XTrace.Log,
-                    //EncoderLog = XTrace.Log,
-                    StatPeriod = 10,
-                    Tracer = tracer,
+            //    var ns = svr.EnsureCreate() as NetServer;
+            //    ns.EnsureCreateServer();
+            //    var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
+            //    //ts.ProcessAsync = true;
 
-                    UsePool = true,
-                };
-                client.Open();
+            //    svr.Start();
 
-                Task.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/All", new { state = 111 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+            //    Console.ReadKey();
+            //}
+            //else
+            //{
+            //    var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:12345")
+            //    {
+            //        Log = XTrace.Log,
+            //        //EncoderLog = XTrace.Log,
+            //        StatPeriod = 10,
+            //        Tracer = tracer,
 
-                Task.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/All", new { state = 222 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+            //        UsePool = true,
+            //    };
+            //    client.Open();
 
-                Task.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/Info", new { state = 333 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+            //    Task.Run(() =>
+            //    {
+            //        var sw = Stopwatch.StartNew();
+            //        try
+            //        {
+            //            for (var i = 0; i < 10; i++)
+            //            {
+            //                client.InvokeAsync<Object>("Api/All", new { state = 111 }).Wait();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            XTrace.WriteException(ex.GetTrue());
+            //        }
+            //        sw.Stop();
+            //        XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+            //    });
 
-                Task.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/Info", new { state = 444 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+            //    Task.Run(() =>
+            //    {
+            //        var sw = Stopwatch.StartNew();
+            //        try
+            //        {
+            //            for (var i = 0; i < 10; i++)
+            //            {
+            //                client.InvokeAsync<Object>("Api/All", new { state = 222 }).Wait();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            XTrace.WriteException(ex.GetTrue());
+            //        }
+            //        sw.Stop();
+            //        XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+            //    });
 
-                Console.ReadKey();
-            }
+            //    Task.Run(() =>
+            //    {
+            //        var sw = Stopwatch.StartNew();
+            //        try
+            //        {
+            //            for (var i = 0; i < 10; i++)
+            //            {
+            //                client.InvokeAsync<Object>("Api/Info", new { state = 333 }).Wait();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            XTrace.WriteException(ex.GetTrue());
+            //        }
+            //        sw.Stop();
+            //        XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+            //    });
+
+            //    Task.Run(() =>
+            //    {
+            //        var sw = Stopwatch.StartNew();
+            //        try
+            //        {
+            //            for (var i = 0; i < 10; i++)
+            //            {
+            //                client.InvokeAsync<Object>("Api/Info", new { state = 444 }).Wait();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            XTrace.WriteException(ex.GetTrue());
+            //        }
+            //        sw.Stop();
+            //        XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
+            //    });
+
+            //    Console.ReadKey();
+            //}
         }
 
         private static void Test4()
@@ -261,14 +273,14 @@ namespace Test
                 case '1':
                     ch = new MemoryCache();
                     break;
-                case '3':
-                    var rds = new Redis("127.0.0.1", null, 9)
-                    {
-                        Counter = new PerfCounter(),
-                        Tracer = new DefaultTracer { Log = XTrace.Log },
-                    };
-                    ch = rds;
-                    break;
+                    //case '3':
+                    //    var rds = new Redis("127.0.0.1", null, 9)
+                    //    {
+                    //        Counter = new PerfCounter(),
+                    //        Tracer = new DefaultTracer { Log = XTrace.Log },
+                    //    };
+                    //    ch = rds;
+                    //    break;
             }
 
             var mode = false;
@@ -289,7 +301,7 @@ namespace Test
             var rs = ch.Bench(mode, batch);
 
             XTrace.WriteLine("总测试数据：{0:n0}", rs);
-            if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
+            //if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
         }
 
         private static NetServer _server;
@@ -305,7 +317,7 @@ namespace Test
             server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
             server.MapStaticFiles("/logos", "images/");
             server.MapStaticFiles("/", "./");
-            server.MapController<ApiController>("/api");
+            //server.MapController<ApiController>("/api");
             server.Map("/my", new MyHttpHandler());
             server.Map("/ws", new WebSocketHandler());
             server.Start();
@@ -475,14 +487,14 @@ namespace Test
             //}
         }
 
-        private static void Test14()
-        {
-            var rds = new Redis("127.0.0.1", null, 3)
-            {
-                Log = XTrace.Log
-            };
-            var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
-        }
+        //private static void Test14()
+        //{
+        //    var rds = new Redis("127.0.0.1", null, 3)
+        //    {
+        //        Log = XTrace.Log
+        //    };
+        //    var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
+        //}
 
         ///// <summary>
         ///// 私钥XML2PEM

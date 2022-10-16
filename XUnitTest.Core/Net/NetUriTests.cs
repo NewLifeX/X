@@ -21,12 +21,12 @@ namespace XUnitTest.Net
             Assert.Equal("[::1]:80", ep + "");
 
             var uri = new NetUri(NetType.Tcp, ep);
-            Assert.Equal("Tcp://[::1]:80", uri.ToString());
+            Assert.Equal("tcp://[::1]:80", uri.ToString());
             Assert.Equal(ep, uri.EndPoint);
             Assert.True(uri.IsTcp);
 
             uri.Port = 0;
-            Assert.Equal("Tcp://::1", uri + "");
+            Assert.Equal("tcp://::1", uri + "");
 
             var uri2 = new NetUri("http://[::1]:80");
             Assert.Equal(NetType.Http, uri2.Type);
@@ -34,7 +34,7 @@ namespace XUnitTest.Net
             Assert.Null(uri2.Host);
             Assert.Equal(IPAddress.IPv6Loopback, uri2.Address);
             Assert.Equal(80, uri2.Port);
-            Assert.Equal("Http://[::1]:80", uri2.ToString());
+            Assert.Equal("http://[::1]:80", uri2.ToString());
 
             var uri3 = new NetUri("wss://::1");
             Assert.Equal(NetType.WebSocket, uri3.Type);

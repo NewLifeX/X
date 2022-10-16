@@ -13,7 +13,7 @@ namespace NewLife.Messaging
         /// <summary>缓存流</summary>
         public MemoryStream Stream { get; set; }
 
-        /// <summary>获取长度的委托</summary>
+        /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
         public Func<Packet, Int32> GetLength { get; set; }
 
         /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
@@ -75,7 +75,7 @@ namespace NewLife.Messaging
                 CheckCache();
                 ms = Stream;
 
-                using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData={pk.Total}");
+                using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Total}]{pk.ToHex(500)}");
 
                 // 合并数据到最后面
                 if (pk != null && pk.Total > 0)
@@ -127,8 +127,10 @@ namespace NewLife.Messaging
             var now = DateTime.Now;
             if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
             {
-                using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"Position={ms.Position} Length={ms.Length} MaxCache={MaxCache}");
-                span?.SetError(new Exception("数据包编码器放弃数据"), null);
+                var retain = ms.Length - ms.Position;
+                var buf = ms.ReadBytes(500);
+                using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{buf.ToHex()}");
+                span?.SetError(new Exception($"数据包编码器放弃数据 retain={retain} MaxCache={MaxCache}"), null);
 
                 if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
 

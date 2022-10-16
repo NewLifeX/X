@@ -50,6 +50,21 @@ namespace XUnitTest.IO
         }
 
         [Fact]
+        public void ToHex()
+        {
+            var buf="NewLife".GetBytes();
+            var hex = buf.ToHex();
+
+            Assert.Equal("4E65774C696665", hex);
+
+            hex = buf.ToHex("-");
+            Assert.Equal("4E-65-77-4C-69-66-65", hex);
+
+            hex = buf.ToHex("-", 4, 6);
+            Assert.Equal("4E65774C-6966", hex);
+        }
+
+        [Fact]
         public void Swap()
         {
             var data = "12345678";

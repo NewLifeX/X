@@ -1,21 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net461;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
-    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。旧版请找2021.1225</Description>
+    <Description>核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存、网络（Tcp/Udp/Http）、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2022 NewLife</Copyright>
-    <VersionPrefix>9.2</VersionPrefix>
+    <VersionPrefix>10.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</AssemblyVersion>
-    <OutputPath>..\..\Bin</OutputPath>
+    <OutputPath>..\Bin</OutputPath>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
@@ -25,12 +28,13 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>合并WinCore项目；DbTable支持Xml序列化；DbTable支持DataTable互转；Http协议兼容性修正；HttpClient优化埋点数据标签</PackageReleaseNotes>
+    <PackageReleaseNotes>恢复支持net461和netstandard2.0；独立实现IndexRange</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>Readme.MD</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
@@ -39,7 +43,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
@@ -51,9 +55,49 @@
     <!--<PackageReference Include="System.Management" Version="6.0.0" />-->
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='netstandard2.0'">
+    <!--<PackageReference Include="IndexRange" Version="1.0.2" />-->
+    <!--<PackageReference Include="System.Memory" Version="4.5.5" />-->
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net461'">
+    <!--<PackageReference Include="System.Net.Http" Version="4.3.4" />-->
+    <!--<PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />-->
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='net461'">
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="Agent\**" />
+    <Compile Remove="Applications\**" />
+    <Compile Remove="Compression\**" />
+    <Compile Remove="Expressions\**" />
+    <Compile Remove="Json\**" />
+    <Compile Remove="Remoting\Controllers\**" />
+    <Compile Remove="Remoting\Filters\**" />
     <Compile Remove="Web\OAuth\**" />
+    <Compile Remove="Yun\**" />
+    <EmbeddedResource Remove="Applications\**" />
+    <EmbeddedResource Remove="Compression\**" />
+    <EmbeddedResource Remove="Expressions\**" />
+    <EmbeddedResource Remove="Json\**" />
+    <EmbeddedResource Remove="Remoting\Controllers\**" />
+    <EmbeddedResource Remove="Remoting\Filters\**" />
+    <EmbeddedResource Remove="Yun\**" />
+    <None Remove="Applications\**" />
+    <None Remove="Compression\**" />
+    <None Remove="Expressions\**" />
+    <None Remove="Json\**" />
+    <None Remove="Remoting\Controllers\**" />
+    <None Remove="Remoting\Filters\**" />
+    <None Remove="Yun\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Algorithms\BilinearInterpolation.cs" />
@@ -65,8 +109,30 @@
     <Compile Remove="Algorithms\MaxSampling.cs" />
     <Compile Remove="Algorithms\MinSampling.cs" />
     <Compile Remove="Algorithms\SumSampling.cs" />
+    <Compile Remove="Caching\Redis.cs" />
+    <Compile Remove="Caching\RedisClient.cs" />
+    <Compile Remove="Caching\RedisEncoder.cs" />
+    <Compile Remove="Collections\BloomFilter.cs" />
+    <Compile Remove="Collections\DictionaryCache.cs" />
+    <Compile Remove="Collections\ICluster.cs" />
+    <Compile Remove="Collections\QueueService.cs" />
+    <Compile Remove="Data\BinaryTree.cs" />
+    <Compile Remove="Data\GeoAddress.cs" />
+    <Compile Remove="Data\GeoArea.cs" />
+    <Compile Remove="Data\GeoPoint.cs" />
+    <Compile Remove="Data\IMemoryEncoder.cs" />
     <Compile Remove="Extension\EndPointExtensions.cs" />
+    <Compile Remove="Http\DefaultHttpClientFactory.cs" />
     <Compile Remove="Http\HttpClient.cs" />
+    <Compile Remove="Http\HttpCodec.cs" />
+    <Compile Remove="Http\HttpEncoder.cs" />
+    <Compile Remove="Http\IHttpClientFactory.cs" />
+    <Compile Remove="IO\EncodingHelper.cs" />
+    <Compile Remove="IO\FileSource.cs" />
+    <Compile Remove="Log\CodeTimer.cs" />
+    <Compile Remove="Log\TimeCost.cs" />
+    <Compile Remove="Log\TraceStream.cs" />
+    <Compile Remove="Model\IFactory.cs" />
     <Compile Remove="Net\NetException.cs" />
     <Compile Remove="Net\SerialPortConfig.cs" />
     <Compile Remove="Net\SerialTransport.cs" />
@@ -75,7 +141,28 @@
     <Compile Remove="Reflection\EmitHelper.cs" />
     <Compile Remove="Reflection\EmitReflect.cs" />
     <Compile Remove="Reflection\IIndexAccessor.cs" />
+    <Compile Remove="Remoting\ApiAction.cs" />
+    <Compile Remove="Remoting\ApiAttribute.cs" />
+    <Compile Remove="Remoting\ApiClient.cs" />
+    <Compile Remove="Remoting\ApiHost.cs" />
+    <Compile Remove="Remoting\ApiHttpServer.cs" />
+    <Compile Remove="Remoting\ApiNetServer.cs" />
+    <Compile Remove="Remoting\ApiServer.cs" />
+    <Compile Remove="Remoting\ClientPoolCluster.cs" />
+    <Compile Remove="Remoting\ClientSingleCluster.cs" />
+    <Compile Remove="Remoting\IApi.cs" />
+    <Compile Remove="Remoting\IApiHandler.cs" />
+    <Compile Remove="Remoting\IApiHost.cs" />
+    <Compile Remove="Remoting\IApiManager.cs" />
+    <Compile Remove="Remoting\IApiServer.cs" />
+    <Compile Remove="Remoting\IApiSession.cs" />
+    <Compile Remove="Remoting\IEncoder.cs" />
+    <Compile Remove="Remoting\JsonEncoder.cs" />
+    <Compile Remove="Security\AlgorithmKeyBlob.cs" />
+    <Compile Remove="Security\Certificate.cs" />
     <Compile Remove="Security\ECDsaHelper.cs" />
+    <Compile Remove="Security\ECKey.cs" />
+    <Compile Remove="Serialization\Accessor.cs" />
     <Compile Remove="Serialization\BinaryCodec.cs" />
     <Compile Remove="Serialization\BinaryCodec2.cs" />
     <Compile Remove="Serialization\Binary\BinaryPair.cs" />
@@ -83,25 +170,32 @@
     <Compile Remove="Serialization\JsonCodec.cs" />
     <Compile Remove="Serialization\JsonCodec2.cs" />
     <Compile Remove="Serialization\Json\JsonTest.cs" />
+    <Compile Remove="Threading\ThreadPoolX.cs" />
     <Compile Remove="Web\OAuthClient.cs" />
     <Compile Remove="Web\OAuthConfig.cs" />
     <Compile Remove="Web\OAuthServer.cs" />
     <Compile Remove="Web\Pager.cs" />
     <Compile Remove="Web\WebHelper.cs" />
     <Compile Remove="Windows\MySpeech.cs" />
+    <Compile Remove="Windows\SpeechRecognition.cs" />
+    <Compile Remove="Xml\SerializableDictionary.cs" />
     <Compile Remove="发布NuGet.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Remoting\ApiClient.cd" />
+    <None Remove="Remoting\ApiServer.cd" />
     <None Remove="UpdateInfo.txt" />
     <None Remove="X组件.txt" />
+    <None Remove="说明.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UpdateInfo.txt" />
-    <EmbeddedResource Include="Windows\MySpeech.cs" />
-    <EmbeddedResource Include="X组件.txt" />
+    <None Include="..\Readme.MD">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
