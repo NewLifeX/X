@@ -76,7 +76,7 @@ namespace NewLife.Collections
 
                 value.Clear();
 
-                return true;
+                return base.Put(value);
             }
         }
         #endregion
@@ -123,7 +123,7 @@ namespace NewLife.Collections
                 value.Position = 0;
                 value.SetLength(0);
 
-                return true;
+                return base.Put(value);
             }
         }
         #endregion
