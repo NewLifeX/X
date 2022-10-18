@@ -99,7 +99,7 @@ namespace NewLife.Net
             {
                 if (Active) return true;
 
-                using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote);
+                using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());
                 try
                 {
                     _RecvCount = 0;
@@ -148,7 +148,7 @@ namespace NewLife.Net
             {
                 if (!Active) return true;
 
-                using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote);
+                using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
                 try
                 {
                     // 管道
