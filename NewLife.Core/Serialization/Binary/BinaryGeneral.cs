@@ -6,6 +6,8 @@ namespace NewLife.Serialization
     /// <summary>二进制基础类型处理器</summary>
     public class BinaryGeneral : BinaryHandlerBase
     {
+        private static readonly DateTime _dt1970 = new(1970, 1, 1);
+
         /// <summary>实例化</summary>
         public BinaryGeneral() => Priority = 10;
 
@@ -34,7 +36,8 @@ namespace NewLife.Serialization
                     Host.Write(0);
                     return true;
                 case TypeCode.DateTime:
-                    Write(((DateTime)value).ToInt());
+                    var n = ((DateTime)value - _dt1970).TotalSeconds;
+                    Write((UInt32)n);
                     return true;
                 case TypeCode.Decimal:
                     Write((Decimal)value);
@@ -104,7 +107,7 @@ namespace NewLife.Serialization
                     value = DBNull.Value;
                     return true;
                 case TypeCode.DateTime:
-                    value = ReadInt32().ToDateTime();
+                    value = _dt1970.AddSeconds(ReadUInt32());
                     return true;
                 case TypeCode.Decimal:
                     value = ReadDecimal();
