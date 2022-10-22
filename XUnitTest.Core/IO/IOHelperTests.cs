@@ -52,7 +52,7 @@ namespace XUnitTest.IO
         [Fact]
         public void ToHex()
         {
-            var buf="NewLife".GetBytes();
+            var buf = "NewLife".GetBytes();
             var hex = buf.ToHex();
 
             Assert.Equal("4E65774C696665", hex);
@@ -98,6 +98,24 @@ namespace XUnitTest.IO
 
             buf = data.ToHex().Swap(true, true);
             Assert.Equal("78563412DDCCBBAA", buf.ToHex());
+        }
+
+        [Fact]
+        public void ToBase64()
+        {
+            var buf = "Stone".GetBytes();
+
+            var b64 = buf.ToBase64();
+            Assert.Equal("U3RvbmU=", b64);
+
+            b64 = buf.ToUrlBase64();
+            Assert.Equal("U3RvbmU", b64);
+
+            var buf2 = b64.ToBase64();
+            Assert.Equal(buf.ToHex(), buf2.ToHex());
+
+            var buf3 = (b64 + Environment.NewLine + " ").ToBase64();
+            Assert.Equal(buf.ToHex(), buf3.ToHex());
         }
     }
 }

@@ -874,8 +874,9 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToBase64(this String data)
     {
-        if (data.IsNullOrEmpty()) return Array.Empty<Byte>();
+        if (data.IsNullOrWhiteSpace()) return Array.Empty<Byte>();
 
+        data = data.Trim();
         if (data[^1] != '=')
         {
             // 如果不是4的整数倍，后面补上等号
