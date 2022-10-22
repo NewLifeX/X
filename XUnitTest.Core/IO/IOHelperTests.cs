@@ -48,5 +48,74 @@ namespace XUnitTest.IO
             var value = pk.Slice(p + 4).ToStr();
             Assert.Equal("大石头", value);
         }
+
+        [Fact]
+        public void ToHex()
+        {
+            var buf = "NewLife".GetBytes();
+            var hex = buf.ToHex();
+
+            Assert.Equal("4E65774C696665", hex);
+
+            hex = buf.ToHex("-");
+            Assert.Equal("4E-65-77-4C-69-66-65", hex);
+
+            hex = buf.ToHex("-", 4, 6);
+            Assert.Equal("4E65774C-6966", hex);
+        }
+
+        [Fact]
+        public void Swap()
+        {
+            var data = "12345678";
+
+            var buf = data.ToHex().Swap(false, false);
+            Assert.Equal("12345678", buf.ToHex());
+
+            buf = data.ToHex().Swap(false, true);
+            Assert.Equal("56781234", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, false);
+            Assert.Equal("34127856", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, true);
+            Assert.Equal("78563412", buf.ToHex());
+        }
+
+        [Fact]
+        public void Swap64()
+        {
+            var data = "12345678AABBCCDD";
+
+            var buf = data.ToHex().Swap(false, false);
+            Assert.Equal("12345678AABBCCDD", buf.ToHex());
+
+            buf = data.ToHex().Swap(false, true);
+            Assert.Equal("56781234CCDDAABB", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, false);
+            Assert.Equal("34127856BBAADDCC", buf.ToHex());
+
+            buf = data.ToHex().Swap(true, true);
+            Assert.Equal("78563412DDCCBBAA", buf.ToHex());
+        }
+
+        [Fact]
+        public void ToBase64()
+        {
+            var buf = "Stone".GetBytes();
+
+            var b64 = buf.ToBase64();
+            Assert.Equal("U3RvbmU=", b64);
+
+            b64 = buf.ToUrlBase64();
+            Assert.Equal("U3RvbmU", b64);
+
+            var buf2 = b64.ToBase64();
+            Assert.Equal(buf.ToHex(), buf2.ToHex());
+
+            var buf3 = (b64 + Environment.NewLine + " ").ToBase64();
+            Assert.Equal(buf.ToHex(), buf3.ToHex());
+        }
     }
 }

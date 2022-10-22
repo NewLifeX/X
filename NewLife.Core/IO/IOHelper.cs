@@ -847,6 +847,7 @@ namespace NewLife
         {
             if (data.IsNullOrEmpty()) return new Byte[0];
 
+            data = data.Trim();
             if (data[data.Length - 1] != '=')
             {
                 // 如果不是4的整数倍，后面补上等号
