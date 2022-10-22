@@ -363,5 +363,35 @@ namespace XUnitTest.Serialization
             [FixedString(8)]
             public String Name { get; set; }
         }
+
+        [Fact]
+        public void ReadDateTime()
+        {
+            var dt = DateTime.Now;
+            var n1 = dt.ToInt();
+
+            var pk = Binary.FastWrite(dt);
+
+            var dt2 = Binary.FastRead<DateTime>(pk.GetStream());
+            var n2 = dt2.ToInt();
+
+            Assert.Equal(dt.Trim(), dt2);
+            Assert.Equal(n1, n2);
+        }
+
+        [Fact]
+        public void ReadDateTime2()
+        {
+            var dt = new DateTime(2038, 12, 31);
+            //var n1 = dt.ToInt();
+
+            var pk = Binary.FastWrite(dt);
+
+            var dt2 = Binary.FastRead<DateTime>(pk.GetStream());
+            //var n2 = dt2.ToInt();
+
+            Assert.Equal(dt.Trim(), dt2);
+            //Assert.Equal(n1, n2);
+        }
     }
 }

@@ -194,13 +194,21 @@ namespace System
 
                 //// 先转UTC时间再相减，以得到绝对时间差
                 //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
-                return (Int32)(dt - _dt1970).TotalSeconds;
+                // 保存时间日期由Int32改为UInt32，原截止2038年的范围扩大到2106年
+                var n = (dt - _dt1970).TotalSeconds;
+                if (n >= Int32.MaxValue) throw new InvalidDataException("时间过大，数值超过Int32.MaxValue");
+
+                return (Int32)n;
             }
             if (value is DateTimeOffset dto)
             {
                 if (dto == DateTimeOffset.MinValue) return 0;
 
-                return (Int32)(dto - _dto1970).TotalSeconds;
+                //return (Int32)(dto - _dto1970).TotalSeconds;
+                var n = (dto - _dto1970).TotalSeconds;
+                if (n >= Int32.MaxValue) throw new InvalidDataException("时间过大，数值超过Int32.MaxValue");
+
+                return (Int32)n;
             }
 
             if (value is Byte[] buf)
