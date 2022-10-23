@@ -316,7 +316,7 @@ public static class HttpHelper
 
         // 开始跟踪，注入TraceId
         using var span = Tracer?.NewSpan(request);
-        if (span != null) span.SetError(null, content.ReadAsStringAsync().Result);
+        //if (span != null) span.SetTag(content.ReadAsStringAsync().Result);
         var filter = Filter;
         try
         {
@@ -326,7 +326,12 @@ public static class HttpHelper
 
             if (filter != null) await filter.OnResponse(client, response, request);
 
-            return await response.Content.ReadAsStringAsync();
+            var result = await response.Content.ReadAsStringAsync();
+
+            // 增加埋点数据
+            span?.AppendTag(result);
+
+            return result;
         }
         catch (Exception ex)
         {

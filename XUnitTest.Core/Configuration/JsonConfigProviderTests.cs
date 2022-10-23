@@ -9,83 +9,83 @@ using NewLife.Security;
 using NewLife.Web;
 using Xunit;
 
-namespace XUnitTest.Configuration
+namespace XUnitTest.Configuration;
+
+public class JsonConfigProviderTests
 {
-    public class JsonConfigProviderTests
+    readonly IConfigProvider _provider;
+
+    public JsonConfigProviderTests() => _provider = new JsonConfigProvider { FileName = "Config/core1.json" };
+
+    [Fact]
+    public void TestLoadAndSave()
     {
-        readonly IConfigProvider _provider;
-
-        public JsonConfigProviderTests() => _provider = new JsonConfigProvider { FileName = "Config/core1.json" };
-
-        [Fact]
-        public void TestLoadAndSave()
+        var set = new ConfigModel
         {
-            var set = new ConfigModel
+            Debug = true,
+            LogLevel = LogLevel.Fatal,
+            LogPath = "xxx",
+            NetworkLog = "255.255.255.255:514",
+            TempPath = "yyy",
+
+            Sys = new SysConfig
             {
-                Debug = true,
-                LogLevel = LogLevel.Fatal,
-                LogPath = "xxx",
-                NetworkLog = "255.255.255.255:514",
-                TempPath = "yyy",
+                Name = "NewLife.Cube",
+                DisplayName = "魔方平台",
+                Company = "新生命开发团队",
+            },
+        };
 
-                Sys = new SysConfig
-                {
-                    Name = "NewLife.Cube",
-                    DisplayName = "魔方平台",
-                    Company = "新生命开发团队",
-                },
-            };
+        _provider.Save(set);
 
-            _provider.Save(set);
+        var prv = _provider;
+        Assert.NotNull(prv);
+        Assert.Equal(set.Debug.ToString().ToLower(), prv["Debug"]);
+        Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
+        Assert.Equal(set.LogPath, prv["LogPath"]);
+        Assert.Equal(set.NetworkLog, prv["NetworkLog"]);
+        Assert.Equal(set.LogFileFormat, prv["LogFileFormat"]);
+        Assert.Equal(set.TempPath, prv["TempPath"]);
+        Assert.Equal(set.PluginPath, prv["PluginPath"]);
+        Assert.Equal(set.PluginServer, prv["PluginServer"]);
 
-            var prv = _provider;
-            Assert.NotNull(prv);
-            Assert.Equal(set.Debug.ToString().ToLower(), prv["Debug"]);
-            Assert.Equal(set.LogLevel + "", prv["LogLevel"]);
-            Assert.Equal(set.LogPath, prv["LogPath"]);
-            Assert.Equal(set.NetworkLog, prv["NetworkLog"]);
-            Assert.Equal(set.LogFileFormat, prv["LogFileFormat"]);
-            Assert.Equal(set.TempPath, prv["TempPath"]);
-            Assert.Equal(set.PluginPath, prv["PluginPath"]);
-            Assert.Equal(set.PluginServer, prv["PluginServer"]);
+        //Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Comment);
+        //Assert.Equal("系统配置", prv.GetSection("Sys").Comment);
+        //Assert.Equal("用于标识系统的英文名", prv.GetSection("Sys:Name").Comment);
 
-            //Assert.Equal("全局调试。XTrace.Debug", prv.GetSection("Debug").Comment);
-            //Assert.Equal("系统配置", prv.GetSection("Sys").Comment);
-            //Assert.Equal("用于标识系统的英文名", prv.GetSection("Sys:Name").Comment);
+        var sys = set.Sys;
+        Assert.Equal(sys.Name, prv["Sys:Name"]);
+        Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
+        Assert.Equal(sys.Company, prv["Sys:Company"]);
 
-            var sys = set.Sys;
-            Assert.Equal(sys.Name, prv["Sys:Name"]);
-            Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
-            Assert.Equal(sys.Company, prv["Sys:Company"]);
+        var prv2 = new JsonConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
+        var set2 = prv2.Load<ConfigModel>();
 
-            var prv2 = new JsonConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
-            var set2 = prv2.Load<ConfigModel>();
+        Assert.NotNull(set2);
+        Assert.Equal(set.Debug, set2.Debug);
+        Assert.Equal(set.LogLevel, set2.LogLevel);
+        Assert.Equal(set.LogPath, set2.LogPath);
+        Assert.Equal(set.NetworkLog, set2.NetworkLog);
+        Assert.Equal(set.LogFileFormat, set2.LogFileFormat);
+        Assert.Equal(set.TempPath, set2.TempPath);
+        Assert.Equal(set.PluginPath, set2.PluginPath);
+        Assert.Equal(set.PluginServer, set2.PluginServer);
 
-            Assert.NotNull(set2);
-            Assert.Equal(set.Debug, set2.Debug);
-            Assert.Equal(set.LogLevel, set2.LogLevel);
-            Assert.Equal(set.LogPath, set2.LogPath);
-            Assert.Equal(set.NetworkLog, set2.NetworkLog);
-            Assert.Equal(set.LogFileFormat, set2.LogFileFormat);
-            Assert.Equal(set.TempPath, set2.TempPath);
-            Assert.Equal(set.PluginPath, set2.PluginPath);
-            Assert.Equal(set.PluginServer, set2.PluginServer);
+        //Assert.Equal("全局调试。XTrace.Debug", prv2.GetSection("Debug").Comment);
+        //Assert.Equal("系统配置", prv2.GetSection("Sys").Comment);
+        //Assert.Equal("用于标识系统的英文名", prv2.GetSection("Sys:Name").Comment);
 
-            //Assert.Equal("全局调试。XTrace.Debug", prv2.GetSection("Debug").Comment);
-            //Assert.Equal("系统配置", prv2.GetSection("Sys").Comment);
-            //Assert.Equal("用于标识系统的英文名", prv2.GetSection("Sys:Name").Comment);
+        var sys2 = set2.Sys;
+        Assert.NotNull(sys2);
+        Assert.Equal(sys.Name, sys2.Name);
+        Assert.Equal(sys.DisplayName, sys2.DisplayName);
+        Assert.Equal(sys.Company, sys2.Company);
+    }
 
-            var sys2 = set2.Sys;
-            Assert.NotNull(sys2);
-            Assert.Equal(sys.Name, sys2.Name);
-            Assert.Equal(sys.DisplayName, sys2.DisplayName);
-            Assert.Equal(sys.Company, sys2.Company);
-        }
-
-        [Fact]
-        public void TestBind()
-        {
-            var json = @"{
+    [Fact]
+    public void TestBind()
+    {
+        var json = @"{
     ""Debug"":  ""True"",
     ""LogLevel"":  ""Fatal"",
     ""LogPath"":  ""xxx"",
@@ -108,94 +108,139 @@ namespace XUnitTest.Configuration
     }
 }";
 
-            var prv = new JsonConfigProvider { FileName = "Config/core2.json" };
-            var file = prv.FileName.GetFullPath().EnsureDirectory(true);
-            File.WriteAllText(file, json);
-            prv.LoadAll();
+        var prv = new JsonConfigProvider { FileName = "Config/core2.json" };
+        var file = prv.FileName.GetFullPath().EnsureDirectory(true);
+        File.WriteAllText(file, json);
+        prv.LoadAll();
 
-            var set = new ConfigModel();
-            prv.Bind(set);
+        var set = new ConfigModel();
+        prv.Bind(set);
 
-            Assert.NotNull(set);
-            Assert.True(set.Debug);
-            Assert.Equal(LogLevel.Fatal, set.LogLevel);
-            Assert.Equal("xxx", set.LogPath);
-            Assert.Equal("255.255.255.255:514", set.NetworkLog);
+        Assert.NotNull(set);
+        Assert.True(set.Debug);
+        Assert.Equal(LogLevel.Fatal, set.LogLevel);
+        Assert.Equal("xxx", set.LogPath);
+        Assert.Equal("255.255.255.255:514", set.NetworkLog);
 
-            var sys = set.Sys;
-            Assert.NotNull(sys);
-            Assert.Equal("NewLife.Cube", sys.Name);
-            Assert.Equal("魔方平台", sys.DisplayName);
-            Assert.Equal("新生命开发团队", sys.Company);
+        var sys = set.Sys;
+        Assert.NotNull(sys);
+        Assert.Equal("NewLife.Cube", sys.Name);
+        Assert.Equal("魔方平台", sys.DisplayName);
+        Assert.Equal("新生命开发团队", sys.Company);
 
-            // 三层
-            Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
+        // 三层
+        Assert.Equal("zzz", prv["Sys:xxx:yyy"]);
 
-            // 保存
-            prv.Save(set);
+        // 保存
+        prv.Save(set);
+    }
+
+    [Fact]
+    public void ArrayTest()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/OAuth.json" };
+
+        //var cfg = OAuthConfig.Current;
+        var cfg = new OAuthConfig();
+        cfg.Invoke("OnLoaded");
+
+        Assert.NotNull(cfg.Apps);
+        Assert.Equal(4, cfg.Apps.Length);
+        Assert.NotNull(cfg.Items);
+        Assert.Equal(8, cfg.Items.Length);
+
+        // 修改其中一项
+        var ti = cfg.Items.FirstOrDefault();
+        ti.Secret = Rand.NextString(16);
+
+        //cfg.Save();
+        prv.Save(cfg);
+
+        var txt = File.ReadAllText(prv.FileName.GetBasePath());
+        Assert.NotEmpty(txt);
+        Assert.DoesNotContain("Items: []", txt);
+        Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
+        //Assert.Contains("{ \"Name\": \"Baidu\", \"Server\": null, \"AccessServer\": null, \"AppID\": null, \"Secret\": null, \"Scope\": null },", txt);
+
+        var prv2 = new JsonConfigProvider { FileName = prv.FileName };
+        var cfg2 = prv2.Load<OAuthConfig>();
+        Assert.NotNull(cfg2);
+
+        Assert.NotNull(cfg2.Apps);
+        Assert.Equal(4, cfg2.Apps.Length);
+        Assert.NotNull(cfg2.Apps[0]);
+        Assert.NotNull(cfg2.Apps[1]);
+
+        Assert.NotNull(cfg2.Items);
+        Assert.Equal(8, cfg2.Items.Length);
+        Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
+    }
+
+    [Fact]
+    public void ArrayTest2()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/OAuth2.json" };
+
+        var cfg = new OAuthConfig();
+        cfg.Items = System.Array.Empty<OAuthItem>();
+
+        prv.Save(cfg);
+
+        var txt = File.ReadAllText(prv.FileName.GetBasePath());
+        Assert.NotEmpty(txt);
+        Assert.Contains("\"Items\": []", txt);
+
+        var prv2 = new JsonConfigProvider { FileName = prv.FileName };
+        var cfg2 = prv2.Load<OAuthConfig>();
+
+        Assert.NotNull(cfg2);
+        Assert.NotNull(cfg2.Items);
+        Assert.Empty(cfg2.Items);
+    }
+
+    [Fact]
+    public void LoadAppSettings()
+    {
+        var json = JsonConfigProvider.LoadAppSettings();
+
+        Assert.NotNull(json);
+
+        var url = json["Url"];
+        Assert.Equal("https://newlifex.com/", url);
+
+        var section = json.GetSection("ConnectionStrings");
+        Assert.NotNull(section);
+        Assert.Equal("ConnectionStrings", section.Key);
+        Assert.Null(section.Value);
+        Assert.Null(section.Comment);
+        Assert.Equal(4, section.Childs.Count);
+
+        {
+            var connStr = json["ConnectionStrings:sqlserver:ConnectionString"];
+            Assert.NotNull(connStr);
+            Assert.Equal("Server=127.0.0.1;Database=Membership;Uid=root;Pwd=root;", connStr);
+
+            var provider = section["sqlserver:providerName"];
+            Assert.NotNull(provider);
+            Assert.Equal("SqlServer", provider);
+
+            var sec = json.GetSection("ConnectionStrings:sqlserver");
+            Assert.Equal("sqlserver", sec.Key);
+            Assert.Null(sec.Value);
+            Assert.Null(sec.Comment);
+            Assert.Equal(2, sec.Childs.Count);
         }
 
-        [Fact]
-        public void ArrayTest()
         {
-            var prv = new JsonConfigProvider { FileName = "Config/OAuth.json" };
+            var connStr = json["ConnectionStrings:MySQL.AppSettings:ConnectionString"];
+            Assert.NotNull(connStr);
+            Assert.Equal("Server=.;Port=3306;Database=mysql;Uid=MySQL.default;Pwd=;", connStr);
 
-            //var cfg = OAuthConfig.Current;
-            var cfg = new OAuthConfig();
-            cfg.Invoke("OnLoaded");
-
-            Assert.NotNull(cfg.Apps);
-            Assert.Equal(4, cfg.Apps.Length);
-            Assert.NotNull(cfg.Items);
-            Assert.Equal(8, cfg.Items.Length);
-
-            // 修改其中一项
-            var ti = cfg.Items.FirstOrDefault();
-            ti.Secret = Rand.NextString(16);
-
-            //cfg.Save();
-            prv.Save(cfg);
-
-            var txt = File.ReadAllText(prv.FileName.GetBasePath());
-            Assert.NotEmpty(txt);
-            Assert.DoesNotContain("Items: []", txt);
-            Assert.Contains($"\"Secret\": \"{ti.Secret}\"", txt);
-            //Assert.Contains("{ \"Name\": \"Baidu\", \"Server\": null, \"AccessServer\": null, \"AppID\": null, \"Secret\": null, \"Scope\": null },", txt);
-
-            var prv2 = new JsonConfigProvider { FileName = prv.FileName };
-            var cfg2 = prv2.Load<OAuthConfig>();
-            Assert.NotNull(cfg2);
-
-            Assert.NotNull(cfg2.Apps);
-            Assert.Equal(4, cfg2.Apps.Length);
-            Assert.NotNull(cfg2.Apps[0]);
-            Assert.NotNull(cfg2.Apps[1]);
-
-            Assert.NotNull(cfg2.Items);
-            Assert.Equal(8, cfg2.Items.Length);
-            Assert.Equal(ti.Secret, cfg2.Items[0].Secret);
-        }
-
-        [Fact]
-        public void ArrayTest2()
-        {
-            var prv = new JsonConfigProvider { FileName = "Config/OAuth2.json" };
-
-            var cfg = new OAuthConfig();
-            cfg.Items = System.Array.Empty<OAuthItem>();
-
-            prv.Save(cfg);
-
-            var txt = File.ReadAllText(prv.FileName.GetBasePath());
-            Assert.NotEmpty(txt);
-            Assert.Contains("\"Items\": []", txt);
-
-            var prv2 = new JsonConfigProvider { FileName = prv.FileName };
-            var cfg2 = prv2.Load<OAuthConfig>();
-
-            Assert.NotNull(cfg2);
-            Assert.NotNull(cfg2.Items);
-            Assert.Empty(cfg2.Items);
+            var sec = json.GetSection("ConnectionStrings:MySQL.AppSettings");
+            Assert.Equal("MySQL.AppSettings", sec.Key);
+            Assert.Null(sec.Value);
+            Assert.Null(sec.Comment);
+            Assert.Equal(2, sec.Childs.Count);
         }
     }
 }

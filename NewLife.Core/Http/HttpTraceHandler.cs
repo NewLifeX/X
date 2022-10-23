@@ -1,51 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using NewLife.Log;
+﻿using NewLife.Log;
 
-namespace NewLife.Http
+namespace NewLife.Http;
+
+/// <summary>支持APM跟踪的HttpClient处理器</summary>
+public class HttpTraceHandler : DelegatingHandler
 {
-    /// <summary>支持APM跟踪的HttpClient处理器</summary>
-    public class HttpTraceHandler : DelegatingHandler
+    #region 属性
+    /// <summary>APM跟踪器</summary>
+    public ITracer Tracer { get; set; }
+
+    /// <summary>异常过滤器。仅记录满足条件的异常，默认空记录所有异常</summary>
+    public Predicate<Exception> ExceptionFilter { get; set; }
+    #endregion
+
+    /// <summary>实例化一个支持APM的HttpClient处理器</summary>
+    /// <param name="innerHandler"></param>
+    public HttpTraceHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
+
+    /// <summary>发送请求</summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        #region 属性
-        /// <summary>APM跟踪器</summary>
-        public ITracer Tracer { get; set; }
+        var uri = request.RequestUri;
 
-        /// <summary>异常过滤器。仅记录满足条件的异常，默认空记录所有异常</summary>
-        public Predicate<Exception> ExceptionFilter { get; set; }
-        #endregion
+        // 如果父级已经做了ApiHelper.Invoke埋点，这里不需要再做一次
+        var parent = DefaultSpan.Current;
+        if (parent != null && parent.Tag == uri + "" || request.Headers.Contains("traceparent")) return await base.SendAsync(request, cancellationToken);
 
-        /// <summary>实例化一个支持APM的HttpClient处理器</summary>
-        /// <param name="innerHandler"></param>
-        public HttpTraceHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
-
-        /// <summary>发送请求</summary>
-        /// <param name="request"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        using var span = Tracer?.NewSpan(request);
+        try
         {
-            var uri = request.RequestUri;
+            var response = await base.SendAsync(request, cancellationToken);
 
-            // 如果父级已经做了ApiHelper.Invoke埋点，这里不需要再做一次
-            var parent = DefaultSpan.Current;
-            if (parent != null && parent.Tag == uri + "" || request.Headers.Contains("traceparent")) return await base.SendAsync(request, cancellationToken);
+            span?.AppendTag(response);
 
-            using var span = Tracer?.NewSpan(request);
-            try
-            {
-                return await base.SendAsync(request, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                if (ExceptionFilter == null || ExceptionFilter(ex))
-                    span?.SetError(ex, null);
+            return response;
+        }
+        catch (Exception ex)
+        {
+            if (ExceptionFilter == null || ExceptionFilter(ex))
+                span?.SetError(ex, null);
 
-                throw;
-            }
+            throw;
         }
     }
 }
