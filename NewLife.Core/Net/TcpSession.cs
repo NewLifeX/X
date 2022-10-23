@@ -129,8 +129,6 @@ namespace NewLife.Net
                 }
 
                 sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
-                sock.DualMode = DualMode;
-
                 //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
                 if (NoDelay) sock.NoDelay = true;
                 if (timeout > 0)

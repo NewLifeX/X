@@ -34,11 +34,6 @@ namespace NewLife.Net
         /// <summary>超时。默认3000ms</summary>
         public Int32 Timeout { get; set; } = 3_000;
 
-        /// <summary>
-        /// Socket如果为双模式套接字，则为 ;否则为 false。 默认值为 true ：如果通过调用 Socket(SocketType, ProtocolType) 构造函数创建套接字，并且操作系统支持 IPv6，则为默认值 false。
-        /// </summary>
-        public Boolean DualMode { get; set; } = true;
-
         /// <summary>是否活动</summary>
         public Boolean Active { get; set; }
 
