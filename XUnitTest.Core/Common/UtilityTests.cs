@@ -192,5 +192,14 @@ namespace XUnitTest.Common
             var v = buf.ToDouble();
             Assert.Equal(n, v);
         }
+
+        [Fact]
+        public void MaxDateTime()
+        {
+            var n = 0x03000000031E615DL;
+            var dt = n.ToDateTime();
+
+            Assert.Equal(DateTime.MinValue, dt);
+        }
     }
 }

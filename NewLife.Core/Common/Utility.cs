@@ -165,6 +165,8 @@ namespace System
     {
         private static readonly DateTime _dt1970 = new(1970, 1, 1);
         private static readonly DateTimeOffset _dto1970 = new(new DateTime(1970, 1, 1));
+        private static readonly Int64 _maxSeconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalSeconds;
+        private static readonly Int64 _maxMilliseconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalMilliseconds;
 
         /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
         /// <param name="value">待转换对象</param>
@@ -455,9 +457,16 @@ namespace System
                 return dt;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
-            if (value is Int32 k) return k == 0 ? DateTime.MinValue : _dt1970.AddSeconds(k);
+            if (value is Int32 k)
+            {
+                if (k >= _maxSeconds || k <= -_maxSeconds) return defaultValue;
+
+                return _dt1970.AddSeconds(k);
+            }
             if (value is Int64 m)
             {
+                if (m >= _maxMilliseconds || m <= -_maxMilliseconds) return defaultValue;
+
                 if (m > 100 * 365 * 24 * 3600L)
                     return _dt1970.AddMilliseconds(m);
                 else
@@ -468,7 +477,10 @@ namespace System
             {
                 return Convert.ToDateTime(value);
             }
-            catch { return defaultValue; }
+            catch
+            {
+                return defaultValue;
+            }
         }
 
         /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒）</summary>
@@ -493,9 +505,16 @@ namespace System
                 return defaultValue;
             }
             // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
-            if (value is Int32 k) return k == 0 ? DateTimeOffset.MinValue : _dto1970.AddSeconds(k);
+            if (value is Int32 k)
+            {
+                if (k >= _maxSeconds || k <= -_maxSeconds) return defaultValue;
+
+                return _dto1970.AddSeconds(k);
+            }
             if (value is Int64 m)
             {
+                if (m >= _maxMilliseconds || m <= -_maxMilliseconds) return defaultValue;
+
                 if (m > 100 * 365 * 24 * 3600L)
                     return _dto1970.AddMilliseconds(m);
                 else
@@ -506,7 +525,10 @@ namespace System
             {
                 return Convert.ToDateTime(value);
             }
-            catch { return defaultValue; }
+            catch
+            {
+                return defaultValue;
+            }
         }
 
         /// <summary>全角为半角</summary>
