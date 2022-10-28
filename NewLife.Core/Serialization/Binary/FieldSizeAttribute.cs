@@ -139,13 +139,18 @@ namespace NewLife.Serialization
         /// <summary>获取目标对象的引用大小值</summary>
         /// <param name="target">目标对象</param>
         /// <param name="member"></param>
+        /// <param name="size"></param>
         /// <returns></returns>
-        internal Int32 GetReferenceSize(Object target, MemberInfo member)
+        internal Boolean TryGetReferenceSize(Object target, MemberInfo member, out Int32 size)
         {
-            var mi = FindReference(target, member, out var v);
-            if (mi == null) return -1;
+            size = -1;
 
-            return Convert.ToInt32(v.GetValue(mi)) + Size;
+            var mi = FindReference(target, member, out var v);
+            if (mi == null) return false;
+
+            size = Convert.ToInt32(v.GetValue(mi)) + Size;
+
+            return true;
         }
         #endregion
     }
