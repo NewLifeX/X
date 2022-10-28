@@ -144,16 +144,12 @@ public class Binary : FormatterBase, IBinary
         Stream.Write(buffer, offset, count);
     }
 
-    /// <summary>写入大小，如果有FieldSize则返回，否则写入编码的大小</summary>
+    /// <summary>写入大小，如果有FieldSize则返回，否则写入编码的大小并返回-1</summary>
     /// <param name="size"></param>
     /// <returns></returns>
     public virtual Int32 WriteSize(Int32 size)
     {
-        if (UseFieldSize)
-        {
-            var fieldsize = GetFieldSize();
-            if (fieldsize >= 0) return fieldsize;
-        }
+        if (UseFieldSize && TryGetFieldSize(out var fieldsize)) return fieldsize;
 
         switch (SizeWidth)
         {
@@ -249,11 +245,7 @@ public class Binary : FormatterBase, IBinary
     /// <returns></returns>
     public virtual Int32 ReadSize()
     {
-        if (UseFieldSize)
-        {
-            var size = GetFieldSize();
-            if (size >= 0) return size;
-        }
+        if (UseFieldSize && TryGetFieldSize(out var size)) return size;
 
         return SizeWidth switch
         {
@@ -265,7 +257,7 @@ public class Binary : FormatterBase, IBinary
         };
     }
 
-    private Int32 GetFieldSize()
+    private Boolean TryGetFieldSize(out Int32 size)
     {
         if (Member is MemberInfo member)
         {
@@ -279,17 +271,24 @@ public class Binary : FormatterBase, IBinary
                     if (att.Version.IsNullOrEmpty() || att.Version == Version)
                     {
                         // 如果指定了固定大小，直接返回
-                        if (att.Size > 0 && String.IsNullOrEmpty(att.ReferenceName)) return att.Size;
+                        if (att.ReferenceName.IsNullOrEmpty())
+                        {
+                            size = att.Size;
+                            return true;
+                        }
 
                         // 如果指定了引用字段，则找引用字段所表示的长度
-                        var size = att.GetReferenceSize(Hosts.Peek(), member);
-                        if (size >= 0) return size;
+                        if (att.TryGetReferenceSize(Hosts.Peek(), member, out size))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
         }
 
-        return -1;
+        size = -1;
+        return false;
     }
     #endregion
 
