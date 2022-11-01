@@ -301,50 +301,54 @@ public class JsonWriter
                 }
             }
         }
-        // 扩展数据
-        else if (obj is IExtend3 ext3 && ext3.Items != null)
+        else
         {
-            // 提前拷贝，避免遍历中改变集合
-            var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
-            foreach (var item in dic)
+            // 遍历属性
+            foreach (var pi in t.GetProperties(true))
             {
-                if (!hs.Contains(item.Key))
+                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
+
+                var value = obj.GetValue(pi);
+                if (!IgnoreNullValues || !IsNull(value))
                 {
-                    hs.Add(item.Key);
-                    WriteMember(item.Key, item.Value, null, ref first);
+                    var name = FormatName(SerialHelper.GetName(pi));
+                    String comment = null;
+                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, value, comment, ref first);
+                    }
                 }
             }
-        }
-        else if (obj is IExtend2 ext2 && ext2.Keys != null)
-        {
-            // 提前拷贝，避免遍历中改变集合
-            var keys = ext2.Keys.ToArray();
-            foreach (var item in keys)
+
+            // 扩展数据
+            if (obj is IExtend3 ext3 && ext3.Items != null)
             {
-                if (!hs.Contains(item))
+                // 提前拷贝，避免遍历中改变集合
+                var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
+                foreach (var item in dic)
                 {
-                    hs.Add(item);
-                    var value = ext2[item];
-                    WriteMember(item, value, null, ref first);
+                    if (!hs.Contains(item.Key))
+                    {
+                        hs.Add(item.Key);
+                        WriteMember(item.Key, item.Value, null, ref first);
+                    }
                 }
             }
-        }
-
-        foreach (var pi in t.GetProperties(true))
-        {
-            if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
-
-            var value = obj.GetValue(pi);
-            if (!IgnoreNullValues || !IsNull(value))
+            else if (obj is IExtend2 ext2 && ext2.Keys != null)
             {
-                var name = FormatName(SerialHelper.GetName(pi));
-                String comment = null;
-                if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
-
-                if (!hs.Contains(name))
+                // 提前拷贝，避免遍历中改变集合
+                var keys = ext2.Keys.ToArray();
+                foreach (var item in keys)
                 {
-                    hs.Add(name);
-                    WriteMember(name, value, comment, ref first);
+                    if (!hs.Contains(item))
+                    {
+                        hs.Add(item);
+                        var value = ext2[item];
+                        WriteMember(item, value, null, ref first);
+                    }
                 }
             }
         }
