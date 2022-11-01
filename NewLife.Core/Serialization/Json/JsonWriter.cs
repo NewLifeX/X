@@ -298,21 +298,43 @@ namespace NewLife.Serialization
                 }
             }
 
-            // 字典数据源
-            if (obj is IDictionarySource source)
+        // 字典数据源
+        if (obj is IDictionarySource source)
+        {
+            var dic = source.ToDictionary();
+            foreach (var item in dic)
             {
-                var dic = source.ToDictionary();
-                foreach (var item in dic)
+                if (!hs.Contains(item.Key))
                 {
-                    if (!hs.Contains(item.Key))
+                    hs.Add(item.Key);
+                    WriteMember(item.Key, item.Value, null, ref first);
+                }
+            }
+        }
+        else
+        {
+            // 遍历属性
+            foreach (var pi in t.GetProperties(true))
+            {
+                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
+
+                var value = obj.GetValue(pi);
+                if (!IgnoreNullValues || !IsNull(value))
+                {
+                    var name = FormatName(SerialHelper.GetName(pi));
+                    String comment = null;
+                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+
+                    if (!hs.Contains(name))
                     {
-                        hs.Add(item.Key);
-                        WriteMember(item.Key, item.Value, null, ref first);
+                        hs.Add(name);
+                        WriteMember(name, value, comment, ref first);
                     }
                 }
             }
+
             // 扩展数据
-            else if (obj is IExtend3 ext3 && ext3.Items != null)
+            if (obj is IExtend3 ext3 && ext3.Items != null)
             {
                 // 提前拷贝，避免遍历中改变集合
                 var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
@@ -339,11 +361,12 @@ namespace NewLife.Serialization
                     }
                 }
             }
-
-            WriteRightIndent();
-            _Builder.Append('}');
-            _depth--;
         }
+
+        WriteRightIndent();
+        _Builder.Append('}');
+        _depth--;
+    }
 
         private void WriteMember(String name, Object value, String comment, ref Boolean first)
         {
