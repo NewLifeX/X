@@ -270,8 +270,16 @@ namespace NewLife.Serialization
                 return;
             }
 
-            _Builder.Append('{');
-            WriteLeftIndent();
+        // 字典数据源
+        if (obj is IDictionarySource source)
+        {
+            var dic = source.ToDictionary();
+            WriteStringDictionary(dic);
+            return;
+        }
+
+        _Builder.Append('{');
+        WriteLeftIndent();
 
             _depth++;
 
@@ -298,67 +306,52 @@ namespace NewLife.Serialization
                 }
             }
 
-        // 字典数据源
-        if (obj is IDictionarySource source)
+        // 遍历属性
+        foreach (var pi in t.GetProperties(true))
         {
-            var dic = source.ToDictionary();
-            foreach (var item in dic)
+            if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
+
+            var value = obj.GetValue(pi);
+            if (!IgnoreNullValues || !IsNull(value))
             {
-                if (!hs.Contains(item.Key))
+                var name = FormatName(SerialHelper.GetName(pi));
+                String comment = null;
+                if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+
+                if (!hs.Contains(name))
                 {
-                    hs.Add(item.Key);
-                    WriteMember(item.Key, item.Value, null, ref first);
+                    hs.Add(name);
+                    WriteMember(name, value, comment, ref first);
                 }
             }
         }
-        else
+
+        // 扩展数据
+        if (obj is IExtend3 ext3 && ext3.Items != null)
         {
-            // 遍历属性
-            foreach (var pi in t.GetProperties(true))
+            // 提前拷贝，避免遍历中改变集合
+            var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
+            foreach (var item in dic)
             {
-                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
-
-                var value = obj.GetValue(pi);
-                if (!IgnoreNullValues || !IsNull(value))
+                var name = FormatName(item.Key);
+                if (!hs.Contains(name))
                 {
-                    var name = FormatName(SerialHelper.GetName(pi));
-                    String comment = null;
-                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
-
-                    if (!hs.Contains(name))
-                    {
-                        hs.Add(name);
-                        WriteMember(name, value, comment, ref first);
-                    }
+                    hs.Add(name);
+                    WriteMember(name, item.Value, null, ref first);
                 }
             }
-
-            // 扩展数据
-            if (obj is IExtend3 ext3 && ext3.Items != null)
+        }
+        else if (obj is IExtend2 ext2 && ext2.Keys != null)
+        {
+            // 提前拷贝，避免遍历中改变集合
+            var keys = ext2.Keys.ToArray();
+            foreach (var item in keys)
             {
-                // 提前拷贝，避免遍历中改变集合
-                var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
-                foreach (var item in dic)
+                var name = FormatName(item);
+                if (!hs.Contains(name))
                 {
-                    if (!hs.Contains(item.Key))
-                    {
-                        hs.Add(item.Key);
-                        WriteMember(item.Key, item.Value, null, ref first);
-                    }
-                }
-            }
-            else if (obj is IExtend2 ext2 && ext2.Keys != null)
-            {
-                // 提前拷贝，避免遍历中改变集合
-                var keys = ext2.Keys.ToArray();
-                foreach (var item in keys)
-                {
-                    if (!hs.Contains(item))
-                    {
-                        hs.Add(item);
-                        var value = ext2[item];
-                        WriteMember(item, value, null, ref first);
-                    }
+                    hs.Add(name);
+                    WriteMember(name, ext2[item], null, ref first);
                 }
             }
         }
