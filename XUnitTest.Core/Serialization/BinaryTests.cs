@@ -3,6 +3,7 @@ using System.IO;
 using NewLife;
 using NewLife.Data;
 using NewLife.Serialization;
+using NewLife.Serialization.Interface;
 using Xunit;
 
 namespace XUnitTest.Serialization

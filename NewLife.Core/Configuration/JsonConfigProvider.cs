@@ -1,4 +1,5 @@
 ﻿using NewLife.Serialization;
+using NewLife.Serialization.Json;
 
 namespace NewLife.Configuration;
 
@@ -53,7 +54,7 @@ public class JsonConfigProvider : FileConfigProvider
     /// <returns></returns>
     public override String GetString(IConfigSection section = null)
     {
-        if (section == null) section = Root;
+        section ??= Root;
 
         var rs = new Dictionary<String, Object>();
         Map(section, rs);
@@ -69,6 +70,11 @@ public class JsonConfigProvider : FileConfigProvider
         jw.Write(rs);
 
         return jw.GetString();
+
+        //var js = new Json();
+        //js.Write(rs);
+
+        //return js.GetBytes().ToStr();
     }
 
     #region 辅助

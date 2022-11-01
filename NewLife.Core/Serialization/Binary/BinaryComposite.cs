@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 using NewLife.Reflection;
+using NewLife.Serialization.Interface;
 
 namespace NewLife.Serialization;
 
