@@ -179,7 +179,17 @@ namespace NewLife.Threading
                                 else
                                     //Task.Factory.StartNew(() => ProcessItem(timer));
                                     // 不需要上下文流动
-                                    ThreadPool.UnsafeQueueUserWorkItem(Execute, timer);
+                                    ThreadPool.UnsafeQueueUserWorkItem(s =>
+                                    {
+                                        try
+                                        {
+                                            Execute(s);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            XTrace.WriteException(ex);
+                                        }
+                                    }, timer);
                                 // 内部线程池，让异步任务有公平竞争CPU的机会
                                 //ThreadPoolX.QueueUserWorkItem(Execute, timer);
                             }

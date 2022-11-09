@@ -333,7 +333,17 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (ioThread)
                 ProcessEvent(se, -1, true);
             else
-                ThreadPool.QueueUserWorkItem(s => ProcessEvent(s as SocketAsyncEventArgs, -1, false), se);
+                ThreadPool.QueueUserWorkItem(s =>
+                {
+                    try
+                    {
+                        ProcessEvent(s as SocketAsyncEventArgs, -1, false);
+                    }
+                    catch (Exception ex)
+                    {
+                        XTrace.WriteException(ex);
+                    }
+                }, se);
         }
 
         return true;

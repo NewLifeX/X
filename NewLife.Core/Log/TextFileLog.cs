@@ -328,6 +328,7 @@ namespace NewLife.Log
                         {
                             WriteFile();
                         }
+                        catch { }
                         finally
                         {
                             _writing = 0;
