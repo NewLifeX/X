@@ -43,11 +43,11 @@
     </PackageReference>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows'">
     <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows'">
+  <ItemGroup Condition="'$(TargetFramework)'=='net5.0-windows' or '$(TargetFramework)'=='net6.0-windows' or '$(TargetFramework)'=='net7.0-windows'">
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" IsImplicitlyDefined="true" />
   </ItemGroup>
 
