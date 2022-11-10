@@ -423,7 +423,9 @@ public class Packet
     {
         if (Data == null) return null;
 
-        return ReadBytes(0, maxLength).ToHex(separate, groupSize);
+        var hex = ReadBytes(0, maxLength).ToHex(separate, groupSize);
+
+        return (maxLength == -1 || Count <= maxLength) ? hex : string.Concat(hex, "...");
     }
 
     /// <summary>转为Base64编码</summary>
