@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife.Serialization.Interface;
 
 namespace NewLife.Serialization
 {

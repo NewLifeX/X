@@ -242,5 +242,10 @@ public class JsonConfigProviderTests
             Assert.Null(sec.Comment);
             Assert.Equal(2, sec.Childs.Count);
         }
+
+        {
+            var sec = section.Find("sqlserver");
+            Assert.NotNull(sec);
+        }
     }
 }

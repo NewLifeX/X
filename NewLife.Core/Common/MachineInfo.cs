@@ -8,7 +8,6 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using System;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -76,7 +75,7 @@ public class MachineInfo
     /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
     public static MachineInfo Current { get; set; }
 
-    static MachineInfo() => RegisterAsync();
+    static MachineInfo() => RegisterAsync().Wait(100);
 
     private static Task<MachineInfo> _task;
     /// <summary>异步注册一个初始化后的机器信息实例</summary>
@@ -94,6 +93,7 @@ public class MachineInfo
             // 文件缓存，加快机器信息获取
             var file = Path.GetTempPath().CombinePath("machine_info.json");
             //var file2 = dataPath.CombinePath("machine_info.json").GetBasePath();
+            var json = "";
             if (Current == null)
             {
                 var f = file;
@@ -103,9 +103,13 @@ public class MachineInfo
                     try
                     {
                         //XTrace.WriteLine("Load MachineInfo {0}", f);
-                        Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
+                        json = File.ReadAllText(f);
+                        Current = json.ToJsonEntity<MachineInfo>();
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+                    }
                 }
             }
 
@@ -119,11 +123,15 @@ public class MachineInfo
 
             try
             {
-                var json = mi.ToJson(true);
-                File.WriteAllText(file.EnsureDirectory(true), json);
+                var json2 = mi.ToJson(true);
+                if (json != json2)
+                    File.WriteAllText(file.EnsureDirectory(true), json2);
                 //File.WriteAllText(file2.EnsureDirectory(true), json);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+            }
 
             return mi;
         });
@@ -167,11 +175,10 @@ public class MachineInfo
         {
             Refresh();
         }
-#if DEBUG
-        catch (Exception ex) { XTrace.WriteException(ex); }
-#else
-        catch { }
-#endif
+        catch (Exception ex)
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+        }
     }
 
 #if NETFRAMEWORK
@@ -198,11 +205,18 @@ public class MachineInfo
         }
         catch
         {
-            var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            if (reg2 != null)
+            try
             {
-                OSName = reg2.GetValue("ProductName") + "";
-                OSVersion = reg2.GetValue("ReleaseId") + "";
+                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                if (reg2 != null)
+                {
+                    OSName = reg2.GetValue("ProductName") + "";
+                    OSVersion = reg2.GetValue("ReleaseId") + "";
+                }
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
         }
 
@@ -335,7 +349,7 @@ public class MachineInfo
             uuid = value;
         else if (device.TryGetValue("Serial", out str) && str != "unknown")
             uuid = str;
-        if (uuid.IsNullOrEmpty()) UUID = uuid;
+        if (!uuid.IsNullOrEmpty()) UUID = uuid;
 
         file = "/sys/class/dmi/id/product_name";
         if (TryRead(file, out value)) Product = value;
@@ -397,7 +411,7 @@ public class MachineInfo
         var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
         _systemTime = current;
 
-        CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+        CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
 
 #if NETCOREAPP
         //if (!_excludes.Contains(nameof(Temperature)))
@@ -530,10 +544,13 @@ public class MachineInfo
                     var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
                     _systemTime = current;
 
-                    CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+                    CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
                 }
             }
-            catch { _excludes.Add(nameof(_excludes)); }
+            catch
+            {
+                _excludes.Add(nameof(_excludes));
+            }
         }
     }
 
@@ -859,7 +876,10 @@ public class MachineInfo
         {
             return driveInfo.AvailableFreeSpace;
         }
-        catch { return -1; }
+        catch
+        {
+            return -1;
+        }
     }
 
     /// <summary>获取指定目录下文件名，支持去掉后缀的去重，主要用于Linux</summary>

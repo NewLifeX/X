@@ -1,123 +1,71 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using NewLife.Reflection;
-using System.Linq;
 
-namespace NewLife.Serialization
+namespace NewLife.Serialization;
+
+/// <summary>列表数据编码</summary>
+public class JsonArray : JsonHandlerBase
 {
-    /// <summary>列表数据编码</summary>
-    public class JsonArray : JsonHandlerBase
+    /// <summary>初始化</summary>
+    public JsonArray()
     {
-        /// <summary>初始化</summary>
-        public JsonArray()
+        // 优先级
+        Priority = 20;
+    }
+
+    /// <summary>写入</summary>
+    /// <param name="value"></param>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public override Boolean Write(Object value, Type type)
+    {
+        if (value is not IList list) return false;
+
+        Host.Write("[");
+
+        // 循环写入数据
+        foreach (var item in list)
         {
-            // 优先级
-            Priority = 20;
+            Host.Write(item);
         }
 
-        /// <summary>获取对象的Json字符串表示形式。</summary>
-        /// <param name="value"></param>
-        /// <returns>返回null表示不支持</returns>
-        public override String GetString(Object value)
+        Host.Write("]");
+
+        return true;
+    }
+
+    /// <summary>读取</summary>
+    /// <param name="type"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public override Boolean TryRead(Type type, ref Object value)
+    {
+        if (!type.As<IList>()) return false;
+
+        // 先读取
+        if (!Host.Read("[")) return false;
+
+        // 子元素类型
+        var elmType = type.GetElementTypeEx();
+
+        var list = typeof(IList<>).MakeGenericType(elmType).CreateInstance() as IList;
+        while (!Host.Read("]"))
         {
-            if (value == null) return String.Empty;
+            Object obj = null;
+            if (!Host.TryRead(elmType, ref obj)) return false;
 
-            var type = value.GetType();
-            if (type == typeof(Guid)) return ((Guid)value).ToString();
-            if (type == typeof(Byte[])) return Convert.ToBase64String((Byte[])value);
-            if (type == typeof(Char[])) return new String((Char[])value);
-
-            switch (Type.GetTypeCode(value.GetType()))
-            {
-                case TypeCode.Boolean:
-                    return value + "";
-                case TypeCode.Byte:
-                case TypeCode.SByte:
-                case TypeCode.Char:
-                    return value + "";
-                case TypeCode.DBNull:
-                case TypeCode.Empty:
-                    return String.Empty;
-                case TypeCode.DateTime:
-                    return value + "";
-                case TypeCode.Decimal:
-                    return value + "";
-                case TypeCode.Single:
-                case TypeCode.Double:
-                    return value + "";
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.Int64:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                    return value + "";
-                case TypeCode.String:
-                    if (((String)value).IsNullOrEmpty()) return String.Empty;
-                    return $"\"{value}\"";
-                case TypeCode.Object:
-                default:
-                    return null;
-            }
+            list.Add(obj);
         }
 
-        /// <summary>写入</summary>
-        /// <param name="value"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public override Boolean Write(Object value, Type type)
+        // 数组的创建比较特别
+        if (type.As<Array>())
         {
-            if (!type.As<IList>() && !(value is IList)) return false;
-
-
-            Host.Write("[");
-            if (value is IList list && list.Count > 0)
-            {
-                // 循环写入数据
-                foreach (var item in list)
-                {
-                    Host.Write(item);
-                }
-            }
-            Host.Write("]");
-
-            return true;
+            value = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
+            list.CopyTo((Array)value, 0);
         }
+        else
+            value = list;
 
-        /// <summary>读取</summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public override Boolean TryRead(Type type, ref Object value)
-        {
-            if (!type.As<IList>()) return false;
-
-            // 先读取
-            if (!Host.Read("[")) return false;
-
-            // 子元素类型
-            var elmType = type.GetElementTypeEx();
-
-            var list = typeof(IList<>).MakeGenericType(elmType).CreateInstance() as IList;
-            while (!Host.Read("]"))
-            {
-                Object obj = null;
-                if (!Host.TryRead(elmType, ref obj)) return false;
-
-                list.Add(obj);
-            }
-
-            // 数组的创建比较特别
-            if (type.As<Array>())
-            {
-                value = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
-                list.CopyTo((Array)value, 0);
-            }
-            else
-                value = list;
-
-            return true;
-        }
+        return true;
     }
 }

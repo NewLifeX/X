@@ -1,500 +1,497 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using NewLife.Collections;
 
-namespace NewLife.Serialization
+namespace NewLife.Serialization;
+
+/// <summary>Json分析器</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/json
+/// </remarks>
+public class JsonParser
 {
-    /// <summary>Json分析器</summary>
-    /// <remarks>
-    /// 文档 https://newlifex.com/core/json
-    /// </remarks>
-    public class JsonParser
+    #region 内部
+    /// <summary>标识符</summary>
+    enum Token
     {
-        #region 内部
-        /// <summary>标识符</summary>
-        enum Token
+        None = -1,
+
+        /// <summary>左大括号</summary>
+        Curly_Open,
+
+        /// <summary>右大括号</summary>
+        Curly_Close,
+
+        /// <summary>左方括号</summary>
+        Squared_Open,
+
+        /// <summary>右方括号</summary>
+        Squared_Close,
+
+        /// <summary>冒号</summary>
+        Colon,
+
+        /// <summary>逗号</summary>
+        Comma,
+
+        /// <summary>字符串</summary>
+        String,
+
+        /// <summary>数字</summary>
+        Number,
+
+        /// <summary>布尔真</summary>
+        True,
+
+        /// <summary>布尔真</summary>
+        False,
+
+        /// <summary>空值</summary>
+        Null
+    }
+    #endregion
+
+    #region 属性
+    readonly String _json;
+    Token _Ahead = Token.None;
+    Int32 index;
+    #endregion
+
+    /// <summary>实例化</summary>
+    /// <param name="json"></param>
+    public JsonParser(String json) => _json = json;
+
+    /// <summary>解码</summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public static IDictionary<String, Object> Decode(String json)
+    {
+        var parser = new JsonParser(json);
+        try
         {
-            None = -1,
-
-            /// <summary>左大括号</summary>
-            Curly_Open,
-
-            /// <summary>右大括号</summary>
-            Curly_Close,
-
-            /// <summary>左方括号</summary>
-            Squared_Open,
-
-            /// <summary>右方括号</summary>
-            Squared_Close,
-
-            /// <summary>冒号</summary>
-            Colon,
-
-            /// <summary>逗号</summary>
-            Comma,
-
-            /// <summary>字符串</summary>
-            String,
-
-            /// <summary>数字</summary>
-            Number,
-
-            /// <summary>布尔真</summary>
-            True,
-
-            /// <summary>布尔真</summary>
-            False,
-
-            /// <summary>空值</summary>
-            Null
+            return parser.ParseValue() as IDictionary<String, Object>;
         }
-        #endregion
-
-        #region 属性
-        readonly String _json;
-        Token _Ahead = Token.None;
-        Int32 index;
-        #endregion
-
-        /// <summary>实例化</summary>
-        /// <param name="json"></param>
-        public JsonParser(String json) => _json = json;
-
-        /// <summary>解码</summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static IDictionary<String, Object> Decode(String json)
+        catch (XException ex)
         {
-            var parser = new JsonParser(json);
-            try
-            {
-                return parser.ParseValue() as IDictionary<String, Object>;
-            }
-            catch (XException ex)
-            {
-                throw new XException($"解析Json出错：{json}", ex);
-            }
+            throw new XException($"解析Json出错：{json}", ex);
         }
+    }
 
-        /// <summary>解码</summary>
-        /// <returns></returns>
-        public Object Decode() => ParseValue();
+    /// <summary>解码</summary>
+    /// <returns></returns>
+    public Object Decode() => ParseValue();
 
-        private Dictionary<String, Object> ParseObject()
+    private Dictionary<String, Object> ParseObject()
+    {
+        var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+
+        SkipToken(); // {
+
+        while (true)
         {
-            var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
-
-            SkipToken(); // {
-
-            while (true)
+            var old = index;
+            var token = LookAhead();
+            switch (token)
             {
-                var old = index;
-                var token = LookAhead();
-                switch (token)
-                {
 
-                    case Token.Comma:
-                        SkipToken();
-                        break;
+                case Token.Comma:
+                    SkipToken();
+                    break;
 
-                    case Token.Curly_Close:
-                        SkipToken();
-                        return dic;
+                case Token.Curly_Close:
+                    SkipToken();
+                    return dic;
 
-                    default:
+                default:
+                    {
+                        // 如果名称是数字，需要退回去
+                        if (token == Token.Number) index = old;
+
+                        // 名称
+                        var name = ParseString(true);
+
+                        // :
+                        if (NextToken() != Token.Colon)
                         {
-                            // 如果名称是数字，需要退回去
-                            if (token == Token.Number) index = old;
-
-                            // 名称
-                            var name = ParseString(true);
-
-                            // :
-                            if (NextToken() != Token.Colon)
+                            // "//"开头的是注释，跳过
+                            if (name.TrimStart().StartsWith("//"))
                             {
-                                // "//"开头的是注释，跳过
-                                if (name.TrimStart().StartsWith("//"))
-                                {
-                                    break;
-                                }
-
-                                throw new XException("在 {0} 后需要冒号", name);
+                                break;
                             }
 
-                            // 值
-                            dic[name] = ParseValue();
+                            throw new XException("在 {0} 后需要冒号", name);
                         }
-                        break;
-                }
+
+                        // 值
+                        dic[name] = ParseValue();
+                    }
+                    break;
             }
         }
+    }
 
-        private List<Object> ParseArray()
-        {
-            var arr = new List<Object>();
-            SkipToken(); // [
+    private List<Object> ParseArray()
+    {
+        var arr = new List<Object>();
+        SkipToken(); // [
 
-            while (true)
-            {
-                switch (LookAhead())
-                {
-                    case Token.Comma:
-                        SkipToken();
-                        break;
-
-                    case Token.Squared_Close:
-                        SkipToken();
-                        return arr;
-
-                    default:
-                        arr.Add(ParseValue());
-                        break;
-                }
-            }
-        }
-
-        private Object ParseValue()
+        while (true)
         {
             switch (LookAhead())
             {
-                case Token.Number:
-                    return ParseNumber();
-
-                case Token.String:
-                    var str = ParseString(false);
-                    if (str.IsNullOrEmpty()) return str;
-
-                    // 有可能是字符串或时间日期
-                    if (str[0] == '/' && str[^1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
-                    {
-                        str = str.Substring(6, str.Length - 6 - 2);
-                        return str.ToLong().ToDateTime();
-                    }
-
-                    return str;
-
-                case Token.Curly_Open:
-                    return ParseObject();
-
-                case Token.Squared_Open:
-                    return ParseArray();
-
-                case Token.True:
+                case Token.Comma:
                     SkipToken();
-                    return true;
+                    break;
 
-                case Token.False:
+                case Token.Squared_Close:
                     SkipToken();
-                    return false;
+                    return arr;
 
-                case Token.Null:
-                    SkipToken();
-                    return null;
+                default:
+                    arr.Add(ParseValue());
+                    break;
             }
+        }
+    }
 
-            throw new XException("在 {0} 的标识符无法识别", index);
+    private Object ParseValue()
+    {
+        switch (LookAhead())
+        {
+            case Token.Number:
+                return ParseNumber();
+
+            case Token.String:
+                var str = ParseString(false);
+                if (str.IsNullOrEmpty()) return str;
+
+                // 有可能是字符串或时间日期
+                if (str[0] == '/' && str[^1] == '/' && str.StartsWithIgnoreCase("/Date(") && str.EndsWithIgnoreCase(")/"))
+                {
+                    str = str.Substring(6, str.Length - 6 - 2);
+                    return str.ToLong().ToDateTime();
+                }
+
+                return str;
+
+            case Token.Curly_Open:
+                return ParseObject();
+
+            case Token.Squared_Open:
+                return ParseArray();
+
+            case Token.True:
+                SkipToken();
+                return true;
+
+            case Token.False:
+                SkipToken();
+                return false;
+
+            case Token.Null:
+                SkipToken();
+                return null;
         }
 
-        private String ParseString(Boolean isName)
+        throw new XException("在 {0} 的标识符无法识别", index);
+    }
+
+    private String ParseString(Boolean isName)
+    {
+        // 识别名称时，如果以双引号开头，则把冒号当作名称一部分
+        if (isName && index > 0 && _json[index - 1] == '"') isName = false;
+
+        SkipToken(); // "
+
+        var sb = Pool.StringBuilder.Get();
+
+        var runIndex = -1;
+
+        while (index < _json.Length)
         {
-            // 识别名称时，如果以双引号开头，则把冒号当作名称一部分
-            if (isName && index > 0 && _json[index - 1] == '"') isName = false;
+            var c = _json[index++];
 
-            SkipToken(); // "
-
-            var sb = Pool.StringBuilder.Get();
-
-            var runIndex = -1;
-
-            while (index < _json.Length)
+            if (c == '"')
             {
-                var c = _json[index++];
-
-                if (c == '"')
+                if (runIndex != -1)
                 {
-                    if (runIndex != -1)
-                    {
-                        if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
+                    if (sb.Length == 0) return _json.Substring(runIndex, index - runIndex - 1);
 
-                        sb.Append(_json, runIndex, index - runIndex - 1);
-                    }
-                    return sb.Put(true);
+                    sb.Append(_json, runIndex, index - runIndex - 1);
                 }
-                else if (isName && c == ':')
-                {
-                    // 如果是没有双引号的名字，则退回一个字符
-                    index--;
-
-                    if (runIndex != -1)
-                    {
-                        if (sb.Length == 0) return _json.Substring(runIndex, index + 1 - runIndex - 1);
-
-                        sb.Append(_json, runIndex, index + 1 - runIndex - 1);
-                    }
-                    return sb.Put(true);
-                }
-
-                if (c != '\\')
-                {
-                    if (runIndex == -1) runIndex = index - 1;
-
-                    continue;
-                }
-
-                if (index == _json.Length) break;
+                return sb.Put(true);
+            }
+            else if (isName && c == ':')
+            {
+                // 如果是没有双引号的名字，则退回一个字符
+                index--;
 
                 if (runIndex != -1)
                 {
-                    sb.Append(_json, runIndex, index - runIndex - 1);
-                    runIndex = -1;
+                    if (sb.Length == 0) return _json.Substring(runIndex, index + 1 - runIndex - 1);
+
+                    sb.Append(_json, runIndex, index + 1 - runIndex - 1);
                 }
-
-                switch (_json[index++])
-                {
-                    case '"': sb.Append('"'); break;
-                    case '\\': sb.Append('\\'); break;
-                    case '/': sb.Append('/'); break;
-                    case 'b': sb.Append('\b'); break;
-                    case 'f': sb.Append('\f'); break;
-                    case 'n': sb.Append('\n'); break;
-                    case 'r': sb.Append('\r'); break;
-                    case 't': sb.Append('\t'); break;
-                    case 'u':
-                        {
-                            var remainingLength = _json.Length - index;
-                            if (remainingLength < 4) break;
-
-                            // 分析32位十六进制数字
-                            var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
-                            sb.Append((Char)codePoint);
-
-                            index += 4;
-                        }
-                        break;
-                }
+                return sb.Put(true);
             }
 
-            throw new XException("已到达字符串结尾");
-        }
-
-        private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
-        {
-            UInt32 p1 = 0;
-            if (c1 >= '0' && c1 <= '9')
-                p1 = (UInt32)(c1 - '0') * multipliyer;
-            else if (c1 >= 'A' && c1 <= 'F')
-                p1 = (UInt32)((c1 - 'A') + 10) * multipliyer;
-            else if (c1 >= 'a' && c1 <= 'f')
-                p1 = (UInt32)((c1 - 'a') + 10) * multipliyer;
-            return p1;
-        }
-
-        private UInt32 ParseUnicode(Char c1, Char c2, Char c3, Char c4)
-        {
-            var p1 = ParseSingleChar(c1, 0x1000);
-            var p2 = ParseSingleChar(c2, 0x100);
-            var p3 = ParseSingleChar(c3, 0x10);
-            var p4 = ParseSingleChar(c4, 1);
-
-            return p1 + p2 + p3 + p4;
-        }
-
-        private Int64 CreateLong(String s)
-        {
-            Int64 num = 0;
-            var neg = false;
-            foreach (var cc in s)
+            if (c != '\\')
             {
-                if (cc == '-')
-                    neg = true;
-                else if (cc == '+')
-                    neg = false;
-                else
-                {
-                    num *= 10;
-                    num += cc - '0';
-                }
+                if (runIndex == -1) runIndex = index - 1;
+
+                continue;
             }
 
-            return neg ? -num : num;
-        }
+            if (index == _json.Length) break;
 
-        private Object ParseNumber()
-        {
-            SkipToken();
-
-            // 需要回滚1个位置，因为第一个数字也是Toekn，可能被跳过了
-            var startIndex = index - 1;
-            var dec = false;
-            do
+            if (runIndex != -1)
             {
-                if (index == _json.Length)
+                sb.Append(_json, runIndex, index - runIndex - 1);
+                runIndex = -1;
+            }
+
+            switch (_json[index++])
+            {
+                case '"': sb.Append('"'); break;
+                case '\\': sb.Append('\\'); break;
+                case '/': sb.Append('/'); break;
+                case 'b': sb.Append('\b'); break;
+                case 'f': sb.Append('\f'); break;
+                case 'n': sb.Append('\n'); break;
+                case 'r': sb.Append('\r'); break;
+                case 't': sb.Append('\t'); break;
+                case 'u':
+                    {
+                        var remainingLength = _json.Length - index;
+                        if (remainingLength < 4) break;
+
+                        // 分析32位十六进制数字
+                        var codePoint = ParseUnicode(_json[index], _json[index + 1], _json[index + 2], _json[index + 3]);
+                        sb.Append((Char)codePoint);
+
+                        index += 4;
+                    }
                     break;
-                var c = _json[index];
-
-                if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
-                {
-                    if (c == '.' || c == 'e' || c == 'E')
-                        dec = true;
-                    if (++index == _json.Length) break;
-
-                    continue;
-                }
-                break;
-            } while (true);
-
-            if (dec)
-            {
-                var s = _json[startIndex..index];
-                return Double.Parse(s, NumberFormatInfo.InvariantInfo);
             }
-
-            var m = CreateLong(out _, _json, startIndex, index - startIndex);
-            if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
-
-            return m;
         }
 
-        private Token LookAhead()
+        throw new XException("已到达字符串结尾");
+    }
+
+    private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
+    {
+        UInt32 p1 = 0;
+        if (c1 >= '0' && c1 <= '9')
+            p1 = (UInt32)(c1 - '0') * multipliyer;
+        else if (c1 >= 'A' && c1 <= 'F')
+            p1 = (UInt32)((c1 - 'A') + 10) * multipliyer;
+        else if (c1 >= 'a' && c1 <= 'f')
+            p1 = (UInt32)((c1 - 'a') + 10) * multipliyer;
+        return p1;
+    }
+
+    private UInt32 ParseUnicode(Char c1, Char c2, Char c3, Char c4)
+    {
+        var p1 = ParseSingleChar(c1, 0x1000);
+        var p2 = ParseSingleChar(c2, 0x100);
+        var p3 = ParseSingleChar(c3, 0x10);
+        var p4 = ParseSingleChar(c4, 1);
+
+        return p1 + p2 + p3 + p4;
+    }
+
+    private Int64 CreateLong(String s)
+    {
+        Int64 num = 0;
+        var neg = false;
+        foreach (var cc in s)
         {
-            if (_Ahead != Token.None) return _Ahead;
-
-            return _Ahead = NextTokenCore();
-        }
-
-        /// <summary>读取一个Token</summary>
-        private void SkipToken() => _Ahead = Token.None;
-
-        private Token NextToken()
-        {
-            var rs = _Ahead != Token.None ? _Ahead : NextTokenCore();
-
-            _Ahead = Token.None;
-
-            return rs;
-        }
-
-        private Token NextTokenCore()
-        {
-            Char ch;
-
-            // 跳过空白符
-            do
+            if (cc == '-')
+                neg = true;
+            else if (cc == '+')
+                neg = false;
+            else
             {
-                ch = _json[index];
+                num *= 10;
+                num += cc - '0';
+            }
+        }
 
-                if (ch > ' ') break;
-                if (ch != ' ' && ch != '\t' && ch != '\n' && ch != '\r') break;
+        return neg ? -num : num;
+    }
 
-            } while (++index < _json.Length);
+    private Object ParseNumber()
+    {
+        SkipToken();
 
-            if (index == _json.Length) throw new XException("已到达字符串结尾");
+        // 需要回滚1个位置，因为第一个数字也是Toekn，可能被跳过了
+        var startIndex = index - 1;
+        var dec = false;
+        do
+        {
+            if (index == _json.Length)
+                break;
+            var c = _json[index];
 
+            if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
+            {
+                if (c == '.' || c == 'e' || c == 'E')
+                    dec = true;
+                if (++index == _json.Length) break;
+
+                continue;
+            }
+            break;
+        } while (true);
+
+        if (dec)
+        {
+            var s = _json[startIndex..index];
+            return Double.Parse(s, NumberFormatInfo.InvariantInfo);
+        }
+
+        var m = CreateLong(out _, _json, startIndex, index - startIndex);
+        if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
+
+        return m;
+    }
+
+    private Token LookAhead()
+    {
+        if (_Ahead != Token.None) return _Ahead;
+
+        return _Ahead = NextTokenCore();
+    }
+
+    /// <summary>读取一个Token</summary>
+    private void SkipToken() => _Ahead = Token.None;
+
+    private Token NextToken()
+    {
+        var rs = _Ahead != Token.None ? _Ahead : NextTokenCore();
+
+        _Ahead = Token.None;
+
+        return rs;
+    }
+
+    private Token NextTokenCore()
+    {
+        Char ch;
+
+        // 跳过空白符
+        do
+        {
             ch = _json[index];
 
-            index++;
+            if (ch > ' ') break;
+            if (ch != ' ' && ch != '\t' && ch != '\n' && ch != '\r') break;
 
-            switch (ch)
-            {
-                case '{':
-                    return Token.Curly_Open;
+        } while (++index < _json.Length);
 
-                case '}':
-                    return Token.Curly_Close;
+        if (index == _json.Length) throw new XException("已到达字符串结尾");
 
-                case '[':
-                    return Token.Squared_Open;
+        ch = _json[index];
 
-                case ']':
-                    return Token.Squared_Close;
+        index++;
 
-                case ',':
-                    return Token.Comma;
-
-                case '"':
-                    return Token.String;
-
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                case '-':
-                case '+':
-                case '.':
-                    return Token.Number;
-
-                case ':':
-                    return Token.Colon;
-
-                case 'f':
-                    if (_json.Length - index >= 4 &&
-                        _json[index + 0] == 'a' &&
-                        _json[index + 1] == 'l' &&
-                        _json[index + 2] == 's' &&
-                        _json[index + 3] == 'e')
-                    {
-                        index += 4;
-                        return Token.False;
-                    }
-                    break;
-
-                case 't':
-                    if (_json.Length - index >= 3 &&
-                        _json[index + 0] == 'r' &&
-                        _json[index + 1] == 'u' &&
-                        _json[index + 2] == 'e')
-                    {
-                        index += 3;
-                        return Token.True;
-                    }
-                    break;
-
-                case 'n':
-                    if (_json.Length - index >= 3 &&
-                        _json[index + 0] == 'u' &&
-                        _json[index + 1] == 'l' &&
-                        _json[index + 2] == 'l')
-                    {
-                        index += 3;
-                        return Token.Null;
-                    }
-                    break;
-
-                // 默认是没有双引号的key
-                default: index--; return Token.String;
-            }
-            throw new XException("无法在 {0} 找到Token", --index);
-        }
-
-        static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
+        switch (ch)
         {
-            num = 0;
-            var neg = false;
-            for (var x = 0; x < count; x++, index++)
-            {
-                var cc = s[index];
+            case '{':
+                return Token.Curly_Open;
 
-                if (cc == '-')
-                    neg = true;
-                else if (cc == '+')
-                    neg = false;
-                else
+            case '}':
+                return Token.Curly_Close;
+
+            case '[':
+                return Token.Squared_Open;
+
+            case ']':
+                return Token.Squared_Close;
+
+            case ',':
+                return Token.Comma;
+
+            case '"':
+                return Token.String;
+
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            case '-':
+            case '+':
+            case '.':
+                return Token.Number;
+
+            case ':':
+                return Token.Colon;
+
+            case 'f':
+                if (_json.Length - index >= 4 &&
+                    _json[index + 0] == 'a' &&
+                    _json[index + 1] == 'l' &&
+                    _json[index + 2] == 's' &&
+                    _json[index + 3] == 'e')
                 {
-                    num *= 10;
-                    num += cc - '0';
+                    index += 4;
+                    return Token.False;
                 }
-            }
-            if (neg) num = -num;
+                break;
 
-            return num;
+            case 't':
+                if (_json.Length - index >= 3 &&
+                    _json[index + 0] == 'r' &&
+                    _json[index + 1] == 'u' &&
+                    _json[index + 2] == 'e')
+                {
+                    index += 3;
+                    return Token.True;
+                }
+                break;
+
+            case 'n':
+                if (_json.Length - index >= 3 &&
+                    _json[index + 0] == 'u' &&
+                    _json[index + 1] == 'l' &&
+                    _json[index + 2] == 'l')
+                {
+                    index += 3;
+                    return Token.Null;
+                }
+                break;
+
+            // 默认是没有双引号的key
+            default: index--; return Token.String;
         }
+        throw new XException("无法在 {0} 找到Token", --index);
+    }
+
+    static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
+    {
+        num = 0;
+        var neg = false;
+        for (var x = 0; x < count; x++, index++)
+        {
+            var cc = s[index];
+
+            if (cc == '-')
+                neg = true;
+            else if (cc == '+')
+                neg = false;
+            else
+            {
+                num *= 10;
+                num += cc - '0';
+            }
+        }
+        if (neg) num = -num;
+
+        return num;
     }
 }

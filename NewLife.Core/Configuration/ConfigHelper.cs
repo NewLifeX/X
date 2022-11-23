@@ -1,10 +1,8 @@
 ﻿using System.Collections;
 using System.ComponentModel;
 using System.Reflection;
-using System.Xml.Linq;
 using NewLife.Reflection;
 using NewLife.Serialization;
-using static System.Collections.Specialized.BitVector32;
 
 namespace NewLife.Configuration;
 
