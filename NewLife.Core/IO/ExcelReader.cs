@@ -118,7 +118,8 @@ public class ExcelReader : DisposeBase
                 var r = col.Attribute("r");
                 if (r != null)
                 {
-                    var c2 = r.Value[0];
+                    // 按最后一个字母递增，最多支持25个空列
+                    var c2 = r.Value.Last(Char.IsLetter);
                     while (c2 != c) { vs.Add(null); c++; }
                 }
 
@@ -152,7 +153,11 @@ public class ExcelReader : DisposeBase
 
                 vs.Add(val);
 
-                c++;
+                // 循环判断，用最简单的办法兼容超过26列的表格
+                if (c == 'Z')
+                    c = 'A';
+                else
+                    c++;
             }
 
             yield return vs.ToArray();
