@@ -46,6 +46,12 @@ public class MachineInfo
     /// <summary>软件唯一标识。系统标识，操作系统重装后更新，Linux系统的machine_id，Android的android_id，Ghost系统存在重复</summary>
     public String Guid { get; set; }
 
+    /// <summary>计算机序列号。适用于品牌机，跟笔记本标签显示一致</summary>
+    public String Serial { get; set; }
+
+    /// <summary>主板。序列号或家族信息</summary>
+    public String Board { get; set; }
+
     /// <summary>磁盘序列号</summary>
     public String DiskID { get; set; }
 
@@ -226,6 +232,10 @@ public class MachineInfo
         Product = GetInfo("Win32_ComputerSystemProduct", "Name");
         DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
+        var sn = GetInfo("Win32_BIOS", "SerialNumber");
+        if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
+        Board = GetInfo("Win32_BaseBoard", "SerialNumber");
+
         // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
         if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
 
@@ -277,6 +287,18 @@ public class MachineInfo
         if (disk != null)
         {
             if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
+        }
+
+        var sn = ReadWmic("bios", "serialnumber");
+        if (sn != null)
+        {
+            if (sn.TryGetValue("serialnumber", out str) && !str.EqualIgnoreCase("System Serial Number")) Serial = str?.Trim();
+        }
+
+        var board = ReadWmic("baseboard", "serialnumber");
+        if (board != null)
+        {
+            if (board.TryGetValue("serialnumber", out str)) Board = str?.Trim();
         }
 
         // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
@@ -362,17 +384,45 @@ public class MachineInfo
         var prd = GetProductByRelease();
         if (!prd.IsNullOrEmpty()) Product = prd;
 
-        if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
+        //if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
+        //{
+        var dmi = Execute("dmidecode");
+        if (!dmi.IsNullOrEmpty())
         {
-            var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
-            if (dmi != null)
+            var p = dmi.IndexOf("System Information");
+            if (p > 0) dmi = dmi[p..];
+
+            dic = dmi.SplitAsDictionary(":", "\n");
+            //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+            if (dic.TryGetValue("UUID", out str)) UUID = str;
+            if (dic.TryGetValue("Product Name", out str))
             {
-                //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-                if (dmi.TryGetValue("UUID", out str)) UUID = str;
-                if (dmi.TryGetValue("Product Name", out str)) Product = str;
-                //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
+                // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
+                if (dic.TryGetValue("Manufacturer", out var man) && !man.IsNullOrEmpty() && !man.Contains(str))
+                {
+                    // 红帽KVM太流行，细化处理
+                    if (str == "KVM" && man == "Red Hat" && dic.TryGetValue("Version", out var ver) && !ver.IsNullOrEmpty())
+                    {
+                        p = ver.IndexOf('(');
+                        if (p > 0) ver = ver[..p].Trim();
+                        str = ver;
+                    }
+                    else
+                        str += $"{man} {str}";
+                }
+
+                Product = str;
             }
+            if (dic.TryGetValue("Serial Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified")) 
+                Serial = str;
+
+            // 在DMI信息内，没有太好的BoardID取值
+            if (dic.TryGetValue("SKU Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+                Board = str;
+            if (dic.TryGetValue("Family", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+                Board = str;
         }
+        //}
     }
 
     private readonly ICollection<String> _excludes = new List<String>();
