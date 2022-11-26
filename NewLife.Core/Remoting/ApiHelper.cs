@@ -236,22 +236,23 @@ namespace NewLife.Remoting
                     break;
                 }
             }
-            if (code is not 0 and not 200)
+        
+        if (code is not ApiCode.Ok and not 200)
+        {
+            var message = "";
+            foreach (var item in MessageNames)
             {
-                var message = "";
-                foreach (var item in MessageNames)
+                if (dic.TryGetValue(item, out var v))
                 {
-                    if (dic.TryGetValue(item, out var v))
-                    {
-                        message = v as String;
-                        break;
-                    }
+                    message = v as String;
+                    break;
                 }
-                //var message = js["message"] + "";
-                //if (message.IsNullOrEmpty()) message = js["msg"] + "";
-                if (message.IsNullOrEmpty()) message = data + "";
-                throw new ApiException(code, message);
             }
+            //var message = js["message"] + "";
+            //if (message.IsNullOrEmpty()) message = js["msg"] + "";
+            if (message.IsNullOrEmpty()) message = data + "";
+            throw new ApiException(code, message);
+        }
 
             // 简单类型
             if (data is TResult result) return result;

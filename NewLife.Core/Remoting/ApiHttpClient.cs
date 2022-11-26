@@ -69,29 +69,15 @@ namespace NewLife.Remoting
         /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
         public ApiHttpClient(String urls) => Init(urls);
 
-        /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
-        /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
-        /// <param name="name">缓存名称，也是配置中心key</param>
-        public ApiHttpClient(IServiceProvider provider, String name)
-        {
-            //Name = name;
-
-            var configProvider = provider.GetRequiredService<IConfigProvider>();
-            configProvider.Bind(this, true, name);
-        }
-
-        ///// <summary>销毁</summary>
-        ///// <param name="disposing"></param>
-        //protected override void Dispose(Boolean disposing)
-        //{
-        //    base.Dispose(disposing);
-
-        //    foreach (var item in Services)
-        //    {
-        //        item.Client?.TryDispose();
-        //    }
-        //}
-        #endregion
+    /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
+    /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+    /// <param name="name">缓存名称，也是配置中心key</param>
+    public ApiHttpClient(IServiceProvider provider, String name) : this()
+    {
+        var configProvider = provider.GetRequiredService<IConfigProvider>();
+        configProvider.Bind(this, true, name);
+    }
+    #endregion
 
         #region 方法
         /// <summary>添加服务地址</summary>
