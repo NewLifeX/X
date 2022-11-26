@@ -157,7 +157,12 @@ namespace NewLife
                 }
 
                 k++;
-                dic[key] = val;
+                //dic[key] = val;
+#if NETFRAMEWORK || NETSTANDARD2_0
+                if (!dic.ContainsKey(key)) dic.Add(key, val);
+#else
+                dic.TryAdd(key, val);
+#endif
             }
 
             return dic;
