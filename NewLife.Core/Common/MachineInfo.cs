@@ -364,6 +364,7 @@ public class MachineInfo
         //else if (android.TryGetValue("Id", out str))
         //    Guid = str;
 
+        // DMI信息位于 /sys/class/dmi/id/ 目录，可以直接读取，不需要执行dmidecode命令
         var uuid = "";
         var file = "/sys/class/dmi/id/product_uuid";
         if (!File.Exists(file)) file = "/proc/serial_num";  // miui12支持/proc/serial_num
@@ -373,55 +374,85 @@ public class MachineInfo
             uuid = str;
         if (!uuid.IsNullOrEmpty()) UUID = uuid;
 
-        file = "/sys/class/dmi/id/product_name";
-        if (TryRead(file, out value)) Product = value;
+        // 从release文件读取产品
+        var prd = GetProductByRelease();
+        if (!prd.IsNullOrEmpty()) Product = prd;
+
+        if (prd.IsNullOrEmpty() && TryRead("/sys/class/dmi/id/product_name", out var product_name))
+        {
+            Product = product_name;
+
+            // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
+            if (TryRead("/sys/class/dmi/id/sys_vendor", out var vendor) && !vendor.IsNullOrEmpty() && !product_name.Contains(vendor))
+            {
+                // 红帽KVM太流行，细化处理
+                if (product_name == "KVM" && vendor == "Red Hat" &&
+                    TryRead("/sys/class/dmi/id/product_version", out var ver) && !ver.IsNullOrEmpty())
+                {
+                    var p = ver.IndexOf('(');
+                    if (p > 0) ver = ver[..p].Trim();
+                    Product = ver;
+                }
+                else
+                    Product = $"{vendor} {product_name}";
+            }
+        }
+
+        file = "/sys/class/dmi/id/product_serial";
+        if (TryRead(file, out value)) Serial = value;
+
+        // 在DMI信息内，没有太好的BoardID取值
+        file = "/sys/class/dmi/id/product_sku";
+        if (TryRead(file, out value) && !value.IsNullOrEmpty())
+            Board = value;
+        else
+        {
+            file = "/sys/class/dmi/id/product_family";
+            if (TryRead(file, out value)) Board = value;
+        }
 
         var disks = GetFiles("/dev/disk/by-id", true);
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
         if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
 
-        // 从release文件读取产品
-        var prd = GetProductByRelease();
-        if (!prd.IsNullOrEmpty()) Product = prd;
-
         //if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
         //{
-        var dmi = Execute("dmidecode");
-        if (!dmi.IsNullOrEmpty())
-        {
-            var p = dmi.IndexOf("System Information");
-            if (p > 0) dmi = dmi[p..];
+        //var dmi = Execute("dmidecode");
+        //if (!dmi.IsNullOrEmpty())
+        //{
+        //    var p = dmi.IndexOf("System Information");
+        //    if (p > 0) dmi = dmi[p..];
 
-            dic = dmi.SplitAsDictionary(":", "\n");
-            //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-            if (dic.TryGetValue("UUID", out str)) UUID = str;
-            if (dic.TryGetValue("Product Name", out str))
-            {
-                // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
-                if (dic.TryGetValue("Manufacturer", out var man) && !man.IsNullOrEmpty() && !man.Contains(str))
-                {
-                    // 红帽KVM太流行，细化处理
-                    if (str == "KVM" && man == "Red Hat" && dic.TryGetValue("Version", out var ver) && !ver.IsNullOrEmpty())
-                    {
-                        p = ver.IndexOf('(');
-                        if (p > 0) ver = ver[..p].Trim();
-                        str = ver;
-                    }
-                    else
-                        str += $"{man} {str}";
-                }
+        //    dic = dmi.SplitAsDictionary(":", "\n");
+        //    //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+        //    if (dic.TryGetValue("UUID", out str)) UUID = str;
+        //    if (dic.TryGetValue("Product Name", out str))
+        //    {
+        //        // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
+        //        if (dic.TryGetValue("Manufacturer", out var man) && !man.IsNullOrEmpty() && !man.Contains(str))
+        //        {
+        //            // 红帽KVM太流行，细化处理
+        //            if (str == "KVM" && man == "Red Hat" && dic.TryGetValue("Version", out var ver) && !ver.IsNullOrEmpty())
+        //            {
+        //                p = ver.IndexOf('(');
+        //                if (p > 0) ver = ver[..p].Trim();
+        //                str = ver;
+        //            }
+        //            else
+        //                str = $"{man} {str}";
+        //        }
 
-                Product = str;
-            }
-            if (dic.TryGetValue("Serial Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified")) 
-                Serial = str;
+        //        Product = str;
+        //    }
+        //    if (dic.TryGetValue("Serial Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+        //        Serial = str;
 
-            // 在DMI信息内，没有太好的BoardID取值
-            if (dic.TryGetValue("SKU Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
-                Board = str;
-            if (dic.TryGetValue("Family", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
-                Board = str;
-        }
+        //    // 在DMI信息内，没有太好的BoardID取值
+        //    if (dic.TryGetValue("SKU Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+        //        Board = str;
+        //    if (dic.TryGetValue("Family", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+        //        Board = str;
+        //}
         //}
     }
 
