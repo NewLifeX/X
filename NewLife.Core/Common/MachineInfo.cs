@@ -48,6 +48,12 @@ namespace NewLife
         /// <summary>系统标识</summary>
         public String Guid { get; set; }
 
+        /// <summary>计算机序列号。适用于品牌机，跟笔记本标签显示一致</summary>
+        public String Serial { get; set; }
+
+        /// <summary>主板。序列号或家族信息</summary>
+        public String Board { get; set; }
+
         /// <summary>磁盘序列号</summary>
         public String DiskID { get; set; }
 
@@ -219,6 +225,10 @@ namespace NewLife
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
             DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
+            var sn = GetInfo("Win32_BIOS", "SerialNumber");
+            if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
+            Board = GetInfo("Win32_BaseBoard", "SerialNumber");
+
             // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
             if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
 
@@ -273,12 +283,24 @@ namespace NewLife
                 if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
             }
 
+            var sn = ReadWmic("bios", "serialnumber");
+            if (sn != null)
+            {
+                if (sn.TryGetValue("serialnumber", out str) && !str.EqualIgnoreCase("System Serial Number")) Serial = str?.Trim();
+            }
+
+            var board = ReadWmic("baseboard", "serialnumber");
+            if (board != null)
+            {
+                if (board.TryGetValue("serialnumber", out str)) Board = str?.Trim();
+            }
+
             // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
             var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
             if (cpu != null)
             {
                 if (cpu.TryGetValue("Name", out str)) Processor = str;
-                if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+                //if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
                 if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
             }
 
@@ -330,28 +352,48 @@ namespace NewLife
             if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
             if (disks.Count > 0) DiskID = disks.Join(",");
 
-            var dmi = Execute("dmidecode")?.SplitAsDictionary(":", "\n");
-            if (dmi != null)
-            {
-                if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-                if (dmi.TryGetValue("UUID", out str)) UUID = str;
-                if (dmi.TryGetValue("Product Name", out str)) Product = str;
-                //if (TryFind(dmi, new[] { "Serial Number" }, out str)) Guid = str;
-            }
-
             // 从release文件读取产品
             var prd = GetProductByRelease();
             if (!prd.IsNullOrEmpty()) Product = prd;
 
-            //// 电池剩余
-            //if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
-            //    TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
+            //if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
             //{
-            //    Battery = energy_now.ToDouble() / energy_full.ToDouble();
-            //}
-            //else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
-            //{
-            //    Battery = capacity.ToDouble() / 100.0;
+            var dmi = Execute("dmidecode");
+            if (!dmi.IsNullOrEmpty())
+            {
+                var p = dmi.IndexOf("System Information");
+                if (p > 0) dmi = dmi.Substring(p);
+
+                dic = dmi.SplitAsDictionary(":", "\n");
+                //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
+                if (dic.TryGetValue("UUID", out str)) UUID = str;
+                if (dic.TryGetValue("Product Name", out str))
+                {
+                    // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
+                    if (dic.TryGetValue("Manufacturer", out var man) && !man.IsNullOrEmpty() && !man.Contains(str))
+                    {
+                        // 红帽KVM太流行，细化处理
+                        if (str == "KVM" && man == "Red Hat" && dic.TryGetValue("Version", out var ver) && !ver.IsNullOrEmpty())
+                        {
+                            p = ver.IndexOf('(');
+                            if (p > 0) ver = ver.Substring(0, p).Trim();
+                            str = ver;
+                        }
+                        else
+                            str += $"{man} {str}";
+                    }
+
+                    Product = str;
+                }
+                if (dic.TryGetValue("Serial Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+                    Serial = str;
+
+                // 在DMI信息内，没有太好的BoardID取值
+                if (dic.TryGetValue("SKU Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+                    Board = str;
+                if (dic.TryGetValue("Family", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
+                    Board = str;
+            }
             //}
         }
 
