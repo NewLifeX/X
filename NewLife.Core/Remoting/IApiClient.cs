@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace NewLife.Remoting;
+﻿namespace NewLife.Remoting;
 
 /// <summary>应用接口客户端接口</summary>
 public interface IApiClient

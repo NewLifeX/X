@@ -269,7 +269,7 @@ public static class ApiHelper
                 }
             }
         }
-        if (code is not 0 and not 200)
+        if (code is not ApiCode.Ok and not 200)
         {
             var message = "";
             foreach (var item in MessageNames)

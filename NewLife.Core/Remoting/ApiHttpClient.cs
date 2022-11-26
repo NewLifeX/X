@@ -77,23 +77,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="name">缓存名称，也是配置中心key</param>
     public ApiHttpClient(IServiceProvider provider, String name) : this()
     {
-        //Name = name;
-
         var configProvider = provider.GetRequiredService<IConfigProvider>();
         configProvider.Bind(this, true, name);
     }
-
-    ///// <summary>销毁</summary>
-    ///// <param name="disposing"></param>
-    //protected override void Dispose(Boolean disposing)
-    //{
-    //    base.Dispose(disposing);
-
-    //    foreach (var item in Services)
-    //    {
-    //        item.Client?.TryDispose();
-    //    }
-    //}
     #endregion
 
     #region 方法
