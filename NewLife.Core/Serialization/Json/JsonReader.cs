@@ -238,7 +238,9 @@ namespace NewLife.Serialization
             if (type.IsEnum) return Enum.Parse(type, value + "");
             if (type == typeof(DateTime)) return CreateDateTime(value);
 
-            if (type == typeof(Guid)) return new Guid((String)value);
+        if (type == typeof(DateTimeOffset)) return value.ToDateTimeOffset();
+
+        if (type == typeof(Guid)) return new Guid((String)value);
 
             if (type == typeof(Byte[]))
             {

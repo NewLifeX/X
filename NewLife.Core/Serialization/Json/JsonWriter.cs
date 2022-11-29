@@ -52,6 +52,9 @@ namespace NewLife.Serialization
         /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，默认false</summary>
         public Boolean Int64AsString { get; set; }
 
+        /// <summary>字节数组序列化为HEX。默认false，使用base64</summary>
+        public Boolean ByteArrayAsHex { get; set; }
+
         /// <summary>缩进字符数。默认2</summary>
         public Int32 IndentedLength { get; set; } = 4;
 
@@ -136,6 +139,9 @@ namespace NewLife.Serialization
             else if (obj is DateTime time)
                 WriteDateTime(time);
 
+            else if (obj is DateTimeOffset offset)
+                WriteDateTime(offset);
+
             else if (obj is IDictionary<String, Object> sdic)
                 WriteStringDictionary(sdic);
             else if (obj is IDictionary dictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0].GetTypeCode() != TypeCode.Object)
@@ -145,7 +151,12 @@ namespace NewLife.Serialization
             else if (obj is IDictionary dictionary1)
                 WriteDictionary(dictionary1);
             else if (obj is Byte[] buf)
-                WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            {
+                if (ByteArrayAsHex)
+                    WriteStringFast(buf.ToHex());
+                else
+                    WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
+            }
             else if (obj is Packet pk)
                 WriteStringFast(pk.ToBase64());
             else if (obj is StringDictionary dictionary2)
@@ -228,6 +239,13 @@ namespace NewLife.Serialization
             _Builder.Append('}');
         }
 
+        private void WriteDateTime(DateTimeOffset dateTimeOffset)
+        {
+            //2022-11-29T14:13:17.8763881+08:00
+            var str = dateTimeOffset.ToString("O");
+            _Builder.AppendFormat("\"{0}\"", str);
+        }
+
         private void WriteDateTime(DateTime dateTime)
         {
             var dt = dateTime;
@@ -270,16 +288,16 @@ namespace NewLife.Serialization
                 return;
             }
 
-        // 字典数据源
-        if (obj is IDictionarySource source)
-        {
-            var dic = source.ToDictionary();
-            WriteStringDictionary(dic);
-            return;
-        }
+            // 字典数据源
+            if (obj is IDictionarySource source)
+            {
+                var dic = source.ToDictionary();
+                WriteStringDictionary(dic);
+                return;
+            }
 
-        _Builder.Append('{');
-        WriteLeftIndent();
+            _Builder.Append('{');
+            WriteLeftIndent();
 
             _depth++;
 
@@ -306,60 +324,60 @@ namespace NewLife.Serialization
                 }
             }
 
-        // 遍历属性
-        foreach (var pi in t.GetProperties(true))
-        {
-            if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
-
-            var value = obj.GetValue(pi);
-            if (!IgnoreNullValues || !IsNull(value))
+            // 遍历属性
+            foreach (var pi in t.GetProperties(true))
             {
-                var name = FormatName(SerialHelper.GetName(pi));
-                String comment = null;
-                if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+                if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
 
-                if (!hs.Contains(name))
+                var value = obj.GetValue(pi);
+                if (!IgnoreNullValues || !IsNull(value))
                 {
-                    hs.Add(name);
-                    WriteMember(name, value, comment, ref first);
+                    var name = FormatName(SerialHelper.GetName(pi));
+                    String comment = null;
+                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, value, comment, ref first);
+                    }
                 }
             }
-        }
 
-        // 扩展数据
-        if (obj is IExtend3 ext3 && ext3.Items != null)
-        {
-            // 提前拷贝，避免遍历中改变集合
-            var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
-            foreach (var item in dic)
+            // 扩展数据
+            if (obj is IExtend3 ext3 && ext3.Items != null)
             {
-                var name = FormatName(item.Key);
-                if (!hs.Contains(name))
+                // 提前拷贝，避免遍历中改变集合
+                var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
+                foreach (var item in dic)
                 {
-                    hs.Add(name);
-                    WriteMember(name, item.Value, null, ref first);
+                    var name = FormatName(item.Key);
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, item.Value, null, ref first);
+                    }
                 }
             }
-        }
-        else if (obj is IExtend2 ext2 && ext2.Keys != null)
-        {
-            // 提前拷贝，避免遍历中改变集合
-            var keys = ext2.Keys.ToArray();
-            foreach (var item in keys)
+            else if (obj is IExtend2 ext2 && ext2.Keys != null)
             {
-                var name = FormatName(item);
-                if (!hs.Contains(name))
+                // 提前拷贝，避免遍历中改变集合
+                var keys = ext2.Keys.ToArray();
+                foreach (var item in keys)
                 {
-                    hs.Add(name);
-                    WriteMember(name, ext2[item], null, ref first);
+                    var name = FormatName(item);
+                    if (!hs.Contains(name))
+                    {
+                        hs.Add(name);
+                        WriteMember(name, ext2[item], null, ref first);
+                    }
                 }
             }
-        }
 
-        WriteRightIndent();
-        _Builder.Append('}');
-        _depth--;
-    }
+            WriteRightIndent();
+            _Builder.Append('}');
+            _depth--;
+        }
 
         private void WriteMember(String name, Object value, String comment, ref Boolean first)
         {
