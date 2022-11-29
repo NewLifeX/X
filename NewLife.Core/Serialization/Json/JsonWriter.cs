@@ -139,6 +139,9 @@ public class JsonWriter
         else if (obj is DateTime time)
             WriteDateTime(time);
 
+        else if (obj is DateTimeOffset offset)
+            WriteDateTime(offset);
+
         else if (obj is IDictionary<String, Object> sdic)
             WriteStringDictionary(sdic);
         else if (obj is IDictionary dictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0].GetTypeCode() != TypeCode.Object)
@@ -234,6 +237,13 @@ public class JsonWriter
 
         WriteRightIndent();
         _Builder.Append('}');
+    }
+
+    private void WriteDateTime(DateTimeOffset dateTimeOffset)
+    {
+        //2022-11-29T14:13:17.8763881+08:00
+        var str = dateTimeOffset.ToString("O");
+        _Builder.AppendFormat("\"{0}\"", str);
     }
 
     private void WriteDateTime(DateTime dateTime)

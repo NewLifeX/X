@@ -43,6 +43,7 @@ namespace XUnitTest.Serialization
         ""AdLinkUrl"": ""http://www.baidu.com"",
         ""AdImgUrl"": ""/uploader/swiperPic/405621836.jpg"",
         ""Type"": ""NewLife.Common.PinYin"",
+        ""Offset"": ""2022-11-29T14:13:17.8763881+08:00""
     },
     {
         ""ID"": 0,
@@ -54,6 +55,7 @@ namespace XUnitTest.Serialization
         ""AdLinkUrl"": ""http://www.baidu.com"",
         ""AdImgUrl"": ""/uploader/swiperPic/1978468752.jpg"",
         ""Type"": ""String"",
+        ""Offset"": ""2022-11-29T14:13:17.8763881+08:00""
     }
 ]";
 
@@ -70,6 +72,7 @@ namespace XUnitTest.Serialization
             Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
             Assert.Equal(typeof(NewLife.Common.PinYin), m.Type);
             Assert.Equal(typeof(String), models[1].Type);
+            Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
         }
 
         class Model
@@ -83,6 +86,7 @@ namespace XUnitTest.Serialization
             public String AdLinkUrl { get; set; }
             public String AdImgUrl { get; set; }
             public Type Type { get; set; }
+            public DateTimeOffset Offset { get; set; }
         }
 
         [Fact]
