@@ -322,7 +322,7 @@ namespace NewLife.Log
                 }
                 else
                 {
-                    ThreadPool.QueueUserWorkItem(s =>
+                    ThreadPool.UnsafeQueueUserWorkItem(s =>
                     {
                         try
                         {
@@ -333,7 +333,7 @@ namespace NewLife.Log
                         {
                             _writing = 0;
                         }
-                    });
+                    }, null);
                 }
             }
         }

@@ -48,14 +48,14 @@ namespace NewLife.Xml
                     XTrace.WriteLine("{0}的配置文件{1}有更新，重新加载配置！", typeof(TConfig), config.ConfigFile);
 
                     // 异步更新
-                    ThreadPool.QueueUserWorkItem(s =>
+                    ThreadPool.UnsafeQueueUserWorkItem(s =>
                     {
                         try
                         {
                             config.Load(dcf);
                         }
                         catch { }
-                    });
+                    }, null);
 
                     return config;
                 }

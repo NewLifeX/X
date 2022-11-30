@@ -333,7 +333,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (ioThread)
                 ProcessEvent(se, -1, true);
             else
-                ThreadPool.QueueUserWorkItem(s =>
+                ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
                     try
                     {
