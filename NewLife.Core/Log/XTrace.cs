@@ -81,7 +81,7 @@ namespace NewLife.Log
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
             AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
 
-            //ThreadPoolX.Init();
+            ThreadPoolX.Init();
 
             try
             {
