@@ -45,6 +45,15 @@ public class JsonParser
         /// <summary>布尔真</summary>
         False,
 
+        /// <summary>单行注释</summary>
+        Comment,
+
+        /// <summary>多行注释开始</summary>
+        Comment_Open,
+
+        /// <summary>多行注释结束</summary>
+        Comment_Close,
+
         /// <summary>空值</summary>
         Null
     }
@@ -92,7 +101,6 @@ public class JsonParser
             var token = LookAhead();
             switch (token)
             {
-
                 case Token.Comma:
                     SkipToken();
                     break;
@@ -100,6 +108,20 @@ public class JsonParser
                 case Token.Curly_Close:
                     SkipToken();
                     return dic;
+
+                case Token.Comment:
+                    ParseSingleComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Open:
+                    ParseComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Close:
+                    SkipToken();
+                    break;
 
                 default:
                     {
@@ -145,6 +167,20 @@ public class JsonParser
                 case Token.Squared_Close:
                     SkipToken();
                     return arr;
+
+                case Token.Comment:
+                    ParseSingleComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Open:
+                    ParseComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Close:
+                    SkipToken();
+                    break;
 
                 default:
                     arr.Add(ParseValue());
@@ -355,6 +391,36 @@ public class JsonParser
         return m;
     }
 
+    private void ParseSingleComment()
+    {
+        while (index < _json.Length)
+        {
+            var ch = _json[index++];
+            if (ch == '\r' || ch == '\n')
+            {
+                index--;
+                break;
+            }
+        }
+    }
+
+    private void ParseComment()
+    {
+        while (index < _json.Length)
+        {
+            var ch = _json[index++];
+            if (ch == '*')
+            {
+                ch = _json[index];
+                if (ch == '/')
+                {
+                    index--;
+                    break;
+                }
+            }
+        }
+    }
+
     private Token LookAhead()
     {
         if (_Ahead != Token.None) return _Ahead;
@@ -466,8 +532,34 @@ public class JsonParser
                 }
                 break;
 
+            case '/':
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '/')
+                {
+                    index += 1;
+                    return Token.Comment;
+                }
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '*')
+                {
+                    index += 1;
+                    return Token.Comment_Open;
+                }
+                break;
+
+            case '*':
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '/')
+                {
+                    index += 1;
+                    return Token.Comment_Close;
+                }
+                break;
+
             // 默认是没有双引号的key
-            default: index--; return Token.String;
+            default:
+                index--;
+                return Token.String;
         }
         throw new XException("无法在 {0} 找到Token", --index);
     }
