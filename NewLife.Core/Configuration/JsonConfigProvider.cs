@@ -179,6 +179,18 @@ public class JsonConfigProvider : FileConfigProvider
     /// <returns></returns>
     public static String TrimComment(String text)
     {
+        while (true)
+        {
+            // 以下处理多行注释 “/**/” 放在一行的情况
+            var p = text.IndexOf("/*");
+            if (p < 0) break;
+
+            var p2 = text.IndexOf("*/", p + 2);
+            if (p2 < 0) break;
+
+            text = text[..p] + text[(p2 + 2)..];
+        }
+
         // 增加 \r以及\n的处理， 处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
         var lines = text.Split("\r\n", "\n", "\r");
         text = lines
@@ -193,18 +205,6 @@ public class JsonConfigProvider : FileConfigProvider
             //    return e;
             //})
             .Join(Environment.NewLine);
-
-        while (true)
-        {
-            // 以下处理多行注释 “/**/” 放在一行的情况
-            var p = text.IndexOf("/*");
-            if (p < 0) break;
-
-            var p2 = text.IndexOf("*/", p + 2);
-            if (p2 < 0) break;
-
-            text = text[..p] + text[(p2 + 2)..];
-        }
 
         return text;
     }
