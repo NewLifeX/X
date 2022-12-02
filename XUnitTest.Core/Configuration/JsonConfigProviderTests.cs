@@ -243,4 +243,13 @@ public class JsonConfigProviderTests
             Assert.Equal(2, sec.Childs.Count);
         }
     }
+
+    //[Fact]
+    //public void LoadAppSettings2()
+    //{
+    //    var json = JsonConfigProvider.LoadAppSettings("../appsettings.json");
+    //    json.LoadAll();
+
+    //    Assert.NotNull(json);
+    //}
 }

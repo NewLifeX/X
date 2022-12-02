@@ -47,10 +47,19 @@ namespace NewLife.Serialization
             /// <summary>布尔真</summary>
             False,
 
-            /// <summary>空值</summary>
-            Null
-        }
-        #endregion
+        /// <summary>单行注释</summary>
+        Comment,
+
+        /// <summary>多行注释开始</summary>
+        Comment_Open,
+
+        /// <summary>多行注释结束</summary>
+        Comment_Close,
+
+        /// <summary>空值</summary>
+        Null
+    }
+    #endregion
 
         #region 属性
         readonly String _json;
@@ -88,25 +97,38 @@ namespace NewLife.Serialization
 
             SkipToken(); // {
 
-            while (true)
+        while (true)
+        {
+            var old = index;
+            var token = LookAhead();
+            switch (token)
             {
-                var old = index;
-                var token = LookAhead();
-                switch (token)
-                {
-
-                    case Token.Comma:
-                        SkipToken();
-                        break;
+                case Token.Comma:
+                    SkipToken();
+                    break;
 
                     case Token.Curly_Close:
                         SkipToken();
                         return dic;
 
-                    default:
-                        {
-                            // 如果名称是数字，需要退回去
-                            if (token == Token.Number) index = old;
+                case Token.Comment:
+                    ParseSingleComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Open:
+                    ParseComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Close:
+                    SkipToken();
+                    break;
+
+                default:
+                    {
+                        // 如果名称是数字，需要退回去
+                        if (token == Token.Number) index = old;
 
                             // 名称
                             var name = ParseString(true);
@@ -148,12 +170,26 @@ namespace NewLife.Serialization
                         SkipToken();
                         return arr;
 
-                    default:
-                        arr.Add(ParseValue());
-                        break;
-                }
+                case Token.Comment:
+                    ParseSingleComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Open:
+                    ParseComment();
+                    SkipToken();
+                    break;
+
+                case Token.Comment_Close:
+                    SkipToken();
+                    break;
+
+                default:
+                    arr.Add(ParseValue());
+                    break;
             }
         }
+    }
 
         private Object ParseValue()
         {
@@ -354,8 +390,38 @@ namespace NewLife.Serialization
             var m = CreateLong(out _, _json, startIndex, index - startIndex);
             if (m < Int32.MaxValue && m > Int32.MinValue) return (Int32)m;
 
-            return m;
+        return m;
+    }
+
+    private void ParseSingleComment()
+    {
+        while (index < _json.Length)
+        {
+            var ch = _json[index++];
+            if (ch == '\r' || ch == '\n')
+            {
+                index--;
+                break;
+            }
         }
+    }
+
+    private void ParseComment()
+    {
+        while (index < _json.Length)
+        {
+            var ch = _json[index++];
+            if (ch == '*')
+            {
+                ch = _json[index];
+                if (ch == '/')
+                {
+                    index--;
+                    break;
+                }
+            }
+        }
+    }
 
         private Token LookAhead()
         {
@@ -468,11 +534,37 @@ namespace NewLife.Serialization
                     }
                     break;
 
-                // 默认是没有双引号的key
-                default: index--; return Token.String;
-            }
-            throw new XException("无法在 {0} 找到Token", --index);
+            case '/':
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '/')
+                {
+                    index += 1;
+                    return Token.Comment;
+                }
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '*')
+                {
+                    index += 1;
+                    return Token.Comment_Open;
+                }
+                break;
+
+            case '*':
+                if (_json.Length - index >= 1 &&
+                    _json[index + 0] == '/')
+                {
+                    index += 1;
+                    return Token.Comment_Close;
+                }
+                break;
+
+            // 默认是没有双引号的key
+            default:
+                index--;
+                return Token.String;
         }
+        throw new XException("无法在 {0} 找到Token", --index);
+    }
 
         static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)
         {
