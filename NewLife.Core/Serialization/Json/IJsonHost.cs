@@ -276,7 +276,11 @@ namespace NewLife.Serialization
         /// <summary>分析Json字符串得到字典</summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public IDictionary<String, Object> Decode(String json) => JsonParser.Decode(json);
+        public IDictionary<String, Object> Decode(String json)
+        {
+            var doc = JsonDocument.Parse(json);
+            return doc.RootElement.ToDictionary();
+        }
         #endregion
     }
 #endif

@@ -183,4 +183,34 @@ public class FastJsonTest
 
         public Object Body { get; set; }
     }
+
+    [Fact]
+    public void Decode()
+    {
+        var model = new ModelB
+        {
+            ID = 2233,
+            Body = new
+            {
+                aaa = 123,
+                bbb = 456,
+                ccc = 789,
+            },
+        };
+
+        // 序列化
+        var json = _json.Write(model);
+
+        var dic = _json.Decode(json);
+        Assert.NotNull(dic);
+
+        Assert.Equal(2233, dic["id"]);
+
+        dic = dic["body"] as IDictionary<String, Object>;
+        Assert.NotNull(dic);
+        Assert.Equal(3, dic.Count);
+        Assert.Equal(123, dic["aaa"]);
+        Assert.Equal(456, dic["bbb"]);
+        Assert.Equal(789, dic["ccc"]);
+    }
 }
