@@ -2,6 +2,9 @@
 using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Serialization;
+#if NETCOREAPP
+using System.Text.Json;
+#endif
 
 namespace System.Collections.Generic
 {
@@ -115,6 +118,26 @@ namespace System.Collections.Generic
                         dic[item.Key + ""] = item.Value;
                     }
                 }
+#if NETCOREAPP
+                else if (target is JsonElement element && element.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var item in element.EnumerateObject())
+                    {
+                        Object v = item.Value.ValueKind switch
+                        {
+                            JsonValueKind.Object => item.Value.ToDictionary(),
+                            JsonValueKind.Array => ToArray(item.Value),
+                            JsonValueKind.String => item.Value.GetString(),
+                            JsonValueKind.Number when item.Value.GetRawText().Contains('.') => item.Value.GetDouble(),
+                            JsonValueKind.Number => item.Value.GetInt64(),
+                            JsonValueKind.True or JsonValueKind.False => item.Value.GetBoolean(),
+                            _ => item.Value.GetString(),
+                        };
+                        if (v is Int64 n && n < Int32.MaxValue) v = (Int32)n;
+                        dic[item.Name] = v;
+                    }
+                }
+#endif
                 else
                 {
                     foreach (var pi in target.GetType().GetProperties(true))
@@ -127,6 +150,30 @@ namespace System.Collections.Generic
 
             return dic;
         }
+
+#if NETCOREAPP
+        static IList<Object> ToArray(JsonElement element)
+        {
+            var list = new List<Object>();
+            foreach (var item in element.EnumerateArray())
+            {
+                Object v = item.ValueKind switch
+                {
+                    JsonValueKind.Object => item.ToDictionary(),
+                    JsonValueKind.Array => ToArray(item),
+                    JsonValueKind.String => item.GetString(),
+                    JsonValueKind.Number when item.GetRawText().Contains('.') => item.GetDouble(),
+                    JsonValueKind.Number => item.GetInt64(),
+                    JsonValueKind.True or JsonValueKind.False => item.GetBoolean(),
+                    _ => item.GetString(),
+                };
+                if (v is Int64 n && n < Int32.MaxValue) v = (Int32)n;
+                list.Add(v);
+            }
+
+            return list;
+        }
+#endif
 
         /// <summary>合并字典参数</summary>
         /// <param name="dic">字典</param>

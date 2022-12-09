@@ -32,32 +32,34 @@ namespace XUnitTest.Serialization
         [Fact]
         public void DateTimeTest()
         {
-            var str = @"[
-    {
-        ""ID"": 0,
-        ""Userid"": 27,
-        ""ClickTime"": ""2020-03-09T21:16:17.88"",
-        ""AdID"": 39,
-        ""AdAmount"": 0.43,
-        ""isGive"": false,
-        ""AdLinkUrl"": ""http://www.baidu.com"",
-        ""AdImgUrl"": ""/uploader/swiperPic/405621836.jpg"",
-        ""Type"": ""NewLife.Common.PinYin"",
-        ""Offset"": ""2022-11-29T14:13:17.8763881+08:00""
-    },
-    {
-        ""ID"": 0,
-        ""Userid"": 27,
-        ""ClickTime"": ""2020-03-09T21:16:25.9052764+08:00"",
-        ""AdID"": 40,
-        ""AdAmount"": 0.41,
-        ""isGive"": false,
-        ""AdLinkUrl"": ""http://www.baidu.com"",
-        ""AdImgUrl"": ""/uploader/swiperPic/1978468752.jpg"",
-        ""Type"": ""String"",
-        ""Offset"": ""2022-11-29T14:13:17.8763881+08:00""
-    }
-]";
+            var str = """
+                [
+                    {
+                        "ID": 0,
+                        "Userid": 27,
+                        "ClickTime": "2020-03-09T21:16:17.88",
+                        "AdID": 39,
+                        "AdAmount": 0.43,
+                        "isGive": false,
+                        "AdLinkUrl": "http://www.baidu.com",
+                        "AdImgUrl": "/uploader/swiperPic/405621836.jpg",
+                        "Type": "NewLife.Common.PinYin",
+                        "Offset": "2022-11-29T14:13:17.8763881+08:00"
+                    },
+                    {
+                        "ID": 0,
+                        "Userid": 27,
+                        "ClickTime": "2020-03-09T21:16:25.9052764+08:00",
+                        "AdID": 40,
+                        "AdAmount": 0.41,
+                        "isGive": false,
+                        "AdLinkUrl": "http://www.baidu.com",
+                        "AdImgUrl": "/uploader/swiperPic/1978468752.jpg",
+                        "Type": "String",
+                        "Offset": "2022-11-29T14:13:17.8763881+08:00"
+                    }
+                ]
+                """;
 
             var models = str.ToJsonEntity<Model[]>();
             Assert.Equal(2, models.Length);

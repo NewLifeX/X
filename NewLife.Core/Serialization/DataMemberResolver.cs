@@ -1,4 +1,5 @@
 ﻿#if NET7_0_OR_GREATER
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -18,31 +19,39 @@ public class DataMemberResolver : DefaultJsonTypeInfoResolver
     /// <returns></returns>
     public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
     {
-        var jsonTypeInfo = base.GetTypeInfo(type, options);
+        var typeInfo = base.GetTypeInfo(type, options);
 
-        if (jsonTypeInfo.Kind == JsonTypeInfoKind.Object && !type.IsArray)
+        if (typeInfo.Kind == JsonTypeInfoKind.Object && !type.IsArray)
         {
-            var pis = jsonTypeInfo.Properties;
-            for (var i = pis.Count - 1; i >= 0; i--)
-            {
-                var jpi = pis[i];
-                var provider = jpi.AttributeProvider;
-                if (provider.IsDefined(typeof(IgnoreDataMemberAttribute), false) ||
-                    provider.IsDefined(typeof(XmlIgnoreAttribute), false))
-                {
-                    pis.RemoveAt(i);
-                    continue;
-                }
-                else
-                {
-                    var attr = provider.GetCustomAttributes(typeof(DataMemberAttribute), false)?.FirstOrDefault() as DataMemberAttribute;
-                    if (attr != null && !attr.Name.IsNullOrEmpty())
-                        jpi.Name = attr.Name;
-                }
-            }
+            Modifier(typeInfo);
         }
 
-        return jsonTypeInfo;
+        return typeInfo;
+    }
+
+    /// <summary>检测并修改成员信息</summary>
+    /// <param name="typeInfo"></param>
+    public static void Modifier(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object) return;
+
+        foreach (var propertyInfo in typeInfo.Properties)
+        {
+            var provider = propertyInfo.AttributeProvider;
+            if (provider.IsDefined(typeof(IgnoreDataMemberAttribute), true) ||
+                provider.IsDefined(typeof(XmlIgnoreAttribute), false))
+            {
+                // 禁用
+                propertyInfo.Get = null;
+                propertyInfo.Set = null;
+            }
+            else
+            {
+                var attr = provider.GetCustomAttributes(typeof(DataMemberAttribute), false)?.FirstOrDefault() as DataMemberAttribute;
+                if (attr != null && !attr.Name.IsNullOrEmpty())
+                    propertyInfo.Name = attr.Name;
+            }
+        }
     }
 }
 #endif

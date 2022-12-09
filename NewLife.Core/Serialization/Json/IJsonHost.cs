@@ -1,6 +1,11 @@
 ﻿using System;
 using NewLife.Collections;
 using NewLife.Reflection;
+using NewLife.Model;
+#if NET5_0_OR_GREATER
+using System.Text.Json;
+using System.Text.Json.Serialization;
+#endif
 
 namespace NewLife.Serialization
 {
@@ -29,6 +34,11 @@ namespace NewLife.Serialization
         /// <param name="targetType"></param>
         /// <returns></returns>
         Object Convert(Object obj, Type targetType);
+
+        /// <summary>分析Json字符串得到字典</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        IDictionary<String, Object> Decode(String json);
     }
 
     /// <summary>Json助手</summary>
@@ -157,16 +167,117 @@ namespace NewLife.Serialization
 
             return (T)Default.Convert(obj, typeof(T));
         }
+
+        /// <summary>分析Json字符串得到字典</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static IDictionary<String, Object> DecodeJson(this String json) => Default.Decode(json);
     }
 
-    class FastJson : IJsonHost
+    /// <summary>轻量级FastJson序列化</summary>
+    public class FastJson : IJsonHost
     {
         #region IJsonHost 成员
-        public String Write(Object value, Boolean indented, Boolean nullValue, Boolean camelCase) => JsonWriter.ToJson(value, indented, nullValue, camelCase);
+        /// <summary>写入对象，得到Json字符串</summary>
+        /// <param name="value"></param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
+        /// <returns></returns>
+        public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false) => JsonWriter.ToJson(value, indented, nullValue, camelCase);
 
+        /// <summary>从Json字符串中读取对象</summary>
+        /// <param name="json"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public Object Read(String json, Type type) => new JsonReader().Read(json, type);
 
+        /// <summary>类型转换</summary>
+        /// <param name="obj"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
         public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+
+        /// <summary>分析Json字符串得到字典</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public IDictionary<String, Object> Decode(String json) => JsonParser.Decode(json);
         #endregion
     }
+
+#if NET5_0_OR_GREATER
+    /// <summary>系统级System.Text.Json标准序列化</summary>
+    public class SystemJson : IJsonHost
+    {
+        #region IJsonHost 成员
+        /// <summary>获取序列化配置项</summary>
+        /// <returns></returns>
+        public static JsonSerializerOptions GetOptions()
+        {
+            var opt = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+            };
+            opt.Converters.Add(new JsonConverterForType());
+#if NET7_0_OR_GREATER
+            opt.TypeInfoResolver = DataMemberResolver.Default;
+            //opt.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { DataMemberResolver.Modifier } };
+#endif
+            return opt;
+        }
+
+        /// <summary>写入对象，得到Json字符串</summary>
+        /// <param name="value"></param>
+        /// <param name="indented">是否缩进。默认false</param>
+        /// <param name="nullValue">是否写空值。默认true</param>
+        /// <param name="camelCase">是否驼峰命名。默认false</param>
+        /// <returns></returns>
+        public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
+        {
+            var opt = GetOptions();
+            if (!nullValue) opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+            if (camelCase) opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+            return JsonSerializer.Serialize(value, opt);
+        }
+
+        /// <summary>从Json字符串中读取对象</summary>
+        /// <param name="json"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public Object Read(String json, Type type)
+        {
+            var opt = GetOptions();
+#if NET7_0_OR_GREATER
+            //opt.TypeInfoResolver = new DataMemberResolver { Modifiers = { OnModifierType } };
+#endif
+
+            return JsonSerializer.Deserialize(json, type, opt);
+        }
+
+#if NET7_0_OR_GREATER
+        //static void OnModifierType(JsonTypeInfo typeInfo)
+        //{
+        //    if (typeInfo.Kind != JsonTypeInfoKind.Object) return;
+
+        //    var type = typeInfo.Type;
+        //    if (type.IsInterface || type.IsAbstract)
+        //    {
+        //        var t = ObjectContainer.Current.Resolve(type);
+        //    }
+        //}
+#endif
+
+        /// <summary>类型转换</summary>
+        /// <param name="obj"></param>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+
+        /// <summary>分析Json字符串得到字典</summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public IDictionary<String, Object> Decode(String json) => JsonParser.Decode(json);
+        #endregion
+    }
+#endif
 }
