@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -26,54 +27,70 @@ public class MachineInfo
 {
     #region 属性
     /// <summary>系统名称</summary>
+    [DisplayName("系统名称")]
     public String OSName { get; set; }
 
     /// <summary>系统版本</summary>
+    [DisplayName("系统版本")]
     public String OSVersion { get; set; }
 
     /// <summary>产品名称。制造商</summary>
+    [DisplayName("产品名称")]
     public String Product { get; set; }
 
     /// <summary>处理器型号</summary>
+    [DisplayName("处理器型号")]
     public String Processor { get; set; }
 
     ///// <summary>处理器序列号。PC处理器序列号绝大部分重复，实际存储处理器的其它信息</summary>
     //public String CpuID { get; set; }
 
     /// <summary>硬件唯一标识。取主板编码，部分品牌存在重复</summary>
+    [DisplayName("硬件唯一标识")]
     public String UUID { get; set; }
 
     /// <summary>软件唯一标识。系统标识，操作系统重装后更新，Linux系统的machine_id，Android的android_id，Ghost系统存在重复</summary>
+    [DisplayName("软件唯一标识")]
     public String Guid { get; set; }
 
     /// <summary>计算机序列号。适用于品牌机，跟笔记本标签显示一致</summary>
+    [DisplayName("计算机序列号")]
     public String Serial { get; set; }
 
     /// <summary>主板。序列号或家族信息</summary>
+    [DisplayName("主板")]
     public String Board { get; set; }
 
     /// <summary>磁盘序列号</summary>
+    [DisplayName("磁盘序列号")]
     public String DiskID { get; set; }
 
     /// <summary>内存总量。单位Byte</summary>
+    [DisplayName("内存总量")]
     public UInt64 Memory { get; set; }
 
     /// <summary>可用内存。单位Byte</summary>
+    [DisplayName("可用内存")]
     public UInt64 AvailableMemory { get; set; }
 
     /// <summary>CPU占用率</summary>
+    [DisplayName("CPU占用率")]
     public Single CpuRate { get; set; }
 
     /// <summary>网络上行速度。字节每秒，初始化后首次读取为0</summary>
+    [DisplayName("网络上行速度")]
     public UInt64 UplinkSpeed { get; set; }
 
     /// <summary>网络下行速度。字节每秒，初始化后首次读取为0</summary>
+    [DisplayName("网络下行速度")]
     public UInt64 DownlinkSpeed { get; set; }
 
     /// <summary>温度。单位度</summary>
+    [DisplayName("温度")]
     public Double Temperature { get; set; }
 
     /// <summary>电池剩余。小于1的小数，常用百分比表示</summary>
+    [DisplayName("电池剩余")]
     public Double Battery { get; set; }
     #endregion
 
