@@ -151,14 +151,14 @@ namespace NewLife.Web
             if (ts.Length != 3) return null;
 
             // 头部
-            var header = JsonParser.Decode(ts[0].ToBase64().ToStr());
+            var header = ts[0].ToBase64().ToStr().DecodeJson();
             if (header == null) return null;
 
             if (header.TryGetValue("alg", out var alg) && alg != null) Algorithm = alg + "";
             if (header.TryGetValue("typ", out var typ)) Type = typ + "";
 
             // 主体
-            var body = JsonParser.Decode(ts[1].ToBase64().ToStr());
+            var body = ts[1].ToBase64().ToStr().DecodeJson();
             Items = body;
 
             if (body.TryGetValue("iss", out var value)) Issuer = value + "";

@@ -44,7 +44,7 @@ public class JsonConfigProvider : FileConfigProvider
         // 预处理注释
         txt = TrimComment(txt);
 
-        var src = JsonParser.Decode(txt);
+        var src = txt.DecodeJson();
 
         Map(src, section);
     }

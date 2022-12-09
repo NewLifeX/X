@@ -42,7 +42,7 @@ namespace XUnitTest.Http
             var json = client.PostJson(url, new { state = "1234" });
             Assert.NotNull(json);
 
-            var dic = JsonParser.Decode(json);
+            var dic = json.DecodeJson();
             dic = dic["data"] as IDictionary<String, Object>;
             Assert.Equal("CubeSSO", dic["name"]);
             //Assert.Equal("1234", dic["state"]);
@@ -50,7 +50,7 @@ namespace XUnitTest.Http
             json = await client.PostJsonAsync(url, new { state = "abcd" });
             Assert.NotNull(json);
 
-            dic = JsonParser.Decode(json);
+            dic = json.DecodeJson();
             dic = dic["data"] as IDictionary<String, Object>;
             Assert.Equal("CubeSSO", dic["name"]);
             //Assert.Equal("abcd", dic["state"]);
@@ -80,7 +80,7 @@ namespace XUnitTest.Http
             var json = client.PostXml(url, new { state = "1234" });
             Assert.NotNull(json);
 
-            var dic = JsonParser.Decode(json);
+            var dic = json.DecodeJson();
             dic = dic["data"] as IDictionary<String, Object>;
             Assert.Equal("CubeSSO", dic["name"]);
             //Assert.Equal("1234", dic["state"]);
@@ -88,7 +88,7 @@ namespace XUnitTest.Http
             json = await client.PostXmlAsync(url, new { state = "abcd" });
             Assert.NotNull(json);
 
-            dic = JsonParser.Decode(json);
+            dic = json.DecodeJson();
             dic = dic["data"] as IDictionary<String, Object>;
             Assert.Equal("CubeSSO", dic["name"]);
             //Assert.Equal("abcd", dic["state"]);

@@ -241,7 +241,7 @@ namespace NewLife.Http
                 }
                 else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
                 {
-                    var js = JsonParser.Decode(body.ToStr());
+                    var js = body.ToStr().DecodeJson();
                     ps.Merge(js);
                 }
             }

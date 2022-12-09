@@ -230,7 +230,7 @@ public class HttpConfigProvider : ConfigProvider
             // 加密存储
             if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Decrypt(json.ToBase64(), AppId.GetBytes()).ToStr();
 
-            Root = Build(JsonParser.Decode(json));
+            Root = Build(json.DecodeJson());
         }
     }
 

@@ -233,7 +233,7 @@ public static class ApiHelper
 
         var rtype = typeof(TResult);
 
-        var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : JsonParser.Decode(response);
+        var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : response.DecodeJson();
         if (dic == null) return default;
 
         var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
