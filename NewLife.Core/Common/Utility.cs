@@ -559,6 +559,9 @@ namespace System
         {
             return format switch
             {
+#if NET7_0_OR_GREATER
+                "us" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Microsecond, value.Kind),
+#endif
                 "ms" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind),
                 "s" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind),
                 "m" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0, value.Kind),

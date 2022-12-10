@@ -74,7 +74,17 @@ public class SystemJsonTest
         Assert.Equal("http://www.baidu.com", m.AdLinkUrl);
         Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
         Assert.Equal(typeof(NewLife.Common.PinYin), m.Type);
-        Assert.Equal(typeof(String), models[1].Type);
+        Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
+
+        m = models[1];
+        Assert.Equal(27, m.UserId);
+        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 25, 905, 276), m.ClickTime.Trim("us"));
+        Assert.Equal(40, m.AdId);
+        Assert.Equal(0.41, m.AdAmount);
+        Assert.False(m.IsGive);
+        Assert.Equal("http://www.baidu.com", m.AdLinkUrl);
+        Assert.Equal("/uploader/swiperPic/1978468752.jpg", m.AdImgUrl);
+        Assert.Equal(typeof(String), m.Type);
         Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
     }
 

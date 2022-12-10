@@ -6,7 +6,8 @@ using NewLife.Reflection;
 namespace NewLife.Serialization;
 
 /// <summary>面向Type的Json序列化转换器</summary>
-public class JsonConverterForType : JsonConverter<Type>
+/// <remarks>借助字符串序列化Type.FullName</remarks>
+public class TypeConverter : JsonConverter<Type>
 {
     /// <summary>读取类型</summary>
     /// <param name="reader"></param>
