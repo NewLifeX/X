@@ -3,8 +3,10 @@ using NewLife.Collections;
 using NewLife.Reflection;
 using NewLife.Model;
 #if NET5_0_OR_GREATER
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 #endif
 
 namespace NewLife.Serialization
@@ -209,13 +211,14 @@ namespace NewLife.Serialization
     /// <summary>系统级System.Text.Json标准序列化</summary>
     public class SystemJson : IJsonHost
     {
-        #region IJsonHost 成员
+        #region 静态
         /// <summary>获取序列化配置项</summary>
         /// <returns></returns>
-        public static JsonSerializerOptions GetOptions()
+        public static JsonSerializerOptions GetDefaultOptions()
         {
             var opt = new JsonSerializerOptions(JsonSerializerDefaults.Web)
             {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
             };
             opt.Converters.Add(new JsonConverterForType());
 #if NET7_0_OR_GREATER
@@ -224,7 +227,14 @@ namespace NewLife.Serialization
 #endif
             return opt;
         }
+        #endregion
 
+        #region 属性
+        /// <summary>配置项</summary>
+        public JsonSerializerOptions Options { get; set; } = GetDefaultOptions();
+        #endregion
+
+        #region IJsonHost 成员
         /// <summary>写入对象，得到Json字符串</summary>
         /// <param name="value"></param>
         /// <param name="indented">是否缩进。默认false</param>
@@ -233,7 +243,10 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
         {
-            var opt = GetOptions();
+            var opt = new JsonSerializerOptions(Options)
+            {
+                WriteIndented = indented
+            };
             if (!nullValue) opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
             if (camelCase) opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 
@@ -246,7 +259,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public Object Read(String json, Type type)
         {
-            var opt = GetOptions();
+            var opt = Options;
 #if NET7_0_OR_GREATER
             //opt.TypeInfoResolver = new DataMemberResolver { Modifiers = { OnModifierType } };
 #endif
