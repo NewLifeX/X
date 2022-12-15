@@ -266,10 +266,16 @@ namespace NewLife.Log
         /// <returns></returns>
         public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
         {
-            if (handler == null) handler = new HttpClientHandler { UseProxy = false };
-            if (tracer == null) return new HttpClient(handler);
+            handler ??= new HttpClientHandler { UseProxy = false };
 
-            return new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+            var client = tracer == null ?
+                new HttpClient(handler) :
+                new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+
+            //// 默认UserAgent
+            //client.SetUserAgent();
+
+            return client;
         }
 
         /// <summary>为Http请求创建Span</summary>

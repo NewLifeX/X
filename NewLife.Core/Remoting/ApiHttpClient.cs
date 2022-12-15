@@ -39,8 +39,11 @@ namespace NewLife.Remoting
         /// <summary>身份验证</summary>
         public AuthenticationHeaderValue Authentication { get; set; }
 
-        /// <summary>Http过滤器</summary>
-        public IHttpFilter Filter { get; set; }
+    /// <summary>默认用户浏览器UserAgent。默认为空，可取值HttpHelper.DefaultUserAgent</summary>
+    public String DefaultUserAgent { get; set; }
+
+    /// <summary>Http过滤器</summary>
+    public IHttpFilter Filter { get; set; }
 
         /// <summary>服务器源。正在使用的服务器</summary>
         public String Source { get; private set; }
@@ -424,9 +427,15 @@ namespace NewLife.Remoting
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
 
-            return client;
-        }
-        #endregion
+        //// 默认UserAgent
+        //client.SetUserAgent();
+
+        var userAgent = DefaultUserAgent;
+        if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
+        return client;
+    }
+    #endregion
 
         #region 内嵌
         /// <summary>服务项</summary>
