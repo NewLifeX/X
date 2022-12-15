@@ -285,8 +285,8 @@ namespace NewLife.Log
                 new HttpClient(handler) :
                 new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
 
-            // 默认UserAgent
-            client.SetUserAgent();
+            //// 默认UserAgent
+            //client.SetUserAgent();
 
             return client;
         }

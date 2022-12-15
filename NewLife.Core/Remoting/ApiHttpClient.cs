@@ -36,6 +36,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <summary>身份验证</summary>
     public AuthenticationHeaderValue Authentication { get; set; }
 
+    /// <summary>默认用户浏览器UserAgent。默认为空，可取值HttpHelper.DefaultUserAgent</summary>
+    public String DefaultUserAgent { get; set; }
+
     /// <summary>Http过滤器</summary>
     public IHttpFilter Filter { get; set; }
 
@@ -438,8 +441,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             Timeout = TimeSpan.FromMilliseconds(Timeout)
         };
 
-        // 默认UserAgent
-        client.SetUserAgent();
+        //// 默认UserAgent
+        //client.SetUserAgent();
+
+        var userAgent = DefaultUserAgent;
+        if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
 
         return client;
     }
