@@ -22,9 +22,12 @@ public class CompositeConfigProvider : IConfigProvider
             var ks = new List<String>();
             foreach (var cfg in Configs)
             {
-                foreach (var item in cfg.Keys)
+                if (cfg.Keys != null)
                 {
-                    if (!ks.Contains(item)) ks.Add(item);
+                    foreach (var item in cfg.Keys)
+                    {
+                        if (!ks.Contains(item)) ks.Add(item);
+                    }
                 }
             }
 

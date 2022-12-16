@@ -89,7 +89,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
     /// <summary>所有键</summary>
-    public virtual ICollection<String> Keys => Root.Childs.Select(e => e.Key).ToList();
+    public virtual ICollection<String> Keys => Root?.Childs?.Select(e => e.Key).ToList();
 
     /// <summary>已使用的键</summary>
     public ICollection<String> UsedKeys { get; } = new List<String>();
