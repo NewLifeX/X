@@ -740,8 +740,8 @@ public static class IOHelper
         for (Int32 i = 0, j = 0; i < count; i++, j += 2)
         {
             var b = data[offset + i];
-            cs[j] = GetHexValue(b / 0x10);
-            cs[j + 1] = GetHexValue(b % 0x10);
+            cs[j] = GetHexValue(b >> 4);
+            cs[j + 1] = GetHexValue(b & 0x0F);
         }
         return new String(cs);
     }
@@ -792,20 +792,29 @@ public static class IOHelper
             }
 
             var b = data[i];
-            sb.Append(GetHexValue(b / 0x10));
-            sb.Append(GetHexValue(b % 0x10));
+            sb.Append(GetHexValue(b >> 4));
+            sb.Append(GetHexValue(b & 0x0F));
         }
 
         return sb.Put(true);
     }
 
-    private static Char GetHexValue(Int32 i)
+    /// <summary>1个字节转为2个16进制字符</summary>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static String ToHex(this Byte b)
     {
-        if (i < 10)
-            return (Char)(i + 0x30);
-        else
-            return (Char)(i - 10 + 0x41);
+        //Convert.ToString(b, 16);
+        var cs = new Char[2];
+        var ch = b >> 4;
+        var cl = b & 0x0F;
+        cs[0] = (Char)(ch >= 0x0A ? ('A' + ch - 0x0A) : ('0' + ch));
+        cs[1] = (Char)(cl >= 0x0A ? ('A' + cl - 0x0A) : ('0' + cl));
+
+        return new String(cs);
     }
+
+    private static Char GetHexValue(Int32 i) => i < 10 ? (Char)(i + '0') : (Char)(i - 10 + 'A');
 
     /// <summary>解密</summary>
     /// <param name="data">Hex编码的字符串</param>
