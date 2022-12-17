@@ -704,18 +704,18 @@ namespace NewLife
                 count = data.Length - offset;
             if (count == 0) return "";
 
-            //return BitConverter.ToString(data).Replace("-", null);
-            // 上面的方法要替换-，效率太低
-            var cs = new Char[count * 2];
-            // 两个索引一起用，避免乘除带来的性能损耗
-            for (Int32 i = 0, j = 0; i < count; i++, j += 2)
-            {
-                var b = data[offset + i];
-                cs[j] = GetHexValue(b / 0x10);
-                cs[j + 1] = GetHexValue(b % 0x10);
-            }
-            return new String(cs);
+        //return BitConverter.ToString(data).Replace("-", null);
+        // 上面的方法要替换-，效率太低
+        var cs = new Char[count * 2];
+        // 两个索引一起用，避免乘除带来的性能损耗
+        for (Int32 i = 0, j = 0; i < count; i++, j += 2)
+        {
+            var b = data[offset + i];
+            cs[j] = GetHexValue(b >> 4);
+            cs[j + 1] = GetHexValue(b & 0x0F);
         }
+        return new String(cs);
+    }
 
         /// <summary>把字节数组编码为十六进制字符串，带有分隔符和分组功能</summary>
         /// <param name="data">字节数组</param>
@@ -762,30 +762,39 @@ namespace NewLife
                         sb.Append(separate);
                 }
 
-                var b = data[i];
-                sb.Append(GetHexValue(b / 0x10));
-                sb.Append(GetHexValue(b % 0x10));
-            }
+            var b = data[i];
+            sb.Append(GetHexValue(b >> 4));
+            sb.Append(GetHexValue(b & 0x0F));
+        }
 
             return sb.Put(true);
         }
 
-        private static Char GetHexValue(Int32 i)
-        {
-            if (i < 10)
-                return (Char)(i + 0x30);
-            else
-                return (Char)(i - 10 + 0x41);
-        }
+    /// <summary>1个字节转为2个16进制字符</summary>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static String ToHex(this Byte b)
+    {
+        //Convert.ToString(b, 16);
+        var cs = new Char[2];
+        var ch = b >> 4;
+        var cl = b & 0x0F;
+        cs[0] = (Char)(ch >= 0x0A ? ('A' + ch - 0x0A) : ('0' + ch));
+        cs[1] = (Char)(cl >= 0x0A ? ('A' + cl - 0x0A) : ('0' + cl));
 
-        /// <summary>解密</summary>
-        /// <param name="data">Hex编码的字符串</param>
-        /// <param name="startIndex">起始位置</param>
-        /// <param name="length">长度</param>
-        /// <returns></returns>
-        public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
-        {
-            if (String.IsNullOrEmpty(data)) return new Byte[0];
+        return new String(cs);
+    }
+
+    private static Char GetHexValue(Int32 i) => i < 10 ? (Char)(i + '0') : (Char)(i - 10 + 'A');
+
+    /// <summary>解密</summary>
+    /// <param name="data">Hex编码的字符串</param>
+    /// <param name="startIndex">起始位置</param>
+    /// <param name="length">长度</param>
+    /// <returns></returns>
+    public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
+    {
+        if (String.IsNullOrEmpty(data)) return new Byte[0];
 
             // 过滤特殊字符
             data = data.Trim()
