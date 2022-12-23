@@ -106,6 +106,9 @@ public class NetSession : DisposeBase, INetSession, IExtend3
         //Server = null;
         //Session = null;
     }
+
+    /// <summary>主动关闭跟客户端的网络连接</summary>
+    public void Close() => Dispose();
     #endregion
 
     #region 业务核心
