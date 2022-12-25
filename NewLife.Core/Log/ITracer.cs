@@ -310,7 +310,7 @@ namespace NewLife.Log
             }
 
             var p1 = url.IndexOf('?');
-            var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
+            var span = tracer.NewSpan(p1 < 0 ? url : url.Substring(0, p1));
             var tag = $"{method} {uri}";
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
@@ -319,7 +319,7 @@ namespace NewLife.Log
                 {
                     // 既然都读出来了，不管多长，都要前面1024字符
                     var str = request.Content.ReadAsStringAsync().Result;
-                    if (!str.IsNullOrEmpty()) tag += Environment.NewLine + (str.Length > 1024 ? str[..1024] : str);
+                    if (!str.IsNullOrEmpty()) tag += Environment.NewLine + (str.Length > 1024 ? str.Substring(0, 1024) : str);
                 }
 
                 if (tag.Length < 500)
