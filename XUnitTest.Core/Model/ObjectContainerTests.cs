@@ -210,7 +210,7 @@ namespace XUnitTest.Model
         {
             var ioc = new ObjectContainer();
 
-            var config = new ConfigProvider();
+            var config = new JsonConfigProvider { FileName = "cfgIoCTest.json" };
             config["orderService"] = "3*http://127.0.0.1:1234,5*http://10.0.0.1:1234";
             ioc.AddSingleton<IConfigProvider>(config);
             ioc.AddSingleton<IApiClient>(provider => new ApiHttpClient(provider, "orderService"));

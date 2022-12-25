@@ -87,7 +87,7 @@ namespace XUnitTest.Configuration
         [Fact]
         public void TestBind()
         {
-            var config = new ConfigProvider();
+            var config = new JsonConfigProvider { FileName = "cfgTest.json" };
             config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
 
             var rds = new Redis();

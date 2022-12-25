@@ -558,7 +558,7 @@ namespace XUnitTest.Caching
         {
             var ioc = new ObjectContainer();
 
-            var config = new ConfigProvider();
+            var config = new JsonConfigProvider { FileName = "cfgRedisTest.json" };
             config["orderRedis"] = "server=127.0.0.1:6379;password=pass;db=7";
             ioc.AddSingleton<IConfigProvider>(config);
             ioc.AddSingleton(provider => new Redis(provider, "orderRedis"));

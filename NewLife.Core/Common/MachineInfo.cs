@@ -42,8 +42,8 @@ public class MachineInfo
     [DisplayName("处理器型号")]
     public String Processor { get; set; }
 
-    /// <summary>处理器序列号</summary>
-    public String CpuID { get; set; }
+    ///// <summary>处理器序列号</summary>
+    //public String CpuID { get; set; }
 
     /// <summary>硬件唯一标识。取主板编码，部分品牌存在重复</summary>
     [DisplayName("硬件唯一标识")]
@@ -235,7 +235,7 @@ public class MachineInfo
             }
 
             Processor = GetInfo("Win32_Processor", "Name");
-            CpuID = GetInfo("Win32_Processor", "ProcessorId");
+            //CpuID = GetInfo("Win32_Processor", "ProcessorId");
             var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
             Product = GetInfo("Win32_ComputerSystemProduct", "Name");
             DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
@@ -351,7 +351,7 @@ public class MachineInfo
                 Processor = str;
 
             if (dic.TryGetValue("Model", out str)) Product = str;
-            if (dic.TryGetValue("Serial", out str)) CpuID = str;
+            //if (dic.TryGetValue("Serial", out str)) CpuID = str;
         }
 
         var mid = "/etc/machine-id";
