@@ -506,7 +506,8 @@ namespace NewLife
                     var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
                     if (temp != null && temp.Count > 0)
                     {
-                        if (temp.TryGetValue("CurrentTemperature", out var str)) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                        if (temp.TryGetValue("CurrentTemperature", out var str) && !str.IsNullOrEmpty())
+                            Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
                     }
                     else
                         _excludes.Add(nameof(Temperature));
@@ -517,7 +518,8 @@ namespace NewLife
                     var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
                     if (battery != null && battery.Count > 0)
                     {
-                        if (battery.TryGetValue("EstimatedChargeRemaining", out var str)) Battery = str.SplitAsInt().Average() / 100.0;
+                        if (battery.TryGetValue("EstimatedChargeRemaining", out var str) && !str.IsNullOrEmpty())
+                            Battery = str.SplitAsInt().Average() / 100.0;
                     }
                     else
                         _excludes.Add(nameof(Battery));
