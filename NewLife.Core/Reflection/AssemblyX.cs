@@ -754,7 +754,7 @@ public class AssemblyX
         // 指定年月日的版本格式 1.0.yyyy.mmdd-betaHHMM
         if (d <= y && d >= y - 10)
         {
-            var dt = new DateTime(y, 1, 1);
+            var dt = new DateTime(d, 1, 1);
             if (s > 0)
             {
                 if (s >= 200) dt = dt.AddMonths(s / 100 - 1);
