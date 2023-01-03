@@ -338,7 +338,7 @@ namespace Test
             //fs.Seek(count2, SeekOrigin.End);
             fs.Position = fs.Length - count2;
 
-            var buf = fs.ReadBytes();
+            var buf = fs.ReadBytes(-1);
             File.WriteAllBytes($"{DateTime.Now:yyyyMMddHHmmss}.log".GetFullPath(), buf);
         }
 

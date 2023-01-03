@@ -225,10 +225,10 @@ public static class IOHelper
 
     /// <summary>复制数组</summary>
     /// <param name="src">源数组</param>
-    /// <param name="offset">起始位置</param>
-    /// <param name="count">复制字节数</param>
+    /// <param name="offset">起始位置。一般从0开始</param>
+    /// <param name="count">复制字节数。用-1表示截取剩余所有数据</param>
     /// <returns>返回复制的总字节数</returns>
-    public static Byte[] ReadBytes(this Byte[] src, Int32 offset = 0, Int32 count = -1)
+    public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
     {
         if (count == 0) return Array.Empty<Byte>();
 
@@ -265,9 +265,9 @@ public static class IOHelper
     /// 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
     /// </remarks>
     /// <param name="stream">数据流</param>
-    /// <param name="length">长度，0表示读到结束</param>
+    /// <param name="length">长度，-1表示读到结束</param>
     /// <returns></returns>
-    public static Byte[] ReadBytes(this Stream stream, Int64 length = -1)
+    public static Byte[] ReadBytes(this Stream stream, Int64 length)
     {
         if (stream == null) return null;
         if (length == 0) return Array.Empty<Byte>();
@@ -317,9 +317,9 @@ public static class IOHelper
     public static String ToStr(this Stream stream, Encoding encoding = null)
     {
         if (stream == null) return null;
-        if (encoding == null) encoding = Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
 
-        var buf = stream.ReadBytes();
+        var buf = stream.ReadBytes(-1);
         if (buf == null || buf.Length <= 0) return null;
 
         // 可能数据流前面有编码字节序列，需要先去掉

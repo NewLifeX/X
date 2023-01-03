@@ -124,7 +124,7 @@ namespace NewLife.Http
             else if (result is Stream stream)
             {
                 if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-                Body = stream.ReadBytes();
+                Body = stream.ReadBytes(-1);
             }
             else if (result is String str)
             {

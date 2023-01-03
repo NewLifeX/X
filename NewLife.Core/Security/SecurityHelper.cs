@@ -213,7 +213,7 @@ namespace NewLife
             }
 
             using var stream = new CryptoStream(new MemoryStream(data), sa.CreateDecryptor(), CryptoStreamMode.Read);
-            return stream.ReadBytes();
+            return stream.ReadBytes(-1);
         }
 
         private static Byte[] Pad(Byte[] buf, KeySizes keySize)
