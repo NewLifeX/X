@@ -300,7 +300,7 @@ namespace NewLife.Caching
                         throw new Exception(str);
                     else
                     {
-                        XTrace.WriteLine("无法解析响应[{0:X2}] {1}", (Byte)header, ms.ReadBytes().ToHex("-"));
+                        XTrace.WriteLine("无法解析响应[{0:X2}] {1}", (Byte)header, ms.ReadBytes(-1).ToHex("-"));
                         throw new InvalidDataException($"无法解析响应 [{header}]");
                     }
                 }
@@ -409,7 +409,7 @@ namespace NewLife.Caching
                         throw new Exception(str);
                     else
                     {
-                        XTrace.WriteLine("无法解析响应[{0:X2}] {1}", (Byte)header, ms.ReadBytes().ToHex("-"));
+                        XTrace.WriteLine("无法解析响应[{0:X2}] {1}", (Byte)header, ms.ReadBytes(-1).ToHex("-"));
                         throw new InvalidDataException($"无法解析响应 [{header}]");
                     }
                 }

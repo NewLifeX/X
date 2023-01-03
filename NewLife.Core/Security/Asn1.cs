@@ -128,7 +128,7 @@ namespace NewLife.Security
                     asn.Value = buf;
                     break;
                 case Asn1Tags.BitString:
-                    if (buf.Length > 0 && buf[0] == 0) buf = buf.ReadBytes(1);
+                    if (buf.Length > 0 && buf[0] == 0) buf = buf.ReadBytes(1, buf.Length - 1);
                     asn.Value = buf;
                     break;
                 case Asn1Tags.OctetString:
@@ -197,7 +197,7 @@ namespace NewLife.Security
         public Byte[] GetByteArray(Boolean trimZero = false)
         {
             var buf = Value as Byte[];
-            if (buf != null && trimZero && buf[0] == 0) buf = buf.ReadBytes(1);
+            if (buf != null && trimZero && buf[0] == 0) buf = buf.ReadBytes(1, buf.Length - 1);
 
             return buf;
         }

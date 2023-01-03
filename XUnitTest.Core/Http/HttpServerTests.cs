@@ -67,7 +67,7 @@ namespace XUnitTest.Http
             var rs = await client.GetStreamAsync("/logos/leaf.png");
 
             Assert.NotNull(rs);
-            Assert.Equal(93917, rs.ReadBytes().Length);
+            Assert.Equal(93917, rs.ReadBytes(-1).Length);
         }
 
         [Fact]
@@ -213,7 +213,7 @@ Content-Type: image/jpeg
             Assert.Equal("logo.png", av.FileName);
             Assert.Equal("image/jpeg", av.ContentType);
 
-            var png2 = av.OpenReadStream().ReadBytes();
+            var png2 = av.OpenReadStream().ReadBytes(-1);
             Assert.Equal(png.Length, png2.Length);
             Assert.True(png.SequenceEqual(png2));
         }
