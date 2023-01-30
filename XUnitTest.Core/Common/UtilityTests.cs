@@ -53,6 +53,18 @@ public class UtilityTests
     }
 
     [Fact]
+    public void NanTest()
+    {
+        var num = Double.NaN;
+   
+        var dc = num.ToDecimal(123);
+        Assert.Equal(123, dc);
+   
+        var dd = num.ToDouble(456);
+        Assert.Equal(456, dd);
+    }
+
+    [Fact]
     public void StringValuesConvert()
     {
         var svs = new StringValues(new[] { "123", "456" });

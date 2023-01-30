@@ -173,6 +173,7 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Int32 ToInt(Object value, Int32 defaultValue)
     {
+        if (value is Int32 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
@@ -181,10 +182,7 @@ public class DefaultConvert
             // 拷贝而来的逗号分隔整数
             str = str.Replace(",", null);
             str = ToDBC(str).Trim();
-            if (str.IsNullOrEmpty()) return defaultValue;
-
-            if (Int32.TryParse(str, out var n)) return n;
-            return defaultValue;
+            return str.IsNullOrEmpty() ? defaultValue : Int32.TryParse(str, out var n) ? n : defaultValue;
         }
         else if (value is IList<String> list)
         {
@@ -202,9 +200,7 @@ public class DefaultConvert
             //return (Int32)(dt.ToUniversalTime() - _dt1970).TotalSeconds;
             // 保存时间日期由Int32改为UInt32，原截止2038年的范围扩大到2106年
             var n = (dt - _dt1970).TotalSeconds;
-            if (n >= Int32.MaxValue) throw new InvalidDataException("时间过大，数值超过Int32.MaxValue");
-
-            return (Int32)n;
+            return n >= Int32.MaxValue ? throw new InvalidDataException("时间过大，数值超过Int32.MaxValue") : (Int32)n;
         }
         if (value is DateTimeOffset dto)
         {
@@ -212,9 +208,7 @@ public class DefaultConvert
 
             //return (Int32)(dto - _dto1970).TotalSeconds;
             var n = (dto - _dto1970).TotalSeconds;
-            if (n >= Int32.MaxValue) throw new InvalidDataException("时间过大，数值超过Int32.MaxValue");
-
-            return (Int32)n;
+            return n >= Int32.MaxValue ? throw new InvalidDataException("时间过大，数值超过Int32.MaxValue") : (Int32)n;
         }
 
         if (value is Byte[] buf)
@@ -249,6 +243,7 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Int64 ToLong(Object value, Int64 defaultValue)
     {
+        if (value is Int64 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
@@ -257,10 +252,7 @@ public class DefaultConvert
             // 拷贝而来的逗号分隔整数
             str = str.Replace(",", null);
             str = ToDBC(str).Trim();
-            if (str.IsNullOrEmpty()) return defaultValue;
-
-            if (Int64.TryParse(str, out var n)) return n;
-            return defaultValue;
+            return str.IsNullOrEmpty() ? defaultValue : Int64.TryParse(str, out var n) ? n : defaultValue;
         }
         else if (value is IList<String> list)
         {
@@ -279,9 +271,7 @@ public class DefaultConvert
         }
         if (value is DateTimeOffset dto)
         {
-            if (dto == DateTimeOffset.MinValue) return 0;
-
-            return (Int64)(dto - _dto1970).TotalMilliseconds;
+            return dto == DateTimeOffset.MinValue ? 0 : (Int64)(dto - _dto1970).TotalMilliseconds;
         }
 
         if (value is Byte[] buf)
@@ -319,16 +309,14 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Double ToDouble(Object value, Double defaultValue)
     {
+        if (value is Double num) return Double.IsNaN(num) ? defaultValue : num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
             str = ToDBC(str).Trim();
-            if (str.IsNullOrEmpty()) return defaultValue;
-
-            if (Double.TryParse(str, out var n)) return n;
-            return defaultValue;
+            return str.IsNullOrEmpty() ? defaultValue : Double.TryParse(str, out var n) ? n : defaultValue;
         }
         else if (value is IList<String> list)
         {
@@ -352,16 +340,14 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Decimal ToDecimal(Object value, Decimal defaultValue)
     {
+        if (value is Decimal num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
             str = ToDBC(str).Trim();
-            if (str.IsNullOrEmpty()) return defaultValue;
-
-            if (Decimal.TryParse(str, out var n)) return n;
-            return defaultValue;
+            return str.IsNullOrEmpty() ? defaultValue : Decimal.TryParse(str, out var n) ? n : defaultValue;
         }
         else if (value is IList<String> list)
         {
@@ -395,6 +381,11 @@ public class DefaultConvert
             }
         }
 
+        if (value is Double d)
+        {
+            return Double.IsNaN(d) ? defaultValue : (Decimal)d;
+        }
+
         try
         {
             return Convert.ToDecimal(value);
@@ -408,6 +399,7 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Boolean ToBoolean(Object value, Boolean defaultValue)
     {
+        if (value is Boolean num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
@@ -424,9 +416,7 @@ public class DefaultConvert
 
             // 特殊处理用数字0和1表示布尔型
             str = ToDBC(str);
-            if (Int32.TryParse(str, out var n)) return n > 0;
-
-            return defaultValue;
+            return Int32.TryParse(str, out var n) ? n > 0 : defaultValue;
         }
         else if (value is IList<String> list)
         {
@@ -447,11 +437,12 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual DateTime ToDateTime(Object value, DateTime defaultValue)
     {
+        if (value is DateTime num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str ||
-            value is IList<String> list && list.Count > 0 && (str = list[0]) != null)
+            (value is IList<String> list && list.Count > 0 && (str = list[0]) != null))
         {
             //str = ToDBC(str).Trim();
             str = str.Trim();
@@ -484,18 +475,13 @@ public class DefaultConvert
         // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
         if (value is Int32 k)
         {
-            if (k >= _maxSeconds || k <= -_maxSeconds) return defaultValue;
-
-            return _dt1970.AddSeconds(k);
+            return k >= _maxSeconds || k <= -_maxSeconds ? defaultValue : _dt1970.AddSeconds(k);
         }
         if (value is Int64 m)
         {
-            if (m >= _maxMilliseconds || m <= -_maxMilliseconds) return defaultValue;
-
-            if (m > 100 * 365 * 24 * 3600L)
-                return _dt1970.AddMilliseconds(m);
-            else
-                return _dt1970.AddSeconds(m);
+            return m >= _maxMilliseconds || m <= -_maxMilliseconds
+                ? defaultValue
+                : m > 100 * 365 * 24 * 3600L ? _dt1970.AddMilliseconds(m) : _dt1970.AddSeconds(m);
         }
 
         try
@@ -514,39 +500,36 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual DateTimeOffset ToDateTimeOffset(Object value, DateTimeOffset defaultValue)
     {
+        if (value is DateTimeOffset num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str ||
-            value is IList<String> list && list.Count > 0 && (str = list[0]) != null)
+            (value is IList<String> list && list.Count > 0 && (str = list[0]) != null))
         {
             str = str.Trim();
             if (str.IsNullOrEmpty()) return defaultValue;
 
             if (DateTimeOffset.TryParse(str, out var dt)) return dt;
-            if (str.Contains('-') && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
-            if (str.Contains('/') && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)) return dt;
-            if (DateTimeOffset.TryParseExact(str, "yyyyMMddHHmmss", null, DateTimeStyles.None, out dt)) return dt;
-            if (DateTimeOffset.TryParseExact(str, "yyyyMMdd", null, DateTimeStyles.None, out dt)) return dt;
-
-            return defaultValue;
+            return str.Contains('-') && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)
+                ? dt
+                : str.Contains('/') && DateTimeOffset.TryParseExact(str, "yyyy/M/d", null, DateTimeStyles.None, out dt)
+                ? dt
+                : DateTimeOffset.TryParseExact(str, "yyyyMMddHHmmss", null, DateTimeStyles.None, out dt)
+                ? dt
+                : DateTimeOffset.TryParseExact(str, "yyyyMMdd", null, DateTimeStyles.None, out dt) ? dt : defaultValue;
         }
 
         // 特殊处理整数，Unix秒，绝对时间差，不考虑UTC时间和本地时间。
         if (value is Int32 k)
         {
-            if (k >= _maxSeconds || k <= -_maxSeconds) return defaultValue;
-
-            return _dto1970.AddSeconds(k);
+            return k >= _maxSeconds || k <= -_maxSeconds ? defaultValue : _dto1970.AddSeconds(k);
         }
         if (value is Int64 m)
         {
-            if (m >= _maxMilliseconds || m <= -_maxMilliseconds) return defaultValue;
-
-            if (m > 100 * 365 * 24 * 3600L)
-                return _dto1970.AddMilliseconds(m);
-            else
-                return _dto1970.AddSeconds(m);
+            return m >= _maxMilliseconds || m <= -_maxMilliseconds
+                ? defaultValue
+                : m > 100 * 365 * 24 * 3600L ? _dto1970.AddMilliseconds(m) : _dto1970.AddSeconds(m);
         }
 
         try
@@ -571,7 +554,7 @@ public class DefaultConvert
             // 全角空格
             if (ch[i] == 0x3000)
                 ch[i] = (Char)0x20;
-            else if (ch[i] > 0xFF00 && ch[i] < 0xFF5F)
+            else if (ch[i] is > (Char)0xFF00 and < (Char)0xFF5F)
                 ch[i] = (Char)(ch[i] - 0xFEE0);
         }
         return new String(ch);
@@ -668,7 +651,7 @@ public class DefaultConvert
             k++;
             m = value.Millisecond;
             cs[k++] = (Char)('0' + (m / 100));
-            cs[k++] = (Char)('0' + ((m % 100) / 10));
+            cs[k++] = (Char)('0' + (m % 100 / 10));
             cs[k++] = (Char)('0' + (m % 10));
         }
 
@@ -735,7 +718,7 @@ public class DefaultConvert
         {
             m = value.Millisecond;
             cs[k++] = (Char)('0' + (m / 100));
-            cs[k++] = (Char)('0' + ((m % 100) / 10));
+            cs[k++] = (Char)('0' + (m % 100 / 10));
             cs[k++] = (Char)('0' + (m % 10));
             k++;
         }
@@ -765,9 +748,7 @@ public class DefaultConvert
 
         //return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
 
-        if (format.IsNullOrEmpty() || format == "yyyy-MM-dd HH:mm:ss") return ToFullString(value, false, emptyValue);
-
-        return value.ToString(format);
+        return format.IsNullOrEmpty() || format == "yyyy-MM-dd HH:mm:ss" ? ToFullString(value, false, emptyValue) : value.ToString(format);
     }
 
     /// <summary>获取内部真实异常</summary>
@@ -775,18 +756,13 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Exception GetTrue(Exception ex)
     {
-        if (ex == null) return null;
-
-        if (ex is AggregateException)
-            return GetTrue((ex as AggregateException).Flatten().InnerException);
-
-        if (ex is TargetInvocationException)
-            return GetTrue((ex as TargetInvocationException).InnerException);
-
-        if (ex is TypeInitializationException)
-            return GetTrue((ex as TypeInitializationException).InnerException);
-
-        return ex.GetBaseException() ?? ex;
+        return ex == null
+            ? null
+            : ex is AggregateException
+            ? GetTrue((ex as AggregateException).Flatten().InnerException)
+            : ex is TargetInvocationException
+            ? GetTrue((ex as TargetInvocationException).InnerException)
+            : ex is TypeInitializationException ? GetTrue((ex as TypeInitializationException).InnerException) : ex.GetBaseException() ?? ex;
     }
 
     /// <summary>获取异常消息</summary>
