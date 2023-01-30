@@ -51,6 +51,18 @@ public class UtilityTests
         Assert.Equal(dt4.Trim("ms"), dt4.ToLong().ToDateTimeOffset());
     }
 
+    [Fact]
+    public void NanTest()
+    {
+        var num = Double.NaN;
+   
+        var dc = num.ToDecimal(123);
+        Assert.Equal(123, dc);
+   
+        var dd = num.ToDouble(456);
+        Assert.Equal(456, dd);
+    }
+
     //[Fact]
     //public void StringValuesConvert()
     //{
