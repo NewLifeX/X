@@ -296,29 +296,29 @@ namespace NewLife.Http
                 if (type.EqualIgnoreCase("application/json", "application/xml")) request.Headers.Accept.ParseAdd(type);
             }
 
-        // 开始跟踪，注入TraceId
-        using var span = Tracer?.NewSpan(request);
-        //if (span != null) span.SetTag(content.ReadAsStringAsync().Result);
-        var filter = Filter;
-        try
-        {
-            if (filter != null) await filter.OnRequest(client, request, null);
+            // 开始跟踪，注入TraceId
+            using var span = Tracer?.NewSpan(request);
+            //if (span != null) span.SetTag(content.ReadAsStringAsync().Result);
+            var filter = Filter;
+            try
+            {
+                if (filter != null) await filter.OnRequest(client, request, null);
 
                 var response = await client.SendAsync(request);
 
                 if (filter != null) await filter.OnResponse(client, response, request);
 
-            var result = await response.Content.ReadAsStringAsync();
+                var result = await response.Content.ReadAsStringAsync();
 
-            // 增加埋点数据
-            span?.AppendTag(result);
+                // 增加埋点数据
+                span?.AppendTag(result);
 
-            return result;
-        }
-        catch (Exception ex)
-        {
-            // 跟踪异常
-            span?.SetError(ex, null);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // 跟踪异常
+                span?.SetError(ex, null);
 
                 if (filter != null) await filter.OnError(client, ex, request);
 
@@ -376,7 +376,7 @@ namespace NewLife.Http
             {
                 while (!token.IsCancellationRequested && socket.Connected)
                 {
-                    var msg = await queue.TakeOneAsync(30_000);
+                    var msg = await queue.TakeOneAsync(30_000, token);
                     if (msg != null)
                     {
                         socket.Send(msg.GetBytes(), WebSocketMessageType.Text);
@@ -419,7 +419,7 @@ namespace NewLife.Http
             {
                 while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
                 {
-                    var msg = await queue.TakeOneAsync(30_000);
+                    var msg = await queue.TakeOneAsync(30_000, token);
                     if (msg != null)
                     {
                         await socket.SendAsync(new ArraySegment<Byte>(msg.GetBytes()), System.Net.WebSockets.WebSocketMessageType.Text, true, token);

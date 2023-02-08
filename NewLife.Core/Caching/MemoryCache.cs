@@ -875,6 +875,21 @@ namespace NewLife.Caching
             var rs = _collection.TryTake(out var item) ? item : default;
             return TaskEx.FromResult(rs);
         }
+
+        /// <summary>消费获取，同步阻塞</summary>
+        /// <param name="timeout">超时。默认0秒，永久等待</param>
+        /// <param name="cancellationToken">取消通知</param>
+        /// <returns></returns>
+        public Task<T> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
+        {
+            if (!_occupiedNodes.Wait(0))
+            {
+                if (timeout <= 0 || !_occupiedNodes.Wait(timeout * 1000, cancellationToken)) return default;
+            }
+
+            var rs = _collection.TryTake(out var item) ? item : default;
+            return TaskEx.FromResult(rs);
+        }
 #else
         /// <summary>消费获取，异步阻塞</summary>
         /// <param name="timeout">超时。默认0秒，永久等待</param>

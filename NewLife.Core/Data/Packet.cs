@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using NewLife.Collections;
 
 namespace NewLife.Data;
@@ -38,13 +39,13 @@ public class Packet
     /// <param name="seg"></param>
     public Packet(ArraySegment<Byte> seg) => Set(seg.Array, seg.Offset, seg.Count);
 
-        /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
-        /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
-        /// <param name="stream"></param>
-        public Packet(Stream stream)
+    /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
+    /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
+    /// <param name="stream"></param>
+    public Packet(Stream stream)
+    {
+        if (stream is MemoryStream ms)
         {
-            if (stream is MemoryStream ms)
-            {
 #if NET46_OR_GREATER || NETSTANDARD || NETCOREAPP
                 // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
                 if (ms.TryGetBuffer(out var seg))
@@ -53,8 +54,8 @@ public class Packet
                     return;
                 }
 #endif
-                // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
-                // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
+            // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
+            // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
 
             //try
             //{
@@ -338,11 +339,11 @@ public class Packet
         return list;
     }
 
-        /// <summary>获取封包的数据流形式</summary>
-        /// <returns></returns>
-        public virtual MemoryStream GetStream()
-        {
-            if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
+    /// <summary>获取封包的数据流形式</summary>
+    /// <returns></returns>
+    public virtual MemoryStream GetStream()
+    {
+        if (Next == null) return new MemoryStream(Data, Offset, Count, false, true);
 
         var ms = new MemoryStream();
         CopyTo(ms);
@@ -382,6 +383,20 @@ public class Packet
     {
         await stream.WriteAsync(Data, Offset, Count);
         if (Next != null) await Next.CopyToAsync(stream);
+    }
+
+    /// <summary>异步复制到目标数据流</summary>
+    /// <param name="stream"></param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public async Task CopyToAsync(Stream stream, CancellationToken cancellationToken)
+    {
+#if NET40
+        await stream.WriteAsync(Data, Offset, Count);
+#else
+        await stream.WriteAsync(Data, Offset, Count, cancellationToken);
+#endif
+        if (Next != null) await Next.CopyToAsync(stream, cancellationToken);
     }
 
     /// <summary>深度克隆一份数据包，拷贝数据区</summary>
