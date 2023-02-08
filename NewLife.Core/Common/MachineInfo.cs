@@ -98,7 +98,7 @@ public class MachineInfo
     /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
     public static MachineInfo Current { get; set; }
 
-    static MachineInfo() => RegisterAsync().Wait(100);
+    //static MachineInfo() => RegisterAsync().Wait(100);
 
     private static Task<MachineInfo> _task;
     /// <summary>异步注册一个初始化后的机器信息实例</summary>
