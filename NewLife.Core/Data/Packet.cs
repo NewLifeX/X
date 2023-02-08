@@ -402,6 +402,16 @@ public class Packet
         if (Next != null) await Next.CopyToAsync(stream);
     }
 
+    /// <summary>异步复制到目标数据流</summary>
+    /// <param name="stream"></param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public async Task CopyToAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        await stream.WriteAsync(Data, Offset, Count, cancellationToken);
+        if (Next != null) await Next.CopyToAsync(stream, cancellationToken);
+    }
+
     /// <summary>深度克隆一份数据包，拷贝数据区</summary>
     /// <returns></returns>
     public Packet Clone()

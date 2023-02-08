@@ -43,7 +43,7 @@ namespace XUnitTest.Caching
                 q.Add("delay");
             });
 
-            var s2 = await q.TakeOneAsync(1500);
+            var s2 = await q.TakeOneAsync(1500, default);
             XTrace.WriteLine("end TokeOneAsync");
             Assert.Equal("delay", s2);
         }

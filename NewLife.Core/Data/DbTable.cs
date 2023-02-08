@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Data;
 using System.Data.Common;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.IO;
@@ -76,7 +71,7 @@ namespace NewLife.Data
             var cs = Columns;
             var ts = Types;
 
-            if (fields == null) fields = Enumerable.Range(0, cs.Length).ToArray();
+            fields ??= Enumerable.Range(0, cs.Length).ToArray();
 
             // 数据
             var rs = new List<Object[]>();
@@ -104,26 +99,28 @@ namespace NewLife.Data
 
         /// <summary>读取数据</summary>
         /// <param name="dr"></param>
-        public async Task ReadAsync(DbDataReader dr)
+        /// <param name="cancellationToken">取消通知</param>
+        public async Task ReadAsync(DbDataReader dr, CancellationToken cancellationToken = default)
         {
             ReadHeader(dr);
-            await ReadDataAsync(dr);
+            await ReadDataAsync(dr, null, cancellationToken);
         }
 
         /// <summary>读取数据</summary>
         /// <param name="dr">数据读取器</param>
         /// <param name="fields">要读取的字段序列</param>
-        public async Task ReadDataAsync(DbDataReader dr, Int32[] fields = null)
+        /// <param name="cancellationToken">取消通知</param>
+        public async Task ReadDataAsync(DbDataReader dr, Int32[] fields = null, CancellationToken cancellationToken = default)
         {
             // 字段
             var cs = Columns;
             var ts = Types;
 
-            if (fields == null) fields = Enumerable.Range(0, cs.Length).ToArray();
+            fields ??= Enumerable.Range(0, cs.Length).ToArray();
 
             // 数据
             var rs = new List<Object[]>();
-            while (await dr.ReadAsync().ConfigureAwait(false))
+            while (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var row = new Object[fields.Length];
                 for (var i = 0; i < fields.Length; i++)
@@ -607,12 +604,7 @@ namespace NewLife.Data
         /// <param name="row"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public T Get<T>(Int32 row, String name)
-        {
-            if (!TryGet<T>(row, name, out var value)) return default;
-
-            return value;
-        }
+        public T Get<T>(Int32 row, String name) => !TryGet<T>(row, name, out var value) ? default : value;
 
         /// <summary>尝试读取指定行的字段值</summary>
         /// <typeparam name="T"></typeparam>

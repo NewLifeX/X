@@ -388,7 +388,7 @@ public static class HttpHelper
         {
             while (!token.IsCancellationRequested && socket.Connected)
             {
-                var msg = await queue.TakeOneAsync(30_000);
+                var msg = await queue.TakeOneAsync(30_000, token);
                 if (msg != null)
                 {
                     socket.Send(msg.GetBytes(), WebSocketMessageType.Text);
@@ -431,7 +431,7 @@ public static class HttpHelper
         {
             while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
             {
-                var msg = await queue.TakeOneAsync(30_000);
+                var msg = await queue.TakeOneAsync(30_000, token);
                 if (msg != null)
                 {
                     await socket.SendAsync(new ArraySegment<Byte>(msg.GetBytes()), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
