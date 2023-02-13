@@ -274,7 +274,7 @@ public class Binary : FormatterBase, IBinary
                         if (att.ReferenceName.IsNullOrEmpty())
                         {
                             size = att.Size;
-                            return true;
+                            if (size > 0) return true;
                         }
 
                         // 如果指定了引用字段，则找引用字段所表示的长度
