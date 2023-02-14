@@ -88,7 +88,7 @@ namespace NewLife
         public static String[] Split(this String? value, params String[] separators)
         {
             //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
-            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<String>();
+            if (value == null || String.IsNullOrEmpty(value)) return new String[0];
             if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -101,7 +101,7 @@ namespace NewLife
         /// <returns></returns>
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
-            if (value == null || String.IsNullOrEmpty(value)) return Array.Empty<Int32>();
+            if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
             if (separators == null || separators.Length <= 0) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -285,7 +285,7 @@ namespace NewLife
         public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
         {
             //if (value == null) return null;
-            if (String.IsNullOrEmpty(value)) return Array.Empty<Byte>();
+            if (String.IsNullOrEmpty(value)) return new Byte[0];
 
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetBytes(value);
@@ -575,7 +575,7 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LevenshteinSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key)) return Array.Empty<String>();
+            if (IsNullOrWhiteSpace(key)) return new String[0];
 
             var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -646,12 +646,12 @@ namespace NewLife
         /// <returns></returns>
         public static String[] LCSSearch(String key, String[] words)
         {
-            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return Array.Empty<String>();
+            if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
 
             var keys = key
-                                .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
-                                .OrderBy(s => s.Length)
-                                .ToArray();
+                .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(s => s.Length)
+                .ToArray();
 
             //var q = from sentence in items.AsParallel()
             var q = from word in words

@@ -126,7 +126,7 @@ namespace NewLife.Net
         {
             // 空数据直接发出
             var remain = stream.Length - stream.Position;
-            if (remain == 0) return session.Send(Array.Empty<Byte>());
+            if (remain == 0) return session.Send(new Byte[0]);
 
             var rs = 0;
             var buffer = new Byte[8192];
@@ -152,7 +152,7 @@ namespace NewLife.Net
         /// <returns>返回自身，用于链式写法</returns>
         public static Int32 Send(this ISocketRemote session, String msg, Encoding encoding = null)
         {
-            if (String.IsNullOrEmpty(msg)) return session.Send(Array.Empty<Byte>());
+            if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
 
             if (encoding == null) encoding = Encoding.UTF8;
             return session.Send(encoding.GetBytes(msg));

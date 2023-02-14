@@ -44,7 +44,7 @@ namespace System.Collections.Generic
             lock (collection)
             {
                 var count = collection.Count;
-                if (count == 0) return Array.Empty<T>();
+                if (count == 0) return new T[0];
 
                 var arr = new T[count];
                 collection.CopyTo(arr, 0);
@@ -65,7 +65,7 @@ namespace System.Collections.Generic
 
             if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Keys as IList<TKey>;
 
-            if (collection.Count == 0) return Array.Empty<TKey>();
+            if (collection.Count == 0) return new TKey[0];
             lock (collection)
             {
                 var arr = new TKey[collection.Count - index];
@@ -86,7 +86,7 @@ namespace System.Collections.Generic
 
             if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
 
-            if (collection.Count == 0) return Array.Empty<TValue>();
+            if (collection.Count == 0) return new TValue[0];
             lock (collection)
             {
                 var arr = new TValue[collection.Count - index];

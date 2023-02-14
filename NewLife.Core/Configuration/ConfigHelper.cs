@@ -160,7 +160,7 @@ public static class ConfigHelper
                 if (val == null)
                 {
                     // 如果有无参构造函数，则实例化一个
-                    var ctor = pi.PropertyType.GetConstructor(Array.Empty<Type>());
+                    var ctor = pi.PropertyType.GetConstructor(new Type[0]);
                     if (ctor != null)
                     {
                         val = ctor.Invoke(null);

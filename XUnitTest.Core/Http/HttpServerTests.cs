@@ -23,14 +23,14 @@ namespace XUnitTest.Http
         {
             var server = new HttpServer
             {
-                Port = 8080,
+                Port = 18080,
                 Log = XTrace.Log,
                 SessionLog = XTrace.Log
             };
             server.Start();
 
             _server = server;
-            _baseUri = new Uri("http://127.0.0.1:8080");
+            _baseUri = new Uri("http://127.0.0.1:18080");
         }
 
         [Fact]
@@ -151,7 +151,7 @@ namespace XUnitTest.Http
             var content = "Hello NewLife".GetBytes();
 
             var client = new ClientWebSocket();
-            await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+            await client.ConnectAsync(new Uri("ws://127.0.0.1:18080/ws"), default);
             await client.SendAsync(content, System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
             var buf = new Byte[1024];
