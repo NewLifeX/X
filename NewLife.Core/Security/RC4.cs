@@ -19,7 +19,7 @@ namespace NewLife.Security
         /// <returns></returns>
         public static Byte[] Encrypt(Byte[] data, Byte[] pass)
         {
-            if (data == null || data.Length == 0) return Array.Empty<Byte>();
+            if (data == null || data.Length == 0) return new Byte[0];
             if (pass == null || pass.Length == 0) return data;
 
             var output = new Byte[data.Length];

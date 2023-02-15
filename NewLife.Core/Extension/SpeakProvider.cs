@@ -36,8 +36,8 @@ class SpeakProvider
         {
             try
             {
-                synth = _type.CreateInstance(Array.Empty<Object>());
-                synth.Invoke("SetOutputToDefaultAudioDevice", Array.Empty<Object>());
+                synth = _type.CreateInstance(new Object[0]);
+                synth.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
             }
             catch (Exception ex)
             {

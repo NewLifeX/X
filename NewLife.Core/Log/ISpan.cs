@@ -83,7 +83,11 @@ public class DefaultSpan : ISpan
     /// <summary>错误信息</summary>
     public String Error { get; set; }
 
+#if NET45
+    private static readonly ThreadLocal<ISpan> _Current = new();
+#else
     private static readonly AsyncLocal<ISpan> _Current = new();
+#endif
     /// <summary>当前线程正在使用的上下文</summary>
     public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
 

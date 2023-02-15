@@ -237,6 +237,15 @@ namespace NewLife.Model
             }
         }
 
+#if NET45
+        /// <summary>处理消息。批大小为1时使用该方法</summary>
+        /// <param name="context">上下文</param>
+        protected virtual Task ReceiveAsync(ActorContext context) => Task.FromResult(0);
+
+        /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
+        /// <param name="contexts">上下文集合</param>
+        protected virtual Task ReceiveAsync(ActorContext[] contexts) => Task.FromResult(0);
+#else
         /// <summary>处理消息。批大小为1时使用该方法</summary>
         /// <param name="context">上下文</param>
         protected virtual Task ReceiveAsync(ActorContext context) => Task.CompletedTask;
@@ -244,6 +253,7 @@ namespace NewLife.Model
         /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
         /// <param name="contexts">上下文集合</param>
         protected virtual Task ReceiveAsync(ActorContext[] contexts) => Task.CompletedTask;
+#endif
         #endregion
     }
 }

@@ -179,7 +179,11 @@ public class TokenHttpFilter : IHttpFilter
             Expire = DateTime.MinValue;
         }
 
+#if NET45
+        return Task.FromResult(0);
+#else
         return Task.CompletedTask;
+#endif
     }
 
     /// <summary>发生错误时</summary>
@@ -196,6 +200,10 @@ public class TokenHttpFilter : IHttpFilter
             Expire = DateTime.MinValue;
         }
 
+#if NET45
+        return Task.FromResult(0);
+#else
         return Task.CompletedTask;
+#endif
     }
 }

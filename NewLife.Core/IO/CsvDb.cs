@@ -119,7 +119,7 @@ namespace NewLife.IO
         }
 
         /// <summary>清空数据。只写头部</summary>
-        public void Clear() => Write(Array.Empty<T>(), false);
+        public void Clear() => Write(new T[0], false);
 
         /// <summary>更新指定数据行，性能很差，全部读取替换后保存</summary>
         /// <param name="model"></param>

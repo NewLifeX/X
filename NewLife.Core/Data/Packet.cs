@@ -45,6 +45,7 @@ public class Packet
     {
         if (stream is MemoryStream ms)
         {
+#if !NET45
             // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
             if (ms.TryGetBuffer(out var seg))
             {
@@ -59,6 +60,7 @@ public class Packet
             //    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
             //}
             //catch (UnauthorizedAccessException) { }
+#endif
         }
 
         //Set(stream.ToArray());

@@ -186,7 +186,7 @@ public static class IOHelper
     public static Byte[] ReadArray(this Stream des)
     {
         var len = des.ReadEncodedInt();
-        if (len <= 0) return Array.Empty<Byte>();
+        if (len <= 0) return new Byte[0];
 
         // 避免数据错乱超长
         //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
@@ -230,7 +230,7 @@ public static class IOHelper
     /// <returns>返回复制的总字节数</returns>
     public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
     {
-        if (count == 0) return Array.Empty<Byte>();
+        if (count == 0) return new Byte[0];
 
         // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
         if (count < 0) count = src.Length - offset;
@@ -270,7 +270,7 @@ public static class IOHelper
     public static Byte[] ReadBytes(this Stream stream, Int64 length)
     {
         if (stream == null) return null;
-        if (length == 0) return Array.Empty<Byte>();
+        if (length == 0) return new Byte[0];
 
         if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
             throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
@@ -823,7 +823,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
     {
-        if (String.IsNullOrEmpty(data)) return Array.Empty<Byte>();
+        if (String.IsNullOrEmpty(data)) return new Byte[0];
 
         // 过滤特殊字符
         data = data.Trim()
@@ -883,7 +883,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToBase64(this String data)
     {
-        if (data.IsNullOrWhiteSpace()) return Array.Empty<Byte>();
+        if (data.IsNullOrWhiteSpace()) return new Byte[0];
 
         data = data.Trim();
         if (data[^1] != '=')

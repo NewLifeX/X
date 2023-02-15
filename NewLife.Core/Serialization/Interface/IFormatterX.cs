@@ -115,7 +115,7 @@ namespace NewLife.Serialization
             var ms = Stream;
             var pos = ms.Position;
             var start = 0;
-            if (pos == 0 || pos == start) return Array.Empty<Byte>();
+            if (pos == 0 || pos == start) return new Byte[0];
 
             if (ms is MemoryStream ms2 && pos == ms.Length && start == 0)
                 return ms2.ToArray();
