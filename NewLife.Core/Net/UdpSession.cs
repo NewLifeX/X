@@ -107,7 +107,9 @@ namespace NewLife.Net
             WriteLog("Close {0}", Remote.EndPoint);
 
             // 管道
-            Pipeline?.Close(Server.CreateContext(this), disposing ? "Dispose" : "GC");
+            var ctx = Server?.CreateContext(this);
+            if (ctx != null)
+                Pipeline?.Close(ctx, disposing ? "Dispose" : "GC");
 
             // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
             Server = null;
