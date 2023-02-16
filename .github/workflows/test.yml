@@ -2,26 +2,24 @@ name: test
 
 on:
   push:
-    branches: [ master ]
-    paths:
-        - 'NewLife.Core/**'
+    branches: [ '*' ]
   pull_request:
-    branches: [ master ]
-    paths:
-        - 'NewLife.Core/**'
+    branches: [ '*' ]
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
     - name: Build
       run: |
-        dotnet build -c Release NewLife.Core\NewLife.Core.csproj
-        dotnet build -c Release NewLife.Security\NewLife.Security.csproj
+        dotnet build -c Release
+    - name: Test
+      run: |
+        dotnet test

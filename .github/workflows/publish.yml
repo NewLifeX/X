@@ -7,24 +7,25 @@ on:
 
 jobs:
   build-publish:
-
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+    - name: Setup dotNET
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 7.0.x
-    - name: Restore
-      run: |
-        dotnet restore NewLife.Core\NewLife.Core.csproj
-        dotnet restore NewLife.Security\NewLife.Security.csproj
+    - name: Get Version
+      run: echo "VERSION=$(date '+%Y.%m%d')" >> $GITHUB_ENV
     - name: Build
       run: |
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.Core\NewLife.Core.csproj
-        dotnet pack --no-restore --version-suffix $(date "+%Y.%m%d") -c Release --include-symbols --include-source -o out NewLife.Security\NewLife.Security.csproj
+        dotnet build -c Release --version-suffix ${{ env.VERSION }}
+    - name: Pack
+      run: |
+        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Core/NewLife.Core.csproj
+        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Security/NewLife.Security.csproj
+
     - name: Publish
       run: |
-        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
-        dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
+        dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
+        dotnet nuget push ./out/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.nugetKey }}
