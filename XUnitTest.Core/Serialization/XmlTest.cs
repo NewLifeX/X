@@ -95,24 +95,28 @@ namespace XUnitTest.Serialization
             xml.Write(pm);
 
             var str = xml.GetString();
-            Assert.Equal(@"<ModbusTcpParameter>
-  <!--主机/站号-->
-  <Host>1</Host>
-  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
-  <ReadCode>ReadRegister</ReadCode>
-  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
-  <WriteCode>WriteRegister</WriteCode>
-  <!--网络超时。发起请求后等待响应的超时时间，默认3000ms-->
-  <Timeout>3000</Timeout>
-  <!--批大小。凑批请求时，每批最多点位个数-->
-  <BatchSize>0</BatchSize>
-  <!--延迟。相邻请求之间的延迟时间，单位毫秒-->
-  <Delay>0</Delay>
-  <!--地址。tcp地址如127.0.0.1:502-->
-  <Server>127.0.0.1:502</Server>
-  <!--协议标识。默认0-->
-  <ProtocolId>0</ProtocolId>
-</ModbusTcpParameter>", str);
+            Assert.Equal("""
+                <ModbusTcpParameter>
+                  <!--主机/站号-->
+                  <Host>1</Host>
+                  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
+                  <ReadCode>ReadRegister</ReadCode>
+                  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
+                  <WriteCode>WriteRegister</WriteCode>
+                  <!--网络超时。发起请求后等待响应的超时时间，默认3000ms-->
+                  <Timeout>3000</Timeout>
+                  <!--批间隔。两个点位地址小于等于该值时凑为一批，默认1-->
+                  <BatchStep>1</BatchStep>
+                  <!--批大小。凑批请求时，每批最多点位个数-->
+                  <BatchSize>0</BatchSize>
+                  <!--批延迟。相邻请求之间的延迟时间，单位毫秒-->
+                  <BatchDelay>0</BatchDelay>
+                  <!--地址。tcp地址如127.0.0.1:502-->
+                  <Server>127.0.0.1:502</Server>
+                  <!--协议标识。默认0-->
+                  <ProtocolId>0</ProtocolId>
+                </ModbusTcpParameter>
+                """, str);
 
             var xml2 = new NewLife.Serialization.Xml
             {
@@ -124,41 +128,47 @@ namespace XUnitTest.Serialization
             xml2.Write(pm);
 
             var str2 = xml2.GetString();
-            Assert.Equal(@"<ModbusTcpParameter>
-  <!--主机/站号-->
-  <Host>1</Host>
-  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
-  <ReadCode>3</ReadCode>
-  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
-  <WriteCode>6</WriteCode>
-  <!--网络超时。发起请求后等待响应的超时时间，默认3000ms-->
-  <Timeout>3000</Timeout>
-  <!--批大小。凑批请求时，每批最多点位个数-->
-  <BatchSize>0</BatchSize>
-  <!--延迟。相邻请求之间的延迟时间，单位毫秒-->
-  <Delay>0</Delay>
-  <!--地址。tcp地址如127.0.0.1:502-->
-  <Server>127.0.0.1:502</Server>
-  <!--协议标识。默认0-->
-  <ProtocolId>0</ProtocolId>
-</ModbusTcpParameter>", str2);
+            Assert.Equal("""
+                <ModbusTcpParameter>
+                  <!--主机/站号-->
+                  <Host>1</Host>
+                  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
+                  <ReadCode>3</ReadCode>
+                  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
+                  <WriteCode>6</WriteCode>
+                  <!--网络超时。发起请求后等待响应的超时时间，默认3000ms-->
+                  <Timeout>3000</Timeout>
+                  <!--批间隔。两个点位地址小于等于该值时凑为一批，默认1-->
+                  <BatchStep>1</BatchStep>
+                  <!--批大小。凑批请求时，每批最多点位个数-->
+                  <BatchSize>0</BatchSize>
+                  <!--批延迟。相邻请求之间的延迟时间，单位毫秒-->
+                  <BatchDelay>0</BatchDelay>
+                  <!--地址。tcp地址如127.0.0.1:502-->
+                  <Server>127.0.0.1:502</Server>
+                  <!--协议标识。默认0-->
+                  <ProtocolId>0</ProtocolId>
+                </ModbusTcpParameter>
+                """, str2);
         }
 
         [Fact]
         public void XmlParserDecode()
         {
-            var str = @"﻿<ModbusRtuParameter>
-  <!--主机/站号-->
-  <Host>1</Host>
-  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
-  <ReadCode>ReadRegister</ReadCode>
-  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
-  <WriteCode>WriteRegister</WriteCode>
-  <!--串口-->
-  <PortName>COM1</PortName>
-  <!--主机波特率站号-->
-  <Baudrate>9600</Baudrate>
-</ModbusRtuParameter>";
+            var str = """
+                ﻿<ModbusRtuParameter>
+                  <!--主机/站号-->
+                  <Host>1</Host>
+                  <!--读取功能码。若点位地址未指定区域，则采用该功能码-->
+                  <ReadCode>ReadRegister</ReadCode>
+                  <!--写入功能码。若点位地址未指定区域，则采用该功能码-->
+                  <WriteCode>WriteRegister</WriteCode>
+                  <!--串口-->
+                  <PortName>COM1</PortName>
+                  <!--主机波特率站号-->
+                  <Baudrate>9600</Baudrate>
+                </ModbusRtuParameter>
+                """;
 
             //str = str.Trim().Trim((Char)0xFEFF).Trim();
             var dic = XmlParser.Decode(str);

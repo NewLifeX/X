@@ -110,8 +110,8 @@ public class UtilityTests
     public void DateTimeOffsetTest()
     {
         var str = "2020-03-09T21:16:25.905+08:00";
-        var dt = str.ToDateTime();
-        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 25, 905, DateTimeKind.Local), dt);
+        var dt = str.ToDateTime().ToUniversalTime();
+        Assert.Equal(new DateTime(2020, 3, 9, 13, 16, 25, 905, DateTimeKind.Utc), dt);
 
         str = "2020-03-09T21:16:25.9052764+08:00";
         var df = str.ToDateTimeOffset();
