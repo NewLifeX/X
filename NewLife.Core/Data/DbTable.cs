@@ -504,7 +504,9 @@ namespace NewLife.Data
                     if (Types[i] == typeof(Boolean))
                         writer.WriteValue((Boolean)row[i]);
                     else if (Types[i] == typeof(DateTime))
-                        writer.WriteValue((DateTime)row[i]);
+                        writer.WriteValue(new DateTimeOffset((DateTime)row[i]));
+                    else if (Types[i] == typeof(DateTimeOffset))
+                        writer.WriteValue((DateTimeOffset)row[i]);
                     else
                         await writer.WriteStringAsync(row[i] + "");
 

@@ -67,7 +67,7 @@ public class SystemJsonTest
 
         var m = models[0];
         Assert.Equal(27, m.UserId);
-        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880), m.ClickTime);
+        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880).ToUniversalTime(), m.ClickTime.ToUniversalTime());
         Assert.Equal(39, m.AdId);
         Assert.Equal(0.43, m.AdAmount);
         Assert.False(m.IsGive);
@@ -78,7 +78,7 @@ public class SystemJsonTest
 
         m = models[1];
         Assert.Equal(27, m.UserId);
-        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 25, 905, 276), m.ClickTime.Trim("us"));
+        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 25, 905, 276).ToUniversalTime(), m.ClickTime.Trim("us").ToUniversalTime());
         Assert.Equal(40, m.AdId);
         Assert.Equal(0.41, m.AdAmount);
         Assert.False(m.IsGive);
