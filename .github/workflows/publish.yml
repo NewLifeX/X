@@ -16,14 +16,14 @@ jobs:
       with:
         dotnet-version: 7.0.x
     - name: Get Version
-      run: echo "VERSION=$(date '+%Y.%m%d')" >> $GITHUB_ENV
+      run: echo ::set-output name=VERSION::$(date "+%Y.%m%d")
     - name: Build
       run: |
-        dotnet build -c Release --version-suffix ${{ env.VERSION }}
+        dotnet build -c Release --version-suffix ${{ steps.ver.outputs.VERSION }}
     - name: Pack
       run: |
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Core/NewLife.Core.csproj
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Security/NewLife.Security.csproj
+        dotnet pack --no-build --version-suffix ${{ steps.ver.outputs.VERSION }} -o out NewLife.Core/NewLife.Core.csproj
+        dotnet pack --no-build --version-suffix ${{ steps.ver.outputs.VERSION }} -o out NewLife.Security/NewLife.Security.csproj
 
     - name: Publish
       run: |
