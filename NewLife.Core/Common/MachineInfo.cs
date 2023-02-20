@@ -113,9 +113,10 @@ public class MachineInfo
             var dataPath = set.DataPath;
             if (dataPath.IsNullOrEmpty()) dataPath = "Data";
 
-            // 文件缓存，加快机器信息获取
+            // 文件缓存，加快机器信息获取。在Linux下，可能StarAgent以root权限写入缓存文件，其它应用以普通用户访问
             var file = Path.GetTempPath().CombinePath("machine_info.json");
             var file2 = dataPath.CombinePath("machine_info.json").GetBasePath();
+            var json = "";
             if (Current == null)
             {
                 var f = file;
@@ -144,9 +145,12 @@ public class MachineInfo
 
             try
             {
-                var json = mi.ToJson(true);
-                File.WriteAllText(file.EnsureDirectory(true), json);
-                File.WriteAllText(file2.EnsureDirectory(true), json);
+                var json2 = mi.ToJson(true);
+                if (json != json2)
+                {
+                    File.WriteAllText(file2.EnsureDirectory(true), json2);
+                    File.WriteAllText(file.EnsureDirectory(true), json2);
+                }
             }
             catch { }
 
