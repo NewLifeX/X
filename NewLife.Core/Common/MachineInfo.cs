@@ -10,6 +10,7 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Runtime.Versioning;
+using System;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -223,20 +224,34 @@ public class MachineInfo
 
         // 从注册表读取 MachineGuid
 #if NETFRAMEWORK || NET6_0_OR_GREATER
-        var machine_guid = "";
-
         var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-        if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-        if (machine_guid.IsNullOrEmpty())
+        if (reg != null) str = reg.GetValue("MachineGuid") + "";
+        if (str.IsNullOrEmpty())
         {
             reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
+            if (reg != null) str = reg.GetValue("MachineGuid") + "";
         }
 
-        if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+        if (!str.IsNullOrEmpty()) Guid = str;
+
+        reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig");
+        if (reg != null) str = (reg.GetValue("LastConfig") + "")?.Trim('{', '}').ToUpper();
+
+        // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+        if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
+
+        reg = reg.OpenSubKey("Current");
+        if (reg != null) Product = reg.GetValue("SystemProductName") + "";
 #else
         str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
         if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
+
+        var csproduct = ReadWmic("csproduct", "Name", "UUID");
+        if (csproduct != null)
+        {
+            if (csproduct.TryGetValue("Name", out str)) Product = str;
+            if (csproduct.TryGetValue("UUID", out str)) UUID = str;
+        }
 #endif
 
 #if NETFRAMEWORK || WINDOWS
@@ -279,24 +294,14 @@ public class MachineInfo
 #if NETFRAMEWORK
         Processor = GetInfo("Win32_Processor", "Name");
         //CpuID = GetInfo("Win32_Processor", "ProcessorId");
-        var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
-        Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+        //var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
+        //Product = GetInfo("Win32_ComputerSystemProduct", "Name");
         DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
 
         var sn = GetInfo("Win32_BIOS", "SerialNumber");
         if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
-
-        // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-        if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
 #else
-        var csproduct = ReadWmic("csproduct", "Name", "UUID");
-        if (csproduct != null)
-        {
-            if (csproduct.TryGetValue("Name", out str)) Product = str;
-            if (csproduct.TryGetValue("UUID", out str)) UUID = str;
-        }
-
         var disk = ReadWmic("diskdrive", "serialnumber");
         if (disk != null)
         {
