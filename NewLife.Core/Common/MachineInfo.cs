@@ -242,6 +242,9 @@ public class MachineInfo
 
         reg = reg.OpenSubKey("Current");
         if (reg != null) Product = reg.GetValue("SystemProductName") + "";
+
+        reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+        if (reg != null) Processor = reg.GetValue("ProcessorNameString") + "";
 #else
         str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
         if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
@@ -292,7 +295,7 @@ public class MachineInfo
 #endif
 
 #if NETFRAMEWORK
-        Processor = GetInfo("Win32_Processor", "Name");
+        //Processor = GetInfo("Win32_Processor", "Name");
         //CpuID = GetInfo("Win32_Processor", "ProcessorId");
         //var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
         //Product = GetInfo("Win32_ComputerSystemProduct", "Name");
@@ -320,14 +323,14 @@ public class MachineInfo
             if (board.TryGetValue("serialnumber", out str)) Board = str?.Trim();
         }
 
-        // 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
-        var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
-        if (cpu != null)
-        {
-            if (cpu.TryGetValue("Name", out str)) Processor = str;
-            //if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
-            if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
-        }
+        //// 不要在刷新里面取CPU负载，因为运行wmic会导致CPU负载很不准确，影响测量
+        //var cpu = ReadWmic("cpu", "Name", "ProcessorId", "LoadPercentage");
+        //if (cpu != null)
+        //{
+        //    if (cpu.TryGetValue("Name", out str)) Processor = str;
+        //    //if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
+        //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
+        //}
 
         if (OSName.IsNullOrEmpty())
             OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
