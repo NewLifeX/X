@@ -9,9 +9,12 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
+using System.Runtime.Versioning;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
+#endif
+#if NETFRAMEWORK || NET6_0_OR_GREATER
 using Microsoft.Win32;
 #endif
 
@@ -180,10 +183,17 @@ public class MachineInfo
 
         try
         {
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+                LoadWindowsInfo();
+            else if (OperatingSystem.IsLinux())
+                LoadLinuxInfo();
+#else
             if (Runtime.Windows)
                 LoadWindowsInfo();
             else if (Runtime.Linux)
                 LoadLinuxInfo();
+#endif
         }
         catch (Exception ex)
         {
@@ -204,9 +214,15 @@ public class MachineInfo
         }
     }
 
-#if NETFRAMEWORK
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("windows")]
+#endif
     private void LoadWindowsInfo()
     {
+        var str = "";
+
+        // 从注册表读取 MachineGuid
+#if NETFRAMEWORK || NET6_0_OR_GREATER
         var machine_guid = "";
 
         var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
@@ -217,7 +233,14 @@ public class MachineInfo
             if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
         }
 
-        var ci = new ComputerInfo();
+        if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+#else
+        str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
+        if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
+#endif
+
+#if NETFRAMEWORK || WINDOWS
+        var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
         try
         {
             Memory = ci.TotalPhysicalMemory;
@@ -228,6 +251,7 @@ public class MachineInfo
         }
         catch
         {
+#if !NET5_0
             try
             {
                 var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
@@ -241,8 +265,18 @@ public class MachineInfo
             {
                 if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
+#endif
         }
+#else
+        var os = ReadWmic("os", "Caption", "Version");
+        if (os != null)
+        {
+            if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
+            if (os.TryGetValue("Version", out str)) OSVersion = str;
+        }
+#endif
 
+#if NETFRAMEWORK
         Processor = GetInfo("Win32_Processor", "Name");
         //CpuID = GetInfo("Win32_Processor", "ProcessorId");
         var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
@@ -255,44 +289,7 @@ public class MachineInfo
 
         // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
         if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
-
-        //// 可能因WMI导致读取UUID失败
-        //if (UUID.IsNullOrEmpty())
-        //{
-        //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-        //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
-        //}
-
-        if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
-
-        //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-        //var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-        //if (!str.IsNullOrEmpty())
-        //{
-        //    Temperature = str.SplitAsInt().Average();
-        //}
-        //else
-        //{
-        //    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-        //    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-        //}
-
-        //// 电池剩余
-        //str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-        //if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
-    }
 #else
-    private void LoadWindowsInfo()
-    {
-        var str = "";
-
-        var os = ReadWmic("os", "Caption", "Version");
-        if (os != null)
-        {
-            if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
-            if (os.TryGetValue("Version", out str)) OSVersion = str;
-        }
-
         var csproduct = ReadWmic("csproduct", "Name", "UUID");
         if (csproduct != null)
         {
@@ -327,16 +324,12 @@ public class MachineInfo
             if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
         }
 
-        // 从注册表读取 MachineGuid
-        str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
-        if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
-
         if (OSName.IsNullOrEmpty())
             OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
         if (OSVersion.IsNullOrEmpty())
             OSVersion = Environment.OSVersion.Version.ToString();
-    }
 #endif
+    }
 
     private void LoadLinuxInfo()
     {
@@ -431,46 +424,6 @@ public class MachineInfo
         var disks = GetFiles("/dev/disk/by-id", true);
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
         if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
-
-        //if (uuid.IsNullOrEmpty() || prd.IsNullOrEmpty())
-        //{
-        //var dmi = Execute("dmidecode");
-        //if (!dmi.IsNullOrEmpty())
-        //{
-        //    var p = dmi.IndexOf("System Information");
-        //    if (p > 0) dmi = dmi[p..];
-
-        //    dic = dmi.SplitAsDictionary(":", "\n");
-        //    //if (dmi.TryGetValue("ID", out str)) CpuID = str.Replace(" ", null);
-        //    if (dic.TryGetValue("UUID", out str)) UUID = str;
-        //    if (dic.TryGetValue("Product Name", out str))
-        //    {
-        //        // 增加制造商。如 Tencent Cloud，它的产品名只有 CVM。阿里云产品名 Alibaba Cloud ECS
-        //        if (dic.TryGetValue("Manufacturer", out var man) && !man.IsNullOrEmpty() && !man.Contains(str))
-        //        {
-        //            // 红帽KVM太流行，细化处理
-        //            if (str == "KVM" && man == "Red Hat" && dic.TryGetValue("Version", out var ver) && !ver.IsNullOrEmpty())
-        //            {
-        //                p = ver.IndexOf('(');
-        //                if (p > 0) ver = ver[..p].Trim();
-        //                str = ver;
-        //            }
-        //            else
-        //                str = $"{man} {str}";
-        //        }
-
-        //        Product = str;
-        //    }
-        //    if (dic.TryGetValue("Serial Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
-        //        Serial = str;
-
-        //    // 在DMI信息内，没有太好的BoardID取值
-        //    if (dic.TryGetValue("SKU Number", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
-        //        Board = str;
-        //    if (dic.TryGetValue("Family", out str) && !str.IsNullOrEmpty() && !str.EqualIgnoreCase("Not Specified"))
-        //        Board = str;
-        //}
-        //}
     }
 
     private readonly ICollection<String> _excludes = new List<String>();
@@ -511,43 +464,43 @@ public class MachineInfo
 
         CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
 
-#if NETCOREAPP
-        //if (!_excludes.Contains(nameof(Temperature)))
-        //{
-        //    // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-        //    var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-        //    if (!str.IsNullOrEmpty())
-        //    {
-        //        Temperature = str.SplitAsInt().Average();
-        //    }
-        //    else
-        //    {
-        //        str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-        //        if (!str.IsNullOrEmpty())
-        //            Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-        //        else
-        //        {
-        //            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
-        //            _excludes.Add(nameof(Temperature));
-        //            Temperature = 0;
-        //        }
-        //    }
-        //}
+#if NETFRAMEWORK
+        if (!_excludes.Contains(nameof(Temperature)))
+        {
+            // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
+            var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
+            if (!str.IsNullOrEmpty())
+            {
+                Temperature = str.SplitAsInt().Average();
+            }
+            else
+            {
+                str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
+                if (!str.IsNullOrEmpty())
+                    Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                else
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                    _excludes.Add(nameof(Temperature));
+                    Temperature = 0;
+                }
+            }
+        }
 
-        //if (!_excludes.Contains(nameof(Battery)))
-        //{
-        //    // 电池剩余
-        //    var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-        //    if (!str.IsNullOrEmpty())
-        //        Battery = str.SplitAsInt().Average() / 100.0;
-        //    else
-        //    {
-        //        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
-        //        _excludes.Add(nameof(Battery));
-        //        Battery = 0;
-        //    }
-        //}
-#endif
+        if (!_excludes.Contains(nameof(Battery)))
+        {
+            // 电池剩余
+            var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
+            if (!str.IsNullOrEmpty())
+                Battery = str.SplitAsInt().Average() / 100.0;
+            else
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
+                _excludes.Add(nameof(Battery));
+                Battery = 0;
+            }
+        }
+#else
         if (!_excludes.Contains(nameof(Temperature)))
         {
             var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
@@ -579,6 +532,7 @@ public class MachineInfo
                 Battery = 0;
             }
         }
+#endif
     }
 
     private void RefreshLinux()
