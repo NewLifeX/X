@@ -626,16 +626,21 @@ public class MachineInfo
     {
         var sent = 0L;
         var received = 0L;
-        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        try
         {
-            try
+            // WSL获取网络列表时可能报错
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
-                var st = ni.GetIPStatistics();
-                sent += st.BytesSent;
-                received += st.BytesReceived;
+                try
+                {
+                    var st = ni.GetIPStatistics();
+                    sent += st.BytesSent;
+                    received += st.BytesReceived;
+                }
+                catch { }
             }
-            catch { }
         }
+        catch { }
 
         var now = Runtime.TickCount64;
         if (_lastTime > 0)
