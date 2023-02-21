@@ -169,30 +169,37 @@ public class HttpConfigProvider : ConfigProvider
         {
             ValidClientId();
 
-            var rs = client.Post<IDictionary<String, Object>>(Action, new
+            try
             {
-                appId = AppId,
-                secret = Secret,
-                clientId = ClientId,
-                scope = Scope,
-                version = _version,
-                usedKeys = UsedKeys.Join(),
-                missedKeys = MissedKeys.Join(),
-            });
-            Info = rs;
+                var rs = client.Post<IDictionary<String, Object>>(Action, new
+                {
+                    appId = AppId,
+                    secret = Secret,
+                    clientId = ClientId,
+                    scope = Scope,
+                    version = _version,
+                    usedKeys = UsedKeys.Join(),
+                    missedKeys = MissedKeys.Join(),
+                });
+                Info = rs;
 
-            // 增强版返回
-            if (rs.TryGetValue("configs", out var obj))
-            {
-                var ver = rs["version"].ToInt(-1);
-                if (ver > 0) _version = ver;
+                // 增强版返回
+                if (rs.TryGetValue("configs", out var obj))
+                {
+                    var ver = rs["version"].ToInt(-1);
+                    if (ver > 0) _version = ver;
 
-                if (obj is not IDictionary<String, Object> configs) return null;
+                    if (obj is IDictionary<String, Object> configs) return configs;
+                }
 
-                return configs;
+                return rs;
             }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
 
-            return rs;
+                return null;
+            }
         }
     }
 
