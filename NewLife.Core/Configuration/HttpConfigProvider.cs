@@ -405,21 +405,21 @@ public class HttpConfigProvider : ConfigProvider
         var dic = GetAll();
         if (dic == null) return;
 
-        var keys = new List<String>();
+        var changed = new Dictionary<String, Object>();
         if (_cache != null)
         {
             foreach (var item in dic)
             {
                 if (!_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                 {
-                    keys.Add(item.Key);
+                    changed.Add(item.Key, item.Value);
                 }
             }
         }
 
-        if (keys.Count > 0)
+        if (changed.Count > 0)
         {
-            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, keys.Join());
+            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, changed.ToJson());
 
             Root = Build(dic);
 
