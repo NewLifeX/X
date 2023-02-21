@@ -22,8 +22,8 @@ jobs:
         dotnet build -c Release --version-suffix ${{ env.VERSION }}
     - name: Pack
       run: |
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Core\NewLife.Core.csproj
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -o out NewLife.Security\NewLife.Security.csproj
+        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
+        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Security\NewLife.Security.csproj
 
     - name: Publish
       run: |
