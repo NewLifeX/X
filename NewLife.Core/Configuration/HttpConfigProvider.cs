@@ -169,6 +169,8 @@ namespace NewLife.Configuration
             {
                 ValidClientId();
 
+            try
+            {
                 var rs = client.Post<IDictionary<String, Object>>(Action, new
                 {
                     appId = AppId,
@@ -187,14 +189,19 @@ namespace NewLife.Configuration
                     var ver = rs["version"].ToInt(-1);
                     if (ver > 0) _version = ver;
 
-                    if (obj is not IDictionary<String, Object> configs) return null;
-
-                    return configs;
+                    if (obj is IDictionary<String, Object> configs) return configs;
                 }
 
                 return rs;
             }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+
+                return null;
+            }
         }
+    }
 
         /// <summary>设置配置项，保存到服务端</summary>
         /// <param name="configs"></param>
