@@ -5,6 +5,7 @@ using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
 
@@ -255,10 +256,10 @@ public static class HttpHelper
     /// <returns></returns>
     public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
 
-    /// <summary>异步提交表单</summary>
+    /// <summary>异步提交表单，名值对传输字典参数</summary>
     /// <param name="client">Http客户端</param>
     /// <param name="requestUri">请求资源地址</param>
-    /// <param name="data">数据</param>
+    /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
     public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
@@ -280,10 +281,10 @@ public static class HttpHelper
         return await PostAsync(client, requestUri, content);
     }
 
-    /// <summary>同步提交表单</summary>
+    /// <summary>同步提交表单，名值对传输字典参数</summary>
     /// <param name="client">Http客户端</param>
     /// <param name="requestUri">请求资源地址</param>
-    /// <param name="data">数据</param>
+    /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
     public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
@@ -361,16 +362,47 @@ public static class HttpHelper
     }
 
     /// <summary>下载文件</summary>
-    /// <param name="client"></param>
-    /// <param name="address"></param>
-    /// <param name="fileName"></param>
-    public static async Task DownloadFileAsync(this HttpClient client, String address, String fileName)
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName)
     {
-        var rs = await client.GetStreamAsync(address);
+        var rs = await client.GetStreamAsync(requestUri);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs);
         await fs.FlushAsync();
+    }
+
+    /// <summary>上传文件以及表单数据</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="data">其它表单数据</param>
+    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object data = null)
+    {
+        var content = new MultipartFormDataContent();
+        if (!fileName.IsNullOrEmpty())
+            content.Add(new StreamContent(fileName.AsFile().OpenRead()), "file", Path.GetFileName(fileName));
+
+        if (data != null)
+        {
+            foreach (var item in data.ToDictionary())
+            {
+                if (item.Value == null) continue;
+
+                if (item.Value is String str)
+                    content.Add(new StringContent(str), item.Key);
+                else if (item.Value is Byte[] buf)
+                    content.Add(new ByteArrayContent(buf), item.Key);
+                else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
+                    content.Add(new StringContent(item.Value + ""), item.Key);
+                else
+                    content.Add(new StringContent(item.Value.ToJson()), item.Key);
+            }
+        }
+
+        return await PostAsync(client, requestUri, content);
     }
     #endregion
 
