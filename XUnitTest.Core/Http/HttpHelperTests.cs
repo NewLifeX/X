@@ -1,124 +1,109 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using Moq.Protected;
+using System.Threading.Tasks;
+using System.Threading;
 using NewLife.Http;
 using NewLife.Log;
-using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
+using Moq;
 
-namespace XUnitTest.Http
+namespace XUnitTest.Http;
+
+public class HttpHelperTests
 {
-    public class HttpHelperTests
+    static HttpHelperTests() => HttpHelper.Tracer = new DefaultTracer();
+
+    class MyHandler : HttpMessageHandler
     {
-        static HttpHelperTests() => HttpHelper.Tracer = new DefaultTracer();
-
-        [Fact]
-        public async void PostJson()
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var url = "http://star.newlifex.com/cube/info";
+            //var body = await request.Content.ReadAsByteArrayAsync();
 
-            var client = new HttpClient();
-            client.SetUserAgent();
+            var rs = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = request.Content
+            };
 
-            var json = client.PostJson(url, new { state = "1234" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
+            if (request.Content == null)
+            {               
+                rs.Content = new StringContent(request.Headers.ToString());
+            }
 
-            json = await client.PostJsonAsync(url, new { state = "abcd" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
+            return Task.FromResult(rs);
         }
+    }
 
-        [Fact]
-        public async void PostJson2()
-        {
-            var url = "https://sso.newlifex.com/cube/info";
+    [Fact]
+    public async void PostJson()
+    {
+        var url = "http://star.newlifex.com/cube/info";
 
-            var client = new HttpClient();
-            client.SetUserAgent();
+        var client = new HttpClient(new MyHandler());
+        client.SetUserAgent();
 
-            var json = client.PostJson(url, new { state = "1234" });
-            Assert.NotNull(json);
+        var rs = client.PostJson(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Equal("""{"state":"1234","state2":"abcd"}""", rs);
 
-            var dic = json.DecodeJson();
-            dic = dic["data"] as IDictionary<String, Object>;
-            Assert.Equal("CubeSSO", dic["name"]);
-            //Assert.Equal("1234", dic["state"]);
+        rs = await client.PostJsonAsync(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Equal("""{"state":"1234","state2":"abcd"}""", rs);
+    }
 
-            json = await client.PostJsonAsync(url, new { state = "abcd" });
-            Assert.NotNull(json);
+    [Fact]
+    public async void PostXml()
+    {
+        var url = "http://star.newlifex.com/cube/info";
 
-            dic = json.DecodeJson();
-            dic = dic["data"] as IDictionary<String, Object>;
-            Assert.Equal("CubeSSO", dic["name"]);
-            //Assert.Equal("abcd", dic["state"]);
-        }
+        var client = new HttpClient(new MyHandler());
+        var rs = client.PostXml(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Contains("""
+            <_f__AnonymousType0_2>
+              <state>1234</state>
+              <state2>abcd</state2>
+            </_f__AnonymousType0_2>
+            """, rs);
 
-        [Fact]
-        public async void PostXml()
-        {
-            var url = "http://star.newlifex.com/cube/info";
+        rs = await client.PostXmlAsync(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Contains("""
+            <_f__AnonymousType0_2>
+              <state>1234</state>
+              <state2>abcd</state2>
+            </_f__AnonymousType0_2>
+            """, rs);
+    }
 
-            var client = new HttpClient();
-            var json = client.PostXml(url, new { state = "1234" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
+    [Fact]
+    public async void PostForm()
+    {
+        var url = "http://star.newlifex.com/cube/info";
 
-            json = await client.PostXmlAsync(url, new { state = "abcd" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
-        }
+        var client = new HttpClient(new MyHandler());
+        var rs = client.PostForm(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Contains("state=1234&state2=abcd", rs);
 
-        [Fact]
-        public async void PostXml2()
-        {
-            var url = "https://sso.newlifex.com/cube/info";
+        rs = await client.PostFormAsync(url, new { state = "1234", state2 = "abcd" });
+        Assert.NotNull(rs);
+        Assert.Contains("state=1234&state2=abcd", rs);
+    }
 
-            var client = new HttpClient();
-            var json = client.PostXml(url, new { state = "1234" });
-            Assert.NotNull(json);
+    [Fact]
+    public void GetString()
+    {
+        var url = "http://star.newlifex.com/cube/info";
 
-            var dic = json.DecodeJson();
-            dic = dic["data"] as IDictionary<String, Object>;
-            Assert.Equal("CubeSSO", dic["name"]);
-            //Assert.Equal("1234", dic["state"]);
+        var client = new HttpClient(new MyHandler());
+        var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
 
-            json = await client.PostXmlAsync(url, new { state = "abcd" });
-            Assert.NotNull(json);
-
-            dic = json.DecodeJson();
-            dic = dic["data"] as IDictionary<String, Object>;
-            Assert.Equal("CubeSSO", dic["name"]);
-            //Assert.Equal("abcd", dic["state"]);
-        }
-
-        [Fact]
-        public async void PostForm()
-        {
-            var url = "http://star.newlifex.com/cube/info";
-
-            var client = new HttpClient();
-            var json = client.PostForm(url, new { state = "1234" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
-
-            json = await client.PostFormAsync(url, new { state = "abcd" });
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
-        }
-
-        [Fact]
-        public void GetString()
-        {
-            var url = "http://star.newlifex.com/cube/info";
-
-            var client = new HttpClient();
-            var json = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
-
-            Assert.NotNull(json);
-            Assert.Contains("\"name\":\"StarWeb\"", json);
-        }
+        Assert.NotNull(rs);
+        Assert.Equal("state: xxxyyy\r\n", rs);
     }
 }
