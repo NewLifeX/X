@@ -176,8 +176,9 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
     {
         HttpContent content = null;
         if (data != null)
@@ -187,10 +188,9 @@ public static class HttpHelper
                 : new StringContent(data.ToJson(), Encoding.UTF8, "application/json");
         }
 
-        if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-        client.AddHeaders(headers);
+        //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-        return await PostAsync(client, requestUri, content);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken);
     }
 
     /// <summary>同步提交Json</summary>
@@ -206,8 +206,9 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
     {
         HttpContent content = null;
         if (data != null)
@@ -217,10 +218,10 @@ public static class HttpHelper
                 : new StringContent(data.ToXml(), Encoding.UTF8, "application/xml");
         }
 
-        if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
-        client.AddHeaders(headers);
+        //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
+        //client.AddHeaders(headers);
 
-        return await PostAsync(client, requestUri, content);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken);
     }
 
     /// <summary>同步提交Xml</summary>
@@ -236,8 +237,9 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null)
+    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
     {
         HttpContent content = null;
         if (data != null)
@@ -251,9 +253,7 @@ public static class HttpHelper
                 );
         }
 
-        client.AddHeaders(headers);
-
-        return await PostAsync(client, requestUri, content);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken);
     }
 
     /// <summary>同步提交表单，名值对传输字典参数</summary>
@@ -263,6 +263,36 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
     public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => TaskEx.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+
+    /// <summary>异步提交多段表单数据，含文件流</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="data">名值对数据。匿名对象或字典，支持文件流</param>
+    /// <param name="cancellationToken">取消通知</param>
+    public static async Task<String> PostMultipartFormAsync(this HttpClient client, String requestUri, Object data, CancellationToken cancellationToken = default)
+    {
+        var content = new MultipartFormDataContent();
+
+        foreach (var item in data.ToDictionary())
+        {
+            if (item.Value == null) continue;
+
+            if (item.Value is FileStream fs)
+                content.Add(new StreamContent(fs), item.Key, Path.GetFileName(fs.Name));
+            else if (item.Value is Stream stream)
+                content.Add(new StreamContent(stream), item.Key);
+            else if (item.Value is String str)
+                content.Add(new StringContent(str), item.Key);
+            else if (item.Value is Byte[] buf)
+                content.Add(new ByteArrayContent(buf), item.Key);
+            else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
+                content.Add(new StringContent(item.Value + ""), item.Key);
+            else
+                content.Add(new StringContent(item.Value.ToJson()), item.Key);
+        }
+
+        return await PostAsync(client, requestUri, content, null, cancellationToken);
+    }
 
     /// <summary>同步获取字符串</summary>
     /// <param name="client">Http客户端</param>
@@ -275,12 +305,20 @@ public static class HttpHelper
         return TaskEx.Run(() => client.GetStringAsync(requestUri)).Result;
     }
 
-    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content)
+    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String> headers, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
             Content = content
         };
+
+        if (headers != null)
+        {
+            foreach (var item in headers)
+            {
+                request.Headers.Add(item.Key, item.Value);
+            }
+        }
 
         // 设置接受 mediaType
         if (content.Headers.TryGetValues("Content-Type", out var vs))
@@ -298,7 +336,7 @@ public static class HttpHelper
         {
             if (filter != null) await filter.OnRequest(client, request, null);
 
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, cancellationToken);
 
             if (filter != null) await filter.OnResponse(client, response, request);
 
@@ -359,7 +397,8 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="fileName">目标文件名</param>
     /// <param name="data">其它表单数据</param>
-    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object data = null)
+    /// <param name="cancellationToken">取消通知</param>
+    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object data = null, CancellationToken cancellationToken = default)
     {
         var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
@@ -382,36 +421,7 @@ public static class HttpHelper
             }
         }
 
-        return await PostAsync(client, requestUri, content);
-    }
-
-    /// <summary>异步提交多段表单数据，含文件流</summary>
-    /// <param name="client">Http客户端</param>
-    /// <param name="requestUri">请求资源地址</param>
-    /// <param name="data">表单数据</param>
-    public static async Task<String> PostMultipartFormAsync(this HttpClient client, String requestUri, Object data)
-    {
-        var content = new MultipartFormDataContent();
-
-        foreach (var item in data.ToDictionary())
-        {
-            if (item.Value == null) continue;
-
-            if (item.Value is FileStream fs)
-                content.Add(new StreamContent(fs), item.Key, Path.GetFileName(fs.Name));
-            else if (item.Value is Stream stream)
-                content.Add(new StreamContent(stream), item.Key);
-            else if (item.Value is String str)
-                content.Add(new StringContent(str), item.Key);
-            else if (item.Value is Byte[] buf)
-                content.Add(new ByteArrayContent(buf), item.Key);
-            else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
-                content.Add(new StringContent(item.Value + ""), item.Key);
-            else
-                content.Add(new StringContent(item.Value.ToJson()), item.Key);
-        }
-
-        return await PostAsync(client, requestUri, content);
+        return await PostAsync(client, requestUri, content, null, cancellationToken);
     }
     #endregion
 
