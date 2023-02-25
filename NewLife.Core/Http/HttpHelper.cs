@@ -404,6 +404,35 @@ public static class HttpHelper
 
         return await PostAsync(client, requestUri, content);
     }
+
+    /// <summary>异步提交多段表单数据，含文件流</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="data">表单数据</param>
+    public static async Task<String> PostMultipartFormAsync(this HttpClient client, String requestUri, Object data)
+    {
+        var content = new MultipartFormDataContent();
+
+        foreach (var item in data.ToDictionary())
+        {
+            if (item.Value == null) continue;
+
+            if (item.Value is FileStream fs)
+                content.Add(new StreamContent(fs), item.Key, Path.GetFileName(fs.Name));
+            else if (item.Value is Stream stream)
+                content.Add(new StreamContent(stream), item.Key);
+            else if (item.Value is String str)
+                content.Add(new StringContent(str), item.Key);
+            else if (item.Value is Byte[] buf)
+                content.Add(new ByteArrayContent(buf), item.Key);
+            else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
+                content.Add(new StringContent(item.Value + ""), item.Key);
+            else
+                content.Add(new StringContent(item.Value.ToJson()), item.Key);
+        }
+
+        return await PostAsync(client, requestUri, content);
+    }
     #endregion
 
     #region WebSocket
