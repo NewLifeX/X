@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.IO;
@@ -91,6 +92,9 @@ namespace Test
         {
             var mi = MachineInfo.GetCurrent();
             XTrace.WriteLine(mi.ToJson(true));
+
+            var sys = SysConfig.Current;
+            XTrace.WriteLine("Name: {0}", sys.Name);
         }
 
         private static void Test2()
