@@ -32,7 +32,7 @@ public class HttpHelperTests
             else
                 rs.Content = request.Content != null ? request.Content : new StringContent(request.Headers.ToString());
 
-            return rs;
+            return Task.FromResult(rs);
         }
     }
 

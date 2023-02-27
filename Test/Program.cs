@@ -8,6 +8,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Common;
+using NewLife.Data;
+using NewLife.Http;
+using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
@@ -99,32 +103,11 @@ namespace Test
 
         private static void Test1()
         {
-            //var td = DAL.Create("tdengine");
-            //var tables = td.Tables;
-            //XTrace.WriteLine(tables.ToJson(true));
+            var mi = MachineInfo.GetCurrent();
+            XTrace.WriteLine(mi.ToJson(true));
 
-            //var dt = td.Query("select * from t;");
-            //XTrace.WriteLine(dt.Total + "");
-
-            var guid = new Guid("00ac7f06-4612-4791-9c84-e221a2d963ad");
-            var buf = guid.ToByteArray();
-            XTrace.WriteLine(buf.ToHex());
-
-            var dal = DAL.Create("test");
-
-            var rs = dal.RestoreAll($"../dbbak.zip", null);
-
-            //var tables = DAL.Import(File.ReadAllText("../data/lawyer.xml".GetFullPath()));
-            //var table = tables.FirstOrDefault(e => e.Name == "SpringSession");
-            //var dc1 = table.Columns[0];
-            //var dc2 = table.Columns[1];
-            //dc1.DataType = typeof(Guid);
-            //dc2.DataType = typeof(Guid);
-            //dal.Restore($"../data/SpringSession.table", table);
-
-            //var dt = dal.Query("select * from spring_session");
-            //XTrace.WriteLine("字段[{0}]：{1}", dt.Columns.Length, dt.Columns.Join());
-            //XTrace.WriteLine("类型[{0}]：{1}", dt.Types.Length, dt.Types.Join(",", e => e?.Name));
+            var sys = SysConfig.Current;
+            XTrace.WriteLine("Name: {0}", sys.Name);
         }
 
         private static void Test2()

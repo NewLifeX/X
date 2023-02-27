@@ -1,8 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.ComponentModel;
 using NewLife.Configuration;
 using NewLife.Log;
 
