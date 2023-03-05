@@ -92,68 +92,67 @@ public class HttpHelperTests
         Assert.NotNull(json);
         Assert.Contains("\"name\":\"StarWeb\"", json);
     }
-}
 
-[Fact]
-public async Task DownloadFile()
-{
-    var url = "http://star.newlifex.com/cube/info";
-    var file = "down.txt";
-    var file2 = file.GetFullPath();
-
-    if (File.Exists(file2)) File.Delete(file2);
-
-    var txt = "学无先后达者为师！";
-    var sb = new StringBuilder();
-    for (var i = 0; i < 1000; i++)
+    [Fact]
+    public async Task DownloadFile()
     {
-        sb.AppendLine(txt);
+        var url = "http://star.newlifex.com/cube/info";
+        var file = "down.txt";
+        var file2 = file.GetFullPath();
+
+        if (File.Exists(file2)) File.Delete(file2);
+
+        var txt = "学无先后达者为师！";
+        var sb = new StringBuilder();
+        for (var i = 0; i < 1000; i++)
+        {
+            sb.AppendLine(txt);
+        }
+
+        var client = new HttpClient(new MyHandler { Data = sb.ToString().GetBytes() });
+        await client.DownloadFileAsync(url, file);
+
+        Assert.True(File.Exists(file2));
     }
 
-    var client = new HttpClient(new MyHandler { Data = sb.ToString().GetBytes() });
-    await client.DownloadFileAsync(url, file);
+    [Fact]
+    public async void UploadFile()
+    {
+        var url = "http://star.newlifex.com/cube/info";
+        var file = "up.txt";
+        var file2 = file.GetFullPath();
 
-    Assert.True(File.Exists(file2));
-}
+        var txt = "学无先后达者为师！";
+        File.WriteAllText(file2, txt);
 
-[Fact]
-public async void UploadFile()
-{
-    var url = "http://star.newlifex.com/cube/info";
-    var file = "up.txt";
-    var file2 = file.GetFullPath();
+        var client = new HttpClient(new MyHandler());
+        var rs = await client.UploadFileAsync(url, file, new { state = "1234", state2 = "abcd" });
 
-    var txt = "学无先后达者为师！";
-    File.WriteAllText(file2, txt);
+        Assert.NotNull(rs);
+        //Assert.Equal("""
+        //    --05331b02-8d38-4905-902f-119335443546
+        //    Content-Disposition: form-data; name=file; filename=up.txt; filename*=utf-8''up.txt
 
-    var client = new HttpClient(new MyHandler());
-    var rs = await client.UploadFileAsync(url, file, new { state = "1234", state2 = "abcd" });
+        //    学无先后达者为师！
+        //    --05331b02-8d38-4905-902f-119335443546
+        //    Content-Type: text/plain; charset=utf-8
+        //    Content-Disposition: form-data; name=state
 
-    Assert.NotNull(rs);
-    //Assert.Equal("""
-    //    --05331b02-8d38-4905-902f-119335443546
-    //    Content-Disposition: form-data; name=file; filename=up.txt; filename*=utf-8''up.txt
+        //    1234
+        //    --05331b02-8d38-4905-902f-119335443546
+        //    Content-Type: text/plain; charset=utf-8
+        //    Content-Disposition: form-data; name=state2
 
-    //    学无先后达者为师！
-    //    --05331b02-8d38-4905-902f-119335443546
-    //    Content-Type: text/plain; charset=utf-8
-    //    Content-Disposition: form-data; name=state
+        //    abcd
+        //    --05331b02-8d38-4905-902f-119335443546--
 
-    //    1234
-    //    --05331b02-8d38-4905-902f-119335443546
-    //    Content-Type: text/plain; charset=utf-8
-    //    Content-Disposition: form-data; name=state2
-
-    //    abcd
-    //    --05331b02-8d38-4905-902f-119335443546--
-
-    //    """, rs);
-    Assert.Contains("Content-Disposition: form-data; name=file; filename=up.txt; filename*=utf-8''up.txt", rs);
-    Assert.Contains(txt, rs);
-    Assert.Contains("Content-Type: text/plain; charset=utf-8", rs);
-    Assert.Contains("Content-Disposition: form-data; name=state", rs);
-    Assert.Contains("1234", rs);
-    Assert.Contains("Content-Disposition: form-data; name=state2", rs);
-    Assert.Contains("abcd", rs);
-}
+        //    """, rs);
+        Assert.Contains("Content-Disposition: form-data; name=file; filename=up.txt; filename*=utf-8''up.txt", rs);
+        Assert.Contains(txt, rs);
+        Assert.Contains("Content-Type: text/plain; charset=utf-8", rs);
+        Assert.Contains("Content-Disposition: form-data; name=state", rs);
+        Assert.Contains("1234", rs);
+        Assert.Contains("Content-Disposition: form-data; name=state2", rs);
+        Assert.Contains("abcd", rs);
+    }
 }
