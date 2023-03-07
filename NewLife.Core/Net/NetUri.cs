@@ -198,6 +198,10 @@ public class NetUri
     /// <summary>获取该域名下所有IP地址</summary>
     /// <returns></returns>
     public IPAddress[] GetAddresses() => ParseAddress(Host) ?? new[] { Address };
+
+    /// <summary>获取该域名下所有IP节点（含端口）</summary>
+    /// <returns></returns>
+    public IPEndPoint[] GetEndPoints() => GetAddresses().Select(e => new IPEndPoint(e, Port)).ToArray();
     #endregion
 
     #region 辅助
