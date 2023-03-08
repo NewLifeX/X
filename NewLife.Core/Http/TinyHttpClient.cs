@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -29,29 +30,14 @@ public class TinyHttpClient : DisposeBase
     /// <summary>基础地址</summary>
     public Uri BaseAddress { get; set; }
 
-    /// <summary>内容类型</summary>
-    public String ContentType { get; set; }
-
-    /// <summary>内容长度</summary>
-    public Int32 ContentLength { get; private set; }
-
     /// <summary>保持连接</summary>
     public Boolean KeepAlive { get; set; }
-
-    /// <summary>状态码</summary>
-    public Int32 StatusCode { get; set; }
-
-    /// <summary>状态描述</summary>
-    public String StatusDescription { get; set; }
 
     /// <summary>超时时间。默认15s</summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
     /// <summary>缓冲区大小。接收缓冲区默认64*1024</summary>
     public Int32 BufferSize { get; set; } = 64 * 1024;
-
-    /// <summary>头部集合</summary>
-    public IDictionary<String, String> Headers { get; set; } = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>性能追踪</summary>
     public ITracer Tracer { get; set; } = HttpHelper.Tracer;
@@ -60,6 +46,13 @@ public class TinyHttpClient : DisposeBase
     #endregion
 
     #region 构造
+    /// <summary>实例化</summary>
+    public TinyHttpClient() { }
+
+    /// <summary>实例化</summary>
+    /// <param name="server"></param>
+    public TinyHttpClient(String server) => BaseAddress = new Uri(server);
+
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
@@ -98,7 +91,7 @@ public class TinyHttpClient : DisposeBase
 
             tc.TryDispose();
             tc = new TcpClient { ReceiveTimeout = (Int32)Timeout.TotalMilliseconds };
-            await tc.ConnectAsync(remote.Address, remote.Port).ConfigureAwait(false);
+            await tc.ConnectAsync(remote.GetAddresses(), remote.Port).ConfigureAwait(false);
 
             Client = tc;
             ns = tc.GetStream();
@@ -149,16 +142,15 @@ public class TinyHttpClient : DisposeBase
     }
 
     /// <summary>异步发出请求，并接收响应</summary>
-    /// <param name="uri"></param>
-    /// <param name="data"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    public virtual async Task<Packet> SendAsync(Uri uri, Packet data)
+    public virtual async Task<HttpResponse> SendAsync(HttpRequest request)
     {
         // 构造请求
-        var req = BuildRequest(uri, data);
+        var uri = request.Url;
+        var req = request.Build();
 
-        StatusCode = -1;
-
+        var res = new HttpResponse();
         Packet rs = null;
         var retry = 5;
         while (retry-- > 0)
@@ -168,12 +160,13 @@ public class TinyHttpClient : DisposeBase
             if (rs == null || rs.Count == 0) return null;
 
             // 解析响应
-            rs = ParseResponse(rs);
+            if (!res.Parse(rs)) return res;
+            rs = res.Body;
 
             // 跳转
-            if (StatusCode is 301 or 302)
+            if (res.StatusCode is HttpStatusCode.Moved or HttpStatusCode.Redirect)
             {
-                if (Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
+                if (res.Headers.TryGetValue("Location", out var location) && !location.IsNullOrEmpty())
                 {
                     // 再次请求
                     var uri2 = new Uri(location);
@@ -181,6 +174,9 @@ public class TinyHttpClient : DisposeBase
                     if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
                     uri = uri2;
+                    request.Url = uri;
+                    req = request.Build();
+
                     continue;
                 }
             }
@@ -188,14 +184,14 @@ public class TinyHttpClient : DisposeBase
             break;
         }
 
-        if (StatusCode != 200) throw new Exception($"{StatusCode} {StatusDescription}");
+        if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
         // 如果没有收完数据包
-        if (ContentLength > 0 && rs.Count < ContentLength)
+        if (res.ContentLength > 0 && rs.Count < res.ContentLength)
         {
             var total = rs.Total;
             var last = rs;
-            while (total < ContentLength)
+            while (total < res.ContentLength)
             {
                 var pk = await SendDataAsync(null, null).ConfigureAwait(false);
                 last.Append(pk);
@@ -206,12 +202,15 @@ public class TinyHttpClient : DisposeBase
         }
 
         // chunk编码
-        if (rs.Count > 0 && Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
+        if (rs.Count > 0 && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
         {
-            rs = await ReadChunkAsync(rs);
+            res.Body = await ReadChunkAsync(rs);
         }
 
-        return rs;
+        // 断开连接
+        if (!KeepAlive) Client.TryDispose();
+
+        return res;
     }
 
     /// <summary>读取分片，返回链式Packet</summary>
@@ -228,9 +227,10 @@ public class TinyHttpClient : DisposeBase
             var chunk = ParseChunk(pk, out var offset, out var len);
             if (len <= 0) break;
 
-            // 更新pk，可能还有粘包数据
-            if (offset + len < pk.Total)
-                pk = pk.Slice(offset + len);
+            // 更新pk，可能还有粘包数据。每一帧数据后面有\r\n
+            var next = offset + len + 2;
+            if (next < pk.Total)
+                pk = pk.Slice(next);
             else
                 pk = null;
 
@@ -270,87 +270,6 @@ public class TinyHttpClient : DisposeBase
     #endregion
 
     #region 辅助
-    /// <summary>构造请求头</summary>
-    /// <param name="uri"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    protected virtual Packet BuildRequest(Uri uri, Packet data)
-    {
-        // GET / HTTP/1.1
-
-        var method = data != null && data.Total > 0 ? "POST" : "GET";
-
-        var header = Pool.StringBuilder.Get();
-        header.AppendLine($"{method} {uri.PathAndQuery} HTTP/1.1");
-        header.AppendLine($"Host: {uri.Host}");
-
-        if (!ContentType.IsNullOrEmpty()) header.AppendLine($"Content-Type: {ContentType}");
-
-        // 主体数据长度
-        if (data != null && data.Total > 0) header.AppendLine($"Content-Length: {data.Total}");
-
-        // 保持连接
-        if (KeepAlive) header.AppendLine("Connection: keep-alive");
-
-        header.Append("\r\n");
-
-        var req = new Packet(header.Put(true).GetBytes());
-
-        // 请求主体数据
-        if (data != null && data.Total > 0) req.Next = data;
-
-        return req;
-    }
-
-    private static readonly Byte[] NewLine4 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
-    private static readonly Byte[] NewLine3 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\n' };
-    /// <summary>解析响应</summary>
-    /// <param name="rs"></param>
-    /// <returns></returns>
-    protected virtual Packet ParseResponse(Packet rs)
-    {
-        var p = rs.IndexOf(NewLine4);
-        // 兼容某些非法响应
-        if (p < 0) p = rs.IndexOf(NewLine3);
-        if (p < 0) return null;
-
-        var str = rs.ToStr(Encoding.ASCII, 0, p);
-        var lines = str.Split("\r\n");
-
-        // HTTP/1.1 502 Bad Gateway
-
-        var ss = lines[0].Split(' ');
-        if (ss.Length < 3) return null;
-
-        // 分析响应码
-        var code = StatusCode = ss[1].ToInt();
-        StatusDescription = ss.Skip(2).Join(" ");
-        //if (code == 302) return null;
-        if (code >= 400) throw new Exception($"{code} {StatusDescription}");
-
-        // 分析头部
-        var hs = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in lines)
-        {
-            var p2 = item.IndexOf(':');
-            if (p2 <= 0) continue;
-
-            var key = item[..p2];
-            var value = item[(p2 + 1)..].Trim();
-
-            hs[key] = value;
-        }
-        Headers = hs;
-
-        var len = -1;
-        if (hs.TryGetValue("Content-Length", out str)) len = str.ToInt(-1);
-        ContentLength = len;
-
-        if (hs.TryGetValue("Connection", out str) && str.EqualIgnoreCase("Close")) Client.TryDispose();
-
-        return rs.Slice(p + 4, len);
-    }
-
     private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
     private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
     {
@@ -382,54 +301,93 @@ public class TinyHttpClient : DisposeBase
     /// <returns></returns>
     public async Task<String> GetStringAsync(String url)
     {
-        var uri = new Uri(url);
+        var request = new HttpRequest
+        {
+            Url = new Uri(url),
+        };
 
-        return (await SendAsync(uri, null).ConfigureAwait(false))?.ToStr();
+        var rs = (await SendAsync(request).ConfigureAwait(false));
+        return rs?.Body?.ToStr();
     }
     #endregion
 
     #region 远程调用
-    /// <summary>同步调用，阻塞等待。连接池操作</summary>
+    /// <summary>异步调用，等待返回结果</summary>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="method">Get/Post</param>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> InvokeAsync<TResult>(String action, Object args = null)
+    public async Task<TResult> InvokeAsync<TResult>(String method, String action, Object args = null)
     {
         if (BaseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
 
-        var uri = new Uri(BaseAddress, action);
+        var request = BuildRequest(method, action, args);
 
-        // 序列化参数，决定GET/POST
-        Packet pk = null;
-        if (args != null)
+        var rs = await SendAsync(request);
+
+        if (rs == null || rs.Body == null || rs.Body.Total == 0) return default;
+
+        return ProcessResponse<TResult>(rs.Body);
+    }
+
+    private HttpRequest BuildRequest(String method, String action, Object args)
+    {
+        var req = new HttpRequest
         {
-            var ps = args.ToDictionary();
-            if (ps.Any(e => e.Value != null && e.Value.GetType().GetTypeCode() == TypeCode.Object))
-                pk = ps.ToJson().GetBytes();
-            else
+            Method = method.ToUpper(),
+            Url = new Uri(BaseAddress, action),
+            KeepAlive = KeepAlive,
+        };
+
+        var ps = args.ToDictionary();
+        if (method.EqualIgnoreCase("Post"))
+            req.Body = ps.ToJson().GetBytes();
+        else
+        {
+            var sb = Pool.StringBuilder.Get();
+            sb.Append(action);
+            sb.Append('?');
+
+            var first = true;
+            foreach (var item in ps)
             {
-                var sb = Pool.StringBuilder.Get();
-                sb.Append(uri);
-                sb.Append('?');
+                if (!first) sb.Append('&');
+                first = false;
 
-                var first = true;
-                foreach (var item in ps)
-                {
-                    if (!first) sb.Append('&');
-                    first = false;
-
-                    var v = item.Value is DateTime dt ? dt.ToFullString() : (item.Value + "");
-                    sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
-                }
-
-                uri = new Uri(sb.Put(true));
+                var v = item.Value is DateTime dt ? dt.ToFullString() : (item.Value + "");
+                sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
             }
+
+            req.Url = new Uri(BaseAddress, sb.Put(true));
         }
 
-        var rs = await SendAsync(uri, pk);
-        if (rs == null || rs.Total == 0) return default;
+        return req;
+    }
 
-        return ApiHelper.ProcessResponse<TResult>(rs.ToStr(), null, null);
+    private TResult ProcessResponse<TResult>(Packet rs)
+    {
+        var str = rs.ToStr();
+        if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
+
+        // 反序列化
+        var dic = JsonParser.Decode(str);
+        if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+
+        if (dic.TryGetValue("result", out var result))
+        {
+            if (result is Boolean res && !res) throw new InvalidOperationException($"远程错误，{data}");
+        }
+        else if (dic.TryGetValue("code", out var code))
+        {
+            if (code is Int32 cd && cd != 0) throw new ApiException(cd, data + "");
+        }
+        else
+        {
+            throw new InvalidDataException("未识别响应数据");
+        }
+
+        return JsonHelper.Convert<TResult>(data);
     }
     #endregion
 
