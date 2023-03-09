@@ -191,8 +191,8 @@ namespace NewLife.Model
             {
                 Loop();
             }
-            catch (OperationCanceledException) { span?.SetError(null, nameof(OperationCanceledException)); }
-            catch (InvalidOperationException) { span?.SetError(null, nameof(InvalidOperationException)); /*CompleteAdding后Take会抛出IOE异常*/}
+            catch (OperationCanceledException) { }
+            catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {
                 span?.SetError(ex, null);
