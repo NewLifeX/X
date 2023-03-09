@@ -461,6 +461,25 @@ namespace NewLife
             return str;
         }
 
+        /// <summary>修剪不可见字符。仅修剪ASCII，不包含Unicode</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static String TrimInvisible(this String value)
+        {
+            if (String.IsNullOrEmpty(value)) return value;
+
+            var builder = new StringBuilder();
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                // 可见字符。ASCII码中，第0～31号及第127号(共33个)是控制字符或通讯专用字符
+                if (value[i] is > (Char)31 and not (Char)127)
+                    builder.Append(value[i]);
+            }
+
+            return builder.ToString();
+        }
+
         /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
         /// <remarks>常用于截取xml某一个元素等操作</remarks>
         /// <param name="str">目标字符串</param>

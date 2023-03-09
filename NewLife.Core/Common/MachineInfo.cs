@@ -10,7 +10,6 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Runtime.Versioning;
-using System;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -203,7 +202,18 @@ public class MachineInfo
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
         }
 
-        // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+        // 裁剪不可见字符，顺带去掉两头空白
+        OSName = OSName.TrimInvisible()?.Trim();
+        OSVersion = OSVersion.TrimInvisible()?.Trim();
+        Product = Product.TrimInvisible()?.Trim();
+        Processor = Processor.TrimInvisible()?.Trim();
+        UUID = UUID.TrimInvisible()?.Trim();
+        Guid = Guid.TrimInvisible()?.Trim();
+        Serial = Serial.TrimInvisible()?.Trim();
+        Board = Board.TrimInvisible()?.Trim();
+        DiskID = DiskID.TrimInvisible()?.Trim();
+
+        // 无法读取系统标识时，随机生成一个guid，借助文件缓存确保其不变
         if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
         if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
 
@@ -744,7 +754,7 @@ public class MachineInfo
                 {
                     var key = line[..p].Trim();
                     var value = line[(p + 1)..].Trim();
-                    dic[key] = value;
+                    dic[key] = value.TrimInvisible();
                 }
             }
         }
@@ -814,9 +824,9 @@ public class MachineInfo
         foreach (var item in dic)
         {
             if (item.Value.Contains(','))
-                dic2[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
+                dic2[item.Key] = item.Value.Split(',').OrderBy(e => e.TrimInvisible()).Join();
             else
-                dic2[item.Key] = item.Value;
+                dic2[item.Key] = item.Value.TrimInvisible();
         }
 
         return dic2;
@@ -1031,7 +1041,7 @@ public class MachineInfo
             foreach (var mo in moc)
             {
                 var val = mo?.Properties?[property]?.Value;
-                if (val != null) bbs.Add(val.ToString().Trim());
+                if (val != null) bbs.Add(val.ToString().TrimInvisible().Trim());
             }
         }
         catch (Exception ex)
