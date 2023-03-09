@@ -155,10 +155,19 @@ public class HttpConfigProvider : ConfigProvider
             foreach (var item in ns)
             {
                 var action = $"/configfiles/json/{AppId}/default/{item}";
-                var rs = client.Get<IDictionary<String, Object>>(action);
-                foreach (var elm in rs)
+                try
                 {
-                    if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                    var rs = client.Get<IDictionary<String, Object>>(action);
+                    foreach (var elm in rs)
+                    {
+                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+
+                    return null;
                 }
             }
             Info = dic;
