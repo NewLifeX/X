@@ -147,21 +147,30 @@ namespace NewLife.Configuration
         {
             var client = GetClient() as ApiHttpClient;
 
-            // 特殊处理Apollo
-            if (!NameSpace.IsNullOrEmpty())
+        // 特殊处理Apollo
+        if (!NameSpace.IsNullOrEmpty())
+        {
+            var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
+            var dic = new Dictionary<String, Object>();
+            foreach (var item in ns)
             {
-                var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
-                var dic = new Dictionary<String, Object>();
-                foreach (var item in ns)
+                var action = $"/configfiles/json/{AppId}/default/{item}";
+                try
                 {
-                    var action = $"/configfiles/json/{AppId}/default/{item}";
                     var rs = client.Get<IDictionary<String, Object>>(action);
                     foreach (var elm in rs)
                     {
                         if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
                     }
                 }
-                Info = dic;
+                catch (Exception ex)
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+
+                    return null;
+                }
+            }
+            Info = dic;
 
                 return dic;
             }
