@@ -1,15 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Threading.Tasks;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using System.Net.NetworkInformation;
-#if NET40_OR_GREATER
+#if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
 using Microsoft.Win32;
@@ -195,7 +192,18 @@ public class MachineInfo
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
         }
 
-        // window+netcore 不方便读取注册表，随机生成一个guid，借助文件缓存确保其不变
+        // 裁剪不可见字符，顺带去掉两头空白
+        OSName = OSName.TrimInvisible()?.Trim();
+        OSVersion = OSVersion.TrimInvisible()?.Trim();
+        Product = Product.TrimInvisible()?.Trim();
+        Processor = Processor.TrimInvisible()?.Trim();
+        UUID = UUID.TrimInvisible()?.Trim();
+        Guid = Guid.TrimInvisible()?.Trim();
+        Serial = Serial.TrimInvisible()?.Trim();
+        Board = Board.TrimInvisible()?.Trim();
+        DiskID = DiskID.TrimInvisible()?.Trim();
+
+        // 无法读取系统标识时，随机生成一个guid，借助文件缓存确保其不变
         if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
         if (UUID.IsNullOrEmpty()) UUID = "0-" + System.Guid.NewGuid().ToString();
 
@@ -687,7 +695,7 @@ public class MachineInfo
                 {
                     var key = line.Substring(0, p).Trim();
                     var value = line.Substring(p + 1).Trim();
-                    dic[key] = value;
+                    dic[key] = value.TrimInvisible();
                 }
             }
         }
@@ -755,9 +763,9 @@ public class MachineInfo
         foreach (var item in dic)
         {
             if (item.Value.Contains(','))
-                dic2[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
+                dic2[item.Key] = item.Value.Split(',').OrderBy(e => e.TrimInvisible()).Join();
             else
-                dic2[item.Key] = item.Value;
+                dic2[item.Key] = item.Value.TrimInvisible();
         }
 
         return dic2;
@@ -883,23 +891,23 @@ public class MachineInfo
             // Linux Mono不支持WMI
             if (Runtime.Mono) return "";
 
-            var bbs = new List<String>();
-            try
+        var bbs = new List<String>();
+        try
+        {
+            var wql = $"Select {property} From {path}";
+            var cimobject = new ManagementObjectSearcher(nameSpace, wql);
+            var moc = cimobject.Get();
+            foreach (var mo in moc)
             {
-                var wql = $"Select {property} From {path}";
-                var cimobject = new ManagementObjectSearcher(nameSpace, wql);
-                var moc = cimobject.Get();
-                foreach (var mo in moc)
-                {
-                    var val = mo?.Properties?[property]?.Value;
-                    if (val != null) bbs.Add(val.ToString().Trim());
-                }
+                var val = mo?.Properties?[property]?.Value;
+                if (val != null) bbs.Add(val.ToString().TrimInvisible().Trim());
             }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
-                return "";
-            }
+        }
+        catch (Exception ex)
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("WMI.GetInfo({0})失败！{1}", path, ex.Message);
+            return "";
+        }
 
             bbs.Sort();
 

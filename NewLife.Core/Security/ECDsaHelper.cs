@@ -37,19 +37,11 @@ namespace NewLife.Security
             {
                 var ek = ReadPem(key);
 
-#if __CORE__
-                // netcore下优先使用ExportParameters，CngKey.Import有兼容问题
-                var ec = new ECDsaCng();
-                ec.ImportParameters(ek.ExportParameters());
-
-                return ec;
-#else
                 var buf = ek.ToArray();
 
                 var ckey = CngKey.Import(buf, ek.D == null ? CngKeyBlobFormat.EccPublicBlob : CngKeyBlobFormat.EccPrivateBlob);
 
                 return new ECDsaCng(ckey);
-#endif
             }
             else
             {
