@@ -30,8 +30,9 @@ public class TinyHttpClientTest
     public async void SendAsyncTest()
     {
         var uri = new Uri("http://newlifex.com");
+        var req = new HttpRequest { Url = uri };
         var client = new TinyHttpClient { Timeout = TimeSpan.FromSeconds(3), Log = XTrace.Log };
-        var html = (await client.SendAsync(uri, null))?.ToStr();
+        var html = (await client.SendAsync(req))?.Body.ToStr();
 
         Assert.True(!html.IsNullOrEmpty() && html.Length > 500);
         Assert.Equal(uri, client.BaseAddress);
