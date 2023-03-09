@@ -25,6 +25,14 @@ namespace NewLife.Net
         /// <summary>收发日志数据体长度。默认64</summary>
         [Description("收发日志数据体长度。默认64")]
         public Int32 LogDataLength { get; set; } = 64;
+
+        /// <summary>启用Http压缩。内部新建的HttpClient将自动添加接受压缩的头部，并在响应中对压缩进行解码，默认true</summary>
+        [Description("启用Http压缩。内部新建的HttpClient将自动添加接受压缩的头部，并在响应中对压缩进行解码，默认true")]
+        public Boolean EnableHttpCompression { get; set; } = true;
+
+        /// <summary>自动启用GZip压缩的请求体大小。默认1024，用0表示不压缩</summary>
+        [Description("自动启用GZip压缩的请求体大小。默认1024，用0表示不压缩")]
+        public Int32 AutoGZip { get; set; } = 1024;
         #endregion
 
         #region 方法

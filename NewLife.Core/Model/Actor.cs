@@ -169,6 +169,7 @@ namespace NewLife.Model
             {
                 Loop();
             }
+            catch (OperationCanceledException) { }
             catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {

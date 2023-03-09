@@ -129,7 +129,7 @@ public class DefaultSpan : ISpan
         {
             ip = IPAddress.Loopback;
         }
-        if (ip == null) ip = IPAddress.Parse("127.0.0.1");
+        ip ??= IPAddress.Parse("127.0.0.1");
         _myip = ip.GetAddressBytes().ToHex().ToLower().PadLeft(8, '0');
         var pid = Process.GetCurrentProcess().Id;
         _pid = (pid & 0xFFFF).ToString("x4").PadLeft(4, '0');
@@ -227,6 +227,13 @@ public class DefaultSpan : ISpan
     public virtual void SetError(Exception ex, Object tag)
     {
         Error = ex?.GetMessage();
+
+        if (ex != null)
+        {
+            // 所有异常，独立记录埋点，便于按异常分类统计
+            using var span = Builder?.Tracer?.NewSpan(ex.GetType().Name, tag);
+            if (span != null) span.StartTime = StartTime;
+        }
 
         SetTag(tag);
     }
