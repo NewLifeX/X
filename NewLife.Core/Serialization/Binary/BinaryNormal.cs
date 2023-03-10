@@ -18,7 +18,8 @@ namespace NewLife.Serialization
         {
             if (type == typeof(Guid))
             {
-                Write(((Guid)value).ToByteArray(), -1);
+                if (value is not Guid guid) guid = Guid.Empty;
+                Write(guid.ToByteArray(), -1);
                 return true;
             }
             else if (type == typeof(Byte[]))
