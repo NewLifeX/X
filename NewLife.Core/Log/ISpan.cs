@@ -231,7 +231,7 @@ public class DefaultSpan : ISpan
         if (ex != null)
         {
             // 所有异常，独立记录埋点，便于按异常分类统计
-            using var span = Builder?.Tracer?.NewSpan(ex.GetType().Name, tag);
+            using var span = Builder?.Tracer?.NewSpan("ex:" + ex.GetType().Name, tag ?? ex.ToString());
             if (span != null) span.StartTime = StartTime;
         }
 
