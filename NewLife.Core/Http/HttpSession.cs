@@ -58,7 +58,7 @@ namespace NewLife.Http
             {
                 req = Request = request;
 
-                WriteLog("{0} {1}", request.Method, request.Url);
+                WriteLog("{0} {1}", request.Method, request.RequestUri);
 
                 _websocket = null;
                 OnNewRequest(request, e);
@@ -130,11 +130,11 @@ namespace NewLife.Http
         /// <returns></returns>
         protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
         {
-            if (request?.Url == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+            if (request?.RequestUri == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
             // 匹配路由处理器
             var server = (this as INetSession).Host as HttpServer;
-            var path = request.Url.OriginalString;
+            var path = request.RequestUri.OriginalString;
             var p = path.IndexOf('?');
             if (p > 0) path = path[..p];
 
@@ -147,7 +147,7 @@ namespace NewLife.Http
 
                 if (span is DefaultSpan ds && ds.TraceFlag > 0)
                 {
-                    var tag = $"{Remote.EndPoint} {request.Method} {request.Url.OriginalString}";
+                    var tag = $"{Remote.EndPoint} {request.Method} {request.RequestUri.OriginalString}";
 
                     if (request.BodyLength > 0 && 
                         request.Body != null && 
@@ -213,7 +213,7 @@ namespace NewLife.Http
             //ps.Merge(req.Headers);
 
             // 地址参数
-            var url = req.Url.OriginalString;
+            var url = req.RequestUri.OriginalString;
             var p = url.IndexOf('?');
             if (p > 0)
             {
