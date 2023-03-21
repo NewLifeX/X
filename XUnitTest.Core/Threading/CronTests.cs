@@ -10,6 +10,22 @@ namespace XUnitTest.Threading;
 
 public class CronTests
 {
+
+    [Fact]
+    public void GetPreviousTest()
+    {
+        var cron = new Cron();
+        var b = cron.Parse("0 0 16 * * ? ");
+        var ss = cron.GetNext(DateTime.Now);
+
+        var s = cron.GetPrevious(DateTime.Now);
+        var aa = s.ToString();
+        //Assert.True(cron.IsTime(DateTime.Parse("11:00:00 10/12/2008")));
+        //Assert.False(cron.IsTime(DateTime.Parse("11:01:00 10/12/2008")));
+    }
+
+
+
     [Theory]
     [InlineData("*/2")]
     [InlineData("* * * * *")]
