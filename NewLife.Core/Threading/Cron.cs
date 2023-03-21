@@ -280,5 +280,45 @@ public class Cron
 
         return DateTime.MinValue;
     }
+
+    /// <summary>获得与<see cref="time"/>时间符合表达式的最远时间（秒级）
+    /// 
+    /// </summary>
+    /// <param name="time"></param>
+    public DateTime GetPrevious(DateTime time)
+    {
+        // 如果指定时间带有毫秒，则向前对齐。如09:14.123格式化为09:15，计算下一次就从09:16开始
+        var start = time.Trim();
+        if (start != time)
+            start = start.AddSeconds(-1);
+        else
+            start = start.AddSeconds(-2);
+
+        // 设置末尾，避免死循环越界
+        var end = time.AddYears(-1);
+        var last = false;
+        for (var dt = start; dt > end; dt = dt.AddSeconds(-1))//过去一年内
+        {
+            if (last == false)
+            {
+                last = IsTime(dt);//找真值
+            }
+            else
+            {
+                if (IsTime(dt) == false)//真值找到了找假值
+                {
+                    return dt.AddSeconds(1);//减多了，返回真值
+                }
+            }
+            //if (last == true && IsTime(dt) == false) return dt.AddSeconds(1);
+            //last = IsTime(dt);
+        }
+
+        return DateTime.MinValue;
+    }
+
+
+
+
     #endregion
 }
