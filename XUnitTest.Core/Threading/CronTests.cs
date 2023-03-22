@@ -210,6 +210,22 @@ public class CronTests
         Assert.False(cron.IsTime(DateTime.Parse("00:00:00 3/22/2023")));
         Assert.False(cron.IsTime(DateTime.Parse("00:00:00 3/29/2023")));
 
+        cron = new Cron("0 0 0 ? ? 1-7#1");//每月第一周的任意一天（周一~周日）
+        Assert.False(cron.IsTime(DateTime.Parse("00:00:00 2/27/2023")));
+        Assert.False(cron.IsTime(DateTime.Parse("00:00:00 2/28/2023")));
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/1/2023")));
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/2/2023")));
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/3/2023")));
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/4/2023")));
+     Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/5/2023")));//3月5日是周日 如果认为是第二周第一天，则应该为false、
+                                                                   //同时，6、7都为第二周，也应为false
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/6/2023")));
+        Assert.True(cron.IsTime(DateTime.Parse("00:00:00 3/7/2023")));
+        Assert.False(cron.IsTime(DateTime.Parse("00:00:00 3/8/2023")));
+        Assert.False(cron.IsTime(DateTime.Parse("00:00:00 3/9/2023")));
+
+
+
         // 每个月倒数第二个星期三到星期五
         cron = new Cron("0 0 0 ? ? 3-5#L2");
         Assert.False(cron.IsTime(DateTime.Parse("00:00:00 3/8/2023")));
