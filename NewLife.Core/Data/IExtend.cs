@@ -55,7 +55,7 @@ public static class ExtendHelper
         if (extend is IExtend3 ext3) return ext3.Items;
 
         // IExtend2
-        if (extend is IExtend2 ext2)
+        if (extend is IExtend2 ext2 && ext2.Keys != null)
         {
             var dic = new Dictionary<String, Object>();
             foreach (var item in ext2.Keys)
