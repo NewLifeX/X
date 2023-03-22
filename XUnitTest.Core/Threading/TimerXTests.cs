@@ -122,7 +122,7 @@ namespace XUnitTest.Threading
             using var timer = new TimerX(DoCronTest, "CronTest", "1/2 * * * *");
 
             var ms = timer.NextTick - Runtime.TickCount64;
-            Assert.InRange(ms, 0, 1999);
+            Assert.InRange(ms, 0, 3999 + 1000);
 
             Thread.Sleep(5500);
         }

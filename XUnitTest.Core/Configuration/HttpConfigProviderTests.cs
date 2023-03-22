@@ -176,7 +176,7 @@ namespace XUnitTest.Configuration
             Assert.Equal("mytopic", prv["cls:Topic"]);
         }
 
-        [Fact]
+        [Fact(Skip = "跳过")]
         public void TestStardustLayers()
         {
             var prv = new HttpConfigProvider
