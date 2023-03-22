@@ -220,7 +220,7 @@ public class Cron
         }
 
         // 第几个星期几
-        var index = -1;
+        var index = 0;
         p = v.IndexOf('#');
         if (p > 0)
         {
@@ -316,9 +316,5 @@ public class Cron
 
         return DateTime.MinValue;
     }
-
-
-
-
     #endregion
 }
