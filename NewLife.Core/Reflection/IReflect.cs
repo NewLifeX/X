@@ -527,52 +527,39 @@ public class DefaultReflect : IReflect
         {
             var sourceType = source.GetType();
 
-            if (target is IExtend2 ext2)
+            // 借助IExtend优化取值赋值
+            if (target is IExtend dst)
             {
-                if (source is IExtend ext)
+                var pis = sourceType.GetProperties(true);
+                foreach (var pi in targetType.GetProperties(true))
                 {
-                    foreach (var item in ext2.Keys)
-                    {
-                        if (excludes != null && excludes.Contains(item)) continue;
+                    if (excludes != null && excludes.Contains(pi.Name)) continue;
 
-                        ext2[item] = ext[item];
-                    }
-                }
-                else
-                {
-                    var pis = sourceType.GetProperties(true);
-                    foreach (var item in ext2.Keys)
+                    if (source is IExtend src)
+                        dst[pi.Name] = src[pi.Name];
+                    else
                     {
-                        if (excludes != null && excludes.Contains(item)) continue;
-
-                        var pi = pis.FirstOrDefault(e => e.Name == item);
-                        if (pi != null) ext2[item] = GetValue(source, pi);
+                        var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
+                        if (pi2 != null && pi2.CanRead)
+                            dst[pi.Name] = GetValue(source, pi2);
                     }
                 }
             }
             else
             {
-                if (source is IExtend ext)
+                var pis = sourceType.GetProperties(true);
+                foreach (var pi in targetType.GetProperties(true))
                 {
-                    foreach (var pi in targetType.GetProperties(true))
-                    {
-                        if (!pi.CanWrite) continue;
-                        if (excludes != null && excludes.Contains(pi.Name)) continue;
+                    if (!pi.CanWrite) continue;
+                    if (excludes != null && excludes.Contains(pi.Name)) continue;
+                    //if (pi.GetIndexParameters().Length > 0) continue;
+                    //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
+                    //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                        SetValue(target, pi, ext[pi.Name]);
-                    }
-                }
-                else
-                {
-                    var pis = sourceType.GetProperties(true);
-                    foreach (var pi in targetType.GetProperties(true))
+                    if (source is IExtend src)
+                        SetValue(target, pi, src[pi.Name]);
+                    else
                     {
-                        if (!pi.CanWrite) continue;
-                        if (excludes != null && excludes.Contains(pi.Name)) continue;
-                        //if (pi.GetIndexParameters().Length > 0) continue;
-                        //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-                        //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
-
                         var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
                         if (pi2 != null && pi2.CanRead)
                             SetValue(target, pi, GetValue(source, pi2));
