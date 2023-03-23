@@ -347,35 +347,35 @@ namespace NewLife.Serialization
                 }
             }
 
-            // 扩展数据
-            if (obj is IExtend3 ext3 && ext3.Items != null)
+        // 扩展数据
+        if (obj is IExtend ext3 && ext3.Items != null)
+        {
+            // 提前拷贝，避免遍历中改变集合
+            var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
+            foreach (var item in dic)
             {
-                // 提前拷贝，避免遍历中改变集合
-                var dic = ext3.Items.ToDictionary(e => e.Key, e => e.Value);
-                foreach (var item in dic)
+                var name = FormatName(item.Key);
+                if (!hs.Contains(name))
                 {
-                    var name = FormatName(item.Key);
-                    if (!hs.Contains(name))
-                    {
-                        hs.Add(name);
-                        WriteMember(name, item.Value, null, ref first);
-                    }
+                    hs.Add(name);
+                    WriteMember(name, item.Value, null, ref first);
                 }
             }
-            else if (obj is IExtend2 ext2 && ext2.Keys != null)
-            {
-                // 提前拷贝，避免遍历中改变集合
-                var keys = ext2.Keys.ToArray();
-                foreach (var item in keys)
-                {
-                    var name = FormatName(item);
-                    if (!hs.Contains(name))
-                    {
-                        hs.Add(name);
-                        WriteMember(name, ext2[item], null, ref first);
-                    }
-                }
-            }
+        }
+        //else if (obj is IExtend2 ext2 && ext2.Keys != null)
+        //{
+        //    // 提前拷贝，避免遍历中改变集合
+        //    var keys = ext2.Keys.ToArray();
+        //    foreach (var item in keys)
+        //    {
+        //        var name = FormatName(item);
+        //        if (!hs.Contains(name))
+        //        {
+        //            hs.Add(name);
+        //            WriteMember(name, ext2[item], null, ref first);
+        //        }
+        //    }
+        //}
 
             WriteRightIndent();
             _Builder.Append('}');
