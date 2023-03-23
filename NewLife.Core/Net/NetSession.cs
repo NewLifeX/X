@@ -17,7 +17,7 @@ public class NetSession<TServer> : NetSession where TServer : NetServer
 /// <remarks>
 /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
 /// </remarks>
-public class NetSession : DisposeBase, INetSession, IExtend3
+public class NetSession : DisposeBase, INetSession, IExtend
 {
     #region 属性
     /// <summary>唯一会话标识</summary>

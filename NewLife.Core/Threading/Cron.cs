@@ -281,9 +281,7 @@ public class Cron
         return DateTime.MinValue;
     }
 
-    /// <summary>获得与<see cref="time"/>时间符合表达式的最远时间（秒级）
-    /// 
-    /// </summary>
+    /// <summary>获得与指定时间时间符合表达式的最远时间（秒级）</summary>
     /// <param name="time"></param>
     public DateTime GetPrevious(DateTime time)
     {

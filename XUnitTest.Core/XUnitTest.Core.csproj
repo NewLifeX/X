@@ -38,6 +38,7 @@
     <Compile Remove="Algorithms\LttbDownSamplingTests.cs" />
     <Compile Remove="Caching\RedisTest.cs" />
     <Compile Remove="Collections\BloomFilterTests.cs" />
+    <Compile Remove="Data\IExtendTests.cs" />
     <Compile Remove="Http\HttpCodecTests.cs" />
     <Compile Remove="Model\HostTests.cs" />
     <Compile Remove="PacketTest.cs" />

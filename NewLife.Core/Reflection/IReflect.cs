@@ -527,15 +527,15 @@ public class DefaultReflect : IReflect
         {
             var sourceType = source.GetType();
 
-            // 借助IExtend优化取值赋值
-            if (target is IExtend dst)
+            // 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
+            if (target is IModel dst && target is not IExtend)
             {
                 var pis = sourceType.GetProperties(true);
                 foreach (var pi in targetType.GetProperties(true))
                 {
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
 
-                    if (source is IExtend src)
+                    if (source is IModel src)
                         dst[pi.Name] = src[pi.Name];
                     else
                     {
@@ -556,7 +556,7 @@ public class DefaultReflect : IReflect
                     //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
                     //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                    if (source is IExtend src)
+                    if (source is IModel src)
                         SetValue(target, pi, src[pi.Name]);
                     else
                     {

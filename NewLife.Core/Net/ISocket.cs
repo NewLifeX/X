@@ -65,7 +65,7 @@ namespace NewLife.Net
     }
 
     /// <summary>远程通信Socket，仅具有收发功能</summary>
-    public interface ISocketRemote : ISocket, IExtend3
+    public interface ISocketRemote : ISocket, IExtend
     {
         #region 属性
         /// <summary>标识</summary>
