@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -57,7 +58,10 @@ public class CsvDb<T> where T : new()
         // 写入数据
         foreach (var item in models)
         {
-            csv.WriteLine(pis.Select(e => item.GetValue(e)));
+            if (item is IModel src)
+                csv.WriteLine(pis.Select(e => src[e.Name]));
+            else
+                csv.WriteLine(pis.Select(e => item.GetValue(e)));
         }
 
         csv.TryDispose();
@@ -222,7 +226,10 @@ public class CsvDb<T> where T : new()
                             var name = SerialHelper.GetName(pi);
                             if (pi.CanWrite && headers.TryGetValue(name, out var idx) && idx < ss.Length)
                             {
-                                model.SetValue(pi, ss[idx]);
+                                if (model is IModel dst)
+                                    dst[pi.Name] = ss[idx];
+                                else
+                                    model.SetValue(pi, ss[idx]);
                             }
                         }
 

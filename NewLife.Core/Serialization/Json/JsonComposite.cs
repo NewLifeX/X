@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using NewLife.Data;
 using NewLife.Reflection;
 using NewLife.Serialization.Interface;
 
@@ -91,7 +92,7 @@ public class JsonComposite : JsonHandlerBase
             var mtype = GetMemberType(member);
             context.Member = Host.Member = member;
 
-            var v = value.GetValue(member);
+            var v = value is IModel src ? src[member.Name] : value.GetValue(member);
             WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
             // 成员访问器优先
@@ -155,7 +156,10 @@ public class JsonComposite : JsonHandlerBase
                 return false;
             }
 
-            value.SetValue(member, v);
+            if (value is IModel dst)
+                dst[member.Name] = v;
+            else
+                value.SetValue(member, v);
         }
         Host.Hosts.Pop();
 

@@ -1,5 +1,4 @@
-﻿using System;
-using NewLife.Reflection;
+﻿using NewLife.Reflection;
 
 namespace NewLife.Serialization;
 
