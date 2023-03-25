@@ -116,7 +116,7 @@ namespace NewLife.Serialization
             var size = 0;
             if (value is String)
             {
-                if (encoding == null) encoding = Encoding.UTF8;
+                encoding ??= Encoding.UTF8;
 
                 size = encoding.GetByteCount("" + value);
             }

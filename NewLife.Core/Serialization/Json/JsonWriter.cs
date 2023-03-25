@@ -332,12 +332,12 @@ namespace NewLife.Serialization
             {
                 if (IgnoreReadOnlyProperties && pi.CanRead && !pi.CanWrite) continue;
 
-                var value = obj.GetValue(pi);
-                if (!IgnoreNullValues || !IsNull(value))
-                {
-                    var name = FormatName(SerialHelper.GetName(pi));
-                    String comment = null;
-                    if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
+            var value = obj is IModel src ? src[pi.Name] : obj.GetValue(pi);
+            if (!IgnoreNullValues || !IsNull(value))
+            {
+                var name = FormatName(SerialHelper.GetName(pi));
+                String comment = null;
+                if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
                     if (!hs.Contains(name))
                     {

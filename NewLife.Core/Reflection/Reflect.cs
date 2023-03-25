@@ -266,7 +266,7 @@ public static class Reflect
             target = null;
         }
 
-        if (target is IModel model && member is PropertyInfo) return model[member.Name];
+        //if (target is IModel model && member is PropertyInfo) return model[member.Name];
 
         if (member is PropertyInfo)
             return Provider.GetValue(target, member as PropertyInfo);
@@ -286,12 +286,12 @@ public static class Reflect
     {
         if (String.IsNullOrEmpty(name)) return false;
 
-        // 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
-        if (target is IModel model && target is not IExtend)
-        {
-            model[name] = value;
-            return true;
-        }
+        //// 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
+        //if (target is IModel model && target is not IExtend)
+        //{
+        //    model[name] = value;
+        //    return true;
+        //}
 
         var type = GetType(ref target);
 
@@ -311,10 +311,11 @@ public static class Reflect
     [DebuggerHidden]
     public static void SetValue(this Object target, MemberInfo member, Object value)
     {
-        // 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
-        if (target is IModel model && target is not IExtend && member is PropertyInfo)
-            model[member.Name] = value;
-        else if (member is PropertyInfo)
+        //// 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
+        //if (target is IModel model && target is not IExtend && member is PropertyInfo)
+        //    model[member.Name] = value;
+        //else 
+        if (member is PropertyInfo)
             Provider.SetValue(target, member as PropertyInfo, value);
         else if (member is FieldInfo)
             Provider.SetValue(target, member as FieldInfo, value);

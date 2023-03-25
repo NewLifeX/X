@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Serialization;
-using NewLife.Collections;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization
@@ -95,8 +94,8 @@ namespace NewLife.Serialization
                 var mtype = GetMemberType(member);
                 context.Member = Host.Member = member;
 
-                var v = value.GetValue(member);
-                WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
+            var v = value is IModel src ? src[member.Name] : value.GetValue(member);
+            WriteLog("    {0}.{1} {2}", type.Name, member.Name, v);
 
                 // 成员访问器优先
                 if (value is IMemberAccessor ac && ac.Read(Host, context)) continue;
@@ -159,9 +158,12 @@ namespace NewLife.Serialization
                     return false;
                 }
 
+            if (value is IModel dst)
+                dst[member.Name] = v;
+            else
                 value.SetValue(member, v);
-            }
-            Host.Hosts.Pop();
+        }
+        Host.Hosts.Pop();
 
             return true;
         }

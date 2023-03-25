@@ -535,14 +535,9 @@ public class DefaultReflect : IReflect
                 {
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
 
-                    if (source is IModel src)
-                        dst[pi.Name] = src[pi.Name];
-                    else
-                    {
-                        var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
-                        if (pi2 != null && pi2.CanRead)
-                            dst[pi.Name] = GetValue(source, pi2);
-                    }
+                    var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
+                    if (pi2 != null && pi2.CanRead)
+                        dst[pi.Name] = source is IModel src ? src[pi2.Name] : GetValue(source, pi2);
                 }
             }
             else
@@ -556,14 +551,9 @@ public class DefaultReflect : IReflect
                     //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
                     //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                    if (source is IModel src)
-                        SetValue(target, pi, src[pi.Name]);
-                    else
-                    {
-                        var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
-                        if (pi2 != null && pi2.CanRead)
-                            SetValue(target, pi, GetValue(source, pi2));
-                    }
+                    var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
+                    if (pi2 != null && pi2.CanRead)
+                        SetValue(target, pi, source is IModel src ? src[pi2.Name] : GetValue(source, pi2));
                 }
             }
             return;
@@ -604,6 +594,7 @@ public class DefaultReflect : IReflect
                 if (deep && pi.PropertyType.GetTypeCode() == TypeCode.Object)
                 {
                     var v = GetValue(target, pi);
+
                     // 如果目标对象该成员为空，需要创建再拷贝
                     if (v == null)
                     {
