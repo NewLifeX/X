@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net45;net5.0;net6.0</TargetFrameworks>
-    <OutputPath>..\..\Test\</OutputPath>
+    <TargetFrameworks>net40</TargetFrameworks>
+    <OutputPath>..\Bin\Test\</OutputPath>
     <LangVersion>latest</LangVersion>
     <Version>1.0.0.1130</Version>
     <FileVersion>1.0.0.1130</FileVersion>
@@ -35,7 +35,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
-    <ProjectReference Include="..\XCode\XCode.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.Development.json">
@@ -50,9 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="1.5.2021.1109" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(TargetDir)*.xml&quot; /q" />

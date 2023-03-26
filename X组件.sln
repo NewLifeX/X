@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Core", "NewLife.Cor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLife.Security", "NewLife.Security\NewLife.Security.csproj", "{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,18 @@ Global
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Release|iPhone.Build.0 = Release|Any CPU
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{13D57F4A-2A7C-46FE-8472-DD3BA67F939D}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|iPhone.Build.0 = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{2B016DC9-ABB8-4E09-AFE5-76C721DE6A16}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

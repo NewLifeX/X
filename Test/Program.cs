@@ -4,32 +4,20 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
-using NewLife.IO;
 using NewLife.Log;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
-using XCode.DataAccessLayer;
-using XCode.Membership;
-using XCode.Code;
-using System.Security.Cryptography;
-using NewLife.Data;
-using System.Threading.Tasks;
-using NewLife.Configuration;
-using System.Text;
-using NewLife.Http;
-using System.Net.WebSockets;
-using XCode;
-using XCode.Cache;
-using Stardust;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -45,8 +33,8 @@ namespace Test
 
             XTrace.UseConsole();
 
-            var star = new StarFactory(null, null, null);
-            DefaultTracer.Instance = star?.Tracer;
+            //var star = new StarFactory(null, null, null);
+            //DefaultTracer.Instance = star?.Tracer;
             //(star.Tracer as StarTracer).AttachGlobal();
 
 #if DEBUG
@@ -82,7 +70,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -119,7 +107,7 @@ namespace Test
             var ts = new List<Task>();
             for (var i = 0; i < Environment.ProcessorCount; i++)
             {
-                ts.Add(Task.Run(() =>
+                ts.Add(TaskEx.Run(() =>
                 {
                     var f = new Snowflake();
 
@@ -257,61 +245,6 @@ namespace Test
             }
         }
 
-        private static void Test4()
-        {
-            var v = Rand.NextBytes(32);
-            Console.WriteLine(v.ToBase64());
-
-            ICache ch = null;
-            //ICache ch = new DbCache();
-            //ch.Set(key, v);
-            //v = ch.Get<Byte[]>(key);
-            //Console.WriteLine(v.ToBase64());
-            //ch.Remove(key);
-
-            Console.Clear();
-
-            Console.Write("选择要测试的缓存：1，MemoryCache；2，DbCache；3，Redis ");
-            var select = Console.ReadKey().KeyChar;
-            switch (select)
-            {
-                case '1':
-                    ch = new MemoryCache();
-                    break;
-                case '2':
-                    ch = new DbCache();
-                    break;
-                case '3':
-                    var rds = new Redis("127.0.0.1", null, 9)
-                    {
-                        Counter = new PerfCounter(),
-                        Tracer = new DefaultTracer { Log = XTrace.Log },
-                    };
-                    ch = rds;
-                    break;
-            }
-
-            var mode = false;
-            Console.WriteLine();
-            Console.Write("选择测试模式：1，顺序；2，随机 ");
-            if (Console.ReadKey().KeyChar != '1') mode = true;
-
-            var batch = 0;
-            Console.WriteLine();
-            Console.Write("选择输入批大小[0]：");
-            batch = Console.ReadLine().ToInt();
-
-            Console.Clear();
-
-            //var batch = 0;
-            //if (mode) batch = 1000;
-
-            var rs = ch.Bench(mode, batch);
-
-            XTrace.WriteLine("总测试数据：{0:n0}", rs);
-            if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
-        }
-
         private static NetServer _server;
         private static async void Test5()
         {
@@ -413,105 +346,6 @@ namespace Test
             Console.ReadLine();
         }
 
-        private static void Test7()
-        {
-            var config = new HttpConfigProvider
-            {
-                Server = "http://star.newlifex.com:6600",
-                AppId = "Test",
-                Period = 5,
-            };
-            //config.LoadAll();
-            DAL.SetConfig(config);
-            //DAL.GetConfig = config.GetConfig;
-
-            XCode.Setting.Current.Migration = Migration.Full;
-            //Role.Meta.Session.Dal.Db.Migration = Migration.Full;
-            //DAL.AddConnStr("membership", "Server=10.0.0.3;Port=3306;Database=Membership;Uid=root;Pwd=Pass@word;", null, "mysql");
-
-            var dal = Role.Meta.Session.Dal;
-            XTrace.WriteLine("dal={0}", dal.DbType);
-            XTrace.WriteLine("db={0}", dal.Db.ServerVersion);
-
-            Role.Meta.Session.Dal.Db.ShowSQL = true;
-            Role.Meta.Session.Dal.Expire = 10;
-            //Role.Meta.Session.Dal.Db.Readonly = true;
-
-            var list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            list = Role.FindAll(Role._.Name.NotContains("abc"));
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
-
-            Thread.Sleep(1000);
-
-            var r = list.Last();
-            r.IsSystem = !r.IsSystem;
-            r.Update();
-
-            Thread.Sleep(5000);
-
-            list = Role.FindAll();
-            Console.WriteLine(list.Count);
-        }
-
-        private static async void Test8()
-        {
-            var di = "Plugins".AsDirectory();
-            if (di.Exists) di.Delete(true);
-
-            //var db = DbFactory.Create(DatabaseType.MySql);
-            //var db = DbFactory.Create(DatabaseType.PostgreSQL);
-            var db = DbFactory.Create(DatabaseType.SQLite);
-            var factory = db.Factory;
-        }
-
-        private static void Test9()
-        {
-            var cache = new SingleEntityCache<Int32, User> { Expire = 1 };
-
-            // 首次访问
-            var user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            user = cache[1];
-            XTrace.WriteLine("cache.Success={0}", cache.Success);
-
-            EntityFactory.InitAll();
-
-            XTrace.WriteLine("TestRole");
-            var r0 = Role.FindByName("Stone");
-            r0?.Delete();
-
-            var r = new Role
-            {
-                Name = "Stone"
-            };
-            r.Insert();
-
-            var r2 = Role.FindByName("Stone");
-            XTrace.WriteLine("FindByName: {0}", r2.ToJson());
-
-            r.Enable = true;
-            r.Update();
-
-            var r3 = Role.Find(Role._.Name == "STONE");
-            XTrace.WriteLine("Find: {0}", r3.ToJson());
-
-            r.Delete();
-
-            var n = Role.FindCount();
-            XTrace.WriteLine("count={0}", n);
-        }
-
         private static void Test10()
         {
             var args = Environment.GetCommandLineArgs();
@@ -555,35 +389,6 @@ namespace Test
             Console.WriteLine(sb);
         }
 
-        /// <summary>测试序列化</summary>
-        private static void Test12()
-        {
-            var option = new BuilderOption();
-            var tables = ClassBuilder.LoadModels("../../NewLife.Cube/CubeDemoNC/Areas/School/Models/Model.xml", option, out var atts);
-            EntityBuilder.BuildTables(tables, option);
-        }
-
-        private static void Test13()
-        {
-            //DSACryptoServiceProvider dsa = new DSACryptoServiceProvider(1024);
-
-            ////var x = dsa.ExportCspBlob(true);
-
-            //using (var fs = new FileStream("D:\\keys\\private.key", FileMode.Open, FileAccess.Read))
-            //{
-            //    var rs = new StreamReader(fs);
-            //    var keystr = rs.ReadToEnd();
-            //    DSAHelper.FromXmlStringX(dsa, keystr);
-
-            //    DsaPublicKeyParameters dsaKey = DotNetUtilities.GetDsaPublicKey(dsa);
-            //    using (StreamWriter sw = new StreamWriter("D:\\keys\\dsa.pem"))
-            //    {
-            //        PemWriter pw = new PemWriter(sw);
-            //        pw.WriteObject(dsaKey);
-            //    }
-            //}
-        }
-
         private static void Test14()
         {
             var rds = new Redis("127.0.0.1", null, 3)
@@ -592,30 +397,6 @@ namespace Test
             };
             var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
         }
-
-        ///// <summary>
-        ///// 私钥XML2PEM
-        ///// </summary>
-        //private static void XMLConvertToPEM()//XML格式密钥转PEM
-        //{
-        //    var rsa2 = new RSACryptoServiceProvider();
-        //    using (var sr = new StreamReader("D:\\keys\\private.key"))
-        //    {
-        //        rsa2.FromXmlString(sr.ReadToEnd());
-        //    }
-        //    var p = rsa2.ExportParameters(true);
-
-        //    var key = new RsaPrivateCrtKeyParameters(
-        //        new Org.BouncyCastle.Math.BigInteger(1, p.Modulus), new Org.BouncyCastle.Math.BigInteger(1, p.Exponent), new Org.BouncyCastle.Math.BigInteger(1, p.D),
-        //        new Org.BouncyCastle.Math.BigInteger(1, p.P), new Org.BouncyCastle.Math.BigInteger(1, p.Q), new Org.BouncyCastle.Math.BigInteger(1, p.DP), new Org.BouncyCastle.Math.BigInteger(1, p.DQ),
-        //        new Org.BouncyCastle.Math.BigInteger(1, p.InverseQ));
-
-        //    using (var sw = new StreamWriter("D:\\keys\\PrivateKey.pem"))
-        //    {
-        //        var pemWriter = new PemWriter(sw);
-        //        pemWriter.WriteObject(key);
-        //    }
-        //}
 
         private static void ExportPublicKeyToPEMFormat()
         {
@@ -920,29 +701,6 @@ namespace Test
                 var result = pubdsa.VerifyData("123".GetBytes(), signStr);
                 Console.WriteLine("验证结果:" + result);
             }
-        }
-
-        private static void TestReadAppSettings()
-        {
-            var str = DAL.ConnStrs["MySQL.AppSettings"];
-            Console.WriteLine(str);
-            Console.WriteLine(DAL.ConnStrs["MySQL.AppSettings.default"]);
-        }
-
-        /// <summary>测试config文件的写入</summary>
-        private static void TestWriteConfig()
-        {
-            ConfigTest.Current.Names = new List<String> { "1", "2" };
-            ConfigTest.Current.Sex = "1";
-            ConfigTest.Current.xyf = new List<XYF>() { new XYF() { name = "123" }, new XYF() { name = "321" } };
-            ConfigTest.Current.Save();
-
-            //Class1.Current.Names = "123";
-            //Class1.Current.Save();
-
-            //Class1.Provider = XmlConfig;
-
-
         }
 
         /// <summary>测试config文件的读取</summary>
