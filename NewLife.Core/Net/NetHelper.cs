@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using NewLife.Caching;
-using NewLife.Collections;
 using NewLife.IP;
 using NewLife.Log;
 using NewLife.Net;
@@ -47,11 +46,11 @@ public static class NetHelper
         BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
         BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
-#if __CORE__
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
-#else
+#if !NETFRAMEWORK
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#else
+        socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
 #endif
     }
 
@@ -80,15 +79,14 @@ public static class NetHelper
     {
         if (String.IsNullOrEmpty(address)) return null;
 
-            var p = address.IndexOf("://");
-            if (p >= 0) address = address.Substring(p + 3);
+        var p = address.IndexOf("://");
+        if (p >= 0) address = address.Substring(p + 3);
 
-            p = address.LastIndexOf(':');
-            if (p > 0)
-                return new IPEndPoint(ParseAddress(address.Substring(0, p)), Int32.Parse(address.Substring(p + 1)));
-            else
-                return new IPEndPoint(ParseAddress(address), defaultPort);
-        }
+        p = address.LastIndexOf(':');
+        return p > 0
+            ? new IPEndPoint(address.Substring(0, p).ParseAddress(), Int32.Parse(address.Substring(p + 1)))
+            : new IPEndPoint(address.ParseAddress(), defaultPort);
+    }
 
     /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
     /// <remarks>除了Any地址以为，其它地址不具备等效性</remarks>
@@ -209,15 +207,10 @@ public static class NetHelper
     /// <returns></returns>
     public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
 
-        /// <summary>获取所有Tcp连接，带进程Id</summary>
-        /// <returns></returns>
-        public static TcpConnectionInformation2[] GetAllTcpConnections()
-        {
-            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
-
-            return TcpConnectionInformation2.GetAllTcpConnections();
-        }
-        #endregion
+    /// <summary>获取所有Tcp连接，带进程Id</summary>
+    /// <returns></returns>
+    public static TcpConnectionInformation2[] GetAllTcpConnections() => !Runtime.Windows ? new TcpConnectionInformation2[0] : TcpConnectionInformation2.GetAllTcpConnections();
+    #endregion
 
     #region 本机信息
     /// <summary>获取活动的接口信息</summary>
@@ -240,7 +233,10 @@ public static class NetHelper
     {
         var list = new List<IPAddress>();
         foreach (var item in GetActiveInterfaces())
-            if (item != null && item.DhcpServerAddresses.Count > 0)
+        {
+#if NET5_0_OR_GREATER
+            if (item != null && !OperatingSystem.IsMacOS() && item.DhcpServerAddresses.Count > 0)
+            {
                 foreach (var elm in item.DhcpServerAddresses)
                 {
                     if (list.Contains(elm)) continue;
@@ -248,6 +244,20 @@ public static class NetHelper
 
                     yield return elm;
                 }
+            }
+#else
+            if (item != null && item.DhcpServerAddresses.Count > 0)
+            {
+                foreach (var elm in item.DhcpServerAddresses)
+                {
+                    if (list.Contains(elm)) continue;
+                    list.Add(elm);
+
+                    yield return elm;
+                }
+            }
+#endif
+        }
     }
 
     /// <summary>获取可用的DNS地址</summary>
@@ -300,7 +310,13 @@ public static class NetHelper
                 {
                     try
                     {
+#if NET5_0_OR_GREATER
+                        if (OperatingSystem.IsWindows() &&
+                            elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred)
+                            continue;
+#elif NETFRAMEWORK
                         if (elm.DuplicateAddressDetectionState != DuplicateAddressDetectionState.Preferred) continue;
+#endif
                     }
                     catch { }
 
@@ -472,9 +488,9 @@ public static class NetHelper
     }
     #endregion
 
-        #region IP地理位置
-        /// <summary>IP地址提供者</summary>
-        public static IPProvider IpProvider { get; set; }
+    #region IP地理位置
+    /// <summary>IP地址提供者</summary>
+    public static IPProvider IpProvider { get; set; }
 
     /// <summary>获取IP地址的物理地址位置</summary>
     /// <param name="addr"></param>
@@ -485,10 +501,10 @@ public static class NetHelper
         if (IPAddress.IsLoopback(addr)) return "本地环回";
         if (addr.IsLocal()) return "本机地址";
 
-            if (IpProvider == null) IpProvider = new MyIpProvider();
+        if (IpProvider == null) IpProvider = new MyIpProvider();
 
-            return IpProvider.GetAddress(addr);
-        }
+        return IpProvider.GetAddress(addr);
+    }
 
     /// <summary>根据字符串形式IP地址转为物理地址</summary>
     /// <param name="addr"></param>
@@ -497,46 +513,46 @@ public static class NetHelper
     {
         if (addr.IsNullOrEmpty()) return String.Empty;
 
-            // 有可能是NetUri
-            var p = addr.IndexOf("://");
-            if (p >= 0) addr = addr.Substring(p + 3);
+        // 有可能是NetUri
+        var p = addr.IndexOf("://");
+        if (p >= 0) addr = addr.Substring(p + 3);
 
-            // 有可能是多个IP地址
-            p = addr.IndexOf(",");
-            if (p >= 0) addr = addr.Split(",").FirstOrDefault();
+        // 有可能是多个IP地址
+        p = addr.IndexOf(",");
+        if (p >= 0) addr = addr.Split(",").FirstOrDefault();
 
-            // 过滤IPv4/IPv6端口
-            if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
+        // 过滤IPv4/IPv6端口
+        if (addr.Replace("::", "").Contains(":")) addr = addr.Substring(0, addr.LastIndexOf(":"));
 
-            if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
+        if (!IPAddress.TryParse(addr, out var ip)) return String.Empty;
 
-            return ip.GetAddress();
-        }
+        return ip.GetAddress();
+    }
 
-        /// <summary>IP地址提供者</summary>
-        public class IPProvider
+    /// <summary>IP地址提供者</summary>
+    public class IPProvider
+    {
+        /// <summary>获取IP地址的物理地址位置</summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public virtual String GetAddress(IPAddress addr)
         {
-            /// <summary>获取IP地址的物理地址位置</summary>
-            /// <param name="addr"></param>
-            /// <returns></returns>
-            public virtual String GetAddress(IPAddress addr)
-            {
-                // 判断局域网地址
-                var ip = addr.ToString();
-                var myip = MyIP().ToString();
-                if (ip.CutEnd(".") == myip.CutEnd(".")) return "本地局域网";
+            // 判断局域网地址
+            var ip = addr.ToString();
+            var myip = MyIP().ToString();
+            if (ip.CutEnd(".") == myip.CutEnd(".")) return "本地局域网";
 
-                var f = addr.GetAddressBytes()[0];
-                if ((f & 0x7F) == 0) return "A类地址";
-                if ((f & 0xC0) == 0x80) return "B类地址";
-                if ((f & 0xE0) == 0xC0) return "C类地址";
-                if ((f & 0xF0) == 0xE0) return "D类地址";
-                if ((f & 0xF8) == 0xF0) return "E类地址";
+            var f = addr.GetAddressBytes()[0];
+            if ((f & 0x7F) == 0) return "A类地址";
+            if ((f & 0xC0) == 0x80) return "B类地址";
+            if ((f & 0xE0) == 0xC0) return "C类地址";
+            if ((f & 0xF0) == 0xE0) return "D类地址";
+            if ((f & 0xF8) == 0xF0) return "E类地址";
 
-                return "";
-            }
+            return "";
         }
-        #endregion
+    }
+    #endregion
 
     #region 创建客户端和会话
     /// <summary>根据本地网络标识创建客户端</summary>
@@ -566,7 +582,7 @@ public static class NetHelper
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
 #if !NET40
-                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+               NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
 #endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
