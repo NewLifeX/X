@@ -24,27 +24,50 @@ public static class ModelExtension
     public static Object GetRequiredService(this IServiceProvider provider, Type serviceType)
     {
         if (provider == null) throw new ArgumentNullException(nameof(provider));
-        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
-
-        return provider.GetService(serviceType) ?? throw new InvalidOperationException($"未注册类型{serviceType.FullName}");
+        return serviceType == null
+            ? throw new ArgumentNullException(nameof(serviceType))
+            : provider.GetService(serviceType) ?? throw new InvalidOperationException($"未注册类型{serviceType.FullName}");
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="provider"></param>
     /// <returns></returns>
-    public static T GetRequiredService<T>(this IServiceProvider provider)
-    {
-        if (provider == null) throw new ArgumentNullException(nameof(provider));
+    public static T GetRequiredService<T>(this IServiceProvider provider) => provider == null ? throw new ArgumentNullException(nameof(provider)) : (T)provider.GetRequiredService(typeof(T));
 
-        return (T)provider.GetRequiredService(typeof(T));
+    /// <summary>获取一批服务</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="provider"></param>
+    /// <returns></returns>
+    public static IEnumerable<T> GetServices<T>(this IServiceProvider provider) => provider.GetServices(typeof(T)).Cast<T>();
+
+    /// <summary>获取一批服务</summary>
+    /// <param name="provider"></param>
+    /// <param name="serviceType"></param>
+    /// <returns></returns>
+    public static IEnumerable<Object> GetServices(this IServiceProvider provider, Type serviceType)
+    {
+        //var sp = provider as ServiceProvider;
+        //if (sp == null && provider is MyServiceScope scope) sp = scope.MyServiceProvider as ServiceProvider;
+        //var sp = provider.GetService<ServiceProvider>();
+        //if (sp != null && sp.Container is ObjectContainer ioc)
+        var ioc = GetService<ObjectContainer>(provider);
+        if (ioc != null)
+        {
+            var list = new List<Object>();
+            foreach (var item in ioc.Services)
+            {
+                if (item.ServiceType == serviceType) list.Add(ioc.Resolve(item, provider));
+            }
+            return list;
+        }
+
+        var serviceType2 = typeof(IEnumerable<>)!.MakeGenericType(serviceType);
+        return (IEnumerable<Object>)provider.GetRequiredService(serviceType2);
     }
-   
+
     /// <summary>创建范围作用域，该作用域内提供者解析一份数据</summary>
     /// <param name="provider"></param>
     /// <returns></returns>
-    public static IServiceScope CreateScope(this IServiceProvider provider)
-    {
-        return provider.GetRequiredService<IServiceScopeFactory>().CreateScope();
-    }
+    public static IServiceScope CreateScope(this IServiceProvider provider) => provider.GetRequiredService<IServiceScopeFactory>().CreateScope();
 }
