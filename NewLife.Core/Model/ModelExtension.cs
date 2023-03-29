@@ -69,5 +69,5 @@ public static class ModelExtension
     /// <summary>创建范围作用域，该作用域内提供者解析一份数据</summary>
     /// <param name="provider"></param>
     /// <returns></returns>
-    public static IServiceScope CreateScope(this IServiceProvider provider) => provider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+    public static IServiceScope CreateScope(this IServiceProvider provider) => provider.GetService<IServiceScopeFactory>()?.CreateScope();
 }

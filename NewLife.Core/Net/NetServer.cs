@@ -388,7 +388,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
         if (ns is NetSession ns2)
         {
             ns2.ID = Interlocked.Increment(ref _sessionID);
-            ns2.ServiceProvider = ServiceProvider;
+            //ns2.ServiceProvider = ServiceProvider;
             ns2.Log = SessionLog;
         }
         ns.Host = this;

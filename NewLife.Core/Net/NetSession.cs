@@ -2,6 +2,7 @@
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Model;
 
 namespace NewLife.Net;
 
@@ -45,13 +46,15 @@ public class NetSession : DisposeBase, INetSession, IExtend
 
     /// <summary>服务提供者</summary>
     /// <remarks>
-    /// 用于网络服务器内部解析各种服务，可以直接赋值或者依赖注入。
-    /// 网络会话默认使用该提供者，应用系统可以在网络会话中创建Scope版服务提供者。
+    /// 根据会话创建Scoped范围服务，以使得各服务解析在本会话中唯一。
+    /// 基类使用内置ObjectContainer的Scope，在WebApi/Worker项目中，使用者需要自己创建Scope并赋值服务提供者。
     /// </remarks>
     public IServiceProvider ServiceProvider { get; set; }
 
     /// <summary>数据到达事件</summary>
     public event EventHandler<ReceivedEventArgs> Received;
+
+    private IServiceScope _scope;
     #endregion
 
     #region 方法
@@ -61,6 +64,9 @@ public class NetSession : DisposeBase, INetSession, IExtend
         WriteLog("Connected {0}", Session);
 
         var ns = (this as INetSession).Host;
+        _scope = ns.ServiceProvider?.CreateScope();
+        ServiceProvider = _scope?.ServiceProvider ?? ns.ServiceProvider;
+
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect", Remote?.ToString());
 
         OnConnected();
@@ -112,6 +118,8 @@ public class NetSession : DisposeBase, INetSession, IExtend
 
         //Server = null;
         //Session = null;
+
+        _scope.TryDispose();
     }
 
     /// <summary>主动关闭跟客户端的网络连接</summary>
