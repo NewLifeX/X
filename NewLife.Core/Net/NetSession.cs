@@ -43,6 +43,13 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <returns></returns>
     public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
 
+    /// <summary>服务提供者</summary>
+    /// <remarks>
+    /// 用于网络服务器内部解析各种服务，可以直接赋值或者依赖注入。
+    /// 网络会话默认使用该提供者，应用系统可以在网络会话中创建Scope版服务提供者。
+    /// </remarks>
+    public IServiceProvider ServiceProvider { get; set; }
+
     /// <summary>数据到达事件</summary>
     public event EventHandler<ReceivedEventArgs> Received;
     #endregion
