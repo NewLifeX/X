@@ -147,7 +147,7 @@ public class TinyHttpClient : DisposeBase
     public virtual async Task<HttpResponse> SendAsync(HttpRequest request)
     {
         // 构造请求
-        var uri = request.Url;
+        var uri = request.RequestUri;
         var req = request.Build();
 
         var res = new HttpResponse();
@@ -174,7 +174,7 @@ public class TinyHttpClient : DisposeBase
                     if (uri.Host != uri2.Host || uri.Scheme != uri2.Scheme) Client.TryDispose();
 
                     uri = uri2;
-                    request.Url = uri;
+                    request.RequestUri = uri;
                     req = request.Build();
 
                     continue;
@@ -303,7 +303,7 @@ public class TinyHttpClient : DisposeBase
     {
         var request = new HttpRequest
         {
-            Url = new Uri(url),
+            RequestUri = new Uri(url),
         };
 
         var rs = (await SendAsync(request).ConfigureAwait(false));
@@ -336,7 +336,7 @@ public class TinyHttpClient : DisposeBase
         var req = new HttpRequest
         {
             Method = method.ToUpper(),
-            Url = new Uri(BaseAddress, action),
+            RequestUri = new Uri(BaseAddress, action),
             KeepAlive = KeepAlive,
         };
 
@@ -359,7 +359,7 @@ public class TinyHttpClient : DisposeBase
                 sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
             }
 
-            req.Url = new Uri(BaseAddress, sb.Put(true));
+            req.RequestUri = new Uri(BaseAddress, sb.Put(true));
         }
 
         return req;

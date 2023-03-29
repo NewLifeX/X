@@ -142,7 +142,7 @@ public static class ConfigHelper
         // 分别处理基本类型、数组类型、复杂类型
         if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
         {
-            pi.SetValue(model, cfg.Value.ChangeType(pi.PropertyType), null);
+            model.SetValue(pi, cfg.Value);
         }
         else if (cfg.Childs != null)
         {
@@ -156,7 +156,7 @@ public static class ConfigHelper
             else
             {
                 // 复杂类型需要递归处理
-                var val = pi.GetValue(model, null);
+                var val = model.GetValue(pi);
                 if (val == null)
                 {
                     // 如果有无参构造函数，则实例化一个
@@ -164,7 +164,7 @@ public static class ConfigHelper
                     if (ctor != null)
                     {
                         val = ctor.Invoke(null);
-                        pi.SetValue(model, val, null);
+                        model.SetValue(pi, val);
                     }
                 }
 
@@ -180,10 +180,10 @@ public static class ConfigHelper
         var count = section.Childs.Count;
 
         // 实例化数组
-        if (pi.GetValue(model, null) is not Array arr || arr.Length == 0)
+        if (model.GetValue(pi) is not Array arr || arr.Length == 0)
         {
             arr = Array.CreateInstance(elementType, count);
-            pi.SetValue(model, arr, null);
+            model.SetValue(pi, arr);
         }
 
         // 逐个映射
@@ -213,7 +213,7 @@ public static class ConfigHelper
         var elementType = pi.PropertyType.GetElementTypeEx();
 
         // 实例化列表
-        if (pi.GetValue(model, null) is not IList list)
+        if (model.GetValue(pi) is not IList list)
         {
             var obj = !pi.PropertyType.IsInterface ?
                 pi.PropertyType.CreateInstance() :
@@ -222,7 +222,7 @@ public static class ConfigHelper
             list = obj as IList;
             if (list == null) return;
 
-            pi.SetValue(model, list, null);
+            model.SetValue(pi, list);
         }
 
         // 映射前清空原有数据
@@ -282,7 +282,7 @@ public static class ConfigHelper
             var cfg = section.GetOrAddChild(name);
 
             // 反射获取属性值
-            var value = pi.GetValue(model, null);
+            var value = model.GetValue(pi);
             var att = pi.GetCustomAttribute<DescriptionAttribute>();
             cfg.Comment = att?.Description;
             if (cfg.Comment.IsNullOrEmpty())

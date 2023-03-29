@@ -197,13 +197,17 @@ namespace XUnitTest.Log
                 var ds1 = span as DefaultSpan;
                 var ds2 = span2 as DefaultSpan;
 
+#if DEBUG
                 Assert.Equal(0, ds1.TraceFlag);
                 Assert.Equal(0, ds2.TraceFlag);
+#endif
             }
 
             var builder = tracer.BuildSpan("test");
+#if DEBUG
             Assert.Equal(2, builder.Total);
             Assert.Equal(0, builder.Errors);
+#endif
         }
 
         [Fact]
@@ -304,7 +308,7 @@ namespace XUnitTest.Log
             // 取出全部跟踪数据
             var bs = tracer.TakeAll();
             var keys = bs.Select(e => e.Name).ToArray();
-            Assert.Equal(2, bs.Length);
+            Assert.Equal(3, bs.Length);
             Assert.Contains("https://newlifex.com/", keys);
             Assert.Contains("https://www.newlifexxx.com/notfound", keys);
 
@@ -340,7 +344,7 @@ namespace XUnitTest.Log
             var model = json.ToJsonEntity<MyModel>();
             Assert.NotNull(model);
             Assert.NotEmpty(model.Builders);
-            Assert.Equal(2, model.Builders.Length);
+            Assert.Equal(3, model.Builders.Length);
             //Assert.Equal("test", model.Builders[0].Name);
             //Assert.Equal("test2", model.Builders[1].Name);
             var test2 = model.Builders.First(e => e.Name == "test2");

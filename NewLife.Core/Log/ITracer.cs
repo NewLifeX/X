@@ -271,8 +271,8 @@ public static class TracerExtension
 #else
                 if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.GZip;
 #endif
-                handler = handler2;
             }
+            handler = handler2;
         }
 
         var client = tracer == null ?

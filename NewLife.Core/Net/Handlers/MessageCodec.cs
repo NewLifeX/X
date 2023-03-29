@@ -62,7 +62,7 @@ public class MessageCodec<T> : Handler
     /// <returns></returns>
     protected virtual void AddToQueue(IHandlerContext context, T msg)
     {
-        if (msg != null && context["TaskSource"] is TaskCompletionSource<Object> source)
+        if (msg != null && context is IExtend ext && ext["TaskSource"] is TaskCompletionSource<Object> source)
         {
             Queue ??= new DefaultMatchQueue(QueueSize);
 
