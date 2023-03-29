@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace NewLife.Model;
@@ -19,35 +21,38 @@ public class ObjectContainer : IObjectContainer
 
     #region 属性
     private readonly IList<IObject> _list = new List<IObject>();
-    /// <summary>映射</summary>
-    public IList<IObject> Maps => _list;
+    /// <summary>服务集合</summary>
+    public IList<IObject> Services => _list;
 
     /// <summary>注册项个数</summary>
     public Int32 Count => _list.Count;
     #endregion
 
     #region 方法
-    /// <summary>添加</summary>
+    /// <summary>添加，允许重复添加同一个服务</summary>
     /// <param name="item"></param>
     public void Add(IObject item)
     {
         lock (_list)
         {
-            for (var i = 0; i < _list.Count; i++)
-            {
-                // 覆盖重复项
-                if (_list[i].ServiceType == item.ServiceType)
-                {
-                    _list[i] = item;
-                    return;
-                }
-            }
+            //for (var i = 0; i < _list.Count; i++)
+            //{
+            //    // 覆盖重复项
+            //    if (_list[i].ServiceType == item.ServiceType)
+            //    {
+            //        _list[i] = item;
+            //        return;
+            //    }
+            //}
+
+            if (item.ImplementationType == null && item is ServiceDescriptor sd)
+                sd.ImplementationType = sd.Instance?.GetType();
 
             _list.Add(item);
         }
     }
 
-    /// <summary>添加</summary>
+    /// <summary>尝试添加，不允许重复添加同一个服务</summary>
     /// <param name="item"></param>
     public Boolean TryAdd(IObject item)
     {
@@ -55,6 +60,9 @@ public class ObjectContainer : IObjectContainer
         lock (_list)
         {
             if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
+
+            if (item.ImplementationType == null && item is ServiceDescriptor sd)
+                sd.ImplementationType = sd.Instance?.GetType();
 
             _list.Add(item);
 
@@ -74,12 +82,12 @@ public class ObjectContainer : IObjectContainer
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
             Instance = instance,
-            Lifttime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
+            Lifetime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
         };
         Add(item);
 
@@ -88,11 +96,12 @@ public class ObjectContainer : IObjectContainer
     #endregion
 
     #region 解析
-    /// <summary>解析类型的实例</summary>
+    /// <summary>在指定容器中解析类型的实例</summary>
     /// <param name="serviceType">接口类型</param>
+    /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public virtual Object Resolve(Type serviceType)
+    public virtual Object Resolve(Type serviceType, IServiceProvider serviceProvider = null)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
@@ -100,28 +109,37 @@ public class ObjectContainer : IObjectContainer
         //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         if (item == null) return null;
 
-        var map = item as ObjectMap;
+        return Resolve(item, serviceProvider);
+    }
+
+    /// <summary>在指定容器中解析类型的实例</summary>
+    /// <param name="item"></param>
+    /// <param name="serviceProvider"></param>
+    /// <returns></returns>
+    public virtual Object Resolve(IObject item, IServiceProvider serviceProvider)
+    {
+        var map = item as ServiceDescriptor;
         var type = item.ImplementationType ?? item.ServiceType;
-        switch (item.Lifttime)
+        switch (item.Lifetime)
         {
             case ObjectLifetime.Singleton:
                 if (map != null)
                 {
-                    map.Instance ??= CreateInstance(type, new ServiceProvider(this), map.Factory);
+                    map.Instance ??= CreateInstance(type, serviceProvider ?? new ServiceProvider(this), map.Factory);
 
                     return map.Instance;
                 }
-                return CreateInstance(type, new ServiceProvider(this), null);
+                return CreateInstance(type, serviceProvider ?? new ServiceProvider(this), null);
 
-            //case ObjectLifetime.Scoped:
+            case ObjectLifetime.Scoped:
             case ObjectLifetime.Transient:
             default:
-                return CreateInstance(type, new ServiceProvider(this), map?.Factory);
+                return CreateInstance(type, serviceProvider ?? new ServiceProvider(this), map?.Factory);
         }
     }
 
     private static IDictionary<TypeCode, Object> _defs;
-    private Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
+    private static Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
     {
         if (factory != null) return factory(provider);
 
@@ -191,6 +209,7 @@ public class ObjectContainer : IObjectContainer
                 errorParameter = errorParameter2;
             }
         }
+
         throw new InvalidOperationException($"未找到适合 '{type}' 的构造函数，请确认该类型构造函数所需参数均已注册。无法解析参数 '{errorParameter}'");
     }
     #endregion
@@ -203,7 +222,8 @@ public class ObjectContainer : IObjectContainer
 }
 
 /// <summary>对象映射</summary>
-public class ObjectMap : IObject
+[DebuggerDisplay("Lifetime = {Lifetime}, ServiceType = {ServiceType}, ImplementationType = {ImplementationType}")]
+public class ServiceDescriptor : IObject
 {
     #region 属性
     /// <summary>服务类型</summary>
@@ -213,7 +233,7 @@ public class ObjectMap : IObject
     public Type ImplementationType { get; set; }
 
     /// <summary>生命周期</summary>
-    public ObjectLifetime Lifttime { get; set; }
+    public ObjectLifetime Lifetime { get; set; }
 
     /// <summary>实例</summary>
     public Object Instance { get; set; }
@@ -240,13 +260,20 @@ internal class ServiceProvider : IServiceProvider
     public Object GetService(Type serviceType)
     {
         if (serviceType == typeof(IObjectContainer)) return _container;
+        if (serviceType == typeof(ObjectContainer)) return _container;
         if (serviceType == typeof(IServiceProvider)) return this;
 
-        if (_container is ObjectContainer ob && !ob.Maps.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
+        if (_container is ObjectContainer ioc && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
         {
-            ob.AddSingleton<IServiceScopeFactory, MyServiceScopeFactory>();
+            //oc.AddSingleton<IServiceScopeFactory>(new MyServiceScopeFactory { ServiceProvider = this });
+            ioc.TryAdd(new ServiceDescriptor
+            {
+                ServiceType = typeof(IServiceScopeFactory),
+                Instance = new MyServiceScopeFactory { ServiceProvider = this },
+                Lifetime = ObjectLifetime.Singleton,
+            });
         }
 
-        return _container.Resolve(serviceType);
+        return _container.Resolve(serviceType, this);
     }
 }

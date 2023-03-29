@@ -18,11 +18,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Singleton,
+            Lifetime = ObjectLifetime.Singleton,
         };
         container.Add(item);
 
@@ -47,11 +47,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             Factory = factory,
-            Lifttime = ObjectLifetime.Singleton,
+            Lifetime = ObjectLifetime.Singleton,
         };
         container.Add(item);
 
@@ -76,11 +76,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         //if (instance == null) throw new ArgumentNullException(nameof(instance));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             Instance = instance,
-            Lifttime = ObjectLifetime.Singleton,
+            Lifetime = ObjectLifetime.Singleton,
         };
         container.Add(item);
 
@@ -105,11 +105,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Singleton,
+            Lifetime = ObjectLifetime.Singleton,
         };
         container.TryAdd(item);
 
@@ -129,11 +129,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Scoped,
+            Lifetime = ObjectLifetime.Scoped,
         };
         container.Add(item);
 
@@ -164,11 +164,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             Factory = factory,
-            Lifttime = ObjectLifetime.Scoped,
+            Lifetime = ObjectLifetime.Scoped,
         };
         container.Add(item);
 
@@ -193,11 +193,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Scoped,
+            Lifetime = ObjectLifetime.Scoped,
         };
         container.TryAdd(item);
 
@@ -217,11 +217,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Transient,
+            Lifetime = ObjectLifetime.Transient,
         };
         container.Add(item);
 
@@ -252,11 +252,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             Factory = factory,
-            Lifttime = ObjectLifetime.Transient,
+            Lifetime = ObjectLifetime.Transient,
         };
         container.Add(item);
 
@@ -281,11 +281,11 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ObjectMap
+        var item = new ServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,
-            Lifttime = ObjectLifetime.Transient,
+            Lifetime = ObjectLifetime.Transient,
         };
         container.TryAdd(item);
 

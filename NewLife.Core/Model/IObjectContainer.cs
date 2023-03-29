@@ -27,11 +27,12 @@ public interface IObjectContainer
     #endregion
 
     #region 解析
-    /// <summary>解析类型的实例</summary>
+    /// <summary>在指定容器中解析类型的实例</summary>
     /// <param name="serviceType">接口类型</param>
+    /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    Object Resolve(Type serviceType);
+    Object Resolve(Type serviceType, IServiceProvider serviceProvider = null);
     #endregion
 }
 
@@ -58,5 +59,5 @@ public interface IObject
     Type ImplementationType { get; }
 
     /// <summary>生命周期</summary>
-    ObjectLifetime Lifttime { get; }
+    ObjectLifetime Lifetime { get; }
 }
