@@ -1,31 +1,40 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+
 #if __WIN__
+
 using System.Windows.Forms;
+
 #endif
+
 using NewLife.Reflection;
 using NewLife.Threading;
+using NewLife.Windows;
 
 #nullable enable
+
 namespace NewLife.Log;
 
 /// <summary>日志类，包含跟踪调试功能</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/log
-/// 
+///
 /// 该静态类包括写日志、写调用栈和Dump进程内存等调试功能。
-/// 
+///
 /// 默认写日志到文本文件，可通过修改<see cref="Log"/>属性来增加日志输出方式。
 /// 对于控制台工程，可以直接通过UseConsole方法，把日志输出重定向为控制台输出，并且可以为不同线程使用不同颜色。
 /// </remarks>
 public static class XTrace
 {
     #region 写日志
+
     /// <summary>文本文件日志</summary>
     private static ILog _Log = Logger.Null;
+
     /// <summary>日志提供者，默认使用文本文件日志</summary>
-    public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
+    public static ILog Log
+    { get { InitLog(); return _Log; } set { _Log = value; } }
 
     /// <summary>输出日志</summary>
     /// <param name="msg">信息</param>
@@ -68,9 +77,11 @@ public static class XTrace
 
         Log.Error("{0}", ex);
     }
-    #endregion
+
+    #endregion 写日志
 
     #region 构造
+
     static XTrace()
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -88,7 +99,7 @@ public static class XTrace
         catch { }
     }
 
-    static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
+    private static void CurrentDomain_UnhandledException(Object sender, UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception ex)
         {
@@ -132,13 +143,13 @@ public static class XTrace
         }
     }
 
-    static readonly Object _lock = new();
-    static Int32 _initing = 0;
+    private static readonly Object _lock = new();
+    private static Int32 _initing = 0;
 
     /// <summary>
     /// 2012.11.05 修正初次调用的时候，由于同步BUG，导致Log为空的问题。
     /// </summary>
-    static Boolean InitLog()
+    private static Boolean InitLog()
     {
         /*
          * 日志初始化可能会触发配置模块，其内部又写日志导致死循环。
@@ -179,10 +190,13 @@ public static class XTrace
 
         return true;
     }
-    #endregion
+
+    #endregion 构造
 
     #region 使用控制台输出
+
     private static Boolean _useConsole;
+
     /// <summary>使用控制台输出日志，只能调用一次</summary>
     /// <param name="useColor">是否使用颜色，默认使用</param>
     /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
@@ -204,8 +218,8 @@ public static class XTrace
                 if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
             }
 #else
-                if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
-                if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
+            if (Console.WindowWidth <= 80) Console.WindowWidth = Console.WindowWidth * 3 / 2;
+            if (Console.WindowHeight <= 25) Console.WindowHeight = Console.WindowHeight * 3 / 2;
 #endif
         }
         catch { }
@@ -216,9 +230,55 @@ public static class XTrace
         else
             _Log = clg;
     }
-    #endregion
+
+    #endregion 使用控制台输出
+
+    #region 控制台禁用快捷编辑
+
+    /// <summary>
+    /// 禁用控制台快捷编辑，在UseConsole方法之后调用
+    /// </summary>
+    public static void DisbleConsoleEdit()
+    {
+        if (!_useConsole) return;
+        try
+        {
+            if (Runtime.Windows)
+            {
+                ConsoleHelper.DisbleQuickEditMode();
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    #endregion 控制台禁用快捷编辑
+
+    #region 控制台禁用关闭按钮
+
+    /// <summary>
+    /// 禁用控制台关闭按钮
+    /// </summary>
+    /// <param name="consoleTitle">控制台程序名称，可使用Console.Title动态设置的值</param>
+    public static void DisbleConsoleCloseBtn(string consoleTitle)
+    {
+        try
+        {
+            if (Runtime.Windows)
+            {
+                ConsoleHelper.DisbleCloseBtn(consoleTitle);
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    #endregion 控制台禁用关闭按钮
 
     #region 拦截WinForm异常
+
 #if __WIN__
     private static Int32 initWF = 0;
     private static Boolean _ShowErrorMessage;
@@ -240,7 +300,7 @@ public static class XTrace
         Application.ThreadException += Application_ThreadException;
     }
 
-    static void CurrentDomain_UnhandledException2(Object sender, UnhandledExceptionEventArgs e)
+    private static void CurrentDomain_UnhandledException2(Object sender, UnhandledExceptionEventArgs e)
     {
         var show = _ShowErrorMessage && Application.MessageLoop;
         var ex = e.ExceptionObject as Exception;
@@ -248,7 +308,7 @@ public static class XTrace
         if (show) MessageBox.Show(ex?.Message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
-    static void Application_ThreadException(Object sender, ThreadExceptionEventArgs e)
+    private static void Application_ThreadException(Object sender, ThreadExceptionEventArgs e)
     {
         WriteException(e.Exception);
 
@@ -305,10 +365,13 @@ public static class XTrace
 
         return new CompositeLog(log, clg);
     }
+
 #endif
-    #endregion
+
+    #endregion 拦截WinForm异常
 
     #region 属性
+
     /// <summary>是否调试。</summary>
     public static Boolean Debug { get; set; }
 
@@ -317,10 +380,13 @@ public static class XTrace
 
     ///// <summary>临时目录</summary>
     //public static String TempPath { get; set; } = Setting.Current.TempPath;
-    #endregion
+
+    #endregion 属性
 
     #region 版本信息
+
     private static Int32 _writeVersion;
+
     /// <summary>输出核心库和启动程序的版本号</summary>
     public static void WriteVersion()
     {
@@ -355,6 +421,8 @@ public static class XTrace
             WriteLine("{0} {1}", asmx.Title, att?.Copyright);
         }
     }
-    #endregion
+
+    #endregion 版本信息
 }
+
 #nullable restore
