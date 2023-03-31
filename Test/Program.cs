@@ -22,6 +22,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using Stardust;
 
 namespace Test
 {
@@ -88,6 +89,7 @@ namespace Test
             }
         }
 
+        static StarClient _client;
         private static void Test1()
         {
             var mi = MachineInfo.GetCurrent();
@@ -95,6 +97,14 @@ namespace Test
 
             var sys = SysConfig.Current;
             XTrace.WriteLine("Name: {0}", sys.Name);
+
+            var client = new StarClient("http://star.newlifex.com:6600")
+            {
+                ProductCode = "Test"
+            };
+            client.Login();
+
+            _client = client;
         }
 
         private static void Test2()

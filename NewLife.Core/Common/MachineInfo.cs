@@ -311,13 +311,13 @@ public class MachineInfo
         //CpuID = GetInfo("Win32_Processor", "ProcessorId");
         //var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
         //Product = GetInfo("Win32_ComputerSystemProduct", "Name");
-        DiskID = GetInfo("Win32_DiskDrive", "SerialNumber");
+        DiskID = GetInfo("Win32_DiskDrive where mediatype=\"Fixed hard disk media\"", "SerialNumber");
 
         var sn = GetInfo("Win32_BIOS", "SerialNumber");
         if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
 #else
-        var disk = ReadWmic("diskdrive", "serialnumber");
+        var disk = ReadWmic("diskdrive where mediatype=\"Fixed hard disk media\"", "serialnumber");
         if (disk != null)
         {
             if (disk.TryGetValue("serialnumber", out str)) DiskID = str?.Trim();
@@ -807,19 +807,17 @@ public class MachineInfo
             {
                 var k = ks[0].Trim();
                 var v = ks[1].Trim();
-                if (dic.TryGetValue(k, out var val))
-                    dic[k] = val + "," + v;
-                else
-                    dic[k] = v;
+                if (!k.IsNullOrEmpty() && !v.IsNullOrEmpty())
+                {
+                    if (dic.TryGetValue(k, out var val))
+                        dic[k] = val + "," + v;
+                    else
+                        dic[k] = v;
+                }
             }
         }
 
         // 排序，避免多个磁盘序列号时，顺序变动
-        //foreach (var item in dic)
-        //{
-        //    if (item.Value.Contains(','))
-        //        dic[item.Key] = item.Value.Split(',').OrderBy(e => e).Join();
-        //}
         var dic2 = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in dic)
         {
