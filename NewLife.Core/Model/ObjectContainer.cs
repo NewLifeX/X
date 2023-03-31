@@ -1,249 +1,279 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection;
 
-namespace NewLife.Model
+namespace NewLife.Model;
+
+/// <summary>轻量级对象容器，支持注入</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/object_container
+/// </remarks>
+public class ObjectContainer : IObjectContainer
 {
-    /// <summary>轻量级对象容器，支持注入</summary>
-    /// <remarks>
-    /// 文档 https://newlifex.com/core/object_container
-    /// </remarks>
-    public class ObjectContainer : IObjectContainer
+    #region 静态
+    /// <summary>当前容器</summary>
+    public static IObjectContainer Current { get; set; } = new ObjectContainer();
+
+    /// <summary>当前容器提供者</summary>
+    public static IServiceProvider Provider { get; set; } = new ServiceProvider(Current);
+    #endregion
+
+    #region 属性
+    private readonly IList<IObject> _list = new List<IObject>();
+    /// <summary>服务集合</summary>
+    public IList<IObject> Services => _list;
+
+    /// <summary>注册项个数</summary>
+    public Int32 Count => _list.Count;
+    #endregion
+
+    #region 方法
+    /// <summary>添加，允许重复添加同一个服务</summary>
+    /// <param name="item"></param>
+    public void Add(IObject item)
     {
-        #region 静态
-        /// <summary>当前容器</summary>
-        public static IObjectContainer Current { get; set; } = new ObjectContainer();
-
-        /// <summary>当前容器提供者</summary>
-        public static IServiceProvider Provider { get; set; } = new ServiceProvider(Current);
-        #endregion
-
-        #region 属性
-        private readonly IList<IObject> _list = new List<IObject>();
-
-        /// <summary>注册项个数</summary>
-        public Int32 Count => _list.Count;
-        #endregion
-
-        #region 方法
-        /// <summary>添加</summary>
-        /// <param name="item"></param>
-        public void Add(IObject item)
+        lock (_list)
         {
-            lock (_list)
-            {
-                for (var i = 0; i < _list.Count; i++)
-                {
-                    // 覆盖重复项
-                    if (_list[i].ServiceType == item.ServiceType)
-                    {
-                        _list[i] = item;
-                        return;
-                    }
-                }
+            //for (var i = 0; i < _list.Count; i++)
+            //{
+            //    // 覆盖重复项
+            //    if (_list[i].ServiceType == item.ServiceType)
+            //    {
+            //        _list[i] = item;
+            //        return;
+            //    }
+            //}
 
-                _list.Add(item);
-            }
+            if (item.ImplementationType == null && item is ServiceDescriptor sd)
+                sd.ImplementationType = sd.Instance?.GetType();
+
+            _list.Add(item);
         }
+    }
 
-        /// <summary>添加</summary>
-        /// <param name="item"></param>
-        public Boolean TryAdd(IObject item)
+    /// <summary>尝试添加，不允许重复添加同一个服务</summary>
+    /// <param name="item"></param>
+    public Boolean TryAdd(IObject item)
+    {
+        if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
+        lock (_list)
         {
             if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
-            lock (_list)
-            {
-                if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
 
-                _list.Add(item);
+            if (item.ImplementationType == null && item is ServiceDescriptor sd)
+                sd.ImplementationType = sd.Instance?.GetType();
 
-                return true;
-            }
+            _list.Add(item);
+
+            return true;
         }
-        #endregion
+    }
+    #endregion
 
-        #region 注册
-        /// <summary>注册</summary>
-        /// <param name="serviceType">接口类型</param>
-        /// <param name="implementationType">实现类型</param>
-        /// <param name="instance">实例</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual IObjectContainer Register(Type serviceType, Type implementationType, Object instance)
+    #region 注册
+    /// <summary>注册</summary>
+    /// <param name="serviceType">接口类型</param>
+    /// <param name="implementationType">实现类型</param>
+    /// <param name="instance">实例</param>
+    /// <returns></returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public virtual IObjectContainer Register(Type serviceType, Type implementationType, Object instance)
+    {
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+
+        var item = new ServiceDescriptor
         {
-            if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+            ServiceType = serviceType,
+            ImplementationType = implementationType,
+            Instance = instance,
+            Lifetime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
+        };
+        Add(item);
 
-            var item = new ObjectMap
+        return this;
+    }
+    #endregion
+
+    #region 解析
+    /// <summary>在指定容器中解析类型的实例</summary>
+    /// <param name="serviceType">接口类型</param>
+    /// <param name="serviceProvider">容器</param>
+    /// <returns></returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public virtual Object Resolve(Type serviceType, IServiceProvider serviceProvider = null)
+    {
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+
+        var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+        //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
+        if (item == null) return null;
+
+        return Resolve(item, serviceProvider);
+    }
+
+    /// <summary>在指定容器中解析类型的实例</summary>
+    /// <param name="item"></param>
+    /// <param name="serviceProvider"></param>
+    /// <returns></returns>
+    public virtual Object Resolve(IObject item, IServiceProvider serviceProvider)
+    {
+        var map = item as ServiceDescriptor;
+        var type = item.ImplementationType ?? item.ServiceType;
+        switch (item.Lifetime)
+        {
+            case ObjectLifetime.Singleton:
+                if (map != null)
+                {
+                    map.Instance ??= CreateInstance(type, serviceProvider ?? new ServiceProvider(this), map.Factory);
+
+                    return map.Instance;
+                }
+                return CreateInstance(type, serviceProvider ?? new ServiceProvider(this), null);
+
+            case ObjectLifetime.Scoped:
+            case ObjectLifetime.Transient:
+            default:
+                return CreateInstance(type, serviceProvider ?? new ServiceProvider(this), map?.Factory);
+        }
+    }
+
+    private static IDictionary<TypeCode, Object> _defs;
+    private static Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
+    {
+        if (factory != null) return factory(provider);
+
+        // 初始化
+        if (_defs == null)
+        {
+            var dic = new Dictionary<TypeCode, Object>
             {
-                ServiceType = serviceType,
-                ImplementationType = implementationType,
-                Instance = instance,
-                Lifttime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
+                { TypeCode.Empty, null },
+                { TypeCode.DBNull, null},
+                { TypeCode.Boolean, false },
+                { TypeCode.Char, (Char)0 },
+                { TypeCode.SByte, (SByte)0 },
+                { TypeCode.Byte, (Byte)0 },
+                { TypeCode.Int16, (Int16)0 },
+                { TypeCode.UInt16, (UInt16)0 },
+                { TypeCode.Int32, (Int32)0 },
+                { TypeCode.UInt32, (UInt32)0 },
+                { TypeCode.Int64, (Int64)0 },
+                { TypeCode.UInt64, (UInt64)0 },
+                { TypeCode.Single, (Single)0 },
+                { TypeCode.Double, (Double)0 },
+                { TypeCode.Decimal, (Decimal)0 },
+                { TypeCode.DateTime, DateTime.MinValue },
+                { TypeCode.String, null }
             };
-            Add(item);
 
-            return this;
-        }
-        #endregion
-
-        #region 解析
-        /// <summary>解析类型的实例</summary>
-        /// <param name="serviceType">接口类型</param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public virtual Object Resolve(Type serviceType)
-        {
-            if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
-
-            var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
-            //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
-            if (item == null) return null;
-
-            var map = item as ObjectMap;
-            var type = item.ImplementationType ?? item.ServiceType;
-            switch (item.Lifttime)
-            {
-                case ObjectLifetime.Singleton:
-                    if (map != null)
-                    {
-                        if (map.Instance == null) map.Instance = CreateInstance(type, new ServiceProvider(this), map.Factory);
-
-                        return map.Instance;
-                    }
-                    return CreateInstance(type, new ServiceProvider(this), null);
-
-                //case ObjectLifetime.Scoped:
-                case ObjectLifetime.Transient:
-                default:
-                    return CreateInstance(type, new ServiceProvider(this), map?.Factory);
-            }
+            _defs = dic;
         }
 
-        private static IDictionary<TypeCode, Object> _defs;
-        private Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
+        ParameterInfo errorParameter = null;
+        if (!type.IsAbstract)
         {
-            if (factory != null) return factory(provider);
-
-            // 初始化
-            if (_defs == null)
+            // 选择构造函数，优先选择参数最多的可匹配构造函数
+            var constructors = type.GetConstructors();
+            foreach (var constructorInfo in constructors.OrderByDescending(e => e.GetParameters().Length))
             {
-                var dic = new Dictionary<TypeCode, Object>
+                if (constructorInfo.IsStatic) continue;
+
+                ParameterInfo errorParameter2 = null;
+                var ps = constructorInfo.GetParameters();
+                var pv = new Object[ps.Length];
+                for (var i = 0; i != ps.Length; i++)
                 {
-                    { TypeCode.Empty, null },
-                    { TypeCode.DBNull, null},
-                    { TypeCode.Boolean, false },
-                    { TypeCode.Char, (Char)0 },
-                    { TypeCode.SByte, (SByte)0 },
-                    { TypeCode.Byte, (Byte)0 },
-                    { TypeCode.Int16, (Int16)0 },
-                    { TypeCode.UInt16, (UInt16)0 },
-                    { TypeCode.Int32, (Int32)0 },
-                    { TypeCode.UInt32, (UInt32)0 },
-                    { TypeCode.Int64, (Int64)0 },
-                    { TypeCode.UInt64, (UInt64)0 },
-                    { TypeCode.Single, (Single)0 },
-                    { TypeCode.Double, (Double)0 },
-                    { TypeCode.Decimal, (Decimal)0 },
-                    { TypeCode.DateTime, DateTime.MinValue },
-                    { TypeCode.String, null }
-                };
+                    if (pv[i] != null) continue;
 
-                _defs = dic;
-            }
-
-            ParameterInfo errorParameter = null;
-            if (!type.IsAbstract)
-            {
-                // 选择构造函数，优先选择参数最多的可匹配构造函数
-                var constructors = type.GetConstructors();
-                foreach (var constructorInfo in constructors.OrderByDescending(e => e.GetParameters().Length))
-                {
-                    if (constructorInfo.IsStatic) continue;
-
-                    ParameterInfo errorParameter2 = null;
-                    var ps = constructorInfo.GetParameters();
-                    var pv = new Object[ps.Length];
-                    for (var i = 0; i != ps.Length; i++)
+                    var ptype = ps[i].ParameterType;
+                    if (_defs.TryGetValue(Type.GetTypeCode(ptype), out var obj))
+                        pv[i] = obj;
+                    else
                     {
-                        if (pv[i] != null) continue;
+                        var service = provider.GetService(ps[i].ParameterType);
+                        if (service == null)
+                        {
+                            errorParameter2 = ps[i];
 
-                        var ptype = ps[i].ParameterType;
-                        if (_defs.TryGetValue(Type.GetTypeCode(ptype), out var obj))
-                            pv[i] = obj;
+                            break;
+                        }
                         else
                         {
-                            var service = provider.GetService(ps[i].ParameterType);
-                            if (service == null)
-                            {
-                                errorParameter2 = ps[i];
-
-                                break;
-                            }
-                            else
-                            {
-                                pv[i] = service;
-                            }
+                            pv[i] = service;
                         }
                     }
-
-                    if (errorParameter2 == null) return constructorInfo.Invoke(pv);
-                    errorParameter = errorParameter2;
                 }
+
+                if (errorParameter2 == null) return constructorInfo.Invoke(pv);
+                errorParameter = errorParameter2;
             }
-            throw new InvalidOperationException($"未找到适合 '{type}' 的构造函数，请确认该类型构造函数所需参数均已注册。无法解析参数 '{errorParameter}'");
         }
-        #endregion
 
-        #region 辅助
-        /// <summary>已重载。</summary>
-        /// <returns></returns>
-        public override String ToString() => $"{GetType().Name}[Count={Count}]";
-        #endregion
+        throw new InvalidOperationException($"未找到适合 '{type}' 的构造函数，请确认该类型构造函数所需参数均已注册。无法解析参数 '{errorParameter}'");
     }
+    #endregion
 
-    /// <summary>对象映射</summary>
-    public class ObjectMap : IObject
+    #region 辅助
+    /// <summary>已重载。</summary>
+    /// <returns></returns>
+    public override String ToString() => $"{GetType().Name}[Count={Count}]";
+    #endregion
+}
+
+/// <summary>对象映射</summary>
+[DebuggerDisplay("Lifetime = {Lifetime}, ServiceType = {ServiceType}, ImplementationType = {ImplementationType}")]
+public class ServiceDescriptor : IObject
+{
+    #region 属性
+    /// <summary>服务类型</summary>
+    public Type ServiceType { get; set; }
+
+    /// <summary>实现类型</summary>
+    public Type ImplementationType { get; set; }
+
+    /// <summary>生命周期</summary>
+    public ObjectLifetime Lifetime { get; set; }
+
+    /// <summary>实例</summary>
+    public Object Instance { get; set; }
+
+    /// <summary>对象工厂</summary>
+    public Func<IServiceProvider, Object> Factory { get; set; }
+    #endregion
+
+    #region 方法
+    /// <summary>显示友好名称</summary>
+    /// <returns></returns>
+    public override String ToString() => $"[{ServiceType?.Name},{ImplementationType?.Name}]";
+    #endregion
+}
+
+internal class ServiceProvider : IServiceProvider
+{
+    private readonly IObjectContainer _container;
+    /// <summary>容器</summary>
+    public IObjectContainer Container => _container;
+
+    public ServiceProvider(IObjectContainer container) => _container = container;
+
+    public Object GetService(Type serviceType)
     {
-        #region 属性
-        /// <summary>服务类型</summary>
-        public Type ServiceType { get; set; }
+        if (serviceType == typeof(IObjectContainer)) return _container;
+        if (serviceType == typeof(ObjectContainer)) return _container;
+        if (serviceType == typeof(IServiceProvider)) return this;
 
-        /// <summary>实现类型</summary>
-        public Type ImplementationType { get; set; }
-
-        /// <summary>生命周期</summary>
-        public ObjectLifetime Lifttime { get; set; }
-
-        /// <summary>实例</summary>
-        public Object Instance { get; set; }
-
-        /// <summary>对象工厂</summary>
-        public Func<IServiceProvider, Object> Factory { get; set; }
-        #endregion
-
-        #region 方法
-        /// <summary>显示友好名称</summary>
-        /// <returns></returns>
-        public override String ToString() => $"[{ServiceType?.Name},{ImplementationType?.Name}]";
-        #endregion
-    }
-
-    internal class ServiceProvider : IServiceProvider
-    {
-        private readonly IObjectContainer _container;
-        /// <summary>容器</summary>
-        public IObjectContainer Container => _container;
-
-        public ServiceProvider(IObjectContainer container) => _container = container;
-
-        public Object GetService(Type serviceType)
+        if (_container is ObjectContainer ioc && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
         {
-            if (serviceType == typeof(IObjectContainer)) return _container;
-            if (serviceType == typeof(IServiceProvider)) return this;
-
-            return _container.Resolve(serviceType);
+            //oc.AddSingleton<IServiceScopeFactory>(new MyServiceScopeFactory { ServiceProvider = this });
+            ioc.TryAdd(new ServiceDescriptor
+            {
+                ServiceType = typeof(IServiceScopeFactory),
+                Instance = new MyServiceScopeFactory { ServiceProvider = this },
+                Lifetime = ObjectLifetime.Singleton,
+            });
         }
+
+        return _container.Resolve(serviceType, this);
     }
 }
