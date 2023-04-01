@@ -242,6 +242,51 @@ namespace NewLife
 
             return buf2;
         }
+
+        /// <summary>转换数据（内部加解密）</summary>
+        /// <param name="transform"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static Byte[] Transform(this ICryptoTransform transform, Byte[] data)
+        {
+            // 小数据块
+            if (data.Length <= transform.InputBlockSize)
+                return transform.TransformFinalBlock(data, 0, data.Length);
+
+            // 逐个数据块转换
+            var blocks = data.Length / transform.InputBlockSize;
+            var inputCount = blocks * transform.InputBlockSize;
+            if (inputCount < data.Length) blocks++;
+
+            var output = new Byte[blocks * transform.OutputBlockSize];
+            var count = 0;
+            if (inputCount > 0 && transform.CanTransformMultipleBlocks)
+                count = transform.TransformBlock(data, 0, inputCount, output, 0);
+            else
+            {
+                var pOutput = 0;
+                for (var pInput = 0; pInput < inputCount;)
+                {
+                    count += transform.TransformBlock(data, pInput, transform.InputBlockSize, output, pOutput);
+                    pInput += transform.InputBlockSize;
+                    pOutput += transform.OutputBlockSize;
+                }
+            }
+
+            if (count == data.Length) return output;
+
+            //var outstream = new MemoryStream();
+            //outstream.Write(output, 0, count);
+
+            var rs = transform.TransformFinalBlock(data, count, data.Length - count);
+            Buffer.BlockCopy(rs, 0, output, count, rs.Length);
+
+            return output;
+
+            //outstream.Write(rs);
+
+            //return outstream.ToArray();
+        }
         #endregion
 
         #region RC4

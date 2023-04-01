@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Security.Cryptography;
-using NewLife;
 using NewLife.Security;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
@@ -224,8 +223,6 @@ public class SM4Transform : ICryptoTransform
     public Int32 OutputBlockSize => BLOCK_SIZE;
 
     private readonly Byte[] _buffer = new Byte[BLOCK_SIZE];
-    //private readonly PaddingMode _padding;
-    //private readonly CipherMode _mode;
     #endregion
 
     #region 构造
@@ -238,9 +235,6 @@ public class SM4Transform : ICryptoTransform
     {
         if (key == null || key.Length != 16) throw new ArgumentException(nameof(key), "Key must be a 16-byte array.");
         if (iv != null && iv.Length != 16) throw new ArgumentException(nameof(key), "IV must be a 16-byte array.");
-
-        //_padding = padding;
-        //_mode = mode;
 
         ExpandKey(encryptMode, key);
 
@@ -293,13 +287,16 @@ public class SM4Transform : ICryptoTransform
     {
         if (inputCount % BLOCK_SIZE != 0) throw new ArgumentException(nameof(inputCount), "Input count must be equal to block size.");
 
-        var rs = 0;
-        for (var i = 0; i < inputCount; i += BLOCK_SIZE)
+        var blocks = inputCount / InputBlockSize;
+        while (blocks > 0)
         {
-            rs += EncryptData(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
+            EncryptData(inputBuffer, inputOffset, outputBuffer, outputOffset);
+            blocks--;
+            inputOffset += InputBlockSize;
+            outputOffset += OutputBlockSize;
         }
 
-        return rs;
+        return inputCount / InputBlockSize * OutputBlockSize;
     }
 
     /// <summary>转换指定字节数组的指定区域。</summary>

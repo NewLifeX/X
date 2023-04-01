@@ -12,36 +12,81 @@ namespace XUnitTest.Security;
 public class SM4Tests
 {
     [Fact]
-    public void SM4_Test()
+    public void SM4_ECB_PKCS7_Test()
     {
         var text = "111111";
         var key = "16621235";
 
         var sm4 = SM4.Create();
-        var text2 = sm4.Encrypt(text.GetBytes(), key.GetBytes(), CipherMode.ECB).ToBase64();
-        Assert.Equal("kgAdQRZ6w20=", text2);
+        var text2 = sm4.Encrypt(text.GetBytes(), key.GetBytes(), CipherMode.ECB, PaddingMode.PKCS7).ToBase64();
+        Assert.Equal("9MWjLfAwrIl5him/2Ecg2Q==", text2);
 
-        var des2 = SM4.Create();
-        var text3 = des2.Decrypt(text2.ToBase64(), key.GetBytes(), CipherMode.ECB).ToStr();
+        var sm42 = SM4.Create();
+        var text3 = sm42.Decrypt(text2.ToBase64(), key.GetBytes(), CipherMode.ECB, PaddingMode.PKCS7).ToStr();
         Assert.Equal(text, text3);
     }
 
     [Fact]
-    public void SM4_Test2()
+    public void SM4_ECB_Zeros_Test()
     {
-        var text = "快乐编码 , 生活愉快!";
-        var key = "5m28850d763e8748ff2f8d83530e0cf2";
+        var text = "111111";
+        var key = "16621235";
 
         var sm4 = SM4.Create();
-        var text2 = sm4.Encrypt(text.GetBytes(), key.GetBytes(), CipherMode.ECB).ToHex();
-        Assert.Equal("738bc5aebe06f16ba95aec7c2e6cde104d498400829d9ea74492fcf15ec98c94", text2);
+        var text2 = sm4.Encrypt(text.GetBytes(), key.GetBytes(), CipherMode.ECB, PaddingMode.Zeros).ToBase64();
+        Assert.Equal("awB2EqG9+mlG4zkIhj9h/Q==", text2);
 
-        var des2 = SM4.Create();
-        var text3 = des2.Decrypt(text2.ToBase64(), key.GetBytes(), CipherMode.ECB).ToStr();
+        var sm42 = SM4.Create();
+        var text3 = sm42.Decrypt(text2.ToBase64(), key.GetBytes(), CipherMode.ECB, PaddingMode.Zeros).ToStr();
         Assert.Equal(text, text3);
     }
 
     [Fact]
+    public void SM4_CBC_PKCS7_Test()
+    {
+        var buf = "123456".ToHex();
+        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
+        var data = "";
+
+        // CBC加密解密
+        {
+            var sm4 = SM4.Create();
+            data = sm4.Encrypt(buf, key, CipherMode.CBC, PaddingMode.PKCS7).ToHex();
+
+            Assert.Equal("788ED83B46F7D9541C716D9D927F7C42", data);
+        }
+        {
+            var sm4 = SM4.Create();
+            data = sm4.Decrypt(data.ToHex(), key, CipherMode.CBC, PaddingMode.PKCS7).ToHex();
+
+            Assert.Equal("123456", data);
+        }
+    }
+
+    [Fact]
+    public void SM4_CBC_Zeros_Test()
+    {
+        var buf = "123456".ToHex();
+        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
+        var data = "";
+
+        // CBC加密解密
+        {
+            var sm4 = SM4.Create();
+            data = sm4.Encrypt(buf, key, CipherMode.CBC, PaddingMode.Zeros).ToHex();
+
+            Assert.Equal("35920C1C503E74BE5FCB1AD143982CB3", data);
+        }
+        {
+            var sm4 = SM4.Create();
+            data = sm4.Decrypt(data.ToHex(), key, CipherMode.CBC, PaddingMode.Zeros).ToHex();
+
+            Assert.Equal("123456", data);
+        }
+    }
+
+    [Fact]
+    //[Fact(Skip = "仅开发使用")]
     public void SM4Transform_Test()
     {
         var plain = "0123456789abcdeffedcba9876543210".ToHex();
@@ -115,28 +160,6 @@ public class SM4Tests
                 buf = sm4.Decrypt(buf, key, CipherMode.ECB);
             }
             Assert.Equal(plain, buf);
-        }
-    }
-
-    [Fact]
-    public void SM4_CBC_Test()
-    {
-        var buf = "123456".ToHex();
-        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
-        var data = "";
-
-        // CBC加密解密
-        {
-            var aes = SM4.Create();
-            data = aes.Encrypt(buf, key, CipherMode.CBC, PaddingMode.PKCS7).ToHex();
-
-            Assert.Equal("50A7CF869354EC317327671B34543AD8", data);
-        }
-        {
-            var aes = SM4.Create();
-            data = aes.Decrypt(data.ToHex(), key, CipherMode.CBC, PaddingMode.PKCS7).ToHex();
-
-            Assert.Equal("123456", data);
         }
     }
 }

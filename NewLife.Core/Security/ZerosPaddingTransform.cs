@@ -44,7 +44,24 @@ public sealed class ZerosPaddingTransform : ICryptoTransform
     /// <param name="outputOffset"></param>
     /// <returns></returns>
     public Int32 TransformBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount, Byte[] outputBuffer, Int32 outputOffset)
-        => _transform.TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
+    {
+        var count = _transform.TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
+
+        if (!_encryptMode)
+        {
+            // 清除后面的填充
+            var pads = 0;
+            for (var i = OutputBlockSize - 1; i >= 0; i--)
+            {
+                if (outputBuffer[outputOffset + i] != 0) break;
+                pads++;
+            }
+
+            return pads == 0 ? count : count - pads;
+        }
+
+        return count;
+    }
 
     /// <summary>转换指定字节数组的指定区域。</summary>
     /// <param name="inputBuffer"></param>
@@ -55,6 +72,7 @@ public sealed class ZerosPaddingTransform : ICryptoTransform
     {
         if (inputCount == 0) return new Byte[0];
 
+        //todo !!! 仅能临时解决短密文填充清理问题
         if (_encryptMode && inputCount % InputBlockSize != 0)
         {
             var paddingNeeded = InputBlockSize - (inputCount % InputBlockSize);

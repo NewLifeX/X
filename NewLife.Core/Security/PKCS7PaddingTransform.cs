@@ -61,7 +61,32 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
     public Int32 TransformBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount, Byte[] outputBuffer, Int32 outputOffset)
     {
         var count = _transform.TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
-        if (_encryptMode || count <= OutputBlockSize) return count;
+        if (_encryptMode) return count;
+
+        //todo !!! 仅能临时解决短密文填充清理问题
+        if (!_encryptMode && count <= OutputBlockSize)
+        {
+            // 最后一块
+            if (count == OutputBlockSize)
+            {
+                // 清除后面的填充
+                var last = outputBuffer[outputOffset + count - 1];
+                if (last < count)
+                {
+                    var pads = 0;
+                    for (var i = OutputBlockSize - 1; i >= 0; i--)
+                    {
+                        if (outputBuffer[outputOffset + i] != last) break;
+                        pads++;
+                    }
+
+                    return pads != last ? count : count - pads;
+                }
+            }
+
+            return count;
+
+        }
 
         if (_hasWithheldBlock)
         {
@@ -90,38 +115,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
     {
         if (inputCount == 0) return new Byte[0];
 
-        if (!_encryptMode)
-        {
-            var data = _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);
-            if (_hasWithheldBlock)
-            {
-                Array.Resize(ref data, data.Length + OutputBlockSize);
-                Array.Copy(data, 0, data, OutputBlockSize, data.Length - OutputBlockSize);
-                Array.Copy(_lastBlock, 0, data, 0, OutputBlockSize);
-            }
-
-            if (data.Length < 1)
-                throw new CryptographicException("Invalid padding");
-
-            var paddingLength = data[data.Length - 1];
-            var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
-            var paddingError = 0;
-            if (_mode != PaddingMode.ISO10126)
-                for (var i = OutputBlockSize; i >= 1; i--)
-                {
-                    // if i > paddingLength ignore;
-                    // if paddingLength != data[data.Length - i] error;
-                    var posMask = ~(paddingLength - i) >> 31;
-                    paddingError |= (paddingValue ^ data[data.Length - i]) & posMask;
-                }
-
-            if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
-                throw new CryptographicException("Invalid padding");
-
-            Array.Resize(ref data, data.Length - paddingLength);
-            return data;
-        }
-        else
+        if (_encryptMode)
         {
             var paddingLength = InputBlockSize - (inputCount % InputBlockSize);
             var paddingValue = _mode switch
@@ -152,6 +146,37 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
             Array.Resize(ref returnData, returnData.Length + lastBlock.Length);
             Array.Copy(lastBlock, 0, returnData, OutputBlockSize, lastBlock.Length);
             return returnData;
+        }
+        else
+        {
+            var data = _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);
+            if (_hasWithheldBlock)
+            {
+                Array.Resize(ref data, data.Length + OutputBlockSize);
+                Array.Copy(data, 0, data, OutputBlockSize, data.Length - OutputBlockSize);
+                Array.Copy(_lastBlock, 0, data, 0, OutputBlockSize);
+            }
+
+            if (data.Length < 1)
+                throw new CryptographicException("Invalid padding");
+
+            var paddingLength = data[data.Length - 1];
+            var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
+            var paddingError = 0;
+            if (_mode != PaddingMode.ISO10126)
+                for (var i = OutputBlockSize; i >= 1; i--)
+                {
+                    // if i > paddingLength ignore;
+                    // if paddingLength != data[data.Length - i] error;
+                    var posMask = ~(paddingLength - i) >> 31;
+                    paddingError |= (paddingValue ^ data[data.Length - i]) & posMask;
+                }
+
+            if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
+                throw new CryptographicException("Invalid padding");
+
+            Array.Resize(ref data, data.Length - paddingLength);
+            return data;
         }
     }
 }
