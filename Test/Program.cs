@@ -70,7 +70,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -138,31 +138,8 @@ namespace Test
 
         private static void Test3()
         {
-            var file = "D:\\ZTO\\GPS808\\Bin\\车辆信息20220923100104735.xlsx";
-
-            String[] header = null;
-            var idxCode = 0;
-            var idxTeam = 0;
-
-            using var excel = new ExcelReader(file);
-            foreach (var lines in excel.ReadRows())
-            {
-                //XTrace.WriteLine(lines.Join());
-                if (header == null)
-                {
-                    header = lines.TakeWhile(k => k != null).Cast<String>().ToArray();
-                    idxCode = Array.IndexOf(header, "头部车牌");
-                    idxTeam = Array.IndexOf(header, "所属子车队");
-                }
-                else
-                {
-                    var code = lines[idxCode];
-                    var team = lines[idxTeam];
-
-                    XTrace.WriteLine("{0} {1}", code, team);
-                }
-            }
-
+            var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+            str.SpeakAsync();
         }
 
         private static void Test4()
