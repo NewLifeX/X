@@ -18,21 +18,15 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.1'">
-    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net45'">
-    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
-    <DefineConstants>$(DefineConstants);__WIN__</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net5.0'">
-    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)'=='net6.0'">
-    <DefineConstants>$(DefineConstants);__CORE__</DefineConstants>
-  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Model\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <None Remove="Model\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NewLife.Stardust" Version="2.8.2023.403" />
+    <PackageReference Include="System.Speech" Version="7.0.0" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />
   </ItemGroup>

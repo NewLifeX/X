@@ -70,7 +70,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -129,81 +129,9 @@ namespace Test
 
         private static void Test3()
         {
-            using var tracer = new DefaultTracer { Log = XTrace.Log };
-            tracer.MaxSamples = 100;
-            tracer.MaxErrors = 100;
-
-            if (Console.ReadLine() == "1")
-            {
-                var svr = new ApiServer(12345)
-                //var svr = new ApiServer("http://*:1234")
-                {
-                    Log = XTrace.Log,
-                    //EncoderLog = XTrace.Log,
-                    StatPeriod = 10,
-                    Tracer = tracer,
-                };
-
-                // http状态
-                svr.UseHttpStatus = true;
-
-                var ns = svr.EnsureCreate() as NetServer;
-                ns.EnsureCreateServer();
-                var ts = ns.Servers.FirstOrDefault(e => e is TcpServer);
-                //ts.ProcessAsync = true;
-
-                svr.Start();
-
-                Console.ReadKey();
-            }
-            else
-            {
-                var client = new ApiClient("tcp://127.0.0.1:335,tcp://127.0.0.1:12345")
-                {
-                    Log = XTrace.Log,
-                    //EncoderLog = XTrace.Log,
-                    StatPeriod = 10,
-                    Tracer = tracer,
-
-                    UsePool = true,
-                };
-                client.Open();
-
-                TaskEx.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/All", new { state = 111 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
-
-                TaskEx.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/All", new { state = 222 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+            var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+            str.SpeakAsync();
+        }
 
                 TaskEx.Run(() =>
                 {

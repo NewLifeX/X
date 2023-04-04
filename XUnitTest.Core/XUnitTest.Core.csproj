@@ -37,12 +37,14 @@
     <EmbeddedResource Include="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="Moq" Version="4.16.1" />
-    <PackageReference Include="NewLife.IoT" Version="1.6.2022.1201" />
-    <PackageReference Include="NewLife.Modbus" Version="1.6.2022.1201" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="7.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="NewLife.Modbus" Version="1.6.2023.205" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.0.2022.901" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
