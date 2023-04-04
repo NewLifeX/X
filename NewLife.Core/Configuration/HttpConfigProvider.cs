@@ -198,7 +198,7 @@ namespace NewLife.Configuration
                     var ver = rs["version"].ToInt(-1);
                     if (ver > 0) _version = ver;
 
-                    if (obj is IDictionary<String, Object> configs) return configs;
+                    return obj as IDictionary<String, Object>;
                 }
 
                 return rs;
