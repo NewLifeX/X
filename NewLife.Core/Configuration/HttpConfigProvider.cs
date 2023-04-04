@@ -31,11 +31,8 @@ namespace NewLife.Configuration
         /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
         public String Scope { get; set; }
 
-        /// <summary>命名空间。Apollo专用，多个命名空间用逗号或分号隔开</summary>
-        public String NameSpace { get; set; }
-
-        /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
-        public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
+    /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
+    public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
 
         /// <summary>更新周期。默认60秒，0秒表示不做自动更新</summary>
         public Int32 Period { get; set; } = 60;
@@ -91,136 +88,66 @@ namespace NewLife.Configuration
         public override String ToString() => $"{GetType().Name} AppId={AppId} Server={Server}";
         #endregion
 
-        #region 方法
-        private IApiClient GetClient()
+    #region 方法
+    /// <summary>获取客户端</summary>
+    /// <returns></returns>
+    protected IApiClient GetClient()
+    {
+        Client ??= new ApiHttpClient(Server)
         {
-            if (Client == null)
-            {
-                Client = new ApiHttpClient(Server)
-                {
-                    Timeout = 3_000
-                };
-            }
+            Timeout = 3_000
+        };
 
             return Client;
         }
 
-        /// <summary>设置阿波罗服务端</summary>
-        /// <param name="nameSpaces">命名空间。多个命名空间用逗号或分号隔开</param>
-        public void SetApollo(String nameSpaces = "application") => NameSpace = nameSpaces;
+    /// <summary>获取所有配置</summary>
+    /// <returns></returns>
+    protected virtual IDictionary<String, Object> GetAll()
+    {
+        var client = GetClient() as ApiHttpClient;
 
-        /// <summary>从本地配置文件读取阿波罗地址，并得到阿波罗配置提供者</summary>
-        /// <param name="fileName">阿波罗配置文件名，默认appsettings.json</param>
-        /// <param name="path">加载路径，默认apollo</param>
-        /// <returns></returns>
-        public static HttpConfigProvider LoadApollo(String fileName = null, String path = "apollo")
+        ValidClientId();
+
+        try
         {
-            if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
-            if (path.IsNullOrEmpty()) path = "apollo";
+            var rs = client.Post<IDictionary<String, Object>>(Action, new
+            {
+                appId = AppId,
+                secret = Secret,
+                clientId = ClientId,
+                scope = Scope,
+                version = _version,
+                usedKeys = UsedKeys.Join(),
+                missedKeys = MissedKeys.Join(),
+            });
+            Info = rs;
 
-        // 读取本地配置，得到Apollo地址后，加载全部配置
-        var jsonConfig = JsonConfigProvider.LoadAppSettings(fileName);
-        var apollo = jsonConfig.Load<ApolloModel>(path);
-        if (apollo == null) return null;
+            // 增强版返回
+            if (rs.TryGetValue("configs", out var obj))
+            {
+                var ver = rs["version"].ToInt(-1);
+                if (ver > 0) _version = ver;
 
-            var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
-            httpConfig.SetApollo("application," + apollo.NameSpace);
-            if (!httpConfig.Server.IsNullOrEmpty() && !httpConfig.AppId.IsNullOrEmpty()) httpConfig.LoadAll();
+                return obj as IDictionary<String, Object>;
+            }
 
-            return httpConfig;
+            return rs;
         }
-
-        private class ApolloModel
+        catch (Exception ex)
         {
-            public String WMetaServer { get; set; }
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
 
-            public String AppId { get; set; }
-
-            public String NameSpace { get; set; }
-
-            public String MetaServer { get; set; }
-        }
-
-        /// <summary>获取所有配置</summary>
-        /// <returns></returns>
-        protected virtual IDictionary<String, Object> GetAll()
-        {
-            var client = GetClient() as ApiHttpClient;
-
-        // 特殊处理Apollo
-        if (!NameSpace.IsNullOrEmpty())
-        {
-            var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
-            var dic = new Dictionary<String, Object>();
-            foreach (var item in ns)
-            {
-                var action = $"/configfiles/json/{AppId}/default/{item}";
-                try
-                {
-                    var rs = client.Get<IDictionary<String, Object>>(action);
-                    foreach (var elm in rs)
-                    {
-                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
-
-                    return null;
-                }
-            }
-            Info = dic;
-
-                return dic;
-            }
-            else
-            {
-                ValidClientId();
-
-            try
-            {
-                var rs = client.Post<IDictionary<String, Object>>(Action, new
-                {
-                    appId = AppId,
-                    secret = Secret,
-                    clientId = ClientId,
-                    scope = Scope,
-                    version = _version,
-                    usedKeys = UsedKeys.Join(),
-                    missedKeys = MissedKeys.Join(),
-                });
-                Info = rs;
-
-                // 增强版返回
-                if (rs.TryGetValue("configs", out var obj))
-                {
-                    var ver = rs["version"].ToInt(-1);
-                    if (ver > 0) _version = ver;
-
-                    return obj as IDictionary<String, Object>;
-                }
-
-                return rs;
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
-
-                return null;
-            }
+            return null;
         }
     }
 
-        /// <summary>设置配置项，保存到服务端</summary>
-        /// <param name="configs"></param>
-        /// <returns></returns>
-        protected virtual Int32 SetAll(IDictionary<String, Object> configs)
-        {
-            // 特殊处理Apollo
-            if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");
-
-            ValidClientId();
+    /// <summary>设置配置项，保存到服务端</summary>
+    /// <param name="configs"></param>
+    /// <returns></returns>
+    protected virtual Int32 SetAll(IDictionary<String, Object> configs)
+    {
+        ValidClientId();
 
             var client = GetClient() as ApiHttpClient;
 
