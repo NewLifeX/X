@@ -160,15 +160,15 @@ namespace NewLife.Configuration
             });
         }
 
-        /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
-        /// <param name="value"></param>
-        public override void Init(String value)
+    /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
+    /// <param name="value"></param>
+    public override void Init(String value)
+    {
+        // 本地缓存
+        var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetBasePath();
+        if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
         {
-            // 本地缓存
-            var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetFullPath();
-            if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
-            {
-                var json = File.ReadAllText(file);
+            var json = File.ReadAllText(file);
 
                 // 加密存储
                 if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Decrypt(json.ToBase64(), AppId.GetBytes()).ToStr();
@@ -247,11 +247,11 @@ namespace NewLife.Configuration
             // 缓存
             _cache = configs;
 
-            // 本地缓存
-            if (CacheLevel > ConfigCacheLevel.NoCache)
-            {
-                var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
-                var json = configs.ToJson();
+        // 本地缓存
+        if (CacheLevel > ConfigCacheLevel.NoCache)
+        {
+            var file = $"Config/httpConfig_{AppId}.json".GetBasePath();
+            var json = configs.ToJson();
 
                 // 加密存储
                 if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Encrypt(json.GetBytes(), AppId.GetBytes()).ToBase64();

@@ -26,15 +26,16 @@ namespace NewLife.Web
             {
                 var set = Setting.Current;
 
-                var file = "";
-                if (!dll.IsNullOrEmpty())
-                {
-                    // 先检查当前目录，再检查插件目录
-                    file = dll.GetFullPath();
-                    if (!File.Exists(file) && Runtime.IsWeb) file = "Bin".GetFullPath().CombinePath(dll);
-                    if (!File.Exists(file)) file = set.PluginPath.GetFullPath().CombinePath(dll);
-                    if (!File.Exists(file)) file = set.PluginPath.GetBasePath().CombinePath(dll);
-                }
+            var file = "";
+            if (!dll.IsNullOrEmpty())
+            {
+                // 先检查当前目录，再检查插件目录
+                file = dll.GetCurrentPath();
+                if (!File.Exists(file)) file = dll.GetFullPath();
+                if (!File.Exists(file)) file = dll.GetBasePath();
+                if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetFullPath();
+                if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetBasePath();
+            }
 
                 if (urls.IsNullOrEmpty()) urls = set.PluginServer;
 
