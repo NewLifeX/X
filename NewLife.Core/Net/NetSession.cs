@@ -64,8 +64,12 @@ public class NetSession : DisposeBase, INetSession, IExtend
         WriteLog("Connected {0}", Session);
 
         var ns = (this as INetSession).Host;
-        _scope = ns.ServiceProvider?.CreateScope();
-        ServiceProvider = _scope?.ServiceProvider ?? ns.ServiceProvider;
+        // 服务提供者，用于创建Scoped范围服务，以使得各服务解析在本会话中唯一
+        if (ServiceProvider == null)
+        {
+            _scope = ns.ServiceProvider?.CreateScope();
+            ServiceProvider = _scope?.ServiceProvider ?? ns.ServiceProvider;
+        }
 
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect", Remote?.ToString());
 
