@@ -165,7 +165,7 @@ public class HttpConfigProvider : ConfigProvider
     public override void Init(String value)
     {
         // 本地缓存
-        var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetBasePath();
+        var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetFullPath();
         if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
         {
             var json = File.ReadAllText(file);
@@ -250,7 +250,7 @@ public class HttpConfigProvider : ConfigProvider
         // 本地缓存
         if (CacheLevel > ConfigCacheLevel.NoCache)
         {
-            var file = $"Config/httpConfig_{AppId}.json".GetBasePath();
+            var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
             var json = configs.ToJson();
 
             // 加密存储
