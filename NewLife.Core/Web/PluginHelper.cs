@@ -29,7 +29,8 @@ namespace NewLife.Web
             if (!dll.IsNullOrEmpty())
             {
                 // 先检查当前目录，再检查插件目录
-                file = dll.GetFullPath();
+                file = dll.GetCurrentPath();
+                if (!File.Exists(file)) file = dll.GetFullPath();
                 if (!File.Exists(file)) file = dll.GetBasePath();
                 if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetFullPath();
                 if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetBasePath();
