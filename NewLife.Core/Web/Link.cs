@@ -46,6 +46,8 @@ namespace NewLife.Web
         /// <returns></returns>
         public static Link[] Parse(String html, String baseurl = null, Func<Link, Boolean> filter = null)
         {
+            // baseurl必须是/结尾
+            if (baseurl != null && !baseurl.EndsWith("/")) baseurl += "/";
             if (baseurl.StartsWithIgnoreCase("ftp://")) return ParseFTP(html, baseurl, filter);
 
             // 分析所有链接
