@@ -705,6 +705,9 @@ public class DefaultReflect : IReflect
                     break;
             }
 
+            // 支持DateTimeOffset转换
+            if (conversionType == typeof(DateTimeOffset)) return value.ToDateTimeOffset();
+
             if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
         }
         else
