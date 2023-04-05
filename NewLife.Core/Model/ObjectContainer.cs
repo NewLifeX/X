@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -105,7 +104,8 @@ public class ObjectContainer : IObjectContainer
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-        var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+        // 优先查找最后一个，避免重复注册
+        var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         if (item == null) return null;
 
