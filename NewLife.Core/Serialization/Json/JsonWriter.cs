@@ -49,8 +49,8 @@ namespace NewLife.Serialization
         ///// <summary>智能缩进，内层不换行。默认false</summary>
         //public Boolean SmartIndented { get; set; }
 
-        /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，默认false</summary>
-        public Boolean Int64AsString { get; set; }
+    /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，只有值真的超过前端接受范围时才会进行转换，默认false</summary>
+    public Boolean Int64AsString { get; set; }
 
         ///// <summary>整数序列化为十六进制</summary>
         //public Boolean IntAsHex { get; set; }
@@ -124,8 +124,11 @@ namespace NewLife.Serialization
             else if (obj is Boolean)
                 _Builder.Append((obj + "").ToLower());
 
-            else if ((obj is Int64 or UInt64) && Int64AsString)
-                WriteStringFast(obj + "");
+        else if ((obj is Int64 vInt64) && Int64AsString && (vInt64 > 9007199254740991 || vInt64 < -9007199254740991))
+            WriteStringFast(obj + "");
+
+        else if ((obj is UInt64 vUInt64) && Int64AsString && vUInt64 > 9007199254740991)
+            WriteStringFast(obj + "");
 
             else if (
                 obj is Int32 or Int64 or Double or
