@@ -92,6 +92,8 @@ public class Snowflake
                 _msStart = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
                 _watch = Stopwatch.StartNew();
             }
+
+            _inited = true;
         }
     }
 
