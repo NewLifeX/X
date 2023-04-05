@@ -15,14 +15,6 @@ public static class PathHelper
     /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
     /// </remarks>
     public static String BasePath { get; set; }
-
-    /// <summary>基础目录。GetBasePath依赖于此，默认为当前应用程序域基础目录。已弃用，请使用BasePath</summary>
-    /// <remarks>
-    /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
-    /// </remarks>
-    [Obsolete("=>BasePath")]
-    public static String BaseDirectory { get => BasePath; set => BasePath = value; }
-
     #endregion
 
     #region 静态构造
@@ -44,8 +36,8 @@ public static class PathHelper
         if (dir.IsNullOrEmpty()) dir = NewLife.Runtime.GetEnvironmentVariable("BasePath");
 
         // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
-        if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
         if (dir.IsNullOrEmpty()) dir = Environment.CurrentDirectory;
+        if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
 
         // Xamarin 在 Android 上无法使用应用所在目录写入各种文件，改用临时目录
         //if (dir.IsNullOrEmpty() || dir == "/")
@@ -71,9 +63,9 @@ public static class PathHelper
 
         var dir = mode switch
         {
-            1 => AppDomain.CurrentDomain.BaseDirectory ?? BasePath,
+            1 => Environment.CurrentDirectory,
             2 => BasePath,
-            3 => Environment.CurrentDirectory,
+            3 => AppDomain.CurrentDomain.BaseDirectory ?? BasePath,
             _ => "",
         };
         if (dir.IsNullOrEmpty()) return Path.GetFullPath(path);
@@ -106,7 +98,7 @@ public static class PathHelper
         return Path.GetFullPath(path);
     }
 
-    /// <summary>获取文件或目录基于应用程序域基目录的全路径，过滤相对目录</summary>
+    /// <summary>获取文件或目录基于当前目录的全路径，过滤相对目录</summary>
     /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
     /// <param name="path">文件或目录</param>
     /// <returns></returns>
@@ -128,11 +120,11 @@ public static class PathHelper
         return GetPath(path, 2);
     }
 
-    /// <summary>获取文件或目录基于当前目录的全路径，过滤相对目录</summary>
+    /// <summary>获取文件或目录基于应用程序域基目录的执行全路径，过滤相对目录</summary>
     /// <remarks>不确保目录后面一定有分隔符，是否有分隔符由原始路径末尾决定</remarks>
     /// <param name="path">文件或目录</param>
     /// <returns></returns>
-    public static String GetCurrentPath(this String path)
+    public static String GetExecutePath(this String path)
     {
         if (String.IsNullOrEmpty(path)) return path;
 
