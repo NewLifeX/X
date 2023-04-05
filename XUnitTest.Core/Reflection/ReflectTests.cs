@@ -41,5 +41,16 @@ namespace XUnitTest.Reflection
             var rs = value.ChangeType(targetType);
             Assert.Equal(target, rs);
         }
+
+        [Fact]
+        public void DateTimeOffsetChangeTypeTest()
+        {
+            var value = "2023/4/5 11:32 +08:00";
+            var targetType = typeof(DateTimeOffset);
+            var target = new DateTimeOffset(2023, 4, 5, 11, 32, 00, TimeSpan.FromHours(8));
+
+            var rs = value.ChangeType(targetType);
+            Assert.Equal(target, rs);
+        }
     }
 }
