@@ -171,6 +171,18 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     public TResult Post<TResult>(String action, Object args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
 
+    /// <summary>异步上传，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> PutAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Put, action, args);
+
+    /// <summary>异步删除，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> DeleteAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
     /// <param name="method">请求方法</param>
