@@ -60,18 +60,34 @@ namespace NewLife.Remoting
         /// <returns></returns>
         public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => TaskEx.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
-        /// <summary>异步调用，等待返回结果</summary>
-        /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
-        /// <param name="client">Http客户端</param>
-        /// <param name="method">请求方法</param>
-        /// <param name="action">服务操作</param>
-        /// <param name="args">参数</param>
-        /// <param name="onRequest">请求头回调</param>
-        /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
-        /// <returns></returns>
-        public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data")
-        {
-            //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
+    /// <summary>异步上传，等待返回结果</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="client">Http客户端</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public static async Task<TResult> PutAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Put, action, args);
+
+    /// <summary>异步删除，等待返回结果</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="client">Http客户端</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public static async Task<TResult> DeleteAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+
+    /// <summary>异步调用，等待返回结果</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="client">Http客户端</param>
+    /// <param name="method">请求方法</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <param name="onRequest">请求头回调</param>
+    /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+    /// <returns></returns>
+    public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data")
+    {
+        //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
             var returnType = typeof(TResult);
 
@@ -124,55 +140,74 @@ namespace NewLife.Remoting
             // 序列化参数，决定GET/POST
             var request = new HttpRequestMessage(method, action);
 
-            if (method == HttpMethod.Get)
+        if (args is HttpContent content)
+            request.Content = content;
+        else if (method == HttpMethod.Get || method == HttpMethod.Delete)
+        {
+            if (args is Packet pk)
             {
-                if (args is Packet pk)
-                {
-                    var url = action;
-                    url += url.Contains("?") ? "&" : "?";
-                    url += pk.ToArray().ToUrlBase64();
-                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-                }
-                else if (args is Byte[] buf)
-                {
-                    var url = action;
-                    url += url.Contains("?") ? "&" : "?";
-                    url += buf.ToUrlBase64();
-                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-                }
-                else if (args != null)
-                {
-                    var ps = args?.ToDictionary();
-                    var url = GetUrl(action, ps);
-                    request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
-                }
+                var url = action;
+                url += url.Contains('?') ? "&" : "?";
+                url += pk.ToArray().ToUrlBase64();
+                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
-            else if (method == HttpMethod.Post || method == HttpMethod.Put)
+            else if (args is Byte[] buf)
             {
-                if (args is Packet pk)
-                {
-                    var content =
-                        pk.Next == null ?
-                        new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
-                        new ByteArrayContent(pk.ToArray());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                    request.Content = content;
-                }
-                else if (args is Byte[] buf)
-                {
-                    var content = new ByteArrayContent(buf);
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                    request.Content = content;
-                }
-                else if (args != null)
-                {
-                    var content = new ByteArrayContent(args.ToJson().GetBytes());
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                    request.Content = content;
-                }
+                var url = action;
+                url += url.Contains('?') ? "&" : "?";
+                url += buf.ToUrlBase64();
+                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
+            else if (args != null)
+            {
+                var ps = args?.ToDictionary();
+                var url = GetUrl(action, ps);
+                request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
+            }
+        }
+        else if (method == HttpMethod.Post || method == HttpMethod.Put)
+        {
+            if (args is Packet pk)
+            {
+                request.Content = BuildContent(pk);
+            }
+            else if (args is Byte[] buf)
+            {
+                request.Content = BuildContent(buf);
+            }
+            else if (args != null)
+            {
+                content = new ByteArrayContent(args.ToJson().GetBytes());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                request.Content = content;
+            }
+        }
 
             return request;
+        }
+
+        /// <summary>为二进制数据生成请求体内容。对超长内容进行压缩</summary>
+        /// <param name="pk"></param>
+        /// <returns></returns>
+        public static HttpContent BuildContent(Packet pk)
+        {
+            var gzip = NewLife.Net.Setting.Current.AutoGZip;
+            if (gzip > 0 && pk.Total >= gzip)
+            {
+                var buf = pk.ReadBytes();
+                buf = buf.CompressGZip();
+                var content = new ByteArrayContent(buf);
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/x-gzip");
+                return content;
+            }
+            else
+            {
+                var content = pk.Next == null ?
+                    new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
+                    new ByteArrayContent(pk.ToArray());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                return content;
+            }
         }
 
         /// <summary>结果代码名称。默认 code/errcode</summary>
