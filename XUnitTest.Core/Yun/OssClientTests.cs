@@ -100,7 +100,7 @@ namespace XUnitTest.Yun
             // 获取
             var obj = await client.Get(objectName);
             Assert.NotNull(obj);
-            Assert.Equal(buf.ToBase64(), obj.ToBase64());
+            Assert.Equal(buf.ToBase64(), obj.Data.ToBase64());
 
             // 删除
             await client.Delete(objectName);
