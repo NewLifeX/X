@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Web;
+using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Remoting;
@@ -71,7 +72,10 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        return await client.PutAsync<ObjectInfo>($"Put?id={id}", data);
+        var rs = await client.PutAsync<ObjectInfo>($"Put?id={HttpUtility.UrlEncode(id)}", data);
+        rs.Data ??= data;
+
+        return rs;
     }
 
     /// <summary>根据Id获取对象</summary>
@@ -120,7 +124,8 @@ public class EasyClient : IObjectStorage
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 
         var client = GetClient();
-        return await client.GetAsync<IList<IObjectInfo>>("Search", new { pattern, start, count });
+        var rs = await client.GetAsync<IList<ObjectInfo>>("Search", new { pattern, start, count });
+        return rs?.Cast<IObjectInfo>().ToList();
     }
     #endregion
 
