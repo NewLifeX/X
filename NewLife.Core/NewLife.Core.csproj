@@ -189,6 +189,9 @@
     <None Remove="说明.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Yun\OssClient.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="..\Doc\leaf.png" Link="leaf.png" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
