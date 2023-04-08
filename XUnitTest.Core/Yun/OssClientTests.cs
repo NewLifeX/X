@@ -26,20 +26,20 @@ namespace XUnitTest.Yun
 
             var client = new OssClient
             {
-                Endpoint = _config.Endpoint,
-                AccessKeyId = _config.AccessKeyId,
-                AccessKeySecret = _config.AccessKeySecret,
+                Server = _config.Server,
+                AppId = _config.AppId,
+                Secret = _config.Secret,
 
                 //Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
                 //AccessKeyId = "LTAISlFUZjVkLuLX",
                 //AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
             };
 
-            if (client.Endpoint.IsNullOrEmpty())
+            if (client.Server.IsNullOrEmpty())
             {
-                client.Endpoint = "http://oss-cn-shanghai.aliyuncs.com";
-                client.AccessKeyId = "LTAISlFUZjVkLuLX";
-                client.AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P";
+                client.Server = "http://oss-cn-shanghai.aliyuncs.com";
+                client.AppId = "LTAISlFUZjVkLuLX";
+                client.Secret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P";
             }
 
             return client;
@@ -95,15 +95,15 @@ namespace XUnitTest.Yun
             var objectName = "Log/" + fi.Name;
 
             // 上传
-            await client.PutObject(objectName, buf);
+            await client.Put(objectName, buf);
 
             // 获取
-            var obj = await client.GetObject(objectName);
+            var obj = await client.Get(objectName);
             Assert.NotNull(obj);
             Assert.Equal(buf.ToBase64(), obj.ToBase64());
 
             // 删除
-            await client.DeleteObject(objectName);
+            await client.Delete(objectName);
         }
     }
 }
