@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Diagnostics;
+using NewLife.Data;
 
 namespace NewLife.IO;
 
@@ -22,6 +23,7 @@ public interface IObjectInfo
 }
 
 /// <summary>对象信息。代表文件存储对象，或者磁盘文件，也可以是目录</summary>
+[DebuggerDisplay("{Name} [{Length}]")]
 public class ObjectInfo : IObjectInfo
 {
     /// <summary>名称</summary>
