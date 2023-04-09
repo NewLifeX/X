@@ -254,6 +254,10 @@ public class OssClient : IObjectStorage
         "position", "x-oss-process", "restore", "bucketInfo", "stat", "symlink",
         "location", "qos", "policy", "tagging", "requestPayment", "x-oss-traffic-limit",
         "objectMeta", "encryption", "versioning", "versionId", "versions",
+        "live", "status", "comp", "vod", "startTime", "endTime",
+        "inventory","continuation-token","inventoryId",
+        "callback", "callback-var","x-oss-request-payer",
+        "worm","wormId","wormExtend",
         "response-cache-control",
         "response-content-disposition",
         "response-content-encoding",
@@ -269,26 +273,25 @@ public class OssClient : IObjectStorage
         sb.Append(method).Append(NewLineMarker);
 
         var headersToSign = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
+        var headers = request.Headers;
         if (headers != null)
         {
             foreach (var header in headers)
             {
                 if (header.Key.EqualIgnoreCase("Content-Type", "Content-MD5", "Date") ||
-                    header.Key.StartsWith("x-oss-"))
-                    headersToSign.Add(header.Key, header.Value);
+                    header.Key.StartsWithIgnoreCase("x-oss-"))
+                    headersToSign.Add(header.Key, header.Value?.Join());
             }
         }
 
-        var contentHeaders = request.Content?.Headers;
-        if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", contentHeaders?.ContentType + "");
-        if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", contentHeaders?.ContentMD5?.ToHex() + "");
+        if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", "");
+        if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", "");
 
         var sortedHeaders = headersToSign.Keys.OrderBy(e => e).ToList();
         foreach (var key in sortedHeaders)
         {
             var value = headersToSign[key];
-            if (key.StartsWith("x-oss-"))
+            if (key.StartsWithIgnoreCase("x-oss-"))
                 sb.Append(key.ToLowerInvariant()).Append(':').Append(value);
             else
                 sb.Append(value);
