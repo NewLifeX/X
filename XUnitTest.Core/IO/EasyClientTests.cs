@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 using NewLife;
 using NewLife.IO;
@@ -40,11 +39,22 @@ public class EasyClientTests
 
         var infs = await client.Search("test/*.txt", 1, 4);
         Assert.NotNull(infs);
-        Assert.DoesNotContain(infs, e => e.Name == "aatxt");
+        Assert.DoesNotContain(infs, e => e.Name == "aa.txt");
         Assert.DoesNotContain(infs, e => e.Name == "test/aa.log");
         Assert.DoesNotContain(infs, e => e.Name == "aa.log");
-        Assert.Contains(infs, e => e.Name == "2.txt");
-        Assert.Contains(infs, e => e.Name == "3.txt");
-        Assert.DoesNotContain(infs, e => e.Name == "4.txt");
+        Assert.Contains(infs, e => e.Name == "test/2.txt");
+        Assert.Contains(infs, e => e.Name == "test/3.txt");
+        Assert.DoesNotContain(infs, e => e.Name == "test/4.txt");
+
+        var rs = await client.Delete(name);
+        Assert.Equal(1, rs);
+
+        infs = await client.Search();
+        Assert.NotNull(infs);
+        foreach (var item in infs)
+        {
+            rs = await client.Delete(item.Name);
+            Assert.Equal(1, rs);
+        }
     }
 }

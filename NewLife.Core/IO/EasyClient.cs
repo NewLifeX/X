@@ -31,8 +31,8 @@ public class EasyClient : IObjectStorage
     /// <summary>是否支持搜索</summary>
     public Boolean CanSearch => true;
 
-    /// <summary>批大小。搜索等批操作时使用</summary>
-    public Int32 BatchSize { get; set; } = 100;
+    ///// <summary>批大小。搜索等批操作时使用</summary>
+    //public Int32 BatchSize { get; set; } = 100;
 
     private ApiHttpClient _client;
     #endregion
@@ -119,7 +119,7 @@ public class EasyClient : IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    public virtual async Task<IList<IObjectInfo>> Search(String pattern, Int32 start, Int32 count)
+    public virtual async Task<IList<IObjectInfo>> Search(String pattern = null, Int32 start = 0, Int32 count = 100)
     {
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 

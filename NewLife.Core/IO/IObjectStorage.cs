@@ -58,6 +58,6 @@ public interface IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    Task<IList<IObjectInfo>> Search(String pattern, Int32 start, Int32 count);
+    Task<IList<IObjectInfo>> Search(String pattern = null, Int32 start = 0, Int32 count = 100);
     #endregion
 }
