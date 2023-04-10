@@ -1,9 +1,7 @@
 ﻿using System.Web;
-using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
-using NewLife.Model;
 using NewLife.Remoting;
 
 namespace NewLife.IO;
@@ -12,7 +10,7 @@ namespace NewLife.IO;
 /// <remarks>
 /// 使用方式，可以引用sdk，也可以直接把 EasyClient 类抠出来使用。
 /// </remarks>
-public class EasyClient : IObjectStorage, IConfigMapping
+public class EasyClient : IObjectStorage
 {
     #region 属性
     /// <summary>服务端地址。包括/io/的控制器路径</summary>
@@ -33,9 +31,6 @@ public class EasyClient : IObjectStorage, IConfigMapping
     /// <summary>是否支持搜索</summary>
     public Boolean CanSearch => true;
 
-    ///// <summary>批大小。搜索等批操作时使用</summary>
-    //public Int32 BatchSize { get; set; } = 100;
-
     private ApiHttpClient _client;
     #endregion
 
@@ -44,23 +39,9 @@ public class EasyClient : IObjectStorage, IConfigMapping
     public EasyClient() { }
 
     /// <summary>指定服务提供者来实例化文件存储客户端，可对接配置中心或注册中心</summary>
-    /// <param name="serviceProvider"></param>
-    /// <param name="name"></param>
-    public EasyClient(IServiceProvider serviceProvider, String name = "$Registry:EasyIO")
-    {
-        var cfg = serviceProvider.GetService<IConfigProvider>();
-        cfg?.Bind(this, true, name);
-    }
-
-    void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
-    {
-        var url = section?.Value;
-        if (!url.IsNullOrEmpty() && url != Server)
-        {
-            _client = null;
-            Server = url;
-        }
-    }
+    /// <param name="serviceProvider">服务提供者</param>
+    /// <param name="name">配置名。默认指向注册中心的EasyIO服务</param>
+    public EasyClient(IServiceProvider serviceProvider, String name = "$Registry:EasyIO") => _client = new ApiHttpClient(serviceProvider, name);
     #endregion
 
     #region 基础方法
