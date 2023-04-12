@@ -127,5 +127,21 @@ public static class Runtime
 
         return null;
     }
+
+    /// <summary>
+    /// 获取环境变量集合。不区分大小写
+    /// </summary>
+    /// <returns></returns>
+    public static IDictionary<String, String> GetEnvironmentVariables()
+    {
+        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+        {
+            var key = item.Key as String;
+            if (!key.IsNullOrEmpty()) dic[key] = item.Value as String;
+        }
+
+        return null;
+    }
     #endregion
 }
