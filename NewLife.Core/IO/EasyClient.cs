@@ -13,7 +13,7 @@ namespace NewLife.IO;
 public class EasyClient : IObjectStorage
 {
     #region 属性
-    /// <summary>服务端地址。包括/io/的控制器路径</summary>
+    /// <summary>服务端地址</summary>
     public String Server { get; set; }
 
     /// <summary>应用标识</summary>
@@ -21,6 +21,9 @@ public class EasyClient : IObjectStorage
 
     /// <summary>应用密钥</summary>
     public String Secret { get; set; }
+
+    /// <summary>基础控制器路径。默认/io/</summary>
+    public String BaseAction { get; set; } = "/io/";
 
     /// <summary>是否支持获取文件直接访问Url</summary>
     public Boolean CanGetUrl => true;
@@ -79,7 +82,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        var rs = await client.PutAsync<ObjectInfo>($"Put?id={HttpUtility.UrlEncode(id)}", data);
+        var rs = await client.PutAsync<ObjectInfo>(BaseAction + $"Put?id={HttpUtility.UrlEncode(id)}", data);
         rs.Data ??= data;
 
         return rs;
@@ -94,7 +97,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        var rs = await client.GetAsync<Packet>("Get", new { id });
+        var rs = await client.GetAsync<Packet>(BaseAction + "Get", new { id });
 
         return new ObjectInfo { Name = id, Data = rs };
     }
@@ -107,7 +110,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        return await client.GetAsync<String>("GetUrl", new { id });
+        return await client.GetAsync<String>(BaseAction + "GetUrl", new { id });
     }
 
     /// <summary>删除文件对象</summary>
@@ -118,7 +121,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        return await client.DeleteAsync<Int32>("Delete", new { id });
+        return await client.DeleteAsync<Int32>(BaseAction + "Delete", new { id });
     }
 
     /// <summary>搜索文件</summary>
@@ -131,7 +134,7 @@ public class EasyClient : IObjectStorage
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 
         var client = GetClient();
-        var rs = await client.GetAsync<IList<ObjectInfo>>("Search", new { pattern, start, count });
+        var rs = await client.GetAsync<IList<ObjectInfo>>(BaseAction + "Search", new { pattern, start, count });
         return rs?.Cast<IObjectInfo>().ToList();
     }
     #endregion
