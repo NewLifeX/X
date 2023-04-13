@@ -127,7 +127,12 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <returns></returns>
     public virtual IConfigSection GetSection(String key) => Find(key, false);
 
-    private IConfigSection Find(String key, Boolean createOnMiss)
+    /// <summary>查找配置项，可指定是否创建</summary>
+    /// <remarks>配置提供者可以重载该方法以实现增强功能。例如星尘配置从注册中心读取数据</remarks>
+    /// <param name="key"></param>
+    /// <param name="createOnMiss"></param>
+    /// <returns></returns>
+    protected virtual IConfigSection Find(String key, Boolean createOnMiss)
     {
         UseKey(key);
 
