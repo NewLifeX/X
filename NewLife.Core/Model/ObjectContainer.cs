@@ -105,8 +105,8 @@ public class ObjectContainer : IObjectContainer
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
         // 优先查找最后一个，避免重复注册
+        //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
         var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
-        //var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         if (item == null) return null;
 
         return Resolve(item, serviceProvider);

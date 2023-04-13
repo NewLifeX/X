@@ -55,8 +55,13 @@ public static class ModelExtension
         if (ioc != null)
         {
             var list = new List<Object>();
-            foreach (var item in ioc.Services)
+            //foreach (var item in ioc.Services)
+            //{
+            //    if (item.ServiceType == serviceType) list.Add(ioc.Resolve(item, provider));
+            //}
+            for (var i = ioc.Services.Count - 1; i >= 0; i--)
             {
+                var item = ioc.Services[i];
                 if (item.ServiceType == serviceType) list.Add(ioc.Resolve(item, provider));
             }
             return list;
