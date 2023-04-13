@@ -149,9 +149,11 @@ public class Binary : FormatterBase, IBinary
     /// <returns></returns>
     public virtual Int32 WriteSize(Int32 size)
     {
-        if (UseFieldSize && TryGetFieldSize(out var fieldsize)) return fieldsize;
+        var sizeWidth = -1;
+        if (UseFieldSize && TryGetFieldSize(out var fieldsize, out sizeWidth)) return fieldsize;
 
-        switch (SizeWidth)
+        if (sizeWidth < 0) sizeWidth = SizeWidth;
+        switch (sizeWidth)
         {
             case 1:
                 Write((Byte)size);
@@ -245,9 +247,11 @@ public class Binary : FormatterBase, IBinary
     /// <returns></returns>
     public virtual Int32 ReadSize()
     {
-        if (UseFieldSize && TryGetFieldSize(out var size)) return size;
+        var sizeWidth = -1;
+        if (UseFieldSize && TryGetFieldSize(out var size, out sizeWidth)) return size;
 
-        return SizeWidth switch
+        if (sizeWidth < 0) sizeWidth = SizeWidth;
+        return sizeWidth switch
         {
             1 => ReadByte(),
             2 => (Int16)Read(typeof(Int16)),
@@ -257,8 +261,9 @@ public class Binary : FormatterBase, IBinary
         };
     }
 
-    private Boolean TryGetFieldSize(out Int32 size)
+    private Boolean TryGetFieldSize(out Int32 size, out Int32 sizeWidth)
     {
+        sizeWidth = -1;
         if (Member is MemberInfo member)
         {
             // 获取FieldSizeAttribute特性
@@ -270,17 +275,19 @@ public class Binary : FormatterBase, IBinary
                     // 检查版本是否匹配
                     if (att.Version.IsNullOrEmpty() || att.Version == Version)
                     {
-                        // 如果指定了固定大小，直接返回
-                        if (att.ReferenceName.IsNullOrEmpty())
-                        {
-                            size = att.Size;
-                            if (size > 0) return true;
-                        }
-
                         // 如果指定了引用字段，则找引用字段所表示的长度
-                        if (att.TryGetReferenceSize(Hosts.Peek(), member, out size))
-                        {
+                        if (!att.ReferenceName.IsNullOrEmpty() && att.TryGetReferenceSize(Hosts.Peek(), member, out size))
                             return true;
+
+                        // 如果指定了固定大小，直接返回
+                        size = att.Size;
+                        if (size > 0) return true;
+
+                        // 指定了大小位宽
+                        if (att.SizeWidth >= 0)
+                        {
+                            sizeWidth = att.SizeWidth;
+                            return false;
                         }
                     }
                 }

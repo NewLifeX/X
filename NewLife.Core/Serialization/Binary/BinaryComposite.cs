@@ -37,7 +37,8 @@ public class BinaryComposite : BinaryHandlerBase
                 {
                     foreach (var att in atts)
                     {
-                        if (att.Version.IsNullOrEmpty() || att.Version == (Host as Binary).Version)
+                        if (!att.ReferenceName.IsNullOrEmpty() &&
+                            (att.Version.IsNullOrEmpty() || att.Version == (Host as Binary).Version))
                             att.SetReferenceSize(value, member, Host.Encoding);
                     }
                 }
