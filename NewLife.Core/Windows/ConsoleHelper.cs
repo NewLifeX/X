@@ -64,7 +64,11 @@ namespace NewLife.Windows
             uint SC_CLOSE = 0xF060;
             RemoveMenu(closeMenu, SC_CLOSE, 0x0);
         }
-
+        /// <summary>
+        /// 关闭控制台
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected static void CloseConsole(object sender, ConsoleCancelEventArgs e)
         {
             Environment.Exit(0);
