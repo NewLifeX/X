@@ -152,6 +152,16 @@ public class ExcelReader : DisposeBase
                                 val = _1900.AddDays(val.ToInt() - 2).ToString("yyyy-MM-dd");
                             }
                         }
+                        else
+                        {
+                            foreach (var colElement in col.Elements())
+                            {
+                                if (colElement.Name.LocalName.Equals("v"))
+                                {
+                                    val = colElement.Value;
+                                }
+                            }
+                        }
                     }
                 }
 
