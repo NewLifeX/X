@@ -14,7 +14,7 @@ namespace NewLife.Serialization;
 /// 支持针对单个成员使用多个FieldSize特性，各自指定不同Version版本，以支持不同版本协议的序列化。
 /// 例如JT/T808协议，2011/2019版的相同字段使用不同长度。
 /// </remarks>
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Enum, AllowMultiple = true)]
 public class FieldSizeAttribute : Attribute
 {
     /// <summary>大小。使用<see cref="ReferenceName"/>时，作为偏移量；0表示自动计算大小</summary>
