@@ -184,7 +184,7 @@ public static class CollectionHelper
     /// <returns></returns>
     public static IDictionary<String, Object> Merge(this IDictionary<String, Object> dic, Object target, Boolean overwrite = true, String[] excludes = null)
     {
-        var exs = excludes != null ? new HashSet<String>(StringComparer.OrdinalIgnoreCase) : null;
+        var exs = excludes != null ? new HashSet<String>(excludes, StringComparer.OrdinalIgnoreCase) : null;
         foreach (var item in target.ToDictionary())
         {
             if (exs == null || !exs.Contains(item.Key))
