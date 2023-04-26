@@ -343,7 +343,7 @@ namespace NewLife.Json
 
         private String GetJson()
         {
-            var json = new NewLife.Serialization.Json
+            var json = new NewLife.Serialization.Json.Json
             {
                 Encoding = Encoding.UTF8,
                 UseProperty = true
