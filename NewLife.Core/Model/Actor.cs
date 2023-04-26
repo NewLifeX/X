@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using NewLife.Log;
-#if !NET40
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Model
 {
     /// <summary>无锁并行编程模型</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/actor
+    /// 文档 https://newlifex.com/core/actor
     /// 
     /// 独立线程轮询消息队列，简单设计避免影响默认线程池。
     /// 适用于任务颗粒较大的场合，例如IO操作。
@@ -61,20 +59,21 @@ namespace NewLife.Model
         protected BlockingCollection<ActorContext> MailBox { get; set; }
 
         /// <summary>
+        /// 性能追踪器
+        /// </summary>
+        public ITracer Tracer { get; set; }
+
+        /// <summary>
         /// 父级性能追踪器。用于把内外调用链关联起来
         /// </summary>
         public ISpan TracerParent { get; set; }
 
         private Task _task;
         private Exception _error;
+        private CancellationTokenSource _source;
 
-#if NET40 || NET45
-        /// <summary>已完成任务</summary>
-        public static Task CompletedTask { get; } = TaskEx.FromResult(0);
-#else
-        /// <summary>已完成任务</summary>
-        public static Task CompletedTask { get; } = Task.CompletedTask;
-#endif
+        ///// <summary>已完成任务</summary>
+        //public static Task CompletedTask { get; } = Task.CompletedTask;
         #endregion
 
         #region 构造
@@ -107,24 +106,32 @@ namespace NewLife.Model
         public virtual Task Start()
         {
             if (Active) return _task;
-
-            if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
-
-            // 启动异步
-            if (_task == null)
+            lock (this)
             {
-                lock (this)
+                if (Active) return _task;
+
+                if (Tracer == null && TracerParent != null) Tracer = (TracerParent as DefaultSpan).Builder?.Tracer;
+                using var span = Tracer?.NewSpan("actor:Start", Name);
+
+                _source = new CancellationTokenSource();
+                if (MailBox == null) MailBox = new BlockingCollection<ActorContext>(BoundedCapacity);
+
+                // 启动异步
+                if (_task == null)
                 {
-                    if (_task == null) _task = OnStart();
+                    lock (this)
+                    {
+                        if (_task == null) _task = OnStart();
+                    }
                 }
+
+                Active = true;
+
+                return _task;
             }
-
-            Active = true;
-
-            return _task;
         }
 
-        /// <summary>开始时，返回执行线程包装任务，默认LongRunning</summary>
+        /// <summary>开始时，返回执行线程包装任务</summary>
         /// <returns></returns>
         protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
 
@@ -132,12 +139,23 @@ namespace NewLife.Model
         /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
         public virtual Boolean Stop(Int32 msTimeout = 0)
         {
-            MailBox?.CompleteAdding();
+            using var span = Tracer?.NewSpan("actor:Stop", $"{Name} msTimeout={msTimeout}");
+            try
+            {
+                MailBox?.CompleteAdding();
 
-            if (_error != null) throw _error;
-            if (msTimeout == 0 || _task == null) return true;
+                if (msTimeout > 0) _source.CancelAfter(msTimeout);
 
-            return _task.Wait(msTimeout);
+                if (_error != null) throw _error;
+                if (msTimeout == 0 || _task == null) return true;
+
+                return _task.Wait(msTimeout);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         /// <summary>添加消息，驱动内部处理</summary>
@@ -146,14 +164,15 @@ namespace NewLife.Model
         /// <returns>返回待处理消息数</returns>
         public virtual Int32 Tell(Object message, IActor sender = null)
         {
-            // 自动开始
-            if (!Active) Start();
-
+            //using var span = Tracer?.NewSpan("actor:Tell", Name);
             if (!Active)
             {
                 if (_error != null) throw _error;
 
-                throw new ObjectDisposedException(nameof(Actor));
+                // 自动开始
+                Start();
+
+                if (!Active) throw new ObjectDisposedException(nameof(Actor));
             }
 
             var box = MailBox;
@@ -165,6 +184,9 @@ namespace NewLife.Model
         /// <summary>循环消费消息</summary>
         private void DoActorWork()
         {
+            DefaultSpan.Current = TracerParent;
+
+            using var span = Tracer?.NewSpan("actor:Loop", Name);
             try
             {
                 Loop();
@@ -173,6 +195,8 @@ namespace NewLife.Model
             catch (InvalidOperationException) { /*CompleteAdding后Take会抛出IOE异常*/}
             catch (Exception ex)
             {
+                span?.SetError(ex, null);
+
                 _error = ex;
                 XTrace.WriteException(ex);
             }
@@ -183,23 +207,21 @@ namespace NewLife.Model
         /// <summary>循环消费消息</summary>
         protected virtual void Loop()
         {
-            DefaultSpan.Current = TracerParent;
-
             var box = MailBox;
-            while (!box.IsCompleted)
+            while (!_source.IsCancellationRequested && !box.IsCompleted)
             {
                 if (BatchSize <= 1)
                 {
-                    var ctx = box.Take();
+                    var ctx = box.Take(_source.Token);
                     var task = ReceiveAsync(ctx);
-                    if (task != null) task.Wait();
+                    if (task != null) task.Wait(_source.Token);
                 }
                 else
                 {
                     var list = new List<ActorContext>();
 
                     // 阻塞取一个
-                    var ctx = box.Take();
+                    var ctx = box.Take(_source.Token);
                     list.Add(ctx);
 
                     // 不阻塞取一批
@@ -210,18 +232,36 @@ namespace NewLife.Model
                         list.Add(ctx);
                     }
                     var task = ReceiveAsync(list.ToArray());
-                    if (task != null) task.Wait();
+                    if (task != null) task.Wait(_source.Token);
                 }
             }
         }
 
+#if NET40
         /// <summary>处理消息。批大小为1时使用该方法</summary>
         /// <param name="context">上下文</param>
-        protected virtual Task ReceiveAsync(ActorContext context) => CompletedTask;
+        protected virtual Task ReceiveAsync(ActorContext context) => TaskEx.FromResult(0);
 
         /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
         /// <param name="contexts">上下文集合</param>
-        protected virtual Task ReceiveAsync(ActorContext[] contexts) => CompletedTask;
+        protected virtual Task ReceiveAsync(ActorContext[] contexts) => TaskEx.FromResult(0);
+#elif NET45
+        /// <summary>处理消息。批大小为1时使用该方法</summary>
+        /// <param name="context">上下文</param>
+        protected virtual Task ReceiveAsync(ActorContext context) => Task.FromResult(0);
+
+        /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
+        /// <param name="contexts">上下文集合</param>
+        protected virtual Task ReceiveAsync(ActorContext[] contexts) => Task.FromResult(0);
+#else
+        /// <summary>处理消息。批大小为1时使用该方法</summary>
+        /// <param name="context">上下文</param>
+        protected virtual Task ReceiveAsync(ActorContext context) => Task.CompletedTask;
+
+        /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
+        /// <param name="contexts">上下文集合</param>
+        protected virtual Task ReceiveAsync(ActorContext[] contexts) => Task.CompletedTask;
+#endif
         #endregion
     }
 }
