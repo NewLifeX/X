@@ -6,7 +6,7 @@ namespace NewLife.Collections
 {
     /// <summary>对象池接口</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// 文档 https://newlifex.com/core/object_pool
     /// </remarks>
     /// <typeparam name="T"></typeparam>
     public interface IPool<T>
@@ -28,7 +28,7 @@ namespace NewLife.Collections
 
     /// <summary>对象池扩展</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/object_pool
+    /// 文档 https://newlifex.com/core/object_pool
     /// </remarks>
     public static class Pool
     {
@@ -76,7 +76,7 @@ namespace NewLife.Collections
 
                 value.Clear();
 
-                return true;
+                return base.Put(value);
             }
         }
         #endregion
@@ -123,7 +123,7 @@ namespace NewLife.Collections
                 value.Position = 0;
                 value.SetLength(0);
 
-                return true;
+                return base.Put(value);
             }
         }
         #endregion
