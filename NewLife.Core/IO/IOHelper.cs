@@ -7,7 +7,7 @@ namespace NewLife;
 
 /// <summary>IO工具类</summary>
 /// <remarks>
-/// 文档 https://www.yuque.com/smartstone/nx/io_helper
+/// 文档 https://newlifex.com/core/io_helper
 /// </remarks>
 public static class IOHelper
 {
@@ -140,6 +140,27 @@ public static class IOHelper
 
         return ms;
     }
+
+    /// <summary>压缩字节数组</summary>
+    /// <param name="data">字节数组</param>
+    /// <returns></returns>
+    public static Byte[] CompressGZip(this Byte[] data)
+    {
+        var ms = new MemoryStream();
+        CompressGZip(new MemoryStream(data), ms);
+        return ms.ToArray();
+    }
+
+    /// <summary>解压缩字节数组</summary>
+    /// <returns>Deflate算法，如果是ZLIB格式，则前面多两个字节，解压缩之前去掉，RocketMQ中有用到</returns>
+    /// <param name="data">字节数组</param>
+    /// <returns></returns>
+    public static Byte[] DecompressGZip(this Byte[] data)
+    {
+        var ms = new MemoryStream();
+        DecompressGZip(new MemoryStream(data), ms);
+        return ms.ToArray();
+    }
     #endregion
 
     #region 复制数据流
@@ -243,11 +264,7 @@ public static class IOHelper
         if (count <= 0) count = src.Length - srcOffset;
         if (dstOffset + count > dst.Length) count = dst.Length - dstOffset;
 
-#if MF
-        Array.Copy(src, srcOffset, dst, dstOffset, count);
-#else
         Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
-#endif
         return count;
     }
     #endregion
@@ -336,7 +353,7 @@ public static class IOHelper
     /// <returns></returns>
     public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
     {
-        if (buf == null || buf.Length < 1 || offset >= buf.Length) return null;
+        if (buf == null || buf.Length <= 0 || offset >= buf.Length) return null;
         if (encoding == null) encoding = Encoding.UTF8;
 
         var size = buf.Length - offset;
@@ -729,7 +746,7 @@ public static class IOHelper
     /// <returns></returns>
     public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
     {
-        if (data == null || data.Length < 1) return "";
+        if (data == null || data.Length <= 0) return "";
 
         if (count < 0)
             count = data.Length - offset;
@@ -758,7 +775,7 @@ public static class IOHelper
     /// <returns></returns>
     public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
-        if (data == null || data.Length < 1) return "";
+        if (data == null || data.Length <= 0) return "";
 
         if (groupSize < 0) groupSize = 0;
 
@@ -859,7 +876,7 @@ public static class IOHelper
     /// <returns></returns>
     public static String ToBase64(this Byte[] data, Int32 offset = 0, Int32 count = -1, Boolean lineBreak = false)
     {
-        if (data == null || data.Length < 1) return "";
+        if (data == null || data.Length <= 0) return "";
 
         if (count <= 0)
             count = data.Length - offset;
@@ -887,7 +904,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToBase64(this String data)
     {
-        if (data.IsNullOrEmpty()) return new Byte[0];
+        if (data.IsNullOrWhiteSpace()) return new Byte[0];
 
         data = data.Trim();
         if (data[data.Length - 1] != '=')
