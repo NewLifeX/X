@@ -13,7 +13,7 @@ namespace NewLife
 {
     /// <summary>字符串助手类</summary>
     /// <remarks>
-    /// 文档 https://www.yuque.com/smartstone/nx/string_helper
+    /// 文档 https://newlifex.com/core/string_helper
     /// </remarks>
     public static class StringHelper
     {
@@ -41,7 +41,7 @@ namespace NewLife
 
             foreach (var item in strs)
             {
-                if (value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+                if (!String.IsNullOrEmpty(item) && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
             }
             return false;
         }
@@ -89,7 +89,7 @@ namespace NewLife
         {
             //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
             if (value == null || String.IsNullOrEmpty(value)) return new String[0];
-            if (separators == null || separators.Length < 1 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
 
             return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         }
@@ -102,7 +102,7 @@ namespace NewLife
         public static Int32[] SplitAsInt(this String? value, params String[] separators)
         {
             if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
-            if (separators == null || separators.Length < 1) separators = new String[] { ",", ";" };
+            if (separators == null || separators.Length <= 0) separators = new String[] { ",", ";" };
 
             var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
             var list = new List<Int32>();
@@ -118,36 +118,6 @@ namespace NewLife
             return list.ToArray();
         }
 
-        /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分号分组，等号分隔</summary>
-        /// <param name="value">字符串</param>
-        /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
-        /// <param name="separators">分组分隔符，默认逗号分号</param>
-        /// <returns></returns>
-        [Obsolete("该扩展容易带来误解")]
-        public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", params String[] separators)
-        {
-            var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-            if (value == null || value.IsNullOrWhiteSpace()) return dic;
-
-            if (String.IsNullOrEmpty(nameValueSeparator)) nameValueSeparator = "=";
-            if (separators == null || separators.Length == 0) separators = new String[] { ",", ";" };
-
-            var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length == 0) return dic;
-
-            foreach (var item in ss)
-            {
-                var p = item.IndexOf(nameValueSeparator);
-                // 在前后都不行
-                if (p <= 0 || p >= item.Length - 1) continue;
-
-                var key = item.Substring(0, p).Trim();
-                dic[key] = item.Substring(p + nameValueSeparator.Length).Trim();
-            }
-
-            return dic;
-        }
-
         /// <summary>拆分字符串成为不区分大小写的可空名值字典。逗号分组，等号分隔</summary>
         /// <param name="value">字符串</param>
         /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
@@ -160,10 +130,10 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             var k = 0;
             foreach (var item in ss)
@@ -212,10 +182,10 @@ namespace NewLife
             if (value == null || value.IsNullOrWhiteSpace()) return dic;
 
             //if (nameValueSeparator == null) nameValueSeparator = '=';
-            //if (separator == null || separator.Length < 1) separator = new String[] { ",", ";" };
+            //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
             var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-            if (ss == null || ss.Length < 1) return dic;
+            if (ss == null || ss.Length <= 0) return dic;
 
             foreach (var item in ss)
             {
@@ -389,6 +359,31 @@ namespace NewLife
             // 最后一组必须结尾
             return p == input.Length;
         }
+
+#if NETFRAMEWORK || NETSTANDARD2_0
+        /// <summary>Returns a value indicating whether a specified character occurs within this string.</summary>
+        /// <param name="value"></param>
+        /// <param name="inputChar">The character to seek.</param>
+        /// <returns>
+        /// <see langword="true" /> if the <paramref name="inputChar" /> parameter occurs within this string; otherwise, <see langword="false" />.</returns>
+        public static bool Contains(this String value, char inputChar)
+        {
+            return value.IndexOf(inputChar) >= 0;
+        }
+
+        /// <summary>Splits a string into substrings based on the characters in an array. You can specify whether the substrings include empty array elements.</summary>
+        /// <param name="value"></param>
+        /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or <see langword="null" />.</param>
+        /// <param name="options">
+        /// <see cref="F:System.StringSplitOptions.RemoveEmptyEntries" /> to omit empty array elements from the array returned; or <see cref="F:System.StringSplitOptions.None" /> to include empty array elements in the array returned.</param>
+        /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more characters in <paramref name="separator" />. For more information, see the Remarks section.</returns>
+        /// <exception cref="T:System.ArgumentException">
+        /// <paramref name="options" /> is not one of the <see cref="T:System.StringSplitOptions" /> values.</exception>
+        public static string[] Split(this String value, char separator, StringSplitOptions options = StringSplitOptions.None)
+        {
+            return value.Split(new char[] { separator }, options);
+        }
+#endif
         #endregion
 
         #region 截取扩展
@@ -427,7 +422,7 @@ namespace NewLife
         public static String TrimStart(this String str, params String[] starts)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (starts == null || starts.Length < 1 || String.IsNullOrEmpty(starts[0])) return str;
+            if (starts == null || starts.Length <= 0 || String.IsNullOrEmpty(starts[0])) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
@@ -450,7 +445,7 @@ namespace NewLife
         public static String TrimEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {
@@ -553,7 +548,7 @@ namespace NewLife
         public static String CutStart(this String str, params String[] starts)
         {
             if (str.IsNullOrEmpty()) return str;
-            if (starts == null || starts.Length < 1 || starts[0].IsNullOrEmpty()) return str;
+            if (starts == null || starts.Length <= 0 || starts[0].IsNullOrEmpty()) return str;
 
             for (var i = 0; i < starts.Length; i++)
             {
@@ -574,7 +569,7 @@ namespace NewLife
         public static String CutEnd(this String str, params String[] ends)
         {
             if (String.IsNullOrEmpty(str)) return str;
-            if (ends == null || ends.Length < 1 || String.IsNullOrEmpty(ends[0])) return str;
+            if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
 
             for (var i = 0; i < ends.Length; i++)
             {
@@ -673,9 +668,9 @@ namespace NewLife
             if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
 
             var keys = key
-                                .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
-                                .OrderBy(s => s.Length)
-                                .ToArray();
+                .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
+                .OrderBy(s => s.Length)
+                .ToArray();
 
             //var q = from sentence in items.AsParallel()
             var q = from word in words
@@ -769,7 +764,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的距离
             foreach (var item in list)
@@ -824,7 +819,7 @@ namespace NewLife
             if (keys.IsNullOrWhiteSpace()) return rs;
             if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
 
-            var ks = keys.Split(" ").OrderBy(_ => _.Length).ToArray();
+            var ks = keys.Split(' ').OrderBy(_ => _.Length).ToArray();
 
             // 计算每个项到关键字的权重
             foreach (var item in list)
@@ -1017,7 +1012,7 @@ namespace NewLife
                     p.OutputDataReceived += (s, e) => output(e.Data);
                     p.ErrorDataReceived += (s, e) => output(e.Data);
                 }
-                else if (NewLife.Runtime.IsConsole)
+                else
                 {
                     p.OutputDataReceived += (s, e) => { if (e.Data != null) XTrace.WriteLine(e.Data); };
                     p.ErrorDataReceived += (s, e) => { if (e.Data != null) XTrace.Log.Error(e.Data); };
@@ -1026,7 +1021,7 @@ namespace NewLife
             if (onExit != null) p.Exited += (s, e) => { if (s is Process proc) onExit(proc); };
 
             p.Start();
-            if (msWait > 0 && (output != null || NewLife.Runtime.IsConsole))
+            if (msWait > 0)
             {
                 p.BeginOutputReadLine();
                 p.BeginErrorReadLine();
@@ -1061,8 +1056,8 @@ namespace NewLife
             var si = p.StartInfo;
             si.UseShellExecute = true;
             si.FileName = fileName;
-            si.Arguments = arguments;
-            si.WorkingDirectory = workingDirectory;
+            if (arguments != null) si.Arguments = arguments;
+            if (workingDirectory != null) si.WorkingDirectory = workingDirectory;
 
             p.Start();
 
