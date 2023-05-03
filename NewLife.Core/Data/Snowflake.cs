@@ -151,6 +151,24 @@ public class Snowflake
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
 
+    /// <summary>获取指定时间的Id，支持传入唯一业务id（22位）。可用于物联网数据采集</summary>
+    /// <remarks>
+    /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
+    /// 为了避免主键重复，可以使用传感器id作为后续22位，最大支持4194304个。
+    /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
+    /// </remarks>
+    /// <param name="time">时间</param>
+    /// <param name="uid">唯一业务id。例如传感器id</param>
+    /// <returns></returns>
+    public virtual Int64 NewId(DateTime time, Int32 uid)
+    {
+        Init();
+
+        var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
+
+        return (ms << (10 + 12)) | (Int64)(uid | (-1 ^ (-1 << (10 + 12))));
+    }
+
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
     /// <param name="time">时间</param>
     /// <returns></returns>
