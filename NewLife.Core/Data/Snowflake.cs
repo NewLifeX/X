@@ -93,6 +93,8 @@ public class Snowflake
                 _watch = Stopwatch.StartNew();
             }
 
+            span?.AppendTag($"WorkerId={WorkerId} StartTimestamp={StartTimestamp.ToFullString()} _msStart={_msStart}");
+
             _inited = true;
         }
     }
