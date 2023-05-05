@@ -320,7 +320,11 @@ namespace NewLife
         /// <returns></returns>
         public static Boolean IsMatch(this String pattern, String input, StringComparison comparisonType = StringComparison.CurrentCulture)
         {
-            if (pattern.IsNullOrEmpty() || input.IsNullOrEmpty()) return false;
+            if (pattern.IsNullOrEmpty()) return false;
+
+            // 单独*匹配所有，即使输入字符串为空
+            if (pattern == "*") return true;
+            if (input.IsNullOrEmpty()) return false;
 
             // 普通表达式，直接包含
             var p = pattern.IndexOf('*');
