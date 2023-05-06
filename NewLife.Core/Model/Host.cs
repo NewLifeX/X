@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+﻿using System.Runtime.InteropServices;
+using NewLife.Log;
 
 namespace NewLife.Model;
 
@@ -57,6 +58,19 @@ public class Host : IHost
     #endregion
 
     #region 构造
+    static Host()
+    {
+        AppDomain.CurrentDomain.ProcessExit += OnExit;
+        Console.CancelKeyPress += OnExit;
+#if NETCOREAPP
+        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, null);
+#endif
+#if NET6_0_OR_GREATER
+        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx, null));
+        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx, null));
+#endif
+    }
+
     /// <summary>通过制定服务提供者来实例化一个应用主机</summary>
     /// <param name="serviceProvider"></param>
     public Host(IServiceProvider serviceProvider) => ServiceProvider = serviceProvider;
@@ -129,8 +143,7 @@ public class Host : IHost
 
         _life = new TaskCompletionSource<Object>();
 
-        AppDomain.CurrentDomain.ProcessExit += (s, e) => _life.TrySetResult(null);
-        Console.CancelKeyPress += (s, e) => _life.TrySetResult(null);
+        RegisterExit((s, e) => _life.TrySetResult(null));
 
         await StartAsync(source.Token);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
@@ -142,6 +155,29 @@ public class Host : IHost
         await StopAsync(source.Token);
 
         XTrace.WriteLine("Stopped!");
+    }
+    #endregion
+
+    #region 退出事件
+    private static List<EventHandler> _events = new();
+    /// <summary>注册应用退出事件</summary>
+    /// <remarks>在不同场景可能被多次执行，调用方需要做判断</remarks>
+    /// <param name="onExit">回调函数</param>
+    public static void RegisterExit(EventHandler onExit) => _events.Add(onExit);
+
+    private static void OnExit(Object sender, EventArgs e)
+    {
+        foreach (var item in _events)
+        {
+            try
+            {
+                item(sender, e);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+        }
     }
     #endregion
 }
