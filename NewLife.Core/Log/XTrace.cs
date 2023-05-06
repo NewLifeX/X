@@ -87,6 +87,9 @@ public static class XTrace
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+#if NETCOREAPP
+        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnProcessExit(null, EventArgs.Empty);
+#endif
 
         ThreadPoolX.Init();
 
