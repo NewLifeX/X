@@ -38,6 +38,16 @@ public class ProtectedKeyTests
     }
 
     [Fact]
+    public void ProtectedData3()
+    {
+        var pd = new ProtectedKey { Secret = "NewLife".GetBytes() };
+
+        var plain = "server=.;uid=root;pwd=\"Hello Stone\";database=iot";
+        var str = pd.Unprotect(plain);
+        Assert.Equal("server=.;uid=root;pwd=\"Hello Stone\";database=iot", str);
+    }
+
+    [Fact]
     public void Hide()
     {
         var pd = new ProtectedKey { Secret = "NewLife".GetBytes() };
