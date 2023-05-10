@@ -35,7 +35,16 @@ public class ProtectedKey
             key = config["ProtectedKey"];
         }
 
-        pd.Secret = key?.ToBase64();
+        if (!key.IsNullOrEmpty())
+        {
+            // 支持Base64格式和Hex格式的密码，默认文本
+            if (key.StartsWithIgnoreCase("$Base64$"))
+                pd.Secret = key.Substring("$Base64$".Length).ToBase64();
+            else if (key.StartsWithIgnoreCase("$Hex$"))
+                pd.Secret = key.Substring("$Hex$".Length).ToBase64();
+            else
+                pd.Secret = key.GetBytes();
+        }
 
         Instance = pd;
     }
