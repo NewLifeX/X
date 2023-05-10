@@ -90,20 +90,17 @@ public class ProtectedKey
     /// <returns></returns>
     public String Unprotect(String value)
     {
-        var alg = SymmetricAlgorithm.Create(Algorithm);
-
         // 单纯待加密数据
         var p = value.IndexOf('=');
         if (p < 0)
         {
             // 分解加密算法，$AES$string
             var ss = value.Split('$');
-            if (ss != null && ss.Length >= 3)
-            {
-                alg = SymmetricAlgorithm.Create(ss[1]);
-                value = ss[2];
-            }
-            return alg.Decrypt(value.ToBase64(), Secret).ToStr();
+            if (ss == null || ss.Length < 3) return value;
+
+            var alg = SymmetricAlgorithm.Create(ss[1]);
+
+            return alg.Decrypt(ss[2].ToBase64(), Secret).ToStr();
         }
 
         // 查找密码片段
@@ -116,12 +113,11 @@ public class ProtectedKey
 
                 // 分解加密算法，$AES$string
                 var ss = pass.Split('$');
-                if (ss != null && ss.Length >= 3)
-                {
-                    alg = SymmetricAlgorithm.Create(ss[1]);
-                    pass = ss[2];
-                }
-                dic[item] = alg.Decrypt(pass.ToBase64(), Secret).ToStr();
+                if (ss == null || ss.Length < 3) continue;
+
+                var alg = SymmetricAlgorithm.Create(ss[1]);
+
+                dic[item] = alg.Decrypt(ss[2].ToBase64(), Secret).ToStr();
 
                 return dic.Join(";", e => $"{e.Key}={e.Value}");
             }
