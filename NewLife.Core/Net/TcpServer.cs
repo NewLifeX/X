@@ -332,6 +332,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             if (sessions.Count > 0)
             {
                 WriteLog("准备释放会话{0}个！", sessions.Count);
+                sessions.CloseAll(nameof(CloseAllSession));
                 sessions.TryDispose();
                 sessions.Clear();
             }
