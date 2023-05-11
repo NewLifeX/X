@@ -160,10 +160,16 @@ public class Host : IHost
 
     #region 退出事件
     private static List<EventHandler> _events = new();
+    private static List<Action> _events2 = new();
+    private static Int32 _exited;
     /// <summary>注册应用退出事件</summary>
     /// <remarks>在不同场景可能被多次执行，调用方需要做判断</remarks>
     /// <param name="onExit">回调函数</param>
     public static void RegisterExit(EventHandler onExit) => _events.Add(onExit);
+
+    /// <summary>注册应用退出事件。仅执行一次</summary>
+    /// <param name="onExit">回调函数</param>
+    public static void RegisterExit(Action onExit) => _events2.Add(onExit);
 
     private static void OnExit(Object sender, EventArgs e)
     {
@@ -172,6 +178,21 @@ public class Host : IHost
             try
             {
                 item(sender, e);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
+        }
+
+        // 只执行一次
+        if (Interlocked.Increment(ref _exited) > 1) return;
+
+        foreach (var item in _events2)
+        {
+            try
+            {
+                item();
             }
             catch (Exception ex)
             {
