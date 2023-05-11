@@ -54,6 +54,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>数据到达事件</summary>
     public event EventHandler<ReceivedEventArgs> Received;
 
+    private Int32 _running;
     private IServiceScope _scope;
     #endregion
 
@@ -61,6 +62,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>开始会话处理。</summary>
     public virtual void Start()
     {
+        _running = 1;
         WriteLog("Connected {0}", Session);
 
         var ns = (this as INetSession).Host;
@@ -72,18 +74,37 @@ public class NetSession : DisposeBase, INetSession, IExtend
         }
 
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect", Remote?.ToString());
-
-        OnConnected();
-
-        var ss = Session;
-        if (ss != null)
+        try
         {
-            // 网络会话和Socket会话共用用户会话数据
-            Items = ss.Items;
+            OnConnected();
 
-            ss.Received += Ss_Received;
-            ss.OnDisposed += (s, e2) => Dispose();
-            ss.Error += OnError;
+            var ss = Session;
+            if (ss != null)
+            {
+                // 网络会话和Socket会话共用用户会话数据
+                Items = ss.Items;
+
+                ss.Received += Ss_Received;
+                ss.OnDisposed += (s, e2) =>
+                {
+                    try
+                    {
+                        if (s is SessionBase session && !session.CloseReason.IsNullOrEmpty())
+                            Close(session.CloseReason);
+                        else
+                            Close("Disconnect");
+                    }
+                    catch { }
+
+                    Dispose();
+                };
+                ss.Error += OnError;
+            }
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
         }
     }
 
@@ -108,14 +129,15 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <param name="disposing">从Dispose调用（释放所有资源）还是析构函数调用（释放非托管资源）</param>
     protected override void Dispose(Boolean disposing)
     {
-        var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Disconnect");
-
-        OnDisconnected();
-
-        WriteLog("Disconnect {0}", Session);
-
         base.Dispose(disposing);
+
+        var reason = GetType().Name + (disposing ? "Dispose" : "GC");
+
+        try
+        {
+            Close(reason);
+        }
+        catch { }
 
         //Session.Dispose();//去掉这句话，因为在释放的时候Session有的时候为null，会出异常报错，导致整个程序退出。去掉后正常。
         Session.TryDispose();
@@ -126,8 +148,26 @@ public class NetSession : DisposeBase, INetSession, IExtend
         _scope.TryDispose();
     }
 
-    /// <summary>主动关闭跟客户端的网络连接</summary>
-    public void Close() => Dispose();
+    /// <summary>关闭跟客户端的网络连接</summary>
+    /// <param name="reason">断开原因。包括 SendError/RemoveNotAlive/Dispose/GC 等，其中 ConnectionReset 为网络被动断开或对方断开</param>
+    public void Close(String reason)
+    {
+        if (Interlocked.CompareExchange(ref _running, 0, 1) != 1) return;
+
+        var ns = (this as INetSession).Host;
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Disconnect");
+        try
+        {
+            WriteLog("Disconnect [{0}] {1}", Session, reason);
+
+            OnDisconnected(reason);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
+    }
     #endregion
 
     #region 业务核心
@@ -135,6 +175,11 @@ public class NetSession : DisposeBase, INetSession, IExtend
     protected virtual void OnConnected() { }
 
     /// <summary>客户端连接已断开</summary>
+    /// <param name="reason">断开原因。包括 SendError/RemoveNotAlive/Dispose/GC 等，其中 ConnectionReset 为网络被动断开或对方断开</param>
+    protected virtual void OnDisconnected(String reason) { }
+
+    /// <summary>客户端连接已断开</summary>
+    [Obsolete("")]
     protected virtual void OnDisconnected() { }
 
     /// <summary>收到客户端发来的数据</summary>

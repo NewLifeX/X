@@ -316,7 +316,7 @@ public class TcpSession : SessionBase, ISocketSession
                 OnError("Send", ex);
 
                 // 发送异常可能是连接出了问题，需要关闭
-                Close("发送出错");
+                Close("SendError");
 
                 //// 异步重连
                 //ThreadPoolX.QueueUserWorkItem(Reconnect);
@@ -395,7 +395,7 @@ public class TcpSession : SessionBase, ISocketSession
             // 连续多次空数据，则断开
             if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
             {
-                Close("收到空数据");
+                Close("EmptyData");
                 Dispose();
 
                 return null;

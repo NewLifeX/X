@@ -1,75 +1,75 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using NewLife.Data;
 
-namespace NewLife.Net
+namespace NewLife.Net;
+
+/// <summary>网络服务的会话，每个连接一个会话</summary>
+/// <remarks>
+/// 所有应用服务器以会话<see cref="INetSession"/>作为业务处理核心。
+/// 应用服务器收到新会话请求后，通过<see cref="Start"/>启动一个会话处理。
+/// 会话进行业务处理的过程中，可以通过多个Send方法向客户端发送数据。
+/// </remarks>
+public interface INetSession : IDisposable2
 {
-    /// <summary>网络服务的会话，每个连接一个会话</summary>
-    /// <remarks>
-    /// 所有应用服务器以会话<see cref="INetSession"/>作为业务处理核心。
-    /// 应用服务器收到新会话请求后，通过<see cref="Start"/>启动一个会话处理。
-    /// 会话进行业务处理的过程中，可以通过多个Send方法向客户端发送数据。
-    /// </remarks>
-    public interface INetSession : IDisposable2
-    {
-        #region 属性
-        /// <summary>唯一会话标识</summary>
-        Int32 ID { get; }
+    #region 属性
+    /// <summary>唯一会话标识</summary>
+    Int32 ID { get; }
 
-        /// <summary>主服务</summary>
-        NetServer Host { get; set; }
+    /// <summary>主服务</summary>
+    NetServer Host { get; set; }
 
-        /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-        ISocketServer Server { get; set; }
+    /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
+    ISocketServer Server { get; set; }
 
-        /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpSession</summary>
-        ISocketSession Session { get; set; }
+    /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpSession</summary>
+    ISocketSession Session { get; set; }
 
-        /// <summary>客户端地址</summary>
-        NetUri Remote { get; }
-        #endregion
+    /// <summary>客户端地址</summary>
+    NetUri Remote { get; }
+    #endregion
 
-        #region 方法
-        /// <summary>开始会话处理。</summary>
-        void Start();
-        #endregion
+    #region 方法
+    /// <summary>开始会话处理。</summary>
+    void Start();
 
-        #region 收发
-        /// <summary>发送数据</summary>
-        /// <param name="data">数据包</param>
-        INetSession Send(Packet data);
+    /// <summary>主动关闭跟客户端的网络连接</summary>
+    /// <param name="reason">断开原因。包括 SendError/RemoveNotAlive/Dispose/GC 等，其中 ConnectionReset 为网络被动断开或对方断开</param>
+    void Close(String reason);
+    #endregion
 
-        /// <summary>发送数据流</summary>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        INetSession Send(Stream stream);
+    #region 收发
+    /// <summary>发送数据</summary>
+    /// <param name="data">数据包</param>
+    INetSession Send(Packet data);
 
-        /// <summary>发送字符串</summary>
-        /// <param name="msg"></param>
-        /// <param name="encoding"></param>
-        INetSession Send(String msg, Encoding encoding = null);
+    /// <summary>发送数据流</summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    INetSession Send(Stream stream);
 
-        /// <summary>通过管道发送消息，不等待响应</summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        Int32 SendMessage(Object message);
+    /// <summary>发送字符串</summary>
+    /// <param name="msg"></param>
+    /// <param name="encoding"></param>
+    INetSession Send(String msg, Encoding encoding = null);
 
-        /// <summary>异步发送并等待响应</summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        Task<Object> SendMessageAsync(Object message);
+    /// <summary>通过管道发送消息，不等待响应</summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Int32 SendMessage(Object message);
 
-        /// <summary>数据到达事件</summary>
-        event EventHandler<ReceivedEventArgs> Received;
-        #endregion
-    }
+    /// <summary>异步发送并等待响应</summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
+    Task<Object> SendMessageAsync(Object message);
 
-    /// <summary>会话事件参数</summary>
-    public class NetSessionEventArgs : EventArgs
-    {
-        /// <summary>会话</summary>
-        public INetSession Session { get; set; }
-    }
+    /// <summary>数据到达事件</summary>
+    event EventHandler<ReceivedEventArgs> Received;
+    #endregion
+}
+
+/// <summary>会话事件参数</summary>
+public class NetSessionEventArgs : EventArgs
+{
+    /// <summary>会话</summary>
+    public INetSession Session { get; set; }
 }

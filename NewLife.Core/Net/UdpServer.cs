@@ -352,6 +352,7 @@ public class UdpServer : SessionBase, ISocketServer
             if (sessions.Count > 0)
             {
                 WriteLog("准备释放会话{0}个！", sessions.Count);
+                sessions.CloseAll(nameof(CloseAllSession));
                 sessions.TryDispose();
                 sessions.Clear();
             }
@@ -362,7 +363,7 @@ public class UdpServer : SessionBase, ISocketServer
     #region IServer接口
     void IServer.Start() => Open();
 
-    void IServer.Stop(String reason) => Close(reason ?? "服务停止");
+    void IServer.Stop(String reason) => Close(reason ?? "Stop");
     #endregion
 
     #region 辅助

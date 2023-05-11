@@ -44,6 +44,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>缓冲区大小。默认8k</summary>
     public Int32 BufferSize { get; set; }
 
+    /// <summary>连接关闭原因</summary>
+    public String CloseReason { get; set; }
+
     /// <summary>APM性能追踪器</summary>
     public ITracer Tracer { get; set; }
     #endregion
@@ -71,7 +74,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             Close(reason);
         }
-        catch (Exception ex) { OnError("Dispose", ex); }
+        catch (Exception ex)
+        {
+            OnError("Dispose", ex);
+        }
     }
 
     /// <summary>已重载。</summary>
@@ -143,6 +149,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
             try
             {
+                CloseReason = reason;
+
                 // 管道
                 Pipeline?.Close(CreateContext(this), reason);
 
@@ -322,7 +330,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 同步返回0数据包，断开连接
         if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
         {
-            Close("BytesTransferred == 0");
+            Close("EmptyData");
             Dispose();
             return false;
         }
@@ -486,7 +494,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
     {
         //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-        if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
+        if (se.SocketError == SocketError.ConnectionReset) Close("ConnectionReset");
 
         return true;
     }
