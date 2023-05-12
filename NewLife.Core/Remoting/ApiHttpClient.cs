@@ -195,6 +195,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         var returnType = typeof(TResult);
         var svrs = Services;
 
+        // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
+        using var span = Tracer?.NewSpan(action, args);
+
         var i = 0;
         do
         {
@@ -211,6 +214,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
             catch (Exception ex)
             {
+                span?.AppendTag(ex.Message);
+
                 while (ex is AggregateException age) ex = age.InnerException;
 
                 if (ex is ApiException)
@@ -218,15 +223,24 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                     if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
 
                     ex.Source = _currentService?.Address + "/" + action;
+
+                    span?.SetError(ex, null);
                     throw;
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
                     if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
-                    if (++i >= svrs.Count) throw;
+                    if (++i >= svrs.Count)
+                    {
+                        span?.SetError(ex, null);
+                        throw;
+                    }
                 }
                 else
+                {
+                    span?.SetError(ex, null);
                     throw;
+                }
             }
         } while (true);
     }
@@ -289,6 +303,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         var service = GetService();
         Source = service.Name;
         _currentService = service;
+
+        DefaultSpan.Current?.AppendTag($"[{service.Name}]={service.Address}");
 
         // 性能计数器，次数、TPS、平均耗时
         var st = StatInvoke;
