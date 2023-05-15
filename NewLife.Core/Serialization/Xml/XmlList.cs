@@ -22,7 +22,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!type.As<IList>() && !(value is IList)) return false;
+            //if (!type.As<IList>() && !(value is IList)) return false;
 
             if (value is not IList list || list.Count == 0) return true;
 
@@ -56,7 +56,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
             var reader = Host.GetReader();
 

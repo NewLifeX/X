@@ -40,7 +40,7 @@ public class JsonArray : JsonHandlerBase
     /// <returns></returns>
     public override Boolean TryRead(Type type, ref Object value)
     {
-        if (!type.As<IList>()) return false;
+        if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
         // 先读取
         if (!Host.Read("[")) return false;

@@ -146,7 +146,7 @@ public static class ConfigHelper
         }
         else if (cfg.Childs != null)
         {
-            if (pi.PropertyType.As<IList>())
+            if (pi.PropertyType.As<IList>() || pi.PropertyType.As(typeof(IList<>)))
             {
                 if (pi.PropertyType.IsArray)
                     MapToArray(cfg, model, pi, provider);
@@ -306,7 +306,7 @@ public static class ConfigHelper
         {
             cfg.SetValue(val);
         }
-        else if (type.As<IList>())
+        else if (type.As<IList>() || type.As(typeof(IList<>)))
         {
             if (val is IList list) MapArray(section, cfg, list, type.GetElementTypeEx());
         }

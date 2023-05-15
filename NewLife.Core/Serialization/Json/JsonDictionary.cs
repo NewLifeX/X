@@ -41,7 +41,7 @@ public class JsonDictionary : JsonHandlerBase
     /// <returns></returns>
     public override Boolean TryRead(Type type, ref Object value)
     {
-        if (!type.As<IDictionary>()) return false;
+        if (!type.As<IDictionary>() && !type.As(typeof(IDictionary<,>))) return false;
 
         // 先读取
         if (!Host.Read("{")) return false;

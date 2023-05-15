@@ -16,7 +16,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean Write(Object value, Type type)
         {
-            if (!type.As<IList>() && !(value is IList)) return false;
+            //if (!type.As<IList>() && value is not IList) return false;
 
             // 先写入长度
             if (value is not IList list || list.Count == 0)
@@ -42,7 +42,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public override Boolean TryRead(Type type, ref Object value)
         {
-            if (!type.As<IList>()) return false;
+            if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
             // 先读取长度
             var count = Host.ReadSize();
