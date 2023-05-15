@@ -2,6 +2,7 @@
 using System.Reflection;
 using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization.Interface;
 
 namespace NewLife.Serialization;
 
