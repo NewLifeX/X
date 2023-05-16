@@ -192,8 +192,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <param name="onRequest">请求头回调</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
+    public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, CancellationToken cancellationToken = default)
     {
         var returnType = typeof(TResult);
         var svrs = Services;
@@ -211,7 +212,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             var filter = Filter;
             try
             {
-                var msg = await SendAsync(request);
+                var msg = await SendAsync(request, cancellationToken);
 
                 return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName);
             }
@@ -223,7 +224,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
                 if (ex is ApiException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
+                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
 
                     ex.Source = _currentService?.Address + "/" + action;
 
@@ -232,7 +233,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
+                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
                     if (++i >= svrs.Count)
                     {
                         span?.SetError(ex, null);
@@ -252,8 +253,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <typeparam name="TResult"></typeparam>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args);
+    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
@@ -297,8 +299,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     /// <summary>异步发送</summary>
     /// <param name="request">请求</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+    protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (Services.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
@@ -326,7 +329,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 service.CreateTime = DateTime.Now;
             }
 
-            return await SendOnServiceAsync(request, service, client);
+            return await SendOnServiceAsync(request, service, client, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -436,15 +439,16 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="request">请求消息</param>
     /// <param name="service">服务名</param>
     /// <param name="client">客户端</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client)
+    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client, CancellationToken cancellationToken)
     {
         var filter = Filter;
-        if (filter != null) await filter.OnRequest(client, request, this);
+        if (filter != null) await filter.OnRequest(client, request, this, cancellationToken);
 
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request, cancellationToken);
 
-        if (filter != null) await filter.OnResponse(client, response, this);
+        if (filter != null) await filter.OnResponse(client, response, this, cancellationToken);
 
         // 业务层只会返回200 OK
         response.EnsureSuccessStatusCode();

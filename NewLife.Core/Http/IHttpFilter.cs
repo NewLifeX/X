@@ -7,20 +7,23 @@ public interface IHttpFilter
     /// <param name="client">客户端</param>
     /// <param name="request">请求消息</param>
     /// <param name="state">状态数据</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnRequest(HttpClient client, HttpRequestMessage request, Object state);
+    Task OnRequest(HttpClient client, HttpRequestMessage request, Object state, CancellationToken cancellationToken);
 
     /// <summary>获取响应后</summary>
     /// <param name="client">客户端</param>
     /// <param name="response">响应消息</param>
     /// <param name="state">状态数据</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnResponse(HttpClient client, HttpResponseMessage response, Object state);
+    Task OnResponse(HttpClient client, HttpResponseMessage response, Object state, CancellationToken cancellationToken);
 
     /// <summary>发生错误时</summary>
     /// <param name="client">客户端</param>
     /// <param name="exception">异常</param>
     /// <param name="state">状态数据</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnError(HttpClient client, Exception exception, Object state);
+    Task OnError(HttpClient client, Exception exception, Object state, CancellationToken cancellationToken);
 }
