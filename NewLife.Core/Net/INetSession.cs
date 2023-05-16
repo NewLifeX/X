@@ -62,6 +62,12 @@ public interface INetSession : IDisposable2
     /// <returns></returns>
     Task<Object> SendMessageAsync(Object message);
 
+    /// <summary>异步发送并等待响应</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken);
+
     /// <summary>数据到达事件</summary>
     event EventHandler<ReceivedEventArgs> Received;
     #endregion

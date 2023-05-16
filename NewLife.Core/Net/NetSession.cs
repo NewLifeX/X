@@ -160,6 +160,9 @@ public class NetSession : DisposeBase, INetSession, IExtend
         {
             WriteLog("Disconnect [{0}] {1}", Session, reason);
 
+#pragma warning disable CS0618 // 类型或成员已过时
+            OnDisconnected();
+#pragma warning restore CS0618 // 类型或成员已过时
             OnDisconnected(reason);
         }
         catch (Exception ex)
@@ -179,7 +182,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     protected virtual void OnDisconnected(String reason) { }
 
     /// <summary>客户端连接已断开</summary>
-    [Obsolete("")]
+    [Obsolete("=>OnDisconnected(String reason)")]
     protected virtual void OnDisconnected() { }
 
     /// <summary>收到客户端发来的数据</summary>
@@ -237,9 +240,15 @@ public class NetSession : DisposeBase, INetSession, IExtend
     public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
 
     /// <summary>异步发送并等待响应</summary>
-    /// <param name="message"></param>
+    /// <param name="message">消息</param>
     /// <returns></returns>
     public virtual Task<Object> SendMessageAsync(Object message) => Session.SendMessageAsync(message);
+
+    /// <summary>异步发送并等待响应</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => Session.SendMessageAsync(message, cancellationToken);
     #endregion
 
     #region 日志

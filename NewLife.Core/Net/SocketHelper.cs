@@ -134,7 +134,7 @@ namespace NewLife.Net
             var len = socket.ReceiveFrom(buf, ref ep);
             if (len < 1) return null;
 
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             return encoding.GetString(buf, 0, len);
         }
 
@@ -187,7 +187,7 @@ namespace NewLife.Net
                 if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
 
                 MemberInfo pi = typeof(Socket).GetFieldEx("m_Handle");
-                if (pi == null) pi = typeof(Socket).GetPropertyEx("SafeHandle");
+                pi ??= typeof(Socket).GetPropertyEx("SafeHandle");
                 _mSafeHandle = new MemberInfo[] { pi };
 
                 return pi;
@@ -215,7 +215,7 @@ namespace NewLife.Net
                 return null;
 
             var ex = se.ConnectByNameError;
-            if (ex == null) ex = new SocketException((Int32)se.SocketError);
+            ex ??= new SocketException((Int32)se.SocketError);
             return ex;
         }
         #endregion

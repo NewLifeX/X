@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Reflection;
 using System.Text;
 using NewLife.Caching;
 using NewLife.Collections;
@@ -21,6 +22,65 @@ public static class HttpHelper
 
     /// <summary>Http过滤器</summary>
     public static IHttpFilter Filter { get; set; }
+
+    /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
+    public static String DefaultUserAgent { get; set; }
+
+    static HttpHelper()
+    {
+        var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        //if (asm != null) agent = $"{asm.GetName().Name}/{asm.GetName().Version}";
+        if (asm != null)
+        {
+            var aname = asm.GetName();
+            var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+            if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
+                DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+            else
+                DefaultUserAgent = $"{aname.Name}/{aname.Version}";
+        }
+    }
+
+    #region 默认封装
+    /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    public static HttpClient SetUserAgent(this HttpClient client)
+    {
+        var userAgent = DefaultUserAgent;
+        if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+
+        return client;
+    }
+
+    /// <summary>为HttpClient创建Socket处理器，默认设置连接生命为5分钟，有效反映DNS网络更改</summary>
+    /// <remarks>
+    /// PooledConnectionLifetime 属性定义池中的最大连接生存期，从建立连接的时间跟踪其年龄，而不考虑其空闲时间或活动时间。
+    /// 在主动用于服务请求时，连接不会被拆毁。此生存期非常有用，以便定期重新建立连接，以便更好地反映 DNS 或其他网络更改。
+    /// </remarks>
+    /// <param name="useProxy">是否使用代理</param>
+    /// <param name="useCookie">是否使用Cookie</param>
+    /// <returns></returns>
+    public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie)
+    {
+#if NETCOREAPP3_0_OR_GREATER
+        return new SocketsHttpHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        };
+#else
+        return new HttpClientHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.GZip
+        };
+#endif
+    }
+    #endregion
 
     #region Http封包解包
     /// <summary>创建请求包</summary>
@@ -389,6 +449,28 @@ public static class HttpHelper
 #else
         await rs.CopyToAsync(fs);
         await fs.FlushAsync();
+#endif
+    }
+
+    /// <summary>下载文件</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="cancellationToken">取消通知</param>
+    public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
+    {
+#if NET40
+        var rs = await client.GetStreamAsync(requestUri);
+        fileName.EnsureDirectory(true);
+        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        rs.CopyTo(fs);
+        fs.Flush();
+#else
+        var rs = await client.GetStreamAsync(requestUri);
+        fileName.EnsureDirectory(true);
+        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        await rs.CopyToAsync(fs, 81920, cancellationToken);
+        await fs.FlushAsync(cancellationToken);
 #endif
     }
 

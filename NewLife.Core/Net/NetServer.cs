@@ -526,7 +526,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
             return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
         }
 
-    /// <summary>群发管道消息给所有客户端。支持协议编码</summary>
+    /// <summary>群发管道消息给所有客户端。不等待，支持协议编码</summary>
     /// <param name="message">应用消息，底层对其进行协议编码</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>

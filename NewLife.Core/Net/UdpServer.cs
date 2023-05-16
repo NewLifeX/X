@@ -169,9 +169,15 @@ public class UdpServer : SessionBase, ISocketServer
     }
 
     /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
-    /// <param name="message"></param>
+    /// <param name="message">消息</param>
     /// <returns></returns>
     public override Task<Object> SendMessageAsync(Object message) => CreateSession(Remote.EndPoint).SendMessageAsync(message);
+
+    /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => CreateSession(Remote.EndPoint).SendMessageAsync(message, cancellationToken);
     #endregion
 
     #region 接收
@@ -255,7 +261,7 @@ public class UdpServer : SessionBase, ISocketServer
         {
             var ep = se.RemoteEndPoint as IPEndPoint;
             var ss = sessions.Get(ep + "");
-            if (ss != null) ss.Dispose();
+            ss?.Dispose();
         }
         // 无论如何，Udp都不关闭自己
         return false;
