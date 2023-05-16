@@ -56,7 +56,7 @@ public class ProtectedKey
     /// <returns></returns>
     public String Protect(String value)
     {
-        var alg = SymmetricAlgorithm.Create(Algorithm);
+        var alg = Create(Algorithm);
 
         // 单纯待加密数据
         var p = value.IndexOf('=');
@@ -98,7 +98,7 @@ public class ProtectedKey
             var ss = value.Split('$');
             if (ss == null || ss.Length < 3) return value;
 
-            var alg = SymmetricAlgorithm.Create(ss[1]);
+            var alg = Create(ss[1]);
 
             return alg.Decrypt(ss[2].ToBase64(), Secret).ToStr();
         }
@@ -115,7 +115,7 @@ public class ProtectedKey
                 var ss = pass.Split('$');
                 if (ss == null || ss.Length < 3) continue;
 
-                var alg = SymmetricAlgorithm.Create(ss[1]);
+                var alg = Create(ss[1]);
 
                 dic[item] = alg.Decrypt(ss[2].ToBase64(), Secret).ToStr();
 
@@ -143,6 +143,18 @@ public class ProtectedKey
         }
 
         return value;
+    }
+
+    static SymmetricAlgorithm Create(String name)
+    {
+        return name.ToLowerInvariant() switch
+        {
+            "aes" => Aes.Create(),
+            "des" => DES.Create(),
+            "rc2" => RC2.Create(),
+            "tripledes" => TripleDES.Create(),
+            _ => throw new NotSupportedException($"不支持[{name}]"),
+        };
     }
     #endregion
 }
