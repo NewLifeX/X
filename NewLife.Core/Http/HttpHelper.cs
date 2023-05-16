@@ -359,13 +359,17 @@ public static class HttpHelper
         var filter = Filter;
         try
         {
-            if (filter != null) await filter.OnRequest(client, request, null);
+            if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
 
             var response = await client.SendAsync(request, cancellationToken);
 
-            if (filter != null) await filter.OnResponse(client, response, request);
+            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
 
+#if NET5_0_OR_GREATER
+            var result = await response.Content.ReadAsStringAsync(cancellationToken);
+#else
             var result = await response.Content.ReadAsStringAsync();
+#endif
 
             // 增加埋点数据
             span?.AppendTag(result);
@@ -377,7 +381,7 @@ public static class HttpHelper
             // 跟踪异常
             span?.SetError(ex, null);
 
-            if (filter != null) await filter.OnError(client, ex, request);
+            if (filter != null) await filter.OnError(client, ex, request, cancellationToken);
 
             throw;
         }

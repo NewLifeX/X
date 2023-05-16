@@ -16,6 +16,7 @@ public interface IApiClient
     /// <typeparam name="TResult"></typeparam>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task<TResult> InvokeAsync<TResult>(String action, Object args = null);
+    Task<TResult> InvokeAsync<TResult>(String action, Object args = null, CancellationToken cancellationToken = default);
 }
