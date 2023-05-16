@@ -4,9 +4,13 @@ using NewLife.Configuration;
 namespace NewLife.Net;
 
 /// <summary>网络设置</summary>
+[Obsolete("=>SocketSetting")]
+public class Setting : SocketSetting { }
+
+/// <summary>网络设置</summary>
 [DisplayName("网络设置")]
 [Config("Socket")]
-public class Setting : Config<Setting>
+public class SocketSetting : Config<SocketSetting>
 {
     #region 属性
     /// <summary>网络调试</summary>
@@ -36,6 +40,6 @@ public class Setting : Config<Setting>
 
     #region 方法
     /// <summary>实例化</summary>
-    public Setting() { }
+    public SocketSetting() { }
     #endregion
 }

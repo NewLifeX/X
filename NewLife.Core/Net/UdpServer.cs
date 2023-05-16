@@ -39,12 +39,12 @@ public class UdpServer : SessionBase, ISocketServer
         Remote.Type = NetType.Udp;
         _Sessions = new SessionCollection(this);
 
-        SessionTimeout = Setting.Current.SessionTimeout;
+        SessionTimeout = SocketSetting.Current.SessionTimeout;
 
         // 处理UDP最大并发接收
         MaxAsync = Environment.ProcessorCount * 16 / 10;
 
-        if (Setting.Current.Debug) Log = XTrace.Log;
+        if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
     /// <summary>使用监听口初始化</summary>

@@ -264,7 +264,7 @@ public static class TracerExtension
         {
             var handler2 = new HttpClientHandler { UseProxy = false };
 
-            if (Net.Setting.Current.EnableHttpCompression)
+            if (Net.SocketSetting.Current.EnableHttpCompression)
             {
 #if NETCOREAPP3_0_OR_GREATER
                 if (handler2.SupportsAutomaticDecompression) handler2.AutomaticDecompression = DecompressionMethods.All;

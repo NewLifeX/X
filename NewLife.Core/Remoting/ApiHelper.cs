@@ -185,7 +185,7 @@ public static class ApiHelper
     /// <returns></returns>
     public static HttpContent BuildContent(Packet pk)
     {
-        var gzip = NewLife.Net.Setting.Current.AutoGZip;
+        var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
         if (gzip > 0 && pk.Total >= gzip)
         {
             var buf = pk.ReadBytes();

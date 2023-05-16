@@ -80,11 +80,11 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         Name = GetType().Name;
 
         Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-        SessionTimeout = Setting.Current.SessionTimeout;
+        SessionTimeout = SocketSetting.Current.SessionTimeout;
         MaxAsync = Environment.ProcessorCount * 16 / 10;
         _Sessions = new SessionCollection(this);
 
-        if (Setting.Current.Debug) Log = XTrace.Log;
+        if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
     /// <summary>构造TCP服务器对象</summary>
