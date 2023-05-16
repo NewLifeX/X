@@ -349,7 +349,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
         Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
     }
     #endregion

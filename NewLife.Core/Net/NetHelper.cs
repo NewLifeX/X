@@ -304,7 +304,7 @@ public static class NetHelper
             var ipp = item.GetIPProperties();
             if (ipp != null && ipp.UnicastAddresses.Count > 0)
             {
-                int gw = 0;
+                var gw = 0;
 
 #if NET5_0_OR_GREATER
                 if (!OperatingSystem.IsAndroid())
