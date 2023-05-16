@@ -69,7 +69,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     #region 构造
     /// <summary>实例化</summary>
-    public ApiHttpClient() => Compressed = Net.Setting.Current.EnableHttpCompression;
+    public ApiHttpClient() => Compressed = Net.SocketSetting.Current.EnableHttpCompression;
 
     /// <summary>实例化</summary>
     /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>

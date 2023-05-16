@@ -94,7 +94,7 @@ namespace NewLife.Log
                 case NetType.Https:
                 case NetType.WebSocket:
                     var handler = new HttpClientHandler { UseProxy = false };
-                    if (Net.Setting.Current.EnableHttpCompression)
+                    if (Net.SocketSetting.Current.EnableHttpCompression)
                     {
 #if NETCOREAPP3_0_OR_GREATER
                         if (handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.All;

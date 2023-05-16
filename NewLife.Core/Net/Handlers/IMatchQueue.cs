@@ -113,7 +113,7 @@ public class DefaultMatchQueue : IMatchQueue
             }
         }
 
-        if (Setting.Current.Debug)
+        if (SocketSetting.Current.Debug)
             XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, _Count);
 
         return false;

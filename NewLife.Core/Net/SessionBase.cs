@@ -58,8 +58,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         Name = GetType().Name;
         LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
-        BufferSize = Setting.Current.BufferSize;
-        LogDataLength = Setting.Current.LogDataLength;
+        BufferSize = SocketSetting.Current.BufferSize;
+        LogDataLength = SocketSetting.Current.LogDataLength;
     }
 
     /// <summary>销毁</summary>

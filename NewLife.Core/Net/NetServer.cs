@@ -139,7 +139,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
         Servers = new List<ISocketServer>();
 
-        if (Setting.Current.Debug) Log = XTrace.Log;
+        if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
     /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
