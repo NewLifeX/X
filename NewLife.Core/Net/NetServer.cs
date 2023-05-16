@@ -598,7 +598,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
                     svr.Local.Address = addr;
                     svr.Local.Port = port;
                     //svr.AddressFamily = family;
-                    svr.Tracer = Tracer;
+                    //svr.Tracer = SocketTracer;
 
                     // 协议端口不能是已经被占用
                     if (!svr.Local.CheckPort()) list.Add(svr);
