@@ -167,8 +167,9 @@ public class Snowflake
         Init();
 
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
+        var wid = WorkerId & 0x3FF;
 
-        return (ms << (10 + 12)) | (Int64)(uid | (-1 ^ (-1 << (10 + 12))));
+        return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)(uid & (-1 ^ (-1 << (10 + 12))));
     }
 
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
