@@ -460,18 +460,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual HttpClient CreateClient()
     {
-        var handler = new HttpClientHandler { UseProxy = UseProxy };
+        var handler = HttpHelper.CreateHandler(UseProxy, false);
 
-#if NETCOREAPP3_0_OR_GREATER
-        if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.All;
-#else
-        if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.GZip;
-#endif
+        if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
 
-        HttpMessageHandler handler2 = handler;
-        if (Tracer != null) handler2 = new HttpTraceHandler(handler2) { Tracer = Tracer };
-
-        var client = new HttpClient(handler2)
+        var client = new HttpClient(handler)
         {
             Timeout = TimeSpan.FromMilliseconds(Timeout)
         };

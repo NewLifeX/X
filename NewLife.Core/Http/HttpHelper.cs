@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;

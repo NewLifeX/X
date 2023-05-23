@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using NewLife.Common;
+using NewLife.Http;
 using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -92,7 +93,8 @@ namespace NewLife.Log
                 case NetType.Http:
                 case NetType.Https:
                 case NetType.WebSocket:
-                    var http = new HttpClient(new HttpClientHandler { UseProxy = false })
+                    var handler = HttpHelper.CreateHandler(false, false);
+                    var http = new HttpClient(handler)
                     {
                         BaseAddress = new Uri(Server)
                     };
