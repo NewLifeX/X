@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
@@ -38,7 +39,7 @@ public static class HttpHelper
         }
     }
 
-    #region 默认浏览器UserAgent
+    #region 默认封装
     /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
     /// <param name="client"></param>
     /// <returns></returns>
@@ -48,6 +49,34 @@ public static class HttpHelper
         if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
 
         return client;
+    }
+
+    /// <summary>为HttpClient创建Socket处理器，默认设置连接生命为5分钟，有效反映DNS网络更改</summary>
+    /// <remarks>
+    /// PooledConnectionLifetime 属性定义池中的最大连接生存期，从建立连接的时间跟踪其年龄，而不考虑其空闲时间或活动时间。
+    /// 在主动用于服务请求时，连接不会被拆毁。此生存期非常有用，以便定期重新建立连接，以便更好地反映 DNS 或其他网络更改。
+    /// </remarks>
+    /// <param name="useProxy">是否使用代理</param>
+    /// <param name="useCookie">是否使用Cookie</param>
+    /// <returns></returns>
+    public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie)
+    {
+#if NETCOREAPP3_0_OR_GREATER
+        return new SocketsHttpHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        };
+#else
+        return new HttpClientHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.GZip
+        };
+#endif
     }
     #endregion
 
