@@ -1,6 +1,9 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
@@ -38,7 +41,7 @@ public static class HttpHelper
         }
     }
 
-    #region 默认浏览器UserAgent
+    #region 默认封装
     /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
     /// <param name="client"></param>
     /// <returns></returns>
@@ -48,6 +51,34 @@ public static class HttpHelper
         if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
 
         return client;
+    }
+
+    /// <summary>为HttpClient创建Socket处理器，默认设置连接生命为5分钟，有效反映DNS网络更改</summary>
+    /// <remarks>
+    /// PooledConnectionLifetime 属性定义池中的最大连接生存期，从建立连接的时间跟踪其年龄，而不考虑其空闲时间或活动时间。
+    /// 在主动用于服务请求时，连接不会被拆毁。此生存期非常有用，以便定期重新建立连接，以便更好地反映 DNS 或其他网络更改。
+    /// </remarks>
+    /// <param name="useProxy">是否使用代理</param>
+    /// <param name="useCookie">是否使用Cookie</param>
+    /// <returns></returns>
+    public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie)
+    {
+#if NETCOREAPP3_0_OR_GREATER
+        return new SocketsHttpHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        };
+#else
+        return new HttpClientHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.GZip
+        };
+#endif
     }
     #endregion
 
@@ -359,13 +390,17 @@ public static class HttpHelper
         var filter = Filter;
         try
         {
-            if (filter != null) await filter.OnRequest(client, request, null);
+            if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
 
             var response = await client.SendAsync(request, cancellationToken);
 
-            if (filter != null) await filter.OnResponse(client, response, request);
+            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
 
+#if NET5_0_OR_GREATER
+            var result = await response.Content.ReadAsStringAsync(cancellationToken);
+#else
             var result = await response.Content.ReadAsStringAsync();
+#endif
 
             // 增加埋点数据
             span?.AppendTag(result);
@@ -377,7 +412,7 @@ public static class HttpHelper
             // 跟踪异常
             span?.SetError(ex, null);
 
-            if (filter != null) await filter.OnError(client, ex, request);
+            if (filter != null) await filter.OnError(client, ex, request, cancellationToken);
 
             throw;
         }
@@ -410,6 +445,34 @@ public static class HttpHelper
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs);
         await fs.FlushAsync();
+    }
+
+    /// <summary>下载文件</summary>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="cancellationToken">取消通知</param>
+    public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
+    {
+#if NET5_0_OR_GREATER
+        var rs = await client.GetStreamAsync(requestUri, cancellationToken);
+        fileName.EnsureDirectory(true);
+        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        await rs.CopyToAsync(fs, cancellationToken);
+        await fs.FlushAsync(cancellationToken);
+#elif NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+        var rs = await client.GetStreamAsync(requestUri);
+        fileName.EnsureDirectory(true);
+        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        await rs.CopyToAsync(fs, cancellationToken);
+        await fs.FlushAsync(cancellationToken);
+#else
+        var rs = await client.GetStreamAsync(requestUri);
+        fileName.EnsureDirectory(true);
+        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        await rs.CopyToAsync(fs, 81920, cancellationToken);
+        await fs.FlushAsync(cancellationToken);
+#endif
     }
 
     /// <summary>上传文件以及表单数据</summary>
@@ -447,22 +510,24 @@ public static class HttpHelper
 
     #region WebSocket
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket"></param>
-    /// <param name="queue"></param>
-    /// <param name="source"></param>
+    /// <param name="socket">WebSocket实例</param>
+    /// <param name="queue">队列</param>
+    /// <param name="onProcess">数据处理委托</param>
+    /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
     {
+        DefaultSpan.Current = null;
         var token = source.Token;
-        //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
         try
         {
             while (!token.IsCancellationRequested && socket.Connected)
             {
-                var msg = await queue.TakeOneAsync(30_000, token);
+                var msg = await queue.TakeOneAsync(30, token);
                 if (msg != null)
                 {
-                    socket.Send(msg.GetBytes(), WebSocketMessageType.Text);
+                    var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
+                    socket.Send(buf, WebSocketMessageType.Text);
                 }
                 else
                 {
@@ -470,42 +535,44 @@ public static class HttpHelper
                 }
             }
         }
+        catch (TaskCanceledException) { }
         catch (Exception ex)
         {
             XTrace.WriteException(ex);
         }
         finally
         {
-            //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
             source.Cancel();
         }
     }
 
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket"></param>
-    /// <param name="host"></param>
-    /// <param name="topic"></param>
-    /// <param name="source"></param>
+    /// <param name="socket">WebSocket实例</param>
+    /// <param name="host">缓存主机</param>
+    /// <param name="topic">主题</param>
+    /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
+    public static async Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
 
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket"></param>
-    /// <param name="queue"></param>
-    /// <param name="source"></param>
+    /// <param name="socket">WebSocket实例</param>
+    /// <param name="queue">队列</param>
+    /// <param name="onProcess">数据处理委托</param>
+    /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
     {
+        DefaultSpan.Current = null;
         var token = source.Token;
-        //var queue = _queue.GetQueue<String>($"cmd:{node.Code}");
         try
         {
             while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
             {
-                var msg = await queue.TakeOneAsync(30_000, token);
+                var msg = await queue.TakeOneAsync(30, token);
                 if (msg != null)
                 {
-                    await socket.SendAsync(new ArraySegment<Byte>(msg.GetBytes()), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+                    var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
+                    await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
                 }
                 else
                 {
@@ -513,23 +580,57 @@ public static class HttpHelper
                 }
             }
         }
+        catch (TaskCanceledException) { }
         catch (Exception ex)
         {
             XTrace.WriteException(ex);
         }
         finally
         {
-            //if (token.GetValue("_source") is CancellationTokenSource source) source.Cancel();
             source.Cancel();
         }
     }
 
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
-    /// <param name="socket"></param>
-    /// <param name="host"></param>
-    /// <param name="topic"></param>
-    /// <param name="source"></param>
+    /// <param name="socket">WebSocket实例</param>
+    /// <param name="host">缓存主机</param>
+    /// <param name="topic">主题</param>
+    /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), source);
+    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
+
+    /// <summary>阻塞等待WebSocket关闭</summary>
+    /// <param name="socket">WebSocket实例</param>
+    /// <param name="onReceive">数据处理委托</param>
+    /// <param name="source">取消通知源</param>
+    /// <returns></returns>
+    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String> onReceive, CancellationTokenSource source)
+    {
+        try
+        {
+            var buf = new Byte[4 * 1024];
+            while (socket.State == WebSocketState.Open)
+            {
+                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), default);
+                if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
+                if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
+                {
+                    onReceive?.Invoke(buf.ToStr(null, 0, data.Count));
+                }
+            }
+
+            source.Cancel();
+
+            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
+        }
+        catch (WebSocketException ex)
+        {
+            XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+        }
+        finally
+        {
+            source.Cancel();
+        }
+    }
     #endregion
 }

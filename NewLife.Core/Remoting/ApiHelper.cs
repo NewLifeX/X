@@ -24,8 +24,9 @@ public static class ApiHelper
     /// <param name="client">Http客户端</param>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args);
+    public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args, null, "data", cancellationToken);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -40,8 +41,9 @@ public static class ApiHelper
     /// <param name="client">Http客户端</param>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args);
+    public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args, null, "data", cancellationToken);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -51,6 +53,24 @@ public static class ApiHelper
     /// <returns></returns>
     public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
+    /// <summary>异步上传，等待返回结果</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="client">Http客户端</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public static async Task<TResult> PutAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Put, action, args, null, "data", cancellationToken);
+
+    /// <summary>异步删除，等待返回结果</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="client">Http客户端</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public static async Task<TResult> DeleteAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Delete, action, args, null, "data", cancellationToken);
+
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
     /// <param name="client">Http客户端</param>
@@ -59,8 +79,9 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="onRequest">请求头回调</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data")
+    public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data", CancellationToken cancellationToken = default)
     {
         //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
@@ -84,11 +105,11 @@ public static class ApiHelper
         try
         {
             // 发起请求
-            if (filter != null) await filter.OnRequest(client, request, null);
+            if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
 
-            var response = await client.SendAsync(request);
+            var response = await client.SendAsync(request, cancellationToken);
 
-            if (filter != null) await filter.OnResponse(client, response, request);
+            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
 
             return await ProcessResponse<TResult>(response, null, dataName);
         }
@@ -97,7 +118,7 @@ public static class ApiHelper
             // 跟踪异常
             span?.SetError(ex, args);
 
-            if (filter != null) await filter.OnError(client, ex, request);
+            if (filter != null) await filter.OnError(client, ex, request, cancellationToken);
 
             throw;
         }
@@ -115,7 +136,9 @@ public static class ApiHelper
         // 序列化参数，决定GET/POST
         var request = new HttpRequestMessage(method, action);
 
-        if (method == HttpMethod.Get)
+        if (args is HttpContent content)
+            request.Content = content;
+        else if (method == HttpMethod.Get || method == HttpMethod.Delete)
         {
             if (args is Packet pk)
             {
@@ -150,7 +173,7 @@ public static class ApiHelper
             }
             else if (args != null)
             {
-                var content = new ByteArrayContent(args.ToJson().GetBytes());
+                content = new ByteArrayContent(args.ToJson().GetBytes());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 request.Content = content;
             }
@@ -164,7 +187,7 @@ public static class ApiHelper
     /// <returns></returns>
     public static HttpContent BuildContent(Packet pk)
     {
-        var gzip = NewLife.Net.Setting.Current.AutoGZip;
+        var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
         if (gzip > 0 && pk.Total >= gzip)
         {
             var buf = pk.ReadBytes();

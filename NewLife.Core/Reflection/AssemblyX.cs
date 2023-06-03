@@ -381,7 +381,7 @@ public class AssemblyX
                     {
                         // 如果是本目录的程序集，去掉目录前缀
                         var file = item.Asm.Location;
-                        var root = ".".GetFullPath();
+                        var root = AppDomain.CurrentDomain.BaseDirectory;
                         if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
                         XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
                     }

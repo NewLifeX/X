@@ -44,6 +44,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>缓冲区大小。默认8k</summary>
     public Int32 BufferSize { get; set; }
 
+    /// <summary>连接关闭原因</summary>
+    public String CloseReason { get; set; }
+
     /// <summary>APM性能追踪器</summary>
     public ITracer Tracer { get; set; }
     #endregion
@@ -55,8 +58,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         Name = GetType().Name;
         LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
-        BufferSize = Setting.Current.BufferSize;
-        LogDataLength = Setting.Current.LogDataLength;
+        BufferSize = SocketSetting.Current.BufferSize;
+        LogDataLength = SocketSetting.Current.LogDataLength;
     }
 
     /// <summary>销毁</summary>
@@ -71,7 +74,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             Close(reason);
         }
-        catch (Exception ex) { OnError("Dispose", ex); }
+        catch (Exception ex)
+        {
+            OnError("Dispose", ex);
+        }
     }
 
     /// <summary>已重载。</summary>
@@ -143,6 +149,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
             try
             {
+                CloseReason = reason;
+
                 // 管道
                 Pipeline?.Close(CreateContext(this), reason);
 
@@ -231,7 +239,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>当前异步接收个数</summary>
     private Int32 _RecvCount;
 
-    /// <summary>开始异步接收</summary>
+    /// <summary>开始异步接收。在事件中返回数据</summary>
     /// <returns>是否成功</returns>
     public virtual Boolean ReceiveAsync()
     {
@@ -322,7 +330,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 同步返回0数据包，断开连接
         if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
         {
-            Close("BytesTransferred == 0");
+            Close("EmptyData");
             Dispose();
             return false;
         }
@@ -486,7 +494,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     internal virtual Boolean OnReceiveError(SocketAsyncEventArgs se)
     {
         //if (se.SocketError == SocketError.ConnectionReset) Dispose();
-        if (se.SocketError == SocketError.ConnectionReset) Close("ReceiveAsync " + se.SocketError);
+        if (se.SocketError == SocketError.ConnectionReset) Close("ConnectionReset");
 
         return true;
     }
@@ -557,6 +565,34 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
+    /// <summary>通过管道发送消息并等待响应</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    {
+        using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+        try
+        {
+            var ctx = CreateContext(this);
+            var source = new TaskCompletionSource<Object>();
+            ctx["TaskSource"] = source;
+
+            var rs = (Int32)Pipeline.Write(ctx, message);
+            if (rs < 0) return Task.FromResult((Object)null);
+
+            // 注册取消时的处理，如果没有收到响应，取消发送等待
+            cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
+
+            return source.Task;
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, message);
+            throw;
+        }
+    }
+
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>
     void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
@@ -573,7 +609,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         Pipeline?.Error(CreateContext(this), ex);
 
-        if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
         Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
     }
     #endregion

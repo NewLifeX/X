@@ -69,7 +69,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     #region 构造
     /// <summary>实例化</summary>
-    public ApiHttpClient() => Compressed = Net.Setting.Current.EnableHttpCompression;
+    public ApiHttpClient() => Compressed = Net.SocketSetting.Current.EnableHttpCompression;
 
     /// <summary>实例化</summary>
     /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
@@ -171,17 +171,33 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     public TResult Post<TResult>(String action, Object args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
 
+    /// <summary>异步上传，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> PutAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Put, action, args);
+
+    /// <summary>异步删除，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> DeleteAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
     /// <param name="method">请求方法</param>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <param name="onRequest">请求头回调</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null)
+    public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, CancellationToken cancellationToken = default)
     {
         var returnType = typeof(TResult);
         var svrs = Services;
+
+        // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
+        using var span = Tracer?.NewSpan(action, args);
 
         var i = 0;
         do
@@ -193,28 +209,39 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             var filter = Filter;
             try
             {
-                var msg = await SendAsync(request);
+                var msg = await SendAsync(request, cancellationToken);
 
                 return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName);
             }
             catch (Exception ex)
             {
+                span?.AppendTag(ex.Message);
+
                 while (ex is AggregateException age) ex = age.InnerException;
 
                 if (ex is ApiException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
+                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
 
                     ex.Source = _currentService?.Address + "/" + action;
+
+                    span?.SetError(ex, null);
                     throw;
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this);
-                    if (++i >= svrs.Count) throw;
+                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
+                    if (++i >= svrs.Count)
+                    {
+                        span?.SetError(ex, null);
+                        throw;
+                    }
                 }
                 else
+                {
+                    span?.SetError(ex, null);
                     throw;
+                }
             }
         } while (true);
     }
@@ -223,8 +250,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <typeparam name="TResult"></typeparam>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args);
+    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
@@ -268,8 +296,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     /// <summary>异步发送</summary>
     /// <param name="request">请求</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+    protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (Services.Count == 0) throw new InvalidOperationException("未添加服务地址！");
 
@@ -277,6 +306,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         var service = GetService();
         Source = service.Name;
         _currentService = service;
+
+        DefaultSpan.Current?.AppendTag($"[{service.Name}]={service.Address}");
 
         // 性能计数器，次数、TPS、平均耗时
         var st = StatInvoke;
@@ -295,7 +326,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 service.CreateTime = DateTime.Now;
             }
 
-            return await SendOnServiceAsync(request, service, client);
+            return await SendOnServiceAsync(request, service, client, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -405,15 +436,16 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="request">请求消息</param>
     /// <param name="service">服务名</param>
     /// <param name="client">客户端</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client)
+    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client, CancellationToken cancellationToken)
     {
         var filter = Filter;
-        if (filter != null) await filter.OnRequest(client, request, this);
+        if (filter != null) await filter.OnRequest(client, request, this, cancellationToken);
 
-        var response = await client.SendAsync(request);
+        var response = await client.SendAsync(request, cancellationToken);
 
-        if (filter != null) await filter.OnResponse(client, response, this);
+        if (filter != null) await filter.OnResponse(client, response, this, cancellationToken);
 
         // 业务层只会返回200 OK
         response.EnsureSuccessStatusCode();
@@ -425,18 +457,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual HttpClient CreateClient()
     {
-        var handler = new HttpClientHandler { UseProxy = UseProxy };
+        var handler = HttpHelper.CreateHandler(UseProxy, false);
 
-#if NETCOREAPP3_0_OR_GREATER
-        if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.All;
-#else
-        if (Compressed && handler.SupportsAutomaticDecompression) handler.AutomaticDecompression = DecompressionMethods.GZip;
-#endif
+        if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
 
-        HttpMessageHandler handler2 = handler;
-        if (Tracer != null) handler2 = new HttpTraceHandler(handler2) { Tracer = Tracer };
-
-        var client = new HttpClient(handler2)
+        var client = new HttpClient(handler)
         {
             Timeout = TimeSpan.FromMilliseconds(Timeout)
         };

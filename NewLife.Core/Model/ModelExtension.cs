@@ -54,16 +54,27 @@ public static class ModelExtension
         var ioc = GetService<ObjectContainer>(provider);
         if (ioc != null)
         {
-            var list = new List<Object>();
-            foreach (var item in ioc.Services)
+            //var list = new List<Object>();
+            //foreach (var item in ioc.Services)
+            //{
+            //    if (item.ServiceType == serviceType) list.Add(ioc.Resolve(item, provider));
+            //}
+            for (var i = ioc.Services.Count - 1; i >= 0; i--)
             {
-                if (item.ServiceType == serviceType) list.Add(ioc.Resolve(item, provider));
+                var item = ioc.Services[i];
+                if (item.ServiceType == serviceType) yield return ioc.Resolve(item, provider);
             }
-            return list;
+            //return list;
         }
-
-        var serviceType2 = typeof(IEnumerable<>)!.MakeGenericType(serviceType);
-        return (IEnumerable<Object>)provider.GetRequiredService(serviceType2);
+        else
+        {
+            var serviceType2 = typeof(IEnumerable<>)!.MakeGenericType(serviceType);
+            var enums = (IEnumerable<Object>)provider.GetRequiredService(serviceType2);
+            foreach (var item in enums)
+            {
+                yield return item;
+            }
+        }
     }
 
     /// <summary>创建范围作用域，该作用域内提供者解析一份数据</summary>

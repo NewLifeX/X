@@ -405,7 +405,7 @@ public static class Reflect
     /// <returns></returns>
     public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(type);
 
-    /// <summary>是否整数</summary>
+    /// <summary>是否整数。Byte/Int16/Int32/Int64</summary>
     /// <param name="type"></param>
     /// <returns></returns>
     public static Boolean IsInt(this Type type)

@@ -6,6 +6,13 @@ namespace System.IO;
 /// <summary>路径操作帮助</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/path_helper
+/// 
+/// GetBasePath 依赖BasePath，支持参数和环境变量设置，主要用于存放X组件自身配置和日志等目录。
+/// GetFullPath 依赖BaseDirectory，默认为应用程序域基础目录，支持参数和环境变量设置，此时跟GetBasePath保持一致。
+/// 
+/// GetFullPath更多用于表示当前工作目录，不可以轻易修改为Environment.CurrentDirectory。
+/// 在vs运行应用时，Environment.CurrentDirectory是源码文件所在目录，而不是可执行文件目录。
+/// 在StarAgent运行应用时，BasePath和Environment.CurrentDirectory都被修改为工作目录。
 /// </remarks>
 public static class PathHelper
 {
@@ -16,13 +23,11 @@ public static class PathHelper
     /// </remarks>
     public static String BasePath { get; set; }
 
-    /// <summary>基础目录。GetBasePath依赖于此，默认为当前应用程序域基础目录。已弃用，请使用BasePath</summary>
+    /// <summary>基准目录。GetFullPath依赖于此，默认为当前应用程序域基础目录。支持BasePath参数修改</summary>
     /// <remarks>
     /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
     /// </remarks>
-    [Obsolete("=>BasePath")]
-    public static String BaseDirectory { get => BasePath; set => BasePath = value; }
-
+    public static String BaseDirectory { get; set; }
     #endregion
 
     #region 静态构造
@@ -42,6 +47,8 @@ public static class PathHelper
 
         // 环境变量
         if (dir.IsNullOrEmpty()) dir = NewLife.Runtime.GetEnvironmentVariable("BasePath");
+
+        if (!dir.IsNullOrEmpty()) BaseDirectory = dir;
 
         // 最终取应用程序域。Linux下编译为单文件时，应用程序释放到临时目录，应用程序域基路径不对，当前目录也不一定正确，唯有进程路径正确
         if (dir.IsNullOrEmpty()) dir = AppDomain.CurrentDomain.BaseDirectory;
@@ -71,7 +78,7 @@ public static class PathHelper
 
         var dir = mode switch
         {
-            1 => AppDomain.CurrentDomain.BaseDirectory ?? BasePath,
+            1 => BaseDirectory ?? AppDomain.CurrentDomain.BaseDirectory ?? BasePath,
             2 => BasePath,
             3 => Environment.CurrentDirectory,
             _ => "",

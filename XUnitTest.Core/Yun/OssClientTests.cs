@@ -1,109 +1,105 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
 using NewLife;
 using NewLife.Configuration;
 using NewLife.Log;
 using NewLife.Yun;
 using Xunit;
 
-namespace XUnitTest.Yun
+namespace XUnitTest.Yun;
+
+public class OssClientTests
 {
-    public class OssClientTests
+    private OssClient _config;
+    private OssClient GetClient()
     {
-        private OssClient _config;
-        private OssClient GetClient()
+        if (_config == null)
         {
-            if (_config == null)
-            {
-                var prv = new XmlConfigProvider { FileName = @"Config\Oss.config" };
+            var prv = new XmlConfigProvider { FileName = @"Config\Oss.config" };
 
-                _config = prv.Load<OssClient>();
-                if (prv.IsNew) prv.Save(_config);
-            }
-
-            var client = new OssClient
-            {
-                Endpoint = _config.Endpoint,
-                AccessKeyId = _config.AccessKeyId,
-                AccessKeySecret = _config.AccessKeySecret,
-
-                //Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
-                //AccessKeyId = "LTAISlFUZjVkLuLX",
-                //AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
-            };
-
-            if (client.Endpoint.IsNullOrEmpty())
-            {
-                client.Endpoint = "http://oss-cn-shanghai.aliyuncs.com";
-                client.AccessKeyId = "LTAISlFUZjVkLuLX";
-                client.AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P";
-            }
-
-            return client;
+            _config = prv.Load<OssClient>();
+            if (prv.IsNew) prv.Save(_config);
         }
 
-        [Fact(Skip = "跳过")]
-        public async void ListBuckets()
+        var client = new OssClient
         {
-            var client = GetClient();
+            Server = _config.Server,
+            AppId = _config.AppId,
+            Secret = _config.Secret,
 
-            var buckets = await client.ListBuckets();
-            Assert.NotNull(buckets);
+            //Endpoint = "http://oss-cn-shanghai.aliyuncs.com",
+            //AccessKeyId = "LTAISlFUZjVkLuLX",
+            //AccessKeySecret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P",
+        };
+
+        if (client.Server.IsNullOrEmpty() || client.AppId.IsNullOrEmpty())
+        {
+            client.Server = "http://oss-cn-shanghai.aliyuncs.com";
+            client.AppId = "LTAISlFUZjVkLuLX";
+            client.Secret = "WDwecIlqCQVQxmUFjN432u1mEmDN8P";
         }
 
-        [Fact(Skip = "跳过")]
-        public async void ListBuckets2()
-        {
-            var client = GetClient();
+        return client;
+    }
 
-            var buckets = await client.ListBuckets("newlife", null);
-            Assert.NotNull(buckets);
-        }
+    [Fact]
+    public async void ListBuckets()
+    {
+        var client = GetClient();
 
-        [Fact(Skip = "跳过")]
-        public async void ListObjects()
-        {
-            var client = GetClient();
-            client.BucketName = "newlife-x";
+        var buckets = await client.ListBuckets();
+        Assert.NotNull(buckets);
+    }
 
-            var objects = await client.ListObjects();
-            Assert.NotNull(objects);
-        }
+    [Fact]
+    public async void ListBuckets2()
+    {
+        var client = GetClient();
 
-        [Fact(Skip = "跳过")]
-        public async void ListObjects2()
-        {
-            var client = GetClient();
-            client.BucketName = "newlife-x";
+        var buckets = await client.ListBuckets("newlife", null);
+        Assert.NotNull(buckets);
+    }
 
-            var objects = await client.ListObjects("Log/", null);
-            Assert.NotNull(objects);
-        }
+    [Fact(Skip = "跳过")]
+    public async void ListObjects()
+    {
+        var client = GetClient();
+        client.BucketName = "newlife-x";
 
-        [Fact(Skip = "跳过")]
-        public async void PutGetDelete()
-        {
-            var client = GetClient();
-            client.BucketName = "newlife-x";
+        var objects = await client.ListObjects();
+        Assert.NotNull(objects);
+    }
 
-            var fi = XTrace.LogPath.AsDirectory().GetFiles().FirstOrDefault();
-            var buf = fi.ReadBytes();
+    [Fact(Skip = "跳过")]
+    public async void ListObjects2()
+    {
+        var client = GetClient();
+        client.BucketName = "newlife-x";
 
-            var objectName = "Log/" + fi.Name;
+        var objects = await client.ListObjects("Log/", null);
+        Assert.NotNull(objects);
+    }
 
-            // 上传
-            await client.PutObject(objectName, buf);
+    [Fact(Skip = "跳过")]
+    public async void PutGetDelete()
+    {
+        var client = GetClient();
+        client.BucketName = "newlife-x";
 
-            // 获取
-            var obj = await client.GetObject(objectName);
-            Assert.NotNull(obj);
-            Assert.Equal(buf.ToBase64(), obj.ToBase64());
+        var fi = XTrace.LogPath.AsDirectory().GetFiles().FirstOrDefault();
+        var buf = fi.ReadBytes();
 
-            // 删除
-            await client.DeleteObject(objectName);
-        }
+        var objectName = "Log/" + fi.Name;
+
+        // 上传
+        await client.Put(objectName, buf);
+
+        // 获取
+        var obj = await client.Get(objectName);
+        Assert.NotNull(obj);
+        Assert.Equal(buf.ToBase64(), obj.Data.ToBase64());
+
+        // 删除
+        await client.Delete(objectName);
     }
 }

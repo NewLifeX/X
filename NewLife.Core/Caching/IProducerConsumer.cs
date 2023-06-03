@@ -29,12 +29,12 @@ public interface IProducerConsumer<T>
     T TakeOne(Int32 timeout = 0);
 
     /// <summary>异步消费获取一个</summary>
-    /// <param name="timeout">超时。默认0秒，永久等待</param>
+    /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
     /// <returns></returns>
     Task<T> TakeOneAsync(Int32 timeout = 0);
 
     /// <summary>异步消费获取一个</summary>
-    /// <param name="timeout">超时。0秒表示永久等待</param>
+    /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
     Task<T> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken);

@@ -139,7 +139,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
         Servers = new List<ISocketServer>();
 
-        if (Setting.Current.Debug) Log = XTrace.Log;
+        if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
     /// <summary>通过指定监听地址和端口实例化一个网络服务器</summary>
@@ -523,7 +523,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
         return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
     }
 
-    /// <summary>群发管道消息给所有客户端。支持协议编码</summary>
+    /// <summary>群发管道消息给所有客户端。不等待，支持协议编码</summary>
     /// <param name="message">应用消息，底层对其进行协议编码</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>
@@ -598,7 +598,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
                     svr.Local.Address = addr;
                     svr.Local.Port = port;
                     //svr.AddressFamily = family;
-                    svr.Tracer = Tracer;
+                    //svr.Tracer = SocketTracer;
 
                     // 协议端口不能是已经被占用
                     if (!svr.Local.CheckPort()) list.Add(svr);

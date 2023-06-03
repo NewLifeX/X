@@ -80,11 +80,11 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         Name = GetType().Name;
 
         Local = new NetUri(NetType.Tcp, IPAddress.Any, 0);
-        SessionTimeout = Setting.Current.SessionTimeout;
+        SessionTimeout = SocketSetting.Current.SessionTimeout;
         MaxAsync = Environment.ProcessorCount * 16 / 10;
         _Sessions = new SessionCollection(this);
 
-        if (Setting.Current.Debug) Log = XTrace.Log;
+        if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
     /// <summary>构造TCP服务器对象</summary>
@@ -332,6 +332,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             if (sessions.Count > 0)
             {
                 WriteLog("准备释放会话{0}个！", sessions.Count);
+                sessions.CloseAll(nameof(CloseAllSession));
                 sessions.TryDispose();
                 sessions.Clear();
             }
@@ -348,7 +349,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        if (Log != null) Log.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
         Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
     }
     #endregion

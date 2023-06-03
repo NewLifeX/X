@@ -17,7 +17,21 @@ class SpeakProvider
             _type = Type.GetType(typeName);
             if (_type == null)
             {
-                var asm = Assembly.Load("System.Speech");
+                Assembly asm = null;
+                try
+                {
+                    // 新版系统内置
+                    if (Environment.OSVersion.Version.Major >= 6)
+                    {
+                        asm ??= Assembly.Load("System.Speech, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35");
+                    }
+                }
+                catch { }
+                try
+                {
+                    asm ??= Assembly.Load("System.Speech");
+                }
+                catch { }
                 _type = asm?.GetType(typeName);
             }
         }

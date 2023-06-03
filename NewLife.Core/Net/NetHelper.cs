@@ -296,13 +296,25 @@ public static class NetHelper
         var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
-            if (item.OperationalStatus != OperationalStatus.Up) continue;
-            if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+            if (item.OperationalStatus != OperationalStatus.Up)
+                continue;
+            if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                continue;
 
             var ipp = item.GetIPProperties();
             if (ipp != null && ipp.UnicastAddresses.Count > 0)
             {
-                var gw = ipp.GatewayAddresses.Count;
+                var gw = 0;
+
+#if NET5_0_OR_GREATER
+                if (!OperatingSystem.IsAndroid())
+                {
+                    gw = ipp.GatewayAddresses.Count;
+                }
+#else
+                gw = ipp.GatewayAddresses.Count;
+#endif
+
                 foreach (var elm in ipp.UnicastAddresses)
                 {
 #if NET5_0_OR_GREATER
@@ -423,7 +435,7 @@ public static class NetHelper
     /// <summary>获取本地第一个IPv6地址</summary>
     /// <returns></returns>
     public static IPAddress MyIPv6() => GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
-    #endregion
+#endregion
 
     #region 远程开机
     /// <summary>唤醒指定MAC地址的计算机</summary>

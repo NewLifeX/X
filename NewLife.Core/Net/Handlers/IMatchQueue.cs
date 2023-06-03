@@ -71,14 +71,11 @@ public class DefaultMatchQueue : IMatchQueue
         {
             lock (this)
             {
-                if (_Timer == null)
+                _Timer ??= new TimerX(Check, null, 1000, 1000, "Match")
                 {
-                    _Timer = new TimerX(Check, null, 1000, 1000, "Match")
-                    {
-                        Async = true,
-                        CanExecute = () => _Count > 0
-                    };
-                }
+                    Async = true,
+                    CanExecute = () => _Count > 0
+                };
             }
         }
 
@@ -116,7 +113,7 @@ public class DefaultMatchQueue : IMatchQueue
             }
         }
 
-        if (Setting.Current.Debug)
+        if (SocketSetting.Current.Debug)
             XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, _Count);
 
         return false;

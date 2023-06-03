@@ -31,9 +31,6 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
     public String Scope { get; set; }
 
-    /// <summary>命名空间。Apollo专用，多个命名空间用逗号或分号隔开</summary>
-    public String NameSpace { get; set; }
-
     /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
     public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
 
@@ -92,53 +89,16 @@ public class HttpConfigProvider : ConfigProvider
     #endregion
 
     #region 方法
-    private IApiClient GetClient()
+    /// <summary>获取客户端</summary>
+    /// <returns></returns>
+    protected IApiClient GetClient()
     {
-        if (Client == null)
+        Client ??= new ApiHttpClient(Server)
         {
-            Client = new ApiHttpClient(Server)
-            {
-                Timeout = 3_000
-            };
-        }
+            Timeout = 3_000
+        };
 
         return Client;
-    }
-
-    /// <summary>设置阿波罗服务端</summary>
-    /// <param name="nameSpaces">命名空间。多个命名空间用逗号或分号隔开</param>
-    public void SetApollo(String nameSpaces = "application") => NameSpace = nameSpaces;
-
-    /// <summary>从本地配置文件读取阿波罗地址，并得到阿波罗配置提供者</summary>
-    /// <param name="fileName">阿波罗配置文件名，默认appsettings.json</param>
-    /// <param name="path">加载路径，默认apollo</param>
-    /// <returns></returns>
-    public static HttpConfigProvider LoadApollo(String fileName = null, String path = "apollo")
-    {
-        if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
-        if (path.IsNullOrEmpty()) path = "apollo";
-
-        // 读取本地配置，得到Apollo地址后，加载全部配置
-        var jsonConfig = JsonConfigProvider.LoadAppSettings(fileName);
-        var apollo = jsonConfig.Load<ApolloModel>(path);
-        if (apollo == null) return null;
-
-        var httpConfig = new HttpConfigProvider { Server = apollo.MetaServer.EnsureStart("http://"), AppId = apollo.AppId };
-        httpConfig.SetApollo("application," + apollo.NameSpace);
-        if (!httpConfig.Server.IsNullOrEmpty() && !httpConfig.AppId.IsNullOrEmpty()) httpConfig.LoadAll();
-
-        return httpConfig;
-    }
-
-    private class ApolloModel
-    {
-        public String WMetaServer { get; set; }
-
-        public String AppId { get; set; }
-
-        public String NameSpace { get; set; }
-
-        public String MetaServer { get; set; }
     }
 
     /// <summary>获取所有配置</summary>
@@ -147,68 +107,38 @@ public class HttpConfigProvider : ConfigProvider
     {
         var client = GetClient() as ApiHttpClient;
 
-        // 特殊处理Apollo
-        if (!NameSpace.IsNullOrEmpty())
+        ValidClientId();
+
+        try
         {
-            var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
-            var dic = new Dictionary<String, Object>();
-            foreach (var item in ns)
+            var rs = client.Post<IDictionary<String, Object>>(Action, new
             {
-                var action = $"/configfiles/json/{AppId}/default/{item}";
-                try
-                {
-                    var rs = client.Get<IDictionary<String, Object>>(action);
-                    foreach (var elm in rs)
-                    {
-                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+                appId = AppId,
+                secret = Secret,
+                clientId = ClientId,
+                scope = Scope,
+                version = _version,
+                usedKeys = UsedKeys.Join(),
+                missedKeys = MissedKeys.Join(),
+            });
+            Info = rs;
 
-                    return null;
-                }
+            // 增强版返回
+            if (rs.TryGetValue("configs", out var obj))
+            {
+                var ver = rs["version"].ToInt(-1);
+                if (ver > 0) _version = ver;
+
+                return obj as IDictionary<String, Object>;
             }
-            Info = dic;
 
-            return dic;
+            return rs;
         }
-        else
+        catch (Exception ex)
         {
-            ValidClientId();
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
 
-            try
-            {
-                var rs = client.Post<IDictionary<String, Object>>(Action, new
-                {
-                    appId = AppId,
-                    secret = Secret,
-                    clientId = ClientId,
-                    scope = Scope,
-                    version = _version,
-                    usedKeys = UsedKeys.Join(),
-                    missedKeys = MissedKeys.Join(),
-                });
-                Info = rs;
-
-                // 增强版返回
-                if (rs.TryGetValue("configs", out var obj))
-                {
-                    var ver = rs["version"].ToInt(-1);
-                    if (ver > 0) _version = ver;
-
-                    if (obj is IDictionary<String, Object> configs) return configs;
-                }
-
-                return rs;
-            }
-            catch (Exception ex)
-            {
-                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
-
-                return null;
-            }
+            return null;
         }
     }
 
@@ -217,9 +147,6 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected virtual Int32 SetAll(IDictionary<String, Object> configs)
     {
-        // 特殊处理Apollo
-        if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");
-
         ValidClientId();
 
         var client = GetClient() as ApiHttpClient;
@@ -238,7 +165,7 @@ public class HttpConfigProvider : ConfigProvider
     public override void Init(String value)
     {
         // 本地缓存
-        var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetFullPath();
+        var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetBasePath();
         if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
         {
             var json = File.ReadAllText(file);
@@ -323,7 +250,7 @@ public class HttpConfigProvider : ConfigProvider
         // 本地缓存
         if (CacheLevel > ConfigCacheLevel.NoCache)
         {
-            var file = $"Config/httpConfig_{AppId}.json".GetFullPath();
+            var file = $"Config/httpConfig_{AppId}.json".GetBasePath();
             var json = configs.ToJson();
 
             // 加密存储
@@ -417,11 +344,25 @@ public class HttpConfigProvider : ConfigProvider
         var changed = new Dictionary<String, Object>();
         if (_cache != null)
         {
-            foreach (var item in dic)
+            if (_cache.TryGetValue("configs", out var dic1) && dic1 is IDictionary<String, Object> configs1 &&
+                dic.TryGetValue("configs", out var dic2) && dic2 is IDictionary<String, Object> configs2)
             {
-                if (!_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+                foreach (var item in configs2)
                 {
-                    changed.Add(item.Key, item.Value);
+                    if (!configs1.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+                    {
+                        changed.Add(item.Key, item.Value);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var item in dic)
+                {
+                    if (!_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+                    {
+                        changed.Add(item.Key, item.Value);
+                    }
                 }
             }
         }

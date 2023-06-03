@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.IO;
 using NewLife.Log;
@@ -20,17 +15,26 @@ namespace NewLife.Yun;
 public class OssClient : IObjectStorage
 {
     #region 属性
-    /// <summary>访问域名</summary>
-    public String Endpoint { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
+    /// <summary>访问域名。Endpoint</summary>
+    public String Server { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
 
-    /// <summary>访问密钥</summary>
-    public String AccessKeyId { get; set; }
+    /// <summary>访问密钥。AccessKeyId</summary>
+    public String AppId { get; set; }
 
-    /// <summary>访问密钥</summary>
-    public String AccessKeySecret { get; set; }
+    /// <summary>访问密钥。AccessKeySecret</summary>
+    public String Secret { get; set; }
 
     /// <summary>存储空间</summary>
     public String BucketName { get; set; }
+
+    /// <summary>是否支持获取文件直接访问Url</summary>
+    public Boolean CanGetUrl => false;
+
+    /// <summary>是否支持删除</summary>
+    public Boolean CanDelete => true;
+
+    /// <summary>是否支持搜索</summary>
+    public Boolean CanSearch => true;
 
     private String _bucketName;
     private String _baseAddress;
@@ -43,7 +47,7 @@ public class OssClient : IObjectStorage
         if (_Client != null) return _Client;
 
         var http = DefaultTracer.Instance.CreateHttpClient();
-        http.BaseAddress = new Uri(_baseAddress ?? Endpoint);
+        http.BaseAddress = new Uri(_baseAddress ?? Server);
 
         var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var asmName = asm?.GetName();
@@ -58,10 +62,10 @@ public class OssClient : IObjectStorage
 
     private void SetBucket(String bucketName)
     {
-        var url = Endpoint;
+        var url = Server;
         if (!bucketName.IsNullOrEmpty())
         {
-            var ss = Endpoint.Split("://");
+            var ss = Server.Split("://");
             url = $"{ss[0]}://{bucketName}.{ss[1]}";
         }
 
@@ -94,8 +98,8 @@ public class OssClient : IObjectStorage
 
         // 签名
         var canonicalString = BuildCanonicalString(method.Method, resourcePath, request);
-        var signature = canonicalString.GetBytes().SHA1(AccessKeySecret.GetBytes()).ToBase64();
-        request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AccessKeyId + ":" + signature);
+        var signature = canonicalString.GetBytes().SHA1(Secret.GetBytes()).ToBase64();
+        request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AppId + ":" + signature);
 
         var http = GetClient();
         var rs = await http.SendAsync(request);
@@ -129,7 +133,7 @@ public class OssClient : IObjectStorage
     /// <param name="marker"></param>
     /// <param name="maxKeys"></param>
     /// <returns></returns>
-    public async Task<IList<Object>> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
+    public async Task<IList<ObjectInfo>> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(null);
 
@@ -137,8 +141,15 @@ public class OssClient : IObjectStorage
 
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"] as IList<Object>;
-        if (bk is IList<Object> list) return list;
-        return new[] { bk };
+        if (bk is not IList<Object> list) return null;
+
+        var infos = new List<ObjectInfo>();
+        foreach (var item in list.Cast<IDictionary<String, Object>>())
+        {
+
+        }
+
+        return infos;
     }
     #endregion
 
@@ -163,49 +174,75 @@ public class OssClient : IObjectStorage
     /// <param name="marker"></param>
     /// <param name="maxKeys"></param>
     /// <returns></returns>
-    public async Task<IList<Object>> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
+    public async Task<IList<ObjectInfo>> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(BucketName);
 
         var rs = await GetAsync("/", new { prefix, marker, maxKeys });
 
         var contents = rs?["Contents"];
-        if (contents is IList<Object> list) return list;
-        return new[] { contents };
+        if (contents is not IList<Object> list) return null;
+
+        var infos = new List<ObjectInfo>();
+        foreach (var item in list.Cast<IDictionary<String, Object>>())
+        {
+
+        }
+
+        return infos;
     }
 
     /// <summary>上传文件</summary>
     /// <param name="objectName">对象文件名</param>
     /// <param name="data">数据内容</param>
     /// <returns></returns>
-    public async Task PutObject(String objectName, Byte[] data)
+    public async Task<IObjectInfo> Put(String objectName, Packet data)
     {
         SetBucket(BucketName);
 
-        await InvokeAsync<Object>(HttpMethod.Put, "/" + objectName, data);
+        var content = data.Next == null ?
+            new ByteArrayContent(data.Data, data.Offset, data.Count) :
+            new ByteArrayContent(data.ReadBytes());
+        var rs = await InvokeAsync<Byte[]>(HttpMethod.Put, "/" + objectName, content);
+
+        return new ObjectInfo { Name = objectName, Data = rs };
     }
 
     /// <summary>获取文件</summary>
     /// <param name="objectName"></param>
     /// <returns></returns>
-    public async Task<Byte[]> GetObject(String objectName)
+    public async Task<IObjectInfo> Get(String objectName)
     {
         SetBucket(BucketName);
 
         var rs = await InvokeAsync<Byte[]>(HttpMethod.Get, "/" + objectName);
 
-        return rs;
+        return new ObjectInfo { Name = objectName, Data = rs };
     }
+
+    /// <summary>获取文件直接访问Url</summary>
+    /// <param name="id">对象文件名</param>
+    /// <returns></returns>
+    public Task<String> GetUrl(String id) => throw new NotImplementedException();
 
     /// <summary>删除文件</summary>
     /// <param name="objectName"></param>
     /// <returns></returns>
-    public async Task DeleteObject(String objectName)
+    public async Task<Int32> Delete(String objectName)
     {
         SetBucket(BucketName);
 
-        await InvokeAsync<Object>(HttpMethod.Delete, "/" + objectName);
+        var rs = await InvokeAsync<Object>(HttpMethod.Delete, "/" + objectName);
+
+        return rs != null ? 1 : 0;
     }
+
+    /// <summary>搜索文件</summary>
+    /// <param name="pattern">匹配模式。如/202304/*.jpg</param>
+    /// <param name="start">开始序号。0开始</param>
+    /// <param name="count">最大个数</param>
+    /// <returns></returns>
+    public Task<IList<IObjectInfo>> Search(String pattern, Int32 start, Int32 count) => throw new NotImplementedException();
     #endregion
 
     #region 辅助
@@ -217,6 +254,10 @@ public class OssClient : IObjectStorage
         "position", "x-oss-process", "restore", "bucketInfo", "stat", "symlink",
         "location", "qos", "policy", "tagging", "requestPayment", "x-oss-traffic-limit",
         "objectMeta", "encryption", "versioning", "versionId", "versions",
+        "live", "status", "comp", "vod", "startTime", "endTime",
+        "inventory","continuation-token","inventoryId",
+        "callback", "callback-var","x-oss-request-payer",
+        "worm","wormId","wormExtend",
         "response-cache-control",
         "response-content-disposition",
         "response-content-encoding",
@@ -232,26 +273,25 @@ public class OssClient : IObjectStorage
         sb.Append(method).Append(NewLineMarker);
 
         var headersToSign = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        var headers = request.Headers.ToDictionary(e => e.Key, e => e.Value?.FirstOrDefault());
+        var headers = request.Headers;
         if (headers != null)
         {
             foreach (var header in headers)
             {
                 if (header.Key.EqualIgnoreCase("Content-Type", "Content-MD5", "Date") ||
-                    header.Key.StartsWith("x-oss-"))
-                    headersToSign.Add(header.Key, header.Value);
+                    header.Key.StartsWithIgnoreCase("x-oss-"))
+                    headersToSign.Add(header.Key, header.Value?.Join());
             }
         }
 
-        var contentHeaders = request.Content?.Headers;
-        if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", contentHeaders?.ContentType + "");
-        if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", contentHeaders?.ContentMD5?.ToHex() + "");
+        if (!headersToSign.ContainsKey("Content-Type")) headersToSign.Add("Content-Type", "");
+        if (!headersToSign.ContainsKey("Content-MD5")) headersToSign.Add("Content-MD5", "");
 
         var sortedHeaders = headersToSign.Keys.OrderBy(e => e).ToList();
         foreach (var key in sortedHeaders)
         {
             var value = headersToSign[key];
-            if (key.StartsWith("x-oss-"))
+            if (key.StartsWithIgnoreCase("x-oss-"))
                 sb.Append(key.ToLowerInvariant()).Append(':').Append(value);
             else
                 sb.Append(value);
