@@ -36,8 +36,8 @@ public class CacheProvider : ICacheProvider
     public virtual IProducerConsumer<T> GetInnerQueue<T>(String topic) => InnerCache?.GetQueue<T>(topic);
 
     /// <summary>申请分布式锁</summary>
-    /// <param name="lockKey"></param>
-    /// <param name="msTimeout"></param>
+    /// <param name="lockKey">要锁定的键值。建议加上应用模块等前缀以避免冲突</param>
+    /// <param name="msTimeout">遇到冲突时等待的最大时间</param>
     /// <returns></returns>
     public virtual IDisposable AcquireLock(String lockKey, Int32 msTimeout) => Cache?.AcquireLock(lockKey, msTimeout);
     #endregion
