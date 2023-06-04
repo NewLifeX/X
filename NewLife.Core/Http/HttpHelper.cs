@@ -572,7 +572,9 @@ public static class HttpHelper
                 if (msg != null)
                 {
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
-                    await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+
+                    if (buf != null && buf.Length > 0)
+                        await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
                 }
                 else
                 {
@@ -609,20 +611,25 @@ public static class HttpHelper
         try
         {
             var buf = new Byte[4 * 1024];
-            while (socket.State == WebSocketState.Open)
+            while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
             {
-                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), default);
+                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token);
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
                 {
-                    onReceive?.Invoke(buf.ToStr(null, 0, data.Count));
+                    var str = buf.ToStr(null, 0, data.Count);
+                    if (!str.IsNullOrEmpty())
+                        onReceive?.Invoke(str);
                 }
             }
 
-            source.Cancel();
+            if (!source.IsCancellationRequested) source.Cancel();
 
-            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
+            if (socket.State == WebSocketState.Open)
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
         }
+        catch (TaskCanceledException) { }
+        catch (OperationCanceledException) { }
         catch (WebSocketException ex)
         {
             XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
