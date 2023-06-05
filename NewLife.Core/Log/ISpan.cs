@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Remoting;
 using NewLife.Serialization;
 
 namespace NewLife.Log;
@@ -35,7 +36,7 @@ public interface ISpan : IDisposable
     /// <summary>错误信息</summary>
     String Error { get; set; }
 
-    /// <summary>设置错误信息</summary>
+    /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
     void SetError(Exception ex, Object tag);
@@ -210,21 +211,31 @@ public class DefaultSpan : ISpan
         Builder = null;
     }
 
-    /// <summary>设置错误信息</summary>
+    /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
     public virtual void SetError(Exception ex, Object tag)
     {
-        Error = ex?.GetMessage();
+        SetTag(tag);
 
         if (ex != null)
         {
+            var name = $"ex:{ex.GetType().Name}";
+
+            // 业务异常，不属于异常，而是正常流程
+            if (ex is ApiException aex)
+            {
+                name = $"ex:{ex.GetType().Name}[{aex.Code}]";
+                this.AppendTag($"Api[{aex.Code}]:{aex.Message}\r\n{aex.Source}");
+            }
+            else
+                Error = ex?.GetMessage();
+
             // 所有异常，独立记录埋点，便于按异常分类统计
-            using var span = Builder?.Tracer?.NewSpan("ex:" + ex.GetType().Name, tag ?? ex.ToString());
+            using var span = Builder?.Tracer?.NewSpan(name, tag);
+            span?.AppendTag(ex.ToString());
             if (span != null) span.StartTime = StartTime;
         }
-
-        SetTag(tag);
     }
 
     /// <summary>设置数据标签。内部根据长度截断</summary>
