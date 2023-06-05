@@ -115,6 +115,34 @@ public static class ObjectContainerHelper
 
         return container;
     }
+
+    /// <summary>尝试添加单实例，指定实现类型</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <typeparam name="TImplementation"></typeparam>
+    /// <param name="container"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddSingleton<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddSingleton(typeof(TService), typeof(TImplementation));
+
+    /// <summary>尝试添加单实例，指定实例</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <param name="container"></param>
+    /// <param name="instance"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddSingleton<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    {
+        if (container == null) throw new ArgumentNullException(nameof(container));
+
+        var item = new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            Instance = instance,
+            Lifetime = ObjectLifetime.Singleton,
+        };
+        if (instance == null) item.ImplementationType = typeof(TService);
+        container.TryAdd(item);
+
+        return container;
+    }
     #endregion
 
     #region 范围容器
@@ -203,6 +231,34 @@ public static class ObjectContainerHelper
 
         return container;
     }
+
+    /// <summary>尝试添加范围容器实例，指定实现类型</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <typeparam name="TImplementation"></typeparam>
+    /// <param name="container"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddScoped<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddScoped(typeof(TService), typeof(TImplementation));
+
+    /// <summary>尝试添加范围容器实例，指定实例</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <param name="container"></param>
+    /// <param name="instance"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddScoped<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    {
+        if (container == null) throw new ArgumentNullException(nameof(container));
+
+        var item = new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            Instance = instance,
+            Lifetime = ObjectLifetime.Scoped,
+        };
+        if (instance == null) item.ImplementationType = typeof(TService);
+        container.TryAdd(item);
+
+        return container;
+    }
     #endregion
 
     #region 瞬态注册
@@ -287,6 +343,34 @@ public static class ObjectContainerHelper
             ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Transient,
         };
+        container.TryAdd(item);
+
+        return container;
+    }
+
+    /// <summary>尝试添加瞬态实例，指定实现类型</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <typeparam name="TImplementation"></typeparam>
+    /// <param name="container"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddTransient<TService, TImplementation>(this IObjectContainer container) where TService : class where TImplementation : class, TService => container.TryAddTransient(typeof(TService), typeof(TImplementation));
+
+    /// <summary>尝试添加瞬态实例，指定实例</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <param name="container"></param>
+    /// <param name="instance"></param>
+    /// <returns></returns>
+    public static IObjectContainer TryAddTransient<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    {
+        if (container == null) throw new ArgumentNullException(nameof(container));
+
+        var item = new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            Instance = instance,
+            Lifetime = ObjectLifetime.Transient,
+        };
+        if (instance == null) item.ImplementationType = typeof(TService);
         container.TryAdd(item);
 
         return container;
