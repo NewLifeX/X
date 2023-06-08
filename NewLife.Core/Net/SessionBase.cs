@@ -582,18 +582,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (rs < 0) return Task.FromResult((Object)null);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
-            using var source2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-#if NET45
-            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
-#else
-            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(cancellationToken); });
-#endif
-
-            return await source.Task;
+            // Register返回值需要Dispose，否则会导致内存泄漏
+            // https://stackoverflow.com/questions/14627226/why-is-my-async-await-with-cancellationtokensource-leaking-memory
+            using (cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); }))
+            {
+                return await source.Task;
+            }
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
+            span?.SetError(ex, null);
             throw;
         }
     }
@@ -601,7 +599,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>
     void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-#endregion
+    #endregion
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>

@@ -180,14 +180,10 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             if (rs < 0) return Task.FromResult((Object)null);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
-            using var source2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-#if NET45
-            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
-#else
-            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(cancellationToken); });
-#endif
-
-            return await source.Task;
+            using (cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); }))
+            {
+                return await source.Task;
+            }
         }
         catch (Exception ex)
         {
