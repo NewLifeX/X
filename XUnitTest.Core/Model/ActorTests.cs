@@ -41,7 +41,7 @@ namespace XUnitTest.Model
 
         private class BuildExcelActor : Actor
         {
-            protected override async Task ReceiveAsync(ActorContext context)
+            protected override async Task ReceiveAsync(ActorContext context, CancellationToken cancellationToken)
             {
                 XTrace.WriteLine("生成Excel数据：{0}", context.Message);
 
@@ -80,7 +80,7 @@ namespace XUnitTest.Model
         {
             public Int32 Total { get; set; }
 
-            protected override async Task ReceiveAsync(ActorContext[] contexts)
+            protected override async Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken)
             {
                 Total += contexts.Length;
                 XTrace.WriteLine("Total={0}", Total);
