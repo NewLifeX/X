@@ -563,7 +563,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
@@ -576,9 +576,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (rs < 0) return TaskEx.FromResult((Object)null);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
-            cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
+            using var source2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+#if NET45
+            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
+#else
+            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(cancellationToken); });
+#endif
 
-            return source.Task;
+            return await source.Task;
         }
         catch (Exception ex)
         {
@@ -590,7 +595,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>
     void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-    #endregion
+#endregion
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>
