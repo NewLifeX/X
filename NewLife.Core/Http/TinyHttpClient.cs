@@ -130,7 +130,7 @@ public class TinyHttpClient : DisposeBase
 
         // 接收
         var buf = new Byte[BufferSize];
-        var source = new CancellationTokenSource(Timeout);
+        using var source = new CancellationTokenSource(Timeout);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
         var count = await ns.ReadAsync(buf, source.Token).ConfigureAwait(false);
