@@ -460,7 +460,7 @@ public static class SpanExtension
             {
                 var old = span.Tag;
                 span.SetTag(tag);
-                span.Tag = (old + "\r\n\r\n" + span.Tag).Cut(1024);
+                span.Tag = (old + "\r\n" + span.Tag).Cut(1024);
             }
         }
     }
@@ -483,7 +483,7 @@ public static class SpanExtension
                 {
                     var result = content.ReadAsStringAsync().Result;
                     if (!result.IsNullOrEmpty())
-                        span.Tag = (span.Tag + "\r\n\r\n" + result).Cut(1024);
+                        span.Tag = (span.Tag + "\r\n" + result).Cut(1024);
                 }
             }
         }
