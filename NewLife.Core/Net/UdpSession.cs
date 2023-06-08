@@ -167,7 +167,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
@@ -180,9 +180,14 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             if (rs < 0) return Task.FromResult((Object)null);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
-            cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
+            using var source2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+#if NET45
+            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); });
+#else
+            source2.Token.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(cancellationToken); });
+#endif
 
-            return source.Task;
+            return await source.Task;
         }
         catch (Exception ex)
         {
