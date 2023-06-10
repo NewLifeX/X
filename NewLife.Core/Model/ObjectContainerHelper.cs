@@ -75,6 +75,8 @@ public static class ObjectContainerHelper
         if (container == null) throw new ArgumentNullException(nameof(container));
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         //if (instance == null) throw new ArgumentNullException(nameof(instance));
+        // 内部可能直接实例化，不需要实例
+        if (instance == null && (serviceType.IsAbstract || serviceType.IsInterface)) throw new ArgumentNullException(nameof(instance));
 
         var item = new ServiceDescriptor
         {
