@@ -560,7 +560,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, message);
             throw;
         }
     }
@@ -591,7 +594,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, null);
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, null);
             throw;
         }
     }
