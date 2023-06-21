@@ -71,22 +71,24 @@ namespace NewLife.Log
                 if (args.Length == 1 && args[0] is Exception ex && (format.IsNullOrEmpty() || format == "{0}"))
                     return ex.GetMessage();
 
-                for (var i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (args[i] != null && args[i].GetType() == typeof(DateTime))
                 {
-                    if (args[i] != null && args[i].GetType() == typeof(DateTime))
-                    {
-                        // 根据时间值的精确度选择不同的格式化输出
-                        var dt = (DateTime)args[i];
-                        if (dt.Millisecond > 0)
-                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                        else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
-                            args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss");
-                        else
-                            args[i] = dt.ToString("yyyy-MM-dd");
-                    }
+                    // 根据时间值的精确度选择不同的格式化输出
+                    var dt = (DateTime)args[i];
+                    // todo: 解决系统使用utc时间时，日志文件被跨天
+                    dt = dt.AddHours(Setting.Current.UtcIntervalHours);
+                    if (dt.Millisecond > 0)
+                        args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
+                        args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss");
+                    else
+                        args[i] = dt.ToString("yyyy-MM-dd");
                 }
             }
-            if (args == null || args.Length < 1) return format;
+        }
+        if (args == null || args.Length <= 0) return format;
 
             //format = format.Replace("{", "{{").Replace("}", "}}");
 

@@ -40,6 +40,10 @@ public class Setting : Config<Setting>
     [Description("网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log")]
     public String NetworkLog { get; set; } = "";
 
+    /// <summary>日志记录时间UTC校正，单位：小时。默认0表示使用的是本地时间，使用UTC时间的系统转换成本地时间则相差8小时</summary>
+    [Description("日志记录时间UTC校正，小时")]
+    public Int32 UtcIntervalHours { get; set; } = 0;
+    
     /// <summary>数据目录。本地数据库目录，默认Data子目录</summary>
     [Description("数据目录。本地数据库目录，默认Data子目录")]
     public String DataPath { get; set; } = "";
