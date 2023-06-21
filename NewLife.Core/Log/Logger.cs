@@ -74,6 +74,8 @@ public abstract class Logger : ILog
                 {
                     // 根据时间值的精确度选择不同的格式化输出
                     var dt = (DateTime)args[i];
+                    // todo: 解决系统使用utc时间时，日志文件被跨天
+                    dt = dt.AddHours(Setting.Current.UtcIntervalHours);
                     if (dt.Millisecond > 0)
                         args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
                     else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
@@ -256,7 +258,7 @@ public abstract class Logger : ILog
         sb.AppendFormat("#ThreadPool: Min={0}/{1}, Max={2}/{3}, Available={4}/{5}\r\n", minWorker, minIO, maxWorker, maxIO, avaWorker, avaIO);
 
         sb.AppendFormat("#SystemStarted: {0}\r\n", TimeSpan.FromMilliseconds(Runtime.TickCount64));
-        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
+        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now.AddHours(Setting.Current.UtcIntervalHours));
         sb.AppendFormat("#详解：{0}\r\n", "https://newlifex.com/core/log");
         sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N/定时T 线程名/任务ID 消息内容\r\n");
         sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");
