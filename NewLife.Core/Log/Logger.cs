@@ -74,6 +74,8 @@ public abstract class Logger : ILog
                 {
                     // 根据时间值的精确度选择不同的格式化输出
                     var dt = (DateTime)args[i];
+                    // todo: 解决系统使用utc时间时，日志文件被跨天
+                    dt = dt.AddHours(Setting.Current.UtcIntervalHours);
                     if (dt.Millisecond > 0)
                         args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
                     else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
