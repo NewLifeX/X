@@ -179,7 +179,7 @@ namespace NewLife.IO
         private StreamReader _reader;
         private void EnsureReader()
         {
-            if (_reader == null) _reader = new StreamReader(_stream, Encoding);
+            _reader ??= new StreamReader(_stream, Encoding);
         }
         #endregion
 
@@ -263,7 +263,7 @@ namespace NewLife.IO
         private StreamWriter _writer;
         private void EnsureWriter()
         {
-            if (_writer == null) _writer = new StreamWriter(_stream, Encoding, 1024, _leaveOpen);
+            _writer ??= new StreamWriter(_stream, Encoding, 1024, _leaveOpen);
         }
         #endregion
     }

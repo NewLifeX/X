@@ -309,7 +309,7 @@ public class Binary : FormatterBase, IBinary
     /// <returns>实际写入字节数</returns>
     public Int32 WriteEncoded(Int32 value)
     {
-        if (_encodes == null) _encodes = new Byte[16];
+        _encodes ??= new Byte[16];
 
         var count = 0;
         var num = (UInt32)value;

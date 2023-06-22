@@ -20,7 +20,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] MD5(this Byte[] data)
         {
-            if (_md5 == null) _md5 = System.Security.Cryptography.MD5.Create();
+            _md5 ??= System.Security.Cryptography.MD5.Create();
 
             return _md5.ComputeHash(data);
         }
@@ -31,7 +31,7 @@ namespace NewLife
         /// <returns></returns>
         public static String MD5(this String data, Encoding encoding = null)
         {
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
 
             var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex();
@@ -43,7 +43,7 @@ namespace NewLife
         /// <returns></returns>
         public static String MD5_16(this String data, Encoding encoding = null)
         {
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
 
             var buf = MD5(encoding.GetBytes(data + ""));
             return buf.ToHex(0, 8);
@@ -54,7 +54,7 @@ namespace NewLife
         /// <returns></returns>
         public static Byte[] MD5(this FileInfo file)
         {
-            if (_md5 == null) _md5 = System.Security.Cryptography.MD5.Create();
+            _md5 ??= System.Security.Cryptography.MD5.Create();
 
             using var fs = file.OpenRead();
             return _md5.ComputeHash(fs);

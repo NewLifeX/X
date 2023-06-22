@@ -436,7 +436,7 @@ public class Packet
     {
         if (Data == null) return null;
 
-        if (encoding == null) encoding = Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
         if (count < 0) count = Total - offset;
 
         if (Next == null) return Data.ToStr(encoding, Offset + offset, count);
@@ -455,7 +455,7 @@ public class Packet
 
         var hex = ReadBytes(0, maxLength).ToHex(separate, groupSize);
 
-        return (maxLength == -1 || Count <= maxLength) ? hex : string.Concat(hex, "...");
+        return (maxLength == -1 || Count <= maxLength) ? hex : String.Concat(hex, "...");
     }
 
     /// <summary>转为Base64编码</summary>

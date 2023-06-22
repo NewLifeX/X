@@ -46,9 +46,9 @@ public class AssemblyX
                 _FileVersion = ver;
             }
 
-            if (_FileVersion == null) _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+            _FileVersion ??= Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
 
-            if (_FileVersion == null) _FileVersion = "";
+            _FileVersion ??= "";
 
             return _FileVersion;
         }
@@ -512,7 +512,7 @@ public class AssemblyX
     /// <returns></returns>
     public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain = null)
     {
-        if (domain == null) domain = AppDomain.CurrentDomain;
+        domain ??= AppDomain.CurrentDomain;
 
         var asms = domain.GetAssemblies();
         if (asms == null || asms.Length <= 0) return Enumerable.Empty<AssemblyX>();

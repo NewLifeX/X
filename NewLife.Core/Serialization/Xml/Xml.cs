@@ -305,7 +305,7 @@ namespace NewLife.Serialization
         /// <returns></returns>
         public XmlReader GetReader()
         {
-            if (_Reader == null) _Reader = XmlReader.Create(Stream);
+            _Reader ??= XmlReader.Create(Stream);
 
             return _Reader;
         }

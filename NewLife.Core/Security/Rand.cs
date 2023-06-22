@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Collections;
 using NewLife.Reflection;
@@ -51,7 +50,7 @@ public static class Rand
     {
         if (max <= min) throw new ArgumentOutOfRangeException(nameof(max));
 
-        if (_buf == null) _buf = new Byte[4];
+        _buf ??= new Byte[4];
         _rnd.GetBytes(_buf);
 
         var n = BitConverter.ToInt32(_buf, 0);
@@ -91,13 +90,11 @@ public static class Rand
     /// <param name="random"></param>
     /// <param name="length">数组长度</param>
     /// <returns>随机数填充的指定长度的数组</returns>
-    private static byte[] NextBytes(this Random random, int length)
+    private static Byte[] NextBytes(this Random random, Int32 length)
     {
-        if (length < 0)
-        {
-            throw new ArgumentOutOfRangeException("length");
-        }
-        byte[] data = new byte[length];
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+        var data = new Byte[length];
         random.NextBytes(data);
         return data;
     }

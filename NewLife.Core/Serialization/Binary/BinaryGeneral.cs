@@ -554,7 +554,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int16 value)
         {
-            if (_encodes == null) _encodes = new Byte[16];
+            _encodes ??= new Byte[16];
 
             var count = 0;
             var num = (UInt16)value;
@@ -578,7 +578,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int32 value)
         {
-            if (_encodes == null) _encodes = new Byte[16];
+            _encodes ??= new Byte[16];
 
             var count = 0;
             var num = (UInt32)value;
@@ -602,7 +602,7 @@ namespace NewLife.Serialization
         /// <returns>实际写入字节数</returns>
         public Int32 WriteEncoded(Int64 value)
         {
-            if (_encodes == null) _encodes = new Byte[16];
+            _encodes ??= new Byte[16];
 
             var count = 0;
             var num = (UInt64)value;

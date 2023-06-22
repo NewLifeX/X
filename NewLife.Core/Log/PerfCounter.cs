@@ -53,7 +53,7 @@ namespace NewLife.Log
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = new TimerX(DoWork, null, Interval, Interval) { Async = true };
+                    _Timer ??= new TimerX(DoWork, null, Interval, Interval) { Async = true };
                 }
             }
         }

@@ -21,7 +21,7 @@ namespace NewLife.Xml
         {
             //if (obj == null) throw new ArgumentNullException("obj");
             if (obj == null) return null;
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             // 删除字节序
             //encoding = encoding.TrimPreamble();
 
@@ -40,7 +40,7 @@ namespace NewLife.Xml
         public static void ToXml(this Object obj, Stream stream, Encoding encoding = null, Boolean attachComment = false, Boolean useAttribute = false)
         {
             if (obj == null) return;
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
             // 删除字节序
             //encoding = encoding.TrimPreamble();
 
@@ -137,7 +137,7 @@ namespace NewLife.Xml
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            if (encoding == null) encoding = Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
 
             var x = new NewLife.Serialization.Xml
             {

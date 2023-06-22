@@ -478,7 +478,7 @@ public static class UdpHelper
         var buffer = udp.Receive(ref ep);
         if (buffer == null || buffer.Length <= 0) return null;
 
-        if (encoding == null) encoding = Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
         return encoding.GetString(buffer);
     }
 }

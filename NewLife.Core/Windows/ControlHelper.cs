@@ -295,7 +295,7 @@ namespace System.Windows.Forms
 
                 //Console.Beep();
                 // 用定时器来控制Beep，避免被堵塞
-                if (_timer == null) _timer = new TimerX(Bell, null, 100, 100);
+                _timer ??= new TimerX(Bell, null, 100, 100);
                 _Beep = true;
                 //SystemSounds.Beep.Play();
                 p++;

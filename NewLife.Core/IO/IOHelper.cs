@@ -342,7 +342,7 @@ public static class IOHelper
     public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
     {
         if (buf == null || buf.Length <= 0 || offset >= buf.Length) return null;
-        if (encoding == null) encoding = Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
 
         var size = buf.Length - offset;
         if (count < 0 || count > size) count = size;
@@ -681,7 +681,7 @@ public static class IOHelper
     /// <returns>实际写入字节数</returns>
     public static Stream WriteEncodedInt(this Stream stream, Int64 value)
     {
-        if (_encodes == null) _encodes = new Byte[16];
+        _encodes ??= new Byte[16];
 
         var count = 0;
         var num = (UInt64)value;
@@ -702,7 +702,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] GetEncodedInt(Int64 value)
     {
-        if (_encodes == null) _encodes = new Byte[16];
+        _encodes ??= new Byte[16];
 
         var count = 0;
         var num = (UInt64)value;

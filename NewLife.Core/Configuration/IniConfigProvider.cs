@@ -70,7 +70,7 @@ namespace NewLife.Configuration
         /// <returns></returns>
         public override String GetString(IConfigSection section = null)
         {
-            if (section == null) section = Root;
+            section ??= Root;
 
             // 分组写入
             var sb = new StringBuilder();

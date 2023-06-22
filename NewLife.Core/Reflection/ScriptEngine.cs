@@ -358,14 +358,11 @@ namespace NewLife.Reflection
         /// <returns></returns>
         public CompilerResults Compile(String classCode, CompilerParameters options)
         {
-            if (options == null)
-            {
-                options = new CompilerParameters
+            options ??= new CompilerParameters
                 {
                     GenerateInMemory = true,
                     GenerateExecutable = !IsExpression
                 };
-            }
 
             var hs = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
             // 同名程序集只引入一个
@@ -509,7 +506,7 @@ namespace NewLife.Reflection
 
         void WriteLog(String format, params Object[] args)
         {
-            if (Log != null) Log.Info(format, args);
+            Log?.Info(format, args);
         }
 
         static Assembly CurrentDomain_AssemblyResolve(Object sender, ResolveEventArgs args)

@@ -81,7 +81,7 @@ namespace NewLife.Model
             {
                 lock (this)
                 {
-                    if (_Timer == null) _Timer = OnInit();
+                    _Timer ??= OnInit();
                 }
             }
         }
