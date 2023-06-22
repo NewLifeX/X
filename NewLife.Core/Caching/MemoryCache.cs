@@ -94,7 +94,7 @@ public class MemoryCache : Cache
         {
             if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
 
-            if (ci == null) ci = new CacheItem(value, expire);
+            ci ??= new CacheItem(value, expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
@@ -139,7 +139,7 @@ public class MemoryCache : Cache
                 return true;
             }
 
-            if (ci == null) ci = new CacheItem(value, expire);
+            ci ??= new CacheItem(value, expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
@@ -222,7 +222,7 @@ public class MemoryCache : Cache
         {
             if (_cache.TryGetValue(key, out _)) return false;
 
-            if (ci == null) ci = new CacheItem(value, expire);
+            ci ??= new CacheItem(value, expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
@@ -251,7 +251,7 @@ public class MemoryCache : Cache
                 return (T)rs;
             }
 
-            if (ci == null) ci = new CacheItem(value, expire);
+            ci ??= new CacheItem(value, expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
@@ -296,7 +296,7 @@ public class MemoryCache : Cache
         {
             if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
 
-            if (ci == null) ci = new CacheItem(callback(key), expire);
+            ci ??= new CacheItem(callback(key), expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
@@ -410,7 +410,7 @@ public class MemoryCache : Cache
         {
             if (_cache.TryGetValue(key, out var item)) return item;
 
-            if (ci == null) ci = new CacheItem(valueFactory(key), expire);
+            ci ??= new CacheItem(valueFactory(key), expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);

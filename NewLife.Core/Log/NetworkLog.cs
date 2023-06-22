@@ -58,8 +58,8 @@ namespace NewLife.Log
         {
             if (_client != null)
                 _client.Send(value);
-            else if (_http != null)
-                _http.PostAsync("", new StringContent(value)).Wait();
+            else
+                _http?.PostAsync("", new StringContent(value)).Wait();
         }
 
         private Boolean _inited;

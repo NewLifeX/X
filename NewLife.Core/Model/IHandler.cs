@@ -63,7 +63,7 @@ namespace NewLife.Model
             if (Next != null) return Next.Read(context, message);
 
             // 最后一个处理器，截断
-            if (context != null) context.FireRead(message);
+            context?.FireRead(message);
 
             return message;
         }

@@ -50,7 +50,7 @@ public static class ConfigHelper
         if (section == null) return null;
 
         var cfg = new ConfigSection { Key = key };
-        if (section.Childs == null) section.Childs = new List<IConfigSection>();
+        section.Childs ??= new List<IConfigSection>();
         section.Childs.Add(cfg);
 
         return cfg;
@@ -68,7 +68,7 @@ public static class ConfigHelper
         if (cfg != null) return cfg;
 
         cfg = new ConfigSection { Key = key };
-        if (section.Childs == null) section.Childs = new List<IConfigSection>();
+        section.Childs ??= new List<IConfigSection>();
         section.Childs.Add(cfg);
 
         return cfg;

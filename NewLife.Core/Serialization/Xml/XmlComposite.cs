@@ -89,7 +89,7 @@ namespace NewLife.Serialization
             WriteLog("XmlRead {0} 成员{1}个", type.Name, ms.Count);
             var dic = ms.ToDictionary(e => SerialHelper.GetName(e), e => e);
 
-            if (value == null) value = type.CreateInstance();
+            value ??= type.CreateInstance();
 
             Host.Hosts.Push(value);
 

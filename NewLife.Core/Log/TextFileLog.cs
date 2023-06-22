@@ -189,7 +189,7 @@ namespace NewLife.Log
             if (writer == null && _logFileError >= 3) return;
 
             // 初始化日志读写器
-            if (writer == null) writer = InitLog(logFile);
+            writer ??= InitLog(logFile);
             if (writer == null) return;
 
             // 依次把队列日志写入文件

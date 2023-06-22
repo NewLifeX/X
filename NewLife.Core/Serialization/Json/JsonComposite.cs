@@ -130,7 +130,7 @@ public class JsonComposite : JsonHandlerBase
         var ms = GetMembers(type);
         WriteLog("JsonRead类{0} 共有成员{1}个", type.Name, ms.Count);
 
-        if (value == null) value = type.CreateInstance();
+        value ??= type.CreateInstance();
 
         Host.Hosts.Push(value);
 

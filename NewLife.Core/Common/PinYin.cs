@@ -174,7 +174,7 @@ namespace NewLife.Common
             // 非中文字符            
             if (ch < '\x4E00' || ch > '\x9FA5') return ch.ToString();
 
-            if (gb2312 == null) gb2312 = Encoding.GetEncoding("gb2312");
+            gb2312 ??= Encoding.GetEncoding("gb2312");
             var arr = gb2312.GetBytes(ch.ToString());
             var chr = arr[0] * 256 + arr[1] - 65536;
 
