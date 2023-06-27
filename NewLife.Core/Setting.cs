@@ -63,6 +63,10 @@ public class Setting : Config<Setting>
     /// <summary>辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false</summary>
     [Description("辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false")]
     public Boolean AssemblyResolve { get; set; }
+
+    /// <summary>服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开</summary>
+    [Description("服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开")]
+    public String ServiceAddress { get; set; }
     #endregion
 
     #region 方法
