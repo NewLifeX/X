@@ -129,7 +129,7 @@ public class JsonConfigProvider : FileConfigProvider
     /// <param name="dst"></param>
     protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
     {
-        foreach (var item in section.Childs)
+        foreach (var item in section.Childs.ToArray())
         {
             //// 注释
             //if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;

@@ -264,7 +264,7 @@ public class HttpConfigProvider : ConfigProvider
     public override Boolean SaveAll()
     {
         var dic = new Dictionary<String, Object>();
-        foreach (var item in Root.Childs)
+        foreach (var item in Root.Childs.ToArray())
         {
             if (item.Childs == null || item.Childs.Count == 0)
             {
@@ -279,7 +279,7 @@ public class HttpConfigProvider : ConfigProvider
             }
             else
             {
-                foreach (var elm in item.Childs)
+                foreach (var elm in item.Childs.ToArray())
                 {
                     // 最多只支持两层
                     if (elm.Childs != null && elm.Childs.Count > 0) continue;
