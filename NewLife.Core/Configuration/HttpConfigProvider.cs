@@ -260,29 +260,29 @@ namespace NewLife.Configuration
             }
         }
 
-        /// <summary>保存配置树到数据源</summary>
-        public override Boolean SaveAll()
+    /// <summary>保存配置树到数据源</summary>
+    public override Boolean SaveAll()
+    {
+        var dic = new Dictionary<String, Object>();
+        foreach (var item in Root.Childs.ToArray())
         {
-            var dic = new Dictionary<String, Object>();
-            foreach (var item in Root.Childs)
+            if (item.Childs == null || item.Childs.Count == 0)
             {
-                if (item.Childs == null || item.Childs.Count == 0)
+                // 只提交修改过的设置
+                if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                 {
-                    // 只提交修改过的设置
-                    if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
-                    {
-                        if (item.Comment.IsNullOrEmpty())
-                            dic[item.Key] = item.Value;
-                        else
-                            dic[item.Key] = new { item.Value, item.Comment };
-                    }
+                    if (item.Comment.IsNullOrEmpty())
+                        dic[item.Key] = item.Value;
+                    else
+                        dic[item.Key] = new { item.Value, item.Comment };
                 }
-                else
+            }
+            else
+            {
+                foreach (var elm in item.Childs.ToArray())
                 {
-                    foreach (var elm in item.Childs)
-                    {
-                        // 最多只支持两层
-                        if (elm.Childs != null && elm.Childs.Count > 0) continue;
+                    // 最多只支持两层
+                    if (elm.Childs != null && elm.Childs.Count > 0) continue;
 
                         var key = $"{item.Key}:{elm.Key}";
 

@@ -95,12 +95,13 @@ public static class ConfigHelper
     /// <param name="provider">提供者</param>
     public static void MapTo(this IConfigSection section, Object model, IConfigProvider provider)
     {
-        if (section == null || section.Childs == null || section.Childs.Count == 0 || model == null) return;
+        var childs = section?.Childs?.ToArray();
+        if (childs == null || childs.Length == 0 || model == null) return;
 
         // 支持字典
         if (model is IDictionary<String, Object> dic)
         {
-            foreach (var cfg in section.Childs)
+            foreach (var cfg in childs)
             {
                 dic[cfg.Key] = cfg.Value;
 
@@ -125,7 +126,7 @@ public static class ConfigHelper
             if (name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
 
             prv?.UseKey(name);
-            var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
+            var cfg = childs.FirstOrDefault(e => e.Key.EqualIgnoreCase(name));
             if (cfg == null)
             {
                 prv?.MissKey(name);
@@ -229,16 +230,17 @@ public static class ConfigHelper
         list.Clear();
 
         // 逐个映射
-        for (var i = 0; i < section.Childs.Count; i++)
+        var childs = section.Childs.ToArray();
+        for (var i = 0; i < childs.Length; i++)
         {
             var val = elementType.CreateInstance();
             if (elementType.GetTypeCode() != TypeCode.Object)
             {
-                val = section.Childs[i].Value;
+                val = childs[i].Value;
             }
             else
             {
-                MapTo(section.Childs[i], val, provider);
+                MapTo(childs[i], val, provider);
                 //list[i] = val;
             }
             list.Add(val);
