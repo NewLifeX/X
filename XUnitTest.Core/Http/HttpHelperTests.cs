@@ -155,4 +155,30 @@ public class HttpHelperTests
         Assert.Contains("Content-Disposition: form-data; name=state2", rs);
         Assert.Contains("abcd", rs);
     }
+
+    [Fact]
+    public void GetStringWithDnsResolver()
+    {
+        var url = "http://star.newlifex.com/cube/info";
+
+        var client = DefaultTracer.Instance.CreateHttpClient();
+        var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
+
+        Assert.NotNull(rs);
+        //Assert.Equal("state: xxxyyy\r\n", rs);
+        Assert.Contains("\"name\":\"StarWeb\"", rs);
+    }
+
+    [Fact]
+    public void GetStringWithDnsResolver2()
+    {
+        var url = "https://sso.newlifex.com/cube/info";
+
+        var client = DefaultTracer.Instance.CreateHttpClient();
+        var rs = client.GetString(url, new Dictionary<String, String> { { "state", "xxxyyy" } });
+
+        Assert.NotNull(rs);
+        //Assert.Equal("state: xxxyyy\r\n", rs);
+        Assert.Contains("\"name\":\"CubeSSO\"", rs);
+    }
 }

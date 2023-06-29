@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
@@ -67,7 +65,7 @@ public static class HttpHelper
     public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie)
     {
 #if NETCOREAPP3_0_OR_GREATER
-        return new SocketsHttpHandler
+        var handler = new SocketsHttpHandler
         {
             UseProxy = useProxy,
             UseCookies = useCookie,
@@ -75,13 +73,15 @@ public static class HttpHelper
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
         };
 #else
-        return new HttpClientHandler
+        var handler = new HttpClientHandler
         {
             UseProxy = useProxy,
             UseCookies = useCookie,
             AutomaticDecompression = DecompressionMethods.GZip
         };
 #endif
+
+        return new DnsHttpHandler(handler);
     }
     #endregion
 
