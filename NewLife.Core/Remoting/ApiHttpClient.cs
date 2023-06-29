@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Configuration;
@@ -199,11 +198,20 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         using var span = Tracer?.NewSpan(action, args);
 
+        // 在多次调用中，记录相同的属性数据
+        IDictionary<String, Object> properties = null;
         var i = 0;
         do
         {
             // 建立请求
             var request = BuildRequest(method, action, args, returnType);
+            if (properties != null && properties.Count > 0)
+            {
+                foreach (var item in properties)
+                {
+                    request.Properties.Add(item);
+                }
+            }
             onRequest?.Invoke(request);
 
             var filter = Filter;
@@ -242,6 +250,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                     span?.SetError(ex, null);
                     throw;
                 }
+
+                // 复制属性，里面有可能有一些自定义数据
+                properties = request.Properties;
             }
         } while (true);
     }

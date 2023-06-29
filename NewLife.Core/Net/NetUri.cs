@@ -217,7 +217,7 @@ public class NetUri
         {
             if (IPAddress.TryParse(hostname, out var addr)) return new[] { addr };
 
-            var hostAddresses = Dns.GetHostAddresses(hostname);
+            var hostAddresses = DnsResolver.Instance.Resolve(hostname);
             if (hostAddresses == null || hostAddresses.Length <= 0) return null;
 
             return hostAddresses.Where(d => d.AddressFamily is AddressFamily.InterNetwork or AddressFamily.InterNetworkV6).ToArray();
