@@ -58,6 +58,8 @@ public class DnsResolver : IDnsResolver
 #endif
             if (addrs != null && addrs.Length > 0)
             {
+                span?.AppendTag(addrs.Join(","));
+
                 // 更新缓存数据
                 if (item == null)
                     _cache[host] = item = new DnsItem
