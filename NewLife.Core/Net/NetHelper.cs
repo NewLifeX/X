@@ -119,7 +119,7 @@ public static class NetHelper
     /// <summary>是否Any结点</summary>
     /// <param name="endpoint"></param>
     /// <returns></returns>
-    public static Boolean IsAny(this EndPoint endpoint) => (endpoint as IPEndPoint).Address.IsAny() || (endpoint as IPEndPoint).Port == 0;
+    public static Boolean IsAny(this EndPoint endpoint) => endpoint is IPEndPoint ep && (ep.Port == 0 || ep.Address.IsAny());
 
     /// <summary>是否IPv4地址</summary>
     /// <param name="address"></param>
@@ -581,16 +581,15 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if !NET40
-               NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
+#if NET40
+                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Default : SslProtocols.None },
+                NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Default : SslProtocols.None },
+#else
+                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
 #endif
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
     }
-
-    internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
-
-    internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
     #endregion
 }

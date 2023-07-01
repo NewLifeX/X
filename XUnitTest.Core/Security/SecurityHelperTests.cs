@@ -79,12 +79,56 @@ namespace XUnitTest.Security
             }
         }
 
-        [Fact]
-        public void AES_ECB_Test()
+    [Fact(Skip = "仅开发使用")]
+    public void AES_CBC_Test3()
+    {
+        var plain = "1234567890123456789012345678901234567890123456789012345678901234567890".GetBytes();
+        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
+        var cipher = "EOo1EmuK4dJLS4Sb8tD73G68lqLr2yrwq3HtmNKLGnNduAH7yeybrmaEJWAiyKQ+yYWgAKAJ9YSLjfhRURHQT9oBNa101DeRWENSywO4XRA=";
+
+        // 直接ECB加密解密
         {
-            var buf = "123456".ToHex();
-            var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
-            var data = "";
+            var aes = Aes.Create();
+            var data = aes.Encrypt(plain, key, CipherMode.CBC, PaddingMode.PKCS7);
+
+            Assert.Equal(cipher, data.ToBase64());
+        }
+        {
+            var aes = Aes.Create();
+            var data = aes.Decrypt(cipher.ToBase64(), key, CipherMode.CBC, PaddingMode.PKCS7);
+
+            Assert.Equal(plain.ToStr(), data.ToStr());
+        }
+
+        // 内部加密解密
+        {
+            var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+            var data = aes.CreateEncryptor().Transform(plain);
+
+            Assert.Equal(cipher, data.ToBase64());
+        }
+        {
+            var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+            var data = aes.CreateDecryptor().Transform(cipher.ToBase64());
+
+            Assert.Equal(plain.ToStr(), data.ToStr());
+        }
+    }
+
+    [Fact]
+    public void AES_ECB_Test()
+    {
+        var buf = "123456".ToHex();
+        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
+        var data = "";
 
             // ECB加密解密
             {
@@ -139,8 +183,51 @@ namespace XUnitTest.Security
                 var aes = Aes.Create();
                 data = aes.Decrypt(buf, key, CipherMode.ECB, PaddingMode.PKCS7).ToHex();
 
-                Assert.Equal("123456", data);
-            }
+            Assert.Equal("123456", data);
+        }
+    }
+
+    [Fact(Skip = "仅开发使用")]
+    public void AES_ECB_Test3()
+    {
+        var plain = "1234567890123456789012345678901234567890123456789012345678901234567890".GetBytes();
+        var key = "86CAD727DEB54263B73960AA79C5D9B7".ToHex();
+        var cipher = "qzPmHdAnD1wW4ujt6NEYPHy5oIn6NuuosQtW3srs3z0/uzIf5O3o637qjWyWeJqiHgLjkH8SXx1rETj3Nxu+Lclz+qK5qkwYW1OOK13Ip3Y=";
+
+        // 直接ECB加密解密
+        {
+            var aes = Aes.Create();
+            var data = aes.Encrypt(plain, key, CipherMode.ECB, PaddingMode.PKCS7);
+
+            Assert.Equal(cipher, data.ToBase64());
+        }
+        {
+            var aes = Aes.Create();
+            var data = aes.Decrypt(cipher.ToBase64(), key, CipherMode.ECB, PaddingMode.PKCS7);
+
+            Assert.Equal(plain.ToStr(), data.ToStr());
+        }
+
+        // 内部加密解密
+        {
+            var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.ECB;
+            aes.Padding = PaddingMode.PKCS7;
+            var data = aes.CreateEncryptor().Transform(plain);
+
+            Assert.Equal(cipher, data.ToBase64());
+        }
+        {
+            var aes = Aes.Create();
+            aes.Key = key;
+            aes.IV = key;
+            aes.Mode = CipherMode.ECB;
+            aes.Padding = PaddingMode.PKCS7;
+            var data = aes.CreateDecryptor().Transform(cipher.ToBase64());
+
+            Assert.Equal(plain.ToStr(), data.ToStr());
         }
     }
 }

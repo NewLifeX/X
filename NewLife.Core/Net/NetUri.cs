@@ -38,10 +38,15 @@ public class NetUri
     /// <summary>协议类型</summary>
     public NetType Type { get; set; }
 
-    /// <summary>主机</summary>
+    /// <summary>主机或域名</summary>
+    /// <remarks>可能对应多个IP地址</remarks>
     public String Host { get; set; }
 
     /// <summary>地址</summary>
+    /// <remarks>
+    /// 域名多地址时的第一个。
+    /// 设置地址后，反向覆盖Host。
+    /// </remarks>
     [XmlIgnore, IgnoreDataMember]
     public IPAddress Address { get { return EndPoint.Address; } set { EndPoint.Address = value; } }
 
@@ -51,6 +56,10 @@ public class NetUri
     [NonSerialized]
     private IPEndPoint _EndPoint;
     /// <summary>终结点</summary>
+    /// <remarks>
+    /// 域名多地址时的第一个。
+    /// 设置地址后，反向覆盖Host。
+    /// </remarks>
     [XmlIgnore, IgnoreDataMember]
     public IPEndPoint EndPoint
     {
@@ -58,7 +67,7 @@ public class NetUri
         {
             var ep = _EndPoint;
             ep ??= _EndPoint = new IPEndPoint(IPAddress.Any, 0);
-            if ((ep.Address == null || ep.Address.IsAny()) && !Host.IsNullOrEmpty()) ep.Address = NetHelper.ParseAddress(Host) ?? IPAddress.Any;
+            if ((ep.Address == null || ep.Address.IsAny()) && !Host.IsNullOrEmpty()) ep.Address = ParseAddress(Host).FirstOrDefault() ?? IPAddress.Any;
 
             return ep;
         }
