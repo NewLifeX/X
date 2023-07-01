@@ -59,14 +59,14 @@ public class UdpServer : SessionBase, ISocketServer
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
-            var uri = Remote;
-            // 根据目标地址适配本地IPv4/IPv6
-            if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
-            {
-                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
-            }
+            //var uri = Remote;
+            //// 根据目标地址适配本地IPv4/IPv6
+            //if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+            //{
+            //    Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+            //}
 
-            Client = sock = NetHelper.CreateUdp(Local.EndPoint.Address.IsIPv4());
+            Client = sock = new(SocketType.Dgram, ProtocolType.Udp);
 
             // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
             // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求

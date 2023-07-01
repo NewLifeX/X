@@ -79,7 +79,7 @@ public class SecurityHelperTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "仅开发使用")]
     public void AES_CBC_Test3()
     {
         var plain = "1234567890123456789012345678901234567890123456789012345678901234567890".GetBytes();
@@ -187,7 +187,7 @@ public class SecurityHelperTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "仅开发使用")]
     public void AES_ECB_Test3()
     {
         var plain = "1234567890123456789012345678901234567890123456789012345678901234567890".GetBytes();

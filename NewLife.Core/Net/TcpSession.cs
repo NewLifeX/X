@@ -13,7 +13,11 @@ public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
-    public IPAddress RemoteAddress { get; private set; }
+    [Obsolete("=>RemoteAddresses")]
+    public IPAddress RemoteAddress => RemoteAddresses?.FirstOrDefault();
+
+    /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
+    public IPAddress[] RemoteAddresses { get; private set; }
 
     /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
     public Boolean DisconnectWhenEmptyData { get; set; } = true;
@@ -115,16 +119,17 @@ public class TcpSession : SessionBase, ISocketSession
 
         var timeout = Timeout;
         var uri = Remote;
+        var myAddr = Local.Address;
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
-            // 根据目标地址适配本地IPv4/IPv6
-            if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
-            {
-                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
-            }
+            //// 根据目标地址适配本地IPv4/IPv6
+            //if (myAddr.IsAny() && uri != null && !uri.Address.IsAny())
+            //{
+            //    Local.Address = myAddr.GetRightAny(uri.Address.AddressFamily);
+            //}
 
-            sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
+            sock = Client = new(SocketType.Stream, ProtocolType.Tcp);
             //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
             if (NoDelay) sock.NoDelay = true;
             if (timeout > 0)
@@ -132,7 +137,9 @@ public class TcpSession : SessionBase, ISocketSession
                 sock.SendTimeout = timeout;
                 sock.ReceiveTimeout = timeout;
             }
+
             sock.Bind(Local.EndPoint);
+            Local.EndPoint.Port = ((IPEndPoint)sock.LocalEndPoint).Port;
 
             WriteLog("Open {0}", this);
         }
@@ -142,25 +149,15 @@ public class TcpSession : SessionBase, ISocketSession
 
         try
         {
-            var ep = uri.EndPoint;
-            if (!Local.Address.IsIPv4() && ep.Address.IsIPv4())
-            {
-                var address = uri.GetAddresses().FirstOrDefault(_ => !_.IsIPv4());
-                if (address != null) ep = new IPEndPoint(address, ep.Port);
-            }
-            else if (Local.Address.IsIPv4() && !ep.Address.IsIPv4())
-            {
-                var address = uri.GetAddresses().FirstOrDefault(_ => _.IsIPv4());
-                if (address != null) ep = new IPEndPoint(address, ep.Port);
-            }
+            var addrs = uri.GetAddresses();
 
-            RemoteAddress = ep.Address;
+            RemoteAddresses = addrs;
             if (timeout <= 0)
-                sock.Connect(ep);
+                sock.Connect(addrs, uri.Port);
             else
             {
                 // 采用异步来解决连接超时设置问题
-                var ar = sock.BeginConnect(ep, null, null);
+                var ar = sock.BeginConnect(addrs, uri.Port, null, null);
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                 {
                     sock.Close();
@@ -460,15 +457,12 @@ public class TcpSession : SessionBase, ISocketSession
     /// <returns></returns>
     public override String ToString()
     {
-        if (Remote != null && !Remote.EndPoint.IsAny())
-        {
-            if (_Server == null)
-                return $"{Local}=>{Remote.EndPoint}";
-            else
-                return $"{Local}<={Remote.EndPoint}";
-        }
-        else
-            return Local.ToString();
+        var local = Local;
+        var remote = Remote.EndPoint;
+        if (remote == null || remote.IsAny())
+            return local.ToString();
+
+        return _Server == null ? $"{local}=>{remote}" : $"{local}<={remote}";
     }
     #endregion
 }

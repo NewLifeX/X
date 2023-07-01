@@ -116,7 +116,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
             // 开始监听
             //if (Server == null) Server = new TcpListener(Local.EndPoint);
-            if (sock == null) Client = sock = NetHelper.CreateTcp(Local.EndPoint.Address.IsIPv4());
+            if (sock == null) Client = sock = new(SocketType.Stream, ProtocolType.Tcp);
 
             // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
             // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
