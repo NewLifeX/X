@@ -61,10 +61,9 @@ public class DnsResolver : IDnsResolver
             if (!task.Wait(5000)) throw new TaskCanceledException();
             var addrs = task.Result;
 #endif
+            span?.AppendTag($"addrs={addrs.Join(",")}");
             if (addrs != null && addrs.Length > 0)
             {
-                span?.AppendTag(addrs.Join(","));
-
                 // 更新缓存数据
                 if (item == null)
                     _cache[host] = item = new DnsItem
