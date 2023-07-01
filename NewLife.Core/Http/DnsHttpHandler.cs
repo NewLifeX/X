@@ -24,10 +24,20 @@ public class DnsHttpHandler : DelegatingHandler
         var addrs = Resolver?.Resolve(request.RequestUri.Host);
         if (addrs != null && addrs.Length > 0)
         {
+            var addr = addrs[0];
+
             // 从请求中读取当前使用的IP索引，轮询使用。因为HttpClient调用失败后会重试，这里分配新的IP
+#if NET5_0_OR_GREATER
+            var key = new HttpRequestOptionsKey<Int32>("dnsIndex");
+            if (!request.Options.TryGetValue(key, out var idx)) idx = 0;
+
+            addr = addrs[idx % addrs.Length];
+            request.Options.Set(key, ++idx);
+#else
             var idx = request.Properties.TryGetValue("dnsIndex", out var obj) ? obj.ToInt() : 0;
-            var addr = addrs[idx % addrs.Length];
+            addr = addrs[idx % addrs.Length];
             request.Properties["dnsIndex"] = ++idx;
+#endif
 
             // 先固定Host
             var uri = request.RequestUri;
