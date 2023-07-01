@@ -32,7 +32,7 @@ public class DnsResolver : IDnsResolver
         if (_cache.TryGetValue(host, out var item))
         {
             // 超时数据，异步更新，不影响当前请求
-            if (item.LastTime.Add(Expire) <= DateTime.Now)
+            if (item.UpdateTime.Add(Expire) <= DateTime.Now)
                 _ = Task.Run(() => ResolveCore(host, item, false));
         }
         else
@@ -66,12 +66,15 @@ public class DnsResolver : IDnsResolver
                     {
                         Host = host,
                         Addresses = addrs,
-                        LastTime = DateTime.Now
+                        CreateTime = DateTime.Now,
+                        UpdateTime = DateTime.Now
                     };
                 else
                 {
                     item.Addresses = addrs;
-                    item.LastTime = DateTime.Now;
+                    item.UpdateTime = DateTime.Now;
+
+                    span?.AppendTag($"CreateTime={item.CreateTime.ToFullString()}");
                 }
             }
         }
@@ -93,6 +96,8 @@ public class DnsResolver : IDnsResolver
 
         public IPAddress[] Addresses { get; set; }
 
-        public DateTime LastTime { get; set; }
+        public DateTime CreateTime { get; set; }
+
+        public DateTime UpdateTime { get; set; }
     }
 }
