@@ -138,8 +138,21 @@ namespace Test
 
         private static void Test3()
         {
-            var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
-            str.SpeakAsync();
+            //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+            //str.SpeakAsync();
+
+            var uri = new NetUri("http://sso.newlifex.com");
+            var client = uri.CreateRemote();
+            client.Log = XTrace.Log;
+            client.LogSend = true;
+            client.LogReceive = true;
+            if (client is TcpSession tcp) tcp.MaxAsync = 0;
+            client.Open();
+
+            client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
+
+            var rs = client.ReceiveString();
+            XTrace.WriteLine(rs);
         }
 
         private static void Test4()
