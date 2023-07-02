@@ -141,7 +141,7 @@ namespace NewLife.Log
             if (_isFile) return LogPath.GetBasePath();
 
             // 目录多日志文件
-            var logfile = LogPath.CombinePath(String.Format(FileFormat, TimerX.Now, Level)).GetBasePath();
+            var logfile = LogPath.CombinePath(String.Format(FileFormat, TimerX.Now.AddHours(Setting.Current.UtcIntervalHours), Level)).GetBasePath();
 
             // 是否限制文件大小
             if (MaxBytes == 0) return logfile;
@@ -174,7 +174,7 @@ namespace NewLife.Log
         {
             var writer = LogWriter;
 
-            var now = TimerX.Now;
+            var now = TimerX.Now.AddHours(Setting.Current.UtcIntervalHours);
             var logFile = GetLogFile();
             if (!_isFile && logFile != CurrentLogFile)
             {
@@ -271,7 +271,7 @@ namespace NewLife.Log
                 if (!_Logs.IsEmpty) WriteFile();
 
                 // 连续5秒没日志，就关闭
-                if (writer != null && closeTime < TimerX.Now)
+                if (writer != null && closeTime < TimerX.Now.AddHours(Setting.Current.UtcIntervalHours))
                 {
                     writer.TryDispose();
                     LogWriter = null;
