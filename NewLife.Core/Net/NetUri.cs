@@ -67,7 +67,7 @@ public class NetUri
         {
             var ep = _EndPoint;
             ep ??= _EndPoint = new IPEndPoint(IPAddress.Any, 0);
-            if ((ep.Address == null || ep.Address.IsAny()) && !Host.IsNullOrEmpty()) ep.Address = ParseAddress(Host).FirstOrDefault() ?? IPAddress.Any;
+            if ((ep.Address == null || ep.Address.IsAny()) && !Host.IsNullOrEmpty()) ep.Address = ParseAddress(Host)?.FirstOrDefault() ?? IPAddress.Any;
 
             return ep;
         }
