@@ -37,7 +37,7 @@ public class TcpSessionTests
 
         Assert.Equal(client.Local.Address, addr);
         Assert.NotEqual(0, client.Local.Port);
-        Assert.True(client.RemoteAddresses.All(e => e.IsIPv4()));
+        Assert.True(client.RemoteAddress.IsIPv4());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class TcpSessionTests
 
         Assert.True(client.Local.Address.IsAny());
         Assert.NotEqual(0, client.Local.Port);
-        Assert.True(client.RemoteAddresses.All(e => e.IsIPv4()));
+        Assert.True(!client.RemoteAddress.IsIPv4());
     }
 
     [Fact]

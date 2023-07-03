@@ -23,6 +23,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using Stardust;
+using Stardust.Models;
 
 namespace Test
 {
@@ -70,7 +71,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -140,6 +141,21 @@ namespace Test
         {
             //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
             //str.SpeakAsync();
+
+            var set = StarSetting.Current;
+            set.Debug = true;
+            var local = new LocalStarClient { Log = XTrace.Log };
+            var info = local.GetInfo();
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+            var client3 = new ApiClient("udp://localhost:5500")
+            {
+                Timeout = 3_000,
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            info = client3.Invoke<AgentInfo>("info");
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
 
             var uri = new NetUri("http://sso.newlifex.com");
             var client = uri.CreateRemote();
