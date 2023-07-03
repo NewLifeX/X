@@ -591,5 +591,9 @@ public static class NetHelper
                 _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
             };
     }
+
+    internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+
+    internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
     #endregion
 }

@@ -18,6 +18,9 @@ using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
+using NewLife.Threading;
+using Stardust;
+using Stardust.Models;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -70,7 +73,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -129,8 +132,36 @@ namespace Test
 
         private static void Test3()
         {
-            var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
-            str.SpeakAsync();
+            //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+            //str.SpeakAsync();
+
+            var set = StarSetting.Current;
+            set.Debug = true;
+            var local = new LocalStarClient { Log = XTrace.Log };
+            var info = local.GetInfo();
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+            var client3 = new ApiClient("udp://localhost:5500")
+            {
+                Timeout = 3_000,
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            info = client3.Invoke<AgentInfo>("info");
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+            var uri = new NetUri("http://sso.newlifex.com");
+            var client = uri.CreateRemote();
+            client.Log = XTrace.Log;
+            client.LogSend = true;
+            client.LogReceive = true;
+            if (client is TcpSession tcp) tcp.MaxAsync = 0;
+            client.Open();
+
+            client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
+
+            var rs = client.ReceiveString();
+            XTrace.WriteLine(rs);
         }
 
                 TaskEx.Run(() =>

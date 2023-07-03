@@ -13,11 +13,7 @@ public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
-    [Obsolete("=>RemoteAddresses")]
-    public IPAddress RemoteAddress => RemoteAddresses?.FirstOrDefault();
-
-    /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
-    public IPAddress[] RemoteAddresses { get; private set; }
+    public IPAddress RemoteAddress { get; private set; }
 
     /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
     public Boolean DisconnectWhenEmptyData { get; set; } = true;
@@ -122,17 +118,16 @@ public class TcpSession : SessionBase, ISocketSession
 
         var timeout = Timeout;
         var uri = Remote;
-        var myAddr = Local.Address;
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
-            //// 根据目标地址适配本地IPv4/IPv6
-            //if (myAddr.IsAny() && uri != null && !uri.Address.IsAny())
-            //{
-            //    Local.Address = myAddr.GetRightAny(uri.Address.AddressFamily);
-            //}
+            // 根据目标地址适配本地IPv4/IPv6
+            if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
+            {
+                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+            }
 
-            sock = Client = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
             //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
             if (NoDelay) sock.NoDelay = true;
             if (timeout > 0)
@@ -154,7 +149,6 @@ public class TcpSession : SessionBase, ISocketSession
         {
             var addrs = uri.GetAddresses();
 
-            RemoteAddresses = addrs;
             if (timeout <= 0)
                 sock.Connect(addrs, uri.Port);
             else
@@ -169,6 +163,7 @@ public class TcpSession : SessionBase, ISocketSession
 
                 sock.EndConnect(ar);
             }
+            RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
 
             // 客户端SSL
             var sp = SslProtocol;
