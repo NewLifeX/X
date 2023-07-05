@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+﻿using NewLife.Data;
+using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Net.Handlers;
@@ -48,12 +49,14 @@ public class DefaultMatchQueue : IMatchQueue
         // 控制超时时间，默认15秒
         if (msTimeout <= 10) msTimeout = 15_000;
 
+        var ext = owner as IExtend;
         var qi = new Item
         {
             Owner = owner,
             Request = request,
             EndTime = now + msTimeout,
             Source = source,
+            Span = ext?["Span"] as ISpan,
         };
 
         // 加入队列
@@ -63,7 +66,11 @@ public class DefaultMatchQueue : IMatchQueue
         {
             if (Interlocked.CompareExchange(ref items[i].Value, qi, null) == null) break;
         }
-        if (i >= items.Length) throw new XException("匹配队列已满[{0}]", items.Length);
+        if (i >= items.Length)
+        {
+            DefaultTracer.Instance?.NewError("net:MatchQueue:IsFull", new { items.Length });
+            throw new XException("匹配队列已满[{0}]", items.Length);
+        }
 
         Interlocked.Increment(ref _Count);
 
@@ -99,15 +106,18 @@ public class DefaultMatchQueue : IMatchQueue
             var qi = qs[i].Value;
             if (qi == null) continue;
 
-            var src = qi.Source;
-            if (src != null && qi.Owner == owner && callback(qi.Request, response))
+            if (qi.Owner == owner && callback(qi.Request, response))
             {
                 qs[i].Value = null;
                 Interlocked.Decrement(ref _Count);
 
                 // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
-                if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetResult(result));
-                //if (!src.Task.IsCompleted) src.TrySetResult(result);
+                var src = qi.Source;
+                if (src != null && !src.Task.IsCompleted)
+                {
+                    qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.SetResult(Matched)");
+                    Task.Factory.StartNew(() => src.TrySetResult(result));
+                }
 
                 return true;
             }
@@ -134,15 +144,19 @@ public class DefaultMatchQueue : IMatchQueue
             if (qi == null) continue;
 
             // 过期取消
-            var src = qi.Source;
-            if (src != null && qi.EndTime <= now)
+            if (qi.EndTime <= now)
             {
                 qs[i].Value = null;
                 Interlocked.Decrement(ref _Count);
 
-                // 当前在线程池里面
-                if (!src.Task.IsCompleted) src.TrySetCanceled();
-                //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetCanceled());
+                // 异步取消任务，避免在当前线程执行上层await的延续任务
+                var src = qi.Source;
+                if (src != null && !src.Task.IsCompleted)
+                {
+                    qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.Expired({qi.EndTime}<={now})");
+
+                    Task.Factory.StartNew(() => src.TrySetCanceled());
+                }
             }
         }
     }
@@ -157,16 +171,15 @@ public class DefaultMatchQueue : IMatchQueue
             if (qi == null) continue;
 
             qs[i].Value = null;
+            Interlocked.Decrement(ref _Count);
 
-            // 过期取消
+            // 异步取消任务，避免在当前线程执行上层await的延续任务
             var src = qi.Source;
-            if (src != null)
+            if (src != null && !src.Task.IsCompleted)
             {
-                Interlocked.Decrement(ref _Count);
+                qi.Span?.AppendTag("MatchQueue.Clear()");
 
-                // 当前在线程池里面
-                if (!src.Task.IsCompleted) src.TrySetCanceled();
-                //if (!src.Task.IsCompleted) Task.Factory.StartNew(() => src.TrySetCanceled());
+                Task.Factory.StartNew(() => src.TrySetCanceled());
             }
         }
         _Count = 0;
@@ -178,6 +191,7 @@ public class DefaultMatchQueue : IMatchQueue
         public Object Request { get; set; }
         public Int64 EndTime { get; set; }
         public TaskCompletionSource<Object> Source { get; set; }
+        public ISpan Span { get; set; }
     }
     struct ItemWrap
     {

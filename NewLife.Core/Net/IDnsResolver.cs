@@ -48,7 +48,7 @@ public class DnsResolver : IDnsResolver
         {
             // 执行DNS解析
 #if NET6_0_OR_GREATER
-            var source = new CancellationTokenSource(5000);
+            using var source = new CancellationTokenSource(5000);
             var task = Dns.GetHostAddressesAsync(host, source.Token);
             var addrs = task.ConfigureAwait(false).GetAwaiter().GetResult();
 #else

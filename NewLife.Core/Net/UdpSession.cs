@@ -142,7 +142,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     /// <summary>发送消息并等待响应</summary>
     /// <param name="message">消息</param>
     /// <returns></returns>
-    public virtual Task<Object> SendMessageAsync(Object message)
+    public virtual async Task<Object> SendMessageAsync(Object message)
     {
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
@@ -150,15 +150,19 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             var ctx = Server.CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
+            ctx["Span"] = span;
 
             var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return Task.FromResult((Object)null);
 
-            return source.Task;
+            return await source.Task;
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, message);
             throw;
         }
     }
@@ -175,21 +179,31 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             var ctx = Server.CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
+            ctx["Span"] = span;
 
             var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return Task.FromResult((Object)null);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
-            using (cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); }))
+            using (cancellationToken.Register(TrySetCanceled, source))
             {
                 return await source.Task;
             }
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, message);
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, message);
             throw;
         }
+    }
+
+    void TrySetCanceled(Object state)
+    {
+        var source = state as TaskCompletionSource<Object>;
+        if (!source.Task.IsCompleted) source.TrySetCanceled();
     }
     #endregion
 

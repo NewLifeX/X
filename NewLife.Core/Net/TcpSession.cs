@@ -76,7 +76,7 @@ public class TcpSession : SessionBase, ISocketSession
     internal void Start()
     {
         // 管道
-        Pipeline?.Open(base.CreateContext(this));
+        Pipeline?.Open(CreateContext(this));
 
         // 设置读写超时
         var sock = Client;

@@ -544,7 +544,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>通过管道发送消息并等待响应</summary>
     /// <param name="message"></param>
     /// <returns></returns>
-    public virtual Task<Object> SendMessageAsync(Object message)
+    public virtual async Task<Object> SendMessageAsync(Object message)
     {
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
@@ -552,11 +552,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var ctx = CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
+            ctx["Span"] = span;
 
             var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return Task.FromResult((Object)null);
 
-            return source.Task;
+            return await source.Task;
         }
         catch (Exception ex)
         {
@@ -580,6 +581,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var ctx = CreateContext(this);
             var source = new TaskCompletionSource<Object>();
             ctx["TaskSource"] = source;
+            ctx["Span"] = span;
 
             var rs = (Int32)Pipeline.Write(ctx, message);
             if (rs < 0) return Task.FromResult((Object)null);
@@ -587,7 +589,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             // Register返回值需要Dispose，否则会导致内存泄漏
             // https://stackoverflow.com/questions/14627226/why-is-my-async-await-with-cancellationtokensource-leaking-memory
-            using (cancellationToken.Register(() => { if (!source.Task.IsCompleted) source.TrySetCanceled(); }))
+            using (cancellationToken.Register(TrySetCanceled, source))
             {
                 return await source.Task;
             }
@@ -600,6 +602,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 span?.SetError(ex, null);
             throw;
         }
+    }
+
+    void TrySetCanceled(Object state)
+    {
+        var source = state as TaskCompletionSource<Object>;
+        if (!source.Task.IsCompleted) source.TrySetCanceled();
     }
 
     /// <summary>处理数据帧</summary>
