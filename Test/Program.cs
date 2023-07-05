@@ -73,7 +73,7 @@ namespace Test
                 try
                 {
 #endif
-                Test3();
+                    Test3();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -134,6 +134,16 @@ namespace Test
         {
             //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
             //str.SpeakAsync();
+
+            XTrace.WriteLine("hello");
+            Task.Run(() =>
+            {
+                XTrace.WriteLine("222");
+                Task.Run(() =>
+                {
+                    XTrace.WriteLine("333");
+                });
+            });
 
             var set = StarSetting.Current;
             set.Debug = true;
