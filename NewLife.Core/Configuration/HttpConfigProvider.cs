@@ -43,6 +43,9 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>服务器信息。配置中心最后一次接口响应，包含配置数据以外的其它内容</summary>
     public IDictionary<String, Object> Info { get; set; }
 
+    /// <summary>需要忽略改变的键。这些键的改变不产生改变事件</summary>
+    public ICollection<String> IgnoreChangedKeys { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
+
     private Int32 _version;
     private IDictionary<String, Object> _cache;
     #endregion
@@ -349,6 +352,8 @@ public class HttpConfigProvider : ConfigProvider
             {
                 foreach (var item in configs2)
                 {
+                    if (IgnoreChangedKeys.Contains(item.Key)) continue;
+
                     if (!configs1.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                     {
                         changed.Add(item.Key, item.Value);
@@ -359,6 +364,8 @@ public class HttpConfigProvider : ConfigProvider
             {
                 foreach (var item in dic)
                 {
+                    if (IgnoreChangedKeys.Contains(item.Key)) continue;
+
                     if (!_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
                     {
                         changed.Add(item.Key, item.Value);
