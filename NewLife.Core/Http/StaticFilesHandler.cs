@@ -44,6 +44,8 @@ public class StaticFilesHandler : IHttpHandler
             _ => null,
         };
 
-        context.Response.SetResult(fi.OpenRead(), contentType);
+        // 确保使用完以后关闭文件流
+        using var fs = fi.OpenRead();
+        context.Response.SetResult(fs, contentType);
     }
 }
