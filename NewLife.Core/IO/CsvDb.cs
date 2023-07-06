@@ -52,8 +52,8 @@ public class CsvDb<T> where T : new()
 
         var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-        // 首次写入文件头
-        if (fs.Position == 0) csv.WriteLine(pis.Select(e => e.Name));
+        // 首次写入文件头。需要正确处理协变逆变问题，兼容.NET2.0
+        if (fs.Position == 0) csv.WriteLine(pis.Select(e => e.Name as Object));
 
         // 写入数据
         foreach (var item in models)
