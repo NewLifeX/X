@@ -316,6 +316,7 @@ public static class TracerExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
         {
+            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (request.Content is ByteArrayContent content &&
                 content.Headers.ContentLength != null &&
                 content.Headers.ContentLength < 1024 * 8 &&
@@ -324,7 +325,7 @@ public static class TracerExtension
             {
                 // 既然都读出来了，不管多长，都要前面1024字符
                 var str = request.Content.ReadAsStringAsync().Result;
-                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > 1024 ? str[..1024] : str);
+                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > maxLength ? str[..maxLength] : str);
             }
 
             if (tag.Length < 500)

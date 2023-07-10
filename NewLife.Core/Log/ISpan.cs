@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Net;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -244,7 +245,7 @@ public class DefaultSpan : ISpan
     {
         if (tag == null) return;
 
-        var len = Builder?.Tracer?.MaxTagLength ?? 0;
+        var len = Builder?.Tracer?.MaxTagLength ?? 1024;
         if (len <= 0) return;
 
         if (tag is String str)
@@ -454,13 +455,14 @@ public static class SpanExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0)
         {
+            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (span.Tag.IsNullOrEmpty())
                 span.SetTag(tag);
-            else if (span.Tag.Length < 1024)
+            else if (span.Tag.Length < maxLength)
             {
                 var old = span.Tag;
                 span.SetTag(tag);
-                span.Tag = (old + "\r\n" + span.Tag).Cut(1024);
+                span.Tag = (old + "\r\n" + span.Tag).Cut(maxLength);
             }
         }
     }
@@ -473,17 +475,21 @@ public static class SpanExtension
         // 正常响应，部分作为Tag信息
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            if (span is DefaultSpan ds && ds.TraceFlag > 0 && (span.Tag.IsNullOrEmpty() || span.Tag.Length < 1024))
+            if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                // 判断类型和长度
-                var content = response.Content;
-                var mediaType = content.Headers?.ContentType?.MediaType;
-                var len = content.Headers?.ContentLength ?? 0;
-                if (len >= 0 && len < 1024 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
+                var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+                if (span.Tag.IsNullOrEmpty() || span.Tag.Length < maxLength)
                 {
-                    var result = content.ReadAsStringAsync().Result;
-                    if (!result.IsNullOrEmpty())
-                        span.Tag = (span.Tag + "\r\n" + result).Cut(1024);
+                    // 判断类型和长度
+                    var content = response.Content;
+                    var mediaType = content.Headers?.ContentType?.MediaType;
+                    var len = content.Headers?.ContentLength ?? 0;
+                    if (len >= 0 && len < 1024 * 8 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
+                    {
+                        var result = content.ReadAsStringAsync().Result;
+                        if (!result.IsNullOrEmpty())
+                            span.Tag = (span.Tag + "\r\n" + result).Cut(maxLength);
+                    }
                 }
             }
         }
