@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Http.Headers;
 using NewLife.Remoting;
 using NewLife.Serialization;
 
@@ -244,7 +245,7 @@ public class DefaultSpan : ISpan
     {
         if (tag == null) return;
 
-        var len = Builder?.Tracer?.MaxTagLength ?? 0;
+        var len = Builder?.Tracer?.MaxTagLength ?? 1024;
         if (len <= 0) return;
 
         if (tag is String str)
@@ -454,44 +455,49 @@ public static class SpanExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0)
         {
+            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (span.Tag.IsNullOrEmpty())
                 span.SetTag(tag);
-            else if (span.Tag.Length < 1024)
+            else if (span.Tag.Length < maxLength)
             {
                 var old = span.Tag;
                 span.SetTag(tag);
-                span.Tag = (old + "\r\n" + span.Tag).Cut(1024);
+                span.Tag = (old + "\r\n" + span.Tag).Cut(maxLength);
             }
         }
     }
 
-    ///// <summary>附加Http响应内容在原Tag信息后面</summary>
-    ///// <param name="span"></param>
-    ///// <param name="response"></param>
-    //public static void AppendTag(this ISpan span, HttpResponseMessage response)
-    //{
-    //    // 正常响应，部分作为Tag信息
-    //    if (response.StatusCode == HttpStatusCode.OK)
-    //    {
-    //        if (span is DefaultSpan ds && ds.TraceFlag > 0 && (span.Tag.IsNullOrEmpty() || span.Tag.Length < 1024))
-    //        {
-    //            // 判断类型和长度
-    //            var content = response.Content;
-    //            var mediaType = content.Headers?.ContentType?.MediaType;
-    //            var len = content.Headers?.ContentLength ?? 0;
-    //            if (len >= 0 && len < 1024 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
-    //            {
-    //                var result = content.ReadAsStringAsync().Result;
-    //                if (!result.IsNullOrEmpty())
-    //                    span.Tag = (span.Tag + "\r\n" + result).Cut(1024);
-    //            }
-    //        }
-    //    }
-    //    // 异常响应，记录错误
-    //    else if (response.StatusCode > (HttpStatusCode)299)
-    //    {
-    //        if (span.Error.IsNullOrEmpty()) span.Error = response.ReasonPhrase;
-    //    }
-    //}
+    /// <summary>附加Http响应内容在原Tag信息后面</summary>
+    /// <param name="span"></param>
+    /// <param name="response"></param>
+    public static void AppendTag(this ISpan span, HttpResponseMessage response)
+    {
+        // 正常响应，部分作为Tag信息
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            if (span is DefaultSpan ds && ds.TraceFlag > 0)
+            {
+                var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+                if (span.Tag.IsNullOrEmpty() || span.Tag.Length < maxLength)
+                {
+                    // 判断类型和长度
+                    var content = response.Content;
+                    var mediaType = content.Headers?.ContentType;
+                    var len = content.Headers?.ContentLength ?? 0;
+                    if (len >= 0 && len < 1024 * 8 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
+                    {
+                        var result = content.ReadAsStringAsync().Result;
+                        if (!result.IsNullOrEmpty())
+                            span.Tag = (span.Tag + "\r\n" + result).Cut(maxLength);
+                    }
+                }
+            }
+        }
+        // 异常响应，记录错误
+        else if (response.StatusCode > (HttpStatusCode)299)
+        {
+            if (span.Error.IsNullOrEmpty()) span.Error = response.ReasonPhrase;
+        }
+    }
     #endregion
 }
