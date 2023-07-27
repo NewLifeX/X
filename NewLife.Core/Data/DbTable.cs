@@ -489,6 +489,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var set = new XmlWriterSettings
         {
             OmitXmlDeclaration = true,
+            ConformanceLevel = ConformanceLevel.Auto,
             Indent = true,
         };
         using var writer = XmlWriter.Create(stream, set);
