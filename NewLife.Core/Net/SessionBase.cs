@@ -327,13 +327,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             return false;
         }
 
-        // 同步返回0数据包，断开连接
-        if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
-        {
-            Close("EmptyData");
-            Dispose();
-            return false;
-        }
+        //// 同步返回0数据包，断开连接
+        //if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
+        //{
+        //    Close("EmptyData");
+        //    Dispose();
+        //    return false;
+        //}
 
         // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
         if (!rs)
