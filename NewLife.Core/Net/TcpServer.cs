@@ -311,10 +311,12 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             //// 服务端不支持掉线重连
             //AutoReconnect = 0,
             NoDelay = NoDelay,
+            Pipeline = Pipeline,
+            DisconnectWhenEmptyData = false,
+
             Log = Log,
             LogSend = LogSend,
             LogReceive = LogReceive,
-            Pipeline = Pipeline,
             Tracer = Tracer,
         };
 
