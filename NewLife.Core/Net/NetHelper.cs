@@ -208,15 +208,10 @@ public static class NetHelper
     /// <returns></returns>
     public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
 
-        /// <summary>获取所有Tcp连接，带进程Id</summary>
-        /// <returns></returns>
-        public static TcpConnectionInformation2[] GetAllTcpConnections()
-        {
-            if (!Runtime.Windows) return new TcpConnectionInformation2[0];
-
-            return TcpConnectionInformation2.GetAllTcpConnections();
-        }
-        #endregion
+    /// <summary>获取所有Tcp连接，带进程Id</summary>
+    /// <returns></returns>
+    public static TcpConnectionInformation2[] GetAllTcpConnections() => !Runtime.Windows ? TcpConnectionInformation2.GetLinuxTcpConnections() : TcpConnectionInformation2.GetWindowsTcpConnections();
+    #endregion
 
     #region 本机信息
     /// <summary>获取活动的接口信息</summary>
