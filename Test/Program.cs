@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Security.Cryptography;
@@ -71,7 +72,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -93,6 +94,23 @@ namespace Test
         static StarClient _client;
         private static void Test1()
         {
+            var tcps = NetHelper.GetAllTcpConnections(-1);
+            XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
+            foreach (var item in tcps)
+            {
+                XTrace.WriteLine("{0}\t{1}\t{2}\t{3}", item.LocalEndPoint, item.RemoteEndPoint, item.State, item.ProcessId);
+            }
+
+            var ipg = IPGlobalProperties.GetIPGlobalProperties();
+            for (var i = 0; i < 100; i++)
+            {
+                //var st = ipg.GetIPv4GlobalStatistics();
+                var st = ipg.GetTcpIPv4Statistics();
+                XTrace.WriteLine(st.ToJson());
+
+                Thread.Sleep(1000);
+            }
+
             var mi = MachineInfo.GetCurrent();
             XTrace.WriteLine(mi.ToJson(true));
 
