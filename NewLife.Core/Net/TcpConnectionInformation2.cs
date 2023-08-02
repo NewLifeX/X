@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 namespace NewLife.Net;
@@ -19,7 +18,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     public override TcpState State { get; }
 
     /// <summary>进程标识</summary>
-    public Int32 ProcessId { get; }
+    public Int32 ProcessId { get; set; }
 
     /// <summary>实例化Tcp连接信息</summary>
     /// <param name="local"></param>
@@ -165,19 +164,33 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     #endregion
 
     #region Linux连接信息
-    /// <summary>获取所有Tcp连接</summary>
+    /// <summary>获取指定进程的Tcp连接</summary>
+    /// <param name="processId">目标进程。默认-1未指定，获取所有进程的Tcp连接</param>
     /// <returns></returns>
-    public static TcpConnectionInformation2[] GetLinuxTcpConnections()
+    public static TcpConnectionInformation2[] GetLinuxTcpConnections(Int32 processId = -1)
     {
         var list = new List<TcpConnectionInformation2>();
 
+        if (processId > 0)
+        {
+            var rs = ParseTcps(File.ReadAllText($"/proc/{processId}/net/tcp"));
+            if (rs != null && rs.Count > 0) list.AddRange(rs);
+
+            var rs2 = ParseTcps(File.ReadAllText($"/proc/{processId}/net/tcp6"));
+            if (rs2 != null && rs2.Count > 0) list.AddRange(rs2);
+
+            foreach (var item in list)
+            {
+                item.ProcessId = processId;
+            }
+        }
+        else
         {
             var rs = ParseTcps(File.ReadAllText("/proc/net/tcp"));
             if (rs != null && rs.Count > 0) list.AddRange(rs);
-        }
-        {
-            var rs = ParseTcps(File.ReadAllText("/proc/net/tcp6"));
-            if (rs != null && rs.Count > 0) list.AddRange(rs);
+
+            var rs2 = ParseTcps(File.ReadAllText("/proc/net/tcp6"));
+            if (rs2 != null && rs2.Count > 0) list.AddRange(rs2);
         }
 
         return list.ToArray();
@@ -196,38 +209,43 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         foreach (var line in text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
         {
             var parts = line.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 4) continue;
+            if (parts.Length < 4 || parts[1].IndexOf(':') < 0) continue;
 
-            // 提取连接信息
-            var ps1 = parts[1].Split(':');
-            var ps2 = parts[2].Split(':');
-            if (ps1.Length < 2 || ps2.Length < 2) continue;
+            //// 提取连接信息
+            //var ps1 = parts[1].Split(':');
+            //var ps2 = parts[2].Split(':');
+            //if (ps1.Length < 2 || ps2.Length < 2) continue;
 
             var state = GetState(parts[3]);
 
-            // IPv4 和 IPv6 解析方式不同
-            if (ps1[0].Length <= 8)
-            {
-                var localAddress = new IPAddress(ps1[0].ToHex().Reverse().ToArray());
-                var local = new IPEndPoint(localAddress, Int32.Parse(ps1[1], NumberStyles.HexNumber));
-                var remoteAddress = new IPAddress(ps2[0].ToHex().Reverse().ToArray());
-                var remote = new IPEndPoint(remoteAddress, Int32.Parse(ps2[1], NumberStyles.HexNumber));
-                var info = new TcpConnectionInformation2(local, remote, state, 0);
+            //// IPv4 和 IPv6 解析方式不同
+            //if (ps1[0].Length <= 8)
+            //{
+            //    var localAddress = new IPAddress(ps1[0].ToHex().Reverse().ToArray());
+            //    var local = new IPEndPoint(localAddress, Int32.Parse(ps1[1], NumberStyles.HexNumber));
+            //    var remoteAddress = new IPAddress(ps2[0].ToHex().Reverse().ToArray());
+            //    var remote = new IPEndPoint(remoteAddress, Int32.Parse(ps2[1], NumberStyles.HexNumber));
+            //    var info = new TcpConnectionInformation2(local, remote, state, 0);
 
-                list.Add(info);
-            }
-            else
-            {
-                var localAddress = GetIPv6(ps1[0]);
-                var local = new IPEndPoint(localAddress, Int32.Parse(ps1[1], NumberStyles.HexNumber));
+            //    list.Add(info);
+            //}
+            //else
+            //{
+            //    var localAddress = GetIPv6(ps1[0]);
+            //    var local = new IPEndPoint(localAddress, Int32.Parse(ps1[1], NumberStyles.HexNumber));
 
-                var remoteAddress = GetIPv6(ps2[0]);
-                var remote = new IPEndPoint(remoteAddress, Int32.Parse(ps2[1], NumberStyles.HexNumber));
+            //    var remoteAddress = GetIPv6(ps2[0]);
+            //    var remote = new IPEndPoint(remoteAddress, Int32.Parse(ps2[1], NumberStyles.HexNumber));
 
-                var info = new TcpConnectionInformation2(local, remote, state, 0);
+            //    var info = new TcpConnectionInformation2(local, remote, state, 0);
 
-                list.Add(info);
-            }
+            //    list.Add(info);
+            //}
+
+            var local = ParseAddressAndPort(parts[1]);
+            var remote = ParseAddressAndPort(parts[2]);
+            var info = new TcpConnectionInformation2(local, remote, state, 0);
+            list.Add(info);
         }
 
         return list;
@@ -254,6 +272,48 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         //    address = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
 
         return address;
+    }
+
+    private static IPEndPoint ParseAddressAndPort(String colonSeparatedAddress)
+    {
+        var num = colonSeparatedAddress.IndexOf(':');
+        if (num == -1) throw new NetworkInformationException();
+
+        var address = ParseHexIPAddress(colonSeparatedAddress.Substring(0, num));
+        var s = colonSeparatedAddress.Substring(num + 1);
+        return !Int32.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
+            ? throw new NetworkInformationException()
+            : new IPEndPoint(address, result);
+    }
+
+    internal static IPAddress ParseHexIPAddress(String remoteAddressString)
+    {
+        if (remoteAddressString.Length <= 8) return ParseIPv4HexString(remoteAddressString);
+
+        if (remoteAddressString.Length == 32) return ParseIPv6HexString(remoteAddressString);
+
+        throw new NetworkInformationException();
+    }
+
+    private static IPAddress ParseIPv4HexString(String hexAddress)
+    {
+        return !Int64.TryParse(hexAddress, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
+            ? throw new NetworkInformationException()
+            : new IPAddress(result);
+    }
+
+    private static IPAddress ParseIPv6HexString(String hexAddress, Boolean isNetworkOrder = false)
+    {
+        var span = hexAddress.ToHex();
+        if (!isNetworkOrder && BitConverter.IsLittleEndian)
+        {
+            for (var j = 0; j < 4; j++)
+            {
+                Array.Reverse(span, j * 4, 4);
+            }
+        }
+
+        return new IPAddress(span);
     }
 
     private static TcpState GetState(String hexState)
