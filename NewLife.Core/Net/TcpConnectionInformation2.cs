@@ -218,20 +218,10 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             }
             else
             {
-                var buf = ps1[0].ToHex();
-                var localAddress = new IPAddress(buf);
-                if (localAddress.IsIPv4MappedToIPv6)
-                    localAddress = localAddress.MapToIPv4();
-                else if (buf[8] == 0xFF && buf[9] == 0xFF)
-                    localAddress = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
+                var localAddress = GetIPv6(ps1[0]);
                 var local = new IPEndPoint(localAddress, Int32.Parse(ps1[1], NumberStyles.HexNumber));
 
-                buf = ps2[0].ToHex();
-                var remoteAddress = new IPAddress(buf);
-                if (remoteAddress.IsIPv4MappedToIPv6)
-                    remoteAddress = remoteAddress.MapToIPv4();
-                else if (buf[8] == 0xFF && buf[9] == 0xFF)
-                    remoteAddress = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
+                var remoteAddress = GetIPv6(ps2[0]);
                 var remote = new IPEndPoint(remoteAddress, Int32.Parse(ps2[1], NumberStyles.HexNumber));
 
                 var info = new TcpConnectionInformation2(local, remote, state, 0);
@@ -241,6 +231,29 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         }
 
         return list;
+    }
+
+    private static IPAddress GetIPv6(String hex)
+    {
+        var buf = hex.ToHex();
+        var numbers = new List<UInt32>();
+        // 拆分为4个切片，保持字节顺序不变
+        for (var i = 0; i < buf.Length; i += 4)
+        {
+            numbers.Add(buf.ToUInt32(i, false));
+        }
+        // 重新打包，每个切片都转换为本机字节顺序
+        for (var i = 0; i < numbers.Count; i++)
+        {
+            buf.Write(i * 4, numbers[i].GetBytes(true));
+        }
+        var address = new IPAddress(buf);
+        if (address.IsIPv4MappedToIPv6)
+            address = address.MapToIPv4();
+        //else if (buf[8] == 0xFF && buf[9] == 0xFF)
+        //    address = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
+
+        return address;
     }
 
     private static TcpState GetState(String hexState)
