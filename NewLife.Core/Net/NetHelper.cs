@@ -209,7 +209,21 @@ public static class NetHelper
 
     /// <summary>获取所有Tcp连接，带进程Id</summary>
     /// <returns></returns>
-    public static TcpConnectionInformation2[] GetAllTcpConnections() => !Runtime.Windows ? TcpConnectionInformation2.GetLinuxTcpConnections() : TcpConnectionInformation2.GetWindowsTcpConnections();
+    [Obsolete]
+    public static TcpConnectionInformation2[] GetAllTcpConnections() => GetAllTcpConnections(-1);
+
+    /// <summary>获取所有Tcp连接，带进程Id</summary>
+    /// <returns></returns>
+    public static TcpConnectionInformation2[] GetAllTcpConnections(Int32 processId = -1)
+    {
+        var rs = !Runtime.Windows ?
+            TcpConnectionInformation2.GetLinuxTcpConnections(processId) :
+            TcpConnectionInformation2.GetWindowsTcpConnections();
+
+        if (processId <= 0) return rs;
+
+        return rs?.Where(e => e.ProcessId == processId).ToArray();
+    }
     #endregion
 
     #region 本机信息
