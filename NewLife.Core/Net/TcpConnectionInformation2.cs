@@ -251,28 +251,28 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         return list;
     }
 
-    private static IPAddress GetIPv6(String hex)
-    {
-        var buf = hex.ToHex();
-        var numbers = new List<UInt32>();
-        // 拆分为4个切片，保持字节顺序不变
-        for (var i = 0; i < buf.Length; i += 4)
-        {
-            numbers.Add(buf.ToUInt32(i, false));
-        }
-        // 重新打包，每个切片都转换为本机字节顺序
-        for (var i = 0; i < numbers.Count; i++)
-        {
-            buf.Write(i * 4, numbers[i].GetBytes(true));
-        }
-        var address = new IPAddress(buf);
-        //if (address.IsIPv4MappedToIPv6)
-        //    address = address.MapToIPv4();
-        //else if (buf[8] == 0xFF && buf[9] == 0xFF)
-        //    address = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
+    //private static IPAddress GetIPv6(String hex)
+    //{
+    //    var buf = hex.ToHex();
+    //    var numbers = new List<UInt32>();
+    //    // 拆分为4个切片，保持字节顺序不变
+    //    for (var i = 0; i < buf.Length; i += 4)
+    //    {
+    //        numbers.Add(buf.ToUInt32(i, false));
+    //    }
+    //    // 重新打包，每个切片都转换为本机字节顺序
+    //    for (var i = 0; i < numbers.Count; i++)
+    //    {
+    //        buf.Write(i * 4, numbers[i].GetBytes(true));
+    //    }
+    //    var address = new IPAddress(buf);
+    //    if (address.IsIPv4MappedToIPv6)
+    //        address = address.MapToIPv4();
+    //    //else if (buf[8] == 0xFF && buf[9] == 0xFF)
+    //    //    address = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
 
-        return address;
-    }
+    //    return address;
+    //}
 
     private static IPEndPoint ParseAddressAndPort(String colonSeparatedAddress)
     {
@@ -280,6 +280,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         if (num == -1) throw new NetworkInformationException();
 
         var address = ParseHexIPAddress(colonSeparatedAddress.Substring(0, num));
+        //if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
         var s = colonSeparatedAddress.Substring(num + 1);
         return !Int32.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var result)
             ? throw new NetworkInformationException()
