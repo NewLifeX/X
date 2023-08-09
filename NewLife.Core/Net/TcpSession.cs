@@ -138,6 +138,7 @@ public class TcpSession : SessionBase, ISocketSession
 
             sock.Bind(Local.EndPoint);
             Local.EndPoint.Port = ((IPEndPoint)sock.LocalEndPoint).Port;
+            DefaultSpan.Current?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
 
             WriteLog("Open {0}", this);
         }
@@ -148,6 +149,7 @@ public class TcpSession : SessionBase, ISocketSession
         try
         {
             var addrs = uri.GetAddresses();
+            DefaultSpan.Current?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
             if (timeout <= 0)
                 sock.Connect(addrs, uri.Port);
@@ -164,6 +166,7 @@ public class TcpSession : SessionBase, ISocketSession
                 sock.EndConnect(ar);
             }
             RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
+            DefaultSpan.Current?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
 
             // 客户端SSL
             var sp = SslProtocol;
