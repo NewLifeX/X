@@ -116,11 +116,14 @@ public class TcpSession : SessionBase, ISocketSession
         // 服务端会话没有打开
         if (_Server != null) return false;
 
+        var span = DefaultSpan.Current;
         var timeout = Timeout;
         var uri = Remote;
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
+            span?.AppendTag($"Local={Local}");
+
             // 根据目标地址适配本地IPv4/IPv6
             if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
             {
@@ -138,7 +141,7 @@ public class TcpSession : SessionBase, ISocketSession
 
             sock.Bind(Local.EndPoint);
             Local.EndPoint.Port = ((IPEndPoint)sock.LocalEndPoint).Port;
-            DefaultSpan.Current?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
+            span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
 
             WriteLog("Open {0}", this);
         }
@@ -149,7 +152,7 @@ public class TcpSession : SessionBase, ISocketSession
         try
         {
             var addrs = uri.GetAddresses();
-            DefaultSpan.Current?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
+            span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
             if (timeout <= 0)
                 sock.Connect(addrs, uri.Port);
@@ -166,7 +169,7 @@ public class TcpSession : SessionBase, ISocketSession
                 sock.EndConnect(ar);
             }
             RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
-            DefaultSpan.Current?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
+            span?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
 
             // 客户端SSL
             var sp = SslProtocol;
