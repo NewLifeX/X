@@ -115,13 +115,9 @@ public static class XTrace
         {
             Log.Fatal("异常退出！");
 
-                if (Log is CompositeLog compositeLog)
-                {
-                    var log = compositeLog.Get<TextFileLog>();
-                    log.TryDispose();
-                }
-            }
+            OnProcessExit(null, EventArgs.Empty);
         }
+    }
 
         private static void TaskScheduler_UnobservedTaskException(Object? sender, UnobservedTaskExceptionEventArgs e)
         {
@@ -136,14 +132,18 @@ public static class XTrace
             }
         }
 
-        private static void OnProcessExit(Object? sender, EventArgs e)
+    private static void OnProcessExit(Object? sender, EventArgs e)
+    {
+        if (Log is CompositeLog compositeLog)
         {
-            if (Log is CompositeLog compositeLog)
-            {
-                var log = compositeLog.Get<TextFileLog>();
-                log.TryDispose();
-            }
+            var log = compositeLog.Get<TextFileLog>();
+            log.TryDispose();
         }
+        else
+        {
+            Log.TryDispose();
+        }
+    }
 
     private static readonly Object _lock = new();
     private static Int32 _initing = 0;
