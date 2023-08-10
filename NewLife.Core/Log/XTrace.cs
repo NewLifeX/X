@@ -114,11 +114,7 @@ public static class XTrace
         {
             Log.Fatal("异常退出！");
 
-            if (Log is CompositeLog compositeLog)
-            {
-                var log = compositeLog.Get<TextFileLog>();
-                log.TryDispose();
-            }
+            OnProcessExit(null, EventArgs.Empty);
         }
     }
 
@@ -143,6 +139,10 @@ public static class XTrace
         {
             var log = compositeLog.Get<TextFileLog>();
             log.TryDispose();
+        }
+        else
+        {
+            Log.TryDispose();
         }
     }
 
