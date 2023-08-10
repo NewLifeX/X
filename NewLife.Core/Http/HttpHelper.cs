@@ -97,8 +97,9 @@ public static class HttpHelper
     /// <returns></returns>
     static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
     {
+        var dep = context.DnsEndPoint;
         var method = context.InitialRequestMessage.Method?.ToString() ?? "Connect";
-        using var span = Tracer?.NewSpan($"net:{context.DnsEndPoint}:{method}");
+        using var span = Tracer?.NewSpan($"net:{dep.Host}:{dep.Port}:{method}");
 
         var socket = new Socket(SocketType.Stream, ProtocolType.Tcp)
         {
