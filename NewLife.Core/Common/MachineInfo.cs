@@ -14,7 +14,7 @@ using System.Runtime.Versioning;
 using System.Management;
 using Microsoft.VisualBasic.Devices;
 #endif
-#if NETFRAMEWORK || NET6_0_OR_GREATER
+#if NETFRAMEWORK || NET5_0_OR_GREATER
 using Microsoft.Win32;
 #endif
 
@@ -268,12 +268,19 @@ public class MachineInfo
             if (csproduct.TryGetValue("UUID", out str)) UUID = str;
         }
 #endif
-
+        // 获取内存大小
 #if NETFRAMEWORK || WINDOWS
-        var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
+        {
+            var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
+            Memory = ci.TotalPhysicalMemory;
+        }
+#endif
+
+        // 获取操作系统名称和版本
+#if NETFRAMEWORK
         try
         {
-            Memory = ci.TotalPhysicalMemory;
+            var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
 
             // 系统名取WMI可能出错
             OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
@@ -281,7 +288,6 @@ public class MachineInfo
         }
         catch
         {
-#if !NET5_0
             try
             {
                 var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
@@ -295,8 +301,10 @@ public class MachineInfo
             {
                 if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
-#endif
         }
+//#elif NET5_0_OR_GREATER
+//        OSName = GetInfo("Win32_OperatingSystem", "Caption")?.TrimStart("Microsoft").Trim();
+//        OSVersion = GetInfo("Win32_OperatingSystem", "Version");
 #else
         var os = ReadWmic("os", "Caption", "Version");
         if (os != null)
@@ -343,7 +351,9 @@ public class MachineInfo
         //    //if (cpu.TryGetValue("ProcessorId", out str)) CpuID = str;
         //    if (cpu.TryGetValue("LoadPercentage", out str)) CpuRate = (Single)(str.ToDouble() / 100);
         //}
+#endif
 
+#if !NETFRAMEWORK
         if (OSName.IsNullOrEmpty())
             OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
         if (OSVersion.IsNullOrEmpty())
