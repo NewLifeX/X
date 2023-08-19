@@ -67,6 +67,7 @@ public class Host : IHost
 #endif
 #if NET6_0_OR_GREATER
         PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx, null));
+        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx, null));
         PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx, null));
 #endif
     }
