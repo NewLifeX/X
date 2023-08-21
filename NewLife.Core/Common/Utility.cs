@@ -176,17 +176,22 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                // 拷贝而来的逗号分隔整数
-                str = str.Replace(",", null);
-                str = ToDBC(str).Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-                if (Int32.TryParse(str, out var n)) return n;
-                return defaultValue;
-            }
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            // 拷贝而来的逗号分隔整数
+            str = str.Replace(",", null);
+            str = ToDBC(str).Trim();
+            return str.IsNullOrEmpty() ? defaultValue : Int32.TryParse(str, out var n) ? n : defaultValue;
+        }
 
             // 特殊处理时间，转Unix秒
             if (value is DateTime dt)
@@ -247,17 +252,22 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                // 拷贝而来的逗号分隔整数
-                str = str.Replace(",", null);
-                str = ToDBC(str).Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-                if (Int64.TryParse(str, out var n)) return n;
-                return defaultValue;
-            }
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            // 拷贝而来的逗号分隔整数
+            str = str.Replace(",", null);
+            str = ToDBC(str).Trim();
+            return str.IsNullOrEmpty() ? defaultValue : Int64.TryParse(str, out var n) ? n : defaultValue;
+        }
 
             // 特殊处理时间，转Unix毫秒
             if (value is DateTime dt)
@@ -312,19 +322,20 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                str = ToDBC(str).Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-                if (Double.TryParse(str, out var n)) return n;
-                return defaultValue;
-            }
-            else if (value is Byte[] buf && buf.Length <= 8)
-            {
-                return BitConverter.ToDouble(buf, 0);
-            }
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            str = ToDBC(str).Trim();
+            return str.IsNullOrEmpty() ? defaultValue : Double.TryParse(str, out var n) ? n : defaultValue;
+        }
 
             try
             {
@@ -341,18 +352,24 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                str = ToDBC(str).Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-                if (Decimal.TryParse(str, out var n)) return n;
-                return defaultValue;
-            }
-            else if (value is Byte[] buf)
-            {
-                if (buf == null || buf.Length < 1) return defaultValue;
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            str = ToDBC(str).Trim();
+            return str.IsNullOrEmpty() ? defaultValue : Decimal.TryParse(str, out var n) ? n : defaultValue;
+        }
+
+        if (value is Byte[] buf)
+        {
+            if (buf == null || buf.Length <= 0) return defaultValue;
 
                 switch (buf.Length)
                 {
@@ -391,24 +408,30 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
-            if (value is String str)
-            {
-                //str = ToDBC(str).Trim();
-                str = str.Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            //str = ToDBC(str).Trim();
+            str = str.Trim();
+            if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (Boolean.TryParse(str, out var b)) return b;
 
                 if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
                 if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
-                // 特殊处理用数字0和1表示布尔型
-                str = ToDBC(str);
-                if (Int32.TryParse(str, out var n)) return n > 0;
-
-                return defaultValue;
-            }
+            // 特殊处理用数字0和1表示布尔型
+            str = ToDBC(str);
+            return Int32.TryParse(str, out var n) ? n > 0 : defaultValue;
+        }
 
             try
             {
@@ -425,13 +448,20 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-            if (value is String str)
-            {
-                //str = ToDBC(str).Trim();
-                str = str.Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            //str = ToDBC(str).Trim();
+            str = str.Trim();
+            if (str.IsNullOrEmpty()) return defaultValue;
 
                 // 处理UTC
                 var utc = false;
@@ -491,12 +521,19 @@ namespace System
         {
             if (value == null || value == DBNull.Value) return defaultValue;
 
-            // 特殊处理字符串，也是最常见的
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
 
-            if (value is String str)
-            {
-                str = str.Trim();
-                if (str.IsNullOrEmpty()) return defaultValue;
+        // 特殊处理字符串，也是最常见的
+        if (value is String str)
+        {
+            str = str.Trim();
+            if (str.IsNullOrEmpty()) return defaultValue;
 
                 if (DateTimeOffset.TryParse(str, out var dt)) return dt;
                 if (str.Contains('-') && DateTimeOffset.TryParseExact(str, "yyyy-M-d", null, DateTimeStyles.None, out dt)) return dt;
