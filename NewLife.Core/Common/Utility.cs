@@ -176,6 +176,14 @@ public class DefaultConvert
         if (value is Int32 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
@@ -183,11 +191,6 @@ public class DefaultConvert
             str = str.Replace(",", null);
             str = ToDBC(str).Trim();
             return str.IsNullOrEmpty() ? defaultValue : Int32.TryParse(str, out var n) ? n : defaultValue;
-        }
-        else if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            if (Int32.TryParse(list[0], out var n)) return n;
         }
 
         // 特殊处理时间，转Unix秒
@@ -246,6 +249,14 @@ public class DefaultConvert
         if (value is Int64 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
@@ -253,11 +264,6 @@ public class DefaultConvert
             str = str.Replace(",", null);
             str = ToDBC(str).Trim();
             return str.IsNullOrEmpty() ? defaultValue : Int64.TryParse(str, out var n) ? n : defaultValue;
-        }
-        else if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            if (Int64.TryParse(list[0], out var n)) return n;
         }
 
         // 特殊处理时间，转Unix毫秒
@@ -312,16 +318,19 @@ public class DefaultConvert
         if (value is Double num) return Double.IsNaN(num) ? defaultValue : num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
             str = ToDBC(str).Trim();
             return str.IsNullOrEmpty() ? defaultValue : Double.TryParse(str, out var n) ? n : defaultValue;
-        }
-        else if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            if (Double.TryParse(list[0], out var n)) return n;
         }
 
         if (value is Byte[] buf && buf.Length <= 8)
@@ -343,16 +352,19 @@ public class DefaultConvert
         if (value is Decimal num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
             str = ToDBC(str).Trim();
             return str.IsNullOrEmpty() ? defaultValue : Decimal.TryParse(str, out var n) ? n : defaultValue;
-        }
-        else if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            if (Decimal.TryParse(list[0], out var n)) return n;
         }
 
         if (value is Byte[] buf)
@@ -402,6 +414,14 @@ public class DefaultConvert
         if (value is Boolean num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
@@ -417,11 +437,6 @@ public class DefaultConvert
             // 特殊处理用数字0和1表示布尔型
             str = ToDBC(str);
             return Int32.TryParse(str, out var n) ? n > 0 : defaultValue;
-        }
-        else if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            if (Int32.TryParse(list[0], out var n)) return n > 0;
         }
 
         try
@@ -440,9 +455,16 @@ public class DefaultConvert
         if (value is DateTime num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
-        if (value is String str ||
-            (value is IList<String> list && list.Count > 0 && (str = list[0]) != null))
+        if (value is String str)
         {
             //str = ToDBC(str).Trim();
             str = str.Trim();
@@ -503,9 +525,16 @@ public class DefaultConvert
         if (value is DateTimeOffset num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+        // 支持表单提交的StringValues
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return defaultValue;
+            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
+            if (value == null) return defaultValue;
+        }
+
         // 特殊处理字符串，也是最常见的
-        if (value is String str ||
-            (value is IList<String> list && list.Count > 0 && (str = list[0]) != null))
+        if (value is String str)
         {
             str = str.Trim();
             if (str.IsNullOrEmpty()) return defaultValue;
