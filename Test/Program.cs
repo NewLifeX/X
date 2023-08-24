@@ -72,7 +72,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test1();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -119,6 +119,11 @@ namespace Test
 
             mi = MachineInfo.GetCurrent();
             XTrace.WriteLine(mi.ToJson(true));
+
+#if NETFRAMEWORK
+            var diskID = MachineInfo.GetInfo("Win32_DiskDrive where mediatype=\"Fixed hard disk media\"", "SerialNumber");
+            XTrace.WriteLine("DiskID: {0}", diskID);
+#endif
 
             var sys = SysConfig.Current;
             XTrace.WriteLine("Name: {0}", sys.Name);
