@@ -29,9 +29,13 @@ public class MachineInfo
     [DisplayName("系统版本")]
     public String OSVersion { get; set; }
 
-    /// <summary>产品名称。制造商</summary>
+    /// <summary>产品名称</summary>
     [DisplayName("产品名称")]
     public String Product { get; set; }
+
+    /// <summary>制造商</summary>
+    [DisplayName("制造商")]
+    public String Vendor { get; set; }
 
     /// <summary>处理器型号</summary>
     [DisplayName("处理器型号")]
@@ -223,18 +227,39 @@ public class MachineInfo
         if (!str.IsNullOrEmpty()) Guid = str;
 
         reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig");
-        if (reg != null) str = (reg.GetValue("LastConfig") + "")?.Trim('{', '}').ToUpper();
+        if (reg != null)
+        {
+            str = (reg.GetValue("LastConfig") + "")?.Trim('{', '}').ToUpper();
 
-        // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-        if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
+            // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+            if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
+        }
 
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS");
         reg ??= Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig\Current");
-        if (reg != null) Product = reg.GetValue("SystemProductName") + "";
+        if (reg != null)
+        {
+            Product = (reg.GetValue("SystemProductName") + "").Replace("System Product Name", null);
+            if (Product.IsNullOrEmpty()) Product = reg.GetValue("BaseBoardProduct") + "";
+
+            Vendor = reg.GetValue("SystemManufacturer") + "";
+            if (Vendor.IsNullOrEmpty()) Vendor = reg.GetValue("ASUSTeK COMPUTER INC.") + "";
+        }
 
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
         if (reg != null) Processor = reg.GetValue("ProcessorNameString") + "";
 
+        // 旧版系统（如win2008）没有UUID的注册表项，需要用wmic查询。也可能因为过去的某个BUG，导致GUID跟UUID相等
+        if (UUID.IsNullOrEmpty() || UUID == Guid || Vendor.IsNullOrEmpty())
+        {
+            var csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
+            if (csproduct != null)
+            {
+                if (csproduct.TryGetValue("Name", out str) && !str.IsNullOrEmpty() && Product.IsNullOrEmpty()) Product = str;
+                if (csproduct.TryGetValue("UUID", out str) && !str.IsNullOrEmpty()) UUID = str;
+                if (csproduct.TryGetValue("Vendor", out str) && !str.IsNullOrEmpty()) Vendor = str;
+            }
+        }
         var ci = new ComputerInfo();
         try
         {
@@ -563,6 +588,46 @@ public class MachineInfo
             return process.StandardOutput.ReadToEnd();
         }
         catch { return null; }
+    }
+
+    /// <summary>通过WMIC命令读取信息</summary>
+    /// <param name="type"></param>
+    /// <param name="keys"></param>
+    /// <returns></returns>
+    public static IDictionary<String, String> ReadWmic(String type, params String[] keys)
+    {
+        var dic = new Dictionary<String, IList<String>>(StringComparer.OrdinalIgnoreCase);
+        var dic2 = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
+        var args = $"{type} get {keys.Join(",")} /format:list";
+        var str = Execute("wmic", args)?.Trim();
+        if (str.IsNullOrEmpty()) return dic2;
+
+        var ss = str.Split("\r\n");
+        foreach (var item in ss)
+        {
+            var ks = item?.Split('=');
+            if (ks != null && ks.Length >= 2)
+            {
+                var k = ks[0].Trim();
+                var v = ks[1].Trim().TrimInvisible();
+                if (!k.IsNullOrEmpty() && !v.IsNullOrEmpty())
+                {
+                    if (!dic.TryGetValue(k, out var list))
+                        dic[k] = list = new List<String>();
+
+                    list.Add(v);
+                }
+            }
+        }
+
+        // 排序，避免多个磁盘序列号时，顺序变动
+        foreach (var item in dic)
+        {
+            dic2[item.Key] = item.Value.OrderBy(e => e).Join();
+        }
+
+        return dic2;
     }
     #endregion
 
