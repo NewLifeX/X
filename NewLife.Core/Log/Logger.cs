@@ -254,16 +254,16 @@ namespace NewLife.Log
                 if (Runtime.Linux) os = MachineInfo.GetLinuxName();
             }
 
-            sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
-            sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
-            if (mi != null)
-            {
-                sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
-                sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
-                if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0}\r\n", mi.Product);
-                if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
-            }
-            sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
+        sb.AppendFormat("#OS: {0}, {1}/{2}\r\n", os, Environment.MachineName, Environment.UserName);
+        sb.AppendFormat("#CPU: {0}\r\n", Environment.ProcessorCount);
+        if (mi != null)
+        {
+            sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
+            sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
+            if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0} / {1}\r\n", mi.Product, mi.Vendor);
+            if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
+        }
+        sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
 
             ThreadPool.GetMinThreads(out var minWorker, out var minIO);
             ThreadPool.GetMaxThreads(out var maxWorker, out var maxIO);
