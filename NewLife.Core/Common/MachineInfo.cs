@@ -93,7 +93,7 @@ public class MachineInfo
     /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
     public static MachineInfo Current { get; set; }
 
-    static MachineInfo() => RegisterAsync();
+    //static MachineInfo() => RegisterAsync();
 
     private static Task<MachineInfo> _task;
     /// <summary>异步注册一个初始化后的机器信息实例</summary>
@@ -111,6 +111,7 @@ public class MachineInfo
             // 文件缓存，加快机器信息获取
             var file = Path.GetTempPath().CombinePath("machine_info.json");
             var file2 = dataPath.CombinePath("machine_info.json").GetBasePath();
+            var json = "";
             if (Current == null)
             {
                 var f = file;
@@ -120,9 +121,13 @@ public class MachineInfo
                     try
                     {
                         //XTrace.WriteLine("Load MachineInfo {0}", f);
-                        Current = File.ReadAllText(f).ToJsonEntity<MachineInfo>();
+                        json = File.ReadAllText(f);
+                        Current = json.ToJsonEntity<MachineInfo>();
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+                    }
                 }
             }
 
@@ -139,11 +144,17 @@ public class MachineInfo
 
             try
             {
-                var json = mi.ToJson(true);
-                File.WriteAllText(file.EnsureDirectory(true), json);
-                File.WriteAllText(file2.EnsureDirectory(true), json);
+                var json2 = mi.ToJson(true);
+                if (json != json2)
+                {
+                    File.WriteAllText(file2.EnsureDirectory(true), json2);
+                    File.WriteAllText(file.EnsureDirectory(true), json2);
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+            }
 
             return mi;
         });
@@ -170,7 +181,7 @@ public class MachineInfo
         try
         {
             //if (Runtime.Windows)
-            LoadWindowsInfoFx();
+            LoadWindowsInfo();
         }
         catch (Exception ex)
         {
@@ -196,20 +207,32 @@ public class MachineInfo
         {
             Refresh();
         }
-        catch { }
+        catch (Exception ex)
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
+        }
     }
 
-    private void LoadWindowsInfoFx()
+    private void LoadWindowsInfo()
     {
-        var machine_guid = "";
+        var str = "";
 
         var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
-        if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-        if (machine_guid.IsNullOrEmpty())
-        {
-            //reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            //if (reg != null) machine_guid = reg.GetValue("MachineGuid") + "";
-        }
+        if (reg != null) str = reg.GetValue("MachineGuid") + "";
+
+        if (!str.IsNullOrEmpty()) Guid = str;
+
+        reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig");
+        if (reg != null) str = (reg.GetValue("LastConfig") + "")?.Trim('{', '}').ToUpper();
+
+        // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+        if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
+
+        reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig\Current");
+        if (reg != null) Product = reg.GetValue("SystemProductName") + "";
+
+        reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+        if (reg != null) Processor = reg.GetValue("ProcessorNameString") + "";
 
         var ci = new ComputerInfo();
         try
@@ -222,26 +245,33 @@ public class MachineInfo
         }
         catch
         {
-            var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            if (reg2 != null)
+            try
             {
-                OSName = reg2.GetValue("ProductName") + "";
-                OSVersion = reg2.GetValue("ReleaseId") + "";
+                var reg2 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                if (reg2 != null)
+                {
+                    OSName = reg2.GetValue("ProductName") + "";
+                    OSVersion = reg2.GetValue("ReleaseId") + "";
+                }
+            }
+            catch (Exception ex)
+            {
+                if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
             }
         }
 
-        Processor = GetInfo("Win32_Processor", "Name");
+        //Processor = GetInfo("Win32_Processor", "Name");
         //CpuID = GetInfo("Win32_Processor", "ProcessorId");
-        var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
-        Product = GetInfo("Win32_ComputerSystemProduct", "Name");
+        //var uuid = GetInfo("Win32_ComputerSystemProduct", "UUID");
+        //Product = GetInfo("Win32_ComputerSystemProduct", "Name");
         DiskID = GetInfo("Win32_DiskDrive where mediatype=\"Fixed hard disk media\"", "SerialNumber");
 
         var sn = GetInfo("Win32_BIOS", "SerialNumber");
         if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
 
-        // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-        if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
+        //// UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
+        //if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
 
         //// 可能因WMI导致读取UUID失败
         //if (UUID.IsNullOrEmpty())
@@ -250,7 +280,7 @@ public class MachineInfo
         //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
         //}
 
-        if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
+        //if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
 
         //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
         //var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
@@ -511,6 +541,8 @@ public class MachineInfo
     {
         try
         {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute({0}, {1})", cmd, arguments);
+
             var psi = new ProcessStartInfo(cmd, arguments)
             {
                 // UseShellExecute 必须 false，以便于后续重定向输出流
