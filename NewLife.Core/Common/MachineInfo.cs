@@ -285,7 +285,7 @@ public class MachineInfo
             var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
 
             // 系统名取WMI可能出错
-            OSName = ci.OSFullName.TrimStart("Microsoft").Trim();
+            OSName = ci.OSFullName?.Replace("®", null).TrimStart("Microsoft").Trim();
             OSVersion = ci.OSVersion;
         }
         catch
