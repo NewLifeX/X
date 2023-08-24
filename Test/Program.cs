@@ -94,24 +94,30 @@ namespace Test
         static StarClient _client;
         private static void Test1()
         {
-            var tcps = NetHelper.GetAllTcpConnections(-1);
-            XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
-            foreach (var item in tcps)
-            {
-                XTrace.WriteLine("{0}\t{1}\t{2}\t{3}", item.LocalEndPoint, item.RemoteEndPoint, item.State, item.ProcessId);
-            }
+            //var tcps = NetHelper.GetAllTcpConnections(-1);
+            //XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
+            //foreach (var item in tcps)
+            //{
+            //    XTrace.WriteLine("{0}\t{1}\t{2}\t{3}", item.LocalEndPoint, item.RemoteEndPoint, item.State, item.ProcessId);
+            //}
 
-            var ipg = IPGlobalProperties.GetIPGlobalProperties();
-            for (var i = 0; i < 100; i++)
-            {
-                //var st = ipg.GetIPv4GlobalStatistics();
-                var st = ipg.GetTcpIPv4Statistics();
-                XTrace.WriteLine(st.ToJson());
+            //var ipg = IPGlobalProperties.GetIPGlobalProperties();
+            //for (var i = 0; i < 100; i++)
+            //{
+            //    //var st = ipg.GetIPv4GlobalStatistics();
+            //    var st = ipg.GetTcpIPv4Statistics();
+            //    XTrace.WriteLine(st.ToJson());
 
-                Thread.Sleep(1000);
-            }
+            //    Thread.Sleep(1000);
+            //}
 
-            var mi = MachineInfo.GetCurrent();
+            var mi = new MachineInfo();
+            mi.Init();
+            XTrace.WriteLine(mi.ToJson(true));
+
+            Console.WriteLine();
+
+            mi = MachineInfo.GetCurrent();
             XTrace.WriteLine(mi.ToJson(true));
 
             var sys = SysConfig.Current;

@@ -241,6 +241,7 @@ public class MachineInfo
         if (str.IsNullOrEmpty())
         {
             reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            reg = reg?.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography");
             if (reg != null) str = reg.GetValue("MachineGuid") + "";
         }
 
@@ -252,7 +253,7 @@ public class MachineInfo
         // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
         if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
 
-        reg = reg.OpenSubKey("Current");
+        reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig\Current");
         if (reg != null) Product = reg.GetValue("SystemProductName") + "";
 
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
@@ -776,6 +777,8 @@ public class MachineInfo
     {
         try
         {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute({0}, {1})", cmd, arguments);
+
             var psi = new ProcessStartInfo(cmd, arguments)
             {
                 // UseShellExecute 必须 false，以便于后续重定向输出流
