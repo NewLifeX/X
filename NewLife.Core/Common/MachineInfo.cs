@@ -228,7 +228,8 @@ public class MachineInfo
         // UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
         if (!str.IsNullOrEmpty() && !str.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = str;
 
-        reg = Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig\Current");
+        reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS");
+        reg ??= Registry.LocalMachine.OpenSubKey(@"SYSTEM\HardwareConfig\Current");
         if (reg != null) Product = reg.GetValue("SystemProductName") + "";
 
         reg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
@@ -541,7 +542,9 @@ public class MachineInfo
     {
         try
         {
-            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute({0}, {1})", cmd, arguments);
+#if DEBUG
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute({0} {1})", cmd, arguments);
+#endif
 
             var psi = new ProcessStartInfo(cmd, arguments)
             {
