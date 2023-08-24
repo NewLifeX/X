@@ -247,7 +247,7 @@ public abstract class Logger : ILog
         {
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
             sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
-            if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0}\r\n", mi.Product);
+            if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0} / {1}\r\n", mi.Product, mi.Vendor);
             if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
         }
         sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
