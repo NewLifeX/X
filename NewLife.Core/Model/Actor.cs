@@ -85,8 +85,12 @@ public abstract class Actor : DisposeBase, IActor
         _error = null;
         Stop(0);
 
-        _source.Cancel();
-        _source.TryDispose();
+        if (_source != null)
+        {
+            _source.Cancel();
+            _source.TryDispose();
+        }
+
         _task.TryDispose();
 
         MailBox.TryDispose();
