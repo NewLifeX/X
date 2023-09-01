@@ -377,7 +377,7 @@ public class TcpSession : SessionBase, ISocketSession
         ProcessEvent(se, bytes, true);
     }
 
-    //private Int32 _empty;
+    private Int32 _empty;
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
@@ -386,10 +386,10 @@ public class TcpSession : SessionBase, ISocketSession
     {
         if (pk.Count == 0)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:EmptyData");
+            using var span = Tracer?.NewSpan($"net:{Name}:EmptyData", remote);
 
             // 连续多次空数据，则断开
-            if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
+            if (DisconnectWhenEmptyData || _empty++ > 3)
             {
                 Close("EmptyData");
                 Dispose();
@@ -397,8 +397,8 @@ public class TcpSession : SessionBase, ISocketSession
                 return null;
             }
         }
-        //else
-        //    _empty = 0;
+        else
+            _empty = 0;
 
         return this;
     }
