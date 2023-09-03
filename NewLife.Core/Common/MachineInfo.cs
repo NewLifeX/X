@@ -437,6 +437,7 @@ public class MachineInfo
         // DMI信息位于 /sys/class/dmi/id/ 目录，可以直接读取，不需要执行dmidecode命令
         var uuid = "";
         var file = "/sys/class/dmi/id/product_uuid";
+        if (!File.Exists(file)) file = "/etc/uuid";
         if (!File.Exists(file)) file = "/proc/serial_num";  // miui12支持/proc/serial_num
         if (TryRead(file, out value))
             uuid = value;
@@ -487,6 +488,17 @@ public class MachineInfo
         var disks = GetFiles("/dev/disk/by-id", true);
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
         if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
+
+        file = "/etc/os-release";
+        if (TryRead(file, out value))
+        {
+            dic = value.SplitAsDictionary("=", Environment.NewLine, true);
+
+            if (Vendor.IsNullOrEmpty() && dic.TryGetValue("Vendor", out str)) Vendor = str;
+            if (Product.IsNullOrEmpty() && dic.TryGetValue("Product", out str)) Product = str;
+            if (Serial.IsNullOrEmpty() && dic.TryGetValue("Serial", out str)) Serial = str;
+            if (Board.IsNullOrEmpty() && dic.TryGetValue("Board", out str)) Board = str;
+        }
     }
 
     private readonly ICollection<String> _excludes = new List<String>();
@@ -778,7 +790,11 @@ public class MachineInfo
         return true;
     }
 
-    private static IDictionary<String, String> ReadInfo(String file, Char separate = ':')
+    /// <summary>读取文件信息，分割为字典</summary>
+    /// <param name="file"></param>
+    /// <param name="separate"></param>
+    /// <returns></returns>
+    public static IDictionary<String, String> ReadInfo(String file, Char separate = ':')
     {
         if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
 
