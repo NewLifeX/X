@@ -48,13 +48,10 @@ namespace NewLife.Remoting
         {
             if (action.IsNullOrEmpty()) action = "Api/Info";
 
-            var api = session.FindAction(action);
-            if (api == null) throw new ApiException(404, $"无法找到名为[{action}]的服务！");
+            var api = session.FindAction(action) ?? throw new ApiException(404, $"无法找到名为[{action}]的服务！");
 
             // 全局共用控制器，或者每次创建对象实例
-            var controller = session.CreateController(api);
-            if (controller == null) throw new ApiException(403, $"无法创建名为[{api.Name}]的服务！");
-
+            var controller = session.CreateController(api) ?? throw new ApiException(403, $"无法创建名为[{api.Name}]的服务！");
             if (controller is IApi capi) capi.Session = session;
             if (session is INetSession ss)
                 api.LastSession = ss.Remote + "";
@@ -194,7 +191,7 @@ namespace NewLife.Remoting
         {
             // 该方法没有参数，无视外部传入参数
             var pis = method.GetParameters();
-            if (pis == null || pis.Length < 1) return null;
+            if (pis == null || pis.Length <= 0) return null;
 
             var ps = new Dictionary<String, Object>();
             foreach (var pi in pis)
@@ -217,7 +214,7 @@ namespace NewLife.Remoting
                         ps[name] = Convert.FromBase64String(v + "");
                     else
                     {
-                        if (v == null) v = args;
+                        v ??= args;
                         //if (v is IDictionary<String, Object>)
                         ps[name] = encoder.Convert(v, pi.ParameterType);
                     }
