@@ -32,6 +32,9 @@ public class ApiClient : ApiHost, IApiClient
     /// <summary>最后活跃时间</summary>
     public DateTime LastActive { get; set; }
 
+    /// <summary>收到请求或响应时</summary>
+    public event EventHandler<ApiReceivedEventArgs> Received;
+
     /// <summary>调用统计</summary>
     public ICounter StatInvoke { get; set; }
 
@@ -272,16 +275,16 @@ public class ApiClient : ApiHost, IApiClient
         if (resultType == typeof(IMessage)) return (TResult)rs;
         //if (resultType == typeof(Packet)) return rs.Payload;
 
-        if (!enc.Decode(rs, out _, out var code, out var data)) throw new InvalidOperationException();
+        var message = enc.Decode(rs) ?? throw new InvalidOperationException();
 
         // 是否成功
-        if (code is not 0 and not 200) throw new ApiException(code, data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
+        if (message.Code is not 0 and not 200) throw new ApiException(message.Code, message.Data.ToStr()?.Trim('\"')) { Source = invoker + "/" + action };
 
-        if (data == null) return default;
-        if (resultType == typeof(Packet)) return (TResult)(Object)data;
+        if (message.Data == null) return default;
+        if (resultType == typeof(Packet)) return (TResult)(Object)message.Data;
 
         // 解码结果
-        var result = enc.DecodeResult(action, data, rs);
+        var result = enc.DecodeResult(action, message.Data, rs);
         if (resultType == typeof(Object)) return (TResult)result;
 
         // 返回
@@ -341,16 +344,29 @@ public class ApiClient : ApiHost, IApiClient
     #region 异步接收
     /// <summary>客户端收到服务端主动下发消息</summary>
     /// <param name="message"></param>
-    protected virtual void OnReceive(IMessage message) { }
+    /// <param name="e"></param>
+    protected virtual void OnReceive(IMessage message, ApiReceivedEventArgs e)
+    {
+        Received?.Invoke(this, e);
+    }
 
     private void Client_Received(Object sender, ReceivedEventArgs e)
     {
         LastActive = DateTime.Now;
 
         // Api解码消息得到Action和参数
-        if (e.Message is not IMessage msg || msg.Reply) return;
+        if (e.Message is not IMessage msg) return;
 
-        OnReceive(msg);
+        var apiMessage = Encoder.Decode(msg);
+        var e2 = new ApiReceivedEventArgs
+        {
+            Remote = sender as ISocketRemote,
+            Message = msg,
+            ApiMessage = apiMessage,
+            UserState = e,
+        };
+
+        OnReceive(msg, e2);
     }
     #endregion
 

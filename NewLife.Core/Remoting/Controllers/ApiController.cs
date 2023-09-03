@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Data;
@@ -19,6 +17,16 @@ public class ApiController : IApi
 
     /// <summary>会话</summary>
     public IApiSession Session { get; set; }
+
+    static ApiController()
+    {
+        RefreshLocalIP();
+
+        NetworkChange.NetworkAddressChanged += (s, e) => RefreshLocalIP();
+        NetworkChange.NetworkAvailabilityChanged += (s, e) => RefreshLocalIP();
+    }
+
+    static void RefreshLocalIP() => _LocalIP = NetHelper.GetIPs().Where(e => e.IsIPv4()).Join();
 
     private String[] _all;
     /// <summary>获取所有接口</summary>
@@ -63,7 +71,7 @@ public class ApiController : IApi
     //private readonly static String _OS = Environment.OSVersion + "";
     private static readonly String _MachineName = Environment.MachineName;
     //private readonly static String _UserName = Environment.UserName;
-    private static readonly String _LocalIP = NetHelper.GetIPs().Where(e => e.IsIPv4()).Join();
+    private static String _LocalIP;
     /// <summary>服务器信息，用户健康检测</summary>
     /// <param name="state">状态信息</param>
     /// <returns></returns>
