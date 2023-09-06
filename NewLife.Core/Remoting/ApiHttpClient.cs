@@ -176,6 +176,20 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     public async Task<TResult> PutAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Put, action, args);
 
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+    /// <summary>异步修改，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> PatchAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Patch, action, args);
+#else
+    /// <summary>异步修改，参数Json打包在Body</summary>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <returns></returns>
+    public async Task<TResult> PatchAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
+#endif
+
     /// <summary>异步删除，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
