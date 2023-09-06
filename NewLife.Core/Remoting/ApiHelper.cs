@@ -162,7 +162,7 @@ public static class ApiHelper
                 request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
         }
-        else if (method == HttpMethod.Post || method == HttpMethod.Put)
+        else if (method == HttpMethod.Post || method == HttpMethod.Put || method.Method == "PATCH")
         {
             if (args is Packet pk)
             {
