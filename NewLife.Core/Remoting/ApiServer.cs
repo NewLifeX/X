@@ -213,6 +213,7 @@ public class ApiServer : ApiHost, IServer
             {
                 message = enc.Decode(msg);
                 if (message == null) return null;
+                args = message.Data;
 
                 // 根据动作名，开始跟踪
                 span = Tracer?.NewSpan("rps:" + message.Action, args);
