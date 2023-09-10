@@ -111,6 +111,9 @@ namespace Test
             //    Thread.Sleep(1000);
             //}
 
+            //OperatingSystem.IsWindows();
+            //RuntimeInformation
+
             var mi = new MachineInfo();
             mi.Init();
             XTrace.WriteLine(mi.ToJson(true));
