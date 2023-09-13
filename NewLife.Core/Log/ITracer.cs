@@ -211,8 +211,22 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             }
             //else if (tag is IMessage msg)
             //    span.Tag = msg.ToPacket().ToHex(len / 2);
+            else if (tag is EndPoint ep)
+                span.Tag = ep.ToString();
+            else if (tag is IPAddress addr)
+                span.Tag = addr.ToString();
             else
-                span.Tag = tag.ToJson().Cut(len);
+            {
+                // 避免数据标签的序列化抛出异常影响业务层
+                try
+                {
+                    span.Tag = tag.ToJson().Cut(len);
+                }
+                catch
+                {
+                    span.Tag = tag.ToString().Cut(len);
+                }
+            }
         }
 
         return span;
