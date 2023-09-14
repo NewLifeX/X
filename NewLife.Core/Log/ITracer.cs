@@ -29,7 +29,7 @@ public interface ITracer
     Int32 MaxTagLength { get; set; }
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
-    String AttachParameter { get; set; }
+    String? AttachParameter { get; set; }
     #endregion
 
     /// <summary>建立Span构建器</summary>
@@ -46,7 +46,7 @@ public interface ITracer
     /// <param name="name">操作名</param>
     /// <param name="tag">数据</param>
     /// <returns></returns>
-    ISpan NewSpan(String name, Object tag);
+    ISpan NewSpan(String name, Object? tag);
 
     /// <summary>截断所有Span构建器数据，重置集合</summary>
     /// <returns></returns>
@@ -87,7 +87,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     public Int32 MaxTagLength { get; set; } = 1024;
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
-    public String AttachParameter { get; set; } = "traceparent";
+    public String? AttachParameter { get; set; } = "traceparent";
 
     /// <summary>Span构建器集合</summary>
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();

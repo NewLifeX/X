@@ -28,7 +28,7 @@ public interface ICacheProvider
     /// <param name="topic">主题</param>
     /// <param name="group">消费组。未指定消费组时使用简单队列（如RedisQueue），指定消费组时使用完整队列（如RedisStream）</param>
     /// <returns></returns>
-    IProducerConsumer<T> GetQueue<T>(String topic, String group = null);
+    IProducerConsumer<T> GetQueue<T>(String topic, String? group = null);
 
     /// <summary>获取内部队列。默认内存队列</summary>
     /// <typeparam name="T">消息类型</typeparam>
@@ -47,5 +47,5 @@ public interface ICacheProvider
     /// <param name="lockKey">要锁定的键值。建议加上应用模块等前缀以避免冲突</param>
     /// <param name="msTimeout">遇到冲突时等待的最大时间，同时也是锁维持的时间</param>
     /// <returns></returns>
-    IDisposable AcquireLock(String lockKey, Int32 msTimeout);
+    IDisposable? AcquireLock(String lockKey, Int32 msTimeout);
 }

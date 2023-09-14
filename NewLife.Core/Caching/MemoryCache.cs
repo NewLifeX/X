@@ -22,7 +22,7 @@ public class MemoryCache : Cache
     public Int32 Period { get; set; } = 60;
 
     /// <summary>缓存键过期</summary>
-    public event EventHandler<EventArgs<String>> KeyExpired;
+    public event EventHandler<EventArgs<String>>? KeyExpired;
     #endregion
 
     #region 静态默认实现
@@ -63,7 +63,7 @@ public class MemoryCache : Cache
     #region 方法
     /// <summary>初始化配置</summary>
     /// <param name="config"></param>
-    public override void Init(String config)
+    public override void Init(String? config)
     {
         if (clearTimer == null)
         {
@@ -82,21 +82,21 @@ public class MemoryCache : Cache
     /// <param name="value">值</param>
     /// <param name="expire">过期时间，秒</param>
     /// <returns></returns>
-    public virtual T GetOrAdd<T>(String key, T value, Int32 expire = -1)
+    public virtual T? GetOrAdd<T>(String key, T value, Int32 expire = -1)
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
+            if (_cache.TryGetValue(key, out var item)) return (T?)item.Visit();
 
             ci ??= new CacheItem(value, expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
 
-        return (T)ci.Visit();
+        return (T?)ci.Visit();
     }
     #endregion
 
@@ -420,9 +420,9 @@ public class MemoryCache : Cache
     /// <summary>缓存项</summary>
     protected class CacheItem
     {
-        private Object _Value;
+        private Object? _Value;
         /// <summary>数值</summary>
-        public Object Value { get => _Value; set => _Value = value; }
+        public Object? Value { get => _Value; set => _Value = value; }
 
         /// <summary>过期时间</summary>
         public Int64 ExpiredTime { get; set; }
@@ -436,12 +436,12 @@ public class MemoryCache : Cache
         /// <summary>构造缓存项</summary>
         /// <param name="value"></param>
         /// <param name="expire"></param>
-        public CacheItem(Object value, Int32 expire) => Set(value, expire);
+        public CacheItem(Object? value, Int32 expire) => Set(value, expire);
 
         /// <summary>设置数值和过期时间</summary>
         /// <param name="value"></param>
         /// <param name="expire">过期时间，秒</param>
-        public void Set(Object value, Int32 expire)
+        public void Set(Object? value, Int32 expire)
         {
             Value = value;
 
@@ -454,7 +454,7 @@ public class MemoryCache : Cache
 
         /// <summary>更新访问时间并返回数值</summary>
         /// <returns></returns>
-        public Object Visit()
+        public Object? Visit()
         {
             VisitTime = Runtime.TickCount64;
             return Value;
@@ -540,10 +540,10 @@ public class MemoryCache : Cache
 
     #region 清理过期缓存
     /// <summary>清理会话计时器</summary>
-    private TimerX clearTimer;
+    private TimerX? clearTimer;
 
     /// <summary>移除过期的缓存项</summary>
-    private void RemoveNotAlive(Object state)
+    private void RemoveNotAlive(Object? state)
     {
         var tx = clearTimer;
         if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
@@ -843,7 +843,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     /// <summary>消费一个</summary>
     /// <param name="timeout">超时。默认0秒，永久等待</param>
     /// <returns></returns>
-    public T TakeOne(Int32 timeout = 0)
+    public T? TakeOne(Int32 timeout = 0)
     {
         if (!_occupiedNodes.Wait(0))
         {
@@ -856,7 +856,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     /// <summary>消费获取，异步阻塞</summary>
     /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
     /// <returns></returns>
-    public async Task<T> TakeOneAsync(Int32 timeout = 0)
+    public async Task<T?> TakeOneAsync(Int32 timeout = 0)
     {
         if (!_occupiedNodes.Wait(0))
         {
@@ -872,7 +872,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task<T> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
+    public async Task<T?> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
     {
         if (!_occupiedNodes.Wait(0, cancellationToken))
         {

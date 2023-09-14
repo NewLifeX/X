@@ -318,7 +318,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> InvokeAsync<TResult>(String method, String action, Object args = null)
+    public async Task<TResult> InvokeAsync<TResult>(String method, String action, Object? args = null)
     {
         if (BaseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
 

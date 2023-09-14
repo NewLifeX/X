@@ -14,7 +14,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 {
     #region 属性
     /// <summary>令牌。每次请求携带</summary>
-    public String Token { get; set; }
+    public String? Token { get; set; }
 
     /// <summary>超时时间。默认15000ms</summary>
     public Int32 Timeout { get; set; } = 15_000;
@@ -33,37 +33,37 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public Int32 ShieldingTime { get; set; } = 60;
 
     /// <summary>身份验证</summary>
-    public AuthenticationHeaderValue Authentication { get; set; }
+    public AuthenticationHeaderValue? Authentication { get; set; }
 
     /// <summary>默认用户浏览器UserAgent。默认为空，可取值HttpHelper.DefaultUserAgent</summary>
-    public String DefaultUserAgent { get; set; }
+    public String? DefaultUserAgent { get; set; }
 
     /// <summary>Http过滤器</summary>
-    public IHttpFilter Filter { get; set; }
+    public IHttpFilter? Filter { get; set; }
 
     /// <summary>状态码字段名。例如code/status等</summary>
-    public String CodeName { get; set; }
+    public String? CodeName { get; set; }
 
     /// <summary>数据体字段名。例如data/result等</summary>
-    public String DataName { get; set; }
+    public String? DataName { get; set; }
 
     /// <summary>服务器源。正在使用的服务器</summary>
-    public String Source { get; private set; }
+    public String? Source { get; private set; }
 
     /// <summary>调用统计</summary>
-    public ICounter StatInvoke { get; set; }
+    public ICounter? StatInvoke { get; set; }
 
     /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
     public Int32 SlowTrace { get; set; } = 5_000;
 
     /// <summary>跟踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>服务列表。用于负载均衡和故障转移</summary>
     public IList<Service> Services { get; set; } = new List<Service>();
 
     /// <summary>当前服务</summary>
-    protected Service _currentService;
+    protected Service? _currentService;
     #endregion
 
     #region 构造
@@ -123,7 +123,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         services.Add(svc);
     }
 
-    private String _lastUrls;
+    private String? _lastUrls;
     private void Init(String urls)
     {
         if (!urls.IsNullOrEmpty() && urls != _lastUrls)
@@ -150,51 +150,51 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> GetAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Get, action, args);
+    public async Task<TResult?> GetAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(HttpMethod.Get, action, args);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult Get<TResult>(String action, Object args = null) => Task.Run(() => GetAsync<TResult>(action, args)).Result;
+    public TResult? Get<TResult>(String action, Object? args = null) => Task.Run(() => GetAsync<TResult>(action, args)).Result;
 
     /// <summary>异步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> PostAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
+    public async Task<TResult?> PostAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(HttpMethod.Post, action, args);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult Post<TResult>(String action, Object args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
+    public TResult? Post<TResult>(String action, Object? args = null) => Task.Run(() => PostAsync<TResult>(action, args)).Result;
 
     /// <summary>异步上传，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> PutAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Put, action, args);
+    public async Task<TResult?> PutAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(HttpMethod.Put, action, args);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> PatchAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Patch, action, args);
+    public async Task<TResult?> PatchAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(HttpMethod.Patch, action, args);
 #else
     /// <summary>异步修改，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> PatchAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
+    public async Task<TResult?> PatchAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(new HttpMethod("Patch"), action, args);
 #endif
 
     /// <summary>异步删除，参数Json打包在Body</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> DeleteAsync<TResult>(String action, Object args = null) => await InvokeAsync<TResult>(HttpMethod.Delete, action, args);
+    public async Task<TResult?> DeleteAsync<TResult>(String action, Object? args = null) => await InvokeAsync<TResult>(HttpMethod.Delete, action, args);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
@@ -204,7 +204,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="onRequest">请求头回调</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, CancellationToken cancellationToken = default)
+    public virtual async Task<TResult?> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, CancellationToken cancellationToken = default)
     {
         var returnType = typeof(TResult);
         var svrs = Services;
@@ -230,20 +230,24 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             {
                 span?.AppendTag(ex.Message);
 
-                while (ex is AggregateException age) ex = age.InnerException;
+                while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
 
+                var client = _currentService?.Client;
                 if (ex is ApiException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
+                    if (_currentService != null)
+                    {
+                        if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken);
 
-                    ex.Source = _currentService?.Address + "/" + action;
+                        ex.Source = _currentService.Address + "/" + action;
+                    }
 
                     span?.SetError(ex, null);
                     throw;
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
+                    if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken);
                     if (++i >= svrs.Count)
                     {
                         span?.SetError(ex, null);
@@ -265,13 +269,13 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
+    public async Task<TResult?> InvokeAsync<TResult>(String action, Object? args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    TResult IApiClient.Invoke<TResult>(String action, Object args) => Task.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
+    public TResult? Invoke<TResult>(String action, Object? args) => Task.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
     #endregion
 
     #region 构造请求
@@ -281,7 +285,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args"></param>
     /// <param name="returnType"></param>
     /// <returns></returns>
-    protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args, Type returnType)
+    protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args, Type returnType)
     {
         var request = ApiHelper.BuildRequest(method, action, args);
 
@@ -325,7 +329,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         // 性能计数器，次数、TPS、平均耗时
         var st = StatInvoke;
         var sw = st.StartCount();
-        Exception error = null;
+        Exception? error = null;
         try
         {
             var client = service.Client;
@@ -350,7 +354,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         finally
         {
             var msCost = st.StopCount(sw) / 1000;
-            if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
+            if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
 
             // 归还服务
             PutService(service, error);
@@ -378,7 +382,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         if (RoundRobin)
         {
             // 判断当前节点是否有效
-            Service svc = null;
+            Service? svc = null;
             for (var i = 0; i < svrs.Count; i++)
             {
                 svc = svrs[_idxServer % svrs.Count];
@@ -393,7 +397,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
             // 如果都没有可用节点，默认选第一个
             if (svc == null && svrs.Count > 0) svc = svrs[0];
-            //if (svc == null) throw new XException("没有可用服务节点！");
+            if (svc == null) throw new XException("没有可用服务节点！");
 
             svc.Times++;
 
@@ -424,7 +428,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <summary>归还服务，此处实现故障转移Failover，服务的客户端被清空，说明当前服务不可用</summary>
     /// <param name="service"></param>
     /// <param name="error"></param>
-    protected virtual void PutService(Service service, Exception error)
+    protected virtual void PutService(Service service, Exception? error)
     {
         if (service.CreateTime.AddMinutes(10) < DateTime.Now) service.Client = null;
 
@@ -494,10 +498,10 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public class Service
     {
         /// <summary>名称</summary>
-        public String Name { get; set; }
+        public String? Name { get; set; }
 
         /// <summary>名称</summary>
-        public Uri Address { get; set; }
+        public Uri? Address { get; set; }
 
         /// <summary>权重。用于负载均衡，默认1</summary>
         public Int32 Weight { get; set; } = 1;
@@ -521,7 +525,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         /// <summary>客户端</summary>
         [XmlIgnore, IgnoreDataMember]
-        public HttpClient Client { get; set; }
+        public HttpClient? Client { get; set; }
 
         /// <summary>已重载。友好显示</summary>
         /// <returns></returns>

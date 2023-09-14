@@ -13,26 +13,26 @@ public class TokenHttpFilter : IHttpFilter
 {
     #region 属性
     /// <summary>用户</summary>
-    public String UserName { get; set; }
+    public String? UserName { get; set; }
 
     /// <summary>密钥</summary>
-    public String Password { get; set; }
+    public String? Password { get; set; }
 
     /// <summary>客户端唯一标识。一般是IP@进程</summary>
-    public String ClientId { get; set; }
+    public String? ClientId { get; set; }
 
     /// <summary>安全密钥。keyName$keyValue</summary>
     /// <remarks>
     /// 公钥，用于RSA加密用户密码，在通信链路上保护用户密码安全，可以写死在代码里面。
     /// 密钥前面可以增加keyName，形成keyName$keyValue，用于向服务端指示所使用的密钥标识，方便未来更换密钥。
     /// </remarks>
-    public String SecurityKey { get; set; }
+    public String? SecurityKey { get; set; }
 
     /// <summary>申请令牌动作名，默认 OAuth/Token</summary>
     public String Action { get; set; } = "OAuth/Token";
 
     /// <summary>令牌信息</summary>
-    public TokenModel Token { get; set; }
+    public TokenModel? Token { get; set; }
 
     /// <summary>令牌有效期</summary>
     public DateTime Expire { get; set; }
@@ -63,21 +63,24 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual async Task OnRequest(HttpClient client, HttpRequestMessage request, Object state, CancellationToken cancellationToken)
+    public virtual async Task OnRequest(HttpClient client, HttpRequestMessage request, Object? state, CancellationToken cancellationToken)
     {
         if (request.Headers.Authorization != null) return;
 
-        var path = client.BaseAddress == null ? request.RequestUri.AbsoluteUri : request.RequestUri.OriginalString;
+        var uri = request.RequestUri;
+        var path = client.BaseAddress == null ? uri?.AbsoluteUri : uri?.OriginalString;
         if (path.StartsWithIgnoreCase(Action.EnsureStart("/"))) return;
 
         // 申请令牌。没有令牌，或者令牌已过期
         if (Token == null || Expire < DateTime.Now)
         {
             Token = await SendAuth(client, cancellationToken);
-
-            // 过期时间和刷新令牌的时间
-            Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
-            _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+            if (Token != null)
+            {
+                // 过期时间和刷新令牌的时间
+                Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
+                _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+            }
         }
 
         // 刷新令牌。要求已有令牌，且未过期，且达到了刷新时间
@@ -86,14 +89,16 @@ public class TokenHttpFilter : IHttpFilter
             try
             {
                 Token = await SendRefresh(client, cancellationToken);
-
-                // 过期时间和刷新令牌的时间
-                Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
-                _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+                if (Token != null)
+                {
+                    // 过期时间和刷新令牌的时间
+                    Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
+                    _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+                }
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine("刷新令牌异常 {0}", Token.ToJson());
+                XTrace.WriteLine("刷新令牌异常 {0}", Token?.ToJson());
                 XTrace.WriteException(ex);
             }
         }
@@ -111,8 +116,11 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="client"></param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<TokenModel> SendAuth(HttpClient client, CancellationToken cancellationToken)
+    protected virtual async Task<TokenModel?> SendAuth(HttpClient client, CancellationToken cancellationToken)
     {
+        if (UserName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(UserName));
+        //if (Password.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Password));
+
         ValidClientId();
 
         var pass = EncodePassword(UserName, Password);
@@ -129,7 +137,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="client"></param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<TokenModel> SendRefresh(HttpClient client, CancellationToken cancellationToken)
+    protected virtual async Task<TokenModel?> SendRefresh(HttpClient client, CancellationToken cancellationToken)
     {
         ValidClientId();
 
@@ -145,7 +153,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="username"></param>
     /// <param name="password"></param>
     /// <returns></returns>
-    protected virtual String EncodePassword(String username, String password)
+    protected virtual String EncodePassword(String username, String? password)
     {
         if (password.IsNullOrEmpty()) return password;
 
@@ -174,7 +182,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual Task OnResponse(HttpClient client, HttpResponseMessage response, Object state, CancellationToken cancellationToken)
+    public virtual Task OnResponse(HttpClient client, HttpResponseMessage response, Object? state, CancellationToken cancellationToken)
     {
         var code = (Int32)response.StatusCode;
         if (ErrorCodes.Contains(code))
@@ -196,7 +204,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public virtual Task OnError(HttpClient client, Exception exception, Object state, CancellationToken cancellationToken)
+    public virtual Task OnError(HttpClient client, Exception exception, Object? state, CancellationToken cancellationToken)
     {
         // 识别ApiException
         if (exception is ApiException ae && ErrorCodes.Contains(ae.Code))

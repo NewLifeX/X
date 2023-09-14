@@ -21,7 +21,7 @@ public class Packet
     public Int32 Count { get; private set; }
 
     /// <summary>下一个链式包</summary>
-    public Packet Next { get; set; }
+    public Packet? Next { get; set; }
 
     /// <summary>总长度</summary>
     public Int32 Total => Count + (Next != null ? Next.Total : 0);

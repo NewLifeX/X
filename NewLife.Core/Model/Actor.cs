@@ -16,17 +16,17 @@ public interface IActor
     /// <param name="message">消息</param>
     /// <param name="sender">发送者</param>
     /// <returns>返回待处理消息数</returns>
-    Int32 Tell(Object message, IActor sender = null);
+    Int32 Tell(Object message, IActor? sender = null);
 }
 
 /// <summary>Actor上下文</summary>
 public class ActorContext
 {
     /// <summary>发送者</summary>
-    public IActor Sender { get; set; }
+    public IActor? Sender { get; set; }
 
     /// <summary>消息</summary>
-    public Object Message { get; set; }
+    public Object? Message { get; set; }
 }
 
 /// <summary>无锁并行编程模型</summary>
@@ -52,21 +52,21 @@ public abstract class Actor : DisposeBase, IActor
     public Boolean LongRunning { get; set; }
 
     /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
-    protected BlockingCollection<ActorContext> MailBox { get; set; }
+    protected BlockingCollection<ActorContext>? MailBox { get; set; }
 
     /// <summary>
     /// 性能追踪器
     /// </summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>
     /// 父级性能追踪器。用于把内外调用链关联起来
     /// </summary>
-    public ISpan TracerParent { get; set; }
+    public ISpan? TracerParent { get; set; }
 
-    private Task _task;
-    private Exception _error;
-    private CancellationTokenSource _source;
+    private Task? _task;
+    private Exception? _error;
+    private CancellationTokenSource? _source;
 
     ///// <summary>已完成任务</summary>
     //public static Task CompletedTask { get; } = Task.CompletedTask;
@@ -106,14 +106,15 @@ public abstract class Actor : DisposeBase, IActor
     /// <remarks>
     /// 添加消息时自动触发
     /// </remarks>
-    public virtual Task Start()
+    public virtual Task? Start()
     {
         if (Active) return _task;
         lock (this)
         {
             if (Active) return _task;
 
-            if (Tracer == null && TracerParent != null) Tracer = (TracerParent as DefaultSpan).Builder?.Tracer;
+            if (Tracer == null && TracerParent is DefaultSpan ds) Tracer = ds.Builder?.Tracer;
+
             using var span = Tracer?.NewSpan("actor:Start", Name);
 
             _source = new CancellationTokenSource();
@@ -166,7 +167,7 @@ public abstract class Actor : DisposeBase, IActor
     /// <param name="message">消息</param>
     /// <param name="sender">发送者</param>
     /// <returns>返回待处理消息数</returns>
-    public virtual Int32 Tell(Object message, IActor sender = null)
+    public virtual Int32 Tell(Object message, IActor? sender = null)
     {
         //using var span = Tracer?.NewSpan("actor:Tell", Name);
         if (!Active)
@@ -179,7 +180,7 @@ public abstract class Actor : DisposeBase, IActor
             if (!Active) throw new ObjectDisposedException(nameof(Actor));
         }
 
-        var box = MailBox;
+        var box = MailBox ?? throw new ArgumentNullException(nameof(MailBox));
         box.Add(new ActorContext { Sender = sender, Message = message });
 
         return box.Count;
@@ -212,6 +213,8 @@ public abstract class Actor : DisposeBase, IActor
     protected virtual void Loop()
     {
         var box = MailBox;
+        if (box == null || _source == null) return;
+
         var token = _source.Token;
         while (!_source.IsCancellationRequested && !box.IsCompleted)
         {

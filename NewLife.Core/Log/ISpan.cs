@@ -17,13 +17,13 @@ namespace NewLife.Log;
 public interface ISpan : IDisposable
 {
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    String Id { get; set; }
+    String? Id { get; set; }
 
     /// <summary>父级片段标识</summary>
-    String ParentId { get; set; }
+    String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    String TraceId { get; set; }
+    String? TraceId { get; set; }
 
     /// <summary>开始时间。Unix毫秒</summary>
     Int64 StartTime { get; set; }
@@ -32,15 +32,15 @@ public interface ISpan : IDisposable
     Int64 EndTime { get; set; }
 
     /// <summary>数据标签。记录一些附加数据</summary>
-    String Tag { get; set; }
+    String? Tag { get; set; }
 
     /// <summary>错误信息</summary>
-    String Error { get; set; }
+    String? Error { get; set; }
 
     /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
-    void SetError(Exception ex, Object tag);
+    void SetError(Exception ex, Object? tag = null);
 
     /// <summary>设置数据标签。内部根据长度截断</summary>
     /// <param name="tag">标签</param>
@@ -56,16 +56,16 @@ public class DefaultSpan : ISpan
     #region 属性
     /// <summary>构建器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-    public ISpanBuilder Builder { get; private set; }
+    public ISpanBuilder? Builder { get; private set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    public String Id { get; set; }
+    public String? Id { get; set; }
 
     /// <summary>父级片段标识</summary>
-    public String ParentId { get; set; }
+    public String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    public String TraceId { get; set; }
+    public String? TraceId { get; set; }
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }
@@ -74,7 +74,7 @@ public class DefaultSpan : ISpan
     public Int64 EndTime { get; set; }
 
     /// <summary>数据标签。记录一些附加数据</summary>
-    public String Tag { get; set; }
+    public String? Tag { get; set; }
 
     ///// <summary>版本</summary>
     //public Byte Version { get; set; }
@@ -83,7 +83,7 @@ public class DefaultSpan : ISpan
     public Byte TraceFlag { get; set; }
 
     /// <summary>错误信息</summary>
-    public String Error { get; set; }
+    public String? Error { get; set; }
 
 #if NET45
     private static readonly ThreadLocal<ISpan> _Current = new();
@@ -91,9 +91,9 @@ public class DefaultSpan : ISpan
     private static readonly AsyncLocal<ISpan> _Current = new();
 #endif
     /// <summary>当前线程正在使用的上下文</summary>
-    public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
+    public static ISpan? Current { get => _Current.Value; set => _Current.Value = value; }
 
-    private ISpan _parent;
+    private ISpan? _parent;
     private Int32 _finished;
     #endregion
 
@@ -203,9 +203,13 @@ public class DefaultSpan : ISpan
         // 从本线程中清除跟踪标识
         Current = _parent;
 
-        // Builder这一批可能已经上传，重新取一次，以防万一
-        var builder = Builder.Tracer.BuildSpan(Builder.Name);
-        builder.Finish(this);
+        var name = Builder?.Name;
+        if (!name.IsNullOrEmpty())
+        {
+            // Builder这一批可能已经上传，重新取一次，以防万一
+            var builder = Builder?.Tracer?.BuildSpan(name);
+            builder?.Finish(this);
+        }
 
         // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
         // 也有可能原来的Builder已经上传，现在加入了新的builder集合
@@ -215,7 +219,7 @@ public class DefaultSpan : ISpan
     /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
-    public virtual void SetError(Exception ex, Object tag)
+    public virtual void SetError(Exception ex, Object? tag)
     {
         SetTag(tag);
 
@@ -241,7 +245,7 @@ public class DefaultSpan : ISpan
 
     /// <summary>设置数据标签。内部根据长度截断</summary>
     /// <param name="tag">标签</param>
-    public virtual void SetTag(Object tag)
+    public virtual void SetTag(Object? tag)
     {
         if (tag == null) return;
 

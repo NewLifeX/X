@@ -21,10 +21,10 @@ public static class HttpHelper
     public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>Http过滤器</summary>
-    public static IHttpFilter Filter { get; set; }
+    public static IHttpFilter? Filter { get; set; }
 
     /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
-    public static String DefaultUserAgent { get; set; }
+    public static String? DefaultUserAgent { get; set; }
 
     static HttpHelper()
     {
@@ -109,6 +109,7 @@ public static class HttpHelper
         {
             var ep = context.DnsEndPoint;
             var addrs = NetUri.ParseAddress(ep.Host);
+            span?.AppendTag($"addrs={addrs?.Join()}");
             if (addrs != null && addrs.Length > 0)
                 await socket.ConnectAsync(addrs, ep.Port, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             else
@@ -137,7 +138,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object>? headers, Packet? pk)
     {
         if (method.IsNullOrEmpty()) method = pk?.Count > 0 ? "POST" : "GET";
 
@@ -172,9 +173,12 @@ public static class HttpHelper
         // 内容长度
         if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
 
-        foreach (var item in headers)
+        if (headers != null)
         {
-            sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            foreach (var item in headers)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            }
         }
 
         sb.Append("\r\n");
@@ -192,7 +196,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object>? headers, Packet? pk)
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
@@ -201,9 +205,12 @@ public static class HttpHelper
         // 内容长度
         if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
 
-        foreach (var item in headers)
+        if (headers != null)
         {
-            sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            foreach (var item in headers)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            }
         }
 
         sb.Append("\r\n");
@@ -282,10 +289,10 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
             content = data is String str
                 ? new StringContent(str, Encoding.UTF8, "application/json")
@@ -303,7 +310,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交Xml</summary>
     /// <param name="client">Http客户端</param>
@@ -312,10 +319,10 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
             content = data is String str
                 ? new StringContent(str, Encoding.UTF8, "application/xml")
@@ -334,7 +341,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交表单，名值对传输字典参数</summary>
     /// <param name="client">Http客户端</param>
@@ -343,10 +350,10 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
             content = data is String str
                 ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
@@ -366,7 +373,7 @@ public static class HttpHelper
     /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交多段表单数据，含文件流</summary>
     /// <param name="client">Http客户端</param>
@@ -403,13 +410,13 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String> headers = null)
+    public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String>? headers = null)
     {
-        client.AddHeaders(headers);
+        if (headers != null) client.AddHeaders(headers);
         return Task.Run(() => client.GetStringAsync(requestUri)).Result;
     }
 
-    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String> headers, CancellationToken cancellationToken)
+    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
@@ -468,7 +475,7 @@ public static class HttpHelper
 
     private static HttpClient AddHeaders(this HttpClient client, IDictionary<String, String> headers)
     {
-        if (client == null) return null;
+        //if (client == null) return null;
         if (headers == null || headers.Count == 0) return client;
 
         foreach (var item in headers)
@@ -529,7 +536,7 @@ public static class HttpHelper
     /// <param name="fileName">目标文件名</param>
     /// <param name="data">其它表单数据</param>
     /// <param name="cancellationToken">取消通知</param>
-    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object data = null, CancellationToken cancellationToken = default)
+    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object? data = null, CancellationToken cancellationToken = default)
     {
         var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
@@ -563,7 +570,7 @@ public static class HttpHelper
     /// <param name="onProcess">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
     {
         DefaultSpan.Current = null;
         var token = source.Token;
@@ -608,7 +615,7 @@ public static class HttpHelper
     /// <param name="onProcess">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
     {
         DefaultSpan.Current = null;
         var token = source.Token;
@@ -654,7 +661,7 @@ public static class HttpHelper
     /// <param name="onReceive">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String> onReceive, CancellationTokenSource source)
+    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String?>? onReceive, CancellationTokenSource source)
     {
         try
         {

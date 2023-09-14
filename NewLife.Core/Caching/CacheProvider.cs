@@ -27,18 +27,18 @@ public class CacheProvider : ICacheProvider
     /// <param name="topic">主题</param>
     /// <param name="group">消费组</param>
     /// <returns></returns>
-    public virtual IProducerConsumer<T> GetQueue<T>(String topic, String group = null) => Cache?.GetQueue<T>(topic);
+    public virtual IProducerConsumer<T> GetQueue<T>(String topic, String? group = null) => Cache.GetQueue<T>(topic);
 
     /// <summary>获取内部队列。默认内存队列</summary>
     /// <typeparam name="T">消息类型</typeparam>
     /// <param name="topic">主题</param>
     /// <returns></returns>
-    public virtual IProducerConsumer<T> GetInnerQueue<T>(String topic) => InnerCache?.GetQueue<T>(topic);
+    public virtual IProducerConsumer<T> GetInnerQueue<T>(String topic) => InnerCache.GetQueue<T>(topic);
 
     /// <summary>申请分布式锁</summary>
     /// <param name="lockKey">要锁定的键值。建议加上应用模块等前缀以避免冲突</param>
     /// <param name="msTimeout">遇到冲突时等待的最大时间</param>
     /// <returns></returns>
-    public virtual IDisposable AcquireLock(String lockKey, Int32 msTimeout) => Cache?.AcquireLock(lockKey, msTimeout);
+    public virtual IDisposable? AcquireLock(String lockKey, Int32 msTimeout) => Cache.AcquireLock(lockKey, msTimeout);
     #endregion
 }

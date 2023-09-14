@@ -158,7 +158,7 @@ public class TimerX : IDisposable
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(TimerCallback callback, Object state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(TimerCallback callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -182,7 +182,7 @@ public class TimerX : IDisposable
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(Func<Object, Task> callback, Object state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(Func<Object, Task> callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -207,7 +207,7 @@ public class TimerX : IDisposable
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(TimerCallback callback, Object state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(TimerCallback callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
@@ -230,7 +230,7 @@ public class TimerX : IDisposable
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(Func<Object, Task> callback, Object state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(Func<Object, Task> callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));

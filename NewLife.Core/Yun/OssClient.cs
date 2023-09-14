@@ -84,7 +84,7 @@ public class OssClient : IObjectStorage
     /// <param name="action"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object args = null)
+    protected async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null)
     {
         var request = ApiHelper.BuildRequest(method, action, args);
 
@@ -107,7 +107,7 @@ public class OssClient : IObjectStorage
         return await ApiHelper.ProcessResponse<TResult>(rs);
     }
 
-    private async Task<IDictionary<String, Object>> GetAsync(String action, Object args = null) => await InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, action, args);
+    private async Task<IDictionary<String, Object>> GetAsync(String action, Object? args = null) => await InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, action, args);
     #endregion
 
     #region Bucket操作

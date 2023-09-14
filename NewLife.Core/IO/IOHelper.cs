@@ -29,7 +29,7 @@ public static class IOHelper
     /// <param name="inStream">输入流</param>
     /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
     /// <remarks>返回输出流，注意此时指针位于末端</remarks>
-    public static Stream Compress(this Stream inStream, Stream outStream = null)
+    public static Stream Compress(this Stream inStream, Stream? outStream = null)
     {
         var ms = outStream ?? new MemoryStream();
 
@@ -51,7 +51,7 @@ public static class IOHelper
     /// <param name="inStream">输入流</param>
     /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
     /// <remarks>返回输出流，注意此时指针位于末端</remarks>
-    public static Stream Decompress(this Stream inStream, Stream outStream = null)
+    public static Stream Decompress(this Stream inStream, Stream? outStream = null)
     {
         var ms = outStream ?? new MemoryStream();
 
@@ -92,7 +92,7 @@ public static class IOHelper
     /// <param name="inStream">输入流</param>
     /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
     /// <remarks>返回输出流，注意此时指针位于末端</remarks>
-    public static Stream CompressGZip(this Stream inStream, Stream outStream = null)
+    public static Stream CompressGZip(this Stream inStream, Stream? outStream = null)
     {
         var ms = outStream ?? new MemoryStream();
 
@@ -113,7 +113,7 @@ public static class IOHelper
     /// <param name="inStream">输入流</param>
     /// <param name="outStream">输出流。如果不指定，则内部实例化一个内存流</param>
     /// <remarks>返回输出流，注意此时指针位于末端</remarks>
-    public static Stream DecompressGZip(this Stream inStream, Stream outStream = null)
+    public static Stream DecompressGZip(this Stream inStream, Stream? outStream = null)
     {
         var ms = outStream ?? new MemoryStream();
 
@@ -269,7 +269,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ReadBytes(this Stream stream, Int64 length)
     {
-        if (stream == null) return null;
+        //if (stream == null) return null;
         if (length == 0) return new Byte[0];
 
         if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
@@ -314,7 +314,7 @@ public static class IOHelper
     /// <param name="stream">目标流</param>
     /// <param name="encoding">编码格式</param>
     /// <returns></returns>
-    public static String ToStr(this Stream stream, Encoding encoding = null)
+    public static String? ToStr(this Stream stream, Encoding? encoding = null)
     {
         if (stream == null) return null;
         encoding ??= Encoding.UTF8;
@@ -339,7 +339,7 @@ public static class IOHelper
     /// <param name="offset">字节数组中的偏移</param>
     /// <param name="count">字节数组中的查找长度</param>
     /// <returns></returns>
-    public static String ToStr(this Byte[] buf, Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
+    public static String? ToStr(this Byte[] buf, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
         if (buf == null || buf.Length <= 0 || offset >= buf.Length) return null;
         encoding ??= Encoding.UTF8;
@@ -349,7 +349,7 @@ public static class IOHelper
 
         // 可能数据流前面有编码字节序列，需要先去掉
         var idx = 0;
-        var preamble = encoding?.GetPreamble();
+        var preamble = encoding.GetPreamble();
         if (preamble != null && preamble.Length > 0 && buf.Length >= offset + preamble.Length)
         {
             if (buf.Skip(offset).Take(preamble.Length).SequenceEqual(preamble)) idx = preamble.Length;
@@ -671,7 +671,7 @@ public static class IOHelper
     }
 
     [ThreadStatic]
-    private static Byte[] _encodes;
+    private static Byte[]? _encodes;
     /// <summary>
     /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
     /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
