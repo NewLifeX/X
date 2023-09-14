@@ -22,7 +22,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取和设置缓存，使用默认过期时间</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object this[String key] { get => Get<Object>(key); set => Set(key, value); }
+    public virtual Object? this[String key] { get => Get<Object>(key); set => Set(key, value); }
 
     /// <summary>缓存个数</summary>
     public abstract Int32 Count { get; }
@@ -63,7 +63,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
-    public abstract T Get<T>(String key);
+    public abstract T? Get<T>(String key);
 
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>

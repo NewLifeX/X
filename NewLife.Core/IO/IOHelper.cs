@@ -723,7 +723,7 @@ public static class IOHelper
     /// <param name="offset">偏移</param>
     /// <param name="count">数量。超过实际数量时，使用实际数量</param>
     /// <returns></returns>
-    public static String ToHex(this Byte[] data, Int32 offset = 0, Int32 count = -1)
+    public static String ToHex(this Byte[]? data, Int32 offset = 0, Int32 count = -1)
     {
         if (data == null || data.Length <= 0) return "";
 
@@ -752,7 +752,7 @@ public static class IOHelper
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
     /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
     /// <returns></returns>
-    public static String ToHex(this Byte[] data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
+    public static String ToHex(this Byte[]? data, String separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
         if (data == null || data.Length <= 0) return "";
 
@@ -821,7 +821,7 @@ public static class IOHelper
     /// <param name="startIndex">起始位置</param>
     /// <param name="length">长度</param>
     /// <returns></returns>
-    public static Byte[] ToHex(this String data, Int32 startIndex = 0, Int32 length = -1)
+    public static Byte[] ToHex(this String? data, Int32 startIndex = 0, Int32 length = -1)
     {
         if (String.IsNullOrEmpty(data)) return new Byte[0];
 

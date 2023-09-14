@@ -127,7 +127,7 @@ public class MemoryCache : Cache
         //    });
 
         // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
             if (_cache.TryGetValue(key, out var item))

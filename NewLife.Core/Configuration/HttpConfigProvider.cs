@@ -14,22 +14,22 @@ public class HttpConfigProvider : ConfigProvider
 {
     #region 属性
     /// <summary>服务器</summary>
-    public String Server { get; set; }
+    public String? Server { get; set; }
 
     /// <summary>服务操作 默认:Config/GetAll</summary>
     public String Action { get; set; } = "Config/GetAll";
 
     /// <summary>应用标识</summary>
-    public String AppId { get; set; }
+    public String? AppId { get; set; }
 
     /// <summary>应用密钥</summary>
-    public String Secret { get; set; }
+    public String? Secret { get; set; }
 
     /// <summary>实例。应用可能多实例部署，ip@proccessid</summary>
-    public String ClientId { get; set; }
+    public String? ClientId { get; set; }
 
     /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
-    public String Scope { get; set; }
+    public String? Scope { get; set; }
 
     /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
     public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
@@ -38,16 +38,16 @@ public class HttpConfigProvider : ConfigProvider
     public Int32 Period { get; set; } = 60;
 
     /// <summary>Api客户端</summary>
-    public IApiClient Client { get; set; }
+    public IApiClient? Client { get; set; }
 
     /// <summary>服务器信息。配置中心最后一次接口响应，包含配置数据以外的其它内容</summary>
-    public IDictionary<String, Object> Info { get; set; }
+    public IDictionary<String, Object>? Info { get; set; }
 
     /// <summary>需要忽略改变的键。这些键的改变不产生改变事件</summary>
     public ICollection<String> IgnoreChangedKeys { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
     private Int32 _version;
-    private IDictionary<String, Object> _cache;
+    private IDictionary<String, Object>? _cache;
     #endregion
 
     #region 构造
@@ -96,6 +96,8 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected IApiClient GetClient()
     {
+        if (Server.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
+
         Client ??= new ApiHttpClient(Server)
         {
             Timeout = 3_000
@@ -106,9 +108,10 @@ public class HttpConfigProvider : ConfigProvider
 
     /// <summary>获取所有配置</summary>
     /// <returns></returns>
-    protected virtual IDictionary<String, Object> GetAll()
+    protected virtual IDictionary<String, Object>? GetAll()
     {
         var client = GetClient() as ApiHttpClient;
+        if (client == null) throw new ArgumentNullException(nameof(Client));
 
         ValidClientId();
 
@@ -127,7 +130,7 @@ public class HttpConfigProvider : ConfigProvider
             Info = rs;
 
             // 增强版返回
-            if (rs.TryGetValue("configs", out var obj))
+            if (rs != null && rs.TryGetValue("configs", out var obj))
             {
                 var ver = rs["version"].ToInt(-1);
                 if (ver > 0) _version = ver;

@@ -15,7 +15,7 @@ public class AverageSampling : ISampling
     /// <summary>
     /// 插值填充算法
     /// </summary>
-    public IInterpolation Interpolation { get; set; } = new LinearInterpolation();
+    public IInterpolation? Interpolation { get; set; } = new LinearInterpolation();
 
     /// <summary>
     /// 降采样处理。保留边界两个点
@@ -66,8 +66,10 @@ public class AverageSampling : ISampling
     /// <returns></returns>
     public TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0)
     {
-        if (data == null || data.Length < 2) return data;
+        //if (data == null || data.Length < 2) return data;
+        if (data.Length < 2) return data;
         if (size <= 1) return data;
+        if (Interpolation == null) throw new ArgumentNullException(nameof(Interpolation));
 
         var xs = new Int64[data.Length];
         for (var i = 0; i < data.Length; i++) xs[i] = data[i].Time;

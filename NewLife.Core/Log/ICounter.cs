@@ -33,7 +33,7 @@ namespace NewLife.Log
         {
             var type = typeof(Stopwatch);
             var fi = type.GetFieldEx("tickFrequency") ?? type.GetFieldEx("s_tickFrequency");
-            if (fi != null) tickFrequency = (Double)fi.GetValue(null);
+            if (fi != null) tickFrequency = (Double)(fi.GetValue(null) ?? 0);
         }
 
         /// <summary>开始计时</summary>

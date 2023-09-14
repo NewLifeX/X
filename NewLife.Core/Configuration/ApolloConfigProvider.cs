@@ -8,7 +8,7 @@ public class ApolloConfigProvider : HttpConfigProvider
 {
     #region 属性
     /// <summary>命名空间。Apollo专用，多个命名空间用逗号或分号隔开</summary>
-    public String NameSpace { get; set; }
+    public String? NameSpace { get; set; }
     #endregion
 
     #region 构造
@@ -26,7 +26,7 @@ public class ApolloConfigProvider : HttpConfigProvider
     /// <param name="fileName">阿波罗配置文件名，默认appsettings.json</param>
     /// <param name="path">加载路径，默认apollo</param>
     /// <returns></returns>
-    public static ApolloConfigProvider LoadApollo(String fileName = null, String path = "apollo")
+    public static ApolloConfigProvider? LoadApollo(String? fileName = null, String path = "apollo")
     {
         if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
         if (path.IsNullOrEmpty()) path = "apollo";
@@ -45,23 +45,25 @@ public class ApolloConfigProvider : HttpConfigProvider
 
     private class ApolloModel
     {
-        public String WMetaServer { get; set; }
+        public String? WMetaServer { get; set; }
 
-        public String AppId { get; set; }
+        public String? AppId { get; set; }
 
-        public String NameSpace { get; set; }
+        public String? NameSpace { get; set; }
 
-        public String MetaServer { get; set; }
+        public String? MetaServer { get; set; }
     }
 
     /// <summary>获取所有配置</summary>
     /// <returns></returns>
-    protected override IDictionary<String, Object> GetAll()
+    protected override IDictionary<String, Object>? GetAll()
     {
         // 特殊处理Apollo
         if (!NameSpace.IsNullOrEmpty())
         {
             var client = GetClient() as ApiHttpClient;
+            if (client == null) throw new ArgumentNullException(nameof(Client));
+
             var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
             var dic = new Dictionary<String, Object>();
             foreach (var item in ns)
@@ -70,9 +72,12 @@ public class ApolloConfigProvider : HttpConfigProvider
                 try
                 {
                     var rs = client.Get<IDictionary<String, Object>>(action);
-                    foreach (var elm in rs)
+                    if (rs != null)
                     {
-                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                        foreach (var elm in rs)
+                        {
+                            if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                        }
                     }
                 }
                 catch (Exception ex)

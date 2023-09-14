@@ -13,7 +13,7 @@ public interface ICache
     /// <summary>获取和设置缓存，永不过期</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    Object this[String key] { get; set; }
+    Object? this[String key] { get; set; }
 
     /// <summary>缓存个数</summary>
     Int32 Count { get; }
@@ -45,7 +45,7 @@ public interface ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
-    T Get<T>(String key);
+    T? Get<T>(String key);
 
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>
