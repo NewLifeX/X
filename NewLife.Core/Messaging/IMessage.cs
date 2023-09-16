@@ -16,11 +16,11 @@ public interface IMessage
     Boolean OneWay { get; }
 
     /// <summary>负载数据</summary>
-    Packet Payload { get; set; }
+    Packet? Payload { get; set; }
 
     /// <summary>根据请求创建配对的响应消息</summary>
     /// <returns></returns>
-    IMessage CreateReply();
+    IMessage? CreateReply();
 
     /// <summary>从数据包中读取消息</summary>
     /// <param name="pk"></param>
@@ -29,7 +29,7 @@ public interface IMessage
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    Packet ToPacket();
+    Packet? ToPacket();
 }
 
 /// <summary>消息命令基类</summary>
@@ -45,7 +45,7 @@ public class Message : IMessage
     public Boolean OneWay { get; set; }
 
     /// <summary>负载数据</summary>
-    public Packet Payload { get; set; }
+    public Packet? Payload { get; set; }
 
     /// <summary>根据请求创建配对的响应消息</summary>
     /// <returns></returns>
@@ -54,6 +54,8 @@ public class Message : IMessage
         if (Reply) throw new Exception("不能根据响应消息创建响应消息");
 
         var msg = GetType().CreateInstance() as Message;
+        if (msg == null) throw new InvalidDataException($"无法创建类型[{GetType().FullName}]的实例");
+
         msg.Reply = true;
 
         return msg;
@@ -71,5 +73,5 @@ public class Message : IMessage
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    public virtual Packet ToPacket() => Payload;
+    public virtual Packet? ToPacket() => Payload;
 }

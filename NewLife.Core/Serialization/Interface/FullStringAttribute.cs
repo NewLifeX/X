@@ -12,7 +12,7 @@ public class FullStringAttribute : AccessorAttribute
     /// <returns>是否成功</returns>
     public override Boolean Read(IFormatterX formatter, AccessorContext context)
     {
-        if (formatter is Binary bn)
+        if (formatter is Binary bn && context.Value != null && context.Member != null)
         {
             var buf = bn.Stream.ReadBytes(-1);
             var str = bn.Encoding.GetString(buf);
@@ -31,7 +31,7 @@ public class FullStringAttribute : AccessorAttribute
     /// <param name="context">上下文</param>
     public override Boolean Write(IFormatterX formatter, AccessorContext context)
     {
-        if (formatter is Binary bn)
+        if (formatter is Binary bn && context.Value != null && context.Member != null)
         {
             var str = context.Value.GetValue(context.Member) as String;
             if (!str.IsNullOrEmpty())

@@ -28,7 +28,7 @@ public class DefaultMessage : Message
     public Int32 Sequence { get; set; }
 
     /// <summary>解析数据时的原始报文</summary>
-    private Packet _raw;
+    private Packet? _raw;
     #endregion
 
     #region 方法
@@ -40,6 +40,8 @@ public class DefaultMessage : Message
 
         var type = GetType();
         var msg = type == typeof(DefaultMessage) ? new DefaultMessage() : type.CreateInstance() as DefaultMessage;
+        if (msg == null) throw new InvalidDataException($"无法创建类型[{type.FullName}]的实例");
+
         msg.Flag = Flag;
         msg.Reply = true;
         msg.Sequence = Sequence;
@@ -104,16 +106,17 @@ public class DefaultMessage : Message
     /// <returns></returns>
     public override Packet ToPacket()
     {
-        var pk = Payload;
+        var body = Payload;
         var len = 0;
-        if (pk != null) len = pk.Total;
+        if (body != null) len = body.Total;
 
         // 增加4字节头部，如果负载数据之前有足够空间则直接使用，否则新建数据包形成链式结构
         var size = len < 0xFFFF ? 4 : 8;
-        if (pk.Offset >= size)
-            pk = new Packet(pk.Data, pk.Offset - size, pk.Count + size) { Next = pk.Next };
+        Packet pk;
+        if (body != null && body.Offset >= size)
+            pk = new Packet(body.Data, body.Offset - size, body.Count + size) { Next = body.Next };
         else
-            pk = new Packet(new Byte[size]) { Next = pk };
+            pk = new Packet(new Byte[size]) { Next = body };
 
         // 标记位
         var b = Flag & 0b0011_1111;
@@ -164,7 +167,7 @@ public class DefaultMessage : Message
 
     /// <summary>获取解析数据时的原始报文</summary>
     /// <returns></returns>
-    public Packet GetRaw() => _raw;
+    public Packet? GetRaw() => _raw;
 
     /// <summary>消息摘要</summary>
     /// <returns></returns>

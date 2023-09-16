@@ -152,18 +152,22 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         var cs = new List<String>();
         var ts = new List<Type>();
-        foreach (DataColumn dc in dataTable.Columns)
+        foreach (var item in dataTable.Columns)
         {
-            cs.Add(dc.ColumnName);
-            ts.Add(dc.DataType);
+            if (item is DataColumn dc)
+            {
+                cs.Add(dc.ColumnName);
+                ts.Add(dc.DataType);
+            }
         }
         Columns = cs.ToArray();
         Types = ts.ToArray();
 
         var rs = new List<Object?[]>();
-        foreach (DataRow dr in dataTable.Rows)
+        foreach (var item in dataTable.Rows)
         {
-            rs.Add(dr.ItemArray);
+            if (item is DataRow dr)
+                rs.Add(dr.ItemArray);
         }
         Rows = rs;
 
@@ -302,7 +306,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public Int64 LoadFile(String file, Boolean compressed = false) => file.AsFile().OpenRead(compressed, s => Read(s));
 
-    Boolean IAccessor.Read(Stream stream, Object context) { Read(stream); return true; }
+    Boolean IAccessor.Read(Stream stream, Object? context)
+    {
+        Read(stream);
+        return true;
+    }
     #endregion
 
     #region 二进制写入
@@ -419,7 +427,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public void SaveFile(String file, Boolean compressed = false) => file.AsFile().OpenWrite(compressed, s => Write(s));
 
-    Boolean IAccessor.Write(Stream stream, Object context) { Write(stream); return true; }
+    Boolean IAccessor.Write(Stream stream, Object? context)
+    {
+        Write(stream);
+        return true;
+    }
     #endregion
 
     #region Json序列化
@@ -437,17 +449,23 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     /// <summary>转为字典数组形式</summary>
     /// <returns></returns>
-    public IList<IDictionary<String, Object>> ToDictionary()
+    public IList<IDictionary<String, Object?>> ToDictionary()
     {
-        var list = new List<IDictionary<String, Object>>();
-        foreach (var row in Rows)
+        var list = new List<IDictionary<String, Object?>>();
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var rows = Rows;
+
+        if (rows != null)
         {
-            var dic = new Dictionary<String, Object>();
-            for (var i = 0; i < Columns.Length; i++)
+            foreach (var row in rows)
             {
-                dic[Columns[i]] = row[i];
+                var dic = new Dictionary<String, Object?>();
+                for (var i = 0; i < cs.Length; i++)
+                {
+                    dic[cs[i]] = row[i];
+                }
+                list.Add(dic);
             }
-            list.Add(dic);
         }
 
         return list;
@@ -499,27 +517,34 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         await writer.WriteStartDocumentAsync();
         await writer.WriteStartElementAsync(null, "DbTable", null);
 
-        foreach (var row in Rows)
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+        var rows = Rows;
+
+        if (rows != null)
         {
-            await writer.WriteStartElementAsync(null, "Table", null);
-            for (var i = 0; i < Columns.Length; i++)
+            foreach (var row in rows)
             {
-                //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
-                await writer.WriteStartElementAsync(null, Columns[i], null);
+                await writer.WriteStartElementAsync(null, "Table", null);
+                for (var i = 0; i < cs.Length; i++)
+                {
+                    //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
+                    await writer.WriteStartElementAsync(null, cs[i], null);
 
-                //writer.WriteValue(row[i]);
-                if (Types[i] == typeof(Boolean))
-                    writer.WriteValue((Boolean)row[i]);
-                else if (Types[i] == typeof(DateTime))
-                    writer.WriteValue(new DateTimeOffset((DateTime)row[i]));
-                else if (Types[i] == typeof(DateTimeOffset))
-                    writer.WriteValue((DateTimeOffset)row[i]);
-                else
-                    await writer.WriteStringAsync(row[i] + "");
+                    //writer.WriteValue(row[i]);
+                    if (ts[i] == typeof(Boolean))
+                        writer.WriteValue(row[i].ToBoolean());
+                    else if (ts[i] == typeof(DateTime))
+                        writer.WriteValue(new DateTimeOffset(row[i].ChangeType<DateTime>()));
+                    else if (ts[i] == typeof(DateTimeOffset))
+                        writer.WriteValue(row[i].ChangeType<DateTimeOffset>());
+                    else
+                        await writer.WriteStringAsync(row[i] + "");
 
+                    await writer.WriteEndElementAsync();
+                }
                 await writer.WriteEndElementAsync();
             }
-            await writer.WriteEndElementAsync();
         }
 
         await writer.WriteEndElementAsync();
@@ -532,9 +557,12 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="file"></param>
     public void SaveCsv(String file)
     {
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var rows = Rows;
+
         using var csv = new CsvFile(file, true);
-        csv.WriteLine(Columns);
-        csv.WriteAll(Rows);
+        csv.WriteLine(cs);
+        if (rows != null) csv.WriteAll(rows);
     }
 
     /// <summary>从Csv文件加载</summary>
@@ -557,7 +585,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
         pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
 
-        Rows = new List<Object[]>();
+        Rows = new List<Object?[]>();
         foreach (var item in models)
         {
             // 头部
@@ -567,7 +595,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 Types = pis.Select(e => e.PropertyType).ToArray();
             }
 
-            var row = new Object[Columns.Length];
+            var row = new Object?[Columns.Length];
             for (var i = 0; i < row.Length; i++)
             {
                 // 反射取值
@@ -575,7 +603,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 {
                     if (item is IModel ext)
                         row[i] = ext[pis[i].Name];
-                    else
+                    else if (item != null)
                         row[i] = item.GetValue(pis[i]);
                 }
             }
@@ -588,17 +616,21 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public IEnumerable<T> ReadModels<T>()
     {
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var rows = Rows;
+        if (rows == null) yield break;
+
         // 可用属性
         var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
 
-        foreach (var row in Rows)
+        foreach (var row in rows)
         {
             var model = (T)typeof(T).CreateInstance();
             for (var i = 0; i < row.Length; i++)
             {
                 // 扩展赋值，或 反射赋值
-                if (dic.TryGetValue(Columns[i], out var pi) && pi.CanWrite)
+                if (dic.TryGetValue(cs[i], out var pi) && pi.CanWrite)
                 {
                     var val = row[i].ChangeType(pi.PropertyType);
                     if (model is IModel ext)
@@ -619,7 +651,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="row"></param>
     /// <param name="name"></param>
     /// <returns></returns>
-    public T Get<T>(Int32 row, String name) => !TryGet<T>(row, name, out var value) ? default : value;
+    public T? Get<T>(Int32 row, String name) => !TryGet<T>(row, name, out var value) ? default : value;
 
     /// <summary>尝试读取指定行的字段值</summary>
     /// <typeparam name="T"></typeparam>
@@ -627,10 +659,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="name"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public Boolean TryGet<T>(Int32 row, String name, out T value)
+    public Boolean TryGet<T>(Int32 row, String name, out T? value)
     {
         value = default;
         var rs = Rows;
+        if (rs == null) return false;
 
         if (row < 0 || row >= rs.Count || name.IsNullOrEmpty()) return false;
 
@@ -670,10 +703,12 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         if (_Defs == null)
         {
             var dic = new Dictionary<TypeCode, Object?>();
-            foreach (TypeCode item in Enum.GetValues(typeof(TypeCode)))
+            foreach (var item in Enum.GetValues(typeof(TypeCode)))
             {
+                if (item is not TypeCode tc2) continue;
+
                 Object? val = null;
-                val = item switch
+                val = tc2 switch
                 {
                     TypeCode.Boolean => false,
                     TypeCode.Char => (Char)0,
@@ -691,7 +726,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                     TypeCode.DateTime => DateTime.MinValue,
                     _ => null,
                 };
-                dic[item] = val;
+                dic[tc2] = val;
             }
             _Defs = dic;
         }
@@ -741,7 +776,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         public Boolean MoveNext()
         {
-            var rs = Table?.Rows;
+            var rs = Table.Rows;
             if (rs == null || rs.Count == 0) return false;
 
             if (_row < 0 || _row >= rs.Count)

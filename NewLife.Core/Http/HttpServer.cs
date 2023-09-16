@@ -22,7 +22,7 @@ public class HttpServer : NetServer
         Port = 80;
         ProtocolType = NetType.Http;
 
-        var ver = GetType().Assembly.GetName().Version;
+        var ver = GetType().Assembly.GetName().Version ?? new Version();
         ServerName = $"NewLife-HttpServer/{ver.Major}.{ver.Minor}";
     }
 
@@ -97,7 +97,7 @@ public class HttpServer : NetServer
     /// <summary>匹配处理器</summary>
     /// <param name="path"></param>
     /// <returns></returns>
-    public IHttpHandler MatchHandler(String path)
+    public IHttpHandler? MatchHandler(String path)
     {
         if (Routes.TryGetValue(path, out var handler)) return handler;
 

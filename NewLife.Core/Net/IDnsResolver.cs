@@ -10,7 +10,7 @@ public interface IDnsResolver
     /// <summary>解析域名</summary>
     /// <param name="host"></param>
     /// <returns></returns>
-    IPAddress[] Resolve(String host);
+    IPAddress[]? Resolve(String host);
 }
 
 /// <summary>DNS解析器，带有缓存，解析失败时使用旧数据</summary>
@@ -27,7 +27,7 @@ public class DnsResolver : IDnsResolver
     /// <summary>解析域名</summary>
     /// <param name="host"></param>
     /// <returns></returns>
-    public IPAddress[] Resolve(String host)
+    public IPAddress[]? Resolve(String host)
     {
         if (_cache.TryGetValue(host, out var item))
         {
@@ -38,10 +38,10 @@ public class DnsResolver : IDnsResolver
         else
             item = ResolveCore(host, item, true);
 
-        return item.Addresses;
+        return item?.Addresses;
     }
 
-    DnsItem ResolveCore(String host, DnsItem item, Boolean throwError)
+    DnsItem? ResolveCore(String host, DnsItem? item, Boolean throwError)
     {
         using var span = DefaultTracer.Instance?.NewSpan($"dns:{host}");
         try
@@ -61,6 +61,7 @@ public class DnsResolver : IDnsResolver
             {
                 // 更新缓存数据
                 if (item == null)
+                {
                     _cache[host] = item = new DnsItem
                     {
                         Host = host,
@@ -68,6 +69,7 @@ public class DnsResolver : IDnsResolver
                         CreateTime = DateTime.Now,
                         UpdateTime = DateTime.Now
                     };
+                }
                 else
                 {
                     item.Addresses = addrs;
@@ -91,9 +93,9 @@ public class DnsResolver : IDnsResolver
 
     class DnsItem
     {
-        public String Host { get; set; }
+        public String? Host { get; set; }
 
-        public IPAddress[] Addresses { get; set; }
+        public IPAddress[]? Addresses { get; set; }
 
         public DateTime CreateTime { get; set; }
 

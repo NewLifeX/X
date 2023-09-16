@@ -72,12 +72,12 @@ public class JsonParser
     /// <summary>解码</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public static IDictionary<String, Object> Decode(String json)
+    public static IDictionary<String, Object?>? Decode(String json)
     {
         var parser = new JsonParser(json);
         try
         {
-            return parser.ParseValue() as IDictionary<String, Object>;
+            return parser.ParseValue() as IDictionary<String, Object?>;
         }
         catch (XException ex)
         {
@@ -87,11 +87,11 @@ public class JsonParser
 
     /// <summary>解码</summary>
     /// <returns></returns>
-    public Object Decode() => ParseValue();
+    public Object? Decode() => ParseValue();
 
-    private Dictionary<String, Object> ParseObject()
+    private Dictionary<String, Object?> ParseObject()
     {
-        var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        var dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
 
         SkipToken(); // {
 
@@ -189,7 +189,7 @@ public class JsonParser
         }
     }
 
-    private Object ParseValue()
+    private Object? ParseValue()
     {
         switch (LookAhead())
         {

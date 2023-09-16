@@ -119,7 +119,7 @@ public static class AttributeX
                 if (att != null)
                 {
                     var pi = typeof(TAttribute).GetProperties().FirstOrDefault(p => p.PropertyType == typeof(TResult));
-                    if (pi != null) return (TResult)att.GetValue(pi);
+                    if (pi != null) return (TResult?)att.GetValue(pi);
                 }
             }
         }

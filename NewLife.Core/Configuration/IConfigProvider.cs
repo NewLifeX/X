@@ -89,7 +89,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
     /// <summary>所有键</summary>
-    public virtual ICollection<String> Keys => Root?.Childs?.Select(e => e.Key).ToList();
+    public virtual ICollection<String>? Keys => Root?.Childs?.Select(e => e.Key).ToList();
 
     /// <summary>已使用的键</summary>
     public ICollection<String> UsedKeys { get; } = new List<String>();
@@ -101,7 +101,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
 
     /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
-    public event EventHandler Changed;
+    public event EventHandler? Changed;
 
     /// <summary>是否新的配置文件</summary>
     public Boolean IsNew { get; set; }
@@ -116,7 +116,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <summary>获取 或 设置 配置值</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
-    public virtual String this[String key]
+    public virtual String? this[String key]
     {
         get { EnsureLoad(); return Find(key, false)?.Value; }
         set => Find(key, true).Value = value;
@@ -125,14 +125,14 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <summary>查找配置项。可得到子级和配置</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual IConfigSection GetSection(String key) => Find(key, false);
+    public virtual IConfigSection? GetSection(String key) => Find(key, false);
 
     /// <summary>查找配置项，可指定是否创建</summary>
     /// <remarks>配置提供者可以重载该方法以实现增强功能。例如星尘配置从注册中心读取数据</remarks>
     /// <param name="key"></param>
     /// <param name="createOnMiss"></param>
     /// <returns></returns>
-    protected virtual IConfigSection Find(String key, Boolean createOnMiss)
+    protected virtual IConfigSection? Find(String key, Boolean createOnMiss)
     {
         UseKey(key);
 
@@ -208,10 +208,12 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="path">路径。配置树位置</param>
     public virtual Boolean Save<T>(T model, String? path = null)
     {
+        if (model == null) throw new ArgumentNullException(nameof(model));
+
         EnsureLoad();
 
         // 如果有命名空间则使用指定层级数据源
-        var source = Find(path, true);
+        var source = path.IsNullOrEmpty() ? Root : Find(path, true);
         source?.MapFrom(model);
 
         return SaveAll();
@@ -228,10 +230,12 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
     public virtual void Bind<T>(T model, Boolean autoReload = true, String? path = null)
     {
+        if (model == null) throw new ArgumentNullException(nameof(model));
+
         EnsureLoad();
 
         // 如果有命名空间则使用指定层级数据源
-        var source = GetSection(path);
+        var source = path.IsNullOrEmpty() ? Root : GetSection(path);
         if (source != null)
         {
             if (model is IConfigMapping map)
@@ -242,6 +246,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
         if (autoReload && !_models.ContainsKey(model))
         {
+            path ??= String.Empty;
             _models.Add(model, path);
         }
     }
@@ -253,10 +258,12 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="onChange">配置改变时执行的委托</param>
     public virtual void Bind<T>(T model, String path, Action<IConfigSection> onChange)
     {
+        if (model == null) throw new ArgumentNullException(nameof(model));
+
         EnsureLoad();
 
         // 如果有命名空间则使用指定层级数据源
-        var source = GetSection(path);
+        var source = path.IsNullOrEmpty() ? Root : GetSection(path);
         if (source != null)
         {
             if (model is IConfigMapping map)
@@ -267,16 +274,11 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
         if (onChange != null && !_models2.ContainsKey(model))
         {
-            _models2.Add(model, new ModelWrap { Path = path, OnChange = onChange });
+            _models2.Add(model, new ModelWrap(path, onChange));
         }
     }
 
-    class ModelWrap
-    {
-        public String Path { get; set; }
-
-        public Action<IConfigSection> OnChange { get; set; }
-    }
+    private record ModelWrap(String Path, Action<IConfigSection> OnChange);
 
     /// <summary>通知绑定对象，配置数据有改变</summary>
     protected virtual void NotifyChange()

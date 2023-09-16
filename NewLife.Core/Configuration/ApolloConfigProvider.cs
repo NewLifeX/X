@@ -98,7 +98,7 @@ public class ApolloConfigProvider : HttpConfigProvider
     /// <summary>设置配置项，保存到服务端</summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    protected override Int32 SetAll(IDictionary<String, Object> configs)
+    protected override Int32 SetAll(IDictionary<String, Object?> configs)
     {
         // 特殊处理Apollo
         if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");

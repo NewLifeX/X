@@ -469,7 +469,7 @@ public class Binary : FormatterBase, IBinary
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
     /// <param name="value"></param>
     /// <param name="max"></param>
-    public void WriteFixedString(String value, Int32 max)
+    public void WriteFixedString(String? value, Int32 max)
     {
         var buf = new Byte[max];
         if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);

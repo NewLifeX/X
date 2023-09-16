@@ -8,19 +8,19 @@ public class HttpRequest : HttpBase
 {
     #region 属性
     /// <summary>Http方法</summary>
-    public String Method { get; set; }
+    public String? Method { get; set; }
 
     /// <summary>资源路径</summary>
-    public Uri RequestUri { get; set; }
+    public Uri? RequestUri { get; set; }
 
     /// <summary>目标主机</summary>
-    public String Host { get; set; }
+    public String? Host { get; set; }
 
     /// <summary>保持连接</summary>
     public Boolean KeepAlive { get; set; }
 
     /// <summary>文件集合</summary>
-    public FormFile[] Files { get; set; }
+    public FormFile[]? Files { get; set; }
     #endregion
 
     /// <summary>分析第一行</summary>
@@ -124,10 +124,12 @@ public class HttpRequest : HttpBase
     /// <summary>分析表单数据</summary>
     public virtual IDictionary<String, Object> ParseFormData()
     {
-        var boundary = ContentType.Substring("boundary=", null);
-        if (boundary.IsNullOrEmpty()) return null;
-
         var dic = new Dictionary<String, Object>();
+        if (ContentType.IsNullOrEmpty()) return dic;
+
+        var boundary = ContentType.Substring("boundary=", null);
+        if (boundary.IsNullOrEmpty()) return dic;
+
         var body = Body;
         if (body == null || body.Total == 0) return dic;
 
@@ -179,9 +181,10 @@ public class HttpRequest : HttpBase
                 if (lines.TryGetValue("Content-Type", out str))
                     file.ContentType = str;
 
-                file.Data = part.Slice(pHeader + NewLine2.Length);
+                var fileData = part.Slice(pHeader + NewLine2.Length);
+                file.Data = fileData;
 
-                if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? file.Data?.ToStr() : file;
+                if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
             }
 
             // 判断是否最后一个分隔符

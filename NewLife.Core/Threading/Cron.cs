@@ -65,7 +65,7 @@ public class Cron
 
     /// <summary>已重载。</summary>
     /// <returns></returns>
-    public override String ToString() => _expression ?? base.ToString();
+    public override String ToString() => _expression ?? nameof(Cron);
     #endregion
 
     #region 方法
@@ -74,6 +74,8 @@ public class Cron
     /// <returns></returns>
     public Boolean IsTime(DateTime time)
     {
+        if (Seconds == null || Minutes == null || Hours == null || DaysOfMonth == null || Months == null) return false;
+
         // 基础时间判断
         if (!Seconds.Contains(time.Second) ||
             !Minutes.Contains(time.Minute) ||

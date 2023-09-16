@@ -139,7 +139,7 @@ public interface IReflect
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    Object? ChangeType(Object value, Type conversionType);
+    Object? ChangeType(Object? value, Type conversionType);
 
     /// <summary>获取类型的友好名称</summary>
     /// <param name="type">指定类型</param>
@@ -239,7 +239,7 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public virtual PropertyInfo GetProperty(Type type, String name, Boolean ignoreCase)
+    public virtual PropertyInfo? GetProperty(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有属性的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
         while (type != null && type != typeof(Object))
@@ -638,7 +638,7 @@ public class DefaultReflect : IReflect
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    public virtual Object? ChangeType(Object value, Type conversionType)
+    public virtual Object? ChangeType(Object? value, Type conversionType)
     {
         Type? vtype = null;
         if (value != null) vtype = value.GetType();
@@ -662,7 +662,7 @@ public class DefaultReflect : IReflect
             if (vtype == typeof(String))
                 return Enum.Parse(conversionType, (String)(value ?? String.Empty), true);
             else
-                return Enum.ToObject(conversionType, value);
+                return Enum.ToObject(conversionType, value ?? 0);
         }
 
         // 字符串转为货币类型，处理一下

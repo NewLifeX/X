@@ -27,18 +27,18 @@ public interface IJsonHost
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    Object Read(String json, Type type);
+    Object? Read(String json, Type type);
 
     /// <summary>类型转换</summary>
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    Object Convert(Object obj, Type targetType);
+    Object? Convert(Object obj, Type targetType);
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    IDictionary<String, Object> Decode(String json);
+    IDictionary<String, Object?>? Decode(String json);
 }
 
 /// <summary>Json助手</summary>
@@ -68,7 +68,7 @@ public static class JsonHelper
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public static Object ToJsonEntity(this String json, Type type)
+    public static Object? ToJsonEntity(this String json, Type type)
     {
         if (json.IsNullOrEmpty()) return null;
 
@@ -79,11 +79,11 @@ public static class JsonHelper
     /// <typeparam name="T"></typeparam>
     /// <param name="json"></param>
     /// <returns></returns>
-    public static T ToJsonEntity<T>(this String json)
+    public static T? ToJsonEntity<T>(this String json)
     {
         if (json.IsNullOrEmpty()) return default;
 
-        return (T)Default.Read(json, typeof(T));
+        return (T?)Default.Read(json, typeof(T));
     }
 
     /// <summary>格式化Json文本</summary>
@@ -159,19 +159,19 @@ public static class JsonHelper
     /// <summary>Json类型对象转换实体类</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T Convert<T>(Object obj)
+    public static T? Convert<T>(Object obj)
     {
         if (obj == null) return default;
         if (obj is T t) return t;
         if (obj.GetType().As<T>()) return (T)obj;
 
-        return (T)Default.Convert(obj, typeof(T));
+        return (T?)Default.Convert(obj, typeof(T));
     }
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public static IDictionary<String, Object> DecodeJson(this String json) => Default.Decode(json);
+    public static IDictionary<String, Object?>? DecodeJson(this String json) => Default.Decode(json);
 }
 
 /// <summary>轻量级FastJson序列化</summary>
@@ -190,18 +190,18 @@ public class FastJson : IJsonHost
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object Read(String json, Type type) => new JsonReader().Read(json, type);
+    public Object? Read(String json, Type type) => new JsonReader().Read(json, type);
 
     /// <summary>类型转换</summary>
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public IDictionary<String, Object> Decode(String json) => JsonParser.Decode(json);
+    public IDictionary<String, Object?>? Decode(String json) => JsonParser.Decode(json);
     #endregion
 }
 
@@ -256,7 +256,7 @@ public class SystemJson : IJsonHost
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object Read(String json, Type type)
+    public Object? Read(String json, Type type)
     {
         var opt = Options;
 #if NET7_0_OR_GREATER
@@ -283,12 +283,12 @@ public class SystemJson : IJsonHost
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    public Object Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public IDictionary<String, Object> Decode(String json)
+    public IDictionary<String, Object?> Decode(String json)
     {
         var doc = JsonDocument.Parse(json);
         return doc.RootElement.ToDictionary();

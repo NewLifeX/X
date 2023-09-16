@@ -151,11 +151,12 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>设置配置项，保存到服务端</summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    protected virtual Int32 SetAll(IDictionary<String, Object> configs)
+    protected virtual Int32 SetAll(IDictionary<String, Object?> configs)
     {
         ValidClientId();
 
         var client = GetClient() as ApiHttpClient;
+        if (client == null) throw new ArgumentNullException(nameof(Client));
 
         return client.Post<Int32>("Config/SetAll", new
         {
@@ -168,11 +169,11 @@ public class HttpConfigProvider : ConfigProvider
 
     /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
     /// <param name="value"></param>
-    public override void Init(String value)
+    public override void Init(String? value)
     {
         // 本地缓存
         var file = (value.IsNullOrWhiteSpace() ? $"Config/httpConfig_{AppId}.json" : $"{value}_{AppId}.json").GetBasePath();
-        if ((Root == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
+        if ((Root == null || Root.Childs == null || Root.Childs.Count == 0) && CacheLevel > ConfigCacheLevel.NoCache && File.Exists(file))
         {
             var json = File.ReadAllText(file);
 
@@ -269,18 +270,21 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>保存配置树到数据源</summary>
     public override Boolean SaveAll()
     {
-        var dic = new Dictionary<String, Object>();
+        if (Root.Childs == null) return false;
+
+        var dic = new Dictionary<String, Object?>();
         foreach (var item in Root.Childs.ToArray())
         {
             if (item.Childs == null || item.Childs.Count == 0)
             {
                 // 只提交修改过的设置
-                if (_cache == null || !_cache.TryGetValue(item.Key, out var v) || v + "" != item.Value + "")
+                var key = item.Key ?? String.Empty;
+                if (_cache == null || !_cache.TryGetValue(key, out var v) || v + "" != item.Value + "")
                 {
                     if (item.Comment.IsNullOrEmpty())
-                        dic[item.Key] = item.Value;
+                        dic[key] = item.Value;
                     else
-                        dic[item.Key] = new { item.Value, item.Comment };
+                        dic[key] = new { item.Value, item.Comment };
                 }
             }
             else
@@ -326,7 +330,7 @@ public class HttpConfigProvider : ConfigProvider
 
     #region 定时
     /// <summary>定时器</summary>
-    protected TimerX _timer;
+    protected TimerX? _timer;
     private void InitTimer()
     {
         if (_timer != null) return;
@@ -342,7 +346,7 @@ public class HttpConfigProvider : ConfigProvider
 
     /// <summary>定时刷新配置</summary>
     /// <param name="state"></param>
-    protected void DoRefresh(Object state)
+    protected void DoRefresh(Object? state)
     {
         var dic = GetAll();
         if (dic == null) return;

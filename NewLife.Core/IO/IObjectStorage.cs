@@ -35,18 +35,18 @@ public interface IObjectStorage
     /// <summary>获取文件对象</summary>
     /// <param name="id">对象文件名</param>
     /// <returns></returns>
-    Task<IObjectInfo> Get(String id);
+    Task<IObjectInfo?> Get(String id);
 
     /// <summary>获取文件直接访问Url</summary>
     /// <param name="id">对象文件名</param>
     /// <returns></returns>
-    Task<String> GetUrl(String id);
+    Task<String?> GetUrl(String id);
 
     /// <summary>上传文件对象</summary>
     /// <param name="id">对象文件名。可以为空，此时自动生成文件名</param>
     /// <param name="data">数据内容</param>
     /// <returns>可能是自动生成的新文件名</returns>
-    Task<IObjectInfo> Put(String id, Packet data);
+    Task<IObjectInfo?> Put(String id, Packet data);
 
     /// <summary>删除文件对象</summary>
     /// <param name="id">对象文件名</param>
@@ -58,6 +58,6 @@ public interface IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    Task<IList<IObjectInfo>> Search(String? pattern = null, Int32 start = 0, Int32 count = 100);
+    Task<IList<IObjectInfo>?> Search(String? pattern = null, Int32 start = 0, Int32 count = 100);
     #endregion
 }

@@ -63,12 +63,12 @@ public class Host : IHost
         AppDomain.CurrentDomain.ProcessExit += OnExit;
         Console.CancelKeyPress += OnExit;
 #if NETCOREAPP
-        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, null);
+        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty);
 #endif
 #if NET6_0_OR_GREATER
-        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx, null));
-        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx, null));
-        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx, null));
+        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx, EventArgs.Empty));
+        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx, EventArgs.Empty));
+        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx, EventArgs.Empty));
 #endif
     }
 
@@ -130,7 +130,7 @@ public class Host : IHost
     #endregion
 
     #region 运行大循环
-    private TaskCompletionSource<Object> _life;
+    private TaskCompletionSource<Object>? _life;
     /// <summary>同步运行，大循环阻塞</summary>
     public void Run() => RunAsync().GetAwaiter().GetResult();
 
@@ -144,7 +144,7 @@ public class Host : IHost
 
         _life = new TaskCompletionSource<Object>();
 
-        RegisterExit((s, e) => _life.TrySetResult(null));
+        RegisterExit((s, e) => _life.TrySetResult(0));
 
         await StartAsync(source.Token);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
@@ -172,7 +172,7 @@ public class Host : IHost
     /// <param name="onExit">回调函数</param>
     public static void RegisterExit(Action onExit) => _events2.Add(onExit);
 
-    private static void OnExit(Object sender, EventArgs e)
+    private static void OnExit(Object? sender, EventArgs e)
     {
         foreach (var item in _events)
         {
@@ -210,9 +210,9 @@ public class Host : IHost
 /// </remarks>
 public abstract class BackgroundService : IHostedService, IDisposable
 {
-    private Task _executingTask;
+    private Task? _executingTask;
 
-    private CancellationTokenSource _stoppingCts;
+    private CancellationTokenSource? _stoppingCts;
 
     /// <summary>执行</summary>
     /// <param name="stoppingToken"></param>
@@ -242,7 +242,7 @@ public abstract class BackgroundService : IHostedService, IDisposable
         {
             try
             {
-                _stoppingCts.Cancel();
+                _stoppingCts?.Cancel();
             }
             finally
             {

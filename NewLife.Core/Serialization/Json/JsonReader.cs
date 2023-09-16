@@ -25,13 +25,13 @@ public class JsonReader
     /// <typeparam name="T"></typeparam>
     /// <param name="json"></param>
     /// <returns></returns>
-    public T Read<T>(String json) => (T)Read(json, typeof(T));
+    public T? Read<T>(String json) => (T?)Read(json, typeof(T));
 
     /// <summary>读取Json到指定类型</summary>
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object Read(String json, Type type)
+    public Object? Read(String json, Type type)
     {
         // 解码得到字典或列表
         var obj = new JsonParser(json).Decode();
@@ -45,7 +45,7 @@ public class JsonReader
     /// <param name="type">模板类型</param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    public Object ToObject(Object jobj, Type type, Object target)
+    public Object? ToObject(Object jobj, Type type, Object? target)
     {
         if (type == null && target != null) type = target.GetType();
 
@@ -86,7 +86,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    private IList ParseList(IList<Object> vlist, Type type, Object target)
+    private IList ParseList(IList<Object> vlist, Type type, Object? target)
     {
         var elmType = type.GetGenericArguments().FirstOrDefault();
 
@@ -110,7 +110,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    private Array ParseArray(IList<Object> list, Type type, Object target)
+    private Array ParseArray(IList<Object> list, Type type, Object? target)
     {
         var elmType = type?.GetElementTypeEx();
         if (elmType == null) elmType = typeof(Object);
@@ -134,7 +134,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    private IDictionary ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary target)
+    private IDictionary ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary? target)
     {
         var types = type.GetGenericArguments();
 
@@ -162,7 +162,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    internal Object ParseObject(IDictionary<String, Object> dic, Type type, Object target)
+    internal Object ParseObject(IDictionary<String, Object> dic, Type type, Object? target)
     {
         if (type == typeof(NameValueCollection)) return CreateNV(dic);
         if (type == typeof(StringDictionary)) return CreateSD(dic);

@@ -346,13 +346,13 @@ public static class Reflect
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    public static Object? ChangeType(this Object value, Type conversionType) => Provider.ChangeType(value, conversionType);
+    public static Object? ChangeType(this Object? value, Type conversionType) => Provider.ChangeType(value, conversionType);
 
     /// <summary>类型转换</summary>
     /// <typeparam name="TResult"></typeparam>
     /// <param name="value">数值</param>
     /// <returns></returns>
-    public static TResult? ChangeType<TResult>(this Object value)
+    public static TResult? ChangeType<TResult>(this Object? value)
     {
         if (value is TResult result) return result;
 

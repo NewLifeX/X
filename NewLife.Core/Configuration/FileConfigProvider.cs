@@ -11,7 +11,7 @@ public abstract class FileConfigProvider : ConfigProvider
 {
     #region 属性
     /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
-    public String FileName { get; set; }
+    public String? FileName { get; set; }
 
     /// <summary>更新周期。默认5秒</summary>
     public Int32 Period { get; set; } = 5;
@@ -171,9 +171,10 @@ public abstract class FileConfigProvider : ConfigProvider
 
     private Boolean _reading;
     private DateTime _lastTime;
-    private void DoRefresh(Object state)
+    private void DoRefresh(Object? state)
     {
         if (_reading) return;
+        if (FileName.IsNullOrEmpty()) return;
 
         var fileName = FileName.GetBasePath();
         var fi = FileName.AsFile();

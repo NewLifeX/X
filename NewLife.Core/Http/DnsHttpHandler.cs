@@ -20,8 +20,11 @@ public class DnsHttpHandler : DelegatingHandler
     /// <returns></returns>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        var uri = request.RequestUri;
+        if (uri == null) return await base.SendAsync(request, cancellationToken);
+
         // 调用自定义DNS解析器
-        var addrs = Resolver?.Resolve(request.RequestUri.Host);
+        var addrs = Resolver?.Resolve(uri.Host);
         if (addrs != null && addrs.Length > 0)
         {
             var addr = addrs[0];
@@ -40,7 +43,6 @@ public class DnsHttpHandler : DelegatingHandler
 #endif
 
             // 先固定Host
-            var uri = request.RequestUri;
             request.Headers.Host ??= uri.Host;
 
             var builder = new UriBuilder(uri)

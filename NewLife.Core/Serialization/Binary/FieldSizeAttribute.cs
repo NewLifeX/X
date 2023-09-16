@@ -24,10 +24,10 @@ public class FieldSizeAttribute : Attribute
     public Int32 SizeWidth { get; set; } = -1;
 
     /// <summary>参考大小字段名，其中存储了实际大小，使用时获取</summary>
-    public String ReferenceName { get; set; }
+    public String? ReferenceName { get; set; }
 
     /// <summary>协议版本。用于支持多版本协议序列化。例如JT/T808的2011/2019</summary>
-    public String Version { get; set; }
+    public String? Version { get; set; }
 
     /// <summary>通过Size指定字符串或数组的固有大小，为0表示自动计算</summary>
     /// <param name="size"></param>
@@ -71,6 +71,8 @@ public class FieldSizeAttribute : Attribute
 
         value = target;
         var ss = ReferenceName.Split('.');
+        if (ss == null) return null;
+
         for (var i = 0; i < ss.Length; i++)
         {
             var pi = type.GetPropertyEx(ss[i]);
@@ -110,7 +112,7 @@ public class FieldSizeAttribute : Attribute
     internal void SetReferenceSize(Object target, MemberInfo member, Encoding encoding)
     {
         var mi = FindReference(target, member, out var v);
-        if (mi == null) return;
+        if (mi == null || v == null) return;
 
         // 获取当前成员（加了特性）的值
         var value = target.GetValue(member);
@@ -124,13 +126,13 @@ public class FieldSizeAttribute : Attribute
 
             size = encoding.GetByteCount("" + value);
         }
-        else if (value.GetType().IsArray)
+        else if (value.GetType().IsArray && value is Array arr)
         {
-            size = (value as Array).Length;
+            size = arr.Length;
         }
-        else if (value is IEnumerable)
+        else if (value is IEnumerable && value is IEnumerable em)
         {
-            foreach (var item in value as IEnumerable)
+            foreach (var item in em)
             {
                 size++;
             }
@@ -150,9 +152,9 @@ public class FieldSizeAttribute : Attribute
         size = -1;
 
         var mi = FindReference(target, member, out var v);
-        if (mi == null) return false;
+        if (mi == null || v == null) return false;
 
-        size = Convert.ToInt32(v.GetValue(mi)) + Size;
+        size = Convert.ToInt32(v.GetValue(mi) ?? 0) + Size;
 
         return true;
     }

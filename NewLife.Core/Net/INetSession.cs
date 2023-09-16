@@ -77,5 +77,5 @@ public interface INetSession : IDisposable2
 public class NetSessionEventArgs : EventArgs
 {
     /// <summary>会话</summary>
-    public INetSession Session { get; set; }
+    public INetSession? Session { get; set; }
 }

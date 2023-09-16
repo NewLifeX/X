@@ -153,7 +153,7 @@ public abstract class HandlerBase<THost, THandler> : IHandler<THost>
 {
     /// <summary>宿主读写器</summary>
     [NotNull]
-    public THost Host { get; set; }
+    public THost? Host { get; set; }
 
     /// <summary>优先级</summary>
     public Int32 Priority { get; set; }

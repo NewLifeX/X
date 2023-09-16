@@ -18,7 +18,7 @@ public class CsvDb<T> where T : new()
 {
     #region 属性
     /// <summary>文件名</summary>
-    public String FileName { get; set; }
+    public String? FileName { get; set; }
 
     /// <summary>文件编码，默认utf8</summary>
     public Encoding Encoding { get; set; } = Encoding.UTF8;
@@ -33,7 +33,7 @@ public class CsvDb<T> where T : new()
 
     /// <summary>实例化Csv文件数据库</summary>
     /// <param name="comparer"></param>
-    public CsvDb(Func<T, T, Boolean> comparer) => Comparer = new MyComparer { Comparer = comparer };
+    public CsvDb(Func<T?, T?, Boolean> comparer) => Comparer = new MyComparer(comparer);
     #endregion
 
     #region 方法
@@ -60,7 +60,7 @@ public class CsvDb<T> where T : new()
         {
             if (item is IModel src)
                 csv.WriteLine(pis.Select(e => src[e.Name]));
-            else
+            else if (item != null)
                 csv.WriteLine(pis.Select(e => item.GetValue(e)));
         }
 
@@ -168,7 +168,7 @@ public class CsvDb<T> where T : new()
     /// <summary>查找指定数据行</summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    public T Find(T model)
+    public T? Find(T model)
     {
         if (Comparer == null) throw new ArgumentNullException(nameof(Comparer));
 
@@ -178,7 +178,7 @@ public class CsvDb<T> where T : new()
     /// <summary>获取满足条件的第一行数据</summary>
     /// <param name="predicate"></param>
     /// <returns></returns>
-    public T Find(Func<T, Boolean> predicate) => FindAll(predicate, 1).FirstOrDefault();
+    public T? Find(Func<T, Boolean>? predicate) => FindAll(predicate, 1).FirstOrDefault();
 
     /// <summary>获取所有数据行</summary>
     /// <returns></returns>
@@ -188,7 +188,7 @@ public class CsvDb<T> where T : new()
     /// <param name="predicate"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public IList<T> FindAll(Func<T, Boolean> predicate, Int32 count = -1)
+    public IList<T> FindAll(Func<T, Boolean>? predicate, Int32 count = -1)
     {
         var file = GetFile();
         if (!File.Exists(file)) return new List<T>();
@@ -271,15 +271,22 @@ public class CsvDb<T> where T : new()
     #endregion
 
     #region 辅助
-    private String GetFile() => FileName.GetFullPath();
+    private String GetFile()
+    {
+        if (FileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(FileName));
+
+        return FileName.GetFullPath();
+    }
 
     private class MyComparer : IEqualityComparer<T>
     {
-        public Func<T, T, Boolean> Comparer;
+        public Func<T?, T?, Boolean> Comparer;
 
-        public Boolean Equals(T x, T y) => Comparer(x, y);
+        public MyComparer(Func<T?, T?, Boolean> comparer) => Comparer = comparer;
 
-        public Int32 GetHashCode(T obj) => obj.GetHashCode();
+        public Boolean Equals(T? x, T? y) => Comparer(x, y);
+
+        public Int32 GetHashCode(T? obj) => obj?.GetHashCode() ?? 0;
     }
     #endregion
 }

@@ -49,10 +49,10 @@ public class DeferredQueue : DisposeBase
     public Int32 Times => _Times;
 
     /// <summary>批次处理成功时</summary>
-    public Action<IList<Object>> Finish;
+    public Action<IList<Object>>? Finish;
 
     /// <summary>批次处理失败时</summary>
-    public Action<IList<Object>, Exception> Error;
+    public Action<IList<Object>, Exception>? Error;
     #endregion
 
     #region 构造
@@ -197,9 +197,9 @@ public class DeferredQueue : DisposeBase
 
     /// <summary>当前缓存个数</summary>
     private Int32 _count;
-    private TimerX _Timer;
+    private TimerX? _Timer;
 
-    private void Work(Object state)
+    private void Work(Object? state)
     {
         var es = _Entities;
         if (!es.Any()) return;

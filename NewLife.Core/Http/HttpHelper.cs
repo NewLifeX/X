@@ -355,13 +355,49 @@ public static class HttpHelper
         HttpContent? content = null;
         //if (data != null)
         {
-            content = data is String str
-                ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
-                : (
-                    data is IDictionary<String, String> dic
-                    ? new FormUrlEncodedContent(dic)
-                    : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
-                );
+            //content = data is String str
+            //    ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
+            //    : (
+            //        data is IDictionary<String, String?> dic
+            //        ? new FormUrlEncodedContent(dic)
+            //        : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
+            //    );
+
+            if (data is String str)
+            {
+                content = new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded");
+            }
+#if NET5_0
+            else if (data is IDictionary<String?, String?> dic)
+            {
+                content = new FormUrlEncodedContent(dic);
+            }
+            else
+            {
+                var list = new List<KeyValuePair<String?, String?>>();
+                //var dic2 = new Dictionary<String, String?>();
+                foreach (var item in data.ToDictionary())
+                {
+                    //dic2[item.Key + ""] = item.Value + "";
+                    list.Add(new KeyValuePair<String?, String?>(item.Key, item.Value + ""));
+                }
+                content = new FormUrlEncodedContent(list);
+            }
+#else
+            else if (data is IDictionary<String, String> dic)
+            {
+                content = new FormUrlEncodedContent(dic);
+            }
+            else
+            {
+                var dic2 = new Dictionary<String, String>();
+                foreach (var item in data.ToDictionary())
+                {
+                    dic2[item.Key + ""] = item.Value + "";
+                }
+                content = new FormUrlEncodedContent(dic2);
+            }
+#endif
         }
 
         return await PostAsync(client, requestUri, content, headers, cancellationToken);

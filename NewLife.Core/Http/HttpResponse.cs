@@ -14,7 +14,7 @@ public class HttpResponse : HttpBase
     public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
 
     /// <summary>状态描述</summary>
-    public String StatusDescription { get; set; }
+    public String? StatusDescription { get; set; }
     #endregion
 
     /// <summary>分析第一行</summary>

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NewLife.Model;
+﻿namespace NewLife.Model;
 
 /// <summary>处理器</summary>
 public interface IHandler
@@ -45,10 +43,10 @@ public interface IHandler
 public abstract class Handler : IHandler
 {
     /// <summary>上一个处理器</summary>
-    public IHandler Prev { get; set; }
+    public IHandler? Prev { get; set; }
 
     /// <summary>下一个处理器</summary>
-    public IHandler Next { get; set; }
+    public IHandler? Next { get; set; }
 
     /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
     /// <remarks>

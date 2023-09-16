@@ -69,6 +69,7 @@ public class InIConfigProvider : FileConfigProvider
     public override String GetString(IConfigSection? section = null)
     {
         section ??= Root;
+        if (section.Childs == null) return String.Empty;
 
         // 分组写入
         var sb = new StringBuilder();

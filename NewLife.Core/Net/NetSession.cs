@@ -275,12 +275,12 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteLog(String format, params Object[] args) => Log?.Info(LogPrefix + format, args);
+    public virtual void WriteLog(String format, params Object?[] args) => Log?.Info(LogPrefix + format, args);
 
     /// <summary>输出错误日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteError(String format, params Object[] args) => Log?.Error(LogPrefix + format, args);
+    public virtual void WriteError(String format, params Object?[] args) => Log?.Error(LogPrefix + format, args);
     #endregion
 
     #region 辅助
