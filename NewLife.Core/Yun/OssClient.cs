@@ -19,13 +19,13 @@ public class OssClient : IObjectStorage
     public String Server { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
 
     /// <summary>访问密钥。AccessKeyId</summary>
-    public String AppId { get; set; }
+    public String? AppId { get; set; }
 
     /// <summary>访问密钥。AccessKeySecret</summary>
-    public String Secret { get; set; }
+    public String? Secret { get; set; }
 
     /// <summary>存储空间</summary>
-    public String BucketName { get; set; }
+    public String? BucketName { get; set; }
 
     /// <summary>是否支持获取文件直接访问Url</summary>
     public Boolean CanGetUrl => false;
@@ -36,9 +36,9 @@ public class OssClient : IObjectStorage
     /// <summary>是否支持搜索</summary>
     public Boolean CanSearch => true;
 
-    private String _bucketName;
-    private String _baseAddress;
-    private HttpClient _Client;
+    private String? _bucketName;
+    private String? _baseAddress;
+    private HttpClient? _Client;
     #endregion
 
     #region 远程操作
@@ -84,7 +84,7 @@ public class OssClient : IObjectStorage
     /// <param name="action"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected async Task<TResult> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null)
+    protected async Task<TResult?> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null)
     {
         var request = ApiHelper.BuildRequest(method, action, args);
 
@@ -107,7 +107,7 @@ public class OssClient : IObjectStorage
         return await ApiHelper.ProcessResponse<TResult>(rs);
     }
 
-    private async Task<IDictionary<String, Object>> GetAsync(String action, Object? args = null) => await InvokeAsync<IDictionary<String, Object>>(HttpMethod.Get, action, args);
+    private async Task<IDictionary<String, Object?>?> GetAsync(String action, Object? args = null) => await InvokeAsync<IDictionary<String, Object?>>(HttpMethod.Get, action, args);
     #endregion
 
     #region Bucket操作

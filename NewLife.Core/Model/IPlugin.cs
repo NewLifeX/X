@@ -37,13 +37,13 @@ public class PluginManager : DisposeBase, IServiceProvider
 {
     #region 属性
     /// <summary>宿主标识，用于供插件区分不同宿主</summary>
-    public String Identity { get; set; }
+    public String? Identity { get; set; }
 
     /// <summary>宿主服务提供者</summary>
-    public IServiceProvider Provider { get; set; }
+    public IServiceProvider? Provider { get; set; }
 
     /// <summary>插件集合</summary>
-    public IPlugin[] Plugins { get; set; }
+    public IPlugin[]? Plugins { get; set; }
 
     /// <summary>日志提供者</summary>
     public ILog Log { get; set; } = XTrace.Log;

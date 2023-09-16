@@ -318,7 +318,7 @@ public class JsonWriter
             if (!IgnoreNullValues || !IsNull(value))
             {
                 var name = FormatName(SerialHelper.GetName(pi));
-                String comment = null;
+                String? comment = null;
                 if (!IgnoreComment && Indented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
                 if (!hs.Contains(name))

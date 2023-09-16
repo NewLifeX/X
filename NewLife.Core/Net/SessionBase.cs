@@ -33,7 +33,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public Boolean Active { get; set; }
 
     /// <summary>底层Socket</summary>
-    public Socket Client { get; protected set; }
+    public Socket? Client { get; protected set; }
 
     /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
     public DateTime LastTime { get; internal protected set; } = DateTime.Now;
@@ -45,10 +45,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public Int32 BufferSize { get; set; }
 
     /// <summary>连接关闭原因</summary>
-    public String CloseReason { get; set; }
+    public String? CloseReason { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
     #endregion
 
     #region 构造

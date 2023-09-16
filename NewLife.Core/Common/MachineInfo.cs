@@ -806,7 +806,7 @@ public class MachineInfo
         return null;
     }
 
-    private static Boolean TryRead(String fileName, out String value)
+    private static Boolean TryRead(String fileName, out String? value)
     {
         value = null;
 
@@ -853,7 +853,7 @@ public class MachineInfo
         return dic;
     }
 
-    private static String Execute(String cmd, String arguments = null)
+    private static String Execute(String cmd, String? arguments = null)
     {
         try
         {
@@ -882,9 +882,9 @@ public class MachineInfo
         catch { return null; }
     }
 
-    private static IDictionary<String, String> ReadCommand(String cmd, String arguemnts = null)
+    private static IDictionary<String, String> ReadCommand(String cmd, String? arguments = null)
     {
-        var str = Execute(cmd, arguemnts);
+        var str = Execute(cmd, arguments);
         if (str.IsNullOrEmpty()) return null;
 
         return str.SplitAsDictionary(":", "\n", true);
@@ -1042,7 +1042,7 @@ public class MachineInfo
     /// <summary>获取指定目录所在盘可用空间，默认当前目录</summary>
     /// <param name="path"></param>
     /// <returns>返回可用空间，字节，获取失败返回-1</returns>
-    public static Int64 GetFreeSpace(String path = null)
+    public static Int64 GetFreeSpace(String? path = null)
     {
         if (path.IsNullOrEmpty()) path = ".";
 
@@ -1125,7 +1125,7 @@ public class MachineInfo
     /// <param name="property"></param>
     /// <param name="nameSpace"></param>
     /// <returns></returns>
-    public static String GetInfo(String path, String property, String nameSpace = null)
+    public static String GetInfo(String path, String property, String? nameSpace = null)
     {
         // Linux Mono不支持WMI
         if (Runtime.Mono) return "";

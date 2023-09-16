@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Data;
@@ -19,15 +20,15 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     public String Name { get; set; }
 
     /// <summary>服务器</summary>
-    public UdpServer Server { get; set; }
+    public UdpServer? Server { get; set; }
 
     /// <summary>底层Socket</summary>
-    Socket ISocket.Client => Server?.Client;
+    Socket? ISocket.Client => Server?.Client;
 
     ///// <summary>数据流</summary>
     //public Stream Stream { get; set; }
 
-    private NetUri _Local;
+    private NetUri? _Local;
     /// <summary>本地地址</summary>
     public NetUri Local
     {

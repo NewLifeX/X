@@ -139,7 +139,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
     /// <returns></returns>
-    public virtual String GetString(IConfigSection section = null) => null;
+    public virtual String? GetString(IConfigSection? section = null) => null;
     #endregion
 
     #region 绑定
@@ -148,14 +148,14 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    public override void Bind<T>(T model, Boolean autoReload = true, String path = null)
+    public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
     {
         base.Bind<T>(model, autoReload, path);
 
         if (autoReload) InitTimer();
     }
 
-    private TimerX _timer;
+    private TimerX? _timer;
     private void InitTimer()
     {
         if (_timer != null) return;

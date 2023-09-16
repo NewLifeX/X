@@ -77,7 +77,7 @@ public static class ConfigHelper
     /// <summary>设置节点值。格式化友好字符串</summary>
     /// <param name="section"></param>
     /// <param name="value"></param>
-    internal static void SetValue(this IConfigSection section, Object value)
+    internal static void SetValue(this IConfigSection section, Object? value)
     {
         if (value is DateTime dt)
             section.Value = dt.ToFullString();
@@ -311,7 +311,7 @@ public static class ConfigHelper
         }
     }
 
-    private static void MapObject(IConfigSection section, IConfigSection cfg, Object val, Type type)
+    private static void MapObject(IConfigSection section, IConfigSection cfg, Object? val, Type type)
     {
         // 分别处理基本类型、数组类型、复杂类型
         if (type.GetTypeCode() != TypeCode.Object)

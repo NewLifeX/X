@@ -432,9 +432,9 @@ public class Packet
     /// <param name="offset"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public String ToStr(Encoding encoding = null, Int32 offset = 0, Int32 count = -1)
+    public String ToStr(Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
-        if (Data == null) return null;
+        if (Data == null) return String.Empty;
 
         encoding ??= Encoding.UTF8;
         if (count < 0) count = Total - offset;
@@ -449,9 +449,9 @@ public class Packet
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
     /// <returns></returns>
-    public String ToHex(Int32 maxLength = 32, String separate = null, Int32 groupSize = 0)
+    public String ToHex(Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
     {
-        if (Data == null) return null;
+        if (Data == null) return String.Empty;
 
         var hex = ReadBytes(0, maxLength).ToHex(separate, groupSize);
 
@@ -462,7 +462,7 @@ public class Packet
     /// <returns></returns>
     public String ToBase64()
     {
-        if (Data == null) return null;
+        if (Data == null) return String.Empty;
 
         if (Next == null) Data.ToBase64(Offset, Count);
 

@@ -57,7 +57,7 @@ public class FieldSizeAttribute : Attribute
     /// <param name="member">目标对象的成员</param>
     /// <param name="value">数值</param>
     /// <returns></returns>
-    private MemberInfo FindReference(Object target, MemberInfo member, out Object value)
+    private MemberInfo? FindReference(Object target, MemberInfo member, out Object? value)
     {
         value = null;
 
@@ -65,8 +65,10 @@ public class FieldSizeAttribute : Attribute
         if (String.IsNullOrEmpty(ReferenceName)) return null;
 
         // 考虑ReferenceName可能是圆点分隔的多重结构
-        MemberInfo mi = null;
+        MemberInfo? mi = null;
         var type = member.DeclaringType;
+        if (type == null) return null;
+
         value = target;
         var ss = ReferenceName.Split('.');
         for (var i = 0; i < ss.Length; i++)
@@ -90,7 +92,7 @@ public class FieldSizeAttribute : Attribute
             // 最后一个不需要计算
             if (i < ss.Length - 1)
             {
-                if (mi != null) value = value.GetValue(mi);
+                if (mi != null) value = value?.GetValue(mi);
             }
         }
 

@@ -7,7 +7,7 @@ namespace NewLife.Extension;
 class SpeakProvider
 {
     private static readonly String typeName = "System.Speech.Synthesis.SpeechSynthesizer";
-    private Type _type;
+    private Type? _type;
 
     public SpeakProvider()
     {
@@ -17,7 +17,7 @@ class SpeakProvider
             _type = Type.GetType(typeName);
             if (_type == null)
             {
-                Assembly asm = null;
+                Assembly? asm = null;
                 try
                 {
                     // 新版系统内置
@@ -43,7 +43,7 @@ class SpeakProvider
         if (_type == null) XTrace.WriteLine("找不到语音库System.Speech，需要从nuget引用");
     }
 
-    private Object synth;
+    private Object? synth;
     void EnsureSynth()
     {
         if (synth == null)

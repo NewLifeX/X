@@ -12,7 +12,7 @@ public class HttpSession : NetSession
 {
     #region 属性
     /// <summary>请求</summary>
-    public HttpRequest Request { get; set; }
+    public HttpRequest? Request { get; set; }
 
     /// <summary>忽略的头部</summary>
     public static String[] ExcludeHeaders { get; set; } = new[] {
@@ -24,8 +24,8 @@ public class HttpSession : NetSession
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     };
 
-    private WebSocket _websocket;
-    private MemoryStream _cache;
+    private WebSocket? _websocket;
+    private MemoryStream? _cache;
     #endregion
 
     #region 收发数据

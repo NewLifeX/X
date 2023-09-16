@@ -7,12 +7,12 @@
 public interface IExtend
 {
     /// <summary>数据项</summary>
-    IDictionary<String, Object> Items { get; }
+    IDictionary<String, Object?> Items { get; }
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    Object this[String key] { get; set; }
+    Object? this[String key] { get; set; }
 }
 
 /// <summary>具有扩展数据字典</summary>

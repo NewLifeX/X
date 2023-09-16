@@ -64,15 +64,17 @@ public class XmlList : XmlHandlerBase
 
         // 子元素类型
         var elmType = type.GetElementTypeEx();
+        if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
         if (value is not IList list || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+        if (list == null) throw new ArgumentOutOfRangeException(nameof(elmType));
 
         // 清空已有数据
         list.Clear();
 
         while (reader.IsStartElement())
         {
-            Object obj = null;
+            Object? obj = null;
             if (!Host.TryRead(elmType, ref obj)) return false;
 
             list.Add(obj);
@@ -83,7 +85,7 @@ public class XmlList : XmlHandlerBase
             // 数组的创建比较特别
             if (type.As<Array>())
             {
-                var arr = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
+                var arr = Array.CreateInstance(elmType, list.Count);
                 list.CopyTo(arr, 0);
                 value = arr;
             }

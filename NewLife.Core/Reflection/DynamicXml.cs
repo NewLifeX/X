@@ -50,7 +50,7 @@ namespace NewLife.Reflection
         /// <param name="binder"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public override Boolean TryGetMember(GetMemberBinder binder, out Object result)
+        public override Boolean TryGetMember(GetMemberBinder binder, out Object? result)
         {
             result = null;
             var getNode = Node.Element(binder.Name);

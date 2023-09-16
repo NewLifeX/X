@@ -187,14 +187,14 @@ public class DefaultMatchQueue : IMatchQueue
 
     class Item
     {
-        public Object Owner { get; set; }
-        public Object Request { get; set; }
+        public Object? Owner { get; set; }
+        public Object? Request { get; set; }
         public Int64 EndTime { get; set; }
-        public TaskCompletionSource<Object> Source { get; set; }
-        public ISpan Span { get; set; }
+        public TaskCompletionSource<Object>? Source { get; set; }
+        public ISpan? Span { get; set; }
     }
     struct ItemWrap
     {
-        public Item Value;
+        public Item? Value;
     }
 }

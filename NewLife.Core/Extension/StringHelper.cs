@@ -385,10 +385,10 @@ public static class StringHelper
     /// <param name="str">字符串</param>
     /// <param name="start"></param>
     /// <returns></returns>
-    public static String? EnsureStart(this String? str, String? start)
+    public static String EnsureStart(this String? str, String start)
     {
-        if (String.IsNullOrEmpty(start)) return str;
-        if (String.IsNullOrEmpty(str)) return start;
+        if (String.IsNullOrEmpty(start)) return str + "";
+        if (String.IsNullOrEmpty(str) || str == null) return start + "";
 
         if (str.StartsWith(start, StringComparison.OrdinalIgnoreCase)) return str;
 
@@ -399,10 +399,10 @@ public static class StringHelper
     /// <param name="str">字符串</param>
     /// <param name="end"></param>
     /// <returns></returns>
-    public static String? EnsureEnd(this String? str, String? end)
+    public static String EnsureEnd(this String? str, String end)
     {
-        if (String.IsNullOrEmpty(end)) return str;
-        if (String.IsNullOrEmpty(str)) return end;
+        if (String.IsNullOrEmpty(end)) return str + "";
+        if (String.IsNullOrEmpty(str) || str == null) return end + "";
 
         if (str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
 

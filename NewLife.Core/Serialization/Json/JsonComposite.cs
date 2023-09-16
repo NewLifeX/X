@@ -144,12 +144,12 @@ public class JsonComposite : JsonHandlerBase
 
             var mtype = GetMemberType(member);
             context.Member = Host.Member = member;
-            WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
+            WriteLog("    {0}.{1}", member.DeclaringType?.Name, member.Name);
 
             // 成员访问器优先
             if (value is IMemberAccessor ac && ac.Read(Host, context)) continue;
 
-            Object v = null;
+            Object? v = null;
             if (!Host.TryRead(mtype, ref v))
             {
                 Host.Hosts.Pop();

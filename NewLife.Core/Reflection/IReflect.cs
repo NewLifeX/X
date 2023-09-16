@@ -82,26 +82,26 @@ public interface IReflect
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    Object Invoke(Object target, MethodBase method, params Object?[] parameters);
+    Object? Invoke(Object? target, MethodBase method, params Object?[] parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    Object InvokeWithParams(Object target, MethodBase method, IDictionary? parameters);
+    Object? InvokeWithParams(Object? target, MethodBase method, IDictionary? parameters);
 
     /// <summary>获取目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    Object GetValue(Object target, PropertyInfo property);
+    Object? GetValue(Object target, PropertyInfo property);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    Object GetValue(Object target, FieldInfo field);
+    Object? GetValue(Object target, FieldInfo field);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
@@ -195,9 +195,9 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    public virtual MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
+    public virtual MethodInfo? GetMethod(Type type, String name, params Type[] paramTypes)
     {
-        MethodInfo mi = null;
+        MethodInfo? mi = null;
         while (true)
         {
             if (paramTypes == null || paramTypes.Length == 0)
@@ -206,6 +206,7 @@ public class DefaultReflect : IReflect
                 mi = type.GetMethod(name, bf, null, paramTypes, null);
             if (mi != null) return mi;
 
+            if (type.BaseType == null) break;
             type = type.BaseType;
             if (type == null || type == typeof(Object)) break;
         }
@@ -459,23 +460,23 @@ public class DefaultReflect : IReflect
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    public virtual Object Invoke(Object target, MethodBase method, Object?[]? parameters) => method.Invoke(target, parameters);
+    public virtual Object? Invoke(Object? target, MethodBase method, Object?[]? parameters) => method.Invoke(target, parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary? parameters)
+    public virtual Object? InvokeWithParams(Object? target, MethodBase method, IDictionary? parameters)
     {
         // 该方法没有参数，无视外部传入参数
         var pis = method.GetParameters();
         if (pis == null || pis.Length == 0) return Invoke(target, method, null);
 
-        var ps = new Object[pis.Length];
+        var ps = new Object?[pis.Length];
         for (var i = 0; i < pis.Length; i++)
         {
-            Object v = null;
+            Object? v = null;
             if (parameters != null && parameters.Contains(pis[i].Name)) v = parameters[pis[i].Name];
             ps[i] = v.ChangeType(pis[i].ParameterType);
         }
@@ -487,13 +488,13 @@ public class DefaultReflect : IReflect
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    public virtual Object GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
+    public virtual Object? GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    public virtual Object GetValue(Object target, FieldInfo field) => field.GetValue(target);
+    public virtual Object? GetValue(Object target, FieldInfo field) => field.GetValue(target);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>

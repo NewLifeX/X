@@ -112,7 +112,7 @@ namespace NewLife.Http
         /// <param name="data"></param>
         /// <param name="type"></param>
         /// <param name="predicate"></param>
-        public void SendAll(Packet data, WebSocketMessageType type, Func<INetSession, Boolean> predicate = null)
+        public void SendAll(Packet data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
         {
             var msg = new WebSocketMessage { Type = type, Payload = data };
             var session = Context.Connection;
@@ -122,7 +122,7 @@ namespace NewLife.Http
         /// <summary>想所有连接发送文本消息</summary>
         /// <param name="message"></param>
         /// <param name="predicate"></param>
-        public void SendAll(String message, Func<INetSession, Boolean> predicate = null) => SendAll(message.GetBytes(), WebSocketMessageType.Text, predicate);
+        public void SendAll(String message, Func<INetSession, Boolean>? predicate = null) => SendAll(message.GetBytes(), WebSocketMessageType.Text, predicate);
 
         /// <summary>发送关闭连接</summary>
         /// <param name="closeStatus"></param>

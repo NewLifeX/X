@@ -177,7 +177,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
     /// <returns></returns>
-    public virtual T Load<T>(String path = null) where T : new()
+    public virtual T? Load<T>(String? path = null) where T : new()
     {
         EnsureLoad();
 
@@ -206,7 +206,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <typeparam name="T">模型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
-    public virtual Boolean Save<T>(T model, String path = null)
+    public virtual Boolean Save<T>(T model, String? path = null)
     {
         EnsureLoad();
 
@@ -226,7 +226,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    public virtual void Bind<T>(T model, Boolean autoReload = true, String path = null)
+    public virtual void Bind<T>(T model, Boolean autoReload = true, String? path = null)
     {
         EnsureLoad();
 

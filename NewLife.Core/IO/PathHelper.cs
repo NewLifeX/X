@@ -418,7 +418,7 @@ public static class PathHelper
     /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <returns></returns>
-    public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, String exts = null, Boolean allSub = false)
+    public static IEnumerable<FileInfo> GetAllFiles(this DirectoryInfo di, String? exts = null, Boolean allSub = false)
     {
         if (di == null || !di.Exists) yield break;
 
@@ -441,7 +441,7 @@ public static class PathHelper
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <param name="callback">复制每一个文件之前的回调</param>
     /// <returns></returns>
-    public static String[] CopyTo(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
+    public static String[] CopyTo(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String> callback = null)
     {
         if (!di.Exists) return new String[0];
 
@@ -469,7 +469,7 @@ public static class PathHelper
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <param name="callback">复制每一个文件之前的回调</param>
     /// <returns></returns>
-    public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String exts = null, Boolean allSub = false, Action<String> callback = null)
+    public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String> callback = null)
     {
         var dest = destDirName.AsDirectory();
         if (!dest.Exists) return new String[0];
@@ -501,7 +501,7 @@ public static class PathHelper
     /// <param name="exts">文件扩展列表。比如*.exe;*.dll;*.config</param>
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <returns></returns>
-    public static String[] CopyIfNewer(this DirectoryInfo di, String[] source, String exts = null, Boolean allSub = false)
+    public static String[] CopyIfNewer(this DirectoryInfo di, String[] source, String? exts = null, Boolean allSub = false)
     {
         var list = new List<String>();
         var cur = di.FullName;
@@ -531,7 +531,7 @@ public static class PathHelper
     /// <summary>压缩</summary>
     /// <param name="di"></param>
     /// <param name="destFile"></param>
-    public static void Compress(this DirectoryInfo di, String destFile = null)
+    public static void Compress(this DirectoryInfo di, String? destFile = null)
     {
         if (destFile.IsNullOrEmpty()) destFile = di.Name + ".zip";
 

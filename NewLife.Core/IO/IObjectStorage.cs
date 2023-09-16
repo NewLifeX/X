@@ -13,13 +13,13 @@ public interface IObjectStorage
 {
     #region 属性
     /// <summary>服务器。某些OSS在域名前或地址后增加BucketName</summary>
-    String Server { get; set; }
+    String? Server { get; set; }
 
     /// <summary>应用标识</summary>
-    String AppId { get; set; }
+    String? AppId { get; set; }
 
     /// <summary>应用密钥</summary>
-    String Secret { get; set; }
+    String? Secret { get; set; }
 
     /// <summary>是否支持获取文件直接访问Url</summary>
     Boolean CanGetUrl { get; }
@@ -58,6 +58,6 @@ public interface IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    Task<IList<IObjectInfo>> Search(String pattern = null, Int32 start = 0, Int32 count = 100);
+    Task<IList<IObjectInfo>> Search(String? pattern = null, Int32 start = 0, Int32 count = 100);
     #endregion
 }

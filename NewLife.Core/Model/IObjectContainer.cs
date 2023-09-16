@@ -32,7 +32,7 @@ public interface IObjectContainer
     /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    Object Resolve(Type serviceType, IServiceProvider serviceProvider = null);
+    Object Resolve(Type serviceType, IServiceProvider? serviceProvider = null);
     #endregion
 }
 
@@ -53,10 +53,10 @@ public enum ObjectLifetime
 public interface IObject
 {
     /// <summary>服务类型</summary>
-    Type ServiceType { get; }
+    Type? ServiceType { get; }
 
     /// <summary>实现类型</summary>
-    Type ImplementationType { get; }
+    Type? ImplementationType { get; }
 
     /// <summary>生命周期</summary>
     ObjectLifetime Lifetime { get; }

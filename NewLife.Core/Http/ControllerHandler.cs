@@ -28,7 +28,7 @@ public class ControllerHandler : IHttpHandler
         if (method == null) throw new ApiException(ApiCode.NotFound, $"控制器[{ControllerType.FullName}]内无法找到操作[{methodName}]");
 
         var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
-
-        context.Response.SetResult(result);
+        if (result != null)
+            context.Response.SetResult(result);
     }
 }

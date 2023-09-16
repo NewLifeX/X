@@ -174,7 +174,7 @@ public static class NetHelper
             // 某些情况下检查端口占用会抛出异常，原因未知
             var gp = IPGlobalProperties.GetIPGlobalProperties();
 
-            IPEndPoint[] eps = null;
+            IPEndPoint[]? eps = null;
             switch (protocol)
             {
                 case NetType.Tcp:

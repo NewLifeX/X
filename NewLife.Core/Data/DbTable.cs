@@ -19,14 +19,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 {
     #region 属性
     /// <summary>数据列</summary>
-    public String[] Columns { get; set; }
+    public String[]? Columns { get; set; }
 
     /// <summary>数据列类型</summary>
     [XmlIgnore, IgnoreDataMember]
-    public Type[] Types { get; set; }
+    public Type[]? Types { get; set; }
 
     /// <summary>数据行</summary>
-    public IList<Object[]> Rows { get; set; }
+    public IList<Object?[]>? Rows { get; set; }
 
     /// <summary>总行数</summary>
     public Int32 Total { get; set; }
@@ -65,19 +65,19 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <summary>读取数据</summary>
     /// <param name="dr">数据读取器</param>
     /// <param name="fields">要读取的字段序列</param>
-    public void ReadData(IDataReader dr, Int32[] fields = null)
+    public void ReadData(IDataReader dr, Int32[]? fields = null)
     {
         // 字段
-        var cs = Columns;
-        var ts = Types;
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
         fields ??= Enumerable.Range(0, cs.Length).ToArray();
 
         // 数据
-        var rs = new List<Object[]>();
+        var rs = new List<Object?[]>();
         while (dr.Read())
         {
-            var row = new Object[fields.Length];
+            var row = new Object?[fields.Length];
             for (var i = 0; i < fields.Length; i++)
             {
                 // MySql在读取0000时间数据时会报错
@@ -110,19 +110,19 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="dr">数据读取器</param>
     /// <param name="fields">要读取的字段序列</param>
     /// <param name="cancellationToken">取消通知</param>
-    public async Task ReadDataAsync(DbDataReader dr, Int32[] fields = null, CancellationToken cancellationToken = default)
+    public async Task ReadDataAsync(DbDataReader dr, Int32[]? fields = null, CancellationToken cancellationToken = default)
     {
         // 字段
-        var cs = Columns;
-        var ts = Types;
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
         fields ??= Enumerable.Range(0, cs.Length).ToArray();
 
         // 数据
-        var rs = new List<Object[]>();
+        var rs = new List<Object?[]>();
         while (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            var row = new Object[fields.Length];
+            var row = new Object?[fields.Length];
             for (var i = 0; i < fields.Length; i++)
             {
                 // MySql在读取0000时间数据时会报错
@@ -160,7 +160,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         Columns = cs.ToArray();
         Types = ts.ToArray();
 
-        var rs = new List<Object[]>();
+        var rs = new List<Object?[]>();
         foreach (DataRow dr in dataTable.Rows)
         {
             rs.Add(dr.ItemArray);
@@ -181,8 +181,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         if (dataTable == null) throw new ArgumentNullException(nameof(dataTable));
 
-        var cs = Columns;
-        var ts = Types;
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+
         for (var i = 0; i < cs.Length; i++)
         {
             var dc = new DataColumn(cs[i], ts[i]);
@@ -191,12 +192,15 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         }
 
         var rs = Rows;
-        for (var i = 0; i < rs.Count; i++)
+        if (rs != null)
         {
-            var dr = dataTable.NewRow();
-            dr.ItemArray = rs[i];
+            for (var i = 0; i < rs.Count; i++)
+            {
+                var dr = dataTable.NewRow();
+                dr.ItemArray = rs[i];
 
-            dataTable.Rows.Add(dr);
+                dataTable.Rows.Add(dr);
+            }
         }
 
         return dataTable;
@@ -243,14 +247,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var ts = new Type[count];
         for (var i = 0; i < count; i++)
         {
-            cs[i] = bn.Read<String>();
+            cs[i] = bn.Read<String>() + "";
 
             // 复杂类型写入类型字符串
             var tc = (TypeCode)bn.Read<Byte>();
             if (tc != TypeCode.Object)
-                ts[i] = Type.GetType("System." + tc);
+                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
             else if (ver >= 2)
-                ts[i] = Type.GetType(bn.Read<String>());
+                ts[i] = Type.GetType(bn.Read<String>() + "") ?? typeof(Object);
         }
         Columns = cs;
         Types = ts;
@@ -266,11 +270,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         if (rows <= 0) return;
 
-        var ts = Types;
-        var rs = new List<Object[]>(rows);
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+        var rs = new List<Object?[]>(rows);
         for (var k = 0; k < rows; k++)
         {
-            var row = new Object[ts.Length];
+            var row = new Object?[ts.Length];
             for (var i = 0; i < ts.Length; i++)
             {
                 row[i] = bn.Read(ts[i]);
@@ -327,8 +331,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="bn"></param>
     public void WriteHeader(Binary bn)
     {
-        var cs = Columns;
-        var ts = Types;
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
         // 头部，幻数、版本和标记
         bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
@@ -356,8 +360,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="bn"></param>
     public void WriteData(Binary bn)
     {
-        var ts = Types;
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
         var rs = Rows;
+        if (rs == null) return;
 
         // 写入数据
         foreach (var row in rs)
@@ -374,8 +379,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <param name="fields">要写入的字段序列</param>
     public void WriteData(Binary bn, Int32[] fields)
     {
-        var ts = Types;
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
         var rs = Rows;
+        if (rs == null) return;
 
         // 写入数据，按照指定的顺序
         foreach (var row in rs)
@@ -658,15 +664,15 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public override String ToString() => $"DbTable[{Columns?.Length}][{Rows?.Count}]";
 
-    private static IDictionary<TypeCode, Object> _Defs;
-    private static Object GetDefault(TypeCode tc)
+    private static IDictionary<TypeCode, Object?>? _Defs;
+    private static Object? GetDefault(TypeCode tc)
     {
         if (_Defs == null)
         {
-            var dic = new Dictionary<TypeCode, Object>();
+            var dic = new Dictionary<TypeCode, Object?>();
             foreach (TypeCode item in Enum.GetValues(typeof(TypeCode)))
             {
-                Object val = null;
+                Object? val = null;
                 val = item switch
                 {
                     TypeCode.Boolean => false,
@@ -690,7 +696,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
             _Defs = dic;
         }
 
-        return _Defs[tc];
+        return _Defs.TryGetValue(tc, out var obj) ? obj : null;
     }
 
     Object ICloneable.Clone() => Clone();

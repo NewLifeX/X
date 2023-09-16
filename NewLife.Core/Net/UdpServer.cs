@@ -394,7 +394,7 @@ public static class UdpHelper
     /// <param name="stream"></param>
     /// <param name="remoteEP"></param>
     /// <returns>返回自身，用于链式写法</returns>
-    public static UdpClient Send(this UdpClient udp, Stream stream, IPEndPoint remoteEP = null)
+    public static UdpClient Send(this UdpClient udp, Stream stream, IPEndPoint? remoteEP = null)
     {
         Int64 total = 0;
 
@@ -418,7 +418,7 @@ public static class UdpHelper
     /// <param name="buffer">缓冲区</param>
     /// <param name="remoteEP"></param>
     /// <returns>返回自身，用于链式写法</returns>
-    public static UdpClient Send(this UdpClient udp, Byte[] buffer, IPEndPoint remoteEP = null)
+    public static UdpClient Send(this UdpClient udp, Byte[] buffer, IPEndPoint? remoteEP = null)
     {
         udp.Send(buffer, buffer.Length, remoteEP);
         return udp;
@@ -430,7 +430,7 @@ public static class UdpHelper
     /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
     /// <param name="remoteEP"></param>
     /// <returns>返回自身，用于链式写法</returns>
-    public static UdpClient Send(this UdpClient udp, String message, Encoding encoding = null, IPEndPoint remoteEP = null)
+    public static UdpClient Send(this UdpClient udp, String message, Encoding? encoding = null, IPEndPoint remoteEP = null)
     {
         if (encoding == null)
             Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);
@@ -472,11 +472,11 @@ public static class UdpHelper
     /// <param name="udp"></param>
     /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
     /// <returns></returns>
-    public static String ReceiveString(this UdpClient udp, Encoding encoding = null)
+    public static String ReceiveString(this UdpClient udp, Encoding? encoding = null)
     {
-        IPEndPoint ep = null;
+        IPEndPoint? ep = null;
         var buffer = udp.Receive(ref ep);
-        if (buffer == null || buffer.Length <= 0) return null;
+        if (buffer == null || buffer.Length <= 0) return String.Empty;
 
         encoding ??= Encoding.UTF8;
         return encoding.GetString(buffer);

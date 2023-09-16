@@ -48,11 +48,14 @@ public class JsonDictionary : JsonHandlerBase
 
         // 子元素类型
         var elmType = type.GetElementTypeEx();
+        if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
         var list = typeof(IList<>).MakeGenericType(elmType).CreateInstance() as IList;
+        if (list == null) throw new ArgumentOutOfRangeException(nameof(elmType));
+
         while (!Host.Read("}"))
         {
-            Object obj = null;
+            Object? obj = null;
             if (!Host.TryRead(elmType, ref obj)) return false;
 
             list.Add(obj);
@@ -61,7 +64,7 @@ public class JsonDictionary : JsonHandlerBase
         // 数组的创建比较特别
         if (type.As<Array>())
         {
-            value = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
+            value = Array.CreateInstance(elmType, list.Count);
             list.CopyTo((Array)value, 0);
         }
         else

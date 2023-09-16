@@ -70,7 +70,7 @@ public static class ObjectContainerHelper
     /// <param name="serviceType"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer AddSingleton(this IObjectContainer container, Type serviceType, Object instance)
+    public static IObjectContainer AddSingleton(this IObjectContainer container, Type serviceType, Object? instance)
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
@@ -94,7 +94,7 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer AddSingleton<TService>(this IObjectContainer container, TService instance = null) where TService : class => container.AddSingleton(typeof(TService), instance);
+    public static IObjectContainer AddSingleton<TService>(this IObjectContainer container, TService? instance = null) where TService : class => container.AddSingleton(typeof(TService), instance);
 
     /// <summary>尝试添加单实例，指定实现类型</summary>
     /// <param name="container"></param>
@@ -130,7 +130,7 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddSingleton<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    public static IObjectContainer TryAddSingleton<TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
@@ -246,7 +246,7 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddScoped<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    public static IObjectContainer TryAddScoped<TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
@@ -362,7 +362,7 @@ public static class ObjectContainerHelper
     /// <param name="container"></param>
     /// <param name="instance"></param>
     /// <returns></returns>
-    public static IObjectContainer TryAddTransient<TService>(this IObjectContainer container, TService instance = null) where TService : class
+    public static IObjectContainer TryAddTransient<TService>(this IObjectContainer container, TService? instance = null) where TService : class
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 

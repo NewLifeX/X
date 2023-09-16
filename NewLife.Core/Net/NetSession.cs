@@ -224,7 +224,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>发送字符串</summary>
     /// <param name="msg"></param>
     /// <param name="encoding"></param>
-    public virtual INetSession Send(String msg, Encoding encoding = null)
+    public virtual INetSession Send(String msg, Encoding? encoding = null)
     {
         var ns = (this as INetSession).Host;
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", msg);

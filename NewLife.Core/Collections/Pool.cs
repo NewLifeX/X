@@ -15,12 +15,12 @@ public class Pool<T> : IPool<T> where T : class
     /// <summary>对象池大小。默认CPU*2，初始化后改变无效</summary>
     public Int32 Max { get; set; }
 
-    private Item[] _items;
-    private T _current;
+    private Item[]? _items;
+    private T? _current;
 
     struct Item
     {
-        public T Value;
+        public T? Value;
     }
     #endregion
 

@@ -40,7 +40,7 @@ public class NetUri
 
     /// <summary>主机或域名</summary>
     /// <remarks>可能对应多个IP地址</remarks>
-    public String Host { get; set; }
+    public String? Host { get; set; }
 
     /// <summary>地址</summary>
     /// <remarks>
@@ -54,7 +54,7 @@ public class NetUri
     public Int32 Port { get { return EndPoint.Port; } set { EndPoint.Port = value; } }
 
     [NonSerialized]
-    private IPEndPoint _EndPoint;
+    private IPEndPoint? _EndPoint;
     /// <summary>终结点</summary>
     /// <remarks>
     /// 域名多地址时的第一个。

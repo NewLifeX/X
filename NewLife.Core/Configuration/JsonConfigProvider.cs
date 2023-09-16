@@ -13,7 +13,7 @@ public class JsonConfigProvider : FileConfigProvider
     /// <summary>加载本地配置文件得到配置提供者</summary>
     /// <param name="fileName">配置文件名，默认appsettings.json</param>
     /// <returns></returns>
-    public static JsonConfigProvider LoadAppSettings(String fileName = null)
+    public static JsonConfigProvider LoadAppSettings(String? fileName = null)
     {
         if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
 
@@ -52,7 +52,7 @@ public class JsonConfigProvider : FileConfigProvider
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
     /// <returns></returns>
-    public override String GetString(IConfigSection section = null)
+    public override String GetString(IConfigSection? section = null)
     {
         section ??= Root;
 

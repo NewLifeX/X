@@ -86,7 +86,7 @@ public class Json : FormatterBase, IJson
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public virtual Boolean Write(Object value, Type type = null)
+    public virtual Boolean Write(Object value, Type? type = null)
     {
         if (type == null)
         {

@@ -187,7 +187,7 @@ public static class Reflect
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object Invoke(this Object target, MethodBase method, params Object?[] parameters)
+    public static Object Invoke(this Object? target, MethodBase method, params Object?[] parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));
@@ -202,7 +202,7 @@ public static class Reflect
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object InvokeWithParams(this Object target, MethodBase method, IDictionary? parameters)
+    public static Object? InvokeWithParams(this Object? target, MethodBase method, IDictionary? parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));
@@ -217,7 +217,7 @@ public static class Reflect
     /// <param name="throwOnError">出错时是否抛出异常</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object GetValue(this Object target, String name, Boolean throwOnError = true)
+    public static Object? GetValue(this Object target, String name, Boolean throwOnError = true)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
         if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
@@ -235,7 +235,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="value">数值</param>
     /// <returns>是否成功获取数值</returns>
-    internal static Boolean TryGetValue(this Object target, String name, out Object value)
+    internal static Boolean TryGetValue(this Object target, String name, out Object? value)
     {
         value = null;
 
@@ -256,7 +256,7 @@ public static class Reflect
     /// <param name="member">成员</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object GetValue(this Object target, MemberInfo member)
+    public static Object? GetValue(this Object target, MemberInfo member)
     {
         // 有可能跟普通的 PropertyInfo.GetValue(Object target) 搞混了
         if (member == null)
@@ -467,7 +467,7 @@ public static class Reflect
     /// <summary>获取类型，如果target是Type类型，则表示要反射的是静态成员</summary>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    static Type GetType(ref Object target)
+    static Type GetType(ref Object? target)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
 
@@ -498,14 +498,14 @@ public static class Reflect
     /// <param name="method"></param>
     /// <param name="target"></param>
     /// <returns></returns>
-    public static TFunc As<TFunc>(this MethodInfo method, Object target = null)
+    public static TFunc? As<TFunc>(this MethodInfo method, Object? target = null)
     {
         if (method == null) return default;
 
         if (target == null)
-            return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), method, true);
+            return (TFunc?)(Object?)Delegate.CreateDelegate(typeof(TFunc), method, true);
         else
-            return (TFunc)(Object)Delegate.CreateDelegate(typeof(TFunc), target, method, true);
+            return (TFunc?)(Object?)Delegate.CreateDelegate(typeof(TFunc), target, method, true);
     }
     #endregion
 }

@@ -86,7 +86,7 @@ public class Xml : FormatterBase, IXml
     /// <param name="name">名称</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public Boolean Write(Object value, String name = null, Type type = null)
+    public Boolean Write(Object value, String? name = null, Type? type = null)
     {
         if (type == null)
         {
@@ -98,9 +98,9 @@ public class Xml : FormatterBase, IXml
         var writer = GetWriter();
 
         // 检查接口
-        if (value is IXmlSerializable)
+        if (value is IXmlSerializable xml)
         {
-            (value as IXmlSerializable).WriteXml(writer);
+            xml.WriteXml(writer);
             return true;
         }
 

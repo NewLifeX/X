@@ -34,7 +34,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     public Int32 SessionTimeout { get; set; }
 
     /// <summary>底层Socket</summary>
-    public Socket Client { get; private set; }
+    public Socket? Client { get; private set; }
 
     /// <summary>是否活动</summary>
     public Boolean Active { get; set; }

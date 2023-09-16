@@ -100,7 +100,7 @@ public class ObjectContainer : IObjectContainer
     /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public virtual Object Resolve(Type serviceType, IServiceProvider serviceProvider = null)
+    public virtual Object? Resolve(Type serviceType, IServiceProvider? serviceProvider = null)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
@@ -138,15 +138,15 @@ public class ObjectContainer : IObjectContainer
         }
     }
 
-    private static IDictionary<TypeCode, Object> _defs;
-    private static Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object> factory)
+    private static IDictionary<TypeCode, Object?>? _defs;
+    private static Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory)
     {
         if (factory != null) return factory(provider);
 
         // 初始化
         if (_defs == null)
         {
-            var dic = new Dictionary<TypeCode, Object>
+            var dic = new Dictionary<TypeCode, Object?>
             {
                 { TypeCode.Empty, null },
                 { TypeCode.DBNull, null},
@@ -170,7 +170,7 @@ public class ObjectContainer : IObjectContainer
             _defs = dic;
         }
 
-        ParameterInfo errorParameter = null;
+        ParameterInfo? errorParameter = null;
         if (!type.IsAbstract)
         {
             // 选择构造函数，优先选择参数最多的可匹配构造函数
@@ -179,9 +179,9 @@ public class ObjectContainer : IObjectContainer
             {
                 if (constructorInfo.IsStatic) continue;
 
-                ParameterInfo errorParameter2 = null;
+                ParameterInfo? errorParameter2 = null;
                 var ps = constructorInfo.GetParameters();
-                var pv = new Object[ps.Length];
+                var pv = new Object?[ps.Length];
                 for (var i = 0; i != ps.Length; i++)
                 {
                     if (pv[i] != null) continue;
@@ -227,19 +227,19 @@ public class ServiceDescriptor : IObject
 {
     #region 属性
     /// <summary>服务类型</summary>
-    public Type ServiceType { get; set; }
+    public Type? ServiceType { get; set; }
 
     /// <summary>实现类型</summary>
-    public Type ImplementationType { get; set; }
+    public Type? ImplementationType { get; set; }
 
     /// <summary>生命周期</summary>
     public ObjectLifetime Lifetime { get; set; }
 
     /// <summary>实例</summary>
-    public Object Instance { get; set; }
+    public Object? Instance { get; set; }
 
     /// <summary>对象工厂</summary>
-    public Func<IServiceProvider, Object> Factory { get; set; }
+    public Func<IServiceProvider, Object>? Factory { get; set; }
     #endregion
 
     #region 方法

@@ -93,7 +93,7 @@ public class ExcelReader : DisposeBase
     /// <summary>逐行读取数据，第一行很可能是表头</summary>
     /// <param name="sheet">工作表名。一般是sheet1/sheet2/sheet3，默认空，使用第一个数据表</param>
     /// <returns></returns>
-    public IEnumerable<Object[]> ReadRows(String sheet = null)
+    public IEnumerable<Object[]> ReadRows(String? sheet = null)
     {
         if (sheet.IsNullOrEmpty()) sheet = Sheets.FirstOrDefault();
         if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), "找不到工作表");

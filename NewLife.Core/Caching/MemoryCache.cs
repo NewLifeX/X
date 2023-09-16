@@ -214,7 +214,7 @@ public class MemoryCache : Cache
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
             if (_cache.TryGetValue(key, out _)) return false;
@@ -236,7 +236,7 @@ public class MemoryCache : Cache
     {
         var expire = Expire;
 
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
             if (_cache.TryGetValue(key, out var item))
@@ -288,7 +288,7 @@ public class MemoryCache : Cache
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
             if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
@@ -402,7 +402,7 @@ public class MemoryCache : Cache
     {
         var expire = Expire;
 
-        CacheItem ci = null;
+        CacheItem? ci = null;
         do
         {
             if (_cache.TryGetValue(key, out var item)) return item;
@@ -702,7 +702,7 @@ public class MemoryCache : Cache
             var exp = bn.Read<Int32>();
             var code = (TypeCode)bn.ReadByte();
 
-            Object value = null;
+            Object? value = null;
             if (code == TypeCode.Empty)
             {
             }
@@ -714,18 +714,18 @@ public class MemoryCache : Cache
             {
                 var typeName = bn.Read<String>();
                 //var type = Type.GetType(typeName);
-                var type = typeName.GetTypeEx();
+                var type = typeName?.GetTypeEx();
 
                 var pk = bn.Read<Packet>();
                 value = pk;
-                if (type != null)
+                if (type != null && pk != null)
                 {
                     var bn2 = new Binary() { Stream = pk.GetStream(), EncodeInt = true };
                     value = bn2.Read(type);
                 }
             }
 
-            Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
+            if (key != null) Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
         }
     }
 

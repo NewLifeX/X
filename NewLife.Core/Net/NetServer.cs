@@ -443,7 +443,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     #endregion
 
     #region 会话
-    private ConcurrentDictionary<Int32, INetSession> _Sessions = new();
+    private ConcurrentDictionary<Int32, INetSession>? _Sessions = new();
     /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
     public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
@@ -509,7 +509,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <param name="data"></param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
+    public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean>? predicate = null)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
 
@@ -527,7 +527,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <param name="message">应用消息，底层对其进行协议编码</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean> predicate = null)
+    public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean>? predicate = null)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
 

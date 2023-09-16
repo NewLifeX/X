@@ -129,7 +129,7 @@ public class EasyClient : IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    public virtual async Task<IList<IObjectInfo>> Search(String pattern = null, Int32 start = 0, Int32 count = 100)
+    public virtual async Task<IList<IObjectInfo>?> Search(String? pattern = null, Int32 start = 0, Int32 count = 100)
     {
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 

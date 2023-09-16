@@ -20,7 +20,7 @@ public interface ISocket : IDisposable2
     String Name { get; set; }
 
     /// <summary>基础Socket对象</summary>
-    Socket Client { get; }
+    Socket? Client { get; }
 
     /// <summary>本地地址</summary>
     NetUri Local { get; set; }
@@ -33,7 +33,7 @@ public interface ISocket : IDisposable2
     /// 1，接收数据解码时，从前向后通过管道处理器；
     /// 2，发送数据编码时，从后向前通过管道处理器；
     /// </remarks>
-    IPipeline Pipeline { get; set; }
+    IPipeline? Pipeline { get; set; }
 
     /// <summary>日志提供者</summary>
     ILog Log { get; set; }
@@ -45,7 +45,7 @@ public interface ISocket : IDisposable2
     Boolean LogReceive { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    ITracer Tracer { get; set; }
+    ITracer? Tracer { get; set; }
     #endregion
 
     #region 方法
@@ -153,7 +153,7 @@ public static class SocketRemoteHelper
     /// <param name="msg">要发送的字符串</param>
     /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
     /// <returns>返回自身，用于链式写法</returns>
-    public static Int32 Send(this ISocketRemote session, String msg, Encoding encoding = null)
+    public static Int32 Send(this ISocketRemote session, String msg, Encoding? encoding = null)
     {
         if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
 
@@ -167,10 +167,10 @@ public static class SocketRemoteHelper
     /// <param name="session">会话</param>
     /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
     /// <returns></returns>
-    public static String ReceiveString(this ISocketRemote session, Encoding encoding = null)
+    public static String ReceiveString(this ISocketRemote session, Encoding? encoding = null)
     {
         var pk = session.Receive();
-        if (pk == null || pk.Count == 0) return null;
+        if (pk == null || pk.Count == 0) return String.Empty;
 
         return pk.ToStr(encoding ?? Encoding.UTF8);
     }

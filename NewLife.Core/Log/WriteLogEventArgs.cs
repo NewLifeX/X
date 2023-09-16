@@ -106,8 +106,8 @@ public class WriteLogEventArgs : EventArgs
 
     #region 日志线程名
     [ThreadStatic]
-    private static String _threadName;
+    private static String? _threadName;
     /// <summary>设置当前线程输出日志时的线程名</summary>
-    public static String CurrentThreadName { get => _threadName; set => _threadName = value; }
+    public static String? CurrentThreadName { get => _threadName; set => _threadName = value; }
     #endregion
 }
