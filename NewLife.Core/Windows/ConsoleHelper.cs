@@ -39,7 +39,7 @@ public class ConsoleHelper
     #region 设置控制台标题 禁用关闭按钮
 
     [DllImport("user32.dll", EntryPoint = "FindWindow")]
-    private static extern IntPtr FindWindow(String lpClassName, String lpWindowName);
+    private static extern IntPtr FindWindow(String? lpClassName, String lpWindowName);
 
     [DllImport("user32.dll", EntryPoint = "GetSystemMenu")]
     private static extern IntPtr GetSystemMenu(IntPtr hWnd, IntPtr bRevert);

@@ -104,13 +104,15 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <typeparam name="T">模型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
-    public override Boolean Save<T>(T model, String path = null)
+    public override Boolean Save<T>(T model, String? path = null)
     {
+        if (model == null) return false;
+
         // 加锁，避免多线程冲突
         lock (this)
         {
             // 文件存储，直接覆盖Root
-            Root.Childs.Clear();
+            Root.Childs?.Clear();
             Root.MapFrom(model);
 
             return SaveAll();

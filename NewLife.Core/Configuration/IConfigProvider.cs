@@ -29,12 +29,12 @@ public interface IConfigProvider
     /// <summary>获取 或 设置 配置值</summary>
     /// <param name="key">配置名，支持冒号分隔的多级名称</param>
     /// <returns></returns>
-    String this[String key] { get; set; }
+    String? this[String key] { get; set; }
 
     /// <summary>查找配置项。可得到子级和配置</summary>
     /// <param name="key">配置名</param>
     /// <returns></returns>
-    IConfigSection GetSection(String key);
+    IConfigSection? GetSection(String key);
 
     /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
     event EventHandler Changed;
@@ -52,20 +52,20 @@ public interface IConfigProvider
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
     /// <returns></returns>
-    T Load<T>(String path = null) where T : new();
+    T? Load<T>(String? path = null) where T : new();
 
     /// <summary>保存模型实例</summary>
     /// <typeparam name="T">模型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    Boolean Save<T>(T model, String path = null);
+    Boolean Save<T>(T model, String? path = null);
 
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
-    void Bind<T>(T model, Boolean autoReload = true, String path = null);
+    void Bind<T>(T model, Boolean autoReload = true, String? path = null);
 
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
@@ -345,7 +345,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// </remarks>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static IConfigProvider Create(String name)
+    public static IConfigProvider? Create(String? name)
     {
         if (name.IsNullOrEmpty()) name = DefaultProvider;
 

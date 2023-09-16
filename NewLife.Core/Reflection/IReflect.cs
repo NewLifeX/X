@@ -75,21 +75,21 @@ public interface IReflect
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    Object CreateInstance(Type type, params Object[] parameters);
+    Object CreateInstance(Type type, params Object?[] parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    Object Invoke(Object target, MethodBase method, params Object[] parameters);
+    Object Invoke(Object target, MethodBase method, params Object?[] parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters);
+    Object InvokeWithParams(Object target, MethodBase method, IDictionary? parameters);
 
     /// <summary>获取目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
@@ -133,13 +133,13 @@ public interface IReflect
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    Type GetElementType(Type type);
+    Type? GetElementType(Type type);
 
     /// <summary>类型转换</summary>
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    Object ChangeType(Object value, Type conversionType);
+    Object? ChangeType(Object value, Type conversionType);
 
     /// <summary>获取类型的友好名称</summary>
     /// <param name="type">指定类型</param>
@@ -416,7 +416,7 @@ public class DefaultReflect : IReflect
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    public virtual Object CreateInstance(Type type, params Object[] parameters)
+    public virtual Object CreateInstance(Type type, params Object?[] parameters)
     {
         try
         {
@@ -425,7 +425,7 @@ public class DefaultReflect : IReflect
                 // 基元类型
                 return type.GetTypeCode() switch
                 {
-                    TypeCode.Empty or TypeCode.DBNull => null,
+                    //TypeCode.Empty or TypeCode.DBNull => null,
                     TypeCode.Boolean => false,
                     TypeCode.Char => '\0',
                     TypeCode.SByte => (SByte)0,
@@ -450,7 +450,7 @@ public class DefaultReflect : IReflect
         catch (Exception ex)
         {
             //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
-            throw new Exception($"创建对象失败 type={type.FullName} parameters={parameters.Join()} {ex.GetTrue()?.Message}", ex);
+            throw new Exception($"创建对象失败 type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
         }
     }
 
@@ -459,14 +459,14 @@ public class DefaultReflect : IReflect
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters) => method.Invoke(target, parameters);
+    public virtual Object Invoke(Object target, MethodBase method, Object?[]? parameters) => method.Invoke(target, parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters)
+    public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary? parameters)
     {
         // 该方法没有参数，无视外部传入参数
         var pis = method.GetParameters();
@@ -614,7 +614,7 @@ public class DefaultReflect : IReflect
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public virtual Type GetElementType(Type type)
+    public virtual Type? GetElementType(Type type)
     {
         if (type.HasElementType) return type.GetElementType();
 
@@ -637,9 +637,9 @@ public class DefaultReflect : IReflect
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    public virtual Object ChangeType(Object value, Type conversionType)
+    public virtual Object? ChangeType(Object value, Type conversionType)
     {
-        Type vtype = null;
+        Type? vtype = null;
         if (value != null) vtype = value.GetType();
         if (vtype == conversionType) return value;
 
@@ -659,7 +659,7 @@ public class DefaultReflect : IReflect
         if (conversionType.IsEnum)
         {
             if (vtype == typeof(String))
-                return Enum.Parse(conversionType, (String)value, true);
+                return Enum.Parse(conversionType, (String)(value ?? String.Empty), true);
             else
                 return Enum.ToObject(conversionType, value);
         }
@@ -667,14 +667,14 @@ public class DefaultReflect : IReflect
         // 字符串转为货币类型，处理一下
         if (vtype == typeof(String))
         {
-            var str = (String)value;
+            var str = (String)(value ?? String.Empty);
             if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
             {
                 value = str.TrimStart(new Char[] { '$', '￥' });
             }
             else if (conversionType.As<Type>())
             {
-                return GetType((String)value, false);
+                return GetType(str, false);
             }
 
             // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型

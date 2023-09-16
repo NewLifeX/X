@@ -47,18 +47,21 @@ public class BinaryList : BinaryHandlerBase
         var count = Host.ReadSize();
         if (count == 0) return true;
 
+        // 子元素类型
+        var elmType = type.GetElementTypeEx();
+
         if (value == null)
         {
             // 数组的创建比较特别
-            if (type.As<Array>())
-                value = Array.CreateInstance(type.GetElementTypeEx(), count);
+            if (type.As<Array>() && elmType != null)
+            {
+                value = Array.CreateInstance(elmType, count);
+            }
             else
                 value = type.CreateInstance();
         }
 
-        // 子元素类型
-        var elmType = type.GetElementTypeEx();
-
+        if (elmType == null) return false;
         if (value is not IList list) return false;
 
         // 如果是数组，则需要先加起来，再

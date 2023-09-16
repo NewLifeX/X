@@ -331,7 +331,7 @@ public static class ApiHelper
     /// <param name="action"></param>
     /// <param name="ps"></param>
     /// <returns></returns>
-    public static String GetUrl(String action, IDictionary<String, Object>? ps)
+    public static String GetUrl(String action, IDictionary<String, Object?>? ps)
     {
         var url = action;
         if (ps != null && ps.Count > 0)

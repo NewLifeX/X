@@ -59,7 +59,7 @@ public class BinaryGeneral : BinaryHandlerBase
                 Write((Single)(value ?? 0));
                 return true;
             case TypeCode.String:
-                Write((String)(value ?? 0));
+                Write((String)(value ?? String.Empty));
                 return true;
             case TypeCode.UInt16:
                 Write((UInt16)(value ?? 0));

@@ -8,10 +8,10 @@ public class WriteLogEventArgs : EventArgs
     public LogLevel Level { get; set; }
 
     /// <summary>日志信息</summary>
-    public String Message { get; set; }
+    public String? Message { get; set; }
 
     /// <summary>异常</summary>
-    public Exception Exception { get; set; }
+    public Exception? Exception { get; set; }
 
     /// <summary>时间</summary>
     public DateTime Time { get; set; }
@@ -26,7 +26,7 @@ public class WriteLogEventArgs : EventArgs
     public Boolean IsWeb { get; set; }
 
     /// <summary>线程名</summary>
-    public String ThreadName { get; set; }
+    public String? ThreadName { get; set; }
 
     /// <summary>任务编号</summary>
     public Int32 TaskID { get; set; }
@@ -63,7 +63,7 @@ public class WriteLogEventArgs : EventArgs
     /// <param name="message">日志</param>
     /// <param name="exception">异常</param>
     /// <returns>返回自身，链式写法</returns>
-    public WriteLogEventArgs Set(String message, Exception exception)
+    public WriteLogEventArgs Set(String message, Exception? exception)
     {
         Message = message;
         Exception = exception;

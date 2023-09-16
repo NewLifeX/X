@@ -131,7 +131,7 @@ public static class Reflect
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object CreateInstance(this Type type, params Object[] parameters)
+    public static Object CreateInstance(this Type type, params Object?[] parameters)
     {
         if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -143,7 +143,7 @@ public static class Reflect
     /// <param name="name">方法名</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    public static Object Invoke(this Object target, String name, params Object[] parameters)
+    public static Object? Invoke(this Object target, String name, params Object?[] parameters)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
         if (String.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
@@ -160,7 +160,7 @@ public static class Reflect
     /// <param name="value">数值</param>
     /// <param name="parameters">方法参数</param>
     /// <remarks>反射调用是否成功</remarks>
-    public static Boolean TryInvoke(this Object target, String name, out Object value, params Object[] parameters)
+    public static Boolean TryInvoke(this Object target, String name, out Object? value, params Object?[] parameters)
     {
         value = null;
 
@@ -187,7 +187,7 @@ public static class Reflect
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object Invoke(this Object target, MethodBase method, params Object[] parameters)
+    public static Object Invoke(this Object target, MethodBase method, params Object?[] parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));
@@ -202,7 +202,7 @@ public static class Reflect
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object InvokeWithParams(this Object target, MethodBase method, IDictionary parameters)
+    public static Object InvokeWithParams(this Object target, MethodBase method, IDictionary? parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));
@@ -340,23 +340,23 @@ public static class Reflect
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public static Type GetElementTypeEx(this Type type) => Provider.GetElementType(type);
+    public static Type? GetElementTypeEx(this Type type) => Provider.GetElementType(type);
 
     /// <summary>类型转换</summary>
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    public static Object ChangeType(this Object value, Type conversionType) => Provider.ChangeType(value, conversionType);
+    public static Object? ChangeType(this Object value, Type conversionType) => Provider.ChangeType(value, conversionType);
 
     /// <summary>类型转换</summary>
     /// <typeparam name="TResult"></typeparam>
     /// <param name="value">数值</param>
     /// <returns></returns>
-    public static TResult ChangeType<TResult>(this Object value)
+    public static TResult? ChangeType<TResult>(this Object value)
     {
         if (value is TResult result) return result;
 
-        return (TResult)ChangeType(value, typeof(TResult));
+        return (TResult?)ChangeType(value, typeof(TResult));
     }
 
     /// <summary>获取类型的友好名称</summary>

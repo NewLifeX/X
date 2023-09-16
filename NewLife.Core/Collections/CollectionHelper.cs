@@ -40,7 +40,7 @@ public static class CollectionHelper
     /// <returns></returns>
     public static T[] ToArray<T>(this ICollection<T> collection)
     {
-        if (collection == null) return null;
+        //if (collection == null) return null;
 
         lock (collection)
         {
@@ -60,11 +60,11 @@ public static class CollectionHelper
     /// <param name="collection"></param>
     /// <param name="index"></param>
     /// <returns></returns>
-    public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+    public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0) where TKey : notnull
     {
-        if (collection == null) return null;
+        //if (collection == null) return null;
 
-        if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Keys as IList<TKey>;
+        if (collection is ConcurrentDictionary<TKey, TValue> cdiv && cdiv.Keys is IList<TKey> list) return list;
 
         if (collection.Count == 0) return new TKey[0];
         lock (collection)
@@ -81,11 +81,12 @@ public static class CollectionHelper
     /// <param name="collection"></param>
     /// <param name="index"></param>
     /// <returns></returns>
-    public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0)
+    public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0) where TKey : notnull
     {
-        if (collection == null) return null;
+        //if (collection == null) return null;
 
-        if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
+        //if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
+        if (collection is ConcurrentDictionary<TKey, TValue> cdiv && cdiv.Values is IList<TValue> list) return list;
 
         if (collection.Count == 0) return new TValue[0];
         lock (collection)
@@ -99,21 +100,22 @@ public static class CollectionHelper
     /// <summary>目标匿名参数对象转为名值字典</summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    public static IDictionary<String, Object> ToDictionary(this Object source)
+    public static IDictionary<String, Object?> ToDictionary(this Object source)
     {
         //!! 即使传入为空，也返回字典，而不是null，避免业务层需要大量判空
         //if (target == null) return null;
-        if (source is IDictionary<String, Object> dic) return dic;
+        if (source is IDictionary<String, Object?> dic) return dic;
 
-        dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
         if (source != null)
         {
             // 修正字符串字典的支持问题
             if (source is IDictionary dic2)
             {
-                foreach (DictionaryEntry item in dic2)
+                foreach (var item in dic2)
                 {
-                    dic[item.Key + ""] = item.Value;
+                    if (item is DictionaryEntry de)
+                        dic[de.Key + ""] = de.Value;
                 }
             }
 #if NETCOREAPP
@@ -121,7 +123,7 @@ public static class CollectionHelper
             {
                 foreach (var item in element.EnumerateObject())
                 {
-                    Object v = item.Value.ValueKind switch
+                    Object? v = item.Value.ValueKind switch
                     {
                         JsonValueKind.Object => item.Value.ToDictionary(),
                         JsonValueKind.Array => ToArray(item.Value),
@@ -153,12 +155,12 @@ public static class CollectionHelper
     }
 
 #if NETCOREAPP
-    static IList<Object> ToArray(JsonElement element)
+    static IList<Object?> ToArray(JsonElement element)
     {
-        var list = new List<Object>();
+        var list = new List<Object?>();
         foreach (var item in element.EnumerateArray())
         {
-            Object v = item.ValueKind switch
+            Object? v = item.ValueKind switch
             {
                 JsonValueKind.Object => item.ToDictionary(),
                 JsonValueKind.Array => ToArray(item),
@@ -182,7 +184,7 @@ public static class CollectionHelper
     /// <param name="overwrite">是否覆盖同名参数</param>
     /// <param name="excludes">排除项</param>
     /// <returns></returns>
-    public static IDictionary<String, Object> Merge(this IDictionary<String, Object> dic, Object target, Boolean overwrite = true, String[] excludes = null)
+    public static IDictionary<String, Object?> Merge(this IDictionary<String, Object?> dic, Object target, Boolean overwrite = true, String[]? excludes = null)
     {
         var exs = excludes != null ? new HashSet<String>(excludes, StringComparer.OrdinalIgnoreCase) : null;
         foreach (var item in target.ToDictionary())
@@ -202,13 +204,16 @@ public static class CollectionHelper
     /// <param name="collection"></param>
     /// <param name="comparer"></param>
     /// <returns></returns>
-    public static IDictionary<TKey, TValue> ToNullable<TKey, TValue>(this IDictionary<TKey, TValue> collection, IEqualityComparer<TKey> comparer = null)
+    public static IDictionary<TKey, TValue> ToNullable<TKey, TValue>(this IDictionary<TKey, TValue> collection, IEqualityComparer<TKey>? comparer = null) where TKey : notnull
     {
-        if (collection == null) return null;
+        //if (collection == null) return null;
 
         if (collection is NullableDictionary<TKey, TValue> dic && (comparer == null || dic.Comparer == comparer)) return dic;
 
-        return new NullableDictionary<TKey, TValue>(collection, comparer);
+        if (comparer == null)
+            return new NullableDictionary<TKey, TValue>(collection);
+        else
+            return new NullableDictionary<TKey, TValue>(collection, comparer);
     }
 
     /// <summary>从队列里面获取指定个数元素</summary>
