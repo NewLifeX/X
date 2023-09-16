@@ -107,13 +107,13 @@ public interface IReflect
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <param name="value">数值</param>
-    void SetValue(Object target, PropertyInfo property, Object value);
+    void SetValue(Object target, PropertyInfo property, Object? value);
 
     /// <summary>设置目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <param name="value">数值</param>
-    void SetValue(Object target, FieldInfo field, Object value);
+    void SetValue(Object target, FieldInfo field, Object? value);
 
     /// <summary>从源对象拷贝数据到目标对象</summary>
     /// <param name="target">目标对象</param>

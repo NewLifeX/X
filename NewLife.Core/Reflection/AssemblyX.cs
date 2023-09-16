@@ -124,7 +124,7 @@ public class AssemblyX
         {
             // 尝试在请求者所在目录加载
             var file = args.RequestingAssembly?.Location;
-            if (!file.IsNullOrEmpty())
+            if (!file.IsNullOrEmpty() && !args.Name.IsNullOrEmpty())
             {
                 var name = args.Name;
                 var p = name.IndexOf(',');
@@ -135,7 +135,7 @@ public class AssemblyX
             }
 
             // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
-            if (Setting.Current.AssemblyResolve)
+            if (Setting.Current.AssemblyResolve && !args.Name.IsNullOrEmpty())
                 return OnResolve(args.Name);
         }
         catch (Exception ex)
@@ -154,7 +154,7 @@ public class AssemblyX
     {
         get
         {
-            Type[] ts;
+            Type?[]? ts;
             try
             {
                 ts = Asm.GetTypes();
@@ -166,7 +166,7 @@ public class AssemblyX
                     XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
                     foreach (var le in ex.LoaderExceptions)
                     {
-                        XTrace.WriteException(le);
+                        if (le != null) XTrace.WriteException(le);
                     }
                 }
                 ts = ex.Types;
@@ -179,7 +179,11 @@ public class AssemblyX
                 if (item != null) yield return item;
             }
 
-            var queue = new Queue<Type>(ts);
+            var queue = new Queue<Type>();
+            foreach (var item in ts)
+            {
+                if (item != null) queue.Enqueue(item);
+            }
             while (queue.Count > 0)
             {
                 var item = queue.Dequeue();
@@ -211,6 +215,8 @@ public class AssemblyX
         if (asm == null) return false;
 
         var name = asm.FullName;
+        if (name.IsNullOrEmpty()) return false;
+
         if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
         if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
         if (name.EndsWith("PublicKeyToken=89845dcd8080cc91")) return true;
@@ -383,7 +389,7 @@ public class AssemblyX
                         // 如果是本目录的程序集，去掉目录前缀
                         var file = item.Asm.Location;
                         var root = AppDomain.CurrentDomain.BaseDirectory;
-                        if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                        if (!root.IsNullOrEmpty() && file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
                         XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
                     }
                     var asm2 = Assembly.LoadFrom(item.Asm.Location);
@@ -570,6 +576,8 @@ public class AssemblyX
         var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
         foreach (var item in loadeds2)
         {
+            if (item == null) continue;
+
             if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location))) continue;
             // 尽管目录不一样，但这两个可能是相同的程序集
             // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
@@ -595,7 +603,13 @@ public class AssemblyX
         if (!Directory.Exists(path)) yield break;
 
         // 先返回已加载的只加载程序集
-        var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+        //var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+        var loadeds2 = new List<AssemblyX>();
+        foreach (var item in AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies())
+        {
+            var ax = Create(item);
+            if (ax != null) loadeds2.Add(ax);
+        }
 
         // 再去遍历目录
         var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
@@ -614,7 +628,7 @@ public class AssemblyX
             if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                 loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-            Assembly asm = null;
+            Assembly? asm = null;
             try
             {
                 asm = Assembly.LoadFrom(item);
@@ -668,6 +682,7 @@ public class AssemblyX
                     else
                         file = file.Replace('\\', '/').EnsureStart("/");
                 }
+                if (file.IsNullOrEmpty()) continue;
                 if (!file.StartsWithIgnoreCase(cur)) continue;
 
                 if (!hs.Contains(file))
@@ -684,7 +699,7 @@ public class AssemblyX
     /// <summary>在对程序集的解析失败时发生</summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    private static Assembly OnResolve(String name)
+    private static Assembly? OnResolve(String name)
     {
         foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
         {

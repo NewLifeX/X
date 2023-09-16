@@ -71,7 +71,7 @@ public interface ICache
     /// <typeparam name="T"></typeparam>
     /// <param name="keys"></param>
     /// <returns></returns>
-    IDictionary<String, T> GetAll<T>(IEnumerable<String> keys);
+    IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys);
 
     /// <summary>批量设置缓存项</summary>
     /// <typeparam name="T"></typeparam>
@@ -127,14 +127,14 @@ public interface ICache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
-    T Replace<T>(String key, T value);
+    T? Replace<T>(String key, T value);
 
     /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败，解决缓存穿透问题</summary>
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    Boolean TryGetValue<T>(String key, out T value);
+    Boolean TryGetValue<T>(String key, out T? value);
 
     /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
     /// <typeparam name="T"></typeparam>
@@ -142,7 +142,7 @@ public interface ICache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
-    T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1);
+    T? GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1);
 
     /// <summary>累加，原子操作</summary>
     /// <param name="key">键</param>

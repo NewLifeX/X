@@ -13,7 +13,7 @@ public class BinaryDictionary : BinaryHandlerBase
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (value is not IDictionary dic) return false;
 
@@ -27,10 +27,13 @@ public class BinaryDictionary : BinaryHandlerBase
         Host.WriteSize(dic.Count);
 
         // 循环写入数据
-        foreach (DictionaryEntry item in dic)
+        foreach (var item in dic)
         {
-            Host.Write(item.Key);
-            Host.Write(item.Value);
+            if (item is DictionaryEntry de)
+            {
+                Host.Write(de.Key);
+                Host.Write(de.Value);
+            }
         }
 
         return true;
@@ -40,7 +43,7 @@ public class BinaryDictionary : BinaryHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IDictionary>() && !type.As(typeof(IDictionary<,>))) return false;
 
@@ -61,16 +64,17 @@ public class BinaryDictionary : BinaryHandlerBase
             value = type.CreateInstance();
         }
 
-        var dic = value as IDictionary;
-
-        for (var i = 0; i < count; i++)
+        if (value is IDictionary dic)
         {
-            Object key = null;
-            Object val = null;
-            if (!Host.TryRead(keyType, ref key)) return false;
-            if (!Host.TryRead(valType, ref val)) return false;
+            for (var i = 0; i < count; i++)
+            {
+                Object? key = null;
+                Object? val = null;
+                if (!Host.TryRead(keyType, ref key) || key == null) return false;
+                if (!Host.TryRead(valType, ref val)) return false;
 
-            dic[key] = val;
+                dic[key] = val;
+            }
         }
 
         return true;

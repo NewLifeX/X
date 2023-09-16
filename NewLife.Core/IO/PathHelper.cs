@@ -188,10 +188,10 @@ public static class PathHelper
     /// <param name="path"></param>
     /// <param name="ps"></param>
     /// <returns></returns>
-    public static String? CombinePath(this String? path, params String[] ps)
+    public static String CombinePath(this String? path, params String[] ps)
     {
-        if (ps == null || ps.Length <= 0) return path;
         path ??= String.Empty;
+        if (ps == null || ps.Length <= 0) return path;
 
         //return Path.Combine(path, path2);
         foreach (var item in ps)

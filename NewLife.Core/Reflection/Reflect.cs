@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
-using NewLife.Data;
 
 namespace NewLife.Reflection;
 
@@ -309,16 +308,16 @@ public static class Reflect
     /// <param name="member">成员</param>
     /// <param name="value">数值</param>
     [DebuggerHidden]
-    public static void SetValue(this Object target, MemberInfo member, Object value)
+    public static void SetValue(this Object target, MemberInfo member, Object? value)
     {
         //// 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
         //if (target is IModel model && target is not IExtend && member is PropertyInfo)
         //    model[member.Name] = value;
         //else 
-        if (member is PropertyInfo)
-            Provider.SetValue(target, member as PropertyInfo, value);
-        else if (member is FieldInfo)
-            Provider.SetValue(target, member as FieldInfo, value);
+        if (member is PropertyInfo pi)
+            Provider.SetValue(target, pi, value);
+        else if (member is FieldInfo fi)
+            Provider.SetValue(target, fi, value);
         else
             throw new ArgumentOutOfRangeException(nameof(member));
     }

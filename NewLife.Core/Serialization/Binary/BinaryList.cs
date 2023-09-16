@@ -13,7 +13,7 @@ public class BinaryList : BinaryHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (!type.As<IList>() && value is not IList) return false;
 
@@ -39,7 +39,7 @@ public class BinaryList : BinaryHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
@@ -47,7 +47,7 @@ public class BinaryList : BinaryHandlerBase
         var count = Host.ReadSize();
         if (count == 0) return true;
 
-        if (value == null && type != null)
+        if (value == null)
         {
             // 数组的创建比较特别
             if (type.As<Array>())
@@ -59,12 +59,13 @@ public class BinaryList : BinaryHandlerBase
         // 子元素类型
         var elmType = type.GetElementTypeEx();
 
-        var list = value as IList;
+        if (value is not IList list) return false;
+
         // 如果是数组，则需要先加起来，再
         //if (value is Array) list = typeof(IList<>).MakeGenericType(value.GetType().GetElementTypeEx()).CreateInstance() as IList;
         for (var i = 0; i < count; i++)
         {
-            Object obj = null;
+            Object? obj = null;
             if (!Host.TryRead(elmType, ref obj)) return false;
 
             if (value is Array)
