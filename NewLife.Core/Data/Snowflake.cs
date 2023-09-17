@@ -117,8 +117,8 @@ public class Snowflake
 
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
         var ms = _watch.ElapsedMilliseconds + _msStart;
-        var wid = WorkerId & 0x3FF;
-        var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
+        var wid = WorkerId & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         //!!! 避免时间倒退
         var t = _lastTime - ms;
@@ -157,8 +157,8 @@ public class Snowflake
         Init();
 
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-        var wid = WorkerId & 0x3FF;
-        var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
+        var wid = WorkerId & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
@@ -166,7 +166,7 @@ public class Snowflake
     /// <summary>获取指定时间的Id，支持传入唯一业务id（22位）。可用于物联网数据采集</summary>
     /// <remarks>
     /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
-    /// 为了避免主键重复，可以使用传感器id作为后续22位，最大支持4194304个。
+    /// 为了避免主键重复，可以使用传感器id作为workerId。
     /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
     /// </remarks>
     /// <param name="time">时间</param>
@@ -176,9 +176,10 @@ public class Snowflake
     {
         Init();
 
+        // 业务id作为workerId，保留12位序列号。即传感器按1024分组，每组每毫秒最多生成4096个Id
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-        var wid = WorkerId & (-1 ^ (-1 << (10 + 12)));
-        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << (10 + 12)));
+        var wid = uid & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
