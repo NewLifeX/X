@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using NewLife.Caching;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Security;
 
 namespace NewLife.Data;
@@ -34,10 +37,10 @@ public class Snowflake
     public static Int32 GlobalWorkerId { get; set; }
 
     /// <summary>workerId分配集群。配置后可确保所有实例化的雪花对象得到唯一workerId，建议使用Redis</summary>
-    public static ICache Cluster { get; set; }
+    public static ICache? Cluster { get; set; }
 
     private Int64 _msStart;
-    private Stopwatch _watch;
+    private Stopwatch? _watch;
     private Int64 _lastTime;
     #endregion
 
@@ -48,6 +51,11 @@ public class Snowflake
     {
         try
         {
+            // 从容器中获取缓存提供者，查找Redis作为集群WorkerId分配器
+            var provider = ObjectContainer.Provider?.GetService<ICacheProvider>();
+            if (provider != null && provider.Cache != provider.InnerCache && provider is not MemoryCache)
+                Cluster = provider.Cache;
+
             var ip = NetHelper.MyIP();
             var buf = ip.GetAddressBytes();
             _instance = (buf[2] << 8) | buf[3];
@@ -104,6 +112,8 @@ public class Snowflake
     public virtual Int64 NewId()
     {
         Init();
+
+        _watch ??= Stopwatch.StartNew();
 
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
         var ms = _watch.ElapsedMilliseconds + _msStart;
@@ -167,9 +177,10 @@ public class Snowflake
         Init();
 
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-        var wid = WorkerId & 0x3FF;
+        var wid = WorkerId & (-1 ^ (-1 << (10 + 12)));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << (10 + 12)));
 
-        return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)(uid & (-1 ^ (-1 << (10 + 12))));
+        return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
 
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
