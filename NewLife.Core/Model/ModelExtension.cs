@@ -24,9 +24,9 @@ public static class ModelExtension
     public static Object GetRequiredService(this IServiceProvider provider, Type serviceType)
     {
         if (provider == null) throw new ArgumentNullException(nameof(provider));
-        return serviceType == null
-            ? throw new ArgumentNullException(nameof(serviceType))
-            : provider.GetService(serviceType) ?? throw new InvalidOperationException($"未注册类型{serviceType.FullName}");
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+
+        return provider.GetService(serviceType) ?? throw new InvalidOperationException($"未注册类型{serviceType.FullName}");
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>

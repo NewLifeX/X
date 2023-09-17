@@ -27,13 +27,13 @@ public class ObjectContainerTests
     public void Add()
     {
         var ioc = new ObjectContainer();
-        ioc.Add(new ServiceDescriptor { ServiceType = typeof(MemoryCache) });
-        ioc.TryAdd(new ServiceDescriptor { ServiceType = typeof(MemoryCache) });
+        ioc.Add(new ServiceDescriptor(typeof(MemoryCache)));
+        ioc.TryAdd(new ServiceDescriptor(typeof(MemoryCache)));
 
         Assert.Equal(1, ioc.Count);
 
         var services = ioc.GetValue("_list") as IList<IObject>;
-        Assert.Equal(1, services.Count);
+        Assert.Single(services);
         Assert.Equal(typeof(MemoryCache), services[0].ServiceType);
         Assert.Null(services[0].ImplementationType);
         Assert.Equal(ObjectLifetime.Singleton, services[0].Lifetime);

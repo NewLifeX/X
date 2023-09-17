@@ -668,7 +668,7 @@ public class MemoryCache : Cache
                 else
                 {
                     bn.Write(type.FullName);
-                    bn.Write(Binary.FastWrite(ci.Value));
+                    if (ci.Value != null) bn.Write(Binary.FastWrite(ci.Value));
                 }
             }
         }
@@ -711,7 +711,8 @@ public class MemoryCache : Cache
             }
             else if (code != TypeCode.Object)
             {
-                value = bn.Read(Type.GetType("System." + code));
+                var type = Type.GetType("System." + code);
+                if (type != null) value = bn.Read(type);
             }
             else
             {

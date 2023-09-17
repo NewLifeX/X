@@ -16,16 +16,16 @@ public interface INetSession : IDisposable2
     Int32 ID { get; }
 
     /// <summary>主服务</summary>
-    NetServer Host { get; set; }
+    NetServer? Host { get; set; }
 
     /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
-    ISocketServer Server { get; set; }
+    ISocketServer? Server { get; set; }
 
     /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpSession</summary>
-    ISocketSession Session { get; set; }
+    ISocketSession? Session { get; set; }
 
     /// <summary>客户端地址</summary>
-    NetUri Remote { get; }
+    NetUri? Remote { get; }
     #endregion
 
     #region 方法

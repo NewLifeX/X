@@ -18,10 +18,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Singleton,
         };
         container.Add(item);
@@ -47,9 +45,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType)
         {
-            ServiceType = serviceType,
             Factory = factory,
             Lifetime = ObjectLifetime.Singleton,
         };
@@ -78,9 +75,8 @@ public static class ObjectContainerHelper
         // 内部可能直接实例化，不需要实例
         if (instance == null && (serviceType.IsAbstract || serviceType.IsInterface)) throw new ArgumentNullException(nameof(instance));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType)
         {
-            ServiceType = serviceType,
             Instance = instance,
             Lifetime = ObjectLifetime.Singleton,
         };
@@ -107,10 +103,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Singleton,
         };
         container.TryAdd(item);
@@ -134,9 +128,8 @@ public static class ObjectContainerHelper
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(typeof(TService))
         {
-            ServiceType = typeof(TService),
             Instance = instance,
             Lifetime = ObjectLifetime.Singleton,
         };
@@ -159,10 +152,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Scoped,
         };
         container.Add(item);
@@ -194,9 +185,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType)
         {
-            ServiceType = serviceType,
             Factory = factory,
             Lifetime = ObjectLifetime.Scoped,
         };
@@ -223,10 +213,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Scoped,
         };
         container.TryAdd(item);
@@ -250,9 +238,8 @@ public static class ObjectContainerHelper
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(typeof(TService))
         {
-            ServiceType = typeof(TService),
             Instance = instance,
             Lifetime = ObjectLifetime.Scoped,
         };
@@ -275,10 +262,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Transient,
         };
         container.Add(item);
@@ -310,9 +295,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType)
         {
-            ServiceType = serviceType,
             Factory = factory,
             Lifetime = ObjectLifetime.Transient,
         };
@@ -339,10 +323,8 @@ public static class ObjectContainerHelper
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
         if (implementationType == null) throw new ArgumentNullException(nameof(implementationType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
             Lifetime = ObjectLifetime.Transient,
         };
         container.TryAdd(item);
@@ -366,9 +348,8 @@ public static class ObjectContainerHelper
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(typeof(TService))
         {
-            ServiceType = typeof(TService),
             Instance = instance,
             Lifetime = ObjectLifetime.Transient,
         };
@@ -399,7 +380,9 @@ public static class ObjectContainerHelper
         container.TryAddTransient(typeof(IHost), typeof(Host));
 
         //return new Host(container.BuildServiceProvider());
-        return container.BuildServiceProvider().GetService(typeof(IHost)) as IHost;
+
+        var provider = container.BuildServiceProvider();
+        return provider.GetRequiredService<IHost>();
     }
     #endregion
 
@@ -409,6 +392,6 @@ public static class ObjectContainerHelper
     /// <param name="container">对象容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static TService Resolve<TService>(this IObjectContainer container) => (TService)container.Resolve(typeof(TService));
+    public static TService? Resolve<TService>(this IObjectContainer container) => (TService?)container.Resolve(typeof(TService));
     #endregion
 }

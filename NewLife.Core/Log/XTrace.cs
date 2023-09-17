@@ -338,7 +338,7 @@ public static class XTrace
         }
         else
         {
-            ftl ??= TextFileLog.Create(null);
+            ftl ??= TextFileLog.Create(String.Empty);
             Log = new CompositeLog(clg, ftl);
         }
     }

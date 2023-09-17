@@ -143,10 +143,12 @@ public class NetUri
         var array = uri.Split(Sep);
         if (array.Length >= 2)
         {
-            protocol = array[0]?.Trim();
+            protocol = array[0]?.Trim() + "";
             Type = ParseType(protocol);
-            uri = array[1]?.Trim();
+            uri = array[1]?.Trim() + "";
         }
+
+        if (uri.IsNullOrWhiteSpace()) return this;
 
         Host = null;
         _EndPoint = null;
@@ -168,7 +170,7 @@ public class NetUri
         var p = uri.IndexOf('/');
         if (p < 0) p = uri.IndexOf('\\');
         if (p < 0) p = uri.IndexOf('?');
-        if (p >= 0) uri = uri[..p]?.Trim();
+        if (p >= 0) uri = uri[..p]?.Trim() + "";
 
         // 分析端口，冒号前一个不能是冒号
         p = uri.LastIndexOf(':');
@@ -178,7 +180,7 @@ public class NetUri
             if (Int32.TryParse(pt, out var port))
             {
                 Port = port;
-                uri = uri[..p]?.Trim();
+                uri = uri[..p]?.Trim() + "";
             }
         }
 
@@ -190,7 +192,7 @@ public class NetUri
         return this;
     }
 
-    private static NetType ParseType(String value)
+    private static NetType ParseType(String? value)
     {
         if (value.IsNullOrEmpty()) return NetType.Unknown;
 
@@ -217,7 +219,7 @@ public class NetUri
     /// <summary>分析地址</summary>
     /// <param name="hostname">主机地址</param>
     /// <returns></returns>
-    public static IPAddress[] ParseAddress(String hostname)
+    public static IPAddress[]? ParseAddress(String? hostname)
     {
         if (hostname.IsNullOrEmpty()) return null;
         if (hostname == "*") return null;

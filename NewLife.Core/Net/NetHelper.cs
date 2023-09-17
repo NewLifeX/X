@@ -25,9 +25,9 @@ public static class NetHelper
         NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
     }
 
-    private static void NetworkChange_NetworkAvailabilityChanged(Object sender, NetworkAvailabilityEventArgs e) => _Cache.Clear();
+    private static void NetworkChange_NetworkAvailabilityChanged(Object? sender, NetworkAvailabilityEventArgs e) => _Cache.Clear();
 
-    private static void NetworkChange_NetworkAddressChanged(Object sender, EventArgs e) => _Cache.Clear();
+    private static void NetworkChange_NetworkAddressChanged(Object? sender, EventArgs e) => _Cache.Clear();
     #endregion
 
     #region 辅助函数
@@ -54,7 +54,7 @@ public static class NetHelper
     /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
     /// <param name="hostname"></param>
     /// <returns></returns>
-    public static IPAddress ParseAddress(this String hostname)
+    public static IPAddress? ParseAddress(this String hostname)
     {
         if (hostname.IsNullOrEmpty()) return null;
 
@@ -72,17 +72,29 @@ public static class NetHelper
     /// <param name="address">地址，可以不带端口</param>
     /// <param name="defaultPort">地址不带端口时指定的默认端口</param>
     /// <returns></returns>
-    public static IPEndPoint ParseEndPoint(String address, Int32 defaultPort = 0)
+    public static IPEndPoint? ParseEndPoint(String address, Int32 defaultPort = 0)
     {
         if (String.IsNullOrEmpty(address)) return null;
 
         var p = address.IndexOf("://");
         if (p >= 0) address = address[(p + 3)..];
 
+        var port = 0;
         p = address.LastIndexOf(':');
-        return p > 0
-            ? new IPEndPoint(address[..p].ParseAddress(), Int32.Parse(address[(p + 1)..]))
-            : new IPEndPoint(address.ParseAddress(), defaultPort);
+        IPAddress? addr = null;
+        if (p > 0)
+        {
+            addr = address[..p].ParseAddress();
+            port = Int32.Parse(address[(p + 1)..]);
+        }
+        else
+        {
+            addr = address.ParseAddress();
+            port = defaultPort;
+        }
+        if (addr == null) return null;
+
+        return new IPEndPoint(addr, port);
     }
 
     /// <summary>针对IPv4和IPv6获取合适的Any地址</summary>
@@ -90,7 +102,7 @@ public static class NetHelper
     /// <param name="address"></param>
     /// <param name="family"></param>
     /// <returns></returns>
-    public static IPAddress GetRightAny(this IPAddress address, AddressFamily family)
+    public static IPAddress? GetRightAny(this IPAddress address, AddressFamily family)
     {
         if (address.AddressFamily == family) return address;
 
@@ -132,7 +144,7 @@ public static class NetHelper
     /// <param name="address"></param>
     /// <param name="remote"></param>
     /// <returns></returns>
-    public static IPAddress GetRelativeAddress(this IPAddress address, IPAddress remote)
+    public static IPAddress? GetRelativeAddress(this IPAddress address, IPAddress remote)
     {
         // 如果不是任意地址，直接返回
         var addr = address;
@@ -143,7 +155,10 @@ public static class NetHelper
 
         // 否则返回本地第一个IP地址
         foreach (var item in GetIPsWithCache())
+        {
             if (item.AddressFamily == addr.AddressFamily) return item;
+        }
+
         return null;
     }
 
@@ -151,7 +166,7 @@ public static class NetHelper
     /// <param name="local"></param>
     /// <param name="remote"></param>
     /// <returns></returns>
-    public static IPEndPoint GetRelativeEndPoint(this IPEndPoint local, IPAddress remote)
+    public static IPEndPoint? GetRelativeEndPoint(this IPEndPoint local, IPAddress remote)
     {
         if (local == null || remote == null) return local;
 
@@ -219,7 +234,7 @@ public static class NetHelper
 
         if (processId <= 0) return rs;
 
-        return rs?.Where(e => e.ProcessId == processId).ToArray();
+        return rs.Where(e => e.ProcessId == processId).ToArray();
     }
     #endregion
 
@@ -360,7 +375,7 @@ public static class NetHelper
     public static IPAddress[] GetIPsWithCache()
     {
         var key = $"NetHelper:GetIPsWithCache";
-        if (_Cache.TryGetValue<IPAddress[]>(key, out var addrs)) return addrs;
+        if (_Cache.TryGetValue<IPAddress[]>(key, out var addrs) && addrs != null) return addrs;
 
         addrs = GetIPs().ToArray();
 
@@ -414,7 +429,7 @@ public static class NetHelper
 
     /// <summary>获取网卡MAC地址（网关所在网卡）</summary>
     /// <returns></returns>
-    public static Byte[] GetMac()
+    public static Byte[]? GetMac()
     {
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
@@ -444,11 +459,11 @@ public static class NetHelper
 
     /// <summary>获取本地第一个IPv4地址</summary>
     /// <returns></returns>
-    public static IPAddress MyIP() => GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
+    public static IPAddress? MyIP() => GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
 
     /// <summary>获取本地第一个IPv6地址</summary>
     /// <returns></returns>
-    public static IPAddress MyIPv6() => GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
+    public static IPAddress? MyIPv6() => GetIPsWithCache().FirstOrDefault(ip => !ip.IsIPv4() && !IPAddress.IsLoopback(ip));
     #endregion
 
     #region 远程开机
@@ -496,7 +511,7 @@ public static class NetHelper
     /// <summary>根据IP地址获取MAC地址</summary>
     /// <param name="ip"></param>
     /// <returns></returns>
-    public static Byte[] GetMac(this IPAddress ip)
+    public static Byte[]? GetMac(this IPAddress ip)
     {
         // 考虑到IPv6是16字节，不确定SendARP是否支持IPv6
         var len = 16;
@@ -511,12 +526,12 @@ public static class NetHelper
 
     #region IP地理位置
     /// <summary>IP地址提供者</summary>
-    public static IIPResolver IpResolver { get; set; }
+    public static IIPResolver? IpResolver { get; set; }
 
     /// <summary>获取IP地址的物理地址位置</summary>
     /// <param name="addr"></param>
     /// <returns></returns>
-    public static String GetAddress(this IPAddress addr)
+    public static String? GetAddress(this IPAddress addr)
     {
         if (addr.IsAny()) return "任意地址";
         if (IPAddress.IsLoopback(addr)) return "本地环回";
@@ -540,12 +555,12 @@ public static class NetHelper
 
         // 有可能是多个IP地址
         p = addr.IndexOf(',');
-        if (p >= 0) addr = addr.Split(',').FirstOrDefault();
+        if (p >= 0) addr = addr.Split(',').First();
 
         // 过滤IPv4/IPv6端口
         if (addr.Replace("::", "").Contains(':')) addr = addr[..addr.LastIndexOf(':')];
 
-        return !IPAddress.TryParse(addr, out var ip) ? String.Empty : ip.GetAddress();
+        return !IPAddress.TryParse(addr, out var ip) ? String.Empty : (ip.GetAddress() ?? String.Empty);
     }
     #endregion
 

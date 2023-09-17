@@ -93,7 +93,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T>
     class Item
     {
         /// <summary>数值</summary>
-        public T Value { get; set; }
+        public T? Value { get; set; }
 
         /// <summary>过期时间</summary>
         public DateTime LastTime { get; set; }
@@ -148,7 +148,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T>
             }
 
             // 借出时如果不可用，再次借取
-        } while (!OnGet(pi.Value));
+        } while (pi.Value == null || !OnGet(pi.Value));
 
         // 最后时间
         pi.LastTime = TimerX.Now;
@@ -265,17 +265,17 @@ public class ObjectPool<T> : DisposeBase, IPool<T>
 
     /// <summary>销毁</summary>
     /// <param name="value"></param>
-    protected virtual void OnDispose(T value) => value.TryDispose();
+    protected virtual void OnDispose(T? value) => value.TryDispose();
     #endregion
 
     #region 重载
     /// <summary>创建实例</summary>
     /// <returns></returns>
-    protected virtual T OnCreate() => (T)typeof(T).CreateInstance();
+    protected virtual T? OnCreate() => (T?)typeof(T).CreateInstance();
     #endregion
 
     #region 定期清理
-    private TimerX _timer;
+    private TimerX? _timer;
 
     private void StartTimer()
     {
@@ -288,7 +288,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T>
         }
     }
 
-    private void Work(Object state)
+    private void Work(Object? state)
     {
         //// 总数小于等于最小个数时不处理
         //if (FreeCount + BusyCount <= Min) return;

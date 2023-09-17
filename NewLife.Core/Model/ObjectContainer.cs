@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace NewLife.Model;
@@ -77,15 +78,12 @@ public class ObjectContainer : IObjectContainer
     /// <param name="instance">实例</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public virtual IObjectContainer Register(Type serviceType, Type implementationType, Object instance)
+    public virtual IObjectContainer Register(Type serviceType, Type? implementationType, Object? instance)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
-        var item = new ServiceDescriptor
+        var item = new ServiceDescriptor(serviceType, implementationType, instance)
         {
-            ServiceType = serviceType,
-            ImplementationType = implementationType,
-            Instance = instance,
             Lifetime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton,
         };
         Add(item);
@@ -116,7 +114,7 @@ public class ObjectContainer : IObjectContainer
     /// <param name="item"></param>
     /// <param name="serviceProvider"></param>
     /// <returns></returns>
-    public virtual Object Resolve(IObject item, IServiceProvider serviceProvider)
+    public virtual Object Resolve(IObject item, IServiceProvider? serviceProvider)
     {
         var map = item as ServiceDescriptor;
         var type = item.ImplementationType ?? item.ServiceType;
@@ -227,7 +225,7 @@ public class ServiceDescriptor : IObject
 {
     #region 属性
     /// <summary>服务类型</summary>
-    public Type? ServiceType { get; set; }
+    public Type ServiceType { get; set; }
 
     /// <summary>实现类型</summary>
     public Type? ImplementationType { get; set; }
@@ -240,6 +238,34 @@ public class ServiceDescriptor : IObject
 
     /// <summary>对象工厂</summary>
     public Func<IServiceProvider, Object>? Factory { get; set; }
+    #endregion
+
+    #region 构造
+    /// <summary>实例化</summary>
+    /// <param name="serviceType"></param>
+    public ServiceDescriptor(Type serviceType) => ServiceType = serviceType;
+
+    /// <summary>实例化</summary>
+    /// <param name="serviceType"></param>
+    /// <param name="implementationType"></param>
+    public ServiceDescriptor(Type serviceType, Type? implementationType)
+    {
+        ServiceType = serviceType;
+        ImplementationType = implementationType;
+    }
+
+    /// <summary>实例化</summary>
+    /// <param name="serviceType"></param>
+    /// <param name="implementationType"></param>
+    /// <param name="instance"></param>
+    public ServiceDescriptor(Type serviceType, Type? implementationType, Object? instance)
+    {
+        ServiceType = serviceType;
+        ImplementationType = implementationType;
+        Instance = instance;
+
+        Lifetime = instance == null ? ObjectLifetime.Transient : ObjectLifetime.Singleton;
+    }
     #endregion
 
     #region 方法
@@ -257,7 +283,7 @@ internal class ServiceProvider : IServiceProvider
 
     public ServiceProvider(IObjectContainer container) => _container = container;
 
-    public Object GetService(Type serviceType)
+    public Object? GetService(Type serviceType)
     {
         if (serviceType == typeof(IObjectContainer)) return _container;
         if (serviceType == typeof(ObjectContainer)) return _container;
@@ -266,9 +292,8 @@ internal class ServiceProvider : IServiceProvider
         if (_container is ObjectContainer ioc && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
         {
             //oc.AddSingleton<IServiceScopeFactory>(new MyServiceScopeFactory { ServiceProvider = this });
-            ioc.TryAdd(new ServiceDescriptor
+            ioc.TryAdd(new ServiceDescriptor(typeof(IServiceScopeFactory))
             {
-                ServiceType = typeof(IServiceScopeFactory),
                 Instance = new MyServiceScopeFactory { ServiceProvider = this },
                 Lifetime = ObjectLifetime.Singleton,
             });
