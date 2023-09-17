@@ -23,7 +23,7 @@ public class LevelLog : Logger
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected override void OnWrite(LogLevel level, String format, params Object[] args)
+    protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
         if (_logs.TryGetValue(level, out var log)) log.Write(level, format, args);
     }

@@ -45,7 +45,7 @@ public interface ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
-    T? Get<T>(String key);
+    T? Get<T>(String key) where T : notnull;
 
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>

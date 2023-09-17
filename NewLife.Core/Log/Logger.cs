@@ -14,27 +14,27 @@ public abstract class Logger : ILog
     /// <summary>调试日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Debug(String format, params Object[] args) => Write(LogLevel.Debug, format, args);
+    public virtual void Debug(String format, params Object?[] args) => Write(LogLevel.Debug, format, args);
 
     /// <summary>信息日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Info(String format, params Object[] args) => Write(LogLevel.Info, format, args);
+    public virtual void Info(String format, params Object?[] args) => Write(LogLevel.Info, format, args);
 
     /// <summary>警告日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Warn(String format, params Object[] args) => Write(LogLevel.Warn, format, args);
+    public virtual void Warn(String format, params Object?[] args) => Write(LogLevel.Warn, format, args);
 
     /// <summary>错误日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Error(String format, params Object[] args) => Write(LogLevel.Error, format, args);
+    public virtual void Error(String format, params Object?[] args) => Write(LogLevel.Error, format, args);
 
     /// <summary>严重错误日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Fatal(String format, params Object[] args) => Write(LogLevel.Fatal, format, args);
+    public virtual void Fatal(String format, params Object?[] args) => Write(LogLevel.Fatal, format, args);
     #endregion
 
     #region 核心方法
@@ -42,7 +42,7 @@ public abstract class Logger : ILog
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void Write(LogLevel level, String format, params Object[] args)
+    public virtual void Write(LogLevel level, String format, params Object?[] args)
     {
         if (Enable && level >= Level) OnWrite(level, format, args);
     }
@@ -51,7 +51,7 @@ public abstract class Logger : ILog
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected abstract void OnWrite(LogLevel level, String format, params Object[] args);
+    protected abstract void OnWrite(LogLevel level, String format, params Object?[] args);
     #endregion
 
     #region 辅助方法
@@ -59,7 +59,7 @@ public abstract class Logger : ILog
     /// <param name="format"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected virtual String Format(String format, Object[] args)
+    protected virtual String? Format(String format, Object?[] args)
     {
         //处理时间的格式化
         if (args != null && args.Length > 0)
@@ -70,10 +70,10 @@ public abstract class Logger : ILog
 
             for (var i = 0; i < args.Length; i++)
             {
-                if (args[i] != null && args[i].GetType() == typeof(DateTime))
+                if (args[i] != null && args[i] is DateTime dt)
                 {
                     // 根据时间值的精确度选择不同的格式化输出
-                    var dt = (DateTime)args[i];
+                    //var dt = (DateTime)args[i];
                     // todo: 解决系统使用utc时间时，日志文件被跨天
                     dt = dt.AddHours(Setting.Current.UtcIntervalHours);
                     if (dt.Millisecond > 0)
@@ -119,7 +119,7 @@ public abstract class Logger : ILog
     {
         public override Boolean Enable { get => false; set { } }
 
-        protected override void OnWrite(LogLevel level, String format, params Object[] args) { }
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args) { }
     }
     #endregion
 
@@ -176,7 +176,7 @@ public abstract class Logger : ILog
         // MonoAndroid无法识别MainModule，致命异常
         try
         {
-            fileName = process.MainModule.FileName;
+            fileName = process.MainModule?.FileName;
         }
         catch { }
         if (fileName.IsNullOrEmpty() || fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))

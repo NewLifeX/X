@@ -13,7 +13,7 @@ public class MemoryCache : Cache
 {
     #region 属性
     /// <summary>缓存核心</summary>
-    protected ConcurrentDictionary<String, CacheItem> _cache;
+    protected ConcurrentDictionary<String, CacheItem> _cache = new();
 
     /// <summary>容量。容量超标时，采用LRU机制删除，默认100_000</summary>
     public Int32 Capacity { get; set; } = 100_000;
@@ -34,7 +34,7 @@ public class MemoryCache : Cache
     /// <summary>实例化一个内存字典缓存</summary>
     public MemoryCache()
     {
-        _cache = new ConcurrentDictionary<String, CacheItem>();
+        //_cache = new ConcurrentDictionary<String, CacheItem>();
         Name = "Memory";
 
         Init(null);
@@ -151,7 +151,10 @@ public class MemoryCache : Cache
     {
         if (!_cache.TryGetValue(key, out var item) || item == null || item.Expired) return default;
 
-        return item.Visit().ChangeType<T>();
+        var rs = item.Visit();
+        if (rs == null) return default;
+
+        return rs.ChangeType<T>();
     }
 
     /// <summary>批量移除缓存项</summary>
@@ -245,7 +248,7 @@ public class MemoryCache : Cache
                 // 如果已经过期，不要返回旧值
                 if (item.Expired) rs = default(T);
                 item.Set(value, expire);
-                return (T)rs;
+                return (T?)rs;
             }
 
             ci ??= new CacheItem(value, expire);
@@ -291,14 +294,14 @@ public class MemoryCache : Cache
         CacheItem? ci = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item)) return (T)item.Visit();
+            if (_cache.TryGetValue(key, out var item)) return (T?)item.Visit();
 
             ci ??= new CacheItem(callback(key), expire);
         } while (!_cache.TryAdd(key, ci));
 
         Interlocked.Increment(ref _count);
 
-        return (T)ci.Visit();
+        return (T?)ci.Visit();
     }
 
     /// <summary>累加，原子操作</summary>

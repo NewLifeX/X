@@ -352,7 +352,7 @@ public static class Reflect
     /// <typeparam name="TResult"></typeparam>
     /// <param name="value">数值</param>
     /// <returns></returns>
-    public static TResult? ChangeType<TResult>(this Object? value)
+    public static TResult ChangeType<TResult>(this Object? value)
     {
         if (value is TResult result) return result;
 

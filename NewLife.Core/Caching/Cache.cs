@@ -63,7 +63,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
-    public abstract T? Get<T>(String key);
+    public abstract T? Get<T>(String key) where T : notnull;
 
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>
@@ -277,7 +277,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，单位毫秒</param>
     /// <returns></returns>
-    public IDisposable AcquireLock(String key, Int32 msTimeout)
+    public IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");

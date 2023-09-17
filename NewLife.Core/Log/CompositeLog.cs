@@ -54,7 +54,7 @@ public class CompositeLog : Logger
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected override void OnWrite(LogLevel level, String format, params Object[] args)
+    protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
         if (Logs != null)
         {

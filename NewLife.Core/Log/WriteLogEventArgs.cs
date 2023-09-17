@@ -63,7 +63,7 @@ public class WriteLogEventArgs : EventArgs
     /// <param name="message">日志</param>
     /// <param name="exception">异常</param>
     /// <returns>返回自身，链式写法</returns>
-    public WriteLogEventArgs Set(String message, Exception? exception)
+    public WriteLogEventArgs Set(String? message, Exception? exception)
     {
         Message = message;
         Exception = exception;

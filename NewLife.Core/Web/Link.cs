@@ -38,25 +38,27 @@ public class Link
 
     /// <summary>分析HTML中的链接</summary>
     /// <param name="html">Html文本</param>
-    /// <param name="baseurl">基础Url，用于生成超链接的完整Url</param>
+    /// <param name="baseUrl">基础Url，用于生成超链接的完整Url</param>
     /// <param name="filter">用于基础过滤的过滤器</param>
     /// <returns></returns>
-    public static Link[] Parse(String html, String? baseurl = null, Func<Link, Boolean>? filter = null)
+    public static Link[] Parse(String html, String? baseUrl = null, Func<Link, Boolean>? filter = null)
     {
         // baseurl必须是/结尾
-        if (baseurl != null && !baseurl.EndsWith("/")) baseurl += "/";
-        if (baseurl.StartsWithIgnoreCase("ftp://")) return ParseFTP(html, baseurl, filter);
+        if (baseUrl != null && !baseUrl.EndsWith("/")) baseUrl += "/";
+        if (baseUrl.StartsWithIgnoreCase("ftp://")) return ParseFTP(html, baseUrl, filter);
 
         // 分析所有链接
         var list = new List<Link>();
-        var buri = new Uri(baseurl);
-        foreach (Match item in _regA.Matches(html))
+        var buri = baseUrl.IsNullOrEmpty() ? null : new Uri(baseUrl);
+        foreach (var item in _regA.Matches(html))
         {
+            if (item is not Match match) continue;
+
             var link = new Link
             {
-                Html = item.Value,
-                FullName = item.Groups["名称"].Value.Trim(),
-                Url = item.Groups["链接"].Value.Trim()
+                Html = match.Value,
+                FullName = match.Groups["名称"].Value.Trim(),
+                Url = match.Groups["链接"].Value.Trim()
             };
             link.RawUrl = link.Url;
             link.Name = link.FullName;
@@ -70,8 +72,8 @@ public class Link
             if (link.Url.StartsWithIgnoreCase("javascript:")) continue;
 
             // 分析title
-            var txt = item.Groups["其它1"].Value.Trim();
-            if (txt.IsNullOrWhiteSpace() || !_regTitle.IsMatch(txt)) txt = item.Groups["其它2"].Value.Trim();
+            var txt = match.Groups["其它1"].Value.Trim();
+            if (txt.IsNullOrWhiteSpace() || !_regTitle.IsMatch(txt)) txt = match.Groups["其它2"].Value.Trim();
             var mc = _regTitle.Match(txt);
             if (mc.Success)
             {
@@ -79,8 +81,15 @@ public class Link
             }
 
             // 完善下载地址
-            var uri = new Uri(buri, link.RawUrl);
-            link.Url = uri.ToString();
+            if (buri != null)
+            {
+                var uri = new Uri(buri, link.RawUrl);
+                link.Url = uri.ToString();
+            }
+            else
+            {
+                link.Url = link.RawUrl;
+            }
 
             // 从github.com下载需要处理Url
             if (link.Url.Contains("github.com") && link.Url.Contains("/blob/")) link.Url = link.Url.Replace("/blob/", "/raw/");
@@ -101,7 +110,7 @@ public class Link
         return list.ToArray();
     }
 
-    private static Link[] ParseFTP(String html, String url, Func<Link, Boolean>? filter = null)
+    private static Link[] ParseFTP(String html, String? baseUrl, Func<Link, Boolean>? filter = null)
     {
         var list = new List<Link>();
 
@@ -110,7 +119,7 @@ public class Link
 
         // 如果由很多段组成，可能是unix格式
         _ = ns[0].Split(' ').Length >= 6;
-        var buri = new Uri(url);
+        var buri = baseUrl.IsNullOrEmpty() ? null : new Uri(baseUrl);
         foreach (var item in ns)
         {
             var link = new Link
@@ -129,8 +138,15 @@ public class Link
             link.Title = Path.GetFileNameWithoutExtension(item);
 
             // 完善下载地址
-            var uri = new Uri(buri, item);
-            link.Url = uri.ToString();
+            if (buri != null)
+            {
+                var uri = new Uri(buri, item);
+                link.Url = uri.ToString();
+            }
+            else
+            {
+                link.Url = item;
+            }
 
             // 分割名称，计算结尾的时间 yyyyMMddHHmmss
             var idx = link.ParseTime();
@@ -179,6 +195,8 @@ public class Link
     Int32 ParseTime()
     {
         var name = Name;
+        if (name.IsNullOrEmpty()) return -1;
+
         // 分割名称，计算结尾的时间 yyyyMMddHHmmss
         var p = name.LastIndexOf("_");
         if (p <= 0) return -1;
@@ -212,6 +230,8 @@ public class Link
     Int32 ParseVersion()
     {
         var name = Name;
+        if (name.IsNullOrEmpty()) return -1;
+
         // 分割版本，_v1.0.0.0
         var p = IndexOfAny(name, new[] { "_v", "_V", ".v", ".V", " v", " V" }, 0);
         if (p <= 0) return -1;

@@ -13,7 +13,7 @@ public class ConsoleLog : Logger
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected override void OnWrite(LogLevel level, String format, params Object[] args)
+    protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
         // 吃掉异常，避免应用崩溃
         try

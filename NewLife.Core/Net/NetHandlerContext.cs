@@ -10,10 +10,10 @@ public class NetHandlerContext : HandlerContext
 {
     #region 属性
     /// <summary>远程连接</summary>
-    public ISocketRemote Session { get; set; }
+    public ISocketRemote? Session { get; set; }
 
     /// <summary>数据帧</summary>
-    public IData Data { get; set; }
+    public IData? Data { get; set; }
 
     /// <summary>读取管道过滤后最终处理消息</summary>
     /// <param name="message"></param>
@@ -74,7 +74,7 @@ public class NetHandlerContext : HandlerContext
             if (raw != null) data.Packet = raw;
         }
 
-        Session.Process(data);
+        Session?.Process(data);
         //}
     }
 
@@ -85,6 +85,7 @@ public class NetHandlerContext : HandlerContext
         if (message == null) return -1;
 
         var session = Session;
+        if (session == null) return -2;
 
         // 发送一包数据
         if (message is Byte[] buf) return session.Send(buf);

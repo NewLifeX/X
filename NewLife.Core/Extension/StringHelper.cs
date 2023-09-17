@@ -458,7 +458,7 @@ public static class StringHelper
     /// <summary>修剪不可见字符。仅修剪ASCII，不包含Unicode</summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static String TrimInvisible(this String value)
+    public static String? TrimInvisible(this String? value)
     {
         if (String.IsNullOrEmpty(value)) return value;
 
@@ -482,7 +482,7 @@ public static class StringHelper
     /// <param name="startIndex">搜索的开始位置</param>
     /// <param name="positions">位置数组，两个元素分别记录头尾位置</param>
     /// <returns></returns>
-    public static String Substring(this String str, String after, String? before = null, Int32 startIndex = 0, Int32[]? positions = null)
+    public static String Substring(this String str, String? after, String? before = null, Int32 startIndex = 0, Int32[]? positions = null)
     {
         if (String.IsNullOrEmpty(str)) return str;
         if (String.IsNullOrEmpty(after) && String.IsNullOrEmpty(before)) return str;
@@ -494,7 +494,7 @@ public static class StringHelper
          */
 
         var p = -1;
-        if (!String.IsNullOrEmpty(after))
+        if (!after.IsNullOrEmpty())
         {
             p = str.IndexOf(after, startIndex);
             if (p < 0) return String.Empty;

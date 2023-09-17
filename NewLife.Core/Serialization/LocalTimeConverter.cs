@@ -28,7 +28,7 @@ public class LocalTimeConverter : JsonConverter<DateTime>
         if (DateTimeOffset.TryParse(str, out var dto)) return dto.LocalDateTime;
 
         var utc = false;
-        if (str.EndsWith("UTC"))
+        if (!str.IsNullOrEmpty() && str.EndsWith("UTC"))
         {
             str = str.TrimEnd("UTC").Trim();
             utc = true;

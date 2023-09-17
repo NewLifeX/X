@@ -17,12 +17,12 @@ public interface IHandler
     /// </remarks>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    Object Read(IHandlerContext context, Object message);
+    Object? Read(IHandlerContext context, Object message);
 
     /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    Object Write(IHandlerContext context, Object message);
+    Object? Write(IHandlerContext context, Object message);
 
     /// <summary>打开连接</summary>
     /// <param name="context">上下文</param>
@@ -56,7 +56,7 @@ public abstract class Handler : IHandler
     /// </remarks>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    public virtual Object Read(IHandlerContext context, Object message)
+    public virtual Object? Read(IHandlerContext context, Object message)
     {
         if (Next != null) return Next.Read(context, message);
 
@@ -69,7 +69,7 @@ public abstract class Handler : IHandler
     /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    public virtual Object Write(IHandlerContext context, Object message)
+    public virtual Object? Write(IHandlerContext context, Object message)
     {
         if (Prev != null) return Prev.Write(context, message);
 
