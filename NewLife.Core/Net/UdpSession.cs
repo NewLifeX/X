@@ -254,8 +254,8 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
-        Error?.Invoke(this, new ExceptionEventArgs { Exception = ex });
+        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex.Message);
+        Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
 

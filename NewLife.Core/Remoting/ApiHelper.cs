@@ -14,7 +14,7 @@ public static class ApiHelper
 {
     #region 远程调用
     /// <summary>性能跟踪器</summary>
-    public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+    public static ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>Http过滤器</summary>
     public static IHttpFilter? Filter { get; set; }
@@ -316,7 +316,7 @@ public static class ApiHelper
 
         // 简单类型
         if (data is TResult result) return result;
-        if (rtype == typeof(Object)) return (TResult)data;
+        if (rtype == typeof(Object)) return (TResult?)data;
         if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
         // 反序列化

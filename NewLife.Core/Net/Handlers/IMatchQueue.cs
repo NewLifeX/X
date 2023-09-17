@@ -42,7 +42,7 @@ public class DefaultMatchQueue : IMatchQueue
     /// <param name="request">请求的数据</param>
     /// <param name="msTimeout">超时取消时间</param>
     /// <param name="source">任务源</param>
-    public virtual Task<Object?> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
+    public virtual Task<Object> Add(Object owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
     {
         var now = Runtime.TickCount64;
 
@@ -86,7 +86,7 @@ public class DefaultMatchQueue : IMatchQueue
             }
         }
 
-        return source?.Task;
+        return source.Task;
     }
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>

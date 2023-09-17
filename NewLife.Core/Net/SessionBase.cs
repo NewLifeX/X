@@ -626,8 +626,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         Pipeline?.Error(CreateContext(this), ex);
 
-        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-        Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex.Message);
+        Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
 

@@ -277,7 +277,8 @@ public class Binary : FormatterBase, IBinary
                     if (att.Version.IsNullOrEmpty() || att.Version == Version)
                     {
                         // 如果指定了引用字段，则找引用字段所表示的长度
-                        if (!att.ReferenceName.IsNullOrEmpty() && att.TryGetReferenceSize(Hosts.Peek(), member, out size))
+                        var target = Hosts.Peek();
+                        if (!att.ReferenceName.IsNullOrEmpty() && target != null && att.TryGetReferenceSize(target, member, out size))
                             return true;
 
                         // 如果指定了固定大小，直接返回

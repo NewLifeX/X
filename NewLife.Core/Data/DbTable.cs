@@ -626,7 +626,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         foreach (var row in rows)
         {
-            var model = (T)typeof(T).CreateInstance();
+            var model = (T?)typeof(T).CreateInstance();
+            if (model == null) continue;
+
             for (var i = 0; i < row.Length; i++)
             {
                 // 扩展赋值，或 反射赋值

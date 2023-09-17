@@ -56,7 +56,7 @@ public class ApolloConfigProvider : HttpConfigProvider
 
     /// <summary>获取所有配置</summary>
     /// <returns></returns>
-    protected override IDictionary<String, Object>? GetAll()
+    protected override IDictionary<String, Object?>? GetAll()
     {
         // 特殊处理Apollo
         if (!NameSpace.IsNullOrEmpty())
@@ -65,13 +65,13 @@ public class ApolloConfigProvider : HttpConfigProvider
             if (client == null) throw new ArgumentNullException(nameof(Client));
 
             var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
-            var dic = new Dictionary<String, Object>();
+            var dic = new Dictionary<String, Object?>();
             foreach (var item in ns)
             {
                 var action = $"/configfiles/json/{AppId}/default/{item}";
                 try
                 {
-                    var rs = client.Get<IDictionary<String, Object>>(action);
+                    var rs = client.Get<IDictionary<String, Object?>>(action);
                     if (rs != null)
                     {
                         foreach (var elm in rs)

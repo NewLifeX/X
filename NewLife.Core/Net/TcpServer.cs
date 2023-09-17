@@ -284,7 +284,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             session.ID = Interlocked.Increment(ref g_ID);
             session.WriteLog("New {0}", session.Remote.EndPoint);
 
-            NewSession?.Invoke(this, new SessionEventArgs { Session = session });
+            NewSession?.Invoke(this, new SessionEventArgs(session));
 
             // 自动开始异步接收处理
             session.SslProtocol = SslProtocol;
@@ -351,8 +351,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-        Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex.Message);
+        Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
 

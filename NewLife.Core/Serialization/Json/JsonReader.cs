@@ -45,11 +45,11 @@ public class JsonReader
     /// <param name="type">模板类型</param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    public Object? ToObject(Object jobj, Type type, Object? target)
+    public Object? ToObject(Object? jobj, Type? type, Object? target)
     {
         if (type == null && target != null) type = target.GetType();
 
-        if (jobj == null || type.IsAssignableFrom(jobj.GetType())) return jobj;
+        if (jobj == null || type == null || type.IsAssignableFrom(jobj.GetType())) return jobj;
 
         // Json对象是字典，目标类型可以是字典或复杂对象
         if (jobj is IDictionary<String, Object> vdic)
@@ -86,15 +86,17 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    private IList ParseList(IList<Object> vlist, Type type, Object? target)
+    private IList? ParseList(IList<Object> vlist, Type type, Object? target)
     {
         var elmType = type.GetGenericArguments().FirstOrDefault();
 
         // 处理一下type是IList<>的情况
-        if (type.IsInterface) type = typeof(List<>).MakeGenericType(elmType);
+        if (type.IsInterface && elmType != null) type = typeof(List<>).MakeGenericType(elmType);
 
         // 创建列表
         var list = (target ?? type.CreateInstance()) as IList;
+        if (list == null) return null;
+
         foreach (var item in vlist)
         {
             if (item == null) continue;
@@ -134,7 +136,7 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    private IDictionary ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary? target)
+    private IDictionary? ParseDictionary(IDictionary<String, Object> dic, Type type, IDictionary? target)
     {
         var types = type.GetGenericArguments();
 
@@ -145,11 +147,13 @@ public class JsonReader
 
             target = type.CreateInstance() as IDictionary;
         }
+        if (target == null) return null;
+
         foreach (var kv in dic)
         {
             var key = ToObject(kv.Key, types[0], null);
             var val = ToObject(kv.Value, types[1], null);
-            target.Add(key, val);
+            if (key != null) target.Add(key, val);
         }
 
         return target;
@@ -162,13 +166,14 @@ public class JsonReader
     /// <param name="type"></param>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    internal Object ParseObject(IDictionary<String, Object> dic, Type type, Object? target)
+    internal Object? ParseObject(IDictionary<String, Object> dic, Type type, Object? target)
     {
         if (type == typeof(NameValueCollection)) return CreateNV(dic);
         if (type == typeof(StringDictionary)) return CreateSD(dic);
         if (type == typeof(Object)) return dic;
 
         target ??= Provider.GetService(type) ?? type.CreateInstance();
+        if (target == null) return null;
 
         if (type.IsDictionary()) return CreateDic(dic, type, target);
 
@@ -217,7 +222,7 @@ public class JsonReader
     #endregion
 
     #region 辅助
-    private Object ChangeType(Object value, Type type)
+    private Object? ChangeType(Object value, Type type)
     {
         // 支持可空类型
         if (type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
@@ -278,19 +283,25 @@ public class JsonReader
         return nv;
     }
 
-    private IDictionary CreateDic(IDictionary<String, Object> dic, Type type, Object obj)
+    private IDictionary? CreateDic(IDictionary<String, Object> dic, Type type, Object obj)
     {
         var nv = obj as IDictionary;
+        if (nv == null) return null;
+
         if (type.IsGenericType && type.GetGenericArguments().Length >= 2)
         {
             var tval = type.GetGenericArguments()[1];
             foreach (var item in dic)
-                nv.Add(item.Key, item.Value.ChangeType(tval));
+            {
+                nv.Add(item.Key, tval == null ? item.Value : item.Value.ChangeType(tval));
+            }
         }
         else
         {
             foreach (var item in dic)
+            {
                 nv.Add(item.Key, item.Value);
+            }
         }
 
         return nv;
@@ -381,15 +392,17 @@ public class JsonReader
         return DateTime.MinValue;
     }
 
-    private Object CreateDictionary(IList<Object> list, Type type, Object target)
+    private Object? CreateDictionary(IList<Object> list, Type type, Object? target)
     {
         var types = type.GetGenericArguments();
         var dic = (target ?? type.CreateInstance()) as IDictionary;
-        foreach (IDictionary<String, Object> values in list)
+        if (dic == null) return null;
+
+        foreach (IDictionary<String, Object?> values in list)
         {
             var key = ToObject(values["k"], types[0], null);
             var val = ToObject(values["v"], types[1], null);
-            dic.Add(key, val);
+            if (key != null) dic.Add(key, val);
         }
 
         return dic;

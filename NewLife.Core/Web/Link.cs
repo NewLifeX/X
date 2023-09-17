@@ -8,28 +8,28 @@ public class Link
 {
     #region 属性
     /// <summary>名称</summary>
-    public String Name { get; set; }
+    public String? Name { get; set; }
 
     /// <summary>全名</summary>
-    public String FullName { get; set; }
+    public String? FullName { get; set; }
 
     /// <summary>超链接</summary>
-    public String Url { get; set; }
+    public String? Url { get; set; }
 
     /// <summary>原始超链接</summary>
-    public String RawUrl { get; set; }
+    public String? RawUrl { get; set; }
 
     /// <summary>标题</summary>
-    public String Title { get; set; }
+    public String? Title { get; set; }
 
     /// <summary>版本</summary>
-    public Version Version { get; set; }
+    public Version? Version { get; set; }
 
     /// <summary>时间</summary>
     public DateTime Time { get; set; }
 
     /// <summary>原始Html</summary>
-    public String Html { get; set; }
+    public String? Html { get; set; }
     #endregion
 
     #region 方法

@@ -343,7 +343,7 @@ public class UdpServer : SessionBase, ISocketServer
                 us.Start();
 
                 // 触发新会话事件
-                NewSession?.Invoke(this, new SessionEventArgs { Session = session });
+                NewSession?.Invoke(this, new SessionEventArgs(session));
             }
         }
 

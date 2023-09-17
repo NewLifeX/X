@@ -18,7 +18,7 @@ public class XmlList : XmlHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (!type.As<IList>() && value is not IList) return false;
 

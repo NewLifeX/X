@@ -131,7 +131,7 @@ public static class Reflect
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object CreateInstance(this Type type, params Object?[] parameters)
+    public static Object? CreateInstance(this Type type, params Object?[] parameters)
     {
         if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -187,7 +187,7 @@ public static class Reflect
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object Invoke(this Object? target, MethodBase method, params Object?[] parameters)
+    public static Object? Invoke(this Object? target, MethodBase method, params Object?[] parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));
@@ -281,7 +281,7 @@ public static class Reflect
     /// <param name="value">数值</param>
     /// <remarks>反射调用是否成功</remarks>
     [DebuggerHidden]
-    public static Boolean SetValue(this Object target, String name, Object value)
+    public static Boolean SetValue(this Object target, String name, Object? value)
     {
         if (String.IsNullOrEmpty(name)) return false;
 
@@ -386,17 +386,25 @@ public static class Reflect
     /// <summary>获取成员的类型，字段和属性是它们的类型，方法是返回类型，类型是自身</summary>
     /// <param name="member"></param>
     /// <returns></returns>
-    public static Type GetMemberType(this MemberInfo member)
+    public static Type? GetMemberType(this MemberInfo member)
     {
-        return member.MemberType switch
-        {
-            MemberTypes.Constructor => (member as ConstructorInfo).DeclaringType,
-            MemberTypes.Field => (member as FieldInfo).FieldType,
-            MemberTypes.Method => (member as MethodInfo).ReturnType,
-            MemberTypes.Property => (member as PropertyInfo).PropertyType,
-            MemberTypes.TypeInfo or MemberTypes.NestedType => member as Type,
-            _ => null,
-        };
+        //return member.MemberType switch
+        //{
+        //    MemberTypes.Constructor => (member as ConstructorInfo).DeclaringType,
+        //    MemberTypes.Field => (member as FieldInfo).FieldType,
+        //    MemberTypes.Method => (member as MethodInfo).ReturnType,
+        //    MemberTypes.Property => (member as PropertyInfo).PropertyType,
+        //    MemberTypes.TypeInfo or MemberTypes.NestedType => member as Type,
+        //    _ => null,
+        //};
+
+        if (member is ConstructorInfo ctor) return ctor.DeclaringType;
+        if (member is FieldInfo field) return field.FieldType;
+        if (member is MethodInfo method) return method.ReturnType;
+        if (member is PropertyInfo property) return property.PropertyType;
+        if (member is Type type) return type;
+
+        return null;
     }
 
     /// <summary>获取类型代码</summary>

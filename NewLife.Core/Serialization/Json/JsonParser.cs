@@ -183,7 +183,8 @@ public class JsonParser
                     break;
 
                 default:
-                    arr.Add(ParseValue());
+                    var v = ParseValue();
+                    if (v != null) arr.Add(v);
                     break;
             }
         }

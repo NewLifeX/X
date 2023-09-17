@@ -36,10 +36,10 @@ public interface ISpanBuilder
     Int32 MinCost { get; }
 
     /// <summary>正常采样</summary>
-    IList<ISpan> Samples { get; }
+    IList<ISpan>? Samples { get; }
 
     /// <summary>异常采样</summary>
-    IList<ISpan> ErrorSamples { get; }
+    IList<ISpan>? ErrorSamples { get; }
     #endregion
 
     #region 方法
@@ -89,10 +89,10 @@ public class DefaultSpanBuilder : ISpanBuilder
     public Int32 MinCost { get; set; }
 
     /// <summary>正常采样</summary>
-    public IList<ISpan> Samples { get; set; }
+    public IList<ISpan>? Samples { get; set; }
 
     /// <summary>异常采样</summary>
-    public IList<ISpan> ErrorSamples { get; set; }
+    public IList<ISpan>? ErrorSamples { get; set; }
     #endregion
 
     #region 构造函数
@@ -121,7 +121,7 @@ public class DefaultSpanBuilder : ISpanBuilder
         span.Start();
 
         // 指示当前节点开始的后续节点强制采样
-        if (span.TraceFlag == 0 && Total < Tracer.MaxSamples) span.TraceFlag = 1;
+        if (span.TraceFlag == 0 && Tracer != null && Total < Tracer.MaxSamples) span.TraceFlag = 1;
 
         return span;
     }
@@ -142,6 +142,9 @@ public class DefaultSpanBuilder : ISpanBuilder
         if (MaxCost < cost) MaxCost = cost;
         if (MinCost > cost || MinCost < 0) MinCost = cost;
 
+        var tracer = Tracer;
+        if (tracer == null) return;
+
         // 检查跟踪标识，上游指示强制采样，确保链路采样完整
         var force = false;
         if (span is DefaultSpan ds && ds.TraceFlag > 0) force = true;
@@ -149,7 +152,7 @@ public class DefaultSpanBuilder : ISpanBuilder
         // 处理采样
         if (span.Error != null)
         {
-            if (Interlocked.Increment(ref _Errors) <= Tracer.MaxErrors || force && _Errors <= Tracer.MaxErrors * 10)
+            if (Interlocked.Increment(ref _Errors) <= tracer.MaxErrors || force && _Errors <= tracer.MaxErrors * 10)
             {
                 var ss = ErrorSamples ??= new List<ISpan>();
                 lock (ss)
@@ -159,7 +162,7 @@ public class DefaultSpanBuilder : ISpanBuilder
             }
         }
         // 未达最大数采样，超时采样，强制采样
-        else if (total <= Tracer.MaxSamples || (Tracer.Timeout > 0 && cost > Tracer.Timeout || force) && total <= Tracer.MaxSamples * 10)
+        else if (total <= tracer.MaxSamples || (tracer.Timeout > 0 && cost > tracer.Timeout || force) && total <= tracer.MaxSamples * 10)
         {
             var ss = Samples ??= new List<ISpan>();
             lock (ss)
@@ -171,6 +174,6 @@ public class DefaultSpanBuilder : ISpanBuilder
 
     /// <summary>已重载。</summary>
     /// <returns></returns>
-    public override String ToString() => Name;
+    public override String? ToString() => Name;
     #endregion
 }

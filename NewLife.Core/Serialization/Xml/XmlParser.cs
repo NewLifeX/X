@@ -20,14 +20,14 @@ public class XmlParser
 
     /// <summary>解码</summary>
     /// <returns></returns>
-    public static IDictionary<String, Object> Decode(String xml)
+    public static IDictionary<String, Object?> Decode(String xml)
     {
         xml = xml.TrimStart((Char)0xFEFF);
         var parser = new XmlParser(xml);
         return parser.ParseValue();
     }
 
-    private IDictionary<String, Object> ParseValue()
+    private IDictionary<String, Object?> ParseValue()
     {
         var reader = _reader;
 

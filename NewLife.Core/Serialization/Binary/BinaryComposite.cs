@@ -141,6 +141,7 @@ public class BinaryComposite : BinaryHandlerBase
         if (ReadRef(ref value)) return true;
 
         value ??= type.CreateInstance();
+        if (value == null) return true;
 
         Host.Hosts.Push(value);
 

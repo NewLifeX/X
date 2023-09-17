@@ -14,11 +14,11 @@ public interface IServiceScope : IDisposable
 
 class MyServiceScope : IServiceScope, IServiceProvider
 {
-    public IServiceProvider MyServiceProvider { get; set; }
+    public IServiceProvider? MyServiceProvider { get; set; }
 
     public IServiceProvider ServiceProvider => this;
 
-    private readonly ConcurrentDictionary<Type, Object> _cache = new();
+    private readonly ConcurrentDictionary<Type, Object?> _cache = new();
 
     public void Dispose()
     {
@@ -29,14 +29,14 @@ class MyServiceScope : IServiceScope, IServiceProvider
         }
     }
 
-    public Object GetService(Type serviceType)
+    public Object? GetService(Type serviceType)
     {
         while (true)
         {
             // 查缓存，如果没有再获取一个并缓存起来
             if (_cache.TryGetValue(serviceType, out var service)) return service;
 
-            service = MyServiceProvider.GetService(serviceType);
+            service = MyServiceProvider?.GetService(serviceType);
 
             if (_cache.TryAdd(serviceType, service)) return service;
         }

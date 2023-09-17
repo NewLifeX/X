@@ -45,7 +45,11 @@ public class ConfigSection : IConfigSection
     public virtual String? this[String key]
     {
         get => this.Find(key, false)?.Value;
-        set => this.Find(key, true).Value = value;
+        set
+        {
+            var section = this.Find(key, true);
+            if (section != null) section.Value = value;
+        }
     }
 
     /// <summary>已重载。</summary>

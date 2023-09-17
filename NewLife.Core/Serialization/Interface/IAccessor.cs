@@ -56,7 +56,7 @@ public static class AccessorHelper
     /// <param name="pk"></param>
     /// <param name="context">上下文</param>
     /// <returns></returns>
-    public static Object AccessorRead(this Type type, Packet pk, Object? context = null)
+    public static Object? AccessorRead(this Type type, Packet pk, Object? context = null)
     {
         var obj = type.CreateInstance();
         if (obj is IAccessor accessor)

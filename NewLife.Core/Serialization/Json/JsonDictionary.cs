@@ -17,17 +17,20 @@ public class JsonDictionary : JsonHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (value is not IDictionary dic) return false;
 
         Host.Write("{");
 
         // 循环写入数据
-        foreach (DictionaryEntry item in dic)
+        foreach (var item in dic)
         {
-            Host.Write(item.Key);
-            Host.Write(item.Value);
+            if (item is DictionaryEntry de)
+            {
+                Host.Write(de.Key);
+                Host.Write(de.Value);
+            }
         }
 
         Host.Write("}");
@@ -39,7 +42,7 @@ public class JsonDictionary : JsonHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IDictionary>() && !type.As(typeof(IDictionary<,>))) return false;
 

@@ -18,7 +18,7 @@ namespace NewLife.Http;
 public static class HttpHelper
 {
     /// <summary>性能跟踪器</summary>
-    public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+    public static ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>Http过滤器</summary>
     public static IHttpFilter? Filter { get; set; }

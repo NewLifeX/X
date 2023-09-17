@@ -85,7 +85,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public override Object Read(IHandlerContext context, Object message)
+    public override Object? Read(IHandlerContext context, Object message)
     {
         if (message is not Packet pk) return base.Read(context, message);
 
@@ -131,7 +131,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected virtual IList<T> Decode(IHandlerContext context, Packet pk) => null;
+    protected virtual IList<T>? Decode(IHandlerContext context, Packet pk) => null;
 
     /// <summary>是否匹配响应</summary>
     /// <param name="request"></param>

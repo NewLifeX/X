@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Data;
 using NewLife.Security;
 using NewLife.Serialization;
 
@@ -31,13 +32,13 @@ public class JwtBuilder : IExtend
 {
     #region 属性
     /// <summary>颁发者</summary>
-    public String Issuer { get; set; }
+    public String? Issuer { get; set; }
 
     /// <summary>主体所有人。可以存放userid/roleid等，作为用户唯一标识</summary>
-    public String Subject { get; set; }
+    public String? Subject { get; set; }
 
     /// <summary>受众</summary>
-    public String Audience { get; set; }
+    public String? Audience { get; set; }
 
     /// <summary>有效期。默认2小时</summary>
     public DateTime Expire { get; set; } = DateTime.Now.AddHours(2);
@@ -49,24 +50,24 @@ public class JwtBuilder : IExtend
     public DateTime IssuedAt { get; set; }
 
     /// <summary>标识</summary>
-    public String Id { get; set; }
+    public String? Id { get; set; }
 
     /// <summary>算法。默认HS256</summary>
     public String Algorithm { get; set; } = "HS256";
 
     /// <summary>令牌类型。默认JWT</summary>
-    public String Type { get; set; }
+    public String? Type { get; set; }
 
     /// <summary>密钥</summary>
-    public String Secret { get; set; }
+    public String? Secret { get; set; }
 
     /// <summary>数据项</summary>
-    public IDictionary<String, Object> Items { get; private set; }
+    public IDictionary<String, Object?> Items { get; private set; } = new Dictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object this[String key] { get => Items?[key]; set => Items[key] = value; }
+    public Object? this[String key] { get => Items?[key]; set => Items[key] = value; }
     #endregion
 
     #region 构造
@@ -142,7 +143,7 @@ public class JwtBuilder : IExtend
     /// <summary>分析令牌</summary>
     /// <param name="token"></param>
     /// <returns></returns>
-    public String[] Parse(String token)
+    public String[]? Parse(String token)
     {
         var ts = token.Split('.');
         if (ts.Length != 3) return null;
@@ -156,15 +157,18 @@ public class JwtBuilder : IExtend
 
         // 主体
         var body = ts[1].ToBase64().ToStr().DecodeJson();
-        Items = body;
+        if (body != null)
+        {
+            Items = body;
 
-        if (body.TryGetValue("iss", out var value)) Issuer = value + "";
-        if (body.TryGetValue("sub", out value)) Subject = value + "";
-        if (body.TryGetValue("aud", out value)) Audience = value + "";
-        if (body.TryGetValue("exp", out value)) Expire = value.ToDateTime();
-        if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
-        if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
-        if (body.TryGetValue("jti", out value)) Id = value + "";
+            if (body.TryGetValue("iss", out var value)) Issuer = value + "";
+            if (body.TryGetValue("sub", out value)) Subject = value + "";
+            if (body.TryGetValue("aud", out value)) Audience = value + "";
+            if (body.TryGetValue("exp", out value)) Expire = value.ToDateTime();
+            if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
+            if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
+            if (body.TryGetValue("jti", out value)) Id = value + "";
+        }
 
         return ts;
     }
@@ -173,7 +177,7 @@ public class JwtBuilder : IExtend
     /// <param name="token"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public Boolean TryDecode(String token, out String message)
+    public Boolean TryDecode(String token, [NotNullWhen(false)] out String? message)
     {
         message = "JWT格式不正确";
 
@@ -233,13 +237,13 @@ public class JwtBuilder : IExtend
 
     #region 算法管理
     private static IDictionary<String, JwtEncodeDelegate> _encodes = new Dictionary<String, JwtEncodeDelegate>(StringComparer.OrdinalIgnoreCase);
-    private static IDictionary<String, JwtDecodeDelegate> _decodes = new Dictionary<String, JwtDecodeDelegate>(StringComparer.OrdinalIgnoreCase);
+    private static IDictionary<String, JwtDecodeDelegate?> _decodes = new Dictionary<String, JwtDecodeDelegate?>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>注册算法的编解码实现</summary>
     /// <param name="algorithm"></param>
     /// <param name="encode"></param>
     /// <param name="decode"></param>
-    public static void RegisterAlgorithm(String algorithm, JwtEncodeDelegate encode, JwtDecodeDelegate decode)
+    public static void RegisterAlgorithm(String algorithm, JwtEncodeDelegate encode, JwtDecodeDelegate? decode)
     {
         _encodes[algorithm] = encode;
         _decodes[algorithm] = decode;

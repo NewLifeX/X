@@ -8,10 +8,10 @@ public class PacketCodec
 {
     #region 属性
     /// <summary>缓存流</summary>
-    public MemoryStream Stream { get; set; }
+    public MemoryStream? Stream { get; set; }
 
     /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
-    public Func<Packet, Int32> GetLength { get; set; }
+    public Func<Packet, Int32>? GetLength { get; set; }
 
     /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
     public Int32 Offset { get; set; }
@@ -26,7 +26,7 @@ public class PacketCodec
     public Int32 MaxCache { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
     #endregion
 
     /// <summary>分析数据流，得到一帧数据</summary>

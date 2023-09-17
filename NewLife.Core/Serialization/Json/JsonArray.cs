@@ -17,7 +17,7 @@ public class JsonArray : JsonHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (value is not IList list) return false;
 

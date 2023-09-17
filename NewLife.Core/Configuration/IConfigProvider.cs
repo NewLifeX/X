@@ -89,7 +89,25 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
 
     /// <summary>所有键</summary>
-    public virtual ICollection<String>? Keys => Root?.Childs?.Select(e => e.Key).ToList();
+    public virtual ICollection<String> Keys
+    {
+        get
+        {
+            //Root?.Childs?.Select(e => e.Key).ToList();
+
+            var list = new List<String>();
+
+            var childs = Root?.Childs;
+            if (childs == null) return list;
+
+            foreach (var item in childs)
+            {
+                if (item.Key != null) list.Add(item.Key);
+            }
+
+            return list;
+        }
+    }
 
     /// <summary>已使用的键</summary>
     public ICollection<String> UsedKeys { get; } = new List<String>();
@@ -119,7 +137,11 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual String? this[String key]
     {
         get { EnsureLoad(); return Find(key, false)?.Value; }
-        set => Find(key, true).Value = value;
+        set
+        {
+            var section = Find(key, true);
+            if (section != null) section.Value = value;
+        }
     }
 
     /// <summary>查找配置项。可得到子级和配置</summary>
@@ -182,7 +204,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         EnsureLoad();
 
         // 如果有命名空间则使用指定层级数据源
-        var source = GetSection(path);
+        var source = path.IsNullOrEmpty() ? Root : GetSection(path);
         if (source == null) return default;
 
         var model = new T();

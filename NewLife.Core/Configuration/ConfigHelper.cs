@@ -209,7 +209,7 @@ public static class ConfigHelper
             else
             {
                 var val = elementType.CreateInstance();
-                MapTo(sec, val, provider);
+                if (val != null) MapTo(sec, val, provider);
                 arr.SetValue(val, i);
             }
         }
@@ -239,7 +239,7 @@ public static class ConfigHelper
                 }
                 else
                 {
-                    MapTo(childs[i], val, provider);
+                    if (val != null) MapTo(childs[i], val, provider);
                     //list[i] = val;
                 }
                 list.Add(val);

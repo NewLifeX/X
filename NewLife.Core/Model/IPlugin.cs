@@ -17,7 +17,7 @@ public interface IPlugin
     /// <param name="identity">插件宿主标识</param>
     /// <param name="provider">服务提供者</param>
     /// <returns>返回初始化是否成功。如果当前宿主不是所期待的宿主，这里返回false</returns>
-    Boolean Init(String identity, IServiceProvider provider);
+    Boolean Init(String? identity, IServiceProvider provider);
 }
 
 /// <summary>插件特性。用于判断某个插件实现类是否支持某个宿主</summary>
@@ -97,7 +97,7 @@ public class PluginManager : DisposeBase, IServiceProvider
                 }
                 catch (Exception ex)
                 {
-                    Log?.Debug(null, ex);
+                    Log?.Debug(String.Empty, ex);
                 }
             }
         }
@@ -135,7 +135,7 @@ public class PluginManager : DisposeBase, IServiceProvider
             }
             catch (Exception ex)
             {
-                Log?.Debug(null, ex);
+                Log?.Debug(String.Empty, ex);
             }
         }
 
@@ -144,7 +144,7 @@ public class PluginManager : DisposeBase, IServiceProvider
     #endregion
 
     #region IServiceProvider 成员
-    Object IServiceProvider.GetService(Type serviceType)
+    Object? IServiceProvider.GetService(Type serviceType)
     {
         if (serviceType == typeof(PluginManager)) return this;
 

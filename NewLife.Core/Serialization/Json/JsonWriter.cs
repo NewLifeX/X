@@ -104,7 +104,7 @@ public class JsonWriter
     /// <returns></returns>
     public String GetString() => _Builder.ToString();
 
-    private void WriteValue(Object obj)
+    private void WriteValue(Object? obj)
     {
         if (obj is null or DBNull)
             _Builder.Append("null");
@@ -113,7 +113,7 @@ public class JsonWriter
             WriteString(obj + "");
 
         else if (obj is Type type)
-            WriteString(type.FullName.TrimStart("System."));
+            WriteString(type.FullName?.TrimStart("System.") + "");
 
         else if (obj is Guid)
             WriteStringFast(obj + "");
@@ -195,9 +195,11 @@ public class JsonWriter
 
         var first = true;
 
-        foreach (String item in nvs)
+        foreach (var item in nvs)
         {
-            if (!IgnoreNullValues || !IsNull(nvs[item]))
+            if (item is not String key) continue;
+
+            if (!IgnoreNullValues || !IsNull(nvs[key]))
             {
                 if (!first)
                 {
@@ -206,8 +208,8 @@ public class JsonWriter
                 }
                 first = false;
 
-                var name = FormatName(item);
-                WritePair(name, nvs[item]);
+                var name = FormatName(key);
+                WritePair(name, nvs[key]);
             }
         }
 
@@ -222,9 +224,11 @@ public class JsonWriter
 
         var first = true;
 
-        foreach (DictionaryEntry item in dic)
+        foreach (var item in dic)
         {
-            if (!IgnoreNullValues || !IsNull(item.Value))
+            if (item is not DictionaryEntry entry) continue;
+
+            if (!IgnoreNullValues || !IsNull(entry.Value))
             {
                 if (!first)
                 {
@@ -233,8 +237,8 @@ public class JsonWriter
                 }
                 first = false;
 
-                var name = FormatName((String)item.Key);
-                WritePair(name, item.Value);
+                var name = FormatName((String)entry.Key);
+                WritePair(name, entry.Value);
             }
         }
 
@@ -364,7 +368,7 @@ public class JsonWriter
         _depth--;
     }
 
-    private void WriteMember(String name, Object value, String comment, ref Boolean first)
+    private void WriteMember(String name, Object? value, String? comment, ref Boolean first)
     {
         if (!IgnoreNullValues || !IsNull(value))
         {
@@ -401,7 +405,7 @@ public class JsonWriter
         WriteStringFast(value);
     }
 
-    private void WritePair(String name, Object value)
+    private void WritePair(String name, Object? value)
     {
         WriteStringFast(name);
 
@@ -419,6 +423,8 @@ public class JsonWriter
         var first = true;
         foreach (var obj in arr)
         {
+            if (obj == null) continue;
+
             if (first)
                 WriteLeftIndent();
             else
@@ -441,9 +447,11 @@ public class JsonWriter
         WriteLeftIndent();
 
         var first = true;
-        foreach (DictionaryEntry item in dic)
+        foreach (var item in dic)
         {
-            if (!IgnoreNullValues || !IsNull(item.Value))
+            if (item is not DictionaryEntry entry) continue;
+
+            if (!IgnoreNullValues || !IsNull(entry.Value))
             {
                 if (!first)
                 {
@@ -452,8 +460,8 @@ public class JsonWriter
                 }
                 first = false;
 
-                var name = FormatName(item.Key + "");
-                WritePair(name, item.Value);
+                var name = FormatName(entry.Key + "");
+                WritePair(name, entry.Value);
             }
         }
 
@@ -506,8 +514,10 @@ public class JsonWriter
         WriteLeftIndent();
 
         var first = true;
-        foreach (DictionaryEntry entry in dic)
+        foreach (var item in dic)
         {
+            if (item is not DictionaryEntry entry) continue;
+
             if (!IgnoreNullValues || !IsNull(entry.Value))
             {
                 if (!first)
@@ -598,8 +608,8 @@ public class JsonWriter
         return name;
     }
 
-    private static IDictionary<TypeCode, Object> _def;
-    private static Boolean IsNull(Object obj)
+    private static IDictionary<TypeCode, Object>? _def;
+    private static Boolean IsNull(Object? obj)
     {
         if (obj is null or DBNull) return true;
 

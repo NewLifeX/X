@@ -45,8 +45,7 @@ public class JsonConfigProvider : FileConfigProvider
         txt = TrimComment(txt);
 
         var src = txt.DecodeJson();
-
-        Map(src, section);
+        if (src != null) Map(src, section);
     }
 
     /// <summary>获取字符串形式</summary>
@@ -56,7 +55,7 @@ public class JsonConfigProvider : FileConfigProvider
     {
         section ??= Root;
 
-        var rs = new Dictionary<String, Object>();
+        var rs = new Dictionary<String, Object?>();
         Map(section, rs);
 
         var jw = new JsonWriter
@@ -81,7 +80,7 @@ public class JsonConfigProvider : FileConfigProvider
     /// <summary>字典映射到配置树</summary>
     /// <param name="src"></param>
     /// <param name="section"></param>
-    protected virtual void Map(IDictionary<String, Object> src, IConfigSection section)
+    protected virtual void Map(IDictionary<String, Object?> src, IConfigSection section)
     {
         foreach (var item in src)
         {
@@ -93,7 +92,7 @@ public class JsonConfigProvider : FileConfigProvider
             if (src.TryGetValue(cname, out var comment) && comment != null) cfg.Comment = comment + "";
 
             // 支持字典
-            if (item.Value is IDictionary<String, Object> dic)
+            if (item.Value is IDictionary<String, Object?> dic)
                 Map(dic, cfg);
             else if (item.Value is IList<Object> list)
             {
@@ -101,7 +100,7 @@ public class JsonConfigProvider : FileConfigProvider
                 foreach (var elm in list)
                 {
                     // 复杂对象
-                    if (elm is IDictionary<String, Object> dic2)
+                    if (elm is IDictionary<String, Object?> dic2)
                     {
                         var cfg2 = new ConfigSection();
                         Map(dic2, cfg2);
@@ -127,13 +126,16 @@ public class JsonConfigProvider : FileConfigProvider
     /// <summary>配置树映射到字典</summary>
     /// <param name="section"></param>
     /// <param name="dst"></param>
-    protected virtual void Map(IConfigSection section, IDictionary<String, Object> dst)
+    protected virtual void Map(IConfigSection section, IDictionary<String, Object?> dst)
     {
+        if (section.Childs == null) return;
+
         foreach (var item in section.Childs.ToArray())
         {
             //// 注释
             //if (!item.Comment.IsNullOrEmpty()) dst["#" + item.Key] = item.Comment;
 
+            var key = item.Key + "";
             var cs = item.Childs;
             if (cs != null)
             {
@@ -143,31 +145,31 @@ public class JsonConfigProvider : FileConfigProvider
                     // 普通基元类型数组
                     if (cs.Count > 0 && (cs[0].Childs == null || cs[0].Childs.Count == 0))
                     {
-                        dst[item.Key] = cs.Select(e => e.Value).ToArray();
+                        dst[key] = cs.Select(e => e.Value).ToArray();
                     }
                     else
                     {
                         var list = new List<Object>();
                         foreach (var elm in cs)
                         {
-                            var rs = new Dictionary<String, Object>();
+                            var rs = new Dictionary<String, Object?>();
                             Map(elm, rs);
                             list.Add(rs);
                         }
-                        dst[item.Key] = list;
+                        dst[key] = list;
                     }
                 }
                 else
                 {
-                    var rs = new Dictionary<String, Object>();
+                    var rs = new Dictionary<String, Object?>();
                     Map(item, rs);
 
-                    dst[item.Key] = rs;
+                    dst[key] = rs;
                 }
             }
             else
             {
-                dst[item.Key] = item.Value;
+                dst[key] = item.Value;
             }
         }
     }

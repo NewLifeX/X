@@ -234,7 +234,7 @@ public class DefaultSpan : ISpan
                 this.AppendTag($"Api[{aex.Code}]:{aex.Message}\r\n{aex.Source}");
             }
             else
-                Error = ex?.GetMessage();
+                Error = ex.GetMessage();
 
             // 所有异常，独立记录埋点，便于按异常分类统计
             using var span = Builder?.Tracer?.NewSpan(name, tag);
@@ -278,7 +278,7 @@ public class DefaultSpan : ISpan
 public static class SpanExtension
 {
     #region 扩展方法
-    private static String GetAttachParameter(ISpan span)
+    private static String? GetAttachParameter(ISpan span)
     {
         var builder = (span as DefaultSpan)?.Builder;
         var tracer = (builder as DefaultSpanBuilder)?.Tracer;
@@ -291,7 +291,7 @@ public static class SpanExtension
     /// <returns></returns>
     public static HttpRequestMessage Attach(this ISpan span, HttpRequestMessage request)
     {
-        if (span == null || request == null) return request;
+        //if (span == null || request == null) return request;
 
         // 注入参数名
         var name = GetAttachParameter(span);
@@ -326,7 +326,7 @@ public static class SpanExtension
     /// <returns></returns>
     public static WebRequest Attach(this ISpan span, WebRequest request)
     {
-        if (span == null || request == null) return request;
+        //if (span == null || request == null) return request;
 
         // 注入参数名
         var name = GetAttachParameter(span);
@@ -344,7 +344,7 @@ public static class SpanExtension
     /// <returns></returns>
     public static Object Attach(this ISpan span, Object args)
     {
-        if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
+        if (/*span == null || args == null ||*/ args is Packet || args is Byte[] || args is IAccessor) return args;
         if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
 
         // 注入参数名
@@ -365,10 +365,10 @@ public static class SpanExtension
         if (span == null || headers == null || headers.Count == 0) return;
 
         // 不区分大小写比较头部
-        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        var dic = new Dictionary<String, String?>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in headers.AllKeys)
         {
-            dic[item] = headers[item];
+            if (item != null) dic[item] = headers[item];
         }
 
         Detach2(span, dic);

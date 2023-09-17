@@ -10,7 +10,7 @@ public interface IServiceScopeFactory
 
 class MyServiceScopeFactory : IServiceScopeFactory
 {
-    public IServiceProvider ServiceProvider { get; set; }
+    public IServiceProvider? ServiceProvider { get; set; }
 
     public IServiceScope CreateScope() => new MyServiceScope { MyServiceProvider = ServiceProvider };
 }

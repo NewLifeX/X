@@ -238,7 +238,7 @@ public class HttpSession : NetSession
             else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
             {
                 var js = body.ToStr().DecodeJson();
-                ps.Merge(js);
+                if (js != null) ps.Merge(js);
             }
         }
     }

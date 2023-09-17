@@ -62,7 +62,8 @@ public class FieldSizeAttribute : Attribute
         value = null;
 
         if (member == null) return null;
-        if (String.IsNullOrEmpty(ReferenceName)) return null;
+        var name = ReferenceName;
+        if (name.IsNullOrEmpty()) return null;
 
         // 考虑ReferenceName可能是圆点分隔的多重结构
         MemberInfo? mi = null;
@@ -70,7 +71,7 @@ public class FieldSizeAttribute : Attribute
         if (type == null) return null;
 
         value = target;
-        var ss = ReferenceName.Split('.');
+        var ss = name.Split('.');
         if (ss == null) return null;
 
         for (var i = 0; i < ss.Length; i++)

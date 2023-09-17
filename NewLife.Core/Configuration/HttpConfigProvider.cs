@@ -41,13 +41,13 @@ public class HttpConfigProvider : ConfigProvider
     public IApiClient? Client { get; set; }
 
     /// <summary>服务器信息。配置中心最后一次接口响应，包含配置数据以外的其它内容</summary>
-    public IDictionary<String, Object>? Info { get; set; }
+    public IDictionary<String, Object?>? Info { get; set; }
 
     /// <summary>需要忽略改变的键。这些键的改变不产生改变事件</summary>
     public ICollection<String> IgnoreChangedKeys { get; } = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
     private Int32 _version;
-    private IDictionary<String, Object>? _cache;
+    private IDictionary<String, Object?>? _cache;
     #endregion
 
     #region 构造
@@ -108,7 +108,7 @@ public class HttpConfigProvider : ConfigProvider
 
     /// <summary>获取所有配置</summary>
     /// <returns></returns>
-    protected virtual IDictionary<String, Object>? GetAll()
+    protected virtual IDictionary<String, Object?>? GetAll()
     {
         var client = GetClient() as ApiHttpClient;
         if (client == null) throw new ArgumentNullException(nameof(Client));
@@ -117,7 +117,7 @@ public class HttpConfigProvider : ConfigProvider
 
         try
         {
-            var rs = client.Post<IDictionary<String, Object>>(Action, new
+            var rs = client.Post<IDictionary<String, Object?>>(Action, new
             {
                 appId = AppId,
                 secret = Secret,
@@ -135,7 +135,7 @@ public class HttpConfigProvider : ConfigProvider
                 var ver = rs["version"].ToInt(-1);
                 if (ver > 0) _version = ver;
 
-                return obj as IDictionary<String, Object>;
+                return obj as IDictionary<String, Object?>;
             }
 
             return rs;
@@ -180,31 +180,36 @@ public class HttpConfigProvider : ConfigProvider
             // 加密存储
             if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Decrypt(json.ToBase64(), AppId.GetBytes()).ToStr();
 
-            Root = Build(json.DecodeJson());
+            var dic = json.DecodeJson();
+            if (dic != null) Root = Build(dic);
         }
     }
 
     /// <summary>加载配置字典为配置树</summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    public virtual IConfigSection Build(IDictionary<String, Object> configs)
+    public virtual IConfigSection Build(IDictionary<String, Object?> configs)
     {
         // 换个对象，避免数组元素在多次加载后重叠
         var root = new ConfigSection { };
         foreach (var item in configs)
         {
-            var ks = item.Key.Split(':');
             var section = root;
+            if (section == null) continue;
+
+            var ks = item.Key.Split(':');
             for (var i = 0; i < ks.Length; i++)
             {
-                section = section.GetOrAddChild(ks[i]) as ConfigSection;
+                section = section?.GetOrAddChild(ks[i]) as ConfigSection;
             }
-
-            //var section = root.GetOrAddChild(key);
-            if (item.Value is IDictionary<String, Object> dic)
-                section.Childs = Build(dic).Childs;
-            else
-                section.Value = item.Value + "";
+            if (section != null)
+            {
+                //var section = root.GetOrAddChild(key);
+                if (item.Value is IDictionary<String, Object?> dic)
+                    section.Childs = Build(dic).Childs;
+                else
+                    section.Value = item.Value + "";
+            }
         }
         return root;
     }
@@ -249,7 +254,7 @@ public class HttpConfigProvider : ConfigProvider
         }
     }
 
-    private void SaveCache(IDictionary<String, Object> configs)
+    private void SaveCache(IDictionary<String, Object?> configs)
     {
         // 缓存
         _cache = configs;
@@ -351,7 +356,7 @@ public class HttpConfigProvider : ConfigProvider
         var dic = GetAll();
         if (dic == null) return;
 
-        var changed = new Dictionary<String, Object>();
+        var changed = new Dictionary<String, Object?>();
         if (_cache != null)
         {
             if (_cache.TryGetValue("configs", out var dic1) && dic1 is IDictionary<String, Object> configs1 &&

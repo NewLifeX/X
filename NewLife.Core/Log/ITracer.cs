@@ -58,7 +58,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
 {
     #region 静态
     /// <summary>全局实例。可影响X组件各模块的跟踪器</summary>
-    public static ITracer Instance { get; set; }
+    public static ITracer? Instance { get; set; }
 
     static DefaultTracer()
     {
@@ -93,7 +93,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
     /// <summary>采样定时器</summary>
-    protected TimerX _timer;
+    protected TimerX? _timer;
     #endregion
 
     #region 构造
@@ -188,7 +188,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <param name="name">操作名</param>
     /// <param name="tag">数据</param>
     /// <returns></returns>
-    public virtual ISpan NewSpan(String name, Object tag)
+    public virtual ISpan NewSpan(String name, Object? tag)
     {
         var span = BuildSpan(name).Start();
 
@@ -224,7 +224,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                 }
                 catch
                 {
-                    span.Tag = tag.ToString().Cut(len);
+                    span.Tag = tag.ToString()?.Cut(len);
                 }
             }
         }
@@ -237,7 +237,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     public virtual ISpanBuilder[] TakeAll()
     {
         var bs = _builders;
-        if (!bs.Any()) return null;
+        if (!bs.Any()) return new ISpanBuilder[0];
 
         _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
@@ -260,7 +260,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }
 
@@ -290,9 +290,10 @@ public static class TracerExtension
     /// <param name="tracer">跟踪器</param>
     /// <param name="request">Http请求</param>
     /// <returns></returns>
-    public static ISpan NewSpan(this ITracer tracer, HttpRequestMessage request)
+    public static ISpan? NewSpan(this ITracer tracer, HttpRequestMessage request)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
+        if (request.RequestUri == null) return null;
 
         var span = CreateSpan(tracer, request.Method.Method, request.RequestUri, request);
         span.Attach(request);
@@ -305,7 +306,7 @@ public static class TracerExtension
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     };
     static String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
-    private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage request)
+    private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage? request)
     {
         var url = uri.ToString();
 
@@ -359,7 +360,7 @@ public static class TracerExtension
     /// <returns></returns>
     public static ISpan NewSpan(this ITracer tracer, WebRequest request)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
 
         var span = CreateSpan(tracer, request.Method, request.RequestUri, null);
         span.Attach(request);
@@ -372,9 +373,9 @@ public static class TracerExtension
     /// <param name="name">操作名</param>
     /// <param name="error">Exception 异常对象，或错误信息</param>
     /// <returns></returns>
-    public static ISpan NewError(this ITracer tracer, String name, Object error)
+    public static ISpan NewError(this ITracer tracer, String name, Object? error)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
 
         var span = tracer.NewSpan(name);
         if (error is Exception ex)

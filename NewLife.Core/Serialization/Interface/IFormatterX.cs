@@ -14,7 +14,7 @@ public interface IFormatterX
     Stream Stream { get; set; }
 
     /// <summary>主对象</summary>
-    Stack<Object> Hosts { get; }
+    Stack<Object?> Hosts { get; }
 
     /// <summary>成员</summary>
     MemberInfo? Member { get; set; }
@@ -91,7 +91,7 @@ public abstract class FormatterBase //: IFormatterX
     public virtual Stream Stream { get; set; } = new MemoryStream();
 
     /// <summary>主对象</summary>
-    public Stack<Object> Hosts { get; private set; } = new Stack<Object>();
+    public Stack<Object?> Hosts { get; private set; } = new Stack<Object?>();
 
     /// <summary>成员</summary>
     public MemberInfo? Member { get; set; }
