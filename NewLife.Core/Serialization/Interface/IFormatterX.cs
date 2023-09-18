@@ -64,7 +64,6 @@ public interface IFormatterX
 public interface IHandler<THost> where THost : IFormatterX
 {
     /// <summary>宿主读写器</summary>
-    [NotNull]
     THost Host { get; set; }
 
     /// <summary>优先级</summary>

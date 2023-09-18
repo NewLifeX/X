@@ -70,8 +70,12 @@ public class Snowflake
 
     #region 核心方法
     private Boolean _inited;
+    [MemberNotNull(nameof(_watch))]
     private void Init()
     {
+        // 仅为解除空引用检查
+        _watch ??= new Stopwatch();
+
         if (_inited) return;
         lock (this)
         {
@@ -113,7 +117,7 @@ public class Snowflake
     {
         Init();
 
-        _watch ??= Stopwatch.StartNew();
+        //_watch ??= Stopwatch.StartNew();
 
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
         var ms = _watch.ElapsedMilliseconds + _msStart;

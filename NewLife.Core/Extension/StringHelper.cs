@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -912,6 +913,7 @@ public static class StringHelper
     #region 文字转语音
     private static NewLife.Extension.SpeakProvider? _provider;
     //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
+    [MemberNotNull(nameof(_provider))]
     static void Init()
     {
         //_provider = new Speech.Synthesis.SpeechSynthesizer();
@@ -925,7 +927,7 @@ public static class StringHelper
     {
         Init();
 
-        _provider?.Speak(value);
+        _provider.Speak(value);
     }
 
     /// <summary>异步调用语音引擎说出指定话。可能导致后来的调用打断前面的语音</summary>
@@ -934,7 +936,7 @@ public static class StringHelper
     {
         Init();
 
-        _provider?.SpeakAsync(value);
+        _provider.SpeakAsync(value);
     }
 
     /// <summary>启用语音提示</summary>
@@ -961,7 +963,7 @@ public static class StringHelper
     {
         Init();
 
-        _provider?.SpeakAsyncCancelAll();
+        _provider.SpeakAsyncCancelAll();
 
         return value;
     }

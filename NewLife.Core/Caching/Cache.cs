@@ -89,7 +89,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <typeparam name="T"></typeparam>
     /// <param name="keys"></param>
     /// <returns></returns>
-    public virtual IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys)
+    public virtual IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys) where T : notnull
     {
         var dic = new Dictionary<String, T?>();
         foreach (var key in keys)
@@ -162,7 +162,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
-    public virtual T? Replace<T>(String key, T value)
+    public virtual T? Replace<T>(String key, T value) where T : notnull
     {
         var rs = Get<T>(key);
         Set(key, value);
@@ -174,7 +174,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    public virtual Boolean TryGetValue<T>(String key, out T? value)
+    public virtual Boolean TryGetValue<T>(String key, out T? value) where T : notnull
     {
         value = Get<T>(key);
         if (!Equals(value, default)) return true;
@@ -188,7 +188,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
-    public virtual T? GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
+    public virtual T? GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1) where T : notnull
     {
         var value = Get<T>(key);
         if (!Equals(value, default)) return value;

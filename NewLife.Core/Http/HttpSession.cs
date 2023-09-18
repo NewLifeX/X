@@ -139,7 +139,7 @@ public class HttpSession : NetSession
         if (p > 0) path = path[..p];
 
         // 埋点
-        using var span = (this as INetSession).Host.Tracer?.NewSpan(path);
+        using var span = (this as INetSession)?.Host.Tracer?.NewSpan(path);
         if (span != null)
         {
             // 解析上游请求链路

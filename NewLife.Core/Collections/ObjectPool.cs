@@ -11,7 +11,7 @@ namespace NewLife.Collections;
 /// 文档 https://newlifex.com/core/object_pool
 /// </remarks>
 /// <typeparam name="T"></typeparam>
-public class ObjectPool<T> : DisposeBase, IPool<T>
+public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 {
     #region 属性
     /// <summary>名称</summary>
@@ -390,7 +390,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T>
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args)
+    public void WriteLog(String format, params Object?[] args)
     {
         if (Log == null || !Log.Enable) return;
 
