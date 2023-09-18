@@ -169,7 +169,7 @@ public static class ApiHelper
             }
             else if (args is Byte[] buf)
             {
-                request.Content = BuildContent(buf);
+                if (buf != null) request.Content = BuildContent(buf);
             }
             else if (args != null)
             {

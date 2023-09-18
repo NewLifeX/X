@@ -272,7 +272,7 @@ public static class TracerExtension
     /// <param name="tracer">跟踪器</param>
     /// <param name="handler">http处理器</param>
     /// <returns></returns>
-    public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler? handler = null)
+    public static HttpClient CreateHttpClient(this ITracer? tracer, HttpMessageHandler? handler = null)
     {
         handler ??= HttpHelper.CreateHandler(false, false);
 

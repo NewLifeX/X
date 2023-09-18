@@ -8,7 +8,7 @@ public class ProtectedKey
 {
     #region 属性
     /// <summary>保护数据的密钥</summary>
-    public Byte[] Secret { get; set; }
+    public Byte[]? Secret { get; set; }
 
     /// <summary>算法。默认AES</summary>
     public String Algorithm { get; set; } = "AES";

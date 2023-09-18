@@ -65,7 +65,7 @@ public static class PluginHelper
                     Log = XTrace.Log
                 };
                 var dir = Path.GetDirectoryName(file);
-                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir);
+                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir!);
                 client.TryDispose();
             }
             if (!File.Exists(file))

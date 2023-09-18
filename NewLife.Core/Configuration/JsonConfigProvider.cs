@@ -142,12 +142,15 @@ public class JsonConfigProvider : FileConfigProvider
                 // 数组
                 if (cs.Count == 0 || cs.Count > 0 && cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
                 {
+                    Object? val = null;
+
                     // 普通基元类型数组
-                    if (cs.Count > 0 && (cs[0].Childs == null || cs[0].Childs.Count == 0))
+                    if (cs.Count > 0)
                     {
-                        dst[key] = cs.Select(e => e.Value).ToArray();
+                        var childs = cs[0].Childs;
+                        if (childs == null || childs.Count == 0) val = cs.Select(e => e.Value).ToArray();
                     }
-                    else
+                    if (val == null)
                     {
                         var list = new List<Object>();
                         foreach (var elm in cs)
@@ -156,8 +159,9 @@ public class JsonConfigProvider : FileConfigProvider
                             Map(elm, rs);
                             list.Add(rs);
                         }
-                        dst[key] = list;
+                        val = list;
                     }
+                    dst[key] = val;
                 }
                 else
                 {

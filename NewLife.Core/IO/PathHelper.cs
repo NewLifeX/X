@@ -21,13 +21,13 @@ public static class PathHelper
     /// <remarks>
     /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
     /// </remarks>
-    public static String BasePath { get; set; }
+    public static String? BasePath { get; set; }
 
     /// <summary>基准目录。GetFullPath依赖于此，默认为当前应用程序域基础目录。支持BasePath参数修改</summary>
     /// <remarks>
     /// 为了适应函数计算，该路径将支持从命令行参数和环境变量读取
     /// </remarks>
-    public static String BaseDirectory { get; set; }
+    public static String? BaseDirectory { get; set; }
     #endregion
 
     #region 静态构造
@@ -368,7 +368,7 @@ public static class PathHelper
                 }
                 else
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                    Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
                     try
                     {
                         item.ExtractToFile(fullPath, overwrite);
@@ -441,7 +441,7 @@ public static class PathHelper
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <param name="callback">复制每一个文件之前的回调</param>
     /// <returns></returns>
-    public static String[] CopyTo(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String> callback = null)
+    public static String[] CopyTo(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String>? callback = null)
     {
         if (!di.Exists) return new String[0];
 
@@ -469,7 +469,7 @@ public static class PathHelper
     /// <param name="allSub">是否包含所有子孙目录文件</param>
     /// <param name="callback">复制每一个文件之前的回调</param>
     /// <returns></returns>
-    public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String> callback = null)
+    public static String[] CopyToIfNewer(this DirectoryInfo di, String destDirName, String? exts = null, Boolean allSub = false, Action<String>? callback = null)
     {
         var dest = destDirName.AsDirectory();
         if (!dest.Exists) return new String[0];

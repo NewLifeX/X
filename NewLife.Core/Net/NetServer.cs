@@ -421,7 +421,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     {
         if (sender is INetSession session)
         {
-            OnReceive(session, e.Packet);
+            if (e.Packet != null) OnReceive(session, e.Packet);
             OnReceive(session, e);
         }
 

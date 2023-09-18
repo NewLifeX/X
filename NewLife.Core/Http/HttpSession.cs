@@ -33,6 +33,7 @@ public class HttpSession : NetSession
     /// <param name="e"></param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
+        if (e.Packet == null) return;
         if (e.Packet.Total == 0 /*|| !HttpBase.FastValidHeader(e.Packet)*/)
         {
             base.OnReceive(e);

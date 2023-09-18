@@ -16,7 +16,7 @@ public class OssClient : IObjectStorage
 {
     #region 属性
     /// <summary>访问域名。Endpoint</summary>
-    public String Server { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
+    public String? Server { get; set; } = "http://oss-cn-shanghai.aliyuncs.com";
 
     /// <summary>访问密钥。AccessKeyId</summary>
     public String? AppId { get; set; }
@@ -46,12 +46,15 @@ public class OssClient : IObjectStorage
     {
         if (_Client != null) return _Client;
 
+        var addr = _baseAddress ?? Server;
+        if (addr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server), "未指定OSS服务地址");
+
         var http = DefaultTracer.Instance.CreateHttpClient();
-        http.BaseAddress = new Uri(_baseAddress ?? Server);
+        http.BaseAddress = new Uri(addr);
 
         var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var asmName = asm?.GetName();
-        if (asmName != null)
+        if (asmName != null && !asmName.Name.IsNullOrEmpty())
         {
             //var userAgent = $"{asmName.Name}/{asmName.Version}({Environment.OSVersion};{Environment.Version})";
             http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(asmName.Name, asmName.Version + ""));
@@ -60,12 +63,12 @@ public class OssClient : IObjectStorage
         return _Client = http;
     }
 
-    private void SetBucket(String bucketName)
+    private void SetBucket(String? bucketName)
     {
         var url = Server;
-        if (!bucketName.IsNullOrEmpty())
+        if (!bucketName.IsNullOrEmpty() && !url.IsNullOrEmpty())
         {
-            var ss = Server.Split("://");
+            var ss = url.Split("://");
             url = $"{ss[0]}://{bucketName}.{ss[1]}";
         }
 
@@ -113,7 +116,7 @@ public class OssClient : IObjectStorage
     #region Bucket操作
     /// <summary>列出所有存储空间名称</summary>
     /// <returns></returns>
-    public async Task<String[]> ListBuckets()
+    public async Task<String[]?> ListBuckets()
     {
         SetBucket(null);
 
@@ -122,7 +125,7 @@ public class OssClient : IObjectStorage
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"];
 
-        if (bk is IList<Object> list) return list.Select(e => (e as IDictionary<String, Object>)["Name"] + "").ToArray();
+        if (bk is IList<Object> list) return list.Select(e => (e as IDictionary<String, Object?>)!["Name"] + "").ToArray();
         if (bk is IDictionary<String, Object> dic) return new[] { dic["Name"] + "" };
 
         return null;
@@ -133,7 +136,7 @@ public class OssClient : IObjectStorage
     /// <param name="marker"></param>
     /// <param name="maxKeys"></param>
     /// <returns></returns>
-    public async Task<IList<ObjectInfo>> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
+    public async Task<IList<ObjectInfo>?> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(null);
 
@@ -156,14 +159,14 @@ public class OssClient : IObjectStorage
     #region Object操作
     /// <summary>列出所有文件名称</summary>
     /// <returns></returns>
-    public async Task<String[]> ListObjects()
+    public async Task<String[]?> ListObjects()
     {
         SetBucket(BucketName);
 
         var rs = await GetAsync("/");
 
         var contents = rs?["Contents"];
-        if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object>)["Key"] + "").ToArray();
+        if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object?>)!["Key"] + "").ToArray();
         if (contents is IDictionary<String, Object> dic) return new[] { dic["Key"] + "" };
 
         return null;
@@ -174,7 +177,7 @@ public class OssClient : IObjectStorage
     /// <param name="marker"></param>
     /// <param name="maxKeys"></param>
     /// <returns></returns>
-    public async Task<IList<ObjectInfo>> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
+    public async Task<IList<ObjectInfo>?> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(BucketName);
 
@@ -196,14 +199,14 @@ public class OssClient : IObjectStorage
     /// <param name="objectName">对象文件名</param>
     /// <param name="data">数据内容</param>
     /// <returns></returns>
-    public async Task<IObjectInfo> Put(String objectName, Packet data)
+    public async Task<IObjectInfo?> Put(String objectName, Packet data)
     {
         SetBucket(BucketName);
 
         var content = data.Next == null ?
             new ByteArrayContent(data.Data, data.Offset, data.Count) :
             new ByteArrayContent(data.ReadBytes());
-        var rs = await InvokeAsync<Byte[]>(HttpMethod.Put, "/" + objectName, content);
+        var rs = await InvokeAsync<Packet>(HttpMethod.Put, "/" + objectName, content);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }
@@ -211,11 +214,11 @@ public class OssClient : IObjectStorage
     /// <summary>获取文件</summary>
     /// <param name="objectName"></param>
     /// <returns></returns>
-    public async Task<IObjectInfo> Get(String objectName)
+    public async Task<IObjectInfo?> Get(String objectName)
     {
         SetBucket(BucketName);
 
-        var rs = await InvokeAsync<Byte[]>(HttpMethod.Get, "/" + objectName);
+        var rs = await InvokeAsync<Packet>(HttpMethod.Get, "/" + objectName);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }
@@ -223,7 +226,7 @@ public class OssClient : IObjectStorage
     /// <summary>获取文件直接访问Url</summary>
     /// <param name="id">对象文件名</param>
     /// <returns></returns>
-    public Task<String> GetUrl(String id) => throw new NotImplementedException();
+    public Task<String?> GetUrl(String id) => throw new NotImplementedException();
 
     /// <summary>删除文件</summary>
     /// <param name="objectName"></param>
@@ -242,7 +245,7 @@ public class OssClient : IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    public Task<IList<IObjectInfo>> Search(String pattern, Int32 start, Int32 count) => throw new NotImplementedException();
+    public Task<IList<IObjectInfo>?> Search(String? pattern, Int32 start, Int32 count) => throw new NotImplementedException();
     #endregion
 
     #region 辅助
@@ -272,7 +275,7 @@ public class OssClient : IObjectStorage
 
         sb.Append(method).Append(NewLineMarker);
 
-        var headersToSign = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        var headersToSign = new Dictionary<String, String?>(StringComparer.OrdinalIgnoreCase);
         var headers = request.Headers;
         if (headers != null)
         {

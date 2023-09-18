@@ -1,321 +1,322 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 
-namespace NewLife.Reflection
+namespace NewLife.Reflection;
+
+class OrcasNamer
 {
-    class OrcasNamer
+    public static String? GetName(MemberInfo member)
     {
-        public static String GetName(MemberInfo member)
+        using TextWriter writer = new StringWriter();
+        switch (member.MemberType)
         {
-            using TextWriter writer = new StringWriter();
-            switch (member.MemberType)
-            {
-                case MemberTypes.TypeInfo:
-                case MemberTypes.NestedType:
-                    writer.Write("T:");
-                    WriteType(member as Type, writer);
-                    break;
-                case MemberTypes.Field:
-                    writer.Write("F:");
-                    WriteField(member as FieldInfo, writer);
-                    break;
-                case MemberTypes.Property:
-                    writer.Write("P:");
-                    WriteProperty(member as PropertyInfo, writer);
-                    break;
-                case MemberTypes.Method:
-                    writer.Write("M:");
-                    WriteMethod(member as MethodInfo, writer);
-                    break;
-                case MemberTypes.Constructor:
-                    writer.Write("M:");
-                    var ctor = member as ConstructorInfo;
+            case MemberTypes.TypeInfo:
+            case MemberTypes.NestedType:
+                writer.Write("T:");
+                if (member is Type type) WriteType(type, writer);
+                break;
+            case MemberTypes.Field:
+                writer.Write("F:");
+                if (member is FieldInfo field) WriteField(field, writer);
+                break;
+            case MemberTypes.Property:
+                writer.Write("P:");
+                if (member is PropertyInfo property) WriteProperty(property, writer);
+                break;
+            case MemberTypes.Method:
+                writer.Write("M:");
+                if (member is MethodInfo method) WriteMethod(method, writer);
+                break;
+            case MemberTypes.Constructor:
+                writer.Write("M:");
+                if (member is ConstructorInfo ctor)
+                {
                     if (!ctor.IsStatic)
                         WriteConstructor(ctor, writer);
                     else
                         WriteStaticConstructor(ctor, writer);
-                    break;
-                case MemberTypes.Event:
-                    writer.Write("E:");
-                    WriteEvent(member as EventInfo, writer);
-                    break;
-            }
-
-            return writer.ToString();
+                }
+                break;
+            case MemberTypes.Event:
+                writer.Write("E:");
+                if (member is EventInfo @event) WriteEvent(@event, writer);
+                break;
         }
 
-        private static void WriteEvent(EventInfo trigger, TextWriter writer)
+        return writer.ToString();
+    }
+
+    private static void WriteEvent(EventInfo trigger, TextWriter writer)
+    {
+        WriteType(trigger.DeclaringType, writer);
+
+        //EventInfo eiiTrigger = null;
+        //if (trigger.IsPrivate && trigger.IsVirtual)
+        //{
+        //    EventInfo[] eiiTriggers = ReflectionUtilities.GetImplementedEvents(trigger);
+        //    if (eiiTriggers.Length > 0) eiiTrigger = eiiTriggers[0];
+        //}
+
+        //if (eiiTrigger != null)
+        //{
+        //    Type eiiType = eiiTrigger.DeclaringType;
+        //    TextWriter eiiWriter = new StringWriter();
+
+        //    if (eiiType != null && eiiType.Template != null)
+        //    {
+        //        writer.Write(".");
+        //        WriteTemplate(eiiType, writer);
+        //    }
+        //    else
+        //    {
+        //        WriteType(eiiType, eiiWriter);
+        //        writer.Write(".");
+        //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
+        //    }
+
+        //    writer.Write("#");
+        //    writer.Write(eiiTrigger.Name);
+        //}
+        //else
         {
-            WriteType(trigger.DeclaringType, writer);
+            writer.Write(".{0}", trigger.Name);
+        }
+    }
 
-            //EventInfo eiiTrigger = null;
-            //if (trigger.IsPrivate && trigger.IsVirtual)
-            //{
-            //    EventInfo[] eiiTriggers = ReflectionUtilities.GetImplementedEvents(trigger);
-            //    if (eiiTriggers.Length > 0) eiiTrigger = eiiTriggers[0];
-            //}
+    private static void WriteField(FieldInfo field, TextWriter writer)
+    {
+        WriteType(field.DeclaringType, writer);
+        writer.Write(".{0}", field.Name);
+    }
 
-            //if (eiiTrigger != null)
-            //{
-            //    Type eiiType = eiiTrigger.DeclaringType;
-            //    TextWriter eiiWriter = new StringWriter();
+    private static void WriteMethod(MethodInfo method, TextWriter writer)
+    {
+        var name = method.Name;
+        WriteType(method.DeclaringType, writer);
 
-            //    if (eiiType != null && eiiType.Template != null)
-            //    {
-            //        writer.Write(".");
-            //        WriteTemplate(eiiType, writer);
-            //    }
-            //    else
-            //    {
-            //        WriteType(eiiType, eiiWriter);
-            //        writer.Write(".");
-            //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
-            //    }
+        //MethodInfo eiiMethod = null;
+        //if (method.IsPrivate && method.IsVirtual)
+        //{
+        //    MethodInfo[] eiiMethods = method.ImplementedInterfaceMethods;
+        //    if (eiiMethods.Length > 0) eiiMethod = eiiMethods[0];
+        //}
+        //if (eiiMethod != null)
+        //{ //explicitly implemented interface
+        //    Type eiiType = eiiMethod.DeclaringType;
+        //    TextWriter eiiWriter = new StringWriter();
 
-            //    writer.Write("#");
-            //    writer.Write(eiiTrigger.Name);
-            //}
-            //else
+
+        //    //we need to keep the param names instead of turning them into numbers
+        //    //get the template to the right format
+        //    if (eiiType != null && eiiType.Template != null)
+        //    {
+        //        writer.Write(".");
+        //        WriteTemplate(eiiType, writer);
+        //    }
+        //    else //revert back to writing the type the old way if there is no template
+        //    {
+        //        WriteType(eiiType, eiiWriter);
+        //        writer.Write(".");
+        //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
+        //    }
+
+        //    writer.Write("#");
+        //    writer.Write(eiiMethod.Name);
+        //}
+        //else
+        {
+            writer.Write(".{0}", name);
+        }
+        if (method.IsGenericMethod)
+        {
+            var genericParameters = method.GetGenericArguments();
+            if (genericParameters != null)
             {
-                writer.Write(".{0}", trigger.Name);
+                writer.Write("``{0}", genericParameters.Length);
             }
         }
-
-        private static void WriteField(FieldInfo field, TextWriter writer)
+        WriteParameters(method.GetParameters(), writer);
+        // add ~ for conversion operators
+        if (name is "op_Implicit" or "op_Explicit")
         {
-            WriteType(field.DeclaringType, writer);
-            writer.Write(".{0}", field.Name);
+            writer.Write("~");
+            WriteType(method.ReturnType, writer);
         }
+    }
 
-        private static void WriteMethod(MethodInfo method, TextWriter writer)
+    private static void WriteConstructor(ConstructorInfo constructor, TextWriter writer)
+    {
+        WriteType(constructor.DeclaringType, writer);
+        writer.Write(".#ctor");
+        WriteParameters(constructor.GetParameters(), writer);
+    }
+
+    private static void WriteStaticConstructor(ConstructorInfo constructor, TextWriter writer)
+    {
+        WriteType(constructor.DeclaringType, writer);
+        writer.Write(".#cctor");
+        WriteParameters(constructor.GetParameters(), writer);
+    }
+
+    private static void WriteProperty(PropertyInfo property, TextWriter writer)
+    {
+        WriteType(property.DeclaringType, writer);
+        //Console.WriteLine( "{0}::{1}", property.DeclaringType.FullName, property.Name );
+
+        //Property eiiProperty = null;
+        //if (property.IsPrivate && property.IsVirtual)
+        //{
+        //    Property[] eiiProperties = ReflectionUtilities.GetImplementedProperties(property);
+        //    if (eiiProperties.Length > 0) eiiProperty = eiiProperties[0];
+        //}
+
+
+
+        //if (eiiProperty != null)
+        //{
+        //    TypeNode eiiType = eiiProperty.DeclaringType;
+        //    TextWriter eiiWriter = new StringWriter();
+
+
+        //    if (eiiType != null && eiiType.Template != null)
+        //    {
+        //        writer.Write(".");
+        //        WriteTemplate(eiiType, writer);
+        //    }
+        //    else
+        //    {
+        //        WriteType(eiiType, eiiWriter);
+        //        writer.Write(".");
+        //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
+        //    }
+
+        //    writer.Write("#");
+        //    writer.Write(eiiProperty.Name.Name);
+        //}
+        //else
         {
-            var name = method.Name;
-            WriteType(method.DeclaringType, writer);
+            writer.Write(".{0}", property.Name);
+        }
+        WriteParameters(property.GetIndexParameters(), writer);
+    }
 
-            //MethodInfo eiiMethod = null;
-            //if (method.IsPrivate && method.IsVirtual)
-            //{
-            //    MethodInfo[] eiiMethods = method.ImplementedInterfaceMethods;
-            //    if (eiiMethods.Length > 0) eiiMethod = eiiMethods[0];
-            //}
-            //if (eiiMethod != null)
-            //{ //explicitly implemented interface
-            //    Type eiiType = eiiMethod.DeclaringType;
-            //    TextWriter eiiWriter = new StringWriter();
+    private static void WriteParameters(ParameterInfo[] parameters, TextWriter writer)
+    {
+        if (parameters == null || parameters.Length == 0) return;
+        writer.Write("(");
+        for (var i = 0; i < parameters.Length; i++)
+        {
+            if (i > 0) writer.Write(",");
+            WriteType(parameters[i].ParameterType, writer);
+        }
+        writer.Write(")");
+    }
 
+    private static void WriteType(Type? type, TextWriter writer)
+    {
+        if (type == null) return;
 
-            //    //we need to keep the param names instead of turning them into numbers
-            //    //get the template to the right format
-            //    if (eiiType != null && eiiType.Template != null)
-            //    {
-            //        writer.Write(".");
-            //        WriteTemplate(eiiType, writer);
-            //    }
-            //    else //revert back to writing the type the old way if there is no template
-            //    {
-            //        WriteType(eiiType, eiiWriter);
-            //        writer.Write(".");
-            //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
-            //    }
-
-            //    writer.Write("#");
-            //    writer.Write(eiiMethod.Name);
-            //}
-            //else
+        if (type.IsArray)
+        {
+            WriteType(type.GetElementType(), writer);
+            writer.Write("[");
+            if (type.GetArrayRank() > 1)
             {
-                writer.Write(".{0}", name);
-            }
-            if (method.IsGenericMethod)
-            {
-                var genericParameters = method.GetGenericArguments();
-                if (genericParameters != null)
+                for (var i = 0; i < type.GetArrayRank(); i++)
                 {
-                    writer.Write("``{0}", genericParameters.Length);
+                    if (i > 0) writer.Write(",");
+                    writer.Write("0:");
                 }
             }
-            WriteParameters(method.GetParameters(), writer);
-            // add ~ for conversion operators
-            if (name is "op_Implicit" or "op_Explicit")
-            {
-                writer.Write("~");
-                WriteType(method.ReturnType, writer);
-            }
+            writer.Write("]");
         }
-
-        private static void WriteConstructor(ConstructorInfo constructor, TextWriter writer)
+        else if (type.IsByRef)
         {
-            WriteType(constructor.DeclaringType, writer);
-            writer.Write(".#ctor");
-            WriteParameters(constructor.GetParameters(), writer);
+            WriteType(type.GetElementType(), writer);
+            writer.Write("@");
         }
-
-        private static void WriteStaticConstructor(ConstructorInfo constructor, TextWriter writer)
+        else if (type.IsPointer)
         {
-            WriteType(constructor.DeclaringType, writer);
-            writer.Write(".#cctor");
-            WriteParameters(constructor.GetParameters(), writer);
+            WriteType(type.GetElementType(), writer);
+            writer.Write("*");
         }
-
-        private static void WriteProperty(PropertyInfo property, TextWriter writer)
+        //case MemberTypes.OptionalModifier:
+        //    TypeModifier optionalModifierClause = type as TypeModifier;
+        //    WriteType(optionalModifierClause.ModifiedType, writer);
+        //    writer.Write("!");
+        //    WriteType(optionalModifierClause.Modifier, writer);
+        //    break;
+        //case MemberTypes.RequiredModifier:
+        //    TypeModifier requiredModifierClause = type as TypeModifier;
+        //    WriteType(requiredModifierClause.ModifiedType, writer);
+        //    writer.Write("|");
+        //    WriteType(requiredModifierClause.Modifier, writer);
+        //    break;
+        else
         {
-            WriteType(property.DeclaringType, writer);
-            //Console.WriteLine( "{0}::{1}", property.DeclaringType.FullName, property.Name );
-
-            //Property eiiProperty = null;
-            //if (property.IsPrivate && property.IsVirtual)
-            //{
-            //    Property[] eiiProperties = ReflectionUtilities.GetImplementedProperties(property);
-            //    if (eiiProperties.Length > 0) eiiProperty = eiiProperties[0];
-            //}
-
-
-
-            //if (eiiProperty != null)
-            //{
-            //    TypeNode eiiType = eiiProperty.DeclaringType;
-            //    TextWriter eiiWriter = new StringWriter();
-
-
-            //    if (eiiType != null && eiiType.Template != null)
-            //    {
-            //        writer.Write(".");
-            //        WriteTemplate(eiiType, writer);
-            //    }
-            //    else
-            //    {
-            //        WriteType(eiiType, eiiWriter);
-            //        writer.Write(".");
-            //        writer.Write(eiiWriter.ToString().Replace('.', '#'));
-            //    }
-
-            //    writer.Write("#");
-            //    writer.Write(eiiProperty.Name.Name);
-            //}
-            //else
+            if (type.IsGenericParameter)
             {
-                writer.Write(".{0}", property.Name);
+                if (type.DeclaringMethod != null)
+                    writer.Write("``");
+                else if (type.DeclaringType != null)
+                    writer.Write("`");
+                else
+                    throw new InvalidOperationException("Generic parameter not on type or method.");
+                writer.Write(type.GenericParameterPosition);
             }
-            WriteParameters(property.GetIndexParameters(), writer);
-        }
-
-        private static void WriteParameters(ParameterInfo[] parameters, TextWriter writer)
-        {
-            if (parameters == null || parameters.Length == 0) return;
-            writer.Write("(");
-            for (var i = 0; i < parameters.Length; i++)
-            {
-                if (i > 0) writer.Write(",");
-                WriteType(parameters[i].ParameterType, writer);
-            }
-            writer.Write(")");
-        }
-
-        private static void WriteType(Type type, TextWriter writer)
-        {
-            if (type.IsArray)
-            {
-                WriteType(type.GetElementType(), writer);
-                writer.Write("[");
-                if (type.GetArrayRank() > 1)
-                {
-                    for (var i = 0; i < type.GetArrayRank(); i++)
-                    {
-                        if (i > 0) writer.Write(",");
-                        writer.Write("0:");
-                    }
-                }
-                writer.Write("]");
-            }
-            else if (type.IsByRef)
-            {
-                WriteType(type.GetElementType(), writer);
-                writer.Write("@");
-            }
-            else if (type.IsPointer)
-            {
-                WriteType(type.GetElementType(), writer);
-                writer.Write("*");
-            }
-            //case MemberTypes.OptionalModifier:
-            //    TypeModifier optionalModifierClause = type as TypeModifier;
-            //    WriteType(optionalModifierClause.ModifiedType, writer);
-            //    writer.Write("!");
-            //    WriteType(optionalModifierClause.Modifier, writer);
-            //    break;
-            //case MemberTypes.RequiredModifier:
-            //    TypeModifier requiredModifierClause = type as TypeModifier;
-            //    WriteType(requiredModifierClause.ModifiedType, writer);
-            //    writer.Write("|");
-            //    WriteType(requiredModifierClause.Modifier, writer);
-            //    break;
             else
             {
-                if (type.IsGenericParameter)
+                // namespace
+                var declaringType = type.DeclaringType;
+                if (declaringType != null)
                 {
-                    if (type.DeclaringMethod != null)
-                        writer.Write("``");
-                    else if (type.DeclaringType != null)
-                        writer.Write("`");
-                    else
-                        throw new InvalidOperationException("Generic parameter not on type or method.");
-                    writer.Write(type.GenericParameterPosition);
+                    // names of nested types begin with outer type name
+                    WriteType(declaringType, writer);
+                    writer.Write(".");
                 }
                 else
                 {
-                    // namespace
-                    var declaringType = type.DeclaringType;
-                    if (declaringType != null)
+                    // otherwise just prepend the namespace
+                    //Identifier space = type.Namespace;
+                    if (!String.IsNullOrEmpty(type.Namespace))
                     {
-                        // names of nested types begin with outer type name
-                        WriteType(declaringType, writer);
+                        writer.Write(type.Namespace);
                         writer.Write(".");
                     }
-                    else
+                }
+                // name
+                //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
+                var typeName = type.Name;
+                var p = typeName.IndexOf('`');
+                if (p >= 0)
+                    writer.Write(typeName[..p]);
+                else
+                    writer.Write(typeName);
+                // generic parameters
+                if (type.IsGenericType)
+                {
+                    if (type.IsGenericTypeDefinition)
                     {
-                        // otherwise just prepend the namespace
-                        //Identifier space = type.Namespace;
-                        if (!String.IsNullOrEmpty(type.Namespace))
+                        // number of parameters
+                        var parameters = type.GetGenericArguments();
+                        if (parameters != null)
                         {
-                            writer.Write(type.Namespace);
-                            writer.Write(".");
+                            writer.Write("`{0}", parameters.Length);
                         }
                     }
-                    // name
-                    //writer.Write(type.GetUnmangledNameWithoutTypeParameters());
-                    var typeName = type.Name;
-                    var p = typeName.IndexOf('`');
-                    if (p >= 0)
-                        writer.Write(typeName[..p]);
                     else
-                        writer.Write(typeName);
-                    // generic parameters
-                    if (type.IsGenericType)
                     {
-                        if (type.IsGenericTypeDefinition)
+                        // arguments
+                        var arguments = type.GetGenericArguments();
+                        if (arguments != null && arguments.Length > 0)
                         {
-                            // number of parameters
-                            var parameters = type.GetGenericArguments();
-                            if (parameters != null)
+                            writer.Write("{");
+                            for (var i = 0; i < arguments.Length; i++)
                             {
-                                writer.Write("`{0}", parameters.Length);
+                                //TypeNode argument = arguments[i];
+                                if (i > 0) writer.Write(",");
+                                WriteType(arguments[i], writer);
                             }
-                        }
-                        else
-                        {
-                            // arguments
-                            var arguments = type.GetGenericArguments();
-                            if (arguments != null && arguments.Length > 0)
-                            {
-                                writer.Write("{");
-                                for (var i = 0; i < arguments.Length; i++)
-                                {
-                                    //TypeNode argument = arguments[i];
-                                    if (i > 0) writer.Write(",");
-                                    WriteType(arguments[i], writer);
-                                }
-                                writer.Write("}");
-                            }
+                            writer.Write("}");
                         }
                     }
                 }

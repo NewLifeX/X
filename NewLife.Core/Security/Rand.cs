@@ -38,7 +38,7 @@ public static class Rand
     }
 
     [ThreadStatic]
-    private static Byte[] _buf;
+    private static Byte[]? _buf;
     /// <summary>返回一个指定范围内的随机数</summary>
     /// <remarks>
     /// 调用平均耗时37.76ns，其中GC耗时77.56%

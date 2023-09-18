@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Data;
 using NewLife.Log;
 
 namespace NewLife.Messaging;
@@ -37,6 +38,8 @@ public class PacketCodec
         var ms = Stream;
         var nodata = ms == null || ms.Position < 0 || ms.Position >= ms.Length;
 
+        var func = GetLength ?? throw new ArgumentNullException(nameof(GetLength));
+
         var list = new List<Packet>();
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
         if (nodata)
@@ -50,7 +53,7 @@ public class PacketCodec
             {
                 // 切出来一片，计算长度
                 var pk2 = pk.Slice(idx);
-                var len = GetLength(pk2);
+                var len = func(pk2);
                 if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
@@ -90,7 +93,7 @@ public class PacketCodec
                 //var pk2 = new Packet(ms);
                 // 这里可以肯定能够窃取内部缓冲区
                 var pk2 = new Packet(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
-                var len = GetLength(pk2);
+                var len = func(pk2);
                 if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
@@ -115,10 +118,10 @@ public class PacketCodec
     }
 
     /// <summary>检查缓存</summary>
+    [MemberNotNull(nameof(Stream))]
     protected virtual void CheckCache()
     {
-        var ms = Stream;
-        if (ms == null) Stream = ms = new MemoryStream();
+        var ms = Stream ??= new MemoryStream();
 
         // 超过该时间后按废弃数据处理
         var now = DateTime.Now;

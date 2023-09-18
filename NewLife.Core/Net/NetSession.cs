@@ -12,7 +12,7 @@ namespace NewLife.Net;
 public class NetSession<TServer> : NetSession where TServer : NetServer
 {
     /// <summary>主服务</summary>
-    public virtual TServer? Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value; }
+    public virtual TServer? Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value!; }
 }
 
 /// <summary>网络服务的会话，每个连接一个会话</summary>
@@ -26,17 +26,16 @@ public class NetSession : DisposeBase, INetSession, IExtend
     public virtual Int32 ID { get; internal set; }
 
     /// <summary>主服务</summary>
-    NetServer? INetSession.Host { get; set; }
+    NetServer INetSession.Host { get; set; } = null!;
 
     /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-    [NotNull]
-    public ISocketSession? Session { get; set; }
+    public ISocketSession Session { get; set; } = null!;
 
     /// <summary>服务端</summary>
-    public ISocketServer? Server { get; set; }
+    public ISocketServer Server { get; set; } = null!;
 
     /// <summary>客户端地址</summary>
-    public NetUri? Remote => Session?.Remote;
+    public NetUri Remote => Session.Remote;
 
     /// <summary>用户会话数据</summary>
     public IDictionary<String, Object?> Items { get; set; } = new NullableDictionary<String, Object?>();

@@ -85,9 +85,9 @@ public class DefaultSpan : ISpan
     public String? Error { get; set; }
 
 #if NET45
-    private static readonly ThreadLocal<ISpan> _Current = new();
+    private static readonly ThreadLocal<ISpan?> _Current = new();
 #else
-    private static readonly AsyncLocal<ISpan> _Current = new();
+    private static readonly AsyncLocal<ISpan?> _Current = new();
 #endif
     /// <summary>当前线程正在使用的上下文</summary>
     public static ISpan? Current { get => _Current.Value; set => _Current.Value = value; }
@@ -110,7 +110,7 @@ public class DefaultSpan : ISpan
 
     static DefaultSpan()
     {
-        IPAddress ip;
+        IPAddress? ip;
         try
         {
             ip = NetHelper.MyIP();

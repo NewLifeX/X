@@ -21,7 +21,7 @@ public static class Reflect
     /// <summary>根据名称获取类型。可搜索当前目录DLL，自动加载</summary>
     /// <param name="typeName">类型名</param>
     /// <returns></returns>
-    public static Type GetTypeEx(this String typeName)
+    public static Type? GetTypeEx(this String typeName)
     {
         if (String.IsNullOrEmpty(typeName)) return null;
 
@@ -36,7 +36,7 @@ public static class Reflect
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
     [Obsolete("不再支持isLoadAssembly")]
-    public static Type GetTypeEx(this String typeName, Boolean isLoadAssembly)
+    public static Type? GetTypeEx(this String typeName, Boolean isLoadAssembly)
     {
         if (String.IsNullOrEmpty(typeName)) return null;
 
@@ -52,7 +52,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    public static MethodInfo GetMethodEx(this Type type, String name, params Type[] paramTypes)
+    public static MethodInfo? GetMethodEx(this Type type, String name, params Type[] paramTypes)
     {
         if (name.IsNullOrEmpty()) return null;
 
@@ -69,7 +69,7 @@ public static class Reflect
     /// <returns></returns>
     public static MethodInfo[] GetMethodsEx(this Type type, String name, Int32 paramCount = -1)
     {
-        if (name.IsNullOrEmpty()) return null;
+        if (name.IsNullOrEmpty()) return new MethodInfo[0];
 
         return Provider.GetMethods(type, name, paramCount);
     }
@@ -79,7 +79,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public static PropertyInfo GetPropertyEx(this Type type, String name, Boolean ignoreCase = false)
+    public static PropertyInfo? GetPropertyEx(this Type type, String name, Boolean ignoreCase = false)
     {
         if (String.IsNullOrEmpty(name)) return null;
 
@@ -91,7 +91,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public static FieldInfo GetFieldEx(this Type type, String name, Boolean ignoreCase = false)
+    public static FieldInfo? GetFieldEx(this Type type, String name, Boolean ignoreCase = false)
     {
         if (String.IsNullOrEmpty(name)) return null;
 
@@ -103,7 +103,7 @@ public static class Reflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public static MemberInfo GetMemberEx(this Type type, String name, Boolean ignoreCase = false)
+    public static MemberInfo? GetMemberEx(this Type type, String name, Boolean ignoreCase = false)
     {
         if (String.IsNullOrEmpty(name)) return null;
 
@@ -150,7 +150,7 @@ public static class Reflect
 
         if (TryInvoke(target, name, out var value, parameters)) return value;
 
-        var type = GetType(ref target);
+        var type = GetType(target);
         throw new XException("类{0}中找不到名为{1}的方法！", type, name);
     }
 
@@ -166,14 +166,14 @@ public static class Reflect
 
         if (String.IsNullOrEmpty(name)) return false;
 
-        var type = GetType(ref target);
+        var type = GetType(target);
 
         // 参数类型数组
         var ps = parameters.Select(e => e?.GetType()).ToArray();
 
         // 如果参数数组出现null，则无法精确匹配，可按参数个数进行匹配
-        var method = ps.Any(e => e == null) ? GetMethodEx(type, name) : GetMethodEx(type, name, ps);
-        if (method == null) method = GetMethodsEx(type, name, ps.Length > 0 ? ps.Length : -1).FirstOrDefault();
+        var method = ps.Any(e => e == null) ? GetMethodEx(type, name) : GetMethodEx(type, name, ps!);
+        method ??= GetMethodsEx(type, name, ps.Length > 0 ? ps.Length : -1).FirstOrDefault();
         if (method == null) return false;
 
         value = Invoke(target, method, parameters);
@@ -226,7 +226,7 @@ public static class Reflect
 
         if (!throwOnError) return null;
 
-        var type = GetType(ref target);
+        var type = GetType(target);
         throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
     }
 
@@ -241,7 +241,7 @@ public static class Reflect
 
         if (String.IsNullOrEmpty(name)) return false;
 
-        var type = GetType(ref target);
+        var type = GetType(target);
 
         var mi = type.GetMemberEx(name, true);
         if (mi == null) return false;
@@ -256,21 +256,21 @@ public static class Reflect
     /// <param name="member">成员</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object? GetValue(this Object target, MemberInfo member)
+    public static Object? GetValue(this Object? target, MemberInfo member)
     {
         // 有可能跟普通的 PropertyInfo.GetValue(Object target) 搞混了
-        if (member == null)
+        if (member == null && target is MemberInfo mi)
         {
-            member = target as MemberInfo;
+            member = mi;
             target = null;
         }
 
         //if (target is IModel model && member is PropertyInfo) return model[member.Name];
 
-        if (member is PropertyInfo)
-            return Provider.GetValue(target, member as PropertyInfo);
-        else if (member is FieldInfo)
-            return Provider.GetValue(target, member as FieldInfo);
+        if (member is PropertyInfo property)
+            return Provider.GetValue(target, property);
+        else if (member is FieldInfo field)
+            return Provider.GetValue(target, field);
         else
             throw new ArgumentOutOfRangeException(nameof(member));
     }
@@ -292,7 +292,7 @@ public static class Reflect
         //    return true;
         //}
 
-        var type = GetType(ref target);
+        var type = GetType(target);
 
         var mi = type.GetMemberEx(name, true);
         if (mi == null) return false;
@@ -333,7 +333,7 @@ public static class Reflect
     /// <param name="target">目标对象</param>
     /// <param name="dic">源字典</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-    public static void Copy(this Object target, IDictionary<String, Object> dic, Boolean deep = false) => Provider.Copy(target, dic, deep);
+    public static void Copy(this Object target, IDictionary<String, Object?> dic, Boolean deep = false) => Provider.Copy(target, dic, deep);
     #endregion
 
     #region 类型辅助
@@ -352,7 +352,7 @@ public static class Reflect
     /// <typeparam name="TResult"></typeparam>
     /// <param name="value">数值</param>
     /// <returns></returns>
-    public static TResult ChangeType<TResult>(this Object? value)
+    public static TResult? ChangeType<TResult>(this Object? value)
     {
         if (value is TResult result) return result;
 
@@ -475,15 +475,15 @@ public static class Reflect
     /// <summary>获取类型，如果target是Type类型，则表示要反射的是静态成员</summary>
     /// <param name="target">目标对象</param>
     /// <returns></returns>
-    static Type GetType(ref Object? target)
+    static Type GetType(Object target)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
 
         var type = target as Type;
         if (type == null)
             type = target.GetType();
-        else
-            target = null;
+        //else
+        //    target = null;
 
         return type;
     }

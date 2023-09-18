@@ -95,13 +95,13 @@ public interface IReflect
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    Object? GetValue(Object target, PropertyInfo property);
+    Object? GetValue(Object? target, PropertyInfo property);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    Object? GetValue(Object target, FieldInfo field);
+    Object? GetValue(Object? target, FieldInfo field);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
@@ -492,13 +492,13 @@ public class DefaultReflect : IReflect
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    public virtual Object? GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
+    public virtual Object? GetValue(Object? target, PropertyInfo property) => property.GetValue(target, null);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    public virtual Object? GetValue(Object target, FieldInfo field) => field.GetValue(target);
+    public virtual Object? GetValue(Object? target, FieldInfo field) => field.GetValue(target);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
