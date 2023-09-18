@@ -262,7 +262,7 @@ public class TimerScheduler
             }
 
             var func = timer.Method.As<TimerCallback>(target);
-            func(timer.State);
+            func!(timer.State);
         }
         catch (ThreadAbortException) { throw; }
         catch (ThreadInterruptedException) { throw; }
@@ -308,7 +308,7 @@ public class TimerScheduler
             }
 
             var func = timer.Method.As<Func<Object?, Task>>(target);
-            await func(timer.State);
+            await func!(timer.State);
         }
         catch (ThreadAbortException) { throw; }
         catch (ThreadInterruptedException) { throw; }

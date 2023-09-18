@@ -114,7 +114,7 @@ public static class Runtime
     /// </summary>
     /// <param name="variable"></param>
     /// <returns></returns>
-    public static String GetEnvironmentVariable(String variable)
+    public static String? GetEnvironmentVariable(String variable)
     {
         var val = Environment.GetEnvironmentVariable(variable);
         if (!val.IsNullOrEmpty()) return val;

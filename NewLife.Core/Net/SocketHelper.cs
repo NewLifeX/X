@@ -16,7 +16,7 @@ public static class SocketHelper
     /// <returns></returns>
     public static Task<Int32> SendAsync(this Socket socket, Byte[] buffer)
     {
-        var task = Task<Int32>.Factory.FromAsync((Byte[] buf, AsyncCallback callback, Object state) =>
+        var task = Task<Int32>.Factory.FromAsync((Byte[] buf, AsyncCallback callback, Object? state) =>
         {
             return socket.BeginSend(buf, 0, buf.Length, SocketFlags.None, callback, state);
         }, socket.EndSend, buffer, null);
@@ -31,7 +31,7 @@ public static class SocketHelper
     /// <returns></returns>
     public static Task<Int32> SendToAsync(this Socket socket, Byte[] buffer, IPEndPoint remote)
     {
-        var task = Task<Int32>.Factory.FromAsync((Byte[] buf, IPEndPoint ep, AsyncCallback callback, Object state) =>
+        var task = Task<Int32>.Factory.FromAsync((Byte[] buf, IPEndPoint ep, AsyncCallback callback, Object? state) =>
         {
             return socket.BeginSendTo(buf, 0, buf.Length, SocketFlags.None, ep, callback, state);
         }, socket.EndSendTo, buffer, remote, null);
@@ -47,6 +47,8 @@ public static class SocketHelper
     public static Socket Send(this Socket socket, Stream stream, IPEndPoint? remoteEP = null)
     {
         Int64 total = 0;
+        remoteEP ??= socket.RemoteEndPoint as IPEndPoint;
+        if (remoteEP == null) throw new ArgumentNullException(nameof(remoteEP));
 
         var size = 1472;
         var buffer = new Byte[size];
@@ -70,6 +72,9 @@ public static class SocketHelper
     /// <returns>返回自身，用于链式写法</returns>
     public static Socket Send(this Socket socket, Byte[] buffer, IPEndPoint? remoteEP = null)
     {
+        remoteEP ??= socket.RemoteEndPoint as IPEndPoint;
+        if (remoteEP == null) throw new ArgumentNullException(nameof(remoteEP));
+
         socket.SendTo(buffer, 0, buffer.Length, SocketFlags.None, remoteEP);
 
         return socket;
@@ -96,10 +101,10 @@ public static class SocketHelper
     /// <param name="port"></param>
     public static Socket Broadcast(this Socket socket, Byte[] buffer, Int32 port)
     {
-        if (socket != null && socket.LocalEndPoint != null)
+        if (/*socket != null &&*/ socket.LocalEndPoint != null)
         {
             var ip = socket.LocalEndPoint as IPEndPoint;
-            if (!ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
+            if (ip != null && !ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
         }
 
         if (!socket.EnableBroadcast) socket.EnableBroadcast = true;
@@ -125,7 +130,7 @@ public static class SocketHelper
     /// <returns></returns>
     public static String ReceiveString(this Socket socket, Encoding? encoding = null)
     {
-        EndPoint? ep = null;
+        EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
 
         var buf = new Byte[1460];
         var len = socket.ReceiveFrom(buf, ref ep);
@@ -175,17 +180,17 @@ public static class SocketHelper
         socket.Close();
     }
 
-    private static MemberInfo[] _mSafeHandle;
+    private static MemberInfo?[]? _mSafeHandle;
     /// <summary>SafeHandle字段</summary>
-    private static MemberInfo mSafeHandle
+    private static MemberInfo? mSafeHandle
     {
         get
         {
             if (_mSafeHandle != null && _mSafeHandle.Length > 0) return _mSafeHandle[0];
 
-            MemberInfo pi = typeof(Socket).GetFieldEx("m_Handle");
+            MemberInfo? pi = typeof(Socket).GetFieldEx("m_Handle");
             pi ??= typeof(Socket).GetPropertyEx("SafeHandle");
-            _mSafeHandle = new MemberInfo[] { pi };
+            _mSafeHandle = new MemberInfo?[] { pi };
 
             return pi;
         }
@@ -201,7 +206,7 @@ public static class SocketHelper
     /// <summary>根据异步事件获取可输出异常，屏蔽常见异常</summary>
     /// <param name="se"></param>
     /// <returns></returns>
-    internal static Exception GetException(this SocketAsyncEventArgs se)
+    internal static Exception? GetException(this SocketAsyncEventArgs se)
     {
         if (se == null) return null;
 

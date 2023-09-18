@@ -12,7 +12,7 @@ public static class SecurityHelper
 {
     #region 哈希
     [ThreadStatic]
-    private static MD5 _md5;
+    private static MD5? _md5;
     /// <summary>MD5散列</summary>
     /// <param name="data"></param>
     /// <returns></returns>

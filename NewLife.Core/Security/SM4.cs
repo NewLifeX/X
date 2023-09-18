@@ -34,15 +34,15 @@ public class SM4 : SymmetricAlgorithm
     /// <param name="key"></param>
     /// <param name="iv"></param>
     /// <returns></returns>
-    public override ICryptoTransform CreateEncryptor(Byte[] key, Byte[] iv) => CreateTransform(key, iv, true);
+    public override ICryptoTransform CreateEncryptor(Byte[] key, Byte[]? iv) => CreateTransform(key, iv, true);
 
     /// <summary>生成解密器</summary>
     /// <param name="key"></param>
     /// <param name="iv"></param>
     /// <returns></returns>
-    public override ICryptoTransform CreateDecryptor(Byte[] key, Byte[] iv) => CreateTransform(key, iv, false);
+    public override ICryptoTransform CreateDecryptor(Byte[] key, Byte[]? iv) => CreateTransform(key, iv, false);
 
-    private ICryptoTransform CreateTransform(Byte[] rgbKey, Byte[] rgbIV, Boolean encryptMode)
+    private ICryptoTransform CreateTransform(Byte[] rgbKey, Byte[]? rgbIV, Boolean encryptMode)
     {
         ICryptoTransform transform = new SM4Transform(rgbKey, rgbIV, encryptMode);
         switch (Mode)
@@ -231,7 +231,7 @@ public class SM4Transform : ICryptoTransform
     /// <param name="iv"></param>
     /// <param name="encryptMode"></param>
     /// <exception cref="ArgumentException"></exception>
-    public SM4Transform(Byte[] key, Byte[] iv, Boolean encryptMode)
+    public SM4Transform(Byte[] key, Byte[]? iv, Boolean encryptMode)
     {
         if (key == null || key.Length != 16) throw new ArgumentException(nameof(key), "Key must be a 16-byte array.");
         if (iv != null && iv.Length != 16) throw new ArgumentException(nameof(key), "IV must be a 16-byte array.");

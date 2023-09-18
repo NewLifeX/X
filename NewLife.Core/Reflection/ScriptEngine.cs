@@ -4,6 +4,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -56,7 +57,7 @@ public class ScriptEngine
 {
     #region 属性
     /// <summary>代码</summary>
-    public String Code { get; private set; }
+    public String? Code { get; private set; }
 
     /// <summary>是否表达式</summary>
     public Boolean IsExpression { get; set; }
@@ -65,13 +66,13 @@ public class ScriptEngine
     public IDictionary<String, Type> Parameters { get; } = new Dictionary<String, Type>();
 
     /// <summary>最终代码</summary>
-    public String FinalCode { get; private set; }
+    public String? FinalCode { get; private set; }
 
     /// <summary>编译得到的类型</summary>
-    public Type Type { get; private set; }
+    public Type? Type { get; private set; }
 
     /// <summary>根据代码编译出来可供直接调用的入口方法，Eval/Main</summary>
-    public MethodInfo Method { get; private set; }
+    public MethodInfo? Method { get; private set; }
 
     /// <summary>命名空间集合</summary>
     public StringCollection NameSpaces { get; set; } = new StringCollection{
@@ -87,10 +88,10 @@ public class ScriptEngine
     public StringCollection ReferencedAssemblies { get; set; } = new StringCollection();
 
     /// <summary>日志</summary>
-    public ILog Log { get; set; }
+    public ILog? Log { get; set; }
 
     /// <summary>工作目录。执行时，将会作为环境变量的当前目录和PathHelper目录，执行后还原</summary>
-    public String WorkingDirectory { get; set; }
+    public String? WorkingDirectory { get; set; }
     #endregion
 
     #region 创建
@@ -127,7 +128,7 @@ public class ScriptEngine
     /// <summary>执行表达式，返回结果</summary>
     /// <param name="code">代码片段</param>
     /// <returns></returns>
-    public static Object Execute(String code) { return Create(code).Invoke(); }
+    public static Object? Execute(String code) => Create(code).Invoke();
 
     /// <summary>执行表达式，返回结果</summary>
     /// <param name="code">代码片段</param>
@@ -135,10 +136,10 @@ public class ScriptEngine
     /// <param name="parameterTypes">参数类型</param>
     /// <param name="parameters">参数值</param>
     /// <returns></returns>
-    public static Object Execute(String code, String[] names, Type[] parameterTypes, Object[] parameters)
+    public static Object? Execute(String code, String[] names, Type[] parameterTypes, Object[] parameters)
     {
         var se = Create(code);
-        if (se != null && se.Method != null) return se.Invoke(parameters);
+        if (/*se != null &&*/ se.Method != null) return se.Invoke(parameters);
 
         if (names != null)
         {
@@ -156,14 +157,14 @@ public class ScriptEngine
     /// <param name="code">代码片段</param>
     /// <param name="parameters">参数名值对</param>
     /// <returns></returns>
-    public static Object Execute(String code, IDictionary<String, Object> parameters)
+    public static Object? Execute(String code, IDictionary<String, Object> parameters)
     {
         if (parameters == null || parameters.Count <= 0) return Execute(code);
 
         var ps = parameters.Values.ToArray();
 
         var se = Create(code);
-        if (se != null && se.Method != null) return se.Invoke(ps);
+        if (/*se != null &&*/ se.Method != null) return se.Invoke(ps);
 
         var names = parameters.Keys.ToArray();
         var types = ps.GetTypeArray();
@@ -181,12 +182,12 @@ public class ScriptEngine
     /// <param name="code"></param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    public static Object Execute(String code, Object[] parameters)
+    public static Object? Execute(String code, Object[] parameters)
     {
         if (parameters == null || parameters.Length <= 0) return Execute(code);
 
         var se = Create(code);
-        if (se != null && se.Method != null) return se.Invoke(parameters);
+        if (/*se != null &&*/ se.Method != null) return se.Invoke(parameters);
 
         var names = new String[parameters.Length];
         for (var i = 0; i < names.Length; i++)
@@ -207,13 +208,14 @@ public class ScriptEngine
 
     #region 动态编译
     /// <summary>生成代码。根据<see cref="Code"/>完善得到最终代码<see cref="FinalCode"/></summary>
-    public void GenerateCode() { FinalCode = GetFullCode(); }
+    [MemberNotNull(nameof(FinalCode))]
+    public void GenerateCode() => FinalCode = GetFullCode();
 
     /// <summary>获取完整源代码</summary>
     /// <returns></returns>
     public String GetFullCode()
     {
-        if (String.IsNullOrEmpty(Code)) throw new ArgumentNullException("Code");
+        if (Code.IsNullOrEmpty()) throw new ArgumentNullException("Code");
 
         // 预处理代码
         var code = Code.Trim();
@@ -307,6 +309,8 @@ public class ScriptEngine
                 // 加载外部程序集
                 foreach (var item in ReferencedAssemblies)
                 {
+                    if (item.IsNullOrEmpty()) continue;
+
                     try
                     {
                         //Assembly.LoadFrom(item);
@@ -325,8 +329,9 @@ public class ScriptEngine
                 }
                 catch (ReflectionTypeLoadException ex)
                 {
-                    if (ex.LoaderExceptions != null && ex.LoaderExceptions.Length > 0)
-                        throw ex.LoaderExceptions[0];
+                    var le = ex.LoaderExceptions?.FirstOrDefault();
+                    if (le != null)
+                        throw le;
                     else
                         throw;
                 }
@@ -356,7 +361,7 @@ public class ScriptEngine
     /// <param name="classCode"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    public CompilerResults Compile(String classCode, CompilerParameters options)
+    public CompilerResults Compile(String classCode, CompilerParameters? options)
     {
         options ??= new CompilerParameters
         {
@@ -384,12 +389,15 @@ public class ScriptEngine
         {
             if (item is AssemblyBuilder) continue;
 
+            var name = item.GetName()?.Name;
+            if (name == null) continue;
+
             // 三趾树獭  303409914 发现重复加载同一个DLL，表现为Web站点Bin目录有一个，系统缓存有一个
             // 相同程序集不同版本，全名不想等
-            if (hs.Contains(item.GetName().Name)) continue;
-            hs.Add(item.GetName().Name);
+            if (hs.Contains(name)) continue;
+            hs.Add(name);
 
-            String name = null;
+            //String name = null;
             try
             {
                 name = item.Location;
@@ -432,7 +440,7 @@ public class ScriptEngine
     /// <summary>按照传入参数执行代码</summary>
     /// <param name="parameters">参数</param>
     /// <returns>结果</returns>
-    public Object Invoke(params Object[] parameters)
+    public Object? Invoke(params Object?[] parameters)
     {
         if (Method == null) Compile();
         if (Method == null) throw new XException("脚本引擎未编译表达式！");
@@ -509,7 +517,7 @@ public class ScriptEngine
         Log?.Info(format, args);
     }
 
-    static Assembly CurrentDomain_AssemblyResolve(Object sender, ResolveEventArgs args)
+    static Assembly? CurrentDomain_AssemblyResolve(Object? sender, ResolveEventArgs args)
     {
         var name = args.Name;
         if (String.IsNullOrEmpty(name)) return null;

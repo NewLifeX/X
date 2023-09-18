@@ -37,7 +37,7 @@ public sealed class CbcTransform : ICryptoTransform
     /// <param name="iv"></param>
     /// <param name="encryptMode"></param>
     /// <exception cref="CryptographicException"></exception>
-    public CbcTransform(ICryptoTransform transform, Byte[] iv, Boolean encryptMode)
+    public CbcTransform(ICryptoTransform transform, Byte[]? iv, Boolean encryptMode)
     {
         _transform = transform;
         _encryptMode = encryptMode;
@@ -45,7 +45,7 @@ public sealed class CbcTransform : ICryptoTransform
 
         if (transform.InputBlockSize != transform.OutputBlockSize) throw new CryptographicException();
 
-        if (iv.Length != transform.InputBlockSize) throw new CryptographicException("IV length mismatch");
+        if (iv == null || iv.Length != transform.InputBlockSize) throw new CryptographicException("IV length mismatch");
 
         Array.Copy(iv, _lastBlock, transform.InputBlockSize);
         _iv = (Byte[])_lastBlock.Clone();

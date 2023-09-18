@@ -88,7 +88,7 @@ public interface ISocketRemote : ISocket, IExtend
     #region 接收
     /// <summary>接收数据。阻塞当前线程等待返回</summary>
     /// <returns></returns>
-    Packet Receive();
+    Packet? Receive();
 
     /// <summary>数据到达事件</summary>
     event EventHandler<ReceivedEventArgs> Received;

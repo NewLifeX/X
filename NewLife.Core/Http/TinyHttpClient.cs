@@ -25,10 +25,10 @@ public class TinyHttpClient : DisposeBase
 {
     #region 属性
     /// <summary>客户端</summary>
-    public TcpClient Client { get; set; }
+    public TcpClient? Client { get; set; }
 
     /// <summary>基础地址</summary>
-    public Uri BaseAddress { get; set; }
+    public Uri? BaseAddress { get; set; }
 
     /// <summary>保持连接</summary>
     public Boolean KeepAlive { get; set; }
@@ -40,9 +40,9 @@ public class TinyHttpClient : DisposeBase
     public Int32 BufferSize { get; set; } = 64 * 1024;
 
     /// <summary>性能追踪</summary>
-    public ITracer Tracer { get; set; } = HttpHelper.Tracer;
+    public ITracer? Tracer { get; set; } = HttpHelper.Tracer;
 
-    private Stream _stream;
+    private Stream? _stream;
     #endregion
 
     #region 构造
@@ -76,11 +76,11 @@ public class TinyHttpClient : DisposeBase
         var active = false;
         try
         {
-            active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
-            if (active) return ns;
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
+            if (active) return ns!;
 
             ns = tc?.GetStream();
-            active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
         }
         catch { }
 
@@ -114,7 +114,7 @@ public class TinyHttpClient : DisposeBase
             _stream = ns;
         }
 
-        return ns;
+        return ns!;
     }
 
     /// <summary>异步请求</summary>
@@ -148,6 +148,8 @@ public class TinyHttpClient : DisposeBase
     {
         // 构造请求
         var uri = request.RequestUri;
+        if (uri == null) throw new ArgumentNullException(nameof(request.RequestUri));
+
         var req = request.Build();
 
         var res = new HttpResponse();
@@ -393,7 +395,7 @@ public class TinyHttpClient : DisposeBase
 
     #region 日志
     /// <summary>日志</summary>
-    public ILog Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>写日志</summary>
     /// <param name="format"></param>

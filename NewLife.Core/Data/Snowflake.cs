@@ -57,8 +57,15 @@ public class Snowflake
                 Cluster = provider.Cache;
 
             var ip = NetHelper.MyIP();
-            var buf = ip.GetAddressBytes();
-            _instance = (buf[2] << 8) | buf[3];
+            if (ip != null)
+            {
+                var buf = ip.GetAddressBytes();
+                _instance = (buf[2] << 8) | buf[3];
+            }
+            else
+            {
+                _instance = Rand.Next(1, 1024);
+            }
         }
         catch
         {

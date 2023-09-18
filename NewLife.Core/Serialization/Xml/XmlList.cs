@@ -35,7 +35,7 @@ public class XmlList : XmlHandlerBase
             // 循环写入数据
             foreach (var item in list)
             {
-                if (!Host.Write(item)) return false;
+                if (item != null && !Host.Write(item)) return false;
             }
         }
         finally
@@ -52,7 +52,7 @@ public class XmlList : XmlHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
@@ -66,7 +66,8 @@ public class XmlList : XmlHandlerBase
         var elmType = type.GetElementTypeEx();
         if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
-        if (value is not IList list || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+        if (value is not IList list || value is Array)
+            list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
         if (list == null) throw new ArgumentOutOfRangeException(nameof(elmType));
 
         // 清空已有数据

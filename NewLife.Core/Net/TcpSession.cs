@@ -13,14 +13,14 @@ public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
-    public IPAddress RemoteAddress { get; private set; }
+    public IPAddress? RemoteAddress { get; private set; }
 
     /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
     public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
-    internal ISocketServer _Server;
+    internal ISocketServer? _Server;
     /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
-    ISocketServer ISocketSession.Server => _Server;
+    ISocketServer ISocketSession.Server => _Server!;
 
     ///// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
     //public Int32 AutoReconnect { get; set; } = 3;
@@ -33,9 +33,9 @@ public class TcpSession : SessionBase, ISocketSession
 
     /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
     /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
-    public X509Certificate Certificate { get; set; }
+    public X509Certificate? Certificate { get; set; }
 
-    private SslStream _Stream;
+    private SslStream? _Stream;
     #endregion
 
     #region 构造
@@ -81,7 +81,7 @@ public class TcpSession : SessionBase, ISocketSession
         // 设置读写超时
         var sock = Client;
         var timeout = Timeout;
-        if (timeout > 0)
+        if (timeout > 0 && sock != null)
         {
             sock.SendTimeout = timeout;
             sock.ReceiveTimeout = timeout;
@@ -124,10 +124,10 @@ public class TcpSession : SessionBase, ISocketSession
             // 根据目标地址适配本地IPv4/IPv6
             if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
             {
-                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily)!;
             }
 
-            sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
+            sock = Client = NetHelper.CreateTcp(Local.Address!.IsIPv4());
             //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
             if (NoDelay) sock.NoDelay = true;
             if (timeout > 0)
@@ -137,7 +137,7 @@ public class TcpSession : SessionBase, ISocketSession
             }
 
             sock.Bind(Local.EndPoint);
-            Local.EndPoint.Port = ((IPEndPoint)sock.LocalEndPoint).Port;
+            if (sock.LocalEndPoint is IPEndPoint ep) Local.EndPoint.Port = ep.Port;
             span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
 
             WriteLog("Open {0}", this);
@@ -172,11 +172,12 @@ public class TcpSession : SessionBase, ISocketSession
             var sp = SslProtocol;
             if (sp != SslProtocols.None)
             {
-                WriteLog("客户端SSL认证 {0} {1}", sp, uri.Host);
+                var host = uri.Host ?? uri.Address + "";
+                WriteLog("客户端SSL认证 {0} {1}", sp, host);
 
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
-                sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), sp, false);
+                sslStream.AuthenticateAsClient(host, new X509CertificateCollection(), sp, false);
 
                 _Stream = sslStream;
             }
@@ -195,7 +196,7 @@ public class TcpSession : SessionBase, ISocketSession
         return true;
     }
 
-    private Boolean OnCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    private Boolean OnCertificateValidationCallback(Object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
         //WriteLog("Valid {0} {1}", certificate.Issuer, sslPolicyErrors);
         //if (chain?.ChainStatus != null)
@@ -208,6 +209,7 @@ public class TcpSession : SessionBase, ISocketSession
 
         // 如果没有证书，全部通过
         if (Certificate is not X509Certificate2 cert) return true;
+        if (chain == null) return false;
 
         return chain.ChainElements
                 .Cast<X509ChainElement>()
@@ -228,7 +230,7 @@ public class TcpSession : SessionBase, ISocketSession
             try
             {
                 // 温和一点关闭连接
-                Client.Shutdown();
+                client.Shutdown();
                 client.Close();
 
                 // 如果是服务端，这个时候就是销毁
@@ -268,6 +270,8 @@ public class TcpSession : SessionBase, ISocketSession
         using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
         var rs = count;
         var sock = Client;
+        if (sock == null) return -1;
+
         var gotLock = false;
         try
         {
@@ -339,7 +343,7 @@ public class TcpSession : SessionBase, ISocketSession
         var ss = _Stream;
         if (ss != null)
         {
-            ss.BeginRead(se.Buffer, se.Offset, se.Count, OnEndRead, se);
+            ss.BeginRead(se.Buffer!, se.Offset, se.Count, OnEndRead, se);
 
             return true;
         }
@@ -355,7 +359,7 @@ public class TcpSession : SessionBase, ISocketSession
         Int32 bytes;
         try
         {
-            bytes = _Stream.EndRead(ar);
+            bytes = _Stream!.EndRead(ar);
         }
         catch (Exception ex)
         {
@@ -371,7 +375,7 @@ public class TcpSession : SessionBase, ISocketSession
             return;
         }
 
-        ProcessEvent(se, bytes, true);
+        if (se != null) ProcessEvent(se, bytes, true);
     }
 
     private Int32 _empty;
@@ -379,7 +383,7 @@ public class TcpSession : SessionBase, ISocketSession
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote)
     {
         if (pk.Count == 0)
         {
@@ -438,7 +442,7 @@ public class TcpSession : SessionBase, ISocketSession
     #endregion
 
     #region 辅助
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public override String LogPrefix
     {

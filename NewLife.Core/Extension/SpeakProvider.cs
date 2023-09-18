@@ -46,12 +46,12 @@ class SpeakProvider
     private Object? synth;
     void EnsureSynth()
     {
-        if (synth == null)
+        if (synth == null && _type != null)
         {
             try
             {
                 synth = _type.CreateInstance(new Object[0]);
-                synth.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
+                synth?.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
             }
             catch (Exception ex)
             {

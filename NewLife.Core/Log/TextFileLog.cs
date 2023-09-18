@@ -16,10 +16,10 @@ public class TextFileLog : Logger, IDisposable
 {
     #region 属性
     /// <summary>日志目录</summary>
-    public String? LogPath { get; set; }
+    public String LogPath { get; set; }
 
     /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log</summary>
-    public String? FileFormat { get; set; }
+    public String FileFormat { get; set; }
 
     /// <summary>日志文件上限。超过上限后拆分新日志文件，默认10MB，0表示不限制大小</summary>
     public Int32 MaxBytes { get; set; } = 10;
@@ -35,7 +35,13 @@ public class TextFileLog : Logger, IDisposable
 
     #region 构造
     /// <summary>该构造函数没有作用，为了继承而设置</summary>
-    public TextFileLog() { }
+    public TextFileLog()
+    {
+        LogPath = String.Empty;
+
+        var set = Setting.Current;
+        FileFormat = set.LogFileFormat;
+    }
 
     internal TextFileLog(String path, Boolean isfile, String? fileFormat = null)
     {
@@ -98,7 +104,7 @@ public class TextFileLog : Logger, IDisposable
     private Int32 _logFileError;
 
     /// <summary>初始化日志记录文件</summary>
-    private StreamWriter InitLog(String logfile)
+    private StreamWriter? InitLog(String logfile)
     {
         try
         {
@@ -131,7 +137,7 @@ public class TextFileLog : Logger, IDisposable
 
     /// <summary>获取日志文件路径</summary>
     /// <returns></returns>
-    private String GetLogFile()
+    private String? GetLogFile()
     {
         // 单日志文件
         if (_isFile) return LogPath.GetBasePath();
@@ -172,6 +178,8 @@ public class TextFileLog : Logger, IDisposable
 
         var now = TimerX.Now.AddHours(Setting.Current.UtcIntervalHours);
         var logFile = GetLogFile();
+        if (logFile.IsNullOrEmpty()) return;
+
         if (!_isFile && logFile != CurrentLogFile)
         {
             writer.TryDispose();
@@ -207,7 +215,7 @@ public class TextFileLog : Logger, IDisposable
     }
 
     /// <summary>关闭文件</summary>
-    private void DoWriteAndClose(Object state)
+    private void DoWriteAndClose(Object? state)
     {
         // 同步写日志
         if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0) WriteAndClose(_NextClose);
@@ -285,7 +293,7 @@ public class TextFileLog : Logger, IDisposable
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected override void OnWrite(LogLevel level, String format, params Object[] args)
+    protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
         // 据@夏玉龙反馈，如果不给Log目录写入权限，日志队列积压将会导致内存暴增
         if (_logCount > 100) return;

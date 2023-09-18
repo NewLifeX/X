@@ -53,7 +53,7 @@ public static class StringHelper
 
         foreach (var item in strs)
         {
-            if (value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (item != null && value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
         }
         return false;
     }
@@ -461,7 +461,7 @@ public static class StringHelper
     /// <returns></returns>
     public static String? TrimInvisible(this String? value)
     {
-        if (String.IsNullOrEmpty(value)) return value;
+        if (value.IsNullOrEmpty()) return value;
 
         var builder = new StringBuilder();
 

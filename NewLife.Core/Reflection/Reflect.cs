@@ -187,7 +187,7 @@ public static class Reflect
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
     [DebuggerHidden]
-    public static Object? Invoke(this Object? target, MethodBase method, params Object?[] parameters)
+    public static Object? Invoke(this Object? target, MethodBase method, params Object?[]? parameters)
     {
         //if (target == null) throw new ArgumentNullException("target");
         if (method == null) throw new ArgumentNullException(nameof(method));

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Sockets;
 using NewLife.Collections;
 using NewLife.Data;
@@ -106,7 +107,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 if (!rs) return false;
 
                 var timeout = Timeout;
-                if (timeout > 0)
+                if (timeout > 0 && Client != null)
                 {
                     Client.SendTimeout = timeout;
                     Client.ReceiveTimeout = timeout;
@@ -134,6 +135,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>打开</summary>
     /// <returns></returns>
+    [MemberNotNullWhen(true, nameof(Client))]
     protected abstract Boolean OnOpen();
 
     /// <summary>关闭</summary>
@@ -182,10 +184,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     Boolean ITransport.Close() => Close("传输口关闭");
 
     /// <summary>打开后触发。</summary>
-    public event EventHandler Opened;
+    public event EventHandler? Opened;
 
     /// <summary>关闭后触发。可实现掉线重连</summary>
-    public event EventHandler Closed;
+    public event EventHandler? Closed;
     #endregion
 
     #region 发送
@@ -215,11 +217,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     #region 接收
     /// <summary>接收数据</summary>
     /// <returns></returns>
-    public virtual Packet Receive()
+    public virtual Packet? Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
-        if (!Open()) return null;
+        if (!Open() || Client == null) return null;
 
         using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
         try
@@ -281,7 +283,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="reason"></param>
     void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
-        var idx = (Int32)se.UserToken;
+        var idx = se.UserToken.ToInt();
 
         if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("释放RecvSA {0} {1}", idx, reason);
 
@@ -345,7 +347,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 {
                     try
                     {
-                        ProcessEvent(s as SocketAsyncEventArgs, -1, false);
+                        if (s is SocketAsyncEventArgs ee) ProcessEvent(ee, -1, false);
                     }
                     catch (Exception ex)
                     {
@@ -396,11 +398,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             {
                 var ep = se.RemoteEndPoint as IPEndPoint ?? Remote.EndPoint;
                 if (bytes < 0) bytes = se.BytesTransferred;
-                var pk = new Packet(se.Buffer, se.Offset, bytes);
+                if (se.Buffer != null)
+                {
+                    var pk = new Packet(se.Buffer, se.Offset, bytes);
 
-                // 同步执行，直接使用数据，不需要拷贝
-                // 直接在IO线程调用业务逻辑
-                ProcessReceive(pk, ep);
+                    // 同步执行，直接使用数据，不需要拷贝
+                    // 直接在IO线程调用业务逻辑
+                    ProcessReceive(pk, ep);
+                }
             }
 
             // 开始新的监听
@@ -473,7 +478,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected abstract ISocketSession OnPreReceive(Packet pk, IPEndPoint remote);
+    internal protected abstract ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote);
 
     /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
     /// <param name="e">接收事件参数</param>
@@ -481,7 +486,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     protected abstract Boolean OnReceive(ReceivedEventArgs e);
 
     /// <summary>数据到达事件</summary>
-    public event EventHandler<ReceivedEventArgs> Received;
+    public event EventHandler<ReceivedEventArgs>? Received;
 
     /// <summary>触发数据到达事件</summary>
     /// <param name="sender"></param>
@@ -506,7 +511,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// 1，接收数据解码时，从前向后通过管道处理器；
     /// 2，发送数据编码时，从后向前通过管道处理器；
     /// </remarks>
-    public IPipeline Pipeline { get; set; }
+    public IPipeline? Pipeline { get; set; }
 
     /// <summary>创建上下文</summary>
     /// <param name="session">远程会话</param>
@@ -532,7 +537,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         try
         {
             var ctx = CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            return (Int32)(Pipeline?.Write(ctx, message) ?? 0);
         }
         catch (Exception ex)
         {
@@ -554,8 +559,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return Task.FromResult((Object)null);
+            var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+            if (rs < 0) return Task.FromResult(0);
 
             return await source.Task;
         }
@@ -583,8 +588,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return Task.FromResult((Object)null);
+            var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+            if (rs < 0) return Task.FromResult(0);
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             // Register返回值需要Dispose，否则会导致内存泄漏
@@ -604,20 +609,23 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
-    void TrySetCanceled(Object state)
+    void TrySetCanceled(Object? state)
     {
         var source = state as TaskCompletionSource<Object>;
-        if (!source.Task.IsCompleted) source.TrySetCanceled();
+        if (source != null && !source.Task.IsCompleted) source.TrySetCanceled();
     }
 
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>
-    void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
+    void ISocketRemote.Process(IData data)
+    {
+        if (data is ReceivedEventArgs e) OnReceive(e);
+    }
     #endregion
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>
-    public event EventHandler<ExceptionEventArgs> Error;
+    public event EventHandler<ExceptionEventArgs>? Error;
 
     /// <summary>触发异常</summary>
     /// <param name="action">动作</param>
@@ -633,12 +641,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     #region 扩展接口
     /// <summary>数据项</summary>
-    public IDictionary<String, Object> Items { get; } = new NullableDictionary<String, Object>();
+    public IDictionary<String, Object?> Items { get; } = new NullableDictionary<String, Object?>();
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object this[String key] { get => Items[key]; set => Items[key] = value; }
+    public Object? this[String key] { get => Items[key]; set => Items[key] = value; }
     #endregion
 
     #region 日志
@@ -660,7 +668,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args)
+    public void WriteLog(String format, params Object?[] args)
     {
         if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
     }

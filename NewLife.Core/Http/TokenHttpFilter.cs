@@ -72,43 +72,48 @@ public class TokenHttpFilter : IHttpFilter
         if (path.StartsWithIgnoreCase(Action.EnsureStart("/"))) return;
 
         // 申请令牌。没有令牌，或者令牌已过期
-        if (Token == null || Expire < DateTime.Now)
+        var token = Token;
+        if (token == null || Expire < DateTime.Now)
         {
-            Token = await SendAuth(client, cancellationToken);
-            if (Token != null)
+            token = await SendAuth(client, cancellationToken);
+            if (token != null)
             {
+                Token = token;
+
                 // 过期时间和刷新令牌的时间
-                Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
-                _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+                Expire = DateTime.Now.AddSeconds(token.ExpireIn);
+                _refresh = DateTime.Now.AddSeconds(token.ExpireIn / 2);
             }
         }
 
         // 刷新令牌。要求已有令牌，且未过期，且达到了刷新时间
-        if (Token != null && Expire > DateTime.Now && _refresh < DateTime.Now)
+        if (token != null && Expire > DateTime.Now && _refresh < DateTime.Now)
         {
             try
             {
-                Token = await SendRefresh(client, cancellationToken);
-                if (Token != null)
+                token = await SendRefresh(client, cancellationToken);
+                if (token != null)
                 {
+                    Token = token;
+
                     // 过期时间和刷新令牌的时间
-                    Expire = DateTime.Now.AddSeconds(Token.ExpireIn);
-                    _refresh = DateTime.Now.AddSeconds(Token.ExpireIn / 2);
+                    Expire = DateTime.Now.AddSeconds(token.ExpireIn);
+                    _refresh = DateTime.Now.AddSeconds(token.ExpireIn / 2);
                 }
             }
             catch (Exception ex)
             {
-                XTrace.WriteLine("刷新令牌异常 {0}", Token?.ToJson());
+                XTrace.WriteLine("刷新令牌异常 {0}", token?.ToJson());
                 XTrace.WriteException(ex);
             }
         }
 
         // 使用令牌。要求已有令牌，且未过期
-        if (Token != null && Expire > DateTime.Now)
+        if (token != null && Expire > DateTime.Now)
         {
-            var type = Token.TokenType;
+            var type = token.TokenType;
             if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";
-            request.Headers.Authorization = new AuthenticationHeaderValue(type, Token.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue(type, token.AccessToken);
         }
     }
 
@@ -141,6 +146,8 @@ public class TokenHttpFilter : IHttpFilter
     {
         ValidClientId();
 
+        if (Token == null) throw new ArgumentNullException(nameof(Token));
+
         return await client.PostAsync<TokenModel>(Action, new
         {
             grant_type = "refresh_token",
@@ -153,7 +160,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="username"></param>
     /// <param name="password"></param>
     /// <returns></returns>
-    protected virtual String EncodePassword(String username, String? password)
+    protected virtual String? EncodePassword(String username, String? password)
     {
         if (password.IsNullOrEmpty()) return password;
 
