@@ -201,9 +201,9 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     /// <returns></returns>
     public static IList<TcpConnectionInformation2> ParseTcps(String text)
     {
-        if (text.IsNullOrEmpty()) return null;
-
         var list = new List<TcpConnectionInformation2>();
+
+        if (text.IsNullOrEmpty()) return list;
 
         // 逐行读取TCP连接信息
         foreach (var line in text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))

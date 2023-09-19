@@ -7,10 +7,10 @@ public class StaticFilesHandler : IHttpHandler
 {
     #region 属性
     /// <summary>映射路径</summary>
-    public String Path { get; set; }
+    public String Path { get; set; } = null!;
 
     /// <summary>内容目录</summary>
-    public String ContentPath { get; set; }
+    public String ContentPath { get; set; } = null!;
     #endregion
 
     /// <summary>处理请求</summary>
@@ -23,7 +23,8 @@ public class StaticFilesHandler : IHttpHandler
         file = ContentPath.CombinePath(file);
 
         // 路径安全检查，防止越界
-        if (!file.GetFullPath().StartsWithIgnoreCase(ContentPath.GetFullPath())) throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);
+        if (!file.GetFullPath().StartsWithIgnoreCase(ContentPath.GetFullPath()))
+            throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);
 
         var fi = file.AsFile();
         if (!fi.Exists) throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);

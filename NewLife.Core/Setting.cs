@@ -66,7 +66,7 @@ public class Setting : Config<Setting>
 
     /// <summary>服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开</summary>
     [Description("服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开")]
-    public String ServiceAddress { get; set; }
+    public String ServiceAddress { get; set; } = "";
     #endregion
 
     #region 方法

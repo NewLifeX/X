@@ -25,7 +25,7 @@ public interface INetSession : IDisposable2
     ISocketSession Session { get; set; }
 
     /// <summary>客户端地址</summary>
-    NetUri? Remote { get; }
+    NetUri Remote { get; }
     #endregion
 
     #region 方法

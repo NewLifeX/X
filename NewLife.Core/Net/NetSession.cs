@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;

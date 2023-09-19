@@ -59,7 +59,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
         if (!_dic.TryAdd(key, session)) return false;
 
-        session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession).Remote.EndPoint + ""); };
+        session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession)?.Remote.EndPoint + ""); };
 
         return true;
     }
@@ -67,7 +67,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <summary>获取会话，加锁</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public ISocketSession Get(String key)
+    public ISocketSession? Get(String key)
     {
         if (!_dic.TryGetValue(key, out var session)) return null;
 
@@ -91,7 +91,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     }
 
     /// <summary>移除不活动的会话</summary>
-    private void RemoveNotAlive(Object state)
+    private void RemoveNotAlive(Object? state)
     {
         if (!_dic.Any()) return;
 
@@ -135,7 +135,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     public Int32 Count => _dic.Count;
 
-    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly;
+    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>)?.IsReadOnly ?? false;
 
     public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator();
 
