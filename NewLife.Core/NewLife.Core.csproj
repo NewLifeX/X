@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net45;net461;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows;net7.0;net7.0-windows</TargetFrameworks>    <AssemblyName>NewLife.Core</AssemblyName>
+    <TargetFrameworks>net45;net461;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows;net7.0;net7.0-windows</TargetFrameworks>  
+    <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
     <Description>Core basic components: log (file / network), configuration (XML / JSON / HTTP), cache (memory / redis), network (TCP / UDP / HTTP), RPC framework, serialization (binary / XML / JSON), APM performance tracking. 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。</Description>
