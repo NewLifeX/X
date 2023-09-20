@@ -1,4 +1,5 @@
-﻿using NewLife.Net;
+﻿using System.Net.Http;
+using NewLife.Net;
 
 namespace NewLife.Http;
 

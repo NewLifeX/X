@@ -1,4 +1,6 @@
-﻿namespace NewLife.Http;
+﻿using System.Net.Http;
+
+namespace NewLife.Http;
 
 /// <summary>Http过滤器，拦截请求前后</summary>
 public interface IHttpFilter

@@ -9,6 +9,7 @@ using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
+using System.Net.Http;
 #if !NET40
 using System.Net.WebSockets;
 using TaskEx = System.Threading.Tasks.Task;
