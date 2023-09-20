@@ -23,7 +23,7 @@ public class Upgrade
     public String Server { get; set; }
 
     /// <summary>版本</summary>
-    public Version Version { get; set; }
+    public Version? Version { get; set; }
 
     /// <summary>本地编译时间</summary>
     public DateTime Time { get; set; }
@@ -35,25 +35,32 @@ public class Upgrade
     public String DestinationPath { get; set; } = ".";
 
     /// <summary>超链接信息</summary>
-    public Link Link { get; set; }
+    public Link? Link { get; set; }
 
     /// <summary>缓存文件。同名文件不再下载，默认false</summary>
     public Boolean CacheFile { get; set; } = true;
 
     /// <summary>更新源文件</summary>
-    public String SourceFile { get; set; }
+    public String? SourceFile { get; set; }
     #endregion
 
     #region 构造
     /// <summary>实例化一个升级对象实例，获取当前应用信息</summary>
     public Upgrade()
     {
-        var asm = Assembly.GetEntryAssembly();
-        var asmx = AssemblyX.Create(asm);
+        Name = nameof(Upgrade);
 
-        Version = asm.GetName().Version;
-        Name = asm.GetName().Name;
-        Time = asmx.Compile;
+        var asm = Assembly.GetEntryAssembly();
+        if (asm != null)
+        {
+            var name = asm.GetName();
+            if (name != null)
+            {
+                Version = name.Version;
+                Name = name.Name ?? nameof(Upgrade);
+            }
+            Time = AssemblyX.Create(asm).Compile;
+        }
 
         Server = NewLife.Setting.Current.PluginServer;
     }
@@ -83,7 +90,7 @@ public class Upgrade
         // 先比较版本
         if (Version > new Version(0, 0))
         {
-            var link = links.OrderByDescending(e => e.Version).FirstOrDefault();
+            var link = links.OrderByDescending(e => e.Version).FirstOrDefault()!;
             if (link.Version > Version)
             {
                 Link = link;
@@ -95,7 +102,7 @@ public class Upgrade
         // 再比较时间
         else
         {
-            var link = links.OrderByDescending(e => e.Time).FirstOrDefault();
+            var link = links.OrderByDescending(e => e.Time).FirstOrDefault()!;
             // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
             if (link.Time > Time.AddMinutes(10))
             {
@@ -214,7 +221,7 @@ public class Upgrade
     #endregion
 
     #region 辅助
-    private HttpClient _Client;
+    private HttpClient? _Client;
     private HttpClient CreateClient()
     {
         if (_Client != null) return _Client;

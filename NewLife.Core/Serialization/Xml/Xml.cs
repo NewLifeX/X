@@ -104,11 +104,11 @@ public class Xml : FormatterBase, IXml
             return true;
         }
 
-        if (String.IsNullOrEmpty(name))
+        if (name.IsNullOrEmpty())
         {
             // 优先采用类型上的XmlRoot特性
             name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
-            if (String.IsNullOrEmpty(name)) name = GetName(type);
+            if (name.IsNullOrEmpty()) name = GetName(type);
         }
 
         name = name.Replace('<', '_');
@@ -220,7 +220,7 @@ public class Xml : FormatterBase, IXml
     /// <summary>读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object Read(Type type)
+    public Object? Read(Type type)
     {
         var value = type.As<Array>() ? null : type.CreateInstance();
         if (!TryRead(type, ref value)) throw new Exception("读取失败！");
@@ -231,13 +231,13 @@ public class Xml : FormatterBase, IXml
     /// <summary>读取指定类型对象</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Read<T>() => (T)Read(typeof(T));
+    public T? Read<T>() => (T?)Read(typeof(T));
 
     /// <summary>尝试读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public Boolean TryRead(Type type, ref Object value)
+    public Boolean TryRead(Type type, ref Object? value)
     {
         var reader = GetReader();
         // 移动到第一个元素

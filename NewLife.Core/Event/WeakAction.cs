@@ -16,7 +16,7 @@ public class WeakAction<TArgs>
 {
     #region 属性
     /// <summary>目标对象。弱引用，使得调用方对象可以被GC回收</summary>
-    readonly WeakReference Target;
+    readonly WeakReference? Target;
 
     /// <summary>委托方法</summary>
     readonly MethodBase Method;
@@ -49,14 +49,14 @@ public class WeakAction<TArgs>
     /// <summary>实例化</summary>
     /// <param name="target">目标对象</param>
     /// <param name="method">目标方法</param>
-    public WeakAction(Object target, MethodInfo method) : this(target, method, null, false) { }
+    public WeakAction(Object? target, MethodInfo method) : this(target, method, null, false) { }
 
     /// <summary>实例化</summary>
     /// <param name="target">目标对象</param>
     /// <param name="method">目标方法</param>
     /// <param name="unHandler">取消注册回调</param>
     /// <param name="once">是否一次性事件</param>
-    public WeakAction(Object target, MethodInfo method, Action<Action<TArgs>> unHandler, Boolean once)
+    public WeakAction(Object? target, MethodInfo method, Action<Action<TArgs>>? unHandler, Boolean once)
     {
         if (target != null)
         {
@@ -103,7 +103,7 @@ public class WeakAction<TArgs>
             {
                 // 优先使用委托
                 if (Method is MethodInfo mi)
-                    mi.As<Action<TArgs>>(target).Invoke(e);
+                    mi.As<Action<TArgs>>(target)!.Invoke(e);
                 else
                     target.Invoke(Method, e);
             }
@@ -126,7 +126,7 @@ public class WeakAction<TArgs>
     #region 辅助
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString()
+    public override String? ToString()
     {
         if (Method == null) return base.ToString();
 

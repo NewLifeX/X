@@ -81,33 +81,32 @@ namespace NewLife.Serialization
 
             if (type == typeof(Guid))
             {
-                writer.WriteValue(((Guid)value).ToString());
+                if (value is Guid guid) writer.WriteValue((guid).ToString());
                 return true;
             }
 
             if (type == typeof(DateTimeOffset))
             {
                 //writer.WriteValue((DateTimeOffset)value);
-                writer.WriteValue(((DateTimeOffset)value) + "");
+                if (value is DateTimeOffset dto) writer.WriteValue(dto + "");
                 return true;
             }
 
             if (type == typeof(TimeSpan))
             {
-                writer.WriteValue(((TimeSpan)value) + "");
+                if (value is TimeSpan ts) writer.WriteValue(ts + "");
                 return true;
             }
 
             if (type == typeof(Byte[]))
             {
-                var buf = value as Byte[];
-                writer.WriteBase64(buf, 0, buf.Length);
+                if (value is Byte[] buf) writer.WriteBase64(buf, 0, buf.Length);
                 return true;
             }
 
             if (type == typeof(Char[]))
             {
-                writer.WriteValue(new String((Char[])value));
+                if (value is Char[] cs) writer.WriteValue(new String(cs));
                 return true;
             }
 

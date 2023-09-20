@@ -220,9 +220,9 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
         try
         {
             var data = File.ReadAllBytes(filename);
-            var config = this as TConfig;
+            if (this is not TConfig config) return false;
 
-            Object obj = config;
+            Object? obj = config;
             var xml = new Serialization.Xml
             {
                 Stream = new MemoryStream(data),

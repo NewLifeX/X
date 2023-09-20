@@ -125,7 +125,7 @@ public class UdpServer : SessionBase, ISocketServer
         try
         {
             var rs = 0;
-            var sock = Client;
+            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
             lock (sock)
             {
                 if (sock.Connected && !sock.EnableBroadcast)
@@ -331,7 +331,8 @@ public class UdpServer : SessionBase, ISocketServer
                     {
                         lock (_broadcasts)
                         {
-                            _broadcasts.Remove((s as UdpSession).Remote.Port);
+                            if (s is UdpSession ss)
+                                _broadcasts.Remove(ss.Remote.Port);
                         }
                     };
                 }
@@ -448,7 +449,7 @@ public static class UdpHelper
         if (udp.Client != null && udp.Client.LocalEndPoint != null)
         {
             var ip = udp.Client.LocalEndPoint as IPEndPoint;
-            if (!ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
+            if (ip != null && !ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
         }
 
         if (!udp.EnableBroadcast) udp.EnableBroadcast = true;

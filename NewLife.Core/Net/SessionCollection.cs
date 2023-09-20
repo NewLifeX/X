@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Threading;
 
 namespace NewLife.Net;
@@ -161,7 +162,11 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         return _dic.Remove(key);
     }
 
+#if NETFRAMEWORK
     Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) => _dic.TryGetValue(key, out value);
+#else
+    Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, [MaybeNullWhen(false)] out ISocketSession value) => _dic.TryGetValue(key, out value);
+#endif
 
     ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 

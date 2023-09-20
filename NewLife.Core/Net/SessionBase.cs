@@ -560,7 +560,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["Span"] = span;
 
             var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+#if NET45
             if (rs < 0) return Task.FromResult(0);
+#else
+            if (rs < 0) return Task.CompletedTask;
+#endif
 
             return await source.Task;
         }
@@ -589,7 +593,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["Span"] = span;
 
             var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+#if NET45
             if (rs < 0) return Task.FromResult(0);
+#else
+            if (rs < 0) return Task.CompletedTask;
+#endif
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             // Register返回值需要Dispose，否则会导致内存泄漏
@@ -621,7 +629,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (data is ReceivedEventArgs e) OnReceive(e);
     }
-    #endregion
+#endregion
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>

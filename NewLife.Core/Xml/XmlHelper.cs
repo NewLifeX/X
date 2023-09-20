@@ -228,7 +228,7 @@ public static class XmlHelper
         return false;
     }
 
-    internal static String XmlConvertToString(Object value)
+    internal static String? XmlConvertToString(Object value)
     {
         if (value == null) return null;
 
@@ -241,12 +241,12 @@ public static class XmlHelper
         var method = typeof(XmlConvert).GetMethodEx("ToString", type);
         if (method == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
 
-        return (String)"".Invoke(method, value);
+        return (String?)"".Invoke(method, value);
     }
 
-    internal static T XmlConvertFromString<T>(String xml) { return (T)XmlConvertFromString(typeof(T), xml); }
+    internal static T? XmlConvertFromString<T>(String xml) => (T?)XmlConvertFromString(typeof(T), xml);
 
-    internal static Object XmlConvertFromString(Type type, String xml)
+    internal static Object? XmlConvertFromString(Type type, String xml)
     {
         if (xml == null) return null;
 
@@ -266,28 +266,31 @@ public static class XmlHelper
     /// <summary>简单Xml转为字符串字典</summary>
     /// <param name="xml"></param>
     /// <returns></returns>
-    public static Dictionary<String, String> ToXmlDictionary(this String xml)
+    public static Dictionary<String, String>? ToXmlDictionary(this String xml)
     {
         if (String.IsNullOrEmpty(xml)) return null;
 
         var doc = new XmlDocument();
         doc.LoadXml(xml);
         var root = doc.DocumentElement;
+        if (root == null) return null;
 
         var dic = new Dictionary<String, String>();
 
         if (root.ChildNodes != null && root.ChildNodes.Count > 0)
         {
-            foreach (XmlNode item in root.ChildNodes)
+            foreach (var item in root.ChildNodes)
             {
-                if (item.ChildNodes != null && (item.ChildNodes.Count > 1 ||
-                    item.ChildNodes.Count == 1 && !(item.FirstChild is XmlText) && !(item.FirstChild is XmlCDataSection)))
+                if (item is not XmlNode node) continue;
+
+                if (node.ChildNodes != null && (node.ChildNodes.Count > 1 ||
+                    node.ChildNodes.Count == 1 && !(node.FirstChild is XmlText) && !(node.FirstChild is XmlCDataSection)))
                 {
-                    dic[item.Name] = item.InnerXml;
+                    dic[node.Name] = node.InnerXml;
                 }
                 else
                 {
-                    dic[item.Name] = item.InnerText;
+                    dic[node.Name] = node.InnerText;
                 }
             }
         }

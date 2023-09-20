@@ -329,7 +329,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         // 性能计数器，次数、TPS、平均耗时
         var st = StatInvoke;
-        var sw = st.StartCount();
+        var sw = st?.StartCount();
         Exception? error = null;
         try
         {
@@ -354,8 +354,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         }
         finally
         {
-            var msCost = st.StopCount(sw) / 1000;
-            if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
+            if (st != null)
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
+            }
 
             // 归还服务
             PutService(service, error);

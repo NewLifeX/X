@@ -67,7 +67,7 @@ public class TinyHttpClient : DisposeBase
     /// <summary>获取网络数据流</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
-    protected virtual async Task<Stream> GetStreamAsync(Uri uri)
+    protected virtual async Task<Stream> GetStreamAsync(Uri? uri)
     {
         var tc = Client;
         var ns = _stream;
@@ -87,6 +87,8 @@ public class TinyHttpClient : DisposeBase
         // 如果连接不可用，则重新建立连接
         if (!active)
         {
+            if (uri == null) throw new ArgumentNullException(nameof(uri));
+
             var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
 
             tc.TryDispose();
@@ -104,8 +106,10 @@ public class TinyHttpClient : DisposeBase
         // 支持SSL
         if (active)
         {
-            if (uri.Scheme.EqualIgnoreCase("https"))
+            if (uri != null && uri.Scheme.EqualIgnoreCase("https"))
             {
+                if (ns == null) throw new InvalidOperationException(nameof(NetworkStream));
+
                 var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
                 await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
                 ns = sslStream;
@@ -121,7 +125,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="uri"></param>
     /// <param name="request"></param>
     /// <returns></returns>
-    protected virtual async Task<Packet> SendDataAsync(Uri uri, Packet request)
+    protected virtual async Task<Packet> SendDataAsync(Uri? uri, Packet? request)
     {
         var ns = await GetStreamAsync(uri).ConfigureAwait(false);
 
@@ -189,7 +193,7 @@ public class TinyHttpClient : DisposeBase
         if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
         // 如果没有收完数据包
-        if (res.ContentLength > 0 && rs.Count < res.ContentLength)
+        if (rs != null && res.ContentLength > 0 && rs.Count < res.ContentLength)
         {
             var total = rs.Total;
             var last = rs;
@@ -204,7 +208,7 @@ public class TinyHttpClient : DisposeBase
         }
 
         // chunk编码
-        if (rs.Count > 0 && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
+        if (rs != null && rs.Count > 0 && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
         {
             res.Body = await ReadChunkAsync(rs);
         }

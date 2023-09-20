@@ -67,8 +67,13 @@ public class XmlList : XmlHandlerBase
         if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
         if (value is not IList list || value is Array)
-            list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
-        if (list == null) throw new ArgumentOutOfRangeException(nameof(elmType));
+        {
+            var obj = typeof(List<>).MakeGenericType(elmType).CreateInstance();
+            if (obj is not IList list2)
+                throw new ArgumentOutOfRangeException(nameof(elmType));
+
+            list = list2;
+        }
 
         // 清空已有数据
         list.Clear();

@@ -168,7 +168,7 @@ public class XmlConfigProvider : FileConfigProvider
         writer.WriteStartElement(name);
         //writer.WriteStartAttribute(name);
 
-        if (section != null && section.Childs != null)
+        if (/*section != null &&*/ section.Childs != null)
         {
             foreach (var item in section.Childs.ToArray())
             {
