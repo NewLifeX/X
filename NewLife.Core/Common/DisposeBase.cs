@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using NewLife.Log;
 
 #nullable enable
 namespace NewLife;
@@ -70,8 +71,8 @@ public abstract class DisposeBase : IDisposable2
             // 释放托管资源
             //OnDispose(disposing);
 
-            // 告诉GC，不要调用析构函数
-            GC.SuppressFinalize(this);
+            //// 告诉GC，不要调用析构函数
+            //GC.SuppressFinalize(this);
         }
 
         // 释放非托管资源
@@ -79,17 +80,29 @@ public abstract class DisposeBase : IDisposable2
         OnDisposed?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
-    /// <param name="disposing"></param>
-    [Obsolete("=>Dispose")]
-    protected virtual void OnDispose(Boolean disposing) { }
+    ///// <summary>释放资源，参数表示是否由Dispose调用。该方法保证OnDispose只被调用一次！</summary>
+    ///// <param name="disposing"></param>
+    //[Obsolete("=>Dispose")]
+    //protected virtual void OnDispose(Boolean disposing) { }
 
     /// <summary>析构函数</summary>
     /// <remarks>
-    /// 如果忘记调用Dispose，这里会释放非托管资源
-    /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数
+    /// 如果忘记调用Dispose，这里会释放非托管资源。
+    /// 如果曾经调用过Dispose，因为GC.SuppressFinalize(this)，不会再调用该析构函数。
+    /// 在 .NET 中，析构函数（Finalizer）不应该抛出未捕获的异常。如果析构函数引发未捕获的异常，它将导致应用程序崩溃或进程退出。
     /// </remarks>
-    ~DisposeBase() { Dispose(false); }
+    ~DisposeBase()
+    {
+        // 在 .NET 中，析构函数（Finalizer）不应该抛出未捕获的异常。如果析构函数引发未捕获的异常，它将导致应用程序崩溃或进程退出。
+        try
+        {
+            Dispose(false);
+        }
+        catch (Exception ex)
+        {
+            XTrace.WriteException(ex);
+        }
+    }
     #endregion
 }
 
