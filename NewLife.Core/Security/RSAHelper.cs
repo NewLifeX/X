@@ -52,15 +52,15 @@ public static class RSAHelper
     {
         // 判断参数p的每一个成员是否为空，如果为空则抛出异常
         if (p.Modulus == null || p.Exponent == null) throw new ArgumentNullException(nameof(p));
-        if (p.D == null || p.P == null || p.Q == null ||
-            p.DP == null || p.DQ == null || p.InverseQ == null) throw new ArgumentNullException(nameof(p));
-
         var ms = new MemoryStream();
         ms.WriteArray(p.Modulus);
         ms.WriteArray(p.Exponent);
 
         if (p.D != null && p.D.Length > 0)
         {
+            if (p.D == null || p.P == null || p.Q == null ||
+                p.DP == null || p.DQ == null || p.InverseQ == null) throw new ArgumentNullException(nameof(p));
+
             ms.WriteArray(p.D);
             ms.WriteArray(p.P);
             ms.WriteArray(p.Q);
