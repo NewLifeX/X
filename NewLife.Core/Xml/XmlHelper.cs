@@ -106,7 +106,7 @@ public static class XmlHelper
     /// <typeparam name="TEntity">实体类型</typeparam>
     /// <param name="xml">Xml字符串</param>
     /// <returns>Xml实体对象</returns>
-    public static TEntity ToXmlEntity<TEntity>(this String xml) where TEntity : class
+    public static TEntity? ToXmlEntity<TEntity>(this String xml) where TEntity : class
     {
         return xml.ToXmlEntity(typeof(TEntity)) as TEntity;
     }
@@ -115,7 +115,7 @@ public static class XmlHelper
     /// <param name="xml">Xml字符串</param>
     /// <param name="type">实体类型</param>
     /// <returns>Xml实体对象</returns>
-    public static Object ToXmlEntity(this String xml, Type type)
+    public static Object? ToXmlEntity(this String xml, Type type)
     {
         if (xml.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(xml));
         if (type == null) throw new ArgumentNullException(nameof(type));
@@ -144,7 +144,7 @@ public static class XmlHelper
     /// <param name="stream">数据流</param>
     /// <param name="encoding">编码</param>
     /// <returns>Xml实体对象</returns>
-    public static TEntity ToXmlEntity<TEntity>(this Stream stream, Encoding? encoding = null) where TEntity : class
+    public static TEntity? ToXmlEntity<TEntity>(this Stream stream, Encoding? encoding = null) where TEntity : class
     {
         return stream.ToXmlEntity(typeof(TEntity), encoding) as TEntity;
     }
@@ -154,7 +154,7 @@ public static class XmlHelper
     /// <param name="type">实体类型</param>
     /// <param name="encoding">编码</param>
     /// <returns>Xml实体对象</returns>
-    public static Object ToXmlEntity(this Stream stream, Type type, Encoding? encoding = null)
+    public static Object? ToXmlEntity(this Stream stream, Type type, Encoding? encoding = null)
     {
         if (stream == null) throw new ArgumentNullException(nameof(stream));
         if (type == null) throw new ArgumentNullException(nameof(type));

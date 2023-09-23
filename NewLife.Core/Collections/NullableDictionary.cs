@@ -30,7 +30,7 @@ public class NullableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IDicti
         {
             if (TryGetValue(item, out var v)) return v;
 
-            return default;
+            return default!;
         }
         set
         {

@@ -14,20 +14,12 @@ public class TypeConverter : JsonConverter<Type>
     /// <param name="typeToConvert"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    public override Type? Read(
-        ref Utf8JsonReader reader,
-        Type typeToConvert,
-        JsonSerializerOptions options
-        ) => reader.GetString()?.GetTypeEx();
+    public override Type? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString()?.GetTypeEx();
 
     /// <summary>写入类型</summary>
     /// <param name="writer"></param>
     /// <param name="value"></param>
     /// <param name="options"></param>
-    public override void Write(
-        Utf8JsonWriter writer,
-        Type value,
-        JsonSerializerOptions options
-        ) => writer.WriteStringValue(value.FullName);
+    public override void Write(Utf8JsonWriter writer, Type value, JsonSerializerOptions options) => writer.WriteStringValue(value.FullName);
 }
 #endif

@@ -132,7 +132,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         try
         {
             var ctx = Server.CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            return (Int32)(Pipeline.Write(ctx, message) ?? -1);
         }
         catch (Exception ex)
         {
@@ -157,7 +157,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
 #if NET45
             if (rs < 0) return Task.FromResult(0);
 #else
@@ -193,7 +193,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
 #if NET45
             if (rs < 0) return Task.FromResult(0);
 #else
@@ -247,7 +247,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         }
     }
 
-    public event EventHandler<ReceivedEventArgs> Received;
+    public event EventHandler<ReceivedEventArgs>? Received;
 
     internal void OnReceive(ReceivedEventArgs e)
     {
@@ -263,7 +263,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>
-    public event EventHandler<ExceptionEventArgs> Error;
+    public event EventHandler<ExceptionEventArgs>? Error;
 
     /// <summary>触发异常</summary>
     /// <param name="action">动作</param>
@@ -314,7 +314,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     /// <summary>是否输出接收日志。默认false</summary>
     public Boolean LogReceive { get; set; }
 
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix
     {

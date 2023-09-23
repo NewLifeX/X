@@ -25,10 +25,10 @@ public class Xml : FormatterBase, IXml
     public Boolean EnumString { get; set; } = true;
 
     /// <summary>XML写入设置</summary>
-    public XmlWriterSettings Setting { get; set; }
+    public XmlWriterSettings? Setting { get; set; }
 
     /// <summary>当前名称</summary>
-    public String CurrentName { get; set; }
+    public String? CurrentName { get; set; }
     #endregion
 
     #region 构造
@@ -86,7 +86,7 @@ public class Xml : FormatterBase, IXml
     /// <param name="name">名称</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public Boolean Write(Object value, String? name = null, Type? type = null)
+    public Boolean Write(Object? value, String? name = null, Type? type = null)
     {
         if (type == null)
         {
@@ -147,7 +147,7 @@ public class Xml : FormatterBase, IXml
         }
     }
 
-    Boolean IFormatterX.Write(Object value, Type type) => Write(value, null, type);
+    Boolean IFormatterX.Write(Object? value, Type? type) => Write(value, null, type);
 
     /// <summary>写入开头</summary>
     /// <param name="type"></param>
@@ -194,7 +194,7 @@ public class Xml : FormatterBase, IXml
         }
     }
 
-    private XmlWriter _Writer;
+    private XmlWriter? _Writer;
     /// <summary>获取Xml写入器</summary>
     /// <returns></returns>
     public XmlWriter GetWriter()
@@ -300,7 +300,7 @@ public class Xml : FormatterBase, IXml
         if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
     }
 
-    private XmlReader _Reader;
+    private XmlReader? _Reader;
     /// <summary>获取Xml读取器</summary>
     /// <returns></returns>
     public XmlReader GetReader()

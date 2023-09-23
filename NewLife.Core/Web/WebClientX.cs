@@ -13,7 +13,7 @@ public class WebClientX : DisposeBase
     public Int32 Timeout { get; set; } = 15000;
 
     /// <summary>最后使用的连接名</summary>
-    public Link LastLink { get; set; }
+    public Link? LastLink { get; set; }
     #endregion
 
     #region 构造
@@ -40,7 +40,7 @@ public class WebClientX : DisposeBase
     #endregion
 
     #region 核心方法
-    private HttpClient _client;
+    private HttpClient? _client;
 
     /// <summary>创建客户端会话</summary>
     /// <returns></returns>
@@ -167,6 +167,8 @@ public class WebClientX : DisposeBase
             return file;
         }
 
+        if (link.Url.IsNullOrEmpty() || link.FullName.IsNullOrEmpty()) throw new InvalidDataException();
+
         LastLink = link;
         var linkName = link.FullName;
         var file2 = destdir.CombinePath(linkName).EnsureDirectory();
@@ -206,7 +208,7 @@ public class WebClientX : DisposeBase
     /// <param name="destdir">要下载到的目标目录</param>
     /// <param name="overwrite">是否覆盖目标同名文件</param>
     /// <returns></returns>
-    public String DownloadLinkAndExtract(String urls, String name, String destdir, Boolean overwrite = false)
+    public String? DownloadLinkAndExtract(String urls, String name, String destdir, Boolean overwrite = false)
     {
         var file = "";
 
@@ -217,7 +219,8 @@ public class WebClientX : DisposeBase
         }
         catch (Exception ex)
         {
-            Log.Error(ex?.GetTrue()?.ToString());
+            var err = ex?.GetTrue()?.ToString();
+            if (!err.IsNullOrEmpty()) Log.Error(err);
 
             // 这个时候出现异常，删除zip
             if (!file.IsNullOrEmpty() && File.Exists(file))
@@ -245,7 +248,7 @@ public class WebClientX : DisposeBase
         }
         catch (Exception ex)
         {
-            Log.Error(ex?.GetTrue()?.ToString());
+            Log.Error(ex.ToString());
         }
 
         return null;

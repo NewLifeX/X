@@ -195,7 +195,7 @@ public class UdpServer : SessionBase, ISocketServer
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote)
     {
         // 过滤自己广播的环回数据。放在这里，兼容UdpSession
         if (!Loopback && remote.Port == Port)
@@ -226,14 +226,14 @@ public class UdpServer : SessionBase, ISocketServer
         var remote = e.Remote;
 
         // 为该连接单独创建一个会话，方便直接通信
-        var session = CreateSession(remote);
+        var session = remote == null ? null : CreateSession(remote);
         // 数据直接转交给会话，不再经过事件，那样在会话较多时极为浪费资源
         if (session is UdpSession us)
             us.OnReceive(e);
         else
         {
             // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-            if (Log.Enable && LogReceive) WriteLog("Recv [{0}]: {1}", pk.Count, pk.ToHex(LogDataLength));
+            if (Log.Enable && LogReceive && pk != null) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
         }
 
         if (session != null) RaiseReceive(session, e);
@@ -270,7 +270,7 @@ public class UdpServer : SessionBase, ISocketServer
 
     #region 会话
     /// <summary>新会话时触发</summary>
-    public event EventHandler<SessionEventArgs> NewSession;
+    public event EventHandler<SessionEventArgs>? NewSession;
 
     private readonly SessionCollection _Sessions;
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
@@ -287,7 +287,7 @@ public class UdpServer : SessionBase, ISocketServer
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
         var sessions = _Sessions;
-        if (sessions == null) return null;
+        //if (sessions == null) return null;
 
         // 平均执行耗时260.80ns，其中55%花在sessions.Get上面，Get里面有加锁操作
 
@@ -296,7 +296,7 @@ public class UdpServer : SessionBase, ISocketServer
             // 根据目标地址适配本地IPv4/IPv6
             Local.Address = Local.Address.GetRightAny(remoteEP.AddressFamily);
 
-            if (!Open()) return null;
+            if (!Open()) throw new InvalidOperationException($"Open {Local} error");
         }
 
         // 需要查找已有会话，已有会话不存在时才创建新会话
@@ -370,7 +370,7 @@ public class UdpServer : SessionBase, ISocketServer
     #region IServer接口
     void IServer.Start() => Open();
 
-    void IServer.Stop(String reason) => Close(reason ?? "Stop");
+    void IServer.Stop(String? reason) => Close(reason ?? "Stop");
     #endregion
 
     #region 辅助
@@ -431,7 +431,7 @@ public static class UdpHelper
     /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
     /// <param name="remoteEP"></param>
     /// <returns>返回自身，用于链式写法</returns>
-    public static UdpClient Send(this UdpClient udp, String message, Encoding? encoding = null, IPEndPoint remoteEP = null)
+    public static UdpClient Send(this UdpClient udp, String message, Encoding? encoding = null, IPEndPoint? remoteEP = null)
     {
         if (encoding == null)
             Send(udp, Encoding.UTF8.GetBytes(message), remoteEP);

@@ -59,7 +59,9 @@ public class Upgrade
                 Version = name.Version;
                 Name = name.Name ?? nameof(Upgrade);
             }
-            Time = AssemblyX.Create(asm).Compile;
+
+            var ax = AssemblyX.Create(asm);
+            if (ax != null) Time = ax.Compile;
         }
 
         Server = NewLife.Setting.Current.PluginServer;
@@ -80,7 +82,7 @@ public class Upgrade
 
         var web = CreateClient();
         var html = web.GetString(url);
-        var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower()));
+        var links = Link.Parse(html, url, item => !item.Name.IsNullOrEmpty() && item.Name.ToLower().Contains(Name.ToLower()));
         if (links == null || links.Length == 0)
         {
             WriteLog("找不到资源包");
@@ -120,7 +122,7 @@ public class Upgrade
     public void Download()
     {
         var link = Link ?? throw new Exception("没有可用新版本！");
-        if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
+        if (link.Url.IsNullOrEmpty()) throw new Exception("升级包地址无效！");
 
         Download(link.Url, link.FullName);
     }
@@ -128,10 +130,12 @@ public class Upgrade
     /// <summary>开始更新</summary>
     /// <param name="url">下载源</param>
     /// <param name="fileName">文件名</param>
-    public void Download(String url, String fileName)
+    public void Download(String url, String? fileName)
     {
         // 如果更新包不存在，则下载
-        var file = UpdatePath.CombinePath(fileName).GetBasePath();
+        var file = !fileName.IsNullOrEmpty() ?
+            UpdatePath.CombinePath(fileName).GetBasePath() :
+            Path.GetTempFileName();
         if (!CacheFile && File.Exists(file)) File.Delete(file); ;
         if (!File.Exists(file))
         {
@@ -182,7 +186,7 @@ public class Upgrade
 
         var file = SourceFile;
 
-        if (!File.Exists(file)) return false;
+        if (file.IsNullOrEmpty() || !File.Exists(file)) return false;
 
         WriteLog("发现更新包 {0}", file);
 
@@ -209,7 +213,9 @@ public class Upgrade
     public void Run()
     {
         // 启动进程
-        var exe = Assembly.GetEntryAssembly().Location;
+        var exe = Assembly.GetEntryAssembly()?.Location;
+        if (exe.IsNullOrEmpty()) return;
+
         WriteLog("启动进程 {0}", exe);
         Process.Start(exe);
 
@@ -349,6 +355,6 @@ public class Upgrade
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info($"[{Name}]{format}", args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
     #endregion
 }

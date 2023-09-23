@@ -102,7 +102,7 @@ public static class NetHelper
     /// <param name="address"></param>
     /// <param name="family"></param>
     /// <returns></returns>
-    public static IPAddress? GetRightAny(this IPAddress address, AddressFamily family)
+    public static IPAddress GetRightAny(this IPAddress address, AddressFamily family)
     {
         if (address.AddressFamily == family) return address;
 
@@ -117,7 +117,9 @@ public static class NetHelper
             default:
                 break;
         }
-        return null;
+        //return null;
+
+        throw new InvalidDataException($"Not Found {family}");
     }
 
     /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>

@@ -43,7 +43,7 @@ public class WriteLogEventArgs : EventArgs
      * 原因是 Logger在进行扩展时，重载OnWrite需要用到该静态属性以及方法，internal无法满足扩展要求
      * */
     [ThreadStatic]
-    private static WriteLogEventArgs _Current;
+    private static WriteLogEventArgs? _Current;
     /// <summary>线程专有实例。线程静态，每个线程只用一个，避免GC浪费</summary>
     public static WriteLogEventArgs Current => _Current ??= new WriteLogEventArgs();
     #endregion

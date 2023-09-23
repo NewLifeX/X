@@ -24,7 +24,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
 {
     #region 静态
     private static Boolean _loading;
-    private static TConfig _Current;
+    private static TConfig? _Current;
     /// <summary>当前实例。通过置空可以使其重新加载。</summary>
     public static TConfig Current
     {
@@ -134,7 +134,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     #region 属性
     /// <summary>配置文件</summary>
     [XmlIgnore, IgnoreDataMember]
-    public String ConfigFile { get; set; }
+    public String? ConfigFile { get; set; }
 
     /// <summary>最后写入时间</summary>
     [XmlIgnore, IgnoreDataMember]
@@ -174,7 +174,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     /// <summary>设置过期重新加载配置的时间</summary>
     void SetExpire()
     {
-        if (_.ReloadTime > 0)
+        if (_.ReloadTime > 0 && !ConfigFile.IsNullOrEmpty())
         {
             // 这里必须在加载后即可设置过期时间和最后写入时间，否则下一次访问的时候，IsUpdated会报告文件已更新
             var fi = new FileInfo(ConfigFile);
@@ -261,6 +261,8 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
         try
         {
             var cfi = ConfigFile;
+            if (cfi.IsNullOrEmpty()) return;
+
             // 新建配置不要检查格式
             var flag = File.Exists(cfi);
             if (!flag) return;
@@ -284,7 +286,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
 
     /// <summary>保存到配置文件中去</summary>
     /// <param name="filename"></param>
-    public virtual void Save(String filename)
+    public virtual void Save(String? filename)
     {
         if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
         if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
@@ -309,14 +311,15 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     /// <param name="filename">配置文件全路径</param>
     /// <param name="oldXml">老配置文件的内容</param>
     /// <param name="newXml">新配置文件的内容</param>
-    protected virtual void OnSaving(String filename, String oldXml, String newXml)
+    protected virtual void OnSaving(String filename, String? oldXml, String newXml)
     {
         if (oldXml != newXml) File.WriteAllText(filename, newXml);
     }
-    /// <summary>保存到配置文件中去</summary>
-    public virtual void Save() { Save(null); }
 
-    private TimerX _Timer;
+    /// <summary>保存到配置文件中去</summary>
+    public virtual void Save() => Save(null);
+
+    private TimerX? _Timer;
     /// <summary>异步保存</summary>
     public virtual void SaveAsync()
     {
@@ -336,7 +339,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     }
 
     private Int32 _commits;
-    private void DoSave(Object state)
+    private void DoSave(Object? state)
     {
         var old = _commits;
         //if (Interlocked.CompareExchange(ref _commits, 0, old) != old) return;

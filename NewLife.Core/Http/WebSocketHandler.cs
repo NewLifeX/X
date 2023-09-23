@@ -10,7 +10,7 @@ public class WebSocketHandler : IHttpHandler
     public virtual void ProcessRequest(IHttpContext context)
     {
         var ws = context.WebSocket;
-        ws.Handler = ProcessMessage;
+        if (ws != null) ws.Handler = ProcessMessage;
 
         WriteLog("WebSocket连接 {0}", context.Connection.Remote);
     }
@@ -20,8 +20,12 @@ public class WebSocketHandler : IHttpHandler
     /// <param name="message"></param>
     public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
     {
-        var remote = socket.Context.Connection.Remote;
+        var remote = (socket.Context?.Connection.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
+
+        //var remote = socket.Context.Connection.Remote;
         var msg = message.Payload?.ToStr();
+        if (msg == null) return;
+
         switch (message.Type)
         {
             case WebSocketMessageType.Text:
@@ -42,5 +46,5 @@ public class WebSocketHandler : IHttpHandler
         }
     }
 
-    private void WriteLog(String format, params Object[] args) => XTrace.WriteLine(format, args);
+    private void WriteLog(String format, params Object?[] args) => XTrace.WriteLine(format, args);
 }

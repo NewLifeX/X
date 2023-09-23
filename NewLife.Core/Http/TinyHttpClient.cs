@@ -305,7 +305,7 @@ public class TinyHttpClient : DisposeBase
     /// <summary>异步获取。连接池操作</summary>
     /// <param name="url">地址</param>
     /// <returns></returns>
-    public async Task<String> GetStringAsync(String url)
+    public async Task<String?> GetStringAsync(String url)
     {
         var request = new HttpRequest
         {
@@ -326,9 +326,10 @@ public class TinyHttpClient : DisposeBase
     /// <returns></returns>
     public async Task<TResult?> InvokeAsync<TResult>(String method, String action, Object? args = null)
     {
-        if (BaseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
+        var baseAddress = BaseAddress;
+        if (baseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
 
-        var request = BuildRequest(method, action, args);
+        var request = BuildRequest(baseAddress, method, action, args);
 
         var rs = await SendAsync(request);
 
@@ -337,14 +338,16 @@ public class TinyHttpClient : DisposeBase
         return ProcessResponse<TResult>(rs.Body);
     }
 
-    private HttpRequest BuildRequest(String method, String action, Object? args)
+    private HttpRequest BuildRequest(Uri baseAddress, String method, String action, Object? args)
     {
         var req = new HttpRequest
         {
             Method = method.ToUpper(),
-            RequestUri = new Uri(BaseAddress, action),
+            RequestUri = new Uri(baseAddress, action),
             KeepAlive = KeepAlive,
         };
+
+        if (args == null) return req;
 
         var ps = args.ToDictionary();
         if (method.EqualIgnoreCase("Post"))
@@ -365,20 +368,20 @@ public class TinyHttpClient : DisposeBase
                 sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
             }
 
-            req.RequestUri = new Uri(BaseAddress, sb.Put(true));
+            req.RequestUri = new Uri(baseAddress, sb.Put(true));
         }
 
         return req;
     }
 
-    private TResult ProcessResponse<TResult>(Packet rs)
+    private TResult? ProcessResponse<TResult>(Packet rs)
     {
         var str = rs.ToStr();
         if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
 
         // 反序列化
         var dic = JsonParser.Decode(str);
-        if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+        if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
 
         if (dic.TryGetValue("result", out var result))
         {
@@ -392,6 +395,8 @@ public class TinyHttpClient : DisposeBase
         {
             throw new InvalidDataException("未识别响应数据");
         }
+
+        if (data == null) return default;
 
         return JsonHelper.Convert<TResult>(data);
     }
