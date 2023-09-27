@@ -23,6 +23,7 @@ public interface IHostedService
 /// <summary>轻量级应用主机</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/host
+/// 销毁主机时，会触发所有服务的停止事件
 /// </remarks>
 public interface IHost
 {
@@ -45,8 +46,9 @@ public interface IHost
 /// <summary>轻量级应用主机</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/host
+/// 销毁主机时，会触发所有服务的停止事件
 /// </remarks>
-public class Host : IHost
+public class Host : DisposeBase, IHost
 {
     #region 属性
     /// <summary>服务提供者</summary>
@@ -75,6 +77,15 @@ public class Host : IHost
     /// <summary>通过制定服务提供者来实例化一个应用主机</summary>
     /// <param name="serviceProvider"></param>
     public Host(IServiceProvider serviceProvider) => ServiceProvider = serviceProvider;
+
+    /// <summary>销毁</summary>
+    /// <param name="disposing"></param>
+    protected override void Dispose(Boolean disposing)
+    {
+        base.Dispose(disposing);
+
+        _life?.TrySetResult(0);
+    }
     #endregion
 
     #region 服务集合

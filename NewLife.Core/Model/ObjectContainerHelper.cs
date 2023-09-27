@@ -387,7 +387,17 @@ public static class ObjectContainerHelper
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
-        return new ServiceProvider(container);
+        var provider = container.Resolve(typeof(IServiceProvider)) as IServiceProvider;
+        if (provider != null) return provider;
+
+        var provider2 = new ServiceProvider(container);
+
+        container.TryAddSingleton(provider2);
+
+        provider = container.Resolve(typeof(IServiceProvider)) as IServiceProvider;
+        if (provider != null) return provider;
+
+        return provider2;
     }
 
     /// <summary>从对象容器创建应用主机</summary>
@@ -396,7 +406,7 @@ public static class ObjectContainerHelper
     public static IHost BuildHost(this IObjectContainer container)
     {
         // 尝试注册应用主机，如果前面已经注册，则这里无效
-        container.TryAddTransient(typeof(IHost), typeof(Host));
+        container.TryAddSingleton<IHost, Host>();
 
         //return new Host(container.BuildServiceProvider());
         return container.BuildServiceProvider().GetService(typeof(IHost)) as IHost;
