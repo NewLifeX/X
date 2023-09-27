@@ -985,7 +985,7 @@ public static class StringHelper
 
         // 修正文件路径
         var fileName = cmd;
-        if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
+        //if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
 
         var p = new Process();
         var si = p.StartInfo;
@@ -1042,8 +1042,8 @@ public static class StringHelper
     {
         if (XTrace.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
 
-        // 修正文件路径
-        if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
+        //// 修正文件路径
+        //if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
 
         var p = new Process();
         var si = p.StartInfo;
