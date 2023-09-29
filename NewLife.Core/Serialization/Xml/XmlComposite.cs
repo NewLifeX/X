@@ -37,7 +37,7 @@ public class XmlComposite : XmlHandlerBase
             // 获取成员
             foreach (var member in GetMembers(type))
             {
-                var mtype = GetMemberType(member);
+                var mtype = member.GetMemberType();
                 Host.Member = member;
 
                 var name = SerialHelper.GetName(member);
@@ -77,6 +77,7 @@ public class XmlComposite : XmlHandlerBase
 
         var reader = Host.GetReader();
         var xml = Host as Xml;
+        if (xml == null) return false;
 
         // 判断类名是否一致
         var name = xml.CurrentName;
@@ -87,6 +88,7 @@ public class XmlComposite : XmlHandlerBase
         var dic = ms.ToDictionary(e => SerialHelper.GetName(e), e => e);
 
         value ??= type.CreateInstance();
+        if (value == null) return false;
 
         Host.Hosts.Push(value);
 
@@ -116,7 +118,9 @@ public class XmlComposite : XmlHandlerBase
                         continue;
                     }
 
-                    var mtype = GetMemberType(member);
+                    var mtype = member.GetMemberType();
+                    if (mtype == null) continue;
+
                     Host.Member = member;
 
                     var v = value.GetValue(member);
@@ -137,7 +141,7 @@ public class XmlComposite : XmlHandlerBase
     }
 
     #region 辅助
-    private Boolean CheckName(String name, Type type)
+    private Boolean CheckName(String? name, Type type)
     {
         if (type.Name.EqualIgnoreCase(name)) return true;
 
@@ -163,16 +167,6 @@ public class XmlComposite : XmlHandlerBase
     /// <summary>获取成员</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    protected virtual List<PropertyInfo> GetMembers(Type type) { return type.GetProperties(true).Cast<PropertyInfo>().ToList(); }
-
-    static Type GetMemberType(MemberInfo member)
-    {
-        return member.MemberType switch
-        {
-            MemberTypes.Field => (member as FieldInfo).FieldType,
-            MemberTypes.Property => (member as PropertyInfo).PropertyType,
-            _ => throw new NotSupportedException(),
-        };
-    }
+    protected virtual List<PropertyInfo> GetMembers(Type type) => type.GetProperties(true).ToList();
     #endregion
 }

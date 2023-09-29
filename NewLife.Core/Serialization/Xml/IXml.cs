@@ -22,7 +22,7 @@ public interface IXml : IFormatterX
     /// <param name="name">名称</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    Boolean Write(Object value, String? name = null, Type? type = null);
+    Boolean Write(Object? value, String? name = null, Type? type = null);
 
     /// <summary>获取Xml写入器</summary>
     /// <returns></returns>
