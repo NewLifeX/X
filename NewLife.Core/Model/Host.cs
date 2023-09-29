@@ -41,6 +41,10 @@ public interface IHost
     /// <summary>异步允许，大循环阻塞</summary>
     /// <returns></returns>
     Task RunAsync();
+
+    /// <summary>关闭主机</summary>
+    /// <param name="reason"></param>
+    void Close(String? reason);
 }
 
 /// <summary>轻量级应用主机</summary>
@@ -84,7 +88,8 @@ public class Host : DisposeBase, IHost
     {
         base.Dispose(disposing);
 
-        _life?.TrySetResult(0);
+        //_life?.TrySetResult(0);
+        Close(disposing ? "Dispose" : "GC");
     }
     #endregion
 
@@ -96,6 +101,7 @@ public class Host : DisposeBase, IHost
         var type = typeof(TService);
         _serviceTypes.Add(type);
 
+        // 把服务类型注册到容器中，以便后续获取
         var ioc = (ServiceProvider as ServiceProvider)?.Container ?? ObjectContainer.Current;
         ioc.TryAddTransient(type, type);
     }
@@ -111,10 +117,13 @@ public class Host : DisposeBase, IHost
     /// <returns></returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // 从容器中获取所有服务
         foreach (var item in _serviceTypes)
         {
             if (ServiceProvider.GetService(item) is IHostedService service) Services.Add(service);
         }
+
+        // 开始所有服务，任意服务出错都导致启动失败
         foreach (var item in Services)
         {
             await item.StartAsync(cancellationToken).ConfigureAwait(false);
@@ -155,7 +164,7 @@ public class Host : DisposeBase, IHost
 
         _life = new TaskCompletionSource<Object>();
 
-        RegisterExit((s, e) => _life.TrySetResult(0));
+        RegisterExit((s, e) => Close(s?.GetType().Name));
 
         await StartAsync(source.Token);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
@@ -167,6 +176,15 @@ public class Host : DisposeBase, IHost
         await StopAsync(source.Token);
 
         XTrace.WriteLine("Stopped!");
+    }
+
+    /// <summary>关闭主机</summary>
+    /// <param name="reason"></param>
+    public void Close(String? reason)
+    {
+        XTrace.WriteLine("Application closed. {0}", reason);
+
+        _life?.TrySetResult(0);
     }
     #endregion
 
