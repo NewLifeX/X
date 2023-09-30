@@ -40,7 +40,7 @@ public class Snowflake
     public static ICache? Cluster { get; set; }
 
     private Int64 _msStart;
-    private Stopwatch? _watch;
+    private Stopwatch _watch = null!;
     private Int64 _lastTime;
     #endregion
 
@@ -77,12 +77,8 @@ public class Snowflake
 
     #region 核心方法
     private Boolean _inited;
-    [MemberNotNull(nameof(_watch))]
     private void Init()
     {
-        // 仅为解除空引用检查
-        _watch ??= new Stopwatch();
-
         if (_inited) return;
         lock (this)
         {
