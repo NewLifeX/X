@@ -619,8 +619,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     void TrySetCanceled(Object? state)
     {
-        var source = state as TaskCompletionSource<Object>;
-        if (source != null && !source.Task.IsCompleted) source.TrySetCanceled();
+        if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
+            source.TrySetCanceled();
     }
 
     /// <summary>处理数据帧</summary>
@@ -629,7 +629,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (data is ReceivedEventArgs e) OnReceive(e);
     }
-#endregion
+    #endregion
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>

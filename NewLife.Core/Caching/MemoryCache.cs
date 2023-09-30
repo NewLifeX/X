@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -147,6 +148,7 @@ public class MemoryCache : Cache
     /// <summary>获取缓存项，不存在时返回默认值</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public override T Get<T>(String key)
     {
         if (!_cache.TryGetValue(key, out var item) || item == null || item.Expired) return default;
@@ -235,6 +237,7 @@ public class MemoryCache : Cache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public override T Replace<T>(String key, T value)
     {
         var expire = Expire;
@@ -267,7 +270,7 @@ public class MemoryCache : Cache
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    public override Boolean TryGetValue<T>(String key, out T value)
+    public override Boolean TryGetValue<T>(String key, [MaybeNull] out T value)
     {
         value = default;
 
@@ -287,6 +290,7 @@ public class MemoryCache : Cache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
+    [return: MaybeNull]
     public override T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
     {
         if (expire < 0) expire = Expire;

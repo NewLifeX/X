@@ -10,6 +10,7 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Runtime.Versioning;
+using System.Diagnostics.CodeAnalysis;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
@@ -811,7 +812,7 @@ public class MachineInfo
         return null;
     }
 
-    private static Boolean TryRead(String fileName, out String? value)
+    private static Boolean TryRead(String fileName, [NotNullWhen(true)] out String? value)
     {
         value = null;
 

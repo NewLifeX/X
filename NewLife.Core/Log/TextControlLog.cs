@@ -17,10 +17,7 @@ public class TextControlLog : Logger
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected override void OnWrite(LogLevel level, String format, params Object?[] args)
-    {
-        WriteLog(Control, Format(format, args) + Environment.NewLine, MaxLines);
-    }
+    protected override void OnWrite(LogLevel level, String format, params Object?[] args) => WriteLog(Control, Format(format, args) + Environment.NewLine, MaxLines);
 
     /// <summary>在WinForm控件上输出日志，主要考虑非UI线程操作</summary>
     /// <remarks>不是常用功能，为了避免干扰常用功能，保持UseWinForm开头</remarks>

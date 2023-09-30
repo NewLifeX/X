@@ -772,9 +772,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         private Int32 _row;
         private DbRow _Current;
-        public DbRow Current => _Current;
+        public readonly DbRow Current => _Current;
 
-        Object IEnumerator.Current => _Current;
+        readonly Object IEnumerator.Current => _Current;
 
         public Boolean MoveNext()
         {
@@ -800,7 +800,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
             _row = -1;
         }
 
-        public void Dispose() { }
+        public readonly void Dispose() { }
     }
     #endregion
 }
