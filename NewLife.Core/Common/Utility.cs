@@ -154,7 +154,7 @@ public static class Utility
     /// <summary>获取异常消息</summary>
     /// <param name="ex">异常</param>
     /// <returns></returns>
-    public static String? GetMessage(this Exception ex) => Convert.GetMessage(ex);
+    public static String GetMessage(this Exception ex) => Convert.GetMessage(ex);
     #endregion
 }
 
@@ -797,10 +797,10 @@ public class DefaultConvert
     /// <summary>获取异常消息</summary>
     /// <param name="ex">异常</param>
     /// <returns></returns>
-    public virtual String? GetMessage(Exception ex)
+    public virtual String GetMessage(Exception ex)
     {
         var msg = ex + "";
-        if (msg.IsNullOrEmpty()) return null;
+        if (msg.IsNullOrEmpty()) return ex.Message;
 
         var ss = msg.Split(Environment.NewLine);
         var ns = ss.Where(e =>

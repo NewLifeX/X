@@ -59,7 +59,7 @@ public abstract class Logger : ILog
     /// <param name="format"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected virtual String? Format(String format, Object?[]? args)
+    protected virtual String Format(String format, Object?[]? args)
     {
         //处理时间的格式化
         if (args != null && args.Length > 0)
