@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -236,7 +235,8 @@ public static class ApiHelper
         // 异常处理
         if (response.StatusCode >= HttpStatusCode.BadRequest)
         {
-            var msg = buf?.ToStr()?.Trim('\"') ?? response.ReasonPhrase;
+            var msg = buf?.ToStr().Trim('\"');
+            if (msg.IsNullOrEmpty()) msg = response.ReasonPhrase;
             if (msg.IsNullOrEmpty()) msg = response.StatusCode + "";
             throw new ApiException((Int32)response.StatusCode, msg);
         }
@@ -246,7 +246,7 @@ public static class ApiHelper
         if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
-        var str = buf.ToStr()?.Trim();
+        var str = buf.ToStr().Trim();
         return ProcessResponse<TResult>(str, codeName, dataName ?? "data");
     }
 

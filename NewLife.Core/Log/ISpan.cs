@@ -342,9 +342,9 @@ public static class SpanExtension
     /// <param name="span">片段</param>
     /// <param name="args">api请求参数</param>
     /// <returns></returns>
-    public static Object Attach(this ISpan span, Object args)
+    public static Object? Attach(this ISpan span, Object? args)
     {
-        if (/*span == null || args == null ||*/ args is Packet || args is Byte[] || args is IAccessor) return args;
+        if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
         if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
 
         // 注入参数名

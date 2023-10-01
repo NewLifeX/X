@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NewLife.Remoting;
+﻿namespace NewLife.Remoting;
 
 /// <summary>远程调用异常</summary>
 public class ApiException : Exception
