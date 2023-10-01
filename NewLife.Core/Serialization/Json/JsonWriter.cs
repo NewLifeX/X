@@ -145,12 +145,12 @@ public class JsonWriter
         else if (obj is DateTimeOffset offset)
             WriteDateTime(offset);
 
-        else if (obj is IDictionary<String, Object> sdic)
+        else if (obj is IDictionary<String, Object?> sdic)
             WriteStringDictionary(sdic);
         else if (obj is IDictionary dictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericArguments()[0].GetTypeCode() != TypeCode.Object)
             WriteStringDictionary(dictionary);
         else if (obj is ExpandoObject)
-            WriteStringDictionary((IDictionary<String, Object>)obj);
+            WriteStringDictionary((IDictionary<String, Object?>)obj);
         else if (obj is IDictionary dictionary1)
             WriteDictionary(dictionary1);
         else if (obj is Byte[] buf)
@@ -469,7 +469,7 @@ public class JsonWriter
         _Builder.Append('}');
     }
 
-    private void WriteStringDictionary(IDictionary<String, Object> dic)
+    private void WriteStringDictionary(IDictionary<String, Object?> dic)
     {
         _Builder.Append('{');
         WriteLeftIndent();

@@ -110,8 +110,7 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected virtual IDictionary<String, Object?>? GetAll()
     {
-        var client = GetClient() as ApiHttpClient;
-        if (client == null) throw new ArgumentNullException(nameof(Client));
+        var client = GetClient() as ApiHttpClient ?? throw new ArgumentNullException(nameof(Client));
 
         ValidClientId();
 
@@ -155,9 +154,7 @@ public class HttpConfigProvider : ConfigProvider
     {
         ValidClientId();
 
-        var client = GetClient() as ApiHttpClient;
-        if (client == null) throw new ArgumentNullException(nameof(Client));
-
+        var client = GetClient() as ApiHttpClient ?? throw new ArgumentNullException(nameof(Client));
         return client.Post<Int32>("Config/SetAll", new
         {
             appId = AppId,

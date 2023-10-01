@@ -151,9 +151,7 @@ public class TinyHttpClient : DisposeBase
     public virtual async Task<HttpResponse?> SendAsync(HttpRequest request)
     {
         // 构造请求
-        var uri = request.RequestUri;
-        if (uri == null) throw new ArgumentNullException(nameof(request.RequestUri));
-
+        var uri = request.RequestUri ?? throw new ArgumentNullException(nameof(request.RequestUri));
         var req = request.Build();
 
         var res = new HttpResponse();
@@ -326,9 +324,7 @@ public class TinyHttpClient : DisposeBase
     /// <returns></returns>
     public async Task<TResult?> InvokeAsync<TResult>(String method, String action, Object? args = null)
     {
-        var baseAddress = BaseAddress;
-        if (baseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
-
+        var baseAddress = BaseAddress ?? throw new ArgumentNullException(nameof(BaseAddress));
         var request = BuildRequest(baseAddress, method, action, args);
 
         var rs = await SendAsync(request);

@@ -303,10 +303,10 @@ public static class TracerExtension
     }
 
     /// <summary>支持作为标签数据的内容类型</summary>
-    static String[] _TagTypes = new[] {
+    static readonly String[] _TagTypes = new[] {
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     };
-    static String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
+    static readonly String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
     private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage? request)
     {
         var url = uri.ToString();

@@ -236,8 +236,8 @@ public class JwtBuilder : IExtend
     #endregion
 
     #region 算法管理
-    private static IDictionary<String, JwtEncodeDelegate> _encodes = new Dictionary<String, JwtEncodeDelegate>(StringComparer.OrdinalIgnoreCase);
-    private static IDictionary<String, JwtDecodeDelegate?> _decodes = new Dictionary<String, JwtDecodeDelegate?>(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<String, JwtEncodeDelegate> _encodes = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<String, JwtDecodeDelegate?> _decodes = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>注册算法的编解码实现</summary>
     /// <param name="algorithm"></param>

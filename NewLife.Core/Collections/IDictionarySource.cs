@@ -9,5 +9,5 @@ public interface IDictionarySource
     /// 把对象转为名值字典，便于序列化传输
     /// </summary>
     /// <returns></returns>
-    IDictionary<String, Object> ToDictionary();
+    IDictionary<String, Object?> ToDictionary();
 }
