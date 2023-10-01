@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace NewLife.Log;
+﻿namespace NewLife.Log;
 
 /// <summary>日志功能接口</summary>
 public interface ILogFeature
 {
     /// <summary>日志</summary>
-    ILog Log { get; set; }
+    ILog? Log { get; set; }
 }
 
 /// <summary>日志功能扩展</summary>
