@@ -149,9 +149,12 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                 WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
 
 #if DEBUG
-                foreach (var span in bd.Samples)
+                if (bd.Samples != null)
                 {
-                    WriteLog("Span Id={0} ParentId={1} TraceId={2} Tag={3} Error={4}", span.Id, span.ParentId, span.TraceId, span.Tag, span.Error);
+                    foreach (var span in bd.Samples)
+                    {
+                        WriteLog("Span Id={0} ParentId={1} TraceId={2} Tag={3} Error={4}", span.Id, span.ParentId, span.TraceId, span.Tag, span.Error);
+                    }
                 }
 #endif
             }

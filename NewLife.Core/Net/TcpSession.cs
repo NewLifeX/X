@@ -354,7 +354,6 @@ public class TcpSession : SessionBase, ISocketSession
     /// <param name="ar"></param>
     private void OnEndRead(IAsyncResult ar)
     {
-        var se = ar.AsyncState as SocketAsyncEventArgs;
         Int32 bytes;
         try
         {
@@ -374,7 +373,7 @@ public class TcpSession : SessionBase, ISocketSession
             return;
         }
 
-        ProcessEvent(se, bytes, true);
+        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, true);
     }
 
     private Int32 _empty;
