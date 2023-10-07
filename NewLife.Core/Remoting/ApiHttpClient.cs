@@ -468,8 +468,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         if (filter != null) await filter.OnResponse(client, response, this, cancellationToken);
 
-        // 业务层只会返回200 OK
-        response.EnsureSuccessStatusCode();
+        //// 业务层只会返回200 OK
+        //response.EnsureSuccessStatusCode();
 
         return response;
     }

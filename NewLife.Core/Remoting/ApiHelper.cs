@@ -236,6 +236,18 @@ public static class ApiHelper
         if (response.StatusCode >= HttpStatusCode.BadRequest)
         {
             var msg = buf?.ToStr().Trim('\"');
+            // 400响应可能包含错误信息
+            if (!msg.IsNullOrEmpty() && msg.StartsWith("{") && msg.EndsWith("}"))
+            {
+                var dic = JsonParser.Decode(msg);
+                if (dic != null)
+                {
+                    var msg2 = "";
+                    if (dic.TryGetValue("title", out var v)) msg2 = v + "";
+                    if (dic.TryGetValue("errors", out v)) msg2 += v?.ToJson();
+                    if (!msg2.IsNullOrEmpty()) msg = msg2.Trim();
+                }
+            }
             if (msg.IsNullOrEmpty()) msg = response.ReasonPhrase;
             if (msg.IsNullOrEmpty()) msg = response.StatusCode + "";
             throw new ApiException((Int32)response.StatusCode, msg);
