@@ -103,7 +103,7 @@ public static class ConfigHelper
         {
             foreach (var cfg in childs)
             {
-                if (cfg.Key == null) continue;
+                if (cfg.Key.IsNullOrEmpty()) continue;
 
                 dic[cfg.Key] = cfg.Value;
 
@@ -339,7 +339,12 @@ public static class ConfigHelper
 
         // 为了避免数组元素叠加，干掉原来的
         section.Childs.Remove(cfg);
-        cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
+        cfg = new ConfigSection
+        {
+            Key = cfg.Key,
+            Childs = new List<IConfigSection>(),
+            Comment = cfg.Comment
+        };
         section.Childs.Add(cfg);
 
         // 数组元素是没有key的集合

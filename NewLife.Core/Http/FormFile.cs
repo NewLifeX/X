@@ -7,7 +7,7 @@ public class FormFile
 {
     #region 属性
     /// <summary>名称</summary>
-    public String? Name { get; set; }
+    public String Name { get; set; } = null!;
 
     /// <summary>内容部署</summary>
     public String? ContentDisposition { get; set; }

@@ -4,7 +4,7 @@
 public interface IConfigSection
 {
     /// <summary>配置名</summary>
-    String? Key { get; set; }
+    String Key { get; set; }
 
     /// <summary>配置值</summary>
     String? Value { get; set; }
@@ -26,7 +26,7 @@ public class ConfigSection : IConfigSection
 {
     #region 属性
     /// <summary>配置名</summary>
-    public String? Key { get; set; }
+    public String Key { get; set; } = null!;
 
     /// <summary>配置值</summary>
     public String? Value { get; set; }

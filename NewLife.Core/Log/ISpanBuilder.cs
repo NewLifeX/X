@@ -12,7 +12,7 @@ public interface ISpanBuilder
     ITracer? Tracer { get; }
 
     /// <summary>操作名</summary>
-    String? Name { get; set; }
+    String Name { get; set; }
 
     /// <summary>开始时间。Unix毫秒</summary>
     Int64 StartTime { get; set; }
@@ -62,7 +62,7 @@ public class DefaultSpanBuilder : ISpanBuilder
     public ITracer? Tracer { get; }
 
     /// <summary>操作名</summary>
-    public String? Name { get; set; }
+    public String Name { get; set; } = null!;
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }

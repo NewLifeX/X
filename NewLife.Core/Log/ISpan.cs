@@ -17,13 +17,13 @@ namespace NewLife.Log;
 public interface ISpan : IDisposable
 {
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    String? Id { get; set; }
+    String Id { get; set; }
 
     /// <summary>父级片段标识</summary>
     String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    String? TraceId { get; set; }
+    String TraceId { get; set; }
 
     /// <summary>开始时间。Unix毫秒</summary>
     Int64 StartTime { get; set; }
@@ -59,13 +59,13 @@ public class DefaultSpan : ISpan
     public ISpanBuilder? Builder { get; private set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    public String? Id { get; set; }
+    public String Id { get; set; } = null!;
 
     /// <summary>父级片段标识</summary>
     public String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    public String? TraceId { get; set; }
+    public String TraceId { get; set; } = null!;
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }

@@ -45,9 +45,9 @@ public class ApolloConfigProvider : HttpConfigProvider
 
     private class ApolloModel
     {
-        public String? WMetaServer { get; set; }
+        public String WMetaServer { get; set; } = null!;
 
-        public String? AppId { get; set; }
+        public String AppId { get; set; } = null!;
 
         public String? NameSpace { get; set; }
 

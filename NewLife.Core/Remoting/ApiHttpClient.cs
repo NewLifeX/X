@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using NewLife.Configuration;
@@ -96,7 +95,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="address"></param>
     public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
 
-    private void ParseAndAdd(IList<Service> services, String name, String address)
+    private static void ParseAndAdd(IList<Service> services, String name, String address)
     {
         var url = address;
         var svc = new Service
@@ -502,10 +501,10 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public class Service
     {
         /// <summary>名称</summary>
-        public String? Name { get; set; }
+        public String Name { get; set; } = null!;
 
         /// <summary>名称</summary>
-        public Uri? Address { get; set; }
+        public Uri Address { get; set; } = null!;
 
         /// <summary>权重。用于负载均衡，默认1</summary>
         public Int32 Weight { get; set; } = 1;

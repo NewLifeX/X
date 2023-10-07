@@ -93,7 +93,7 @@ public class DnsResolver : IDnsResolver
 
     class DnsItem
     {
-        public String? Host { get; set; }
+        public String Host { get; set; } = null!;
 
         public IPAddress[]? Addresses { get; set; }
 

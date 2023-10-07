@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using NewLife.Http;
 using NewLife.Net;

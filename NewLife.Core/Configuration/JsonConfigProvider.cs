@@ -109,12 +109,16 @@ public class JsonConfigProvider : FileConfigProvider
                     // 简单基元类型
                     else
                     {
-                        var cfg2 = new ConfigSection
+                        var key = elm?.GetType()?.Name;
+                        if (!key.IsNullOrEmpty())
                         {
-                            Key = elm?.GetType()?.Name,
-                            Value = elm + "",
-                        };
-                        cfg.Childs.Add(cfg2);
+                            var cfg2 = new ConfigSection
+                            {
+                                Key = key,
+                                Value = elm + "",
+                            };
+                            cfg.Childs.Add(cfg2);
+                        }
                     }
                 }
             }

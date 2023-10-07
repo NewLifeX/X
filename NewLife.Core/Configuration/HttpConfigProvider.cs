@@ -14,13 +14,13 @@ public class HttpConfigProvider : ConfigProvider
 {
     #region 属性
     /// <summary>服务器</summary>
-    public String? Server { get; set; }
+    public String Server { get; set; } = null!;
 
     /// <summary>服务操作 默认:Config/GetAll</summary>
     public String Action { get; set; } = "Config/GetAll";
 
     /// <summary>应用标识</summary>
-    public String? AppId { get; set; }
+    public String AppId { get; set; } = null!;
 
     /// <summary>应用密钥</summary>
     public String? Secret { get; set; }
