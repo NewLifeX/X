@@ -6,7 +6,7 @@ using NewLife.Reflection;
 namespace NewLife.Threading;
 
 /// <summary>定时器调度器</summary>
-public class TimerScheduler
+public class TimerScheduler : ILogFeature
 {
     #region 静态
     private TimerScheduler(String name) => Name = name;
@@ -369,7 +369,7 @@ public class TimerScheduler
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
-    private void WriteLog(String format, params Object[] args) => Log?.Info(Name + format, args);
+    private void WriteLog(String format, params Object?[] args) => Log?.Info(Name + format, args);
     #endregion
 }
 #nullable restore

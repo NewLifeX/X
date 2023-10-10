@@ -9,7 +9,7 @@ using NewLife.Model;
 namespace NewLife.Net;
 
 /// <summary>Udp会话。仅用于服务端与某一固定远程地址通信</summary>
-internal class UdpSession : DisposeBase, ISocketSession, ITransport
+internal class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 {
     #region 属性
     /// <summary>会话编号</summary>
@@ -333,12 +333,12 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log.Info(LogPrefix + format, args);
+    public void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
 
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
     [Conditional("DEBUG")]
-    public void WriteDebugLog(String format, params Object[] args) => Log.Debug(LogPrefix + format, args);
+    public void WriteDebugLog(String format, params Object?[] args) => Log.Debug(LogPrefix + format, args);
     #endregion
 }

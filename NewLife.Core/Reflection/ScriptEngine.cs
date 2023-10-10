@@ -512,7 +512,7 @@ public class ScriptEngine
         return sb.ToString().Trim();
     }
 
-    void WriteLog(String format, params Object[] args)
+    void WriteLog(String format, params Object?[] args)
     {
         Log?.Info(format, args);
     }

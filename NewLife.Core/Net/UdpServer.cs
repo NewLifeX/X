@@ -11,7 +11,7 @@ namespace NewLife.Net;
 /// <remarks>
 /// 如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
 /// </remarks>
-public class UdpServer : SessionBase, ISocketServer
+public class UdpServer : SessionBase, ISocketServer, ILogFeature
 {
     #region 属性
     /// <summary>会话超时时间</summary>

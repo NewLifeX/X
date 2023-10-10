@@ -52,7 +52,7 @@ public interface ISocket : IDisposable2
     /// <summary>已重载。日志加上前缀</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    void WriteLog(String format, params Object[] args);
+    void WriteLog(String format, params Object?[] args);
     #endregion
 
     #region 事件
