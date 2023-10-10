@@ -20,6 +20,33 @@ public interface IHostedService
     Task StopAsync(CancellationToken cancellationToken);
 }
 
+/// <summary>主机服务扩展</summary>
+public static class HostedServiceExtensions
+{
+    /// <summary>注册主机服务，在主机启动和停止时执行</summary>
+    /// <typeparam name="THostedService"></typeparam>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IObjectContainer AddHostedService<THostedService>(this IObjectContainer services) where THostedService : class, IHostedService
+    {
+        services.AddSingleton<IHostedService, THostedService>();
+
+        return services;
+    }
+
+    /// <summary>注册主机服务，在主机启动和停止时执行</summary>
+    /// <typeparam name="THostedService"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="implementationFactory"></param>
+    /// <returns></returns>
+    public static IObjectContainer AddHostedService<THostedService>(this IObjectContainer services, Func<IServiceProvider, THostedService> implementationFactory) where THostedService : class, IHostedService
+    {
+        services.AddSingleton<IHostedService>(implementationFactory);
+
+        return services;
+    }
+}
+
 /// <summary>轻量级应用主机</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/host
@@ -33,7 +60,7 @@ public interface IHost
 
     /// <summary>添加服务</summary>
     /// <typeparam name="TService"></typeparam>
-    void Add<TService>() where TService : IHostedService;
+    void Add<TService>() where TService : class, IHostedService;
 
     /// <summary>同步运行，大循环阻塞</summary>
     void Run();
@@ -58,7 +85,7 @@ public class Host : DisposeBase, IHost
     /// <summary>服务提供者</summary>
     public IServiceProvider ServiceProvider { get; set; }
 
-    private readonly IList<Type> _serviceTypes = new List<Type>();
+    //private readonly IList<Type> _serviceTypes = new List<Type>();
     /// <summary>服务集合</summary>
     public IList<IHostedService> Services { get; } = new List<IHostedService>();
     #endregion
@@ -96,14 +123,15 @@ public class Host : DisposeBase, IHost
     #region 服务集合
     /// <summary>添加服务</summary>
     /// <typeparam name="TService"></typeparam>
-    public void Add<TService>() where TService : IHostedService
+    public void Add<TService>() where TService : class, IHostedService
     {
-        var type = typeof(TService);
-        _serviceTypes.Add(type);
+        //var type = typeof(TService);
+        //_serviceTypes.Add(type);
 
         // 把服务类型注册到容器中，以便后续获取
         var ioc = (ServiceProvider as ServiceProvider)?.Container ?? ObjectContainer.Current;
-        ioc.TryAddTransient(type, type);
+        //ioc.TryAddTransient(type, type);
+        ioc.AddHostedService<TService>();
     }
 
     /// <summary>添加服务</summary>
@@ -118,10 +146,16 @@ public class Host : DisposeBase, IHost
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         // 从容器中获取所有服务
-        foreach (var item in _serviceTypes)
+        foreach (var item in ServiceProvider.GetServices<IHostedService>())
         {
-            if (ServiceProvider.GetService(item) is IHostedService service) Services.Add(service);
+            Services.Add(item);
         }
+
+        //// 从容器中获取所有服务
+        //foreach (var item in _serviceTypes)
+        //{
+        //    if (ServiceProvider.GetService(item) is IHostedService service) Services.Add(service);
+        //}
 
         // 开始所有服务，任意服务出错都导致启动失败
         foreach (var item in Services)
