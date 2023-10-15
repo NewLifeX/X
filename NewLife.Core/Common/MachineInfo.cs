@@ -660,13 +660,21 @@ public class MachineInfo
                     dic["Cached"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
         }
 
-        // respberrypi + fedora
+        // A2/A4温度获取，Buildroot，CPU温度和主板温度
         if (TryRead("/sys/class/thermal/thermal_zone0/temp", out var value) ||
-            TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
-            TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
-            TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
-            TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
+            TryRead("/sys/class/thermal/thermal_zone1/temp", out value))
+        {
+            Temperature = value.ToDouble();
+        }
+        // respberrypi + fedora
+        else if (TryRead("/sys/class/thermal/thermal_zone0/temp", out value) ||
+             TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
+             TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
+             TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
+             TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
+        {
             Temperature = value.ToDouble() / 1000;
+        }
         // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
         else if (TryRead("/sys/class/hwmon/hwmon0/device/temp_value", out value))
         {
