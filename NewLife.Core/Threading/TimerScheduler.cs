@@ -161,49 +161,49 @@ namespace NewLife.Threading
                 {
                     var now = Runtime.TickCount64;
 
-                    // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
-                    _period = 60_000;
-                    foreach (var timer in arr)
+                // 设置一个较大的间隔，内部会根据处理情况调整该值为最合理值
+                _period = 60_000;
+                foreach (var timer in arr)
+                {
+                    if (!timer.Calling && CheckTime(timer, now))
                     {
-                        if (!timer.Calling && CheckTime(timer, now))
-                        {
-                            // 是否能够执行
-                            if (timer.CanExecute == null || timer.CanExecute())
+                        //// 是否能够执行
+                        //if (timer.CanExecute == null || timer.CanExecute())
+                        //{
+                        // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                        timer.Calling = true;
+                        if (timer.IsAsyncTask)
+                            Task.Factory.StartNew(ExecuteAsync, timer);
+                        else if (!timer.Async)
+                            Execute(timer);
+                        else
+                            //Task.Factory.StartNew(() => ProcessItem(timer));
+                            // 不需要上下文流动，捕获所有异常
+                            ThreadPool.UnsafeQueueUserWorkItem(s =>
                             {
-                                // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                                timer.Calling = true;
-                                if (timer.IsAsyncTask)
-                                    Task.Factory.StartNew(ExecuteAsync, timer);
-                                else if (!timer.Async)
-                                    Execute(timer);
-                                else
-                                    //Task.Factory.StartNew(() => ProcessItem(timer));
-                                    // 不需要上下文流动
-                                    ThreadPool.UnsafeQueueUserWorkItem(s =>
-                                    {
-                                        try
-                                        {
-                                            Execute(s);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            XTrace.WriteException(ex);
-                                        }
-                                    }, timer);
-                                // 内部线程池，让异步任务有公平竞争CPU的机会
-                                //ThreadPoolX.QueueUserWorkItem(Execute, timer);
-                            }
-                            // 即使不能执行，也要设置下一次的时间
-                            else
-                            {
-                                OnFinish(timer);
-                            }
-                        }
+                                try
+                                {
+                                    Execute(s);
+                                }
+                                catch (Exception ex)
+                                {
+                                    XTrace.WriteException(ex);
+                                }
+                            }, timer);
+                        // 内部线程池，让异步任务有公平竞争CPU的机会
+                        //ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                        //}
+                        //// 即使不能执行，也要设置下一次的时间
+                        //else
+                        //{
+                        //    OnFinish(timer);
+                        //}
                     }
                 }
-                catch (ThreadAbortException) { break; }
-                catch (ThreadInterruptedException) { break; }
-                catch { }
+            }
+            catch (ThreadAbortException) { break; }
+            catch (ThreadInterruptedException) { break; }
+            catch { }
 
                 if (_waitForTimer == null) _waitForTimer = new AutoResetEvent(false);
                 if (_period > 0) _waitForTimer.WaitOne(_period, true);

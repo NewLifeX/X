@@ -95,11 +95,11 @@ namespace NewLife.Model
 
             var name = Async ? "DQ" : Name;
 
-            var timer = new TimerX(Work, null, p, Period, name)
-            {
-                Async = Async,
-                CanExecute = () => _Entities.Any()
-            };
+        var timer = new TimerX(Work, null, p, Period, name)
+        {
+            Async = Async,
+            //CanExecute = () => _Entities.Any()
+        };
 
             // 独立调度时加大最大耗时告警
             if (!Async) timer.Scheduler.MaxCost = 30_000;
@@ -143,22 +143,22 @@ namespace NewLife.Model
 
             Init();
 
-            Object entity = null;
-            while (!_Entities.TryGetValue(key, out entity))
+        Object? entity;
+        while (!_Entities.TryGetValue(key, out entity))
+        {
+            if (entity == null)
             {
-                if (entity == null)
-                {
-                    if (valueFactory != null)
-                        entity = valueFactory(key);
-                    else
-                        entity = new T();
-                }
-                if (_Entities.TryAdd(key, entity))
-                {
-                    Interlocked.Increment(ref _count);
-                    break;
-                }
+                if (valueFactory != null)
+                    entity = valueFactory(key);
+                else
+                    entity = new T();
             }
+            if (_Entities.TryAdd(key, entity))
+            {
+                Interlocked.Increment(ref _count);
+                break;
+            }
+        }
 
             // 超过最大值时，堵塞一段时间，等待消费完成
             CheckMax();
@@ -245,15 +245,15 @@ namespace NewLife.Model
             }
         }
 
-        /// <summary>定时处理全部数据</summary>
-        /// <param name="list"></param>
-        protected virtual Int32 ProcessAll(ICollection<Object> list)
+    /// <summary>定时处理全部数据</summary>
+    /// <param name="list"></param>
+    protected virtual Int32 ProcessAll(ICollection<Object> list)
+    {
+        var total = 0;
+        // 分批
+        for (var i = 0; i < list.Count;)
         {
-            var total = 0;
-            // 分批
-            for (var i = 0; i < list.Count();)
-            {
-                var batch = list.Skip(i).Take(BatchSize).ToList();
+            var batch = list.Skip(i).Take(BatchSize).ToList();
 
                 try
                 {
