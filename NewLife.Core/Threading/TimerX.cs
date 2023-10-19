@@ -68,6 +68,7 @@ public class TimerX : IDisposable
     public Int32 Cost { get; internal set; }
 
     /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
+    [Obsolete("该委托容易造成内存泄漏，故取消")]
     public Func<Boolean>? CanExecute { get; set; }
 
     /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
@@ -80,6 +81,7 @@ public class TimerX : IDisposable
     public String TracerName { get; set; }
 
     private DateTime _AbsolutelyNext;
+    private readonly Cron? _cron;
     #endregion
 
     #region 静态
