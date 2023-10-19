@@ -94,7 +94,7 @@ public class DeferredQueue : DisposeBase
         var timer = new TimerX(Work, null, p, Period, name)
         {
             Async = Async,
-            CanExecute = () => _Entities.Any()
+            //CanExecute = () => _Entities.Any()
         };
 
         // 独立调度时加大最大耗时告警
@@ -139,7 +139,7 @@ public class DeferredQueue : DisposeBase
 
         Init();
 
-        Object? entity = null;
+        Object? entity;
         while (!_Entities.TryGetValue(key, out entity))
         {
             if (entity == null)
@@ -247,7 +247,7 @@ public class DeferredQueue : DisposeBase
     {
         var total = 0;
         // 分批
-        for (var i = 0; i < list.Count();)
+        for (var i = 0; i < list.Count;)
         {
             var batch = list.Skip(i).Take(BatchSize).ToList();
 

@@ -330,7 +330,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
                 _Timer ??= new TimerX(DoSave, null, 1000, 5000)
                 {
                     Async = true,
-                    CanExecute = () => _commits > 0,
+                    //CanExecute = () => _commits > 0,
                 };
             }
         }

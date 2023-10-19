@@ -72,7 +72,7 @@ public class MemoryCache : Cache
             _clearTimer = new TimerX(RemoveNotAlive, null, 10 * 1000, period * 1000)
             {
                 Async = true,
-                CanExecute = () => _cache.Any(),
+                //CanExecute = () => _cache.Any(),
             };
         }
     }

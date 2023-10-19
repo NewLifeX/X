@@ -400,7 +400,7 @@ public static class TracerExtension
     /// <returns></returns>
     public static ISpan NewError(this ITracer tracer, String name, Object error, Object tag)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
 
         var span = tracer.NewSpan(name);
         if (error is Exception ex)

@@ -81,7 +81,7 @@ public class DefaultMatchQueue : IMatchQueue
                 _Timer ??= new TimerX(Check, null, 1000, 1000, "Match")
                 {
                     Async = true,
-                    CanExecute = () => _Count > 0
+                    //CanExecute = () => _Count > 0
                 };
             }
         }

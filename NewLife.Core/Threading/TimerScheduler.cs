@@ -163,37 +163,37 @@ public class TimerScheduler : ILogFeature
                 {
                     if (!timer.Calling && CheckTime(timer, now))
                     {
-                        // 是否能够执行
-                        if (timer.CanExecute == null || timer.CanExecute())
-                        {
-                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                            timer.Calling = true;
-                            if (timer.IsAsyncTask)
-                                Task.Factory.StartNew(ExecuteAsync, timer);
-                            else if (!timer.Async)
-                                Execute(timer);
-                            else
-                                //Task.Factory.StartNew(() => ProcessItem(timer));
-                                // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(s =>
-                                {
-                                    try
-                                    {
-                                        Execute(s);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        XTrace.WriteException(ex);
-                                    }
-                                }, timer);
-                            // 内部线程池，让异步任务有公平竞争CPU的机会
-                            //ThreadPoolX.QueueUserWorkItem(Execute, timer);
-                        }
-                        // 即使不能执行，也要设置下一次的时间
+                        //// 是否能够执行
+                        //if (timer.CanExecute == null || timer.CanExecute())
+                        //{
+                        // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                        timer.Calling = true;
+                        if (timer.IsAsyncTask)
+                            Task.Factory.StartNew(ExecuteAsync, timer);
+                        else if (!timer.Async)
+                            Execute(timer);
                         else
-                        {
-                            OnFinish(timer);
-                        }
+                            //Task.Factory.StartNew(() => ProcessItem(timer));
+                            // 不需要上下文流动，捕获所有异常
+                            ThreadPool.UnsafeQueueUserWorkItem(s =>
+                            {
+                                try
+                                {
+                                    Execute(s);
+                                }
+                                catch (Exception ex)
+                                {
+                                    XTrace.WriteException(ex);
+                                }
+                            }, timer);
+                        // 内部线程池，让异步任务有公平竞争CPU的机会
+                        //ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                        //}
+                        //// 即使不能执行，也要设置下一次的时间
+                        //else
+                        //{
+                        //    OnFinish(timer);
+                        //}
                     }
                 }
             }

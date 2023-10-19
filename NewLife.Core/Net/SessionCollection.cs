@@ -30,7 +30,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         clearTimer = new TimerX(RemoveNotAlive, null, p, p)
         {
             Async = true,
-            CanExecute = () => _dic.Any(),
+            //CanExecute = () => _dic.Any(),
         };
     }
 
