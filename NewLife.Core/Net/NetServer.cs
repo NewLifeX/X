@@ -650,7 +650,11 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     public String GetStat()
     {
         var sb = Pool.StringBuilder.Get();
-        if (MaxSessionCount > 0) sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
+        if (MaxSessionCount > 0)
+        {
+            SessionCount = _Sessions.Count;
+            sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
+        }
 
         return sb.Put(true);
     }

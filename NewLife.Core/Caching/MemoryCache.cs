@@ -47,8 +47,8 @@ public class MemoryCache : Cache
     {
         base.Dispose(disposing);
 
-        clearTimer.TryDispose();
-        clearTimer = null;
+        _clearTimer.TryDispose();
+        _clearTimer = null;
     }
     #endregion
 
@@ -66,10 +66,10 @@ public class MemoryCache : Cache
     /// <param name="config"></param>
     public override void Init(String? config)
     {
-        if (clearTimer == null)
+        if (_clearTimer == null)
         {
             var period = Period;
-            clearTimer = new TimerX(RemoveNotAlive, null, 10 * 1000, period * 1000)
+            _clearTimer = new TimerX(RemoveNotAlive, null, 10 * 1000, period * 1000)
             {
                 Async = true,
                 CanExecute = () => _cache.Any(),
@@ -547,12 +547,12 @@ public class MemoryCache : Cache
 
     #region 清理过期缓存
     /// <summary>清理会话计时器</summary>
-    private TimerX? clearTimer;
+    private TimerX? _clearTimer;
 
     /// <summary>移除过期的缓存项</summary>
     private void RemoveNotAlive(Object? state)
     {
-        var tx = clearTimer;
+        var tx = _clearTimer;
         if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
 
         var dic = _cache;
