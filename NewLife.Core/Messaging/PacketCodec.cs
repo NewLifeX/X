@@ -20,7 +20,7 @@ public class PacketCodec
     /// <summary>最后一次解包成功，而不是最后一次接收</summary>
     public DateTime Last { get; set; } = DateTime.Now;
 
-    /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃</summary>
+    /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃，默认5000ms</summary>
     public Int32 Expire { get; set; } = 5_000;
 
     /// <summary>最大缓存待处理数据。默认0无限制</summary>
@@ -44,7 +44,7 @@ public class PacketCodec
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
         if (nodata)
         {
-            if (pk == null) return list.ToArray();
+            if (pk == null || pk.Total == 0) return list.ToArray();
 
             //using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
 
@@ -123,19 +123,25 @@ public class PacketCodec
     {
         var ms = Stream ??= new MemoryStream();
 
-        // 超过该时间后按废弃数据处理
+        // 超过过期时间或超过最大缓存容量后废弃缓存数据
         var now = DateTime.Now;
-        if (ms.Length > ms.Position && Last.AddMilliseconds(Expire) < now && (MaxCache <= 0 || MaxCache <= ms.Length))
+        var retain = ms.Length - ms.Position;
+        if (retain > 0 && (Last.AddMilliseconds(Expire) < now || MaxCache > 0 && MaxCache <= retain))
         {
-            var retain = ms.Length - ms.Position;
             var buf = ms.ReadBytes(retain > 64 ? 64 : retain);
             using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{buf.ToHex()}");
             span?.SetError(new Exception($"数据包编码器放弃数据 retain={retain} MaxCache={MaxCache}"), null);
 
-            if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", ms.Length, Last, MaxCache);
+            if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", retain, Last, MaxCache);
 
-            ms.SetLength(0);
-            ms.Position = 0;
+            // 如果较大则重新分配内存，避免内存碎片
+            if (ms.Capacity > 1024)
+                ms = Stream = new MemoryStream();
+            else
+            {
+                ms.SetLength(0);
+                ms.Position = 0;
+            }
         }
         Last = now;
     }
