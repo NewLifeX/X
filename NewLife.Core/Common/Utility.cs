@@ -785,13 +785,14 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual Exception GetTrue(Exception ex)
     {
-        return ex == null
-            ? null
-            : ex is AggregateException
-            ? GetTrue((ex as AggregateException).Flatten().InnerException)
-            : ex is TargetInvocationException
-            ? GetTrue((ex as TargetInvocationException).InnerException)
-            : ex is TypeInitializationException ? GetTrue((ex as TypeInitializationException).InnerException) : ex.GetBaseException() ?? ex;
+        return ex is AggregateException agg && agg.InnerException != null
+            ? GetTrue(agg.InnerException)
+            : ex is TargetInvocationException tie && tie.InnerException != null
+            ? GetTrue(tie.InnerException)
+            : ex is TypeInitializationException te && te.InnerException != null
+            ? GetTrue(te.InnerException)
+            : ex.GetBaseException()
+            ?? ex;
     }
 
     /// <summary>获取异常消息</summary>
