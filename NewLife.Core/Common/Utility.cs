@@ -149,7 +149,7 @@ public static class Utility
     /// <summary>获取内部真实异常</summary>
     /// <param name="ex"></param>
     /// <returns></returns>
-    public static Exception? GetTrue(this Exception? ex) => Convert.GetTrue(ex);
+    public static Exception GetTrue(this Exception ex) => Convert.GetTrue(ex);
 
     /// <summary>获取异常消息</summary>
     /// <param name="ex">异常</param>
@@ -783,15 +783,16 @@ public class DefaultConvert
     /// <summary>获取内部真实异常</summary>
     /// <param name="ex"></param>
     /// <returns></returns>
-    public virtual Exception? GetTrue(Exception? ex)
+    public virtual Exception GetTrue(Exception ex)
     {
-        return ex == null
-            ? null
-            : ex is AggregateException agg
-            ? GetTrue(agg.Flatten().InnerException)
-            : ex is TargetInvocationException tie
+        return ex is AggregateException agg && agg.InnerException != null
+            ? GetTrue(agg.InnerException)
+            : ex is TargetInvocationException tie && tie.InnerException != null
             ? GetTrue(tie.InnerException)
-            : ex is TypeInitializationException te ? GetTrue(te.InnerException) : ex.GetBaseException() ?? ex;
+            : ex is TypeInitializationException te && te.InnerException != null
+            ? GetTrue(te.InnerException)
+            : ex.GetBaseException()
+            ?? ex;
     }
 
     /// <summary>获取异常消息</summary>
