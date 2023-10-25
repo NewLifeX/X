@@ -146,11 +146,11 @@ namespace System
         public static String ToGMK(this Int64 value, String format = null) => value < 0 ? value + "" : Convert.ToGMK((UInt64)value, format);
         #endregion
 
-        #region 异常处理
-        /// <summary>获取内部真实异常</summary>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        public static Exception GetTrue(this Exception ex) => Convert.GetTrue(ex);
+    #region 异常处理
+    /// <summary>获取内部真实异常</summary>
+    /// <param name="ex"></param>
+    /// <returns></returns>
+    public static Exception GetTrue(this Exception ex) => Convert.GetTrue(ex);
 
         /// <summary>获取异常消息</summary>
         /// <param name="ex">异常</param>
@@ -776,24 +776,20 @@ namespace System
             return value.ToString(format);
         }
 
-        /// <summary>获取内部真实异常</summary>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        public virtual Exception GetTrue(Exception ex)
-        {
-            if (ex == null) return null;
-
-            if (ex is AggregateException)
-                return GetTrue((ex as AggregateException).Flatten().InnerException);
-
-            if (ex is TargetInvocationException)
-                return GetTrue((ex as TargetInvocationException).InnerException);
-
-            if (ex is TypeInitializationException)
-                return GetTrue((ex as TypeInitializationException).InnerException);
-
-            return ex.GetBaseException() ?? ex;
-        }
+    /// <summary>获取内部真实异常</summary>
+    /// <param name="ex"></param>
+    /// <returns></returns>
+    public virtual Exception GetTrue(Exception ex)
+    {
+        return ex is AggregateException agg && agg.InnerException != null
+            ? GetTrue(agg.InnerException)
+            : ex is TargetInvocationException tie && tie.InnerException != null
+            ? GetTrue(tie.InnerException)
+            : ex is TypeInitializationException te && te.InnerException != null
+            ? GetTrue(te.InnerException)
+            : ex.GetBaseException()
+            ?? ex;
+    }
 
         /// <summary>获取异常消息</summary>
         /// <param name="ex">异常</param>
