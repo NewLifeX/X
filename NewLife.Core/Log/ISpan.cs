@@ -345,7 +345,10 @@ public static class SpanExtension
     public static Object? Attach(this ISpan span, Object? args)
     {
         if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
-        if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
+
+        var type = args.GetType();
+        if (type.IsArray || type.IsValueType || type == typeof(String)) return args;
+        if (Type.GetTypeCode(type) != TypeCode.Object) return args;
 
         // 注入参数名
         var name = GetAttachParameter(span);
