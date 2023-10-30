@@ -442,6 +442,7 @@ public static class SpanExtension
         if (span == null || traceId.IsNullOrEmpty()) return;
 
         var ss = traceId.Split('-');
+        if (ss.Length == 1) span.TraceId = ss[0];
         if (ss.Length > 1) span.TraceId = ss[1];
         if (ss.Length > 2) span.ParentId = ss[2];
 
