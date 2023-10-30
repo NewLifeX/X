@@ -350,7 +350,8 @@ public class MemoryCache : Cache
     public override IList<T> GetList<T>(String key)
     {
         var item = GetOrAddItem(key, k => new List<T>());
-        return item.Visit() as IList<T>;
+        return item.Visit() as IList<T> ??
+         throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IList<T>)}");
     }
 
     /// <summary>获取哈希</summary>
@@ -360,7 +361,8 @@ public class MemoryCache : Cache
     public override IDictionary<String, T> GetDictionary<T>(String key)
     {
         var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
-        return item.Visit() as IDictionary<String, T>;
+        return item.Visit() as IDictionary<String, T> ??
+         throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IDictionary<String, T>)}");
     }
 
     /// <summary>获取队列</summary>
@@ -370,7 +372,8 @@ public class MemoryCache : Cache
     public override IProducerConsumer<T> GetQueue<T>(String key)
     {
         //var item = GetOrAddItem(key, k => new MemoryQueue<T>());
-        //return item.Visit() as IProducerConsumer<T>;
+        //return item.Visit() as IProducerConsumer<T> ??
+        //    throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IProducerConsumer<T>)}");
         throw new NotImplementedException();
     }
 
@@ -381,7 +384,8 @@ public class MemoryCache : Cache
     public override IProducerConsumer<T> GetStack<T>(String key)
     {
         //var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
-        //return item.Visit() as IProducerConsumer<T>;
+        //return item.Visit() as IProducerConsumer<T> ??
+        //    throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IProducerConsumer<T>)}");
         throw new NotImplementedException();
     }
 
@@ -393,7 +397,8 @@ public class MemoryCache : Cache
     public override ICollection<T> GetSet<T>(String key)
     {
         var item = GetOrAddItem(key, k => new HashSet<T>());
-        return item.Visit() as ICollection<T>;
+        return item.Visit() as ICollection<T> ??
+            throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(ICollection<T>)}");
     }
 
     /// <summary>获取 或 添加 缓存项</summary>
