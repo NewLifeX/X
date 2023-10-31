@@ -181,7 +181,7 @@ public abstract class FileConfigProvider : ConfigProvider
         if (!fi.Exists) return;
 
         fi.Refresh();
-        if (_lastTime.Year > 2000 & fi.LastWriteTime <= _lastTime) return;
+        if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
         _lastTime = fi.LastWriteTime;
 
         XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
