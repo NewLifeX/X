@@ -184,6 +184,8 @@ public class TcpSession : SessionBase, ISocketSession
         }
         catch (Exception ex)
         {
+            if (ex is SocketException) sock.Close();
+
             // 连接失败时，任何错误都放弃当前Socket
             Client = null;
             if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
