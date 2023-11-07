@@ -145,8 +145,14 @@ public class Host : DisposeBase, IHost
     /// <returns></returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // 从容器中获取所有服务
+        // 从容器中获取所有服务。此时服务是倒序，需要反转
+        var svcs = new List<IHostedService>();
         foreach (var item in ServiceProvider.GetServices<IHostedService>())
+        {
+            svcs.Add(item);
+        }
+        svcs.Reverse();
+        foreach (var item in svcs)
         {
             Services.Add(item);
         }
