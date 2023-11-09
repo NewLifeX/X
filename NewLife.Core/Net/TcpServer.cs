@@ -52,6 +52,9 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
 
+    /// <summary>KeepAlive间隔。默认0秒不启用</summary>
+    public Int32 KeepAliveInterval { get; set; }
+
     /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
     public Boolean EnableHttp { get; set; }
 
@@ -275,8 +278,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         var session = CreateSession(client);
 
-        //// 设置心跳时间，默认10秒
-        //client.SetTcpKeepAlive(true);
+        // 设置心跳时间
+        if (KeepAliveInterval > 0) client.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
 
         if (_Sessions.Add(session))
         {
@@ -311,6 +314,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             //// 服务端不支持掉线重连
             //AutoReconnect = 0,
             NoDelay = NoDelay,
+            KeepAliveInterval = KeepAliveInterval,
             Pipeline = Pipeline,
             DisconnectWhenEmptyData = false,
 

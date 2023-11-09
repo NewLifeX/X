@@ -28,6 +28,9 @@ public class TcpSession : SessionBase, ISocketSession
     /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
     public Boolean NoDelay { get; set; }
 
+    /// <summary>KeepAlive间隔。默认0秒不启用</summary>
+    public Int32 KeepAliveInterval { get; set; }
+
     /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
@@ -165,6 +168,10 @@ public class TcpSession : SessionBase, ISocketSession
 
                 sock.EndConnect(ar);
             }
+
+            // 作为客户端，启用KeepAlive，及时释放无效连接
+            if (KeepAliveInterval > 0) sock.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
+
             RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
             span?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
 
