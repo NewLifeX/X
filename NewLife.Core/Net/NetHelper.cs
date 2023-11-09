@@ -32,23 +32,50 @@ public static class NetHelper
 
     #region 辅助函数
     /// <summary>设置超时检测时间和检测间隔</summary>
+    /// <remarks>
+    /// 一次对server服务大量积压异常TCP ESTABLISHED链接的排查笔记 https://www.jianshu.com/p/a1c3aba4af96
+    /// 查看连接创建时间： sudo ls /proc/128260/fd -l|grep socket ，可发现大量连接的创建时间在很久之前。
+    /// 查看连接是否有启用keepalive： ss -aoen|grep ESTAB|grep timer ，带有timer的socket表示启用了keepalive。
+    /// </remarks>
     /// <param name="socket">要设置的Socket对象</param>
-    /// <param name="iskeepalive">是否启用Keep-Alive</param>
-    /// <param name="starttime">多长时间后开始第一次探测（单位：毫秒）</param>
-    /// <param name="interval">探测时间间隔（单位：毫秒）</param>
-    public static void SetTcpKeepAlive(this Socket socket, Boolean iskeepalive, Int32 starttime = 10000, Int32 interval = 10000)
+    /// <param name="isKeepAlive">是否启用Keep-Alive</param>
+    /// <param name="startTime">多长时间后开始第一次探测（单位：秒）</param>
+    /// <param name="interval">探测时间间隔（单位：秒）</param>
+    public static void SetTcpKeepAlive(this Socket socket, Boolean isKeepAlive, Int32 startTime, Int32 interval)
     {
-        if (socket == null || !socket.Connected) return;
-        UInt32 dummy = 0;
-        var inOptionValues = new Byte[Marshal.SizeOf(dummy) * 3];
-        BitConverter.GetBytes((UInt32)(iskeepalive ? 1 : 0)).CopyTo(inOptionValues, 0);
-        BitConverter.GetBytes((UInt32)starttime).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
-        BitConverter.GetBytes((UInt32)interval).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+        if (socket == null) return;
 
 #if !NETFRAMEWORK
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+#else
+        if (Runtime.Windows)
 #endif
+        {
+            UInt32 dummy = 0;
+            var inOptionValues = new Byte[Marshal.SizeOf(dummy) * 3];
+
+            // 是否启用Keep-Alive
+            BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
+            // 第一次开始发送探测包时间间隔
+            BitConverter.GetBytes((UInt32)startTime * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy));
+            // 连续发送探测包时间间隔
+            BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
+
+            socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+
+            return;
+        }
+
+        {
+            // 开启keepalive
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, isKeepAlive);
+#if NETCOREAPP
+            // 开始首次keepalive探测前的TCP空闲时间
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, startTime);
+            // 两次keepalive探测之间的时间间隔
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, interval);
+#endif
+        }
     }
 
     /// <summary>分析地址，根据IP或者域名得到IP地址，缓存60秒，异步更新</summary>
