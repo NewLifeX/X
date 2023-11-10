@@ -239,7 +239,7 @@ public static class XmlHelper
 
         //var method = Reflect.GetMethodEx(typeof(XmlConvert), "ToString", type);
         var method = typeof(XmlConvert).GetMethodEx("ToString", type);
-        if (method == null) throw new XException("类型{0}不支持转为Xml字符串，请先用CanXmlConvert方法判断！", type);
+        if (method == null) throw new XException("Type {0} does not support converting to Xml strings. Please use the CanXmlConvert method first to determine!", type);
 
         return (String?)"".Invoke(method, value);
     }
@@ -256,7 +256,7 @@ public static class XmlHelper
 
         //var method = Reflect.GetMethodEx(typeof(XmlConvert), "To" + type.Name, typeof(String));
         var method = typeof(XmlConvert).GetMethodEx("To" + type.Name, typeof(String));
-        if (method == null) throw new XException("类型{0}不支持从Xml字符串转换，请先用CanXmlConvert方法判断！", type);
+        if (method == null) throw new XException("Type {0} does not support converting from Xml strings. Please use the CanXmlConvert method first!", type);
 
         return "".Invoke(method, xml);
     }

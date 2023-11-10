@@ -207,7 +207,7 @@ public class BinaryComposite : BinaryHandlerBase
         // 如果引用是对象数加一，说明有对象紧跟着
         if (rf == hs.Length + 1) return false;
 
-        if (rf < 0 || rf > hs.Length) throw new XException("无法在 {0} 个对象中找到引用 {1}", hs.Length, rf);
+        if (rf < 0 || rf > hs.Length) throw new XException("Unable to find reference {1} in {0} objects", hs.Length, rf);
 
         value = hs[rf - 1];
 

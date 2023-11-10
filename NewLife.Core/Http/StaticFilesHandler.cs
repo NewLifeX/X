@@ -17,17 +17,17 @@ public class StaticFilesHandler : IHttpHandler
     /// <param name="context"></param>
     public virtual void ProcessRequest(IHttpContext context)
     {
-        if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);
+        if (!context.Path.StartsWithIgnoreCase(Path)) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var file = context.Path[Path.Length..];
         file = ContentPath.CombinePath(file);
 
         // 路径安全检查，防止越界
         if (!file.GetFullPath().StartsWithIgnoreCase(ContentPath.GetFullPath()))
-            throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);
+            throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var fi = file.AsFile();
-        if (!fi.Exists) throw new ApiException(ApiCode.NotFound, "找不到文件" + context.Path);
+        if (!fi.Exists) throw new ApiException(ApiCode.NotFound, $"File {context.Path} not found");
 
         var contentType = fi.Extension switch
         {

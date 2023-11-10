@@ -70,7 +70,7 @@ public class JsonReader
 
             if (vlist.Count == 0) return target;
 
-            throw new InvalidCastException($"Json数组无法转为目标类型[{type.FullName}]，仅支持数组和List<T>/IList<T>");
+            throw new InvalidCastException($"Json array cannot be converted to target type [{type.FullName}], only arrays and List<T>/IList<T>are supported");
         }
 
         if (type != null && jobj.GetType() != type)

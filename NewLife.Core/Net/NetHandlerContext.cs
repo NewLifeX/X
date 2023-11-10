@@ -108,7 +108,7 @@ public class NetHandlerContext : HandlerContext
             return rs;
         }
 
-        throw new XException("无法识别消息[{0}]，可能缺少编码处理器", message?.GetType()?.FullName);
+        throw new XException("Unable to recognize message [{0}], possibly missing encoding processor", message?.GetType()?.FullName);
     }
     #endregion
 }

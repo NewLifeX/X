@@ -144,7 +144,7 @@ public class Json : FormatterBase, IJson
     public virtual Object? Read(Type type)
     {
         var value = type.CreateInstance();
-        return !TryRead(type, ref value) ? throw new Exception("读取失败！") : value;
+        return !TryRead(type, ref value) ? throw new Exception("Read failed!") : value;
     }
 
     /// <summary>读取指定类型对象</summary>
@@ -178,7 +178,7 @@ public class Json : FormatterBase, IJson
     public virtual Byte ReadByte()
     {
         var b = Stream.ReadByte();
-        return b < 0 ? throw new Exception("数据流超出范围！") : (Byte)b;
+        return b < 0 ? throw new Exception("The data stream is out of range!") : (Byte)b;
     }
     #endregion
 

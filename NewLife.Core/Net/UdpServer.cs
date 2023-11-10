@@ -449,7 +449,7 @@ public static class UdpHelper
         if (udp.Client != null && udp.Client.LocalEndPoint != null)
         {
             var ip = udp.Client.LocalEndPoint as IPEndPoint;
-            if (ip != null && !ip.Address.IsIPv4()) throw new NotSupportedException("IPv6不支持广播！");
+            if (ip != null && !ip.Address.IsIPv4()) throw new NotSupportedException("IPv6 does not support broadcasting!");
         }
 
         if (!udp.EnableBroadcast) udp.EnableBroadcast = true;

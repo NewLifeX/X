@@ -311,7 +311,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     {
         EnsureCreateServer();
 
-        if (Servers.Count == 0) throw new Exception("全部端口监听失败！");
+        if (Servers.Count == 0) throw new Exception("Failed to listen to all ports!");
 
         WriteLog("准备开始监听{0}个服务器", Servers.Count);
 
@@ -509,7 +509,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <returns>已群发客户端总数</returns>
     public virtual Task<Int32> SendAllAsync(Packet data)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var ts = new List<Task>();
         foreach (var item in Sessions)
@@ -526,7 +526,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <returns>已群发客户端总数</returns>
     public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean>? predicate = null)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var ts = new List<Task>();
         foreach (var item in Sessions)
@@ -544,7 +544,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <returns>已群发客户端总数</returns>
     public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean>? predicate = null)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var count = 0;
         foreach (var item in Sessions)

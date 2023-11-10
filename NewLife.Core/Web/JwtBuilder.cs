@@ -137,7 +137,7 @@ public class JwtBuilder : IExtend
             return $"{header}.{body}.{sign.ToUrlBase64()}";
         }
 
-        throw new InvalidOperationException($"不支持的算法[{alg}]");
+        throw new InvalidOperationException($"Unsupported algorithm [{alg}]");
     }
 
     /// <summary>分析令牌</summary>
@@ -231,7 +231,7 @@ public class JwtBuilder : IExtend
             if (_encodes.TryGetValue(Algorithm, out var enc) && enc != null) return enc(data, Secret).ToUrlBase64() == ts[2];
         }
 
-        throw new InvalidOperationException($"不支持的算法[{Algorithm}]");
+        throw new InvalidOperationException($"Unsupported algorithm [{Algorithm}]");
     }
     #endregion
 

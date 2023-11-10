@@ -360,7 +360,7 @@ public class BinaryGeneral : BinaryHandlerBase
         if (count <= 0) return new Byte[0];
 
         var max = IOHelper.MaxSafeArraySize;
-        if (count > max) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", count, max);
+        if (count > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", count, max);
 
         var buffer = Host.ReadBytes(count);
 
@@ -495,7 +495,7 @@ public class BinaryGeneral : BinaryHandlerBase
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -515,7 +515,7 @@ public class BinaryGeneral : BinaryHandlerBase
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -535,7 +535,7 @@ public class BinaryGeneral : BinaryHandlerBase
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }

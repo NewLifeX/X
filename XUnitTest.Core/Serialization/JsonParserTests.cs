@@ -41,7 +41,7 @@ public class JsonParserTests
         var json = """{"Name":"NewLife","Version":"5.0}""";
 
         var ex = Assert.Throws<XException>(() => JsonParser.Decode(json));
-        Assert.Equal("分析字符串时已到达字符串结尾[5.0}]", ex.Message);
+        Assert.Equal("Reached the end of the string while parsing it [5.0}]", ex.Message);
     }
 
     [Fact]
@@ -50,6 +50,6 @@ public class JsonParserTests
         var json = "NewLife";
 
         var ex = Assert.Throws<XException>(() => JsonParser.Decode(json));
-        Assert.Equal("非标准Json字符串[NewLife]", ex.Message);
+        Assert.Equal("Non standard Json string [NewLife]", ex.Message);
     }
 }

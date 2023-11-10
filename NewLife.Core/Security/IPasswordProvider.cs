@@ -93,7 +93,7 @@ namespace NewLife.Security
             // 老式MD5，password可能是密码原文，也可能是前端已经md5散列的值
             if (ss.Length == 1) return hash.EqualIgnoreCase(password, password.MD5());
 
-            if (ss.Length != 4) throw new NotSupportedException("不支持的密码哈希值");
+            if (ss.Length != 4) throw new NotSupportedException("Unsupported password hash value");
 
             var salt = ss[2];
             if (SaltTime > 0)
@@ -113,7 +113,7 @@ namespace NewLife.Security
                 case "sha512":
                     return ss[3] == password.GetBytes().SHA512(salt.GetBytes()).ToBase64();
                 default:
-                    throw new NotSupportedException($"不支持的密码哈希模式[{ss[1]}]");
+                    throw new NotSupportedException($"Unsupported password hash mode [{ss[1]}]");
             }
         }
     }

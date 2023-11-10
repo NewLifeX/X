@@ -43,7 +43,7 @@ public static class ManageUserHelper
     public static Boolean CheckEqual(this IAuthUser user, String pass)
     {
         // 验证密码
-        if (user.Password != pass) throw new Exception(user + " 密码错误");
+        if (user.Password != pass) throw new Exception($"Password error for user [{user}]");
 
         return true;
     }
@@ -55,7 +55,7 @@ public static class ManageUserHelper
     public static Boolean CheckMD5(this IAuthUser user, String pass)
     {
         // 验证密码
-        if (user.Password != pass.MD5()) throw new Exception(user + " 密码错误");
+        if (user.Password != pass.MD5()) throw new Exception($"Password error for user [{user}]");
 
         return true;
     }
@@ -73,7 +73,7 @@ public static class ManageUserHelper
 
         // 验证密码
         var tpass = user.Password.GetBytes();
-        if (salt.RC4(tpass).ToHex() != pass) throw new Exception(user + " 密码错误");
+        if (salt.RC4(tpass).ToHex() != pass) throw new Exception($"Password error for user [{user}]");
 
         return true;
     }

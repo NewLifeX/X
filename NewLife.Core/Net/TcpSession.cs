@@ -163,7 +163,7 @@ public class TcpSession : SessionBase, ISocketSession
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                 {
                     sock.Close();
-                    throw new TimeoutException($"连接[{uri}][{timeout}ms]超时！");
+                    throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
                 }
 
                 sock.EndConnect(ar);

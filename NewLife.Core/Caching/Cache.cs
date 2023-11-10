@@ -284,7 +284,7 @@ public abstract class Cache : DisposeBase, ICache
     public IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
-        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
 
         return rlock;
     }
@@ -300,7 +300,7 @@ public abstract class Cache : DisposeBase, ICache
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msExpire))
         {
-            if (throwOnFailure) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+            if (throwOnFailure) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
 
             return null;
         }

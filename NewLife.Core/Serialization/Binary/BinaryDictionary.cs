@@ -49,7 +49,7 @@ public class BinaryDictionary : BinaryHandlerBase
 
         // 子元素类型
         var gs = type.GetGenericArguments();
-        if (gs.Length != 2) throw new NotSupportedException($"字典类型仅支持 {typeof(Dictionary<,>).FullName}");
+        if (gs.Length != 2) throw new NotSupportedException($"Dictionary types only support {typeof(Dictionary<,>).FullName}");
 
         var keyType = gs[0];
         var valType = gs[1];

@@ -164,7 +164,7 @@ public class DbTableTests
             dt2.Read(pk);
         });
 
-        Assert.Equal("DbTable[ver=2]无法支持较新的版本[3]", ex.Message);
+        Assert.Equal("DbTable[ver=2] Unable to support newer versions [3]", ex.Message);
     }
 
     [Fact]

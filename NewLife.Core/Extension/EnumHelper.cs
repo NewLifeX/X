@@ -13,7 +13,7 @@ public static class EnumHelper
     /// <returns></returns>
     public static Boolean Has(this Enum value, Enum flag)
     {
-        if (value.GetType() != flag.GetType()) throw new ArgumentException("flag", "枚举标识判断必须是相同的类型！");
+        if (value.GetType() != flag.GetType()) throw new ArgumentException("flag", "Enumeration identification judgment must be of the same type");
 
         var num = Convert.ToUInt64(flag);
         return (Convert.ToUInt64(value) & num) == num;
@@ -27,7 +27,7 @@ public static class EnumHelper
     /// <returns></returns>
     public static T Set<T>(this Enum source, T flag, Boolean value)
     {
-        if (source is not T) throw new ArgumentException("source", "枚举标识判断必须是相同的类型！");
+        if (source is not T) throw new ArgumentException("source", "Enumeration identification judgment must be of the same type");
 
         var s = Convert.ToUInt64(source);
         var f = Convert.ToUInt64(flag);

@@ -235,7 +235,7 @@ public class NetUri
         }
         catch (SocketException ex)
         {
-            throw new XException("解析主机" + hostname + "的地址失败！" + ex.Message, ex);
+            throw new XException($"Failed to resolve the address of host {hostname}!{ex.Message}", ex);
         }
     }
 

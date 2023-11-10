@@ -454,7 +454,7 @@ public class DefaultReflect : IReflect
         catch (Exception ex)
         {
             //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
-            throw new Exception($"创建对象失败 type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
+            throw new Exception($"Fail to create object type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
         }
     }
 
@@ -525,7 +525,7 @@ public class DefaultReflect : IReflect
 
         var targetType = target.GetType();
         // 基础类型无法拷贝
-        if (targetType.GetTypeCode() != TypeCode.Object) throw new XException("基础类型 {0} 无法拷贝", targetType.FullName);
+        if (targetType.GetTypeCode() != TypeCode.Object) throw new XException("The underlying type {0} cannot be copied", targetType.FullName);
 
         // 不是深度拷贝时，直接复制引用
         if (!deep)

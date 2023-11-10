@@ -133,7 +133,7 @@ public class Snowflake
         {
             // 多线程生成Id的时候，_lastTime在计算差值前被另一个线程更新了，导致时间有微小偏差（一般是1ms）
             //XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
-            if (t > 10_000) throw new InvalidOperationException($"时间倒退过大({t}ms)，为确保唯一性，Snowflake拒绝生成新Id");
+            if (t > 10_000) throw new InvalidOperationException($"Time reversal too large ({t}ms)To ensure uniqueness, Snowflake refuses to generate a new Id");
 
             ms = _lastTime;
         }

@@ -48,7 +48,7 @@ public class OssClient : IObjectStorage
         if (_Client != null) return _Client;
 
         var addr = _baseAddress ?? Server;
-        if (addr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server), "未指定OSS服务地址");
+        if (addr.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server), "OSS service address not specified");
 
         var http = DefaultTracer.Instance.CreateHttpClient();
         http.BaseAddress = new Uri(addr);

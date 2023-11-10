@@ -289,7 +289,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     public virtual void Save(String? filename)
     {
         if (filename.IsNullOrWhiteSpace()) filename = ConfigFile;
-        if (filename.IsNullOrWhiteSpace()) throw new XException("未指定{0}的配置文件路径！", typeof(TConfig).Name);
+        if (filename.IsNullOrWhiteSpace()) throw new XException("No configuration file path specified for {0}!", typeof(TConfig).Name);
 
         filename = filename.GetBasePath();
 

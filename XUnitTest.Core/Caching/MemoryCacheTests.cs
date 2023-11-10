@@ -341,6 +341,6 @@ public class MemoryCacheTests
         var queue = mc.GetQueue<TimePoint>("queue");
 
         var ex = Assert.Throws<InvalidCastException>(() => mc.GetQueue<String>("queue"));
-        Assert.StartsWith("无法将[queue]的值", ex.Message);
+        Assert.StartsWith("Unable to convert the value of [queue]", ex.Message);
     }
 }

@@ -94,7 +94,7 @@ public class JsonParser
             var len = _json.Length;
             if (len > 32) len = 32;
 
-            throw new XException($"非标准Json字符串[{_json.Substring(0, len)}]");
+            throw new XException($"Non standard Json string [{_json.Substring(0, len)}]");
         }
 
         return ParseValue();
@@ -151,7 +151,7 @@ public class JsonParser
                                 break;
                             }
 
-                            throw new XException("在 {0} 后需要冒号", name);
+                            throw new XException("A colon is required after {0}", name);
                         }
 
                         // 值
@@ -240,7 +240,7 @@ public class JsonParser
                 return null;
         }
 
-        throw new XException("在 {0} 的标识符无法识别", index);
+        throw new XException("Unrecognized identifier in {0}", index);
     }
 
     private String ParseString(Boolean isName)
@@ -327,10 +327,10 @@ public class JsonParser
             var len = index - runIndex;
             if (len > 32) len = 32;
 
-            throw new XException($"分析字符串时已到达字符串结尾[{_json.Substring(runIndex, len)}]");
+            throw new XException($"Reached the end of the string while parsing it [{_json.Substring(runIndex, len)}]");
         }
 
-        throw new XException("分析字符串时已到达字符串结尾");
+        throw new XException("Reached the end of the string while parsing it");
     }
 
     private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -481,10 +481,10 @@ public class JsonParser
                 var len = _json.Length;
                 if (len > 32) len = 32;
 
-                throw new XException($"分析Token时已到达字符串结尾[{_json.Substring(_json.Length - len, len)}]");
+                throw new XException($"End of string reached while parsing token [{_json.Substring(_json.Length - len, len)}]");
             }
 
-            throw new XException("分析Token时已到达字符串结尾");
+            throw new XException("End of string reached while parsing token");
         }
 
         ch = _json[index];
@@ -592,7 +592,7 @@ public class JsonParser
                 index--;
                 return Token.String;
         }
-        throw new XException("无法在 {0} 找到Token", --index);
+        throw new XException("Unable to find Token at {0}", --index);
     }
 
     static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)

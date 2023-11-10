@@ -185,7 +185,7 @@ public class Binary : FormatterBase, IBinary
     public virtual Object? Read(Type type)
     {
         Object? value = null;
-        if (!TryRead(type, ref value)) throw new Exception($"读取失败，不支持类型{type}！");
+        if (!TryRead(type, ref value)) throw new Exception($"Read failed, type {type} is not supported!");
 
         return value;
     }
@@ -229,7 +229,7 @@ public class Binary : FormatterBase, IBinary
     public virtual Byte ReadByte()
     {
         var b = Stream.ReadByte();
-        if (b < 0) throw new Exception("数据流超出范围！");
+        if (b < 0) throw new Exception("The data stream is out of range!");
         return (Byte)b;
     }
 
@@ -342,7 +342,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -362,7 +362,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -382,7 +382,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }

@@ -121,8 +121,8 @@ public class Upgrade
     /// <summary>开始更新</summary>
     public void Download()
     {
-        var link = Link ?? throw new Exception("没有可用新版本！");
-        if (link.Url.IsNullOrEmpty()) throw new Exception("升级包地址无效！");
+        var link = Link ?? throw new Exception("No new version available!");
+        if (link.Url.IsNullOrEmpty()) throw new Exception("The upgrade package address is invalid!");
 
         Download(link.Url, link.FullName);
     }

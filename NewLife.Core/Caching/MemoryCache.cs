@@ -358,7 +358,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new List<T>());
         return item.Visit() as IList<T> ??
-         throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IList<T>)}");
+         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.Value?.GetType()} to {typeof(IList<T>)}");
     }
 
     /// <summary>获取哈希</summary>
@@ -369,7 +369,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
         return item.Visit() as IDictionary<String, T> ??
-         throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IDictionary<String, T>)}");
+         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.Value?.GetType()} to {typeof(IDictionary<String, T>)}");
     }
 
     /// <summary>获取队列</summary>
@@ -380,7 +380,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>());
         return item.Visit() as IProducerConsumer<T> ??
-            throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IProducerConsumer<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.Value?.GetType()} to {typeof(IProducerConsumer<T>)}");
     }
 
     /// <summary>获取栈</summary>
@@ -391,7 +391,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
         return item.Visit() as IProducerConsumer<T> ??
-            throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(IProducerConsumer<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.Value?.GetType()} to {typeof(IProducerConsumer<T>)}");
     }
 
     /// <summary>获取Set</summary>
@@ -403,7 +403,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new HashSet<T>());
         return item.Visit() as ICollection<T> ??
-            throw new InvalidCastException($"无法将[{key}]的值从{item.Value?.GetType()}转为{typeof(ICollection<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.Value?.GetType()} to {typeof(ICollection<T>)}");
     }
 
     /// <summary>获取 或 添加 缓存项</summary>
@@ -702,7 +702,7 @@ public class MemoryCache : Cache
         _ = bn.Read<Byte>();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"MemoryCache[ver={_Ver}]无法支持较新的版本[{ver}]");
+        if (ver > _Ver) throw new InvalidDataException($"MemoryCache[ver={_Ver}] Unable to support newer versions [{ver}]");
 
         var count = bn.ReadSize();
         while (count-- > 0)

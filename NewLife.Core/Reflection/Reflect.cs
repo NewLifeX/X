@@ -151,7 +151,7 @@ public static class Reflect
         if (TryInvoke(target, name, out var value, parameters)) return value;
 
         var type = GetType(target);
-        throw new XException("类{0}中找不到名为{1}的方法！", type, name);
+        throw new XException("Cannot find method named {1} in class {0}!", type, name);
     }
 
     /// <summary>反射调用指定对象的方法</summary>
@@ -227,7 +227,7 @@ public static class Reflect
         if (!throwOnError) return null;
 
         var type = GetType(target);
-        throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+        throw new ArgumentException($"The [{name}] property or field does not exist in class [{type.FullName}].");
     }
 
     /// <summary>获取目标对象指定名称的属性/字段值</summary>
@@ -299,7 +299,7 @@ public static class Reflect
 
         target.SetValue(mi, value);
 
-        //throw new ArgumentException("类[" + type.FullName + "]中不存在[" + name + "]属性或字段。");
+        //throw new ArgumentException("The [{name}] property or field does not exist in class [{type.FullName}].");
         return true;
     }
 

@@ -181,7 +181,7 @@ public class DeferredQueue : DisposeBase
             t -= 100;
         }
 
-        throw new InvalidOperationException($"已有数据量[{_count:n0}]超过最大数据量[{MaxEntity:n0}]");
+        throw new InvalidOperationException($"The existing data amount [{_count: n0}] exceeds the maximum data amount [{MaxEntity: n0}]");
     }
 
     /// <summary>等待确认修改的借出对象数</summary>

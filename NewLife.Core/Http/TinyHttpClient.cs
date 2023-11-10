@@ -377,11 +377,11 @@ public class TinyHttpClient : DisposeBase
 
         // 反序列化
         var dic = JsonParser.Decode(str);
-        if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+        if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("Unrecognized response data");
 
         if (dic.TryGetValue("result", out var result))
         {
-            if (result is Boolean res && !res) throw new InvalidOperationException($"远程错误，{data}");
+            if (result is Boolean res && !res) throw new InvalidOperationException($"remote error: {data}");
         }
         else if (dic.TryGetValue("code", out var code))
         {
@@ -389,7 +389,7 @@ public class TinyHttpClient : DisposeBase
         }
         else
         {
-            throw new InvalidDataException("未识别响应数据");
+            throw new InvalidDataException("Unrecognized response data");
         }
 
         if (data == null) return default;

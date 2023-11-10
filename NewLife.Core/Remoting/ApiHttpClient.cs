@@ -317,7 +317,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (Services.Count == 0) throw new InvalidOperationException("未添加服务地址！");
+        if (Services.Count == 0) throw new InvalidOperationException("Service address not added!");
 
         // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
         var service = GetService();
@@ -400,7 +400,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
             // 如果都没有可用节点，默认选第一个
             if (svc == null && svrs.Count > 0) svc = svrs[0];
-            if (svc == null) throw new XException("没有可用服务节点！");
+            if (svc == null) throw new XException("No available service nodes!");
 
             svc.Times++;
 

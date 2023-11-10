@@ -51,10 +51,10 @@ public class Message : IMessage
     /// <returns></returns>
     public virtual IMessage CreateReply()
     {
-        if (Reply) throw new Exception("不能根据响应消息创建响应消息");
+        if (Reply) throw new Exception("Cannot create response message based on response message");
 
         var msg = GetType().CreateInstance() as Message;
-        if (msg == null) throw new InvalidDataException($"无法创建类型[{GetType().FullName}]的实例");
+        if (msg == null) throw new InvalidDataException($"Cannot create an instance of type [{GetType().FullName}]");
 
         msg.Reply = true;
 

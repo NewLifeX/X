@@ -186,9 +186,9 @@ public static class IOHelper
 
         // 避免数据错乱超长
         //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
-        if (des.CanSeek && len > des.Length - des.Position) throw new XException("ReadArray错误，变长数组长度为{0}，但数据流可用数据只有{1}", len, des.Length - des.Position);
+        if (des.CanSeek && len > des.Length - des.Position) throw new XException("ReadArray error, variable length array length is {0}, but the available data for the data stream is only {1}", len, des.Length - des.Position);
 
-        if (len > MaxSafeArraySize) throw new XException("安全需要，不允许读取超大变长数组 {0:n0}>{1:n0}", len, MaxSafeArraySize);
+        if (len > MaxSafeArraySize) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", len, MaxSafeArraySize);
 
         var buf = new Byte[len];
         des.Read(buf, 0, buf.Length);
@@ -269,7 +269,7 @@ public static class IOHelper
         if (length == 0) return new Byte[0];
 
         if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
-            throw new XException("无法从长度只有{0}的数据流里面读取{1}字节的数据", stream.Length - stream.Position, length);
+            throw new XException("Unable to read {1} bytes of data from a data stream with a length of only {0}", stream.Length - stream.Position, length);
 
         // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
         if (length > 0)
@@ -604,7 +604,7 @@ public static class IOHelper
         while (true)
         {
             var bt = stream.ReadByte();
-            if (bt < 0) throw new Exception($"数据流超出范围！已读取整数{rs:n0}");
+            if (bt < 0) throw new Exception($"The data stream is out of range! The integer read is {rs: n0}");
             b = (Byte)bt;
 
             // 必须转为Int32，否则可能溢出
@@ -612,7 +612,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return (Int32)rs;
     }
@@ -628,7 +628,7 @@ public static class IOHelper
         while (true)
         {
             var bt = stream.ReadByte();
-            if (bt < 0) throw new Exception("数据流超出范围！");
+            if (bt < 0) throw new Exception("The data stream is out of range!");
             b = (Byte)bt;
 
             // 必须转为Int32，否则可能溢出
@@ -636,7 +636,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -661,7 +661,7 @@ public static class IOHelper
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return true;
     }

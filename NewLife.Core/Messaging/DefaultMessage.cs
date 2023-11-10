@@ -36,11 +36,11 @@ public class DefaultMessage : Message
     /// <returns></returns>
     public override IMessage CreateReply()
     {
-        if (Reply) throw new Exception("不能根据响应消息创建响应消息");
+        if (Reply) throw new Exception("Cannot create response message based on response message");
 
         var type = GetType();
         var msg = type == typeof(DefaultMessage) ? new DefaultMessage() : type.CreateInstance() as DefaultMessage;
-        if (msg == null) throw new InvalidDataException($"无法创建类型[{type.FullName}]的实例");
+        if (msg == null) throw new InvalidDataException($"Cannot create an instance of type [{type.FullName}]");
 
         msg.Flag = Flag;
         msg.Reply = true;
@@ -57,7 +57,7 @@ public class DefaultMessage : Message
         _raw = pk;
 
         var count = pk.Total;
-        if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足4字节");
+        if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
         // 取头部4个字节
         var size = 4;
@@ -81,16 +81,16 @@ public class DefaultMessage : Message
 
         // 负载长度
         var len = (buf[3] << 8) | buf[2];
-        if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{count}不足{size + len}字节");
+        if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size+len} bytes");
 
         // 支持超过64k的超大包
         if (len == 0xFFFF)
         {
             size += 4;
-            if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "数据包头部长度不足8字节");
+            if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 8 bytes");
 
             len = pk.ReadBytes(size - 4, 4).ToInt();
-            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"数据包长度{count}不足{size + len}字节");
+            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size+len} bytes");
         }
 
         // 负载数据

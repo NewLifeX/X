@@ -101,7 +101,7 @@ public class ApolloConfigProvider : HttpConfigProvider
     protected override Int32 SetAll(IDictionary<String, Object?> configs)
     {
         // 特殊处理Apollo
-        if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo不支持保存配置！");
+        if (!NameSpace.IsNullOrEmpty()) throw new NotSupportedException("Apollo does not support saving configurations");
 
         return base.SetAll(configs);
     }

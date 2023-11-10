@@ -69,7 +69,7 @@ public class DefaultMatchQueue : IMatchQueue
         if (i >= items.Length)
         {
             DefaultTracer.Instance?.NewError("net:MatchQueue:IsFull", new { items.Length });
-            throw new XException("匹配队列已满[{0}]", items.Length);
+            throw new XException("The matching queue is full [{0}]", items.Length);
         }
 
         Interlocked.Increment(ref _Count);

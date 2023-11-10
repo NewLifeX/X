@@ -605,7 +605,7 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Local = local },
                 NetType.Udp => new UdpServer { Local = local },
-                _ => throw new NotSupportedException($"不支持{local.Type}协议"),
+                _ => throw new NotSupportedException($"The {local.Type} protocol is not supported"),
             };
     }
 
@@ -622,7 +622,7 @@ public static class NetHelper
                 NetType.Udp => new UdpServer { Remote = remote },
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
                 NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                _ => throw new NotSupportedException($"不支持{remote.Type}协议"),
+                _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
             };
     }
 

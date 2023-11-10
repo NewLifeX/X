@@ -67,7 +67,7 @@ public class Pool<T> : IPool<T> where T : class
         }
 
         var rs = OnCreate();
-        if (rs == null) throw new InvalidOperationException($"无法创建[{typeof(T).FullName}]的实例");
+        if (rs == null) throw new InvalidOperationException($"Unable to create an instance of [{typeof(T).FullName}]");
 
         return rs;
     }

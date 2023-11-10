@@ -208,7 +208,7 @@ public class ObjectContainer : IObjectContainer
             }
         }
 
-        throw new InvalidOperationException($"未找到适合 '{type}' 的构造函数，请确认该类型构造函数所需参数均已注册。无法解析参数 '{errorParameter}'");
+        throw new InvalidOperationException($"No suitable constructor was found for '{type}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{errorParameter}'");
     }
     #endregion
 

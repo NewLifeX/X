@@ -243,7 +243,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         _ = bn.Read<Byte>();
 
         // 版本兼容
-        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}]无法支持较新的版本[{ver}]");
+        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
 
         // 读取头部
         var count = bn.Read<Int32>();

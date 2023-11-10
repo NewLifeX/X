@@ -28,7 +28,7 @@ public class TextControlLog : Logger
     {
         if (control == null) return;
 
-        if (control is not TextBoxBase txt) throw new XException("不支持的控件类型{0}！", control.GetType());
+        if (control is not TextBoxBase txt) throw new XException("Unsupported control type {0}!", control.GetType());
 
         txt.Append(msg, maxLines);
     }

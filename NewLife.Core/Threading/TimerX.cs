@@ -222,7 +222,7 @@ public class TimerX : IDisposable
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
         _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("无效的Cron表达式", nameof(cronExpression));
+        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
 
         Absolutely = true;
 
@@ -245,7 +245,7 @@ public class TimerX : IDisposable
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
         _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("无效的Cron表达式", nameof(cronExpression));
+        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
 
         IsAsyncTask = true;
         Async = true;

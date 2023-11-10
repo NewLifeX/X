@@ -25,7 +25,7 @@ public class ControllerHandler : IHttpHandler
         var controller = ControllerType.CreateInstance();
 
         var method = methodName == null ? null : ControllerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        if (method == null) throw new ApiException(ApiCode.NotFound, $"控制器[{ControllerType.FullName}]内无法找到操作[{methodName}]");
+        if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{ControllerType.FullName}]");
 
         var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
         if (result != null)

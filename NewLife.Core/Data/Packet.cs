@@ -91,12 +91,12 @@ public class Packet
         get
         {
             // 超过下标直接报错,谁也不想处理了异常的数据也不知道
-            if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
+            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
 
             var p = Offset + index;
             if (p >= Offset + Count)
             {
-                if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
 
                 return Next[index - Count];
             }
@@ -109,13 +109,13 @@ public class Packet
         }
         set
         {
-            if (index < 0) throw new IndexOutOfRangeException($"索引[{index}]越界");
+            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
 
             // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
             var p = Offset + index;
             if (index >= Count)
             {
-                if (Next == null) throw new IndexOutOfRangeException($"索引[{index}]越界[>{Total - 1}]");
+                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
 
                 Next[p - Data.Length] = value;
             }

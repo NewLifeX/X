@@ -153,7 +153,7 @@ public class ProtectedKey
             "des" => DES.Create(),
             "rc2" => RC2.Create(),
             "tripledes" => TripleDES.Create(),
-            _ => throw new NotSupportedException($"不支持[{name}]"),
+            _ => throw new NotSupportedException($"Not Supported [{name}]"),
         };
     }
     #endregion
