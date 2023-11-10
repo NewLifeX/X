@@ -356,8 +356,8 @@ public class HttpConfigProvider : ConfigProvider
         var changed = new Dictionary<String, Object?>();
         if (_cache != null)
         {
-            if (_cache.TryGetValue("configs", out var dic1) && dic1 is IDictionary<String, Object> configs1 &&
-                dic.TryGetValue("configs", out var dic2) && dic2 is IDictionary<String, Object> configs2)
+            if (_cache.TryGetValue("configs", out var dic1) && dic1 is IDictionary<String, Object?> configs1 &&
+                dic.TryGetValue("configs", out var dic2) && dic2 is IDictionary<String, Object?> configs2)
             {
                 foreach (var item in configs2)
                 {

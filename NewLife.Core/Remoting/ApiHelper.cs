@@ -335,7 +335,8 @@ public static class ApiHelper
         // 反序列化
         if (data == null) return default;
 
-        if (data is not IDictionary<String, Object> and not IList<Object>) throw new InvalidDataException("Unrecognized response data");
+        if (data is not IDictionary<String, Object> and not IList<Object>)
+            throw new InvalidDataException("Unrecognized response data");
 
         return JsonHelper.Convert<TResult>(data);
     }

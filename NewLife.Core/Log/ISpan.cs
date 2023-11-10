@@ -382,7 +382,7 @@ public static class SpanExtension
     /// <summary>从api请求释放片段信息</summary>
     /// <param name="span">片段</param>
     /// <param name="parameters">参数</param>
-    public static void Detach(this ISpan span, IDictionary<String, Object> parameters)
+    public static void Detach(this ISpan span, IDictionary<String, Object?> parameters)
     {
         if (span == null || parameters == null || parameters.Count == 0) return;
 

@@ -31,7 +31,7 @@ namespace NewLife.Net;
 /// 如果协议<see cref="ProtocolType"/>指定为Tcp和Udp以外的值，将同时创建Tcp和Udp两个Socket服务；
 /// 默认情况下，地址族<see cref="AddressFamily"/>和协议<see cref="ProtocolType"/>都是其它值，所以一共将会创建四个Socket服务（Tcp、Tcpv6、Udp、Udpv6）。
 /// </remarks>
-public class NetServer : DisposeBase, IServer, ILogFeature
+public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 {
     #region 属性
     /// <summary>服务名</summary>
@@ -132,12 +132,12 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>用户会话数据</summary>
-    public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
+    public IDictionary<String, Object?> Items { get; set; } = new NullableDictionary<String, Object?>();
 
     /// <summary>获取/设置 用户会话数据</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
+    public virtual Object? this[String key] { get => Items[key]; set => Items[key] = value; }
     #endregion
 
     #region 构造

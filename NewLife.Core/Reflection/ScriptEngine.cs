@@ -157,7 +157,7 @@ public class ScriptEngine
     /// <param name="code">代码片段</param>
     /// <param name="parameters">参数名值对</param>
     /// <returns></returns>
-    public static Object? Execute(String code, IDictionary<String, Object> parameters)
+    public static Object? Execute(String code, IDictionary<String, Object?> parameters)
     {
         if (parameters == null || parameters.Count <= 0) return Execute(code);
 
