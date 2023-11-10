@@ -75,19 +75,30 @@ public class JsonParser
     public static IDictionary<String, Object?>? Decode(String json)
     {
         var parser = new JsonParser(json);
-        try
+        //try
         {
-            return parser.ParseValue() as IDictionary<String, Object?>;
+            return parser.Decode() as IDictionary<String, Object?>;
         }
-        catch (XException ex)
-        {
-            throw new XException($"解析Json出错：{json}", ex);
-        }
+        //catch (XException ex)
+        //{
+        //    throw new XException($"解析Json出错：{json}", ex);
+        //}
     }
 
     /// <summary>解码</summary>
     /// <returns></returns>
-    public Object? Decode() => ParseValue();
+    public Object? Decode()
+    {
+        if (_json.IsNullOrEmpty() || !_json.StartsWith("{") && !_json.StartsWith("["))
+        {
+            var len = _json.Length;
+            if (len > 32) len = 32;
+
+            throw new XException($"非标准Json字符串[{_json.Substring(0, len)}]");
+        }
+
+        return ParseValue();
+    }
 
     private Dictionary<String, Object?> ParseObject()
     {
@@ -311,7 +322,15 @@ public class JsonParser
             }
         }
 
-        throw new XException("已到达字符串结尾");
+        if (runIndex >= 0)
+        {
+            var len = index - runIndex;
+            if (len > 32) len = 32;
+
+            throw new XException($"分析字符串时已到达字符串结尾[{_json.Substring(runIndex, len)}]");
+        }
+
+        throw new XException("分析字符串时已到达字符串结尾");
     }
 
     private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -455,7 +474,18 @@ public class JsonParser
 
         } while (++index < _json.Length);
 
-        if (index == _json.Length) throw new XException("已到达字符串结尾");
+        if (index == _json.Length)
+        {
+            if (_json.Length >= 0)
+            {
+                var len = _json.Length;
+                if (len > 32) len = 32;
+
+                throw new XException($"分析Token时已到达字符串结尾[{_json.Substring(_json.Length - len, len)}]");
+            }
+
+            throw new XException("分析Token时已到达字符串结尾");
+        }
 
         ch = _json[index];
 
