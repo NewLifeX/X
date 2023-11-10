@@ -255,7 +255,7 @@ public static class ConfigHelper
         if (section == null) return;
 
         // 支持字典
-        if (model is IDictionary<String, Object> dic)
+        if (model is IDictionary<String, Object?> dic)
         {
             foreach (var item in dic)
             {

@@ -152,13 +152,13 @@ namespace NewLife.Reflection
             return se.Invoke(parameters);
         }
 
-        /// <summary>执行表达式，返回结果</summary>
-        /// <param name="code">代码片段</param>
-        /// <param name="parameters">参数名值对</param>
-        /// <returns></returns>
-        public static Object Execute(String code, IDictionary<String, Object> parameters)
-        {
-            if (parameters == null || parameters.Count < 1) return Execute(code);
+    /// <summary>执行表达式，返回结果</summary>
+    /// <param name="code">代码片段</param>
+    /// <param name="parameters">参数名值对</param>
+    /// <returns></returns>
+    public static Object? Execute(String code, IDictionary<String, Object?> parameters)
+    {
+        if (parameters == null || parameters.Count <= 0) return Execute(code);
 
             var ps = parameters.Values.ToArray();
 

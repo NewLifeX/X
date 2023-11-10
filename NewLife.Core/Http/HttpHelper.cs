@@ -140,7 +140,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, Packet? pk)
     {
         if (method.IsNullOrEmpty()) method = pk?.Count > 0 ? "POST" : "GET";
 
@@ -195,7 +195,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object?>? headers, Packet? pk)
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
