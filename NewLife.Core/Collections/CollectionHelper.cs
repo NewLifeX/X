@@ -105,6 +105,8 @@ public static class CollectionHelper
         //!! 即使传入为空，也返回字典，而不是null，避免业务层需要大量判空
         //if (target == null) return null;
         if (source is IDictionary<String, Object?> dic) return dic;
+        if (source != null && source.GetType().GetTypeCode() != TypeCode.Object)
+            throw new InvalidDataException("source is not Object");
 
         dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
         if (source != null)
@@ -186,6 +188,8 @@ public static class CollectionHelper
     /// <returns></returns>
     public static IDictionary<String, Object?> Merge(this IDictionary<String, Object?> dic, Object target, Boolean overwrite = true, String[]? excludes = null)
     {
+        if (target == null || target.GetType().GetTypeCode() != TypeCode.Object) return dic;
+
         var exs = excludes != null ? new HashSet<String>(excludes, StringComparer.OrdinalIgnoreCase) : null;
         foreach (var item in target.ToDictionary())
         {

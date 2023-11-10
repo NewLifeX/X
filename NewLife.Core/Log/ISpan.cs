@@ -1,5 +1,6 @@
 ﻿using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization;
@@ -342,6 +343,7 @@ public static class SpanExtension
     /// <param name="span">片段</param>
     /// <param name="args">api请求参数</param>
     /// <returns></returns>
+    [return: NotNullIfNotNull(nameof(args))]
     public static Object? Attach(this ISpan span, Object? args)
     {
         if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
