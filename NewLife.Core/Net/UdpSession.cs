@@ -324,13 +324,10 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         Log?.Info(LogPrefix + format, args);
     }
 
-    /// <summary>输出日志</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
-    [Conditional("DEBUG")]
-    public void WriteDebugLog(String format, params Object[] args)
-    {
-        Log?.Debug(LogPrefix + format, args);
-    }
+    ///// <summary>输出日志</summary>
+    ///// <param name="format"></param>
+    ///// <param name="args"></param>
+    //[Conditional("DEBUG")]
+    //public void WriteDebugLog(String format, params Object?[] args) => Log.Debug(LogPrefix + format, args);
     #endregion
 }
