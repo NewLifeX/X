@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using NewLife.Log;
 
 namespace NewLife.Net;
 
@@ -19,6 +20,9 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
     /// <summary>进程标识</summary>
     public Int32 ProcessId { get; set; }
+
+    /// <summary>inode标识</summary>
+    public String Node { get; set; }
 
     /// <summary>实例化Tcp连接信息</summary>
     /// <param name="local"></param>
@@ -171,29 +175,51 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     {
         var list = new List<TcpConnectionInformation2>();
 
+        String[]? nodes = null;
         if (processId > 0)
         {
-            var rs = ParseTcps(File.ReadAllText($"/proc/{processId}/net/tcp"));
-            if (rs != null && rs.Count > 0) list.AddRange(rs);
+            // 获取指定进程的所有inode
+            nodes = GetNodes(processId);
+            if (nodes == null || nodes.Length == 0) return list.ToArray();
+        }
 
-            var rs2 = ParseTcps(File.ReadAllText($"/proc/{processId}/net/tcp6"));
-            if (rs2 != null && rs2.Count > 0) list.AddRange(rs2);
+        // 各个进程底下的/net/tcp，实际上是所有进程的连接
+        var rs = ParseTcpsFromFile(processId > 0 ? $"/proc/{processId}/net/tcp" : "/proc/net/tcp");
+        if (rs != null && rs.Count > 0) list.AddRange(rs);
 
+        var rs2 = ParseTcpsFromFile(processId > 0 ? $"/proc/{processId}/net/tcp6" : "/proc/net/tcp6");
+        if (rs2 != null && rs2.Count > 0) list.AddRange(rs2);
+        //XTrace.WriteLine("tcps: {0} nodes: {1}", list.Count, nodes?.Length);
+
+        // 过滤指定进程的连接
+        if (processId > 0 && nodes != null)
+        {
+            var list2 = new List<TcpConnectionInformation2>();
             foreach (var item in list)
             {
-                item.ProcessId = processId;
+                if (nodes.Contains(item.Node))
+                {
+                    item.ProcessId = processId;
+                    list2.Add(item);
+                }
             }
+            list = list2;
         }
-        else
-        {
-            var rs = ParseTcps(File.ReadAllText("/proc/net/tcp"));
-            if (rs != null && rs.Count > 0) list.AddRange(rs);
-
-            var rs2 = ParseTcps(File.ReadAllText("/proc/net/tcp6"));
-            if (rs2 != null && rs2.Count > 0) list.AddRange(rs2);
-        }
+        //XTrace.WriteLine("tcps2: {0}", list.Count);
 
         return list.ToArray();
+    }
+
+    private static IList<TcpConnectionInformation2> ParseTcpsFromFile(String file)
+    {
+#if DEBUG
+        //XTrace.WriteLine("ParseTcpsFromFile {0}", file);
+        //DefaultSpan.Current?.AppendTag($"ParseTcpsFromFile {file}");
+#endif
+
+        var text = File.ReadAllText(file);
+
+        return ParseTcps(text);
     }
 
     /// <summary>分析Tcp连接信息</summary>
@@ -244,35 +270,50 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
 
             var local = ParseAddressAndPort(parts[1]);
             var remote = ParseAddressAndPort(parts[2]);
+            //var pid = GetProcessIdFromInode(parts[9]);
             var info = new TcpConnectionInformation2(local, remote, state, 0);
+            info.Node = parts[9];
+
             list.Add(info);
         }
 
         return list;
     }
 
-    //private static IPAddress GetIPv6(String hex)
-    //{
-    //    var buf = hex.ToHex();
-    //    var numbers = new List<UInt32>();
-    //    // 拆分为4个切片，保持字节顺序不变
-    //    for (var i = 0; i < buf.Length; i += 4)
-    //    {
-    //        numbers.Add(buf.ToUInt32(i, false));
-    //    }
-    //    // 重新打包，每个切片都转换为本机字节顺序
-    //    for (var i = 0; i < numbers.Count; i++)
-    //    {
-    //        buf.Write(i * 4, numbers[i].GetBytes(true));
-    //    }
-    //    var address = new IPAddress(buf);
-    //    if (address.IsIPv4MappedToIPv6)
-    //        address = address.MapToIPv4();
-    //    //else if (buf[8] == 0xFF && buf[9] == 0xFF)
-    //    //    address = new IPAddress(new[] { buf[15], buf[14], buf[13], buf[12] });
+    private static String[] GetNodes(Int32 processId)
+    {
+        var path = $"/proc/{processId}/fd".AsDirectory();
+        if (!path.Exists) return new String[0];
 
-    //    return address;
-    //}
+        var files = new List<String>();
+        foreach (var fi in path.GetFiles())
+        {
+            var name = fi.Name;
+#if NET6_0_OR_GREATER
+            if (fi.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                name = fi.ResolveLinkTarget(true)?.Name;
+#endif
+
+            if (!name.IsNullOrEmpty()) files.Add(name);
+        }
+
+        return ParseNodes(files);
+    }
+
+    /// <summary>分析Socket的inode</summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
+    public static String[] ParseNodes(IList<String> files)
+    {
+        var list = new List<String>();
+        foreach (var item in files)
+        {
+            var node = item.Substring("socket:[", "]");
+            if (!node.IsNullOrEmpty()) list.Add(node);
+        }
+
+        return list.ToArray();
+    }
 
     private static IPEndPoint ParseAddressAndPort(String colonSeparatedAddress)
     {
