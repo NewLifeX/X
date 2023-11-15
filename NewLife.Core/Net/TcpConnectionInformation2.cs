@@ -22,7 +22,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     public Int32 ProcessId { get; set; }
 
     /// <summary>inode标识</summary>
-    public String Node { get; set; }
+    public String? Node { get; set; }
 
     /// <summary>实例化Tcp连接信息</summary>
     /// <param name="local"></param>
