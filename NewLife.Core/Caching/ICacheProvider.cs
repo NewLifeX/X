@@ -2,6 +2,7 @@
 
 /// <summary>分布式缓存架构服务。提供基础缓存及队列服务</summary>
 /// <remarks>
+/// 文档 https://newlifex.com/core/icacheprovider
 /// 根据实际开发经验，即使在分布式系统中，也有大量的数据是不需要跨进程共享的，因此本接口提供了两级缓存。
 /// 进程内缓存使用<see cref="InnerCache"/>，可以规避对象序列化成本，跨进程缓存使用<see cref="Cache"/>。
 /// 借助该缓存架构，可以实现各功能模块跨进程共享数据，分布式部署时可用Redis，需要考虑序列化成本。

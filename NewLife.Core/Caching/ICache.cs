@@ -3,6 +3,9 @@
 namespace NewLife.Caching;
 
 /// <summary>缓存接口</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/icache
+/// </remarks>
 public interface ICache
 {
     #region 属性
