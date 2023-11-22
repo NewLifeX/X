@@ -10,7 +10,7 @@ public sealed class MemberNotNullAttribute : Attribute
 
     /// <summary>成员不为空</summary>
     /// <param name="member"></param>
-    public MemberNotNullAttribute(String member) => Members = new String[1] { member };
+    public MemberNotNullAttribute(String member) => Members = [member];
 
     /// <summary>成员不为空</summary>
     /// <param name="members"></param>

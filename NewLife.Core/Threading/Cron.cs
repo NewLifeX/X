@@ -143,7 +143,7 @@ public class Cron
         // 固定值，最为常见，优先计算
         if (Int32.TryParse(value, out var n))
         {
-            vs = new Int32[] { n };
+            vs = [n];
             return true;
         }
 

@@ -85,7 +85,7 @@ public static class StringHelper
     {
         //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
         if (value == null || String.IsNullOrEmpty(value)) return new String[0];
-        if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = new String[] { ",", ";" };
+        if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = [",", ";"];
 
         return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
     }
@@ -98,7 +98,7 @@ public static class StringHelper
     public static Int32[] SplitAsInt(this String? value, params String[] separators)
     {
         if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
-        if (separators == null || separators.Length <= 0) separators = new String[] { ",", ";" };
+        if (separators == null || separators.Length <= 0) separators = [",", ";"];
 
         var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
         var list = new List<Int32>();

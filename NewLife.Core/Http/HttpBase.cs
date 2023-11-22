@@ -41,13 +41,13 @@ public abstract class HttpBase
     public static Boolean FastValidHeader(Packet pk)
     {
         // 性能优化，Http头部第一行以请求谓语或响应版本开头，然后是一个空格。最长谓语Options/Connect，版本HTTP/1.1，不超过10个字符
-        var p = pk.IndexOf(new[] { (Byte)' ' }, 0, 10);
+        var p = pk.IndexOf([(Byte)' '], 0, 10);
         if (p < 0) return false;
 
         return true;
     }
 
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头</summary>
     /// <param name="pk"></param>
     /// <returns></returns>

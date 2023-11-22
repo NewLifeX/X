@@ -53,7 +53,7 @@ public class CompositeConfigProvider : IConfigProvider
     {
         Name = GetType().Name.TrimEnd("ConfigProvider");
 
-        Configs = new IConfigProvider[] { configProvider1, configProvider2 };
+        Configs = [configProvider1, configProvider2];
     }
 
     /// <summary>添加</summary>

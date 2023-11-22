@@ -225,7 +225,7 @@ public class DefaultConvert
                 case 2:
                     return BitConverter.ToInt16(buf, 0);
                 case 3:
-                    return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    return BitConverter.ToInt32([buf[0], buf[1], buf[2], 0], 0);
                 case 4:
                     return BitConverter.ToInt32(buf, 0);
                 default:
@@ -291,7 +291,7 @@ public class DefaultConvert
                 case 2:
                     return BitConverter.ToInt16(buf, 0);
                 case 3:
-                    return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    return BitConverter.ToInt32([buf[0], buf[1], buf[2], 0], 0);
                 case 4:
                     return BitConverter.ToInt32(buf, 0);
                 case 8:
@@ -378,7 +378,7 @@ public class DefaultConvert
                 case 2:
                     return BitConverter.ToInt16(buf, 0);
                 case 3:
-                    return BitConverter.ToInt32(new Byte[] { buf[0], buf[1], buf[2], 0 }, 0);
+                    return BitConverter.ToInt32([buf[0], buf[1], buf[2], 0], 0);
                 case 4:
                     return BitConverter.ToInt32(buf, 0);
                 default:

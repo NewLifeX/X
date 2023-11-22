@@ -769,7 +769,7 @@ public class AssemblyX
     /// <returns></returns>
     public static DateTime GetCompileTime(String version)
     {
-        var ss = version?.Split(new Char[] { '.' });
+        var ss = version?.Split(['.']);
         if (ss == null || ss.Length < 4) return DateTime.MinValue;
 
         var d = ss[2].ToInt();

@@ -7,8 +7,8 @@ namespace NewLife.Common;
 public class PinYin
 {
     #region 数组信息
-    private static readonly Int32[] pyValue = new Int32[]
-    {
+    private static readonly Int32[] pyValue =
+    [
         -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242,
         -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982,
         -19976, -19805, -19784, -19775, -19774, -19763, -19756, -19751, -19746,
@@ -53,10 +53,10 @@ public class PinYin
         -11014, -10838, -10832, -10815, -10800, -10790, -10780, -10764, -10587,
         -10544, -10533, -10519, -10331, -10329, -10328, -10322, -10315, -10309,
         -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254
-    };
+    ];
 
-    private static readonly String[] pyName = new String[]
-    {
+    private static readonly String[] pyName =
+    [
          "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei",
          "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu",
          "Ba", "Cai", "Can", "Cang", "Cao", "Ce", "Ceng", "Cha", "Chai", "Chan",
@@ -97,7 +97,7 @@ public class PinYin
          "Zheng", "Zhi", "Zhong", "Zhou", "Zhu", "Zhua", "Zhuai", "Zhuan",
          "Zhuang", "Zhui", "Zhun", "Zhuo", "Zi", "Zong", "Zou", "Zu", "Zuan",
          "Zui", "Zun", "Zuo"
-     };
+     ];
 
     #region 变量定义
     // GB2312-80 标准规范中第一个汉字的机内码.即"啊"的机内码

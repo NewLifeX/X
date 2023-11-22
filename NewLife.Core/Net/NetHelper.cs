@@ -429,7 +429,7 @@ public static class NetHelper
                 }
     }
 
-    private static readonly String[] _Excludes = new[] { "Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE" };
+    private static readonly String[] _Excludes = ["Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE"];
     /// <summary>获取所有物理网卡MAC地址</summary>
     /// <returns></returns>
     public static IEnumerable<Byte[]> GetMacs()

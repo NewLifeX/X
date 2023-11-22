@@ -46,8 +46,8 @@ public class HttpRequest : HttpBase
         return true;
     }
 
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
-    private static readonly Byte[] NewLine2 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
+    private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>快速分析请求头，只分析第一行</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
