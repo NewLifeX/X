@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 namespace NewLife;
 
 /// <summary>运行时</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/runtime
+/// </remarks>
 public static class Runtime
 {
     #region 控制台

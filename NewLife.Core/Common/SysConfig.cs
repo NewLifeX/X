@@ -6,6 +6,9 @@ using NewLife.Security;
 namespace NewLife.Common;
 
 /// <summary>系统设置。提供系统名称、版本等基本设置</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/sysconfig
+/// </remarks>
 [DisplayName("系统设置")]
 public class SysConfig : Config<SysConfig>
 {
