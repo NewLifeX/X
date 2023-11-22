@@ -7,6 +7,9 @@ using NewLife.Log;
 namespace NewLife;
 
 /// <summary>核心设置</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/setting
+/// </remarks>
 [DisplayName("核心设置")]
 [Config("Core")]
 public class Setting : Config<Setting>
