@@ -224,7 +224,7 @@ public static class HttpHelper
         return rs;
     }
 
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析头部</summary>
     /// <param name="pk"></param>
     /// <returns></returns>

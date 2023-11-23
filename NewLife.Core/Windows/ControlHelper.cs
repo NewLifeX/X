@@ -351,10 +351,10 @@ public static class ControlHelper
     static readonly Color _Num = Color.FromArgb(255, 58, 131);
     static readonly Color _KeyName = Color.FromArgb(0, 255, 255);
 
-    static readonly String[] _Keys = new String[] {
+    static readonly String[] _Keys = [
         "(", ")", "{", "}", "[", "]", "*", "->", "+", "-", "*", "/", "\\", "%", "&", "|", "!", "=", ";", ",", ">", "<",
         "void", "new", "delete", "true", "false"
-    };
+    ];
 
     /// <summary>采用默认着色方案进行着色</summary>
     /// <param name="rtb">文本控件</param>

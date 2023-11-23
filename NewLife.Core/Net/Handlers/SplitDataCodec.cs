@@ -19,7 +19,7 @@ public class SplitDataCodec : Handler
     /// <summary>
     /// 粘包分割字节数据（默认0x0D,0x0A）
     /// </summary>
-    public Byte[] SplitData { get; set; } = new Byte[] { 0x0D, 0x0A };
+    public Byte[] SplitData { get; set; } = [0x0D, 0x0A];
 
     /// <summary>
     /// 最大缓存待处理数据（字节）

@@ -675,7 +675,7 @@ public class DefaultReflect : IReflect
             var str = (String)(value ?? String.Empty);
             if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
             {
-                value = str.TrimStart(new Char[] { '$', '￥' });
+                value = str.TrimStart(['$', '￥']);
             }
             else if (conversionType.As<Type>())
             {

@@ -208,7 +208,7 @@ public class NetUri
 
     /// <summary>获取该域名下所有IP地址</summary>
     /// <returns></returns>
-    public IPAddress[] GetAddresses() => ParseAddress(Host) ?? new[] { Address };
+    public IPAddress[] GetAddresses() => ParseAddress(Host) ?? [Address];
 
     /// <summary>获取该域名下所有IP节点（含端口）</summary>
     /// <returns></returns>
@@ -226,7 +226,7 @@ public class NetUri
 
         try
         {
-            if (IPAddress.TryParse(hostname, out var addr)) return new[] { addr };
+            if (IPAddress.TryParse(hostname, out var addr)) return [addr];
 
             var hostAddresses = DnsResolver.Instance.Resolve(hostname);
             if (hostAddresses == null || hostAddresses.Length <= 0) return null;

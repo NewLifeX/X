@@ -190,7 +190,7 @@ public static class SocketHelper
 
             MemberInfo? pi = typeof(Socket).GetFieldEx("m_Handle");
             pi ??= typeof(Socket).GetPropertyEx("SafeHandle");
-            _mSafeHandle = new MemberInfo?[] { pi };
+            _mSafeHandle = [pi];
 
             return pi;
         }

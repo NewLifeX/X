@@ -274,7 +274,7 @@ public class TinyHttpClient : DisposeBase
     #endregion
 
     #region 辅助
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
     {
         // chunk编码

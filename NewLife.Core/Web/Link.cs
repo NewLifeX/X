@@ -233,11 +233,11 @@ public class Link
         if (name.IsNullOrEmpty()) return -1;
 
         // 分割版本，_v1.0.0.0
-        var p = IndexOfAny(name, new[] { "_v", "_V", ".v", ".V", " v", " V" }, 0);
+        var p = IndexOfAny(name, ["_v", "_V", ".v", ".V", " v", " V"], 0);
         if (p <= 0) return -1;
 
         // 后续位置
-        var p2 = name.IndexOfAny(new[] { ' ', '_', '-' }, p + 2);
+        var p2 = name.IndexOfAny([' ', '_', '-'], p + 2);
         if (p2 < 0)
         {
             p2 = name.LastIndexOf('.');

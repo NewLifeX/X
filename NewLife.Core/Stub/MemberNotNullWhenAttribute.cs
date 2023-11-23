@@ -17,7 +17,7 @@ public sealed class MemberNotNullWhenAttribute : Attribute
     public MemberNotNullWhenAttribute(Boolean returnValue, String member)
     {
         ReturnValue = returnValue;
-        Members = new String[1] { member };
+        Members = [member];
     }
 
     /// <summary>成员不为空</summary>

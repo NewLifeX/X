@@ -17,7 +17,7 @@ public class ProtectedKey
     public String HideString { get; set; } = "{***}";
 
     /// <summary>密码名字</summary>
-    public String[] Names { get; set; } = new[] { "password", "pass", "pwd" };
+    public String[] Names { get; set; } = ["password", "pass", "pwd"];
     #endregion
 
     #region 静态实例

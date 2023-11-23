@@ -15,14 +15,14 @@ public class HttpSession : NetSession
     public HttpRequest? Request { get; set; }
 
     /// <summary>忽略的头部</summary>
-    public static String[] ExcludeHeaders { get; set; } = new[] {
+    public static String[] ExcludeHeaders { get; set; } = [
         "traceparent", "Authorization", "Cookie"
-    };
+    ];
 
     /// <summary>支持作为标签数据的内容类型</summary>
-    public static String[] TagTypes { get; set; } = new[] {
+    public static String[] TagTypes { get; set; } = [
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
-    };
+    ];
 
     private WebSocket? _websocket;
     private MemoryStream? _cache;

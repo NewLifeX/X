@@ -127,7 +127,7 @@ public class OssClient : IObjectStorage
         var bk = bs?["Bucket"];
 
         if (bk is IList<Object> list) return list.Select(e => (e as IDictionary<String, Object?>)!["Name"] + "").ToArray();
-        if (bk is IDictionary<String, Object> dic) return new[] { dic["Name"] + "" };
+        if (bk is IDictionary<String, Object> dic) return [dic["Name"] + ""];
 
         return null;
     }
@@ -168,7 +168,7 @@ public class OssClient : IObjectStorage
 
         var contents = rs?["Contents"];
         if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object?>)!["Key"] + "").ToArray();
-        if (contents is IDictionary<String, Object> dic) return new[] { dic["Key"] + "" };
+        if (contents is IDictionary<String, Object> dic) return [dic["Key"] + ""];
 
         return null;
     }

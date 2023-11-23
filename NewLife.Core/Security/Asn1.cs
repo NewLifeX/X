@@ -47,7 +47,7 @@ public class Asn1
     /// <returns></returns>
     public Oid[] GetOids()
     {
-        if (Value is Oid oid) return new[] { oid };
+        if (Value is Oid oid) return [oid];
 
         var list = new List<Oid>();
         if (Value is Asn1[] arr)

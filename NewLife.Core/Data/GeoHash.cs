@@ -24,7 +24,7 @@ namespace NewLife.Data;
 public static class GeoHash
 {
     #region 属性
-    private static readonly Int32[] BITS = { 16, 8, 4, 2, 1 };
+    private static readonly Int32[] BITS = [16, 8, 4, 2, 1];
     private const String _base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
     private static readonly Dictionary<Char, Int32> _decode = new();
     #endregion
@@ -47,8 +47,8 @@ public static class GeoHash
     /// <returns></returns>
     public static String Encode(Double longitude, Double latitude, Int32 charCount = 9)
     {
-        Double[] longitudeRange = { -180, 180 };
-        Double[] latitudeRange = { -90, 90 };
+        Double[] longitudeRange = [-180, 180];
+        Double[] latitudeRange = [-90, 90];
 
         var isEvenBit = true;
         UInt64 bits = 0;
@@ -93,8 +93,8 @@ public static class GeoHash
     /// <returns></returns>
     public static (Double Longitude, Double Latitude) Decode(String geohash)
     {
-        Double[] latitudeRange = { -90, 90 };
-        Double[] longitudeRange = { -180, 180 };
+        Double[] latitudeRange = [-90, 90];
+        Double[] longitudeRange = [-180, 180];
 
         var isEvenBit = true;
         for (var i = 0; i < geohash.Length; i++)
