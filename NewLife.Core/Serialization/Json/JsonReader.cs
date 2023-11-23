@@ -214,7 +214,13 @@ public class JsonReader
             {
                 var orig = target.GetValue(pi);
                 var val = ToObject(v, pt, orig);
-                if (val != orig) target.SetValue(pi, val);
+                if (val != orig)
+                {
+                    if (target is IModel dst)
+                        dst[pi.Name] = val;
+                    else
+                        target.SetValue(pi, val);
+                }
             }
         }
         return target;
