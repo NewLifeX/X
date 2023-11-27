@@ -52,4 +52,22 @@ public class JsonParserTests
         var ex = Assert.Throws<XException>(() => JsonParser.Decode(json));
         Assert.Equal("Non standard Json string [NewLife]", ex.Message);
     }
+
+    [Fact]
+    public void DecodeString2()
+    {
+        var json = " {\"name\":\"NewLife\"}";
+
+        var dic = JsonParser.Decode(json);
+        Assert.NotNull(dic);
+    }
+
+    [Fact]
+    public void DecodeString3()
+    {
+        var json = " \r\n  \t";
+
+        var dic = JsonParser.Decode(json);
+        Assert.Null(dic);
+    }
 }

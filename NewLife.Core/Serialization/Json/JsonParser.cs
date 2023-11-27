@@ -89,7 +89,18 @@ public class JsonParser
     /// <returns></returns>
     public Object? Decode()
     {
-        if (_json.IsNullOrEmpty() || !_json.StartsWith("{") && !_json.StartsWith("["))
+        if (_json.IsNullOrEmpty()) return null;
+
+        // 找到第一个非空白字符
+        var ch = _json[0];
+        while (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
+        {
+            if (++index == _json.Length) return null;
+
+            ch = _json[index];
+        }
+
+        if (ch != '{' && ch != '[')
         {
             var len = _json.Length;
             if (len > 32) len = 32;
