@@ -37,6 +37,12 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <summary>默认用户浏览器UserAgent。默认为空，可取值HttpHelper.DefaultUserAgent</summary>
     public String DefaultUserAgent { get; set; }
 
+    /// <summary>创建请求时触发</summary>
+    public event EventHandler<HttpRequestEventArgs>? OnRequest;
+
+    /// <summary>创建客户端时触发</summary>
+    public event EventHandler<HttpClientEventArgs>? OnCreateClient;
+
     /// <summary>Http过滤器</summary>
     public IHttpFilter Filter { get; set; }
 
@@ -344,6 +350,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         // 加上令牌或其它身份验证
         if (!Token.IsNullOrEmpty()) request["Authorization"] = Token.Contains(" ") ? Token : $"Bearer {Token}";
 
+        OnRequest?.Invoke(this, new HttpRequestEventArgs { Request = request });
+
         return request;
     }
     #endregion
@@ -592,6 +600,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         var userAgent = DefaultUserAgent;
         if (!userAgent.IsNullOrEmpty()) client.DefaultRequestHeaders.UserAgent = userAgent;
+
+        OnCreateClient?.Invoke(this, new HttpClientEventArgs { Client = client });
 
         return client;
     }
