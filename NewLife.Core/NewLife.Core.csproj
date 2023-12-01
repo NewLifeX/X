@@ -29,7 +29,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>启用可空特性；新增AddHostedService；修正MemoryCache内存泄漏；粘包处理器抛弃过期缓存数据</PackageReleaseNotes>
+    <PackageReleaseNotes>支持.NET8.0；Tcp启用KeepAlive；支持国际化，异常文本使用英文；增强ApiHttpClient</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
