@@ -1,4 +1,6 @@
-﻿namespace NewLife.Remoting;
+﻿using NewLife.Http.Headers;
+
+namespace NewLife.Remoting;
 
 /// <summary>Http请求事件参数</summary>
 public class HttpRequestEventArgs : EventArgs
