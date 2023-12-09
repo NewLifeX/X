@@ -4,6 +4,9 @@ using NewLife.Collections;
 namespace NewLife.Common;
 
 /// <summary>汉字拼音转换类</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/pinyin
+/// </remarks>
 public class PinYin
 {
     #region 数组信息

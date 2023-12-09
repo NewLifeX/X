@@ -72,7 +72,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                    Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -94,6 +94,12 @@ namespace Test
         static StarClient _client;
         private static void Test1()
         {
+            var py = PinYin.Get("新生命");
+            var pf = PinYin.GetFirst("新生命");
+
+            XTrace.WriteLine("py={0}", py);
+            XTrace.WriteLine("pf={0}", pf);
+
             //var tcps = NetHelper.GetAllTcpConnections(-1);
             //XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
             //foreach (var item in tcps)
