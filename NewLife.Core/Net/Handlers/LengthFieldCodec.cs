@@ -79,8 +79,7 @@ public class LengthFieldCodec : MessageCodec<Packet>
     /// <returns></returns>
     protected override IList<Packet>? Decode(IHandlerContext context, Packet pk)
     {
-        var ss = context.Owner as IExtend;
-        if (ss == null) return null;
+        if (context.Owner is not IExtend ss) return null;
 
         if (ss["Codec"] is not PacketCodec pc)
         {

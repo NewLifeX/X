@@ -131,13 +131,14 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// </remarks>
     public IServiceProvider? ServiceProvider { get; set; }
 
-    /// <summary>用户会话数据</summary>
-    public IDictionary<String, Object?> Items { get; set; } = new NullableDictionary<String, Object?>();
+    private ConcurrentDictionary<String, Object?>? _items;
+    /// <summary>数据项</summary>
+    public IDictionary<String, Object?> Items => _items ??= new();
 
     /// <summary>获取/设置 用户会话数据</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object? this[String key] { get => Items[key]; set => Items[key] = value; }
+    public Object? this[String key] { get => _items != null && _items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
     #endregion
 
     #region 构造

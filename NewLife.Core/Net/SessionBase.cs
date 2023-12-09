@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -648,13 +648,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     #endregion
 
     #region 扩展接口
+    private ConcurrentDictionary<String, Object?>? _items;
     /// <summary>数据项</summary>
-    public IDictionary<String, Object?> Items { get; } = new NullableDictionary<String, Object?>();
+    public IDictionary<String, Object?> Items => _items ??= new();
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object? this[String key] { get => Items[key]; set => Items[key] = value; }
+    public Object? this[String key] { get => _items != null && _items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
     #endregion
 
     #region 日志

@@ -37,7 +37,7 @@ public class HandlerContext : IHandlerContext, IExtend
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object? this[String key] { get => Items[key]; set => Items[key] = value; }
+    public Object? this[String key] { get => Items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
     #endregion
 
     #region 方法

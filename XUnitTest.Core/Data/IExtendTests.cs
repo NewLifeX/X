@@ -1,265 +1,98 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Reflection;
+using NewLife.Model;
+using NewLife.Net;
 using Xunit;
 
-namespace XUnitTest.Data
+namespace XUnitTest.Data;
+
+public class IExtendTests
 {
-    public class IExtendTests
+    class ExtendTest : IExtend
     {
-        [Fact]
-        public void ToExtend_Dictionary()
+        public IDictionary<String, Object> Items { get; } = new Dictionary<String, Object>();
+
+        public Object this[String key] { get => Items[key]; set => Items[key] = value; }
+    }
+
+    [Fact]
+    public void ToDictionary_Interface()
+    {
+        var ext = new ExtendTest();
+        ext["aaa"] = 1234;
+
+        var dic = ext.ToDictionary();
+        Assert.NotNull(dic);
+        //Assert.Equal(typeof(ExtendTest), dic.GetType());
+        Assert.Equal(1234, dic["aaa"]);
+
+        dic["bbb"] = "xxx";
+        //Assert.Equal("xxx", ext["bbb"]);
+        var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
+    }
+
+    [Fact]
+    public void ToDictionary_RefrectItems()
+    {
+        var ext = new ExtendTest3
         {
-            var dic = new Dictionary<String, Object>
-            {
-                ["aaa"] = 1234
-            };
+            ["aaa"] = 1234
+        };
 
-            var ext = dic.ToExtend();
-            Assert.NotNull(ext);
-            Assert.Equal("ExtendDictionary", ext.GetType().Name);
-            Assert.Equal(1234, ext["aaa"]);
+        var dic = ext.ToDictionary();
+        Assert.NotNull(dic);
+        Assert.Equal(typeof(NullableDictionary<String, Object>), dic.GetType());
+        Assert.Equal(1234, dic["aaa"]);
 
-            // 引用型，可以共用
-            ext["bbb"] = "xxx";
-            Assert.Equal("xxx", dic["bbb"]);
-        }
+        // 引用型
+        dic["bbb"] = "xxx";
+        Assert.Null(ext["bbb"]);
+        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
+    }
 
-        [Fact]
-        public void ToExtend_Interface()
-        {
-            var dic = new ExtendTest
-            {
-                ["aaa"] = 1234
-            };
+    class ExtendTest3 : IExtend
+    {
+        public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
 
-            var ext = dic.ToExtend();
-            Assert.NotNull(ext);
-            Assert.Equal(typeof(ExtendTest), ext.GetType());
-            Assert.Equal(1234, ext["aaa"]);
+        public Object this[String item] { get => Items[item]; set => Items[item] = value; }
+    }
 
-            ext["bbb"] = "xxx";
-            Assert.Equal("xxx", dic["bbb"]);
-        }
+    [Fact]
+    public void KeyNotFound1()
+    {
+        var ss = new TcpSession();
+        var ext = new NetSession { Session = ss };
+        Assert.Null(ext["bbb"]);
+        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
 
-        class ExtendTest : Dictionary<String, Object>, IExtend { }
+        var ext2 = new NetServer();
+        Assert.Null(ext2["bbb"]);
+    }
 
-        [Fact]
-        public void ToDictionary_Interface()
-        {
-            var ext = new ExtendTest
-            {
-                ["aaa"] = 1234
-            };
+    [Fact]
+    public void KeyNotFound2()
+    {
+        var ext = new TcpSession();
+        Assert.Null(ext["bbb"]);
+        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
+    }
 
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            Assert.Equal(typeof(ExtendTest), dic.GetType());
-            Assert.Equal(1234, dic["aaa"]);
+    [Fact]
+    public void KeyNotFound3()
+    {
+        var ext = new UdpSession(new UdpServer(), new IPEndPoint(IPAddress.Loopback, 0));
+        Assert.Null(ext["bbb"]);
+        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
+    }
 
-            dic["bbb"] = "xxx";
-            Assert.Equal("xxx", ext["bbb"]);
-        }
-
-        [Fact]
-        public void ToDictionary_ExtendDictionary()
-        {
-            //var ext = Type.GetType("NewLife.Data.ExtendDictionary").CreateInstance() as IExtend;
-            var ext = typeof(ExtendDictionary).CreateInstance() as IExtend;
-            ext["aaa"] = 1234;
-
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
-            Assert.Equal(1234, dic["aaa"]);
-
-            dic["bbb"] = "xxx";
-            Assert.Equal("xxx", ext["bbb"]);
-        }
-
-        [Fact]
-        public void ToDictionary_OtherDictionary()
-        {
-            var ext = new ExtendTest2
-            {
-                ["aaa"] = 1234
-            };
-
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
-            Assert.Equal(1234, dic["aaa"]);
-
-            // 非引用型
-            dic["bbb"] = "xxx";
-            //Assert.Equal("xxx", ext["bbb"]);
-            Assert.False(ext.ContainsKey("bbb"));
-        }
-
-        class ExtendTest2 : Dictionary<Object, Object>, IExtend
-        {
-            public Object this[String item]
-            {
-                get => base[item];
-                set => base[item] = value;
-            }
-        }
-
-        [Fact]
-        public void ToDictionary_RefrectItems()
-        {
-            var ext = new ExtendTest3
-            {
-                ["aaa"] = 1234
-            };
-
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            Assert.Equal(typeof(NullableDictionary<String, Object>), dic.GetType());
-            Assert.Equal(1234, dic["aaa"]);
-
-            // 引用型
-            dic["bbb"] = "xxx";
-            Assert.Equal("xxx", ext["bbb"]);
-        }
-
-        class ExtendTest3 : IExtend
-        {
-            public NullableDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
-
-            public Object this[String item]
-            {
-                get => Items[item];
-                set => Items[item] = value;
-            }
-        }
-
-        [Fact]
-        public void ToDictionary_RefrectProperties()
-        {
-            var ext = new ExtendTest4
-            {
-                Id = 1234
-            };
-
-            var dic = ext.ToDictionary();
-            Assert.NotNull(dic);
-            //Assert.Equal(typeof(Dictionary<String, Object>), dic.GetType());
-            Assert.Equal(1234, dic["Id"]);
-
-            // 引用型
-            dic["Name"] = "xxx";
-            Assert.Equal("xxx", ext.Name);
-        }
-
-        class ExtendTest4 : IExtend
-        {
-            public Int32 Id { get; set; }
-
-            public String Name { get; set; }
-
-            public Object this[String item]
-            {
-                get
-                {
-                    return item switch
-                    {
-                        "Id" => Id,
-                        "Name" => Name,
-                        _ => null,
-                    };
-                }
-                set
-                {
-                    switch (item)
-                    {
-                        case "Id":
-                            Id = value.ToInt();
-                            break;
-                        case "Name":
-                            Name = value as String;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public void ToDictionary_NotSupported()
-        {
-            var ext = new ExtendTest5
-            {
-                ["aaa"] = 1234
-            };
-
-            //Assert.Throws<NotSupportedException>(() => ext.ToDictionary());
-            var dic = ext.ToDictionary();
-            Assert.Empty(dic);
-        }
-
-        class ExtendTest5 : IExtend
-        {
-            private readonly NullableDictionary<String, Object> _ms = new();
-
-            public Object this[String item]
-            {
-                get => _ms[item];
-                set => _ms[item] = value;
-            }
-        }
-
-        [Fact]
-        public void Copy()
-        {
-            var ext = new ExtendTest4
-            {
-                Id = 1234,
-                Name = "Stone",
-            };
-
-            var ext2 = new ExtendTest6();
-            ext2.Copy(ext);
-
-            Assert.Equal(ext.Id, ext2.Id);
-            Assert.Equal(ext.Name, ext2.Name);
-        }
-
-        class ExtendTest6 : IExtend
-        {
-            public Int32 Id { get; set; }
-
-            public String Name { get; set; }
-
-            public Object this[String item]
-            {
-                get
-                {
-                    return item switch
-                    {
-                        "Id" => Id,
-                        "Name" => Name,
-                        _ => null,
-                    };
-                }
-                set
-                {
-                    switch (item)
-                    {
-                        case "Id":
-                            Id = value.ToInt();
-                            break;
-                        case "Name":
-                            Name = value as String;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
+    [Fact]
+    public void KeyNotFound4()
+    {
+        var ext = new HandlerContext();
+        Assert.Null(ext["bbb"]);
+        //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
     }
 }

@@ -37,12 +37,12 @@ public class NetSession : DisposeBase, INetSession, IExtend
     public NetUri Remote => Session.Remote;
 
     /// <summary>用户会话数据</summary>
-    public IDictionary<String, Object?> Items { get; set; } = new NullableDictionary<String, Object?>();
+    public IDictionary<String, Object?> Items => Session.Items;
 
     /// <summary>获取/设置 用户会话数据</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object? this[String key] { get => Items[key]; set => Items[key] = value; }
+    public virtual Object? this[String key] { get => Session[key]; set => Session[key] = value; }
 
     /// <summary>服务提供者</summary>
     /// <remarks>
@@ -81,8 +81,8 @@ public class NetSession : DisposeBase, INetSession, IExtend
             var ss = Session;
             if (ss != null)
             {
-                // 网络会话和Socket会话共用用户会话数据
-                Items = ss.Items;
+                //// 网络会话和Socket会话共用用户会话数据
+                //Items = ss.Items;
 
                 ss.Received += Ss_Received;
                 ss.OnDisposed += (s, e2) =>
@@ -192,7 +192,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>错误发生，可能是连接断开</summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    protected virtual void OnError(Object? sender, ExceptionEventArgs e) { }
+    protected virtual void OnError(Object? sender, ExceptionEventArgs e) => WriteError(e.Exception.Message);
     #endregion
 
     #region 发送数据

@@ -150,6 +150,15 @@ public static class CollectionHelper
                     else
                         dic[name] = source.GetValue(pi);
                 }
+
+                // 增加扩展属性
+                if (source is IExtend ext && ext.Items != null)
+                {
+                    foreach (var item in ext.Items)
+                    {
+                        dic[item.Key] = item.Value;
+                    }
+                }
             }
         }
 
