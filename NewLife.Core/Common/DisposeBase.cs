@@ -33,7 +33,7 @@ public interface IDisposable2 : IDisposable
 /// 
 ///     if (disposing)
 ///     {
-///         // 如果是构造函数进来，不执行这里的代码
+///         // 如果是析构函数进来，不执行这里的代码
 ///     }
 /// }
 /// </code>

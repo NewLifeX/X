@@ -665,6 +665,8 @@ public class MachineInfo
             TryRead("/sys/class/thermal/thermal_zone1/temp", out value))
         {
             Temperature = value.ToDouble();
+            // 有时候温度会超过1000，可能是毫度。机器温度不会低于0度
+            if (Temperature > 1000) Temperature /= 1000;
         }
         // respberrypi + fedora
         else if (TryRead("/sys/class/thermal/thermal_zone0/temp", out value) ||
