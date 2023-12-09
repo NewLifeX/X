@@ -38,7 +38,8 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <returns></returns>
     protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
     {
-        var ss = context.Owner as IExtend;
+        if (context.Owner is not IExtend ss) return null;
+
         if (ss["Codec"] is not PacketCodec pc)
         {
             ss["Codec"] = pc = new PacketCodec

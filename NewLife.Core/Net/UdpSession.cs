@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using NewLife.Data;
@@ -12,7 +11,7 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Net;
 
 /// <summary>Udp会话。仅用于服务端与某一固定远程地址通信</summary>
-internal class UdpSession : DisposeBase, ISocketSession, ITransport
+public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 {
     #region 属性
     /// <summary>会话编号</summary>
@@ -75,6 +74,9 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     #endregion
 
     #region 构造
+    /// <summary>实例化Udp会话</summary>
+    /// <param name="server"></param>
+    /// <param name="remote"></param>
     public UdpSession(UdpServer server, IPEndPoint remote)
     {
         Name = server.Name;
@@ -87,6 +89,7 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         server.Client.CheckBroadcast(remote.Address);
     }
 
+    /// <summary>开始数据交换</summary>
     public void Start()
     {
         Pipeline = Server.Pipeline;
@@ -100,6 +103,8 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         Pipeline?.Open(Server.CreateContext(this));
     }
 
+    /// <summary>销毁</summary>
+    /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
@@ -117,6 +122,10 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     #endregion
 
     #region 发送
+    /// <summary>发送数据</summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    /// <exception cref="ObjectDisposedException"></exception>
     public Int32 Send(Packet data)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
@@ -233,7 +242,8 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
         }
     }
 
-    public event EventHandler<ReceivedEventArgs> Received;
+    /// <summary>数据接收事件</summary>
+    public event EventHandler<ReceivedEventArgs>? Received;
 
     internal void OnReceive(ReceivedEventArgs e)
     {
@@ -280,14 +290,14 @@ internal class UdpSession : DisposeBase, ISocketSession, ITransport
     #endregion
 
     #region 扩展接口
-    private readonly ConcurrentDictionary<String, Object> _Items = new();
+    private ConcurrentDictionary<String, Object?>? _items;
     /// <summary>数据项</summary>
-    public IDictionary<String, Object> Items => _Items;
+    public IDictionary<String, Object?> Items => _items ??= new();
 
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object this[String key] { get => _Items.TryGetValue(key, out var obj) ? obj : null; set => _Items[key] = value; }
+    public Object? this[String key] { get => _items != null && _items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
     #endregion
 
     #region 日志
