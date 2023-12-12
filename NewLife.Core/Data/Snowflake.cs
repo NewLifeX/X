@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using NewLife.Caching;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Security;
 
 namespace NewLife.Data;
@@ -34,10 +37,10 @@ public class Snowflake
     public static Int32 GlobalWorkerId { get; set; }
 
     /// <summary>workerId分配集群。配置后可确保所有实例化的雪花对象得到唯一workerId，建议使用Redis</summary>
-    public static ICache Cluster { get; set; }
+    public static ICache? Cluster { get; set; }
 
     private Int64 _msStart;
-    private Stopwatch _watch;
+    private Stopwatch _watch = null!;
     private Int64 _lastTime;
     #endregion
 
@@ -48,9 +51,21 @@ public class Snowflake
     {
         try
         {
+            // 从容器中获取缓存提供者，查找Redis作为集群WorkerId分配器
+            var provider = ObjectContainer.Provider?.GetService<ICacheProvider>();
+            if (provider != null && provider.Cache != provider.InnerCache && provider is not MemoryCache)
+                Cluster = provider.Cache;
+
             var ip = NetHelper.MyIP();
-            var buf = ip.GetAddressBytes();
-            _instance = (buf[2] << 8) | buf[3];
+            if (ip != null)
+            {
+                var buf = ip.GetAddressBytes();
+                _instance = (buf[2] << 8) | buf[3];
+            }
+            else
+            {
+                _instance = Rand.Next(1, 1024);
+            }
         }
         catch
         {
@@ -105,10 +120,12 @@ public class Snowflake
     {
         Init();
 
+        //_watch ??= Stopwatch.StartNew();
+
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
         var ms = _watch.ElapsedMilliseconds + _msStart;
-        var wid = WorkerId & 0x3FF;
-        var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
+        var wid = WorkerId & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         //!!! 避免时间倒退
         var t = _lastTime - ms;
@@ -116,7 +133,7 @@ public class Snowflake
         {
             // 多线程生成Id的时候，_lastTime在计算差值前被另一个线程更新了，导致时间有微小偏差（一般是1ms）
             //XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
-            if (t > 10_000) throw new InvalidOperationException($"时间倒退过大({t}ms)，为确保唯一性，Snowflake拒绝生成新Id");
+            if (t > 10_000) throw new InvalidOperationException($"Time reversal too large ({t}ms)To ensure uniqueness, Snowflake refuses to generate a new Id");
 
             ms = _lastTime;
         }
@@ -147,8 +164,8 @@ public class Snowflake
         Init();
 
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-        var wid = WorkerId & 0x3FF;
-        var seq = Interlocked.Increment(ref _Sequence) & 0x0FFF;
+        var wid = WorkerId & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
@@ -156,7 +173,7 @@ public class Snowflake
     /// <summary>获取指定时间的Id，支持传入唯一业务id（22位）。可用于物联网数据采集</summary>
     /// <remarks>
     /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
-    /// 为了避免主键重复，可以使用传感器id作为后续22位，最大支持4194304个。
+    /// 为了避免主键重复，可以使用传感器id作为workerId。
     /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
     /// </remarks>
     /// <param name="time">时间</param>
@@ -166,10 +183,12 @@ public class Snowflake
     {
         Init();
 
+        // 业务id作为workerId，保留12位序列号。即传感器按1024分组，每组每毫秒最多生成4096个Id
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
-        var wid = WorkerId & 0x3FF;
+        var wid = uid & (-1 ^ (-1 << 10));
+        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
-        return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)(uid & (-1 ^ (-1 << (10 + 12))));
+        return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
 
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>

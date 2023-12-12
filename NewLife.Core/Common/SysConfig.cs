@@ -6,6 +6,9 @@ using NewLife.Security;
 namespace NewLife.Common;
 
 /// <summary>系统设置。提供系统名称、版本等基本设置</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/sysconfig
+/// </remarks>
 [DisplayName("系统设置")]
 public class SysConfig : Config<SysConfig>
 {
@@ -87,8 +90,15 @@ public class SysConfig : Config<SysConfig>
             try
             {
                 var ip = NetHelper.MyIP();
-                var buf = ip.GetAddressBytes();
-                Instance = (buf[2] << 8) | buf[3];
+                if (ip != null)
+                {
+                    var buf = ip.GetAddressBytes();
+                    Instance = (buf[2] << 8) | buf[3];
+                }
+                else
+                {
+                    Instance = Rand.Next(1, 1024);
+                }
             }
             catch
             {
@@ -101,7 +111,7 @@ public class SysConfig : Config<SysConfig>
     }
 
     /// <summary>系统主程序集</summary>
-    public static AssemblyX SysAssembly
+    public static AssemblyX? SysAssembly
     {
         get
         {

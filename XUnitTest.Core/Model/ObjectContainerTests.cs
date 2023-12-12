@@ -27,13 +27,13 @@ public class ObjectContainerTests
     public void Add()
     {
         var ioc = new ObjectContainer();
-        ioc.Add(new ServiceDescriptor { ServiceType = typeof(MemoryCache) });
-        ioc.TryAdd(new ServiceDescriptor { ServiceType = typeof(MemoryCache) });
+        ioc.Add(new ServiceDescriptor(typeof(MemoryCache)));
+        ioc.TryAdd(new ServiceDescriptor(typeof(MemoryCache)));
 
         Assert.Equal(1, ioc.Count);
 
         var services = ioc.GetValue("_list") as IList<IObject>;
-        Assert.Equal(1, services.Count);
+        Assert.Single(services);
         Assert.Equal(typeof(MemoryCache), services[0].ServiceType);
         Assert.Null(services[0].ImplementationType);
         Assert.Equal(ObjectLifetime.Singleton, services[0].Lifetime);
@@ -67,6 +67,25 @@ public class ObjectContainerTests
         var cache = ioc.Resolve(typeof(ICache));
         Assert.NotNull(cache);
     }
+
+    [Fact]
+    public void ResolveOrder()
+    {
+        var services = ObjectContainer.Current;
+        services.AddSingleton<ICache, MemoryCache>();
+        services.AddSingleton<ICache, MyCache>();
+
+        var provider = services.BuildServiceProvider();
+        var cache = provider.GetService<ICache>();
+        Assert.Equal(typeof(MyCache), cache.GetType());
+
+        var cs = provider.GetServices<ICache>().ToArray();
+        Assert.Equal(2, cs.Length);
+        Assert.Equal(typeof(MyCache), cs[0].GetType());
+        Assert.Equal(typeof(MemoryCache), cs[1].GetType());
+    }
+
+    class MyCache : MemoryCache { }
 
     [Fact]
     public void AddSingleton()

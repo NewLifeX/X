@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using NewLife.Data;
 using NewLife.Http;
@@ -29,7 +30,7 @@ public interface ITracer
     Int32 MaxTagLength { get; set; }
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
-    String AttachParameter { get; set; }
+    String? AttachParameter { get; set; }
     #endregion
 
     /// <summary>建立Span构建器</summary>
@@ -46,7 +47,7 @@ public interface ITracer
     /// <param name="name">操作名</param>
     /// <param name="tag">数据</param>
     /// <returns></returns>
-    ISpan NewSpan(String name, Object tag);
+    ISpan NewSpan(String name, Object? tag);
 
     /// <summary>截断所有Span构建器数据，重置集合</summary>
     /// <returns></returns>
@@ -58,7 +59,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
 {
     #region 静态
     /// <summary>全局实例。可影响X组件各模块的跟踪器</summary>
-    public static ITracer Instance { get; set; }
+    public static ITracer? Instance { get; set; }
 
     static DefaultTracer()
     {
@@ -87,13 +88,13 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     public Int32 MaxTagLength { get; set; } = 1024;
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
-    public String AttachParameter { get; set; } = "traceparent";
+    public String? AttachParameter { get; set; } = "traceparent";
 
     /// <summary>Span构建器集合</summary>
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
     /// <summary>采样定时器</summary>
-    protected TimerX _timer;
+    protected TimerX? _timer;
     #endregion
 
     #region 构造
@@ -148,9 +149,12 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                 WriteLog("Tracer[{0}] Total={1:n0} Errors={2:n0} Speed={3:n2}tps Cost={4:n0}ms MaxCost={5:n0}ms MinCost={6:n0}ms", bd.Name, bd.Total, bd.Errors, speed, bd.Cost / bd.Total, bd.MaxCost, bd.MinCost);
 
 #if DEBUG
-                foreach (var span in bd.Samples)
+                if (bd.Samples != null)
                 {
-                    WriteLog("Span Id={0} ParentId={1} TraceId={2} Tag={3} Error={4}", span.Id, span.ParentId, span.TraceId, span.Tag, span.Error);
+                    foreach (var span in bd.Samples)
+                    {
+                        WriteLog("Span Id={0} ParentId={1} TraceId={2} Tag={3} Error={4}", span.Id, span.ParentId, span.TraceId, span.Tag, span.Error);
+                    }
                 }
 #endif
             }
@@ -188,7 +192,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <param name="name">操作名</param>
     /// <param name="tag">数据</param>
     /// <returns></returns>
-    public virtual ISpan NewSpan(String name, Object tag)
+    public virtual ISpan NewSpan(String name, Object? tag)
     {
         var span = BuildSpan(name).Start();
 
@@ -211,8 +215,22 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             }
             //else if (tag is IMessage msg)
             //    span.Tag = msg.ToPacket().ToHex(len / 2);
+            else if (tag is EndPoint ep)
+                span.Tag = ep.ToString();
+            else if (tag is IPAddress addr)
+                span.Tag = addr.ToString();
             else
-                span.Tag = tag.ToJson().Cut(len);
+            {
+                // 避免数据标签的序列化抛出异常影响业务层
+                try
+                {
+                    span.Tag = tag.ToJson().Cut(len);
+                }
+                catch
+                {
+                    span.Tag = tag.ToString()?.Cut(len);
+                }
+            }
         }
 
         return span;
@@ -223,7 +241,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     public virtual ISpanBuilder[] TakeAll()
     {
         var bs = _builders;
-        if (!bs.Any()) return null;
+        if (!bs.Any()) return new ISpanBuilder[0];
 
         _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
@@ -246,7 +264,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }
 
@@ -258,7 +276,7 @@ public static class TracerExtension
     /// <param name="tracer">跟踪器</param>
     /// <param name="handler">http处理器</param>
     /// <returns></returns>
-    public static HttpClient CreateHttpClient(this ITracer tracer, HttpMessageHandler handler = null)
+    public static HttpClient CreateHttpClient(this ITracer? tracer, HttpMessageHandler? handler = null)
     {
         handler ??= HttpHelper.CreateHandler(false, false);
 
@@ -276,9 +294,10 @@ public static class TracerExtension
     /// <param name="tracer">跟踪器</param>
     /// <param name="request">Http请求</param>
     /// <returns></returns>
-    public static ISpan NewSpan(this ITracer tracer, HttpRequestMessage request)
+    public static ISpan? NewSpan(this ITracer tracer, HttpRequestMessage request)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
+        if (request.RequestUri == null) return null;
 
         var span = CreateSpan(tracer, request.Method.Method, request.RequestUri, request);
         span.Attach(request);
@@ -287,11 +306,11 @@ public static class TracerExtension
     }
 
     /// <summary>支持作为标签数据的内容类型</summary>
-    static String[] _TagTypes = new[] {
+    static readonly String[] _TagTypes = [
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
-    };
-    static String[] _ExcludeHeaders = new[] { "traceparent", "Cookie" };
-    private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage request)
+    ];
+    static readonly String[] _ExcludeHeaders = ["traceparent", "Cookie"];
+    private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage? request)
     {
         var url = uri.ToString();
 
@@ -316,6 +335,7 @@ public static class TracerExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
         {
+            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (request.Content is ByteArrayContent content &&
                 content.Headers.ContentLength != null &&
                 content.Headers.ContentLength < 1024 * 8 &&
@@ -324,7 +344,7 @@ public static class TracerExtension
             {
                 // 既然都读出来了，不管多长，都要前面1024字符
                 var str = request.Content.ReadAsStringAsync().Result;
-                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > 1024 ? str[..1024] : str);
+                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > maxLength ? str[..maxLength] : str);
             }
 
             if (tag.Length < 500)
@@ -344,7 +364,7 @@ public static class TracerExtension
     /// <returns></returns>
     public static ISpan NewSpan(this ITracer tracer, WebRequest request)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
 
         var span = CreateSpan(tracer, request.Method, request.RequestUri, null);
         span.Attach(request);
@@ -357,15 +377,38 @@ public static class TracerExtension
     /// <param name="name">操作名</param>
     /// <param name="error">Exception 异常对象，或错误信息</param>
     /// <returns></returns>
-    public static ISpan NewError(this ITracer tracer, String name, Object error)
+    public static ISpan NewError(this ITracer tracer, String name, Object? error)
     {
-        if (tracer == null) return null;
+        //if (tracer == null) return null;
 
         var span = tracer.NewSpan(name);
         if (error is Exception ex)
             span.SetError(ex, null);
         else
             span.Error = error + "";
+
+        span.Dispose();
+
+        return span;
+    }
+
+    /// <summary>直接创建错误Span</summary>
+    /// <param name="tracer">跟踪器</param>
+    /// <param name="name">操作名</param>
+    /// <param name="error">Exception 异常对象，或错误信息</param>
+    /// <param name="tag">数据标签</param>
+    /// <returns></returns>
+    public static ISpan NewError(this ITracer tracer, String name, Object error, Object tag)
+    {
+        //if (tracer == null) return null;
+
+        var span = tracer.NewSpan(name);
+        if (error is Exception ex)
+            span.SetError(ex, null);
+        else
+            span.Error = error + "";
+
+        span.SetTag(tag);
 
         span.Dispose();
 

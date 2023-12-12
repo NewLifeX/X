@@ -25,10 +25,10 @@ public class TinyHttpClient : DisposeBase
 {
     #region 属性
     /// <summary>客户端</summary>
-    public TcpClient Client { get; set; }
+    public TcpClient? Client { get; set; }
 
     /// <summary>基础地址</summary>
-    public Uri BaseAddress { get; set; }
+    public Uri? BaseAddress { get; set; }
 
     /// <summary>保持连接</summary>
     public Boolean KeepAlive { get; set; }
@@ -40,9 +40,9 @@ public class TinyHttpClient : DisposeBase
     public Int32 BufferSize { get; set; } = 64 * 1024;
 
     /// <summary>性能追踪</summary>
-    public ITracer Tracer { get; set; } = HttpHelper.Tracer;
+    public ITracer? Tracer { get; set; } = HttpHelper.Tracer;
 
-    private Stream _stream;
+    private Stream? _stream;
     #endregion
 
     #region 构造
@@ -67,7 +67,7 @@ public class TinyHttpClient : DisposeBase
     /// <summary>获取网络数据流</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
-    protected virtual async Task<Stream> GetStreamAsync(Uri uri)
+    protected virtual async Task<Stream> GetStreamAsync(Uri? uri)
     {
         var tc = Client;
         var ns = _stream;
@@ -76,17 +76,19 @@ public class TinyHttpClient : DisposeBase
         var active = false;
         try
         {
-            active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
-            if (active) return ns;
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
+            if (active) return ns!;
 
             ns = tc?.GetStream();
-            active = tc != null && tc.Connected && ns != null && ns.CanWrite && ns.CanRead;
+            active = ns != null && tc != null && tc.Connected && ns.CanWrite && ns.CanRead;
         }
         catch { }
 
         // 如果连接不可用，则重新建立连接
         if (!active)
         {
+            if (uri == null) throw new ArgumentNullException(nameof(uri));
+
             var remote = new NetUri(NetType.Tcp, uri.Host, uri.Port);
 
             tc.TryDispose();
@@ -104,8 +106,10 @@ public class TinyHttpClient : DisposeBase
         // 支持SSL
         if (active)
         {
-            if (uri.Scheme.EqualIgnoreCase("https"))
+            if (uri != null && uri.Scheme.EqualIgnoreCase("https"))
             {
+                if (ns == null) throw new InvalidOperationException(nameof(NetworkStream));
+
                 var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
                 await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
                 ns = sslStream;
@@ -114,14 +118,14 @@ public class TinyHttpClient : DisposeBase
             _stream = ns;
         }
 
-        return ns;
+        return ns!;
     }
 
     /// <summary>异步请求</summary>
     /// <param name="uri"></param>
     /// <param name="request"></param>
     /// <returns></returns>
-    protected virtual async Task<Packet> SendDataAsync(Uri uri, Packet request)
+    protected virtual async Task<Packet> SendDataAsync(Uri? uri, Packet? request)
     {
         var ns = await GetStreamAsync(uri).ConfigureAwait(false);
 
@@ -130,7 +134,7 @@ public class TinyHttpClient : DisposeBase
 
         // 接收
         var buf = new Byte[BufferSize];
-        var source = new CancellationTokenSource(Timeout);
+        using var source = new CancellationTokenSource(Timeout);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
         var count = await ns.ReadAsync(buf, source.Token).ConfigureAwait(false);
@@ -144,14 +148,14 @@ public class TinyHttpClient : DisposeBase
     /// <summary>异步发出请求，并接收响应</summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    public virtual async Task<HttpResponse> SendAsync(HttpRequest request)
+    public virtual async Task<HttpResponse?> SendAsync(HttpRequest request)
     {
         // 构造请求
-        var uri = request.RequestUri;
+        var uri = request.RequestUri ?? throw new ArgumentNullException(nameof(request.RequestUri));
         var req = request.Build();
 
         var res = new HttpResponse();
-        Packet rs = null;
+        Packet? rs = null;
         var retry = 5;
         while (retry-- > 0)
         {
@@ -187,7 +191,7 @@ public class TinyHttpClient : DisposeBase
         if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
         // 如果没有收完数据包
-        if (res.ContentLength > 0 && rs.Count < res.ContentLength)
+        if (rs != null && res.ContentLength > 0 && rs.Count < res.ContentLength)
         {
             var total = rs.Total;
             var last = rs;
@@ -202,7 +206,7 @@ public class TinyHttpClient : DisposeBase
         }
 
         // chunk编码
-        if (rs.Count > 0 && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
+        if (rs != null && rs.Count > 0 && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
         {
             res.Body = await ReadChunkAsync(rs);
         }
@@ -270,7 +274,7 @@ public class TinyHttpClient : DisposeBase
     #endregion
 
     #region 辅助
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
     {
         // chunk编码
@@ -299,7 +303,7 @@ public class TinyHttpClient : DisposeBase
     /// <summary>异步获取。连接池操作</summary>
     /// <param name="url">地址</param>
     /// <returns></returns>
-    public async Task<String> GetStringAsync(String url)
+    public async Task<String?> GetStringAsync(String url)
     {
         var request = new HttpRequest
         {
@@ -318,11 +322,10 @@ public class TinyHttpClient : DisposeBase
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public async Task<TResult> InvokeAsync<TResult>(String method, String action, Object args = null)
+    public async Task<TResult?> InvokeAsync<TResult>(String method, String action, Object? args = null)
     {
-        if (BaseAddress == null) throw new ArgumentNullException(nameof(BaseAddress));
-
-        var request = BuildRequest(method, action, args);
+        var baseAddress = BaseAddress ?? throw new ArgumentNullException(nameof(BaseAddress));
+        var request = BuildRequest(baseAddress, method, action, args);
 
         var rs = await SendAsync(request);
 
@@ -331,14 +334,16 @@ public class TinyHttpClient : DisposeBase
         return ProcessResponse<TResult>(rs.Body);
     }
 
-    private HttpRequest BuildRequest(String method, String action, Object args)
+    private HttpRequest BuildRequest(Uri baseAddress, String method, String action, Object? args)
     {
         var req = new HttpRequest
         {
             Method = method.ToUpper(),
-            RequestUri = new Uri(BaseAddress, action),
+            RequestUri = new Uri(baseAddress, action),
             KeepAlive = KeepAlive,
         };
+
+        if (args == null) return req;
 
         var ps = args.ToDictionary();
         if (method.EqualIgnoreCase("Post"))
@@ -359,24 +364,24 @@ public class TinyHttpClient : DisposeBase
                 sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
             }
 
-            req.RequestUri = new Uri(BaseAddress, sb.Put(true));
+            req.RequestUri = new Uri(baseAddress, sb.Put(true));
         }
 
         return req;
     }
 
-    private TResult ProcessResponse<TResult>(Packet rs)
+    private TResult? ProcessResponse<TResult>(Packet rs)
     {
         var str = rs.ToStr();
         if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
 
         // 反序列化
         var dic = JsonParser.Decode(str);
-        if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+        if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("Unrecognized response data");
 
         if (dic.TryGetValue("result", out var result))
         {
-            if (result is Boolean res && !res) throw new InvalidOperationException($"远程错误，{data}");
+            if (result is Boolean res && !res) throw new InvalidOperationException($"remote error: {data}");
         }
         else if (dic.TryGetValue("code", out var code))
         {
@@ -384,8 +389,10 @@ public class TinyHttpClient : DisposeBase
         }
         else
         {
-            throw new InvalidDataException("未识别响应数据");
+            throw new InvalidDataException("Unrecognized response data");
         }
+
+        if (data == null) return default;
 
         return JsonHelper.Convert<TResult>(data);
     }
@@ -393,11 +400,11 @@ public class TinyHttpClient : DisposeBase
 
     #region 日志
     /// <summary>日志</summary>
-    public ILog Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }

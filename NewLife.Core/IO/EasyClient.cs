@@ -14,13 +14,13 @@ public class EasyClient : IObjectStorage
 {
     #region 属性
     /// <summary>服务端地址</summary>
-    public String Server { get; set; }
+    public String? Server { get; set; }
 
     /// <summary>应用标识</summary>
-    public String AppId { get; set; }
+    public String? AppId { get; set; }
 
     /// <summary>应用密钥</summary>
-    public String Secret { get; set; }
+    public String? Secret { get; set; }
 
     /// <summary>基础控制器路径。默认/io/</summary>
     public String BaseAction { get; set; } = "/io/";
@@ -34,7 +34,7 @@ public class EasyClient : IObjectStorage
     /// <summary>是否支持搜索</summary>
     public Boolean CanSearch => true;
 
-    private ApiHttpClient _client;
+    private ApiHttpClient? _client;
     #endregion
 
     #region 构造
@@ -77,12 +77,14 @@ public class EasyClient : IObjectStorage
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public virtual async Task<IObjectInfo> Put(String id, Packet data)
+    public virtual async Task<IObjectInfo?> Put(String id, Packet data)
     {
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
         var rs = await client.PutAsync<ObjectInfo>(BaseAction + $"Put?id={HttpUtility.UrlEncode(id)}", data);
+        if (rs == null) return null;
+
         rs.Data ??= data;
 
         return rs;
@@ -92,12 +94,13 @@ public class EasyClient : IObjectStorage
     /// <param name="id">对象标识。支持斜杠目录结构</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public virtual async Task<IObjectInfo> Get(String id)
+    public virtual async Task<IObjectInfo?> Get(String id)
     {
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
         var rs = await client.GetAsync<Packet>(BaseAction + "Get", new { id });
+        if (rs == null) return null;
 
         return new ObjectInfo { Name = id, Data = rs };
     }
@@ -105,7 +108,7 @@ public class EasyClient : IObjectStorage
     /// <summary>获取对象下载Url</summary>
     /// <param name="id">对象标识。支持斜杠目录结构</param>
     /// <returns></returns>
-    public virtual async Task<String> GetUrl(String id)
+    public virtual async Task<String?> GetUrl(String id)
     {
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
@@ -129,7 +132,7 @@ public class EasyClient : IObjectStorage
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
     /// <returns></returns>
-    public virtual async Task<IList<IObjectInfo>> Search(String pattern = null, Int32 start = 0, Int32 count = 100)
+    public virtual async Task<IList<IObjectInfo>?> Search(String? pattern = null, Int32 start = 0, Int32 count = 100)
     {
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 
@@ -141,14 +144,14 @@ public class EasyClient : IObjectStorage
 
     #region 辅助
     /// <summary>性能追踪</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>日志</summary>
-    public ILog Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }

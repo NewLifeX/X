@@ -18,7 +18,7 @@ public class XmlList : XmlHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (!type.As<IList>() && value is not IList) return false;
 
@@ -35,7 +35,7 @@ public class XmlList : XmlHandlerBase
             // 循环写入数据
             foreach (var item in list)
             {
-                if (!Host.Write(item)) return false;
+                if (item != null && !Host.Write(item)) return false;
             }
         }
         finally
@@ -52,7 +52,7 @@ public class XmlList : XmlHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IList>() && !type.As(typeof(IList<>))) return false;
 
@@ -64,15 +64,23 @@ public class XmlList : XmlHandlerBase
 
         // 子元素类型
         var elmType = type.GetElementTypeEx();
+        if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
-        if (value is not IList list || value is Array) list = typeof(List<>).MakeGenericType(elmType).CreateInstance() as IList;
+        if (value is not IList list || value is Array)
+        {
+            var obj = typeof(List<>).MakeGenericType(elmType).CreateInstance();
+            if (obj is not IList list2)
+                throw new ArgumentOutOfRangeException(nameof(elmType));
+
+            list = list2;
+        }
 
         // 清空已有数据
         list.Clear();
 
         while (reader.IsStartElement())
         {
-            Object obj = null;
+            Object? obj = null;
             if (!Host.TryRead(elmType, ref obj)) return false;
 
             list.Add(obj);
@@ -83,7 +91,7 @@ public class XmlList : XmlHandlerBase
             // 数组的创建比较特别
             if (type.As<Array>())
             {
-                var arr = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
+                var arr = Array.CreateInstance(elmType, list.Count);
                 list.CopyTo(arr, 0);
                 value = arr;
             }

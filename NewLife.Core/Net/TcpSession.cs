@@ -13,14 +13,14 @@ public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
-    public IPAddress RemoteAddress { get; private set; }
+    public IPAddress? RemoteAddress { get; private set; }
 
     /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
     public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
-    internal ISocketServer _Server;
+    internal ISocketServer? _Server;
     /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
-    ISocketServer ISocketSession.Server => _Server;
+    ISocketServer ISocketSession.Server => _Server!;
 
     ///// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
     //public Int32 AutoReconnect { get; set; } = 3;
@@ -28,14 +28,17 @@ public class TcpSession : SessionBase, ISocketSession
     /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
     public Boolean NoDelay { get; set; }
 
+    /// <summary>KeepAlive间隔。默认0秒不启用</summary>
+    public Int32 KeepAliveInterval { get; set; }
+
     /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
     /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
     /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
-    public X509Certificate Certificate { get; set; }
+    public X509Certificate? Certificate { get; set; }
 
-    private SslStream _Stream;
+    private SslStream? _Stream;
     #endregion
 
     #region 构造
@@ -76,12 +79,12 @@ public class TcpSession : SessionBase, ISocketSession
     internal void Start()
     {
         // 管道
-        Pipeline?.Open(base.CreateContext(this));
+        Pipeline?.Open(CreateContext(this));
 
         // 设置读写超时
         var sock = Client;
         var timeout = Timeout;
-        if (timeout > 0)
+        if (timeout > 0 && sock != null)
         {
             sock.SendTimeout = timeout;
             sock.ReceiveTimeout = timeout;
@@ -113,18 +116,21 @@ public class TcpSession : SessionBase, ISocketSession
         // 服务端会话没有打开
         if (_Server != null) return false;
 
+        var span = DefaultSpan.Current;
         var timeout = Timeout;
         var uri = Remote;
         var sock = Client;
         if (sock == null || !sock.IsBound)
         {
+            span?.AppendTag($"Local={Local}");
+
             // 根据目标地址适配本地IPv4/IPv6
             if (Local.Address.IsAny() && uri != null && !uri.Address.IsAny())
             {
-                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily);
+                Local.Address = Local.Address.GetRightAny(uri.Address.AddressFamily)!;
             }
 
-            sock = Client = NetHelper.CreateTcp(Local.Address.IsIPv4());
+            sock = Client = NetHelper.CreateTcp(Local.Address!.IsIPv4());
             //sock.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
             if (NoDelay) sock.NoDelay = true;
             if (timeout > 0)
@@ -132,7 +138,10 @@ public class TcpSession : SessionBase, ISocketSession
                 sock.SendTimeout = timeout;
                 sock.ReceiveTimeout = timeout;
             }
+
             sock.Bind(Local.EndPoint);
+            if (sock.LocalEndPoint is IPEndPoint ep) Local.EndPoint.Port = ep.Port;
+            span?.AppendTag($"LocalEndPoint={sock.LocalEndPoint}");
 
             WriteLog("Open {0}", this);
         }
@@ -142,49 +151,48 @@ public class TcpSession : SessionBase, ISocketSession
 
         try
         {
-            var ep = uri.EndPoint;
-            if (!Local.Address.IsIPv4() && ep.Address.IsIPv4())
-            {
-                var address = uri.GetAddresses().FirstOrDefault(_ => !_.IsIPv4());
-                if (address != null) ep = new IPEndPoint(address, ep.Port);
-            }
-            else if (Local.Address.IsIPv4() && !ep.Address.IsIPv4())
-            {
-                var address = uri.GetAddresses().FirstOrDefault(_ => _.IsIPv4());
-                if (address != null) ep = new IPEndPoint(address, ep.Port);
-            }
+            var addrs = uri.GetAddresses();
+            span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
-            RemoteAddress = ep.Address;
             if (timeout <= 0)
-                sock.Connect(ep);
+                sock.Connect(addrs, uri.Port);
             else
             {
                 // 采用异步来解决连接超时设置问题
-                var ar = sock.BeginConnect(ep, null, null);
+                var ar = sock.BeginConnect(addrs, uri.Port, null, null);
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
                 {
                     sock.Close();
-                    throw new TimeoutException($"连接[{uri}][{timeout}ms]超时！");
+                    throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
                 }
 
                 sock.EndConnect(ar);
             }
 
+            // 作为客户端，启用KeepAlive，及时释放无效连接
+            if (KeepAliveInterval > 0) sock.SetTcpKeepAlive(true, KeepAliveInterval, KeepAliveInterval);
+
+            RemoteAddress = (sock.RemoteEndPoint as IPEndPoint)?.Address;
+            span?.AppendTag($"RemoteEndPoint={sock.RemoteEndPoint}");
+
             // 客户端SSL
             var sp = SslProtocol;
             if (sp != SslProtocols.None)
             {
-                WriteLog("客户端SSL认证 {0} {1}", sp, uri.Host);
+                var host = uri.Host ?? uri.Address + "";
+                WriteLog("客户端SSL认证 {0} {1}", sp, host);
 
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
-                sslStream.AuthenticateAsClient(uri.Host, new X509CertificateCollection(), sp, false);
+                sslStream.AuthenticateAsClient(host, new X509CertificateCollection(), sp, false);
 
                 _Stream = sslStream;
             }
         }
         catch (Exception ex)
         {
+            if (ex is SocketException) sock.Close();
+
             // 连接失败时，任何错误都放弃当前Socket
             Client = null;
             if (!Disposed && !ex.IsDisposed()) OnError("Connect", ex);
@@ -197,7 +205,7 @@ public class TcpSession : SessionBase, ISocketSession
         return true;
     }
 
-    private Boolean OnCertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    private Boolean OnCertificateValidationCallback(Object? sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
         //WriteLog("Valid {0} {1}", certificate.Issuer, sslPolicyErrors);
         //if (chain?.ChainStatus != null)
@@ -210,6 +218,7 @@ public class TcpSession : SessionBase, ISocketSession
 
         // 如果没有证书，全部通过
         if (Certificate is not X509Certificate2 cert) return true;
+        if (chain == null) return false;
 
         return chain.ChainElements
                 .Cast<X509ChainElement>()
@@ -230,7 +239,7 @@ public class TcpSession : SessionBase, ISocketSession
             try
             {
                 // 温和一点关闭连接
-                Client.Shutdown();
+                client.Shutdown();
                 client.Close();
 
                 // 如果是服务端，这个时候就是销毁
@@ -270,6 +279,8 @@ public class TcpSession : SessionBase, ISocketSession
         using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
         var rs = count;
         var sock = Client;
+        if (sock == null) return -1;
+
         var gotLock = false;
         try
         {
@@ -341,7 +352,7 @@ public class TcpSession : SessionBase, ISocketSession
         var ss = _Stream;
         if (ss != null)
         {
-            ss.BeginRead(se.Buffer, se.Offset, se.Count, OnEndRead, se);
+            ss.BeginRead(se.Buffer!, se.Offset, se.Count, OnEndRead, se);
 
             return true;
         }
@@ -353,11 +364,10 @@ public class TcpSession : SessionBase, ISocketSession
     /// <param name="ar"></param>
     private void OnEndRead(IAsyncResult ar)
     {
-        var se = ar.AsyncState as SocketAsyncEventArgs;
         Int32 bytes;
         try
         {
-            bytes = _Stream.EndRead(ar);
+            bytes = _Stream!.EndRead(ar);
         }
         catch (Exception ex)
         {
@@ -373,22 +383,22 @@ public class TcpSession : SessionBase, ISocketSession
             return;
         }
 
-        ProcessEvent(se, bytes, true);
+        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, true);
     }
 
-    //private Int32 _empty;
+    private Int32 _empty;
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote)
     {
         if (pk.Count == 0)
         {
-            using var span = Tracer?.NewSpan($"net:{Name}:EmptyData");
+            using var span = Tracer?.NewSpan($"net:{Name}:EmptyData", remote?.ToString());
 
             // 连续多次空数据，则断开
-            if (DisconnectWhenEmptyData /*|| _empty++ > 3*/)
+            if (DisconnectWhenEmptyData || _empty++ > 3)
             {
                 Close("EmptyData");
                 Dispose();
@@ -396,8 +406,8 @@ public class TcpSession : SessionBase, ISocketSession
                 return null;
             }
         }
-        //else
-        //    _empty = 0;
+        else
+            _empty = 0;
 
         return this;
     }
@@ -440,7 +450,7 @@ public class TcpSession : SessionBase, ISocketSession
     #endregion
 
     #region 辅助
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public override String LogPrefix
     {
@@ -460,15 +470,12 @@ public class TcpSession : SessionBase, ISocketSession
     /// <returns></returns>
     public override String ToString()
     {
-        if (Remote != null && !Remote.EndPoint.IsAny())
-        {
-            if (_Server == null)
-                return $"{Local}=>{Remote.EndPoint}";
-            else
-                return $"{Local}<={Remote.EndPoint}";
-        }
-        else
-            return Local.ToString();
+        var local = Local;
+        var remote = Remote.EndPoint;
+        if (remote == null || remote.IsAny())
+            return local.ToString();
+
+        return _Server == null ? $"{local}=>{remote}" : $"{local}<={remote}";
     }
     #endregion
 }

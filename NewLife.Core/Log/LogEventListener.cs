@@ -81,9 +81,13 @@ public class LogEventListener : EventListener
         }
 #else
         XTrace.WriteLine($"#{eventData.EventSource?.Name} ThreadID = {eventData.OSThreadId} ID = {eventData.EventId} Name = {eventData.EventName}");
-        for (var i = 0; i < eventData.Payload.Count; i++)
+        var names = eventData.PayloadNames;
+        if (eventData.Payload != null && names != null)
         {
-            XTrace.WriteLine($"\tName = \"{eventData.PayloadNames[i]}\" Value = \"{eventData.Payload[i]}\"");
+            for (var i = 0; i < eventData.Payload.Count && i < names.Count; i++)
+            {
+                XTrace.WriteLine($"\tName = \"{names[i]}\" Value = \"{eventData.Payload[i]}\"");
+            }
         }
 #endif
 

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,19 +18,19 @@ public class AssemblyX
     /// <summary>程序集</summary>
     public Assembly Asm { get; }
 
-    private String _Name;
+    private String? _Name;
     /// <summary>名称</summary>
     public String Name => _Name ??= "" + Asm.GetName().Name;
 
-    private String _Version;
+    private String? _Version;
     /// <summary>程序集版本</summary>
     public String Version => _Version ??= "" + Asm.GetName().Version;
 
-    private String _Title;
+    private String? _Title;
     /// <summary>程序集标题</summary>
     public String Title => _Title ??= "" + Asm.GetCustomAttributeValue<AssemblyTitleAttribute, String>();
 
-    private String _FileVersion;
+    private String? _FileVersion;
     /// <summary>文件版本</summary>
     public String FileVersion
     {
@@ -46,9 +47,9 @@ public class AssemblyX
                 _FileVersion = ver;
             }
 
-            if (_FileVersion == null) _FileVersion = Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
+            _FileVersion ??= Asm.GetCustomAttributeValue<AssemblyFileVersionAttribute, String>();
 
-            if (_FileVersion == null) _FileVersion = "";
+            _FileVersion ??= "";
 
             return _FileVersion;
         }
@@ -71,16 +72,16 @@ public class AssemblyX
         }
     }
 
-    private String _Company;
+    private String? _Company;
     /// <summary>公司名称</summary>
     public String Company => _Company ??= "" + Asm.GetCustomAttributeValue<AssemblyCompanyAttribute, String>();
 
-    private String _Description;
+    private String? _Description;
     /// <summary>说明</summary>
     public String Description => _Description ??= "" + Asm.GetCustomAttributeValue<AssemblyDescriptionAttribute, String>();
 
     /// <summary>获取包含清单的已加载文件的路径或 UNC 位置。</summary>
-    public String Location
+    public String? Location
     {
         get
         {
@@ -100,7 +101,7 @@ public class AssemblyX
     /// <summary>创建程序集辅助对象</summary>
     /// <param name="asm"></param>
     /// <returns></returns>
-    public static AssemblyX Create(Assembly asm)
+    public static AssemblyX? Create(Assembly? asm)
     {
         if (asm == null) return null;
 
@@ -113,7 +114,7 @@ public class AssemblyX
         AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
     }
 
-    private static Assembly OnAssemblyResolve(Object sender, ResolveEventArgs args)
+    private static Assembly? OnAssemblyResolve(Object? sender, ResolveEventArgs args)
     {
         var flag = XTrace.Log.Level <= LogLevel.Debug;
         if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
@@ -123,7 +124,7 @@ public class AssemblyX
         {
             // 尝试在请求者所在目录加载
             var file = args.RequestingAssembly?.Location;
-            if (!file.IsNullOrEmpty())
+            if (!file.IsNullOrEmpty() && !args.Name.IsNullOrEmpty())
             {
                 var name = args.Name;
                 var p = name.IndexOf(',');
@@ -134,7 +135,7 @@ public class AssemblyX
             }
 
             // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
-            if (Setting.Current.AssemblyResolve)
+            if (Setting.Current.AssemblyResolve && !args.Name.IsNullOrEmpty())
                 return OnResolve(args.Name);
         }
         catch (Exception ex)
@@ -153,7 +154,7 @@ public class AssemblyX
     {
         get
         {
-            Type[] ts;
+            Type?[]? ts;
             try
             {
                 ts = Asm.GetTypes();
@@ -165,7 +166,7 @@ public class AssemblyX
                     XTrace.WriteLine("加载[{0}]{1}的类型时发生个{2}错误！", this, Location, ex.LoaderExceptions.Length);
                     foreach (var le in ex.LoaderExceptions)
                     {
-                        XTrace.WriteException(le);
+                        if (le != null) XTrace.WriteException(le);
                     }
                 }
                 ts = ex.Types;
@@ -178,7 +179,11 @@ public class AssemblyX
                 if (item != null) yield return item;
             }
 
-            var queue = new Queue<Type>(ts);
+            var queue = new Queue<Type>();
+            foreach (var item in ts)
+            {
+                if (item != null) queue.Enqueue(item);
+            }
             while (queue.Count > 0)
             {
                 var item = queue.Dequeue();
@@ -210,6 +215,8 @@ public class AssemblyX
         if (asm == null) return false;
 
         var name = asm.FullName;
+        if (name.IsNullOrEmpty()) return false;
+
         if (name.EndsWith("PublicKeyToken=b77a5c561934e089")) return true;
         if (name.EndsWith("PublicKeyToken=b03f5f7f11d50a3a")) return true;
         if (name.EndsWith("PublicKeyToken=89845dcd8080cc91")) return true;
@@ -221,20 +228,20 @@ public class AssemblyX
 
     #region 静态属性
     /// <summary>入口程序集</summary>
-    public static AssemblyX Entry { get; set; } = Create(Assembly.GetEntryAssembly());
+    public static AssemblyX? Entry { get; set; } = Create(Assembly.GetEntryAssembly());
 
     /// <summary>
     /// 加载过滤器，如果返回 false 表示跳过加载。
     /// </summary>
-    public static Func<String, Boolean> ResolveFilter { get; set; }
+    public static Func<String, Boolean>? ResolveFilter { get; set; }
     #endregion
 
     #region 方法
-    private readonly ConcurrentDictionary<String, Type> typeCache2 = new();
+    private readonly ConcurrentDictionary<String, Type?> typeCache2 = new();
     /// <summary>从程序集中查找指定名称的类型</summary>
     /// <param name="typeName"></param>
     /// <returns></returns>
-    public Type GetType(String typeName)
+    public Type? GetType(String typeName)
     {
         if (String.IsNullOrEmpty(typeName)) throw new ArgumentNullException(nameof(typeName));
 
@@ -244,7 +251,7 @@ public class AssemblyX
     /// <summary>在程序集中查找类型</summary>
     /// <param name="typeName"></param>
     /// <returns></returns>
-    private Type GetTypeInternal(String typeName)
+    private Type? GetTypeInternal(String typeName)
     {
         var type = Asm.GetType(typeName);
         if (type != null) return type;
@@ -382,18 +389,20 @@ public class AssemblyX
                         // 如果是本目录的程序集，去掉目录前缀
                         var file = item.Asm.Location;
                         var root = AppDomain.CurrentDomain.BaseDirectory;
-                        if (file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                        if (!root.IsNullOrEmpty() && file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
                         XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
                     }
                     var asm2 = Assembly.LoadFrom(item.Asm.Location);
-                    ts = Create(asm2).FindPlugins(baseType);
-
-                    foreach (var elm in ts)
+                    ts = Create(asm2)?.FindPlugins(baseType);
+                    if (ts != null)
                     {
-                        if (!list.Contains(elm))
+                        foreach (var elm in ts)
                         {
-                            list.Add(elm);
-                            yield return elm;
+                            if (!list.Contains(elm))
+                            {
+                                list.Add(elm);
+                                yield return elm;
+                            }
                         }
                     }
                 }
@@ -405,8 +414,9 @@ public class AssemblyX
     /// <param name="asm">程序集</param>
     /// <param name="baseAsmName">被引用程序集全名</param>
     /// <returns></returns>
-    private static Boolean IsReferencedFrom(Assembly asm, String baseAsmName)
+    private static Boolean IsReferencedFrom(Assembly asm, String? baseAsmName)
     {
+        if (baseAsmName.IsNullOrEmpty()) return false;
         if (asm.GetName().Name.EqualIgnoreCase(baseAsmName)) return true;
 
         foreach (var item in asm.GetReferencedAssemblies())
@@ -421,7 +431,7 @@ public class AssemblyX
     /// <param name="typeName">类型名</param>
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
-    public static Type GetType(String typeName, Boolean isLoadAssembly)
+    public static Type? GetType(String typeName, Boolean isLoadAssembly)
     {
         var type = Type.GetType(typeName);
         if (type != null) return type;
@@ -488,7 +498,7 @@ public class AssemblyX
                 {
                     type = null;
                     var asm2 = Assembly.LoadFrom(file);
-                    var type2 = Create(asm2).GetType(typeName);
+                    var type2 = Create(asm2)?.GetType(typeName);
                     if (type2 == null) continue;
 
                     type = type2;
@@ -510,20 +520,26 @@ public class AssemblyX
     /// <summary>获取指定程序域所有程序集</summary>
     /// <param name="domain"></param>
     /// <returns></returns>
-    public static IEnumerable<AssemblyX> GetAssemblies(AppDomain domain = null)
+    public static IEnumerable<AssemblyX> GetAssemblies(AppDomain? domain = null)
     {
-        if (domain == null) domain = AppDomain.CurrentDomain;
+        domain ??= AppDomain.CurrentDomain;
 
         var asms = domain.GetAssemblies();
-        if (asms == null || asms.Length <= 0) return Enumerable.Empty<AssemblyX>();
+        if (asms == null || asms.Length <= 0) yield break;
 
-        return asms.Select(item => Create(item));
+        //return asms.Select(item => Create(item));
+        foreach (var item in asms)
+        {
+            var rs = Create(item);
+            if (rs != null) yield return rs;
+        }
     }
 
-    private static ICollection<String> _AssemblyPaths;
+    private static ICollection<String>? _AssemblyPaths;
     /// <summary>程序集目录集合</summary>
     public static ICollection<String> AssemblyPaths
     {
+        [return: NotNull]
         get
         {
             if (_AssemblyPaths == null)
@@ -560,6 +576,8 @@ public class AssemblyX
         var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
         foreach (var item in loadeds2)
         {
+            if (item == null) continue;
+
             if (loadeds.Any(e => e.Location.EqualIgnoreCase(item.Location))) continue;
             // 尽管目录不一样，但这两个可能是相同的程序集
             // 这里导致加载了不同目录的同一个程序集，然后导致对象容器频繁报错
@@ -585,7 +603,13 @@ public class AssemblyX
         if (!Directory.Exists(path)) yield break;
 
         // 先返回已加载的只加载程序集
-        var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+        //var loadeds2 = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies().Select(e => Create(e)).ToList();
+        var loadeds2 = new List<AssemblyX>();
+        foreach (var item in AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies())
+        {
+            var ax = Create(item);
+            if (ax != null) loadeds2.Add(ax);
+        }
 
         // 再去遍历目录
         var ss = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly);
@@ -604,7 +628,7 @@ public class AssemblyX
             if (loadeds.Any(e => e.Location.EqualIgnoreCase(item)) ||
                 loadeds2.Any(e => e.Location.EqualIgnoreCase(item))) continue;
 
-            Assembly asm = null;
+            Assembly? asm = null;
             try
             {
                 asm = Assembly.LoadFrom(item);
@@ -658,6 +682,7 @@ public class AssemblyX
                     else
                         file = file.Replace('\\', '/').EnsureStart("/");
                 }
+                if (file.IsNullOrEmpty()) continue;
                 if (!file.StartsWithIgnoreCase(cur)) continue;
 
                 if (!hs.Contains(file))
@@ -674,7 +699,7 @@ public class AssemblyX
     /// <summary>在对程序集的解析失败时发生</summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    private static Assembly OnResolve(String name)
+    private static Assembly? OnResolve(String name)
     {
         foreach (var item in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -744,7 +769,7 @@ public class AssemblyX
     /// <returns></returns>
     public static DateTime GetCompileTime(String version)
     {
-        var ss = version?.Split(new Char[] { '.' });
+        var ss = version?.Split(['.']);
         if (ss == null || ss.Length < 4) return DateTime.MinValue;
 
         var d = ss[2].ToInt();

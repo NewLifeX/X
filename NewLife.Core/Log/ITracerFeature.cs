@@ -4,5 +4,5 @@
 public interface ITracerFeature
 {
     /// <summary>性能追踪</summary>
-    ITracer Tracer { get; set; }
+    ITracer? Tracer { get; set; }
 }

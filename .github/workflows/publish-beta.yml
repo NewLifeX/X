@@ -2,11 +2,11 @@ name: publish-beta
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
     paths:
         - 'NewLife.Core/**'
   pull_request:
-    branches: [ master ]
+    branches: [ master, dev ]
     paths:
         - 'NewLife.Core/**'
   workflow_dispatch:
@@ -16,11 +16,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup dotNET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.x
     - name: Get Version
       run: echo "VERSION=$(date '+%Y.%m%d-beta%H%M')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Build

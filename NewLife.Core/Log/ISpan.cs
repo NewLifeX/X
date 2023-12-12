@@ -1,12 +1,15 @@
 ﻿using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Remoting;
 using NewLife.Serialization;
 
 namespace NewLife.Log;
@@ -18,7 +21,7 @@ public interface ISpan : IDisposable
     String Id { get; set; }
 
     /// <summary>父级片段标识</summary>
-    String ParentId { get; set; }
+    String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
     String TraceId { get; set; }
@@ -30,15 +33,15 @@ public interface ISpan : IDisposable
     Int64 EndTime { get; set; }
 
     /// <summary>数据标签。记录一些附加数据</summary>
-    String Tag { get; set; }
+    String? Tag { get; set; }
 
     /// <summary>错误信息</summary>
-    String Error { get; set; }
+    String? Error { get; set; }
 
-    /// <summary>设置错误信息</summary>
+    /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
-    void SetError(Exception ex, Object tag);
+    void SetError(Exception ex, Object? tag = null);
 
     /// <summary>设置数据标签。内部根据长度截断</summary>
     /// <param name="tag">标签</param>
@@ -54,16 +57,16 @@ public class DefaultSpan : ISpan
     #region 属性
     /// <summary>构建器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-    public ISpanBuilder Builder { get; private set; }
+    public ISpanBuilder? Builder { get; private set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
-    public String Id { get; set; }
+    public String Id { get; set; } = null!;
 
     /// <summary>父级片段标识</summary>
-    public String ParentId { get; set; }
+    public String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
-    public String TraceId { get; set; }
+    public String TraceId { get; set; } = null!;
 
     /// <summary>开始时间。Unix毫秒</summary>
     public Int64 StartTime { get; set; }
@@ -72,7 +75,7 @@ public class DefaultSpan : ISpan
     public Int64 EndTime { get; set; }
 
     /// <summary>数据标签。记录一些附加数据</summary>
-    public String Tag { get; set; }
+    public String? Tag { get; set; }
 
     ///// <summary>版本</summary>
     //public Byte Version { get; set; }
@@ -81,17 +84,17 @@ public class DefaultSpan : ISpan
     public Byte TraceFlag { get; set; }
 
     /// <summary>错误信息</summary>
-    public String Error { get; set; }
+    public String? Error { get; set; }
 
 #if NET45
-    private static readonly ThreadLocal<ISpan> _Current = new();
+    private static readonly ThreadLocal<ISpan?> _Current = new();
 #else
-    private static readonly AsyncLocal<ISpan> _Current = new();
+    private static readonly AsyncLocal<ISpan?> _Current = new();
 #endif
     /// <summary>当前线程正在使用的上下文</summary>
-    public static ISpan Current { get => _Current.Value; set => _Current.Value = value; }
+    public static ISpan? Current { get => _Current.Value; set => _Current.Value = value; }
 
-    private ISpan _parent;
+    private ISpan? _parent;
     private Int32 _finished;
     #endregion
 
@@ -109,7 +112,7 @@ public class DefaultSpan : ISpan
 
     static DefaultSpan()
     {
-        IPAddress ip;
+        IPAddress? ip;
         try
         {
             ip = NetHelper.MyIP();
@@ -201,39 +204,53 @@ public class DefaultSpan : ISpan
         // 从本线程中清除跟踪标识
         Current = _parent;
 
-        // Builder这一批可能已经上传，重新取一次，以防万一
-        var builder = Builder.Tracer.BuildSpan(Builder.Name);
-        builder.Finish(this);
+        var name = Builder?.Name;
+        if (!name.IsNullOrEmpty())
+        {
+            // Builder这一批可能已经上传，重新取一次，以防万一
+            var builder = Builder?.Tracer?.BuildSpan(name);
+            builder?.Finish(this);
+        }
 
         // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
         // 也有可能原来的Builder已经上传，现在加入了新的builder集合
         Builder = null;
     }
 
-    /// <summary>设置错误信息</summary>
+    /// <summary>设置错误信息，ApiException除外</summary>
     /// <param name="ex">异常</param>
     /// <param name="tag">标签</param>
-    public virtual void SetError(Exception ex, Object tag)
+    public virtual void SetError(Exception ex, Object? tag)
     {
-        Error = ex?.GetMessage();
+        SetTag(tag);
 
         if (ex != null)
         {
+            var name = $"ex:{ex.GetType().Name}";
+
+            // 业务异常，不属于异常，而是正常流程
+            if (ex is ApiException aex)
+            {
+                name = $"ex:{ex.GetType().Name}[{aex.Code}]";
+                this.AppendTag($"Api[{aex.Code}]:{aex.Message}\r\n{aex.Source}");
+            }
+            else
+                Error = ex.GetMessage();
+
             // 所有异常，独立记录埋点，便于按异常分类统计
-            using var span = Builder?.Tracer?.NewSpan("ex:" + ex.GetType().Name, tag ?? ex.ToString());
+            using var span = Builder?.Tracer?.NewSpan(name, tag);
+            span?.AppendTag(ex.ToString());
             if (span != null) span.StartTime = StartTime;
         }
-
-        SetTag(tag);
     }
 
     /// <summary>设置数据标签。内部根据长度截断</summary>
     /// <param name="tag">标签</param>
-    public virtual void SetTag(Object tag)
+    public virtual void SetTag(Object? tag)
     {
         if (tag == null) return;
 
-        var len = Builder?.Tracer?.MaxTagLength ?? 0;
+        var len = Builder?.Tracer?.MaxTagLength ?? 1024;
         if (len <= 0) return;
 
         if (tag is String str)
@@ -262,7 +279,7 @@ public class DefaultSpan : ISpan
 public static class SpanExtension
 {
     #region 扩展方法
-    private static String GetAttachParameter(ISpan span)
+    private static String? GetAttachParameter(ISpan span)
     {
         var builder = (span as DefaultSpan)?.Builder;
         var tracer = (builder as DefaultSpanBuilder)?.Tracer;
@@ -275,7 +292,7 @@ public static class SpanExtension
     /// <returns></returns>
     public static HttpRequestMessage Attach(this ISpan span, HttpRequestMessage request)
     {
-        if (span == null || request == null) return request;
+        //if (span == null || request == null) return request;
 
         // 注入参数名
         var name = GetAttachParameter(span);
@@ -310,7 +327,7 @@ public static class SpanExtension
     /// <returns></returns>
     public static WebRequest Attach(this ISpan span, WebRequest request)
     {
-        if (span == null || request == null) return request;
+        //if (span == null || request == null) return request;
 
         // 注入参数名
         var name = GetAttachParameter(span);
@@ -326,10 +343,14 @@ public static class SpanExtension
     /// <param name="span">片段</param>
     /// <param name="args">api请求参数</param>
     /// <returns></returns>
-    public static Object Attach(this ISpan span, Object args)
+    [return: NotNullIfNotNull(nameof(args))]
+    public static Object? Attach(this ISpan span, Object? args)
     {
         if (span == null || args == null || args is Packet || args is Byte[] || args is IAccessor) return args;
-        if (Type.GetTypeCode(args.GetType()) != TypeCode.Object) return args;
+
+        var type = args.GetType();
+        if (type.IsArray || type.IsValueType || type == typeof(String)) return args;
+        if (Type.GetTypeCode(type) != TypeCode.Object) return args;
 
         // 注入参数名
         var name = GetAttachParameter(span);
@@ -349,10 +370,10 @@ public static class SpanExtension
         if (span == null || headers == null || headers.Count == 0) return;
 
         // 不区分大小写比较头部
-        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+        var dic = new Dictionary<String, String?>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in headers.AllKeys)
         {
-            dic[item] = headers[item];
+            if (item != null) dic[item] = headers[item];
         }
 
         Detach2(span, dic);
@@ -361,7 +382,7 @@ public static class SpanExtension
     /// <summary>从api请求释放片段信息</summary>
     /// <param name="span">片段</param>
     /// <param name="parameters">参数</param>
-    public static void Detach(this ISpan span, IDictionary<String, Object> parameters)
+    public static void Detach(this ISpan span, IDictionary<String, Object?> parameters)
     {
         if (span == null || parameters == null || parameters.Count == 0) return;
 
@@ -423,6 +444,7 @@ public static class SpanExtension
         if (span == null || traceId.IsNullOrEmpty()) return;
 
         var ss = traceId.Split('-');
+        if (ss.Length == 1) span.TraceId = ss[0];
         if (ss.Length > 1) span.TraceId = ss[1];
         if (ss.Length > 2) span.ParentId = ss[2];
 
@@ -443,13 +465,14 @@ public static class SpanExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0)
         {
+            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (span.Tag.IsNullOrEmpty())
                 span.SetTag(tag);
-            else if (span.Tag.Length < 1024)
+            else if (span.Tag.Length < maxLength)
             {
                 var old = span.Tag;
                 span.SetTag(tag);
-                span.Tag = (old + "\r\n\r\n" + span.Tag).Cut(1024);
+                span.Tag = (old + "\r\n" + span.Tag).Cut(maxLength);
             }
         }
     }
@@ -462,17 +485,21 @@ public static class SpanExtension
         // 正常响应，部分作为Tag信息
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            if (span is DefaultSpan ds && ds.TraceFlag > 0 && (span.Tag.IsNullOrEmpty() || span.Tag.Length < 1024))
+            if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                // 判断类型和长度
-                var content = response.Content;
-                var mediaType = content.Headers?.ContentType?.MediaType;
-                var len = content.Headers?.ContentLength ?? 0;
-                if (len >= 0 && len < 1024 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
+                var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+                if (span.Tag.IsNullOrEmpty() || span.Tag.Length < maxLength)
                 {
-                    var result = content.ReadAsStringAsync().Result;
-                    if (!result.IsNullOrEmpty())
-                        span.Tag = (span.Tag + "\r\n\r\n" + result).Cut(1024);
+                    // 判断类型和长度
+                    var content = response.Content;
+                    var mediaType = content.Headers?.ContentType?.MediaType;
+                    var len = content.Headers?.ContentLength ?? 0;
+                    if (len >= 0 && len < 1024 * 8 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
+                    {
+                        var result = content.ReadAsStringAsync().Result;
+                        if (!result.IsNullOrEmpty())
+                            span.Tag = (span.Tag + "\r\n" + result).Cut(maxLength);
+                    }
                 }
             }
         }

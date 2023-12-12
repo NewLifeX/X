@@ -17,17 +17,20 @@ public class JsonDictionary : JsonHandlerBase
     /// <param name="value"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (value is not IDictionary dic) return false;
 
         Host.Write("{");
 
         // 循环写入数据
-        foreach (DictionaryEntry item in dic)
+        foreach (var item in dic)
         {
-            Host.Write(item.Key);
-            Host.Write(item.Value);
+            if (item is DictionaryEntry de)
+            {
+                Host.Write(de.Key);
+                Host.Write(de.Value);
+            }
         }
 
         Host.Write("}");
@@ -39,7 +42,7 @@ public class JsonDictionary : JsonHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (!type.As<IDictionary>() && !type.As(typeof(IDictionary<,>))) return false;
 
@@ -48,11 +51,14 @@ public class JsonDictionary : JsonHandlerBase
 
         // 子元素类型
         var elmType = type.GetElementTypeEx();
+        if (elmType == null) throw new ArgumentNullException(nameof(elmType));
 
         var list = typeof(IList<>).MakeGenericType(elmType).CreateInstance() as IList;
+        if (list == null) throw new ArgumentOutOfRangeException(nameof(elmType));
+
         while (!Host.Read("}"))
         {
-            Object obj = null;
+            Object? obj = null;
             if (!Host.TryRead(elmType, ref obj)) return false;
 
             list.Add(obj);
@@ -61,7 +67,7 @@ public class JsonDictionary : JsonHandlerBase
         // 数组的创建比较特别
         if (type.As<Array>())
         {
-            value = Array.CreateInstance(type.GetElementTypeEx(), list.Count);
+            value = Array.CreateInstance(elmType, list.Count);
             list.CopyTo((Array)value, 0);
         }
         else

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -27,7 +28,7 @@ public class Binary : FormatterBase, IBinary
     public Boolean TrimZero { get; set; }
 
     /// <summary>协议版本。用于支持多版本协议序列化，配合FieldSize特性使用。例如JT/T808的2011/2019</summary>
-    public String Version { get; set; }
+    public String? Version { get; set; }
 
     /// <summary>要忽略的成员</summary>
     public ICollection<String> IgnoreMembers { get; set; } = new HashSet<String>();
@@ -89,7 +90,7 @@ public class Binary : FormatterBase, IBinary
     /// <summary>获取处理器</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T GetHandler<T>() where T : class, IBinaryHandler
+    public T? GetHandler<T>() where T : class, IBinaryHandler
     {
         foreach (var item in Handlers)
         {
@@ -105,7 +106,7 @@ public class Binary : FormatterBase, IBinary
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public virtual Boolean Write(Object value, Type type = null)
+    public virtual Boolean Write(Object? value, Type? type = null)
     {
         if (type == null)
         {
@@ -174,17 +175,17 @@ public class Binary : FormatterBase, IBinary
     }
 
     [ThreadStatic]
-    private static Byte[] _encodes;
+    private static Byte[]? _encodes;
     #endregion
 
     #region 读取
     /// <summary>读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public virtual Object Read(Type type)
+    public virtual Object? Read(Type type)
     {
-        Object value = null;
-        if (!TryRead(type, ref value)) throw new Exception($"读取失败，不支持类型{type}！");
+        Object? value = null;
+        if (!TryRead(type, ref value)) throw new Exception($"Read failed, type {type} is not supported!");
 
         return value;
     }
@@ -192,13 +193,13 @@ public class Binary : FormatterBase, IBinary
     /// <summary>读取指定类型对象</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Read<T>() => (T)Read(typeof(T));
+    public T? Read<T>() => (T?)Read(typeof(T));
 
     /// <summary>尝试读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public virtual Boolean TryRead(Type type, ref Object value)
+    public virtual Boolean TryRead(Type type, ref Object? value)
     {
         if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryRead {0} {1}", type.Name, value);
 
@@ -228,7 +229,7 @@ public class Binary : FormatterBase, IBinary
     public virtual Byte ReadByte()
     {
         var b = Stream.ReadByte();
-        if (b < 0) throw new Exception("数据流超出范围！");
+        if (b < 0) throw new Exception("The data stream is out of range!");
         return (Byte)b;
     }
 
@@ -254,8 +255,8 @@ public class Binary : FormatterBase, IBinary
         return sizeWidth switch
         {
             1 => ReadByte(),
-            2 => (Int16)Read(typeof(Int16)),
-            4 => (Int32)Read(typeof(Int32)),
+            2 => (Int16)(Read(typeof(Int16)) ?? 0),
+            4 => (Int32)(Read(typeof(Int32)) ?? 0),
             0 => ReadEncodedInt32(),
             _ => -1,
         };
@@ -276,7 +277,8 @@ public class Binary : FormatterBase, IBinary
                     if (att.Version.IsNullOrEmpty() || att.Version == Version)
                     {
                         // 如果指定了引用字段，则找引用字段所表示的长度
-                        if (!att.ReferenceName.IsNullOrEmpty() && att.TryGetReferenceSize(Hosts.Peek(), member, out size))
+                        var target = Hosts.Peek();
+                        if (!att.ReferenceName.IsNullOrEmpty() && target != null && att.TryGetReferenceSize(target, member, out size))
                             return true;
 
                         // 如果指定了固定大小，直接返回
@@ -309,7 +311,7 @@ public class Binary : FormatterBase, IBinary
     /// <returns>实际写入字节数</returns>
     public Int32 WriteEncoded(Int32 value)
     {
-        if (_encodes == null) _encodes = new Byte[16];
+        _encodes ??= new Byte[16];
 
         var count = 0;
         var num = (UInt32)value;
@@ -340,7 +342,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 16) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -360,7 +362,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -380,7 +382,7 @@ public class Binary : FormatterBase, IBinary
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 64) throw new FormatException("数字值过大，无法使用压缩格式读取！");
+            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return rs;
     }
@@ -468,7 +470,7 @@ public class Binary : FormatterBase, IBinary
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
     /// <param name="value"></param>
     /// <param name="max"></param>
-    public void WriteFixedString(String value, Int32 max)
+    public void WriteFixedString(String? value, Int32 max)
     {
         var buf = new Byte[max];
         if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
@@ -488,12 +490,12 @@ public class Binary : FormatterBase, IBinary
         for (s = 0; s < len && (buf[s] == 0x00 || buf[s] == 0xFF); s++) ;
         for (e = len - 1; e >= 0 && (buf[e] == 0x00 || buf[e] == 0xFF); e--) ;
 
-        if (s >= len || e < 0) return null;
+        if (s >= len || e < 0) return String.Empty;
 
         var str = Encoding.GetString(buf, s, e - s + 1);
         if (TrimZero && str != null) str = str.Trim('\0');
 
-        return str;
+        return str ?? String.Empty;
     }
     #endregion
 
@@ -514,7 +516,7 @@ public class Binary : FormatterBase, IBinary
     /// <param name="stream">数据流</param>
     /// <param name="encodeInt">使用7位编码整数</param>
     /// <returns></returns>
-    public static T FastRead<T>(Stream stream, Boolean encodeInt = true)
+    public static T? FastRead<T>(Stream stream, Boolean encodeInt = true)
     {
         var bn = new Binary() { Stream = stream, EncodeInt = encodeInt };
         return bn.Read<T>();

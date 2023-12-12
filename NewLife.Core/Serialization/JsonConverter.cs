@@ -14,7 +14,11 @@ public class JsonConverter<TService, TImplementation> : JsonConverter<TService> 
     /// <param name="typeToConvert"></param>
     /// <param name="options"></param>
     /// <returns></returns>
+#if NETCOREAPP3_1
     public override TService Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => JsonSerializer.Deserialize<TImplementation>(ref reader, options);
+#else
+    public override TService? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => JsonSerializer.Deserialize<TImplementation>(ref reader, options);
+#endif
 
     /// <summary>写入</summary>
     /// <param name="writer"></param>

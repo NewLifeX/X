@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 namespace NewLife;
 
 /// <summary>运行时</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/runtime
+/// </remarks>
 public static class Runtime
 {
     #region 控制台
@@ -114,15 +117,18 @@ public static class Runtime
     /// </summary>
     /// <param name="variable"></param>
     /// <returns></returns>
-    public static String GetEnvironmentVariable(String variable)
+    public static String? GetEnvironmentVariable(String variable)
     {
         var val = Environment.GetEnvironmentVariable(variable);
         if (!val.IsNullOrEmpty()) return val;
 
-        foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+        foreach (var item in Environment.GetEnvironmentVariables())
         {
-            var key = item.Key as String;
-            if (key.EqualIgnoreCase(variable)) return item.Value as String;
+            if (item is DictionaryEntry de)
+            {
+                var key = de.Key as String;
+                if (key.EqualIgnoreCase(variable)) return de.Value as String;
+            }
         }
 
         return null;
@@ -132,16 +138,18 @@ public static class Runtime
     /// 获取环境变量集合。不区分大小写
     /// </summary>
     /// <returns></returns>
-    public static IDictionary<String, String> GetEnvironmentVariables()
+    public static IDictionary<String, String?> GetEnvironmentVariables()
     {
-        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        foreach (DictionaryEntry item in Environment.GetEnvironmentVariables())
+        var dic = new Dictionary<String, String?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in Environment.GetEnvironmentVariables())
         {
-            var key = item.Key as String;
-            if (!key.IsNullOrEmpty()) dic[key] = item.Value as String;
+            if (item is not DictionaryEntry de) continue;
+
+            var key = de.Key as String;
+            if (!key.IsNullOrEmpty()) dic[key] = de.Value as String;
         }
 
-        return null;
+        return dic;
     }
     #endregion
 }

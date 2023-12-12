@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Log;
 using NewLife.Security;
 
@@ -22,7 +23,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取和设置缓存，使用默认过期时间</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object this[String key] { get => Get<Object>(key); set => Set(key, value); }
+    public virtual Object? this[String key] { get => Get<Object>(key); set => Set(key, value); }
 
     /// <summary>缓存个数</summary>
     public abstract Int32 Count { get; }
@@ -63,6 +64,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public abstract T Get<T>(String key);
 
     /// <summary>批量移除缓存项</summary>
@@ -89,9 +91,9 @@ public abstract class Cache : DisposeBase, ICache
     /// <typeparam name="T"></typeparam>
     /// <param name="keys"></param>
     /// <returns></returns>
-    public virtual IDictionary<String, T> GetAll<T>(IEnumerable<String> keys)
+    public virtual IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys)
     {
-        var dic = new Dictionary<String, T>();
+        var dic = new Dictionary<String, T?>();
         foreach (var key in keys)
         {
             dic[key] = Get<T>(key);
@@ -162,6 +164,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public virtual T Replace<T>(String key, T value)
     {
         var rs = Get<T>(key);
@@ -174,7 +177,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    public virtual Boolean TryGetValue<T>(String key, out T value)
+    public virtual Boolean TryGetValue<T>(String key, [MaybeNull] out T value)
     {
         value = Get<T>(key);
         if (!Equals(value, default)) return true;
@@ -188,6 +191,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
+    [return: MaybeNull]
     public virtual T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
     {
         var value = Get<T>(key);
@@ -277,10 +281,10 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，单位毫秒</param>
     /// <returns></returns>
-    public IDisposable AcquireLock(String key, Int32 msTimeout)
+    public IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
-        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+        if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
 
         return rlock;
     }
@@ -291,12 +295,12 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="msExpire">锁过期时间，超过该时间如果没有主动释放则自动释放锁，必须整数秒，单位毫秒</param>
     /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
     /// <returns></returns>
-    public IDisposable AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure)
+    public IDisposable? AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure)
     {
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msExpire))
         {
-            if (throwOnFailure) throw new InvalidOperationException($"锁定[{key}]失败！msTimeout={msTimeout}");
+            if (throwOnFailure) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
 
             return null;
         }

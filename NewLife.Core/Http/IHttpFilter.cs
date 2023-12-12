@@ -1,4 +1,6 @@
-﻿namespace NewLife.Http;
+﻿using System.Net.Http;
+
+namespace NewLife.Http;
 
 /// <summary>Http过滤器，拦截请求前后</summary>
 public interface IHttpFilter
@@ -9,7 +11,7 @@ public interface IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnRequest(HttpClient client, HttpRequestMessage request, Object state, CancellationToken cancellationToken);
+    Task OnRequest(HttpClient client, HttpRequestMessage request, Object? state, CancellationToken cancellationToken);
 
     /// <summary>获取响应后</summary>
     /// <param name="client">客户端</param>
@@ -17,7 +19,7 @@ public interface IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnResponse(HttpClient client, HttpResponseMessage response, Object state, CancellationToken cancellationToken);
+    Task OnResponse(HttpClient client, HttpResponseMessage response, Object? state, CancellationToken cancellationToken);
 
     /// <summary>发生错误时</summary>
     /// <param name="client">客户端</param>
@@ -25,5 +27,5 @@ public interface IHttpFilter
     /// <param name="state">状态数据</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task OnError(HttpClient client, Exception exception, Object state, CancellationToken cancellationToken);
+    Task OnError(HttpClient client, Exception exception, Object? state, CancellationToken cancellationToken);
 }

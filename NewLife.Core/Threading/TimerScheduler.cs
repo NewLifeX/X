@@ -6,7 +6,7 @@ using NewLife.Reflection;
 namespace NewLife.Threading;
 
 /// <summary>定时器调度器</summary>
-public class TimerScheduler
+public class TimerScheduler : ILogFeature
 {
     #region 静态
     private TimerScheduler(String name) => Name = name;
@@ -163,37 +163,37 @@ public class TimerScheduler
                 {
                     if (!timer.Calling && CheckTime(timer, now))
                     {
-                        // 是否能够执行
-                        if (timer.CanExecute == null || timer.CanExecute())
-                        {
-                            // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
-                            timer.Calling = true;
-                            if (timer.IsAsyncTask)
-                                Task.Factory.StartNew(ExecuteAsync, timer);
-                            else if (!timer.Async)
-                                Execute(timer);
-                            else
-                                //Task.Factory.StartNew(() => ProcessItem(timer));
-                                // 不需要上下文流动
-                                ThreadPool.UnsafeQueueUserWorkItem(s =>
-                                {
-                                    try
-                                    {
-                                        Execute(s);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        XTrace.WriteException(ex);
-                                    }
-                                }, timer);
-                            // 内部线程池，让异步任务有公平竞争CPU的机会
-                            //ThreadPoolX.QueueUserWorkItem(Execute, timer);
-                        }
-                        // 即使不能执行，也要设置下一次的时间
+                        //// 是否能够执行
+                        //if (timer.CanExecute == null || timer.CanExecute())
+                        //{
+                        // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
+                        timer.Calling = true;
+                        if (timer.IsAsyncTask)
+                            Task.Factory.StartNew(ExecuteAsync, timer);
+                        else if (!timer.Async)
+                            Execute(timer);
                         else
-                        {
-                            OnFinish(timer);
-                        }
+                            //Task.Factory.StartNew(() => ProcessItem(timer));
+                            // 不需要上下文流动，捕获所有异常
+                            ThreadPool.UnsafeQueueUserWorkItem(s =>
+                            {
+                                try
+                                {
+                                    Execute(s);
+                                }
+                                catch (Exception ex)
+                                {
+                                    XTrace.WriteException(ex);
+                                }
+                            }, timer);
+                        // 内部线程池，让异步任务有公平竞争CPU的机会
+                        //ThreadPoolX.QueueUserWorkItem(Execute, timer);
+                        //}
+                        //// 即使不能执行，也要设置下一次的时间
+                        //else
+                        //{
+                        //    OnFinish(timer);
+                        //}
                     }
                 }
             }
@@ -262,7 +262,7 @@ public class TimerScheduler
             }
 
             var func = timer.Method.As<TimerCallback>(target);
-            func(timer.State);
+            func!(timer.State);
         }
         catch (ThreadAbortException) { throw; }
         catch (ThreadInterruptedException) { throw; }
@@ -308,7 +308,7 @@ public class TimerScheduler
             }
 
             var func = timer.Method.As<Func<Object?, Task>>(target);
-            await func(timer.State);
+            await func!(timer.State);
         }
         catch (ThreadAbortException) { throw; }
         catch (ThreadInterruptedException) { throw; }
@@ -369,7 +369,7 @@ public class TimerScheduler
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
-    private void WriteLog(String format, params Object[] args) => Log?.Info(Name + format, args);
+    private void WriteLog(String format, params Object?[] args) => Log?.Info(Name + format, args);
     #endregion
 }
 #nullable restore

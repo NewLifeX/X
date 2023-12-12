@@ -9,7 +9,7 @@ public class JsonGeneral : JsonHandlerBase
     /// <summary>获取对象的Json字符串表示形式。</summary>
     /// <param name="value"></param>
     /// <returns>返回null表示不支持</returns>
-    public override String GetString(Object value)
+    public override String? GetString(Object value)
     {
         if (value == null) return String.Empty;
 
@@ -56,7 +56,7 @@ public class JsonGeneral : JsonHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (type == null)
         {

@@ -11,7 +11,7 @@ namespace NewLife.Net.Handlers;
 public class MessageCodec<T> : Handler
 {
     /// <summary>消息队列。用于匹配请求响应包</summary>
-    public IMatchQueue Queue { get; set; }
+    public IMatchQueue? Queue { get; set; }
 
     /// <summary>匹配队列大小</summary>
     public Int32 QueueSize { get; set; } = 256;
@@ -26,12 +26,13 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public override Object Write(IHandlerContext context, Object message)
+    public override Object? Write(IHandlerContext context, Object message)
     {
         if (message is T msg)
         {
-            message = Encode(context, msg);
-            if (message == null) return null;
+            var rs = Encode(context, msg);
+            if (rs == null) return null;
+            message = rs;
 
             // 加入队列，忽略请求消息
             if (message is IMessage msg2)
@@ -49,7 +50,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="msg"></param>
     /// <returns></returns>
-    protected virtual Object Encode(IHandlerContext context, T msg)
+    protected virtual Object? Encode(IHandlerContext context, T msg)
     {
         if (msg is IMessage msg2) return msg2.ToPacket();
 
@@ -85,7 +86,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public override Object Read(IHandlerContext context, Object message)
+    public override Object? Read(IHandlerContext context, Object message)
     {
         if (message is not Packet pk) return base.Read(context, message);
 
@@ -95,12 +96,15 @@ public class MessageCodec<T> : Handler
 
         foreach (var msg in list)
         {
-            if (UserPacket && msg is IMessage msg2)
-                message = msg2.Payload;
-            else
-                message = msg;
+            if (msg == null) continue;
 
-            var rs = message;
+            Object? rs = null;
+            if (UserPacket && msg is IMessage msg2)
+                rs = msg2.Payload;
+            else
+                rs = msg;
+
+            //var rs = message;
             if (msg is IMessage msg3)
             {
                 // 匹配请求队列
@@ -110,7 +114,7 @@ public class MessageCodec<T> : Handler
                     // Match里面TrySetResult时，必然唤醒原来阻塞的Task，如果不是当前io线程执行后续代码，必然导致两个线程共用了数据区，因此需要拷贝
                     if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
 
-                    Queue?.Match(context.Owner, msg, rs, IsMatch);
+                    Queue?.Match(context.Owner, msg, rs ?? msg, IsMatch);
                 }
             }
             else if (rs != null)
@@ -121,7 +125,7 @@ public class MessageCodec<T> : Handler
 
             // 匹配输入回调，让上层事件收到分包信息。
             // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
-            base.Read(context, rs);
+            base.Read(context, rs ?? msg);
         }
 
         return null;
@@ -131,13 +135,13 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected virtual IList<T> Decode(IHandlerContext context, Packet pk) => null;
+    protected virtual IList<T>? Decode(IHandlerContext context, Packet pk) => null;
 
     /// <summary>是否匹配响应</summary>
     /// <param name="request"></param>
     /// <param name="response"></param>
     /// <returns></returns>
-    protected virtual Boolean IsMatch(Object request, Object response) => true;
+    protected virtual Boolean IsMatch(Object? request, Object? response) => true;
 
     #region 粘包处理
     /// <summary>从数据流中获取整帧数据长度</summary>

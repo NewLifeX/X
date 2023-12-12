@@ -1,4 +1,5 @@
-﻿using NewLife.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Reflection;
 
 namespace NewLife.Collections;
 
@@ -15,12 +16,12 @@ public class Pool<T> : IPool<T> where T : class
     /// <summary>对象池大小。默认CPU*2，初始化后改变无效</summary>
     public Int32 Max { get; set; }
 
-    private Item[] _items;
-    private T _current;
+    private Item[]? _items;
+    private T? _current;
 
     struct Item
     {
-        public T Value;
+        public T? Value;
     }
     #endregion
 
@@ -34,6 +35,7 @@ public class Pool<T> : IPool<T> where T : class
         Max = max;
     }
 
+    [MemberNotNull(nameof(_items))]
     private void Init()
     {
         if (_items != null) return;
@@ -64,7 +66,10 @@ public class Pool<T> : IPool<T> where T : class
             if (val != null && Interlocked.CompareExchange(ref items[i].Value, null, val) == val) return val;
         }
 
-        return OnCreate();
+        var rs = OnCreate();
+        if (rs == null) throw new InvalidOperationException($"Unable to create an instance of [{typeof(T).FullName}]");
+
+        return rs;
     }
 
     /// <summary>归还</summary>
@@ -99,6 +104,8 @@ public class Pool<T> : IPool<T> where T : class
         }
 
         var items = _items;
+        if (items == null) return count;
+
         for (var i = 0; i < items.Length; ++i)
         {
             if (items[i].Value != null)
@@ -116,6 +123,6 @@ public class Pool<T> : IPool<T> where T : class
     #region 重载
     /// <summary>创建实例</summary>
     /// <returns></returns>
-    protected virtual T OnCreate() => typeof(T).CreateInstance() as T;
+    protected virtual T? OnCreate() => typeof(T).CreateInstance() as T;
     #endregion
 }

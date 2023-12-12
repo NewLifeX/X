@@ -163,7 +163,13 @@ namespace XCode.DataAccessLayer
             // 兼容SqlServer2008R2分页功能
             if (pk == null || Dal.DbType == DatabaseType.SqlServer)
             {
-                var dc = table.Columns.FirstOrDefault();
+                //有些表是GUID为主键，排序会有问题，所以优先选择含time字段按时间排序
+                var dc = table.Columns.FirstOrDefault(e => e.ColumnName.ToLower().Contains("time"));
+                if (dc == null)
+                {
+                    dc = table.Columns.FirstOrDefault();
+                }
+
                 extracer = new PagingExtracter(Dal, tableName, dc.ColumnName);
             }
             else

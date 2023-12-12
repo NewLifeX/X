@@ -14,27 +14,27 @@ public abstract class Logger : ILog
     /// <summary>调试日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Debug(String format, params Object[] args) => Write(LogLevel.Debug, format, args);
+    public virtual void Debug(String format, params Object?[] args) => Write(LogLevel.Debug, format, args);
 
     /// <summary>信息日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Info(String format, params Object[] args) => Write(LogLevel.Info, format, args);
+    public virtual void Info(String format, params Object?[] args) => Write(LogLevel.Info, format, args);
 
     /// <summary>警告日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Warn(String format, params Object[] args) => Write(LogLevel.Warn, format, args);
+    public virtual void Warn(String format, params Object?[] args) => Write(LogLevel.Warn, format, args);
 
     /// <summary>错误日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Error(String format, params Object[] args) => Write(LogLevel.Error, format, args);
+    public virtual void Error(String format, params Object?[] args) => Write(LogLevel.Error, format, args);
 
     /// <summary>严重错误日志</summary>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数</param>
-    public virtual void Fatal(String format, params Object[] args) => Write(LogLevel.Fatal, format, args);
+    public virtual void Fatal(String format, params Object?[] args) => Write(LogLevel.Fatal, format, args);
     #endregion
 
     #region 核心方法
@@ -42,7 +42,7 @@ public abstract class Logger : ILog
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void Write(LogLevel level, String format, params Object[] args)
+    public virtual void Write(LogLevel level, String format, params Object?[] args)
     {
         if (Enable && level >= Level) OnWrite(level, format, args);
     }
@@ -51,7 +51,7 @@ public abstract class Logger : ILog
     /// <param name="level"></param>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    protected abstract void OnWrite(LogLevel level, String format, params Object[] args);
+    protected abstract void OnWrite(LogLevel level, String format, params Object?[] args);
     #endregion
 
     #region 辅助方法
@@ -59,7 +59,7 @@ public abstract class Logger : ILog
     /// <param name="format"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected virtual String Format(String format, Object[] args)
+    protected virtual String Format(String format, Object?[]? args)
     {
         //处理时间的格式化
         if (args != null && args.Length > 0)
@@ -70,10 +70,12 @@ public abstract class Logger : ILog
 
             for (var i = 0; i < args.Length; i++)
             {
-                if (args[i] != null && args[i].GetType() == typeof(DateTime))
+                if (args[i] != null && args[i] is DateTime dt)
                 {
                     // 根据时间值的精确度选择不同的格式化输出
-                    var dt = (DateTime)args[i];
+                    //var dt = (DateTime)args[i];
+                    // todo: 解决系统使用utc时间时，日志文件被跨天
+                    dt = dt.AddHours(Setting.Current.UtcIntervalHours);
                     if (dt.Millisecond > 0)
                         args[i] = dt.ToString("yyyy-MM-dd HH:mm:ss.fff");
                     else if (dt.Hour > 0 || dt.Minute > 0 || dt.Second > 0)
@@ -117,7 +119,7 @@ public abstract class Logger : ILog
     {
         public override Boolean Enable { get => false; set { } }
 
-        protected override void OnWrite(LogLevel level, String format, params Object[] args) { }
+        protected override void OnWrite(LogLevel level, String format, params Object?[] args) { }
     }
     #endregion
 
@@ -174,7 +176,7 @@ public abstract class Logger : ILog
         // MonoAndroid无法识别MainModule，致命异常
         try
         {
-            fileName = process.MainModule.FileName;
+            fileName = process.MainModule?.FileName;
         }
         catch { }
         if (fileName.IsNullOrEmpty() || fileName.EndsWithIgnoreCase("dotnet", "dotnet.exe"))
@@ -245,7 +247,7 @@ public abstract class Logger : ILog
         {
             sb.AppendFormat("#Memory: {0:n0}M/{1:n0}M\r\n", mi.AvailableMemory / 1024 / 1024, mi.Memory / 1024 / 1024);
             sb.AppendFormat("#Processor: {0}\r\n", mi.Processor);
-            if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0}\r\n", mi.Product);
+            if (!mi.Product.IsNullOrEmpty()) sb.AppendFormat("#Product: {0} / {1}\r\n", mi.Product, mi.Vendor);
             if (mi.Temperature > 0) sb.AppendFormat("#Temperature: {0}\r\n", mi.Temperature);
         }
         sb.AppendFormat("#GC: IsServerGC={0}, LatencyMode={1}\r\n", GCSettings.IsServerGC, GCSettings.LatencyMode);
@@ -256,7 +258,7 @@ public abstract class Logger : ILog
         sb.AppendFormat("#ThreadPool: Min={0}/{1}, Max={2}/{3}, Available={4}/{5}\r\n", minWorker, minIO, maxWorker, maxIO, avaWorker, avaIO);
 
         sb.AppendFormat("#SystemStarted: {0}\r\n", TimeSpan.FromMilliseconds(Runtime.TickCount64));
-        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now);
+        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now.AddHours(Setting.Current.UtcIntervalHours));
         sb.AppendFormat("#详解：{0}\r\n", "https://newlifex.com/core/log");
         sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N/定时T 线程名/任务ID 消息内容\r\n");
         sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");

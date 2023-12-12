@@ -23,7 +23,7 @@ public class JsonComposite : JsonHandlerBase
     /// <summary>获取对象的Json字符串表示形式。</summary>
     /// <param name="value"></param>
     /// <returns>返回null表示不支持</returns>
-    public override String GetString(Object value)
+    public override String? GetString(Object value)
     {
         if (value == null) return String.Empty;
 
@@ -70,7 +70,7 @@ public class JsonComposite : JsonHandlerBase
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         if (value == null) return false;
 
@@ -89,7 +89,7 @@ public class JsonComposite : JsonHandlerBase
         {
             if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
 
-            var mtype = GetMemberType(member);
+            var mtype = member.GetMemberType();
             context.Member = Host.Member = member;
 
             var v = value is IModel src ? src[member.Name] : value.GetValue(member);
@@ -113,7 +113,7 @@ public class JsonComposite : JsonHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (type == null)
         {
@@ -130,7 +130,8 @@ public class JsonComposite : JsonHandlerBase
         var ms = GetMembers(type);
         WriteLog("JsonRead类{0} 共有成员{1}个", type.Name, ms.Count);
 
-        if (value == null) value = type.CreateInstance();
+        value ??= type.CreateInstance();
+        if (value == null) return true;
 
         Host.Hosts.Push(value);
 
@@ -142,14 +143,16 @@ public class JsonComposite : JsonHandlerBase
             var member = ms[i];
             if (IgnoreMembers != null && IgnoreMembers.Contains(member.Name)) continue;
 
-            var mtype = GetMemberType(member);
+            var mtype = member.GetMemberType();
+            if (mtype == null) continue;
+
             context.Member = Host.Member = member;
-            WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
+            WriteLog("    {0}.{1}", member.DeclaringType?.Name, member.Name);
 
             // 成员访问器优先
             if (value is IMemberAccessor ac && ac.Read(Host, context)) continue;
 
-            Object v = null;
+            Object? v = null;
             if (!Host.TryRead(mtype, ref v))
             {
                 Host.Hosts.Pop();
@@ -179,14 +182,14 @@ public class JsonComposite : JsonHandlerBase
             return type.GetFields(baseFirst).Cast<MemberInfo>().ToList();
     }
 
-    static Type GetMemberType(MemberInfo member)
-    {
-        return member.MemberType switch
-        {
-            MemberTypes.Field => (member as FieldInfo).FieldType,
-            MemberTypes.Property => (member as PropertyInfo).PropertyType,
-            _ => throw new NotSupportedException(),
-        };
-    }
+    //static Type GetMemberType(MemberInfo member)
+    //{
+    //    return member.MemberType switch
+    //    {
+    //        MemberTypes.Field => (member as FieldInfo).FieldType,
+    //        MemberTypes.Property => (member as PropertyInfo).PropertyType,
+    //        _ => throw new NotSupportedException(),
+    //    };
+    //}
     #endregion
 }

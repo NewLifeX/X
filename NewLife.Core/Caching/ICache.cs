@@ -1,6 +1,11 @@
-﻿namespace NewLife.Caching;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace NewLife.Caching;
 
 /// <summary>缓存接口</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/icache
+/// </remarks>
 public interface ICache
 {
     #region 属性
@@ -13,7 +18,7 @@ public interface ICache
     /// <summary>获取和设置缓存，永不过期</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    Object this[String key] { get; set; }
+    Object? this[String key] { get; set; }
 
     /// <summary>缓存个数</summary>
     Int32 Count { get; }
@@ -45,6 +50,7 @@ public interface ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
+    [return: MaybeNull]
     T Get<T>(String key);
 
     /// <summary>批量移除缓存项</summary>
@@ -71,7 +77,7 @@ public interface ICache
     /// <typeparam name="T"></typeparam>
     /// <param name="keys"></param>
     /// <returns></returns>
-    IDictionary<String, T> GetAll<T>(IEnumerable<String> keys);
+    IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys);
 
     /// <summary>批量设置缓存项</summary>
     /// <typeparam name="T"></typeparam>
@@ -127,6 +133,7 @@ public interface ICache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
+    [return: MaybeNull]
     T Replace<T>(String key, T value);
 
     /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败，解决缓存穿透问题</summary>
@@ -134,7 +141,7 @@ public interface ICache
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    Boolean TryGetValue<T>(String key, out T value);
+    Boolean TryGetValue<T>(String key, [MaybeNull] out T value);
 
     /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
     /// <typeparam name="T"></typeparam>
@@ -142,6 +149,7 @@ public interface ICache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
+    [return: MaybeNull]
     T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1);
 
     /// <summary>累加，原子操作</summary>
@@ -178,7 +186,7 @@ public interface ICache
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，单位毫秒</param>
     /// <returns></returns>
-    IDisposable AcquireLock(String key, Int32 msTimeout);
+    IDisposable? AcquireLock(String key, Int32 msTimeout);
 
     /// <summary>申请分布式锁</summary>
     /// <param name="key">要锁定的key</param>
@@ -186,7 +194,7 @@ public interface ICache
     /// <param name="msExpire">锁过期时间，超过该时间如果没有主动释放则自动释放锁，必须整数秒，单位毫秒</param>
     /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
     /// <returns></returns>
-    IDisposable AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure);
+    IDisposable? AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure);
     #endregion
 
     #region 性能测试

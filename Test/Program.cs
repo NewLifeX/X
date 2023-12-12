@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Security.Cryptography;
@@ -23,6 +24,7 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
 using Stardust;
+using Stardust.Models;
 
 namespace Test
 {
@@ -70,7 +72,7 @@ namespace Test
                 try
                 {
 #endif
-                    Test3();
+                Test1();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -92,8 +94,39 @@ namespace Test
         static StarClient _client;
         private static void Test1()
         {
-            var mi = MachineInfo.GetCurrent();
+            //var tcps = NetHelper.GetAllTcpConnections(-1);
+            //XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
+            //foreach (var item in tcps)
+            //{
+            //    XTrace.WriteLine("{0}\t{1}\t{2}\t{3}", item.LocalEndPoint, item.RemoteEndPoint, item.State, item.ProcessId);
+            //}
+
+            //var ipg = IPGlobalProperties.GetIPGlobalProperties();
+            //for (var i = 0; i < 100; i++)
+            //{
+            //    //var st = ipg.GetIPv4GlobalStatistics();
+            //    var st = ipg.GetTcpIPv4Statistics();
+            //    XTrace.WriteLine(st.ToJson());
+
+            //    Thread.Sleep(1000);
+            //}
+
+            //OperatingSystem.IsWindows();
+            //RuntimeInformation
+
+            var mi = new MachineInfo();
+            mi.Init();
             XTrace.WriteLine(mi.ToJson(true));
+
+            Console.WriteLine();
+
+            mi = MachineInfo.GetCurrent();
+            XTrace.WriteLine(mi.ToJson(true));
+
+#if NETFRAMEWORK
+            var diskID = MachineInfo.GetInfo("Win32_DiskDrive where mediatype=\"Fixed hard disk media\"", "SerialNumber");
+            XTrace.WriteLine("DiskID: {0}", diskID);
+#endif
 
             var sys = SysConfig.Current;
             XTrace.WriteLine("Name: {0}", sys.Name);
@@ -138,8 +171,46 @@ namespace Test
 
         private static void Test3()
         {
-            var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
-            str.SpeakAsync();
+            //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+            //str.SpeakAsync();
+
+            XTrace.WriteLine("hello");
+            Task.Run(() =>
+            {
+                XTrace.WriteLine("222");
+                Task.Run(() =>
+                {
+                    XTrace.WriteLine("333");
+                });
+            });
+
+            var set = StarSetting.Current;
+            set.Debug = true;
+            var local = new LocalStarClient { Log = XTrace.Log };
+            var info = local.GetInfo();
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+            var client3 = new ApiClient("udp://localhost:5500")
+            {
+                Timeout = 3_000,
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            info = client3.Invoke<AgentInfo>("info");
+            XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+            var uri = new NetUri("http://sso.newlifex.com");
+            var client = uri.CreateRemote();
+            client.Log = XTrace.Log;
+            client.LogSend = true;
+            client.LogReceive = true;
+            if (client is TcpSession tcp) tcp.MaxAsync = 0;
+            client.Open();
+
+            client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
+
+            var rs = client.ReceiveString();
+            XTrace.WriteLine(rs);
         }
 
         private static void Test4()

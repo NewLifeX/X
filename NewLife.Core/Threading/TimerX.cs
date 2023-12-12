@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using NewLife.Log;
 
 #nullable enable
@@ -37,8 +34,19 @@ public class TimerX : IDisposable
 
     internal readonly Boolean IsAsyncTask;
 
+    private WeakReference? _state;
     /// <summary>获取/设置 用户数据</summary>
-    public Object? State { get; set; }
+    public Object? State
+    {
+        get => _state != null && _state.IsAlive ? _state.Target : null;
+        set
+        {
+            if (_state == null)
+                _state = new WeakReference(value);
+            else
+                _state.Target = value;
+        }
+    }
 
     /// <summary>基准时间。开机时间</summary>
     private static DateTime _baseTime;
@@ -69,6 +77,7 @@ public class TimerX : IDisposable
     public Int32 Cost { get; internal set; }
 
     /// <summary>判断任务是否执行的委托。一般跟异步配合使用，避免频繁从线程池借出线程</summary>
+    [Obsolete("该委托容易造成内存泄漏，故取消", true)]
     public Func<Boolean>? CanExecute { get; set; }
 
     /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
@@ -81,7 +90,7 @@ public class TimerX : IDisposable
     public String TracerName { get; set; }
 
     private DateTime _AbsolutelyNext;
-    private Cron? _cron;
+    private readonly Cron? _cron;
     #endregion
 
     #region 静态
@@ -158,7 +167,7 @@ public class TimerX : IDisposable
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(TimerCallback callback, Object state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(TimerCallback callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -182,7 +191,7 @@ public class TimerX : IDisposable
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(Func<Object, Task> callback, Object state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(Func<Object, Task> callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (startTime <= DateTime.MinValue) throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -207,13 +216,13 @@ public class TimerX : IDisposable
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(TimerCallback callback, Object state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(TimerCallback callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
         _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("无效的Cron表达式", nameof(cronExpression));
+        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
 
         Absolutely = true;
 
@@ -230,13 +239,13 @@ public class TimerX : IDisposable
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式</param>
     /// <param name="scheduler">调度器</param>
-    public TimerX(Func<Object, Task> callback, Object state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
+    public TimerX(Func<Object, Task> callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
         _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("无效的Cron表达式", nameof(cronExpression));
+        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
 
         IsAsyncTask = true;
         Async = true;

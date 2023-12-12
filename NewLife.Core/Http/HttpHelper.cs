@@ -1,13 +1,14 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
-using System.Web;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Xml;
@@ -18,13 +19,13 @@ namespace NewLife.Http;
 public static class HttpHelper
 {
     /// <summary>性能跟踪器</summary>
-    public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+    public static ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>Http过滤器</summary>
-    public static IHttpFilter Filter { get; set; }
+    public static IHttpFilter? Filter { get; set; }
 
     /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
-    public static String DefaultUserAgent { get; set; }
+    public static String? DefaultUserAgent { get; set; }
 
     static HttpHelper()
     {
@@ -63,7 +64,16 @@ public static class HttpHelper
     /// <returns></returns>
     public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie)
     {
-#if NETCOREAPP3_0_OR_GREATER
+#if NET5_0_OR_GREATER
+        return new SocketsHttpHandler
+        {
+            UseProxy = useProxy,
+            UseCookies = useCookie,
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            ConnectCallback = ConnectCallback,
+        };
+#elif NETCOREAPP3_0_OR_GREATER
         return new SocketsHttpHandler
         {
             UseProxy = useProxy,
@@ -80,6 +90,46 @@ public static class HttpHelper
         };
 #endif
     }
+
+#if NET5_0_OR_GREATER
+    /// <summary>连接回调，内部创建Socket，解决DNS解析缓存问题</summary>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    static async ValueTask<Stream> ConnectCallback(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+    {
+        var dep = context.DnsEndPoint;
+        var method = context.InitialRequestMessage.Method?.ToString() ?? "Connect";
+        using var span = Tracer?.NewSpan($"net:{dep.Host}:{dep.Port}:{method}");
+
+        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp)
+        {
+            NoDelay = true
+        };
+        try
+        {
+            var ep = context.DnsEndPoint;
+            var addrs = NetUri.ParseAddress(ep.Host);
+            span?.AppendTag($"addrs={addrs?.Join()}");
+            if (addrs != null && addrs.Length > 0)
+                await socket.ConnectAsync(addrs, ep.Port, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            else
+                await socket.ConnectAsync(ep, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+
+            if (ex is SocketException se)
+                Tracer?.NewError($"socket:SocketError-{se.SocketErrorCode}", se);
+
+            socket.Dispose();
+            throw;
+        }
+
+        return new NetworkStream(socket, ownsSocket: true);
+    }
+#endif
     #endregion
 
     #region Http封包解包
@@ -89,7 +139,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, Packet? pk)
     {
         if (method.IsNullOrEmpty()) method = pk?.Count > 0 ? "POST" : "GET";
 
@@ -124,9 +174,12 @@ public static class HttpHelper
         // 内容长度
         if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
 
-        foreach (var item in headers)
+        if (headers != null)
         {
-            sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            foreach (var item in headers)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            }
         }
 
         sb.Append("\r\n");
@@ -144,7 +197,7 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object> headers, Packet pk)
+    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object?>? headers, Packet? pk)
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
@@ -153,9 +206,12 @@ public static class HttpHelper
         // 内容长度
         if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
 
-        foreach (var item in headers)
+        if (headers != null)
         {
-            sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            foreach (var item in headers)
+            {
+                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+            }
         }
 
         sb.Append("\r\n");
@@ -168,7 +224,7 @@ public static class HttpHelper
         return rs;
     }
 
-    private static readonly Byte[] NewLine = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析头部</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
@@ -234,10 +290,10 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
             content = data is String str
                 ? new StringContent(str, Encoding.UTF8, "application/json")
@@ -255,7 +311,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交Xml</summary>
     /// <param name="client">Http客户端</param>
@@ -264,10 +320,10 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
             content = data is String str
                 ? new StringContent(str, Encoding.UTF8, "application/xml")
@@ -286,7 +342,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交表单，名值对传输字典参数</summary>
     /// <param name="client">Http客户端</param>
@@ -295,18 +351,54 @@ public static class HttpHelper
     /// <param name="headers">附加头部</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null, CancellationToken cancellationToken = default)
+    public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent content = null;
-        if (data != null)
+        HttpContent? content = null;
+        //if (data != null)
         {
-            content = data is String str
-                ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
-                : (
-                    data is IDictionary<String, String> dic
-                    ? new FormUrlEncodedContent(dic)
-                    : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
-                );
+            //content = data is String str
+            //    ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
+            //    : (
+            //        data is IDictionary<String, String?> dic
+            //        ? new FormUrlEncodedContent(dic)
+            //        : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
+            //    );
+
+            if (data is String str)
+            {
+                content = new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded");
+            }
+#if NET5_0
+            else if (data is IDictionary<String?, String?> dic)
+            {
+                content = new FormUrlEncodedContent(dic);
+            }
+            else
+            {
+                var list = new List<KeyValuePair<String?, String?>>();
+                //var dic2 = new Dictionary<String, String?>();
+                foreach (var item in data.ToDictionary())
+                {
+                    //dic2[item.Key + ""] = item.Value + "";
+                    list.Add(new KeyValuePair<String?, String?>(item.Key, item.Value + ""));
+                }
+                content = new FormUrlEncodedContent(list);
+            }
+#else
+            else if (data is IDictionary<String, String> dic)
+            {
+                content = new FormUrlEncodedContent(dic);
+            }
+            else
+            {
+                var dic2 = new Dictionary<String, String>();
+                foreach (var item in data.ToDictionary())
+                {
+                    dic2[item.Key + ""] = item.Value + "";
+                }
+                content = new FormUrlEncodedContent(dic2);
+            }
+#endif
         }
 
         return await PostAsync(client, requestUri, content, headers, cancellationToken);
@@ -318,7 +410,7 @@ public static class HttpHelper
     /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String> headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
 
     /// <summary>异步提交多段表单数据，含文件流</summary>
     /// <param name="client">Http客户端</param>
@@ -331,7 +423,7 @@ public static class HttpHelper
 
         foreach (var item in data.ToDictionary())
         {
-            if (item.Value == null) continue;
+            //if (item.Value == null) continue;
 
             if (item.Value is FileStream fs)
                 content.Add(new StreamContent(fs), item.Key, Path.GetFileName(fs.Name));
@@ -341,7 +433,7 @@ public static class HttpHelper
                 content.Add(new StringContent(str), item.Key);
             else if (item.Value is Byte[] buf)
                 content.Add(new ByteArrayContent(buf), item.Key);
-            else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
+            else if (item.Value == null || item.Value.GetType().GetTypeCode() != TypeCode.Object)
                 content.Add(new StringContent(item.Value + ""), item.Key);
             else
                 content.Add(new StringContent(item.Value.ToJson()), item.Key);
@@ -355,13 +447,13 @@ public static class HttpHelper
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String> headers = null)
+    public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String>? headers = null)
     {
-        client.AddHeaders(headers);
+        if (headers != null) client.AddHeaders(headers);
         return Task.Run(() => client.GetStringAsync(requestUri)).Result;
     }
 
-    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String> headers, CancellationToken cancellationToken)
+    private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
         {
@@ -420,7 +512,7 @@ public static class HttpHelper
 
     private static HttpClient AddHeaders(this HttpClient client, IDictionary<String, String> headers)
     {
-        if (client == null) return null;
+        //if (client == null) return null;
         if (headers == null || headers.Count == 0) return client;
 
         foreach (var item in headers)
@@ -481,7 +573,7 @@ public static class HttpHelper
     /// <param name="fileName">目标文件名</param>
     /// <param name="data">其它表单数据</param>
     /// <param name="cancellationToken">取消通知</param>
-    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object data = null, CancellationToken cancellationToken = default)
+    public static async Task<String> UploadFileAsync(this HttpClient client, String requestUri, String fileName, Object? data = null, CancellationToken cancellationToken = default)
     {
         var content = new MultipartFormDataContent();
         if (!fileName.IsNullOrEmpty())
@@ -491,13 +583,13 @@ public static class HttpHelper
         {
             foreach (var item in data.ToDictionary())
             {
-                if (item.Value == null) continue;
+                //if (item.Value == null) continue;
 
                 if (item.Value is String str)
                     content.Add(new StringContent(str), item.Key);
                 else if (item.Value is Byte[] buf)
                     content.Add(new ByteArrayContent(buf), item.Key);
-                else if (item.Value.GetType().GetTypeCode() != TypeCode.Object)
+                else if (item.Value == null || item.Value.GetType().GetTypeCode() != TypeCode.Object)
                     content.Add(new StringContent(item.Value + ""), item.Key);
                 else
                     content.Add(new StringContent(item.Value.ToJson()), item.Key);
@@ -515,7 +607,7 @@ public static class HttpHelper
     /// <param name="onProcess">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
     {
         DefaultSpan.Current = null;
         var token = source.Token;
@@ -560,7 +652,7 @@ public static class HttpHelper
     /// <param name="onProcess">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]> onProcess, CancellationTokenSource source)
+    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, IProducerConsumer<String> queue, Func<String, Byte[]>? onProcess, CancellationTokenSource source)
     {
         DefaultSpan.Current = null;
         var token = source.Token;
@@ -572,7 +664,9 @@ public static class HttpHelper
                 if (msg != null)
                 {
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
-                    await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+
+                    if (buf != null && buf.Length > 0)
+                        await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
                 }
                 else
                 {
@@ -604,25 +698,30 @@ public static class HttpHelper
     /// <param name="onReceive">数据处理委托</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String> onReceive, CancellationTokenSource source)
+    public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String?>? onReceive, CancellationTokenSource source)
     {
         try
         {
             var buf = new Byte[4 * 1024];
-            while (socket.State == WebSocketState.Open)
+            while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
             {
-                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), default);
+                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token);
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
                 {
-                    onReceive?.Invoke(buf.ToStr(null, 0, data.Count));
+                    var str = buf.ToStr(null, 0, data.Count);
+                    if (!str.IsNullOrEmpty())
+                        onReceive?.Invoke(str);
                 }
             }
 
-            source.Cancel();
+            if (!source.IsCancellationRequested) source.Cancel();
 
-            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
+            if (socket.State == WebSocketState.Open)
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
         }
+        catch (TaskCanceledException) { }
+        catch (OperationCanceledException) { }
         catch (WebSocketException ex)
         {
             XTrace.WriteLine("WebSocket异常 {0}", ex.Message);

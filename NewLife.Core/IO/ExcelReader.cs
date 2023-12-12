@@ -14,15 +14,15 @@ public class ExcelReader : DisposeBase
 {
     #region 属性
     /// <summary>文件名</summary>
-    public String FileName { get; }
+    public String? FileName { get; }
 
     /// <summary>工作表</summary>
-    public ICollection<String> Sheets => _entries.Keys;
+    public ICollection<String>? Sheets => _entries?.Keys;
 
     private ZipArchive _zip;
-    private String[] _sharedStrings;
-    private String[] _styles;
-    private IDictionary<String, ZipArchiveEntry> _entries;
+    private String[]? _sharedStrings;
+    private String?[]? _styles;
+    private IDictionary<String, ZipArchiveEntry>? _entries;
     #endregion
 
     #region 构造
@@ -93,21 +93,28 @@ public class ExcelReader : DisposeBase
     /// <summary>逐行读取数据，第一行很可能是表头</summary>
     /// <param name="sheet">工作表名。一般是sheet1/sheet2/sheet3，默认空，使用第一个数据表</param>
     /// <returns></returns>
-    public IEnumerable<Object[]> ReadRows(String sheet = null)
+    public IEnumerable<Object?[]> ReadRows(String? sheet = null)
     {
+        if (Sheets == null || _entries == null) yield break;
+
         if (sheet.IsNullOrEmpty()) sheet = Sheets.FirstOrDefault();
-        if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), "找不到工作表");
+        if (sheet.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sheet));
+
+        if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), "Unable to find worksheet");
 
         var doc = XDocument.Load(entry.Open());
+        if (doc.Root == null) yield break;
+
         var data = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName.EqualIgnoreCase("sheetData"));
+        if (data == null) yield break;
 
         // 加快样式判断速度
-        var styles = _styles?.Where(e => e != null).ToArray();
+        var styles = _styles;
         if (styles != null && styles.Length == 0) styles = null;
 
         foreach (var row in data.Elements())
         {
-            var vs = new List<String>();
+            var vs = new List<String?>();
             var c = 'A';
             foreach (var col in row.Elements())
             {
@@ -126,7 +133,9 @@ public class ExcelReader : DisposeBase
                 // t=DataType, s=SharedString, b=Boolean, n=Number, d=Date
                 var t = col.Attribute("t");
                 if (t != null && t.Value == "s")
-                    val = _sharedStrings[val.ToInt()];
+                {
+                    val = _sharedStrings?[val.ToInt()];
+                }
                 else if (styles != null)
                 {
                     // 特殊支持时间日期，s=StyleIndex
@@ -134,18 +143,22 @@ public class ExcelReader : DisposeBase
                     if (s != null)
                     {
                         var si = s.Value.ToInt();
-                        if (si < _styles.Length && _styles[si] != null && _styles[si].StartsWith("yy"))
+                        if (si < styles.Length)
                         {
-                            if (val.Contains('.'))
+                            var st = styles[si];
+                            if (st != null && st.StartsWith("yy"))
                             {
-                                var ss = val.Split('.');
-                                var dt = _1900.AddDays(ss[0].ToInt() - 2);
-                                dt = dt.AddSeconds(ss[1].ToLong() / 115740);
-                                val = dt.ToFullString();
-                            }
-                            else
-                            {
-                                val = _1900.AddDays(val.ToInt() - 2).ToString("yyyy-MM-dd");
+                                if (val.Contains('.'))
+                                {
+                                    var ss = val.Split('.');
+                                    var dt = _1900.AddDays(ss[0].ToInt() - 2);
+                                    dt = dt.AddSeconds(ss[1].ToLong() / 115740);
+                                    val = dt.ToFullString();
+                                }
+                                else
+                                {
+                                    val = _1900.AddDays(val.ToInt() - 2).ToString("yyyy-MM-dd");
+                                }
                             }
                         }
                         else
@@ -174,9 +187,10 @@ public class ExcelReader : DisposeBase
         }
     }
 
-    private String[] ReadStrings(Stream ms)
+    private String[]? ReadStrings(Stream ms)
     {
         var doc = XDocument.Load(ms);
+        if (doc?.Root == null) return null;
 
         var list = new List<String>();
         foreach (var item in doc.Root.Elements())
@@ -187,31 +201,35 @@ public class ExcelReader : DisposeBase
         return list.ToArray();
     }
 
-    private String[] ReadStyles(Stream ms)
+    private String?[]? ReadStyles(Stream ms)
     {
         var doc = XDocument.Load(ms);
+        if (doc?.Root == null) return null;
 
-        var fmts = new Dictionary<Int32, String>();
+        var fmts = new Dictionary<Int32, String?>();
         var numFmts = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "numFmts");
         if (numFmts != null)
         {
             foreach (var item in numFmts.Elements())
             {
-                var id = item.Attribute("numFmtId").Value.ToInt();
-                var code = item.Attribute("formatCode").Value;
-                fmts.Add(id, code);
+                var id = item.Attribute("numFmtId");
+                var code = item.Attribute("formatCode");
+                if (id != null) fmts.Add(id.Value.ToInt(), code?.Value);
             }
         }
 
-        var list = new List<String>();
+        var list = new List<String?>();
         var xfs = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "cellXfs");
-        foreach (var item in xfs.Elements())
+        if (xfs != null)
         {
-            var fid = item.Attribute("numFmtId").Value.ToInt();
-            if (fmts.TryGetValue(fid, out var code))
-                list.Add(code);
-            else
-                list.Add(null);
+            foreach (var item in xfs.Elements())
+            {
+                var fid = item.Attribute("numFmtId");
+                if (fid != null && fmts.TryGetValue(fid.Value.ToInt(), out var code))
+                    list.Add(code);
+                else
+                    list.Add(null);
+            }
         }
 
         return list.ToArray();
@@ -219,22 +237,24 @@ public class ExcelReader : DisposeBase
 
     private IDictionary<String, ZipArchiveEntry> ReadSheets(ZipArchive zip)
     {
-        var dic = new Dictionary<String, String>();
+        var dic = new Dictionary<String, String?>();
 
         var entry = _zip.GetEntry("xl/workbook.xml");
         if (entry != null)
         {
             var doc = XDocument.Load(entry.Open());
-
-            var list = new List<String>();
-            var sheets = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "sheets");
-            if (sheets != null)
+            if (doc?.Root != null)
             {
-                foreach (var item in sheets.Elements())
+                //var list = new List<String>();
+                var sheets = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "sheets");
+                if (sheets != null)
                 {
-                    var id = item.Attribute("sheetId").Value;
-                    var name = item.Attribute("name").Value;
-                    dic[id] = name;
+                    foreach (var item in sheets.Elements())
+                    {
+                        var id = item.Attribute("sheetId");
+                        var name = item.Attribute("name");
+                        if (id != null) dic[id.Value] = name?.Value;
+                    }
                 }
             }
         }
@@ -251,6 +271,7 @@ public class ExcelReader : DisposeBase
             {
                 var name = item.Name.TrimEnd(".xml");
                 if (dic.TryGetValue(name.TrimStart("sheet"), out var str)) name = str;
+                name ??= String.Empty;
 
                 dic2[name] = item;
             }

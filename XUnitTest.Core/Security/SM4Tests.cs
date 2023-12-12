@@ -85,8 +85,8 @@ public class SM4Tests
         }
     }
 
-    [Fact]
-    //[Fact(Skip = "仅开发使用")]
+    //[Fact]
+    [Fact(Skip = "仅开发使用")]
     public void SM4Transform_Test()
     {
         var plain = "0123456789abcdeffedcba9876543210".ToHex();

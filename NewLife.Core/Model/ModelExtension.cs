@@ -7,14 +7,14 @@ public static class ModelExtension
     /// <typeparam name="T"></typeparam>
     /// <param name="provider"></param>
     /// <returns></returns>
-    public static T GetService<T>(this IServiceProvider provider)
+    public static T? GetService<T>(this IServiceProvider provider)
     {
         if (provider == null) return default;
 
         //// 服务类是否当前类的基类
         //if (provider.GetType().As<T>()) return (T)provider;
 
-        return (T)provider.GetService(typeof(T));
+        return (T?)provider.GetService(typeof(T));
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
@@ -24,9 +24,9 @@ public static class ModelExtension
     public static Object GetRequiredService(this IServiceProvider provider, Type serviceType)
     {
         if (provider == null) throw new ArgumentNullException(nameof(provider));
-        return serviceType == null
-            ? throw new ArgumentNullException(nameof(serviceType))
-            : provider.GetService(serviceType) ?? throw new InvalidOperationException($"未注册类型{serviceType.FullName}");
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+
+        return provider.GetService(serviceType) ?? throw new InvalidOperationException($"Unregistered type {serviceType.FullName}");
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
@@ -80,5 +80,5 @@ public static class ModelExtension
     /// <summary>创建范围作用域，该作用域内提供者解析一份数据</summary>
     /// <param name="provider"></param>
     /// <returns></returns>
-    public static IServiceScope CreateScope(this IServiceProvider provider) => provider.GetService<IServiceScopeFactory>()?.CreateScope();
+    public static IServiceScope? CreateScope(this IServiceProvider provider) => provider.GetService<IServiceScopeFactory>()?.CreateScope();
 }

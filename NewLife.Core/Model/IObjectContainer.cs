@@ -15,7 +15,7 @@ public interface IObjectContainer
     /// <param name="instance">实例</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    IObjectContainer Register(Type serviceType, Type implementationType, Object instance);
+    IObjectContainer Register(Type serviceType, Type? implementationType, Object? instance);
 
     /// <summary>添加</summary>
     /// <param name="item"></param>
@@ -32,7 +32,7 @@ public interface IObjectContainer
     /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    Object Resolve(Type serviceType, IServiceProvider serviceProvider = null);
+    Object? Resolve(Type serviceType, IServiceProvider? serviceProvider = null);
     #endregion
 }
 
@@ -56,7 +56,7 @@ public interface IObject
     Type ServiceType { get; }
 
     /// <summary>实现类型</summary>
-    Type ImplementationType { get; }
+    Type? ImplementationType { get; }
 
     /// <summary>生命周期</summary>
     ObjectLifetime Lifetime { get; }

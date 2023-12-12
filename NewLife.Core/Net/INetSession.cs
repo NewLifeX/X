@@ -50,7 +50,7 @@ public interface INetSession : IDisposable2
     /// <summary>发送字符串</summary>
     /// <param name="msg"></param>
     /// <param name="encoding"></param>
-    INetSession Send(String msg, Encoding encoding = null);
+    INetSession Send(String msg, Encoding? encoding = null);
 
     /// <summary>通过管道发送消息，不等待响应</summary>
     /// <param name="message"></param>
@@ -77,5 +77,5 @@ public interface INetSession : IDisposable2
 public class NetSessionEventArgs : EventArgs
 {
     /// <summary>会话</summary>
-    public INetSession Session { get; set; }
+    public INetSession? Session { get; set; }
 }

@@ -72,10 +72,12 @@ public class Json : FormatterBase, IJson
     /// <summary>获取处理器</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T GetHandler<T>() where T : class, IJsonHandler
+    public T? GetHandler<T>() where T : class, IJsonHandler
     {
         foreach (var item in Handlers)
+        {
             if (item is T) return item as T;
+        }
 
         return default;
     }
@@ -86,7 +88,7 @@ public class Json : FormatterBase, IJson
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public virtual Boolean Write(Object value, Type type = null)
+    public virtual Boolean Write(Object? value, Type? type = null)
     {
         if (type == null)
         {
@@ -98,6 +100,8 @@ public class Json : FormatterBase, IJson
             if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonWrite {0} {1}", type.Name, value);
         }
 
+        if (value == null) return true;
+
         //foreach (var item in Handlers)
         //{
         //    if (item.Write(value, type)) return true;
@@ -108,7 +112,7 @@ public class Json : FormatterBase, IJson
 
         Stream.Write(sb.Put(true).GetBytes());
 
-        return false;
+        return true;
     }
 
     /// <summary>写入字符串</summary>
@@ -137,27 +141,30 @@ public class Json : FormatterBase, IJson
     /// <summary>读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public virtual Object Read(Type type)
+    public virtual Object? Read(Type type)
     {
         var value = type.CreateInstance();
-        return !TryRead(type, ref value) ? throw new Exception("读取失败！") : value;
+        return !TryRead(type, ref value) ? throw new Exception("Read failed!") : value;
     }
 
     /// <summary>读取指定类型对象</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Read<T>() => (T)Read(typeof(T));
+    public T? Read<T>() => (T?)Read(typeof(T));
 
     /// <summary>尝试读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public virtual Boolean TryRead(Type type, ref Object value)
+    public virtual Boolean TryRead(Type type, ref Object? value)
     {
         if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("JsonRead {0} {1}", type.Name, value);
 
         foreach (var item in Handlers)
+        {
             if (item.TryRead(type, ref value)) return true;
+        }
+
         return false;
     }
 
@@ -171,7 +178,7 @@ public class Json : FormatterBase, IJson
     public virtual Byte ReadByte()
     {
         var b = Stream.ReadByte();
-        return b < 0 ? throw new Exception("数据流超出范围！") : (Byte)b;
+        return b < 0 ? throw new Exception("The data stream is out of range!") : (Byte)b;
     }
     #endregion
 

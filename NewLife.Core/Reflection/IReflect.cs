@@ -19,7 +19,7 @@ public interface IReflect
     /// <param name="typeName">类型名</param>
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
-    Type GetType(String typeName, Boolean isLoadAssembly);
+    Type? GetType(String typeName, Boolean isLoadAssembly);
 
     /// <summary>获取方法</summary>
     /// <remarks>用于具有多个签名的同名方法的场合，不确定是否存在性能问题，不建议普通场合使用</remarks>
@@ -27,7 +27,7 @@ public interface IReflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    MethodInfo GetMethod(Type type, String name, params Type[] paramTypes);
+    MethodInfo? GetMethod(Type type, String name, params Type[] paramTypes);
 
     /// <summary>获取指定名称的方法集合，支持指定参数个数来匹配过滤</summary>
     /// <param name="type"></param>
@@ -41,21 +41,21 @@ public interface IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    PropertyInfo GetProperty(Type type, String name, Boolean ignoreCase);
+    PropertyInfo? GetProperty(Type type, String name, Boolean ignoreCase);
 
     /// <summary>获取字段</summary>
     /// <param name="type">类型</param>
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    FieldInfo GetField(Type type, String name, Boolean ignoreCase);
+    FieldInfo? GetField(Type type, String name, Boolean ignoreCase);
 
     /// <summary>获取成员</summary>
     /// <param name="type">类型</param>
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    MemberInfo GetMember(Type type, String name, Boolean ignoreCase);
+    MemberInfo? GetMember(Type type, String name, Boolean ignoreCase);
 
     /// <summary>获取字段</summary>
     /// <param name="type"></param>
@@ -75,45 +75,45 @@ public interface IReflect
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    Object CreateInstance(Type type, params Object[] parameters);
+    Object? CreateInstance(Type type, params Object?[] parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    Object Invoke(Object target, MethodBase method, params Object[] parameters);
+    Object? Invoke(Object? target, MethodBase method, params Object?[]? parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters);
+    Object? InvokeWithParams(Object? target, MethodBase method, IDictionary? parameters);
 
     /// <summary>获取目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    Object GetValue(Object target, PropertyInfo property);
+    Object? GetValue(Object? target, PropertyInfo property);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    Object GetValue(Object target, FieldInfo field);
+    Object? GetValue(Object? target, FieldInfo field);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <param name="value">数值</param>
-    void SetValue(Object target, PropertyInfo property, Object value);
+    void SetValue(Object target, PropertyInfo property, Object? value);
 
     /// <summary>设置目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <param name="value">数值</param>
-    void SetValue(Object target, FieldInfo field, Object value);
+    void SetValue(Object target, FieldInfo field, Object? value);
 
     /// <summary>从源对象拷贝数据到目标对象</summary>
     /// <param name="target">目标对象</param>
@@ -126,20 +126,20 @@ public interface IReflect
     /// <param name="target">目标对象</param>
     /// <param name="dic">源字典</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-    void Copy(Object target, IDictionary<String, Object> dic, Boolean deep = false);
+    void Copy(Object target, IDictionary<String, Object?> dic, Boolean deep = false);
     #endregion
 
     #region 类型辅助
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    Type GetElementType(Type type);
+    Type? GetElementType(Type type);
 
     /// <summary>类型转换</summary>
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    Object ChangeType(Object value, Type conversionType);
+    Object? ChangeType(Object? value, Type conversionType);
 
     /// <summary>获取类型的友好名称</summary>
     /// <param name="type">指定类型</param>
@@ -184,7 +184,7 @@ public class DefaultReflect : IReflect
     /// <param name="typeName">类型名</param>
     /// <param name="isLoadAssembly">是否从未加载程序集中获取类型。使用仅反射的方法检查目标类型，如果存在，则进行常规加载</param>
     /// <returns></returns>
-    public virtual Type GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
+    public virtual Type? GetType(String typeName, Boolean isLoadAssembly) => AssemblyX.GetType(typeName, isLoadAssembly);
 
     private static readonly BindingFlags bf = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
     private static readonly BindingFlags bfic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase;
@@ -195,9 +195,9 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="paramTypes">参数类型数组</param>
     /// <returns></returns>
-    public virtual MethodInfo GetMethod(Type type, String name, params Type[] paramTypes)
+    public virtual MethodInfo? GetMethod(Type type, String name, params Type[] paramTypes)
     {
-        MethodInfo mi = null;
+        MethodInfo? mi = null;
         while (true)
         {
             if (paramTypes == null || paramTypes.Length == 0)
@@ -206,6 +206,7 @@ public class DefaultReflect : IReflect
                 mi = type.GetMethod(name, bf, null, paramTypes, null);
             if (mi != null) return mi;
 
+            if (type.BaseType == null) break;
             type = type.BaseType;
             if (type == null || type == typeof(Object)) break;
         }
@@ -220,7 +221,7 @@ public class DefaultReflect : IReflect
     public virtual MethodInfo[] GetMethods(Type type, String name, Int32 paramCount = -1)
     {
         var ms = type.GetMethods(bf);
-        if (ms == null || ms.Length == 0) return ms;
+        //if (ms == null || ms.Length == 0) return ms;
 
         var list = new List<MethodInfo>();
         foreach (var item in ms)
@@ -238,21 +239,22 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public virtual PropertyInfo GetProperty(Type type, String name, Boolean ignoreCase)
+    public virtual PropertyInfo? GetProperty(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有属性的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
-        while (type != null && type != typeof(Object))
+        var type2 = type;
+        while (type2 != null && type2 != typeof(Object))
         {
             //var pi = type.GetProperty(name, ignoreCase ? bfic : bf);
-            var pi = type.GetProperty(name, bf);
+            var pi = type2.GetProperty(name, bf);
             if (pi != null) return pi;
             if (ignoreCase)
             {
-                pi = type.GetProperty(name, bfic);
+                pi = type2.GetProperty(name, bfic);
                 if (pi != null) return pi;
             }
 
-            type = type.BaseType;
+            type2 = type2.BaseType;
         }
         return null;
     }
@@ -262,21 +264,22 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public virtual FieldInfo GetField(Type type, String name, Boolean ignoreCase)
+    public virtual FieldInfo? GetField(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有字段的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
-        while (type != null && type != typeof(Object))
+        var type2 = type;
+        while (type2 != null && type2 != typeof(Object))
         {
             //var fi = type.GetField(name, ignoreCase ? bfic : bf);
-            var fi = type.GetField(name, bf);
+            var fi = type2.GetField(name, bf);
             if (fi != null) return fi;
             if (ignoreCase)
             {
-                fi = type.GetField(name, bfic);
+                fi = type2.GetField(name, bfic);
                 if (fi != null) return fi;
             }
 
-            type = type.BaseType;
+            type2 = type2.BaseType;
         }
         return null;
     }
@@ -286,12 +289,13 @@ public class DefaultReflect : IReflect
     /// <param name="name">名称</param>
     /// <param name="ignoreCase">忽略大小写</param>
     /// <returns></returns>
-    public virtual MemberInfo GetMember(Type type, String name, Boolean ignoreCase)
+    public virtual MemberInfo? GetMember(Type type, String name, Boolean ignoreCase)
     {
         // 父类私有成员的获取需要递归，可见范围则不需要，有些类型的父类为空，比如接口
-        while (type != null && type != typeof(Object))
+        var type2 = type;
+        while (type2 != null && type2 != typeof(Object))
         {
-            var fs = type.GetMember(name, ignoreCase ? bfic : bf);
+            var fs = type2.GetMember(name, ignoreCase ? bfic : bf);
             if (fs != null && fs.Length > 0)
             {
                 // 得到多个的时候，优先返回精确匹配
@@ -305,7 +309,7 @@ public class DefaultReflect : IReflect
                 return fs[0];
             }
 
-            type = type.BaseType;
+            type2 = type2.BaseType;
         }
         return null;
     }
@@ -416,7 +420,7 @@ public class DefaultReflect : IReflect
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    public virtual Object CreateInstance(Type type, params Object[] parameters)
+    public virtual Object? CreateInstance(Type type, params Object?[] parameters)
     {
         try
         {
@@ -425,7 +429,7 @@ public class DefaultReflect : IReflect
                 // 基元类型
                 return type.GetTypeCode() switch
                 {
-                    TypeCode.Empty or TypeCode.DBNull => null,
+                    //TypeCode.Empty or TypeCode.DBNull => null,
                     TypeCode.Boolean => false,
                     TypeCode.Char => '\0',
                     TypeCode.SByte => (SByte)0,
@@ -450,7 +454,7 @@ public class DefaultReflect : IReflect
         catch (Exception ex)
         {
             //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
-            throw new Exception($"创建对象失败 type={type.FullName} parameters={parameters.Join()} {ex.GetTrue()?.Message}", ex);
+            throw new Exception($"Fail to create object type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
         }
     }
 
@@ -459,24 +463,25 @@ public class DefaultReflect : IReflect
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    public virtual Object Invoke(Object target, MethodBase method, params Object[] parameters) => method.Invoke(target, parameters);
+    public virtual Object? Invoke(Object? target, MethodBase method, Object?[]? parameters) => method.Invoke(target, parameters);
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数字典</param>
     /// <returns></returns>
-    public virtual Object InvokeWithParams(Object target, MethodBase method, IDictionary parameters)
+    public virtual Object? InvokeWithParams(Object? target, MethodBase method, IDictionary? parameters)
     {
         // 该方法没有参数，无视外部传入参数
         var pis = method.GetParameters();
         if (pis == null || pis.Length == 0) return Invoke(target, method, null);
 
-        var ps = new Object[pis.Length];
+        var ps = new Object?[pis.Length];
         for (var i = 0; i < pis.Length; i++)
         {
-            Object v = null;
-            if (parameters != null && parameters.Contains(pis[i].Name)) v = parameters[pis[i].Name];
+            Object? v = null;
+            var name = pis[i].Name;
+            if (parameters != null && !name.IsNullOrEmpty() && parameters.Contains(name)) v = parameters[name];
             ps[i] = v.ChangeType(pis[i].ParameterType);
         }
 
@@ -487,25 +492,25 @@ public class DefaultReflect : IReflect
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    public virtual Object GetValue(Object target, PropertyInfo property) => property.GetValue(target, null);
+    public virtual Object? GetValue(Object? target, PropertyInfo property) => property.GetValue(target, null);
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    public virtual Object GetValue(Object target, FieldInfo field) => field.GetValue(target);
+    public virtual Object? GetValue(Object? target, FieldInfo field) => field.GetValue(target);
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <param name="value">数值</param>
-    public virtual void SetValue(Object target, PropertyInfo property, Object value) => property.SetValue(target, value.ChangeType(property.PropertyType), null);
+    public virtual void SetValue(Object target, PropertyInfo property, Object? value) => property.SetValue(target, value.ChangeType(property.PropertyType), null);
 
     /// <summary>设置目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <param name="value">数值</param>
-    public virtual void SetValue(Object target, FieldInfo field, Object value) => field.SetValue(target, value.ChangeType(field.FieldType));
+    public virtual void SetValue(Object target, FieldInfo field, Object? value) => field.SetValue(target, value.ChangeType(field.FieldType));
     #endregion
 
     #region 对象拷贝
@@ -520,7 +525,7 @@ public class DefaultReflect : IReflect
 
         var targetType = target.GetType();
         // 基础类型无法拷贝
-        if (targetType.GetTypeCode() != TypeCode.Object) throw new XException("基础类型 {0} 无法拷贝", targetType.FullName);
+        if (targetType.GetTypeCode() != TypeCode.Object) throw new XException("The underlying type {0} cannot be copied", targetType.FullName);
 
         // 不是深度拷贝时，直接复制引用
         if (!deep)
@@ -560,7 +565,7 @@ public class DefaultReflect : IReflect
         }
 
         // 来源对象转为字典
-        var dic = new Dictionary<String, Object>();
+        var dic = new Dictionary<String, Object?>();
         foreach (var pi in source.GetType().GetProperties(true))
         {
             if (!pi.CanRead) continue;
@@ -578,7 +583,7 @@ public class DefaultReflect : IReflect
     /// <param name="target">目标对象</param>
     /// <param name="source">源字典</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-    public virtual void Copy(Object target, IDictionary<String, Object> source, Boolean deep = false)
+    public virtual void Copy(Object target, IDictionary<String, Object?> source, Boolean deep = false)
     {
         if (target == null || source == null || source.Count == 0 || target == source) return;
 
@@ -601,7 +606,7 @@ public class DefaultReflect : IReflect
                         v = pi.PropertyType.CreateInstance();
                         SetValue(target, pi, v);
                     }
-                    Copy(v, obj, deep);
+                    if (v != null && obj != null) Copy(v, obj, deep);
                 }
                 else
                     SetValue(target, pi, obj);
@@ -614,7 +619,7 @@ public class DefaultReflect : IReflect
     /// <summary>获取一个类型的元素类型</summary>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public virtual Type GetElementType(Type type)
+    public virtual Type? GetElementType(Type type)
     {
         if (type.HasElementType) return type.GetElementType();
 
@@ -637,9 +642,9 @@ public class DefaultReflect : IReflect
     /// <param name="value">数值</param>
     /// <param name="conversionType"></param>
     /// <returns></returns>
-    public virtual Object ChangeType(Object value, Type conversionType)
+    public virtual Object? ChangeType(Object? value, Type conversionType)
     {
-        Type vtype = null;
+        Type? vtype = null;
         if (value != null) vtype = value.GetType();
         if (vtype == conversionType) return value;
 
@@ -659,22 +664,22 @@ public class DefaultReflect : IReflect
         if (conversionType.IsEnum)
         {
             if (vtype == typeof(String))
-                return Enum.Parse(conversionType, (String)value, true);
+                return Enum.Parse(conversionType, (String)(value ?? String.Empty), true);
             else
-                return Enum.ToObject(conversionType, value);
+                return Enum.ToObject(conversionType, value ?? 0);
         }
 
         // 字符串转为货币类型，处理一下
         if (vtype == typeof(String))
         {
-            var str = (String)value;
+            var str = (String)(value ?? String.Empty);
             if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
             {
-                value = str.TrimStart(new Char[] { '$', '￥' });
+                value = str.TrimStart(['$', '￥']);
             }
             else if (conversionType.As<Type>())
             {
-                return GetType((String)value, false);
+                return GetType(str, false);
             }
 
             // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
@@ -725,7 +730,7 @@ public class DefaultReflect : IReflect
     /// <param name="type">指定类型</param>
     /// <param name="isfull">是否全名，包含命名空间</param>
     /// <returns></returns>
-    public virtual String GetName(Type type, Boolean isfull) => isfull ? type.FullName : type.Name;
+    public virtual String GetName(Type type, Boolean isfull) => isfull ? (type.FullName ?? type.Name) : type.Name;
     #endregion
 
     #region 插件
@@ -800,7 +805,10 @@ public class DefaultReflect : IReflect
         if (asm == null) throw new ArgumentNullException(nameof(asm));
         if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-        return AssemblyX.Create(asm).FindPlugins(baseType);
+        var asmx = AssemblyX.Create(asm);
+        if (asmx == null) return Enumerable.Empty<Type>();
+
+        return asmx.FindPlugins(baseType);
     }
 
     /// <summary>在所有程序集中查找指定基类或接口的子类实现</summary>

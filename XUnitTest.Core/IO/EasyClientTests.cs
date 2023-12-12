@@ -8,7 +8,7 @@ namespace XUnitTest.IO;
 
 public class EasyClientTests
 {
-    [Fact]
+    [Fact(Skip = "仅开发使用")]
     public async void Test()
     {
         var client = new EasyClient

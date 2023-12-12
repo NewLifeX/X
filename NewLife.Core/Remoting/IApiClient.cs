@@ -4,13 +4,13 @@
 public interface IApiClient
 {
     /// <summary>令牌。每次请求携带</summary>
-    String Token { get; set; }
+    String? Token { get; set; }
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    TResult Invoke<TResult>(String action, Object args = null);
+    TResult? Invoke<TResult>(String action, Object? args = null);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult"></typeparam>
@@ -18,5 +18,5 @@ public interface IApiClient
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    Task<TResult> InvokeAsync<TResult>(String action, Object args = null, CancellationToken cancellationToken = default);
+    Task<TResult?> InvokeAsync<TResult>(String action, Object? args = null, CancellationToken cancellationToken = default);
 }

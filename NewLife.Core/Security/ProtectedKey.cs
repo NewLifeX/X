@@ -8,7 +8,7 @@ public class ProtectedKey
 {
     #region 属性
     /// <summary>保护数据的密钥</summary>
-    public Byte[] Secret { get; set; }
+    public Byte[]? Secret { get; set; }
 
     /// <summary>算法。默认AES</summary>
     public String Algorithm { get; set; } = "AES";
@@ -17,7 +17,7 @@ public class ProtectedKey
     public String HideString { get; set; } = "{***}";
 
     /// <summary>密码名字</summary>
-    public String[] Names { get; set; } = new[] { "password", "pass", "pwd" };
+    public String[] Names { get; set; } = ["password", "pass", "pwd"];
     #endregion
 
     #region 静态实例
@@ -153,7 +153,7 @@ public class ProtectedKey
             "des" => DES.Create(),
             "rc2" => RC2.Create(),
             "tripledes" => TripleDES.Create(),
-            _ => throw new NotSupportedException($"不支持[{name}]"),
+            _ => throw new NotSupportedException($"Not Supported [{name}]"),
         };
     }
     #endregion

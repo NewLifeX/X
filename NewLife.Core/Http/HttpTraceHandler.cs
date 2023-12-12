@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+﻿using System.Net.Http;
+using NewLife.Log;
 
 namespace NewLife.Http;
 
@@ -7,10 +8,10 @@ public class HttpTraceHandler : DelegatingHandler
 {
     #region 属性
     /// <summary>APM跟踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>异常过滤器。仅记录满足条件的异常，默认空记录所有异常</summary>
-    public Predicate<Exception> ExceptionFilter { get; set; }
+    public Predicate<Exception>? ExceptionFilter { get; set; }
     #endregion
 
     /// <summary>实例化一个支持APM的HttpClient处理器</summary>

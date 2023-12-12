@@ -38,6 +38,8 @@ public class DataMemberResolver : DefaultJsonTypeInfoResolver
         foreach (var propertyInfo in typeInfo.Properties)
         {
             var provider = propertyInfo.AttributeProvider;
+            if (provider == null) continue;
+
             if (provider.IsDefined(typeof(IgnoreDataMemberAttribute), true) ||
                 provider.IsDefined(typeof(XmlIgnoreAttribute), false))
             {

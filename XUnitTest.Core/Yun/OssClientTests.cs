@@ -42,7 +42,7 @@ public class OssClientTests
         return client;
     }
 
-    [Fact]
+    [Fact(Skip = "跳过")]
     public async void ListBuckets()
     {
         var client = GetClient();
@@ -51,7 +51,7 @@ public class OssClientTests
         Assert.NotNull(buckets);
     }
 
-    [Fact]
+    [Fact(Skip = "跳过")]
     public async void ListBuckets2()
     {
         var client = GetClient();

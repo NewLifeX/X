@@ -1,4 +1,6 @@
-﻿namespace NewLife.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace NewLife.Threading;
 
 /// <summary>轻量级Cron表达式</summary>
 /// <remarks>
@@ -30,27 +32,27 @@ public class Cron
 {
     #region 属性
     /// <summary>秒数集合</summary>
-    public Int32[] Seconds;
+    public Int32[]? Seconds { get; set; }
 
     /// <summary>分钟集合</summary>
-    public Int32[] Minutes;
+    public Int32[]? Minutes { get; set; }
 
     /// <summary>小时集合</summary>
-    public Int32[] Hours;
+    public Int32[]? Hours { get; set; }
 
     /// <summary>日期集合</summary>
-    public Int32[] DaysOfMonth;
+    public Int32[]? DaysOfMonth { get; set; }
 
     /// <summary>月份集合</summary>
-    public Int32[] Months;
+    public Int32[]? Months { get; set; }
 
     /// <summary>星期集合。key是星期数，value是第几个，负数表示倒数</summary>
-    public IDictionary<Int32, Int32> DaysOfWeek;
+    public IDictionary<Int32, Int32>? DaysOfWeek { get; set; }
 
     /// <summary>星期天偏移量。周日对应的数字，默认0。1表示周日时，2表示周一</summary>
     public Int32 Sunday { get; set; }
 
-    private String _expression;
+    private String? _expression;
     #endregion
 
     #region 构造
@@ -63,7 +65,7 @@ public class Cron
 
     /// <summary>已重载。</summary>
     /// <returns></returns>
-    public override String ToString() => _expression;
+    public override String ToString() => _expression ?? nameof(Cron);
     #endregion
 
     #region 方法
@@ -72,6 +74,8 @@ public class Cron
     /// <returns></returns>
     public Boolean IsTime(DateTime time)
     {
+        if (Seconds == null || Minutes == null || Hours == null || DaysOfMonth == null || Months == null) return false;
+
         // 基础时间判断
         if (!Seconds.Contains(time.Second) ||
             !Minutes.Contains(time.Minute) ||
@@ -81,7 +85,7 @@ public class Cron
             ) return false;
 
         var w = (Int32)time.DayOfWeek + Sunday;
-        if (!DaysOfWeek.TryGetValue(w, out var index)) return false;
+        if (DaysOfWeek == null || !DaysOfWeek.TryGetValue(w, out var index)) return false;
 
         // 第几个星期几判断
         if (index > 0)
@@ -139,12 +143,12 @@ public class Cron
         // 固定值，最为常见，优先计算
         if (Int32.TryParse(value, out var n))
         {
-            vs = new Int32[] { n };
+            vs = [n];
             return true;
         }
 
         var rs = new List<Int32>();
-        vs = null;
+        vs = new Int32[0];
 
         // 递归处理混合值
         if (value.Contains(','))

@@ -33,12 +33,20 @@ public struct DbRow : IModel
     /// <summary>基于列索引访问</summary>
     /// <param name="column"></param>
     /// <returns></returns>
-    public Object this[Int32 column] { get => Table.Rows[Index][column]; set => Table.Rows[Index][column] = value; }
+    public Object? this[Int32 column]
+    {
+        get => Table.Rows?[Index][column];
+        set
+        {
+            var rows = Table.Rows;
+            if (rows != null) rows[Index][column] = value;
+        }
+    }
 
     /// <summary>基于列名访问</summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public Object this[String name] { get => this[Table.GetColumn(name)]; set => this[Table.GetColumn(name)] = value; }
+    public Object? this[String name] { get => this[Table.GetColumn(name)]; set => this[Table.GetColumn(name)] = value; }
     #endregion
 
     #region 高级扩展
@@ -46,6 +54,6 @@ public struct DbRow : IModel
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public T Get<T>(String name) => Table.Get<T>(Index, name);
+    public T? Get<T>(String name) => Table.Get<T>(Index, name);
     #endregion
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -16,7 +17,7 @@ public class BinaryComposite : BinaryHandlerBase
     /// <param name="value">目标对象</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public override Boolean Write(Object value, Type type)
+    public override Boolean Write(Object? value, Type type)
     {
         // 不支持基本类型
         if (Type.GetTypeCode(type) != TypeCode.Object) return false;
@@ -26,7 +27,7 @@ public class BinaryComposite : BinaryHandlerBase
         var ms = GetMembers(type).Where(e => !ims.Contains(e.Name)).ToList();
         WriteLog("BinaryWrite类{0} 共有成员{1}个", type.Name, ms.Count);
 
-        if (Host is Binary b && b.UseFieldSize)
+        if (Host is Binary b && b.UseFieldSize && value != null)
         {
             // 遍历成员，寻找FieldSizeAttribute特性，重新设定大小字段的值
             foreach (var member in ms)
@@ -38,7 +39,7 @@ public class BinaryComposite : BinaryHandlerBase
                     foreach (var att in atts)
                     {
                         if (!att.ReferenceName.IsNullOrEmpty() &&
-                            (att.Version.IsNullOrEmpty() || att.Version == (Host as Binary).Version))
+                            (att.Version.IsNullOrEmpty() || att.Version == b.Version))
                             att.SetReferenceSize(value, member, Host.Encoding);
                     }
                 }
@@ -47,6 +48,8 @@ public class BinaryComposite : BinaryHandlerBase
 
         // 如果不是第一层，这里开始必须写对象引用
         if (WriteRef(value)) return true;
+
+        if (value == null) return true;
 
         Host.Hosts.Push(value);
 
@@ -82,10 +85,9 @@ public class BinaryComposite : BinaryHandlerBase
         return true;
     }
 
-    private Boolean WriteRef(Object value)
+    private Boolean WriteRef(Object? value)
     {
-        var bn = Host as Binary;
-        if (!bn.UseRef) return false;
+        if (Host is Binary bn && !bn.UseRef) return false;
         if (Host.Hosts.Count == 0) return false;
 
         if (value == null)
@@ -115,7 +117,7 @@ public class BinaryComposite : BinaryHandlerBase
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public override Boolean TryRead(Type type, ref Object value)
+    public override Boolean TryRead(Type type, ref Object? value)
     {
         if (type == typeof(Object)) return false;
         if (type == null)
@@ -139,6 +141,7 @@ public class BinaryComposite : BinaryHandlerBase
         if (ReadRef(ref value)) return true;
 
         value ??= type.CreateInstance();
+        if (value == null) return true;
 
         Host.Hosts.Push(value);
 
@@ -157,7 +160,7 @@ public class BinaryComposite : BinaryHandlerBase
 
             var mtype = GetMemberType(member);
             context.Member = Host.Member = member;
-            WriteLog("    {0}.{1}", member.DeclaringType.Name, member.Name);
+            WriteLog("    {0}.{1}", member.DeclaringType?.Name, member.Name);
 
             // 成员访问器优先
             if (value is IMemberAccessor ac && ac.Read(Host, context)) continue;
@@ -167,7 +170,7 @@ public class BinaryComposite : BinaryHandlerBase
             var hs = Host.Stream;
             if (hs.CanSeek && hs.Position >= hs.Length) break;
 
-            Object v = null;
+            Object? v = null;
             v = value is IModel src ? src[member.Name] : value.GetValue(member);
             if (!Host.TryRead(mtype, ref v))
             {
@@ -185,11 +188,12 @@ public class BinaryComposite : BinaryHandlerBase
         return true;
     }
 
-    private Boolean ReadRef(ref Object value)
+    private Boolean ReadRef(ref Object? value)
     {
-        var bn = Host as Binary;
-        if (!bn.UseRef) return false;
         if (Host.Hosts.Count == 0) return false;
+        if (Host is not Binary bn) return false;
+
+        if (!bn.UseRef) return false;
 
         var rf = bn.ReadEncodedInt32();
         if (rf == 0)
@@ -203,7 +207,7 @@ public class BinaryComposite : BinaryHandlerBase
         // 如果引用是对象数加一，说明有对象紧跟着
         if (rf == hs.Length + 1) return false;
 
-        if (rf < 0 || rf > hs.Length) throw new XException("无法在 {0} 个对象中找到引用 {1}", hs.Length, rf);
+        if (rf < 0 || rf > hs.Length) throw new XException("Unable to find reference {1} in {0} objects", hs.Length, rf);
 
         value = hs[rf - 1];
 
@@ -225,16 +229,20 @@ public class BinaryComposite : BinaryHandlerBase
 
     private static Type GetMemberType(MemberInfo member)
     {
-        return member.MemberType switch
-        {
-            MemberTypes.Field => (member as FieldInfo).FieldType,
-            MemberTypes.Property => (member as PropertyInfo).PropertyType,
-            _ => throw new NotSupportedException(),
-        };
+        //return member.MemberType switch
+        //{
+        //    MemberTypes.Field => (member as FieldInfo).FieldType,
+        //    MemberTypes.Property => (member as PropertyInfo).PropertyType,
+        //    _ => throw new NotSupportedException(),
+        //};
+        if (member is FieldInfo fi) return fi.FieldType;
+        if (member is PropertyInfo pi) return pi.PropertyType;
+
+        throw new NotSupportedException();
     }
 
-    private static readonly ConcurrentDictionary<MemberInfo, IMemberAccessor> _cache = new();
-    private static Boolean TryGetAccessor(MemberInfo member, out IMemberAccessor acc)
+    private static readonly ConcurrentDictionary<MemberInfo, IMemberAccessor?> _cache = new();
+    private static Boolean TryGetAccessor(MemberInfo member, [NotNullWhen(true)] out IMemberAccessor? acc)
     {
         if (_cache.TryGetValue(member, out acc)) return acc != null;
 

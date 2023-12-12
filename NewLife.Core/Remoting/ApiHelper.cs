@@ -14,10 +14,10 @@ public static class ApiHelper
 {
     #region 远程调用
     /// <summary>性能跟踪器</summary>
-    public static ITracer Tracer { get; set; } = DefaultTracer.Instance;
+    public static ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>Http过滤器</summary>
-    public static IHttpFilter Filter { get; set; }
+    public static IHttpFilter? Filter { get; set; }
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -26,7 +26,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> GetAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args, null, "data", cancellationToken);
+    public static async Task<TResult?> GetAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Get, action, args, null, "data", cancellationToken);
 
     /// <summary>同步获取，参数构造在Url</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -34,7 +34,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult Get<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => GetAsync<TResult>(client, action, args)).Result;
+    public static TResult? Get<TResult>(this HttpClient client, String action, Object? args = null) => Task.Run(() => GetAsync<TResult>(client, action, args)).Result;
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -43,7 +43,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> PostAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args, null, "data", cancellationToken);
+    public static async Task<TResult?> PostAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Post, action, args, null, "data", cancellationToken);
 
     /// <summary>同步提交，参数Json打包在Body</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -51,7 +51,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult Post<TResult>(this HttpClient client, String action, Object args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
+    public static TResult? Post<TResult>(this HttpClient client, String action, Object? args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
 
     /// <summary>异步上传，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -60,7 +60,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> PutAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Put, action, args, null, "data", cancellationToken);
+    public static async Task<TResult?> PutAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Put, action, args, null, "data", cancellationToken);
 
     /// <summary>异步删除，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -69,7 +69,7 @@ public static class ApiHelper
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> DeleteAsync<TResult>(this HttpClient client, String action, Object args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Delete, action, args, null, "data", cancellationToken);
+    public static async Task<TResult?> DeleteAsync<TResult>(this HttpClient client, String action, Object? args = null, CancellationToken cancellationToken = default) => await client.InvokeAsync<TResult>(HttpMethod.Delete, action, args, null, "data", cancellationToken);
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -81,7 +81,7 @@ public static class ApiHelper
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public static async Task<TResult> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object args = null, Action<HttpRequestMessage> onRequest = null, String dataName = "data", CancellationToken cancellationToken = default)
+    public static async Task<TResult?> InvokeAsync<TResult>(this HttpClient client, HttpMethod method, String action, Object? args = null, Action<HttpRequestMessage>? onRequest = null, String dataName = "data", CancellationToken cancellationToken = default)
     {
         //if (client?.BaseAddress == null) throw new ArgumentNullException(nameof(client.BaseAddress));
 
@@ -131,7 +131,7 @@ public static class ApiHelper
     /// <param name="action">动作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object args)
+    public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args)
     {
         // 序列化参数，决定GET/POST
         var request = new HttpRequestMessage(method, action);
@@ -161,7 +161,7 @@ public static class ApiHelper
                 request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
         }
-        else if (method == HttpMethod.Post || method == HttpMethod.Put)
+        else if (method == HttpMethod.Post || method == HttpMethod.Put || method.Method == "PATCH")
         {
             if (args is Packet pk)
             {
@@ -169,7 +169,7 @@ public static class ApiHelper
             }
             else if (args is Byte[] buf)
             {
-                request.Content = BuildContent(buf);
+                if (buf != null) request.Content = BuildContent(buf);
             }
             else if (args != null)
             {
@@ -217,7 +217,7 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data") => await ProcessResponse<TResult>(response, null, dataName);
+    public static async Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String dataName = "data") => await ProcessResponse<TResult>(response, null, dataName);
 
     /// <summary>处理响应。统一识别code/message</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -225,7 +225,7 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static async Task<TResult> ProcessResponse<TResult>(HttpResponseMessage response, String codeName, String dataName)
+    public static async Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName)
     {
         var rtype = typeof(TResult);
         if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
@@ -233,14 +233,32 @@ public static class ApiHelper
         var buf = response.Content == null ? null : (await response.Content.ReadAsByteArrayAsync());
 
         // 异常处理
-        if (response.StatusCode >= HttpStatusCode.BadRequest) throw new ApiException((Int32)response.StatusCode, buf.ToStr()?.Trim('\"') ?? response.ReasonPhrase);
+        if (response.StatusCode >= HttpStatusCode.BadRequest)
+        {
+            var msg = buf?.ToStr().Trim('\"');
+            // 400响应可能包含错误信息
+            if (!msg.IsNullOrEmpty() && msg.StartsWith("{") && msg.EndsWith("}"))
+            {
+                var dic = JsonParser.Decode(msg);
+                if (dic != null)
+                {
+                    var msg2 = "";
+                    if (dic.TryGetValue("title", out var v)) msg2 = v + "";
+                    if (dic.TryGetValue("errors", out v)) msg2 += v?.ToJson();
+                    if (!msg2.IsNullOrEmpty()) msg = msg2.Trim();
+                }
+            }
+            if (msg.IsNullOrEmpty()) msg = response.ReasonPhrase;
+            if (msg.IsNullOrEmpty()) msg = response.StatusCode + "";
+            throw new ApiException((Int32)response.StatusCode, msg);
+        }
         if (buf == null || buf.Length == 0) return default;
 
         // 原始数据
         if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
-        var str = buf.ToStr()?.Trim();
+        var str = buf.ToStr().Trim();
         return ProcessResponse<TResult>(str, codeName, dataName ?? "data");
     }
 
@@ -250,7 +268,7 @@ public static class ApiHelper
     /// <param name="codeName">状态码字段名</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static TResult ProcessResponse<TResult>(String response, String codeName, String dataName)
+    public static TResult? ProcessResponse<TResult>(String? response, String? codeName, String dataName)
     {
         if (response.IsNullOrEmpty()) return default;
 
@@ -311,13 +329,14 @@ public static class ApiHelper
 
         // 简单类型
         if (data is TResult result) return result;
-        if (rtype == typeof(Object)) return (TResult)data;
+        if (rtype == typeof(Object)) return (TResult?)data;
         if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
 
         // 反序列化
         if (data == null) return default;
 
-        if (data is not IDictionary<String, Object> and not IList<Object>) throw new InvalidDataException("未识别响应数据");
+        if (data is not IDictionary<String, Object> and not IList<Object>)
+            throw new InvalidDataException("Unrecognized response data");
 
         return JsonHelper.Convert<TResult>(data);
     }
@@ -326,7 +345,7 @@ public static class ApiHelper
     /// <param name="action"></param>
     /// <param name="ps"></param>
     /// <returns></returns>
-    public static String GetUrl(String action, IDictionary<String, Object> ps)
+    public static String GetUrl(String action, IDictionary<String, Object?>? ps)
     {
         var url = action;
         if (ps != null && ps.Count > 0)

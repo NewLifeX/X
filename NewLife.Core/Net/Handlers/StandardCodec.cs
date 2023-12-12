@@ -13,7 +13,7 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public override Object Write(IHandlerContext context, Object message)
+    public override Object? Write(IHandlerContext context, Object message)
     {
         if (UserPacket && message is Packet pk)
             message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
@@ -36,9 +36,11 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected override IList<IMessage> Decode(IHandlerContext context, Packet pk)
+    protected override IList<IMessage>? Decode(IHandlerContext context, Packet pk)
     {
         var ss = context.Owner as IExtend;
+        if (ss == null) return null;
+
         if (ss["Codec"] is not PacketCodec pc)
         {
             ss["Codec"] = pc = new PacketCodec
@@ -49,13 +51,19 @@ public class StandardCodec : MessageCodec<IMessage>
         }
 
         var pks = pc.Parse(pk);
-        var list = pks.Select(e =>
+        //var list = pks.Select(e =>
+        //{
+        //    var msg = new DefaultMessage();
+        //    if (!msg.Read(e)) return null;
+
+        //    return msg as IMessage;
+        //}).ToList();
+        var list = new List<IMessage>();
+        foreach (var item in pks)
         {
             var msg = new DefaultMessage();
-            if (!msg.Read(e)) return null;
-
-            return msg as IMessage;
-        }).ToList();
+            if (msg.Read(item)) list.Add(msg);
+        }
 
         return list;
     }
@@ -64,7 +72,7 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <param name="request"></param>
     /// <param name="response"></param>
     /// <returns></returns>
-    protected override Boolean IsMatch(Object request, Object response)
+    protected override Boolean IsMatch(Object? request, Object? response)
     {
         return request is DefaultMessage req &&
             response is DefaultMessage res &&

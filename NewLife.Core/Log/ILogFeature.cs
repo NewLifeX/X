@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace NewLife.Log;
+﻿namespace NewLife.Log;
 
 /// <summary>日志功能接口</summary>
 public interface ILogFeature
 {
-    /// <summary>日志</summary>
+    /// <summary>日志。非空，默认为Logger.Null</summary>
     ILog Log { get; set; }
 }
 
@@ -16,5 +14,5 @@ public static class LogFeatureExtensions
     /// <param name="logFeature">日志功能</param>
     /// <param name="format">格式化字符串</param>
     /// <param name="args">格式化参数，特殊处理时间日期和异常对象</param>
-    public static void WriteLog(ILogFeature logFeature, String format, params Object[] args) => logFeature.Log?.Info(format, args);
+    public static void WriteLog(ILogFeature logFeature, String format, params Object?[] args) => logFeature.Log?.Info(format, args);
 }

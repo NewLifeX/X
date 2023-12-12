@@ -33,18 +33,18 @@ namespace NewLife.Log
         {
             var type = typeof(Stopwatch);
             var fi = type.GetFieldEx("tickFrequency") ?? type.GetFieldEx("s_tickFrequency");
-            if (fi != null) tickFrequency = (Double)fi.GetValue(null);
+            if (fi != null) tickFrequency = (Double)(fi.GetValue(null) ?? 0);
         }
 
         /// <summary>开始计时</summary>
         /// <param name="counter"></param>
         /// <returns></returns>
-        public static Int64 StartCount(this ICounter counter) => counter == null ? 0 : Stopwatch.GetTimestamp();
+        public static Int64 StartCount(this ICounter? counter) => counter == null ? 0 : Stopwatch.GetTimestamp();
 
         /// <summary>结束计时</summary>
         /// <param name="counter"></param>
         /// <param name="startTicks"></param>
-        public static Int64 StopCount(this ICounter counter, Int64? startTicks)
+        public static Int64 StopCount(this ICounter? counter, Int64? startTicks)
         {
             if (counter == null || startTicks == null) return 0;
 

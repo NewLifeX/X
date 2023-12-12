@@ -72,26 +72,48 @@ public class JsonParser
     /// <summary>解码</summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public static IDictionary<String, Object> Decode(String json)
+    public static IDictionary<String, Object?>? Decode(String json)
     {
         var parser = new JsonParser(json);
-        try
+        //try
         {
-            return parser.ParseValue() as IDictionary<String, Object>;
+            return parser.Decode() as IDictionary<String, Object?>;
         }
-        catch (XException ex)
-        {
-            throw new XException($"解析Json出错：{json}", ex);
-        }
+        //catch (XException ex)
+        //{
+        //    throw new XException($"解析Json出错：{json}", ex);
+        //}
     }
 
     /// <summary>解码</summary>
     /// <returns></returns>
-    public Object Decode() => ParseValue();
-
-    private Dictionary<String, Object> ParseObject()
+    public Object? Decode()
     {
-        var dic = new NullableDictionary<String, Object>(StringComparer.OrdinalIgnoreCase);
+        if (_json.IsNullOrEmpty()) return null;
+
+        // 找到第一个非空白字符
+        var ch = _json[0];
+        while (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
+        {
+            if (++index == _json.Length) return null;
+
+            ch = _json[index];
+        }
+
+        if (ch != '{' && ch != '[')
+        {
+            var len = _json.Length;
+            if (len > 32) len = 32;
+
+            throw new XException($"Non standard Json string [{_json.Substring(0, len)}]");
+        }
+
+        return ParseValue();
+    }
+
+    private Dictionary<String, Object?> ParseObject()
+    {
+        var dic = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
 
         SkipToken(); // {
 
@@ -140,7 +162,7 @@ public class JsonParser
                                 break;
                             }
 
-                            throw new XException("在 {0} 后需要冒号", name);
+                            throw new XException("A colon is required after {0}", name);
                         }
 
                         // 值
@@ -183,13 +205,14 @@ public class JsonParser
                     break;
 
                 default:
-                    arr.Add(ParseValue());
+                    var v = ParseValue();
+                    if (v != null) arr.Add(v);
                     break;
             }
         }
     }
 
-    private Object ParseValue()
+    private Object? ParseValue()
     {
         switch (LookAhead())
         {
@@ -228,7 +251,7 @@ public class JsonParser
                 return null;
         }
 
-        throw new XException("在 {0} 的标识符无法识别", index);
+        throw new XException("Unrecognized identifier in {0}", index);
     }
 
     private String ParseString(Boolean isName)
@@ -310,7 +333,15 @@ public class JsonParser
             }
         }
 
-        throw new XException("已到达字符串结尾");
+        if (runIndex >= 0)
+        {
+            var len = index - runIndex;
+            if (len > 32) len = 32;
+
+            throw new XException($"Reached the end of the string while parsing it [{_json.Substring(runIndex, len)}]");
+        }
+
+        throw new XException("Reached the end of the string while parsing it");
     }
 
     private UInt32 ParseSingleChar(Char c1, UInt32 multipliyer)
@@ -454,7 +485,18 @@ public class JsonParser
 
         } while (++index < _json.Length);
 
-        if (index == _json.Length) throw new XException("已到达字符串结尾");
+        if (index == _json.Length)
+        {
+            if (_json.Length >= 0)
+            {
+                var len = _json.Length;
+                if (len > 32) len = 32;
+
+                throw new XException($"End of string reached while parsing token [{_json.Substring(_json.Length - len, len)}]");
+            }
+
+            throw new XException("End of string reached while parsing token");
+        }
 
         ch = _json[index];
 
@@ -561,7 +603,7 @@ public class JsonParser
                 index--;
                 return Token.String;
         }
-        throw new XException("无法在 {0} 找到Token", --index);
+        throw new XException("Unable to find Token at {0}", --index);
     }
 
     static Int64 CreateLong(out Int64 num, String s, Int32 index, Int32 count)

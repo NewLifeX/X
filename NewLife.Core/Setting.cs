@@ -7,6 +7,9 @@ using NewLife.Log;
 namespace NewLife;
 
 /// <summary>核心设置</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/setting
+/// </remarks>
 [DisplayName("核心设置")]
 [Config("Core")]
 public class Setting : Config<Setting>
@@ -28,9 +31,9 @@ public class Setting : Config<Setting>
     [Description("日志文件上限。超过上限后拆分新日志文件，默认10MB，0表示不限制大小")]
     public Int32 LogFileMaxBytes { get; set; } = 10;
 
-    /// <summary>日志文件备份。超过备份数后，最旧的文件将被删除，默认100，0表示不限制个数</summary>
-    [Description("日志文件备份。超过备份数后，最旧的文件将被删除，默认100，0表示不限制个数")]
-    public Int32 LogFileBackups { get; set; } = 100;
+    /// <summary>日志文件备份。超过备份数后，最旧的文件将被删除，网络安全法要求至少保存6个月日志，默认200，0表示不限制个数</summary>
+    [Description("日志文件备份。超过备份数后，最旧的文件将被删除，网络安全法要求至少保存6个月日志，默认200，0表示不限制个数")]
+    public Int32 LogFileBackups { get; set; } = 200;
 
     /// <summary>日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log</summary>
     [Description("日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log")]
@@ -40,6 +43,10 @@ public class Setting : Config<Setting>
     [Description("网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log")]
     public String NetworkLog { get; set; } = "";
 
+    /// <summary>日志记录时间UTC校正，单位：小时。默认0表示使用的是本地时间，使用UTC时间的系统转换成本地时间则相差8小时</summary>
+    [Description("日志记录时间UTC校正，小时")]
+    public Int32 UtcIntervalHours { get; set; } = 0;
+    
     /// <summary>数据目录。本地数据库目录，默认Data子目录</summary>
     [Description("数据目录。本地数据库目录，默认Data子目录")]
     public String DataPath { get; set; } = "";
@@ -59,6 +66,10 @@ public class Setting : Config<Setting>
     /// <summary>辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false</summary>
     [Description("辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false")]
     public Boolean AssemblyResolve { get; set; }
+
+    /// <summary>服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开</summary>
+    [Description("服务地址。用户访问的外网地址，反向代理之外，用于内部构造其它Url（如SSO），或者向注册中心登记，多地址逗号隔开")]
+    public String ServiceAddress { get; set; } = "";
     #endregion
 
     #region 方法
