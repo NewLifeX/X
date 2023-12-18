@@ -94,56 +94,15 @@ namespace Test
         static StarClient _client;
         private static void Test1()
         {
-            var py = PinYin.Get("新生命");
-            var pf = PinYin.GetFirst("新生命");
-
-            XTrace.WriteLine("py={0}", py);
-            XTrace.WriteLine("pf={0}", pf);
-
-            //var tcps = NetHelper.GetAllTcpConnections(-1);
-            //XTrace.WriteLine("Tcp连接数：{0}", tcps.Length);
-            //foreach (var item in tcps)
-            //{
-            //    XTrace.WriteLine("{0}\t{1}\t{2}\t{3}", item.LocalEndPoint, item.RemoteEndPoint, item.State, item.ProcessId);
-            //}
-
-            //var ipg = IPGlobalProperties.GetIPGlobalProperties();
-            //for (var i = 0; i < 100; i++)
-            //{
-            //    //var st = ipg.GetIPv4GlobalStatistics();
-            //    var st = ipg.GetTcpIPv4Statistics();
-            //    XTrace.WriteLine(st.ToJson());
-
-            //    Thread.Sleep(1000);
-            //}
-
-            //OperatingSystem.IsWindows();
-            //RuntimeInformation
-
-            var mi = new MachineInfo();
-            mi.Init();
-            XTrace.WriteLine(mi.ToJson(true));
-
-            Console.WriteLine();
-
-            mi = MachineInfo.GetCurrent();
-            XTrace.WriteLine(mi.ToJson(true));
-
-#if NETFRAMEWORK
-            var diskID = MachineInfo.GetInfo("Win32_DiskDrive where mediatype=\"Fixed hard disk media\"", "SerialNumber");
-            XTrace.WriteLine("DiskID: {0}", diskID);
-#endif
-
-            var sys = SysConfig.Current;
-            XTrace.WriteLine("Name: {0}", sys.Name);
-
-            var client = new StarClient("http://star.newlifex.com:6600")
+            var netUri = new NetUri("tcp://0.0.0.0:19000");
+            var apiServer = new ApiServer(netUri)
+            //var apiServer = new ApiServer(19000)
             {
-                ProductCode = "Test"
+                Log = XTrace.Log,
+                ShowError = true,
+                //ServiceProvider = ioc.BuildServiceProvider()
             };
-            client.Login();
-
-            _client = client;
+            apiServer.Start();
         }
 
         private static void Test2()

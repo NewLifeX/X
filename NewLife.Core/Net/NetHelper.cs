@@ -136,17 +136,19 @@ public static class NetHelper
         switch (family)
         {
             case AddressFamily.InterNetwork:
-                if (address == IPAddress.IPv6Any) return IPAddress.Any;
+                if (address.Equals(IPAddress.IPv6Any)) return IPAddress.Any;
                 break;
             case AddressFamily.InterNetworkV6:
-                if (address == IPAddress.Any) return IPAddress.IPv6Any;
+                if (address.Equals(IPAddress.Any)) return IPAddress.IPv6Any;
                 break;
             default:
                 break;
         }
         //return null;
 
-        throw new InvalidDataException($"Not Found {family}");
+        //throw new InvalidDataException($"Not Found {family}");
+
+        return address;
     }
 
     /// <summary>是否Any地址，同时处理IPv4和IPv6</summary>

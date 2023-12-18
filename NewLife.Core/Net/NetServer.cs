@@ -45,7 +45,9 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         set
         {
             _Local = value;
-            if (AddressFamily <= AddressFamily.Unspecified) AddressFamily = value.Address.AddressFamily;
+            if (AddressFamily <= AddressFamily.Unspecified &&
+                (value.Type > NetType.Unknown || !value.Host.IsNullOrEmpty() && value.Host != "*"))
+                AddressFamily = value.Address.AddressFamily;
         }
     }
 
@@ -268,7 +270,10 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     {
         if (Servers.Count <= 0)
         {
-            var list = CreateServer(Local.Address, Port, Local.Type, AddressFamily);
+            var uri = Local;
+            var family = AddressFamily;
+            if (uri.Type > NetType.Unknown || !uri.Host.IsNullOrEmpty() && uri.Host != "*") family = uri.Address.AddressFamily;
+            var list = CreateServer(uri.Address, uri.Port, uri.Type, family);
             foreach (var item in list)
             {
                 AttachServer(item);
