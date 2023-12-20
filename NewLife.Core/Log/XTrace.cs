@@ -33,8 +33,7 @@ public static class XTrace
     private static ILog _Log = Logger.Null;
 
     /// <summary>日志提供者，默认使用文本文件日志</summary>
-    public static ILog Log
-    { get { InitLog(); return _Log; } set { _Log = value; } }
+    public static ILog Log { get { InitLog(); return _Log; } set { _Log = value; } }
 
     /// <summary>输出日志</summary>
     /// <param name="msg">信息</param>
