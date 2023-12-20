@@ -12,13 +12,15 @@ namespace NewLife.Net;
 public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
+
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
     public IPAddress RemoteAddress { get; private set; }
 
     /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
     public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
-    internal ISocketServer _Server;
+    internal ISocketServer? _Server;
+
     /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
     ISocketServer ISocketSession.Server => _Server;
 
@@ -38,10 +40,12 @@ public class TcpSession : SessionBase, ISocketSession
     /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
     public X509Certificate Certificate { get; set; }
 
-    private SslStream _Stream;
-    #endregion
+    private SslStream? _Stream;
+
+    #endregion 属性
 
     #region 构造
+
     /// <summary>实例化增强TCP</summary>
     public TcpSession()
     {
@@ -73,9 +77,11 @@ public class TcpSession : SessionBase, ISocketSession
         _Server = server;
         Name = server.Name;
     }
-    #endregion
+
+    #endregion 构造
 
     #region 方法
+
     internal void Start()
     {
         // 管道
@@ -256,9 +262,11 @@ public class TcpSession : SessionBase, ISocketSession
 
         return true;
     }
-    #endregion
+
+    #endregion 方法
 
     #region 发送
+
     private Int32 _bsize;
     //private SpinLock _spinLock = new();
 
@@ -337,9 +345,11 @@ public class TcpSession : SessionBase, ISocketSession
 
         return rs;
     }
-    #endregion
+
+    #endregion 发送
 
     #region 接收
+
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
     {
         var sock = Client;
@@ -378,16 +388,16 @@ public class TcpSession : SessionBase, ISocketSession
 
             return;
         }
-
-        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, true);
+        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, _IntoThreadCount);
     }
 
     private Int32 _empty;
+
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession OnPreReceive(Packet pk, IPEndPoint remote)
+    protected internal override ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote)
     {
         if (pk.Count == 0)
         {
@@ -420,9 +430,11 @@ public class TcpSession : SessionBase, ISocketSession
 
         return true;
     }
-    #endregion
+
+    #endregion 接收
 
     #region 自动重连
+
     ///// <summary>重连次数</summary>
     //private Int32 _Reconnect;
     //void Reconnect()
@@ -443,10 +455,13 @@ public class TcpSession : SessionBase, ISocketSession
     //        span?.SetError(ex, null);
     //    }
     //}
-    #endregion
+
+    #endregion 自动重连
 
     #region 辅助
-    private String _LogPrefix;
+
+    private String? _LogPrefix;
+
     /// <summary>日志前缀</summary>
     public override String LogPrefix
     {
@@ -473,5 +488,6 @@ public class TcpSession : SessionBase, ISocketSession
 
         return _Server == null ? $"{local}=>{remote}" : $"{local}<={remote}";
     }
-    #endregion
+
+    #endregion 辅助
 }

@@ -12,6 +12,7 @@ namespace NewLife.Net;
 public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILogFeature
 {
     #region 属性
+
     /// <summary>标识</summary>
     public Int32 ID { get; internal set; }
 
@@ -22,7 +23,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public NetUri Local { get; set; } = new NetUri();
 
     /// <summary>端口</summary>
-    public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
+    public Int32 Port
+    { get { return Local.Port; } set { Local.Port = value; } }
 
     /// <summary>远程结点地址</summary>
     public NetUri Remote { get; set; } = new NetUri();
@@ -49,10 +51,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public String CloseReason { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
-    #endregion
+    public ITracer? Tracer { get; set; }
+
+    #endregion 属性
 
     #region 构造
+
     /// <summary>构造函数，初始化默认名称</summary>
     public SessionBase()
     {
@@ -84,9 +88,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString() => Local + "";
-    #endregion
+
+    #endregion 构造
 
     #region 打开关闭
+
     /// <summary>打开</summary>
     /// <returns>是否成功</returns>
     public virtual Boolean Open()
@@ -186,10 +192,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public event EventHandler Opened;
 
     /// <summary>关闭后触发。可实现掉线重连</summary>
-    public event EventHandler Closed;
-    #endregion
+    public event EventHandler? Closed;
+
+    #endregion 打开关闭
 
     #region 发送
+
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="Remote"/>决定
@@ -211,9 +219,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(Packet data);
-    #endregion
+
+    #endregion 发送
 
     #region 接收
+
     /// <summary>接收数据</summary>
     /// <returns></returns>
     public virtual Packet Receive()
@@ -266,12 +276,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var buf = new Byte[BufferSize];
             var se = new SocketAsyncEventArgs();
             se.SetBuffer(buf, 0, buf.Length);
-            se.Completed += (s, e) => ProcessEvent(e, -1, true);
+            se.Completed += (s, e) => ProcessEvent(e, -1, _IntoThreadCount);
             se.UserToken = count;
 
             if (Log != null && Log.Level <= LogLevel.Debug) WriteLog("创建RecvSA {0}", count);
 
-            StartReceive(se, false);
+            StartReceive(se, 0);
         }
 
         return true;
@@ -280,7 +290,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>释放一个事件参数</summary>
     /// <param name="se"></param>
     /// <param name="reason"></param>
-    void ReleaseRecv(SocketAsyncEventArgs se, String reason)
+    private void ReleaseRecv(SocketAsyncEventArgs se, String reason)
     {
         var idx = (Int32)se.UserToken;
 
@@ -295,11 +305,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         se.TryDispose();
     }
 
+    /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>
+    protected Int32 _IntoThreadCount = 10;
+
     /// <summary>用一个事件参数来开始异步接收</summary>
     /// <param name="se">事件参数</param>
-    /// <param name="ioThread">是否在线程池调用</param>
+    /// <param name="ioThread">是否在线程池调用,小于等于0不是，大于0是</param>
     /// <returns></returns>
-    Boolean StartReceive(SocketAsyncEventArgs se, Boolean ioThread)
+    private Boolean StartReceive(SocketAsyncEventArgs se, int ioThread)
     {
         if (Disposed)
         {
@@ -339,20 +352,27 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
         if (!rs)
         {
-            if (ioThread)
-                ProcessEvent(se, -1, true);
+            if (ioThread > 0)
+            {
+                XTrace.WriteLine("ioThread=true");
+                ioThread--;
+                ProcessEvent(se, -1, ioThread);
+            }
             else
+            {
+                XTrace.WriteLine("ioThread=false");
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
                     try
                     {
-                        ProcessEvent(s as SocketAsyncEventArgs, -1, false);
+                        if (s is SocketAsyncEventArgs ee) ProcessEvent(ee, -1, _IntoThreadCount);
                     }
                     catch (Exception ex)
                     {
                         XTrace.WriteException(ex);
                     }
                 }, se);
+            }
         }
 
         return true;
@@ -369,7 +389,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="se"></param>
     /// <param name="bytes"></param>
     /// <param name="ioThread">是否在IO线程池里面</param>
-    internal protected void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, Boolean ioThread)
+    protected internal void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, int ioThread)
     {
         try
         {
@@ -474,7 +494,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="pk">数据包</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected abstract ISocketSession OnPreReceive(Packet pk, IPEndPoint remote);
+    protected internal abstract ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote);
 
     /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
     /// <param name="e">接收事件参数</param>
@@ -499,9 +519,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
         return true;
     }
-    #endregion
+
+    #endregion 接收
 
     #region 消息处理
+
     /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
     /// <remarks>
     /// 1，接收数据解码时，从前向后通过管道处理器；
@@ -512,7 +534,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>创建上下文</summary>
     /// <param name="session">远程会话</param>
     /// <returns></returns>
-    internal protected virtual NetHandlerContext CreateContext(ISocketRemote session)
+    protected internal virtual NetHandlerContext CreateContext(ISocketRemote session)
     {
         var context = new NetHandlerContext
         {
@@ -605,7 +627,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
-    void TrySetCanceled(Object state)
+    private void TrySetCanceled(Object? state)
     {
         var source = state as TaskCompletionSource<Object>;
         if (!source.Task.IsCompleted) source.TrySetCanceled();
@@ -613,24 +635,30 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>
-    void ISocketRemote.Process(IData data) => OnReceive(data as ReceivedEventArgs);
-    #endregion
+    void ISocketRemote.Process(IData data)
+    {
+        if (data is ReceivedEventArgs e) OnReceive(e);
+    }
+
+    #endregion 消息处理
 
     #region 异常处理
+
     /// <summary>错误发生/断开连接时</summary>
     public event EventHandler<ExceptionEventArgs> Error;
 
     /// <summary>触发异常</summary>
     /// <param name="action">动作</param>
     /// <param name="ex">异常</param>
-    internal protected virtual void OnError(String action, Exception ex)
+    protected internal virtual void OnError(String action, Exception ex)
     {
         Pipeline?.Error(CreateContext(this), ex);
 
         Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
         Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
     }
-    #endregion
+
+    #endregion 异常处理
 
     #region 扩展接口
     private ConcurrentDictionary<String, Object?>? _items;
@@ -640,10 +668,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>设置 或 获取 数据项</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public Object? this[String key] { get => _items != null && _items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
-    #endregion
+    public Object? this[String key] { get => Items[key]; set => Items[key] = value; }
+
+    #endregion 扩展接口
 
     #region 日志
+
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix { get; set; }
 
@@ -666,5 +696,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     {
         if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
     }
-    #endregion
+
+    #endregion 日志
 }
