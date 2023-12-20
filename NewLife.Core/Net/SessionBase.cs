@@ -23,8 +23,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public NetUri Local { get; set; } = new NetUri();
 
     /// <summary>端口</summary>
-    public Int32 Port
-    { get { return Local.Port; } set { Local.Port = value; } }
+    public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
 
     /// <summary>远程结点地址</summary>
     public NetUri Remote { get; set; } = new NetUri();
@@ -307,13 +306,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>
-    protected Int32 _IntoThreadCount = 10;
+    private Int32 _IntoThreadCount = 10;
 
     /// <summary>用一个事件参数来开始异步接收</summary>
     /// <param name="se">事件参数</param>
     /// <param name="ioThread">是否在线程池调用,小于等于0不是，大于0是</param>
     /// <returns></returns>
-    private Boolean StartReceive(SocketAsyncEventArgs se, int ioThread)
+    private Boolean StartReceive(SocketAsyncEventArgs se, Int32 ioThread)
     {
         if (Disposed)
         {
@@ -353,15 +352,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 如果当前就是异步线程，直接处理，否则需要开任务处理，不要占用主线程
         if (!rs)
         {
-            if (ioThread > 0)
+            if (ioThread-- > 0)
             {
-                XTrace.WriteLine("ioThread=true");
-                ioThread--;
                 ProcessEvent(se, -1, ioThread);
             }
             else
             {
-                XTrace.WriteLine("ioThread=false");
                 ThreadPool.UnsafeQueueUserWorkItem(s =>
                 {
                     try
@@ -390,7 +386,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="se"></param>
     /// <param name="bytes"></param>
     /// <param name="ioThread">是否在IO线程池里面</param>
-    protected internal void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, int ioThread)
+    protected internal void ProcessEvent(SocketAsyncEventArgs se, Int32 bytes, Int32 ioThread)
     {
         try
         {
