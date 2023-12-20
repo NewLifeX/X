@@ -388,7 +388,7 @@ public class TcpSession : SessionBase, ISocketSession
 
             return;
         }
-        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, _IntoThreadCount);
+        if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, 1);
     }
 
     private Int32 _empty;
