@@ -368,17 +368,18 @@ public static class Reflect
     /// <summary>从参数数组中获取类型数组</summary>
     /// <param name="args"></param>
     /// <returns></returns>
-    public static Type[] GetTypeArray(this Object[] args)
+    public static Type[] GetTypeArray(this Object?[]? args)
     {
         if (args == null) return Type.EmptyTypes;
 
         var typeArray = new Type[args.Length];
         for (var i = 0; i < typeArray.Length; i++)
         {
-            if (args[i] == null)
+            var arg = args[i];
+            if (arg == null)
                 typeArray[i] = typeof(Object);
             else
-                typeArray[i] = args[i].GetType();
+                typeArray[i] = arg.GetType();
         }
         return typeArray;
     }
