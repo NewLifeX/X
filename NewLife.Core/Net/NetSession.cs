@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -11,7 +10,7 @@ namespace NewLife.Net;
 public class NetSession<TServer> : NetSession where TServer : NetServer
 {
     /// <summary>主服务</summary>
-    public virtual TServer? Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value!; }
+    public virtual TServer Host { get => ((this as INetSession).Host as TServer)!; set => (this as INetSession).Host = value; }
 }
 
 /// <summary>网络服务的会话，每个连接一个会话</summary>
