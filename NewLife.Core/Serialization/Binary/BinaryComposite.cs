@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -234,7 +235,7 @@ public class BinaryComposite : BinaryHandlerBase
     }
 
     private static readonly ConcurrentDictionary<MemberInfo, IMemberAccessor> _cache = new();
-    private static Boolean TryGetAccessor(MemberInfo member, out IMemberAccessor acc)
+    private static Boolean TryGetAccessor(MemberInfo member, [NotNullWhen(true)] out IMemberAccessor acc)
     {
         if (_cache.TryGetValue(member, out acc)) return acc != null;
 

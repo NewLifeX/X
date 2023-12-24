@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Data;
 using NewLife.Security;
 using NewLife.Serialization;
 
@@ -173,7 +174,7 @@ public class JwtBuilder : IExtend
     /// <param name="token"></param>
     /// <param name="message"></param>
     /// <returns></returns>
-    public Boolean TryDecode(String token, out String message)
+    public Boolean TryDecode(String token, [NotNullWhen(false)] out String message)
     {
         message = "JWT格式不正确";
 

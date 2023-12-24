@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Log;
@@ -60,12 +61,12 @@ public static class StringHelper
     /// <summary>指示指定的字符串是 null 还是 String.Empty 字符串</summary>
     /// <param name="value">字符串</param>
     /// <returns></returns>
-    public static Boolean IsNullOrEmpty(this String? value) => value == null || value.Length <= 0;
+    public static Boolean IsNullOrEmpty([NotNullWhen(false)] this String? value) => value == null || value.Length <= 0;
 
     /// <summary>是否空或者空白字符串</summary>
     /// <param name="value">字符串</param>
     /// <returns></returns>
-    public static Boolean IsNullOrWhiteSpace(this String? value)
+    public static Boolean IsNullOrWhiteSpace([NotNullWhen(false)] this String? value)
     {
         if (value != null)
         {

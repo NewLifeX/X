@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Log;
 using NewLife.Security;
 
@@ -63,6 +64,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>获取缓存项</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public abstract T Get<T>(String key);
 
     /// <summary>批量移除缓存项</summary>
@@ -162,6 +164,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值</param>
     /// <returns></returns>
+    [return: MaybeNull]
     public virtual T Replace<T>(String key, T value)
     {
         var rs = Get<T>(key);
@@ -174,7 +177,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">键</param>
     /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
     /// <returns>返回是否包含值，即使反序列化失败</returns>
-    public virtual Boolean TryGetValue<T>(String key, out T value)
+    public virtual Boolean TryGetValue<T>(String key, [MaybeNullWhen(false)] out T value)
     {
         value = Get<T>(key);
         if (!Equals(value, default)) return true;
@@ -188,6 +191,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="callback"></param>
     /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
     /// <returns></returns>
+    [return: MaybeNull]
     public virtual T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
     {
         var value = Get<T>(key);

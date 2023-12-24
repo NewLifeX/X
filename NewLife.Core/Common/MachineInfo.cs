@@ -13,6 +13,8 @@ using System.Runtime.Versioning;
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
+using System.Diagnostics.CodeAnalysis;
+
 #endif
 #if NETFRAMEWORK || NET5_0_OR_GREATER
 using Microsoft.Win32;
@@ -778,7 +780,7 @@ public class MachineInfo
         return null;
     }
 
-    private static Boolean TryRead(String fileName, out String value)
+    private static Boolean TryRead(String fileName, [NotNullWhen(true)] out String value)
     {
         value = null;
 
