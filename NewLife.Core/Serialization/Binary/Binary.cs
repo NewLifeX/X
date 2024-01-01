@@ -485,6 +485,9 @@ public class Binary : FormatterBase, IBinary
     {
         var buf = ReadBytes(len);
 
+        // 得到实际长度，在读取-1全部字符串时也能剔除首尾的0x00和0xFF
+        if (len < 0) len = buf.Length;
+
         // 剔除头尾非法字符
         Int32 s, e;
         for (s = 0; s < len && (buf[s] == 0x00 || buf[s] == 0xFF); s++) ;
