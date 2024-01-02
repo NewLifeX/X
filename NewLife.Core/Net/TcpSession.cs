@@ -408,7 +408,7 @@ public class TcpSession : SessionBase, ISocketSession
             using var span = Tracer?.NewSpan($"net:{Name}:EmptyData", remote?.ToString());
 
             // 连续多次空数据，则断开
-            if (DisconnectWhenEmptyData || _empty++ > 3)
+            if (DisconnectWhenEmptyData && ++_empty >= 3)
             {
                 Close("EmptyData");
                 Dispose();
