@@ -259,7 +259,10 @@ public class HttpConfigProvider : ConfigProvider
             //// 加密存储
             //if (CacheLevel == ConfigCacheLevel.Encrypted) json = Aes.Create().Encrypt(json.GetBytes(), AppId.GetBytes()).ToBase64();
 
-            File.WriteAllText(file.EnsureDirectory(true), json);
+            lock (file)
+            {
+                File.WriteAllText(file.EnsureDirectory(true), json);
+            }
         }
     }
 
