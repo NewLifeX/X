@@ -189,10 +189,14 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     private void EnsureLoad()
     {
         if (_Loaded) return;
+        lock (this)
+        {
+            if (_Loaded) return;
 
-        LoadAll();
+            LoadAll();
 
-        _Loaded = true;
+            _Loaded = true;
+        }
     }
 
     /// <summary>加载配置到模型</summary>
