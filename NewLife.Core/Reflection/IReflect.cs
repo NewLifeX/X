@@ -538,6 +538,7 @@ public class DefaultReflect : IReflect
                 var pis = sourceType.GetProperties(true);
                 foreach (var pi in targetType.GetProperties(true))
                 {
+                    if (!pi.CanWrite) continue;
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
 
                     var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
