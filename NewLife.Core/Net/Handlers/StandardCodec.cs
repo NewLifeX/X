@@ -5,6 +5,9 @@ using NewLife.Model;
 namespace NewLife.Net.Handlers;
 
 /// <summary>标准网络封包。头部4字节定长</summary>
+/// <remarks>
+/// 文档 https://newlifex.com/core/srmp
+/// </remarks>
 public class StandardCodec : MessageCodec<IMessage>
 {
     private Int32 _gid;
@@ -45,18 +48,12 @@ public class StandardCodec : MessageCodec<IMessage>
             ss["Codec"] = pc = new PacketCodec
             {
                 GetLength = DefaultMessage.GetLength,
+                MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
         }
 
         var pks = pc.Parse(pk);
-        //var list = pks.Select(e =>
-        //{
-        //    var msg = new DefaultMessage();
-        //    if (!msg.Read(e)) return null;
-
-        //    return msg as IMessage;
-        //}).ToList();
         var list = new List<IMessage>();
         foreach (var item in pks)
         {

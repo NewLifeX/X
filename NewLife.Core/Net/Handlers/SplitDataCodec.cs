@@ -22,7 +22,7 @@ public class SplitDataCodec : Handler
     public Byte[] SplitData { get; set; } = [0x0D, 0x0A];
 
     /// <summary>
-    /// 最大缓存待处理数据（字节）
+    /// 最大缓存待处理数据，默认1024字节
     /// </summary>
     public Int32 MaxCacheDataLength { get; set; } = 1024;
 

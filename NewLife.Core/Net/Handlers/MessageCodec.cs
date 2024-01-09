@@ -6,7 +6,13 @@ namespace NewLife.Net.Handlers;
 
 /// <summary>消息封包编码器</summary>
 /// <remarks>
-/// 该编码器向基于请求响应模型的协议提供了匹配队列，能够根据响应序列号去匹配请求
+/// 该编码器向基于请求响应模型的协议提供了匹配队列，能够根据响应序列号去匹配请求。
+/// 
+/// 消息封包编码器实现网络处理器，具体用法是添加网络客户端或服务端主机。主机收发消息时，会自动调用编码器对消息进行编码解码。
+/// 发送消息SendMessage时调用编码器Write/Encode方法；
+/// 接收消息时调用编码器Read/Decode方法，消息存放在ReceivedEventArgs.Message。
+/// 
+/// 网络编码器支持多层添加，每个编码器处理后交给下一个编码器处理，直到最后一个编码器，然后发送出去。
 /// </remarks>
 public class MessageCodec<T> : Handler
 {
@@ -16,13 +22,24 @@ public class MessageCodec<T> : Handler
     /// <summary>匹配队列大小</summary>
     public Int32 QueueSize { get; set; } = 256;
 
-    /// <summary>调用超时时间。默认30_000ms</summary>
+    /// <summary>请求消息匹配队列中等待响应的超时时间。默认30_000ms</summary>
+    /// <remarks>
+    /// 某些RPC场景需要更长时间等待响应时，可以加大该值。
+    /// 该值不宜过大，否则会导致请求队列过大，影响并行请求数。
+    /// </remarks>
     public Int32 Timeout { get; set; } = 30_000;
 
-    /// <summary>使用数据包，写入时数据包转消息，读取时消息自动解包返回数据负载。默认true</summary>
+    /// <summary>最大缓存待处理数据。默认10M</summary>
+    public Int32 MaxCache { get; set; } = 10 * 1024 * 1024;
+
+    /// <summary>使用数据包。写入时数据包转消息，读取时消息自动解包返回数据负载，要求T实现IMessage。默认true</summary>
     public Boolean UserPacket { get; set; } = true;
 
-    /// <summary>写入数据</summary>
+    /// <summary>发送消息时，写入数据，编码并加入队列</summary>
+    /// <remarks>
+    /// 遇到消息T时，调用Encode编码并加入队列。
+    /// Encode返回空时，跳出调用链。
+    /// </remarks>
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -46,7 +63,7 @@ public class MessageCodec<T> : Handler
         return base.Write(context, message);
     }
 
-    /// <summary>编码</summary>
+    /// <summary>编码消息，一般是编码为Packet后传给下一个处理器</summary>
     /// <param name="context"></param>
     /// <param name="msg"></param>
     /// <returns></returns>
@@ -57,7 +74,7 @@ public class MessageCodec<T> : Handler
         return null;
     }
 
-    /// <summary>加入队列</summary>
+    /// <summary>把请求加入队列，等待响应到来时建立请求响应匹配</summary>
     /// <param name="context"></param>
     /// <param name="msg"></param>
     /// <returns></returns>
@@ -82,7 +99,11 @@ public class MessageCodec<T> : Handler
         return base.Close(context, reason);
     }
 
-    /// <summary>读取数据</summary>
+    /// <summary>接收数据后，读取数据包，Decode解码得到消息</summary>
+    /// <remarks>
+    /// Decode可以返回多个消息，每个消息调用一次下一级处理器。
+    /// Decode返回空时，跳出调用链。
+    /// </remarks>
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -149,7 +170,7 @@ public class MessageCodec<T> : Handler
     /// <param name="offset">长度的偏移量</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
     /// <returns>数据帧长度（包含头部长度位）</returns>
-    protected static Int32 GetLength(Packet pk, Int32 offset, Int32 size)
+    public static Int32 GetLength(Packet pk, Int32 offset, Int32 size)
     {
         if (offset < 0) return pk.Total - pk.Offset;
 

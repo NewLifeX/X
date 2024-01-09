@@ -88,6 +88,7 @@ public class LengthFieldCodec : MessageCodec<Packet>
                 Expire = Expire,
                 GetLength = p => GetLength(p, Offset, Size),
                 Offset = Offset,
+                MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
         }
