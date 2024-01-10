@@ -172,7 +172,7 @@ public class MachineInfo
 
     /// <summary>获取当前信息，如果未设置则等待异步注册结果</summary>
     /// <returns></returns>
-    public static MachineInfo GetCurrent() => Current ?? RegisterAsync().Result;
+    public static MachineInfo GetCurrent() => Current ?? RegisterAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
     /// <returns></returns>

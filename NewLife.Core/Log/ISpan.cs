@@ -496,7 +496,7 @@ public static class SpanExtension
                     var len = content.Headers?.ContentLength ?? 0;
                     if (len >= 0 && len < 1024 * 8 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
                     {
-                        var result = content.ReadAsStringAsync().Result;
+                        var result = content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                         if (!result.IsNullOrEmpty())
                             span.Tag = (span.Tag + "\r\n" + result).Cut(maxLength);
                     }

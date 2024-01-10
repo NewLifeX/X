@@ -343,7 +343,7 @@ public static class TracerExtension
                 content.Headers.ContentType.MediaType.StartsWithIgnoreCase(_TagTypes))
             {
                 // 既然都读出来了，不管多长，都要前面1024字符
-                var str = request.Content.ReadAsStringAsync().Result;
+                var str = request.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                 if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > maxLength ? str[..maxLength] : str);
             }
 

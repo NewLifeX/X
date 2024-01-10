@@ -311,7 +311,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostJsonAsync(requestUri, data, headers)).Result;
+    public static String PostJson(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => client.PostJsonAsync(requestUri, data, headers).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步提交Xml</summary>
     /// <param name="client">Http客户端</param>
@@ -342,7 +342,7 @@ public static class HttpHelper
     /// <param name="data">数据</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostXmlAsync(requestUri, data, headers)).Result;
+    public static String PostXml(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => client.PostXmlAsync(requestUri, data, headers).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步提交表单，名值对传输字典参数</summary>
     /// <param name="client">Http客户端</param>
@@ -410,7 +410,7 @@ public static class HttpHelper
     /// <param name="data">名值对数据。匿名对象或字典</param>
     /// <param name="headers">附加头部</param>
     /// <returns></returns>
-    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => Task.Run(() => client.PostFormAsync(requestUri, data, headers)).Result;
+    public static String PostForm(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null) => client.PostFormAsync(requestUri, data, headers).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步提交多段表单数据，含文件流</summary>
     /// <param name="client">Http客户端</param>
@@ -450,7 +450,7 @@ public static class HttpHelper
     public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String>? headers = null)
     {
         if (headers != null) client.AddHeaders(headers);
-        return Task.Run(() => client.GetStringAsync(requestUri)).Result;
+        return client.GetStringAsync(requestUri).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)

@@ -54,7 +54,7 @@ public class DnsResolver : IDnsResolver
 #else
             var task = Dns.GetHostAddressesAsync(host);
             if (!task.Wait(5000)) throw new TaskCanceledException();
-            var addrs = task.Result;
+            var addrs = task.ConfigureAwait(false).GetAwaiter().GetResult();
 #endif
             span?.AppendTag($"addrs={addrs.Join(",")}");
             if (addrs != null && addrs.Length > 0)

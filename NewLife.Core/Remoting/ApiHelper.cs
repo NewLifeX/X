@@ -34,7 +34,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult? Get<TResult>(this HttpClient client, String action, Object? args = null) => Task.Run(() => GetAsync<TResult>(client, action, args)).Result;
+    public static TResult? Get<TResult>(this HttpClient client, String action, Object? args = null) => GetAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步调用，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -51,7 +51,7 @@ public static class ApiHelper
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public static TResult? Post<TResult>(this HttpClient client, String action, Object? args = null) => Task.Run(() => PostAsync<TResult>(client, action, args)).Result;
+    public static TResult? Post<TResult>(this HttpClient client, String action, Object? args = null) => PostAsync<TResult>(client, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>异步上传，等待返回结果</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
