@@ -23,6 +23,7 @@ using NewLife.Serialization;
 using NewLife.Threading;
 using Stardust;
 using Stardust.Models;
+using XCode.Membership;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
@@ -96,15 +97,26 @@ namespace Test
 
         private static void Test1()
         {
-            var netUri = new NetUri("tcp://0.0.0.0:19000");
-            var apiServer = new ApiServer(netUri)
-            //var apiServer = new ApiServer(19000)
+            //Area.FetchAndSave();
+            //Area.Import("http://x.newlifex.com/Area.csv.gz", true, 4, false);
+
+            var rs = Area.FindAll();
+            foreach (var item in rs)
             {
-                Log = XTrace.Log,
-                ShowError = true,
-                //ServiceProvider = ioc.BuildServiceProvider()
-            };
-            apiServer.Start();
+                var py = PinYin.GetAll(item.Name);
+                if (py.Length != item.Name.Length || py.Any(c => c.IsNullOrEmpty() || !Char.IsAsciiLetter(c[0])))
+                    XTrace.WriteLine("{0} {1} {2} {3}", item.ID, item.Name, py.Join(), item.Path);
+            }
+
+            //var netUri = new NetUri("tcp://0.0.0.0:19000");
+            //var apiServer = new ApiServer(netUri)
+            ////var apiServer = new ApiServer(19000)
+            //{
+            //    Log = XTrace.Log,
+            //    ShowError = true,
+            //    //ServiceProvider = ioc.BuildServiceProvider()
+            //};
+            //apiServer.Start();
         }
 
         private static void Test2()
