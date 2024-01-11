@@ -539,16 +539,8 @@ public class PinYin
     {
         if (str.IsNullOrEmpty()) return String.Empty;
 
-        var sb = Pool.StringBuilder.Get();
-        var chs = str.ToCharArray();
-
-        for (var i = 0; i < chs.Length; i++)
-        {
-            var rs = Get(chs[i]);
-            if (!rs.IsNullOrEmpty()) sb.Append(rs[0]);
-        }
-
-        return sb.Put(true);
+        var rs = GetAll(str);
+        return rs.Select(e => e[0]).Join("");
     }
 
     ///// <summary>取各字符的拼音首字母</summary>

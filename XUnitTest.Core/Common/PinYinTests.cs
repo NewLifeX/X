@@ -30,7 +30,8 @@ public class PinYinTests
         Assert.Equal('Z', p);
 
         var py = PinYin.GetFirst("重庆");
-        Assert.Equal("ZQ", py);
+        Assert.Equal("CQ", py);
+        //Assert.Equal("ZQ", py);
     }
 
     //[Fact]
