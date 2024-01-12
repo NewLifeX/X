@@ -450,6 +450,9 @@ public class DefaultConvert
     /// <param name="value">待转换对象</param>
     /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
     /// <returns></returns>
+    /// <remarks>
+    /// 整数（Unix秒）转换后不包含时区信息，需要调用.ToLocalTime()来转换为当前时区时间
+    /// </remarks>
     public virtual DateTime ToDateTime(Object? value, DateTime defaultValue)
     {
         if (value is DateTime num) return num;
