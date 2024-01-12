@@ -16,7 +16,10 @@ jobs:
     - name: Setup dotNET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8.x
+        dotnet-version: |
+          6.0.x
+          7.0.x
+          8.x
     - name: Build
       run: |
         dotnet build -c Release
