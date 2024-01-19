@@ -5,25 +5,40 @@ using NewLife.Model;
 
 namespace NewLife.Net;
 
-/// <summary>网络服务的会话，每个连接一个会话</summary>
+/// <summary>网络服务的会话，每个Tcp/Udp连接作为一个会话</summary>
 /// <typeparam name="TServer">网络服务类型</typeparam>
+/// <remarks>
+/// 每当收到一个Tcp连接时，创建一个INetSession会话，用于处理该连接的业务。
+/// 使用Udp服务端时，收到远程节点的第一个数据包时，也会创建一个会话，处理该节点的业务。
+/// 
+/// 所有应用服务器以会话<see cref="INetSession"/>作为业务处理核心。
+/// 应用服务器收到新会话请求后，通过Start启动一个会话处理。
+/// 会话进行业务处理的过程中，可以通过多个Send方法向客户端发送数据。
+/// </remarks>
 public class NetSession<TServer> : NetSession where TServer : NetServer
 {
     /// <summary>主服务</summary>
     public virtual TServer Host { get => ((this as INetSession).Host as TServer)!; set => (this as INetSession).Host = value; }
 }
 
-/// <summary>网络服务的会话，每个连接一个会话</summary>
+/// <summary>网络服务的会话，每个Tcp/Udp连接作为一个会话</summary>
 /// <remarks>
+/// 每当收到一个Tcp连接时，创建一个INetSession会话，用于处理该连接的业务。
+/// 使用Udp服务端时，收到远程节点的第一个数据包时，也会创建一个会话，处理该节点的业务。
+/// 
+/// 所有应用服务器以会话<see cref="INetSession"/>作为业务处理核心。
+/// 应用服务器收到新会话请求后，通过<see cref="Start"/>启动一个会话处理。
+/// 会话进行业务处理的过程中，可以通过多个Send方法向客户端发送数据。
+/// 
 /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
 /// </remarks>
 public class NetSession : DisposeBase, INetSession, IExtend
 {
     #region 属性
-    /// <summary>唯一会话标识</summary>
+    /// <summary>唯一会话标识。在主服务中唯一标识当前会话，原子自增</summary>
     public virtual Int32 ID { get; internal set; }
 
-    /// <summary>主服务</summary>
+    /// <summary>主服务。负责管理当前会话的主服务器NetServer</summary>
     NetServer INetSession.Host { get; set; } = null!;
 
     /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
@@ -49,6 +64,12 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// 基类使用内置ObjectContainer的Scope，在WebApi/Worker项目中，使用者需要自己创建Scope并赋值服务提供者。
     /// </remarks>
     public IServiceProvider? ServiceProvider { get; set; }
+
+    /// <summary>连接创建事件。创建会话之后</summary>
+    public event EventHandler<EventArgs>? Connected;
+
+    /// <summary>连接断开事件。包括客户端主动断开、服务端主动断开以及服务端超时下线</summary>
+    public event EventHandler<EventArgs>? Disconnected;
 
     /// <summary>数据到达事件</summary>
     public event EventHandler<ReceivedEventArgs>? Received;
@@ -173,18 +194,18 @@ public class NetSession : DisposeBase, INetSession, IExtend
     #endregion
 
     #region 业务核心
-    /// <summary>新的客户端连接</summary>
-    protected virtual void OnConnected() { }
+    /// <summary>新的客户端连接。基类负责触发Connected事件</summary>
+    protected virtual void OnConnected() => Connected?.Invoke(this, EventArgs.Empty);
 
-    /// <summary>客户端连接已断开</summary>
+    /// <summary>客户端连接已断开。基类负责触发Disconnected事件</summary>
     /// <param name="reason">断开原因。包括 SendError/RemoveNotAlive/Dispose/GC 等，其中 ConnectionReset 为网络被动断开或对方断开</param>
-    protected virtual void OnDisconnected(String reason) { }
+    protected virtual void OnDisconnected(String reason) => Disconnected?.Invoke(this, new EventArgs<String>(reason));
 
     /// <summary>客户端连接已断开</summary>
     [Obsolete("=>OnDisconnected(String reason)")]
     protected virtual void OnDisconnected() { }
 
-    /// <summary>收到客户端发来的数据</summary>
+    /// <summary>收到客户端发来的数据。基类负责触发Received事件</summary>
     /// <param name="e"></param>
     protected virtual void OnReceive(ReceivedEventArgs e) => Received?.Invoke(this, e);
 
@@ -195,7 +216,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     #endregion
 
     #region 发送数据
-    /// <summary>发送数据</summary>
+    /// <summary>发送数据，直达网卡</summary>
     /// <param name="data">数据包</param>
     public virtual INetSession Send(Packet data)
     {
@@ -207,7 +228,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
         return this;
     }
 
-    /// <summary>发送数据流</summary>
+    /// <summary>发送数据流，直达网卡</summary>
     /// <param name="stream"></param>
     /// <returns></returns>
     public virtual INetSession Send(Stream stream)
@@ -220,7 +241,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
         return this;
     }
 
-    /// <summary>发送字符串</summary>
+    /// <summary>发送字符串，直达网卡</summary>
     /// <param name="msg"></param>
     /// <param name="encoding"></param>
     public virtual INetSession Send(String msg, Encoding? encoding = null)
@@ -233,17 +254,17 @@ public class NetSession : DisposeBase, INetSession, IExtend
         return this;
     }
 
-    /// <summary>通过管道发送消息，不等待响应</summary>
+    /// <summary>通过管道发送消息，不等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
     /// <param name="message"></param>
     /// <returns></returns>
     public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
 
-    /// <summary>异步发送并等待响应</summary>
+    /// <summary>异步发送消息并等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
     /// <param name="message">消息</param>
     /// <returns></returns>
     public virtual Task<Object> SendMessageAsync(Object message) => Session.SendMessageAsync(message);
 
-    /// <summary>异步发送并等待响应</summary>
+    /// <summary>异步发送消息并等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>

@@ -4,9 +4,10 @@ using NewLife.Collections;
 
 namespace NewLife.Data;
 
-/// <summary>数据包。设计于.NET2.0时代，功能上类似于NETCore的Span/Memory</summary>
+/// <summary>数据包。表示数据区Data的指定范围（Offset, Count）。</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/packet
+/// 设计于.NET2.0时代，功能上类似于NETCore的Span/Memory。
 /// Packet的设计目标就是网络库零拷贝，所以Slice切片是其最重要功能。
 /// </remarks>
 public class Packet
