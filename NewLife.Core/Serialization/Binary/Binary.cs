@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+﻿using System.Reflection;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -173,9 +172,6 @@ public class Binary : FormatterBase, IBinary
 
         return -1;
     }
-
-    [ThreadStatic]
-    private static Byte[]? _encodes;
     #endregion
 
     #region 读取
@@ -302,6 +298,8 @@ public class Binary : FormatterBase, IBinary
     #endregion
 
     #region 7位压缩编码整数
+    [ThreadStatic]
+    private static Byte[]? _encodes;
     /// <summary>写7位压缩编码整数</summary>
     /// <remarks>
     /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
@@ -502,15 +500,15 @@ public class Binary : FormatterBase, IBinary
     }
     #endregion
 
-    #region 跟踪日志
-    ///// <summary>使用跟踪流。实际上是重新包装一次Stream，必须在设置Stream后，使用之前</summary>
-    //public virtual void EnableTrace()
-    //{
-    //    var stream = Stream;
-    //    if (stream is null or TraceStream) return;
+    #region 辅助
+    /// <summary>是否已达到末尾</summary>
+    /// <returns></returns>
+    public Boolean EndOfStream() => Stream.Position >= Stream.Length;
 
-    //    Stream = new TraceStream(stream) { Encoding = Encoding, IsLittleEndian = IsLittleEndian };
-    //}
+    /// <summary>检查剩余量是否足够</summary>
+    /// <param name="size"></param>
+    /// <returns></returns>
+    public Boolean CheckRemain(Int32 size) => Stream.Position + size <= Stream.Length;
     #endregion
 
     #region 快捷方法
