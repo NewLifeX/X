@@ -41,6 +41,60 @@ public class FlowIdTests
     }
 
     [Fact]
+    public void NewIdForUTC()
+    {
+        var ids = new Int64[2];
+        {
+            var snow = new Snowflake();
+
+            var id = snow.NewId();
+            ids[0] = id;
+
+            Assert.Equal(DateTimeKind.Local, snow.StartTimestamp.Kind);
+
+            var rs = snow.TryParse(id, out var t, out var w, out var s);
+            Assert.True(rs);
+            Assert.Equal(DateTimeKind.Local, t.Kind);
+        }
+        {
+            var snow = new Snowflake();
+            snow.StartTimestamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            var id = snow.NewId();
+            ids[1] = id;
+
+            Assert.Equal(DateTimeKind.Utc, snow.StartTimestamp.Kind);
+
+            var rs = snow.TryParse(id, out var t, out var w, out var s);
+            Assert.True(rs);
+            Assert.Equal(DateTimeKind.Utc, t.Kind);
+        }
+
+        // 两个Id的时间应该相差不多
+        var diff = (ids[1] - ids[0]) >> 22;
+        //Assert.Equal(0, diff);
+        Assert.True(Math.Abs(diff) < 100);
+
+        {
+            var snow = new Snowflake();
+
+            var time = DateTime.Now;
+            var id1 = snow.NewId(time);
+            var id2 = snow.NewId(time.ToUniversalTime());
+
+            diff = Math.Abs((id2 - id1) >> 22);
+            Assert.True(diff < 100);
+
+            time = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local);
+            id1 = snow.NewId(time);
+            id2 = snow.NewId(time.ToUniversalTime());
+
+            diff = Math.Abs((id2 - id1) >> 22);
+            Assert.True(diff < 100);
+        }
+    }
+
+    [Fact]
     public void NewIdByUid()
     {
         var time = DateTime.Now;

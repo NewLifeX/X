@@ -73,8 +73,9 @@ public class TokenHttpFilter : IHttpFilter
         if (path.StartsWithIgnoreCase(Action.EnsureStart("/"))) return;
 
         // 申请令牌。没有令牌，或者令牌已过期
+        var now = DateTime.Now;
         var token = Token;
-        if (token == null || Expire < DateTime.Now)
+        if (token == null || Expire < now)
         {
             token = await SendAuth(client, cancellationToken);
             if (token != null)
@@ -82,13 +83,13 @@ public class TokenHttpFilter : IHttpFilter
                 Token = token;
 
                 // 过期时间和刷新令牌的时间
-                Expire = DateTime.Now.AddSeconds(token.ExpireIn);
-                _refresh = DateTime.Now.AddSeconds(token.ExpireIn / 2);
+                Expire = now.AddSeconds(token.ExpireIn);
+                _refresh = now.AddSeconds(token.ExpireIn / 2);
             }
         }
 
         // 刷新令牌。要求已有令牌，且未过期，且达到了刷新时间
-        if (token != null && Expire > DateTime.Now && _refresh < DateTime.Now)
+        if (token != null && Expire > now && _refresh < now)
         {
             try
             {
@@ -98,8 +99,8 @@ public class TokenHttpFilter : IHttpFilter
                     Token = token;
 
                     // 过期时间和刷新令牌的时间
-                    Expire = DateTime.Now.AddSeconds(token.ExpireIn);
-                    _refresh = DateTime.Now.AddSeconds(token.ExpireIn / 2);
+                    Expire = now.AddSeconds(token.ExpireIn);
+                    _refresh = now.AddSeconds(token.ExpireIn / 2);
                 }
             }
             catch (Exception ex)
@@ -110,7 +111,7 @@ public class TokenHttpFilter : IHttpFilter
         }
 
         // 使用令牌。要求已有令牌，且未过期
-        if (token != null && Expire > DateTime.Now)
+        if (token != null && Expire > now)
         {
             var type = token.TokenType;
             if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";

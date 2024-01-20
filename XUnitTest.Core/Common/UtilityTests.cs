@@ -56,10 +56,10 @@ public class UtilityTests
     public void NanTest()
     {
         var num = Double.NaN;
-   
+
         var dc = num.ToDecimal(123);
         Assert.Equal(123, dc);
-   
+
         var dd = num.ToDouble(456);
         Assert.Equal(456, dd);
     }
@@ -227,5 +227,39 @@ public class UtilityTests
         var dt = n.ToDateTime();
 
         Assert.Equal(DateTime.MinValue, dt);
+    }
+
+    [Fact]
+    public void UtcTime()
+    {
+        //!!! 两个时间相减，即使时区不同，也不会转为相同时区再相减，而是直接相减
+
+        var now = DateTime.Now;
+        var utc = now.ToUniversalTime();
+        var diff = (Int64)(now - utc).TotalMilliseconds;
+
+        {
+            var baseTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
+            var ms1 = (Int64)(now - baseTime).TotalMilliseconds;
+            var ms2 = (Int64)(utc - baseTime).TotalMilliseconds;
+            Assert.Equal(ms1, ms2 + diff);
+        }
+
+        {
+            var baseTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var ms1 = (Int64)(now - baseTime).TotalMilliseconds;
+            var ms2 = (Int64)(utc - baseTime).TotalMilliseconds;
+            Assert.Equal(ms1, ms2 + diff);
+        }
+
+        {
+            var baseTime = new DateTime(1970, 1, 1);
+            var ms1 = (Int64)(now - baseTime).TotalMilliseconds;
+            var ms2 = (Int64)(utc - baseTime).TotalMilliseconds;
+            Assert.Equal(ms1, ms2 + diff);
+        }
+
+        //var time = 0.ToDateTime();
+        //Assert.Equal(DateTimeKind.Local, time.Kind);
     }
 }

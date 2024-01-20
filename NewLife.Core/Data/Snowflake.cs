@@ -24,7 +24,8 @@ public class Snowflake
 {
     #region 属性
     /// <summary>开始时间戳。首次使用前设置，否则无效，默认1970-1-1</summary>
-    public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1);
+    /// <remarks>该时间戳默认已带有时区偏移，不管是为当前时区还是UTC时间生成雪花Id，应该是一样的时间大小。</remarks>
+    public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToLocalTime();
 
     /// <summary>机器Id，取10位。内置默认取IP+进程+线程，不能保证绝对唯一，要求高的场合建议外部保证workerId唯一</summary>
     public Int32 WorkerId { get; set; }
@@ -104,7 +105,8 @@ public class Snowflake
             // 记录此时距离起点的毫秒数以及开机嘀嗒数
             if (_watch == null)
             {
-                _msStart = (Int64)(DateTime.Now - StartTimestamp).TotalMilliseconds;
+                var now = ConvertKind(DateTime.Now);
+                _msStart = (Int64)(now - StartTimestamp).TotalMilliseconds;
                 _watch = Stopwatch.StartNew();
             }
 
@@ -119,8 +121,6 @@ public class Snowflake
     public virtual Int64 NewId()
     {
         Init();
-
-        //_watch ??= Stopwatch.StartNew();
 
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
         var ms = _watch.ElapsedMilliseconds + _msStart;
@@ -163,6 +163,8 @@ public class Snowflake
     {
         Init();
 
+        time = ConvertKind(time);
+
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
         var wid = WorkerId & (-1 ^ (-1 << 10));
         var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
@@ -183,6 +185,8 @@ public class Snowflake
     {
         Init();
 
+        time = ConvertKind(time);
+
         // 业务id作为workerId，保留12位序列号。即传感器按1024分组，每组每毫秒最多生成4096个Id
         var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
         var wid = uid & (-1 ^ (-1 << 10));
@@ -196,6 +200,7 @@ public class Snowflake
     /// <returns></returns>
     public virtual Int64 GetId(DateTime time)
     {
+        time = ConvertKind(time);
         var t = (Int64)(time - StartTimestamp).TotalMilliseconds;
         return t << (10 + 12);
     }
@@ -213,6 +218,19 @@ public class Snowflake
         sequence = (Int32)(id & 0x0FFF);
 
         return true;
+    }
+
+    /// <summary>把输入时间转为开始时间戳的类型，便于相减</summary>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    private DateTime ConvertKind(DateTime time)
+    {
+        return StartTimestamp.Kind switch
+        {
+            DateTimeKind.Utc => time.ToUniversalTime(),
+            DateTimeKind.Local => time.ToLocalTime(),
+            _ => time,
+        };
     }
     #endregion
 
