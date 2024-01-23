@@ -101,6 +101,8 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         base.Dispose(disposing);
 
         if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
+
+        _Sessions.TryDispose();
     }
     #endregion
 
