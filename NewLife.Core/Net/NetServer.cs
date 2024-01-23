@@ -45,8 +45,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         set
         {
             _Local = value;
-            if (AddressFamily <= AddressFamily.Unspecified &&
-                (value.Type > NetType.Unknown || !value.Host.IsNullOrEmpty() && value.Host != "*"))
+            if (AddressFamily <= AddressFamily.Unspecified && value.Host != "*")
                 AddressFamily = value.Address.AddressFamily;
         }
     }
@@ -182,32 +181,26 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
-        // 释放托管资源
-        if (disposing)
+        var sessions = _Sessions;
+        if (sessions != null)
         {
-            var sessions = _Sessions;
-            if (sessions != null)
+            WriteLog("准备释放网络会话{0}个！", sessions.Count);
+            foreach (var item in sessions.Values.ToArray())
             {
-                //_Sessions = null;
-
-                WriteLog("准备释放网络会话{0}个！", sessions.Count);
-                foreach (var item in sessions.Values.ToArray())
-                {
-                    item.Dispose();
-                }
-                sessions.Clear();
+                item.TryDispose();
             }
+            sessions.Clear();
+        }
 
-            var severs = Servers;
-            if (severs != null)
+        var severs = Servers;
+        if (severs != null)
+        {
+            WriteLog("准备释放服务{0}个！", severs.Count);
+            foreach (var item in severs)
             {
-                WriteLog("准备释放服务{0}个！", severs.Count);
-                foreach (var item in severs)
-                {
-                    item.Dispose();
-                }
-                severs.Clear();
+                item.TryDispose();
             }
+            severs.Clear();
         }
     }
     #endregion
@@ -272,7 +265,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         {
             var uri = Local;
             var family = AddressFamily;
-            if (uri.Type > NetType.Unknown || !uri.Host.IsNullOrEmpty() && uri.Host != "*") family = uri.Address.AddressFamily;
+            if (AddressFamily <= AddressFamily.Unspecified && uri.Host != "*")
+                family = uri.Address.AddressFamily;
             var list = CreateServer(uri.Address, uri.Port, uri.Type, family);
             foreach (var item in list)
             {
@@ -350,6 +344,16 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         var ss = Servers.Where(e => e.Active).ToArray();
         if (ss == null || ss.Length == 0) return;
 
+        OnStop(reason);
+
+        WriteLog("已停止！");
+    }
+
+    /// <summary>停止时调用的方法</summary>
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    protected virtual void OnStop(String? reason)
+    {
+        var ss = Servers.Where(e => e.Active).ToArray();
         WriteLog("准备停止监听{0}个服务器 {1}", ss.Length, reason);
 
         if (reason.IsNullOrEmpty()) reason = GetType().Name + "Stop";
@@ -358,14 +362,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             WriteLog("停止监听 {0}", item);
             item.Stop(reason);
         }
-
-        OnStop();
-
-        WriteLog("已停止！");
     }
-
-    /// <summary>停止时调用的方法</summary>
-    protected virtual void OnStop() { }
     #endregion
 
     #region 业务

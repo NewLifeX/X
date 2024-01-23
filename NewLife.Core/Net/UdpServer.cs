@@ -50,6 +50,17 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>使用监听口初始化</summary>
     /// <param name="listenPort"></param>
     public UdpServer(Int32 listenPort) : this() => Port = listenPort;
+
+    /// <summary>销毁</summary>
+    /// <param name="disposing"></param>
+    protected override void Dispose(Boolean disposing)
+    {
+        base.Dispose(disposing);
+
+        if (Active) Close(GetType().Name + (disposing ? "Dispose" : "GC"));
+
+        _Sessions.TryDispose();
+    }
     #endregion
 
     #region 方法

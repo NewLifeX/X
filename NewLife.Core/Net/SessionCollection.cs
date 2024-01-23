@@ -18,27 +18,17 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     public Int32 ClearPeriod { get; set; } = 10;
 
     /// <summary>清理会话计时器</summary>
-    private readonly TimerX clearTimer;
+    private TimerX? _clearTimer;
     #endregion
 
     #region 构造
-    public SessionCollection(ISocketServer server)
-    {
-        Server = server;
-
-        var p = ClearPeriod * 1000;
-        clearTimer = new TimerX(RemoveNotAlive, null, p, p)
-        {
-            Async = true,
-            //CanExecute = () => _dic.Any(),
-        };
-    }
+    public SessionCollection(ISocketServer server) => Server = server;
 
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
 
-        clearTimer.TryDispose();
+        _clearTimer.TryDispose();
 
         var reason = GetType().Name + (disposing ? "Dispose" : "GC");
         try
@@ -59,6 +49,9 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         //if (_dic.ContainsKey(key)) return false;
 
         if (!_dic.TryAdd(key, session)) return false;
+
+        var p = ClearPeriod * 1000;
+        _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
 
         session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession)?.Remote.EndPoint + ""); };
 
