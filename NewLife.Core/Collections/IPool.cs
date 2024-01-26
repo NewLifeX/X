@@ -20,6 +20,10 @@ public interface IPool<T>
     /// <param name="value"></param>
     Boolean Put(T value);
 
+    /// <summary>归还</summary>
+    /// <param name="value"></param>
+    Boolean Return(T value);
+
     /// <summary>清空</summary>
     Int32 Clear();
 }
@@ -41,11 +45,27 @@ public static class Pool
     /// <param name="sb"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
+    [Obsolete("Please use Return from 2024-02-01")]
     public static String Put(this StringBuilder sb, Boolean requireResult = false)
     {
         //if (sb == null) return null;
 
         var str = requireResult ? sb.ToString() : String.Empty;
+
+        Pool.StringBuilder.Put(sb);
+
+        return str;
+    }
+
+    /// <summary>归还一个字符串构建器到对象池</summary>
+    /// <param name="sb"></param>
+    /// <param name="returnResult">是否需要返回结果</param>
+    /// <returns></returns>
+    public static String Return(this StringBuilder sb, Boolean returnResult = true)
+    {
+        //if (sb == null) return null;
+
+        var str = returnResult ? sb.ToString() : String.Empty;
 
         Pool.StringBuilder.Put(sb);
 
@@ -76,6 +96,18 @@ public static class Pool
 
             return base.Put(value);
         }
+
+        /// <summary>归还</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override Boolean Return(StringBuilder value)
+        {
+            if (value.Capacity > MaximumCapacity) return false;
+
+            value.Clear();
+
+            return base.Return(value);
+        }
     }
     #endregion
 
@@ -87,11 +119,27 @@ public static class Pool
     /// <param name="ms"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
+    [Obsolete("Please use Return from 2024-02-01")]
     public static Byte[] Put(this MemoryStream ms, Boolean requireResult = false)
     {
         //if (ms == null) return null;
 
         var buf = requireResult ? ms.ToArray() : new Byte[0];
+
+        Pool.MemoryStream.Put(ms);
+
+        return buf;
+    }
+
+    /// <summary>归还一个内存流到对象池</summary>
+    /// <param name="ms"></param>
+    /// <param name="returnResult">是否需要返回结果</param>
+    /// <returns></returns>
+    public static Byte[] Return(this MemoryStream ms, Boolean returnResult = true)
+    {
+        //if (ms == null) return null;
+
+        var buf = returnResult ? ms.ToArray() : new Byte[0];
 
         Pool.MemoryStream.Put(ms);
 
@@ -122,6 +170,19 @@ public static class Pool
             value.SetLength(0);
 
             return base.Put(value);
+        }
+
+        /// <summary>归还</summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public override Boolean Return(MemoryStream value)
+        {
+            if (value.Capacity > MaximumCapacity) return false;
+
+            value.Position = 0;
+            value.SetLength(0);
+
+            return base.Return(value);
         }
     }
     #endregion

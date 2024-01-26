@@ -91,6 +91,25 @@ public class Pool<T> : IPool<T> where T : class
         return false;
     }
 
+    /// <summary>归还</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public virtual Boolean Return(T value)
+    {
+        // 最热的一个对象在外层，便于快速存取
+        if (_current == null && Interlocked.CompareExchange(ref _current, value, null) == null) return true;
+
+        Init();
+
+        var items = _items;
+        for (var i = 0; i < items.Length; ++i)
+        {
+            if (Interlocked.CompareExchange(ref items[i].Value, value, null) == null) return true;
+        }
+
+        return false;
+    }
+
     /// <summary>清空</summary>
     /// <returns></returns>
     public virtual Int32 Clear()
