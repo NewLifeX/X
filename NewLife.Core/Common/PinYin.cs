@@ -540,7 +540,7 @@ public class PinYin
         if (str.IsNullOrEmpty()) return String.Empty;
 
         var rs = GetAll(str);
-        return rs.Select(e => e[0]).Join("");
+        return rs.Where(e => !e.IsNullOrEmpty()).Select(e => e[0]).Join("");
     }
 
     ///// <summary>取各字符的拼音首字母</summary>
