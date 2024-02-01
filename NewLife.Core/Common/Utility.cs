@@ -54,12 +54,25 @@ public static class Utility
     public static Boolean ToBoolean(this Object? value, Boolean defaultValue = false) => Convert.ToBoolean(value, defaultValue);
 
     /// <summary>转为时间日期，转换失败时返回最小时间。支持字符串、整数（Unix秒不考虑UTC转本地）</summary>
+    /// <remarks>
+    /// 整数转时间日期时，取1970-01-01加上指定秒数，不考虑UTC时间和本地时间。
+    /// 长整数转时间日期时，取1970-01-01加上指定毫秒数，不考虑UTC时间和本地时间。
+    /// 在网络中传输时间日期时，特别是物联网设备到云平台的通信，一般取客户端本地UTC时间，转为长整型传输，服务端再转为本地时间。
+    /// 因为设备和服务端可能不在同一时区，甚至多个设备也没有处于同一个时区。
+    /// </remarks>
     /// <param name="value">待转换对象</param>
     /// <returns></returns>
     public static DateTime ToDateTime(this Object? value) => Convert.ToDateTime(value, DateTime.MinValue);
 
-    /// <summary>转为时间日期，转换失败时返回默认值</summary>
-    /// <remarks><see cref="DateTime.MinValue"/>不是常量无法做默认值</remarks>
+    /// <summary>转为时间日期，转换失败时返回默认值。支持字符串、整数（Unix秒不考虑UTC转本地）</summary>
+    /// <remarks>
+    /// 整数转时间日期时，取1970-01-01加上指定秒数，不考虑UTC时间和本地时间。
+    /// 长整数转时间日期时，取1970-01-01加上指定毫秒数，不考虑UTC时间和本地时间。
+    /// 在网络中传输时间日期时，特别是物联网设备到云平台的通信，一般取客户端本地UTC时间，转为长整型传输，服务端再转为本地时间。
+    /// 因为设备和服务端可能不在同一时区，甚至多个设备也没有处于同一个时区。
+    /// 
+    /// <see cref="DateTime.MinValue"/>不是常量无法做默认值。
+    /// </remarks>
     /// <param name="value">待转换对象</param>
     /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
     /// <returns></returns>

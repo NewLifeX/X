@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using NewLife.Caching;
 using NewLife.Log;
 using NewLife.Model;
@@ -27,7 +25,12 @@ public class Snowflake
     /// <remarks>该时间戳默认已带有时区偏移，不管是为当前时区还是UTC时间生成雪花Id，应该是一样的时间大小。</remarks>
     public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToLocalTime();
 
-    /// <summary>机器Id，取10位。内置默认取IP+进程+线程，不能保证绝对唯一，要求高的场合建议外部保证workerId唯一</summary>
+    /// <summary>机器Id，取10位</summary>
+    /// <remarks>
+    /// 内置默认取IP+进程+线程，不能保证绝对唯一，要求高的场合建议外部保证workerId唯一。
+    /// 一般借助Redis自增序数作为workerId，确保绝对唯一。
+    /// 如果应用接入星尘，将自动从星尘配置中心获取workerId，确保全局唯一。
+    /// </remarks>
     public Int32 WorkerId { get; set; }
 
     private Int32 _Sequence;
@@ -172,11 +175,11 @@ public class Snowflake
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
 
-    /// <summary>获取指定时间的Id，支持传入唯一业务id（22位）。可用于物联网数据采集</summary>
+    /// <summary>获取指定时间的Id，传入唯一业务id（取模为10位）。可用于物联网数据采集，每1024个传感器为一组，每组每毫秒多个Id</summary>
     /// <remarks>
     /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
     /// 为了避免主键重复，可以使用传感器id作为workerId。
-    /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
+    /// uid需要取模为10位，即按1024分组，每组每毫米最多生成4096个Id。
     /// </remarks>
     /// <param name="time">时间</param>
     /// <param name="uid">唯一业务id。例如传感器id</param>
@@ -193,6 +196,28 @@ public class Snowflake
         var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
+    }
+
+    /// <summary>获取指定时间的Id，传入唯一业务id（22位）。可用于物联网数据采集，每4194304个传感器一组，每组每毫秒1个Id</summary>
+    /// <remarks>
+    /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
+    /// 为了避免主键重复，可以使用传感器id作为workerId。
+    /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
+    /// </remarks>
+    /// <param name="time">时间</param>
+    /// <param name="uid">唯一业务id。例如传感器id</param>
+    /// <returns></returns>
+    public virtual Int64 NewId22(DateTime time, Int32 uid)
+    {
+        Init();
+
+        time = ConvertKind(time);
+
+        // 业务id作为workerId，不保留序列号。即传感器按4194304（1<<22）分组，每组每毫秒最多生成1个Id
+        var ms = (Int64)(time - StartTimestamp).TotalMilliseconds;
+        var wid = uid & (-1 ^ (-1 << 22));
+
+        return (ms << (10 + 12)) | (Int64)wid;
     }
 
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
