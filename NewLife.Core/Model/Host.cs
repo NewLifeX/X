@@ -1,5 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using NewLife.Log;
+﻿using NewLife.Log;
+#if !NET40 && !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Model;
 
@@ -295,13 +297,7 @@ public abstract class BackgroundService : IHostedService, IDisposable
     {
         _stoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _executingTask = ExecuteAsync(_stoppingCts.Token);
-#if NET40
-        return _executingTask.IsCompleted ? _executingTask : TaskEx.FromResult(0);
-#elif NET45
-        return _executingTask.IsCompleted ? _executingTask : Task.FromResult(0);
-#else
-        return _executingTask.IsCompleted ? _executingTask : Task.CompletedTask;
-#endif
+        return _executingTask.IsCompleted ? _executingTask : TaskEx.CompletedTask;
     }
 
     /// <summary>停止</summary>

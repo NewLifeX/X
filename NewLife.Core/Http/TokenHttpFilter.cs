@@ -6,6 +6,9 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
+#if !NET40 && !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Http;
 
@@ -186,13 +189,7 @@ public class TokenHttpFilter : IHttpFilter
             Expire = DateTime.MinValue;
         }
 
-#if NET40
-            return TaskEx.FromResult(0);
-#elif NET45
-            return Task.FromResult(0);
-#else
-        return Task.CompletedTask;
-#endif
+        return TaskEx.CompletedTask;
     }
 
     /// <summary>发生错误时</summary>
@@ -210,12 +207,6 @@ public class TokenHttpFilter : IHttpFilter
             Expire = DateTime.MinValue;
         }
 
-#if NET40
-            return TaskEx.FromResult(0);
-#elif NET45
-            return Task.FromResult(0);
-#else
-        return Task.CompletedTask;
-#endif
+        return TaskEx.CompletedTask;
     }
 }
