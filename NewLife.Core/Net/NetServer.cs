@@ -103,6 +103,13 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <summary>使用会话集合，允许遍历会话。默认true</summary>
     public Boolean UseSession { get; set; } = true;
 
+    /// <summary>地址重用，主要应用于网络服务器重启交替。默认false</summary>
+    /// <remarks>
+    /// 一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。
+    /// SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket(TCP连接中, 先调用close() 的一方会进入TIME_WAIT状态)，才可以重复绑定使用。
+    /// </remarks>
+    public Boolean ReuseAddress { get; set; }
+
     /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
@@ -228,10 +235,15 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         server.Error += OnError;
 
-        if (server is TcpServer ts)
+        if (server is TcpServer tcpServer)
         {
-            ts.SslProtocol = SslProtocol;
-            if (Certificate != null) ts.Certificate = Certificate;
+            tcpServer.ReuseAddress = ReuseAddress;
+            tcpServer.SslProtocol = SslProtocol;
+            if (Certificate != null) tcpServer.Certificate = Certificate;
+        }
+        else if (server is UdpServer udpServer)
+        {
+            udpServer.ReuseAddress = ReuseAddress;
         }
 
         Servers.Add(server);
@@ -619,7 +631,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                     //svr.Tracer = SocketTracer;
 
                     // 协议端口不能是已经被占用
-                    if (!svr.Local.CheckPort()) list.Add(svr);
+                    if (ReuseAddress || !svr.Local.CheckPort()) list.Add(svr);
                 }
                 break;
             default:

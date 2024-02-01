@@ -245,7 +245,7 @@ public static class NetHelper
         return false;
     }
 
-    /// <summary>检查该协议的地址端口是否已经呗使用</summary>
+    /// <summary>检查该协议的地址端口是否已经被使用</summary>
     /// <param name="uri"></param>
     /// <returns></returns>
     public static Boolean CheckPort(this NetUri uri) => uri.Address.CheckPort(uri.Type, uri.Port);
