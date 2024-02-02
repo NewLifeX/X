@@ -24,4 +24,8 @@ public class SessionEventArgs : EventArgs
 {
     /// <summary>会话</summary>
     public ISocketSession Session { get; set; }
+
+    /// <summary>实例化</summary>
+    /// <param name="session"></param>
+    public SessionEventArgs(ISocketSession session) => Session = session;
 }

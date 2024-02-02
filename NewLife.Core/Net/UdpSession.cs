@@ -4,6 +4,9 @@ using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
+#if !NET40 && !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net;
 
@@ -21,16 +24,16 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public UdpServer Server { get; set; }
 
     /// <summary>底层Socket</summary>
-    Socket ISocket.Client => Server?.Client;
+    Socket? ISocket.Client => Server?.Client;
 
     ///// <summary>数据流</summary>
     //public Stream Stream { get; set; }
 
-    private NetUri _Local;
+    private NetUri? _Local;
     /// <summary>本地地址</summary>
     public NetUri Local
     {
-        get => _Local ??= Server?.Local;
+        get => _Local ??= Server.Local;
         set => Server.Local = _Local = value;
     }
 
@@ -48,7 +51,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         set
         {
             _timeout = value;
-            if (Server != null)
+            if (Server?.Client != null)
                 Server.Client.ReceiveTimeout = _timeout;
         }
     }
@@ -58,7 +61,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// 1，接收数据解码时，从前向后通过管道处理器；
     /// 2，发送数据编码时，从后向前通过管道处理器；
     /// </remarks>
-    public IPipeline Pipeline { get; set; }
+    public IPipeline? Pipeline { get; set; }
 
     /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer</summary>
     ISocketServer ISocketSession.Server => Server;
@@ -67,7 +70,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public DateTime LastTime { get; private set; } = DateTime.Now;
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
     #endregion
 
     #region 构造
@@ -83,7 +86,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         Tracer = server.Tracer;
 
         // 检查并开启广播
-        server.Client.CheckBroadcast(remote.Address);
+        server.Client?.CheckBroadcast(remote.Address);
     }
 
     /// <summary>开始数据交换</summary>
@@ -113,8 +116,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (ctx != null)
             Pipeline?.Close(ctx, disposing ? "Dispose" : "GC");
 
-        // 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
-        Server = null;
+        //// 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
+        //Server = null;
     }
     #endregion
 
@@ -135,11 +138,13 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <returns></returns>
     public virtual Int32 SendMessage(Object message)
     {
+        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
         try
         {
             var ctx = Server.CreateContext(this);
-            return (Int32)Pipeline.Write(ctx, message);
+            return (Int32)(Pipeline.Write(ctx, message) ?? -1);
         }
         catch (Exception ex)
         {
@@ -153,6 +158,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <returns></returns>
     public virtual async Task<Object> SendMessageAsync(Object message)
     {
+        if (Server == null) throw new InvalidOperationException(nameof(Server));
+        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
@@ -161,8 +169,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return Task.FromResult((Object)null);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
+            if (rs < 0) return TaskEx.CompletedTask;
 
             return await source.Task;
         }
@@ -182,6 +190,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <returns></returns>
     public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
+        if (Server == null) throw new InvalidOperationException(nameof(Server));
+        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
@@ -190,8 +201,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)Pipeline.Write(ctx, message);
-            if (rs < 0) return Task.FromResult((Object)null);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
+            if (rs < 0) return TaskEx.CompletedTask;
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             using (cancellationToken.Register(TrySetCanceled, source))
@@ -209,10 +220,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         }
     }
 
-    void TrySetCanceled(Object state)
+    void TrySetCanceled(Object? state)
     {
         var source = state as TaskCompletionSource<Object>;
-        if (!source.Task.IsCompleted) source.TrySetCanceled();
+        if (source != null && !source.Task.IsCompleted) source.TrySetCanceled();
     }
     #endregion
 
@@ -222,6 +233,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public Packet Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
 
         using var span = Tracer?.NewSpan($"net:{Name}:Receive", Server.BufferSize + "");
         try
@@ -256,15 +268,15 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>
-    public event EventHandler<ExceptionEventArgs> Error;
+    public event EventHandler<ExceptionEventArgs>? Error;
 
     /// <summary>触发异常</summary>
     /// <param name="action">动作</param>
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex?.Message);
-        Error?.Invoke(this, new ExceptionEventArgs { Exception = ex });
+        Log?.Error(LogPrefix + "{0}Error {1} {2}", action, this, ex.Message);
+        Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
 
@@ -299,7 +311,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     #region 日志
     /// <summary>日志提供者</summary>
-    public ILog Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>是否输出发送日志。默认false</summary>
     public Boolean LogSend { get; set; }
@@ -307,7 +319,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>是否输出接收日志。默认false</summary>
     public Boolean LogReceive { get; set; }
 
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix
     {
@@ -326,9 +338,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args)
-    {
-        Log?.Info(LogPrefix + format, args);
-    }
+    public void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
+
+    ///// <summary>输出日志</summary>
+    ///// <param name="format"></param>
+    ///// <param name="args"></param>
+    //[Conditional("DEBUG")]
+    //public void WriteDebugLog(String format, params Object?[] args) => Log.Debug(LogPrefix + format, args);
     #endregion
 }

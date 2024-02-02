@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Web;
 
 #nullable enable
@@ -157,9 +158,9 @@ namespace NewLife.IP
         }
     }
 
-    class MyIpProvider : NetHelper.IPProvider
+    class MyIpProvider : IIPResolver
     {
-        public override String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
+        public String GetAddress(IPAddress addr) => Ip.GetAddress(addr);
     }
 }
 #nullable restore

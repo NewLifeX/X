@@ -40,7 +40,7 @@ public class NetUri
 
     /// <summary>主机或域名</summary>
     /// <remarks>可能对应多个IP地址</remarks>
-    public String Host { get; set; }
+    public String? Host { get; set; }
 
     /// <summary>地址</summary>
     /// <remarks>
@@ -54,7 +54,7 @@ public class NetUri
     public Int32 Port { get { return EndPoint.Port; } set { EndPoint.Port = value; } }
 
     [NonSerialized]
-    private IPEndPoint _EndPoint;
+    private IPEndPoint? _EndPoint;
     /// <summary>终结点</summary>
     /// <remarks>
     /// 域名多地址时的第一个。
@@ -143,10 +143,12 @@ public class NetUri
         var array = uri.Split(Sep);
         if (array.Length >= 2)
         {
-            protocol = array[0]?.Trim();
+            protocol = array[0]?.Trim() + "";
             Type = ParseType(protocol);
-            uri = array[1]?.Trim();
+            uri = array[1]?.Trim() + "";
         }
+
+        if (uri.IsNullOrWhiteSpace()) return this;
 
         Host = null;
         _EndPoint = null;
@@ -168,7 +170,7 @@ public class NetUri
         var p = uri.IndexOf('/');
         if (p < 0) p = uri.IndexOf('\\');
         if (p < 0) p = uri.IndexOf('?');
-        if (p >= 0) uri = uri.Substring(0, p)?.Trim();
+        if (p >= 0) uri = uri.Substring(0, p)?.Trim() + "";
 
         // 分析端口，冒号前一个不能是冒号
         p = uri.LastIndexOf(':');
@@ -178,7 +180,7 @@ public class NetUri
             if (Int32.TryParse(pt, out var port))
             {
                 Port = port;
-                uri = uri.Substring(0, p)?.Trim();
+                uri = uri.Substring(0, p)?.Trim() + "";
             }
         }
 
@@ -190,7 +192,7 @@ public class NetUri
         return this;
     }
 
-    private static NetType ParseType(String value)
+    private static NetType ParseType(String? value)
     {
         if (value.IsNullOrEmpty()) return NetType.Unknown;
 
@@ -206,7 +208,7 @@ public class NetUri
 
     /// <summary>获取该域名下所有IP地址</summary>
     /// <returns></returns>
-    public IPAddress[] GetAddresses() => ParseAddress(Host) ?? new[] { Address };
+    public IPAddress[] GetAddresses() => ParseAddress(Host) ?? [Address];
 
     /// <summary>获取该域名下所有IP节点（含端口）</summary>
     /// <returns></returns>
@@ -217,14 +219,14 @@ public class NetUri
     /// <summary>分析地址</summary>
     /// <param name="hostname">主机地址</param>
     /// <returns></returns>
-    public static IPAddress[] ParseAddress(String hostname)
+    public static IPAddress[]? ParseAddress(String? hostname)
     {
         if (hostname.IsNullOrEmpty()) return null;
         if (hostname == "*") return null;
 
         try
         {
-            if (IPAddress.TryParse(hostname, out var addr)) return new[] { addr };
+            if (IPAddress.TryParse(hostname, out var addr)) return [addr];
 
             var hostAddresses = DnsResolver.Instance.Resolve(hostname);
             if (hostAddresses == null || hostAddresses.Length <= 0) return null;
@@ -233,7 +235,7 @@ public class NetUri
         }
         catch (SocketException ex)
         {
-            throw new XException("解析主机" + hostname + "的地址失败！" + ex.Message, ex);
+            throw new XException($"Failed to resolve the address of host {hostname}!{ex.Message}", ex);
         }
     }
 

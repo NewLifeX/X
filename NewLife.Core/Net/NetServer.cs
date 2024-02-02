@@ -60,10 +60,10 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     public AddressFamily AddressFamily { get; set; }
 
     /// <summary>服务器集合</summary>
-    public IList<ISocketServer> Servers { get; private set; }
+    public IList<ISocketServer> Servers { get; private set; } = new List<ISocketServer>();
 
     /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
-    public ISocketServer Server
+    public ISocketServer? Server
     {
         get
         {
@@ -72,7 +72,16 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
             return ss.Count > 0 ? ss[0] : null;
         }
-        set { if (!Servers.Contains(value)) Servers.Insert(0, value); }
+        set
+        {
+            if (value == null)
+                Servers.Clear();
+            else
+            {
+                var ss = Servers;
+                if (!ss.Contains(value)) ss.Insert(0, value);
+            }
+        }
     }
 
     /// <summary>是否活动</summary>
@@ -89,7 +98,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// 1，接收数据解码时，从前向后通过管道处理器；
     /// 2，发送数据编码时，从后向前通过管道处理器；
     /// </remarks>
-    public IPipeline Pipeline { get; set; }
+    public IPipeline? Pipeline { get; set; }
 
     /// <summary>使用会话集合，允许遍历会话。默认true</summary>
     public Boolean UseSession { get; set; } = true;
@@ -106,13 +115,13 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
     /// <summary>SSL证书。服务端使用</summary>
     /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
-    public X509Certificate Certificate { get; set; }
+    public X509Certificate? Certificate { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>用于内部Socket服务器的APM性能追踪器</summary>
-    public ITracer SocketTracer { get; set; }
+    public ITracer? SocketTracer { get; set; }
 
     /// <summary>显示统计信息的周期。默认600秒，0表示不显示统计信息</summary>
     public Int32 StatPeriod { get; set; } = 600;
@@ -128,7 +137,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// 用于网络服务器内部解析各种服务，可以直接赋值或者依赖注入。
     /// 网络会话默认使用该提供者，应用系统可以在网络会话中创建Scope版服务提供者。
     /// </remarks>
-    public IServiceProvider ServiceProvider { get; set; }
+    public IServiceProvider? ServiceProvider { get; set; }
 
     private ConcurrentDictionary<String, Object?>? _items;
     /// <summary>数据项</summary>
@@ -146,7 +155,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     {
         Name = GetType().Name.TrimEnd("Server");
 
-        Servers = new List<ISocketServer>();
+        //Servers = new List<ISocketServer>();
 
         if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
@@ -314,7 +323,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     {
         EnsureCreateServer();
 
-        if (Servers.Count == 0) throw new Exception("全部端口监听失败！");
+        if (Servers.Count == 0) throw new Exception("Failed to listen to all ports!");
 
         WriteLog("准备开始监听{0}个服务器", Servers.Count);
 
@@ -340,7 +349,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
     /// <summary>停止服务</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
-    public void Stop(String reason)
+    public void Stop(String? reason)
     {
         _Timer.TryDispose();
 
@@ -370,15 +379,15 @@ public class NetServer : DisposeBase, IServer, ILogFeature
 
     #region 业务
     /// <summary>新会话，对于TCP是新连接，对于UDP是新客户端</summary>
-    public event EventHandler<NetSessionEventArgs> NewSession;
+    public event EventHandler<NetSessionEventArgs>? NewSession;
 
     /// <summary>某个会话的数据到达。sender是INetSession</summary>
-    public event EventHandler<ReceivedEventArgs> Received;
+    public event EventHandler<ReceivedEventArgs>? Received;
 
     /// <summary>接受连接时，对于Udp是收到数据时（同时触发OnReceived）。</summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    void Server_NewSession(Object sender, SessionEventArgs e)
+    void Server_NewSession(Object? sender, SessionEventArgs e)
     {
         var session = e.Session;
 
@@ -423,12 +432,13 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <summary>收到数据时</summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    void OnReceived(Object sender, ReceivedEventArgs e)
+    void OnReceived(Object? sender, ReceivedEventArgs e)
     {
-        var session = sender as INetSession;
-
-        OnReceive(session, e.Packet);
-        OnReceive(session, e);
+        if (sender is INetSession session)
+        {
+            if (e.Packet != null) OnReceive(session, e.Packet);
+            OnReceive(session, e);
+        }
 
         Received?.Invoke(sender, e);
     }
@@ -444,12 +454,12 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     protected virtual void OnReceive(INetSession session, ReceivedEventArgs e) { }
 
     /// <summary>错误发生/断开连接时。sender是ISocketSession</summary>
-    public event EventHandler<ExceptionEventArgs> Error;
+    public event EventHandler<ExceptionEventArgs>? Error;
 
     /// <summary>触发异常</summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    protected virtual void OnError(Object sender, ExceptionEventArgs e)
+    protected virtual void OnError(Object? sender, ExceptionEventArgs e)
     {
         if (Log.Enable) Log.Error("{0} Error {1}", sender, e.Exception);
 
@@ -458,7 +468,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     #endregion
 
     #region 会话
-    private ConcurrentDictionary<Int32, INetSession> _Sessions = new();
+    private readonly ConcurrentDictionary<Int32, INetSession> _Sessions = new();
     /// <summary>会话集合。用自增的数字ID作为标识，业务应用自己维持ID与业务主键的对应关系。</summary>
     public IDictionary<Int32, INetSession> Sessions => _Sessions;
 
@@ -476,7 +486,12 @@ public class NetServer : DisposeBase, IServer, ILogFeature
         session.Host ??= this;
 
         if (_Sessions.TryAdd(session.ID, session))
-            session.OnDisposed += (s, e) => _Sessions.Remove((s as INetSession).ID);
+        {
+            session.OnDisposed += (s, e) =>
+            {
+                if (s is INetSession ns) _Sessions.Remove(ns.ID);
+            };
+        }
     }
 
     /// <summary>创建会话</summary>
@@ -495,7 +510,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <summary>根据会话ID查找会话</summary>
     /// <param name="sessionid"></param>
     /// <returns></returns>
-    public INetSession GetSession(Int32 sessionid)
+    public INetSession? GetSession(Int32 sessionid)
     {
         if (sessionid == 0) return null;
 
@@ -504,47 +519,47 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     #endregion
 
     #region 群发
-    ///// <summary>异步群发数据给所有客户端</summary>
-    ///// <param name="data"></param>
-    ///// <returns>已群发客户端总数</returns>
-    //public virtual Task<Int32> SendAllAsync(Packet data)
-    //{
-    //    if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+    /// <summary>异步群发数据给所有客户端</summary>
+    /// <param name="data"></param>
+    /// <returns>已群发客户端总数</returns>
+    public virtual Task<Int32> SendAllAsync(Packet data)
+    {
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
-    //    var ts = new List<Task>();
-    //    foreach (var item in Sessions)
-    //    {
-    //        ts.Add(Task.Run(() => item.Value.Send(data)));
-    //    }
+        var ts = new List<Task>();
+        foreach (var item in Sessions)
+        {
+            ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+        }
 
-    //    return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
-    //}
+        return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+    }
 
-    ///// <summary>异步群发数据给所有客户端</summary>
-    ///// <param name="data"></param>
-    ///// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
-    ///// <returns>已群发客户端总数</returns>
-    //public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean> predicate = null)
-    //{
-    //    if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+    /// <summary>异步群发数据给所有客户端</summary>
+    /// <param name="data"></param>
+    /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
+    /// <returns>已群发客户端总数</returns>
+    public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean>? predicate = null)
+    {
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
-    //    var ts = new List<Task>();
-    //    foreach (var item in Sessions)
-    //    {
-    //        if (predicate == null || predicate(item.Value))
-    //            ts.Add(Task.Run(() => item.Value.Send(data)));
-    //    }
+        var ts = new List<Task>();
+        foreach (var item in Sessions)
+        {
+            if (predicate == null || predicate(item.Value))
+                ts.Add(TaskEx.Run(() => item.Value.Send(data)));
+        }
 
-    //    return Task.WhenAll(ts).ContinueWith(t => Sessions.Count);
-    //}
+        return TaskEx.WhenAll(ts).ContinueWith(t => Sessions.Count);
+    }
 
     /// <summary>群发管道消息给所有客户端。不等待，支持协议编码</summary>
     /// <param name="message">应用消息，底层对其进行协议编码</param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean> predicate = null)
+    public virtual Int32 SendAllMessage(Object message, Func<INetSession, Boolean>? predicate = null)
     {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "群发需要使用会话集合");
+        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
         var count = 0;
         foreach (var item in Sessions)
@@ -580,9 +595,9 @@ public class NetServer : DisposeBase, IServer, ILogFeature
             case NetType.Http:
             case NetType.WebSocket:
                 var ss = CreateServer<TcpServer>(address, port, family);
-                foreach (TcpServer item in ss)
+                foreach (var item in ss)
                 {
-                    item.EnableHttp = true;
+                    if (item is TcpServer tcp) tcp.EnableHttp = true;
                 }
                 return ss;
             case NetType.Udp:
@@ -633,10 +648,10 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     #endregion
 
     #region 统计
-    private TimerX _Timer;
-    private String _Last;
+    private TimerX? _Timer;
+    private String? _Last;
 
-    private void ShowStat(Object state)
+    private void ShowStat(Object? state)
     {
         var msg = GetStat();
         if (msg.IsNullOrEmpty() || msg == _Last) return;
@@ -665,12 +680,12 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>用于内部Socket服务器的日志提供者</summary>
-    public ILog SocketLog { get; set; }
+    public ILog? SocketLog { get; set; }
 
     /// <summary>用于网络会话的日志提供者</summary>
-    public ILog SessionLog { get; set; }
+    public ILog? SessionLog { get; set; }
 
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix
     {
@@ -685,7 +700,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteLog(String format, params Object[] args)
+    public virtual void WriteLog(String format, params Object?[] args)
     {
         if (!LogPrefix.EndsWith(" ") && !format.StartsWith(" ")) format = " " + format;
         Log.Info(LogPrefix + format, args);
@@ -694,7 +709,7 @@ public class NetServer : DisposeBase, IServer, ILogFeature
     /// <summary>输出错误日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteError(String format, params Object[] args) => Log.Error(LogPrefix + format, args);
+    public virtual void WriteError(String format, params Object?[] args) => Log.Error(LogPrefix + format, args);
     #endregion
 
     #region 辅助
@@ -740,7 +755,7 @@ public class NetServer<TSession> : NetServer where TSession : class, INetSession
     /// <summary>获取指定标识的会话</summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public new TSession GetSession(Int32 id)
+    public new TSession? GetSession(Int32 id)
     {
         if (id <= 0) return null;
 

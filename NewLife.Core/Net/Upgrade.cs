@@ -23,7 +23,7 @@ public class Upgrade
     public String Server { get; set; }
 
     /// <summary>版本</summary>
-    public Version Version { get; set; }
+    public Version? Version { get; set; }
 
     /// <summary>本地编译时间</summary>
     public DateTime Time { get; set; }
@@ -35,25 +35,34 @@ public class Upgrade
     public String DestinationPath { get; set; } = ".";
 
     /// <summary>超链接信息</summary>
-    public Link Link { get; set; }
+    public Link? Link { get; set; }
 
     /// <summary>缓存文件。同名文件不再下载，默认false</summary>
     public Boolean CacheFile { get; set; } = true;
 
     /// <summary>更新源文件</summary>
-    public String SourceFile { get; set; }
+    public String? SourceFile { get; set; }
     #endregion
 
     #region 构造
     /// <summary>实例化一个升级对象实例，获取当前应用信息</summary>
     public Upgrade()
     {
-        var asm = Assembly.GetEntryAssembly();
-        var asmx = AssemblyX.Create(asm);
+        Name = nameof(Upgrade);
 
-        Version = asm.GetName().Version;
-        Name = asm.GetName().Name;
-        Time = asmx.Compile;
+        var asm = Assembly.GetEntryAssembly();
+        if (asm != null)
+        {
+            var name = asm.GetName();
+            if (name != null)
+            {
+                Version = name.Version;
+                Name = name.Name ?? nameof(Upgrade);
+            }
+
+            var ax = AssemblyX.Create(asm);
+            if (ax != null) Time = ax.Compile;
+        }
 
         Server = NewLife.Setting.Current.PluginServer;
     }
@@ -73,7 +82,7 @@ public class Upgrade
 
         var web = CreateClient();
         var html = web.GetString(url);
-        var links = Link.Parse(html, url, item => item.Name.ToLower().Contains(Name.ToLower()));
+        var links = Link.Parse(html, url, item => !item.Name.IsNullOrEmpty() && item.Name.ToLower().Contains(Name.ToLower()));
         if (links == null || links.Length == 0)
         {
             WriteLog("找不到资源包");
@@ -83,7 +92,7 @@ public class Upgrade
         // 先比较版本
         if (Version > new Version(0, 0))
         {
-            var link = links.OrderByDescending(e => e.Version).FirstOrDefault();
+            var link = links.OrderByDescending(e => e.Version).FirstOrDefault()!;
             if (link.Version > Version)
             {
                 Link = link;
@@ -95,7 +104,7 @@ public class Upgrade
         // 再比较时间
         else
         {
-            var link = links.OrderByDescending(e => e.Time).FirstOrDefault();
+            var link = links.OrderByDescending(e => e.Time).FirstOrDefault()!;
             // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
             if (link.Time > Time.AddMinutes(10))
             {
@@ -112,8 +121,8 @@ public class Upgrade
     /// <summary>开始更新</summary>
     public void Download()
     {
-        var link = Link ?? throw new Exception("没有可用新版本！");
-        if (String.IsNullOrEmpty(link.Url)) throw new Exception("升级包地址无效！");
+        var link = Link ?? throw new Exception("No new version available!");
+        if (link.Url.IsNullOrEmpty()) throw new Exception("The upgrade package address is invalid!");
 
         Download(link.Url, link.FullName);
     }
@@ -121,10 +130,12 @@ public class Upgrade
     /// <summary>开始更新</summary>
     /// <param name="url">下载源</param>
     /// <param name="fileName">文件名</param>
-    public void Download(String url, String fileName)
+    public void Download(String url, String? fileName)
     {
         // 如果更新包不存在，则下载
-        var file = UpdatePath.CombinePath(fileName).GetBasePath();
+        var file = !fileName.IsNullOrEmpty() ?
+            UpdatePath.CombinePath(fileName).GetBasePath() :
+            Path.GetTempFileName();
         if (!CacheFile && File.Exists(file)) File.Delete(file); ;
         if (!File.Exists(file))
         {
@@ -133,7 +144,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            Task.Run(() => web.DownloadFileAsync(url, file)).Wait();
+            TaskEx.Run(() => web.DownloadFileAsync(url, file)).Wait();
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -175,7 +186,7 @@ public class Upgrade
 
         var file = SourceFile;
 
-        if (!File.Exists(file)) return false;
+        if (file.IsNullOrEmpty() || !File.Exists(file)) return false;
 
         WriteLog("发现更新包 {0}", file);
 
@@ -202,7 +213,9 @@ public class Upgrade
     public void Run()
     {
         // 启动进程
-        var exe = Assembly.GetEntryAssembly().Location;
+        var exe = Assembly.GetEntryAssembly()?.Location;
+        if (exe.IsNullOrEmpty()) return;
+
         WriteLog("启动进程 {0}", exe);
         Process.Start(exe);
 
@@ -214,7 +227,7 @@ public class Upgrade
     #endregion
 
     #region 辅助
-    private HttpClient _Client;
+    private HttpClient? _Client;
     private HttpClient CreateClient()
     {
         if (_Client != null) return _Client;
@@ -342,6 +355,6 @@ public class Upgrade
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args) => Log?.Info($"[{Name}]{format}", args);
+    public void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
     #endregion
 }

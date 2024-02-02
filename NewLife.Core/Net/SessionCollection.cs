@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using NewLife.Threading;
 
 namespace NewLife.Net;
@@ -60,7 +61,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <summary>获取会话，加锁</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public ISocketSession Get(String key)
+    public ISocketSession? Get(String key)
     {
         if (!_dic.TryGetValue(key, out var session)) return null;
 
@@ -84,7 +85,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     }
 
     /// <summary>移除不活动的会话</summary>
-    private void RemoveNotAlive(Object state)
+    private void RemoveNotAlive(Object? state)
     {
         if (!_dic.Any()) return;
 
@@ -128,7 +129,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     public Int32 Count => _dic.Count;
 
-    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>).IsReadOnly;
+    public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>)?.IsReadOnly ?? false;
 
     public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator();
 
@@ -154,7 +155,11 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         return _dic.Remove(key);
     }
 
+#if NETFRAMEWORK || NETSTANDARD
     Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, out ISocketSession value) => _dic.TryGetValue(key, out value);
+#else
+    Boolean IDictionary<String, ISocketSession>.TryGetValue(String key, [MaybeNullWhen(false)] out ISocketSession value) => _dic.TryGetValue(key, out value);
+#endif
 
     ICollection<ISocketSession> IDictionary<String, ISocketSession>.Values => _dic.Values;
 
