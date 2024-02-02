@@ -8,7 +8,7 @@ public static class TaskEx
     public static TaskFactory Factory { get; } = new TaskFactory(TaskCreationOptions.PreferFairness, TaskContinuationOptions.PreferFairness);
 
     /// <summary>已完成任务</summary>
-    public static Task CompletedTask { get; } = s_preCompletedTask;
+    public static Task CompletedTask => s_preCompletedTask;
 
     /// <summary>异步执行</summary>
     /// <param name="action"></param>
