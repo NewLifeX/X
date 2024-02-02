@@ -22,7 +22,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     public Int32 ProcessId { get; set; }
 
     /// <summary>inode标识</summary>
-    public String Node { get; set; }
+    public String? Node { get; set; }
 
     /// <summary>实例化Tcp连接信息</summary>
     /// <param name="local"></param>
@@ -81,9 +81,9 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         public Byte remotePort4;
         public Int32 owningPid;
 
-        public UInt16 LocalPort => BitConverter.ToUInt16(new Byte[2] { localPort2, localPort1 }, 0);
+        public UInt16 LocalPort => BitConverter.ToUInt16([localPort2, localPort1], 0);
 
-        public UInt16 RemotePort => BitConverter.ToUInt16(new Byte[2] { remotePort2, remotePort1 }, 0);
+        public UInt16 RemotePort => BitConverter.ToUInt16([remotePort2, remotePort1], 0);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -141,7 +141,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             var tab =
                 (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(
                     buffTable,
-                    typeof(MIB_TCPTABLE_OWNER_PID));
+                    typeof(MIB_TCPTABLE_OWNER_PID))!;
             var rowPtr = (IntPtr)((Int64)buffTable +
                 Marshal.SizeOf(tab.dwNumEntries));
             //tTable = new MIB_TCPROW_OWNER_PID[tab.dwNumEntries];
@@ -149,7 +149,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             for (var i = 0; i < tab.dwNumEntries; i++)
             {
                 var tcpRow = (MIB_TCPROW_OWNER_PID)Marshal
-                    .PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID));
+                    .PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID))!;
                 //tTable[i] = tcpRow;
                 list.Add(new TcpConnectionInformation2(tcpRow));
 
@@ -227,9 +227,9 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     /// <returns></returns>
     public static IList<TcpConnectionInformation2> ParseTcps(String text)
     {
-        if (text.IsNullOrEmpty()) return null;
-
         var list = new List<TcpConnectionInformation2>();
+
+        if (text.IsNullOrEmpty()) return list;
 
         // 逐行读取TCP连接信息
         foreach (var line in text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))

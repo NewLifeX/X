@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -19,7 +18,7 @@ namespace NewLife.Net;
 public class NetSession<TServer> : NetSession where TServer : NetServer
 {
     /// <summary>主服务</summary>
-    public virtual TServer Host { get => (this as INetSession).Host as TServer; set => (this as INetSession).Host = value; }
+    public virtual TServer Host { get => ((this as INetSession).Host as TServer)!; set => (this as INetSession).Host = value; }
 }
 
 /// <summary>网络服务的会话，每个Tcp/Udp连接作为一个会话</summary>
@@ -43,13 +42,13 @@ public class NetSession : DisposeBase, INetSession, IExtend
     NetServer INetSession.Host { get; set; } = null!;
 
     /// <summary>客户端。跟客户端通讯的那个Socket，其实是服务端TcpSession/UdpServer</summary>
-    public ISocketSession Session { get; set; }
+    public ISocketSession Session { get; set; } = null!;
 
     /// <summary>服务端</summary>
-    public ISocketServer Server { get; set; }
+    public ISocketServer Server { get; set; } = null!;
 
     /// <summary>客户端地址</summary>
-    public NetUri Remote => Session?.Remote;
+    public NetUri Remote => Session.Remote;
 
     /// <summary>用户会话数据</summary>
     public IDictionary<String, Object?> Items => Session.Items;
@@ -64,7 +63,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// 根据会话创建Scoped范围服务，以使得各服务解析在本会话中唯一。
     /// 基类使用内置ObjectContainer的Scope，在WebApi/Worker项目中，使用者需要自己创建Scope并赋值服务提供者。
     /// </remarks>
-    public IServiceProvider ServiceProvider { get; set; }
+    public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>连接创建事件。创建会话之后</summary>
     public event EventHandler<EventArgs>? Connected;
@@ -73,10 +72,10 @@ public class NetSession : DisposeBase, INetSession, IExtend
     public event EventHandler<EventArgs>? Disconnected;
 
     /// <summary>数据到达事件</summary>
-    public event EventHandler<ReceivedEventArgs> Received;
+    public event EventHandler<ReceivedEventArgs>? Received;
 
     private Int32 _running;
-    private IServiceScope _scope;
+    private IServiceScope? _scope;
     #endregion
 
     #region 方法
@@ -90,11 +89,11 @@ public class NetSession : DisposeBase, INetSession, IExtend
         // 服务提供者，用于创建Scoped范围服务，以使得各服务解析在本会话中唯一
         if (ServiceProvider == null)
         {
-            _scope = ns.ServiceProvider?.CreateScope();
-            ServiceProvider = _scope?.ServiceProvider ?? ns.ServiceProvider;
+            _scope = ns?.ServiceProvider?.CreateScope();
+            ServiceProvider = _scope?.ServiceProvider ?? ns?.ServiceProvider;
         }
 
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Connect", Remote?.ToString());
+        using var span = ns?.Tracer?.NewSpan($"net:{ns?.Name}:Connect", Remote?.ToString());
         try
         {
             OnConnected();
@@ -129,11 +128,11 @@ public class NetSession : DisposeBase, INetSession, IExtend
         }
     }
 
-    private void Ss_Received(Object sender, ReceivedEventArgs e)
+    private void Ss_Received(Object? sender, ReceivedEventArgs e)
     {
         var ns = (this as INetSession).Host;
         var tracer = ns?.Tracer;
-        using var span = tracer?.NewSpan($"net:{ns.Name}:Receive", e.Message);
+        using var span = tracer?.NewSpan($"net:{ns?.Name}:Receive", e.Message);
 
         try
         {
@@ -245,7 +244,7 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>发送字符串，直达网卡</summary>
     /// <param name="msg"></param>
     /// <param name="encoding"></param>
-    public virtual INetSession Send(String msg, Encoding encoding = null)
+    public virtual INetSession Send(String msg, Encoding? encoding = null)
     {
         var ns = (this as INetSession).Host;
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", msg);
@@ -274,9 +273,9 @@ public class NetSession : DisposeBase, INetSession, IExtend
 
     #region 日志
     /// <summary>日志提供者</summary>
-    public ILog Log { get; set; }
+    public ILog? Log { get; set; }
 
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix
     {
@@ -296,12 +295,12 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteLog(String format, params Object[] args) => Log?.Info(LogPrefix + format, args);
+    public virtual void WriteLog(String format, params Object?[] args) => Log?.Info(LogPrefix + format, args);
 
     /// <summary>输出错误日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteError(String format, params Object[] args) => Log?.Error(LogPrefix + format, args);
+    public virtual void WriteError(String format, params Object?[] args) => Log?.Error(LogPrefix + format, args);
     #endregion
 
     #region 辅助

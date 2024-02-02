@@ -34,7 +34,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     public Int32 SessionTimeout { get; set; }
 
     /// <summary>底层Socket</summary>
-    public Socket Client { get; private set; }
+    public Socket? Client { get; private set; }
 
     /// <summary>是否活动</summary>
     public Boolean Active { get; set; }
@@ -63,17 +63,17 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// 1，接收数据解码时，从前向后通过管道处理器；
     /// 2，发送数据编码时，从后向前通过管道处理器；
     /// </remarks>
-    public IPipeline Pipeline { get; set; }
+    public IPipeline? Pipeline { get; set; }
 
     /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
     /// <summary>SSL证书。服务端使用</summary>
     /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
-    public X509Certificate Certificate { get; set; }
+    public X509Certificate? Certificate { get; set; }
 
     /// <summary>APM性能追踪器</summary>
-    public ITracer Tracer { get; set; }
+    public ITracer? Tracer { get; set; }
     #endregion
 
     #region 构造
@@ -161,7 +161,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
     /// <summary>停止</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
-    public virtual void Stop(String reason)
+    public virtual void Stop(String? reason)
     {
         if (!Active) return;
 
@@ -175,7 +175,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
             CloseAllSession();
 
-            Client.Shutdown();
+            Client?.Shutdown();
             Client = null;
         }
         catch (Exception ex)
@@ -188,7 +188,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
     #region 连接处理
     /// <summary>新会话时触发</summary>
-    public event EventHandler<SessionEventArgs> NewSession;
+    public event EventHandler<SessionEventArgs>? NewSession;
 
     /// <summary>开启异步接受新连接</summary>
     /// <param name="se"></param>
@@ -254,7 +254,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
                 return;
             }
         }
-        else
+        else if (se.AcceptSocket != null)
         {
             // 直接在IO线程调用业务逻辑
             try
@@ -289,7 +289,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             session.ID = Interlocked.Increment(ref g_ID);
             session.WriteLog("New {0}", session.Remote.EndPoint);
 
-            NewSession?.Invoke(this, new SessionEventArgs { Session = session });
+            NewSession?.Invoke(this, new SessionEventArgs(session));
 
             // 自动开始异步接收处理
             session.SslProtocol = SslProtocol;
@@ -350,20 +350,20 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
     #region 异常处理
     /// <summary>错误发生/断开连接时</summary>
-    public event EventHandler<ExceptionEventArgs> Error;
+    public event EventHandler<ExceptionEventArgs>? Error;
 
     /// <summary>触发异常</summary>
     /// <param name="action">动作</param>
     /// <param name="ex">异常</param>
     protected virtual void OnError(String action, Exception ex)
     {
-        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex?.Message);
-        Error?.Invoke(this, new ExceptionEventArgs { Action = action, Exception = ex });
+        Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex.Message);
+        Error?.Invoke(this, new ExceptionEventArgs(action, ex));
     }
     #endregion
 
     #region 日志
-    private String _LogPrefix;
+    private String? _LogPrefix;
     /// <summary>日志前缀</summary>
     public virtual String LogPrefix
     {
@@ -380,7 +380,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     }
 
     /// <summary>日志对象</summary>
-    public ILog Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>是否输出发送日志。默认false</summary>
     public Boolean LogSend { get; set; }
@@ -391,7 +391,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// <summary>输出日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args)
+    public void WriteLog(String format, params Object?[] args)
     {
         if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
     }

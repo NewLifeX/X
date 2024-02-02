@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using NewLife.Data;
 
 namespace NewLife.Net;
@@ -14,8 +13,8 @@ public class ReceivedEventArgs : EventArgs, IData
     /// </remarks>
     public Packet? Packet { get; set; }
 
-        /// <summary>远程地址</summary>
-        public IPEndPoint Remote { get; set; }
+    /// <summary>远程地址</summary>
+    public IPEndPoint? Remote { get; set; }
 
     /// <summary>管道处理器解码后的消息，一般就是业务消息</summary>
     public Object? Message { get; set; }
