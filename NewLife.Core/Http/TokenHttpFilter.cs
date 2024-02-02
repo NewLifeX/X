@@ -53,7 +53,7 @@ public class TokenHttpFilter : IHttpFilter
             // 刚启动时可能还没有拿到本地IP
             var id = ClientId;
             if (id.IsNullOrEmpty() || id != null && id.Length > 0 && id[0] == '@')
-                id = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+                ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
         }
         catch { }
     }
