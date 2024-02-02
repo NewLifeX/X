@@ -5,68 +5,84 @@ using NewLife.Threading;
 using NewLife;
 using NewLife.Http;
 using NewLife.Net;
+using NewLife.Remoting;
+using NewLife.Serialization;
+using System.Net.Sockets;
 
-namespace Test2
+namespace Test2;
+
+internal class Program
 {
-    internal class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        XTrace.UseConsole();
+
+        TimerScheduler.Default.Log = XTrace.Log;
+
+        while (true)
         {
-            XTrace.UseConsole();
-
-            TimerScheduler.Default.Log = XTrace.Log;
-
-            while (true)
+            var sw = Stopwatch.StartNew();
+#if !DEBUG
+            try
             {
-                var sw = Stopwatch.StartNew();
-#if !DEBUG
-                try
-                {
 #endif
-                Test1();
+            Test2();
 #if !DEBUG
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex?.GetTrue());
-                }
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex?.GetTrue());
+            }
 #endif
 
-                sw.Stop();
-                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-                //Thread.Sleep(5000);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                var key = Console.ReadKey(true);
-                if (key.Key != ConsoleKey.C) break;
-            }
+            sw.Stop();
+            Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+            //Thread.Sleep(5000);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            var key = Console.ReadKey(true);
+            if (key.Key != ConsoleKey.C) break;
         }
+    }
 
-        static void Test1()
+    static void Test1()
+    {
+        foreach (var item in NetHelper.GetIPs())
         {
-            foreach (var item in NetHelper.GetIPs())
-            {
-                XTrace.WriteLine(item.ToString());
-            }
-
-            //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
-            //str.SpeakAsync();
-
-            //var client = new TinyHttpClient();
-            //var rs = client.GetStringAsync("https://sso.newlifex.com/cube/info").Result;
-            //XTrace.WriteLine(rs);
-            var uri = new NetUri("http://sso.newlifex.com");
-            var client = uri.CreateRemote();
-            client.Log = XTrace.Log;
-            client.LogSend = true;
-            client.LogReceive = true;
-            if (client is TcpSession tcp) tcp.MaxAsync = 0;
-            client.Open();
-
-            client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
-
-            var rs = client.ReceiveString();
-            XTrace.WriteLine(rs);
+            XTrace.WriteLine(item.ToString());
         }
+
+        //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+        //str.SpeakAsync();
+
+        //var client = new TinyHttpClient();
+        //var rs = client.GetStringAsync("https://sso.newlifex.com/cube/info").Result;
+        //XTrace.WriteLine(rs);
+        var uri = new NetUri("http://sso.newlifex.com");
+        var client = uri.CreateRemote();
+        client.Log = XTrace.Log;
+        client.LogSend = true;
+        client.LogReceive = true;
+        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        client.Open();
+
+        client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
+
+        var rs = client.ReceiveString();
+        XTrace.WriteLine(rs);
+    }
+
+    static async void Test2()
+    {
+        var client = new ApiHttpClient("http://s.newlifex.com:6600");
+        client.Filter = new TokenHttpFilter
+        {
+            UserName = "test",
+            Password = null,
+            ClientId = Environment.NewLine,
+        };
+
+        var rs = await client.PostAsync<Object>("Node/Ping", null);
+        XTrace.WriteLine(rs.ToJson(true));
     }
 }
