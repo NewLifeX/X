@@ -18,7 +18,7 @@ public interface IEncoder
     /// <param name="action"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    IMessage CreateRequest(String action, Object args);
+    IMessage CreateRequest(String action, Object? args);
 
     /// <summary>创建响应</summary>
     /// <param name="msg"></param>
@@ -26,12 +26,12 @@ public interface IEncoder
     /// <param name="code"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    IMessage CreateResponse(IMessage msg, String action, Int32 code, Object value);
+    IMessage CreateResponse(IMessage msg, String action, Int32 code, Object? value);
 
     /// <summary>解码 请求/响应</summary>
     /// <param name="msg">消息</param>
     /// <returns>请求响应报文</returns>
-    ApiMessage Decode(IMessage msg);
+    ApiMessage? Decode(IMessage msg);
 
     ///// <summary>编码 请求/响应</summary>
     ///// <param name="action">服务动作</param>
@@ -45,20 +45,21 @@ public interface IEncoder
     /// <param name="data">数据</param>
     /// <param name="msg">消息</param>
     /// <returns></returns>
-    IDictionary<String, Object> DecodeParameters(String action, Packet data, IMessage msg);
+    IDictionary<String, Object?>? DecodeParameters(String action, Packet? data, IMessage msg);
 
     /// <summary>解码结果</summary>
     /// <param name="action"></param>
     /// <param name="data"></param>
     /// <param name="msg">消息</param>
+    /// <param name="returnType">返回类型</param>
     /// <returns></returns>
-    Object DecodeResult(String action, Packet data, IMessage msg);
+    Object? DecodeResult(String action, Packet data, IMessage msg, Type returnType);
 
     /// <summary>转换为目标类型</summary>
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    Object Convert(Object obj, Type targetType);
+    Object? Convert(Object obj, Type targetType);
 
     /// <summary>日志提供者</summary>
     ILog Log { get; set; }
@@ -71,13 +72,13 @@ public abstract class EncoderBase
     /// <summary>解码 请求/响应</summary>
     /// <param name="msg">消息</param>
     /// <returns>请求响应报文</returns>
-    public virtual ApiMessage Decode(IMessage msg)
+    public virtual ApiMessage? Decode(IMessage msg)
     {
         var message = new ApiMessage();
 
         // 请求：action + args
         // 响应：action + code + result
-        var ms = msg.Payload.GetStream();
+        var ms = msg.Payload!.GetStream();
         var reader = new BinaryReader(ms);
 
         message.Action = reader.ReadString();
@@ -104,6 +105,6 @@ public abstract class EncoderBase
     /// <summary>写日志</summary>
     /// <param name="format"></param>
     /// <param name="args"></param>
-    public virtual void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
+    public virtual void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }

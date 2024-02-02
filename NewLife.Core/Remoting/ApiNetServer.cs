@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using NewLife.Http;
+﻿using NewLife.Http;
 using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
-using NewLife.Reflection;
-using NewLife.Threading;
 
 namespace NewLife.Remoting;
 
 class ApiNetServer : NetServer<ApiNetSession>, IApiServer
 {
     /// <summary>主机</summary>
-    public IApiHost Host { get; set; }
+    public IApiHost Host { get; set; } = null!;
 
     /// <summary>当前服务器所有会话</summary>
     public IApiSession[] AllSessions => Sessions.ToValueArray().Where(e => e is IApiSession).Cast<IApiSession>().ToArray();
@@ -34,9 +27,9 @@ class ApiNetServer : NetServer<ApiNetSession>, IApiServer
     {
         Host = host;
 
-        Local = config as NetUri;
-        // 如果主机为空，监听所有端口
-        if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
+        if (config is NetUri uri) Local = uri;
+        //// 如果主机为空，监听所有端口
+        //if (Local.Host.IsNullOrEmpty() || Local.Host == "*") AddressFamily = System.Net.Sockets.AddressFamily.Unspecified;
 
         // Http封包协议
         //Add<HttpCodec>();
@@ -51,7 +44,7 @@ class ApiNetServer : NetServer<ApiNetSession>, IApiServer
 
 class ApiNetSession : NetSession<ApiNetServer>, IApiSession
 {
-    private ApiServer _Host;
+    private ApiServer _Host = null!;
     /// <summary>主机</summary>
     IApiHost IApiSession.Host => _Host;
 
@@ -62,60 +55,36 @@ class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     public virtual IApiSession[] AllSessions => _Host.Server.AllSessions;
 
     /// <summary>令牌</summary>
-    public String Token { get; set; }
-
-    /// <summary>请求参数</summary>
-    public IDictionary<String, Object> Parameters { get; set; }
-
-    /// <summary>第二会话数据</summary>
-    public IDictionary<String, Object> Items2 { get; set; }
-
-    /// <summary>获取/设置 用户会话数据。优先使用第二会话数据</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
-    public override Object this[String key]
-    {
-        get
-        {
-            var ms = Items2 ?? Items;
-            if (ms.TryGetValue(key, out var rs)) return rs;
-
-            return null;
-        }
-        set
-        {
-            var ms = Items2 ?? Items;
-            ms[key] = value;
-        }
-    }
+    public String? Token { get; set; }
 
     /// <summary>开始会话处理</summary>
     public override void Start()
     {
-        _Host = Host.Host as ApiServer;
+        _Host = (Host!.Host as ApiServer)!;
 
         base.Start();
     }
 
-    /// <summary>查找Api动作</summary>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    public virtual ApiAction FindAction(String action) => _Host.Manager.Find(action);
+    ///// <summary>查找Api动作</summary>
+    ///// <param name="action"></param>
+    ///// <returns></returns>
+    //public virtual ApiAction? FindAction(String action) => _Host.Manager.Find(action);
 
-    /// <summary>创建控制器实例</summary>
-    /// <param name="api"></param>
-    /// <returns></returns>
-    public virtual Object CreateController(ApiAction api)
-    {
-        var controller = api.Controller;
-        if (controller != null) return controller;
+    ///// <summary>创建控制器实例</summary>
+    ///// <param name="api"></param>
+    ///// <returns></returns>
+    //public virtual Object CreateController(ApiAction api)
+    //{
+    //    var controller = api.Controller;
+    //    if (controller != null) return controller;
 
-        controller = _Host.ServiceProvider?.GetService(api.Type);
+    //    controller = _Host.ServiceProvider?.GetService(api.Type);
 
-        controller ??= api.Type.CreateInstance();
+    //    controller ??= api.Type.CreateInstance();
+    //    if (controller == null) throw new InvalidDataException($"无法创建[{api.Type.FullName}]的实例");
 
-        return controller;
-    }
+    //    return controller;
+    //}
 
     protected override void OnReceive(ReceivedEventArgs e)
     {
@@ -142,19 +111,20 @@ class ApiNetSession : NetSession<ApiNetServer>, IApiSession
             {
                 try
                 {
-                    var rs = _Host.Process(this, m as IMessage);
-                    if (rs != null && Session != null && !Session.Disposed) Session?.SendMessage(rs);
+                    var rs = _Host.Process(this, (m as IMessage)!);
+                    if (rs != null && Session != null && !Session.Disposed) Session.SendMessage(rs);
                 }
                 catch (Exception ex)
                 {
-                    XTrace.WriteException(ex);
+                    //XTrace.WriteException(ex);
+                    OnError(this, new ExceptionEventArgs("", ex));
                 }
             }, msg);
         }
         else
         {
             var rs = _Host.Process(this, msg);
-            if (rs != null && Session != null && !Session.Disposed) Session?.SendMessage(rs);
+            if (rs != null && Session != null && !Session.Disposed) Session.SendMessage(rs);
         }
     }
 
@@ -163,10 +133,10 @@ class ApiNetSession : NetSession<ApiNetServer>, IApiSession
     /// <param name="args">参数</param>
     /// <param name="flag">标识</param>
     /// <returns></returns>
-    public Int32 InvokeOneWay(String action, Object args = null, Byte flag = 0)
+    public Int32 InvokeOneWay(String action, Object? args = null, Byte flag = 0)
     {
-        var span = Host.Tracer?.NewSpan("rpc:" + action, args);
-        args = span.Attach(args);
+        using var span = Host!.Tracer?.NewSpan("rpc:" + action, args);
+        if (args != null && span != null) args = span.Attach(args);
 
         // 编码请求
         var msg = Host.Host.Encoder.CreateRequest(action, args);
@@ -188,13 +158,5 @@ class ApiNetSession : NetSession<ApiNetServer>, IApiSession
 
             throw;
         }
-        finally
-        {
-            span?.Dispose();
-        }
     }
-
-    //async Task<IMessage> IApiSession.SendAsync(IMessage msg) => await Session.SendMessageAsync(msg).ConfigureAwait(false) as IMessage;
-
-    //Boolean IApiSession.Send(IMessage msg) => Session.SendMessage(msg);
 }

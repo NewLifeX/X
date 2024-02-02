@@ -1,4 +1,4 @@
-﻿using NewLife.Collections;
+﻿using System.Collections.Concurrent;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
@@ -7,14 +7,14 @@ using NewLife.Net.Handlers;
 namespace NewLife.Remoting;
 
 /// <summary>Api主机</summary>
-public abstract class ApiHost : DisposeBase, IApiHost, IExtend, ILogFeature
+public abstract class ApiHost : DisposeBase, IApiHost, IExtend, ILogFeature, ITracerFeature
 {
     #region 属性
     /// <summary>名称</summary>
-    public String Name { get; set; }
+    public String Name { get; set; } = null!;
 
     /// <summary>编码器</summary>
-    public IEncoder Encoder { get; set; }
+    public IEncoder Encoder { get; set; } = null!;
 
     /// <summary>调用超时时间。请求发出后，等待响应的最大时间，默认15_000ms</summary>
     public Int32 Timeout { get; set; } = 15_000;
@@ -22,13 +22,14 @@ public abstract class ApiHost : DisposeBase, IApiHost, IExtend, ILogFeature
     /// <summary>慢追踪。远程调用或处理时间超过该值时，输出慢调用日志，默认5000ms</summary>
     public Int32 SlowTrace { get; set; } = 5_000;
 
-    /// <summary>用户会话数据</summary>
-    public IDictionary<String, Object> Items { get; set; } = new NullableDictionary<String, Object>();
+    private ConcurrentDictionary<String, Object?>? _items;
+    /// <summary>数据项</summary>
+    public IDictionary<String, Object?> Items => _items ??= new();
 
     /// <summary>获取/设置 用户会话数据</summary>
     /// <param name="key"></param>
     /// <returns></returns>
-    public virtual Object this[String key] { get => Items[key]; set => Items[key] = value; }
+    public virtual Object? this[String key] { get => _items != null && _items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
 
     /// <summary>启动时间</summary>
     public DateTime StartTime { get; set; } = DateTime.Now;
@@ -49,6 +50,9 @@ public abstract class ApiHost : DisposeBase, IApiHost, IExtend, ILogFeature
 
     /// <summary>显示调用和处理错误。默认false</summary>
     public Boolean ShowError { get; set; }
+
+    /// <summary>性能跟踪器</summary>
+    public ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
     /// <summary>写日志</summary>
     /// <param name="format"></param>
