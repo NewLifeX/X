@@ -45,7 +45,7 @@ public static class Pool
     /// <param name="sb"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
-    [Obsolete("Please use Return from 2024-02-01")]
+    //[Obsolete("Please use Return from 2024-02-01")]
     public static String Put(this StringBuilder sb, Boolean requireResult = false)
     {
         //if (sb == null) return null;
@@ -119,7 +119,7 @@ public static class Pool
     /// <param name="ms"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
-    [Obsolete("Please use Return from 2024-02-01")]
+    //[Obsolete("Please use Return from 2024-02-01")]
     public static Byte[] Put(this MemoryStream ms, Boolean requireResult = false)
     {
         //if (ms == null) return null;
