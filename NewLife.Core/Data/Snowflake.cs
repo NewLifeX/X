@@ -22,7 +22,11 @@ public class Snowflake
 {
     #region 属性
     /// <summary>开始时间戳。首次使用前设置，否则无效，默认1970-1-1</summary>
-    /// <remarks>该时间戳默认已带有时区偏移，不管是为当前时区还是UTC时间生成雪花Id，应该是一样的时间大小。</remarks>
+    /// <remarks>
+    /// 该时间戳默认已带有时区偏移，不管是为本地时间还是UTC时间生成雪花Id，都是一样的时间大小。
+    /// 默认值本质上就是UTC 1970-1-1，转本地时间是为了方便解析雪花Id时得到的时间就是本地时间，最大兼容已有业务。
+    /// 在星尘和IoT的自动分表场景中，一般需要用本地时间来作为分表依据，所以默认值是本地时间。
+    /// </remarks>
     public DateTime StartTimestamp { get; set; } = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToLocalTime();
 
     /// <summary>机器Id，取10位</summary>
@@ -120,6 +124,7 @@ public class Snowflake
     }
 
     /// <summary>获取下一个Id</summary>
+    /// <remarks>基于当前时间，转StartTimestamp所属时区后，生成Id</remarks>
     /// <returns></returns>
     public virtual Int64 NewId()
     {
@@ -160,6 +165,11 @@ public class Snowflake
     }
 
     /// <summary>获取指定时间的Id，带上节点和序列号。可用于根据业务时间构造插入Id</summary>
+    /// <remarks>
+    /// 基于指定时间，转StartTimestamp所属时区后，生成Id。
+    /// 
+    /// 如果为指定毫秒时间生成多个Id（超过4096），则可能重复。
+    /// </remarks>
     /// <param name="time">时间</param>
     /// <returns></returns>
     public virtual Int64 NewId(DateTime time)
@@ -177,9 +187,13 @@ public class Snowflake
 
     /// <summary>获取指定时间的Id，传入唯一业务id（取模为10位）。可用于物联网数据采集，每1024个传感器为一组，每组每毫秒多个Id</summary>
     /// <remarks>
+    /// 基于指定时间，转StartTimestamp所属时区后，生成Id。
+    /// 
     /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
     /// 为了避免主键重复，可以使用传感器id作为workerId。
-    /// uid需要取模为10位，即按1024分组，每组每毫米最多生成4096个Id。
+    /// uid需要取模为10位，即按1024分组，每组每毫秒最多生成4096个Id。
+    /// 
+    /// 如果为指定分组在特定毫秒时间生成多个Id（超过4096），则可能重复。
     /// </remarks>
     /// <param name="time">时间</param>
     /// <param name="uid">唯一业务id。例如传感器id</param>
@@ -200,9 +214,13 @@ public class Snowflake
 
     /// <summary>获取指定时间的Id，传入唯一业务id（22位）。可用于物联网数据采集，每4194304个传感器一组，每组每毫秒1个Id</summary>
     /// <remarks>
+    /// 基于指定时间，转StartTimestamp所属时区后，生成Id。
+    /// 
     /// 在物联网数据采集中，数据分析需要，更多希望能够按照采集时间去存储。
     /// 为了避免主键重复，可以使用传感器id作为workerId。
     /// 再配合upsert写入数据，如果同一个毫秒内传感器有多行数据，则只会插入一行。
+    /// 
+    /// 如果为指定业务id在特定毫秒时间生成多个Id（超过1个），则可能重复。
     /// </remarks>
     /// <param name="time">时间</param>
     /// <param name="uid">唯一业务id。例如传感器id</param>
@@ -221,6 +239,10 @@ public class Snowflake
     }
 
     /// <summary>时间转为Id，不带节点和序列号。可用于构建时间片段查询</summary>
+    /// <remarks>
+    /// 基于指定时间，转StartTimestamp所属时区后，生成不带WorkerId和序列号的Id。
+    /// 一般用于构建时间片段查询，例如查询某个时间段内的数据，把时间片段转为雪花Id片段。
+    /// </remarks>
     /// <param name="time">时间</param>
     /// <returns></returns>
     public virtual Int64 GetId(DateTime time)
@@ -230,7 +252,10 @@ public class Snowflake
         return t << (10 + 12);
     }
 
-    /// <summary>尝试分析</summary>
+    /// <summary>解析雪花Id，得到时间、WorkerId和序列号</summary>
+    /// <remarks>
+    /// 其中的时间是StartTimestamp所属时区的时间。
+    /// </remarks>
     /// <param name="id"></param>
     /// <param name="time">时间</param>
     /// <param name="workerId">节点</param>
@@ -248,7 +273,7 @@ public class Snowflake
     /// <summary>把输入时间转为开始时间戳的类型，便于相减</summary>
     /// <param name="time"></param>
     /// <returns></returns>
-    private DateTime ConvertKind(DateTime time)
+    public DateTime ConvertKind(DateTime time)
     {
         return StartTimestamp.Kind switch
         {

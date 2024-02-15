@@ -261,5 +261,15 @@ public class UtilityTests
 
         //var time = 0.ToDateTime();
         //Assert.Equal(DateTimeKind.Local, time.Kind);
+
+        // Unspecified类型的时间，不管是转本地时间还是UTC时间，都会改变时间值
+        now = DateTime.Now.Trim("s");
+        var str = now.ToFullString();
+
+        var time = str.ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, time.Kind);
+        Assert.Equal(str, time.ToFullString());
+        Assert.NotEqual(str, time.ToLocalTime().ToFullString());
+        Assert.NotEqual(str, time.ToUniversalTime().ToFullString());
     }
 }

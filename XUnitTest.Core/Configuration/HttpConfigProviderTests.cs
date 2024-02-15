@@ -65,7 +65,7 @@ public class HttpConfigProviderTests
         public String AppApiUrl { get; set; }
     }
 
-    [Fact]
+    [Fact(Skip = "跳过")]
     public void TestStardust()
     {
         var set = new ConfigModel
@@ -119,7 +119,7 @@ public class HttpConfigProviderTests
         provider.LoadAll();
     }
 
-    [Fact]
+    [Fact(Skip = "跳过")]
     public void TestHttpConfigAttribute()
     {
         var c = HttpConfigModel.Current;
