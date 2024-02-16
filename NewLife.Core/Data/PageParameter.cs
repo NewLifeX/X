@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 
@@ -13,26 +12,27 @@ public class PageParameter
 {
     #region 核心属性
     private String? _Sort;
-    /// <summary>获取 或 设置 排序字段，前台接收，便于做安全性校验</summary>
+    /// <summary>获取 或 设置 排序字段，前台接收，便于做SQL安全性校验</summary>
+    /// <remarks>
+    /// 一般用于接收单个排序字段，可以带上Asc/Desc，这里会自动拆分。
+    /// 极少数情况下，前端需要传递多个字段排序，这时候可以使用OrderBy。
+    /// 
+    /// OrderBy优先级更高，且支持手写复杂排序语句（不做SQL安全性校验）。
+    /// 如果设置Sort，OrderBy将被清空。
+    /// </remarks>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public virtual String? Sort
     {
         get => _Sort;
         set
         {
-            if (!value.IsNullOrWhiteSpace() && !_OrderBy.IsNullOrWhiteSpace())
-            {
-                _Sort = null;
-                return;
-                //throw new Exception("已设置OrderBy，不允许设置Sort");
-            }
             _Sort = value;
 
             // 自动识别带有Asc/Desc的排序
-            if (!_Sort.IsNullOrEmpty())
+            if (!_Sort.IsNullOrEmpty() && !_Sort.Contains(','))
             {
                 _Sort = _Sort.Trim();
-                var p = _Sort.LastIndexOf(" ");
+                var p = _Sort.LastIndexOf(' ');
                 if (p > 0)
                 {
                     var dir = _Sort[(p + 1)..];
@@ -48,6 +48,8 @@ public class PageParameter
                     }
                 }
             }
+
+            OrderBy = null;
         }
     }
 
@@ -82,39 +84,12 @@ public class PageParameter
         }
     }
 
-    private String? _OrderBy;
-    /// <summary>获取 或 设置 组合起来的排序字句。如果没有设置则取Sort+Desc，后台设置，不经过安全性校验</summary>
-    public virtual String? OrderBy
-    {
-        get
-        {
-            if (!_OrderBy.IsNullOrEmpty()) return _OrderBy;
-
-            var str = Sort;
-            if (str.IsNullOrWhiteSpace()) return null;
-            if (Desc) str += " Desc";
-
-            return str;
-        }
-        set
-        {
-            if (!value.IsNullOrWhiteSpace())
-            {
-                //单字段复杂表达式排序或多字段排序清空 Sort 
-                var temp = value.ToLower().Replace("asc", "").Replace("desc", "").Trim();
-                if (temp.Contains(',') || temp.Contains(' ') || temp.Contains('(') || temp.Contains(')') || temp.Contains('+') || temp.Contains('-') || temp.Contains('*') || temp.Contains('/') || temp.Contains('%'))
-                    Sort = null;
-                else
-                    Sort = value;
-                _OrderBy = value;
-            }
-            else
-            {
-                _OrderBy = value;
-                Sort = value;
-            }
-        }
-    }
+    /// <summary>获取 或 设置 自定义排序字句。常用于用户自定义排序，不经过SQL安全性校验</summary>
+    /// <remarks>
+    /// OrderBy优先级更高，且支持手写复杂排序语句（不做SQL安全性校验）。
+    /// 如果设置Sort，OrderBy将被清空。
+    /// </remarks>
+    public virtual String? OrderBy { get; set; }
 
     /// <summary>获取 或 设置 开始行</summary>
     /// <remarks>如果设定了开始行，分页时将不再使用PageIndex</remarks>
@@ -151,7 +126,7 @@ public class PageParameter
     {
         if (pm == null) return this;
 
-        _OrderBy = pm._OrderBy;
+        OrderBy = pm.OrderBy;
         Sort = pm.Sort;
         Desc = pm.Desc;
         PageIndex = pm.PageIndex;
