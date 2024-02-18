@@ -76,7 +76,7 @@ namespace Test
                 try
                 {
 #endif
-                Test1();
+                Test6();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -285,10 +285,12 @@ namespace Test
             }
         }
 
-        private static void Test6()
-        {
-            var pfx = new X509Certificate2("../newlife.pfx", "newlife");
-            //Console.WriteLine(pfx);
+    private static void Test6()
+    {
+        XTrace.WriteLine("TLS加密通信");
+
+        var pfx = new X509Certificate2("../../../doc/newlife.pfx".GetFullPath(), "newlife");
+        //Console.WriteLine(pfx);
 
             //using var svr = new ApiServer(1234);
             //svr.Log = XTrace.Log;
@@ -296,21 +298,24 @@ namespace Test
 
             //var ns = svr.EnsureCreate() as NetServer;
 
-            using var ns = new NetServer(1234)
-            {
-                Name = "Server",
-                ProtocolType = NetType.Tcp,
-                Log = XTrace.Log,
-                SessionLog = XTrace.Log,
-                SocketLog = XTrace.Log,
-                LogReceive = true
-            };
+        using var ns = new NetServer(1234)
+        {
+            Name = "Server",
+            ProtocolType = NetType.Tcp,
+            //SslProtocol = SslProtocols.Tls12,
+            Certificate = pfx,
 
-            ns.EnsureCreateServer();
-            foreach (var item in ns.Servers)
-            {
-                if (item is TcpServer ts) ts.Certificate = pfx;
-            }
+            Log = XTrace.Log,
+            SessionLog = XTrace.Log,
+            SocketLog = XTrace.Log,
+            LogReceive = true
+        };
+
+        //ns.EnsureCreateServer();
+        //foreach (var item in ns.Servers)
+        //{
+        //    if (item is TcpServer ts) ts.Certificate = pfx;
+        //}
 
             ns.Received += (s, e) =>
             {
@@ -318,15 +323,17 @@ namespace Test
             };
             ns.Start();
 
-            using var client = new TcpSession
-            {
-                Name = "Client",
-                Remote = new NetUri("tcp://127.0.0.1:1234"),
-                SslProtocol = SslProtocols.Tls,
-                Log = XTrace.Log,
-                LogSend = true
-            };
-            client.Open();
+        using var client = new TcpSession
+        {
+            Name = "Client",
+            Remote = new NetUri("tcp://127.0.0.1:1234"),
+            SslProtocol = SslProtocols.Tls12,
+            Certificate = pfx,
+
+            Log = XTrace.Log,
+            LogSend = true
+        };
+        client.Open();
 
             client.Send("Stone");
 

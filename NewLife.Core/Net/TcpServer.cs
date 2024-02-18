@@ -65,11 +65,17 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     /// </remarks>
     public IPipeline? Pipeline { get; set; }
 
-    /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+    /// <summary>SSL协议。默认None</summary>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
-    /// <summary>SSL证书。服务端使用</summary>
-    /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+    /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
+    /// <remarks>
+    /// 可以使用pfx证书文件，也可以使用pem证书文件。
+    /// 服务端必须指定证书。
+    /// </remarks>
+    /// <example>
+    /// var cert = new X509Certificate2("file", "pass");
+    /// </example>
     public X509Certificate? Certificate { get; set; }
 
     /// <summary>APM性能追踪器</summary>
