@@ -37,7 +37,13 @@ public class TcpSession : SessionBase, ISocketSession
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
     /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
-    /// <remarks>var cert = new X509Certificate2("file", "pass");</remarks>
+    /// <remarks>
+    /// 可以使用pfx证书文件，也可以使用pem证书文件。
+    /// 服务端必须指定证书，客户端可以不指定，除非服务端请求客户端证书。
+    /// </remarks>
+    /// <example>
+    /// var cert = new X509Certificate2("file", "pass");
+    /// </example>
     public X509Certificate? Certificate { get; set; }
 
     private SslStream? _Stream;
@@ -105,7 +111,7 @@ public class TcpSession : SessionBase, ISocketSession
 
             var sp = SslProtocol;
 
-            WriteLog("服务端SSL认证 {0} {1}", sp, cert.Issuer);
+            WriteLog("服务端SSL认证，SslProtocol={0}，Issuer: {1}", sp, cert.Issuer);
 
             //var cert = new X509Certificate2("file", "pass");
             sslStream.AuthenticateAsServer(cert, false, sp, false);
@@ -186,11 +192,16 @@ public class TcpSession : SessionBase, ISocketSession
             if (sp != SslProtocols.None)
             {
                 var host = uri.Host ?? uri.Address + "";
-                WriteLog("客户端SSL认证 {0} {1}", sp, host);
+                WriteLog("客户端SSL认证，SslProtocol={0}，Host={1}", sp, host);
+
+                // 服务端请求客户端证书时，需要传入证书
+                var certs = new X509CertificateCollection();
+                var cert = Certificate;
+                if (cert != null) certs.Add(cert);
 
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
-                sslStream.AuthenticateAsClient(host, new X509CertificateCollection(), sp, false);
+                sslStream.AuthenticateAsClient(host, certs, sp, false);
 
                 _Stream = sslStream;
             }

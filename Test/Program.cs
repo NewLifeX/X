@@ -73,7 +73,7 @@ public class Program
             try
             {
 #endif
-                Test1();
+                Test6();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -332,7 +332,9 @@ public class Program
 
     private static void Test6()
     {
-        var pfx = new X509Certificate2("../newlife.pfx", "newlife");
+        XTrace.WriteLine("TLS加密通信");
+
+        var pfx = new X509Certificate2("../../../doc/newlife.pfx".GetFullPath(), "newlife");
         //Console.WriteLine(pfx);
 
         //using var svr = new ApiServer(1234);
@@ -345,17 +347,20 @@ public class Program
         {
             Name = "Server",
             ProtocolType = NetType.Tcp,
+            //SslProtocol = SslProtocols.Tls12,
+            Certificate = pfx,
+
             Log = XTrace.Log,
             SessionLog = XTrace.Log,
             SocketLog = XTrace.Log,
             LogReceive = true
         };
 
-        ns.EnsureCreateServer();
-        foreach (var item in ns.Servers)
-        {
-            if (item is TcpServer ts) ts.Certificate = pfx;
-        }
+        //ns.EnsureCreateServer();
+        //foreach (var item in ns.Servers)
+        //{
+        //    if (item is TcpServer ts) ts.Certificate = pfx;
+        //}
 
         ns.Received += (s, e) =>
         {
@@ -367,7 +372,9 @@ public class Program
         {
             Name = "Client",
             Remote = new NetUri("tcp://127.0.0.1:1234"),
-            SslProtocol = SslProtocols.Tls,
+            SslProtocol = SslProtocols.Tls12,
+            Certificate = pfx,
+
             Log = XTrace.Log,
             LogSend = true
         };
