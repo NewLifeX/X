@@ -50,8 +50,8 @@ public class Snowflake
     /// <summary>workerId分配集群。配置后可确保所有实例化的雪花对象得到唯一workerId，建议使用Redis</summary>
     public static ICache? Cluster { get; set; }
 
-    private Int64 _msStart;
-    private Stopwatch _watch = null!;
+    //private Int64 _msStart;
+    //private Stopwatch _watch = null!;
     private Int64 _lastTime;
     #endregion
 
@@ -112,15 +112,16 @@ public class Snowflake
                 WorkerId = ((nodeId & 0x1F) << 5) | ((pid ^ tid) & 0x1F);
             }
 
-            // 记录此时距离起点的毫秒数以及开机嘀嗒数
-            if (_watch == null)
-            {
-                var now = ConvertKind(DateTime.Now);
-                _msStart = (Int64)(now - StartTimestamp).TotalMilliseconds;
-                _watch = Stopwatch.StartNew();
-            }
+            //// 记录此时距离起点的毫秒数以及开机嘀嗒数
+            //if (_watch == null)
+            //{
+            //    var now = ConvertKind(DateTime.Now);
+            //    _msStart = (Int64)(now - StartTimestamp).TotalMilliseconds;
+            //    _watch = Stopwatch.StartNew();
+            //}
 
-            span?.AppendTag($"WorkerId={WorkerId} StartTimestamp={StartTimestamp.ToFullString()} _msStart={_msStart}");
+            //span?.AppendTag($"WorkerId={WorkerId} StartTimestamp={StartTimestamp.ToFullString()} _msStart={_msStart}");
+            span?.AppendTag($"WorkerId={WorkerId} StartTimestamp={StartTimestamp.ToFullString()}");
 
             _inited = true;
         }
@@ -134,36 +135,49 @@ public class Snowflake
         Init();
 
         // 此时嘀嗒数减去起点嘀嗒数，加上起点毫秒数
-        var ms = _watch.ElapsedMilliseconds + _msStart;
+        var ms = (Int64)(ConvertKind(DateTime.Now) - StartTimestamp).TotalMilliseconds;
+        //var ms = _watch.ElapsedMilliseconds + _msStart;
         var wid = WorkerId & (-1 ^ (-1 << 10));
-        var seq = Interlocked.Increment(ref _Sequence) & (-1 ^ (-1 << 12));
 
         //!!! 避免时间倒退
         var t = _lastTime - ms;
         if (t > 0)
         {
-            // 多线程生成Id的时候，_lastTime在计算差值前被另一个线程更新了，导致时间有微小偏差（一般是1ms）
-            //XTrace.WriteLine("Snowflake时间倒退，时间差 {0}ms", t);
-            if (t > 10_000) throw new InvalidOperationException($"Time reversal too large ({t}ms)To ensure uniqueness, Snowflake refuses to generate a new Id");
+            // 在夏令时地区，时间可能回拨1个小时
+            if (t > 3600_000 + 10_000) throw new InvalidOperationException($"Time reversal too large ({t}ms). To ensure uniqueness, Snowflake refuses to generate a new Id");
 
+            // 暂时使用上次时间，即未来时间
             ms = _lastTime;
         }
 
-        // 相同毫秒内，如果序列号用尽，则可能超过4096，导致生成重复Id
-        // 睡眠1毫秒，抢占它的位置 @656092719（广西-风吹面）
-        if (ms == _lastTime && seq == 0)
+        var seq = 0;
+        while (true)
         {
-            // spin等1000次耗时141us，10000次耗时397us，100000次耗时3231us。@i9-10900k
-            //Thread.SpinWait(1000);
-            while (ms <= _lastTime) ms = _watch.ElapsedMilliseconds + _msStart;
+            if (ms == _lastTime)
+            {
+                // 2，繁忙时走这里。时间相同，递增序列号，较小序列号直接采用。每毫秒有4095次机会
+                seq = Interlocked.Increment(ref _Sequence);
+                if (seq < 4096) break;
+            }
+            else
+            {
+                // 1，空闲时走这里。跟上次时间不同，抢夺当前坑位。每毫秒只有1次机会
+                var origin = _lastTime;
+                if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin) break;
+            }
+
+            // 3，极度繁忙时走这里。4096之外的“幸运儿”集体加锁，重置序列号和时间，准备再来抢一次
+            lock (this)
+            {
+                // 时间不允许后退，否则可能生成重复Id。算法每毫秒生成4096个Id，等待被回拨的时间追上
+                ms = ++_lastTime;
+                seq = _Sequence = 0;
+            }
         }
+
         _lastTime = ms;
 
-        /*
-         * 每个毫秒内_Sequence没有归零，主要是为了安全，避免被人猜测得到前后Id。
-         * 而毫秒内的顺序，重要性不大。
-         */
-
+        seq &= (-1 ^ (-1 << 12));
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;
     }
 

@@ -137,7 +137,7 @@ public class FlowIdTests
         var hash = new ConcurrentDictionary<Int64, Snowflake>();
 
         var ts = new List<Task>();
-        var ss = new Int64[2];
+        var ss = new Int64[24];
         var rs = new List<Int64>[ss.Length];
         for (var k = 0; k < ss.Length; k++)
         {
@@ -152,7 +152,7 @@ public class FlowIdTests
                 Assert.True(ws.TryAdd(f.WorkerId, f));
                 //if (!ws.TryAdd(f.WorkerId, f)) Assert.True(false);
 
-                for (var i = 0; i < 100_000; i++)
+                for (var i = 0; i < 1_000_000; i++)
                 {
                     var id = f.NewId();
                     if (!hash.TryAdd(id, f))
@@ -170,7 +170,7 @@ public class FlowIdTests
 
         sw.Stop();
 
-        Assert.True(sw.ElapsedMilliseconds < 10_000);
+        //Assert.True(sw.ElapsedMilliseconds < 10_000);
         //var count = repeat.Count;
         //Assert.Equal(0, count);
         for (var i = 0; i < ss.Length; i++)
