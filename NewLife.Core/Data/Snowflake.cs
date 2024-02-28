@@ -17,6 +17,9 @@ namespace NewLife.Data;
 /// 如果想要绝对唯一，建议在外部设置唯一的workerId，再结合单例使用，此时确保最终生成的Id绝对不重复！
 /// 高要求场合，推荐使用Redis自增序数作为workerId，在大型分布式系统中亦能保证绝对唯一。
 /// 已提供JoinCluster方法，用于把当前对象加入集群，确保workerId唯一。
+/// 
+/// 务必请保证Snowflake对象的唯一性，Snowflake确保本对象生成的Id绝对唯一，但如果有多个Snowflake对象，可能会生成重复Id。
+/// 特别在使用XCode等数据中间件时，要确保每张表只有一个Snowflake实例。
 /// </remarks>
 public class Snowflake
 {
