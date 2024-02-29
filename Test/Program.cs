@@ -16,6 +16,7 @@ using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -76,7 +77,7 @@ namespace Test
                 try
                 {
 #endif
-                Test6();
+            Test5();
 #if !DEBUG
                 }
                 catch (Exception ex)
@@ -232,23 +233,28 @@ namespace Test
             }
         }
 
-        private static NetServer _server;
-        private static async void Test5()
+    private static NetServer _server;
+    private static async void Test5()
+    {
+        var provider = ObjectContainer.Provider;
+
+        var server = new HttpServer
         {
-            var server = new HttpServer
-            {
-                Port = 8080,
-                Log = XTrace.Log,
-                //SessionLog = XTrace.Log,
-            };
-            server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
-            server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
-            server.MapStaticFiles("/logos", "images/");
-            server.MapStaticFiles("/", "./");
-            server.MapController<ApiController>("/api");
-            server.Map("/my", new MyHttpHandler());
-            server.Map("/ws", new WebSocketHandler());
-            server.Start();
+            Port = 8080,
+            ServiceProvider = provider,
+
+            Log = XTrace.Log,
+            //SessionLog = XTrace.Log,
+        };
+        server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
+        server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
+        server.MapStaticFiles("/logos", "images/");
+        //server.MapController<ApiController>("/api");
+        server.MapController<MyHttpController>("/api");
+        server.Map("/my", new MyHttpHandler());
+        server.Map("/ws", new WebSocketHandler());
+        server.MapStaticFiles("/", "./");
+        server.Start();
 
             _server = server;
 
@@ -266,24 +272,33 @@ namespace Test
 #endif
         }
 
-        class MyHttpHandler : IHttpHandler
+    private class MyHttpHandler : IHttpHandler
+    {
+        public void ProcessRequest(IHttpContext context)
         {
-            public void ProcessRequest(IHttpContext context)
+            var name = context.Parameters["name"];
+            var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
+            var files = context.Request.Files;
+            if (files != null && files.Length > 0)
             {
-                var name = context.Parameters["name"];
-                var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
-                var files = context.Request.Files;
-                if (files != null && files.Length > 0)
+                foreach (var file in files)
                 {
-                    foreach (var file in files)
-                    {
-                        file.SaveToFile();
-                        html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
-                    }
+                    file.SaveToFile();
+                    html += $"<br />文件：{file.FileName} 大小：{file.Length} 类型：{file.ContentType}";
                 }
-                context.Response.SetResult(html);
             }
+            context.Response.SetResult(html);
         }
+    }
+
+    private class MyHttpController
+    {
+        private readonly NetSession _session;
+
+        public MyHttpController(NetSession session) => _session = session;
+
+        public String Info() => $"你好 {_session.Remote}，现在时间是：{DateTime.Now.ToFullString()}";
+    }
 
     private static void Test6()
     {
