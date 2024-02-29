@@ -169,13 +169,9 @@ public class HttpSession : NetSession
         var handler = server.MatchHandler(path);
         if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
-        var context = new DefaultHttpContext
+        var context = new DefaultHttpContext(this, request, path, handler)
         {
-            Connection = this,
-            Request = request,
-            Response = new HttpResponse(),
-            Path = path,
-            Handler = handler,
+            ServiceProvider = this
         };
 
         try
