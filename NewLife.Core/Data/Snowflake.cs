@@ -153,25 +153,32 @@ public class Snowflake
         var seq = 0;
         while (true)
         {
-            if (ms == _lastTime)
+            if (ms > _lastTime)
+            {
+                // 1，空闲时走这里。跟上次时间不同，抢夺当前坑位（序号0）。每毫秒只有1次机会
+                var origin = _lastTime;
+                if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin) break;
+            }
+            else
             {
                 // 2，繁忙时走这里。时间相同，递增序列号，较小序列号直接采用。每毫秒有4095次机会
                 seq = Interlocked.Increment(ref _Sequence);
                 if (seq < 4096) break;
-            }
-            else
-            {
-                // 1，空闲时走这里。跟上次时间不同，抢夺当前坑位。每毫秒只有1次机会
-                var origin = _lastTime;
-                if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin) break;
-            }
 
-            // 3，极度繁忙时走这里。4096之外的“幸运儿”集体加锁，重置序列号和时间，准备再来抢一次
-            lock (this)
-            {
-                // 时间不允许后退，否则可能生成重复Id。算法每毫秒生成4096个Id，等待被回拨的时间追上
-                ms = ++_lastTime;
-                seq = _Sequence = 0;
+                // 3，极度繁忙时走这里。4096之外的“幸运儿”集体加锁，重置序列号和时间，准备再来抢一次。很少业务会走到这里，只可能是积压数据冲击
+                var origin = _lastTime;
+                lock (this)
+                {
+                    // 时间不允许后退，否则可能生成重复Id。算法在每毫秒上生成4096个Id，等待被回拨的时间追上
+                    ms++;
+
+                    // 加锁加时后，抢新时间的序号0坑位，只有1个线程能成功。其它线程在新时间上继续抢序列号
+                    if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin)
+                    {
+                        seq = _Sequence = 0;
+                        break;
+                    }
+                }
             }
         }
 
