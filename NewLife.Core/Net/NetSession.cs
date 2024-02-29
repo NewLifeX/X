@@ -32,7 +32,7 @@ public class NetSession<TServer> : NetSession where TServer : NetServer
 /// 
 /// 实际应用可通过重载OnReceive实现收到数据时的业务逻辑。
 /// </remarks>
-public class NetSession : DisposeBase, INetSession, IExtend
+public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
 {
     #region 属性
     /// <summary>唯一会话标识。在主服务中唯一标识当前会话，原子自增</summary>
@@ -307,5 +307,20 @@ public class NetSession : DisposeBase, INetSession, IExtend
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString() => $"{(this as INetSession).Host?.Name}[{ID}] {Session}";
+
+    /// <summary>获取服务</summary>
+    /// <param name="serviceType"></param>
+    /// <returns></returns>
+    public virtual Object GetService(Type serviceType)
+    {
+        if (serviceType == typeof(IServiceProvider)) return this;
+        if (serviceType == typeof(NetSession)) return this;
+        if (serviceType == typeof(INetSession)) return this;
+        if (serviceType == typeof(NetServer)) return (this as INetSession).Host;
+        if (serviceType == typeof(ISocketSession)) return Session;
+        if (serviceType == typeof(ISocketServer)) return Server;
+
+        return ServiceProvider!.GetService(serviceType)!;
+    }
     #endregion
 }

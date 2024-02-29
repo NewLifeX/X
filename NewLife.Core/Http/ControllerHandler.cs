@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Reflection;
+using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Remoting;
 
@@ -17,15 +18,17 @@ public class ControllerHandler : IHttpHandler
     /// <param name="context"></param>
     public virtual void ProcessRequest(IHttpContext context)
     {
-        if (ControllerType == null) return;
+        var type = ControllerType;
+        if (type == null) return;
 
         var ss = context.Path.Split('/');
         var methodName = ss.Length >= 3 ? ss[2] : null;
 
-        var controller = ControllerType.CreateInstance();
+        // 优先使用服务提供者创建控制器对象，以便控制器构造函数注入
+        var controller = context.ServiceProvider?.CreateInstance(type) ?? type.CreateInstance();
 
-        var method = methodName == null ? null : ControllerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{ControllerType.FullName}]");
+        var method = methodName == null ? null : type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
+        if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 
         var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
         if (result != null)

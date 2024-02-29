@@ -18,6 +18,7 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.IO;
 using NewLife.Log;
+using NewLife.Model;
 using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -73,7 +74,7 @@ public class Program
             try
             {
 #endif
-                Test6();
+            Test5();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -280,19 +281,24 @@ public class Program
     private static NetServer _server;
     private static async void Test5()
     {
+        var provider = ObjectContainer.Provider;
+
         var server = new HttpServer
         {
             Port = 8080,
+            ServiceProvider = provider,
+
             Log = XTrace.Log,
             //SessionLog = XTrace.Log,
         };
         server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
         server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
         server.MapStaticFiles("/logos", "images/");
-        server.MapStaticFiles("/", "./");
         //server.MapController<ApiController>("/api");
+        server.MapController<MyHttpController>("/api");
         server.Map("/my", new MyHttpHandler());
         server.Map("/ws", new WebSocketHandler());
+        server.MapStaticFiles("/", "./");
         server.Start();
 
         _server = server;
@@ -328,6 +334,15 @@ public class Program
             }
             context.Response.SetResult(html);
         }
+    }
+
+    private class MyHttpController
+    {
+        private readonly NetSession _session;
+
+        public MyHttpController(NetSession session) => _session = session;
+
+        public String Info() => $"你好 {_session.Remote}，现在时间是：{DateTime.Now.ToFullString()}";
     }
 
     private static void Test6()

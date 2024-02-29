@@ -25,6 +25,9 @@ public interface IHttpContext
     /// <summary>处理器</summary>
     IHttpHandler? Handler { get; }
 
+    /// <summary>服务提供者</summary>
+    IServiceProvider? ServiceProvider { get; }
+
     /// <summary>请求参数</summary>
     IDictionary<String, Object?> Parameters { get; }
     #endregion
@@ -51,6 +54,9 @@ public class DefaultHttpContext : IHttpContext
 
     /// <summary>处理器</summary>
     public IHttpHandler? Handler { get; set; }
+
+    /// <summary>服务提供者</summary>
+    public IServiceProvider? ServiceProvider { get; set; }
 
     /// <summary>请求参数</summary>
     public IDictionary<String, Object?> Parameters { get; } = new NullableDictionary<String, Object?>(StringComparer.OrdinalIgnoreCase);
