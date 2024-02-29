@@ -18,8 +18,8 @@ public static class ModelExtension
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
-    /// <param name="provider"></param>
-    /// <param name="serviceType"></param>
+    /// <param name="provider">服务提供者</param>
+    /// <param name="serviceType">服务类型</param>
     /// <returns></returns>
     public static Object GetRequiredService(this IServiceProvider provider, Type serviceType)
     {
@@ -30,20 +30,20 @@ public static class ModelExtension
     }
 
     /// <summary>获取必要的服务，不存在时抛出异常</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="provider"></param>
+    /// <typeparam name="T">服务类型</typeparam>
+    /// <param name="provider">服务提供者</param>
     /// <returns></returns>
     public static T GetRequiredService<T>(this IServiceProvider provider) => provider == null ? throw new ArgumentNullException(nameof(provider)) : (T)provider.GetRequiredService(typeof(T));
 
     /// <summary>获取一批服务</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="provider"></param>
+    /// <typeparam name="T">服务类型</typeparam>
+    /// <param name="provider">服务提供者</param>
     /// <returns></returns>
     public static IEnumerable<T> GetServices<T>(this IServiceProvider provider) => provider.GetServices(typeof(T)).Cast<T>();
 
     /// <summary>获取一批服务</summary>
-    /// <param name="provider"></param>
-    /// <param name="serviceType"></param>
+    /// <param name="provider">服务提供者</param>
+    /// <param name="serviceType">服务类型</param>
     /// <returns></returns>
     public static IEnumerable<Object> GetServices(this IServiceProvider provider, Type serviceType)
     {
@@ -78,7 +78,13 @@ public static class ModelExtension
     }
 
     /// <summary>创建范围作用域，该作用域内提供者解析一份数据</summary>
-    /// <param name="provider"></param>
+    /// <param name="provider">服务提供者</param>
     /// <returns></returns>
     public static IServiceScope? CreateScope(this IServiceProvider provider) => provider.GetService<IServiceScopeFactory>()?.CreateScope();
+
+    /// <summary>创建服务对象，使用服务提供者来填充构造函数</summary>
+    /// <param name="provider">服务提供者</param>
+    /// <param name="serviceType">服务类型</param>
+    /// <returns></returns>
+    public static Object CreateInstance(this IServiceProvider provider, Type serviceType) => ObjectContainer.CreateInstance(serviceType, provider, null);
 }
