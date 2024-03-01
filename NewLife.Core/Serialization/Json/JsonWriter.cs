@@ -34,8 +34,8 @@ public class JsonWriter
     /// <summary>忽略注释。默认true</summary>
     public Boolean IgnoreComment { get; set; } = true;
 
-    /// <summary>忽略循环引用。遇到循环引用时写{}，默认true</summary>
-    public Boolean IgnoreCircle { get; set; } = true;
+    /// <summary>忽略循环引用。遇到循环引用时写{}，默认false</summary>
+    public Boolean IgnoreCycles { get; set; }
 
     /// <summary>枚举使用字符串。默认false使用数字</summary>
     public Boolean EnumString { get; set; }
@@ -56,7 +56,7 @@ public class JsonWriter
     public Boolean ByteArrayAsHex { get; set; }
 
     /// <summary>缩进字符数。默认2</summary>
-    public Int32 IndentedLength { get; set; } = 4;
+    public Int32 IndentedLength { get; set; } = 2;
 
     /// <summary>最大序列化深度。超过时不再序列化，而不是抛出异常，默认5</summary>
     public Int32 MaxDepth { get; set; } = 5;
@@ -84,6 +84,28 @@ public class JsonWriter
             CamelCase = camelCase,
             Indented = indented,
             //SmartIndented = indented,
+        };
+
+        jw.WriteValue(obj);
+
+        var json = jw._Builder.ToString();
+        //if (indented) json = JsonHelper.Format(json);
+
+        return json;
+    }
+
+    /// <summary>对象序列化为Json字符串</summary>
+    /// <param name="obj"></param>
+    /// <param name="jsonOptions">序列化选项</param>
+    /// <returns></returns>
+    public static String ToJson(Object obj, JsonOptions jsonOptions)
+    {
+        var jw = new JsonWriter
+        {
+            IgnoreNullValues = jsonOptions.IgnoreNullValues,
+            CamelCase = jsonOptions.CamelCase,
+            Indented = jsonOptions.WriteIndented,
+            IgnoreCycles = jsonOptions.IgnoreCycles,
         };
 
         jw.WriteValue(obj);
@@ -281,7 +303,7 @@ public class JsonWriter
     private void WriteObject(Object obj)
     {
         // 循环引用
-        if (IgnoreCircle && _cirobj.Contains(obj))
+        if (IgnoreCycles && _cirobj.Contains(obj))
         {
             _Builder.Append("{}");
             return;

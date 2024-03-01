@@ -2,7 +2,7 @@
 using NewLife.Collections;
 using NewLife.Reflection;
 
-namespace NewLife.Serialization.Json;
+namespace NewLife.Serialization;
 
 /// <summary>Json序列化</summary>
 /// <remarks>

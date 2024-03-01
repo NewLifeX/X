@@ -1,5 +1,6 @@
 ﻿using NewLife.Collections;
 using NewLife.Reflection;
+
 #if NET5_0_OR_GREATER
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -22,6 +23,12 @@ public interface IJsonHost
     /// <param name="camelCase">是否驼峰命名。默认false</param>
     /// <returns></returns>
     String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false);
+
+    /// <summary>写入对象，得到Json字符串</summary>
+    /// <param name="value"></param>
+    /// <param name="jsonOptions">序列化选项</param>
+    /// <returns></returns>
+    String Write(Object value, JsonOptions jsonOptions);
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
@@ -63,6 +70,12 @@ public static class JsonHelper
     /// <param name="camelCase">是否驼峰命名。默认false</param>
     /// <returns></returns>
     public static String ToJson(this Object value, Boolean indented, Boolean nullValue, Boolean camelCase) => Default.Write(value, indented, nullValue, camelCase);
+
+    /// <summary>写入对象，得到Json字符串</summary>
+    /// <param name="value"></param>
+    /// <param name="jsonOptions">序列化选项</param>
+    /// <returns></returns>
+    public static String ToJson(this Object value, JsonOptions jsonOptions) => Default.Write(value, jsonOptions);
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
@@ -186,6 +199,12 @@ public class FastJson : IJsonHost
     /// <returns></returns>
     public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false) => JsonWriter.ToJson(value, indented, nullValue, camelCase);
 
+    /// <summary>写入对象，得到Json字符串</summary>
+    /// <param name="value"></param>
+    /// <param name="jsonOptions">序列化选项</param>
+    /// <returns></returns>
+    public String Write(Object value, JsonOptions jsonOptions) => JsonWriter.ToJson(value, jsonOptions);
+
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
     /// <param name="type"></param>
@@ -217,6 +236,7 @@ public class SystemJson : IJsonHost
         var opt = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            PropertyNamingPolicy = new MyJsonNamingPolicy(),
         };
         opt.Converters.Add(new LocalTimeConverter());
         opt.Converters.Add(new TypeConverter());
@@ -252,6 +272,28 @@ public class SystemJson : IJsonHost
         return JsonSerializer.Serialize(value, opt);
     }
 
+    /// <summary>写入对象，得到Json字符串</summary>
+    /// <param name="value"></param>
+    /// <param name="jsonOptions">序列化选项</param>
+    /// <returns></returns>
+    public String Write(Object value, JsonOptions jsonOptions)
+    {
+        var opt = new JsonSerializerOptions(Options)
+        {
+            WriteIndented = jsonOptions.WriteIndented,
+        };
+        if (jsonOptions.IgnoreNullValues)
+            opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+        if (jsonOptions.CamelCase)
+            opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+#if NET6_0_OR_GREATER
+        if (jsonOptions.IgnoreCycles)
+            opt.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+#endif
+
+        return JsonSerializer.Serialize(value, opt);
+    }
+
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
     /// <param name="type"></param>
@@ -265,6 +307,12 @@ public class SystemJson : IJsonHost
 
         return JsonSerializer.Deserialize(json, type, opt);
     }
+
+    /// <summary>从Json字符串中读取对象</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public T? Read<T>(String json) where T : class => Read(json, typeof(T)) as T;
 
 #if NET7_0_OR_GREATER
     //static void OnModifierType(JsonTypeInfo typeInfo)
@@ -292,6 +340,13 @@ public class SystemJson : IJsonHost
     {
         var doc = JsonDocument.Parse(json);
         return doc.RootElement.ToDictionary();
+    }
+    #endregion
+
+    #region 辅助
+    class MyJsonNamingPolicy : JsonNamingPolicy
+    {
+        public override String ConvertName(String name) => name;
     }
     #endregion
 }

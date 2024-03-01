@@ -1,5 +1,4 @@
 ﻿using NewLife.Serialization;
-using NewLife.Serialization.Json;
 
 namespace NewLife.Configuration;
 
