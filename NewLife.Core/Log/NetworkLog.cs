@@ -132,7 +132,7 @@ public class NetworkLog : Logger, IDisposable
             e = e.Set(Format(format, args), null);
 
         // 推入队列
-        _Logs.Enqueue(e.ToString());
+        _Logs.Enqueue(e.GetAndReset());
         Interlocked.Increment(ref _logCount);
 
         // 异步写日志，实时。即使这里错误，定时器那边仍然会补上

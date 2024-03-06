@@ -88,6 +88,30 @@ public class WriteLogEventArgs : EventArgs
         //IsWeb = System.Web.HttpContext.Current != null;
     }
 
+    /// <summary>重置日志事件对象，释放内存</summary>
+    public void Reset()
+    {
+        Level = LogLevel.Info;
+        Message = null;
+        Exception = null;
+        Time = default;
+        ThreadID = 0;
+        IsPool = false;
+        IsWeb = false;
+        ThreadName = null;
+        TaskID = 0;
+    }
+
+    /// <summary>获取日志全文，并重置对象释放内存</summary>
+    /// <returns></returns>
+    public String GetAndReset()
+    {
+        var msg = ToString();
+        Reset();
+
+        return msg;
+    }
+
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString()
