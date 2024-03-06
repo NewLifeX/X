@@ -22,7 +22,7 @@ public class ConsoleLog : Logger
 
             if (!UseColor)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(e.GetAndReset());
                 return;
             }
 
@@ -37,7 +37,7 @@ public class ConsoleLog : Logger
                 };
                 var old = Console.ForegroundColor;
                 Console.ForegroundColor = cc;
-                Console.WriteLine(e);
+                Console.WriteLine(e.GetAndReset());
                 Console.ForegroundColor = old;
             }
         }
