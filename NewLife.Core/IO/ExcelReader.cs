@@ -127,7 +127,13 @@ public class ExcelReader : DisposeBase
                 {
                     // 按最后一个字母递增，最多支持25个空列
                     var c2 = r.Value.Last(Char.IsLetter);
-                    while (c2 != c) { vs.Add(null); c++; }
+                    while (c2 != c) { 
+                        vs.Add(null); 
+                        if (c == 'Z')
+                            c = 'A';
+                        else
+                            c++;
+                    }
                 }
 
                 // t=DataType, s=SharedString, b=Boolean, n=Number, d=Date
