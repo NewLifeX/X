@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
+using NewLife.Windows;
 
 namespace NewLife;
 
@@ -295,34 +296,6 @@ public class MachineInfo
         var sn = GetInfo("Win32_BIOS", "SerialNumber");
         if (!sn.IsNullOrEmpty() && !sn.EqualIgnoreCase("System Serial Number")) Serial = sn;
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
-
-        //// UUID取不到时返回 FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF
-        //if (!uuid.IsNullOrEmpty() && !uuid.EqualIgnoreCase("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF")) UUID = uuid;
-
-        //// 可能因WMI导致读取UUID失败
-        //if (UUID.IsNullOrEmpty())
-        //{
-        //    var reg3 = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-        //    if (reg3 != null) UUID = reg3.GetValue("ProductId") + "";
-        //}
-
-        //if (!machine_guid.IsNullOrEmpty()) Guid = machine_guid;
-
-        //// 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
-        //var str = GetInfo("Win32_TemperatureProbe", "CurrentReading");
-        //if (!str.IsNullOrEmpty())
-        //{
-        //    Temperature = str.SplitAsInt().Average();
-        //}
-        //else
-        //{
-        //    str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-        //    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-        //}
-
-        //// 电池剩余
-        //str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
-        //if (!str.IsNullOrEmpty()) Battery = str.SplitAsInt().Average() / 100.0;
     }
 
     private ICollection<String> _excludes = new List<String>();
@@ -340,77 +313,6 @@ public class MachineInfo
                 AvailableMemory = ms.ullAvailPhys;
             }
         }
-        // 特别识别Linux发行版
-        else if (Runtime.Linux)
-        {
-            var dic = ReadInfo("/proc/meminfo");
-            if (dic != null)
-            {
-                if (dic.TryGetValue("MemTotal", out var str))
-                    Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-
-                if (dic.TryGetValue("MemAvailable", out str) ||
-                    dic.TryGetValue("MemFree", out str))
-                    AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-            }
-
-            // respberrypi + fedora
-            if (TryRead("/sys/class/thermal/thermal_zone0/temp", out var value) ||
-                TryRead("/sys/class/hwmon/hwmon0/temp1_input", out value) ||
-                TryRead("/sys/class/hwmon/hwmon0/temp2_input", out value) ||
-                TryRead("/sys/class/hwmon/hwmon0/device/hwmon/hwmon0/temp2_input", out value) ||
-                TryRead("/sys/devices/virtual/thermal/thermal_zone0/temp", out value))
-                Temperature = value.ToDouble() / 1000;
-            // A2温度获取，Ubuntu 16.04 LTS， Linux 3.4.39
-            else if (TryRead("/sys/class/hwmon/hwmon0/device/temp_value", out value))
-                Temperature = value.Substring(null, ":").ToDouble();
-
-            // 电池剩余
-            if (TryRead("/sys/class/power_supply/BAT0/energy_now", out var energy_now) &&
-                TryRead("/sys/class/power_supply/BAT0/energy_full", out var energy_full))
-            {
-                Battery = energy_now.ToDouble() / energy_full.ToDouble();
-            }
-            else if (TryRead("/sys/class/power_supply/battery/capacity", out var capacity))
-            {
-                Battery = capacity.ToDouble() / 100.0;
-            }
-
-            //var upt = Execute("uptime");
-            //if (!upt.IsNullOrEmpty())
-            //{
-            //    str = upt.Substring("load average:");
-            //    if (!str.IsNullOrEmpty()) CpuRate = (Single)str.Split(",")[0].ToDouble();
-            //}
-
-            //file = "/proc/loadavg";
-            //if (File.Exists(file)) CpuRate = (Single)File.ReadAllText(file).Substring(null, " ").ToDouble() / Environment.ProcessorCount;
-
-            var file = "/proc/stat";
-            if (File.Exists(file))
-            {
-                // CPU指标：user，nice, system, idle, iowait, irq, softirq
-                // cpu  57057 0 14420 1554816 0 443 0 0 0 0
-
-                using var reader = new StreamReader(file);
-                var line = reader.ReadLine();
-                if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
-                {
-                    var vs = line.TrimStart("cpu").Trim().Split(" ");
-                    var current = new SystemTime
-                    {
-                        IdleTime = vs[3].ToLong(),
-                        TotalTime = vs.Take(7).Select(e => e.ToLong()).Sum().ToLong(),
-                    };
-
-                    var idle = current.IdleTime - (_systemTime?.IdleTime ?? 0);
-                    var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
-                    _systemTime = current;
-
-                    CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
-                }
-            }
-        }
 
         if (Runtime.Windows)
         {
@@ -426,33 +328,10 @@ public class MachineInfo
             var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
             _systemTime = current;
 
-            CpuRate = total == 0 ? 0 : ((Single)(total - idle) / total);
+            CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
 
-#if __CORE__
-            if (!_excludes.Contains(nameof(Temperature)))
-            {
-                var temp = ReadWmic(@"/namespace:\\root\wmi path MSAcpi_ThermalZoneTemperature", "CurrentTemperature");
-                if (temp != null && temp.Count > 0)
-                {
-                    if (temp.TryGetValue("CurrentTemperature", out var str) && !str.IsNullOrEmpty())
-                        Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
-                }
-                else
-                    _excludes.Add(nameof(Temperature));
-            }
+            var power = new PowerStatus();
 
-            if (!_excludes.Contains(nameof(Battery)))
-            {
-                var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
-                if (battery != null && battery.Count > 0)
-                {
-                    if (battery.TryGetValue("EstimatedChargeRemaining", out var str) && !str.IsNullOrEmpty())
-                        Battery = str.SplitAsInt().Average() / 100.0;
-                }
-                else
-                    _excludes.Add(nameof(Battery));
-            }
-#else
             if (!_excludes.Contains(nameof(Temperature)))
             {
                 // 读取主板温度，不太准。标准方案是ring0通过IOPort读取CPU温度，太难在基础类库实现
@@ -464,25 +343,33 @@ public class MachineInfo
                 else
                 {
                     str = GetInfo("MSAcpi_ThermalZoneTemperature", "CurrentTemperature", "root/wmi");
-                    if (!str.IsNullOrEmpty()) Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    if (!str.IsNullOrEmpty())
+                        Temperature = (str.SplitAsInt().Average() - 2732) / 10.0;
+                    else
+                    {
+                        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Temperature信息无法读取");
+                        _excludes.Add(nameof(Temperature));
+                        Temperature = 0;
+                    }
                 }
-
-                if (str.IsNullOrEmpty()) _excludes.Add(nameof(Temperature));
             }
 
-            if (!_excludes.Contains(nameof(Battery)))
+            if (power.BatteryLifePercent > 0)
+                Battery = power.BatteryLifePercent;
+            else if (!_excludes.Contains(nameof(Battery)))
             {
                 // 电池剩余
                 var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
                 if (!str.IsNullOrEmpty())
                     Battery = str.SplitAsInt().Average() / 100.0;
                 else
+                {
+                    if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Battery信息无法读取");
                     _excludes.Add(nameof(Battery));
+                    Battery = 0;
+                }
             }
-#endif
         }
-
-        RefreshSpeed();
     }
 
     private Int64 _lastTime;
@@ -520,49 +407,6 @@ public class MachineInfo
     #endregion
 
     #region 辅助
-    private static Boolean TryRead(String fileName, out String value)
-    {
-        value = null;
-
-        if (!File.Exists(fileName)) return false;
-
-        try
-        {
-            value = File.ReadAllText(fileName)?.Trim();
-            if (value.IsNullOrEmpty()) return false;
-        }
-        catch { return false; }
-
-        return true;
-    }
-
-    private static IDictionary<String, String> ReadInfo(String file, Char separate = ':')
-    {
-        if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
-
-        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-
-        using var reader = new StreamReader(file);
-        while (!reader.EndOfStream)
-        {
-            // 按行读取
-            var line = reader.ReadLine();
-            if (line != null)
-            {
-                // 分割
-                var p = line.IndexOf(separate);
-                if (p > 0)
-                {
-                    var key = line.Substring(0, p).Trim();
-                    var value = line.Substring(p + 1).Trim();
-                    dic[key] = value.TrimInvisible();
-                }
-            }
-        }
-
-        return dic;
-    }
-
     private static String Execute(String cmd, String arguments = null)
     {
         try
