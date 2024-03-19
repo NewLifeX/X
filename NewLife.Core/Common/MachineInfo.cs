@@ -10,11 +10,12 @@ using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using System.Runtime.Versioning;
+using System.Diagnostics.CodeAnalysis;
+using NewLife.Windows;
+
 #if NETFRAMEWORK
 using System.Management;
 using Microsoft.VisualBasic.Devices;
-using System.Diagnostics.CodeAnalysis;
-
 #endif
 #if NETFRAMEWORK || NET5_0_OR_GREATER
 using Microsoft.Win32;
@@ -541,6 +542,8 @@ public class MachineInfo
 
         CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
 
+        var power = new PowerStatus();
+
 #if NETFRAMEWORK
         if (!_excludes.Contains(nameof(Temperature)))
         {
@@ -564,7 +567,9 @@ public class MachineInfo
             }
         }
 
-        if (!_excludes.Contains(nameof(Battery)))
+        if (power.BatteryLifePercent > 0)
+            Battery = power.BatteryLifePercent;
+        else if (!_excludes.Contains(nameof(Battery)))
         {
             // 电池剩余
             var str = GetInfo("Win32_Battery", "EstimatedChargeRemaining");
@@ -594,7 +599,9 @@ public class MachineInfo
             }
         }
 
-        if (!_excludes.Contains(nameof(Battery)))
+        if (power.BatteryLifePercent > 0)
+            Battery = power.BatteryLifePercent;
+        else if (!_excludes.Contains(nameof(Battery)))
         {
             var battery = ReadWmic("path win32_battery", "EstimatedChargeRemaining");
             if (battery != null && battery.Count > 0)
