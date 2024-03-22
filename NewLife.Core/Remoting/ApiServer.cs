@@ -144,6 +144,7 @@ public class ApiServer : ApiHost, IServer
 
         var server = new ApiNetServer
         {
+            Name = Name,
             Host = this,
             Tracer = Tracer,
         };
