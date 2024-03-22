@@ -3,12 +3,25 @@ using NewLife.Reflection;
 
 namespace NewLife.Messaging;
 
+/// <summary>数据类型。可用于标准消息的Flag</summary>
+public enum DataKinds : Byte
+{
+    /// <summary>字符串</summary>
+    String = 0,
+    /// <summary>二进制数据包</summary>
+    Packet = 1,
+    /// <summary>二进制对象</summary>
+    Binary = 2,
+    /// <summary>Json对象</summary>
+    Json = 3,
+}
+
 /// <summary>标准消息SRMP</summary>
 /// <remarks>
 /// 标准协议最大优势是短小，头部定长，没有序列化成本，适用于专业级RPC以及嵌入式通信。
 /// 缺点是可读性差，不能适用于字符串通信场景。
 /// 标准网络封包协议：1 Flag + 1 Sequence + 2 Length + N Payload
-/// 1个字节标识位，标识请求、响应、错误、加密、压缩等；
+/// 1个字节标识位，标识请求、响应、错误等；
 /// 1个字节序列号，用于请求响应包配对；
 /// 2个字节数据长度N，小端，指示后续负载数据长度（不包含头部4个字节），解决粘包问题；
 /// N个字节负载数据，数据内容完全由业务决定，最大长度65535=64k。
@@ -21,8 +34,8 @@ namespace NewLife.Messaging;
 public class DefaultMessage : Message
 {
     #region 属性
-    /// <summary>标记位</summary>
-    public Byte Flag { get; set; } = 1;
+    /// <summary>标记位。可用于标识消息数据类型DataKinds（非强制），内置0标识字符串，默认1标识二进制</summary>
+    public Byte Flag { get; set; } = (Byte)DataKinds.Packet;
 
     /// <summary>序列号，匹配请求和响应</summary>
     public Int32 Sequence { get; set; }
@@ -81,7 +94,7 @@ public class DefaultMessage : Message
 
         // 负载长度
         var len = (buf[3] << 8) | buf[2];
-        if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size+len} bytes");
+        if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
 
         // 支持超过64k的超大包
         if (len == 0xFFFF)
@@ -90,7 +103,7 @@ public class DefaultMessage : Message
             if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 8 bytes");
 
             len = pk.ReadBytes(size - 4, 4).ToInt();
-            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size+len} bytes");
+            if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
         }
 
         // 负载数据

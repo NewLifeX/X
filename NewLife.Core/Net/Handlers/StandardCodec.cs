@@ -12,6 +12,9 @@ namespace NewLife.Net.Handlers;
 /// </remarks>
 public class StandardCodec : MessageCodec<IMessage>
 {
+    ///// <summary>编码器。用于编码非消息对象</summary>
+    //public IPacketEncoder? Encoder { get; set; }
+
     private Int32 _gid;
 
     /// <summary>写入数据</summary>
@@ -20,23 +23,31 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
-        // 基础类型
-        if (message is String str)
+        // 基础类型优先编码
+        if (message.GetType().GetTypeCode() != TypeCode.Object)
         {
-            message = new Packet(str.GetBytes());
-        }
-        else if (message.GetType().GetTypeCode() != TypeCode.Object)
-        {
-            message = Binary.FastWrite(message);
+            message = new DefaultMessage { Flag = (Byte)DataKinds.String, Payload = (message + "").GetBytes() };
         }
         else if (message is Byte[] buf)
         {
             message = new Packet(buf);
         }
+        else if (message is IAccessor accessor)
+        {
+            message = accessor.ToPacket();
+        }
 
-        if (UserPacket && message is Packet pk)
-            message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
-        else if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
+        if (message is Packet pk)
+        {
+            var dm = new DefaultMessage { Flag = (Byte)DataKinds.Packet, Payload = pk };
+            message = dm;
+
+            // 从上下文中获取标记位
+            if (context is IExtend ext && ext["Flag"] is DataKinds dk)
+                dm.Flag = (Byte)dk;
+        }
+
+        if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
             msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
 
         return base.Write(context, message);
