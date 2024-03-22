@@ -20,6 +20,7 @@ using NewLife.IO;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
+using NewLife.Net.Handlers;
 using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
@@ -74,7 +75,7 @@ public class Program
             try
             {
 #endif
-            Test5();
+            Test7();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -402,7 +403,26 @@ public class Program
 
     private static void Test7()
     {
+        var fi = "D:\\Tools".AsDirectory().GetFiles().OrderByDescending(e => e.Length).FirstOrDefault();
+        fi ??= "../../".AsDirectory().GetFiles().OrderByDescending(e => e.Length).FirstOrDefault();
+        XTrace.WriteLine("发送文件：{0}", fi.FullName);
+        XTrace.WriteLine("文件大小：{0}", fi.Length.ToGMK());
 
+        var uri = new NetUri("tcp://127.0.0.3:12345");
+        var client = uri.CreateRemote();
+        client.Log = XTrace.Log;
+
+        client.Add<StandardCodec>();
+        client.Open();
+
+        client.SendMessage($"Send File {fi.Name}");
+
+        var rs = client.SendFile(fi.FullName);
+        XTrace.WriteLine("分片：{0}", rs);
+
+        client.SendMessage($"Send File Finished!");
+
+        //Console.ReadKey();
     }
 
     private static async void Test8()
