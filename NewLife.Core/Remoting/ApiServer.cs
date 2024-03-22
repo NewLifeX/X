@@ -5,7 +5,6 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Reflection;
 using NewLife.Threading;
 
 namespace NewLife.Remoting;
@@ -144,6 +143,7 @@ public class ApiServer : ApiHost, IServer
 
         var server = new ApiNetServer
         {
+            Name = Name,
             Host = this,
             Tracer = Tracer,
         };

@@ -129,8 +129,9 @@ class ApiManager : IApiManager
         var controller = api.Controller;
         if (controller != null) return controller;
 
+        // 从容器里拿控制器实例，或者借助容器创建控制器实例
         controller = _server.ServiceProvider?.GetService(api.Type);
-
+        controller ??= _server.ServiceProvider?.CreateInstance(api.Type);
         controller ??= api.Type.CreateInstance();
         if (controller == null) throw new InvalidDataException($"无法创建[{api.Type.FullName}]的实例");
 

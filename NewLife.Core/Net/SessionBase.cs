@@ -553,11 +553,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns></returns>
     public virtual Int32 SendMessage(Object message)
     {
+        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
         try
         {
             var ctx = CreateContext(this);
-            return (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+            return (Int32)(Pipeline.Write(ctx, message) ?? 0);
         }
         catch (Exception ex)
         {
@@ -571,6 +573,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns></returns>
     public virtual async Task<Object> SendMessageAsync(Object message)
     {
+        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
@@ -579,7 +583,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
             if (rs < 0) return TaskEx.CompletedTask;
 
             return await source.Task;
@@ -600,6 +604,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns></returns>
     public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
+        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
@@ -608,7 +614,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
-            var rs = (Int32)(Pipeline?.Write(ctx, message) ?? 0);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
             if (rs < 0) return TaskEx.CompletedTask;
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
