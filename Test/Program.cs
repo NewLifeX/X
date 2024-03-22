@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -12,226 +10,116 @@ using System.Text;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
-using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Net;
-using NewLife.Remoting;
+using NewLife.Net.Handlers;
 using NewLife.Security;
-using NewLife.Serialization;
-using NewLife.Threading;
-using Stardust;
-using Stardust.Models;
-using XCode.Membership;
 
 #if !NET40
 using TaskEx = System.Threading.Tasks.Task;
 #endif
 
-namespace Test
+namespace Test;
+
+public class Program
 {
-    public class Program
+    private static void Main(String[] args)
     {
-        private static void Main(String[] args)
-        {
-            //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
+        //Environment.SetEnvironmentVariable("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1");
 
-            XTrace.UseConsole();
+        XTrace.UseConsole();
 
-            //var star = new StarFactory(null, null, null);
-            //DefaultTracer.Instance = star?.Tracer;
-            //(star.Tracer as StarTracer).AttachGlobal();
+        //var star = new StarFactory(null, null, null);
+        //DefaultTracer.Instance = star?.Tracer;
+        //(star.Tracer as StarTracer).AttachGlobal();
 
 #if DEBUG
-            XTrace.Debug = true;
-            XTrace.Log.Level = LogLevel.All;
+        XTrace.Debug = true;
+        XTrace.Log.Level = LogLevel.All;
 
-            var set = NewLife.Setting.Current;
-            set.Debug = true;
-            set.LogLevel = LogLevel.All;
+        var set = NewLife.Setting.Current;
+        set.Debug = true;
+        set.LogLevel = LogLevel.All;
 
-            //new LogEventListener(new[] {
-            //    "System.Runtime",
-            //    "System.Diagnostics.Eventing.FrameworkEventSource",
-            //    "System.Transactions.TransactionsEventSource",
-            //    "Microsoft-Windows-DotNETRuntime",
-            //    //"Private.InternalDiagnostics.System.Net.Sockets",
-            //    "System.Net.NameResolution",
-            //    //"Private.InternalDiagnostics.System.Net.NameResolution",
-            //    "System.Net.Sockets",
-            //    //"Private.InternalDiagnostics.System.Net.Http",
-            //    "System.Net.Http",
-            //    //"System.Data.DataCommonEventSource",
-            //    //"Microsoft-Diagnostics-DiagnosticSource",
-            //});
+        //new LogEventListener(new[] {
+        //    "System.Runtime",
+        //    "System.Diagnostics.Eventing.FrameworkEventSource",
+        //    "System.Transactions.TransactionsEventSource",
+        //    "Microsoft-Windows-DotNETRuntime",
+        //    //"Private.InternalDiagnostics.System.Net.Sockets",
+        //    "System.Net.NameResolution",
+        //    //"Private.InternalDiagnostics.System.Net.NameResolution",
+        //    "System.Net.Sockets",
+        //    //"Private.InternalDiagnostics.System.Net.Http",
+        //    "System.Net.Http",
+        //    //"System.Data.DataCommonEventSource",
+        //    //"Microsoft-Diagnostics-DiagnosticSource",
+        //});
 
-            var set2 = XCode.Setting.Current;
-            set2.Debug = true;
+        var set2 = XCode.Setting.Current;
+        set2.Debug = true;
 #endif
-            while (true)
-            {
-                var sw = Stopwatch.StartNew();
-#if !DEBUG
-                try
-                {
-#endif
-            Test5();
-#if !DEBUG
-                }
-                catch (Exception ex)
-                {
-                    XTrace.WriteException(ex?.GetTrue());
-                }
-#endif
-
-                sw.Stop();
-                Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
-                //Thread.Sleep(5000);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                var key = Console.ReadKey(true);
-                if (key.Key != ConsoleKey.C) break;
-            }
-        }
-
-        private static void Test1()
-        {
-            //Area.FetchAndSave();
-            //Area.Import("http://x.newlifex.com/Area.csv.gz", true, 4, false);
-
-            var rs = Area.FindAll();
-            foreach (var item in rs)
-            {
-                var py = PinYin.GetAll(item.Name);
-                if (py.Length != item.Name.Length || py.Any(c => c.IsNullOrEmpty() || !Char.IsAsciiLetter(c[0])))
-                    XTrace.WriteLine("{0} {1} {2} {3}", item.ID, item.Name, py.Join(), item.Path);
-            }
-
-            //var netUri = new NetUri("tcp://0.0.0.0:19000");
-            //var apiServer = new ApiServer(netUri)
-            ////var apiServer = new ApiServer(19000)
-            //{
-            //    Log = XTrace.Log,
-            //    ShowError = true,
-            //    //ServiceProvider = ioc.BuildServiceProvider()
-            //};
-            //apiServer.Start();
-        }
-
-        private static void Test2()
+        while (true)
         {
             var sw = Stopwatch.StartNew();
-
-            var count = 100_000_000L;
-
-            var ts = new List<Task>();
-            for (var i = 0; i < Environment.ProcessorCount; i++)
+#if !DEBUG
+            try
             {
-                ts.Add(TaskEx.Run(() =>
-                {
-                    var f = new Snowflake();
-
-                    for (var i = 0; i < count; i++)
-                    {
-                        var id = f.NewId();
-                    }
-                }));
+#endif
+                Test7();
+#if !DEBUG
             }
-
-            Task.WaitAll(ts.ToArray());
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex?.GetTrue());
+            }
+#endif
 
             sw.Stop();
-
-            count *= ts.Count;
-
-            XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+            Console.WriteLine("OK! 耗时 {0}", sw.Elapsed);
+            //Thread.Sleep(5000);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            var key = Console.ReadKey(true);
+            if (key.Key != ConsoleKey.C) break;
         }
+    }
 
-        private static void Test3()
+    private static void Test1()
+    {
+    }
+
+    private static void Test2()
+    {
+        var sw = Stopwatch.StartNew();
+
+        var count = 100_000_000L;
+
+        var ts = new List<Task>();
+        for (var i = 0; i < Environment.ProcessorCount; i++)
         {
-            //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
-            //str.SpeakAsync();
-
-            XTrace.WriteLine("hello");
-            Task.Run(() =>
+            ts.Add(TaskEx.Run(() =>
             {
-                XTrace.WriteLine("222");
-                Task.Run(() =>
+                var f = new Snowflake();
+
+                for (var i = 0; i < count; i++)
                 {
-                    XTrace.WriteLine("333");
-                });
-            });
-
-            var set = StarSetting.Current;
-            set.Debug = true;
-            var local = new LocalStarClient { Log = XTrace.Log };
-            var info = local.GetInfo();
-            XTrace.WriteLine("Info: {0}", info?.ToJson());
-
-            var client3 = new ApiClient("udp://localhost:5500")
-            {
-                Timeout = 3_000,
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            info = client3.Invoke<AgentInfo>("info");
-            XTrace.WriteLine("Info: {0}", info?.ToJson());
-
-            var uri = new NetUri("http://sso.newlifex.com");
-            var client = uri.CreateRemote();
-            client.Log = XTrace.Log;
-            client.LogSend = true;
-            client.LogReceive = true;
-            if (client is TcpSession tcp) tcp.MaxAsync = 0;
-            client.Open();
-
-            client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
-
-            var rs = client.ReceiveString();
-            XTrace.WriteLine(rs);
+                    var id = f.NewId();
+                }
+            }));
         }
 
-                TaskEx.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/Info", new { state = 333 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+        Task.WaitAll(ts.ToArray());
 
-                TaskEx.Run(() =>
-                {
-                    var sw = Stopwatch.StartNew();
-                    try
-                    {
-                        for (var i = 0; i < 10; i++)
-                        {
-                            client.InvokeAsync<Object>("Api/Info", new { state = 444 }).Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        XTrace.WriteException(ex.GetTrue());
-                    }
-                    sw.Stop();
-                    XTrace.WriteLine("总耗时 {0:n0}ms", sw.ElapsedMilliseconds);
-                });
+        sw.Stop();
 
-                Console.ReadKey();
-            }
-        }
+        count *= ts.Count;
+
+        XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+    }
 
     private static NetServer _server;
     private static async void Test5()
@@ -256,21 +144,21 @@ namespace Test
         server.MapStaticFiles("/", "./");
         server.Start();
 
-            _server = server;
+        _server = server;
 
 #if NET5_0_OR_GREATER
-            var client = new ClientWebSocket();
-            await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
-            await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+        var client = new ClientWebSocket();
+        await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+        await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
-            var buf = new Byte[1024];
-            var rs = await client.ReceiveAsync(buf, default);
-            XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+        var buf = new Byte[1024];
+        var rs = await client.ReceiveAsync(buf, default);
+        XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
 
-            await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
-            XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+        await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
+        XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
 #endif
-        }
+    }
 
     private class MyHttpHandler : IHttpHandler
     {
@@ -307,11 +195,11 @@ namespace Test
         var pfx = new X509Certificate2("../../../doc/newlife.pfx".GetFullPath(), "newlife");
         //Console.WriteLine(pfx);
 
-            //using var svr = new ApiServer(1234);
-            //svr.Log = XTrace.Log;
-            //svr.EncoderLog = XTrace.Log;
+        //using var svr = new ApiServer(1234);
+        //svr.Log = XTrace.Log;
+        //svr.EncoderLog = XTrace.Log;
 
-            //var ns = svr.EnsureCreate() as NetServer;
+        //var ns = svr.EnsureCreate() as NetServer;
 
         using var ns = new NetServer(1234)
         {
@@ -332,17 +220,17 @@ namespace Test
         //    if (item is TcpServer ts) ts.Certificate = pfx;
         //}
 
-            ns.Received += (s, e) =>
-            {
-                XTrace.WriteLine("收到：{0}", e.Packet.ToStr());
-            };
-            ns.Start();
+        ns.Received += (s, e) =>
+        {
+            XTrace.WriteLine("收到：{0}", e.Packet.ToStr());
+        };
+        ns.Start();
 
         using var client = new TcpSession
         {
             Name = "Client",
             Remote = new NetUri("tcp://127.0.0.1:1234"),
-            SslProtocol = SslProtocols.Tls12,
+            SslProtocol = SslProtocols.Tls,
             Certificate = pfx,
 
             Log = XTrace.Log,
@@ -350,374 +238,231 @@ namespace Test
         };
         client.Open();
 
-            client.Send("Stone");
+        client.Send("Stone");
 
-            Console.ReadLine();
-        }
+        Console.ReadLine();
+    }
 
-        private static void Test10()
-        {
-            var args = Environment.GetCommandLineArgs();
-            if (args == null || args.Length < 2) return;
+    private static void Test7()
+    {
+        var fi = "D:\\Tools".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
+        fi ??= "../../".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
+        XTrace.WriteLine("发送文件：{0}", fi.FullName);
+        XTrace.WriteLine("文件大小：{0}", fi.Length.ToGMK());
 
-            XTrace.WriteLine(args[1]);
+        var uri = new NetUri("tcp://127.0.0.3:12345");
+        var client = uri.CreateRemote();
+        client.Log = XTrace.Log;
 
-            var count = 10 * 1024 * 1024;
+        client.Add<StandardCodec>();
+        client.Open();
+
+        client.SendMessage($"Send File {fi.Name}");
+
+        var rs = client.SendFile(fi.FullName);
+        XTrace.WriteLine("分片：{0}", rs);
+
+        client.SendMessage($"Send File Finished!");
+
+        //Console.ReadKey();
+    }
+
+    private static void Test10()
+    {
+        var args = Environment.GetCommandLineArgs();
+        if (args == null || args.Length < 2) return;
+
+        XTrace.WriteLine(args[1]);
+
+        var count = 10 * 1024 * 1024;
 #if DEBUG
-            count = 1024;
+        count = 1024;
 #endif
-            var fi = args[1].AsFile();
-            if (!fi.Exists || fi.Length < count) return;
+        var fi = args[1].AsFile();
+        if (!fi.Exists || fi.Length < count) return;
 
-            // 取最后1M
-            using var fs = fi.OpenRead();
-            var count2 = count;
-            if (count2 > fs.Length) count2 = (Int32)fs.Length;
-            //fs.Seek(count2, SeekOrigin.End);
-            fs.Position = fs.Length - count2;
+        // 取最后1M
+        using var fs = fi.OpenRead();
+        var count2 = count;
+        if (count2 > fs.Length) count2 = (Int32)fs.Length;
+        //fs.Seek(count2, SeekOrigin.End);
+        fs.Position = fs.Length - count2;
 
-            var buf = fs.ReadBytes(-1);
-            File.WriteAllBytes($"{DateTime.Now:yyyyMMddHHmmss}.log".GetFullPath(), buf);
+        var buf = fs.ReadBytes(-1);
+        File.WriteAllBytes($"{DateTime.Now:yyyyMMddHHmmss}.log".GetFullPath(), buf);
+    }
+
+    private static void Test11()
+    {
+        var sb = new StringBuilder();
+        for (var i = 0; i < 26; i++)
+        {
+            sb.Append((Char)('a' + i));
+        }
+        for (var i = 0; i < 26; i++)
+        {
+            sb.Append((Char)('A' + i));
+        }
+        for (var i = 0; i < 10; i++)
+        {
+            sb.Append((Char)('0' + i));
+        }
+        Console.WriteLine(sb);
+    }
+
+    private static void Test14()
+    {
+        var rds = new Redis("127.0.0.1", null, 3)
+        {
+            Log = XTrace.Log
+        };
+        var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
+    }
+
+    private static void ExportPublicKeyToPEMFormat()
+    {
+
+        var rsa2 = new RSACryptoServiceProvider();
+        using (var sr = new StreamReader("D:\\keys\\private.key"))
+        {
+            rsa2.FromXmlString(sr.ReadToEnd());
         }
 
-        private static void Test11()
+        var str = ExportPublicKeyToPEMFormat(rsa2);
+
+        using (var sw = new StreamWriter("D:\\keys\\PublicKey.pem"))
         {
-            var sb = new StringBuilder();
-            for (var i = 0; i < 26; i++)
-            {
-                sb.Append((Char)('a' + i));
-            }
-            for (var i = 0; i < 26; i++)
-            {
-                sb.Append((Char)('A' + i));
-            }
-            for (var i = 0; i < 10; i++)
-            {
-                sb.Append((Char)('0' + i));
-            }
-            Console.WriteLine(sb);
+            //var pemWriter = new PemWriter(sw);
+            //pemWriter.WriteObject(str);
+            sw.Write(str);
         }
 
-        private static void Test14()
+    }
+
+    public static String ExportPublicKeyToPEMFormat(RSACryptoServiceProvider csp)
+    {
+        TextWriter outputStream = new StringWriter();
+
+        var parameters = csp.ExportParameters(false);
+        using (var stream = new MemoryStream())
         {
-            var rds = new Redis("127.0.0.1", null, 3)
+            var writer = new BinaryWriter(stream);
+            writer.Write((Byte)0x30); // SEQUENCE
+            using (var innerStream = new MemoryStream())
             {
-                Log = XTrace.Log
-            };
-            var rs = rds.Execute<Object>(null, rc => rc.Execute("XREAD", "count", "3", "streams", "stream_empty_item", "0-0"));
+                var innerWriter = new BinaryWriter(innerStream);
+                EncodeIntegerBigEndian(innerWriter, new Byte[] { 0x00 }); // Version
+                EncodeIntegerBigEndian(innerWriter, parameters.Modulus);
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent);
+
+                //All Parameter Must Have Value so Set Other Parameter Value Whit Invalid Data  (for keeping Key Structure  use "parameters.Exponent" value for invalid data)
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.D
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.P
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.Q
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DP
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DQ
+                EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.InverseQ
+
+                var length = (Int32)innerStream.Length;
+                EncodeLength(writer, length);
+                writer.Write(innerStream.GetBuffer(), 0, length);
+            }
+
+            var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (Int32)stream.Length).ToCharArray();
+            outputStream.WriteLine("-----BEGIN PUBLIC KEY-----");
+            // Output as Base64 with lines chopped at 64 characters
+            for (var i = 0; i < base64.Length; i += 64)
+            {
+                outputStream.WriteLine(base64, i, Math.Min(64, base64.Length - i));
+            }
+            outputStream.WriteLine("-----END PUBLIC KEY-----");
+
+            return outputStream.ToString();
+
         }
+    }
 
-        private static void ExportPublicKeyToPEMFormat()
+    private static void EncodeIntegerBigEndian(BinaryWriter stream, Byte[] value, Boolean forceUnsigned = true)
+    {
+        stream.Write((Byte)0x02); // INTEGER
+        var prefixZeros = 0;
+        for (var i = 0; i < value.Length; i++)
         {
-
-            var rsa2 = new RSACryptoServiceProvider();
-            using (var sr = new StreamReader("D:\\keys\\private.key"))
-            {
-                rsa2.FromXmlString(sr.ReadToEnd());
-            }
-
-            var str = ExportPublicKeyToPEMFormat(rsa2);
-
-            using (var sw = new StreamWriter("D:\\keys\\PublicKey.pem"))
-            {
-                //var pemWriter = new PemWriter(sw);
-                //pemWriter.WriteObject(str);
-                sw.Write(str);
-            }
-
+            if (value[i] != 0) break;
+            prefixZeros++;
         }
-
-        public static String ExportPublicKeyToPEMFormat(RSACryptoServiceProvider csp)
+        if (value.Length - prefixZeros == 0)
         {
-            TextWriter outputStream = new StringWriter();
-
-            var parameters = csp.ExportParameters(false);
-            using (var stream = new MemoryStream())
-            {
-                var writer = new BinaryWriter(stream);
-                writer.Write((Byte)0x30); // SEQUENCE
-                using (var innerStream = new MemoryStream())
-                {
-                    var innerWriter = new BinaryWriter(innerStream);
-                    EncodeIntegerBigEndian(innerWriter, new Byte[] { 0x00 }); // Version
-                    EncodeIntegerBigEndian(innerWriter, parameters.Modulus);
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent);
-
-                    //All Parameter Must Have Value so Set Other Parameter Value Whit Invalid Data  (for keeping Key Structure  use "parameters.Exponent" value for invalid data)
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.D
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.P
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.Q
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DP
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.DQ
-                    EncodeIntegerBigEndian(innerWriter, parameters.Exponent); // instead of parameters.InverseQ
-
-                    var length = (Int32)innerStream.Length;
-                    EncodeLength(writer, length);
-                    writer.Write(innerStream.GetBuffer(), 0, length);
-                }
-
-                var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (Int32)stream.Length).ToCharArray();
-                outputStream.WriteLine("-----BEGIN PUBLIC KEY-----");
-                // Output as Base64 with lines chopped at 64 characters
-                for (var i = 0; i < base64.Length; i += 64)
-                {
-                    outputStream.WriteLine(base64, i, Math.Min(64, base64.Length - i));
-                }
-                outputStream.WriteLine("-----END PUBLIC KEY-----");
-
-                return outputStream.ToString();
-
-            }
+            EncodeLength(stream, 1);
+            stream.Write((Byte)0);
         }
-
-        private static void EncodeIntegerBigEndian(BinaryWriter stream, Byte[] value, Boolean forceUnsigned = true)
+        else
         {
-            stream.Write((Byte)0x02); // INTEGER
-            var prefixZeros = 0;
-            for (var i = 0; i < value.Length; i++)
+            if (forceUnsigned && value[prefixZeros] > 0x7f)
             {
-                if (value[i] != 0) break;
-                prefixZeros++;
-            }
-            if (value.Length - prefixZeros == 0)
-            {
-                EncodeLength(stream, 1);
+                // Add a prefix zero to force unsigned if the MSB is 1
+                EncodeLength(stream, value.Length - prefixZeros + 1);
                 stream.Write((Byte)0);
             }
             else
             {
-                if (forceUnsigned && value[prefixZeros] > 0x7f)
-                {
-                    // Add a prefix zero to force unsigned if the MSB is 1
-                    EncodeLength(stream, value.Length - prefixZeros + 1);
-                    stream.Write((Byte)0);
-                }
-                else
-                {
-                    EncodeLength(stream, value.Length - prefixZeros);
-                }
-                for (var i = prefixZeros; i < value.Length; i++)
-                {
-                    stream.Write(value[i]);
-                }
+                EncodeLength(stream, value.Length - prefixZeros);
+            }
+            for (var i = prefixZeros; i < value.Length; i++)
+            {
+                stream.Write(value[i]);
             }
         }
+    }
 
-        private static void EncodeLength(BinaryWriter stream, Int32 length)
+    private static void EncodeLength(BinaryWriter stream, Int32 length)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException("length", "Length must be non-negative");
+        if (length < 0x80)
         {
-            if (length < 0) throw new ArgumentOutOfRangeException("length", "Length must be non-negative");
-            if (length < 0x80)
+            // Short form
+            stream.Write((Byte)length);
+        }
+        else
+        {
+            // Long form
+            var temp = length;
+            var bytesRequired = 0;
+            while (temp > 0)
             {
-                // Short form
-                stream.Write((Byte)length);
+                temp >>= 8;
+                bytesRequired++;
             }
-            else
+            stream.Write((Byte)(bytesRequired | 0x80));
+            for (var i = bytesRequired - 1; i >= 0; i--)
             {
-                // Long form
-                var temp = length;
-                var bytesRequired = 0;
-                while (temp > 0)
-                {
-                    temp >>= 8;
-                    bytesRequired++;
-                }
-                stream.Write((Byte)(bytesRequired | 0x80));
-                for (var i = bytesRequired - 1; i >= 0; i--)
-                {
-                    stream.Write((Byte)(length >> (8 * i) & 0xff));
-                }
+                stream.Write((Byte)(length >> (8 * i) & 0xff));
             }
         }
+    }
 
-        // dsa xml 转 pem
-        private static void DSAXML2PEM()
+    private static void Test15()
+    {
+        Byte[] signStr;
+
+        using (var prvfs = new FileStream("D:\\xtoken.prvkey", FileMode.Open, FileAccess.Read))
         {
-            // 私钥转换
-            var dsa = new DSACryptoServiceProvider();
-            using (var fs = new FileStream("D:\\token.prvkey", FileMode.Open, FileAccess.Read))
-            {
-                var sr = new StreamReader(fs);
-                dsa.FromXmlStringX(sr.ReadToEnd());
-            }
+            var sr = new StreamReader(prvfs);
+            var prvdsa = new DSACryptoServiceProvider();
+            prvdsa.FromXmlStringX(sr.ReadToEnd());
 
-            //// 私钥
-            //var dsaKey = DotNetUtilities.GetDsaKeyPair(dsa);
-            //using (var sw = new StreamWriter("D:\\dsaprv.pem"))
-            //{
-            //    var pw = new PemWriter(sw);
-            //    pw.WriteObject(dsaKey.Private);
-            //}
-            //// 公钥
-            //using (var sw = new StreamWriter("D:\\dsapub.pem"))
-            //{
-            //    var pw = new PemWriter(sw);
-            //    pw.WriteObject(dsaKey.Public);
-            //}
-
-
-            //// 公钥转换
-            //var pubdsa = new DSACryptoServiceProvider();
-            //using (var fs = new FileStream("D:\\token.pubkey", FileMode.Open, FileAccess.Read))
-            //{
-            //    var sr = new StreamReader(fs);
-            //    pubdsa.FromXmlStringX(sr.ReadToEnd());
-            //}
-
-            //var dsapub = DotNetUtilities.GetDsaPublicKey(pubdsa);
-            //using (var sw = new StreamWriter("D:\\dsapub1.pem"))
-            //{
-            //    var pw = new PemWriter(sw);
-            //    pw.WriteObject(dsapub);
-            //}
+            signStr = prvdsa.SignData("123".GetBytes());
+            Console.WriteLine("签名结果：" + signStr.ToBase64());
         }
 
-        //// dsa public pem 转 xml
-        //private static void DSAPublicPEM2XML()
-        //{
-        //    DSA dsa;
-        //    using (var rdr = new StreamReader("D:\\dsapub.pem"))
-        //    {
-        //        var pr = new PemReader(rdr);
-        //        var o = pr.ReadObject() as DsaPublicKeyParameters;
-        //        var prm = new CspParameters(13);
-        //        prm.Flags = CspProviderFlags.UseMachineKeyStore;
-
-        //        dsa = new DSACryptoServiceProvider(prm);
-        //        var dp = new DSAParameters
-        //        {
-        //            G = o.Parameters.G.ToByteArrayUnsigned(),
-        //            P = o.Parameters.P.ToByteArrayUnsigned(),
-        //            Q = o.Parameters.Q.ToByteArrayUnsigned(),
-        //            Y = o.Y.ToByteArrayUnsigned()
-        //        };
-
-        //        if (o.Parameters.ValidationParameters != null)
-        //        {
-        //            dp.Counter = o.Parameters.ValidationParameters.Counter;
-        //            dp.Seed = o.Parameters.ValidationParameters.GetSeed();
-        //        }
-
-        //        dsa.ImportParameters(dp);
-        //    }
-
-        //    // 写入xml文件
-        //    using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
-        //    {
-        //        var sw = new StreamWriter(fs);
-
-        //        var xml = dsa.ToXmlString(false);
-        //        sw.Write(xml);
-        //        sw.Flush();
-        //        sw.Dispose();
-        //    }
-        //}
-
-        //// dsa private pem 转 xml
-        //private static void DSAPrivatePEM2XML()
-        //{
-        //    DSA prvDsa;
-        //    DSA pubDsa;
-
-        //    using (var rdr = new StreamReader("D:\\dsaprv.pem"))
-        //    {
-        //        var pr = new PemReader(rdr);
-        //        var opair = pr.ReadObject() as AsymmetricCipherKeyPair;
-
-        //        var prm = new CspParameters(13);
-        //        prm.Flags = CspProviderFlags.UseMachineKeyStore;
-
-        //        //var prm1 = new CspParameters(13);
-        //        //prm1.Flags = CspProviderFlags.UseMachineKeyStore;
-
-        //        prvDsa = new DSACryptoServiceProvider(prm);
-        //        pubDsa = new DSACryptoServiceProvider(prm);
-
-        //        // 私钥
-        //        var prvpara = opair.Private as DsaPrivateKeyParameters;
-        //        var prvdp = new DSAParameters
-        //        {
-        //            G = prvpara.Parameters.G.ToByteArrayUnsigned(),
-        //            P = prvpara.Parameters.P.ToByteArrayUnsigned(),
-        //            Q = prvpara.Parameters.Q.ToByteArrayUnsigned(),
-        //            X = prvpara.X.ToByteArrayUnsigned()
-        //        };
-        //        if (prvpara.Parameters.ValidationParameters != null)
-        //        {
-        //            prvdp.Counter = prvpara.Parameters.ValidationParameters.Counter;
-        //            prvdp.Seed = prvpara.Parameters.ValidationParameters.GetSeed();
-        //        }
-        //        prvDsa.ImportParameters(prvdp);
-
-        //        // 公钥
-        //        var pubpara = opair.Public as DsaPublicKeyParameters;
-        //        var pubdp = new DSAParameters
-        //        {
-        //            G = pubpara.Parameters.G.ToByteArrayUnsigned(),
-        //            P = pubpara.Parameters.P.ToByteArrayUnsigned(),
-        //            Q = pubpara.Parameters.Q.ToByteArrayUnsigned(),
-        //            Y = pubpara.Y.ToByteArrayUnsigned()
-        //        };
-        //        if (pubpara.Parameters.ValidationParameters != null)
-        //        {
-        //            pubdp.Counter = pubpara.Parameters.ValidationParameters.Counter;
-        //            pubdp.Seed = pubpara.Parameters.ValidationParameters.GetSeed();
-        //        }
-        //        pubDsa.ImportParameters(pubdp);
-        //    }
-
-        //    // 写入xml文件 private
-        //    using (var sw = new StreamWriter("D:\\xtoken.prvkey"))
-        //    {
-        //        //var sw = new StreamWriter(fs);
-
-        //        var xml = prvDsa.ToXmlString(true);
-        //        sw.Write(xml);
-        //        sw.Flush();
-        //        //sw.Dispose();
-        //    }
-        //    // 写入xml文件 public
-        //    using (var fs = new FileStream("D:\\xtoken.pubkey", FileMode.Create, FileAccess.Write))
-        //    {
-        //        var sw = new StreamWriter(fs);
-        //        var xml = pubDsa.ToXmlString(false);
-        //        sw.Write(xml);
-        //        sw.Flush();
-        //        sw.Dispose();
-        //    }
-        //}
-
-        // 测试加密
-        private static void Test15()
+        using (var pubfs = new FileStream("D:\\xtoken.pubkey", FileMode.Open, FileAccess.Read))
         {
-            Byte[] signStr;
+            var sr = new StreamReader(pubfs);
+            var pubdsa = new DSACryptoServiceProvider();
+            pubdsa.FromXmlStringX(sr.ReadToEnd());
 
-            using (var prvfs = new FileStream("D:\\xtoken.prvkey", FileMode.Open, FileAccess.Read))
-            {
-                var sr = new StreamReader(prvfs);
-                var prvdsa = new DSACryptoServiceProvider();
-                prvdsa.FromXmlStringX(sr.ReadToEnd());
-
-                signStr = prvdsa.SignData("123".GetBytes());
-                Console.WriteLine("签名结果：" + signStr.ToBase64());
-            }
-
-            using (var pubfs = new FileStream("D:\\xtoken.pubkey", FileMode.Open, FileAccess.Read))
-            {
-                var sr = new StreamReader(pubfs);
-                var pubdsa = new DSACryptoServiceProvider();
-                pubdsa.FromXmlStringX(sr.ReadToEnd());
-
-                var result = pubdsa.VerifyData("123".GetBytes(), signStr);
-                Console.WriteLine("验证结果:" + result);
-            }
-        }
-
-        /// <summary>测试config文件的读取</summary>
-        private static void TestReadConfig()
-        {
-            var z = ConfigTest.Current.Names;
-            var x = ConfigTest.Current.Sex;
-            var y = ConfigTest.Current.xyf;
+            var result = pubdsa.VerifyData("123".GetBytes(), signStr);
+            Console.WriteLine("验证结果:" + result);
         }
     }
 }
