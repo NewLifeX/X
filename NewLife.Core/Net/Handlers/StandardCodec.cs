@@ -1,6 +1,8 @@
 ﻿using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
+using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Net.Handlers;
 
@@ -18,6 +20,20 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
+        // 基础类型
+        if (message is String str)
+        {
+            message = new Packet(str.GetBytes());
+        }
+        else if (message.GetType().GetTypeCode() != TypeCode.Object)
+        {
+            message = Binary.FastWrite(message);
+        }
+        else if (message is Byte[] buf)
+        {
+            message = new Packet(buf);
+        }
+
         if (UserPacket && message is Packet pk)
             message = new DefaultMessage { Payload = pk, Sequence = (Byte)Interlocked.Increment(ref _gid) };
         else if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
