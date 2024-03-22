@@ -188,5 +188,49 @@ public static class SocketRemoteHelper
     public static void Add(this ISocket session, IHandler handler) => GetPipe(session).Add(handler);
 
     private static IPipeline GetPipe(ISocket session) => session.Pipeline ??= new Pipeline();
+
+    /// <summary>切分数据流为多个数据包消息进行发送，接收方按顺序组装</summary>
+    /// <param name="session">会话</param>
+    /// <param name="stream">数据流</param>
+    /// <returns>拆分消息数</returns>
+    public static Int32 SendMessages(this ISocketRemote session, Stream stream)
+    {
+        var count = 0;
+
+        // 缓冲区大小，要减去4字节标准消息头。BufferSize默认8k，能得到最大吞吐。如果网络质量较差，这里可使用TCP最大包1448
+        var bufferSize = SocketSetting.Current.BufferSize;
+        bufferSize -= 4;
+
+        var buffer = new Byte[bufferSize];
+        while (true)
+        {
+            var rs = stream.Read(buffer, 0, buffer.Length);
+            if (rs <= 0) break;
+
+            // 打包数据，标准编码器StandardCodec将会在头部加上4字节头部，交给下层Tcp发出
+            var pk = new Packet(buffer, 0, rs);
+            session.SendMessage(pk);
+
+            count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>切分文件流为多个数据包发出，接收方按顺序组装</summary>
+    /// <param name="session"></param>
+    /// <param name="file"></param>
+    /// <param name="compressed"></param>
+    /// <returns></returns>
+    public static Int32 SendFile(this ISocketRemote session, String file, Boolean compressed = false)
+    {
+        var rs = 0;
+        file.AsFile().OpenRead(compressed, s =>
+        {
+            rs = session.SendMessages(s);
+        });
+
+        return rs;
+    }
     #endregion
 }
