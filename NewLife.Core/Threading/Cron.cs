@@ -1,17 +1,15 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace NewLife.Threading;
+﻿namespace NewLife.Threading;
 
 /// <summary>轻量级Cron表达式</summary>
 /// <remarks>
-/// 基本构成：秒+分+时+天+月+星期
+/// 基本构成：秒+分+时+天+月+星期+年
 /// 每段构成：
 ///     * 所有可能的值，该类型片段全部可选
 ///     , 列出枚举值
 ///     - 范围，横杠表示的一个区间可选
 ///     / 指定数值的增量，在上述可选数字内，间隔多少选一个
 ///     ? 不指定值，仅日期和星期域支持该字符
-///     # 确定每个月第几个星期几，仅星期域支持该字符
+///     # 确定每个月第几个星期几，L表示倒数，仅星期域支持该字符
 ///     数字，具体某个数值可选
 ///     逗号多选，逗号分隔的多个数字或区间可选
 /// </remarks>
@@ -22,10 +20,13 @@ namespace NewLife.Threading;
 /// * 1-10,13,25/3 * * * 每小时的1分4分7分10分13分25分，每一秒各一次
 /// 0 0 0 1 * * 每个月1日的0点整
 /// 0 0 2 * * 1-5 每个工作日的凌晨2点
+/// 0 0 0 ? ? 1-7#1 每月第一周的任意一天（周一~周日）的0点整
+/// 0 0 0 ? ? 3-5#L2 每个月倒数第二个星期三到星期五的0点整
 /// 
 /// 星期部分采用Linux和.NET风格，0表示周日，1表示周一。
 /// 可设置Sunday为1，1表示周日，2表示周一。
 /// 
+/// 文档 https://newlifex.com/core/cron
 /// 参考文档 https://help.aliyun.com/document_detail/64769.html
 /// </example>
 public class Cron
@@ -129,9 +130,9 @@ public class Cron
         if (!TryParse(ss.Length > 4 ? ss[4] : "*", 1, 13, out vs)) return false;
         Months = vs;
 
-        var dic = new Dictionary<Int32, Int32>();
-        if (!TryParseWeek(ss.Length > 5 ? ss[5] : "*", 0, 7, dic)) return false;
-        DaysOfWeek = dic;
+        var weeks = new Dictionary<Int32, Int32>();
+        if (!TryParseWeek(ss.Length > 5 ? ss[5] : "*", 0, 7, weeks)) return false;
+        DaysOfWeek = weeks;
 
         _expression = expression;
 

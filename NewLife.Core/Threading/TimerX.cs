@@ -81,7 +81,11 @@ public class TimerX : IDisposable
     public Func<Boolean>? CanExecute { get; set; }
 
     /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
-    public Cron? Cron => _cron;
+    public Cron[]? Crons => _crons;
+
+    /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
+    [Obsolete("=>Crons")]
+    public Cron? Cron => _crons?.FirstOrDefault();
 
     /// <summary>链路追踪。追踪每一次定时事件</summary>
     public ITracer? Tracer { get; set; }
@@ -90,7 +94,7 @@ public class TimerX : IDisposable
     public String TracerName { get; set; }
 
     private DateTime _AbsolutelyNext;
-    private readonly Cron? _cron;
+    private readonly Cron[]? _crons;
     #endregion
 
     #region 静态
@@ -214,20 +218,27 @@ public class TimerX : IDisposable
     /// <summary>实例化一个Cron定时器</summary>
     /// <param name="callback">委托</param>
     /// <param name="state">用户数据</param>
-    /// <param name="cronExpression">Cron表达式</param>
+    /// <param name="cronExpression">Cron表达式。支持多个表达式，分号分隔</param>
     /// <param name="scheduler">调度器</param>
     public TimerX(TimerCallback callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
-        _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
+        var list = new List<Cron>();
+        foreach (var item in cronExpression.Split(";"))
+        {
+            var cron = new Cron();
+            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+
+            list.Add(cron);
+        }
+        _crons = list.ToArray();
 
         Absolutely = true;
 
         var now = DateTime.Now;
-        var next = _cron.GetNext(now);
+        var next = _crons.Min(e => e.GetNext(now));
         var ms = (Int64)(next - now).TotalMilliseconds;
         _AbsolutelyNext = next;
         Init(ms);
@@ -237,22 +248,29 @@ public class TimerX : IDisposable
     /// <summary>实例化一个Cron定时器</summary>
     /// <param name="callback">委托</param>
     /// <param name="state">用户数据</param>
-    /// <param name="cronExpression">Cron表达式</param>
+    /// <param name="cronExpression">Cron表达式。支持多个表达式，分号分隔</param>
     /// <param name="scheduler">调度器</param>
     public TimerX(Func<Object, Task> callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         if (cronExpression.IsNullOrEmpty()) throw new ArgumentNullException(nameof(cronExpression));
 
-        _cron = new Cron();
-        if (!_cron.Parse(cronExpression)) throw new ArgumentException("Invalid Cron expression", nameof(cronExpression));
+        var list = new List<Cron>();
+        foreach (var item in cronExpression.Split(";"))
+        {
+            var cron = new Cron();
+            if (!cron.Parse(item)) throw new ArgumentException($"Invalid Cron expression[{item}]", nameof(cronExpression));
+
+            list.Add(cron);
+        }
+        _crons = list.ToArray();
 
         IsAsyncTask = true;
         Async = true;
         Absolutely = true;
 
         var now = DateTime.Now;
-        var next = _cron.GetNext(now);
+        var next = _crons.Min(e => e.GetNext(now));
         var ms = (Int64)(next - now).TotalMilliseconds;
         _AbsolutelyNext = next;
         Init(ms);
@@ -326,12 +344,12 @@ public class TimerX : IDisposable
             // 绝对时间还没有到时，不计算下一次
             var now = DateTime.Now;
             DateTime next;
-            if (_cron != null)
+            if (_crons != null)
             {
-                next = _cron.GetNext(now);
+                next = _crons.Min(e => e.GetNext(now));
 
                 // 如果cron计算得到的下一次时间过近，则需要重新计算
-                if ((next - now).TotalMilliseconds < 1000) next = _cron.GetNext(next);
+                if ((next - now).TotalMilliseconds < 1000) next = _crons.Min(e => e.GetNext(next));
             }
             else
             {
@@ -395,7 +413,7 @@ public class TimerX : IDisposable
     #region 辅助
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{Id}]{Method.DeclaringType?.Name}.{Method.Name} ({(_cron != null ? _cron.ToString() : (Period + "ms"))})";
+    public override String ToString() => $"[{Id}]{Method.DeclaringType?.Name}.{Method.Name} ({(_crons != null ? _crons.Join(";") : (Period + "ms"))})";
     #endregion
 }
 #nullable restore
