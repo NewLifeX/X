@@ -645,7 +645,8 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                 // 兼容Linux
                 //if (Socket.OSSupportsIPv4)
                 list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetwork));
-                if (Socket.OSSupportsIPv6) list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetworkV6));
+                if (Socket.OSSupportsIPv6 && !Runtime.Mono)
+                    list.AddRange(CreateServer<TServer>(address, port, AddressFamily.InterNetworkV6));
                 break;
         }
 
