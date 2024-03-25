@@ -240,6 +240,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             var buf = new Byte[BufferSize];
             var size = Client.Receive(buf);
+            if (span != null) span.Value = size;
 
             return new Packet(buf, 0, size);
         }
@@ -459,6 +460,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         DefaultSpan.Current = null;
 
         using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "");
+        if (span != null) span.Value = pk.Total;
         try
         {
             LastTime = DateTime.Now;
