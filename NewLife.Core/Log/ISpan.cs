@@ -32,6 +32,9 @@ public interface ISpan : IDisposable
     /// <summary>结束时间。Unix毫秒</summary>
     Int64 EndTime { get; set; }
 
+    /// <summary>用户数值。记录数字型标量，如每次数据库操作行数，星尘平台汇总统计</summary>
+    Int64 Value { get; set; }
+
     /// <summary>数据标签。记录一些附加数据</summary>
     String? Tag { get; set; }
 
@@ -73,6 +76,9 @@ public class DefaultSpan : ISpan
 
     /// <summary>结束时间。Unix毫秒</summary>
     public Int64 EndTime { get; set; }
+
+    /// <summary>用户数值。记录数字型标量，如每次数据库操作行数，星尘平台汇总统计</summary>
+    public Int64 Value { get; set; }
 
     /// <summary>数据标签。记录一些附加数据</summary>
     public String? Tag { get; set; }

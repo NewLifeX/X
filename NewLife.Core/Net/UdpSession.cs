@@ -246,6 +246,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var ep = Remote.EndPoint as EndPoint;
             var buf = new Byte[Server.BufferSize];
             var size = Server.Client.ReceiveFrom(buf, ref ep);
+            if (span != null) span.Value = size;
 
             return new Packet(buf, 0, size);
         }

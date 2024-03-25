@@ -35,6 +35,9 @@ public interface ISpanBuilder
     /// <summary>最小耗时。单位ms</summary>
     Int32 MinCost { get; }
 
+    /// <summary>用户数值。记录数字型标量，如每次数据库操作行数，星尘平台汇总统计</summary>
+    Int64 Value { get; set; }
+
     /// <summary>正常采样</summary>
     IList<ISpan>? Samples { get; }
 
@@ -88,6 +91,10 @@ public class DefaultSpanBuilder : ISpanBuilder
     /// <summary>最小耗时。单位ms</summary>
     public Int32 MinCost { get; set; }
 
+    private Int64 _Value;
+    /// <summary>用户数值。记录数字型标量，如每次数据库操作行数，星尘平台汇总统计</summary>
+    public Int64 Value { get => _Value; set => _Value = value; }
+
     /// <summary>正常采样</summary>
     public IList<ISpan>? Samples { get; set; }
 
@@ -138,6 +145,9 @@ public class DefaultSpanBuilder : ISpanBuilder
         if (cost < 0) cost = 0;
         Interlocked.Add(ref _Cost, cost);
 
+        // 累加用户数值
+        if (span.Value != 0) Interlocked.Add(ref _Value, span.Value);
+
         // 最大最小耗时
         if (MaxCost < cost) MaxCost = cost;
         if (MinCost > cost || MinCost < 0) MinCost = cost;
@@ -154,7 +164,7 @@ public class DefaultSpanBuilder : ISpanBuilder
         {
             if (Interlocked.Increment(ref _Errors) <= tracer.MaxErrors || force && _Errors <= tracer.MaxErrors * 10)
             {
-                var ss = ErrorSamples ??= new List<ISpan>();
+                var ss = ErrorSamples ??= [];
                 lock (ss)
                 {
                     ss.Add(span);
@@ -164,7 +174,7 @@ public class DefaultSpanBuilder : ISpanBuilder
         // 未达最大数采样，超时采样，强制采样
         else if (total <= tracer.MaxSamples || (tracer.Timeout > 0 && cost > tracer.Timeout || force) && total <= tracer.MaxSamples * 10)
         {
-            var ss = Samples ??= new List<ISpan>();
+            var ss = Samples ??= [];
             lock (ss)
             {
                 ss.Add(span);

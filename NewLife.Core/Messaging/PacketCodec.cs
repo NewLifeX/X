@@ -80,6 +80,7 @@ public class PacketCodec
             ms = Stream;
 
             using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Total}]{pk.ToHex(500)}");
+            if (span != null) span.Value = pk.Total;
 
             // 合并数据到最后面
             if (pk != null && pk.Total > 0)
@@ -134,6 +135,7 @@ public class PacketCodec
         {
             var buf = ms.ReadBytes(retain > 64 ? 64 : retain);
             using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{buf.ToHex()}");
+            if (span != null) span.Value = retain;
             span?.SetError(new Exception($"数据包编码器放弃数据 retain={retain} MaxCache={MaxCache}"), null);
 
             if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", retain, Last, MaxCache);

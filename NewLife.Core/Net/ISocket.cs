@@ -127,9 +127,9 @@ public static class SocketRemoteHelper
     /// <returns>返回是否成功</returns>
     public static Int32 Send(this ISocketRemote session, Stream stream)
     {
-        // 空数据直接发出
-        var remain = stream.Length - stream.Position;
-        if (remain == 0) return session.Send(new Byte[0]);
+        //// 空数据直接发出
+        //var remain = stream.Length - stream.Position;
+        //if (remain == 0) return session.Send(new Byte[0]);
 
         var rs = 0;
         var buffer = new Byte[8192];
