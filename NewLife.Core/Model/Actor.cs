@@ -212,6 +212,9 @@ public abstract class Actor : DisposeBase, IActor
     protected virtual void Loop()
     {
         var box = MailBox;
+        if (box == null || _source == null) return;
+
+        var span = DefaultSpan.Current;
         var token = _source.Token;
         while (!_source.IsCancellationRequested && !box.IsCompleted)
         {
@@ -220,6 +223,8 @@ public abstract class Actor : DisposeBase, IActor
                 var ctx = box.Take(token);
                 var task = ReceiveAsync(ctx, token);
                 task?.Wait(token);
+
+                if (span != null) span.Value++;
             }
             else
             {
@@ -236,6 +241,8 @@ public abstract class Actor : DisposeBase, IActor
 
                     list.Add(ctx);
                 }
+                if (span != null) span.Value += list.Count;
+
                 var task = ReceiveAsync(list.ToArray(), token);
                 task?.Wait(token);
             }
