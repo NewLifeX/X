@@ -295,8 +295,7 @@ public class TcpSession : SessionBase, ISocketSession
 
         if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "");
-        if (span != null) span.Value = pk.Total;
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "", pk.Total);
 
         var rs = count;
         var sock = Client;
