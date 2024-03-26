@@ -456,8 +456,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 打断上下文调用链，这里必须是起点
         DefaultSpan.Current = null;
 
-        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "");
-        if (span != null) span.Value = pk.Total;
+        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "", pk.Total);
         try
         {
             LastTime = DateTime.Now;

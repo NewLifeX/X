@@ -200,9 +200,15 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         if (len <= 0 || tag == null) return span;
 
         if (tag is String str)
+        {
             span.Tag = str.Cut(len);
+            span.Value = str.Length;
+        }
         else if (tag is StringBuilder builder)
+        {
             span.Tag = builder.Length <= len ? builder.ToString() : builder.ToString(0, len);
+            span.Value = builder.Length;
+        }
         else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
         {
             if (tag is Packet pk)
@@ -212,6 +218,8 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                     span.Tag = pk.ToStr(null, 0, len);
                 else
                     span.Tag = pk.ToHex(len / 2);
+
+                span.Value = pk.Total;
             }
             //else if (tag is IMessage msg)
             //    span.Tag = msg.ToPacket().ToHex(len / 2);
@@ -288,6 +296,20 @@ public static class TracerExtension
         //client.SetUserAgent();
 
         return client;
+    }
+
+    /// <summary>开始一个Span，指定数据标签和用户数值</summary>
+    /// <param name="tracer">跟踪器</param>
+    /// <param name="name">操作名</param>
+    /// <param name="tag">数据</param>
+    /// <param name="value">用户数值。星尘平台汇总统计</param>
+    /// <returns></returns>
+    public static ISpan NewSpan(this ITracer tracer, String name, Object? tag, Int64 value)
+    {
+        var span = tracer.NewSpan(name, tag);
+        if (span != null) span.Value = value;
+
+        return span!;
     }
 
     /// <summary>为Http请求创建Span</summary>
