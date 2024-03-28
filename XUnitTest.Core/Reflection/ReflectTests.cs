@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using NewLife.Data;
 using NewLife.Reflection;
 using Xunit;
 
@@ -81,5 +82,71 @@ public class ReflectTests
         Assert.True(type.As(typeof(Dictionary<Int32, String>)));
         Assert.True(type.As(typeof(IDictionary<Int32, String>)));
         Assert.True(type.As(typeof(IDictionary<,>)));
+    }
+
+    [Fact]
+    public void CreateInstance()
+    {
+        var type = typeof(PageParameter);
+        var obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<PageParameter>(obj);
+
+        type = typeof(DbTable);
+        obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<DbTable>(obj);
+    }
+
+    //[Fact]
+    //public void CreateInstanceForArray()
+    //{
+    //    var type = typeof(Int32[]);
+    //    var obj = type.CreateInstance();
+    //    Assert.NotNull(obj);
+    //    Assert.IsType<Int32[]>(obj);
+
+    //    type = typeof(PageParameter[]);
+    //    obj = type.CreateInstance();
+    //    Assert.NotNull(obj);
+    //    Assert.IsType<PageParameter[]>(obj);
+    //}
+
+    [Fact]
+    public void CreateInstanceForList()
+    {
+        var type = typeof(List<Int32>);
+        var obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<List<Int32>>(obj);
+
+        type = typeof(IList<PageParameter>);
+        obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<List<PageParameter>>(obj);
+
+        type = typeof(IList);
+        obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<List<Object>>(obj);
+    }
+
+    [Fact]
+    public void CreateInstanceForDictionary()
+    {
+        var type = typeof(Dictionary<Int32, String>);
+        var obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<Dictionary<Int32, String>>(obj);
+
+        type = typeof(IDictionary<String, PageParameter>);
+        obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<Dictionary<String, PageParameter>>(obj);
+
+        type = typeof(IDictionary);
+        obj = type.CreateInstance();
+        Assert.NotNull(obj);
+        Assert.IsType<Dictionary<Object, Object>>(obj);
     }
 }
