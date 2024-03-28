@@ -470,4 +470,32 @@ public class JsonTest
         public Double Volume { get; set; }
         #endregion
     }
+
+    [Fact]
+    public void Convert()
+    {
+        var infos = new List<LineBill>
+        {
+            new() { Id = 1, FirstId = "1", LastId = "2", Weight = 1, Volume = 1 },
+            new() { Id = 2, FirstId = "2", LastId = "3", Weight = 2, Volume = 2 },
+            new() { Id = 3, FirstId = "3", LastId = "4", Weight = 3, Volume = 3 }
+        };
+        var p = new
+        {
+            infos,
+        };
+        var json = p.ToJson();
+
+        var dic = JsonParser.Decode(json);
+        var data = dic["infos"];
+        Assert.NotNull(data);
+
+        var fs = JsonHelper.Convert<IList<LineBill>>(data);
+        Assert.NotNull(fs);
+        Assert.Equal(infos.Count, fs.Count);
+
+        var arr = JsonHelper.Convert<LineBill[]>(data);
+        Assert.NotNull(arr);
+        Assert.Equal(infos.Count, arr.Length);
+    }
 }

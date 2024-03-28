@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
+using static System.Collections.Specialized.BitVector32;
 
 namespace NewLife.Reflection;
 
@@ -424,10 +425,40 @@ public class DefaultReflect : IReflect
     {
         try
         {
+            var code = type.GetTypeCode();
+
+            // 列表
+            if (code == TypeCode.Object && (type.As<IList>() || type.As(typeof(IList<>))))
+            {
+                var type2 = type;
+                if (type2.IsInterface)
+                {
+                    if (type2.IsGenericType)
+                        type2 = typeof(List<>).MakeGenericType(type2.GetGenericArguments());
+                    else if (type2 == typeof(IList))
+                        type2 = typeof(List<Object>);
+                }
+                return Activator.CreateInstance(type2);
+            }
+
+            // 字典
+            if (code == TypeCode.Object && (type.As<IDictionary>() || type.As(typeof(IDictionary<,>))))
+            {
+                var type2 = type;
+                if (type2.IsInterface)
+                {
+                    if (type2.IsGenericType)
+                        type2 = typeof(Dictionary<,>).MakeGenericType(type2.GetGenericArguments());
+                    else if (type2 == typeof(IDictionary))
+                        type2 = typeof(Dictionary<Object, Object>);
+                }
+                return Activator.CreateInstance(type2);
+            }
+
             if (parameters == null || parameters.Length == 0)
             {
                 // 基元类型
-                return type.GetTypeCode() switch
+                return code switch
                 {
                     //TypeCode.Empty or TypeCode.DBNull => null,
                     TypeCode.Boolean => false,
@@ -453,7 +484,6 @@ public class DefaultReflect : IReflect
         }
         catch (Exception ex)
         {
-            //throw new Exception("创建对象失败 type={0} parameters={1}".F(type.FullName, parameters.Join()), ex);
             throw new Exception($"Fail to create object type={type.FullName} parameters={parameters?.Join()} {ex.GetTrue()?.Message}", ex);
         }
     }
@@ -629,7 +659,8 @@ public class DefaultReflect : IReflect
             // 如果实现了IEnumerable<>接口，那么取泛型参数
             foreach (var item in type.GetInterfaces())
             {
-                if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>)) return item.GetGenericArguments()[0];
+                if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    return item.GetGenericArguments()[0];
             }
             //// 通过索引器猜测元素类型
             //var pi = type.GetProperty("Item", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
