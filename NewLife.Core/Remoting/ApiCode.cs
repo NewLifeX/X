@@ -6,6 +6,9 @@ public class ApiCode
     /// <summary>成功</summary>
     public const Int32 Ok = 0;
 
+    /// <summary>200成功。一般用于Http响应，也有部分JsonRpc使用该响应码表示成功</summary>
+    public const Int32 Ok200 = 200;
+
     /// <summary>未经许可。一般是指未登录</summary>
     public const Int32 Unauthorized = 401;
 
