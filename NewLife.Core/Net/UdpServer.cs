@@ -79,9 +79,17 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
             Client = sock = NetHelper.CreateUdp(Local.Address.IsIPv4());
 
-            // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
-            // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
-            if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            try
+            {
+                // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
+                // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
+                if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            }
+            catch (Exception ex)
+            {
+                // 有些平台不支持地址重用，比如旧版A2上的Ubuntu16，但是云服务器的Linux都支持
+                XTrace.WriteLine(ex.Message);
+            }
 
             sock.Bind(Local.EndPoint);
 
