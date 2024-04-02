@@ -22,7 +22,7 @@ public class MemoryCache : Cache
 {
     #region 属性
     /// <summary>缓存核心</summary>
-    protected ConcurrentDictionary<String, CacheItem> _cache;
+    protected ConcurrentDictionary<String, CacheItem> _cache = new();
 
     /// <summary>容量。容量超标时，采用LRU机制删除，默认100_000</summary>
     public Int32 Capacity { get; set; } = 100_000;
@@ -31,7 +31,7 @@ public class MemoryCache : Cache
     public Int32 Period { get; set; } = 60;
 
     /// <summary>缓存键过期</summary>
-    public event EventHandler<KeyEventArgs>? KeyExpired;
+    public event EventHandler<KeyEventArgs> KeyExpired;
     #endregion
 
     #region 静态默认实现
@@ -155,7 +155,10 @@ public class MemoryCache : Cache
     {
         if (!_cache.TryGetValue(key, out var item) || item == null || item.Expired) return default;
 
-        return item.Visit().ChangeType<T>();
+        var rs = item.Visit();
+        if (rs == null) return default;
+
+        return rs.ChangeType<T>();
     }
 
     /// <summary>批量移除缓存项</summary>
@@ -551,7 +554,7 @@ public class MemoryCache : Cache
 
     #region 清理过期缓存
     /// <summary>清理会话计时器</summary>
-    private TimerX? _clearTimer;
+    private TimerX _clearTimer;
 
     /// <summary>移除过期的缓存项</summary>
     private void RemoveNotAlive(Object state)
@@ -687,7 +690,7 @@ public class MemoryCache : Cache
                 else
                 {
                     bn.Write(type.FullName);
-                    bn.Write(Binary.FastWrite(ci.Value));
+                    if (ci.Value != null) bn.Write(Binary.FastWrite(ci.Value));
                 }
             }
         }
@@ -730,24 +733,25 @@ public class MemoryCache : Cache
             }
             else if (code != TypeCode.Object)
             {
-                value = bn.Read(Type.GetType("System." + code));
+                var type = Type.GetType("System." + code);
+                if (type != null) value = bn.Read(type);
             }
             else
             {
                 var typeName = bn.Read<String>();
                 //var type = Type.GetType(typeName);
-                var type = typeName.GetTypeEx();
+                var type = typeName?.GetTypeEx();
 
                 var pk = bn.Read<Packet>();
                 value = pk;
-                if (type != null)
+                if (type != null && pk != null)
                 {
                     var bn2 = new Binary() { Stream = pk.GetStream(), EncodeInt = true };
                     value = bn2.Read(type);
                 }
             }
 
-            Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
+            if (key != null) Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
         }
     }
 
