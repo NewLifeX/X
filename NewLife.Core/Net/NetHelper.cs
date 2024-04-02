@@ -323,7 +323,9 @@ public static class NetHelper
     {
         var list = new List<IPAddress>();
         foreach (var item in GetActiveInterfaces())
+        {
             if (item != null && item.DnsAddresses.Count > 0)
+            {
                 foreach (var elm in item.DnsAddresses)
                 {
                     if (list.Contains(elm)) continue;
@@ -331,6 +333,8 @@ public static class NetHelper
 
                     yield return elm;
                 }
+            }
+        }
     }
 
     /// <summary>获取可用的网关地址</summary>
@@ -339,7 +343,9 @@ public static class NetHelper
     {
         var list = new List<IPAddress>();
         foreach (var item in GetActiveInterfaces())
+        {
             if (item != null && item.GatewayAddresses.Count > 0)
+            {
                 foreach (var elm in item.GatewayAddresses)
                 {
                     if (list.Contains(elm.Address)) continue;
@@ -347,6 +353,8 @@ public static class NetHelper
 
                     yield return elm.Address;
                 }
+            }
+        }
     }
 
     /// <summary>获取可用的IP地址</summary>
@@ -375,8 +383,29 @@ public static class NetHelper
                 gw = ipp.GatewayAddresses.Count;
 #endif
 
+                // 引入权重因子，优先返回网关所在网卡的地址，优先IPv4，IPv6优先公网单播地址
                 foreach (var elm in ipp.UnicastAddresses)
                 {
+                    var factor = gw * 10 + 5;
+                    var addr = elm.Address;
+                    if (addr.IsIPv4())
+                    {
+                        factor++;
+                        if (addr.GetAddressBytes()[0] == 169) factor--;
+                    }
+                    else
+                    {
+
+                        if (addr.IsIPv4MappedToIPv6) continue;
+                        if (addr.IsIPv6LinkLocal) factor--;
+                        if (addr.IsIPv6Multicast) continue;
+                        if (addr.IsIPv6SiteLocal) continue;
+                        //if (addr.IsIPv6Teredo) continue;
+#if NET6_0_OR_GREATER
+                        if (addr.IsIPv6UniqueLocal) factor -= 2;
+#endif
+                    }
+
 #if NET5_0_OR_GREATER
                     try
                     {
@@ -387,7 +416,7 @@ public static class NetHelper
                     catch { }
 #endif
 
-                    dic.Add(elm, gw);
+                    dic.Add(elm, factor);
                 }
             }
         }
@@ -421,7 +450,9 @@ public static class NetHelper
     {
         var list = new List<IPAddress>();
         foreach (var item in GetActiveInterfaces())
+        {
             if (item != null && item.MulticastAddresses.Count > 0)
+            {
                 foreach (var elm in item.MulticastAddresses)
                 {
                     if (list.Contains(elm.Address)) continue;
@@ -429,6 +460,8 @@ public static class NetHelper
 
                     yield return elm.Address;
                 }
+            }
+        }
     }
 
     private static readonly String[] _Excludes = ["Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE"];
@@ -488,7 +521,7 @@ public static class NetHelper
         return null;
     }
 
-    /// <summary>获取本地第一个IPv4地址</summary>
+    /// <summary>获取本地第一个IPv4地址。一般是网关所在网卡的IP地址</summary>
     /// <returns></returns>
     public static IPAddress? MyIP() => GetIPsWithCache().FirstOrDefault(ip => ip.IsIPv4() && !IPAddress.IsLoopback(ip) && ip.GetAddressBytes()[0] != 169);
 
