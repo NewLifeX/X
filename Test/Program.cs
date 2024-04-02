@@ -69,7 +69,7 @@ public class Program
             try
             {
 #endif
-                Test7();
+                Test9();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -265,6 +265,16 @@ public class Program
         client.SendMessage($"Send File Finished!");
 
         //Console.ReadKey();
+    }
+
+    private static async void Test8()
+    {
+    }
+
+    private static void Test9()
+    {
+        var ips = NetHelper.GetIPs().Where(e => e.IsIPv4()).ToList();
+        XTrace.WriteLine(ips.Join(","));
     }
 
     private static void Test10()
