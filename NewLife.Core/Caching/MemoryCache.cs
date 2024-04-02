@@ -820,7 +820,8 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
             if (_collection is ConcurrentQueue<T> queue) return queue.IsEmpty;
             if (_collection is ConcurrentStack<T> stack) return stack.IsEmpty;
 
-            throw new NotSupportedException();
+            //throw new NotSupportedException();
+            return _collection.Count == 0;
         }
     }
 
