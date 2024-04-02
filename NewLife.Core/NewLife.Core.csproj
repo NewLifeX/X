@@ -7,7 +7,7 @@
     <Description>Core basic components: log (file / network), configuration (XML / JSON / HTTP), cache (memory / redis), network (TCP / UDP / HTTP), RPC framework, serialization (binary / XML / JSON), APM performance tracking. 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存（内存/Redis）、网络（Tcp/Udp/Http）、RPC框架、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2024 NewLife</Copyright>
-    <VersionPrefix>10.8</VersionPrefix>
+    <VersionPrefix>10.9</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -29,7 +29,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>重构雪花Id算法；新增IServiceProvider.CreateInstance；新增JsonOptions</PackageReleaseNotes>
+    <PackageReleaseNotes>新增JsonCodec网络编码器；新增SendFile发送文件；TimerX支持多个Cron表达式；新增ISpan.Value</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
