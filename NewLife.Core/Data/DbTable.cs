@@ -19,14 +19,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 {
     #region 属性
     /// <summary>数据列</summary>
-    public String[]? Columns { get; set; }
+    public String[] Columns { get; set; } = [];
 
     /// <summary>数据列类型</summary>
     [XmlIgnore, IgnoreDataMember]
-    public Type[]? Types { get; set; }
+    public Type[] Types { get; set; } = [];
 
     /// <summary>数据行</summary>
-    public IList<Object?[]>? Rows { get; set; }
+    public IList<Object?[]> Rows { get; set; } = [];
 
     /// <summary>总行数</summary>
     public Int32 Total { get; set; }
@@ -570,7 +570,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     public void LoadCsv(String file)
     {
         using var csv = new CsvFile(file, false);
-        Columns = csv.ReadLine();
+        var cs = csv.ReadLine();
+        if (cs != null) Columns = cs;
         Rows = csv.ReadAll();
     }
     #endregion
@@ -585,7 +586,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
         pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
 
-        Rows = new List<Object?[]>();
+        Rows = [];
         foreach (var item in models)
         {
             // 头部

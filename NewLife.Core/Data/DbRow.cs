@@ -7,33 +7,26 @@ namespace NewLife.Data;
 /// <remarks>
 /// 文档 https://newlifex.com/core/dbtable
 /// </remarks>
-public struct DbRow : IModel
+/// <remarks>构造数据行</remarks>
+/// <param name="table"></param>
+/// <param name="index"></param>
+public readonly struct DbRow(DbTable table, Int32 index) : IModel
 {
     #region 属性
     /// <summary>数据表</summary>
     [XmlIgnore, IgnoreDataMember]
-    public DbTable Table { get; set; }
+    public readonly DbTable Table { get; } = table;
 
     /// <summary>行索引</summary>
-    public Int32 Index { get; set; }
-    #endregion
+    public readonly Int32 Index { get; } = index;
 
-    #region 构造
-    /// <summary>构造数据行</summary>
-    /// <param name="table"></param>
-    /// <param name="index"></param>
-    public DbRow(DbTable table, Int32 index)
-    {
-        Table = table;
-        Index = index;
-    }
     #endregion
 
     #region 索引器
     /// <summary>基于列索引访问</summary>
     /// <param name="column"></param>
     /// <returns></returns>
-    public Object? this[Int32 column]
+    public readonly Object? this[Int32 column]
     {
         get => Table.Rows?[Index][column];
         set
@@ -54,6 +47,6 @@ public struct DbRow : IModel
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public T? Get<T>(String name) => Table.Get<T>(Index, name);
+    public readonly T? Get<T>(String name) => Table.Get<T>(Index, name);
     #endregion
 }
