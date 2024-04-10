@@ -590,7 +590,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         foreach (var item in models)
         {
             // 头部
-            if (Columns == null)
+            if (Columns == null || Columns.Length == 0)
             {
                 Columns = pis.Select(e => SerialHelper.GetName(e)).ToArray();
                 Types = pis.Select(e => e.PropertyType).ToArray();
