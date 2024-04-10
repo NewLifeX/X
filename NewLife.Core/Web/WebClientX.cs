@@ -123,19 +123,19 @@ namespace NewLife.Web
         }
         #endregion
 
-        #region 方法
-        /// <summary>获取指定地址的Html，自动处理文本编码</summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public String GetHtml(String url) => TaskEx.Run(() => DownloadStringAsync(url)).Result;
+    #region 方法
+    /// <summary>获取指定地址的Html，自动处理文本编码</summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    public String GetHtml(String url) => TaskEx.Run(() => DownloadStringAsync(url)).Result;
 
-        /// <summary>获取指定地址的Html，分析所有超链接</summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public Link[] GetLinks(String url)
-        {
-            var html = GetHtml(url);
-            if (html.IsNullOrWhiteSpace()) return new Link[0];
+    /// <summary>获取指定地址的Html，分析所有超链接</summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    public Link[] GetLinks(String url)
+    {
+        var html = GetHtml(url);
+        if (html.IsNullOrWhiteSpace()) return [];
 
             return Link.Parse(html, url);
         }

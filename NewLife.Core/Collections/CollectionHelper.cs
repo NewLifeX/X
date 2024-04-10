@@ -45,7 +45,7 @@ public static class CollectionHelper
         lock (collection)
         {
             var count = collection.Count;
-            if (count == 0) return new T[0];
+            if (count == 0) return [];
 
             var arr = new T[count];
             collection.CopyTo(arr, 0);
@@ -66,7 +66,7 @@ public static class CollectionHelper
 
         if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Keys as IList<TKey>;
 
-        if (collection.Count == 0) return new TKey[0];
+        if (collection.Count == 0) return [];
         lock (collection)
         {
             var arr = new TKey[collection.Count - index];
@@ -87,7 +87,7 @@ public static class CollectionHelper
 
         if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
 
-        if (collection.Count == 0) return new TValue[0];
+        if (collection.Count == 0) return [];
         lock (collection)
         {
             var arr = new TValue[collection.Count - index];
