@@ -167,15 +167,15 @@ namespace XUnitTest.Data
             Assert.Equal("DbTable[ver=2]无法支持较新的版本[3]", ex.Message);
         }
 
-        [Fact]
-        public void ModelsTest()
+    [Fact]
+    public void ModelsTest()
+    {
+        var list = new List<UserModel>
         {
-            var list = new List<UserModel>
-            {
-                new UserModel { ID = 11, Name = "Stone", Time = DateTime.Now },
-                new UserModel { ID = 22, Name = "大石头", Time = DateTime.Today },
-                new UserModel { ID = 33, Name = "新生命", Time = DateTime.UtcNow }
-            };
+            new() { ID = 11, Name = "Stone", Time = DateTime.Now },
+            new() { ID = 22, Name = "大石头", Time = DateTime.Today },
+            new() { ID = 33, Name = "新生命", Time = DateTime.UtcNow }
+        };
 
             var dt = new DbTable();
             dt.WriteModels(list);
