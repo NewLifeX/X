@@ -46,7 +46,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>借出去的放在这</summary>
     private readonly ConcurrentDictionary<T, Item> _busy = new();
 
-    private readonly Object SyncRoot = new();
+    //private readonly Object SyncRoot = new();
     #endregion
 
     #region 构造
@@ -79,7 +79,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     {
         if (_inited) return;
 
-        lock (SyncRoot)
+        lock (this)
         {
             if (_inited) return;
             _inited = true;

@@ -100,7 +100,7 @@ public class WebClientX : DisposeBase
     /// <summary>获取指定地址的Html，自动处理文本编码</summary>
     /// <param name="url"></param>
     /// <returns></returns>
-    public String GetHtml(String url) => DownloadStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+    public String GetHtml(String url) => Task.Run(() => DownloadStringAsync(url)).Result;
 
     /// <summary>获取指定地址的Html，分析所有超链接</summary>
     /// <param name="url"></param>
@@ -108,7 +108,7 @@ public class WebClientX : DisposeBase
     public Link[] GetLinks(String url)
     {
         var html = GetHtml(url);
-        if (html.IsNullOrWhiteSpace()) return new Link[0];
+        if (html.IsNullOrWhiteSpace()) return [];
 
         return Link.Parse(html, url);
     }

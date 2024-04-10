@@ -13,8 +13,10 @@ public static class PluginHelper
     /// <param name="linkName"></param>
     /// <param name="urls">提供下载地址的多个目标页面</param>
     /// <returns></returns>
-    public static Type? LoadPlugin(String typeName, String disname, String dll, String linkName, String? urls = null)
+    public static Type? LoadPlugin(String typeName, String? disname, String dll, String linkName, String? urls = null)
     {
+        if (typeName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(typeName));
+
         //var type = typeName.GetTypeEx(true);
         var type = Type.GetType(typeName);
         if (type != null) return type;
@@ -51,14 +53,20 @@ public static class PluginHelper
 
         if (linkName.IsNullOrEmpty()) return null;
 
-        lock (typeName)
+        // 按类型名锁定，超时取不到锁，则放弃
+        if (!Monitor.TryEnter(typeName, 15_000)) return null;
+
+        //lock (typeName)
         {
+            type = Type.GetType(typeName);
+            if (type != null) return type;
+
             if (urls.IsNullOrEmpty()) urls = set.PluginServer;
 
             // 如果本地没有数据库，则从网络下载
             if (!File.Exists(file))
             {
-                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", disname ?? dll, urls);
+                XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
 
                 var client = new WebClientX()
                 {

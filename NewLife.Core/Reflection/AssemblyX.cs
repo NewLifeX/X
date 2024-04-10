@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using NewLife.Collections;
 using NewLife.Log;
@@ -314,7 +310,7 @@ public class AssemblyX
         // 如果type是null，则返回所有类型
         if (_plugins.TryGetValue(baseType, out var list)) return list;
 
-        list = new List<Type>();
+        list = [];
         try
         {
             foreach (var item in Asm.GetTypes())

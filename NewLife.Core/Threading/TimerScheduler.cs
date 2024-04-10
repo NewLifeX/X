@@ -11,7 +11,7 @@ public class TimerScheduler : ILogFeature
     #region 静态
     private TimerScheduler(String name) => Name = name;
 
-    private static readonly Dictionary<String, TimerScheduler> _cache = new();
+    private static readonly Dictionary<String, TimerScheduler> _cache = [];
 
     /// <summary>创建指定名称的调度器</summary>
     /// <param name="name"></param>
