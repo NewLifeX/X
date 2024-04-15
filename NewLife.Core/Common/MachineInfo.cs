@@ -13,6 +13,17 @@ using NewLife.Windows;
 
 namespace NewLife;
 
+/// <summary>机器信息接口</summary>
+/// <remarks>用于扩展MachineInfo功能，具体应用自定义各字段获取方式</remarks>
+public interface IMachineInfo
+{
+    /// <summary>初始化静态数据</summary>
+    void Init(MachineInfo info);
+
+    /// <summary>刷新动态数据</summary>
+    void Refresh(MachineInfo info);
+}
+
 /// <summary>机器信息</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/machine_info
@@ -94,9 +105,12 @@ public class MachineInfo
     public Double Battery { get; set; }
     #endregion
 
-    #region 构造
+    #region 全局静态
     /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
     public static MachineInfo Current { get; set; }
+
+    /// <summary>机器信息提供者。外部实现可修改部分行为</summary>
+    public static IMachineInfo Provider { get; set; }
 
     //static MachineInfo() => RegisterAsync();
 
@@ -175,7 +189,7 @@ public class MachineInfo
     #endregion
 
     #region 方法
-    /// <summary>刷新</summary>
+    /// <summary>初始化静态数据。可能是实例化后执行，也可能是Json反序列化后执行</summary>
     public void Init()
     {
         var osv = Environment.OSVersion;
@@ -187,6 +201,8 @@ public class MachineInfo
         {
             //if (Runtime.Windows)
             LoadWindowsInfo();
+
+            Provider?.Init(this);
         }
         catch (Exception ex)
         {
@@ -298,20 +314,27 @@ public class MachineInfo
         Board = GetInfo("Win32_BaseBoard", "SerialNumber");
     }
 
-    private ICollection<String> _excludes = new List<String>();
+    private readonly ICollection<String> _excludes = [];
 
     /// <summary>获取实时数据，如CPU、内存、温度</summary>
     public void Refresh()
     {
         if (Runtime.Windows)
+            RefreshWindows();
+
+        RefreshSpeed();
+
+        Provider?.Refresh(this);
+    }
+
+    private void RefreshWindows()
+    {
+        MEMORYSTATUSEX ms = default;
+        ms.Init();
+        if (GlobalMemoryStatusEx(ref ms))
         {
-            MEMORYSTATUSEX ms = default;
-            ms.Init();
-            if (GlobalMemoryStatusEx(ref ms))
-            {
-                Memory = ms.ullTotalPhys;
-                AvailableMemory = ms.ullAvailPhys;
-            }
+            Memory = ms.ullTotalPhys;
+            AvailableMemory = ms.ullAvailPhys;
         }
 
         if (Runtime.Windows)
@@ -458,7 +481,7 @@ public class MachineInfo
                 if (!k.IsNullOrEmpty() && !v.IsNullOrEmpty())
                 {
                     if (!dic.TryGetValue(k, out var list))
-                        dic[k] = list = new List<String>();
+                        dic[k] = list = [];
 
                     list.Add(v);
                 }
