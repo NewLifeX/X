@@ -10,6 +10,7 @@ using NewLife.Log;
 using NewLife.Model;
 using NewLife.Serialization;
 using NewLife.Windows;
+using NewLife.Data;
 
 namespace NewLife;
 
@@ -30,7 +31,7 @@ public interface IMachineInfo
 /// 
 /// 刷新信息成本较高，建议采用单例模式
 /// </remarks>
-public class MachineInfo
+public class MachineInfo : IExtend
 {
     #region 属性
     /// <summary>系统名称</summary>
@@ -86,7 +87,7 @@ public class MachineInfo
 
     /// <summary>CPU占用率</summary>
     [DisplayName("CPU占用率")]
-    public Single CpuRate { get; set; }
+    public Double CpuRate { get; set; }
 
     /// <summary>网络上行速度。字节每秒，初始化后首次读取为0</summary>
     [DisplayName("网络上行速度")]
@@ -103,6 +104,14 @@ public class MachineInfo
     /// <summary>电池剩余。小于1的小数，常用百分比表示</summary>
     [DisplayName("电池剩余")]
     public Double Battery { get; set; }
+
+    private readonly Dictionary<String, Object> _items = [];
+    IDictionary<String, Object> IExtend.Items => _items;
+
+    /// <summary>获取 或 设置 扩展属性数据</summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public Object this[String key] { get => _items.TryGetValue(key, out var obj) ? obj : null; set => _items[key] = value; }
     #endregion
 
     #region 全局静态
@@ -351,7 +360,7 @@ public class MachineInfo
             var total = current.TotalTime - (_systemTime?.TotalTime ?? 0);
             _systemTime = current;
 
-            CpuRate = total == 0 ? 0 : (Single)Math.Round((Single)(total - idle) / total, 4);
+        CpuRate = total == 0 ? 0 : Math.Round((Double)(total - idle) / total, 4);
 
             var power = new PowerStatus();
 
