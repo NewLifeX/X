@@ -23,6 +23,17 @@ using Microsoft.Win32;
 
 namespace NewLife;
 
+/// <summary>机器信息接口</summary>
+/// <remarks>用于扩展MachineInfo功能，具体应用自定义各字段获取方式</remarks>
+public interface IMachineInfo
+{
+    /// <summary>初始化静态数据</summary>
+    void Init(MachineInfo info);
+
+    /// <summary>刷新动态数据</summary>
+    void Refresh(MachineInfo info);
+}
+
 /// <summary>机器信息</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/machine_info
@@ -104,9 +115,12 @@ public class MachineInfo
     public Double Battery { get; set; }
     #endregion
 
-    #region 构造
+    #region 全局静态
     /// <summary>当前机器信息。默认null，在RegisterAsync后才能使用</summary>
     public static MachineInfo? Current { get; set; }
+
+    /// <summary>机器信息提供者。外部实现可修改部分行为</summary>
+    public static IMachineInfo? Provider { get; set; }
 
     //static MachineInfo() => RegisterAsync().Wait(100);
 
@@ -182,7 +196,7 @@ public class MachineInfo
     #endregion
 
     #region 方法
-    /// <summary>刷新</summary>
+    /// <summary>初始化静态数据。可能是实例化后执行，也可能是Json反序列化后执行</summary>
     public void Init()
     {
         var osv = Environment.OSVersion;
@@ -205,6 +219,8 @@ public class MachineInfo
             else if (Runtime.Linux)
                 LoadLinuxInfo();
 #endif
+
+            Provider?.Init(this);
         }
         catch (Exception ex)
         {
@@ -504,6 +520,30 @@ public class MachineInfo
             if (Serial.IsNullOrEmpty() && dic2.TryGetValue("Serial", out str)) Serial = str;
             if (Board.IsNullOrEmpty() && dic2.TryGetValue("Board", out str)) Board = str;
         }
+
+        if (!Processor.IsNullOrEmpty())
+        {
+            // 识别全志sunxi平台
+            if (TryRead("/sys/class/sunxi_info/sys_info", out value))
+            {
+                var dic2 = value.SplitAsDictionary(":", Environment.NewLine, true);
+                if (dic2.TryGetValue("sunxi_platform", out var txt) && !txt.IsNullOrEmpty())
+                {
+                    Processor = txt switch
+                    {
+                        "sun50iw9" => "H616",
+                        "sun50iw10" => "A133",
+                        _ => txt,
+                    };
+                    if (Product.IsNullOrEmpty() && txt.StartsWith("sun50i")) Product = "Cortex-A53";
+                    if (Vendor.IsNullOrEmpty()) Vendor = "Allwinner";
+                }
+                if (uuid.IsNullOrEmpty() && dic2.TryGetValue("sunxi_chipid", out txt) && !txt.IsNullOrEmpty())
+                    UUID = txt;
+                if (Serial.IsNullOrEmpty() && dic2.TryGetValue("sunxi_serial", out txt) && !txt.IsNullOrEmpty())
+                    Serial = txt;
+            }
+        }
     }
 
     private void LoadMacInfo()
@@ -536,7 +576,7 @@ public class MachineInfo
         }
     }
 
-    private readonly ICollection<String> _excludes = new List<String>();
+    private readonly ICollection<String> _excludes = [];
 
     /// <summary>获取实时数据，如CPU、内存、温度</summary>
     public void Refresh()
@@ -548,6 +588,8 @@ public class MachineInfo
             RefreshLinux();
 
         RefreshSpeed();
+
+        Provider?.Refresh(this);
     }
 
     private void RefreshWindows()
@@ -940,7 +982,7 @@ public class MachineInfo
                 if (!k.IsNullOrEmpty() && !v.IsNullOrEmpty())
                 {
                     if (!dic.TryGetValue(k, out var list))
-                        dic[k] = list = new List<String>();
+                        dic[k] = list = [];
 
                     list.Add(v);
                 }
