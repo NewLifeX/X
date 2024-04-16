@@ -202,7 +202,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         if (tag is String str)
         {
             span.Tag = str.Cut(len);
-            span.Value = str.Length;
+            //span.Value = str.Length;
         }
         else if (tag is StringBuilder builder)
         {
