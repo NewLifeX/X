@@ -126,14 +126,17 @@ public class Xml : FormatterBase, IXml
         var rs = WriteStart(type);
         try
         {
-            if (rs && value != null)
+            if (rs /*&& value != null*/)
             {
                 foreach (var item in Handlers)
                 {
                     if (item.Write(value, type)) return true;
                 }
 
-                writer.WriteValue(value);
+                if (value != null)
+                    writer.WriteValue(value);
+
+                return true;
             }
 
             return false;
