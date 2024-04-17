@@ -25,10 +25,10 @@ public class Xml : FormatterBase, IXml
     public Boolean EnumString { get; set; } = true;
 
     /// <summary>XML写入设置</summary>
-    public XmlWriterSettings Setting { get; set; }
+    public XmlWriterSettings? Setting { get; set; }
 
     /// <summary>当前名称</summary>
-    public String CurrentName { get; set; }
+    public String? CurrentName { get; set; }
     #endregion
 
     #region 构造
@@ -86,7 +86,7 @@ public class Xml : FormatterBase, IXml
     /// <param name="name">名称</param>
     /// <param name="type">类型</param>
     /// <returns></returns>
-    public Boolean Write(Object value, String name = null, Type type = null)
+    public Boolean Write(Object? value, String? name = null, Type? type = null)
     {
         if (type == null)
         {
@@ -98,17 +98,17 @@ public class Xml : FormatterBase, IXml
         var writer = GetWriter();
 
         // 检查接口
-        if (value is IXmlSerializable)
+        if (value is IXmlSerializable xml)
         {
-            (value as IXmlSerializable).WriteXml(writer);
+            xml.WriteXml(writer);
             return true;
         }
 
-        if (String.IsNullOrEmpty(name))
+        if (name.IsNullOrEmpty())
         {
             // 优先采用类型上的XmlRoot特性
             name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
-            if (String.IsNullOrEmpty(name)) name = GetName(type);
+            if (name.IsNullOrEmpty()) name = GetName(type);
         }
 
         name = name.Replace('<', '_');
@@ -123,21 +123,27 @@ public class Xml : FormatterBase, IXml
         Depth++;
         if (Depth == 1) writer.WriteStartDocument();
 
-        WriteStart(type);
+        var rs = WriteStart(type);
         try
         {
-            foreach (var item in Handlers)
+            if (rs /*&& value != null*/)
             {
-                if (item.Write(value, type)) return true;
-            }
+                foreach (var item in Handlers)
+                {
+                    if (item.Write(value, type)) return true;
+                }
 
-            writer.WriteValue(value);
+                if (value != null)
+                    writer.WriteValue(value);
+
+                return true;
+            }
 
             return false;
         }
         finally
         {
-            WriteEnd();
+            if (rs) WriteEnd();
             if (Depth == 1)
             {
                 writer.WriteEndDocument();
@@ -147,12 +153,15 @@ public class Xml : FormatterBase, IXml
         }
     }
 
-    Boolean IFormatterX.Write(Object value, Type type) => Write(value, null, type);
+    Boolean IFormatterX.Write(Object? value, Type? type) => Write(value, null, type);
 
     /// <summary>写入开头</summary>
     /// <param name="type"></param>
-    public void WriteStart(Type type)
+    public Boolean WriteStart(Type type)
     {
+        var name = CurrentName;
+        if (name.IsNullOrEmpty()) return false;
+
         var att = UseAttribute;
         if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
         if (att && !type.IsValueType && type.GetTypeCode() == TypeCode.Object) att = false;
@@ -169,11 +178,12 @@ public class Xml : FormatterBase, IXml
             if (!des.IsNullOrEmpty()) writer.WriteComment(des);
         }
 
-        var name = CurrentName;
         if (att)
             writer.WriteStartAttribute(name);
         else
             writer.WriteStartElement(name);
+
+        return true;
     }
 
     /// <summary>写入结尾</summary>
@@ -194,7 +204,7 @@ public class Xml : FormatterBase, IXml
         }
     }
 
-    private XmlWriter _Writer;
+    private XmlWriter? _Writer;
     /// <summary>获取Xml写入器</summary>
     /// <returns></returns>
     public XmlWriter GetWriter()
@@ -220,10 +230,10 @@ public class Xml : FormatterBase, IXml
     /// <summary>读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object Read(Type type)
+    public Object? Read(Type type)
     {
         var value = type.As<Array>() ? null : type.CreateInstance();
-        if (!TryRead(type, ref value)) throw new Exception("读取失败！");
+        if (!TryRead(type, ref value)) throw new Exception("Read failed!");
 
         return value;
     }
@@ -231,13 +241,13 @@ public class Xml : FormatterBase, IXml
     /// <summary>读取指定类型对象</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public T Read<T>() => (T)Read(typeof(T));
+    public T? Read<T>() => (T?)Read(typeof(T));
 
     /// <summary>尝试读取指定类型对象</summary>
     /// <param name="type"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public Boolean TryRead(Type type, ref Object value)
+    public Boolean TryRead(Type type, ref Object? value)
     {
         var reader = GetReader();
         // 移动到第一个元素
@@ -300,7 +310,7 @@ public class Xml : FormatterBase, IXml
         if (reader.NodeType == XmlNodeType.EndElement) reader.ReadEndElement();
     }
 
-    private XmlReader _Reader;
+    private XmlReader? _Reader;
     /// <summary>获取Xml读取器</summary>
     /// <returns></returns>
     public XmlReader GetReader()
@@ -314,7 +324,11 @@ public class Xml : FormatterBase, IXml
     #region 辅助方法
     private static String GetName(Type type)
     {
-        if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
+        if (type.HasElementType)
+        {
+            var elmType = type.GetElementTypeEx();
+            return elmType == null ? "Array" : "ArrayOf" + GetName(elmType);
+        }
 
         var name = type.GetName();
         name = name.Replace("<", "_");
