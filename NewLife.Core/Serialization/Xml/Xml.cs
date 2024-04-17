@@ -98,17 +98,17 @@ public class Xml : FormatterBase, IXml
         var writer = GetWriter();
 
         // 检查接口
-        if (value is IXmlSerializable)
+        if (value is IXmlSerializable xml)
         {
-            (value as IXmlSerializable).WriteXml(writer);
+            xml.WriteXml(writer);
             return true;
         }
 
-        if (String.IsNullOrEmpty(name))
+        if (name.IsNullOrEmpty())
         {
             // 优先采用类型上的XmlRoot特性
             name = type.GetCustomAttributeValue<XmlRootAttribute, String>(true);
-            if (String.IsNullOrEmpty(name)) name = GetName(type);
+            if (name.IsNullOrEmpty()) name = GetName(type);
         }
 
         name = name.Replace('<', '_');
@@ -123,21 +123,27 @@ public class Xml : FormatterBase, IXml
         Depth++;
         if (Depth == 1) writer.WriteStartDocument();
 
-        WriteStart(type);
+        var rs = WriteStart(type);
         try
         {
-            foreach (var item in Handlers)
+            if (rs /*&& value != null*/)
             {
-                if (item.Write(value, type)) return true;
-            }
+                foreach (var item in Handlers)
+                {
+                    if (item.Write(value, type)) return true;
+                }
 
-            writer.WriteValue(value);
+                if (value != null)
+                    writer.WriteValue(value);
+
+                return true;
+            }
 
             return false;
         }
         finally
         {
-            WriteEnd();
+            if (rs) WriteEnd();
             if (Depth == 1)
             {
                 writer.WriteEndDocument();
@@ -151,8 +157,11 @@ public class Xml : FormatterBase, IXml
 
     /// <summary>写入开头</summary>
     /// <param name="type"></param>
-    public void WriteStart(Type type)
+    public Boolean WriteStart(Type type)
     {
+        var name = CurrentName;
+        if (name.IsNullOrEmpty()) return false;
+
         var att = UseAttribute;
         if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
         if (att && !type.IsValueType && type.GetTypeCode() == TypeCode.Object) att = false;
@@ -169,11 +178,12 @@ public class Xml : FormatterBase, IXml
             if (!des.IsNullOrEmpty()) writer.WriteComment(des);
         }
 
-        var name = CurrentName;
         if (att)
             writer.WriteStartAttribute(name);
         else
             writer.WriteStartElement(name);
+
+        return true;
     }
 
     /// <summary>写入结尾</summary>
@@ -314,7 +324,11 @@ public class Xml : FormatterBase, IXml
     #region 辅助方法
     private static String GetName(Type type)
     {
-        if (type.HasElementType) return "ArrayOf" + GetName(type.GetElementType());
+        if (type.HasElementType)
+        {
+            var elmType = type.GetElementTypeEx();
+            return elmType == null ? "Array" : "ArrayOf" + GetName(elmType);
+        }
 
         var name = type.GetName();
         name = name.Replace("<", "_");
