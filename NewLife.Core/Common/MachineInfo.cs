@@ -451,7 +451,7 @@ public class MachineInfo : IExtend
 
             //if (device.TryGetValue("Fingerprint", out str) && !str.IsNullOrEmpty())
             //    CpuID = str;
-            if (dic.TryGetValue("Serial", out str))
+            if (dic.TryGetValue("Serial", out str) && !str.IsNullOrEmpty() && !str.Trim('0').IsNullOrEmpty())
                 UUID = str;
         }
 
@@ -519,15 +519,16 @@ public class MachineInfo : IExtend
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
         if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
 
+        // 从*-release文件读取产品信息，具有更高优先级
         file = "/etc/os-release";
         if (TryRead(file, out value))
         {
             var dic2 = value.SplitAsDictionary("=", Environment.NewLine, true);
 
-            if (Vendor.IsNullOrEmpty() && dic2.TryGetValue("Vendor", out str)) Vendor = str;
-            if (Product.IsNullOrEmpty() && dic2.TryGetValue("Product", out str)) Product = str;
-            if (Serial.IsNullOrEmpty() && dic2.TryGetValue("Serial", out str)) Serial = str;
-            if (Board.IsNullOrEmpty() && dic2.TryGetValue("Board", out str)) Board = str;
+            if (dic2.TryGetValue("Vendor", out str)) Vendor = str;
+            if (dic2.TryGetValue("Product", out str)) Product = str;
+            if (dic2.TryGetValue("Serial", out str)) Serial = str;
+            if (dic2.TryGetValue("Board", out str)) Board = str;
         }
     }
 
