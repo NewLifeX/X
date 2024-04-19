@@ -64,7 +64,7 @@ public static class SerialHelper
             if (line++ > 0) sb.AppendLine();
 
             var type = item.Value?.GetType() ?? typeof(Object);
-            if (type.GetTypeCode() != TypeCode.Object)
+            if (type.IsBaseType())
                 sb.AppendLine($"{prefix}\tpublic {type.Name} {name} {{ get; set; }}");
             else if (item.Value is IDictionary<String, Object?> sub)
             {

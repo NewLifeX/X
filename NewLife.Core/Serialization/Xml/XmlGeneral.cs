@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Xml;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization;
 
@@ -19,7 +20,7 @@ public class XmlGeneral : XmlHandlerBase
     /// <returns>是否处理成功</returns>
     public override Boolean Write(Object? value, Type type)
     {
-        if (value == null && type != typeof(String)) return false;
+        //if (value == null && type != typeof(String)) return false;
 
         var writer = Host.GetWriter();
 
@@ -34,7 +35,7 @@ public class XmlGeneral : XmlHandlerBase
             return true;
         }
 
-        switch (Type.GetTypeCode(type))
+        switch (type.GetTypeCode())
         {
             case TypeCode.Boolean:
                 writer.WriteValue((Boolean)(value ?? false));
@@ -157,8 +158,8 @@ public class XmlGeneral : XmlHandlerBase
             return true;
         }
 
-        var code = Type.GetTypeCode(type);
-        if (code == TypeCode.Object) return false;
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        if (!type.IsBaseType()) return false;
 
         // 读取异构Xml时可能报错
         var v = (reader.NodeType == XmlNodeType.Element ? reader.ReadElementContentAsString() : reader.ReadContentAsString()) + "";
@@ -170,7 +171,7 @@ public class XmlGeneral : XmlHandlerBase
             return true;
         }
 
-        switch (code)
+        switch (type.GetTypeCode())
         {
             case TypeCode.Boolean:
                 value = v.ToBoolean();

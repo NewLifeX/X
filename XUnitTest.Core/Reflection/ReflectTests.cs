@@ -155,6 +155,32 @@ public class ReflectTests
     }
 
     [Theory]
+    [InlineData(typeof(Boolean?))]
+    [InlineData(typeof(Char?))]
+    [InlineData(typeof(SByte?))]
+    [InlineData(typeof(Byte?))]
+    [InlineData(typeof(Int16?))]
+    [InlineData(typeof(UInt16?))]
+    [InlineData(typeof(Int32?))]
+    [InlineData(typeof(UInt32?))]
+    [InlineData(typeof(Int64?))]
+    [InlineData(typeof(UInt64?))]
+    [InlineData(typeof(Single?))]
+    [InlineData(typeof(Double?))]
+    [InlineData(typeof(Decimal?))]
+    [InlineData(typeof(DateTime?))]
+    //[InlineData(typeof(Guid))]
+    //[InlineData(typeof(Byte[]))]
+    //[InlineData(typeof(TimeSpan))]
+    //[InlineData(typeof(Enum))]
+    //[InlineData(typeof(ServiceStatus))]
+    [InlineData(typeof(ServiceStatus?))]
+    public void IsNullable(Type type)
+    {
+        Assert.True(type.IsNullable());
+    }
+
+    [Theory]
     [InlineData("true", typeof(Boolean), true)]
     [InlineData("1", typeof(Boolean), true)]
     [InlineData("0", typeof(Boolean), false)]

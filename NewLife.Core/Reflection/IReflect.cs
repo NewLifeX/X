@@ -555,7 +555,7 @@ public class DefaultReflect : IReflect
 
         var targetType = target.GetType();
         // 基础类型无法拷贝
-        if (targetType.GetTypeCode() != TypeCode.Object) throw new XException("The underlying type {0} cannot be copied", targetType.FullName);
+        if (targetType.IsBaseType()) throw new XException("The base type {0} cannot be copied", targetType.FullName);
 
         // 不是深度拷贝时，直接复制引用
         if (!deep)
@@ -627,7 +627,9 @@ public class DefaultReflect : IReflect
             if (source.TryGetValue(pi.Name, out var obj))
             {
                 // 基础类型直接拷贝，不考虑深拷贝
-                if (deep && pi.PropertyType.GetTypeCode() == TypeCode.Object)
+                if (!deep || pi.PropertyType.IsBaseType())
+                    SetValue(target, pi, obj);
+                else
                 {
                     var v = GetValue(target, pi);
 
@@ -639,8 +641,6 @@ public class DefaultReflect : IReflect
                     }
                     if (v != null && obj != null) Copy(v, obj, deep);
                 }
-                else
-                    SetValue(target, pi, obj);
             }
         }
     }
@@ -676,6 +676,7 @@ public class DefaultReflect : IReflect
     /// <returns></returns>
     public virtual Object? ChangeType(Object? value, Type conversionType)
     {
+        // 值类型就是目标类型
         Type? vtype = null;
         if (value != null) vtype = value.GetType();
         if (vtype == conversionType) return value;
@@ -692,6 +693,7 @@ public class DefaultReflect : IReflect
             conversionType = utype;
         }
 
+        var code = Type.GetTypeCode(conversionType);
         //conversionType = Nullable.GetUnderlyingType(conversionType) ?? conversionType;
         if (conversionType.IsEnum)
         {
@@ -705,7 +707,7 @@ public class DefaultReflect : IReflect
         if (vtype == typeof(String))
         {
             var str = (String)(value ?? String.Empty);
-            if (Type.GetTypeCode(conversionType) == TypeCode.Decimal)
+            if (code == TypeCode.Decimal)
             {
                 value = str.TrimStart(['$', '￥']);
             }
@@ -715,14 +717,14 @@ public class DefaultReflect : IReflect
             }
 
             // 字符串转为简单整型，如果长度比较小，满足32位整型要求，则先转为32位再改变类型
-            var code = Type.GetTypeCode(conversionType);
-            if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10) return Convert.ChangeType(value.ToLong(), conversionType);
+            if (code >= TypeCode.Int16 && code <= TypeCode.UInt64 && str.Length <= 10)
+                return Convert.ChangeType(value.ToLong(), conversionType);
         }
 
         if (value != null)
         {
             // 尝试基础类型转换
-            switch (Type.GetTypeCode(conversionType))
+            switch (code)
             {
                 case TypeCode.Boolean:
                     return value.ToBoolean();

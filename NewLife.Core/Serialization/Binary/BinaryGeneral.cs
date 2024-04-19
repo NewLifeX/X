@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization;
 
@@ -16,9 +17,21 @@ public class BinaryGeneral : BinaryHandlerBase
     /// <returns>是否处理成功</returns>
     public override Boolean Write(Object? value, Type type)
     {
-        if (value == null && type != typeof(String)) return false;
+        //if (value == null && type != typeof(String)) return false;
 
-        switch (Type.GetTypeCode(type))
+        // 可空类型，先写入一个字节表示是否为空
+        if (type.IsNullable())
+        {
+            if (value == null)
+            {
+                Host.Write((Byte)0);
+                return true;
+            }
+            else
+                Host.Write((Byte)1);
+        }
+
+        switch (type.GetTypeCode())
         {
             case TypeCode.Boolean:
                 Host.Write((Byte)(value != null && (Boolean)value ? 1 : 0));
@@ -89,7 +102,18 @@ public class BinaryGeneral : BinaryHandlerBase
             type = value.GetType();
         }
 
-        var code = Type.GetTypeCode(type);
+        // 可空类型，先写入一个字节表示是否为空
+        if (type.IsNullable())
+        {
+            var v = Host.ReadByte();
+            if (v == 0)
+            {
+                value = null;
+                return true;
+            }
+        }
+
+        var code = type.GetTypeCode();
         switch (code)
         {
             case TypeCode.Boolean:

@@ -354,6 +354,8 @@ public static class Reflect
     /// <returns></returns>
     public static TResult? ChangeType<TResult>(this Object? value)
     {
+        if (value == null && typeof(TResult).IsValueType) return default;
+        if (value == null && typeof(TResult).IsNullable()) return (TResult?)(Object?)null;
         if (value is TResult result) return result;
 
         return (TResult?)ChangeType(value, typeof(TResult));
@@ -414,6 +416,11 @@ public static class Reflect
     public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(Nullable.GetUnderlyingType(type) ?? type);
 
     /// <summary>是否基础类型。识别常见基元类型和String，支持可空类型</summary>
+    /// <remarks>
+    /// 基础类型可以方便的进行字符串转换，用于存储于传输。
+    /// 在序列化时，基础类型作为原子数据不可再次拆分，而复杂类型则可以进一步拆分。
+    /// 包括：Boolean/Char/SByte/Byte/Int16/UInt16/Int32/UInt32/Int64/UInt64/Single/Double/Decimal/DateTime/String/枚举，以及这些类型的可空类型
+    /// </remarks>
     /// <param name="type"></param>
     /// <returns></returns>
     public static Boolean IsBaseType(this Type type)
@@ -421,6 +428,11 @@ public static class Reflect
         type = Nullable.GetUnderlyingType(type) ?? type;
         return Type.GetTypeCode(type) != TypeCode.Object;
     }
+
+    /// <summary>是否可空类型。继承泛型定义Nullable的类型</summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static Boolean IsNullable(this Type type) => type.IsGenericType && !type.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
     /// <summary>是否整数。Byte/Int16/Int32/Int64</summary>
     /// <param name="type"></param>

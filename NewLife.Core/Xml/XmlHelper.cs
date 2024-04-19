@@ -218,8 +218,7 @@ public static class XmlHelper
 
     internal static Boolean CanXmlConvert(this Type type)
     {
-        var code = Type.GetTypeCode(type);
-        if (code != TypeCode.Object) return true;
+        if (type.IsBaseType()) return true;
 
         if (!type.IsValueType) return false;
 
@@ -233,7 +232,7 @@ public static class XmlHelper
         if (value == null) return null;
 
         var type = value.GetType();
-        var code = Type.GetTypeCode(type);
+        var code = type.GetTypeCode();
         if (code == TypeCode.String) return value.ToString();
         if (code == TypeCode.DateTime) return XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.RoundtripKind);
 
@@ -250,7 +249,7 @@ public static class XmlHelper
     {
         if (xml == null) return null;
 
-        var code = Type.GetTypeCode(type);
+        var code = type.GetTypeCode();
         if (code == TypeCode.String) return xml;
         if (code == TypeCode.DateTime) return XmlConvert.ToDateTime(xml, XmlDateTimeSerializationMode.RoundtripKind);
 

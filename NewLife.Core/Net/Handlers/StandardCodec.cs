@@ -24,7 +24,7 @@ public class StandardCodec : MessageCodec<IMessage>
     public override Object? Write(IHandlerContext context, Object message)
     {
         // 基础类型优先编码
-        if (message.GetType().GetTypeCode() != TypeCode.Object)
+        if (message.GetType().IsBaseType())
         {
             message = new DefaultMessage { Flag = (Byte)DataKinds.String, Payload = (message + "").GetBytes() };
         }

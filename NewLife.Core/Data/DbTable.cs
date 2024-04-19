@@ -584,7 +584,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         // 可用属性
         var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        pis = pis.Where(e => e.PropertyType.GetTypeCode() != TypeCode.Object).ToArray();
+        pis = pis.Where(e => e.PropertyType.IsBaseType()).ToArray();
 
         Rows = [];
         foreach (var item in models)

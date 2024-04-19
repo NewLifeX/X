@@ -20,7 +20,7 @@ public class BinaryComposite : BinaryHandlerBase
     public override Boolean Write(Object? value, Type type)
     {
         // 不支持基本类型
-        if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+        if (type.IsBaseType()) return false;
 
         var ims = Host.IgnoreMembers;
 
@@ -127,7 +127,7 @@ public class BinaryComposite : BinaryHandlerBase
         }
 
         // 不支持基本类型
-        if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+        if (type.IsBaseType()) return false;
 
         // 不支持基类不是Object的特殊类型
         if (!type.As<Object>()) return false;

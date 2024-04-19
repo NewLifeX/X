@@ -67,9 +67,12 @@ public class DefaultPacketEncoder : IPacketEncoder
             if (type == typeof(Byte[])) return data.ReadBytes();
             if (type.As<IAccessor>()) return type.AccessorRead(data);
 
+            // 可空类型
+            if (data.Total == 0 && type.IsNullable()) return null;
+
             var str = data.ToStr();
             if (type.GetTypeCode() == TypeCode.String) return str;
-            if (type.GetTypeCode() != TypeCode.Object) return str.ChangeType(type);
+            if (type.IsBaseType()) return str.ChangeType(type);
 
             return str.ToJsonEntity(type);
         }

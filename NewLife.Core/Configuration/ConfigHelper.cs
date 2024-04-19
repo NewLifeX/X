@@ -233,7 +233,7 @@ public static class ConfigHelper
             for (var i = 0; i < childs.Length; i++)
             {
                 var val = elementType.CreateInstance();
-                if (elementType.GetTypeCode() != TypeCode.Object)
+                if (elementType.IsBaseType())
                 {
                     val = childs[i].Value;
                 }
@@ -314,7 +314,7 @@ public static class ConfigHelper
     private static void MapObject(IConfigSection section, IConfigSection cfg, Object? val, Type type)
     {
         // 分别处理基本类型、数组类型、复杂类型
-        if (type.GetTypeCode() != TypeCode.Object)
+        if (type.IsBaseType())
         {
             cfg.SetValue(val);
         }
@@ -355,7 +355,7 @@ public static class ConfigHelper
             var cfg2 = cfg.AddChild(elementType.Name);
 
             // 分别处理基本类型和复杂类型
-            if (item.GetType().GetTypeCode() != TypeCode.Object)
+            if (item.GetType().IsBaseType())
                 cfg2.SetValue(item);
             else
                 MapFrom(cfg2, item);

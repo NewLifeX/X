@@ -100,7 +100,7 @@ public class FieldSizeAttribute : Attribute
         }
 
         // 目标字段必须是整型
-        var tc = Type.GetTypeCode(type);
+        var tc = type.GetTypeCode();
         if (tc is >= TypeCode.SByte and <= TypeCode.UInt64) return mi;
 
         return null;
