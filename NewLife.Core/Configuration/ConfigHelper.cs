@@ -15,7 +15,7 @@ public static class ConfigHelper
     /// <param name="key"></param>
     /// <param name="createOnMiss"></param>
     /// <returns></returns>
-    public static IConfigSection Find(this IConfigSection section, String key, Boolean createOnMiss = false)
+    public static IConfigSection? Find(this IConfigSection section, String key, Boolean createOnMiss = false)
     {
         if (key.IsNullOrEmpty()) return section;
 
@@ -47,7 +47,7 @@ public static class ConfigHelper
     /// <returns></returns>
     public static IConfigSection AddChild(this IConfigSection section, String key)
     {
-        if (section == null) return null;
+        //if (section == null) return null;
 
         var cfg = new ConfigSection { Key = key };
         section.Childs ??= new List<IConfigSection>();
@@ -62,7 +62,7 @@ public static class ConfigHelper
     /// <returns></returns>
     public static IConfigSection GetOrAddChild(this IConfigSection section, String key)
     {
-        if (section == null) return null;
+        //if (section == null) return null;
 
         var cfg = section.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(key));
         if (cfg != null) return cfg;
@@ -77,7 +77,7 @@ public static class ConfigHelper
     /// <summary>设置节点值。格式化友好字符串</summary>
     /// <param name="section"></param>
     /// <param name="value"></param>
-    internal static void SetValue(this IConfigSection section, Object value)
+    internal static void SetValue(this IConfigSection section, Object? value)
     {
         if (value is DateTime dt)
             section.Value = dt.ToFullString();
@@ -99,10 +99,12 @@ public static class ConfigHelper
         if (childs == null || childs.Length == 0 || model == null) return;
 
         // 支持字典
-        if (model is IDictionary<String, Object> dic)
+        if (model is IDictionary<String, Object?> dic)
         {
             foreach (var cfg in childs)
             {
+                if (cfg.Key.IsNullOrEmpty()) continue;
+
                 dic[cfg.Key] = cfg.Value;
 
                 if (cfg.Childs != null && cfg.Childs.Count > 0)
@@ -177,7 +179,11 @@ public static class ConfigHelper
 
     private static void MapToArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
+        if (section.Childs == null) return;
+
         var elementType = pi.PropertyType.GetElementTypeEx();
+        if (elementType == null) return;
+
         var count = section.Childs.Count;
 
         // 实例化数组
@@ -197,13 +203,13 @@ public static class ConfigHelper
             {
                 if (sec.Key == elementType.Name)
                 {
-                    arr.SetValue(sec.Value.ChangeType(elementType), i);
+                    arr.SetValue(sec.Value?.ChangeType(elementType), i);
                 }
             }
             else
             {
                 var val = elementType.CreateInstance();
-                MapTo(sec, val, provider);
+                if (val != null) MapTo(sec, val, provider);
                 arr.SetValue(val, i);
             }
         }
@@ -212,38 +218,42 @@ public static class ConfigHelper
     private static void MapToList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();
+        if (elementType == null) return;
 
         // 实例化列表
-        if (model.GetValue(pi) is not IList list)
+        if (model.GetValue(pi) is IList list)
+        {
+            // 映射前清空原有数据
+            list.Clear();
+
+            if (section.Childs == null) return;
+
+            // 逐个映射
+            var childs = section.Childs.ToArray();
+            for (var i = 0; i < childs.Length; i++)
+            {
+                var val = elementType.CreateInstance();
+                if (elementType.IsBaseType())
+                {
+                    val = childs[i].Value;
+                }
+                else
+                {
+                    if (val != null) MapTo(childs[i], val, provider);
+                    //list[i] = val;
+                }
+                list.Add(val);
+            }
+        }
+        else
         {
             var obj = !pi.PropertyType.IsInterface ?
                 pi.PropertyType.CreateInstance() :
                 typeof(List<>).MakeGenericType(elementType).CreateInstance();
 
-            list = obj as IList;
-            if (list == null) return;
+            if (obj is not IList list2) return;
 
-            model.SetValue(pi, list);
-        }
-
-        // 映射前清空原有数据
-        list.Clear();
-
-        // 逐个映射
-        var childs = section.Childs.ToArray();
-        for (var i = 0; i < childs.Length; i++)
-        {
-            var val = elementType.CreateInstance();
-            if (elementType.GetTypeCode() != TypeCode.Object)
-            {
-                val = childs[i].Value;
-            }
-            else
-            {
-                MapTo(childs[i], val, provider);
-                //list[i] = val;
-            }
-            list.Add(val);
+            model.SetValue(pi, list2);
         }
     }
 
@@ -255,7 +265,7 @@ public static class ConfigHelper
         if (section == null) return;
 
         // 支持字典
-        if (model is IDictionary<String, Object> dic)
+        if (model is IDictionary<String, Object?> dic)
         {
             foreach (var item in dic)
             {
@@ -301,16 +311,20 @@ public static class ConfigHelper
         }
     }
 
-    private static void MapObject(IConfigSection section, IConfigSection cfg, Object val, Type type)
+    private static void MapObject(IConfigSection section, IConfigSection cfg, Object? val, Type type)
     {
         // 分别处理基本类型、数组类型、复杂类型
-        if (type.GetTypeCode() != TypeCode.Object)
+        if (type.IsBaseType())
         {
             cfg.SetValue(val);
         }
         else if (type.As<IList>() || type.As(typeof(IList<>)))
         {
-            if (val is IList list) MapArray(section, cfg, list, type.GetElementTypeEx());
+            if (val is IList list)
+            {
+                var elementType = type.GetElementTypeEx();
+                if (elementType != null) MapArray(section, cfg, list, elementType);
+            }
         }
         else if (val != null)
         {
@@ -321,9 +335,16 @@ public static class ConfigHelper
 
     private static void MapArray(IConfigSection section, IConfigSection cfg, IList list, Type elementType)
     {
+        if (section.Childs == null) return;
+
         // 为了避免数组元素叠加，干掉原来的
         section.Childs.Remove(cfg);
-        cfg = new ConfigSection { Key = cfg.Key, Childs = new List<IConfigSection>(), Comment = cfg.Comment };
+        cfg = new ConfigSection
+        {
+            Key = cfg.Key,
+            Childs = new List<IConfigSection>(),
+            Comment = cfg.Comment
+        };
         section.Childs.Add(cfg);
 
         // 数组元素是没有key的集合
@@ -334,7 +355,7 @@ public static class ConfigHelper
             var cfg2 = cfg.AddChild(elementType.Name);
 
             // 分别处理基本类型和复杂类型
-            if (item.GetType().GetTypeCode() != TypeCode.Object)
+            if (item.GetType().IsBaseType())
                 cfg2.SetValue(item);
             else
                 MapFrom(cfg2, item);

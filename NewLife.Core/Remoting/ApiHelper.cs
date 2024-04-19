@@ -330,8 +330,9 @@ public static class ApiHelper
 
         // 简单类型
         if (data is TResult result) return result;
-        if (rtype == typeof(Object)) return (TResult)data;
-        if (rtype.GetTypeCode() != TypeCode.Object) return data.ChangeType<TResult>();
+        if (rtype == typeof(Object)) return (TResult?)data;
+        if (data == null && rtype.IsNullable()) return (TResult?)(Object?)null;
+        if (rtype.IsBaseType()) return data.ChangeType<TResult>();
 
         // 反序列化
         if (data == null) return default;

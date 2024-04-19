@@ -7,6 +7,7 @@ using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Reflection;
 using NewLife.Http.Headers;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -350,7 +351,7 @@ public static class SpanExtension
 
         var type = args.GetType();
         if (type.IsArray || type.IsValueType || type == typeof(String)) return args;
-        if (Type.GetTypeCode(type) != TypeCode.Object) return args;
+        if (type.IsBaseType()) return args;
 
         // 注入参数名
         var name = GetAttachParameter(span);

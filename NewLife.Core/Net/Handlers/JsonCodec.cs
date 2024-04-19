@@ -20,7 +20,7 @@ public class JsonCodec : Handler
     public override Object? Write(IHandlerContext context, Object message)
     {
         var ext = context as IExtend;
-        if (message.GetType().GetTypeCode() != TypeCode.Object)
+        if (message.GetType().IsBaseType())
         {
             var str = message is DateTime dt ? dt.ToFullString() : message + "";
             message = str.GetBytes();

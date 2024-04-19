@@ -780,7 +780,7 @@ public class TinyHttpClient : DisposeBase, IApiClient
     public TResult ProcessResponse<TResult>(Packet rs)
     {
         var str = rs.ToStr();
-        if (Type.GetTypeCode(typeof(TResult)) != TypeCode.Object) return str.ChangeType<TResult>();
+        if (typeof(TResult).IsBaseType()) return str.ChangeType<TResult>();
 
         // 反序列化
         var dic = JsonParser.Decode(str);

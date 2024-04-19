@@ -164,7 +164,7 @@ public class Xml : FormatterBase, IXml
 
         var att = UseAttribute;
         if (!att && Member?.GetCustomAttribute<XmlAttributeAttribute>() != null) att = true;
-        if (att && !type.IsValueType && type.GetTypeCode() == TypeCode.Object) att = false;
+        if (att && !type.IsValueType && !type.IsBaseType()) att = false;
 
         var writer = GetWriter();
 

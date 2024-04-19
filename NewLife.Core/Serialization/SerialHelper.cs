@@ -65,14 +65,14 @@ namespace NewLife.Serialization
 
                 if (line++ > 0) sb.AppendLine();
 
-                var type = item.Value?.GetType() ?? typeof(Object);
-                if (type.GetTypeCode() != TypeCode.Object)
-                    sb.AppendLine($"{prefix}\tpublic {type.Name} {name} {{ get; set; }}");
-                else if (item.Value is IDictionary<String, Object> sub)
-                {
-                    var subclassName = name + "Model";
-                    sb.AppendLine($"{prefix}\tpublic {subclassName} {name} {{ get; set; }}");
-                    sb.AppendLine();
+            var type = item.Value?.GetType() ?? typeof(Object);
+            if (type.IsBaseType())
+                sb.AppendLine($"{prefix}\tpublic {type.Name} {name} {{ get; set; }}");
+            else if (item.Value is IDictionary<String, Object?> sub)
+            {
+                var subclassName = name + "Model";
+                sb.AppendLine($"{prefix}\tpublic {subclassName} {name} {{ get; set; }}");
+                sb.AppendLine();
 
                     BuildModel(sb, sub, subclassName, prefix + "\t");
                 }
