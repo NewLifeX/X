@@ -203,7 +203,7 @@ public class JsonReader
             if (!pi.CanWrite) continue;
 
             var pt = pi.PropertyType;
-            if (pt.GetTypeCode() != TypeCode.Object)
+            if (pt.IsBaseType())
                 target.SetValue(pi, ChangeType(v, pt));
             else
             {
@@ -261,9 +261,9 @@ public class JsonReader
 
         if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
 
-        if (type.GetTypeCode() == TypeCode.Object) return null;
+        if (type.IsBaseType()) return value.ChangeType(type);
 
-        return value.ChangeType(type);
+        return null;
     }
 
     private StringDictionary CreateSD(IDictionary<String, Object> dic)

@@ -17,7 +17,7 @@ public class JsonComposite : JsonHandlerBase
         Priority = 100;
 
         //IgnoreMembers = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
-        IgnoreMembers = new HashSet<String>();
+        IgnoreMembers = [];
     }
 
     /// <summary>获取对象的Json字符串表示形式。</summary>
@@ -32,7 +32,7 @@ public class JsonComposite : JsonHandlerBase
         if (type == typeof(Byte[])) return Convert.ToBase64String((Byte[])value);
         if (type == typeof(Char[])) return new String((Char[])value);
 
-        switch (Type.GetTypeCode(value.GetType()))
+        switch (value.GetType().GetTypeCode())
         {
             case TypeCode.Boolean:
                 return value + "";
@@ -75,7 +75,7 @@ public class JsonComposite : JsonHandlerBase
         if (value == null) return false;
 
         // 不支持基本类型
-        if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+        if (type.IsBaseType()) return false;
 
         var ms = GetMembers(type);
         WriteLog("JsonWrite类{0} 共有成员{1}个", type.Name, ms.Count);
@@ -122,7 +122,7 @@ public class JsonComposite : JsonHandlerBase
         }
 
         // 不支持基本类型
-        if (Type.GetTypeCode(type) != TypeCode.Object) return false;
+        if (type.IsBaseType()) return false;
         // 不支持基类不是Object的特殊类型
         //if (type.BaseType != typeof(Object)) return false;
         if (!type.As<Object>()) return false;

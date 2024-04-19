@@ -1,4 +1,6 @@
-﻿namespace NewLife.Serialization;
+﻿using NewLife.Reflection;
+
+namespace NewLife.Serialization;
 
 /// <summary>Json基础类型处理器</summary>
 public class JsonGeneral : JsonHandlerBase
@@ -18,7 +20,7 @@ public class JsonGeneral : JsonHandlerBase
         if (type == typeof(Byte[])) return Convert.ToBase64String((Byte[])value);
         if (type == typeof(Char[])) return new String((Char[])value);
 
-        switch (Type.GetTypeCode(value.GetType()))
+        switch (type.GetTypeCode())
         {
             case TypeCode.Boolean:
                 return value + "";

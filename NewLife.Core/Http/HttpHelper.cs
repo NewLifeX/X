@@ -396,7 +396,7 @@ public static class HttpHelper
                 content.Add(new StringContent(str), item.Key);
             else if (item.Value is Byte[] buf)
                 content.Add(new ByteArrayContent(buf), item.Key);
-            else if (item.Value == null || item.Value.GetType().GetTypeCode() != TypeCode.Object)
+            else if (item.Value == null || item.Value.GetType().IsBaseType())
                 content.Add(new StringContent(item.Value + ""), item.Key);
             else
                 content.Add(new StringContent(item.Value.ToJson()), item.Key);
@@ -551,7 +551,7 @@ public static class HttpHelper
                     content.Add(new StringContent(str), item.Key);
                 else if (item.Value is Byte[] buf)
                     content.Add(new ByteArrayContent(buf), item.Key);
-                else if (item.Value == null || item.Value.GetType().GetTypeCode() != TypeCode.Object)
+                else if (item.Value == null || item.Value.GetType().IsBaseType())
                     content.Add(new StringContent(item.Value + ""), item.Key);
                 else
                     content.Add(new StringContent(item.Value.ToJson()), item.Key);
