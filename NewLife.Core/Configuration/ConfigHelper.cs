@@ -143,7 +143,7 @@ public static class ConfigHelper
     private static void MapToObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         // 分别处理基本类型、数组类型、复杂类型
-        if (pi.PropertyType.GetTypeCode() != TypeCode.Object)
+        if (pi.PropertyType.IsBaseType())
         {
             model.SetValue(pi, cfg.Value);
         }
@@ -199,7 +199,7 @@ public static class ConfigHelper
             var sec = section.Childs[i];
 
             // 基元类型
-            if (elementType.GetTypeCode() != TypeCode.Object)
+            if (elementType.IsBaseType())
             {
                 if (sec.Key == elementType.Name)
                 {
