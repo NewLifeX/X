@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NewLife.Data;
+using NewLife.IoT.ThingModels;
 using NewLife.Reflection;
 using Xunit;
 
@@ -12,6 +13,7 @@ public class ReflectTests
     [Theory]
     [InlineData(typeof(Boolean))]
     [InlineData(typeof(Char))]
+    [InlineData(typeof(SByte))]
     [InlineData(typeof(Byte))]
     [InlineData(typeof(Int16))]
     [InlineData(typeof(UInt16))]
@@ -22,8 +24,8 @@ public class ReflectTests
     [InlineData(typeof(Single))]
     [InlineData(typeof(Double))]
     [InlineData(typeof(Decimal))]
-    [InlineData(typeof(String))]
     [InlineData(typeof(DateTime))]
+    [InlineData(typeof(String))]
     [InlineData(typeof(Guid))]
     [InlineData(typeof(Byte[]))]
     public void GetTypeExTest(Type type)
@@ -34,7 +36,128 @@ public class ReflectTests
     }
 
     [Theory]
+    [InlineData(typeof(Boolean), TypeCode.Boolean)]
+    [InlineData(typeof(Char), TypeCode.Char)]
+    [InlineData(typeof(SByte), TypeCode.SByte)]
+    [InlineData(typeof(Byte), TypeCode.Byte)]
+    [InlineData(typeof(Int16), TypeCode.Int16)]
+    [InlineData(typeof(UInt16), TypeCode.UInt16)]
+    [InlineData(typeof(Int32), TypeCode.Int32)]
+    [InlineData(typeof(UInt32), TypeCode.UInt32)]
+    [InlineData(typeof(Int64), TypeCode.Int64)]
+    [InlineData(typeof(UInt64), TypeCode.UInt64)]
+    [InlineData(typeof(Single), TypeCode.Single)]
+    [InlineData(typeof(Double), TypeCode.Double)]
+    [InlineData(typeof(Decimal), TypeCode.Decimal)]
+    [InlineData(typeof(DateTime), TypeCode.DateTime)]
+    [InlineData(typeof(String), TypeCode.String)]
+    [InlineData(typeof(Guid), TypeCode.Object)]
+    [InlineData(typeof(Byte[]), TypeCode.Object)]
+    [InlineData(typeof(TimeSpan), TypeCode.Object)]
+    [InlineData(typeof(Enum), TypeCode.Object)]
+    [InlineData(typeof(ServiceStatus), TypeCode.Int32)]
+    public void GetTypeCode(Type type, TypeCode code)
+    {
+        Assert.Equal(code, Type.GetTypeCode(type));
+    }
+
+    [Theory]
+    [InlineData(typeof(Boolean))]
+    [InlineData(typeof(Char))]
+    [InlineData(typeof(SByte))]
+    [InlineData(typeof(Byte))]
+    [InlineData(typeof(Int16))]
+    [InlineData(typeof(UInt16))]
+    [InlineData(typeof(Int32))]
+    [InlineData(typeof(UInt32))]
+    [InlineData(typeof(Int64))]
+    [InlineData(typeof(UInt64))]
+    [InlineData(typeof(Single))]
+    [InlineData(typeof(Double))]
+    [InlineData(typeof(Decimal))]
+    [InlineData(typeof(DateTime))]
+    //[InlineData(typeof(String))]
+    [InlineData(typeof(Guid))]
+    //[InlineData(typeof(Byte[]))]
+    [InlineData(typeof(TimeSpan))]
+    //[InlineData(typeof(Enum))]
+    [InlineData(typeof(ServiceStatus))]
+    public void IsValueType(Type type)
+    {
+        Assert.True(type.IsValueType);
+    }
+
+    [Theory]
+    [InlineData(typeof(Boolean))]
+    [InlineData(typeof(Char))]
+    [InlineData(typeof(SByte))]
+    [InlineData(typeof(Byte))]
+    [InlineData(typeof(Int16))]
+    [InlineData(typeof(UInt16))]
+    [InlineData(typeof(Int32))]
+    [InlineData(typeof(UInt32))]
+    [InlineData(typeof(Int64))]
+    [InlineData(typeof(UInt64))]
+    [InlineData(typeof(Single))]
+    [InlineData(typeof(Double))]
+    //[InlineData(typeof(Decimal))]
+    //[InlineData(typeof(DateTime))]
+    //[InlineData(typeof(String))]
+    //[InlineData(typeof(Guid))]
+    //[InlineData(typeof(Byte[]))]
+    //[InlineData(typeof(TimeSpan))]
+    //[InlineData(typeof(Enum))]
+    //[InlineData(typeof(ServiceStatus))]
+    public void IsPrimitive(Type type)
+    {
+        Assert.True(type.IsPrimitive);
+    }
+
+    [Theory]
+    [InlineData(typeof(Boolean))]
+    [InlineData(typeof(Char))]
+    [InlineData(typeof(SByte))]
+    [InlineData(typeof(Byte))]
+    [InlineData(typeof(Int16))]
+    [InlineData(typeof(UInt16))]
+    [InlineData(typeof(Int32))]
+    [InlineData(typeof(UInt32))]
+    [InlineData(typeof(Int64))]
+    [InlineData(typeof(UInt64))]
+    [InlineData(typeof(Single))]
+    [InlineData(typeof(Double))]
+    [InlineData(typeof(Decimal))]
+    [InlineData(typeof(DateTime))]
+    [InlineData(typeof(String))]
+    [InlineData(typeof(Boolean?))]
+    [InlineData(typeof(Char?))]
+    [InlineData(typeof(SByte?))]
+    [InlineData(typeof(Byte?))]
+    [InlineData(typeof(Int16?))]
+    [InlineData(typeof(UInt16?))]
+    [InlineData(typeof(Int32?))]
+    [InlineData(typeof(UInt32?))]
+    [InlineData(typeof(Int64?))]
+    [InlineData(typeof(UInt64?))]
+    [InlineData(typeof(Single?))]
+    [InlineData(typeof(Double?))]
+    [InlineData(typeof(Decimal?))]
+    [InlineData(typeof(DateTime?))]
+    //[InlineData(typeof(Guid))]
+    //[InlineData(typeof(Byte[]))]
+    //[InlineData(typeof(TimeSpan))]
+    //[InlineData(typeof(Enum))]
+    [InlineData(typeof(ServiceStatus))]
+    [InlineData(typeof(ServiceStatus?))]
+    public void IsBaseType(Type type)
+    {
+        Assert.True(type.IsBaseType());
+    }
+
+    [Theory]
     [InlineData("true", typeof(Boolean), true)]
+    [InlineData("1", typeof(Boolean), true)]
+    [InlineData("0", typeof(Boolean), false)]
     [InlineData("1234", typeof(Int16), (Int16)1234)]
     [InlineData("1234", typeof(Int32), 1234)]
     [InlineData("12.34", typeof(Double), 12.34)]

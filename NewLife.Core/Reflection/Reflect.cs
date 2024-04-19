@@ -400,10 +400,19 @@ public static class Reflect
         };
     }
 
-    /// <summary>获取类型代码</summary>
+    /// <summary>获取类型代码，支持可空类型</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(type);
+    public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(Nullable.GetUnderlyingType(type) ?? type);
+
+    /// <summary>是否基础类型。识别常见基元类型和String，支持可空类型</summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static Boolean IsBaseType(this Type type)
+    {
+        type = Nullable.GetUnderlyingType(type) ?? type;
+        return Type.GetTypeCode(type) != TypeCode.Object;
+    }
 
     /// <summary>是否整数。Byte/Int16/Int32/Int64</summary>
     /// <param name="type"></param>
