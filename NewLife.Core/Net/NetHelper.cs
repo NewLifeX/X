@@ -638,13 +638,8 @@ public static class NetHelper
             {
                 NetType.Tcp => new TcpSession { Remote = remote },
                 NetType.Udp => new UdpServer { Remote = remote },
-#if NET20
                 NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Default : SslProtocols.None },
-                NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Default : SslProtocols.None },
-#else
-                NetType.Http => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-                NetType.WebSocket => new TcpSession { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Tls12 : SslProtocols.None },
-#endif
+                NetType.WebSocket => new WebSocketClient { Remote = remote, SslProtocol = remote.Port == 443 ? SslProtocols.Default : SslProtocols.None },
                 _ => throw new NotSupportedException($"The {remote.Type} protocol is not supported"),
             };
     }
