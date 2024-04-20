@@ -1,10 +1,9 @@
-﻿using System.Net.Sockets;
-using NewLife;
-using NewLife.Caching;
+﻿using NewLife.Caching;
 using NewLife.Caching.Services;
 using NewLife.Log;
 using NewLife.Model;
 using Stardust;
+using Zero.Server;
 using Zero.TcpServer;
 using Zero.TcpServer.Handlers;
 
@@ -51,32 +50,11 @@ server.Start();
 // 注册到星尘，非必须
 star?.Service?.Register("MyNetServer", () => $"tcp://*:{server.Port},udp://*:{server.Port}");
 
-// 客户端测试，非服务端代码
-_ = Task.Run(ClientTest);
+// 客户端测试，非服务端代码，正式使用时请注释掉
+_ = Task.Run(ClientTest.TcpClientTest);
+_ = Task.Run(ClientTest.UdpClientTest);
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
 await host.RunAsync();
 
-async void ClientTest()
-{
-    await Task.Delay(1_000);
-
-    var client = new TcpClient();
-    await client.ConnectAsync("127.0.0.1", 12345);
-    var ns = client.GetStream();
-
-    // 接收服务端握手
-    var buf = new Byte[1024];
-    var count = await ns.ReadAsync(buf);
-    XTrace.WriteLine("<={0}", buf.ToStr(null, 0, count));
-
-    // 发送数据
-    var str = "Hello NewLife";
-    XTrace.WriteLine("=>{0}", str);
-    await ns.WriteAsync(str.GetBytes());
-
-    // 接收数据
-    count = await ns.ReadAsync(buf);
-    XTrace.WriteLine("<={0}", buf.ToStr(null, 0, count));
-}

@@ -49,7 +49,7 @@ server.Map("/ws", new WebSocketHandler());
 
 server.Start();
 
-// 发布到星尘注册中心
+// 注册到星尘，非必须
 await star.Service?.RegisterAsync("Zero.HttpServer", $"http://*:{server.Port}");
 
 // 客户端测试，非服务端代码，正式使用时请注释掉
