@@ -57,8 +57,9 @@ namespace NewLife.Http
         {
             if (!FastValidHeader(pk)) return false;
 
-            var p = pk.IndexOf(NewLine);
-            if (p < 0) return false;
+        // 识别整个请求头
+        var p = pk.IndexOf(NewLine);
+        if (p < 0) return false;
 
             var str = pk.ReadBytes(0, p).ToStr();
 
