@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyTitle>网络服务器</AssemblyTitle>
+    <Description>高性能网络服务器，单机最高400万连接，可用于建立各种协议的网络服务器</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2024 NewLife</Copyright>
+    <VersionPrefix>1.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    <OutputPath>..\..\Bin\Server</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NewLife.Redis" Version="5.6.2024.402" />
+    <PackageReference Include="NewLife.Stardust" Version="2.9.2024.402" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+</Project>
