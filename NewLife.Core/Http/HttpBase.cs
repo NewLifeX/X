@@ -55,6 +55,7 @@ public abstract class HttpBase
     {
         if (!FastValidHeader(pk)) return false;
 
+        // 识别整个请求头
         var p = pk.IndexOf(NewLine);
         if (p < 0) return false;
 

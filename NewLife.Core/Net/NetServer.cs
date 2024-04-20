@@ -60,7 +60,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     public AddressFamily AddressFamily { get; set; }
 
     /// <summary>服务器集合</summary>
-    public IList<ISocketServer> Servers { get; private set; } = new List<ISocketServer>();
+    public IList<ISocketServer> Servers { get; private set; } = [];
 
     /// <summary>服务器。返回服务器集合中的第一个服务器</summary>
     public ISocketServer? Server
@@ -522,6 +522,11 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         return Sessions.TryGetValue(sessionid, out var ns) ? ns : null;
     }
+
+    /// <summary>为会话创建网络数据处理器。可作为业务处理实现，也可以作为前置协议解析</summary>
+    /// <param name="session"></param>
+    /// <returns></returns>
+    public virtual INetHandler? CreateHandler(INetSession session) => null;
     #endregion
 
     #region 群发

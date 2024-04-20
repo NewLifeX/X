@@ -75,7 +75,7 @@ public class Program
             try
             {
 #endif
-                Test9();
+                Test5();
 #if !DEBUG
             }
             catch (Exception ex)

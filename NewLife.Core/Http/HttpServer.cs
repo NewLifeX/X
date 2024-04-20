@@ -26,10 +26,15 @@ public class HttpServer : NetServer
         ServerName = $"NewLife-HttpServer/{ver.Major}.{ver.Minor}";
     }
 
-    /// <summary>创建会话</summary>
-    /// <param name="session"></param>
+    ///// <summary>创建会话</summary>
+    ///// <param name="session"></param>
+    ///// <returns></returns>
+    //protected override INetSession CreateSession(ISocketSession session) => new HttpSession();
+
+    /// <summary>为会话创建网络数据处理器。可作为业务处理实现，也可以作为前置协议解析</summary>
+    /// <param name="session"></param> 
     /// <returns></returns>
-    protected override INetSession CreateSession(ISocketSession session) => new HttpSession();
+    public override INetHandler? CreateHandler(INetSession session) => new HttpSession();
 
     #region 方法
     /// <summary>映射路由处理器</summary>

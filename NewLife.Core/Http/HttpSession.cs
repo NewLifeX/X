@@ -8,11 +8,14 @@ using NewLife.Serialization;
 namespace NewLife.Http;
 
 /// <summary>Http会话</summary>
-public class HttpSession : NetSession
+public class HttpSession : INetHandler
 {
     #region 属性
     /// <summary>请求</summary>
     public HttpRequest? Request { get; set; }
+
+    /// <summary>最大请求长度。单位字节，默认1G</summary>
+    public Int32 MaxRequestLength { get; set; } = 1 * 1024 * 1024 * 1024;
 
     /// <summary>忽略的头部</summary>
     public static String[] ExcludeHeaders { get; set; } = [
@@ -24,41 +27,43 @@ public class HttpSession : NetSession
         "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
     ];
 
+    private INetSession _session = null!;
     private WebSocket? _websocket;
     private MemoryStream? _cache;
     #endregion
 
     #region 收发数据
-    /// <summary>收到客户端发来的数据</summary>
-    /// <param name="e"></param>
-    protected override void OnReceive(ReceivedEventArgs e)
+    /// <summary>建立连接时初始化会话</summary>
+    /// <param name="session">会话</param>
+    public void Init(INetSession session) => _session = session;
+
+    /// <summary>处理客户端发来的数据</summary>
+    /// <param name="data"></param>
+    public void Process(IData data)
     {
-        if (e.Packet == null) return;
-        if (e.Packet.Total == 0 /*|| !HttpBase.FastValidHeader(e.Packet)*/)
-        {
-            base.OnReceive(e);
-            return;
-        }
+        var pk = data.Packet;
+        if (pk == null || pk.Total == 0) return;
 
         // WebSocket 数据
         if (_websocket != null)
         {
-            _websocket.Process(e.Packet);
+            _websocket.Process(pk);
 
-            base.OnReceive(e);
+            //base.OnReceive(e);
             return;
         }
 
+        // 解码请求头，单个连接可能有多个请求
         var req = Request;
         var request = new HttpRequest();
-        if (request.Parse(e.Packet))
+        if (request.Parse(pk))
         {
             req = Request = request;
 
-            WriteLog("{0} {1}", request.Method, request.RequestUri);
+            (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
 
             _websocket = null;
-            OnNewRequest(request, e);
+            OnNewRequest(request, data);
 
             // 后面还有数据包，克隆缓冲区
             if (req.IsCompleted)
@@ -66,12 +71,12 @@ public class HttpSession : NetSession
             else
             {
                 // 限制最大请求为1G
-                if (req.ContentLength > 1 * 1024 * 1024 * 1024)
+                if (req.ContentLength > MaxRequestLength)
                 {
                     var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
-                    Send(rs.Build());
+                    _session.Send(rs.Build());
 
-                    Dispose();
+                    _session.Dispose();
 
                     return;
                 }
@@ -86,8 +91,8 @@ public class HttpSession : NetSession
             if (_cache != null)
             {
                 // 链式数据包
-                //req.Body.Append(e.Packet.Clone());
-                e.Packet.CopyTo(_cache);
+                //req.Body.Append(pk.Clone());
+                pk.CopyTo(_cache);
 
                 if (_cache.Length >= req.ContentLength)
                 {
@@ -98,49 +103,54 @@ public class HttpSession : NetSession
             }
         }
 
+        if (req != null)
+        {
+            // 改变数据
+            data.Message = req;
+            data.Packet = req.Body;
+        }
+
         // 收到全部数据后，触发请求处理
         if (req != null && req.IsCompleted)
         {
-            var rs = ProcessRequest(req, e);
+            var rs = ProcessRequest(req, data);
             if (rs != null)
             {
-                var server = (this as INetSession).Host as HttpServer;
+                var server = _session.Host as HttpServer;
                 if (server != null && !server.ServerName.IsNullOrEmpty() && !rs.Headers.ContainsKey("Server"))
                     rs.Headers["Server"] = server.ServerName;
 
                 var closing = !req.KeepAlive && _websocket == null;
                 if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
-                Send(rs.Build());
+                _session.Send(rs.Build());
 
-                if (closing) Dispose();
+                if (closing) _session.Dispose();
             }
         }
-
-        base.OnReceive(e);
     }
 
     /// <summary>收到新的Http请求，只有头部</summary>
     /// <param name="request"></param>
-    /// <param name="e"></param>
-    protected virtual void OnNewRequest(HttpRequest request, ReceivedEventArgs e) { }
+    /// <param name="data"></param>
+    protected virtual void OnNewRequest(HttpRequest request, IData data) { }
 
     /// <summary>处理Http请求</summary>
     /// <param name="request"></param>
-    /// <param name="e"></param>
+    /// <param name="data"></param>
     /// <returns></returns>
-    protected virtual HttpResponse ProcessRequest(HttpRequest request, ReceivedEventArgs e)
+    protected virtual HttpResponse ProcessRequest(HttpRequest request, IData data)
     {
         if (request?.RequestUri == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
         // 匹配路由处理器
-        var server = (this as INetSession).Host as HttpServer;
+        var server = _session.Host as HttpServer;
         var path = request.RequestUri.OriginalString;
         var p = path.IndexOf('?');
         if (p > 0) path = path[..p];
 
         // 埋点
-        using var span = (this as INetSession)?.Host.Tracer?.NewSpan(path);
+        using var span = _session.Host.Tracer?.NewSpan(path);
         if (span != null)
         {
             // 解析上游请求链路
@@ -148,7 +158,7 @@ public class HttpSession : NetSession
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                var tag = $"{Remote.EndPoint} {request.Method} {request.RequestUri.OriginalString}";
+                var tag = $"{_session.Remote.EndPoint} {request.Method} {request.RequestUri.OriginalString}";
 
                 if (request.BodyLength > 0 &&
                     request.Body != null &&
@@ -174,9 +184,9 @@ public class HttpSession : NetSession
         var handler = server?.MatchHandler(path);
         if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
-        var context = new DefaultHttpContext(this, request, path, handler)
+        var context = new DefaultHttpContext(_session, request, path, handler)
         {
-            ServiceProvider = this
+            ServiceProvider = _session as IServiceProvider
         };
 
         try
