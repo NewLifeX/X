@@ -277,7 +277,7 @@ public static class NetHelper
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (item.OperationalStatus != OperationalStatus.Up) continue;
-            if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+            if (item.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel or NetworkInterfaceType.Unknown) continue;
 
             var ip = item.GetIPProperties();
             if (ip != null) yield return ip;
@@ -364,10 +364,8 @@ public static class NetHelper
         var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
-            if (item.OperationalStatus != OperationalStatus.Up)
-                continue;
-            if (item.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-                continue;
+            if (item.OperationalStatus != OperationalStatus.Up) continue;
+            if (item.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel or NetworkInterfaceType.Unknown) continue;
 
             var ipp = item.GetIPProperties();
             if (ipp != null && ipp.UnicastAddresses.Count > 0)
@@ -465,16 +463,14 @@ public static class NetHelper
     }
 
     private static readonly String[] _Excludes = ["Loopback", "VMware", "VBox", "Virtual", "Teredo", "Microsoft", "VPN", "VNIC", "IEEE"];
-    /// <summary>获取所有物理网卡MAC地址</summary>
+    /// <summary>获取所有物理网卡MAC地址。包括未启用网卡，剔除本地和隧道</summary>
     /// <returns></returns>
     public static IEnumerable<Byte[]> GetMacs()
     {
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
             // 只要物理网卡
-            if (item.NetworkInterfaceType is NetworkInterfaceType.Loopback or
-                NetworkInterfaceType.Tunnel or
-                NetworkInterfaceType.Unknown) continue;
+            if (item.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel or NetworkInterfaceType.Unknown) continue;
             if (_Excludes.Any(e => item.Description.Contains(e))) continue;
             if (Runtime.Windows && item.Speed < 1_000_000) continue;
 
