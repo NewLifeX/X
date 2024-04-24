@@ -412,12 +412,22 @@ public class MachineInfo : IExtend
     {
         var sent = 0L;
         var received = 0L;
-        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        try
         {
-            var st = ni.GetIPv4Statistics();
-            sent += st.BytesSent;
-            received += st.BytesReceived;
+            // 包含本地环回和隧道网卡
+            // WSL获取网络列表时可能报错
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                try
+                {
+                    var st = ni.GetIPv4Statistics();
+                    sent += st.BytesSent;
+                    received += st.BytesReceived;
+                }
+                catch { }
+            }
         }
+        catch { }
 
         var now = Runtime.TickCount64;
         if (_lastTime > 0)
