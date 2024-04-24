@@ -259,8 +259,7 @@ public class Packet
         return this;
     }
 
-    /// <summary>返回字节数组。无差别复制</summary>
-    /// <remarks>不一定是全新数据，如果需要全新数据请克隆</remarks>
+    /// <summary>返回字节数组。无差别复制，一定返回新数组</summary>
     /// <returns></returns>
     public virtual Byte[] ToArray()
     {
@@ -275,9 +274,9 @@ public class Packet
         return ms.Put(true);
     }
 
-    /// <summary>从封包中读取指定数据，读取全部时直接返回缓冲区</summary>
-    /// <param name="offset"></param>
-    /// <param name="count"></param>
+    /// <summary>从封包中读取指定数据区，读取全部时直接返回缓冲区，以提升性能</summary>
+    /// <param name="offset">相对于数据包的起始位置，实际上是数组的Offset+offset</param>
+    /// <param name="count">字节个数</param>
     /// <returns></returns>
     public Byte[] ReadBytes(Int32 offset = 0, Int32 count = -1)
     {
