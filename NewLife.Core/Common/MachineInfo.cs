@@ -777,6 +777,7 @@ public class MachineInfo : IExtend
         var received = 0L;
         try
         {
+            // 包含本地环回和隧道网卡
             // WSL获取网络列表时可能报错
             foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
             {
