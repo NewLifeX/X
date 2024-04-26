@@ -410,6 +410,39 @@ public static class IOHelper
         }
     }
 
+    /// <summary>从字节数据指定位置读取一个单精度浮点数</summary>
+    /// <param name="data"></param>
+    /// <param name="offset">偏移</param>
+    /// <param name="isLittleEndian">是否小端字节序</param>
+    /// <returns></returns>
+    public static Single ToSingle(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+    {
+        // BitConverter得到小端，如果不是小端字节顺序，则倒序
+        if (offset > 0) data = data.ReadBytes(offset, 4);
+        if (!isLittleEndian)
+        {
+            (data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3]);
+        }
+
+        return BitConverter.ToSingle(data, offset);
+    }
+
+    /// <summary>从字节数据指定位置读取一个双精度浮点数</summary>
+    /// <param name="data"></param>
+    /// <param name="offset">偏移</param>
+    /// <param name="isLittleEndian">是否小端字节序</param>
+    /// <returns></returns>
+    public static Double ToDouble(this Byte[] data, Int32 offset = 0, Boolean isLittleEndian = true)
+    {
+        if (offset > 0) data = data.ReadBytes(offset, 8);
+        if (!isLittleEndian)
+        {
+            (data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+        }
+
+        return BitConverter.ToDouble(data, offset);
+    }
+
     /// <summary>向字节数组的指定位置写入一个无符号16位整数</summary>
     /// <param name="data"></param>
     /// <param name="n">数字</param>
@@ -491,6 +524,60 @@ public static class IOHelper
         return data;
     }
 
+    /// <summary>向字节数组的指定位置写入一个单精度浮点数</summary>
+    /// <param name="data"></param>
+    /// <param name="n">数字</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="isLittleEndian">是否小端字节序</param>
+    /// <returns></returns>
+    public static Byte[] Write(this Byte[] data, Single n, Int32 offset = 0, Boolean isLittleEndian = true)
+    {
+        var buf = BitConverter.GetBytes(n);
+        if (isLittleEndian)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                data[offset++] = buf[i];
+            }
+        }
+        else
+        {
+            for (var i = 4 - 1; i >= 0; i--)
+            {
+                data[offset + i] = buf[i];
+            }
+        }
+
+        return data;
+    }
+
+    /// <summary>向字节数组的指定位置写入一个双精度浮点数</summary>
+    /// <param name="data"></param>
+    /// <param name="n">数字</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="isLittleEndian">是否小端字节序</param>
+    /// <returns></returns>
+    public static Byte[] Write(this Byte[] data, Double n, Int32 offset = 0, Boolean isLittleEndian = true)
+    {
+        var buf = BitConverter.GetBytes(n);
+        if (isLittleEndian)
+        {
+            for (var i = 0; i < 8; i++)
+            {
+                data[offset++] = buf[i];
+            }
+        }
+        else
+        {
+            for (var i = 8 - 1; i >= 0; i--)
+            {
+                data[offset + i] = buf[i];
+            }
+        }
+
+        return data;
+    }
+
     /// <summary>整数转为字节数组，注意大小端字节序</summary>
     /// <param name="value"></param>
     /// <param name="isLittleEndian"></param>
@@ -561,6 +648,30 @@ public static class IOHelper
 
         var buf = new Byte[8];
         return buf.Write((UInt64)value, 0, isLittleEndian);
+    }
+
+    /// <summary>单精度浮点数转为字节数组，注意大小端字节序</summary>
+    /// <param name="value"></param>
+    /// <param name="isLittleEndian"></param>
+    /// <returns></returns>
+    public static Byte[] GetBytes(this Single value, Boolean isLittleEndian = true)
+    {
+        if (isLittleEndian) return BitConverter.GetBytes(value);
+
+        var buf = new Byte[4];
+        return buf.Write(value, 0, isLittleEndian);
+    }
+
+    /// <summary>双精度浮点数转为字节数组，注意大小端字节序</summary>
+    /// <param name="value"></param>
+    /// <param name="isLittleEndian"></param>
+    /// <returns></returns>
+    public static Byte[] GetBytes(this Double value, Boolean isLittleEndian = true)
+    {
+        if (isLittleEndian) return BitConverter.GetBytes(value);
+
+        var buf = new Byte[8];
+        return buf.Write(value, 0, isLittleEndian);
     }
 
     /// <summary>字节翻转。支持双字节和四字节多批次翻转，主要用于大小端转换</summary>

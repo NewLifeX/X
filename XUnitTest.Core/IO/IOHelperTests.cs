@@ -125,4 +125,133 @@ public class IOHelperTests
         var buf3 = (b64 + Environment.NewLine + " ").ToBase64();
         Assert.Equal(buf.ToHex(), buf3.ToHex());
     }
+
+    [Fact]
+    public void ToUInt16()
+    {
+        var buf = "00-12-34".ToHex();
+
+        var value = buf.ToUInt16(1, false);
+        Assert.Equal(0x1234, value);
+
+        value = buf.ToUInt16(1, true);
+        Assert.Equal(0x3412, value);
+
+        value = buf.ToUInt16(0, true);
+        Assert.Equal(0x1200, value);
+
+        // Write
+        value = buf.ToUInt16(1, false);
+        var buf2 = new Byte[buf.Length];
+        buf2.Write(value, 1, false);
+        Assert.Equal(buf, buf2);
+
+        // GetBytes
+        var buf3 = value.GetBytes(false);
+        Assert.Equal(buf.Skip(1).ToArray(), buf3);
+    }
+
+    [Fact]
+    public void ToUInt32()
+    {
+        var buf = "00-12-34-56-78".ToHex();
+
+        var value = buf.ToUInt32(1, false);
+        Assert.Equal(0x12345678u, value);
+
+        value = buf.ToUInt32(1, true);
+        Assert.Equal(0x78563412u, value);
+
+        value = buf.ToUInt32(0, true);
+        Assert.Equal(0x56341200u, value);
+
+        // Write
+        value = buf.ToUInt32(1, false);
+        var buf2 = new Byte[buf.Length];
+        buf2.Write(value, 1, false);
+        Assert.Equal(buf, buf2);
+
+        // GetBytes
+        var buf3 = value.GetBytes(false);
+        Assert.Equal(buf.Skip(1).ToArray(), buf3);
+    }
+
+    [Fact]
+    public void ToUInt64()
+    {
+        var buf = "00-12-34-56-78-00-AB-CD-EF".ToHex();
+
+        var value = buf.ToUInt64(1, false);
+        Assert.Equal(0x1234567800abcdeful, value);
+
+        value = buf.ToUInt64(1, true);
+        Assert.Equal(0xefcdab0078563412ul, value);
+
+        value = buf.ToUInt64(0, true);
+        Assert.Equal(0xcdab007856341200ul, value);
+
+        // Write
+        value = buf.ToUInt64(1, false);
+        var buf2 = new Byte[buf.Length];
+        buf2.Write(value, 1, false);
+        Assert.Equal(buf, buf2);
+
+        // GetBytes
+        var buf3 = value.GetBytes(false);
+        Assert.Equal(buf.Skip(1).ToArray(), buf3);
+    }
+
+    [Fact]
+    public void ToSingle()
+    {
+        var v = 1.2f;
+        var buf = BitConverter.GetBytes(v);
+
+        var value = buf.ToSingle();
+        Assert.Equal(v, value);
+
+        v = -1.2345f;
+        buf = BitConverter.GetBytes(v);
+
+        buf = buf.Reverse().ToArray();
+        value = buf.ToSingle(0, false);
+        Assert.Equal(v, value);
+
+        // Write
+        value = buf.ToSingle(0, false);
+        var buf2 = new Byte[buf.Length];
+        buf2.Write(value, 0, false);
+        Assert.Equal(buf, buf2);
+
+        // GetBytes
+        var buf3 = value.GetBytes(false);
+        Assert.Equal(buf, buf3);
+    }
+
+    [Fact]
+    public void ToDouble()
+    {
+        var v = 1.2d;
+        var buf = BitConverter.GetBytes(v);
+
+        var value = buf.ToDouble();
+        Assert.Equal(v, value);
+
+        v = -1.2345d;
+        buf = BitConverter.GetBytes(v);
+
+        buf = buf.Reverse().ToArray();
+        value = buf.ToDouble(0, false);
+        Assert.Equal(v, value);
+
+        // Write
+        value = buf.ToDouble(0, false);
+        var buf2 = new Byte[buf.Length];
+        buf2.Write(value, 0, false);
+        Assert.Equal(buf, buf2);
+
+        // GetBytes
+        var buf3 = value.GetBytes(false);
+        Assert.Equal(buf, buf3);
+    }
 }
