@@ -172,32 +172,32 @@ public class CsvDb<T> where T : new()
     {
         if (Comparer == null) throw new ArgumentNullException(nameof(Comparer));
 
-        return FindAll(e => Comparer.Equals(model, e), 1).FirstOrDefault();
+        return Query(e => Comparer.Equals(model, e), 1).FirstOrDefault();
     }
 
     /// <summary>获取满足条件的第一行数据</summary>
     /// <param name="predicate"></param>
     /// <returns></returns>
-    public T? Find(Func<T, Boolean>? predicate) => FindAll(predicate, 1).FirstOrDefault();
+    public T? Find(Func<T, Boolean>? predicate) => Query(predicate, 1).FirstOrDefault();
 
     /// <summary>获取所有数据行</summary>
     /// <returns></returns>
-    public IList<T> FindAll() => FindAll(null);
+    public IList<T> FindAll() => Query(null).ToList();
 
     /// <summary>获取满足条件的数据行，性能好，顺序查找</summary>
     /// <param name="predicate"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public IList<T> FindAll(Func<T, Boolean>? predicate, Int32 count = -1)
+    public IEnumerable<T> Query(Func<T, Boolean>? predicate, Int32 count = -1)
     {
         var file = GetFile();
-        if (!File.Exists(file)) return new List<T>();
+        if (!File.Exists(file)) yield break;
 
         lock (this)
         {
             using var csv = new CsvFile(file, false) { Encoding = Encoding };
 
-            var list = new List<T>();
+            //var list = new List<T>();
             var headers = new Dictionary<String, Int32>();
             var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             while (true)
@@ -217,10 +217,11 @@ public class CsvDb<T> where T : new()
                 }
                 else
                 {
+                    var flag = false;
+                    var model = new T();
                     try
                     {
                         // 反射构建对象
-                        var model = new T();
                         foreach (var pi in pis)
                         {
                             var name = SerialHelper.GetName(pi);
@@ -235,20 +236,26 @@ public class CsvDb<T> where T : new()
 
                         if (predicate == null || predicate(model))
                         {
-                            list.Add(model);
-
-                            if (--count == 0) break;
+                            //list.Add(model);
+                            flag = true;
                         }
                     }
                     catch (Exception ex)
                     {
                         // 读取某一行出错，放弃该行
                         XTrace.WriteException(ex);
+                        continue;
                     }
+
+                    if (!flag) continue;
+
+                    yield return model;
+
+                    if (--count == 0) break;
                 }
             }
 
-            return list;
+            //return list;
         }
     }
 
