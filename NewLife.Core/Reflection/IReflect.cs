@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
 using NewLife.Data;
-using static System.Collections.Specialized.BitVector32;
 
 namespace NewLife.Reflection;
 
@@ -544,6 +543,7 @@ public class DefaultReflect : IReflect
     #endregion
 
     #region 对象拷贝
+    private static Dictionary<Type, IDictionary<String, PropertyInfo>> _properties = [];
     /// <summary>从源对象拷贝数据到目标对象</summary>
     /// <param name="target">目标对象</param>
     /// <param name="source">源对象</param>
@@ -557,38 +557,33 @@ public class DefaultReflect : IReflect
         // 基础类型无法拷贝
         if (targetType.IsBaseType()) throw new XException("The base type {0} cannot be copied", targetType.FullName);
 
+        var sourceType = source.GetType();
+        if (!_properties.TryGetValue(sourceType, out var sourceProperties))
+            _properties[sourceType] = sourceProperties = sourceType.GetProperties(true).ToDictionary(e => e.Name, e => e);
+
         // 不是深度拷贝时，直接复制引用
         if (!deep)
         {
-            var sourceType = source.GetType();
-
             // 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
             if (target is IModel dst && target is not IExtend)
             {
-                var pis = sourceType.GetProperties(true);
                 foreach (var pi in targetType.GetProperties(true))
                 {
                     if (!pi.CanWrite) continue;
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
 
-                    var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
-                    if (pi2 != null && pi2.CanRead)
+                    if (sourceProperties.TryGetValue(pi.Name, out var pi2) && pi2.CanRead)
                         dst[pi.Name] = source is IModel src ? src[pi2.Name] : GetValue(source, pi2);
                 }
             }
             else
             {
-                var pis = sourceType.GetProperties(true);
                 foreach (var pi in targetType.GetProperties(true))
                 {
                     if (!pi.CanWrite) continue;
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
-                    //if (pi.GetIndexParameters().Length > 0) continue;
-                    //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-                    //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
-                    var pi2 = pis.FirstOrDefault(e => e.Name == pi.Name);
-                    if (pi2 != null && pi2.CanRead)
+                    if (sourceProperties.TryGetValue(pi.Name, out var pi2) && pi2.CanRead)
                         SetValue(target, pi, source is IModel src ? src[pi2.Name] : GetValue(source, pi2));
                 }
             }
@@ -597,12 +592,10 @@ public class DefaultReflect : IReflect
 
         // 来源对象转为字典
         var dic = new Dictionary<String, Object?>();
-        foreach (var pi in source.GetType().GetProperties(true))
+        foreach (var pi in sourceProperties.Values)
         {
             if (!pi.CanRead) continue;
             if (excludes != null && excludes.Contains(pi.Name)) continue;
-            //if (pi.GetIndexParameters().Length > 0) continue;
-            //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
             dic[pi.Name] = GetValue(source, pi);
         }
@@ -621,8 +614,6 @@ public class DefaultReflect : IReflect
         foreach (var pi in target.GetType().GetProperties(true))
         {
             if (!pi.CanWrite) continue;
-            //if (pi.GetIndexParameters().Length > 0) continue;
-            //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
             if (source.TryGetValue(pi.Name, out var obj))
             {
