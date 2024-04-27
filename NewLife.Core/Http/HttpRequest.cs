@@ -76,8 +76,7 @@ public class HttpRequest : HttpBase
         if (Method.IsNullOrEmpty()) Method = length > 0 ? "POST" : "GET";
 
         // 分解主机和资源
-        var uri = RequestUri;
-        if (uri == null) uri = new Uri("/", UriKind.RelativeOrAbsolute);
+        var uri = RequestUri ?? new Uri("/");
 
         if (Host.IsNullOrEmpty())
         {
