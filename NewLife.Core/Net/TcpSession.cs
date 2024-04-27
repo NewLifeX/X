@@ -16,8 +16,8 @@ public class TcpSession : SessionBase, ISocketSession
     /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
     public IPAddress? RemoteAddress { get; private set; }
 
-    /// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
-    public Boolean DisconnectWhenEmptyData { get; set; } = true;
+    ///// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
+    //public Boolean DisconnectWhenEmptyData { get; set; } = true;
 
     internal ISocketServer? _Server;
 
@@ -407,7 +407,7 @@ public class TcpSession : SessionBase, ISocketSession
         if (ar.AsyncState is SocketAsyncEventArgs se) ProcessEvent(se, bytes, 1);
     }
 
-    private Int32 _empty;
+    //private Int32 _empty;
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
@@ -420,16 +420,20 @@ public class TcpSession : SessionBase, ISocketSession
             using var span = Tracer?.NewSpan($"net:{Name}:EmptyData", remote?.ToString());
 
             // 连续多次空数据，则断开
-            if (DisconnectWhenEmptyData && ++_empty >= 3)
+            //if (DisconnectWhenEmptyData && ++_empty >= 3)
             {
-                Close("EmptyData");
-                Dispose();
+                var reason = CheckClosed();
+                if (reason != null)
+                {
+                    Close(reason);
+                    Dispose();
 
-                return null;
+                    return null;
+                }
             }
         }
-        else
-            _empty = 0;
+        //else
+        //    _empty = 0;
 
         return this;
     }

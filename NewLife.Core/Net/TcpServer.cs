@@ -332,7 +332,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             NoDelay = NoDelay,
             KeepAliveInterval = KeepAliveInterval,
             Pipeline = Pipeline,
-            DisconnectWhenEmptyData = false,
+            //DisconnectWhenEmptyData = false,
 
             Log = Log,
             LogSend = LogSend,
