@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Net.Handlers;
 using NewLife.Security;
 #if !NET45
 using TaskEx = System.Threading.Tasks.Task;
@@ -16,17 +17,19 @@ public class WebSocketClient : TcpSession
     #region 属性
     /// <summary>资源地址</summary>
     public Uri Uri { get; set; } = null!;
-
-    private String? _Key;
     #endregion
 
     #region 构造
     /// <summary>实例化</summary>
-    public WebSocketClient() { }
+    public WebSocketClient()
+    {
+        // 加入WebSocket编码器，实现报文编解码
+        this.Add<WebSocketCodec>();
+    }
 
     /// <summary>实例化</summary>
     /// <param name="uri"></param>
-    public WebSocketClient(Uri uri)
+    public WebSocketClient(Uri uri) : this()
     {
         Uri = uri;
 
@@ -50,67 +53,20 @@ public class WebSocketClient : TcpSession
 
         if (!base.OnOpen()) return false;
 
-        // 连接必须是ws/wss协议
-        if (remote.Type != NetType.WebSocket) return false;
+        //// 连接必须是ws/wss协议
+        //if (remote.Type != NetType.WebSocket) return false;
 
-        //todo 建立WebSocket请求
-        var request = new HttpRequest
-        {
-            Method = "GET",
-            RequestUri = Uri
-        };
-        request.Headers["Connection"] = "Upgrade";
-        request.Headers["Upgrade"] = "websocket";
-        request.Headers["Sec-WebSocket-Version"] = "13";
+        //// 设置为激活
+        //Active = true;
 
-        _Key = Rand.NextBytes(16).ToBase64();
-        request.Headers["Sec-WebSocket-Key"] = _Key;
+        //var rs = Handshake(this, Uri);
 
-        // 注入链路跟踪标记
-        DefaultSpan.Current?.Attach(request.Headers);
-
-        // 设置为激活
-        Active = true;
-
-        using var span = Tracer?.NewSpan($"net:{Name}:WebSocket", Uri + "");
-        try
-        {
-            // 发送请求
-            var req = request.Build();
-            Send(req);
-
-            // 接收响应
-            var rs = Receive();
-            if (rs == null || rs.Count == 0) return false;
-
-            // 解析响应
-            var res = new HttpResponse();
-            if (!res.Parse(rs)) return false;
-
-            //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
-            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
-
-            // 检查响应头
-            if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
-                accept != SHA1.Create().ComputeHash((_Key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
-                throw new Exception("WebSocket握手失败！");
-        }
-        catch (Exception ex)
-        {
-            span?.SetError(ex, null);
-            WriteLog("WebSocket握手失败！" + ex.Message);
-
-            Close("WebSocket");
-            Dispose();
-
-            return false;
-        }
-
-        Active = false;
+        //Active = false;
 
         return true;
     }
 
+    #region 消息收发
     /// <summary>接收WebSocket消息</summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -131,9 +87,9 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public Task SendMessageAsync(WebSocketMessage message, CancellationToken cancellationToken = default)
     {
-        var pk = message.ToPacket();
-        Send(pk);
-        //SendMessage(message);
+        //var pk = message.ToPacket();
+        //Send(pk);
+        SendMessage(message);
 
         return TaskEx.CompletedTask;
     }
@@ -150,7 +106,7 @@ public class WebSocketClient : TcpSession
             Payload = data,
         };
 
-        return SendMessageAsync(msg);
+        return SendMessageAsync(msg, cancellationToken);
     }
 
     /// <summary>发送文本</summary>
@@ -171,7 +127,7 @@ public class WebSocketClient : TcpSession
             Payload = data,
         };
 
-        return SendMessageAsync(msg);
+        return SendMessageAsync(msg, cancellationToken);
     }
 
     /// <summary>发送关闭</summary>
@@ -188,6 +144,68 @@ public class WebSocketClient : TcpSession
             StatusDescription = statusDescription,
         };
 
-        return SendMessageAsync(msg);
+        return SendMessageAsync(msg, cancellationToken);
     }
+    #endregion
+
+    #region 辅助
+    /// <summary>握手</summary>
+    /// <param name="client"></param>
+    /// <param name="uri"></param>
+    /// <returns></returns>
+    public static Boolean Handshake(ISocketClient client, Uri uri)
+    {
+        // 建立WebSocket请求
+        var request = new HttpRequest
+        {
+            Method = "GET",
+            RequestUri = uri
+        };
+        request.Headers["Connection"] = "Upgrade";
+        request.Headers["Upgrade"] = "websocket";
+        request.Headers["Sec-WebSocket-Version"] = "13";
+
+        var key = Rand.NextBytes(16).ToBase64();
+        request.Headers["Sec-WebSocket-Key"] = key;
+
+        // 注入链路跟踪标记
+        DefaultSpan.Current?.Attach(request.Headers);
+
+        using var span = client.Tracer?.NewSpan($"net:{client.Name}:WebSocket", uri + "");
+        try
+        {
+            // 发送请求
+            var req = request.Build();
+            client.Send(req);
+
+            // 接收响应
+            var rs = client.Receive();
+            if (rs == null || rs.Count == 0) return false;
+
+            // 解析响应
+            var res = new HttpResponse();
+            if (!res.Parse(rs)) return false;
+
+            //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
+            if (res.StatusCode != HttpStatusCode.SwitchingProtocols) throw new Exception("WebSocket握手失败！" + res.StatusDescription);
+
+            // 检查响应头
+            if (!res.Headers.TryGetValue("Sec-WebSocket-Accept", out var accept) ||
+                accept != SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes()).ToBase64())
+                throw new Exception("WebSocket握手失败！");
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            client.WriteLog("WebSocket握手失败！" + ex.Message);
+
+            client.Close("WebSocket");
+            client.Dispose();
+
+            return false;
+        }
+
+        return true;
+    }
+    #endregion
 }

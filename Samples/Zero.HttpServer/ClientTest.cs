@@ -63,7 +63,7 @@ static class ClientTest
 
     public static async Task WebSocketClientTest()
     {
-        await TaskEx.Delay(5_000);
+        await TaskEx.Delay(3_000);
         XTrace.WriteLine("");
         XTrace.WriteLine("WebSocketClient开始连接！");
 
@@ -77,14 +77,14 @@ static class ClientTest
         await client.SendTextAsync("Hello NewLife");
 
         var rs = await client.ReceiveMessageAsync(default);
-        XTrace.WriteLine(rs.Payload.ToStr());
+        client.WriteLog(rs.Payload.ToStr());
 
         // 关闭连接
         await client.CloseAsync(1000, "通信完成", default);
-        XTrace.WriteLine("Close");
+        client.WriteLog("Close");
 
         rs = await client.ReceiveMessageAsync(default);
-        XTrace.WriteLine("Close [{0}] {1}", rs.CloseStatus, rs.StatusDescription);
+        client.WriteLog("Close [{0}] {1}", rs.CloseStatus, rs.StatusDescription);
 
         client.Dispose();
     }
