@@ -83,7 +83,7 @@ public class IExtendTests
     [Fact]
     public void KeyNotFound3()
     {
-        var ext = new UdpSession(new UdpServer(), new IPEndPoint(IPAddress.Loopback, 0));
+        var ext = new UdpSession(new UdpServer(), null, new IPEndPoint(IPAddress.Loopback, 0));
         Assert.Null(ext["bbb"]);
         //var ex = Assert.Throws<KeyNotFoundException>(() => ext["bbb"]);
     }

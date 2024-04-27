@@ -276,6 +276,37 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
+    /// <summary>异步接收数据</summary>
+    /// <returns></returns>
+    public virtual async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        if (!Open() || Client == null) return null;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
+        try
+        {
+            var buf = new Byte[BufferSize];
+#if NETFRAMEWORK || NETSTANDARD2_0
+            var ar = Client.BeginReceive(buf, 0, buf.Length, SocketFlags.None, null, Client);
+            var size = ar.IsCompleted ?
+                Client.EndReceive(ar) :
+                await Task.Factory.FromAsync(ar, Client.EndReceive);
+#else
+            var size = await Client.ReceiveAsync(new ArraySegment<Byte>(buf), SocketFlags.None, cancellationToken);
+#endif
+            if (span != null) span.Value = size;
+
+            return new Packet(buf, 0, size);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
+    }
+
     /// <summary>当前异步接收个数</summary>
     private Int32 _RecvCount;
 
@@ -451,7 +482,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
                     // 同步执行，直接使用数据，不需要拷贝
                     // 直接在IO线程调用业务逻辑
-                    ProcessReceive(pk, ep);
+                    ProcessReceive(pk, se.ReceiveMessageFromPacketInfo.Address, ep);
                 }
             }
 
@@ -479,9 +510,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>接收预处理，粘包拆包</summary>
-    /// <param name="pk"></param>
-    /// <param name="remote"></param>
-    private void ProcessReceive(Packet pk, IPEndPoint remote)
+    /// <param name="pk">数据包</param>
+    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="remote">远程地址</param>
+    private void ProcessReceive(Packet pk, IPAddress local, IPEndPoint remote)
     {
         // 打断上下文调用链，这里必须是起点
         DefaultSpan.Current = null;
@@ -492,14 +524,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             LastTime = DateTime.Now;
 
             // 预处理，得到将要处理该数据包的会话
-            var ss = OnPreReceive(pk, remote);
+            var ss = OnPreReceive(pk, local, remote);
             if (ss == null) return;
 
             if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
 
             if (Local.IsTcp) remote = Remote.EndPoint;
 
-            var e = new ReceivedEventArgs { Packet = pk, Remote = remote };
+            var e = new ReceivedEventArgs { Packet = pk, Local = local, Remote = remote };
 
             // 不管Tcp/Udp，都在这使用管道
             var pp = Pipeline;
@@ -523,9 +555,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
+    /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    protected internal abstract ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote);
+    protected internal abstract ISocketSession? OnPreReceive(Packet pk, IPAddress local, IPEndPoint remote);
 
     /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
     /// <param name="e">接收事件参数</param>

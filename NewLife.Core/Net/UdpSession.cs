@@ -73,14 +73,17 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     #region 构造
     /// <summary>实例化Udp会话</summary>
     /// <param name="server"></param>
+    /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote"></param>
-    public UdpSession(UdpServer server, IPEndPoint remote)
+    public UdpSession(UdpServer server, IPAddress? local, IPEndPoint remote)
     {
         Name = server.Name;
 
         Server = server;
         Remote = new NetUri(NetType.Udp, remote);
         Tracer = server.Tracer;
+
+        if (local != null) Local.Address = local;
 
         // 检查并开启广播
         server.Client?.CheckBroadcast(remote.Address);
@@ -257,6 +260,39 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         }
     }
 
+    /// <summary>异步接收数据</summary>
+    /// <returns></returns>
+    public virtual async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Receive", Server.BufferSize + "");
+        try
+        {
+            var ep = Remote.EndPoint as EndPoint;
+            var buf = new Byte[Server.BufferSize];
+            var socket = Server.Client;
+#if NETFRAMEWORK || NETSTANDARD2_0
+            var ar = socket.BeginReceiveFrom(buf, 0, buf.Length, SocketFlags.None, ref ep, null, socket);
+            var size = ar.IsCompleted ?
+                socket.EndReceive(ar) :
+                await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep));
+#else
+            var result = await socket.ReceiveFromAsync(buf, SocketFlags.None, ep);
+            var size = result.ReceivedBytes;
+#endif
+            if (span != null) span.Value = size;
+
+            return new Packet(buf, 0, size);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
+        }
+    }
+
     /// <summary>数据接收事件</summary>
     public event EventHandler<ReceivedEventArgs>? Received;
 
@@ -292,7 +328,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     public override String ToString()
     {
         if (Remote != null && !Remote.EndPoint.IsAny())
-            return $"{Local}=>{Remote.EndPoint}";
+            return $"{Local}<={Remote.EndPoint}";
         else
             return Local.ToString();
     }
@@ -345,11 +381,5 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="format"></param>
     /// <param name="args"></param>
     public void WriteLog(String format, params Object?[] args) => Log.Info(LogPrefix + format, args);
-
-    ///// <summary>输出日志</summary>
-    ///// <param name="format"></param>
-    ///// <param name="args"></param>
-    //[Conditional("DEBUG")]
-    //public void WriteDebugLog(String format, params Object?[] args) => Log.Debug(LogPrefix + format, args);
     #endregion
 }
