@@ -493,12 +493,17 @@ public class Packet
     /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static implicit operator Packet(Byte[] value) => value == null ? null! : new Packet(value);
+    public static implicit operator Packet(Byte[] value) => value == null ? null! : new(value);
 
     /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
     /// <param name="value"></param>
     /// <returns></returns>
     public static implicit operator Packet(ArraySegment<Byte> value) => new(value);
+
+    /// <summary>重载类型转换，字符串直接转为Packet对象</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static implicit operator Packet(String value) => new(value.GetBytes());
 
     /// <summary>已重载</summary>
     /// <returns></returns>

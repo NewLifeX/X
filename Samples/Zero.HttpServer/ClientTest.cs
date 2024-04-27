@@ -80,6 +80,8 @@ static class ClientTest
         var rs = await client.ReceiveMessageAsync(default);
         client.WriteLog(rs.Payload.ToStr());
 
+        await Task.Delay(6_000);
+
         // 关闭连接
         await client.CloseAsync(1000, "通信完成", default);
         client.WriteLog("Close");
