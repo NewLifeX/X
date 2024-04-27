@@ -13,6 +13,9 @@ public class ReceivedEventArgs : EventArgs, IData
     /// </remarks>
     public Packet? Packet { get; set; }
 
+    /// <summary>本地地址</summary>
+    public IPAddress? Local { get; set; }
+
     /// <summary>远程地址</summary>
     public IPEndPoint? Remote { get; set; }
 

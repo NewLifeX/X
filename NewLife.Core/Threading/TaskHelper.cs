@@ -205,6 +205,17 @@ public static class TaskHelper
         return Task.Factory.FromAsync(client.BeginSend, client.EndSend, datagram, datagram.Length, null);
     }
 
+    /// <summary>异步发送数据</summary>
+    /// <param name="client"></param>
+    /// <param name="datagram"></param>
+    /// <param name="bytes"></param>
+    /// <param name="endPoint"></param>
+    /// <returns></returns>
+    public static Task SendAsync(this UdpClient client, Byte[] datagram, Int32 bytes, IPEndPoint endPoint)
+    {
+        return Task.Factory.FromAsync(client.BeginSend, client.EndSend, datagram, bytes, endPoint, null);
+    }
+
     /// <summary>异步接收数据</summary>
     /// <param name="client"></param>
     /// <returns></returns>

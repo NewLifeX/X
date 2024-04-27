@@ -53,6 +53,8 @@ star?.Service?.Register("MyNetServer", () => $"tcp://*:{server.Port},udp://*:{se
 // 客户端测试，非服务端代码，正式使用时请注释掉
 _ = TaskEx.Run(ClientTest.TcpClientTest);
 _ = TaskEx.Run(ClientTest.UdpClientTest);
+_ = TaskEx.Run(ClientTest.TcpSessionTest);
+_ = TaskEx.Run(ClientTest.UdpSessionTest);
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
