@@ -5,6 +5,7 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Net.Handlers;
 using NewLife.Security;
+using NewLife.Threading;
 #if !NET45
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -17,6 +18,9 @@ public class WebSocketClient : TcpSession
     #region 属性
     /// <summary>资源地址</summary>
     public Uri Uri { get; set; } = null!;
+
+    /// <summary>WebSocket心跳间隔。默认60秒</summary>
+    public TimeSpan KeepAlive { get; set; } = TimeSpan.FromSeconds(120);
     #endregion
 
     #region 构造
@@ -63,7 +67,22 @@ public class WebSocketClient : TcpSession
 
         //Active = false;
 
+        var p = (Int32)KeepAlive.TotalMilliseconds;
+        if (p > 0)
+            _timer = new TimerX(DoPing, null, 5_000, p) { Async = true };
+
         return true;
+    }
+
+    /// <summary>关闭连接</summary>
+    /// <param name="reason"></param>
+    /// <returns></returns>
+    protected override Boolean OnClose(String reason)
+    {
+        _timer.TryDispose();
+        _timer = null;
+
+        return base.OnClose(reason);
     }
 
     #region 消息收发
@@ -145,6 +164,23 @@ public class WebSocketClient : TcpSession
         };
 
         return SendMessageAsync(msg, cancellationToken);
+    }
+    #endregion
+
+    #region 心跳
+    private TimerX? _timer;
+    private void DoPing(Object? state)
+    {
+        var msg = new WebSocketMessage
+        {
+            Type = WebSocketMessageType.Ping,
+            Payload = $"Ping {DateTime.UtcNow.ToFullString()}",
+        };
+
+        SendMessage(msg);
+
+        var p = (Int32)KeepAlive.TotalMilliseconds;
+        if (_timer != null) _timer.Period = p;
     }
     #endregion
 
