@@ -480,22 +480,18 @@ public class TcpSession : SessionBase, ISocketSession
     #endregion 自动重连
 
     #region 辅助
-
-    private String? _LogPrefix;
-
     /// <summary>日志前缀</summary>
-    public override String LogPrefix
+    public override String? LogPrefix
     {
         get
         {
-            if (_LogPrefix == null)
-            {
-                var name = _Server == null ? "" : _Server.Name;
-                _LogPrefix = $"{name}[{ID}].";
-            }
-            return _LogPrefix;
+            var pf = base.LogPrefix;
+            if (pf == null && _Server != null)
+                pf = base.LogPrefix = $"{_Server.Name}[{ID}].";
+
+            return pf;
         }
-        set { _LogPrefix = value; }
+        set { base.LogPrefix = value; }
     }
 
     /// <summary>已重载。</summary>
@@ -509,6 +505,5 @@ public class TcpSession : SessionBase, ISocketSession
 
         return _Server == null ? $"{local}=>{remote}" : $"{local}<={remote}";
     }
-
-    #endregion 辅助
+    #endregion
 }

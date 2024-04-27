@@ -56,8 +56,9 @@ XTrace.WriteLine("服务端启动完成！");
 await star.Service?.RegisterAsync("Zero.HttpServer", $"http://*:{server.Port}");
 
 // 客户端测试，非服务端代码，正式使用时请注释掉
-_ = TaskEx.Run(ClientTest.HttpClientTest);
-//_ = TaskEx.Run(ClientTest.WebSocketClientTest);
+//_ = TaskEx.Run(ClientTest.HttpClientTest);
+//_ = TaskEx.Run(ClientTest.WebSocketTest);
+_ = TaskEx.Run(ClientTest.WebSocketClientTest);
 
 // 异步阻塞，友好退出
 var host = services.BuildHost();
