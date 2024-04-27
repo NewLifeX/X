@@ -324,6 +324,9 @@ public static class TracerExtension
         var span = CreateSpan(tracer, request.Method.Method, request.RequestUri, request);
         span.Attach(request);
 
+        var len = request?.Content.Headers.ContentLength;
+        if (len != null) span.Value = len.Value;
+
         return span;
     }
 
@@ -390,6 +393,9 @@ public static class TracerExtension
 
         var span = CreateSpan(tracer, request.Method, request.RequestUri, null);
         span.Attach(request);
+
+        var len = request?.Headers["Content-Length"];
+        if (len != null) span.Value = len.ToInt();
 
         return span;
     }
