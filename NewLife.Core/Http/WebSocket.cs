@@ -73,25 +73,31 @@ namespace NewLife.Http
 
                 Handler?.Invoke(this, message);
 
-                var session = Context.Connection;
-                switch (message.Type)
-                {
-                    case WebSocketMessageType.Close:
+            var session = Context?.Connection;
+            if (session == null) return;
+
+            switch (message.Type)
+            {
+                case WebSocketMessageType.Close:
+                    {
+                        Close(1000, "Finished");
+                        session.Dispose();
+                        Connected = false;
+                    }
+                    break;
+                case WebSocketMessageType.Ping:
+                    {
+                        var msg = new WebSocketMessage
                         {
-                            Close(1000, "Finished");
-                            session.Dispose();
-                            Connected = false;
-                        }
-                        break;
-                    case WebSocketMessageType.Ping:
-                        {
-                            var msg = new WebSocketMessage { Type = WebSocketMessageType.Pong, MaskKey = Rand.NextBytes(4) };
-                            session.Send(msg.ToPacket());
-                        }
-                        break;
-                }
+                            Type = WebSocketMessageType.Pong,
+                            Payload = $"Pong {DateTime.UtcNow.ToFullString()}",
+                        };
+                        session.Send(msg.ToPacket());
+                    }
+                    break;
             }
         }
+    }
 
         /// <summary>发送消息</summary>
         /// <param name="data"></param>
