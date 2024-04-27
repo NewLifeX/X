@@ -84,6 +84,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // 地址重用，主要应用于网络服务器重启交替。前一个进程关闭时，端口在短时间内处于TIME_WAIT，导致新进程无法监听。
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
                 if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
             }
             catch (Exception ex)
             {
@@ -191,13 +193,13 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
     /// <param name="message">消息</param>
     /// <returns></returns>
-    public override Task<Object> SendMessageAsync(Object message) => CreateSession(Remote.EndPoint).SendMessageAsync(message);
+    public override Task<Object> SendMessageAsync(Object message) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message);
 
     /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => CreateSession(Remote.EndPoint).SendMessageAsync(message, cancellationToken);
+    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
     #endregion
 
     #region 接收
@@ -208,14 +210,16 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
         se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
 
-        return Client.ReceiveFromAsync(se);
+        //return Client.ReceiveFromAsync(se);
+        return Client.ReceiveMessageFromAsync(se);
     }
 
     /// <summary>预处理</summary>
     /// <param name="pk">数据包</param>
+    /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession? OnPreReceive(Packet pk, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(Packet pk, IPAddress local, IPEndPoint remote)
     {
         // 过滤自己广播的环回数据。放在这里，兼容UdpSession
         if (!Loopback && remote.Port == Port)
@@ -234,7 +238,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         }
 
         // 为该连接单独创建一个会话，方便直接通信
-        return CreateSession(remote);
+        return CreateSession(local, remote);
     }
 
     /// <summary>处理收到的数据</summary>
@@ -246,7 +250,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         var remote = e.Remote;
 
         // 为该连接单独创建一个会话，方便直接通信
-        var session = remote == null ? null : CreateSession(remote);
+        var session = remote == null ? null : CreateSession(e.Local, remote);
         // 数据直接转交给会话，不再经过事件，那样在会话较多时极为浪费资源
         if (session is UdpSession us)
             us.OnReceive(e);
@@ -300,9 +304,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     Int32 g_ID = 0;
     /// <summary>创建会话</summary>
-    /// <param name="remoteEP"></param>
+    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="remoteEP">远程地址</param>
     /// <returns></returns>
-    public virtual ISocketSession CreateSession(IPEndPoint remoteEP)
+    public virtual ISocketSession CreateSession(IPAddress? local, IPEndPoint remoteEP)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -332,7 +337,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             session = sessions.Get(remoteEP + "");
             if (session != null || _broadcasts.TryGetValue(port, out session)) return session;
 
-            var us = new UdpSession(this, remoteEP)
+            var us = new UdpSession(this, local, remoteEP)
             {
                 Log = Log,
                 LogSend = LogSend,

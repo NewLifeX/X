@@ -33,6 +33,10 @@ public interface ISocketRemote : ISocket, IExtend
     /// <returns></returns>
     Packet? Receive();
 
+    /// <summary>异步接收数据</summary>
+    /// <returns></returns>
+    Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default);
+
     /// <summary>数据到达事件</summary>
     event EventHandler<ReceivedEventArgs> Received;
     #endregion
