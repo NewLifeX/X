@@ -365,6 +365,23 @@ public class TcpSession : SessionBase, ISocketSession
     #endregion 发送
 
     #region 接收
+    /// <summary>异步接收数据。重载以支持SSL</summary>
+    /// <returns></returns>
+    public override async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    {
+        var sock = Client;
+        if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        var ss = _Stream;
+        if (ss != null)
+        {
+            var buf = new Byte[BufferSize];
+            var count = await ss.ReadAsync(buf, 0, buf.Length, cancellationToken);
+            return new Packet(buf, 0, count);
+        }
+
+        return await base.ReceiveAsync(cancellationToken);
+    }
 
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)
     {

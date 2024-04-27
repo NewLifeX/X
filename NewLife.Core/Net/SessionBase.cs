@@ -117,10 +117,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                     Client.ReceiveTimeout = timeout;
                 }
 
-                // Tcp需要初始化管道
-                if (Local.IsTcp) Pipeline?.Open(CreateContext(this));
-
                 Active = true;
+
+                // 初始化管道
+                Pipeline?.Open(CreateContext(this));
 
                 ReceiveAsync();
 
