@@ -81,23 +81,25 @@ static class ClientTest
         // 创建客户端，关闭默认的异步模式（MaxAsync=0）
         var uri = new NetUri("tcp://127.0.0.4:12345");
         var client = uri.CreateRemote();
+        client.Name = "小tcp客户";
+        client.Log = XTrace.Log;
         if (client is TcpSession tcp) tcp.MaxAsync = 0;
 
         // 接收服务端握手。内部自动建立连接
         var rs = await client.ReceiveAsync(default);
-        XTrace.WriteLine("<={0}", rs.ToStr());
+        client.WriteLog("<={0}", rs.ToStr());
 
         // 发送数据
         var str = "Hello NewLife";
-        XTrace.WriteLine("=>{0}", str);
+        client.WriteLog("=>{0}", str);
         client.Send(str);
 
         // 接收数据
         rs = await client.ReceiveAsync(default);
-        XTrace.WriteLine("<={0}", rs.ToStr());
+        client.WriteLog("<={0}", rs.ToStr());
 
         // 关闭连接
-        client.Close("finish");
+        client.Close("测试完成");
     }
 
     /// <summary>ISocketClient(UDP)连接NetServer</summary>
@@ -110,22 +112,24 @@ static class ClientTest
         // 创建客户端，关闭默认的异步模式（MaxAsync=0）
         var uri = new NetUri("udp://127.0.0.4:12345");
         var client = uri.CreateRemote();
+        client.Name = "小udp客户";
+        client.Log = XTrace.Log;
         if (client is UdpServer udp) udp.MaxAsync = 0;
 
         // 发送数据。服务端收到第一个包才建立会话
         var str = "Hello NewLife";
-        XTrace.WriteLine("=>{0}", str);
+        client.WriteLog("=>{0}", str);
         client.Send(str);
 
         // 接收服务端握手
         var rs = await client.ReceiveAsync(default);
-        XTrace.WriteLine("<={0}", rs.ToStr());
+        client.WriteLog("<={0}", rs.ToStr());
 
         // 接收数据
         rs = await client.ReceiveAsync(default);
-        XTrace.WriteLine("<={0}", rs.ToStr());
+        client.WriteLog("<={0}", rs.ToStr());
 
         // 关闭连接
-        client.Close("finish");
+        client.Close("测试完成");
     }
 }

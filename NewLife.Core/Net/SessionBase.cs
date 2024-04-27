@@ -60,7 +60,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public SessionBase()
     {
         Name = GetType().Name;
-        LogPrefix = Name.TrimEnd("Server", "Session", "Client") + ".";
 
         BufferSize = SocketSetting.Current.BufferSize;
         LogDataLength = SocketSetting.Current.LogDataLength;
@@ -771,7 +770,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="args"></param>
     public void WriteLog(String format, params Object?[] args)
     {
-        if (Log != null && Log.Enable) Log.Info(LogPrefix + format, args);
+        LogPrefix ??= Name.TrimEnd("Server", "Session", "Client");
+        if (Log != null && Log.Enable) Log.Info($"[{LogPrefix}]{format}", args);
     }
 
     #endregion 日志

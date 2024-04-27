@@ -109,9 +109,17 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         {
             WriteLog("Close {0} {1}", reason, this);
 
-            Client = null;
             try
             {
+                // 以客户端模式工作时，发空包通知服务端结束会话
+                var remote = Remote;
+                if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
+                {
+                    Send(new Byte[0]);
+                }
+
+                Client = null;
+
                 CloseAllSession();
 
                 sock.Shutdown();

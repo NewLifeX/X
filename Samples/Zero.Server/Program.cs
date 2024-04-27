@@ -32,6 +32,7 @@ var server = new MyNetServer
 {
     Port = 12345,
     ServiceProvider = provider,
+    Name = "大网服务端",
 
     Log = XTrace.Log,
     SessionLog = XTrace.Log,

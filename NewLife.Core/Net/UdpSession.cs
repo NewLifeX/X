@@ -103,18 +103,27 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         Pipeline?.Open(Server.CreateContext(this));
     }
 
+    private void Stop(String reason)
+    {
+        if (Server == null) return;
+
+        WriteLog("Close {0} {1}", Remote.EndPoint, reason);
+
+        // 管道
+        var ctx = Server?.CreateContext(this);
+        if (ctx != null)
+            Pipeline?.Close(ctx, reason);
+
+        Server = null!;
+    }
+
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
 
-        WriteLog("Close {0}", Remote.EndPoint);
-
-        // 管道
-        var ctx = Server?.CreateContext(this);
-        if (ctx != null)
-            Pipeline?.Close(ctx, disposing ? "Dispose" : "GC");
+        Stop(disposing ? "Dispose" : "GC");
 
         //// 释放对服务对象的引用，如果没有其它引用，服务对象将会被回收
         //Server = null;
@@ -301,6 +310,13 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         LastTime = DateTime.Now;
 
         if (e != null) Received?.Invoke(this, e);
+
+        // 我们约定，UDP收到空数据包时，结束会话
+        if (e != null && (e.Packet == null || e.Packet.Total == 0))
+        {
+            Stop("Finish");
+            Dispose();
+        }
     }
 
     /// <summary>处理数据帧</summary>
