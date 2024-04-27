@@ -751,7 +751,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     #region 日志
 
     /// <summary>日志前缀</summary>
-    public virtual String LogPrefix { get; set; }
+    public virtual String? LogPrefix { get; set; }
 
     /// <summary>日志对象。禁止设为空对象</summary>
     public ILog Log { get; set; } = Logger.Null;

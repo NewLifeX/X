@@ -657,6 +657,20 @@ public static class NetHelper
             };
     }
 
+    /// <summary>根据Uri创建客户端，主要支持Http/WebSocket</summary>
+    /// <param name="uri"></param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    public static ISocketClient CreateRemote(this Uri uri)
+    {
+        return uri.Scheme switch
+        {
+            "ws" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
+            "wss" => new WebSocketClient(uri),
+            _ => throw new NotSupportedException($"The {uri.Scheme} protocol is not supported"),
+        };
+    }
+
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
     internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);

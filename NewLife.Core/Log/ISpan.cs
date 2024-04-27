@@ -311,22 +311,22 @@ public static class SpanExtension
         return request;
     }
 
-    ///// <summary>把片段信息附加到http请求头上</summary>
-    ///// <param name="span">片段</param>
-    ///// <param name="headers">http请求头</param>
-    ///// <returns></returns>
-    //public static HttpRequestHeaders Attach(this ISpan span, HttpRequestHeaders headers)
-    //{
-    //    if (span == null || headers == null) return headers;
+    /// <summary>把片段信息附加到http请求头上</summary>
+    /// <param name="span">片段</param>
+    /// <param name="headers">http请求头</param>
+    /// <returns></returns>
+    public static IDictionary<String, String> Attach(this ISpan span, IDictionary<String, String> headers)
+    {
+        //if (span == null || headers == null) return headers;
 
-    //    // 注入参数名
-    //    var name = GetAttachParameter(span);
-    //    if (name.IsNullOrEmpty()) return headers;
+        // 注入参数名
+        var name = GetAttachParameter(span);
+        if (name.IsNullOrEmpty()) return headers;
 
-    //    if (!headers.Contains(name)) headers.Add(name, span.ToString());
+        if (!headers.ContainsKey(name)) headers.Add(name, span.ToString()!);
 
-    //    return headers;
-    //}
+        return headers;
+    }
 
     /// <summary>把片段信息附加到http请求头上</summary>
     /// <param name="span">片段</param>

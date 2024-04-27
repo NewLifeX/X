@@ -3,6 +3,7 @@ using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Remoting;
 using NewLife.Serialization;
 
@@ -27,6 +28,7 @@ static class ClientTest
 
         // Api接口请求
         var http = new ApiHttpClient("http://127.0.0.5:8080");
+        http.Log = XTrace.Log;
 
         // 请求接口，返回data部分
         var rs = await http.GetAsync<String>("/user", new { act = "Delete", uid = 1234 });
@@ -39,9 +41,9 @@ static class ClientTest
         client.Dispose();
     }
 
-    public static async Task WebSocketClientTest()
+    public static async Task WebSocketTest()
     {
-        await Task.Delay(5_000);
+        await Task.Delay(3_000);
         XTrace.WriteLine("");
         XTrace.WriteLine("WebSocket客户端开始连接！");
 
@@ -56,6 +58,34 @@ static class ClientTest
         // 关闭连接
         await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
         XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+
+        client.Dispose();
+    }
+
+    public static async Task WebSocketClientTest()
+    {
+        await Task.Delay(5_000);
+        XTrace.WriteLine("");
+        XTrace.WriteLine("WebSocketClient开始连接！");
+
+        var client = new WebSocketClient("ws://127.0.0.7:8080/ws")
+        {
+            Name = "小ws客户",
+            Log = XTrace.Log
+        };
+        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+
+        await client.SendTextAsync("Hello NewLife");
+
+        var rs = await client.ReceiveMessageAsync(default);
+        XTrace.WriteLine(rs.Payload.ToStr());
+
+        // 关闭连接
+        await client.CloseAsync(1000, "通信完成", default);
+        XTrace.WriteLine("Close");
+
+        rs = await client.ReceiveMessageAsync(default);
+        XTrace.WriteLine("Close [{0}] {1}", rs.CloseStatus, rs.StatusDescription);
 
         client.Dispose();
     }

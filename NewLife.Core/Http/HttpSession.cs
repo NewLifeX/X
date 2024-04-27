@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Drawing;
+using System.Net;
 using System.Web;
 using NewLife.Data;
 using NewLife.Log;
@@ -153,28 +154,34 @@ public class HttpSession : INetHandler
         using var span = _session.Host.Tracer?.NewSpan(path);
         if (span != null)
         {
-            // 解析上游请求链路
+            span.Tag = $"{_session.Remote.EndPoint} {request.Method} {request.RequestUri}";
             span.Detach(request.Headers);
+            span.Value = request.ContentLength;
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                var tag = $"{_session.Remote.EndPoint} {request.Method} {request.RequestUri.OriginalString}";
-
+                var flag = false;
                 if (request.BodyLength > 0 &&
                     request.Body != null &&
                     request.Body.Total < 8 * 1024 &&
                     request.ContentType.EqualIgnoreCase(TagTypes))
                 {
-                    tag += "\r\n" + request.Body.ToStr(null, 0, 1024);
+                    span.AppendTag("\r\n<=\r\n" + request.Body.ToStr(null, 0, 1024));
+                    flag = true;
                 }
 
-                if (tag.Length < 500)
+                if (span.Tag.Length < 500)
                 {
+                    if (!flag) span.AppendTag("\r\n<=");
                     var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
-                    tag += "\r\n" + vs.Join("\r\n", e => $"{e.Key}: {e.Value}");
+                    span.AppendTag("\r\n" + vs.Join(Environment.NewLine, e => $"{e.Key}:{e.Value}"));
                 }
-
-                span.SetTag(tag);
+                else if (!flag)
+                {
+                    span.AppendTag("\r\n<=\r\n");
+                    span.AppendTag($"ContentLength: {request.ContentLength}\r\n");
+                    span.AppendTag($"ContentType: {request.ContentType}");
+                }
             }
         }
 
@@ -199,6 +206,16 @@ public class HttpSession : INetHandler
             _websocket ??= WebSocket.Handshake(context);
 
             handler.ProcessRequest(context);
+
+            // 根据状态码识别异常
+            if (span != null)
+            {
+                var res = context.Response;
+                span.Value += res.ContentLength;
+                var code = res.StatusCode;
+                if (code == HttpStatusCode.BadRequest || code > HttpStatusCode.NotFound)
+                    span.SetError(new HttpRequestException($"Http Error {(Int32)code} {code}"), null);
+            }
         }
         catch (Exception ex)
         {
