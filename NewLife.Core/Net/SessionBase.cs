@@ -186,7 +186,35 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns></returns>
     protected abstract Boolean OnClose(String reason);
 
-    Boolean ITransport.Close() => Close("传输口关闭");
+    Boolean ITransport.Close() => Close("TransportClose");
+
+    /// <summary>检查连接是否已关闭，并返回关闭原因，主要检测FIN/RST</summary>
+    /// <returns></returns>
+    protected String? CheckClosed()
+    {
+        var sock = Client;
+        if (sock == null || !sock.Connected) return "Disconnected";
+
+        if (sock.Poll(10, SelectMode.SelectRead))
+        {
+            try
+            {
+                var buffer = new Byte[1];
+                if (sock.Receive(buffer, SocketFlags.Peek) == 0)
+                {
+                    // 收到FIN标记
+                    return "Finish";
+                }
+            }
+            catch (SocketException ex)
+            when (ex.SocketErrorCode == SocketError.ConnectionReset)
+            {
+                return "ConnectionReset";
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>打开后触发。</summary>
     public event EventHandler? Opened;
@@ -266,12 +294,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 按照最大并发创建异步委托
         for (var i = count; i < max; i++)
         {
-            if (Interlocked.Increment(ref _RecvCount) > max)
+            count = Interlocked.Increment(ref _RecvCount);
+            if (count > max)
             {
                 Interlocked.Decrement(ref _RecvCount);
                 return false;
             }
-            count = _RecvCount;
 
             // 加大接收缓冲区，规避SocketError.MessageSize问题
             var buf = new Byte[BufferSize];
@@ -345,8 +373,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         // 同步返回0数据包，断开连接
         if (!rs && se.BytesTransferred == 0 && se.SocketError == SocketError.Success)
         {
-            Close("EmptyData");
+            var reason = CheckClosed() ?? "EmptyData";
+            Close(reason);
             Dispose();
+
             return false;
         }
 

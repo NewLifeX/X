@@ -46,6 +46,7 @@ var server = new MyNetServer
 
 // 启动网络服务，监听端口，所有逻辑将在 MyNetSession 中处理
 server.Start();
+XTrace.WriteLine("服务端启动完成！");
 
 // 注册到星尘，非必须
 star?.Service?.Register("MyNetServer", () => $"tcp://*:{server.Port},udp://*:{server.Port}");
