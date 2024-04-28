@@ -369,15 +369,24 @@ public class TcpSession : SessionBase, ISocketSession
     /// <returns></returns>
     public override async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
-        var sock = Client;
-        if (sock == null || !Active || Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open() || Client == null) return null;
 
         var ss = _Stream;
         if (ss != null)
         {
-            var buf = new Byte[BufferSize];
-            var count = await ss.ReadAsync(buf, 0, buf.Length, cancellationToken);
-            return new Packet(buf, 0, count);
+            using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
+            try
+            {
+                var buf = new Byte[BufferSize];
+                var count = await ss.ReadAsync(buf, 0, buf.Length, cancellationToken);
+                if (span != null) span.Value = count;
+                return new Packet(buf, 0, count);
+            }
+            catch (Exception ex)
+            {
+                span?.SetError(ex, null);
+                throw;
+            }
         }
 
         return await base.ReceiveAsync(cancellationToken);
