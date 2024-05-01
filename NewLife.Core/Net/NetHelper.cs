@@ -665,8 +665,8 @@ public static class NetHelper
     {
         return uri.Scheme switch
         {
-            "ws" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
-            "wss" => new WebSocketClient(uri),
+            "wss" => new WebSocketClient(uri) { SslProtocol = SslProtocols.Tls12 },
+            "ws" => new WebSocketClient(uri),
             _ => throw new NotSupportedException($"The {uri.Scheme} protocol is not supported"),
         };
     }
