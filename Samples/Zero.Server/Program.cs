@@ -29,6 +29,7 @@ var server = new MyNetServer
 {
     Port = 12345,
     ServiceProvider = provider,
+    Name = "大网服务端",
 
     Log = XTrace.Log,
     SessionLog = XTrace.Log,
@@ -43,15 +44,15 @@ var server = new MyNetServer
 
 // 启动网络服务，监听端口，所有逻辑将在 MyNetSession 中处理
 server.Start();
+XTrace.WriteLine("服务端启动完成！");
 
 //// 注册到星尘，非必须
 //star?.Service?.Register("MyNetServer", () => $"tcp://*:{server.Port},udp://*:{server.Port}");
 
 // 客户端测试，非服务端代码，正式使用时请注释掉
-_ = Task.Run(ClientTest.TcpClientTest);
-_ = Task.Run(ClientTest.UdpClientTest);
+_ = TaskEx.Run(ClientTest.TcpClientTest);
+_ = TaskEx.Run(ClientTest.UdpClientTest);
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
 await host.RunAsync();
-

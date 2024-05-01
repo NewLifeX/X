@@ -21,9 +21,13 @@ var services = ObjectContainer.Current;
 // 创建Http服务器
 var server = new HttpServer
 {
+    Name = "新生命Http服务器",
     Port = 8080,
+
     Log = XTrace.Log,
-    //SessionLog = XTrace.Log,
+#if DEBUG
+    SessionLog = XTrace.Log,
+#endif
     //Tracer = star.Tracer,
 };
 
@@ -45,13 +49,14 @@ server.Map("/my", new MyHttpHandler());
 server.Map("/ws", new WebSocketHandler());
 
 server.Start();
+XTrace.WriteLine("服务端启动完成！");
 
 //// 发布到星尘注册中心
 //await star.Service?.RegisterAsync("Zero.HttpServer", $"http://*:{server.Port}");
 
 // 客户端测试，非服务端代码，正式使用时请注释掉
-_ = Task.Run(ClientTest.HttpClientTest);
-//_ = Task.Run(ClientTest.WebSocketClientTest);
+_ = TaskEx.Run(ClientTest.HttpClientTest);
+//_ = TaskEx.Run(ClientTest.WebSocketClientTest);
 
 // 异步阻塞，友好退出
 var host = services.BuildHost();

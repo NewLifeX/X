@@ -44,6 +44,6 @@ static class ClientTest
 
         // 接收数据
         var result = await client.ReceiveAsync();
-        XTrace.WriteLine("<={0}", result.Buffer.ToStr());
+        XTrace.WriteLine("<={0}", result.ToStr());
     }
 }

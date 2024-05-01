@@ -1,4 +1,6 @@
 ﻿using System.Net.Http;
+using NewLife;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Serialization;
@@ -33,7 +35,7 @@ static class ClientTest
 
     //public static async Task WebSocketClientTest()
     //{
-    //    await Task.Delay(5_000);
+    //    await TaskEx.Delay(5_000);
 
     //    var client = new ClientWebSocket();
     //    await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
