@@ -45,7 +45,7 @@ public class UriInfo
         var p = value.IndexOf("://");
         if (p >= 0)
         {
-            Scheme = value[..p];
+            Scheme = value.Substring(0, p);
             p += 3;
         }
         else
@@ -54,18 +54,18 @@ public class UriInfo
         var p2 = value.IndexOf('/', p);
         if (p2 > 0)
         {
-            PathAndQuery = value[p2..];
-            value = value[p..p2];
+            PathAndQuery = value.Substring(p2);
+            value = value.Substring(p, p2 - p - 1);
         }
         else
-            value = value[p..];
+            value = value.Substring(p);
 
         // 拆分主机和端口，注意IPv6地址
         p2 = value.LastIndexOf(':');
         if (p2 > 0)
         {
-            Host = value[..p2];
-            Port = value[(p2 + 1)..].ToInt();
+            Host = value.Substring(0, p2);
+            Port = value.Substring(p2 + 1).ToInt();
         }
         else
         {
