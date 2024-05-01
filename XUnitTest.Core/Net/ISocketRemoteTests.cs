@@ -18,7 +18,9 @@ public class ISocketRemoteTests
 {
     private FileInfo GetFile()
     {
-        var src = "D:\\Tools".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
+        FileInfo src = null;
+        var di = "D:\\Tools".AsDirectory();
+        if (di.Exists) src = di.GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
         src ??= "../../".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
         src ??= "data/".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
         XTrace.WriteLine("发送文件：{0}", src.FullName);
