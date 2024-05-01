@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using NewLife;
 using NewLife.Log;
 
@@ -124,6 +126,15 @@ public static class TaskHelper
         return Task<Int32>.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, offset, count, null);
     }
 
+    /// <summary>异步读取数据流</summary>
+    /// <param name="stream"></param>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public static Task<Int32> ReadAsync(this Stream stream, Byte[] buffer)
+    {
+        return Task<Int32>.Factory.FromAsync(stream.BeginRead, stream.EndRead, buffer, 0, buffer.Length, null);
+    }
+
     /// <summary>异步读取数据</summary>
     /// <param name="stream"></param>
     /// <param name="length"></param>
@@ -152,6 +163,58 @@ public static class TaskHelper
     public static Task WriteAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
     {
         return Task.Factory.FromAsync(stream.BeginWrite, stream.EndWrite, buffer, offset, count, null);
+    }
+
+    /// <summary>异步写入数据流</summary>
+    /// <param name="stream"></param>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public static Task WriteAsync(this Stream stream, Byte[] buffer)
+    {
+        return Task.Factory.FromAsync(stream.BeginWrite, stream.EndWrite, buffer, 0, buffer.Length, null);
+    }
+    #endregion
+
+    #region Socket异步
+    /// <summary>异步连接</summary>
+    /// <param name="client"></param>
+    /// <param name="host"></param>
+    /// <param name="port"></param>
+    /// <returns></returns>
+    public static Task ConnectAsync(this TcpClient client, String host, Int32 port)
+    {
+        return Task.Factory.FromAsync(client.BeginConnect, client.EndConnect, host, port, null);
+    }
+
+    /// <summary>异步发送数据</summary>
+    /// <param name="client"></param>
+    /// <param name="datagram"></param>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
+    public static Task SendAsync(this UdpClient client, Byte[] datagram, Int32 bytes)
+    {
+        return Task.Factory.FromAsync(client.BeginSend, client.EndSend, datagram, bytes, null);
+    }
+
+    /// <summary>异步发送数据</summary>
+    /// <param name="client"></param>
+    /// <param name="datagram"></param>
+    /// <returns></returns>
+    public static Task SendAsync(this UdpClient client, Byte[] datagram)
+    {
+        return Task.Factory.FromAsync(client.BeginSend, client.EndSend, datagram, datagram.Length, null);
+    }
+
+    /// <summary>异步接收数据</summary>
+    /// <param name="client"></param>
+    /// <returns></returns>
+    public static Task<Byte[]> ReceiveAsync(this UdpClient client)
+    {
+        return Task<Byte[]>.Factory.FromAsync(client.BeginReceive, ar =>
+        {
+            IPEndPoint ep = null;
+            return client.EndReceive(ar, ref ep);
+        }, null);
     }
     #endregion
 

@@ -9,7 +9,7 @@ static class ClientTest
 {
     public static async void TcpClientTest()
     {
-        await Task.Delay(1_000);
+        await TaskEx.Delay(1_000);
 
         var client = new TcpClient();
         await client.ConnectAsync("127.0.0.1", 12345);
@@ -32,7 +32,7 @@ static class ClientTest
 
     public static async void UdpClientTest()
     {
-        await Task.Delay(1_500);
+        await TaskEx.Delay(1_500);
 
         var client = new UdpClient();
         client.Connect("127.0.0.1", 12345);
@@ -44,6 +44,6 @@ static class ClientTest
 
         // 接收数据
         var result = await client.ReceiveAsync();
-        XTrace.WriteLine("<={0}", result.Buffer.ToStr());
+        XTrace.WriteLine("<={0}", result.ToStr());
     }
 }

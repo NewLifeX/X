@@ -1,5 +1,4 @@
-﻿using System.Net.WebSockets;
-using System.Text;
+﻿using System.Net.Http;
 using NewLife;
 using NewLife.Data;
 using NewLife.Log;
@@ -12,7 +11,7 @@ static class ClientTest
 {
     public static async Task HttpClientTest()
     {
-        await Task.Delay(1_000);
+        await TaskEx.Delay(1_000);
 
         // 基础请求
         var client = new HttpClient
@@ -34,19 +33,19 @@ static class ClientTest
         XTrace.WriteLine(rs2.ToJson(true));
     }
 
-    public static async Task WebSocketClientTest()
-    {
-        await Task.Delay(5_000);
+    //public static async Task WebSocketClientTest()
+    //{
+    //    await TaskEx.Delay(5_000);
 
-        var client = new ClientWebSocket();
-        await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
-        await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+    //    var client = new ClientWebSocket();
+    //    await client.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"), default);
+    //    await client.SendAsync("Hello NewLife".GetBytes(), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
-        var buf = new Byte[1024];
-        var rs = await client.ReceiveAsync(buf, default);
-        XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+    //    var buf = new Byte[1024];
+    //    var rs = await client.ReceiveAsync(buf, default);
+    //    XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
 
-        await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
-        XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
-    }
+    //    await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);
+    //    XTrace.WriteLine("Close [{0}] {1}", client.CloseStatus, client.CloseStatusDescription);
+    //}
 }
