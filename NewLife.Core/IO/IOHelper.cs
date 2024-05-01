@@ -437,7 +437,14 @@ public static class IOHelper
         if (offset > 0) data = data.ReadBytes(offset, 4);
         if (!isLittleEndian)
         {
-            (data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3]);
+            //(data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3]);
+            var tmp = data[0];
+            data[0] = data[3];
+            data[3] = tmp;
+
+            tmp = data[1];
+            data[1] = data[2];
+            data[2] = tmp;
         }
 
         return BitConverter.ToSingle(data, offset);
@@ -453,7 +460,22 @@ public static class IOHelper
         if (offset > 0) data = data.ReadBytes(offset, 8);
         if (!isLittleEndian)
         {
-            (data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+            //(data[7], data[6], data[5], data[4], data[3], data[2], data[1], data[0]) = (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+            var tmp = data[0];
+            data[0] = data[7];
+            data[7] = tmp;
+
+            tmp = data[1];
+            data[1] = data[6];
+            data[6] = tmp;
+
+            tmp = data[2];
+            data[2] = data[5];
+            data[5] = tmp;
+
+            tmp = data[3];
+            data[3] = data[4];
+            data[4] = tmp;
         }
 
         return BitConverter.ToDouble(data, offset);
