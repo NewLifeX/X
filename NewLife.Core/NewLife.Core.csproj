@@ -152,6 +152,7 @@
     <Compile Remove="Security\BerDecodeError.cs" />
     <Compile Remove="Security\BigInteger.cs" />
     <Compile Remove="Security\DataHelper.cs" />
+    <Compile Remove="Serialization\Json\JsonTest.cs" />
     <Compile Remove="Serialization\Protocol.cs" />
     <Compile Remove="Serialization\RWKinds.cs" />
     <Compile Remove="Serialization\RWService.cs" />

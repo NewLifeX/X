@@ -1,4 +1,4 @@
-namespace System.Threading;
+﻿namespace System.Threading;
 
 public struct CancellationTokenRegistration : IDisposable, IEquatable<CancellationTokenRegistration>
 {
@@ -14,7 +14,7 @@ public struct CancellationTokenRegistration : IDisposable, IEquatable<Cancellati
 
 	public void Dispose()
 	{
-		source.RemoveCallback(this);
+		source?.RemoveCallback(this);
 	}
 
 	public bool Equals(CancellationTokenRegistration other)

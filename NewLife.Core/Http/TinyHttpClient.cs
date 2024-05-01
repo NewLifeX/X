@@ -615,9 +615,16 @@ public class TinyHttpClient : DisposeBase, IApiClient
     /// <returns></returns>
     public async Task<String> GetStringAsync(String url)
     {
+        // 支持相对路径
+        Uri uri = null;
+        if (!url.StartsWithIgnoreCase("http://", "https://"))
+            uri = new Uri(BaseAddress, url);
+        else
+            uri = new Uri(url);
+
         var request = new HttpRequestMessage
         {
-            RequestUri = new Uri(url),
+            RequestUri = uri,
         };
 
         var rs = (await SendAsync(request, default).ConfigureAwait(false));
