@@ -64,7 +64,7 @@ public class Snowflake
         {
             // 从容器中获取缓存提供者，查找Redis作为集群WorkerId分配器
             var provider = ObjectContainer.Provider?.GetService<ICacheProvider>();
-            if (provider != null && provider.Cache != provider.InnerCache && provider is not MemoryCache)
+            if (provider != null && provider.Cache != provider.InnerCache && provider.Cache is not MemoryCache)
                 Cluster = provider.Cache;
 
             var ip = NetHelper.MyIP();
@@ -139,50 +139,99 @@ public class Snowflake
         //var ms = _watch.ElapsedMilliseconds + _msStart;
         var wid = WorkerId & (-1 ^ (-1 << 10));
 
+        var origin = Volatile.Read(ref _lastTime);
         //!!! 避免时间倒退
-        var t = _lastTime - ms;
-        if (t > 0)
+        if (ms < origin)
         {
+            var t = origin - ms;
             // 在夏令时地区，时间可能回拨1个小时
             if (t > 3600_000 + 10_000) throw new InvalidOperationException($"Time reversal too large ({t}ms). To ensure uniqueness, Snowflake refuses to generate a new Id");
 
             // 暂时使用上次时间，即未来时间
-            ms = _lastTime;
+            ms = origin;
         }
 
+        // 核心理念：时间不同时序号置零，时间相同时序号递增
         var seq = 0;
-        while (true)
+        lock (this)
         {
-            if (ms > _lastTime)
+            while (true)
             {
-                // 1，空闲时走这里。跟上次时间不同，抢夺当前坑位（序号0）。每毫秒只有1次机会
-                var origin = _lastTime;
-                if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin) break;
-            }
-            else
-            {
-                // 2，繁忙时走这里。时间相同，递增序列号，较小序列号直接采用。每毫秒有4095次机会
-                seq = Interlocked.Increment(ref _Sequence);
-                if (seq < 4096) break;
-
-                // 3，极度繁忙时走这里。4096之外的“幸运儿”集体加锁，重置序列号和时间，准备再来抢一次。很少业务会走到这里，只可能是积压数据冲击
-                var origin = _lastTime;
-                lock (this)
+                if (ms > _lastTime)
                 {
-                    // 时间不允许后退，否则可能生成重复Id。算法在每毫秒上生成4096个Id，等待被回拨的时间追上
-                    ms++;
+                    _Sequence = 0;
+                    _lastTime = ms;
+                    seq = 0;
+                    break;
+                }
+                else
+                {
+                    ms = _lastTime;
+                    seq = Interlocked.Increment(ref _Sequence);
+                    if (seq < 4096) break;
 
-                    // 加锁加时后，抢新时间的序号0坑位，只有1个线程能成功。其它线程在新时间上继续抢序列号
-                    if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin)
-                    {
-                        seq = _Sequence = 0;
-                        break;
-                    }
+                    ms++;
+                    _Sequence = 0;
                 }
             }
         }
 
-        _lastTime = ms;
+        //var seq = 0;
+        //while (true)
+        //{
+        //    if (ms > origin)
+        //    {
+        //        lock (this)
+        //        {
+        //            origin = Volatile.Read(ref _lastTime);
+        //            if (ms > origin)
+        //            {
+        //                Volatile.Write(ref _Sequence, 0);
+        //                // 1，空闲时走这里。跟上次时间不同，抢夺当前坑位（序号0）。每毫秒只有1次机会
+        //                if (Interlocked.CompareExchange(ref _lastTime, ms, origin) == origin)
+        //                {
+        //                    seq = 0;
+        //                    break;
+        //                }
+
+        //                // 抢夺失败，必须用新的时间，原来时间已经错过，无法得到唯一序号
+        //                origin = Volatile.Read(ref _lastTime);
+        //                //ms = origin;
+        //            }
+        //            ms = origin;
+        //        }
+        //    }
+
+        //    // 2，繁忙时走这里。时间相同，递增序列号，较小序列号直接采用。每毫秒有4095次机会
+        //    seq = Interlocked.Increment(ref _Sequence);
+        //    if (seq < 4096) break;
+
+        //    // 3，极度繁忙时走这里。4096之外的“幸运儿”集体加锁，重置序列号和时间，准备再来抢一次。很少业务会走到这里，只可能是积压数据冲击
+        //    origin = Volatile.Read(ref _lastTime);
+        //    if (ms == origin)
+        //    {
+        //        lock (this)
+        //        {
+        //            origin = Volatile.Read(ref _lastTime);
+        //            if (ms == origin)
+        //            {
+        //                // 时间不允许后退，否则可能生成重复Id。算法在每毫秒上生成4096个Id，等待被回拨的时间追上
+        //                //origin = Volatile.Read(ref _lastTime);
+        //                ms++;
+        //            }
+        //            else
+        //            {
+        //                XTrace.WriteLine("ms.notEqual2 ms={0}, origin={1}", ms, origin);
+        //                ms = origin;
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        XTrace.WriteLine("ms.notEqual1 ms={0}, origin={1}", ms, origin);
+        //        ms = origin;
+        //    }
+        //}
 
         seq &= (-1 ^ (-1 << 12));
         return (ms << (10 + 12)) | (Int64)(wid << 12) | (Int64)seq;

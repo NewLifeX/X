@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using NewLife.Data;
 using NewLife.Log;
@@ -152,7 +153,18 @@ public class FlowIdTests
                 Assert.True(ws.TryAdd(f.WorkerId, f));
                 //if (!ws.TryAdd(f.WorkerId, f)) Assert.True(false);
 
-                for (var i = 0; i < 1_000_000; i++)
+                //for (var i = 0; i < 1_000_000; i++)
+                //{
+                //    var id = f.NewId();
+                //    if (!hash.TryAdd(id, f))
+                //    {
+                //        hash.TryGetValue(id, out var f2);
+                //        repeat.Add(id);
+                //    }
+
+                //    ss[wid - 1]++;
+                //}
+                Parallel.For(0, 1_000_000, i =>
                 {
                     var id = f.NewId();
                     if (!hash.TryAdd(id, f))
@@ -162,7 +174,8 @@ public class FlowIdTests
                     }
 
                     ss[wid - 1]++;
-                }
+                });
+
                 rs[wid - 1] = repeat;
             }));
         }
@@ -175,8 +188,91 @@ public class FlowIdTests
         //Assert.Equal(0, count);
         for (var i = 0; i < ss.Length; i++)
         {
+            Assert.Equal(0, rs[i].Count);
             Assert.Empty(rs[i]);
         }
+    }
+
+    [Fact]
+    public void ValidRepeatForSingleThread()
+    {
+        XTrace.WriteLine(nameof(ValidRepeatForSingleThread));
+
+        var count = 1_000_000;
+        var hash = new ConcurrentDictionary<Int64, Snowflake>();
+        var ds = new Int64[count];
+        var result = new List<Int64>();
+        var repeat = new List<Int64>();
+        var f = new Snowflake { StartTimestamp = new DateTime(2020, 1, 1) };
+
+        // 生成雪花Id，用最短的代码，避免耗时
+        var sw = Stopwatch.StartNew();
+        Parallel.For(0, count, i =>
+        {
+            ds[i] = f.NewId();
+        });
+
+        sw.Stop();
+
+        for (var i = 0; i < count; i++)
+        {
+            var id = ds[i];
+            if (hash.TryAdd(id, f))
+                result.Add(id);
+            else
+                repeat.Add(id);
+        }
+
+        XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+
+        // 按毫秒时间分解
+        var dic = result.Select(e =>
+        {
+            f.TryParse(e, out var time, out var wid, out var seq);
+            return new MyId { Id = e, Time = time, WorkerId = wid, Sequence = seq };
+        }).GroupBy(e => e.Time).OrderBy(e => e.Key).ToDictionary(e => e.Key, e => e.ToList());
+        var dic2 = repeat.Select(e =>
+        {
+            f.TryParse(e, out var time, out var wid, out var seq);
+            return new MyId { Id = e, Time = time, WorkerId = wid, Sequence = seq };
+        }).GroupBy(e => e.Time).OrderBy(e => e.Key).ToDictionary(e => e.Key, e => e.ToList());
+
+        XTrace.WriteLine("SnowId，生成 {0:n0}，得到 {1:n0}，重复 {2:n0} ({3:p4})，时间 {4:n0}", count, result.Count, repeat.Count, (Double)repeat.Count / count, dic.Count);
+
+        //// 输出每一毫秒的Id数据分布
+        //var last = DateTime.MinValue;
+        //foreach (var item in dic)
+        //{
+        //    var ids = item.Value;
+        //    var min = ids.Min(e => e.Sequence);
+        //    var max = ids.Max(e => e.Sequence);
+
+        //    if (dic2.TryGetValue(item.Key, out var rs))
+        //        XTrace.WriteLine("{0} {1:n0} ({2}, {3}) {4:n0} ({5}, {6})", item.Key, ids.Count, min, max, rs.Count, rs.Min(e => e.Sequence), rs.Max(e => e.Sequence));
+        //    else
+        //        XTrace.WriteLine("{0} {1:n0} ({2}, {3})", item.Key, ids.Count, min, max);
+
+        //    if (item.Key > last.AddMilliseconds(1) && last != DateTime.MinValue)
+        //        XTrace.WriteLine("时间差 {0:n0}ms", (item.Key - last).TotalMilliseconds);
+        //    last = item.Key;
+
+        //    if (min != 0)
+        //        XTrace.WriteLine("最小值非0");
+        //}
+
+        //Assert.Equal(0, repeat.Count);
+        Assert.Empty(repeat);
+    }
+
+    class MyId
+    {
+        public Int64 Id { get; set; }
+
+        public DateTime Time { get; set; }
+
+        public Int32 WorkerId { get; set; }
+
+        public Int32 Sequence { get; set; }
     }
 
     [Fact]
