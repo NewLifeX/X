@@ -271,6 +271,8 @@ public class DefaultSpan : ISpan
                 Tag = pk.ToStr(null, 0, len);
             else
                 Tag = pk.ToHex(len / 2);
+
+            if (Value == 0) Value = pk.Total;
         }
         else
             Tag = tag.ToJson().Cut(len);
@@ -470,7 +472,20 @@ public static class SpanExtension
     {
         if (span == null || tag == null) return;
 
-        if (span is DefaultSpan ds && ds.TraceFlag > 0)
+        AppendTag(span, tag, -1);
+    }
+
+    /// <summary>附加Tag信息在原Tag信息后面</summary>
+    /// <param name="span">片段</param>
+    /// <param name="tag">Tag信息</param>
+    /// <param name="value">可累加的数值标量</param>
+    public static void AppendTag(this ISpan span, Object tag, Int64 value)
+    {
+        if (span == null) return;
+
+        if (value >= 0) span.Value = value;
+
+        if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
         {
             var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
             if (span.Tag.IsNullOrEmpty())
@@ -492,15 +507,17 @@ public static class SpanExtension
         // 正常响应，部分作为Tag信息
         if (response.StatusCode == HttpStatusCode.OK)
         {
+            var content = response.Content;
+            var len = content.Headers?.ContentLength ?? 0;
+            if (span.Value == 0) span.Value = len;
+
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
                 var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
                 if (span.Tag.IsNullOrEmpty() || span.Tag.Length < maxLength)
                 {
                     // 判断类型和长度
-                    var content = response.Content;
                     var mediaType = content.Headers?.ContentType?.MediaType;
-                    var len = content.Headers?.ContentLength ?? 0;
                     if (len >= 0 && len < 1024 * 8 && mediaType.EndsWithIgnoreCase("json", "xml", "text", "html"))
                     {
                         var result = content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
