@@ -132,7 +132,7 @@ public class Snowflake
         //var ms = _watch.ElapsedMilliseconds + _msStart;
         var wid = WorkerId & (-1 ^ (-1 << 10));
 
-        var origin = Volatile.Read(ref _lastTime);
+        var origin = _lastTime;
         //!!! 避免时间倒退
         if (ms < origin)
         {
