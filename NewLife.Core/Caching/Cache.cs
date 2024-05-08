@@ -281,7 +281,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，单位毫秒</param>
     /// <returns></returns>
-    public IDisposable? AcquireLock(String key, Int32 msTimeout)
+    public virtual IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msTimeout)) throw new InvalidOperationException($"Lock [{key}] failed! msTimeout={msTimeout}");
@@ -295,7 +295,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="msExpire">锁过期时间，超过该时间如果没有主动释放则自动释放锁，必须整数秒，单位毫秒</param>
     /// <param name="throwOnFailure">失败时是否抛出异常，如果不抛出异常，可通过返回null得知申请锁失败</param>
     /// <returns></returns>
-    public IDisposable? AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure)
+    public virtual IDisposable? AcquireLock(String key, Int32 msTimeout, Int32 msExpire, Boolean throwOnFailure)
     {
         var rlock = new CacheLock(this, key);
         if (!rlock.Acquire(msTimeout, msExpire))
