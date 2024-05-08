@@ -13,35 +13,39 @@ namespace NewLife.Http
             var ws = context.WebSocket;
             ws.Handler = ProcessMessage;
 
-            WriteLog("WebSocket连接 {0}", context.Connection.Remote);
-        }
+        WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
+    }
 
-        /// <summary>处理消息</summary>
-        /// <param name="socket"></param>
-        /// <param name="message"></param>
-        public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
+    /// <summary>处理消息</summary>
+    /// <param name="socket"></param>
+    /// <param name="message"></param>
+    public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
+    {
+        var remote = (socket.Context?.Connection?.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
+
+        //var remote = socket.Context.Connection.Remote;
+        var msg = message.Payload?.ToStr();
+        if (msg == null) return;
+
+        switch (message.Type)
         {
-            var remote = socket.Context.Connection.Remote;
-            var msg = message.Payload?.ToStr();
-            switch (message.Type)
-            {
-                case WebSocketMessageType.Text:
-                    WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
-                    // 群发所有客户端
-                    socket.SendAll($"[{remote}]说，{msg}");
-                    break;
-                case WebSocketMessageType.Close:
-                    WriteLog("WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
-                    break;
-                case WebSocketMessageType.Ping:
-                case WebSocketMessageType.Pong:
-                    WriteLog("WebSocket心跳[{0}] {1}", message.Type, msg);
-                    break;
-                default:
-                    WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
-                    break;
-            }
+            case WebSocketMessageType.Text:
+                WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
+                // 群发所有客户端
+                socket.SendAll($"[{remote}]说，{msg}");
+                break;
+            case WebSocketMessageType.Close:
+                WriteLog("WebSocket关闭[{0}] [{1}] {2}", remote, message.CloseStatus, message.StatusDescription);
+                break;
+            case WebSocketMessageType.Ping:
+            case WebSocketMessageType.Pong:
+                WriteLog("WebSocket心跳[{0}] {1}", message.Type, msg);
+                break;
+            default:
+                WriteLog("WebSocket收到[{0}] {1}", message.Type, msg);
+                break;
         }
+    }
 
         private void WriteLog(String format, params Object[] args) => XTrace.WriteLine(format, args);
     }
