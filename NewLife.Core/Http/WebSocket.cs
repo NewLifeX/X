@@ -74,14 +74,16 @@ public class WebSocket
             Handler?.Invoke(this, message);
 
             var session = Context?.Connection;
-            if (session == null) return;
+            var socket = Context?.Socket;
+            if (session == null && socket == null) return;
 
             switch (message.Type)
             {
                 case WebSocketMessageType.Close:
                     {
                         Close(1000, "Finished");
-                        session.Dispose();
+                        session.TryDispose();
+                        socket.TryDispose();
                         Connected = false;
                     }
                     break;
@@ -92,11 +94,23 @@ public class WebSocket
                             Type = WebSocketMessageType.Pong,
                             Payload = $"Pong {DateTime.UtcNow.ToFullString()}",
                         };
-                        session.Send(msg.ToPacket());
+                        Send(msg);
                     }
                     break;
             }
         }
+    }
+
+    private void Send(WebSocketMessage msg)
+    {
+        var session = Context?.Connection;
+        var socket = Context?.Socket;
+        if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
+
+        if (session != null)
+            session.Send(msg.ToPacket());
+        else
+            socket?.Send(msg.ToPacket());
     }
 
     /// <summary>发送消息</summary>
@@ -104,9 +118,8 @@ public class WebSocket
     /// <param name="type"></param>
     public void Send(Packet data, WebSocketMessageType type)
     {
-        var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        session.Send(msg.ToPacket());
+        Send(msg);
     }
 
     /// <summary>发送文本消息</summary>
@@ -134,16 +147,13 @@ public class WebSocket
     /// <param name="statusDescription"></param>
     public void Close(Int32 closeStatus, String statusDescription)
     {
-        var session = (Context?.Connection);
-        if (session == null) return;
-
         var msg = new WebSocketMessage
         {
             Type = WebSocketMessageType.Close,
             CloseStatus = closeStatus,
             StatusDescription = statusDescription
         };
-        session.Send(msg.ToPacket());
+        Send(msg);
     }
     #endregion
 }

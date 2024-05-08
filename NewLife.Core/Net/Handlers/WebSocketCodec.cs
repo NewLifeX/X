@@ -7,6 +7,10 @@ namespace NewLife.Net.Handlers;
 /// <summary>WebSocket消息编码器</summary>
 public class WebSocketCodec : Handler
 {
+    /// <summary>用户数据包。写入时数据包转消息，读取时消息自动解包返回数据负载</summary>
+    /// <remarks>一般用于上层还有其它编码器时，实现编码器级联</remarks>
+    public Boolean UserPacket { get; set; }
+
     /// <summary>打开连接</summary>
     /// <param name="context">上下文</param>
     public override Boolean Open(IHandlerContext context)
@@ -40,10 +44,17 @@ public class WebSocketCodec : Handler
     /// <returns></returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
-        if (message is not Packet pk) return base.Read(context, message);
-
-        var msg = new WebSocketMessage();
-        if (msg.Read(pk)) message = msg;
+        if (message is Packet pk)
+        {
+            var msg = new WebSocketMessage();
+            if (msg.Read(pk))
+            {
+                if (UserPacket)
+                    message = msg.Payload!;
+                else
+                    message = msg;
+            }
+        }
 
         return base.Read(context, message);
     }
@@ -54,6 +65,9 @@ public class WebSocketCodec : Handler
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
+        if (UserPacket && message is Packet pk)
+            message = new WebSocketMessage { Type = WebSocketMessageType.Binary, Payload = pk };
+
         if (message is WebSocketMessage msg)
             message = msg.ToPacket();
 

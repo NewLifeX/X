@@ -32,7 +32,8 @@ public class MessageCodec<T> : Handler
     /// <summary>最大缓存待处理数据。默认10M</summary>
     public Int32 MaxCache { get; set; } = 10 * 1024 * 1024;
 
-    /// <summary>使用数据包。写入时数据包转消息，读取时消息自动解包返回数据负载，要求T实现IMessage。默认true</summary>
+    /// <summary>用户数据包。写入时数据包转消息，读取时消息自动解包返回数据负载，要求T实现IMessage。默认true</summary>
+    /// <remarks>一般用于上层还有其它编码器时，实现编码器级联</remarks>
     public Boolean UserPacket { get; set; } = true;
 
     /// <summary>发送消息时，写入数据，编码并加入队列</summary>

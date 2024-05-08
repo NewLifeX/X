@@ -44,13 +44,13 @@ namespace NewLife.Model
         #endregion
     }
 
-    /// <summary>管道。进站顺序，出站逆序</summary>
-    public class Pipeline : IPipeline
-    {
-        #region 属性
-        /// <summary>处理器集合</summary>
-        public IList<IHandler> Handlers { get; } = new List<IHandler>();
-        #endregion
+/// <summary>管道。进站顺序，出站逆序</summary>
+public class Pipeline : IPipeline
+{
+    #region 属性
+    /// <summary>处理器集合</summary>
+    public IList<IHandler> Handlers { get; } = [];
+    #endregion
 
         #region 构造
         #endregion
