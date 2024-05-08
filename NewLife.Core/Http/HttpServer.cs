@@ -5,7 +5,7 @@ namespace NewLife.Http;
 
 /// <summary>Http服务器</summary>
 [DisplayName("Http服务器")]
-public class HttpServer : NetServer
+public class HttpServer : NetServer, IHttpHost
 {
     #region 属性
     /// <summary>Http响应头Server名称</summary>
@@ -101,8 +101,9 @@ public class HttpServer : NetServer
     private readonly IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
     /// <summary>匹配处理器</summary>
     /// <param name="path"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
-    public IHttpHandler? MatchHandler(String path)
+    public IHttpHandler? MatchHandler(String path, HttpRequest? request)
     {
         if (Routes.TryGetValue(path, out var handler)) return handler;
 

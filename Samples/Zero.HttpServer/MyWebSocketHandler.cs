@@ -13,7 +13,7 @@ public class MyWebSocketHandler : IHttpHandler
         var ws = context.WebSocket;
         ws.Handler = ProcessMessage;
 
-        WriteLog("WebSocket连接 {0}", context.Connection.Remote);
+        WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
     }
 
     /// <summary>处理消息</summary>
@@ -21,7 +21,7 @@ public class MyWebSocketHandler : IHttpHandler
     /// <param name="message"></param>
     public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
     {
-        var remote = socket.Context.Connection.Remote;
+        var remote = socket.Context.Connection?.Remote;
         var msg = message.Payload?.ToStr();
         switch (message.Type)
         {

@@ -12,7 +12,7 @@ public class WebSocketHandler : IHttpHandler
         var ws = context.WebSocket;
         if (ws != null) ws.Handler = ProcessMessage;
 
-        WriteLog("WebSocket连接 {0}", context.Connection.Remote);
+        WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
     }
 
     /// <summary>处理消息</summary>
@@ -20,7 +20,7 @@ public class WebSocketHandler : IHttpHandler
     /// <param name="message"></param>
     public virtual void ProcessMessage(WebSocket socket, WebSocketMessage message)
     {
-        var remote = (socket.Context?.Connection.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
+        var remote = (socket.Context?.Connection?.Remote) ?? throw new ObjectDisposedException(nameof(socket.Context));
 
         //var remote = socket.Context.Connection.Remote;
         var msg = message.Payload?.ToStr();
