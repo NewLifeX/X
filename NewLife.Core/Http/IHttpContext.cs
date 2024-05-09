@@ -14,7 +14,10 @@ public interface IHttpContext
     HttpResponse Response { get; }
 
     /// <summary>连接会话</summary>
-    INetSession Connection { get; }
+    INetSession? Connection { get; }
+
+    /// <summary>Socket连接</summary>
+    ISocketRemote? Socket { get; }
 
     /// <summary>WebSocket连接</summary>
     WebSocket? WebSocket { get; }
@@ -44,7 +47,10 @@ public class DefaultHttpContext : IHttpContext
     public HttpResponse Response { get; set; } = new HttpResponse();
 
     /// <summary>连接会话</summary>
-    public INetSession Connection { get; set; }
+    public INetSession? Connection { get; set; }
+
+    /// <summary>Socket连接</summary>
+    public ISocketRemote? Socket { get; set; }
 
     /// <summary>WebSocket连接</summary>
     public WebSocket? WebSocket { get; set; }
@@ -68,9 +74,24 @@ public class DefaultHttpContext : IHttpContext
     /// <param name="request"></param>
     /// <param name="path"></param>
     /// <param name="handler"></param>
-    public DefaultHttpContext(INetSession session, HttpRequest request, String path, IHttpHandler handler)
+    public DefaultHttpContext(INetSession session, HttpRequest request, String path, IHttpHandler? handler)
     {
         Connection = session;
+        Request = request;
+        Path = path;
+        Handler = handler;
+
+        Socket = session?.Session;
+    }
+
+    /// <summary>实例化</summary>
+    /// <param name="socket"></param>
+    /// <param name="request"></param>
+    /// <param name="path"></param>
+    /// <param name="handler"></param>
+    public DefaultHttpContext(ISocketRemote socket, HttpRequest request, String path, IHttpHandler? handler)
+    {
+        Socket = socket;
         Request = request;
         Path = path;
         Handler = handler;

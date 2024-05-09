@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Net;
+﻿using System.Net;
 using System.Web;
 using NewLife.Data;
 using NewLife.Log;
@@ -14,6 +13,9 @@ public class HttpSession : INetHandler
     #region 属性
     /// <summary>请求</summary>
     public HttpRequest? Request { get; set; }
+
+    /// <summary>Http服务主机。不一定是HttpServer</summary>
+    public IHttpHost? Host { get; set; }
 
     /// <summary>最大请求长度。单位字节，默认1G</summary>
     public Int32 MaxRequestLength { get; set; } = 1 * 1024 * 1024 * 1024;
@@ -36,7 +38,11 @@ public class HttpSession : INetHandler
     #region 收发数据
     /// <summary>建立连接时初始化会话</summary>
     /// <param name="session">会话</param>
-    public void Init(INetSession session) => _session = session;
+    public void Init(INetSession session)
+    {
+        _session = session;
+        Host ??= session.Host as IHttpHost;
+    }
 
     /// <summary>处理客户端发来的数据</summary>
     /// <param name="data"></param>
@@ -145,7 +151,6 @@ public class HttpSession : INetHandler
         if (request?.RequestUri == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
         // 匹配路由处理器
-        var server = _session.Host as HttpServer;
         var path = request.RequestUri.OriginalString;
         var p = path.IndexOf('?');
         if (p > 0) path = path[..p];
@@ -188,8 +193,8 @@ public class HttpSession : INetHandler
         // 路径安全检查，防止越界
         if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
 
-        var handler = server?.MatchHandler(path);
-        if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
+        var handler = Host?.MatchHandler(path, request);
+        //if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
         var context = new DefaultHttpContext(_session, request, path, handler)
         {
@@ -205,7 +210,10 @@ public class HttpSession : INetHandler
             // 处理 WebSocket 握手
             _websocket ??= WebSocket.Handshake(context);
 
-            handler.ProcessRequest(context);
+            if (handler != null)
+                handler.ProcessRequest(context);
+            else if (_websocket == null)
+                return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
             // 根据状态码识别异常
             if (span != null)

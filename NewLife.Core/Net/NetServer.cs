@@ -350,6 +350,15 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             WriteLog("开始监听 {0}", item);
         }
 
+        if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
+        {
+            WriteLog("初始化管道：");
+            foreach (var handler in pipe.Handlers)
+            {
+                WriteLog("    {0}", handler);
+            }
+        }
+
         if (StatPeriod > 0) _Timer = new TimerX(ShowStat, null, 10_000, StatPeriod * 1000);
     }
 
