@@ -576,11 +576,39 @@ public static class NetHelper
         // 考虑到IPv6是16字节，不确定SendARP是否支持IPv6
         var len = 16;
         var buf = new Byte[16];
-        var rs = SendARP(ip.GetAddressBytes().ToUInt32(), 0, buf, ref len);
-        if (rs != 0 || len <= 0) return null;
 
-        if (len != buf.Length) buf = buf.ReadBytes(0, len);
-        return buf;
+        if (Runtime.Windows)
+        {
+            var rs = SendARP(ip.GetAddressBytes().ToUInt32(), 0, buf, ref len);
+            if (rs != 0 || len <= 0) return null;
+            if (len != buf.Length) buf = buf.ReadBytes(0, len);            
+        }
+        else
+        {
+            var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (var item in networkInterfaces)
+            {
+                if (_Excludes.Any(e => item.Description.Contains(e))) continue;
+                if (Runtime.Windows && item.Speed < 1_000_000) continue;
+
+                var ips = item.GetIPProperties();
+                var addrs = ips.UnicastAddresses
+                    .Where(e => e.Address.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(e => e.Address)
+                    .ToArray();
+                if (addrs.All(e => IPAddress.IsLoopback(e))) continue;
+
+                foreach (var ipInfo in ips.UnicastAddresses)
+                {
+                    if (!ipInfo.Address.Equals(ip)) continue;
+                    buf = item.GetPhysicalAddress()?.GetAddressBytes();
+                }
+
+                if (buf != null && buf.Length == 6) return buf;
+            }            
+        }
+        
+        return buf;        
     }
     #endregion
 
