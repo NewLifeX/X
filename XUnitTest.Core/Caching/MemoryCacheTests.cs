@@ -82,8 +82,8 @@ public class MemoryCacheTests
         var ic = Cache;
         var key = "Name";
 
-        ic.Set(key, Environment.UserName);
-        var rs = ic.Add(key, Environment.MachineName);
+        ic.Set(key, Environment.UserName, 2);
+        var rs = ic.Add(key, Environment.MachineName, 2);
         Assert.False(rs);
 
         var name = ic.Get<String>(key);
@@ -92,10 +92,15 @@ public class MemoryCacheTests
 
         var old = ic.Replace(key, Environment.MachineName);
         Assert.Equal(Environment.UserName, old);
+        ic.SetExpire(key, TimeSpan.FromSeconds(2));
 
         name = ic.Get<String>(key);
         Assert.Equal(Environment.MachineName, name);
         Assert.NotEqual(Environment.UserName, name);
+
+        Thread.Sleep(2000);
+        rs = ic.Add(key, Environment.MachineName, 2);
+        Assert.True(rs);
     }
 
     [Fact]

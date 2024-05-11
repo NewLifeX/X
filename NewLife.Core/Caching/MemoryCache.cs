@@ -90,17 +90,24 @@ public class MemoryCache : Cache
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item)) return (T?)item.Visit();
+            if (_cache.TryGetValue(key, out item) && item != null)
+            {
+                if (!item.Expired) return (T?)item.Visit();
 
-            ci ??= new CacheItem(value, expire);
-        } while (!_cache.TryAdd(key, ci));
+                item.Set(value, expire);
+
+                return value;
+            }
+
+            item ??= new CacheItem(value, expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
-        return (T?)ci.Visit();
+        return (T?)item.Visit();
     }
     #endregion
 
@@ -131,17 +138,17 @@ public class MemoryCache : Cache
         //    });
 
         // 不用AddOrUpdate，避免匿名委托带来的GC损耗
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item))
+            if (_cache.TryGetValue(key, out item) && item != null)
             {
                 item.Set(value, expire);
                 return true;
             }
 
-            ci ??= new CacheItem(value, expire);
-        } while (!_cache.TryAdd(key, ci));
+            item ??= new CacheItem(value, expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
@@ -187,7 +194,7 @@ public class MemoryCache : Cache
         _count = 0;
     }
 
-    /// <summary>设置缓存项有效期</summary>
+    /// <summary>设置缓存项有效期。已过期但未移除的键会重新激活</summary>
     /// <param name="key">键</param>
     /// <param name="expire">过期时间</param>
     /// <returns>设置是否成功</returns>
@@ -195,7 +202,7 @@ public class MemoryCache : Cache
     {
         if (!_cache.TryGetValue(key, out var item) || item == null) return false;
 
-        item.ExpiredTime = Runtime.TickCount64 + (Int64)expire.TotalMilliseconds;
+        item.Set(item.Value, expire);
 
         return true;
     }
@@ -222,13 +229,20 @@ public class MemoryCache : Cache
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out _)) return false;
+            if (_cache.TryGetValue(key, out item) && item != null)
+            {
+                if (!item.Expired) return false;
 
-            ci ??= new CacheItem(value, expire);
-        } while (!_cache.TryAdd(key, ci));
+                item.Set(value, expire);
+
+                return true;
+            }
+
+            item ??= new CacheItem(value, expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
@@ -245,20 +259,22 @@ public class MemoryCache : Cache
     {
         var expire = Expire;
 
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item))
+            if (_cache.TryGetValue(key, out item) && item != null)
             {
                 var rs = item.Value;
                 // 如果已经过期，不要返回旧值
                 if (item.Expired) rs = default(T);
+
                 item.Set(value, expire);
+
                 return (T?)rs;
             }
 
-            ci ??= new CacheItem(value, expire);
-        } while (!_cache.TryAdd(key, ci));
+            item ??= new CacheItem(value, expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
@@ -298,17 +314,17 @@ public class MemoryCache : Cache
     {
         if (expire < 0) expire = Expire;
 
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item)) return (T?)item.Visit();
+            if (_cache.TryGetValue(key, out item) && item != null) return (T?)item.Visit();
 
-            ci ??= new CacheItem(callback(key), expire);
-        } while (!_cache.TryAdd(key, ci));
+            item ??= new CacheItem(callback(key), expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
-        return (T?)ci.Visit();
+        return (T?)item.Visit();
     }
 
     /// <summary>累加，原子操作</summary>
@@ -417,17 +433,24 @@ public class MemoryCache : Cache
     {
         var expire = Expire;
 
-        CacheItem? ci = null;
+        CacheItem? item = null;
         do
         {
-            if (_cache.TryGetValue(key, out var item)) return item;
+            if (_cache.TryGetValue(key, out item) && item != null)
+            {
+                if (!item.Expired) return item;
 
-            ci ??= new CacheItem(valueFactory(key), expire);
-        } while (!_cache.TryAdd(key, ci));
+                item.Set(valueFactory(key), expire);
+
+                return item;
+            }
+
+            item ??= new CacheItem(valueFactory(key), expire);
+        } while (!_cache.TryAdd(key, item));
 
         Interlocked.Increment(ref _count);
 
-        return ci;
+        return item;
     }
     #endregion
 
@@ -465,6 +488,20 @@ public class MemoryCache : Cache
                 ExpiredTime = Int64.MaxValue;
             else
                 ExpiredTime = now + expire * 1000L;
+        }
+
+        /// <summary>设置数值和过期时间</summary>
+        /// <param name="value"></param>
+        /// <param name="expire">过期时间，秒</param>
+        public void Set(Object? value, TimeSpan expire)
+        {
+            Value = value;
+
+            var now = VisitTime = Runtime.TickCount64;
+            if (expire == TimeSpan.Zero)
+                ExpiredTime = Int64.MaxValue;
+            else
+                ExpiredTime = now + (Int64)expire.TotalMilliseconds;
         }
 
         /// <summary>更新访问时间并返回数值</summary>
