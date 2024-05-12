@@ -45,7 +45,7 @@ public class Pipeline : IPipeline
 {
     #region 属性
     /// <summary>处理器集合</summary>
-    public IList<IHandler> Handlers { get; } = new List<IHandler>();
+    public IList<IHandler> Handlers { get; } = [];
     #endregion
 
     #region 构造
