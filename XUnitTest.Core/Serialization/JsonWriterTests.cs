@@ -100,12 +100,12 @@ public class JsonWriterTests
 
             var str2 = dic["time"];
             // +08:00
-            Assert.EndsWith(dto.Offset.ToString(), str2 + "");
-            Assert.Equal(dt.ToUniversalTime().ToFullString() + " UTC", str2);
+            Assert.EndsWith(dto.Offset.ToString(), str2 + ":00");
+            Assert.Equal($"{dt:yyyy-MM-ddTHH:mm:ss.fffffff}+{dto.Offset.Hours:00}:00", str2);
 
             var dt2 = dic["time"].ToDateTime();
-            Assert.Equal(DateTimeKind.Utc, dt2.Kind);
-            Assert.Equal(dt.ToUniversalTime().Trim(), dt2.Trim());
+            Assert.Equal(DateTimeKind.Local, dt2.Kind);
+            Assert.Equal(dt.Trim(), dt2.Trim());
         }
         else
         {
@@ -114,7 +114,7 @@ public class JsonWriterTests
             Assert.Equal(dt.ToFullString(), str2);
 
             var dt2 = dic["time"].ToDateTime();
-            Assert.NotEqual(DateTimeKind.Utc, dt2.Kind);
+            Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
             Assert.Equal(dt.Trim(), dt2.Trim());
         }
     }
