@@ -16,6 +16,9 @@ namespace NewLife.Serialization;
 public class JsonWriter
 {
     #region 属性
+    /// <summary>配置选项</summary>
+    public JsonOptions Options { get; set; } = new();
+
     /// <summary>使用UTC时间。默认false</summary>
     public Boolean UseUTCDateTime { get; set; }
 
@@ -26,7 +29,7 @@ public class JsonWriter
     public Boolean CamelCase { get; set; }
 
     /// <summary>忽略空值。默认false</summary>
-    public Boolean IgnoreNullValues { get; set; }
+    public Boolean IgnoreNullValues { get => Options.IgnoreNullValues; set => Options.IgnoreNullValues = value; }
 
     /// <summary>忽略只读属性。默认false</summary>
     public Boolean IgnoreReadOnlyProperties { get; set; }
@@ -35,13 +38,13 @@ public class JsonWriter
     public Boolean IgnoreComment { get; set; } = true;
 
     /// <summary>忽略循环引用。遇到循环引用时写{}，默认false</summary>
-    public Boolean IgnoreCycles { get; set; }
+    public Boolean IgnoreCycles => Options.IgnoreCycles;
 
     /// <summary>枚举使用字符串。默认false使用数字</summary>
     public Boolean EnumString { get; set; }
 
     /// <summary>缩进。默认false</summary>
-    public Boolean Indented { get; set; }
+    public Boolean Indented { get => Options.WriteIndented; set => Options.WriteIndented = value; }
 
     ///// <summary>智能缩进，内层不换行。默认false</summary>
     //public Boolean SmartIndented { get; set; }
@@ -80,11 +83,14 @@ public class JsonWriter
     {
         var jw = new JsonWriter
         {
-            IgnoreNullValues = !nullValue,
-            CamelCase = camelCase,
-            Indented = indented,
+            //IgnoreNullValues = !nullValue,
+            //CamelCase = camelCase,
+            //Indented = indented,
             //SmartIndented = indented,
         };
+        jw.Options.IgnoreNullValues = !nullValue;
+        jw.Options.CamelCase = camelCase;
+        jw.Options.WriteIndented = indented;
 
         jw.WriteValue(obj);
 
@@ -102,10 +108,11 @@ public class JsonWriter
     {
         var jw = new JsonWriter
         {
-            IgnoreNullValues = jsonOptions.IgnoreNullValues,
-            CamelCase = jsonOptions.CamelCase,
-            Indented = jsonOptions.WriteIndented,
-            IgnoreCycles = jsonOptions.IgnoreCycles,
+            //IgnoreNullValues = jsonOptions.IgnoreNullValues,
+            //CamelCase = jsonOptions.CamelCase,
+            //Indented = jsonOptions.WriteIndented,
+            //IgnoreCycles = jsonOptions.IgnoreCycles,
+            Options = jsonOptions,
         };
 
         jw.WriteValue(obj);
@@ -282,7 +289,9 @@ public class JsonWriter
 
         // 纯日期缩短长度
         var str = "";
-        if (dt.Year > 1000)
+        if (Options.FullTime)
+            str = dt.ToString("O");
+        else if (dt.Year > 1000)
         {
             //if (dt.Hour == 0 && dt.Minute == 0 && dt.Second == 0)
             //{
@@ -299,7 +308,7 @@ public class JsonWriter
     }
 
     Int32 _depth = 0;
-    private readonly ICollection<Object> _cirobj = new HashSet<Object>();
+    private readonly ICollection<Object> _cirobj = [];
     private void WriteObject(Object obj)
     {
         // 循环引用
@@ -621,7 +630,7 @@ public class JsonWriter
         if (name.IsNullOrEmpty()) return name;
 
         if (LowerCase) return name.ToLower();
-        if (CamelCase)
+        if (Options.CamelCase)
         {
             if (name == "ID") return "id";
             return name[..1].ToLower() + name[1..];
