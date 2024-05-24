@@ -203,11 +203,15 @@ public class TinyHttpClient : DisposeBase, IApiClient
                 }
             }
 
-            // chunk编码
-            if (rs.Count > 0 && res.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
-            {
-                res.Body = await ReadChunkAsync(rs);
-            }
+        // chunk编码
+        if (rs != null && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
+        {
+            // 如果不足则读取一个chunk，因为有可能第一个响应包只有头部
+            if (rs.Count == 0)
+                rs = await SendDataAsync(null, null).ConfigureAwait(false);
+
+            res.Body = await ReadChunkAsync(rs);
+        }
 
             res.SetContent();
 
