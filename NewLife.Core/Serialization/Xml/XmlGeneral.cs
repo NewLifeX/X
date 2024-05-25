@@ -111,6 +111,13 @@ public class XmlGeneral : XmlHandlerBase
             return true;
         }
 
+        // 支持格式化的类型，有去有回
+        if (type.As<IFormattable>())
+        {
+            if (value is IFormattable ft) writer.WriteValue(ft + "");
+            return true;
+        }
+
         return false;
     }
 
@@ -229,6 +236,14 @@ public class XmlGeneral : XmlHandlerBase
             default:
                 break;
         }
+
+#if NET7_0_OR_GREATER
+        if (type.GetInterfaces().Any(e => e.IsGenericType && e.GetGenericTypeDefinition() == typeof(IParsable<>)))
+        {
+            value = reader.ReadContentAsString().ChangeType(type);
+            return true;
+        }
+#endif
 
         return false;
     }

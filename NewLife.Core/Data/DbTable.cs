@@ -496,7 +496,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         await writer.WriteStartDocumentAsync();
         await writer.WriteStartElementAsync(null, "DbTable", null);
 
-        foreach (var row in Rows)
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+        var rows = Rows;
+
+        foreach (var row in rows)
         {
             await writer.WriteStartElementAsync(null, "Table", null);
             for (var i = 0; i < Columns.Length; i++)
@@ -504,15 +508,17 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
                 await writer.WriteStartElementAsync(null, Columns[i], null);
 
-                //writer.WriteValue(row[i]);
-                if (Types[i] == typeof(Boolean))
-                    writer.WriteValue((Boolean)row[i]);
-                else if (Types[i] == typeof(DateTime))
-                    writer.WriteValue(new DateTimeOffset((DateTime)row[i]));
-                else if (Types[i] == typeof(DateTimeOffset))
-                    writer.WriteValue((DateTimeOffset)row[i]);
-                else
-                    await writer.WriteStringAsync(row[i] + "");
+                    //writer.WriteValue(row[i]);
+                    if (ts[i] == typeof(Boolean))
+                        writer.WriteValue(row[i].ToBoolean());
+                    else if (ts[i] == typeof(DateTime))
+                        writer.WriteValue(new DateTimeOffset(row[i].ChangeType<DateTime>()));
+                    else if (ts[i] == typeof(DateTimeOffset))
+                        writer.WriteValue(row[i].ChangeType<DateTimeOffset>());
+                    else if (row[i] is IFormattable ft)
+                        await writer.WriteStringAsync(ft + "");
+                    else
+                        await writer.WriteStringAsync(row[i] + "");
 
                 await writer.WriteEndElementAsync();
             }

@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Reflection;
 
 namespace NewLife.Security;
 
@@ -110,5 +111,107 @@ public static class Rand
         }
 
         return sb.Put(true);
+    }
+
+    /// <summary>随机填充指定对象的属性。可用于构造随机数据进行测试</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static T Fill<T>(T value)
+    {
+        if (value == null) return value;
+
+        foreach (var pi in value.GetType().GetProperties(true))
+        {
+            // 可空类型，有一定记录填充null
+            var type = pi.PropertyType;
+            if (type.IsNullable())
+            {
+                // 10%几率填充null
+                if (Next(0, 10) == 0)
+                {
+                    pi.SetValue(value, null, null);
+                    continue;
+                }
+
+                type = Nullable.GetUnderlyingType(type) ?? type;
+            }
+
+            // 给基础类型填充数据
+            var code = type.GetTypeCode();
+            switch (code)
+            {
+                case TypeCode.Empty:
+                case TypeCode.Object:
+                case TypeCode.DBNull:
+                    break;
+                case TypeCode.Boolean:
+                    pi.SetValue(value, Next(2) > 0, null);
+                    break;
+                case TypeCode.Char:
+                    pi.SetValue(value, (Char)Next(Char.MinValue, Char.MaxValue), null);
+                    break;
+                case TypeCode.SByte:
+                    pi.SetValue(value, (SByte)Next(SByte.MinValue, SByte.MaxValue), null);
+                    break;
+                case TypeCode.Byte:
+                    pi.SetValue(value, (Byte)Next(Byte.MinValue, Byte.MaxValue), null);
+                    break;
+                case TypeCode.Int16:
+                    pi.SetValue(value, (Int16)Next(Int16.MinValue, Int16.MaxValue), null);
+                    break;
+                case TypeCode.UInt16:
+                    pi.SetValue(value, (UInt16)Next(UInt16.MinValue, UInt16.MaxValue), null);
+                    break;
+                case TypeCode.Int32:
+                    pi.SetValue(value, Next(), null);
+                    break;
+                case TypeCode.UInt32:
+                    pi.SetValue(value, (UInt32)Next(), null);
+                    break;
+                case TypeCode.Int64:
+                    pi.SetValue(value, (Int64)Next() * Next(), null);
+                    break;
+                case TypeCode.UInt64:
+                    pi.SetValue(value, (UInt64)Next() * (UInt64)Next(), null);
+                    break;
+                case TypeCode.Single:
+                    pi.SetValue(value, Next() / 100f, null);
+                    break;
+                case TypeCode.Double:
+                    pi.SetValue(value, Next() / 10000d, null);
+                    break;
+                case TypeCode.Decimal:
+                    pi.SetValue(value, (Decimal)Next() / 10000, null);
+                    break;
+                case TypeCode.DateTime:
+                    pi.SetValue(value, new DateTime(2000, 1, 1).AddSeconds(Next(20 * 365 * 24 * 3600)), null);
+                    break;
+                case TypeCode.String:
+                    pi.SetValue(value, NextString(8), null);
+                    break;
+                default:
+                    break;
+            }
+
+            // 支持特殊类型
+            if (code == TypeCode.Object)
+            {
+                if (type == typeof(Guid))
+                    pi.SetValue(value, Guid.NewGuid(), null);
+                else if (type == typeof(DateTimeOffset))
+                    pi.SetValue(value, new DateTimeOffset(new DateTime(2000, 1, 1).AddSeconds(Next(20 * 365 * 24 * 3600))), null);
+                else if (type == typeof(TimeSpan))
+                    pi.SetValue(value, new TimeSpan(Next(20 * 24 * 3600 * 1000)), null);
+#if NET6_0_OR_GREATER
+                else if (type == typeof(DateOnly))
+                    pi.SetValue(value, new DateOnly(Next(1000, 2300), Next(1, 13), Next(1, 29)));
+                else if (type == typeof(TimeOnly))
+                    pi.SetValue(value, new TimeOnly(Next(0, 24), Next(0, 60), Next(0, 60), Next(0, 1000)));
+#endif
+            }
+        }
+
+        return value;
     }
 }
