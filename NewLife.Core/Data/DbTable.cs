@@ -497,7 +497,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         writer.WriteStartDocument();
         writer.WriteStartElement(null, "DbTable", null);
 
-        foreach (var row in Rows)
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+        var rows = Rows;
+
+        foreach (var row in rows)
         {
             writer.WriteStartElement(null, "Table", null);
             for (var i = 0; i < Columns.Length; i++)
@@ -506,12 +510,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 writer.WriteStartElement(null, Columns[i], null);
 
                 //writer.WriteValue(row[i]);
-                if (Types[i] == typeof(Boolean))
-                    writer.WriteValue((Boolean)row[i]);
-                else if (Types[i] == typeof(DateTime))
-                    writer.WriteValue(new DateTimeOffset((DateTime)row[i]));
-                else if (Types[i] == typeof(DateTimeOffset))
-                    writer.WriteValue((DateTimeOffset)row[i]);
+                if (ts[i] == typeof(Boolean))
+                    writer.WriteValue(row[i].ToBoolean());
+                else if (ts[i] == typeof(DateTime))
+                    writer.WriteValue(new DateTimeOffset(row[i].ChangeType<DateTime>()));
+                else if (ts[i] == typeof(DateTimeOffset))
+                    writer.WriteValue(row[i].ChangeType<DateTimeOffset>());
+                else if (row[i] is IFormattable ft)
+                    writer.WriteString(ft + "");
                 else
                     writer.WriteString(row[i] + "");
 

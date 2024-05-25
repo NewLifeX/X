@@ -53,20 +53,37 @@ namespace NewLife.Serialization
                 var bc = bn.GetHandler<BinaryGeneral>();
                 bc.Write((Char[])value, 0, -1);
 
-                return true;
-            }
-            else if (type == typeof(IPAddress))
-            {
-                Host.Write(((IPAddress)value).GetAddressBytes());
-                return true;
-            }
-            else if (type == typeof(IPEndPoint))
-            {
-                var ep = value as IPEndPoint;
-                Host.Write(ep.Address.GetAddressBytes());
-                Host.Write((UInt16)ep.Port);
-                return true;
-            }
+            return true;
+        }
+        else if (type == typeof(DateTimeOffset) && value is DateTimeOffset dto)
+        {
+            Host.Write(dto.DateTime);
+            Host.Write(dto.Offset);
+            return true;
+        }
+#if NET6_0_OR_GREATER
+        else if (type == typeof(DateOnly) && value is DateOnly date)
+        {
+            Host.Write(date.DayNumber);
+            return true;
+        }
+        else if (type == typeof(TimeOnly) && value is TimeOnly time)
+        {
+            Host.Write(time.Ticks);
+            return true;
+        }
+#endif
+        else if (type == typeof(IPAddress) && value is IPAddress addr)
+        {
+            Host.Write(addr.GetAddressBytes());
+            return true;
+        }
+        else if (type == typeof(IPEndPoint) && value is IPEndPoint ep)
+        {
+            Host.Write(ep.Address.GetAddressBytes());
+            Host.Write((UInt16)ep.Port);
+            return true;
+        }
 
             return false;
         }
@@ -83,45 +100,62 @@ namespace NewLife.Serialization
             Host.Write(buffer, 0, count);
         }
 
-        /// <summary>读取</summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public override Boolean TryRead(Type type, ref Object value)
+    /// <summary>读取</summary>
+    /// <param name="type"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public override Boolean TryRead(Type type, ref Object? value)
+    {
+        if (type == typeof(Guid))
         {
-            if (type == typeof(Guid))
-            {
-                value = new Guid(ReadBytes(16));
-                return true;
-            }
-            else if (type == typeof(Byte[]))
-            {
-                value = ReadBytes(-1);
-                return true;
-            }
-            else if (type == typeof(Packet))
-            {
-                var buf = ReadBytes(-1);
-                value = new Packet(buf);
-                return true;
-            }
-            else if (type == typeof(Char[]))
-            {
-                value = ReadChars(-1);
-                return true;
-            }
-            else if (type == typeof(IPAddress))
-            {
-                value = new IPAddress(ReadBytes(-1));
-                return true;
-            }
-            else if (type == typeof(IPEndPoint))
-            {
-                var ip = new IPAddress(ReadBytes(-1));
-                var port = Host.Read<UInt16>();
-                value = new IPEndPoint(ip, port);
-                return true;
-            }
+            value = new Guid(ReadBytes(16));
+            return true;
+        }
+        else if (type == typeof(Byte[]))
+        {
+            value = ReadBytes(-1);
+            return true;
+        }
+        else if (type == typeof(Packet))
+        {
+            var buf = ReadBytes(-1);
+            value = new Packet(buf);
+            return true;
+        }
+        else if (type == typeof(Char[]))
+        {
+            value = ReadChars(-1);
+            return true;
+        }
+        else if (type == typeof(DateTimeOffset))
+        {
+            value = new DateTimeOffset(Host.Read<DateTime>(), Host.Read<TimeSpan>());
+            return true;
+        }
+#if NET6_0_OR_GREATER
+        else if (type == typeof(DateOnly))
+        {
+            value = DateOnly.FromDayNumber(Host.Read<Int32>());
+            return true;
+        }
+        else if (type == typeof(TimeOnly))
+        {
+            value = new TimeOnly(Host.Read<Int64>());
+            return true;
+        }
+#endif
+        else if (type == typeof(IPAddress))
+        {
+            value = new IPAddress(ReadBytes(-1));
+            return true;
+        }
+        else if (type == typeof(IPEndPoint))
+        {
+            var ip = new IPAddress(ReadBytes(-1));
+            var port = Host.Read<UInt16>();
+            value = new IPEndPoint(ip, port);
+            return true;
+        }
 
             return false;
         }
