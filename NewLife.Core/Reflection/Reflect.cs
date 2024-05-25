@@ -361,6 +361,22 @@ public static class Reflect
         return (TResult?)ChangeType(value, typeof(TResult));
     }
 
+#if NET7_0_OR_GREATER
+    /// <summary>类型转换</summary>
+    /// <typeparam name="TResult"></typeparam>
+    /// <param name="value">数值</param>
+    /// <returns></returns>
+    public static TResult? ChangeType<TResult>(this String value) where TResult : IParsable<TResult>
+    {
+        if (value is TResult result) return result;
+
+        // 支持IParsable<TSelf>接口
+        if (TResult.TryParse(value, null, out var rs)) return rs;
+
+        return default;
+    }
+#endif
+
     /// <summary>获取类型的友好名称</summary>
     /// <param name="type">指定类型</param>
     /// <param name="isfull">是否全名，包含命名空间</param>
