@@ -36,6 +36,8 @@ public class FastJsonTest : JsonTestBase
     {
         var model = new Model();
         Rand.Fill(model);
+        model.Roles = ["admin", "user"];
+        model.Scores = [1, 2, 3];
         var js = _json.Write(model, true);
 
         var models = _json.Read(_json_value, typeof(Model[])) as Model[];

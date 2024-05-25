@@ -1,4 +1,5 @@
 ﻿using System;
+using NewLife;
 using Xunit;
 
 namespace XUnitTest.Serialization;
@@ -22,7 +23,9 @@ public abstract class JsonTestBase
                     "Type": "NewLife.Common.PinYin",
                     "Offset": "2022-11-29T14:13:17.8763881+08:00",
                     "Date": "2022-11-29",
-                    "Time": "14:13:17.8763881"
+                    "Time": "14:13:17.8763881",
+                    "Roles": ["admin", "user"],
+                    "Scores": [1, 2, 3]
                 },
                 {
                     "ID": 0,
@@ -36,7 +39,9 @@ public abstract class JsonTestBase
                     "Type": "String",
                     "Offset": "2022-11-29T14:13:17.8763881+08:00",
                     "Date": "2022-11-29",
-                    "Time": "14:13:17.8763881"
+                    "Time": "14:13:17.8763881",
+                    "Roles": ["admin", "user"],
+                    "Scores": [1, 2, 3]
                 }
             ]
             """;
@@ -59,6 +64,8 @@ public abstract class JsonTestBase
         Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
         Assert.Equal(DateOnly.Parse("2022-11-29"), m.Date);
         Assert.Equal(TimeOnly.Parse("14:13:17.8763881"), m.Time);
+        Assert.Equal("admin,user", m.Roles?.Join());
+        Assert.Equal("1,2,3", m.Scores?.Join());
 
         m = models[1];
         Assert.Equal(27, m.UserId);
@@ -74,6 +81,8 @@ public abstract class JsonTestBase
         Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
         Assert.Equal(DateOnly.Parse("2022-11-29"), m.Date);
         Assert.Equal(TimeOnly.Parse("14:13:17.8763881"), m.Time);
+        Assert.Equal("admin,user", m.Roles?.Join());
+        Assert.Equal("1,2,3", m.Scores?.Join());
     }
 
     protected class Model
@@ -90,5 +99,7 @@ public abstract class JsonTestBase
         public DateTimeOffset Offset { get; set; }
         public DateOnly Date { get; set; }
         public TimeOnly Time { get; set; }
+        public String[] Roles { get; set; }
+        public Int32[] Scores { get; set; } = [];
     }
 }
