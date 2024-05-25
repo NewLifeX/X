@@ -172,7 +172,13 @@ public class JsonWriter
             WriteDateTime(time);
 
         else if (obj is DateTimeOffset offset)
-            WriteDateTime(offset);
+            _Builder.AppendFormat("\"{0:O}\"", offset);
+#if NET6_0_OR_GREATER
+        else if (obj is DateOnly date)
+            _Builder.AppendFormat("\"{0:O}\"", date);
+        else if (obj is TimeOnly time2)
+            _Builder.AppendFormat("\"{0}\"", time2);
+#endif
 
         else if (obj is IDictionary<String, Object?> sdic)
             WriteStringDictionary(sdic);
@@ -212,6 +218,10 @@ public class JsonWriter
             else
                 WriteValue(obj.ToLong());
         }
+
+        // 支持格式化的类型，有去有回
+        else if (obj is IFormattable)
+            WriteValue(obj + "");
 
         else
             WriteObject(obj);
@@ -273,13 +283,6 @@ public class JsonWriter
 
         WriteRightIndent();
         _Builder.Append('}');
-    }
-
-    private void WriteDateTime(DateTimeOffset dateTimeOffset)
-    {
-        //2022-11-29T14:13:17.8763881+08:00
-        var str = dateTimeOffset.ToString("O");
-        _Builder.AppendFormat("\"{0}\"", str);
     }
 
     private void WriteDateTime(DateTime dateTime)

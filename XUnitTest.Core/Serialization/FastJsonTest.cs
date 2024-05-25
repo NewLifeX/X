@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using NewLife;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
 
 namespace XUnitTest.Serialization;
 
-public class FastJsonTest
+public class FastJsonTest : JsonTestBase
 {
     FastJson _json = new FastJson();
 
@@ -33,63 +34,14 @@ public class FastJsonTest
     [Fact]
     public void DateTimeTest()
     {
-        var str = """
-            [
-                {
-                    "ID": 0,
-                    "Userid": 27,
-                    "ClickTime": "2020-03-09T21:16:17.88",
-                    "AdID": 39,
-                    "AdAmount": 0.43,
-                    "isGive": false,
-                    "AdLinkUrl": "http://www.baidu.com",
-                    "AdImgUrl": "/uploader/swiperPic/405621836.jpg",
-                    "Type": "NewLife.Common.PinYin",
-                    "Offset": "2022-11-29T14:13:17.8763881+08:00"
-                },
-                {
-                    "ID": 0,
-                    "Userid": 27,
-                    "ClickTime": "2020-03-09T21:16:25.9052764+08:00",
-                    "AdID": 40,
-                    "AdAmount": 0.41,
-                    "isGive": false,
-                    "AdLinkUrl": "http://www.baidu.com",
-                    "AdImgUrl": "/uploader/swiperPic/1978468752.jpg",
-                    "Type": "String",
-                    "Offset": "2022-11-29T14:13:17.8763881+08:00"
-                }
-            ]
-            """;
+        var model = new Model();
+        Rand.Fill(model);
+        var js = _json.Write(model, true);
 
-        var models = _json.Read(str, typeof(Model[])) as Model[];
+        var models = _json.Read(_json_value, typeof(Model[])) as Model[];
         Assert.Equal(2, models.Length);
 
-        var m = models[0];
-        Assert.Equal(27, m.UserId);
-        Assert.Equal(new DateTime(2020, 3, 9, 21, 16, 17, 880), m.ClickTime);
-        Assert.Equal(39, m.AdId);
-        Assert.Equal(0.43, m.AdAmount);
-        Assert.False(m.IsGive);
-        Assert.Equal("http://www.baidu.com", m.AdLinkUrl);
-        Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
-        Assert.Equal(typeof(NewLife.Common.PinYin), m.Type);
-        Assert.Equal(typeof(String), models[1].Type);
-        Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
-    }
-
-    class Model
-    {
-        public Int32 ID { get; set; }
-        public Int32 UserId { get; set; }
-        public DateTime ClickTime { get; set; }
-        public Int32 AdId { get; set; }
-        public Double AdAmount { get; set; }
-        public Boolean IsGive { get; set; }
-        public String AdLinkUrl { get; set; }
-        public String AdImgUrl { get; set; }
-        public Type Type { get; set; }
-        public DateTimeOffset Offset { get; set; }
+        CheckModel(models);
     }
 
     [Fact]

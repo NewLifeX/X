@@ -266,6 +266,7 @@ public class JsonReader
 
         if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
 
+        if (value is String str2) return str2.ChangeType(type);
         if (type.IsBaseType()) return value.ChangeType(type);
 
         return null;
