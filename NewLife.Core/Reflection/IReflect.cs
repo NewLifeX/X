@@ -738,6 +738,22 @@ public class DefaultReflect : IReflect
             // 支持DateTimeOffset转换
             if (conversionType == typeof(DateTimeOffset)) return value.ToDateTimeOffset();
 
+#if NET7_0_OR_GREATER
+            // 支持IParsable<TSelf>接口
+            if (value is String str &&
+                conversionType.GetInterfaces().Any(e => e.IsGenericType && e.GetGenericTypeDefinition() == typeof(IParsable<>)))
+            {
+                var mi = conversionType.GetMethod("Parse", [typeof(String), typeof(IFormatProvider)]);
+                if (mi != null)
+                {
+                    //var func = mi.As<Func<String, IFormatProvider?, Object>>();
+                    //return func(str, null);
+
+                    return mi.Invoke(null, [value, null]);
+                }
+            }
+#endif
+
             if (value is IConvertible) value = Convert.ChangeType(value, conversionType);
         }
         else

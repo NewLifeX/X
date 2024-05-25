@@ -207,6 +207,9 @@ public class DefaultConvert
         }
 
         // 特殊处理时间，转Unix秒
+#if NET6_0_OR_GREATER
+        if (value is DateOnly date) value = date.ToDateTime(TimeOnly.MinValue);
+#endif
         if (value is DateTime dt)
         {
             if (dt == DateTime.MinValue) return 0;
@@ -280,6 +283,9 @@ public class DefaultConvert
         }
 
         // 特殊处理时间，转Unix毫秒
+#if NET6_0_OR_GREATER
+        if (value is DateOnly date) value = date.ToDateTime(TimeOnly.MinValue);
+#endif
         if (value is DateTime dt)
         {
             if (dt == DateTime.MinValue) return 0;
@@ -540,6 +546,11 @@ public class DefaultConvert
     {
         if (value is DateTimeOffset num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
+
+#if NET6_0_OR_GREATER
+        if (value is DateOnly date) value = date.ToDateTime(TimeOnly.MinValue);
+#endif
+        if (value is DateTime dateTime) return dateTime;
 
         // 支持表单提交的StringValues
         if (value is IList<String> list)
