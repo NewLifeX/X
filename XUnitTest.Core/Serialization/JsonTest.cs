@@ -49,6 +49,8 @@ public class JsonTest : JsonTestBase
     {
         var model = new Model();
         Rand.Fill(model);
+        model.Roles = ["admin", "user"];
+        model.Scores = [1, 2, 3];
         var js = model.ToJson(true);
 
         var models = _json_value.ToJsonEntity<Model[]>();
