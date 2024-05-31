@@ -117,7 +117,9 @@ public class JsonReader
         var elmType = type?.GetElementTypeEx();
         if (elmType == null) elmType = typeof(Object);
 
-        if (target is not Array arr) arr = Array.CreateInstance(elmType, list.Count);
+        // 如果元素组长度不足，则创建新数组。主要是某些成员使用数组类型，然后使用[]初始化，导致数组长度为零
+        if (target is not Array arr || arr.Length < list.Count) arr = Array.CreateInstance(elmType, list.Count);
+
         // 如果源数组有值，则最大只能创建源数组那么多项，抛弃多余项
         for (var i = 0; i < list.Count && i < arr.Length; i++)
         {
@@ -266,6 +268,7 @@ public class JsonReader
 
         if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
 
+        if (value is String str2) return str2.ChangeType(type);
         if (type.IsBaseType()) return value.ChangeType(type);
 
         return null;

@@ -70,6 +70,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     /// <summary>当前服务</summary>
     protected Service? _currentService;
+
+    /// <summary>正在使用的服务点。最后一次调用成功的服务点，可获取其地址以及状态信息</summary>
+    public Service Current { get; private set; }
     #endregion
 
     #region 构造
@@ -351,7 +354,12 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 service.CreateTime = DateTime.Now;
             }
 
-            return await SendOnServiceAsync(request, service, client, cancellationToken);
+            var rs = await SendOnServiceAsync(request, service, client, cancellationToken);
+
+            // 调用成果，当前服务点可用
+            Current = service;
+
+            return rs;
         }
         catch (Exception ex)
         {

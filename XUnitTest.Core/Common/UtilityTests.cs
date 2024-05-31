@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Primitives;
+using NewLife.Log;
 using Xunit;
 
 namespace XUnitTest.Common;
@@ -14,6 +15,7 @@ public class UtilityTests
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToFullString());
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), dt.ToFullString(true));
         var dt_ = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
+        Assert.Equal(dt.Trim(), dt_);
         Assert.Equal(dt.Trim(), dt.ToFullString().ToDateTime());
         Assert.Equal(dt.Trim(), dt.ToInt().ToDateTime());
         Assert.Equal(dt.Trim("ms"), dt.ToLong().ToDateTime());
@@ -22,6 +24,12 @@ public class UtilityTests
         Assert.Empty(DateTime.MinValue.ToFullString(""));
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToString("", ""));
         Assert.Empty(DateTime.MinValue.ToString("", ""));
+
+        var str = dt.ToString("O");
+        XTrace.WriteLine(str);
+        var dtU = str.ToDateTime();
+        Assert.Equal(dt, dtU);
+        Assert.Equal(dt.Kind, dtU.Kind);
 
         var dto = DateTimeOffset.Now;
         Assert.Equal(dto.ToString("yyyy-MM-dd HH:mm:ss zzz"), dto.ToFullString());

@@ -206,6 +206,32 @@ public class ReflectTests
     }
 
     [Fact]
+    public void DateOnlyChangeTypeTest()
+    {
+        var value = "2023/4/5";
+        var targetType = typeof(DateOnly);
+        var target = new DateOnly(2023, 4, 5);
+
+        Assert.Equal(target, value.ChangeType<DateOnly>());
+
+        var rs = value.ChangeType(targetType);
+        Assert.Equal(target, rs);
+    }
+
+    [Fact]
+    public void TimeOnlyChangeTypeTest()
+    {
+        var value = "11:32";
+        var targetType = typeof(TimeOnly);
+        var target = new TimeOnly(11, 32, 00);
+
+        Assert.Equal(target, value.ChangeType<TimeOnly>());
+
+        var rs = value.ChangeType(targetType);
+        Assert.Equal(target, rs);
+    }
+
+    [Fact]
     public void AsListTest()
     {
         var list = new List<Int32>();

@@ -87,7 +87,7 @@ public class Host : DisposeBase, IHost
 
     //private readonly IList<Type> _serviceTypes = new List<Type>();
     /// <summary>服务集合</summary>
-    public IList<IHostedService> Services { get; } = new List<IHostedService>();
+    public IList<IHostedService> Services { get; } = [];
     #endregion
 
     #region 构造
@@ -99,9 +99,9 @@ public class Host : DisposeBase, IHost
         System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += ctx => OnExit(ctx, EventArgs.Empty);
 #endif
 #if NET6_0_OR_GREATER
-        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx, EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx, EventArgs.Empty));
-        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx, EventArgs.Empty));
+        PosixSignalRegistration.Create(PosixSignal.SIGINT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
+        PosixSignalRegistration.Create(PosixSignal.SIGQUIT, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
+        PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => OnExit(ctx.Signal + "", EventArgs.Empty));
 #endif
     }
 
@@ -229,8 +229,8 @@ public class Host : DisposeBase, IHost
     #endregion
 
     #region 退出事件
-    private static List<EventHandler> _events = new();
-    private static List<Action> _events2 = new();
+    private static readonly List<EventHandler> _events = [];
+    private static readonly List<Action> _events2 = [];
     private static Int32 _exited;
     /// <summary>注册应用退出事件</summary>
     /// <remarks>在不同场景可能被多次执行，调用方需要做判断</remarks>

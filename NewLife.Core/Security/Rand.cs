@@ -138,7 +138,23 @@ public static class Rand
 
         foreach (var pi in value.GetType().GetProperties(true))
         {
-            switch (pi.PropertyType.GetTypeCode())
+            // 可空类型，有一定记录填充null
+            var type = pi.PropertyType;
+            if (type.IsNullable())
+            {
+                // 10%几率填充null
+                if (Next(0, 10) == 0)
+                {
+                    pi.SetValue(value, null);
+                    continue;
+                }
+
+                type = Nullable.GetUnderlyingType(type) ?? type;
+            }
+
+            // 给基础类型填充数据
+            var code = type.GetTypeCode();
+            switch (code)
             {
                 case TypeCode.Empty:
                 case TypeCode.Object:
@@ -148,19 +164,19 @@ public static class Rand
                     pi.SetValue(value, Next(2) > 0);
                     break;
                 case TypeCode.Char:
-                    pi.SetValue(value, (Char)Next(0, 256));
+                    pi.SetValue(value, (Char)Next(Char.MinValue, Char.MaxValue));
                     break;
                 case TypeCode.SByte:
-                    pi.SetValue(value, (SByte)Next(-128, 127));
+                    pi.SetValue(value, (SByte)Next(SByte.MinValue, SByte.MaxValue));
                     break;
                 case TypeCode.Byte:
-                    pi.SetValue(value, (Byte)Next(0, 256));
+                    pi.SetValue(value, (Byte)Next(Byte.MinValue, Byte.MaxValue));
                     break;
                 case TypeCode.Int16:
                     pi.SetValue(value, (Int16)Next(Int16.MinValue, Int16.MaxValue));
                     break;
                 case TypeCode.UInt16:
-                    pi.SetValue(value, (UInt16)Next(0, UInt16.MaxValue));
+                    pi.SetValue(value, (UInt16)Next(UInt16.MinValue, UInt16.MaxValue));
                     break;
                 case TypeCode.Int32:
                     pi.SetValue(value, Next());
@@ -191,6 +207,23 @@ public static class Rand
                     break;
                 default:
                     break;
+            }
+
+            // 支持特殊类型
+            if (code == TypeCode.Object)
+            {
+                if (type == typeof(Guid))
+                    pi.SetValue(value, Guid.NewGuid());
+                else if (type == typeof(DateTimeOffset))
+                    pi.SetValue(value, new DateTimeOffset(new DateTime(2000, 1, 1).AddSeconds(Next(20 * 365 * 24 * 3600))));
+                else if (type == typeof(TimeSpan))
+                    pi.SetValue(value, new TimeSpan(Next(20 * 24 * 3600 * 1000)));
+#if NET6_0_OR_GREATER
+                else if (type == typeof(DateOnly))
+                    pi.SetValue(value, new DateOnly(Next(1000, 2300), Next(1, 13), Next(1, 29)));
+                else if (type == typeof(TimeOnly))
+                    pi.SetValue(value, new TimeOnly(Next(0, 24), Next(0, 60), Next(0, 60), Next(0, 1000)));
+#endif
             }
         }
 

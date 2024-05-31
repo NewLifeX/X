@@ -58,6 +58,24 @@ public class BinaryNormal : BinaryHandlerBase
 
             return true;
         }
+        else if (type == typeof(DateTimeOffset) && value is DateTimeOffset dto)
+        {
+            Host.Write(dto.DateTime);
+            Host.Write(dto.Offset);
+            return true;
+        }
+#if NET6_0_OR_GREATER
+        else if (type == typeof(DateOnly) && value is DateOnly date)
+        {
+            Host.Write(date.DayNumber);
+            return true;
+        }
+        else if (type == typeof(TimeOnly) && value is TimeOnly time)
+        {
+            Host.Write(time.Ticks);
+            return true;
+        }
+#endif
         else if (type == typeof(IPAddress) && value is IPAddress addr)
         {
             Host.Write(addr.GetAddressBytes());
@@ -112,6 +130,23 @@ public class BinaryNormal : BinaryHandlerBase
             value = ReadChars(-1);
             return true;
         }
+        else if (type == typeof(DateTimeOffset))
+        {
+            value = new DateTimeOffset(Host.Read<DateTime>(), Host.Read<TimeSpan>());
+            return true;
+        }
+#if NET6_0_OR_GREATER
+        else if (type == typeof(DateOnly))
+        {
+            value = DateOnly.FromDayNumber(Host.Read<Int32>());
+            return true;
+        }
+        else if (type == typeof(TimeOnly))
+        {
+            value = new TimeOnly(Host.Read<Int64>());
+            return true;
+        }
+#endif
         else if (type == typeof(IPAddress))
         {
             value = new IPAddress(ReadBytes(-1));

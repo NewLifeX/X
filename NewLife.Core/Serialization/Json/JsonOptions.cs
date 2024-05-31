@@ -14,4 +14,7 @@ public class JsonOptions
 
     /// <summary>缩进。默认false</summary>
     public Boolean WriteIndented { get; set; }
+
+    /// <summary>使用完整的时间格式。如：2022-11-29T14:13:17.8763881+08:00，默认false</summary>
+    public Boolean FullTime { get; set; }
 }

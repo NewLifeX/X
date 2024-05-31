@@ -59,11 +59,13 @@ public class JsonConfigProvider : FileConfigProvider
 
         var jw = new JsonWriter
         {
-            IgnoreNullValues = false,
-            IgnoreComment = false,
-            Indented = true,
+            //IgnoreNullValues = false,
+            //IgnoreComment = false,
+            //Indented = true,
             //SmartIndented = true,
         };
+        jw.Options.IgnoreNullValues = false;
+        jw.Options.WriteIndented = true;
 
         jw.Write(rs);
 

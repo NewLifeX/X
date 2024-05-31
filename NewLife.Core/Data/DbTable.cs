@@ -538,6 +538,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                         writer.WriteValue(new DateTimeOffset(row[i].ChangeType<DateTime>()));
                     else if (ts[i] == typeof(DateTimeOffset))
                         writer.WriteValue(row[i].ChangeType<DateTimeOffset>());
+                    else if (row[i] is IFormattable ft)
+                        await writer.WriteStringAsync(ft + "");
                     else
                         await writer.WriteStringAsync(row[i] + "");
 

@@ -15,7 +15,7 @@ namespace NewLife.Serialization;
 public class LocalTimeConverter : JsonConverter<DateTime>
 {
     /// <summary>时间日期格式</summary>
-    public String DateTimeFormat { get; set; } = "yyyy-MM-dd HH:mm:ss";
+    public String DateTimeFormat { get; set; } = "O";
 
     /// <summary>读取</summary>
     /// <param name="reader"></param>
