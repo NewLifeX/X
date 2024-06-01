@@ -82,6 +82,7 @@ public class ISocketRemoteTests
         target.Close();
 
         var dest = file.AsFile();
+        dest.Refresh();
         Assert.Equal(src.Length, dest.Length);
         Assert.Equal(md5.ToHex(), file.AsFile().MD5().ToHex());
     }

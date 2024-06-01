@@ -29,7 +29,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增WebSocketClient；新增INetHandler改进网络数据处理架构</PackageReleaseNotes>
+    <PackageReleaseNotes>优化Json序列化，支持DateOnly/TimeOnly，支持带时区的时间序列化</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
