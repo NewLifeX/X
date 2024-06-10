@@ -1,4 +1,5 @@
 ﻿using NewLife.Collections;
+using NewLife.Model;
 using NewLife.Reflection;
 
 #if NET5_0_OR_GREATER
@@ -190,6 +191,9 @@ public static class JsonHelper
 /// <summary>轻量级FastJson序列化</summary>
 public class FastJson : IJsonHost
 {
+    /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
+    public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
+
     #region IJsonHost 成员
     /// <summary>写入对象，得到Json字符串</summary>
     /// <param name="value"></param>
@@ -209,13 +213,13 @@ public class FastJson : IJsonHost
     /// <param name="json"></param>
     /// <param name="type"></param>
     /// <returns></returns>
-    public Object? Read(String json, Type type) => new JsonReader().Read(json, type);
+    public Object? Read(String json, Type type) => new JsonReader { Provider = ServiceProvider }.Read(json, type);
 
     /// <summary>类型转换</summary>
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    public Object? Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
@@ -228,6 +232,9 @@ public class FastJson : IJsonHost
 /// <summary>系统级System.Text.Json标准序列化</summary>
 public class SystemJson : IJsonHost
 {
+    /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
+    public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
+
     #region 静态
     /// <summary>获取序列化配置项</summary>
     /// <returns></returns>
@@ -250,7 +257,25 @@ public class SystemJson : IJsonHost
 
     #region 属性
     /// <summary>配置项</summary>
-    public JsonSerializerOptions Options { get; set; } = GetDefaultOptions();
+    public JsonSerializerOptions Options { get; set; }
+    #endregion
+
+    #region 构造
+    /// <summary>实例化</summary>
+    public SystemJson()
+    {
+        var opt = GetDefaultOptions();
+#if NET7_0_OR_GREATER
+        opt.TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver
+        {
+            Modifiers = {
+                DataMemberResolver.Modifier,
+                new ServiceTypeResolver{ GetServiceProvider = () => ServiceProvider }.Modifier,
+            }
+        };
+#endif
+        Options = opt;
+    }
     #endregion
 
     #region IJsonHost 成员

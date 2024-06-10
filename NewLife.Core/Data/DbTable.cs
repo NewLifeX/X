@@ -619,17 +619,28 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public IEnumerable<T> ReadModels<T>()
     {
+        foreach (var model in ReadModels(typeof(T)))
+        {
+            yield return (T)model;
+        }
+    }
+
+    /// <summary>数据表转模型列表。普通反射，便于DAL查询后转任意模型列表</summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public IEnumerable<Object> ReadModels(Type type)
+    {
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var rows = Rows;
         if (rows == null) yield break;
 
         // 可用属性
-        var pis = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var pis = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
 
         foreach (var row in rows)
         {
-            var model = (T?)typeof(T).CreateInstance();
+            var model = type.CreateInstance();
             if (model == null) continue;
 
             for (var i = 0; i < row.Length; i++)

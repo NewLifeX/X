@@ -61,18 +61,22 @@ public class FastJsonTest : JsonTestBase
             Childs = list,
         };
 
+        var js = new FastJson();
+        var services = new ObjectContainer();
+        js.ServiceProvider = services.BuildServiceProvider();
+
         //var json = model.ToJson();
-        var json = _json.Write(model);
+        var json = js.Write(model);
 
         // 直接反序列化会抛出异常
-        Assert.Throws<Exception>(() => _json.Read(json, typeof(ModelA)));
+        Assert.Throws<Exception>(() => js.Read(json, typeof(ModelA)));
 
-        // 上对象容器
-        ObjectContainer.Current.AddTransient<IDuck, DuckB>();
+        // 上对象容器。随时可以注册服务
+        services.AddTransient<IDuck, DuckB>();
 
         // 再来一次反序列化
         //var model2 = json.ToJsonEntity<ModelA>();
-        var model2 = _json.Read(json, typeof(ModelA)) as ModelA;
+        var model2 = js.Read(json, typeof(ModelA)) as ModelA;
         Assert.NotNull(model2);
         Assert.Equal(2233, model2.ID);
         Assert.Equal(3, model2.Childs.Count);

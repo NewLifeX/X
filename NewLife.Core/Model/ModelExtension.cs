@@ -86,5 +86,5 @@ public static class ModelExtension
     /// <param name="provider">服务提供者</param>
     /// <param name="serviceType">服务类型</param>
     /// <returns></returns>
-    public static Object CreateInstance(this IServiceProvider provider, Type serviceType) => ObjectContainer.CreateInstance(serviceType, provider, null);
+    public static Object? CreateInstance(this IServiceProvider provider, Type serviceType) => ObjectContainer.CreateInstance(serviceType, provider, null, false);
 }

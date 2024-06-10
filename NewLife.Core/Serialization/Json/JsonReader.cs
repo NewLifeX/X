@@ -174,7 +174,7 @@ public class JsonReader
         if (type == typeof(StringDictionary)) return CreateSD(dic);
         if (type == typeof(Object)) return dic;
 
-        target ??= Provider.GetService(type) ?? type.CreateInstance();
+        target ??= Provider.GetService(type) ?? Provider.CreateInstance(type) ?? type.CreateInstance();
         if (target == null) return null;
 
         if (type.IsDictionary()) return CreateDic(dic, type, target);

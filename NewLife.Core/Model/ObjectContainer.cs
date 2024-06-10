@@ -132,21 +132,21 @@ public class ObjectContainer : IObjectContainer
             case ObjectLifetime.Singleton:
                 if (map != null)
                 {
-                    map.Instance ??= CreateInstance(type, serviceProvider, map.Factory);
+                    map.Instance ??= CreateInstance(type, serviceProvider, map.Factory, true)!;
 
                     return map.Instance;
                 }
-                return CreateInstance(type, serviceProvider, null);
+                return CreateInstance(type, serviceProvider, null, true)!;
 
             case ObjectLifetime.Scoped:
             case ObjectLifetime.Transient:
             default:
-                return CreateInstance(type, serviceProvider, map?.Factory);
+                return CreateInstance(type, serviceProvider, map?.Factory, true)!;
         }
     }
 
     private static IDictionary<TypeCode, Object?>? _defs;
-    internal static Object CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory)
+    internal static Object? CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory, Boolean throwOnError)
     {
         if (factory != null) return factory(provider);
 
@@ -217,7 +217,10 @@ public class ObjectContainer : IObjectContainer
             }
         }
 
-        throw new InvalidOperationException($"No suitable constructor was found for '{type}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{errorParameter}'");
+        if (throwOnError)
+            throw new InvalidOperationException($"No suitable constructor was found for '{type}'. Please confirm that all required parameters for the type constructor are registered. Unable to parse parameter '{errorParameter}'");
+
+        return null;
     }
     #endregion
 
