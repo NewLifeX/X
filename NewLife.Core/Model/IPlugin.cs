@@ -88,7 +88,7 @@ public class PluginManager : DisposeBase, IServiceProvider
                 {
                     // 插件类注册到容器中，方便后续获取
                     var container = Provider?.GetService<IObjectContainer>();
-                    container?.TryAddSingleton(item, item);
+                    container?.TryAddTransient(item, item);
 
                     var obj = Provider?.GetService(item) ?? item.CreateInstance();
                     if (obj is IPlugin plugin) list.Add(plugin);
