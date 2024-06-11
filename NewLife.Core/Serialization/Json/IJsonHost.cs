@@ -17,6 +17,9 @@ namespace NewLife.Serialization;
 /// </remarks>
 public interface IJsonHost
 {
+    /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
+    IServiceProvider ServiceProvider { get; set; }
+
     /// <summary>写入对象，得到Json字符串</summary>
     /// <param name="value"></param>
     /// <param name="indented">是否缩进。默认false</param>
@@ -55,8 +58,13 @@ public interface IJsonHost
 /// </remarks>
 public static class JsonHelper
 {
+#if NET7_0_OR_GREATER
+    /// <summary>默认实现</summary>
+    public static IJsonHost Default { get; set; } = new SystemJson();
+#else
     /// <summary>默认实现</summary>
     public static IJsonHost Default { get; set; } = new FastJson();
+#endif
 
     /// <summary>写入对象，得到Json字符串</summary>
     /// <param name="value"></param>
@@ -247,6 +255,9 @@ public class SystemJson : IJsonHost
         };
         opt.Converters.Add(new LocalTimeConverter());
         opt.Converters.Add(new TypeConverter());
+#if NET6_0_OR_GREATER
+        opt.Converters.Add(new ExtendableConverter());
+#endif
 #if NET7_0_OR_GREATER
         opt.TypeInfoResolver = DataMemberResolver.Default;
         //opt.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { DataMemberResolver.Modifier } };
@@ -356,7 +367,7 @@ public class SystemJson : IJsonHost
     /// <param name="obj"></param>
     /// <param name="targetType"></param>
     /// <returns></returns>
-    public Object? Convert(Object obj, Type targetType) => new JsonReader().ToObject(obj, targetType, null);
+    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>

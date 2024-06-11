@@ -344,6 +344,7 @@ public class TracerTests
         Assert.NotNull(model);
         Assert.NotEmpty(model.Builders);
         Assert.Equal(3, model.Builders.Length);
+        //Assert.Null(model.Builders[0].Tracer);
         //Assert.Equal("test", model.Builders[0].Name);
         //Assert.Equal("test2", model.Builders[1].Name);
         var test2 = model.Builders.First(e => e.Name == "test2");

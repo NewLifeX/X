@@ -74,13 +74,13 @@ public class JsonTest : JsonTestBase
             Childs = list,
         };
 
+        // 上对象容器。必须在使用前注册好服务
+        ObjectContainer.Current.AddTransient<IDuck, DuckB>();
+
         var json = model.ToJson();
 
-        // 直接反序列化会抛出异常
-        Assert.Throws<Exception>(() => json.ToJsonEntity<ModelA>());
-
-        // 上对象容器
-        ObjectContainer.Current.AddTransient<IDuck, DuckB>();
+        //// 直接反序列化会抛出异常
+        //Assert.Throws<Exception>(() => json.ToJsonEntity<ModelA>());
 
         // 再来一次反序列化
         var model2 = json.ToJsonEntity<ModelA>();
@@ -133,7 +133,8 @@ public class JsonTest : JsonTestBase
         Assert.NotNull(model2);
         Assert.Equal(2233, model2.ID);
 
-        var dic = model2.Body as IDictionary<String, Object>;
+        //var dic = model2.Body as IDictionary<String, Object>;
+        var dic = model2.Body.ToDictionary();
         Assert.Equal(3, dic.Count);
         Assert.Equal(123, dic["aaa"]);
         Assert.Equal(456, dic["bbb"]);

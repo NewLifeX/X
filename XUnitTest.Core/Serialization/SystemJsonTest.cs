@@ -108,7 +108,7 @@ public class SystemJsonTest : JsonTestBase
         //// 直接反序列化会抛出异常
         //Assert.Throws<NotSupportedException>(() => js.Read(json, typeof(ModelA)));
 
-        // 上对象容器。比如在使用前注册好服务
+        // 上对象容器。必须在使用前注册好服务
         services.AddTransient<IDuck, DuckB>();
 
         // 再来一次反序列化
