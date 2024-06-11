@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using NewLife.Data;
 using NewLife.Http;
@@ -21,6 +22,9 @@ public class WebSocketClient : TcpSession
 
     /// <summary>WebSocket心跳间隔。默认60秒</summary>
     public TimeSpan KeepAlive { get; set; } = TimeSpan.FromSeconds(120);
+
+    /// <summary>请求头。ws握手时可以传递Token</summary>
+    public IDictionary<String, String?>? RequestHeaders { get; set; }
     #endregion
 
     #region 构造
@@ -83,6 +87,16 @@ public class WebSocketClient : TcpSession
         _timer = null;
 
         return base.OnClose(reason);
+    }
+
+    /// <summary>设置请求头。ws握手时可以传递Token</summary>
+    /// <param name="headerName"></param>
+    /// <param name="headerValue"></param>
+    public void SetRequestHeader(String headerName, String? headerValue)
+    {
+        RequestHeaders ??= new Dictionary<String, String?>();
+
+        RequestHeaders[headerName] = headerValue;
     }
 
     #region 消息收发
@@ -197,6 +211,15 @@ public class WebSocketClient : TcpSession
             Method = "GET",
             RequestUri = uri
         };
+
+        if (client is WebSocketClient ws && ws.RequestHeaders != null)
+        {
+            foreach (var item in ws.RequestHeaders)
+            {
+                request.Headers[item.Key] = item.Value!;
+            }
+        }
+
         request.Headers["Connection"] = "Upgrade";
         request.Headers["Upgrade"] = "websocket";
         request.Headers["Sec-WebSocket-Version"] = "13";
