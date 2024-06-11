@@ -9,7 +9,8 @@ public interface ISpanBuilder
 {
     #region 属性
     /// <summary>跟踪器</summary>
-    ITracer Tracer { get; }
+    [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+    ITracer? Tracer { get; }
 
     /// <summary>操作名</summary>
     String Name { get; set; }
@@ -39,10 +40,10 @@ public interface ISpanBuilder
     Int64 Value { get; set; }
 
     /// <summary>正常采样</summary>
-    IList<ISpan> Samples { get; }
+    IList<ISpan>? Samples { get; set; }
 
     /// <summary>异常采样</summary>
-    IList<ISpan> ErrorSamples { get; }
+    IList<ISpan>? ErrorSamples { get; set; }
     #endregion
 
     #region 方法

@@ -16,13 +16,28 @@ public class ServiceTypeResolver
     /// <param name="typeInfo"></param>
     public void Modifier(JsonTypeInfo typeInfo)
     {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object) return;
+
         var type = typeInfo.Type;
-        var provider = GetServiceProvider?.Invoke();
-        if (provider != null && !type.IsBaseType())
+        if (!type.IsBaseType())
         {
-            if (provider.GetService(type) is not null)
+            var provider = GetServiceProvider?.Invoke();
+            if (provider != null && provider.GetService(type) is not null)
             {
                 typeInfo.CreateObject = () => provider.GetService(type) ?? provider.CreateInstance(type) ?? type.CreateInstance()!;
+            }
+            else if (type.IsInterface && type.IsGenericType)
+            {
+                if (type.GetGenericTypeDefinition() == typeof(IList<>))
+                {
+                    var type2 = typeof(List<>).MakeGenericType(type.GetGenericArguments());
+                    typeInfo.CreateObject = () => type2.CreateInstance()!;
+                }
+                else if (type.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                {
+                    var type2 = typeof(Dictionary<,>).MakeGenericType(type.GetGenericArguments());
+                    typeInfo.CreateObject = () => type2.CreateInstance()!;
+                }
             }
         }
     }
