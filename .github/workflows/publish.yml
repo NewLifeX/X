@@ -19,15 +19,11 @@ jobs:
           7.0.x
           8.0.x
     - name: Get Version
-      run: echo "VERSION=$(date '+%Y.%m%d')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: echo "VERSION=$(date '+%Y.%m%d')" >> $GITHUB_ENV
     - name: Build
       run: |
-        dotnet build -c Release --version-suffix ${{ env.VERSION }}
-    - name: Pack
-      run: |
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
-        dotnet pack --no-build --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Security\NewLife.Security.csproj
-
+        dotnet pack --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Core\NewLife.Core.csproj
+        dotnet pack --version-suffix ${{ env.VERSION }} -c Release -o out NewLife.Security\NewLife.Security.csproj
     - name: Publish
       run: |
         dotnet nuget push .\out\*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/NewLifeX/index.json --api-key ${{ github.token }}
