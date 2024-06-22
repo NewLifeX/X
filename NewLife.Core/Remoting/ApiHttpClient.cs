@@ -43,10 +43,10 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public String DefaultUserAgent { get; set; }
 
     /// <summary>创建请求时触发</summary>
-    public event EventHandler<HttpRequestEventArgs>? OnRequest;
+    public event EventHandler<HttpRequestEventArgs> OnRequest;
 
     /// <summary>创建客户端时触发</summary>
-    public event EventHandler<HttpClientEventArgs>? OnCreateClient;
+    public event EventHandler<HttpClientEventArgs> OnCreateClient;
 
     /// <summary>Http过滤器</summary>
     public IHttpFilter Filter { get; set; }
@@ -73,7 +73,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public IList<Service> Services { get; set; } = new List<Service>();
 
     /// <summary>当前服务</summary>
-    protected Service? _currentService;
+    protected Service _currentService;
 
     /// <summary>正在使用的服务点。最后一次调用成功的服务点，可获取其地址以及状态信息</summary>
     public Service Current { get; private set; }
@@ -108,7 +108,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="address"></param>
     public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
 
-    private void ParseAndAdd(IList<Service> services, String name, String address)
+    private static void ParseAndAdd(IList<Service> services, String name, String address)
     {
         var url = address;
         var svc = new Service
@@ -243,20 +243,24 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             {
                 span?.AppendTag(ex.Message);
 
-                while (ex is AggregateException age) ex = age.InnerException;
+                while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
 
+                var client = _currentService?.Client;
                 if (ex is ApiException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
+                    if (_currentService != null)
+                    {
+                        if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken);
 
-                    ex.Source = _currentService?.Address + "/" + action;
+                        ex.Source = _currentService.Address + "/" + action;
+                    }
 
                     span?.SetError(ex, null);
                     throw;
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
-                    if (filter != null) await filter.OnError(_currentService?.Client, ex, this, cancellationToken);
+                    if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken);
                     if (++i >= svrs.Count)
                     {
                         span?.SetError(ex, null);
@@ -278,13 +282,13 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    async Task<TResult> IApiClient.InvokeAsync<TResult>(String action, Object args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
+    public async Task<TResult> InvokeAsync<TResult>(String action, Object args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    TResult IApiClient.Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
+    public TResult Invoke<TResult>(String action, Object args) => TaskEx.Run(() => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args)).Result;
     #endregion
 
     #region 构造请求
@@ -328,7 +332,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (Services.Count == 0) throw new InvalidOperationException("未添加服务地址！");
+        if (Services.Count == 0) throw new InvalidOperationException("Service address not added!");
 
         // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
         var service = GetService();
@@ -339,7 +343,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         // 性能计数器，次数、TPS、平均耗时
         var st = StatInvoke;
-        var sw = st.StartCount();
+        var sw = st?.StartCount();
         Exception error = null;
         try
         {
@@ -369,8 +373,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         }
         finally
         {
-            var msCost = st.StopCount(sw) / 1000;
-            if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri.AbsoluteUri}]，耗时{msCost:n0}ms");
+            if (st != null)
+            {
+                var msCost = st.StopCount(sw) / 1000;
+                if (SlowTrace > 0 && msCost >= SlowTrace) WriteLog($"慢调用[{request.RequestUri?.AbsoluteUri}]，耗时{msCost:n0}ms");
+            }
 
             // 归还服务
             PutService(service, error);
@@ -413,7 +420,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
             // 如果都没有可用节点，默认选第一个
             if (svc == null && svrs.Count > 0) svc = svrs[0];
-            //if (svc == null) throw new XException("没有可用服务节点！");
+            if (svc == null) throw new XException("No available service nodes!");
 
             svc.Times++;
 
