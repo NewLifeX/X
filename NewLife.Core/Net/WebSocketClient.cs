@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using NewLife.Data;
 using NewLife.Http;
