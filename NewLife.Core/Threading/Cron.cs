@@ -331,7 +331,7 @@ public class Cron
         {
             var cron = new Cron(item);
             var dt = cron.GetNext(time);
-            if (dt < next) dt = next;
+            if (dt < next) next = dt;
         }
         return next;
     }
@@ -347,7 +347,7 @@ public class Cron
         {
             var cron = new Cron(item);
             var dt = cron.GetPrevious(time);
-            if (dt > prev) dt = prev;
+            if (dt > prev) prev = dt;
         }
         return prev;
     }
