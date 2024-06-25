@@ -319,5 +319,37 @@ public class Cron
 
         return DateTime.MinValue;
     }
+
+    /// <summary>对一批Cron表达式，获取下一次执行时间</summary>
+    /// <param name="crons"></param>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    public static DateTime GetNext(String[] crons, DateTime time)
+    {
+        var next = DateTime.MaxValue;
+        foreach (var item in crons)
+        {
+            var cron = new Cron(item);
+            var dt = cron.GetNext(time);
+            if (dt < next) dt = next;
+        }
+        return next;
+    }
+
+    /// <summary>对一批Cron表达式，获取前一次执行时间</summary>
+    /// <param name="crons"></param>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    public static DateTime GetPrevious(String[] crons, DateTime time)
+    {
+        var prev = DateTime.MinValue;
+        foreach (var item in crons)
+        {
+            var cron = new Cron(item);
+            var dt = cron.GetPrevious(time);
+            if (dt > prev) dt = prev;
+        }
+        return prev;
+    }
     #endregion
 }
