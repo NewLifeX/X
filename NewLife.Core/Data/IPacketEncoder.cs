@@ -16,20 +16,26 @@ public interface IPacketEncoder
     /// <param name="type">目标类型</param>
     /// <returns></returns>
     Object? Decode(Packet data, Type type);
+}
 
-#if !(NETFRAMEWORK || NETSTANDARD2_0)
+/// <summary>编码器扩展</summary>
+public static class PackerEncoderExtensions
+{
     /// <summary>数据包转对象</summary>
     /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="encoder"></param>
     /// <param name="data">数据包</param>
     /// <returns></returns>
-    public T? Decode<T>(Packet data) => (T?)Decode(data, typeof(T));
-#endif
+    public static T? Decode<T>(this IPacketEncoder encoder, Packet data) => (T?)encoder.Decode(data, typeof(T));
 }
 
 /// <summary>默认数据包编码器。基础类型直接转，复杂类型Json序列化</summary>
 public class DefaultPacketEncoder : IPacketEncoder
 {
     #region 属性
+    /// <summary>Json序列化主机</summary>
+    public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
+
     /// <summary>解码出错时抛出异常。默认false不抛出异常，仅返回默认值</summary>
     public Boolean ThrowOnError { get; set; }
     #endregion
@@ -48,7 +54,7 @@ public class DefaultPacketEncoder : IPacketEncoder
         var type = value.GetType();
         return (type.GetTypeCode()) switch
         {
-            TypeCode.Object => value.ToJson().GetBytes(),
+            TypeCode.Object => JsonHost.Write(value).GetBytes(),
             TypeCode.String => (value as String).GetBytes(),
             TypeCode.DateTime => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss").GetBytes(),
             _ => (value + "").GetBytes(),
@@ -74,7 +80,7 @@ public class DefaultPacketEncoder : IPacketEncoder
             if (type.GetTypeCode() == TypeCode.String) return str;
             if (type.IsBaseType()) return str.ChangeType(type);
 
-            return str.ToJsonEntity(type);
+            return JsonHost.Read(str, type);
         }
         catch
         {
