@@ -177,7 +177,7 @@ public class HttpHelperTests
 
         Assert.NotNull(rs);
         //Assert.Equal("state: xxxyyy\r\n", rs);
-        Assert.Contains("\"name\":\"StarWeb\"", rs);
+        Assert.Contains("\"name\":\"StarWeb\"", rs, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

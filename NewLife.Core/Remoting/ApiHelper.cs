@@ -130,8 +130,9 @@ public static class ApiHelper
     /// <param name="method">请求方法</param>
     /// <param name="action">动作</param>
     /// <param name="args">参数</param>
+    /// <param name="jsonHost">Json序列化主机</param>
     /// <returns></returns>
-    public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args)
+    public static HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args, IJsonHost? jsonHost = null)
     {
         // 序列化参数，决定GET/POST
         var request = new HttpRequestMessage(method, action);
@@ -173,7 +174,8 @@ public static class ApiHelper
             }
             else if (args != null)
             {
-                content = new ByteArrayContent(args.ToJson().GetBytes());
+                jsonHost ??= JsonHelper.Default;
+                content = new ByteArrayContent(jsonHost.Write(args).GetBytes());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 request.Content = content;
             }
@@ -207,10 +209,10 @@ public static class ApiHelper
     }
 
     /// <summary>结果代码名称。默认 code/errcode</summary>
-    public static IList<String> CodeNames { get; } = new List<String> { "code", "errcode", "status" };
+    public static IList<String> CodeNames { get; } = ["code", "errcode", "status"];
 
     /// <summary>结果消息名称。默认 message/msg/errmsg</summary>
-    public static IList<String> MessageNames { get; } = new List<String> { "message", "msg", "errmsg", "error" };
+    public static IList<String> MessageNames { get; } = ["message", "msg", "errmsg", "error"];
 
     /// <summary>处理响应。统一识别code/message</summary>
     /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
@@ -225,7 +227,16 @@ public static class ApiHelper
     /// <param name="response">Http响应消息</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
     /// <returns></returns>
-    public static async Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName)
+    public static Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName) => ProcessResponse<TResult>(response, codeName, dataName, JsonHelper.Default);
+
+    /// <summary>处理响应。统一识别code/message</summary>
+    /// <typeparam name="TResult">响应类型，优先原始字节数据，字典返回整体，Object返回data，没找到data时返回整体字典，其它对data反序列化</typeparam>
+    /// <param name="codeName">状态码字段名</param>
+    /// <param name="response">Http响应消息</param>
+    /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+    /// <param name="jsonHost">Json序列化主机</param>
+    /// <returns></returns>
+    public static async Task<TResult?> ProcessResponse<TResult>(HttpResponseMessage response, String? codeName, String? dataName, IJsonHost jsonHost)
     {
         var rtype = typeof(TResult);
         if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
@@ -239,12 +250,13 @@ public static class ApiHelper
             // 400响应可能包含错误信息
             if (!msg.IsNullOrEmpty() && msg.StartsWith("{") && msg.EndsWith("}"))
             {
-                var dic = JsonParser.Decode(msg);
+                //var dic = JsonParser.Decode(msg);
+                var dic = jsonHost.Decode(msg);
                 if (dic != null)
                 {
                     var msg2 = "";
                     if (dic.TryGetValue("title", out var v)) msg2 = v + "";
-                    if (dic.TryGetValue("errors", out v)) msg2 += v?.ToJson();
+                    if (dic.TryGetValue("errors", out v) && v != null) msg2 += jsonHost.Write(v);
                     if (!msg2.IsNullOrEmpty()) msg = msg2.Trim();
                 }
             }
@@ -259,7 +271,7 @@ public static class ApiHelper
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
         var str = buf.ToStr().Trim();
-        return ProcessResponse<TResult>(str, codeName, dataName ?? "data");
+        return ProcessResponse<TResult>(str, codeName, dataName ?? "data", jsonHost);
     }
 
     /// <summary>处理响应。</summary>
@@ -267,14 +279,16 @@ public static class ApiHelper
     /// <param name="response">文本响应消息</param>
     /// <param name="codeName">状态码字段名</param>
     /// <param name="dataName">数据字段名称，默认data。同一套rpc体系不同接口的code/message一致，但data可能不同</param>
+    /// <param name="jsonHost">Json序列化主机</param>
     /// <returns></returns>
-    public static TResult? ProcessResponse<TResult>(String? response, String? codeName, String dataName)
+    public static TResult? ProcessResponse<TResult>(String? response, String? codeName, String dataName, IJsonHost? jsonHost = null)
     {
         if (response.IsNullOrEmpty()) return default;
 
         var rtype = typeof(TResult);
 
-        var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : response.DecodeJson();
+        jsonHost ??= JsonHelper.Default;
+        var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : jsonHost.Decode(response);
         if (dic == null) return default;
 
         var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
@@ -337,9 +351,10 @@ public static class ApiHelper
         if (data == null) return default;
 
         if (data is not IDictionary<String, Object> and not IList<Object>)
-            throw new InvalidDataException("Unrecognized response data");
+            throw new InvalidDataException($"Unrecognized response data [{(data as String)?.Cut(64)}] for [{typeof(TResult).Name}]");
 
-        return JsonHelper.Convert<TResult>(data);
+        //return JsonHelper.Convert<TResult>(data);
+        return jsonHost.Convert<TResult>(data);
     }
 
     /// <summary>根据动作和参数构造Url</summary>

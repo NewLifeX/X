@@ -181,13 +181,18 @@ public static class JsonHelper
     /// <summary>Json类型对象转换实体类</summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T? Convert<T>(Object obj)
+    public static T? Convert<T>(Object obj) => Default.Convert<T>(obj);
+
+    /// <summary>Json类型对象转换实体类</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T? Convert<T>(this IJsonHost jsonHost, Object obj)
     {
         if (obj == null) return default;
         if (obj is T t) return t;
         if (obj.GetType().As<T>()) return (T)obj;
 
-        return (T?)Default.Convert(obj, typeof(T));
+        return (T?)jsonHost.Convert(obj, typeof(T));
     }
 
     /// <summary>分析Json字符串得到字典</summary>
