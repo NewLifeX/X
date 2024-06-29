@@ -9,6 +9,11 @@ namespace NewLife.Net.Handlers;
 /// <summary>Json编码器。用于把用户对象编码为Json字符串</summary>
 public class JsonCodec : Handler
 {
+    #region 属性
+    /// <summary>Json序列化主机</summary>
+    public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
+    #endregion
+
     /// <summary>发送消息时，写入数据，编码并加入队列</summary>
     /// <remarks>
     /// 遇到消息T时，调用Encode编码并加入队列。
@@ -30,7 +35,7 @@ public class JsonCodec : Handler
         }
         else if (message is not Packet and not IMessage)
         {
-            message = message.ToJson().GetBytes();
+            message = JsonHost.Write(message).GetBytes();
 
             // 通知标准网络封包使用的Flag
             if (ext != null) ext["Flag"] = DataKinds.Json;

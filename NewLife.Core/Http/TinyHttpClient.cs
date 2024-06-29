@@ -42,6 +42,9 @@ public class TinyHttpClient : DisposeBase
     /// <summary>缓冲区大小。接收缓冲区默认64*1024</summary>
     public Int32 BufferSize { get; set; } = 64 * 1024;
 
+    /// <summary>Json序列化</summary>
+    public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
+
     /// <summary>性能追踪</summary>
     public ITracer Tracer { get; set; } = HttpHelper.Tracer;
 
@@ -358,7 +361,7 @@ public class TinyHttpClient : DisposeBase
 
         var ps = args.ToDictionary();
         if (method.EqualIgnoreCase("Post"))
-            req.Body = ps.ToJson().GetBytes();
+            req.Body = JsonHost.Write(ps).GetBytes();
         else
         {
             var sb = Pool.StringBuilder.Get();
@@ -387,8 +390,9 @@ public class TinyHttpClient : DisposeBase
         if (typeof(TResult).IsBaseType()) return str.ChangeType<TResult>();
 
         // 反序列化
-        var dic = JsonParser.Decode(str);
-        if (!dic.TryGetValue("data", out var data)) throw new InvalidDataException("未识别响应数据");
+        //var dic = JsonParser.Decode(str);
+        var dic = JsonHost.Decode(str);
+        if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("Unrecognized response data");
 
         if (dic.TryGetValue("result", out var result))
         {
@@ -403,7 +407,10 @@ public class TinyHttpClient : DisposeBase
             throw new InvalidDataException("未识别响应数据");
         }
 
-        return JsonHelper.Convert<TResult>(data);
+        if (data == null) return default;
+
+        //return JsonHelper.Convert<TResult>(data);
+        return JsonHost.Convert<TResult>(data);
     }
     #endregion
 
