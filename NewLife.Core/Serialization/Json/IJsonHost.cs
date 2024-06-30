@@ -108,6 +108,13 @@ public static class JsonHelper
         return (T?)Default.Read(json, typeof(T));
     }
 
+    /// <summary>从Json字符串中反序列化对象</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="jsonHost"></param>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public static T? Read<T>(this IJsonHost jsonHost, String json) => (T?)jsonHost.Read(json, typeof(T));
+
     /// <summary>格式化Json文本</summary>
     /// <param name="json"></param>
     /// <returns></returns>
