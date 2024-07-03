@@ -94,7 +94,7 @@ public class HttpConfigProvider : ConfigProvider
     #region 方法
     /// <summary>获取客户端</summary>
     /// <returns></returns>
-    protected IApiClient GetClient()
+    protected virtual IApiClient GetClient()
     {
         Client ??= new ApiHttpClient(Server)
         {
@@ -108,13 +108,13 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected virtual IDictionary<String, Object> GetAll()
     {
-        var client = GetClient() as TinyHttpClient;
+        var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
 
         ValidClientId();
 
         try
         {
-            var rs = client.Post<IDictionary<String, Object>>(Action, new
+            var rs = client.Invoke<IDictionary<String, Object?>>(Action, new
             {
                 appId = AppId,
                 secret = Secret,
@@ -152,9 +152,8 @@ public class HttpConfigProvider : ConfigProvider
     {
         ValidClientId();
 
-        var client = GetClient() as TinyHttpClient;
-
-        return client.Post<Int32>("Config/SetAll", new
+        var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
+        return client.Invoke<Int32>("Config/SetAll", new
         {
             appId = AppId,
             secret = Secret,

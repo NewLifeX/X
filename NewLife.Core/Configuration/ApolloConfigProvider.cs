@@ -61,7 +61,8 @@ public class ApolloConfigProvider : HttpConfigProvider
         // 特殊处理Apollo
         if (!NameSpace.IsNullOrEmpty())
         {
-            var client = GetClient() as ApiHttpClient;
+            var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
+
             var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
             var dic = new Dictionary<String, Object>();
             foreach (var item in ns)
@@ -69,10 +70,13 @@ public class ApolloConfigProvider : HttpConfigProvider
                 var action = $"/configfiles/json/{AppId}/default/{item}";
                 try
                 {
-                    var rs = client.Get<IDictionary<String, Object>>(action);
-                    foreach (var elm in rs)
+                    var rs = client.Invoke<IDictionary<String, Object?>>(action);
+                    if (rs != null)
                     {
-                        if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                        foreach (var elm in rs)
+                        {
+                            if (!dic.ContainsKey(elm.Key)) dic[elm.Key] = elm.Value;
+                        }
                     }
                 }
                 catch (Exception ex)
