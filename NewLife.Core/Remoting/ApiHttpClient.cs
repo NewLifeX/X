@@ -6,6 +6,7 @@ using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Remoting;
@@ -286,13 +287,20 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public async Task<TResult?> InvokeAsync<TResult>(String action, Object? args, CancellationToken cancellationToken) => await InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args, null, cancellationToken);
+    public async Task<TResult?> InvokeAsync<TResult>(String action, Object? args, CancellationToken cancellationToken)
+    {
+        var method = HttpMethod.Post;
+        if (args == null || args.GetType().IsBaseType() || action.StartsWithIgnoreCase("Get") || action.ToLower().Contains("/get"))
+            method = HttpMethod.Get;
+
+        return await InvokeAsync<TResult>(method, action, args, null, cancellationToken);
+    }
 
     /// <summary>同步调用，阻塞等待</summary>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <returns></returns>
-    public TResult? Invoke<TResult>(String action, Object? args) => InvokeAsync<TResult>(args == null ? HttpMethod.Get : HttpMethod.Post, action, args).ConfigureAwait(false).GetAwaiter().GetResult();
+    public TResult? Invoke<TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
     #endregion
 
     #region 构造请求
