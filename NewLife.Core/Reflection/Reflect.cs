@@ -450,20 +450,54 @@ public static class Reflect
     /// <returns></returns>
     public static Boolean IsNullable(this Type type) => type.IsGenericType && !type.IsGenericTypeDefinition && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
-    /// <summary>是否整数。Byte/Int16/Int32/Int64</summary>
+    /// <summary>是否整数。Byte/Int16/Int32/Int64/SByte/UInt16/UInt32/UInt64</summary>
     /// <param name="type"></param>
     /// <returns></returns>
     public static Boolean IsInt(this Type type)
     {
-        return type == typeof(Int32)
-            || type == typeof(Int64)
-            || type == typeof(Int16)
-            || type == typeof(UInt32)
-            || type == typeof(UInt64)
-            || type == typeof(UInt16)
-            || type == typeof(Byte)
-            || type == typeof(SByte)
-            ;
+        var code = type.GetTypeCode();
+        return code >= TypeCode.SByte && code <= TypeCode.UInt64;
+
+        //return type.GetTypeCode() switch
+        //{
+        //    TypeCode.Empty => false,
+        //    TypeCode.Object => false,
+        //    TypeCode.DBNull => false,
+        //    TypeCode.Boolean => false,
+        //    TypeCode.Char => false,
+        //    TypeCode.Byte or TypeCode.SByte => true,
+        //    TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 => true,
+        //    TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => true,
+        //    TypeCode.Single or TypeCode.Double or TypeCode.Decimal => false,
+        //    TypeCode.DateTime => false,
+        //    TypeCode.String => false,
+        //    _ => false,
+        //};
+    }
+
+    /// <summary>是否数字类型。包括整数、小数、字节等</summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public static Boolean IsNumber(this Type type)
+    {
+        var code = type.GetTypeCode();
+        return code >= TypeCode.SByte && code <= TypeCode.Decimal;
+
+        //return type.GetTypeCode() switch
+        //{
+        //    TypeCode.Empty => false,
+        //    TypeCode.Object => false,
+        //    TypeCode.DBNull => false,
+        //    TypeCode.Boolean => false,
+        //    TypeCode.Char => false,
+        //    TypeCode.Byte or TypeCode.SByte => true,
+        //    TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 => true,
+        //    TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => true,
+        //    TypeCode.Single or TypeCode.Double or TypeCode.Decimal => true,
+        //    TypeCode.DateTime => false,
+        //    TypeCode.String => false,
+        //    _ => false,
+        //};
     }
 
     /// <summary>是否泛型列表</summary>
