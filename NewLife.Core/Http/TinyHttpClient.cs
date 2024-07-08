@@ -383,13 +383,15 @@ public class TinyHttpClient : DisposeBase
         if (typeof(TResult).IsBaseType()) return str.ChangeType<TResult>();
 
         // 反序列化
-        //var dic = JsonParser.Decode(str);
-        var dic = JsonHost.Decode(str);
+        var obj = JsonHost.Parse(str);
+        if (obj is TResult result) return result;
+
+        var dic = obj as IDictionary<String, Object?>;
         if (dic == null || !dic.TryGetValue("data", out var data)) throw new InvalidDataException("Unrecognized response data");
 
-        if (dic.TryGetValue("result", out var result))
+        if (dic.TryGetValue("result", out var result2))
         {
-            if (result is Boolean res && !res) throw new InvalidOperationException($"remote error: {data}");
+            if (result2 is Boolean res && !res) throw new InvalidOperationException($"remote error: {data}");
         }
         else if (dic.TryGetValue("code", out var code))
         {
@@ -402,7 +404,6 @@ public class TinyHttpClient : DisposeBase
 
         if (data == null) return default;
 
-        //return JsonHelper.Convert<TResult>(data);
         return JsonHost.Convert<TResult>(data);
     }
     #endregion

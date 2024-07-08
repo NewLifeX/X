@@ -167,7 +167,10 @@ public static class CollectionHelper
     }
 
 #if NETCOREAPP
-    static IList<Object?> ToArray(JsonElement element)
+    /// <summary>Json对象转为数组</summary>
+    /// <param name="element"></param>
+    /// <returns></returns>
+    public static IList<Object?> ToArray(this JsonElement element)
     {
         var list = new List<Object?>();
         foreach (var item in element.EnumerateArray())

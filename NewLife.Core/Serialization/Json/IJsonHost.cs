@@ -46,6 +46,11 @@ public interface IJsonHost
     /// <returns></returns>
     Object? Convert(Object obj, Type targetType);
 
+    /// <summary>分析Json字符串得到字典或列表</summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    Object? Parse(String json);
+
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
@@ -202,6 +207,11 @@ public static class JsonHelper
         return (T?)jsonHost.Convert(obj, typeof(T));
     }
 
+    /// <summary>分析Json字符串得到字典或列表</summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public static Object? Parse(String json) => Default.Parse(json);
+
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
     /// <returns></returns>
@@ -240,6 +250,11 @@ public class FastJson : IJsonHost
     /// <param name="targetType"></param>
     /// <returns></returns>
     public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
+
+    /// <summary>分析Json字符串得到字典或列表</summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public Object? Parse(String json) => new JsonParser(json).Decode();
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>
@@ -380,6 +395,15 @@ public class SystemJson : IJsonHost
     /// <param name="targetType"></param>
     /// <returns></returns>
     public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
+
+    /// <summary>分析Json字符串得到字典或列表</summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public Object? Parse(String json)
+    {
+        var doc = JsonDocument.Parse(json);
+        return doc.RootElement.ToArray();
+    }
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json"></param>

@@ -95,7 +95,6 @@ public class JsonWriter
         jw.WriteValue(obj);
 
         var json = jw._Builder.ToString();
-        //if (indented) json = JsonHelper.Format(json);
 
         return json;
     }
@@ -118,7 +117,6 @@ public class JsonWriter
         jw.WriteValue(obj);
 
         var json = jw._Builder.ToString();
-        //if (indented) json = JsonHelper.Format(json);
 
         return json;
     }

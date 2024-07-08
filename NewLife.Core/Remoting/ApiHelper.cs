@@ -250,7 +250,6 @@ public static class ApiHelper
             // 400响应可能包含错误信息
             if (!msg.IsNullOrEmpty() && msg.StartsWith("{") && msg.EndsWith("}"))
             {
-                //var dic = JsonParser.Decode(msg);
                 var dic = jsonHost.Decode(msg);
                 if (dic != null)
                 {
@@ -286,15 +285,32 @@ public static class ApiHelper
         if (response.IsNullOrEmpty()) return default;
 
         var rtype = typeof(TResult);
-
         jsonHost ??= JsonHelper.Default;
-        var dic = response.StartsWith("<") && response.EndsWith(">") ? XmlParser.Decode(response) : jsonHost.Decode(response);
-        if (dic == null) return default;
+
+        IDictionary<String, Object?>? dic = null;
+        if (response.StartsWith("<") && response.EndsWith(">"))
+        {
+            // XML反序列化
+            dic = XmlParser.Decode(response);
+        }
+        else
+        {
+            // Json反序列化，可能是字典或列表
+            var obj = jsonHost.Parse(response);
+
+            // 如果没有data部分。可能是 IDictionary<String, Object?> 或 IList<Object?> ，或其它
+            if (dataName.IsNullOrEmpty() && obj is TResult result2) return result2;
+
+            dic = obj as IDictionary<String, Object?>;
+        }
+
+        //if (dic == null) return default;
+        if (dic == null) throw new InvalidCastException($"Unable to convert to type [{typeof(TResult)}]! {response.Cut(64)}");
 
         var nodata = dataName.IsNullOrEmpty() || !dic.ContainsKey(dataName);
 
         // 未指定有效数据名时，整体返回
-        if (nodata && rtype == typeof(IDictionary<String, Object>)) return (TResult)dic;
+        if (nodata && dic is TResult result3) return result3;
 
         // 如果没有指定数据名，或者结果中不包含数据名，则整个字典作为结果数据
         var data = nodata ? dic : dic[dataName];
@@ -353,7 +369,6 @@ public static class ApiHelper
         if (data is not IDictionary<String, Object> and not IList<Object>)
             throw new InvalidDataException($"Unrecognized response data [{(data as String)?.Cut(64)}] for [{typeof(TResult).Name}]");
 
-        //return JsonHelper.Convert<TResult>(data);
         return jsonHost.Convert<TResult>(data);
     }
 
