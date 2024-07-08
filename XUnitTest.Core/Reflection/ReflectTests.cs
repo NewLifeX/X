@@ -181,6 +181,88 @@ public class ReflectTests
     }
 
     [Theory]
+    [InlineData(typeof(Boolean), false)]
+    [InlineData(typeof(Char), false)]
+    [InlineData(typeof(SByte), true)]
+    [InlineData(typeof(Byte), true)]
+    [InlineData(typeof(Int16), true)]
+    [InlineData(typeof(UInt16), true)]
+    [InlineData(typeof(Int32), true)]
+    [InlineData(typeof(UInt32), true)]
+    [InlineData(typeof(Int64), true)]
+    [InlineData(typeof(UInt64), true)]
+    [InlineData(typeof(Single), false)]
+    [InlineData(typeof(Double), false)]
+    [InlineData(typeof(Decimal), false)]
+    [InlineData(typeof(DateTime), false)]
+    [InlineData(typeof(String), false)]
+    [InlineData(typeof(Boolean?), false)]
+    [InlineData(typeof(Char?), false)]
+    [InlineData(typeof(SByte?), true)]
+    [InlineData(typeof(Byte?), true)]
+    [InlineData(typeof(Int16?), true)]
+    [InlineData(typeof(UInt16?), true)]
+    [InlineData(typeof(Int32?), true)]
+    [InlineData(typeof(UInt32?), true)]
+    [InlineData(typeof(Int64?), true)]
+    [InlineData(typeof(UInt64?), true)]
+    [InlineData(typeof(Single?), false)]
+    [InlineData(typeof(Double?), false)]
+    [InlineData(typeof(Decimal?), false)]
+    [InlineData(typeof(DateTime?), false)]
+    [InlineData(typeof(Enum), false)]
+    [InlineData(typeof(ServiceStatus), true)]
+    [InlineData(typeof(ServiceStatus?), true)]
+    public void IsInt(Type type, Boolean result)
+    {
+        if (result)
+            Assert.True(type.IsInt());
+        else
+            Assert.False(type.IsInt());
+    }
+
+    [Theory]
+    [InlineData(typeof(Boolean), false)]
+    [InlineData(typeof(Char), false)]
+    [InlineData(typeof(SByte), true)]
+    [InlineData(typeof(Byte), true)]
+    [InlineData(typeof(Int16), true)]
+    [InlineData(typeof(UInt16), true)]
+    [InlineData(typeof(Int32), true)]
+    [InlineData(typeof(UInt32), true)]
+    [InlineData(typeof(Int64), true)]
+    [InlineData(typeof(UInt64), true)]
+    [InlineData(typeof(Single), true)]
+    [InlineData(typeof(Double), true)]
+    [InlineData(typeof(Decimal), true)]
+    [InlineData(typeof(DateTime), false)]
+    [InlineData(typeof(String), false)]
+    [InlineData(typeof(Boolean?), false)]
+    [InlineData(typeof(Char?), false)]
+    [InlineData(typeof(SByte?), true)]
+    [InlineData(typeof(Byte?), true)]
+    [InlineData(typeof(Int16?), true)]
+    [InlineData(typeof(UInt16?), true)]
+    [InlineData(typeof(Int32?), true)]
+    [InlineData(typeof(UInt32?), true)]
+    [InlineData(typeof(Int64?), true)]
+    [InlineData(typeof(UInt64?), true)]
+    [InlineData(typeof(Single?), true)]
+    [InlineData(typeof(Double?), true)]
+    [InlineData(typeof(Decimal?), true)]
+    [InlineData(typeof(DateTime?), false)]
+    [InlineData(typeof(Enum), false)]
+    [InlineData(typeof(ServiceStatus), true)]
+    [InlineData(typeof(ServiceStatus?), true)]
+    public void IsNumber(Type type, Boolean result)
+    {
+        if (result)
+            Assert.True(type.IsNumber());
+        else
+            Assert.False(type.IsNumber());
+    }
+
+    [Theory]
     [InlineData("true", typeof(Boolean), true)]
     [InlineData("1", typeof(Boolean), true)]
     [InlineData("0", typeof(Boolean), false)]
