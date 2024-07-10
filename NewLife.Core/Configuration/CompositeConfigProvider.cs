@@ -1,4 +1,6 @@
-﻿namespace NewLife.Configuration;
+﻿using System.Collections.Concurrent;
+
+namespace NewLife.Configuration;
 
 /// <summary>复合配置提供者。常用于本地配置与网络配置的混合</summary>
 public class CompositeConfigProvider : IConfigProvider
@@ -166,8 +168,8 @@ public class CompositeConfigProvider : IConfigProvider
     #endregion
 
     #region 绑定
-    private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
-    private readonly IDictionary<Object, ModelWrap> _models2 = new Dictionary<Object, ModelWrap>();
+    private readonly ConcurrentDictionary<Object, String> _models = [];
+    private readonly ConcurrentDictionary<Object, ModelWrap> _models2 = [];
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
@@ -188,9 +190,9 @@ public class CompositeConfigProvider : IConfigProvider
                 source.MapTo(model, this);
         }
 
-        if (autoReload && !_models.ContainsKey(model))
+        if (autoReload)
         {
-            _models.Add(model, path);
+            _models.TryAdd(model, path);
         }
 
         AddChanged();
@@ -216,9 +218,9 @@ public class CompositeConfigProvider : IConfigProvider
                 source.MapTo(model, this);
         }
 
-        if (onChange != null && !_models2.ContainsKey(model))
+        if (onChange != null)
         {
-            _models2.Add(model, new ModelWrap(path, onChange));
+            _models2.TryAdd(model, new ModelWrap(path, onChange));
         }
 
         AddChanged();
