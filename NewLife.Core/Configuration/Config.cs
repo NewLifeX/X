@@ -70,7 +70,8 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
                 try
                 {
                     // OnLoad 中可能有变化，存回去
-                    prv.Save(config);
+                    //prv.Save(config);
+                    config.Save();
                 }
                 catch { }
 
@@ -94,10 +95,14 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
 
     /// <summary>保存到配置文件中去</summary>
     //[Obsolete("=>Provider.Save")]
-    public virtual void Save() => Provider?.Save(this);
+    public virtual void Save()
+    {
+        var prv = Provider;
+        if (prv == null) return;
 
-    ///// <summary>异步保存</summary>
-    //[Obsolete("=>Provider.Save")]
-    //public virtual void SaveAsync() => ThreadPoolX.QueueUserWorkItem(() => Provider.Save(this));
+        // 是否创建默认配置
+        if (!prv.IsNew || Runtime.CreateConfigOnMissing)
+            prv.Save(this);
+    }
     #endregion
 }

@@ -152,4 +152,23 @@ public static class Runtime
         return dic;
     }
     #endregion
+
+    #region 设置
+    private static Boolean? _createConfigOnMissing;
+    /// <summary>默认配置。配置文件不存在时，是否生成默认配置文件</summary>
+    public static Boolean CreateConfigOnMissing
+    {
+        get
+        {
+            if (_createConfigOnMissing == null)
+            {
+                var val = Environment.GetEnvironmentVariable("CreateConfigOnMissing");
+                _createConfigOnMissing = !val.IsNullOrEmpty() ? val.ToBoolean(true) : true;
+            }
+
+            return _createConfigOnMissing.Value;
+        }
+        set { _createConfigOnMissing = value; }
+    }
+    #endregion
 }
