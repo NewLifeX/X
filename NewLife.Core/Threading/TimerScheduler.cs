@@ -2,7 +2,6 @@
 using NewLife.Log;
 using NewLife.Reflection;
 
-#nullable enable
 namespace NewLife.Threading;
 
 /// <summary>定时器调度器</summary>
@@ -37,6 +36,9 @@ public class TimerScheduler : ILogFeature
     private static TimerScheduler? _Current;
     /// <summary>当前调度器</summary>
     public static TimerScheduler? Current { get => _Current; private set => _Current = value; }
+
+    /// <summary>全局时间提供者。影响所有调度器</summary>
+    public static TimeProvider GlobalTimeProvider { get; set; } = TimeProvider.System;
     #endregion
 
     #region 属性
@@ -49,10 +51,13 @@ public class TimerScheduler : ILogFeature
     /// <summary>最大耗时。超过时报警告日志，默认500ms</summary>
     public Int32 MaxCost { get; set; } = 500;
 
+    /// <summary>时间提供者。该调度器下所有绝对定时器，均从此获取当前时间</summary>
+    public TimeProvider? TimeProvider { get; set; }
+
     private Thread? thread;
     private Int32 _tid;
 
-    private TimerX[] Timers = new TimerX[0];
+    private TimerX[] Timers = [];
     #endregion
 
     /// <summary>把定时器加入队列</summary>
@@ -163,9 +168,6 @@ public class TimerScheduler : ILogFeature
                 {
                     if (!timer.Calling && CheckTime(timer, now))
                     {
-                        //// 是否能够执行
-                        //if (timer.CanExecute == null || timer.CanExecute())
-                        //{
                         // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
                         timer.Calling = true;
                         if (timer.IsAsyncTask)
@@ -186,14 +188,6 @@ public class TimerScheduler : ILogFeature
                                     XTrace.WriteException(ex);
                                 }
                             }, timer);
-                        // 内部线程池，让异步任务有公平竞争CPU的机会
-                        //ThreadPoolX.QueueUserWorkItem(Execute, timer);
-                        //}
-                        //// 即使不能执行，也要设置下一次的时间
-                        //else
-                        //{
-                        //    OnFinish(timer);
-                        //}
                     }
                 }
             }
@@ -361,15 +355,18 @@ public class TimerScheduler : ILogFeature
             _period = p;
     }
 
+    /// <summary>获取当前时间。该调度器下所有绝对定时器，均从此获取当前时间</summary>
+    /// <returns></returns>
+    public DateTime GetNow() => (TimeProvider ?? GlobalTimeProvider).GetUtcNow().LocalDateTime;
+
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString() => Name;
 
-    #region 设置
+    #region 日志
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
     private void WriteLog(String format, params Object?[] args) => Log?.Info(Name + format, args);
     #endregion
 }
-#nullable restore
