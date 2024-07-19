@@ -980,7 +980,7 @@ public static class StringHelper
     /// <returns>进程退出代码</returns>
     public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
     {
-        if (XTrace.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
+        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
         // 修正文件路径
         var fileName = cmd;
@@ -1039,7 +1039,7 @@ public static class StringHelper
     /// <returns></returns>
     public static Process ShellExecute(this String fileName, String? arguments = null, String? workingDirectory = null)
     {
-        if (XTrace.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
+        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
 
         //// 修正文件路径
         //if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
@@ -1054,6 +1054,45 @@ public static class StringHelper
         p.Start();
 
         return p;
+    }
+
+    /// <summary>执行命令并等待返回</summary>
+    /// <param name="cmd">命令</param>
+    /// <param name="arguments">命令参数</param>
+    /// <param name="msWait">等待退出的时间。默认0毫秒不等待</param>
+    /// <param name="returnError">没有标准输出时，是否返回错误内容。默认false</param>
+    /// <returns></returns>
+    public static String? Execute(this String cmd, String? arguments = null, Int32 msWait = 0, Boolean returnError = false)
+    {
+        try
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute {0} {1}", cmd, arguments);
+
+            var psi = new ProcessStartInfo(cmd, arguments ?? String.Empty)
+            {
+                // UseShellExecute 必须 false，以便于后续重定向输出流
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                RedirectStandardOutput = true,
+                //RedirectStandardError = true,
+                StandardOutputEncoding = Encoding.UTF8,
+            };
+            var process = Process.Start(psi);
+            if (process == null) return null;
+
+            if (msWait > 0 && !process.WaitForExit(msWait))
+            {
+                process.Kill();
+                return null;
+            }
+
+            var rs = process.StandardOutput.ReadToEnd();
+            if (rs.IsNullOrEmpty() && returnError) rs = process.StandardError.ReadToEnd();
+
+            return rs;
+        }
+        catch { return null; }
     }
     #endregion
 }

@@ -316,7 +316,7 @@ public class MachineInfo : IExtend
             }
         }
 #else
-        str = Execute("reg", @"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid");
+        str = "reg".Execute(@"query HKLM\SOFTWARE\Microsoft\Cryptography /v MachineGuid", 0, false);
         if (!str.IsNullOrEmpty() && str.Contains("REG_SZ")) Guid = str.Substring("REG_SZ", null).Trim();
 
         var csproduct = ReadWmic("csproduct", "Name", "UUID", "Vendor");
@@ -825,7 +825,7 @@ public class MachineInfo : IExtend
         var sr = "/etc/os-release";
         if (TryRead(sr, out value)) return value?.SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
 
-        var uname = Execute("uname", "-sr")?.Trim();
+        var uname = "uname".Execute("-sr", 0, false)?.Trim();
         if (!uname.IsNullOrEmpty())
         {
             // 支持Android系统名
@@ -906,40 +906,9 @@ public class MachineInfo : IExtend
         return dic;
     }
 
-    private static String? Execute(String cmd, String? arguments = null)
-    {
-        try
-        {
-#if DEBUG
-            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute({0} {1})", cmd, arguments);
-#endif
-
-            var psi = new ProcessStartInfo(cmd, arguments ?? String.Empty)
-            {
-                // UseShellExecute 必须 false，以便于后续重定向输出流
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = true,
-                //RedirectStandardError = true,
-            };
-            var process = Process.Start(psi);
-            if (process == null) return null;
-
-            if (!process.WaitForExit(3_000))
-            {
-                process.Kill();
-                return null;
-            }
-
-            return process.StandardOutput.ReadToEnd();
-        }
-        catch { return null; }
-    }
-
     private static IDictionary<String, String>? ReadCommand(String cmd, String? arguments = null)
     {
-        var str = Execute(cmd, arguments);
+        var str = cmd.Execute(arguments, 0, false);
         if (str.IsNullOrEmpty()) return null;
 
         return str.SplitAsDictionary(":", "\n", true);
@@ -955,7 +924,7 @@ public class MachineInfo : IExtend
         var dic2 = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         var args = $"{type} get {keys.Join(",")} /format:list";
-        var str = Execute("wmic", args)?.Trim();
+        var str = "wmic".Execute(args, 0, false)?.Trim();
         if (str.IsNullOrEmpty()) return dic2;
 
         var ss = str.Split("\r\n");
