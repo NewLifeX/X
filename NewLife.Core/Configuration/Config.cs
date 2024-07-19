@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
+using NewLife.Log;
 
 namespace NewLife.Configuration;
 
@@ -62,10 +63,25 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
                 var config = new TConfig();
                 var prv = Provider ?? throw new ArgumentNullException(nameof(Provider));
 
-                // 绑定提供者数据到配置对象
-                prv.Bind(config, true);
+                // 配置文件损坏时，要能够忽略错误，强行加载，避免影响系统正常运行
+                try
+                {
+                    // 绑定提供者数据到配置对象
+                    prv.Bind(config, true);
+                }
+                catch (Exception ex)
+                {
+                    XTrace.Log?.Error(ex.Message);
+                }
 
-                config.OnLoaded();
+                try
+                {
+                    config.OnLoaded();
+                }
+                catch (Exception ex)
+                {
+                    XTrace.Log?.Error(ex.Message);
+                }
 
                 try
                 {
@@ -73,7 +89,10 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
                     //prv.Save(config);
                     config.Save();
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    XTrace.Log?.Error(ex.Message);
+                }
 
                 return _Current = config;
             }
