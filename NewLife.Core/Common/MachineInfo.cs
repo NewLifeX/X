@@ -486,7 +486,7 @@ public class MachineInfo : IExtend
         var dic2 = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         var args = $"{type} get {keys.Join(",")} /format:list";
-        var str = Execute("wmic", args)?.Trim();
+        var str = "wmic".Execute(args, 0, false)?.Trim();
         if (str.IsNullOrEmpty()) return dic2;
 
         var ss = str.Split("\r\n");
