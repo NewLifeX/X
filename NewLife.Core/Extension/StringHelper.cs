@@ -1,9 +1,7 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife.Collections;
-using NewLife.Log;
 
 namespace NewLife;
 
@@ -965,134 +963,6 @@ public static class StringHelper
         _provider.SpeakAsyncCancelAll();
 
         return value;
-    }
-    #endregion
-
-    #region 执行命令行
-
-    /// <summary>以隐藏窗口执行命令行</summary>
-    /// <param name="cmd">文件名</param>
-    /// <param name="arguments">命令参数</param>
-    /// <param name="msWait">等待毫秒数</param>
-    /// <param name="output">进程输出内容。默认为空时输出到日志</param>
-    /// <param name="onExit">进程退出时执行</param>
-    /// <param name="working">工作目录</param>
-    /// <returns>进程退出代码</returns>
-    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
-    {
-        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
-
-        // 修正文件路径
-        var fileName = cmd;
-        //if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
-
-        var p = new Process();
-        var si = p.StartInfo;
-        si.FileName = fileName;
-        if (arguments != null) si.Arguments = arguments;
-        si.WindowStyle = ProcessWindowStyle.Hidden;
-        si.CreateNoWindow = true;
-        if (!String.IsNullOrWhiteSpace(working)) si.WorkingDirectory = working;
-        // 对于控制台项目，这里需要捕获输出
-        if (msWait > 0)
-        {
-            si.UseShellExecute = false;
-            si.RedirectStandardOutput = true;
-            si.RedirectStandardError = true;
-            if (output != null)
-            {
-                p.OutputDataReceived += (s, e) => output(e.Data);
-                p.ErrorDataReceived += (s, e) => output(e.Data);
-            }
-            else
-            {
-                p.OutputDataReceived += (s, e) => { if (e.Data != null) XTrace.WriteLine(e.Data); };
-                p.ErrorDataReceived += (s, e) => { if (e.Data != null) XTrace.Log.Error(e.Data); };
-            }
-        }
-        if (onExit != null) p.Exited += (s, e) => { if (s is Process proc) onExit(proc); };
-
-        p.Start();
-        if (msWait > 0)
-        {
-            p.BeginOutputReadLine();
-            p.BeginErrorReadLine();
-        }
-
-        if (msWait == 0) return -1;
-
-        // 如果未退出，则不能拿到退出代码
-        if (msWait < 0)
-            p.WaitForExit();
-        else if (!p.WaitForExit(msWait))
-            return -1;
-
-        return p.ExitCode;
-    }
-
-    /// <summary>
-    /// 在Shell上执行命令。目标进程不是子进程，不会随着当前进程退出而退出
-    /// </summary>
-    /// <param name="fileName">文件名</param>
-    /// <param name="arguments">参数</param>
-    /// <param name="workingDirectory">工作目录。目标进程的当前目录</param>
-    /// <returns></returns>
-    public static Process ShellExecute(this String fileName, String? arguments = null, String? workingDirectory = null)
-    {
-        if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("ShellExecute {0} {1} {2}", fileName, arguments, workingDirectory);
-
-        //// 修正文件路径
-        //if (!Path.IsPathRooted(fileName) && !workingDirectory.IsNullOrEmpty()) fileName = workingDirectory.CombinePath(fileName);
-
-        var p = new Process();
-        var si = p.StartInfo;
-        si.UseShellExecute = true;
-        si.FileName = fileName;
-        if (arguments != null) si.Arguments = arguments;
-        if (workingDirectory != null) si.WorkingDirectory = workingDirectory;
-
-        p.Start();
-
-        return p;
-    }
-
-    /// <summary>执行命令并等待返回</summary>
-    /// <param name="cmd">命令</param>
-    /// <param name="arguments">命令参数</param>
-    /// <param name="msWait">等待退出的时间。默认0毫秒不等待</param>
-    /// <param name="returnError">没有标准输出时，是否返回错误内容。默认false</param>
-    /// <returns></returns>
-    public static String? Execute(this String cmd, String? arguments = null, Int32 msWait = 0, Boolean returnError = false)
-    {
-        try
-        {
-            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute {0} {1}", cmd, arguments);
-
-            var psi = new ProcessStartInfo(cmd, arguments ?? String.Empty)
-            {
-                // UseShellExecute 必须 false，以便于后续重定向输出流
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                RedirectStandardOutput = true,
-                //RedirectStandardError = true,
-                StandardOutputEncoding = Encoding.UTF8,
-            };
-            var process = Process.Start(psi);
-            if (process == null) return null;
-
-            if (msWait > 0 && !process.WaitForExit(msWait))
-            {
-                process.Kill();
-                return null;
-            }
-
-            var rs = process.StandardOutput.ReadToEnd();
-            if (rs.IsNullOrEmpty() && returnError) rs = process.StandardError.ReadToEnd();
-
-            return rs;
-        }
-        catch { return null; }
     }
     #endregion
 }
