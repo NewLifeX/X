@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
+using NewLife.Configuration;
 using NewLife.Log;
 
 namespace NewLife;
@@ -19,32 +21,38 @@ public static class ProcessHelper
     {
         var name = process.ProcessName;
 
-        if (Runtime.Linux)
+        //if (Runtime.Linux)
+        //{
+        //    try
+        //    {
+        //        var file = $"/proc/{process.Id}/cmdline";
+        //        if (File.Exists(file))
+        //        {
+        //            var lines = File.ReadAllText(file).Trim('\0', ' ').Split('\0');
+        //            if (lines.Length > 1) name = Path.GetFileNameWithoutExtension(lines[1]);
+        //        }
+        //    }
+        //    catch { }
+        //}
+        //else if (Runtime.Windows)
+        //{
+        //    try
+        //    {
+        //        var dic = MachineInfo.ReadWmic("process where processId=" + process.Id, "commandline");
+        //        if (dic.TryGetValue("commandline", out var str) && !str.IsNullOrEmpty())
+        //        {
+        //            var ss = str.Split(' ').Select(e => e.Trim('\"')).ToArray();
+        //            str = ss.FirstOrDefault(e => e.EndsWithIgnoreCase(".dll", ".jar"));
+        //            if (!str.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(str);
+        //        }
+        //    }
+        //    catch { }
+        //}
+
+        var args = GetCommandLineArgs(process.Id);
+        if (args != null)
         {
-            try
-            {
-                var file = $"/proc/{process.Id}/cmdline";
-                if (File.Exists(file))
-                {
-                    var lines = File.ReadAllText(file).Trim('\0', ' ').Split('\0');
-                    if (lines.Length > 1) name = Path.GetFileNameWithoutExtension(lines[1]);
-                }
-            }
-            catch { }
-        }
-        else if (Runtime.Windows)
-        {
-            try
-            {
-                var dic = MachineInfo.ReadWmic("process where processId=" + process.Id, "commandline");
-                if (dic.TryGetValue("commandline", out var str) && !str.IsNullOrEmpty())
-                {
-                    var ss = str.Split(' ').Select(e => e.Trim('\"')).ToArray();
-                    str = ss.FirstOrDefault(e => e.EndsWithIgnoreCase(".dll", ".jar"));
-                    if (!str.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(str);
-                }
-            }
-            catch { }
+
         }
 
         return name;
@@ -86,6 +94,70 @@ public static class ProcessHelper
     //        }
     //    }
     //}
+
+    /// <summary>获取指定进程的命令行参数</summary>
+    /// <param name="processId"></param>
+    /// <returns></returns>
+    public static String[]? GetCommandLineArgs(Int32 processId)
+    {
+        if (Runtime.Linux)
+        {
+            try
+            {
+                var file = $"/proc/{processId}/cmdline";
+                if (File.Exists(file))
+                {
+                    var lines = File.ReadAllText(file).Trim('\0', ' ').Split('\0');
+                    //if (lines.Length > 1) return lines[1];
+                    return lines;
+                }
+            }
+            catch { }
+        }
+        else if (Runtime.Windows)
+        {
+            var processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
+            if (processHandle == IntPtr.Zero)
+                return null;
+
+            try
+            {
+                var pbi = new PROCESS_BASIC_INFORMATION();
+                var status = NtQueryInformationProcess(processHandle, 0, ref pbi, (UInt32)Marshal.SizeOf(pbi), out _);
+                if (status != 0) return null;
+
+                var buffer = new Byte[IntPtr.Size];
+                var rs = ReadProcessMemory(processHandle, pbi.PebBaseAddress + 0x20, buffer, (UInt32)buffer.Length, out _);
+                if (!rs) return null;
+
+                var paramAddress = (IntPtr)BitConverter.ToInt64(buffer, 0);
+                buffer = new Byte[Marshal.SizeOf(typeof(UNICODE_STRING))];
+                rs = ReadProcessMemory(processHandle, paramAddress + 0x70, buffer, (UInt32)buffer.Length, out _);
+                if (!rs) return null;
+
+                var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+                var us = (UNICODE_STRING)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(UNICODE_STRING))!;
+                handle.Free();
+
+                buffer = new Byte[us.Length];
+                rs = ReadProcessMemory(processHandle, us.Buffer, buffer, (UInt32)buffer.Length, out _);
+                if (!rs) return null;
+
+                var commandLine = Encoding.Unicode.GetString(buffer);
+                var str = commandLine.TrimEnd('\0');
+                if (str.IsNullOrEmpty()) return [];
+
+                // 分割参数，特殊支持双引号
+                return CommandParser.Split(str);
+            }
+            finally
+            {
+                CloseHandle(processHandle);
+            }
+        }
+
+        return null;
+    }
     #endregion
 
     #region 进程控制
@@ -318,6 +390,73 @@ public static class ProcessHelper
             return rs;
         }
         catch { return null; }
+    }
+    #endregion
+
+    #region 原生方法
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern IntPtr OpenProcess(UInt32 processAccess, Boolean bInheritHandle, Int32 processId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern Boolean CloseHandle(IntPtr hObject);
+
+    [DllImport("psapi.dll", SetLastError = true)]
+    static extern Boolean EnumProcessModules(IntPtr hProcess, [Out] IntPtr[] lphModule, UInt32 cb, out UInt32 lpcbNeeded);
+
+    [DllImport("psapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern UInt32 GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, StringBuilder lpBaseName, Int32 nSize);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern UInt32 QueryFullProcessImageName(IntPtr hProcess, Int32 dwFlags, StringBuilder lpExeName, ref Int32 lpdwSize);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr OpenProcessToken(IntPtr ProcessHandle, UInt32 DesiredAccess, out IntPtr TokenHandle);
+
+    [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private extern static Boolean DuplicateTokenEx(IntPtr hExistingToken, UInt32 dwDesiredAccess, IntPtr lpTokenAttributes, Int32 ImpersonationLevel, Int32 TokenType, out IntPtr phNewToken);
+
+    [DllImport("ntdll.dll")]
+    private static extern Int32 NtQueryInformationProcess(IntPtr processHandle, Int32 processInformationClass, ref PROCESS_BASIC_INFORMATION processInformation, UInt32 processInformationLength, out UInt32 returnLength);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern Boolean ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] Byte[] lpBuffer, UInt32 size, out UInt32 lpNumberOfBytesRead);
+
+    const UInt32 PROCESS_QUERY_INFORMATION = 0x0400;
+    const UInt32 PROCESS_VM_READ = 0x0010;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PROCESS_BASIC_INFORMATION
+    {
+        public IntPtr Reserved1;
+        public IntPtr PebBaseAddress;
+        public IntPtr Reserved2;
+        public IntPtr Reserved3;
+        public IntPtr UniqueProcessId;
+        public IntPtr Reserved4;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct UNICODE_STRING
+    {
+        public UInt16 Length;
+        public UInt16 MaximumLength;
+        public IntPtr Buffer;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RTL_USER_PROCESS_PARAMETERS
+    {
+        public Byte Reserved1;
+        public Byte Reserved2;
+        public UInt16 Reserved3;
+        public IntPtr Reserved4;
+        public IntPtr Reserved5;
+        public IntPtr Reserved6;
+        public IntPtr Reserved7;
+        public IntPtr Reserved8;
+        public IntPtr Reserved9;
+        public IntPtr Reserved10;
+        public UNICODE_STRING CommandLine;
     }
     #endregion
 }

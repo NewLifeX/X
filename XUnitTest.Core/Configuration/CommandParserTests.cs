@@ -89,4 +89,32 @@ public class CommandParserTests
         Assert.True(dic.ContainsKey("endpoint"));
         Assert.True(dic.ContainsKey("role"));
     }
+
+    [Fact]
+    public void Split()
+    {
+        var str = "-appid=cube --secret=abcd1234";
+        var args = CommandParser.Split(str);
+        Assert.Equal(2, args.Length);
+        Assert.Equal("-appid=cube", args[0]);
+        Assert.Equal("--secret=abcd1234", args[1]);
+
+        str = " -appid=cube  \"C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe\" ";
+        args = CommandParser.Split(str);
+        Assert.Equal(2, args.Length);
+        Assert.Equal("-appid=cube", args[0]);
+        Assert.Equal("C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe", args[1]);
+
+        str = " -appid=cube  \"\" ";
+        args = CommandParser.Split(str);
+        Assert.Equal(2, args.Length);
+        Assert.Equal("-appid=cube", args[0]);
+        Assert.Equal("", args[1]);
+
+        //str = " -appid=cube  F\"C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe\"ddd ";
+        //args = CommandParser.Split(str);
+        //Assert.Equal(2, args.Length);
+        //Assert.Equal("-appid=cube", args[0]);
+        //Assert.Equal("F\"C:\\Program Files (x86)\\Internet Explorer\\iexplore.exe\"ddd", args[1]);
+    }
 }
