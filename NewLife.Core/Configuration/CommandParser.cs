@@ -67,4 +67,52 @@ public class CommandParser
 
         return value;
     }
+
+    /// <summary>把字符串分割为参数数组，支持双引号</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static String[] Split(String? value)
+    {
+        value = value?.Trim();
+        if (value.IsNullOrEmpty()) return [];
+
+        // 分割参数，特殊支持双引号
+        var args = new List<String>();
+        var p = 0;
+        while (p < value.Length)
+        {
+            var p2 = value.IndexOf(' ', p);
+            if (p2 < 0)
+            {
+                args.Add(value.Substring(p).Trim().Trim('"'));
+                break;
+            }
+            else if (p2 == p)
+            {
+            }
+            else
+            {
+                // 如果双引号位于空格前面，则找到下一个双引号，再从那开始找空格
+                if (value[p] == '"')
+                {
+                    var p3 = value.IndexOf('"', p + 1);
+                    if (p3 >= 0 && p3 > p2)
+                    {
+                        // 下一个必须是空格，要么就是末尾
+                        if (p3 == value.Length - 1 || value[p3 + 1] == ' ')
+                        {
+                            p++;
+                            p2 = p3;
+                        }
+                    }
+                }
+
+                args.Add(value.Substring(p, p2 - p).Trim());
+            }
+
+            p = p2 + 1;
+        }
+
+        return args.ToArray();
+    }
 }
