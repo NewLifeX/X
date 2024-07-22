@@ -8,14 +8,32 @@ namespace XUnitTest.Extension;
 public class ProcessHelperTests
 {
     [Fact]
+    public void GetCommandLine()
+    {
+        foreach (var item in Process.GetProcesses())
+        {
+            if (item.ProcessName == "dotnet")
+            {
+                var cmd = ProcessHelper.GetCommandLine(item.Id);
+                XTrace.WriteLine("{0}: {1}", item.ProcessName, cmd);
+
+                Assert.Contains("dotnet.exe", cmd);
+            }
+        }
+    }
+
+    [Fact]
     public void GetCommandLineArgs()
     {
         foreach (var item in Process.GetProcesses())
         {
             if (item.ProcessName == "dotnet")
             {
-                var cmd = ProcessHelper.GetCommandLineArgs(item.Id);
-                XTrace.WriteLine("{0}: {1}", item.ProcessName, cmd);
+                var cmds = ProcessHelper.GetCommandLineArgs(item.Id);
+                XTrace.WriteLine("{0}: {1}", item.ProcessName, cmds.Join(" "));
+
+                Assert.True(cmds.Length >= 2);
+                Assert.EndsWith("dotnet.exe", cmds[0]);
             }
         }
     }

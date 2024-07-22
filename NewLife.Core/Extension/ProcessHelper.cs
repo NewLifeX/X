@@ -98,6 +98,32 @@ public static class ProcessHelper
     /// <summary>获取指定进程的命令行参数</summary>
     /// <param name="processId"></param>
     /// <returns></returns>
+    public static String? GetCommandLine(Int32 processId)
+    {
+        if (Runtime.Linux)
+        {
+            try
+            {
+                var file = $"/proc/{processId}/cmdline";
+                if (File.Exists(file))
+                {
+                    var lines = File.ReadAllText(file).Trim('\0', ' ').Split('\0');
+                    return lines.Join(" ");
+                }
+            }
+            catch { }
+        }
+        else if (Runtime.Windows)
+        {
+            return GetCommandLineOnWindows(processId);
+        }
+
+        return null;
+    }
+
+    /// <summary>获取指定进程的命令行参数</summary>
+    /// <param name="processId"></param>
+    /// <returns></returns>
     public static String[]? GetCommandLineArgs(Int32 processId)
     {
         if (Runtime.Linux)
@@ -116,47 +142,85 @@ public static class ProcessHelper
         }
         else if (Runtime.Windows)
         {
-            var processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
-            if (processHandle == IntPtr.Zero)
-                return null;
+            var str = GetCommandLineOnWindows(processId);
+            if (str.IsNullOrEmpty()) return [];
 
-            try
-            {
-                var pbi = new PROCESS_BASIC_INFORMATION();
-                var status = NtQueryInformationProcess(processHandle, 0, ref pbi, (UInt32)Marshal.SizeOf(pbi), out _);
-                if (status != 0) return null;
-
-                var buffer = new Byte[IntPtr.Size];
-                var rs = ReadProcessMemory(processHandle, pbi.PebBaseAddress + 0x20, buffer, (UInt32)buffer.Length, out _);
-                if (!rs) return null;
-
-                var paramAddress = (IntPtr)BitConverter.ToInt64(buffer, 0);
-                buffer = new Byte[Marshal.SizeOf(typeof(UNICODE_STRING))];
-                rs = ReadProcessMemory(processHandle, paramAddress + 0x70, buffer, (UInt32)buffer.Length, out _);
-                if (!rs) return null;
-
-                var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                var us = (UNICODE_STRING)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(UNICODE_STRING))!;
-                handle.Free();
-
-                buffer = new Byte[us.Length];
-                rs = ReadProcessMemory(processHandle, us.Buffer, buffer, (UInt32)buffer.Length, out _);
-                if (!rs) return null;
-
-                var commandLine = Encoding.Unicode.GetString(buffer);
-                var str = commandLine.TrimEnd('\0');
-                if (str.IsNullOrEmpty()) return [];
-
-                // 分割参数，特殊支持双引号
-                return CommandParser.Split(str);
-            }
-            finally
-            {
-                CloseHandle(processHandle);
-            }
+            // 分割参数，特殊支持双引号
+            return CommandParser.Split(str);
         }
 
         return null;
+    }
+
+    private static String? GetCommandLineOnWindows(Int32 processId)
+    {
+        var processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
+        if (processHandle == IntPtr.Zero)
+            return null;
+
+        try
+        {
+            var pbi = new PROCESS_BASIC_INFORMATION();
+            var status = NtQueryInformationProcess(processHandle, 0, ref pbi, (UInt32)Marshal.SizeOf(pbi), out _);
+            if (status != 0) return null;
+
+            var rs = ReadStruct<PEB>(processHandle, pbi.PebBaseAddress, out var peb);
+            if (!rs) return null;
+
+            rs = ReadStruct<RtlUserProcessParameters>(processHandle, peb.ProcessParameters, out var upp);
+            if (!rs) return null;
+
+            rs = ReadStringUni(processHandle, upp.CommandLine, out var commandLine);
+            if (!rs) return null;
+
+            return commandLine?.TrimEnd('\0');
+        }
+        finally
+        {
+            CloseHandle(processHandle);
+        }
+    }
+
+    private static Boolean ReadStruct<T>(IntPtr hProcess, IntPtr lpBaseAddress, out T val)
+    {
+        val = default!;
+        var size = Marshal.SizeOf(typeof(T));
+        var ptr = Marshal.AllocHGlobal(size);
+        try
+        {
+            if (ReadProcessMemory(hProcess, lpBaseAddress, ptr, (UInt32)size, out var len) && len == size)
+            {
+                val = (T)Marshal.PtrToStructure(ptr, typeof(T))!;
+                return true;
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        return false;
+    }
+
+    private static Boolean ReadStringUni(IntPtr hProcess, UNICODE_STRING us, out String? val)
+    {
+        val = default;
+        var size = us.MaximumLength;
+        var ptr = Marshal.AllocHGlobal(size);
+        try
+        {
+            if (ReadProcessMemory(hProcess, us.Buffer, ptr, size, out var len) && len == size)
+            {
+                val = Marshal.PtrToStringUni(ptr);
+                return true;
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        return false;
     }
     #endregion
 
@@ -400,26 +464,14 @@ public static class ProcessHelper
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern Boolean CloseHandle(IntPtr hObject);
 
-    [DllImport("psapi.dll", SetLastError = true)]
-    static extern Boolean EnumProcessModules(IntPtr hProcess, [Out] IntPtr[] lphModule, UInt32 cb, out UInt32 lpcbNeeded);
-
-    [DllImport("psapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    static extern UInt32 GetModuleFileNameEx(IntPtr hProcess, IntPtr hModule, StringBuilder lpBaseName, Int32 nSize);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    static extern UInt32 QueryFullProcessImageName(IntPtr hProcess, Int32 dwFlags, StringBuilder lpExeName, ref Int32 lpdwSize);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenProcessToken(IntPtr ProcessHandle, UInt32 DesiredAccess, out IntPtr TokenHandle);
-
-    [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private extern static Boolean DuplicateTokenEx(IntPtr hExistingToken, UInt32 dwDesiredAccess, IntPtr lpTokenAttributes, Int32 ImpersonationLevel, Int32 TokenType, out IntPtr phNewToken);
-
     [DllImport("ntdll.dll")]
     private static extern Int32 NtQueryInformationProcess(IntPtr processHandle, Int32 processInformationClass, ref PROCESS_BASIC_INFORMATION processInformation, UInt32 processInformationLength, out UInt32 returnLength);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern Boolean ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] Byte[] lpBuffer, UInt32 size, out UInt32 lpNumberOfBytesRead);
+
+    [DllImport("kernel32.dll")]
+    private static extern Boolean ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, IntPtr lpBuffer, UInt32 nSize, out UInt32 lpNumberOfBytesRead);
 
     const UInt32 PROCESS_QUERY_INFORMATION = 0x0400;
     const UInt32 PROCESS_VM_READ = 0x0010;
@@ -429,10 +481,10 @@ public static class ProcessHelper
     {
         public IntPtr Reserved1;
         public IntPtr PebBaseAddress;
-        public IntPtr Reserved2;
-        public IntPtr Reserved3;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+        public IntPtr[] Reserved2;
         public IntPtr UniqueProcessId;
-        public IntPtr Reserved4;
+        public IntPtr Reserved3;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -443,19 +495,26 @@ public static class ProcessHelper
         public IntPtr Buffer;
     }
 
+    // This is not the real struct!
+    // I faked it to get ProcessParameters address.
+    // Actual struct definition:
+    // https://learn.microsoft.com/en-us/windows/win32/api/winternl/ns-winternl-peb
     [StructLayout(LayoutKind.Sequential)]
-    private struct RTL_USER_PROCESS_PARAMETERS
+    private struct PEB
     {
-        public Byte Reserved1;
-        public Byte Reserved2;
-        public UInt16 Reserved3;
-        public IntPtr Reserved4;
-        public IntPtr Reserved5;
-        public IntPtr Reserved6;
-        public IntPtr Reserved7;
-        public IntPtr Reserved8;
-        public IntPtr Reserved9;
-        public IntPtr Reserved10;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public IntPtr[] Reserved;
+        public IntPtr ProcessParameters;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RtlUserProcessParameters
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public Byte[] Reserved1;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
+        public IntPtr[] Reserved2;
+        public UNICODE_STRING ImagePathName;
         public UNICODE_STRING CommandLine;
     }
     #endregion
