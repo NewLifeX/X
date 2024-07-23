@@ -52,7 +52,7 @@ public class TokenProvider
         if (expire.Year < 2000) throw new ArgumentOutOfRangeException(nameof(expire));
         if (Key.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Key));
 
-        var secs = expire.ToInt();
+        var secs = expire.ToUniversalTime().ToInt();
 
         // 拼接数据并签名
         var data = (user + "," + secs).GetBytes();
@@ -89,7 +89,7 @@ public class TokenProvider
 
         var user = str[..p];
         var secs = str[(p + 1)..].ToInt();
-        expire = secs.ToDateTime();
+        expire = secs.ToDateTime().ToLocalTime();
 
         return user;
     }
@@ -115,7 +115,7 @@ public class TokenProvider
 
         user = str[..p];
         var secs = str[(p + 1)..].ToInt();
-        expire = secs.ToDateTime();
+        expire = secs.ToDateTime().ToLocalTime();
 
         if (Key.IsNullOrEmpty()) return false;
 

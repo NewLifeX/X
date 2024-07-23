@@ -97,9 +97,9 @@ public class JwtBuilder : IExtend
         if (!dic.ContainsKey("iss") && !Issuer.IsNullOrEmpty()) dic["iss"] = Issuer;
         if (!dic.ContainsKey("sub") && !Subject.IsNullOrEmpty()) dic["sub"] = Subject;
         if (!dic.ContainsKey("aud") && !Audience.IsNullOrEmpty()) dic["aud"] = Audience;
-        if (!dic.ContainsKey("exp") && Expire.Year > 2000) dic["exp"] = Expire.ToInt();
-        if (!dic.ContainsKey("nbf") && NotBefore.Year > 2000) dic["nbf"] = NotBefore.ToInt();
-        if (!dic.ContainsKey("iat")) dic["iat"] = (IssuedAt.Year > 2000 ? IssuedAt : now).ToInt();
+        if (!dic.ContainsKey("exp") && Expire.Year > 2000) dic["exp"] = Expire.ToUniversalTime().ToInt();
+        if (!dic.ContainsKey("nbf") && NotBefore.Year > 2000) dic["nbf"] = NotBefore.ToUniversalTime().ToInt();
+        if (!dic.ContainsKey("iat")) dic["iat"] = (IssuedAt.Year > 2000 ? IssuedAt : now).ToUniversalTime().ToInt();
         if (!dic.ContainsKey("jti") && !Id.IsNullOrEmpty()) dic["jti"] = Id;
 
         // 头部
@@ -164,9 +164,9 @@ public class JwtBuilder : IExtend
             if (body.TryGetValue("iss", out var value)) Issuer = value + "";
             if (body.TryGetValue("sub", out value)) Subject = value + "";
             if (body.TryGetValue("aud", out value)) Audience = value + "";
-            if (body.TryGetValue("exp", out value)) Expire = value.ToDateTime();
-            if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime();
-            if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime();
+            if (body.TryGetValue("exp", out value)) Expire = value.ToDateTime().ToLocalTime();
+            if (body.TryGetValue("nbf", out value)) NotBefore = value.ToDateTime().ToLocalTime();
+            if (body.TryGetValue("iat", out value)) IssuedAt = value.ToDateTime().ToLocalTime();
             if (body.TryGetValue("jti", out value)) Id = value + "";
         }
 
@@ -181,7 +181,7 @@ public class JwtBuilder : IExtend
     {
         message = "JWT格式不正确";
 
-        if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
+        //if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
         var ts = Parse(token);
         if (ts == null) return false;
@@ -196,6 +196,11 @@ public class JwtBuilder : IExtend
         if (NotBefore.Year > 2000 && now < NotBefore)
         {
             message = "令牌未生效";
+            return false;
+        }
+        if (Secret.IsNullOrEmpty())
+        {
+            message = "未设置密钥";
             return false;
         }
 
