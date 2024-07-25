@@ -22,7 +22,7 @@ public class JwtBuilderTests
             //Id = null,
             //Subject = "Cube",
             //Issuer = "NewLife",
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = "Smart",
         };
@@ -180,7 +180,7 @@ MwIDAQAB
             Algorithm = "RS256",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
@@ -256,7 +256,7 @@ MwIDAQAB
             Algorithm = "RS384",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
@@ -332,7 +332,7 @@ MwIDAQAB
             Algorithm = "RS512",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
@@ -381,7 +381,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             Algorithm = "ES256",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
@@ -423,7 +423,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             Algorithm = "ES384",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
@@ -472,7 +472,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
             Algorithm = "ES512",
             Type = "JWT",
 
-            IssuedAt = 1516239022.ToDateTime(),
+            IssuedAt = 1516239022.ToDateTime().ToLocalTime(),
             Expire = DateTime.MinValue,
             Secret = prvKey,
         };
