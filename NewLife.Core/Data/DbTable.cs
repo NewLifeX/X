@@ -212,7 +212,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     #endregion
 
     #region 二进制读取
-    private const Byte _Ver = 2;
+    private const Byte _Ver = 3;
 
     /// <summary>从数据流读取</summary>
     /// <param name="stream"></param>
@@ -220,6 +220,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         var bn = new Binary
         {
+            FullTime = true,
             EncodeInt = true,
             Stream = stream,
         };
@@ -244,6 +245,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         // 版本兼容
         if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+
+        // v3开始支持FullTime
+        if (ver < 3) bn.FullTime = false;
 
         // 读取头部
         var count = bn.Read<Int32>();
@@ -320,6 +324,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         var bn = new Binary
         {
+            FullTime = true,
             EncodeInt = true,
             Stream = stream,
         };
