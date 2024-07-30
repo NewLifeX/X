@@ -6,7 +6,7 @@ namespace NewLife.Serialization;
 /// <summary>二进制基础类型处理器</summary>
 public class BinaryGeneral : BinaryHandlerBase
 {
-    private static readonly DateTime _dt1970 = new(1970, 1, 1);
+    private static readonly DateTime _dt1970 = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     /// <summary>实例化</summary>
     public BinaryGeneral() => Priority = 10;
@@ -48,8 +48,25 @@ public class BinaryGeneral : BinaryHandlerBase
                 Host.Write(0);
                 return true;
             case TypeCode.DateTime:
-                var n = ((DateTime)(value ?? DateTime.MinValue) - _dt1970).TotalSeconds;
-                Write((UInt32)n);
+                if (Host is Binary bn && bn.FullTime)
+                {
+                    if (value is DateTime dt)
+                        Write(dt.ToBinary());
+                    else
+                        Write((Int64)0);
+                }
+                else
+                {
+                    if (value is DateTime dt && dt > DateTime.MinValue)
+                    {
+                        var seconds = (dt - _dt1970).TotalSeconds;
+                        if (seconds >= UInt32.MaxValue) throw new InvalidDataException("Cannot serialize time less than 1970, please use FullTime");
+
+                        Write((UInt32)seconds);
+                    }
+                    else
+                        Write((UInt32)0);
+                }
                 return true;
             case TypeCode.Decimal:
                 Write((Decimal)(value ?? 0));
@@ -130,7 +147,19 @@ public class BinaryGeneral : BinaryHandlerBase
                 value = DBNull.Value;
                 return true;
             case TypeCode.DateTime:
-                value = _dt1970.AddSeconds(ReadUInt32());
+                if (Host is Binary bn && bn.FullTime)
+                {
+                    var n = ReadInt64();
+                    value = DateTime.FromBinary(n);
+                }
+                else
+                {
+                    var n = ReadUInt32();
+                    if (n == 0)
+                        value = DateTime.MinValue;
+                    else
+                        value = _dt1970.AddSeconds(n);
+                }
                 return true;
             case TypeCode.Decimal:
                 value = ReadDecimal();

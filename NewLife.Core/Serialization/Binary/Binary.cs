@@ -29,8 +29,11 @@ public class Binary : FormatterBase, IBinary
     /// <summary>协议版本。用于支持多版本协议序列化，配合FieldSize特性使用。例如JT/T808的2011/2019</summary>
     public String? Version { get; set; }
 
+    /// <summary>使用完整的时间格式。完整格式使用8个字节保存毫秒数，默认false</summary>
+    public Boolean FullTime { get; set; }
+
     /// <summary>要忽略的成员</summary>
-    public ICollection<String> IgnoreMembers { get; set; } = new HashSet<String>();
+    public ICollection<String> IgnoreMembers { get; set; } = [];
 
     /// <summary>处理器列表</summary>
     public IList<IBinaryHandler> Handlers { get; private set; }

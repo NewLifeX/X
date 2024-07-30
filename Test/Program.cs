@@ -75,7 +75,7 @@ public class Program
             try
             {
 #endif
-                Test5();
+                Test1();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -97,16 +97,15 @@ public class Program
     static StarClient _client;
     private static void Test1()
     {
-        //Area.FetchAndSave();
-        //Area.Import("http://x.newlifex.com/Area.csv.gz", true, 4, false);
+        var file = "D:\\ZTO\\Simulink\\Bin\\Backup\\RouteDispBaseInfo_20240729190159.gz";
+        file = file.GetFullPath();
 
-        //var rs = Area.FindAll();
-        //foreach (var item in rs)
-        //{
-        //    var py = PinYin.GetAll(item.Name);
-        //    if (py.Length != item.Name.Length || py.Any(c => c.IsNullOrEmpty() || !Char.IsAsciiLetter(c[0])))
-        //        XTrace.WriteLine("{0} {1} {2} {3}", item.ID, item.Name, py.Join(), item.Path);
-        //}
+        var buf = File.ReadAllBytes(file);
+        buf = buf.DecompressGZip();
+
+        var dt = new DbTable();
+        //var rs = dt.LoadFile(file, false);
+        var rs = dt.Read(buf);
 
         {
             using var apiServer = new ApiServer(19000)
