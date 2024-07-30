@@ -12,6 +12,8 @@ using NewLife.Security;
 using NewLife.Serialization;
 using NewLife;
 using System.Threading.Tasks;
+using NewLife.Data;
+using NewLife.Remoting;
 
 namespace Test;
 
@@ -32,7 +34,7 @@ public class Program
             sw.Start();
             try
             {
-                Test5();
+                Test1();
             }
             catch (Exception ex)
             {
@@ -49,7 +51,60 @@ public class Program
 
     static void Test1()
     {
-        TestTask().Wait();
+        var file = "D:\\ZTO\\Simulink\\Bin\\Backup\\RouteDispBaseInfo_20240729190159.gz";
+        file = file.GetFullPath();
+
+        var buf = File.ReadAllBytes(file);
+        buf = buf.DecompressGZip();
+
+        var dt = new DbTable();
+        //var rs = dt.LoadFile(file, false);
+        var rs = dt.Read(buf);
+
+        {
+            using var apiServer = new ApiServer(19000)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            apiServer.Start();
+            //apiServer.Server.TryDispose();
+        }
+        GC.Collect();
+        Thread.Sleep(3000);
+        Console.WriteLine();
+        {
+            var netUri = new NetUri("tcp://0.0.0.0:19000");
+            using var apiServer = new ApiServer(netUri)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            apiServer.Start();
+        }
+        Thread.Sleep(3000);
+        Console.WriteLine();
+        {
+            var netUri = new NetUri("tcp://[::]:19000");
+            using var apiServer = new ApiServer(netUri)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            apiServer.Start();
+        }
+        Thread.Sleep(3000);
+        Console.WriteLine();
+        {
+            var netUri = new NetUri("tcp://*:19000");
+            using var apiServer = new ApiServer(netUri)
+            {
+                Log = XTrace.Log,
+                EncoderLog = XTrace.Log,
+            };
+            apiServer.Start();
+        }
+        //Thread.Sleep(3000);
     }
 
     static async Task TestTask()
