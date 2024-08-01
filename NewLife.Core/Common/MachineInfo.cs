@@ -921,17 +921,17 @@ public class MachineInfo : IExtend
     /// <summary>
     /// 通过 PowerShell 命令读取信息
     /// </summary>
-    public static IDictionary<string, string> ReadPowerShell(string command)
+    public static IDictionary<String, String> ReadPowerShell(String command)
     {
-        var dic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
 
         var args = $"-Command \"{command}\"";
-        var str = Execute("powershell.exe", args) ?? string.Empty;
-        if (!string.IsNullOrWhiteSpace(str))
+        var str = "powershell.exe".Execute(args, 3_000) ?? String.Empty;
+        if (!String.IsNullOrWhiteSpace(str))
         {
             foreach (var item in str.DecodeJson()!)
             {
-                dic[item.Key] = item.Value?.ToString() ?? string.Empty;
+                dic[item.Key] = item.Value?.ToString() ?? String.Empty;
             }
         }
         return dic;
