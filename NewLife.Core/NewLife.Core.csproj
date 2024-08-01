@@ -29,7 +29,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>使用IJsonHost改进Json序列化</PackageReleaseNotes>
+    <PackageReleaseNotes>新增TimerProvider支持修正绝对定时器时间差；Binary二进制序列化支持完整时间；新增ProcessHelper；改进IJsonHost；新增CreateConfigOnMissing减少配置文件</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
