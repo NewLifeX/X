@@ -926,7 +926,7 @@ public class MachineInfo : IExtend
         var dic = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         var args = $"-Command \"{command}\"";
-        var str = "powershell.exe".Execute(args) ?? string.Empty;
+        var str = ("powershell.exe".Execute(args, 0, false) ?? string.Empty).Trim();
         if (!string.IsNullOrWhiteSpace(str))
         {
             foreach (var item in str.DecodeJson()!)
