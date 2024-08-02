@@ -425,6 +425,18 @@ public static class ProcessHelper
     /// <returns></returns>
     public static String? Execute(this String cmd, String? arguments = null, Int32 msWait = 0, Boolean returnError = false)
     {
+        return Execute(cmd, arguments, msWait, returnError, null);
+    }
+
+    /// <summary>执行命令并等待返回</summary>
+    /// <param name="cmd">命令</param>
+    /// <param name="arguments">命令参数</param>
+    /// <param name="msWait">等待退出的时间。默认0毫秒不等待</param>
+    /// <param name="returnError">没有标准输出时，是否返回错误内容。默认false</param>
+    /// <param name="outputEncoding">输出字符编码</param>
+    /// <returns></returns>
+    public static String? Execute(this String cmd, String? arguments = null, Int32 msWait = 0, Boolean returnError = false, Encoding? outputEncoding = null)
+    {
         try
         {
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Execute {0} {1}", cmd, arguments);
@@ -436,8 +448,7 @@ public static class ProcessHelper
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,
-                //RedirectStandardError = true,
-                StandardOutputEncoding = Encoding.UTF8,
+                StandardOutputEncoding = outputEncoding
             };
             var process = Process.Start(psi);
             if (process == null) return null;
