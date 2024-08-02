@@ -348,6 +348,9 @@ public class Snowflake
     /// <returns></returns>
     public DateTime ConvertKind(DateTime time)
     {
+        // 如果待转换时间未指定时区，则直接返回
+        if (time.Kind == DateTimeKind.Unspecified) return time;
+
         return StartTimestamp.Kind switch
         {
             DateTimeKind.Utc => time.ToUniversalTime(),
