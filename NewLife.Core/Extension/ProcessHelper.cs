@@ -435,7 +435,7 @@ public static class ProcessHelper
     /// <param name="returnError">没有标准输出时，是否返回错误内容。默认false</param>
     /// <param name="outputEncoding">输出字符编码</param>
     /// <returns></returns>
-    public static String? Execute(this String cmd, String? arguments = null, Int32 msWait = 0, Boolean returnError = false, Encoding? outputEncoding = null)
+    public static String? Execute(this String cmd, String? arguments, Int32 msWait, Boolean returnError, Encoding? outputEncoding)
     {
         try
         {
