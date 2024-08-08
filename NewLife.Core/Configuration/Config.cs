@@ -87,7 +87,7 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
                 {
                     // OnLoad 中可能有变化，存回去
                     //prv.Save(config);
-                    config.Save();
+                    if (!prv.IsNew || Runtime.CreateConfigOnMissing) config.Save();
                 }
                 catch (Exception ex)
                 {
@@ -114,14 +114,6 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
 
     /// <summary>保存到配置文件中去</summary>
     //[Obsolete("=>Provider.Save")]
-    public virtual void Save()
-    {
-        var prv = Provider;
-        if (prv == null) return;
-
-        // 是否创建默认配置
-        if (!prv.IsNew || Runtime.CreateConfigOnMissing)
-            prv.Save(this);
-    }
+    public virtual void Save() => Provider?.Save(this);
     #endregion
 }
