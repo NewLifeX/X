@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using NewLife.Http;
 using NewLife.Log;
 
@@ -216,12 +217,32 @@ public class WebClientX : DisposeBase
         // 已经提前检查过，这里几乎不可能有文件存在
         if (File.Exists(file2))
         {
-            // 如果连接名所表示的文件存在，并且带有时间，那么就智能是它啦
+            // 如果连接名所表示的文件存在，并且带有时间，那么就只能是它啦
             var p = linkName.LastIndexOf("_");
             if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
             {
-                Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
+                Log.Info("分析得到文件：{0}，目标文件已存在，无需下载：{1}", linkName, link.Url);
                 return file2;
+            }
+            // 校验哈希是否一致
+            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 32)
+            {
+                var hash = file2.AsFile().MD5().ToHex();
+                if (link.Hash.EqualIgnoreCase(hash))
+                {
+                    Log.Info("分析得到文件：{0}，目标文件已存在，且MD5哈希一致", linkName, link.Url);
+                    return file2;
+                }
+            }
+            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 128)
+            {
+                using var fs = file2.AsFile().OpenRead();
+                var hash = SHA512.Create().ComputeHash(fs).ToHex();
+                if (link.Hash.EqualIgnoreCase(hash))
+                {
+                    Log.Info("分析得到文件：{0}，目标文件已存在，且SHA512哈希一致", linkName, link.Url);
+                    return file2;
+                }
             }
         }
 
@@ -230,7 +251,7 @@ public class WebClientX : DisposeBase
         file2 = file2.EnsureDirectory();
 
         var sw = Stopwatch.StartNew();
-        Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+        Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait(Timeout);
         sw.Stop();
 
         if (File.Exists(file2))

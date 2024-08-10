@@ -28,13 +28,16 @@ public class Link
     /// <summary>时间</summary>
     public DateTime Time { get; set; }
 
+    /// <summary>哈希</summary>
+    public String? Hash { get; set; }
+
     /// <summary>原始Html</summary>
     public String? Html { get; set; }
     #endregion
 
     #region 方法
-    static readonly Regex _regA = new("<a(?<其它1>[^>]*) href=?\"(?<链接>[^>\"]*)?\"(?<其它2>[^>]*)>(?<名称>[^<]*)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-    static readonly Regex _regTitle = new("title=(\"?)(?<标题>[^ \']*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex _regA = new("""<a[^>]* href=?"(?<链接>[^>"]*)?"[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex _regTitle = new("""title=("?)(?<标题>[^ ']*?)\1""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
     /// <summary>分析HTML中的链接</summary>
     /// <param name="html">Html文本</param>
@@ -58,8 +61,10 @@ public class Link
             {
                 Html = match.Value,
                 FullName = match.Groups["名称"].Value.Trim(),
-                Url = match.Groups["链接"].Value.Trim()
+                Url = match.Groups["链接"].Value.Trim(),
+                Hash = match.Groups["哈希"].Value.Trim(),
             };
+            if (link.Hash.Contains("&lt;")) link.Hash = null;
             link.RawUrl = link.Url;
             link.Name = link.FullName;
 
@@ -100,9 +105,15 @@ public class Link
             // 分割版本，_v1.0.0.0
             link.ParseVersion();
 
-            // 去掉后缀
-            var p = link.Name.LastIndexOf('.');
-            if (p > 0) link.Name = link.Name[..p];
+            // 去掉后缀，特殊处理.tar.gz双后缀
+            var name = link.Name;
+            if (name.EndsWithIgnoreCase(".tar.gz"))
+                link.Name = name[..^7];
+            else
+            {
+                var p = name.LastIndexOf('.');
+                if (p > 0) link.Name = name[..p];
+            }
 
             list.Add(link);
         }
@@ -156,9 +167,15 @@ public class Link
             idx = link.ParseVersion();
             if (idx > 0) link.Title = link.Title[..idx];
 
-            // 去掉后缀
-            var p = link.Name.LastIndexOf('.');
-            if (p > 0) link.Name = link.Name[..p];
+            // 去掉后缀，特殊处理.tar.gz双后缀
+            var name = link.Name;
+            if (name.EndsWithIgnoreCase(".tar.gz"))
+                link.Name = name[..^7];
+            else
+            {
+                var p = name.LastIndexOf('.');
+                if (p > 0) link.Name = name[..p];
+            }
 
             list.Add(link);
         }
@@ -178,9 +195,15 @@ public class Link
         ParseTime();
         ParseVersion();
 
-        // 去掉后缀
-        var p = Name.LastIndexOf('.');
-        if (p > 0) Name = Name[..p];
+        // 去掉后缀，特殊处理.tar.gz双后缀
+        var name = Name;
+        if (name.EndsWithIgnoreCase(".tar.gz"))
+            Name = name[..^7];
+        else
+        {
+            var p = name.LastIndexOf('.');
+            if (p > 0) Name = name[..p];
+        }
 
         // 时间
         if (Time.Year < 2000)

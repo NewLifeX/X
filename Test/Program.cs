@@ -100,7 +100,9 @@ public class Program
     {
         var client = new WebClientX { Log = XTrace.Log };
         //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
-        var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf.png", "tt/");
+        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf", "tt/");
+        var rs = client.DownloadLink("http://sh03.newlifex.com,https://x.newlifex.com/dotNet/8.0.7", "dotnet-runtime-8.0.7-linux-x64", "tt/");
+        XTrace.WriteLine(rs);
     }
 
     private static void Test2()
