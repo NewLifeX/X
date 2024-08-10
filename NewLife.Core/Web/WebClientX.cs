@@ -41,6 +41,7 @@ public class WebClientX : DisposeBase
 
     #region 核心方法
     private HttpClient? _client;
+    private String? _lastAddress;
 
     /// <summary>创建客户端会话</summary>
     /// <returns></returns>
@@ -68,9 +69,23 @@ public class WebClientX : DisposeBase
 
         Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
+        var request = new HttpRequestMessage
+        {
+            Method = content != null ? HttpMethod.Post : HttpMethod.Get,
+            RequestUri = new Uri(address),
+            Content = content,
+        };
+
+        if (!_lastAddress.IsNullOrEmpty()) request.Headers.Referrer = new Uri(_lastAddress);
+
         // 发送请求
-        var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
-        var rs = await task;
+        //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
+        //var rs = await task;
+        var rs = await http.SendAsync(request);
+
+        // 记录最后一次地址，作为下一次的Referer
+        if (rs.StatusCode < HttpStatusCode.BadRequest)
+            _lastAddress = http.BaseAddress == null ? address : new Uri(http.BaseAddress, address).ToString();
 
         return rs.Content;
     }
@@ -135,7 +150,7 @@ public class WebClientX : DisposeBase
             try
             {
                 var ls = GetLinks(url);
-                if (ls.Length == 0) return file;
+                if (ls.Length == 0) continue;
 
                 // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
                 //foreach (var item in names)

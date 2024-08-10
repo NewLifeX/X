@@ -25,6 +25,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Web;
 using Stardust;
 using Stardust.Models;
 using XCode.Membership;
@@ -75,7 +76,7 @@ public class Program
             try
             {
 #endif
-                Test1();
+            Test1();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -97,60 +98,8 @@ public class Program
     static StarClient _client;
     private static void Test1()
     {
-        var file = "D:\\ZTO\\Simulink\\Bin\\Backup\\RouteDispBaseInfo_20240729190159.gz";
-        file = file.GetFullPath();
-
-        var buf = File.ReadAllBytes(file);
-        buf = buf.DecompressGZip();
-
-        var dt = new DbTable();
-        //var rs = dt.LoadFile(file, false);
-        var rs = dt.Read(buf);
-
-        {
-            using var apiServer = new ApiServer(19000)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-            //apiServer.Server.TryDispose();
-        }
-        GC.Collect();
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://0.0.0.0:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://[::]:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://*:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        //Thread.Sleep(3000);
+        var client = new WebClientX { Log = XTrace.Log };
+        var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
     }
 
     private static void Test2()
