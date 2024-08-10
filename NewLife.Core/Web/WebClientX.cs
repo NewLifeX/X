@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using NewLife.Http;
 using NewLife.Log;
 
 namespace NewLife.Web;
@@ -42,6 +43,7 @@ public class WebClientX : DisposeBase
     #region 核心方法
     private HttpClient? _client;
     private String? _lastAddress;
+    private Dictionary<String, String> _cookies;
 
     /// <summary>创建客户端会话</summary>
     /// <returns></returns>
@@ -52,6 +54,7 @@ public class WebClientX : DisposeBase
         {
             http = DefaultTracer.Instance.CreateHttpClient();
             http.Timeout = TimeSpan.FromMilliseconds(Timeout);
+            http.SetUserAgent();
 
             _client = http;
         }
@@ -78,14 +81,36 @@ public class WebClientX : DisposeBase
 
         if (!_lastAddress.IsNullOrEmpty()) request.Headers.Referrer = new Uri(_lastAddress);
 
+        if (_cookies != null && _cookies.Count > 0)
+        {
+            request.Headers.Add("Cookie", _cookies.Select(e => $"{e.Key}={e.Value}"));
+        }
+
         // 发送请求
         //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
         //var rs = await task;
         var rs = await http.SendAsync(request);
 
-        // 记录最后一次地址，作为下一次的Referer
         if (rs.StatusCode < HttpStatusCode.BadRequest)
+        {
+            // 记录最后一次地址，作为下一次的Referer
             _lastAddress = http.BaseAddress == null ? address : new Uri(http.BaseAddress, address).ToString();
+
+            // 保存Cookie
+            if (rs.Headers.TryGetValues("Set-Cookie", out var setCookies))
+            {
+                foreach (var cookie in setCookies)
+                {
+                    var p1 = cookie.IndexOf('=');
+                    if (p1 < 0) continue;
+                    var p2 = cookie.IndexOf(';', p1);
+                    if (p2 < 0) p2 = cookie.Length;
+
+                    var cs = _cookies ??= [];
+                    cs[cookie[..p1]] = cookie.Substring(p1 + 1, p2 - p1 - 1);
+                }
+            }
+        }
 
         return rs.Content;
     }

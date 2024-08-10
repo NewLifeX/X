@@ -99,7 +99,8 @@ public class Program
     private static void Test1()
     {
         var client = new WebClientX { Log = XTrace.Log };
-        var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
+        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
+        var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf.png", "tt/");
     }
 
     private static void Test2()
