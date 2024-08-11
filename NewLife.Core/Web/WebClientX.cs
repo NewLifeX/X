@@ -14,8 +14,8 @@ namespace NewLife.Web;
 public class WebClientX : DisposeBase
 {
     #region 属性
-    /// <summary>超时，默认15000毫秒</summary>
-    public Int32 Timeout { get; set; } = 15000;
+    /// <summary>超时，默认30000毫秒</summary>
+    public Int32 Timeout { get; set; } = 30000;
 
     /// <summary>验证密钥。适配CDN的URL验证，在url后面增加auth_key={timestamp-rand-uid-md5hash}</summary>
     public String? AuthKey { get; set; }
@@ -125,19 +125,7 @@ public class WebClientX : DisposeBase
         return rs.Content;
     }
 
-    /// <summary>下载字符串</summary>
-    /// <param name="address"></param>
-    /// <returns></returns>
-    public virtual async Task<String> DownloadStringAsync(String address)
-    {
-        var rs = await SendAsync(address);
-        return await rs.ReadAsStringAsync();
-    }
-
-    /// <summary>下载文件</summary>
-    /// <param name="address"></param>
-    /// <param name="fileName"></param>
-    public virtual async Task DownloadFileAsync(String address, String fileName)
+    String CheckAuth(String address)
     {
         // 增加CDN的URL验证
         if (!AuthKey.IsNullOrEmpty())
@@ -166,6 +154,27 @@ public class WebClientX : DisposeBase
             address += address.Contains("?") ? "&" : "?";
             address += "auth_key=" + key;
         }
+
+        return address;
+    }
+
+    /// <summary>下载字符串</summary>
+    /// <param name="address"></param>
+    /// <returns></returns>
+    public virtual async Task<String> DownloadStringAsync(String address)
+    {
+        address = CheckAuth(address);
+
+        var rs = await SendAsync(address);
+        return await rs.ReadAsStringAsync();
+    }
+
+    /// <summary>下载文件</summary>
+    /// <param name="address"></param>
+    /// <param name="fileName"></param>
+    public virtual async Task DownloadFileAsync(String address, String fileName)
+    {
+        address = CheckAuth(address);
 
         var rs = await SendAsync(address);
         fileName.EnsureDirectory(true);

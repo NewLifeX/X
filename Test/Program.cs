@@ -99,7 +99,7 @@ public class Program
     private static void Test1()
     {
         var client = new WebClientX { Log = XTrace.Log };
-        client.AuthKey = "abcd";
+        client.AuthKey = "NewLife";
         //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
         //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf", "tt/");
         var rs = client.DownloadLink("http://sh03.newlifex.com,https://x.newlifex.com/dotNet/8.0.7", "dotnet-runtime-8.0.7-linux-x64", "tt/");
