@@ -7,7 +7,7 @@ namespace NewLife.Web;
 public static class PluginHelper
 {
     /// <summary>创建客户端。便于外部自定义</summary>
-    public static Func<String, WebClientX> CreateClient { get; set; } = linkName => new WebClientX { Log = XTrace.Log };
+    public static Func<String, WebClientX> CreateClient { get; set; } = linkName => new WebClientX { AuthKey = "NewLife", Log = XTrace.Log };
 
     /// <summary>加载插件</summary>
     /// <param name="typeName">插件类型</param>

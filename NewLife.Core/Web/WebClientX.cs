@@ -2,8 +2,11 @@
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Text;
+using System.Web;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Security;
 
 namespace NewLife.Web;
 
@@ -13,6 +16,12 @@ public class WebClientX : DisposeBase
     #region 属性
     /// <summary>超时，默认15000毫秒</summary>
     public Int32 Timeout { get; set; } = 15000;
+
+    /// <summary>验证密钥。适配CDN的URL验证，在url后面增加auth_key={timestamp-rand-uid-md5hash}</summary>
+    public String? AuthKey { get; set; }
+
+    ///// <summary>验证有效时间。默认1800秒</summary>
+    //public TimeSpan AuthExpire { get; set; } = TimeSpan.FromSeconds(1800);
 
     /// <summary>最后使用的连接名</summary>
     public Link? LastLink { get; set; }
@@ -130,6 +139,34 @@ public class WebClientX : DisposeBase
     /// <param name="fileName"></param>
     public virtual async Task DownloadFileAsync(String address, String fileName)
     {
+        // 增加CDN的URL验证
+        if (!AuthKey.IsNullOrEmpty())
+        {
+            // http://DomainName/Filename?auth_key={<timestamp>-rand-uid-<md5hash>}
+            var uri = new Uri(address);
+            var url = uri.PathAndQuery;
+
+            // 如果地址中有中文，需要编码
+            var encoding = Encoding.UTF8;
+            if (encoding.GetByteCount(url) != url.Length)
+            {
+                var us = url.Split('/');
+                for (var i = 0; i < us.Length; i++)
+                {
+                    us[i] = HttpUtility.UrlEncode(us[i]);
+                }
+                url = String.Join("/", us);
+            }
+
+            var time = DateTime.UtcNow.ToInt();
+            var rand = Rand.Next(100_000, 1_000_000);
+            var hash = $"{url}-{time}-{rand}-0-{AuthKey}".MD5().ToLower();
+            var key = $"{time}-{rand}-0-{hash}";
+
+            address += address.Contains("?") ? "&" : "?";
+            address += "auth_key=" + key;
+        }
+
         var rs = await SendAsync(address);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
