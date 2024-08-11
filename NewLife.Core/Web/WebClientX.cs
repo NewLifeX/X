@@ -44,7 +44,7 @@ public class WebClientX : DisposeBase
     #region 核心方法
     private HttpClient? _client;
     private String? _lastAddress;
-    private Dictionary<String, String> _cookies;
+    private Dictionary<String, String>? _cookies;
 
     /// <summary>创建客户端会话</summary>
     /// <returns></returns>

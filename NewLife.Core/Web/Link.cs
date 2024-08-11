@@ -36,7 +36,7 @@ public class Link
     #endregion
 
     #region 方法
-    static readonly Regex _regA = new("""<a[^>]* href=?"(?<链接>[^>"]*)?"[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex _regA = new("""<td>(?<时间>[^<]*)</td>\s*<td>(?<大小>[^<]*)</td>\s*<td>\s*<a[^>]* href="?(?<链接>[^>"]*)"?[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
     static readonly Regex _regTitle = new("""title=("?)(?<标题>[^ ']*?)\1""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
     /// <summary>分析HTML中的链接</summary>
@@ -63,6 +63,7 @@ public class Link
                 FullName = match.Groups["名称"].Value.Trim(),
                 Url = match.Groups["链接"].Value.Trim(),
                 Hash = match.Groups["哈希"].Value.Trim(),
+                Time = match.Groups["时间"].Value.Trim().ToDateTime(),
             };
             if (link.Hash.Contains("&lt;")) link.Hash = null;
             link.RawUrl = link.Url;
@@ -76,14 +77,14 @@ public class Link
 
             if (link.Url.StartsWithIgnoreCase("javascript:")) continue;
 
-            // 分析title
-            var txt = match.Groups["其它1"].Value.Trim();
-            if (txt.IsNullOrWhiteSpace() || !_regTitle.IsMatch(txt)) txt = match.Groups["其它2"].Value.Trim();
-            var mc = _regTitle.Match(txt);
-            if (mc.Success)
-            {
-                link.Title = mc.Groups["标题"].Value.Trim();
-            }
+            //// 分析title
+            //var txt = match.Groups["其它1"].Value.Trim();
+            //if (txt.IsNullOrWhiteSpace() || !_regTitle.IsMatch(txt)) txt = match.Groups["其它2"].Value.Trim();
+            //var mc = _regTitle.Match(txt);
+            //if (mc.Success)
+            //{
+            //    link.Title = mc.Groups["标题"].Value.Trim();
+            //}
 
             // 完善下载地址
             if (buri != null)
@@ -100,6 +101,7 @@ public class Link
             if (link.Url.Contains("github.com") && link.Url.Contains("/blob/")) link.Url = link.Url.Replace("/blob/", "/raw/");
 
             // 分割名称，计算结尾的时间 yyyyMMddHHmmss
+            //if (link.Time.Year < 1000)
             link.ParseTime();
 
             // 分割版本，_v1.0.0.0
@@ -159,13 +161,18 @@ public class Link
                 link.Url = item;
             }
 
-            // 分割名称，计算结尾的时间 yyyyMMddHHmmss
-            var idx = link.ParseTime();
-            if (idx > 0) link.Title = link.Title[..idx];
+            //if (link.Time.Year < 1000)
+            {
+                // 分割名称，计算结尾的时间 yyyyMMddHHmmss
+                var idx = link.ParseTime();
+                if (idx > 0) link.Title = link.Title[..idx];
+            }
 
-            // 分割版本，_v1.0.0.0
-            idx = link.ParseVersion();
-            if (idx > 0) link.Title = link.Title[..idx];
+            {
+                // 分割版本，_v1.0.0.0
+                var idx = link.ParseVersion();
+                if (idx > 0) link.Title = link.Title[..idx];
+            }
 
             // 去掉后缀，特殊处理.tar.gz双后缀
             var name = link.Name;
