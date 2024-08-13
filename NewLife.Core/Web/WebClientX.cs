@@ -128,7 +128,7 @@ public class WebClientX : DisposeBase
     String CheckAuth(String address)
     {
         // 增加CDN的URL验证
-        if (!AuthKey.IsNullOrEmpty())
+        if (!AuthKey.IsNullOrEmpty() && !address.Contains("auth_key="))
         {
             // http://DomainName/Filename?auth_key={<timestamp>-rand-uid-<md5hash>}
             var uri = new Uri(address);
