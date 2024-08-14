@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NewLife.Collections;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization;
@@ -362,7 +363,7 @@ public class BinaryGeneral : BinaryHandlerBase
         {
             //Host.WriteSize(0);
             // 可能因为FieldSize设定需要补充0字节
-            Write(new Byte[0]);
+            Write(ArrayPool.Empty);
             return;
         }
 
@@ -370,7 +371,7 @@ public class BinaryGeneral : BinaryHandlerBase
         {
             //Host.WriteSize(0);
             // 可能因为FieldSize设定需要补充0字节
-            Write(new Byte[0]);
+            Write(ArrayPool.Empty);
             return;
         }
 
@@ -386,7 +387,7 @@ public class BinaryGeneral : BinaryHandlerBase
         if (value == null || value.Length == 0)
         {
             //Host.WriteSize(0);
-            Write(new Byte[0]);
+            Write(ArrayPool.Empty);
             return;
         }
 
@@ -410,7 +411,7 @@ public class BinaryGeneral : BinaryHandlerBase
     {
         if (count < 0) count = Host.ReadSize();
 
-        if (count <= 0) return new Byte[0];
+        if (count <= 0) return ArrayPool.Empty;
 
         var max = IOHelper.MaxSafeArraySize;
         if (count > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", count, max);

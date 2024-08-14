@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Http;
 
@@ -79,10 +80,11 @@ public class WebSocketMessage
             len = (ms.ReadByte() << 8) | ms.ReadByte();
         else if (len == 127)
         {
-            var buf = new Byte[8];
+            var buf = Pool.Shared.Rent(8);
             ms.Read(buf, 0, buf.Length);
             // 没有人会传输超大数据
             len = (Int32)BitConverter.ToUInt64(buf, 0);
+            Pool.Shared.Return(buf);
         }
 
         // 如果mask，剩下的就是数据，避免拷贝，提升性能

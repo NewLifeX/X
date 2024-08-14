@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using System.Security.Cryptography;
 using NewLife.Security;
+using NewLife.Collections;
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
 #endif
@@ -307,7 +309,7 @@ public class SM4Transform : ICryptoTransform
     /// <exception cref="ArgumentException"></exception>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return new Byte[0];
+        if (inputCount == 0) return ArrayPool.Empty;
 
         var blocks = inputCount / InputBlockSize;
         var output = new Byte[blocks * OutputBlockSize];

@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Net;
 
@@ -52,7 +53,7 @@ public static class NetHelper
 #endif
         {
             UInt32 dummy = 0;
-            var inOptionValues = new Byte[Marshal.SizeOf(dummy) * 3];
+            var inOptionValues = Pool.Shared.Rent(Marshal.SizeOf(dummy) * 3);
 
             // 是否启用Keep-Alive
             BitConverter.GetBytes((UInt32)(isKeepAlive ? 1 : 0)).CopyTo(inOptionValues, 0);
@@ -62,6 +63,8 @@ public static class NetHelper
             BitConverter.GetBytes((UInt32)interval * 1000).CopyTo(inOptionValues, Marshal.SizeOf(dummy) * 2);
 
             socket.IOControl(IOControlCode.KeepAliveValues, inOptionValues, null);
+
+            Pool.Shared.Return(inOptionValues);
 
             return;
         }
@@ -540,11 +543,11 @@ public static class NetHelper
     private static void Wake(String mac)
     {
         mac = mac.Replace("-", null).Replace(":", null);
-        var buffer = new Byte[mac.Length / 2];
+        var buffer = Pool.Shared.Rent(mac.Length / 2);
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = Byte.Parse(mac.Substring(i * 2, 2), NumberStyles.HexNumber);
 
-        var bts = new Byte[6 + 16 * buffer.Length];
+        var bts = Pool.Shared.Rent(6 + 16 * buffer.Length);
         for (var i = 0; i < 6; i++)
             bts[i] = 0xFF;
         for (Int32 i = 6, k = 0; i < bts.Length; i++, k++)
@@ -561,6 +564,9 @@ public static class NetHelper
         client.Send(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
         client.Close();
         //client.SendAsync(bts, bts.Length, new IPEndPoint(IPAddress.Broadcast, 7));
+
+        Pool.Shared.Return(bts);
+        Pool.Shared.Return(buffer);
     }
     #endregion
 
@@ -581,7 +587,7 @@ public static class NetHelper
         {
             var rs = SendARP(ip.GetAddressBytes().ToUInt32(), 0, buf, ref len);
             if (rs != 0 || len <= 0) return null;
-            if (len != buf.Length) buf = buf.ReadBytes(0, len);            
+            if (len != buf.Length) buf = buf.ReadBytes(0, len);
         }
         else
         {
@@ -605,10 +611,10 @@ public static class NetHelper
                 }
 
                 if (buf != null && buf.Length == 6) return buf;
-            }            
+            }
         }
-        
-        return buf;        
+
+        return buf;
     }
     #endregion
 

@@ -115,6 +115,7 @@ public static class Pool
     #endregion
 
     #region MemoryStream
+    private static Byte[] _empty = [];
     /// <summary>内存流池</summary>
     public static IPool<MemoryStream> MemoryStream { get; set; } = new MemoryStreamPool();
 
@@ -127,7 +128,7 @@ public static class Pool
     {
         //if (ms == null) return null;
 
-        var buf = requireResult ? ms.ToArray() : new Byte[0];
+        var buf = requireResult ? ms.ToArray() : _empty;
 
         Pool.MemoryStream.Put(ms);
 
@@ -142,7 +143,7 @@ public static class Pool
     {
         //if (ms == null) return null;
 
-        var buf = returnResult ? ms.ToArray() : new Byte[0];
+        var buf = returnResult ? ms.ToArray() : _empty;
 
         Pool.MemoryStream.Put(ms);
 

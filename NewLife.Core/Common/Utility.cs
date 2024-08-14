@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Reflection;
 using NewLife;
+using NewLife.Collections;
 
 namespace System;
 
@@ -404,9 +405,14 @@ public class DefaultConvert
                     // 凑够8字节
                     if (buf.Length < 8)
                     {
-                        var bts = new Byte[8];
+                        var bts = Pool.Shared.Rent(8);
                         Buffer.BlockCopy(buf, 0, bts, 0, buf.Length);
-                        buf = bts;
+
+                        var dec = BitConverter.ToDouble(bts, 0).ToDecimal();
+
+                        Pool.Shared.Return(bts);
+
+                        return dec;
                     }
                     return BitConverter.ToDouble(buf, 0).ToDecimal();
             }

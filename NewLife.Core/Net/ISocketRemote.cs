@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
 
@@ -76,10 +77,10 @@ public static class SocketRemoteHelper
     {
         //// 空数据直接发出
         //var remain = stream.Length - stream.Position;
-        //if (remain == 0) return session.Send(new Byte[0]);
+        //if (remain == 0) return session.Send(ArrayPool.Empty);
 
         var rs = 0;
-        var buffer = new Byte[8192];
+        var buffer = Pool.Shared.Rent(8192);
         while (true)
         {
             var count = stream.Read(buffer, 0, buffer.Length);
@@ -92,6 +93,8 @@ public static class SocketRemoteHelper
 
             if (count < buffer.Length) break;
         }
+        Pool.Shared.Return(buffer);
+
         return rs;
     }
 
@@ -102,7 +105,7 @@ public static class SocketRemoteHelper
     /// <returns>返回自身，用于链式写法</returns>
     public static Int32 Send(this ISocketRemote session, String msg, Encoding? encoding = null)
     {
-        if (String.IsNullOrEmpty(msg)) return session.Send(new Byte[0]);
+        if (String.IsNullOrEmpty(msg)) return session.Send(ArrayPool.Empty);
 
         encoding ??= Encoding.UTF8;
         return session.Send(encoding.GetBytes(msg));
@@ -148,7 +151,7 @@ public static class SocketRemoteHelper
         var bufferSize = SocketSetting.Current.BufferSize;
         bufferSize -= 4;
 
-        var buffer = new Byte[bufferSize];
+        var buffer = Pool.Shared.Rent(bufferSize);
         while (true)
         {
             var rs = stream.Read(buffer, 0, buffer.Length);
@@ -160,6 +163,7 @@ public static class SocketRemoteHelper
 
             count++;
         }
+        Pool.Shared.Return(buffer);
 
         return count;
     }

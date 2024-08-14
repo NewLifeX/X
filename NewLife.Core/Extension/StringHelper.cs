@@ -279,7 +279,7 @@ public static class StringHelper
     public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
     {
         //if (value == null) return null;
-        if (String.IsNullOrEmpty(value)) return new Byte[0];
+        if (String.IsNullOrEmpty(value)) return ArrayPool.Empty;
 
         encoding ??= Encoding.UTF8;
         return encoding.GetBytes(value);

@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using NewLife.Collections;
 
 namespace NewLife.Security;
 
@@ -113,7 +114,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
     /// <returns></returns>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return new Byte[0];
+        if (inputCount == 0) return ArrayPool.Empty;
 
         if (_encryptMode)
         {

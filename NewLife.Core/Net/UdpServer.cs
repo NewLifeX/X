@@ -4,6 +4,7 @@ using System.Text;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Collections;
 
 namespace NewLife.Net;
 
@@ -115,7 +116,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 var remote = Remote;
                 if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
                 {
-                    Send(new Byte[0]);
+                    Send(ArrayPool.Empty);
                 }
 
                 Client = null;
@@ -432,8 +433,7 @@ public static class UdpHelper
     {
         Int64 total = 0;
 
-        var size = 1472;
-        var buffer = new Byte[size];
+        var buffer = Pool.Shared.Rent(1472);
         while (true)
         {
             var n = stream.Read(buffer, 0, buffer.Length);
@@ -444,6 +444,8 @@ public static class UdpHelper
 
             if (n < buffer.Length) break;
         }
+        Pool.Shared.Return(buffer);
+
         return udp;
     }
 

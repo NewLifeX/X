@@ -5,6 +5,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Collections;
 
 namespace NewLife.Net;
 
@@ -314,7 +315,7 @@ public class TcpSession : SessionBase, ISocketSession
             if (_Stream == null)
             {
                 if (count == 0)
-                    rs = sock.Send(new Byte[0]);
+                    rs = sock.Send(ArrayPool.Empty);
                 else if (pk.Next == null)
                     rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
@@ -323,7 +324,7 @@ public class TcpSession : SessionBase, ISocketSession
             else
             {
                 if (count == 0)
-                    _Stream.Write(new Byte[0]);
+                    _Stream.Write(ArrayPool.Empty);
                 else if (pk.Next == null)
                     _Stream.Write(pk.Data, pk.Offset, count);
                 else

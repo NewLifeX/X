@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -457,7 +458,7 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteBCD(String value, Int32 max)
     {
-        var buf = new Byte[max];
+        var buf = Pool.Shared.Rent(max);
         for (Int32 i = 0, j = 0; i < max && j + 1 < value.Length; i++, j += 2)
         {
             var a = (Byte)(value[j] - '0');
@@ -466,6 +467,7 @@ public class Binary : FormatterBase, IBinary
         }
 
         Write(buf, 0, buf.Length);
+        Pool.Shared.Return(buf);
     }
 
     /// <summary>写入定长字符串。多余截取，少则补零</summary>
@@ -473,10 +475,11 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteFixedString(String? value, Int32 max)
     {
-        var buf = new Byte[max];
+        var buf = Pool.Shared.Rent(max);
         if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
         Write(buf, 0, buf.Length);
+        Pool.Shared.Return(buf);
     }
 
     /// <summary>读取定长字符串。多余截取，少则补零</summary>

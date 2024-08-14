@@ -17,6 +17,13 @@ public interface IArrayPool<T>
     void Return(T[] array, Boolean clearArray = false);
 }
 
+/// <summary>数组池</summary>
+public class ArrayPool
+{
+    /// <summary>空数组</summary>
+    public static Byte[] Empty { get; } = [];
+}
+
 #if NETFRAMEWORK || NETSTANDARD2_0
 /// <summary>数组池</summary>
 /// <typeparam name="T"></typeparam>
