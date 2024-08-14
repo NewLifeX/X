@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 
@@ -132,8 +133,12 @@ public class PacketCodec
         var retain = ms.Length - ms.Position;
         if (retain > 0 && (Last.AddMilliseconds(Expire) < now || MaxCache > 0 && MaxCache <= retain))
         {
-            var buf = ms.ReadBytes(retain > 64 ? 64 : retain);
-            using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{buf.ToHex()}", retain);
+            //var buf = ms.ReadBytes(retain > 64 ? 64 : retain);
+            var buf = Pool.Shared.Rent((Int32)(retain > 64 ? 64 : retain));
+            var count = ms.Read(buf, 0, buf.Length);
+            var hex = buf.ToHex(0, count);
+            Pool.Shared.Return(buf);
+            using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{hex}", retain);
             span?.SetError(new Exception($"数据包编码器放弃数据 retain={retain} MaxCache={MaxCache}"), null);
 
             if (XTrace.Debug) XTrace.Log.Debug("数据包编码器放弃数据 {0:n0}，Last={1}，MaxCache={2:n0}", retain, Last, MaxCache);
