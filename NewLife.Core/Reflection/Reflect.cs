@@ -429,7 +429,7 @@ public static class Reflect
     /// <summary>获取类型代码，支持可空类型</summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public static TypeCode GetTypeCode(this Type type) => Type.GetTypeCode(Nullable.GetUnderlyingType(type) ?? type);
+    public static TypeCode GetTypeCode(this Type type) => type == null ? TypeCode.Empty : Type.GetTypeCode(Nullable.GetUnderlyingType(type) ?? type);
 
     /// <summary>是否基础类型。识别常见基元类型和String，支持可空类型</summary>
     /// <remarks>
