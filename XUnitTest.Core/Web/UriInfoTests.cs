@@ -199,4 +199,16 @@ public class UriInfoTests
             }
         }
     }
+
+    [Fact]
+    public void Test()
+    {
+        var url = "http://localhost:8080/cube/info";
+        var uri = new UriInfo(url);
+
+        // 故意没有问号开头，转字符串后自己补上
+        uri.Query = "name=newlife";
+
+        Assert.Equal(url + "?" + uri.Query, uri.ToString());
+    }
 }
