@@ -259,12 +259,23 @@ public class TinyHttpClient : DisposeBase
             {
                 pk = await SendDataAsync(null, null).ConfigureAwait(false);
 
-                // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片，暂时不支持
-                if (total + pk.Total > len) pk = pk.Slice(0, len - total);
+                // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片
+                var count = len - total;
+                if (count <= pk.Total)
+                {
+                    var pk2 = pk.Slice(0, count);
 
-                last.Append(pk);
-                last = pk;
-                total += pk.Total;
+                    last.Append(pk2);
+                    last = pk2;
+                    total += pk2.Total;
+
+                    // 如果还有剩余，作为下一个chunk
+                    count += 2;
+                    if (count < pk.Total)
+                        pk = pk.Slice(count);
+                    else
+                        pk = null;
+                }
             }
 
             // 还有粘包数据，继续分析
