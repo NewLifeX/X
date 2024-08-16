@@ -257,17 +257,21 @@ public class TinyHttpClient : DisposeBase
             var total = chunk.Total;
             while (total < len)
             {
-                pk = await SendDataAsync(null, null).ConfigureAwait(false);
+                var pk2 = await SendDataAsync(null, null).ConfigureAwait(false);
+                if (pk != null)
+                    pk.Append(pk2);
+                else
+                    pk = pk2;
 
                 // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片
                 var count = len - total;
-                if (count <= pk.Total)
+                if (pk != null && count <= pk.Total)
                 {
-                    var pk2 = pk.Slice(0, count);
+                    var pk3 = pk.Slice(0, count);
 
-                    last.Append(pk2);
-                    last = pk2;
-                    total += pk2.Total;
+                    last.Append(pk3);
+                    last = pk3;
+                    total += pk3.Total;
 
                     // 如果还有剩余，作为下一个chunk
                     count += 2;
