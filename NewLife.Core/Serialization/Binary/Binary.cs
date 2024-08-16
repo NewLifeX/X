@@ -466,7 +466,7 @@ public class Binary : FormatterBase, IBinary
             buf[i] = (Byte)((a << 4) | (b & 0x0F));
         }
 
-        Write(buf, 0, buf.Length);
+        Write(buf, 0, max);
         Pool.Shared.Return(buf);
     }
 
@@ -478,7 +478,7 @@ public class Binary : FormatterBase, IBinary
         var buf = Pool.Shared.Rent(max);
         if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
 
-        Write(buf, 0, buf.Length);
+        Write(buf, 0, max);
         Pool.Shared.Return(buf);
     }
 
