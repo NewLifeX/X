@@ -19,7 +19,17 @@ public class UriInfo
     public String? Query { get; set; }
 
     /// <summary>路径与查询</summary>
-    public String? PathAndQuery => AbsolutePath + Query;
+    public String? PathAndQuery
+    {
+        get
+        {
+            if (Query.IsNullOrEmpty()) return AbsolutePath;
+
+            if (Query[0] == '?') return AbsolutePath + Query;
+
+            return $"{AbsolutePath}?{Query}";
+        }
+    }
 
     /// <summary>实例化</summary>
     /// <param name="value"></param>

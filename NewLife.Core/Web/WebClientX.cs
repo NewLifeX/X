@@ -15,7 +15,7 @@ public class WebClientX : DisposeBase
 {
     #region 属性
     /// <summary>超时，默认30000毫秒</summary>
-    public Int32 Timeout { get; set; } = 30000;
+    public Int32 Timeout { get; set; } = 30_000;
 
     /// <summary>验证密钥。适配CDN的URL验证，在url后面增加auth_key={timestamp-rand-uid-md5hash}</summary>
     public String? AuthKey { get; set; }
@@ -125,37 +125,37 @@ public class WebClientX : DisposeBase
         return rs.Content;
     }
 
-    String CheckAuth(String address)
+    String CheckAuth(String url)
     {
         // 增加CDN的URL验证
-        if (!AuthKey.IsNullOrEmpty() && !address.Contains("auth_key="))
+        if (!AuthKey.IsNullOrEmpty() && !url.Contains("auth_key="))
         {
             // http://DomainName/Filename?auth_key={<timestamp>-rand-uid-<md5hash>}
-            var uri = new Uri(address);
-            var url = uri.PathAndQuery;
+            var uri = new Uri(url);
+            var path = uri.AbsolutePath;
 
             // 如果地址中有中文，需要编码
             var encoding = Encoding.UTF8;
-            if (encoding.GetByteCount(url) != url.Length)
+            if (encoding.GetByteCount(path) != path.Length)
             {
-                var us = url.Split('/');
+                var us = path.Split('/');
                 for (var i = 0; i < us.Length; i++)
                 {
                     us[i] = HttpUtility.UrlEncode(us[i]);
                 }
-                url = String.Join("/", us);
+                path = String.Join("/", us);
             }
 
             var time = DateTime.UtcNow.ToInt();
             var rand = Rand.Next(100_000, 1_000_000);
-            var hash = $"{url}-{time}-{rand}-0-{AuthKey}".MD5().ToLower();
+            var hash = $"{path}-{time}-{rand}-0-{AuthKey}".MD5().ToLower();
             var key = $"{time}-{rand}-0-{hash}";
 
-            address += address.Contains("?") ? "&" : "?";
-            address += "auth_key=" + key;
+            url += url.Contains('?') ? "&" : "?";
+            url += "auth_key=" + key;
         }
 
-        return address;
+        return url;
     }
 
     /// <summary>下载字符串</summary>
