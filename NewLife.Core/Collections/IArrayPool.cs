@@ -24,7 +24,7 @@ public class ArrayPool
     public static Byte[] Empty { get; } = [];
 }
 
-#if NETFRAMEWORK || NETSTANDARD2_0
+#if NETSTANDARD2_0
 /// <summary>数组池</summary>
 /// <typeparam name="T"></typeparam>
 public abstract class ArrayPool<T> : IArrayPool<T>

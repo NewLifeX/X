@@ -1,5 +1,5 @@
 ﻿using System.Text;
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_0
 using System.Buffers;
 #endif
 
@@ -192,7 +192,7 @@ public static class Pool
     #endregion
 
     #region ByteArray
-#if NETFRAMEWORK || NETSTANDARD2_0
+#if NETSTANDARD2_0
     /// <summary>字节数组共享存储</summary>
     public static IArrayPool<Byte> Shared { get; set; } = ArrayPool<Byte>.Shared;
 #else

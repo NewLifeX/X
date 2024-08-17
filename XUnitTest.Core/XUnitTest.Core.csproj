@@ -60,8 +60,8 @@
     <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="NewLife.Modbus" Version="1.8.2024.217" />
     <PackageReference Include="NewLife.UnitTest" Version="1.0.2023.1204" />
-    <PackageReference Include="xunit" Version="2.8.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

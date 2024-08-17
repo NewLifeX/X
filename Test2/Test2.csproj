@@ -24,7 +24,8 @@
     <None Remove="Model\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="3.0.2024.707" />
+    <PackageReference Include="NewLife.Stardust" Version="3.0.2024.806" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NewLife.Core\NewLife.Core.csproj" />

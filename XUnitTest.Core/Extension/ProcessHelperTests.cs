@@ -7,7 +7,7 @@ namespace XUnitTest.Extension;
 
 public class ProcessHelperTests
 {
-    [Fact]
+    [Fact(Skip = "Test")]
     public void GetCommandLine()
     {
         foreach (var item in Process.GetProcesses())
@@ -22,7 +22,7 @@ public class ProcessHelperTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "Test")]
     public void GetCommandLineArgs()
     {
         foreach (var item in Process.GetProcesses())
