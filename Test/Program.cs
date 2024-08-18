@@ -76,7 +76,7 @@ public class Program
             try
             {
 #endif
-            Test1();
+            Test8();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -133,6 +133,8 @@ public class Program
         count *= ts.Count;
 
         XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+
+        Runtime.FreeMemory();
     }
 
     private static void Test3()
@@ -229,6 +231,8 @@ public class Program
 
         XTrace.WriteLine("总测试数据：{0:n0}", rs);
         //if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
+
+        Runtime.FreeMemory();
     }
 
     private static NetServer _server;
@@ -377,8 +381,12 @@ public class Program
         //Console.ReadKey();
     }
 
-    private static async void Test8()
+    private static void Test8()
     {
+        foreach (var p in Process.GetProcessesByName("dotnet"))
+        {
+            Runtime.FreeMemory(p.Id);
+        }
     }
 
     private static void Test9()
