@@ -75,7 +75,7 @@ public class Program
             try
             {
 #endif
-            Test1();
+            Test8();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -131,6 +131,106 @@ public class Program
         count *= ts.Count;
 
         XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+
+        Runtime.FreeMemory();
+    }
+
+    private static void Test3()
+    {
+        //var str = $"{DateTime.Now:yyyy}年，学无先后达者为师！";
+        //str.SpeakAsync();
+
+        XTrace.WriteLine("hello");
+        Task.Run(() =>
+        {
+            XTrace.WriteLine("222");
+            Task.Run(() =>
+            {
+                XTrace.WriteLine("333");
+            });
+        });
+
+        var set = StarSetting.Current;
+        set.Debug = true;
+        var local = new LocalStarClient { Log = XTrace.Log };
+        var info = local.GetInfo();
+        XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+        var client3 = new ApiClient("udp://localhost:5500")
+        {
+            Timeout = 3_000,
+            Log = XTrace.Log,
+            EncoderLog = XTrace.Log,
+        };
+        info = client3.Invoke<AgentInfo>("info");
+        XTrace.WriteLine("Info: {0}", info?.ToJson());
+
+        var uri = new NetUri("http://sso.newlifex.com");
+        var client = uri.CreateRemote();
+        client.Log = XTrace.Log;
+        client.LogSend = true;
+        client.LogReceive = true;
+        if (client is TcpSession tcp) tcp.MaxAsync = 0;
+        client.Open();
+
+        client.Send("GET /cube/info HTTP/1.1\r\nHost: sso.newlifex.com\r\n\r\n");
+
+        var rs = client.ReceiveString();
+        XTrace.WriteLine(rs);
+    }
+
+    private static void Test4()
+    {
+        var v = Rand.NextBytes(32);
+        Console.WriteLine(v.ToBase64());
+
+        ICache ch = null;
+        //ICache ch = new DbCache();
+        //ch.Set(key, v);
+        //v = ch.Get<Byte[]>(key);
+        //Console.WriteLine(v.ToBase64());
+        //ch.Remove(key);
+
+        Console.Clear();
+
+        Console.Write("选择要测试的缓存：1，MemoryCache；2，DbCache；3，Redis ");
+        var select = Console.ReadKey().KeyChar;
+        switch (select)
+        {
+            case '1':
+                ch = new MemoryCache();
+                break;
+                //case '3':
+                //    var rds = new Redis("127.0.0.1", null, 9)
+                //    {
+                //        Counter = new PerfCounter(),
+                //        Tracer = new DefaultTracer { Log = XTrace.Log },
+                //    };
+                //    ch = rds;
+                //    break;
+        }
+
+        var mode = false;
+        Console.WriteLine();
+        Console.Write("选择测试模式：1，顺序；2，随机 ");
+        if (Console.ReadKey().KeyChar != '1') mode = true;
+
+        var batch = 0;
+        Console.WriteLine();
+        Console.Write("选择输入批大小[0]：");
+        batch = Console.ReadLine().ToInt();
+
+        Console.Clear();
+
+        //var batch = 0;
+        //if (mode) batch = 1000;
+
+        var rs = ch.Bench(mode, batch);
+
+        XTrace.WriteLine("总测试数据：{0:n0}", rs);
+        //if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
+
+        Runtime.FreeMemory();
     }
 
     private static NetServer _server;
@@ -279,8 +379,12 @@ public class Program
         //Console.ReadKey();
     }
 
-    private static async void Test8()
+    private static void Test8()
     {
+        foreach (var p in Process.GetProcessesByName("dotnet"))
+        {
+            Runtime.FreeMemory(p.Id);
+        }
     }
 
     private static void Test9()
