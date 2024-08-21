@@ -198,7 +198,7 @@ public class DefaultSpan : ISpan
         sb.Append(_pid);
 
         //return _myip + DateTime.UtcNow.ToLong() + Interlocked.Increment(ref _seq) + "e" + _pid;
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>完成跟踪</summary>

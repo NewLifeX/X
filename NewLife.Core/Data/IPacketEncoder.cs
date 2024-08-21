@@ -46,7 +46,7 @@ public class DefaultPacketEncoder : IPacketEncoder
     /// <returns></returns>
     public virtual Packet Encode(Object value)
     {
-        if (value == null) return ArrayPool.Empty;
+        if (value == null) return Pool.Empty;
 
         if (value is Packet pk) return pk;
         if (value is Byte[] buf) return buf;

@@ -398,7 +398,7 @@ public static class ApiHelper
                 sb.AppendFormat("{0}={1}", Encode(item.Key), Encode(v));
             }
 
-            url = sb.Put(true);
+            url = sb.Return(true);
         }
 
         return url;

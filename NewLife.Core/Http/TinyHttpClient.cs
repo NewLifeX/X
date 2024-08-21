@@ -114,7 +114,7 @@ public class TinyHttpClient : DisposeBase
                 if (ns == null) throw new InvalidOperationException(nameof(NetworkStream));
 
                 var sslStream = new SslStream(ns, false, (sender, certificate, chain, sslPolicyErrors) => true);
-                await sslStream.AuthenticateAsClientAsync(uri.Host, new X509CertificateCollection(), SslProtocols.Tls12, false).ConfigureAwait(false);
+                await sslStream.AuthenticateAsClientAsync(uri.Host, [], SslProtocols.Tls12, false).ConfigureAwait(false);
                 ns = sslStream;
             }
 
@@ -386,7 +386,7 @@ public class TinyHttpClient : DisposeBase
                 sb.AppendFormat("{0}={1}", item.Key, HttpUtility.UrlEncode(v));
             }
 
-            req.RequestUri = new Uri(baseAddress, sb.Put(true));
+            req.RequestUri = new Uri(baseAddress, sb.Return(true));
         }
 
         return req;

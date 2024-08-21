@@ -19,7 +19,7 @@ class RC4
     /// <returns></returns>
     public static Byte[] Encrypt(Byte[] data, Byte[] pass)
     {
-        if (data == null || data.Length == 0) return ArrayPool.Empty;
+        if (data == null || data.Length == 0) return [];
         if (pass == null || pass.Length == 0) return data;
 
         var output = new Byte[data.Length];

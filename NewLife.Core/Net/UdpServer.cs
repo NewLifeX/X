@@ -116,7 +116,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 var remote = Remote;
                 if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
                 {
-                    Send(ArrayPool.Empty);
+                    Send(Pool.Empty);
                 }
 
                 Client = null;

@@ -363,7 +363,7 @@ public class BinaryGeneral : BinaryHandlerBase
         {
             //Host.WriteSize(0);
             // 可能因为FieldSize设定需要补充0字节
-            Write(ArrayPool.Empty);
+            Write([]);
             return;
         }
 
@@ -371,7 +371,7 @@ public class BinaryGeneral : BinaryHandlerBase
         {
             //Host.WriteSize(0);
             // 可能因为FieldSize设定需要补充0字节
-            Write(ArrayPool.Empty);
+            Write([]);
             return;
         }
 
@@ -387,7 +387,7 @@ public class BinaryGeneral : BinaryHandlerBase
         if (value == null || value.Length == 0)
         {
             //Host.WriteSize(0);
-            Write(ArrayPool.Empty);
+            Write([]);
             return;
         }
 
@@ -411,7 +411,7 @@ public class BinaryGeneral : BinaryHandlerBase
     {
         if (count < 0) count = Host.ReadSize();
 
-        if (count <= 0) return ArrayPool.Empty;
+        if (count <= 0) return [];
 
         var max = IOHelper.MaxSafeArraySize;
         if (count > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", count, max);

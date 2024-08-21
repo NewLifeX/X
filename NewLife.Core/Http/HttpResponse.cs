@@ -83,7 +83,7 @@ public class HttpResponse : HttpBase
 
         sb.Append("\r\n");
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>验证，如果失败则抛出异常</summary>

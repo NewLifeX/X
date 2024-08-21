@@ -692,7 +692,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             sb.AppendFormat("在线：{0:n0}/{1:n0} ", SessionCount, MaxSessionCount);
         }
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
     #endregion
 
@@ -749,7 +749,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             if (sb.Length > 0) sb.Append(' ');
             sb.Append(item);
         }
-        return Name + " " + sb.Put(true);
+        return Name + " " + sb.Return(true);
     }
     #endregion
 }

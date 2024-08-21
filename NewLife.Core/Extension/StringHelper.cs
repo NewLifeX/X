@@ -82,7 +82,7 @@ public static class StringHelper
     public static String[] Split(this String? value, params String[] separators)
     {
         //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
-        if (value == null || String.IsNullOrEmpty(value)) return new String[0];
+        if (value == null || String.IsNullOrEmpty(value)) return [];
         if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = [",", ";"];
 
         return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -95,7 +95,7 @@ public static class StringHelper
     /// <returns></returns>
     public static Int32[] SplitAsInt(this String? value, params String[] separators)
     {
-        if (value == null || String.IsNullOrEmpty(value)) return new Int32[0];
+        if (value == null || String.IsNullOrEmpty(value)) return [];
         if (separators == null || separators.Length <= 0) separators = [",", ";"];
 
         var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -217,7 +217,7 @@ public static class StringHelper
                 sb.Separate(separator).Append(item + "");
             }
         }
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     ///// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
@@ -256,7 +256,7 @@ public static class StringHelper
                 sb.Separate(separator).Append(func(item));
             }
         }
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>追加分隔符字符串，忽略开头，常用于拼接</summary>
@@ -279,7 +279,7 @@ public static class StringHelper
     public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
     {
         //if (value == null) return null;
-        if (String.IsNullOrEmpty(value)) return ArrayPool.Empty;
+        if (String.IsNullOrEmpty(value)) return [];
 
         encoding ??= Encoding.UTF8;
         return encoding.GetBytes(value);
@@ -577,6 +577,7 @@ public static class StringHelper
     #endregion
 
     #region LD编辑距离算法
+    private static readonly Char[] _separator = [' ', '　'];
     /// <summary>编辑距离搜索，从词组中找到最接近关键字的若干匹配项</summary>
     /// <remarks>
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
@@ -586,9 +587,9 @@ public static class StringHelper
     /// <returns></returns>
     public static String[] LevenshteinSearch(String key, String[] words)
     {
-        if (IsNullOrWhiteSpace(key)) return new String[0];
+        if (IsNullOrWhiteSpace(key)) return [];
 
-        var keys = key.Split(new Char[] { ' ', '　' }, StringSplitOptions.RemoveEmptyEntries);
+        var keys = key.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var item in keys)
         {
@@ -648,6 +649,7 @@ public static class StringHelper
     #endregion
 
     #region LCS算法
+    private static readonly Char[] _separator2 = [' ', '\u3000'];
     /// <summary>最长公共子序列搜索，从词组中找到最接近关键字的若干匹配项</summary>
     /// <remarks>
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
@@ -657,10 +659,10 @@ public static class StringHelper
     /// <returns></returns>
     public static String[] LCSSearch(String key, String[] words)
     {
-        if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return new String[0];
+        if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return [];
 
         var keys = key
-            .Split(new Char[] { ' ', '\u3000' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(_separator2, StringSplitOptions.RemoveEmptyEntries)
             .OrderBy(s => s.Length)
             .ToArray();
 

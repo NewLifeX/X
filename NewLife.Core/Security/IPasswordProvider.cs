@@ -90,7 +90,7 @@ public class SaltPasswordProvider : IPasswordProvider
             sb.Append(ch);
         }
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>验证密码散列，包括加盐判断</summary>

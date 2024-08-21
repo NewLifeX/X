@@ -315,7 +315,7 @@ public class TcpSession : SessionBase, ISocketSession
             if (_Stream == null)
             {
                 if (count == 0)
-                    rs = sock.Send(ArrayPool.Empty);
+                    rs = sock.Send(Pool.Empty);
                 else if (pk.Next == null)
                     rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
                 else
@@ -324,7 +324,7 @@ public class TcpSession : SessionBase, ISocketSession
             else
             {
                 if (count == 0)
-                    _Stream.Write(ArrayPool.Empty);
+                    _Stream.Write([]);
                 else if (pk.Next == null)
                     _Stream.Write(pk.Data, pk.Offset, count);
                 else

@@ -71,7 +71,7 @@ public sealed class ZerosPaddingTransform : ICryptoTransform
     /// <returns></returns>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return ArrayPool.Empty;
+        if (inputCount == 0) return [];
 
         //todo !!! 仅能临时解决短密文填充清理问题
         if (_encryptMode && inputCount % InputBlockSize != 0)

@@ -1,7 +1,5 @@
 ﻿using System.Text;
-#if !NETSTANDARD2_0
 using System.Buffers;
-#endif
 
 namespace NewLife.Collections;
 
@@ -48,7 +46,7 @@ public static class Pool
     /// <param name="sb"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
-    //[Obsolete("Please use Return from 2024-02-01")]
+    [Obsolete("Please use Return from 2024-02-01")]
     public static String Put(this StringBuilder sb, Boolean requireResult = false)
     {
         //if (sb == null) return null;
@@ -115,7 +113,6 @@ public static class Pool
     #endregion
 
     #region MemoryStream
-    private static Byte[] _empty = [];
     /// <summary>内存流池</summary>
     public static IPool<MemoryStream> MemoryStream { get; set; } = new MemoryStreamPool();
 
@@ -123,12 +120,12 @@ public static class Pool
     /// <param name="ms"></param>
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
-    //[Obsolete("Please use Return from 2024-02-01")]
+    [Obsolete("Please use Return from 2024-02-01")]
     public static Byte[] Put(this MemoryStream ms, Boolean requireResult = false)
     {
         //if (ms == null) return null;
 
-        var buf = requireResult ? ms.ToArray() : _empty;
+        var buf = requireResult ? ms.ToArray() : Empty;
 
         Pool.MemoryStream.Put(ms);
 
@@ -143,7 +140,7 @@ public static class Pool
     {
         //if (ms == null) return null;
 
-        var buf = returnResult ? ms.ToArray() : _empty;
+        var buf = returnResult ? ms.ToArray() : Empty;
 
         Pool.MemoryStream.Put(ms);
 
@@ -192,21 +189,10 @@ public static class Pool
     #endregion
 
     #region ByteArray
-#if NETSTANDARD2_0
     /// <summary>字节数组共享存储</summary>
-    public static IArrayPool<Byte> Shared { get; set; } = ArrayPool<Byte>.Shared;
-#else
-    /// <summary>字节数组共享存储</summary>
-    public static IArrayPool<Byte> Shared { get; set; } = new MyArrayPool(ArrayPool<Byte>.Shared);
-
-    class MyArrayPool(ArrayPool<Byte> pool) : ArrayPool<Byte>, IArrayPool<Byte>
-    {
-        public ArrayPool<Byte> Pool { get; set; } = pool;
-
-        public override Byte[] Rent(Int32 minimumLength) => Pool.Rent(minimumLength);
-
-        public override void Return(Byte[] array, Boolean clearArray = false) => Pool.Return(array, clearArray);
-    }
-#endif
+    public static ArrayPool<Byte> Shared { get; set; } = ArrayPool<Byte>.Shared;
+   
+    /// <summary>空数组</summary>
+    public static Byte[] Empty { get; } = [];
     #endregion
 }

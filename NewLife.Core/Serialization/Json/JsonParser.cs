@@ -277,7 +277,7 @@ public class JsonParser
 
                     sb.Append(_json, runIndex, index - runIndex - 1);
                 }
-                return sb.Put(true);
+                return sb.Return(true);
             }
             else if (isName && c == ':')
             {
@@ -290,7 +290,7 @@ public class JsonParser
 
                     sb.Append(_json, runIndex, index + 1 - runIndex - 1);
                 }
-                return sb.Put(true);
+                return sb.Return(true);
             }
 
             if (c != '\\')

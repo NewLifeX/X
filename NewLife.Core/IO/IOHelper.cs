@@ -182,7 +182,7 @@ public static class IOHelper
     public static Byte[] ReadArray(this Stream des)
     {
         var len = des.ReadEncodedInt();
-        if (len <= 0) return ArrayPool.Empty;
+        if (len <= 0) return [];
 
         // 避免数据错乱超长
         //if (des.CanSeek && len > des.Length - des.Position) len = (Int32)(des.Length - des.Position);
@@ -226,7 +226,7 @@ public static class IOHelper
     /// <returns>返回复制的总字节数</returns>
     public static Byte[] ReadBytes(this Byte[] src, Int32 offset, Int32 count)
     {
-        if (count == 0) return ArrayPool.Empty;
+        if (count == 0) return [];
 
         // 即使是全部，也要复制一份，而不只是返回原数组，因为可能就是为了复制数组
         if (count < 0) count = src.Length - offset;
@@ -266,7 +266,7 @@ public static class IOHelper
     public static Byte[] ReadBytes(this Stream stream, Int64 length)
     {
         //if (stream == null) return null;
-        if (length == 0) return ArrayPool.Empty;
+        if (length == 0) return [];
 
         if (length > 0 && stream.CanSeek && stream.Length - stream.Position < length)
             throw new XException("Unable to read {1} bytes of data from a data stream with a length of only {0}", stream.Length - stream.Position, length);
@@ -303,7 +303,7 @@ public static class IOHelper
         var ms = Pool.MemoryStream.Get();
         stream.CopyTo(ms);
 
-        return ms.Put(true);
+        return ms.Return(true);
     }
 
     /// <summary>流转换为字符串</summary>
@@ -903,7 +903,7 @@ public static class IOHelper
             sb.Append(GetHexValue(b & 0x0F));
         }
 
-        return sb.Put(true) ?? String.Empty;
+        return sb.Return(true) ?? String.Empty;
     }
 
     /// <summary>1个字节转为2个16进制字符</summary>
@@ -930,7 +930,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToHex(this String? data, Int32 startIndex = 0, Int32 length = -1)
     {
-        if (data.IsNullOrEmpty()) return ArrayPool.Empty;
+        if (data.IsNullOrEmpty()) return [];
 
         // 过滤特殊字符
         data = data.Trim()
@@ -990,7 +990,7 @@ public static class IOHelper
     /// <returns></returns>
     public static Byte[] ToBase64(this String? data)
     {
-        if (data.IsNullOrWhiteSpace()) return ArrayPool.Empty;
+        if (data.IsNullOrWhiteSpace()) return [];
 
         data = data.Trim();
         if (data[^1] != '=')

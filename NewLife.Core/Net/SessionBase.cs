@@ -374,7 +374,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>
-    private Int32 _IntoThreadCount = 10;
+    private readonly static Int32 _IntoThreadCount = 10;
 
     /// <summary>用一个事件参数来开始异步接收</summary>
     /// <param name="se">事件参数</param>

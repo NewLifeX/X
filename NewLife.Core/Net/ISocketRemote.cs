@@ -77,7 +77,7 @@ public static class SocketRemoteHelper
     {
         //// 空数据直接发出
         //var remain = stream.Length - stream.Position;
-        //if (remain == 0) return session.Send(ArrayPool.Empty);
+        //if (remain == 0) return session.Send([]);
 
         var rs = 0;
         var buffer = Pool.Shared.Rent(8192);
@@ -105,7 +105,7 @@ public static class SocketRemoteHelper
     /// <returns>返回自身，用于链式写法</returns>
     public static Int32 Send(this ISocketRemote session, String msg, Encoding? encoding = null)
     {
-        if (String.IsNullOrEmpty(msg)) return session.Send(ArrayPool.Empty);
+        if (String.IsNullOrEmpty(msg)) return session.Send(Pool.Empty);
 
         encoding ??= Encoding.UTF8;
         return session.Send(encoding.GetBytes(msg));

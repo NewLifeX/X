@@ -256,7 +256,7 @@ public class CsvFile : IDisposable
                 sb.Append(str);
         }
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     private StreamWriter? _writer;

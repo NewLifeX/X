@@ -328,7 +328,7 @@ public class Link
         if (Version != null) sb.AppendFormat(" v{0}", Version);
         if (Time > DateTime.MinValue) sb.AppendFormat(" {0}", Time.ToFullString());
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
     #endregion
 }

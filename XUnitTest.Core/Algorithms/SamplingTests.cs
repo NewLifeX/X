@@ -50,7 +50,7 @@ namespace XUnitTest.Algorithms
                         break;
                     }
                 }
-                XTrace.WriteLine(sb.Put(true));
+                XTrace.WriteLine(sb.Return(true));
             }
         }
 

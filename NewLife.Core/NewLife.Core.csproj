@@ -65,9 +65,9 @@
     <!--<PackageReference Include="System.Management" Version="6.0.0" />-->
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net461' or '$(TargetFramework)'=='netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <!--<PackageReference Include="IndexRange" Version="1.0.2" />-->
-    <!--<PackageReference Include="System.Memory" Version="4.5.5" />-->
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net45' or '$(TargetFramework)'=='net461'">
     <!--<PackageReference Include="System.Net.Http" Version="4.3.4" />-->
@@ -126,6 +126,7 @@
     <Compile Remove="Caching\RedisEncoder.cs" />
     <Compile Remove="Collections\BloomFilter.cs" />
     <Compile Remove="Collections\DictionaryCache.cs" />
+    <Compile Remove="Collections\IArrayPool.cs" />
     <Compile Remove="Collections\ICluster.cs" />
     <Compile Remove="Collections\QueueService.cs" />
     <Compile Remove="Data\BinaryTree.cs" />

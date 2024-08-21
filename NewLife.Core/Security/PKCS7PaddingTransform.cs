@@ -114,7 +114,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
     /// <returns></returns>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return ArrayPool.Empty;
+        if (inputCount == 0) return [];
 
         if (_encryptMode)
         {

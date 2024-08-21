@@ -117,7 +117,7 @@ public class HttpRequest : HttpBase
 
         sb.Append("\r\n");
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>分析表单数据</summary>

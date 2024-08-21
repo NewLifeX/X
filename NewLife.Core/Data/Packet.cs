@@ -271,7 +271,7 @@ public class Packet
         var ms = Pool.MemoryStream.Get();
         CopyTo(ms);
 
-        return ms.Put(true);
+        return ms.Return(true);
     }
 
     /// <summary>从封包中读取指定数据区，读取全部时直接返回缓冲区，以提升性能</summary>
@@ -317,7 +317,7 @@ public class Packet
 
             cur = cur.Next;
         }
-        return ms.Put(true);
+        return ms.Return(true);
 
         //// 以上算法太复杂，直接来
         //return ToArray().ReadBytes(offset, count);
@@ -433,7 +433,7 @@ public class Packet
         var ms = Pool.MemoryStream.Get();
         CopyTo(ms);
 
-        return new Packet(ms.Put(true));
+        return new Packet(ms.Return(true));
     }
 
     /// <summary>以字符串表示</summary>

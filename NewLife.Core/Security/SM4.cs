@@ -309,7 +309,7 @@ public class SM4Transform : ICryptoTransform
     /// <exception cref="ArgumentException"></exception>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return ArrayPool.Empty;
+        if (inputCount == 0) return [];
 
         var blocks = inputCount / InputBlockSize;
         var output = new Byte[blocks * OutputBlockSize];

@@ -184,7 +184,7 @@ public static class HttpHelper
         sb.Append("\r\n");
 
         //return sb.ToString();
-        var rs = new Packet(sb.Put(true).GetBytes())
+        var rs = new Packet(sb.Return(true).GetBytes())
         {
             Next = pk
         };
@@ -216,7 +216,7 @@ public static class HttpHelper
         sb.Append("\r\n");
 
         //return sb.ToString();
-        var rs = new Packet(sb.Put(true).GetBytes())
+        var rs = new Packet(sb.Return(true).GetBytes())
         {
             Next = pk
         };

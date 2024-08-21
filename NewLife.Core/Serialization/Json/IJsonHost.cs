@@ -187,7 +187,7 @@ public static class JsonHelper
             }
         }
 
-        return sb.Put(true);
+        return sb.Return(true);
     }
 
     /// <summary>Json类型对象转换实体类</summary>
