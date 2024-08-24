@@ -385,7 +385,9 @@ public class Program
     {
         foreach (var p in Process.GetProcessesByName("dotnet"))
         {
-            Runtime.FreeMemory(p.Id);
+            //Runtime.FreeMemory(p.Id);
+            var name = p.GetProcessName2();
+            XTrace.WriteLine("{0}\t{1}", p.Id, name);
         }
     }
 
