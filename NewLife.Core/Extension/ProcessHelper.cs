@@ -50,9 +50,9 @@ public static class ProcessHelper
         //}
 
         var args = GetCommandLineArgs(process.Id);
-        if (args != null)
+        if (args != null && args.Length >= 2 && args[0].Contains("dotnet"))
         {
-
+            name = args[1];
         }
 
         return name;
