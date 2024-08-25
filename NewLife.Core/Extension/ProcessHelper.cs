@@ -10,7 +10,7 @@ namespace NewLife;
 
 /// <summary>进程助手类</summary>
 /// <remarks>
-/// 文档 https://newlifex.com/core/string_helper
+/// 文档 https://newlifex.com/core/process_helper
 /// </remarks>
 public static class ProcessHelper
 {
