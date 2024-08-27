@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
 
@@ -80,6 +81,24 @@ public class Packet
 
         // 必须确保数据流位置不变
         if (count > 0) stream.Seek(-count, SeekOrigin.Current);
+    }
+
+    /// <summary>从Span实例化</summary>
+    /// <param name="span"></param>
+    public Packet(Span<Byte> span) => Set(span.ToArray());
+
+    /// <summary>从Memory实例化</summary>
+    /// <param name="memory"></param>
+    public Packet(Memory<Byte> memory)
+    {
+        if (MemoryMarshal.TryGetArray<Byte>(memory, out var segment))
+        {
+            Set(segment.Array!, segment.Offset, segment.Count);
+        }
+        else
+        {
+            Set(memory.ToArray());
+        }
     }
     #endregion
 
@@ -347,7 +366,6 @@ public class Packet
         return list;
     }
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
     /// <summary>转为Span</summary>
     /// <returns></returns>
     public Span<Byte> AsSpan()
@@ -365,7 +383,6 @@ public class Packet
 
         return new Memory<Byte>(ToArray());
     }
-#endif
 
     /// <summary>获取封包的数据流形式</summary>
     /// <returns></returns>
