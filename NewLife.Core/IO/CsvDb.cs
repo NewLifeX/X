@@ -70,7 +70,7 @@ public class CsvDb<T> where T : new()
 
     /// <summary>尾部插入数据，性能极好</summary>
     /// <param name="model"></param>
-    public void Add(T model) => Add(new[] { model });
+    public void Add(T model) => Add([model]);
 
     /// <summary>尾部插入数据，性能极好</summary>
     /// <param name="models"></param>
@@ -79,7 +79,7 @@ public class CsvDb<T> where T : new()
     /// <summary>删除数据，性能很差，全部读取剔除后保存</summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    public Int32 Remove(T model) => Remove(new[] { model });
+    public Int32 Remove(T model) => Remove([model]);
 
     /// <summary>删除数据，性能很差，全部读取剔除后保存</summary>
     /// <param name="models"></param>
@@ -119,7 +119,7 @@ public class CsvDb<T> where T : new()
     }
 
     /// <summary>清空数据。只写头部</summary>
-    public void Clear() => Write(new T[0], false);
+    public void Clear() => Write([], false);
 
     /// <summary>更新指定数据行，性能很差，全部读取替换后保存</summary>
     /// <param name="model"></param>
@@ -138,7 +138,7 @@ public class CsvDb<T> where T : new()
         lock (this)
         {
             var list = FindAll();
-            if (list.Count == 0) return false;
+            if (!add && list.Count == 0) return false;
 
             // 找到目标数据行，并替换
             var flag = false;
