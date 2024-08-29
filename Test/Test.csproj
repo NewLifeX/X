@@ -25,8 +25,8 @@
     <None Remove="Model\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="3.0.2024.707" />
-    <PackageReference Include="NewLife.XCode" Version="11.13.2024.701" />
+    <PackageReference Include="NewLife.Stardust" Version="3.0.2024.806" />
+    <PackageReference Include="NewLife.XCode" Version="11.15.2024.806" />
     <!--<PackageReference Include="System.Speech" Version="7.0.0" />-->
   </ItemGroup>
   <ItemGroup>
