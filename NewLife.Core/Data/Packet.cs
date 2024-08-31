@@ -11,7 +11,7 @@ namespace NewLife.Data;
 /// 设计于.NET2.0时代，功能上类似于NETCore的Span/Memory。
 /// Packet的设计目标就是网络库零拷贝，所以Slice切片是其最重要功能。
 /// </remarks>
-public class Packet
+public class Packet : IPacket
 {
     #region 属性
     /// <summary>数据</summary>
@@ -22,6 +22,8 @@ public class Packet
 
     /// <summary>长度</summary>
     public Int32 Count { get; private set; }
+
+    Int32 IPacket.Length => Total;
 
     /// <summary>下一个链式包</summary>
     public Packet? Next { get; set; }
@@ -383,6 +385,9 @@ public class Packet
 
         return new Memory<Byte>(ToArray());
     }
+
+    Span<Byte> IPacket.GetSpan() => AsSpan();
+    Memory<Byte> IPacket.GetMemory() => AsMemory();
 
     /// <summary>获取封包的数据流形式</summary>
     /// <returns></returns>
