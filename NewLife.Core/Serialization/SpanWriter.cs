@@ -15,7 +15,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     private Int32 _index;
     /// <summary>已写入字节数</summary>
-    public Int32 WrittenCount => _index;
+    public Int32 Position => _index;
 
     /// <summary>总容量</summary>
     public Int32 Capacity => _span.Length;
@@ -33,17 +33,10 @@ public ref struct SpanWriter(Span<Byte> buffer)
     public void Advance(Int32 count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-        if (_index > _span.Length - count) throw new ArgumentOutOfRangeException(nameof(count));
+        if (_index + count > _span.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
         _index += count;
     }
-
-    //public Memory<Byte> GetMemory(Int32 sizeHint = 0)
-    //{
-    //    if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
-
-    //    return _buffer[.._index];
-    //}
 
     /// <summary>返回要写入到的Span，其大小按 sizeHint 参数指定至少为所请求的大小</summary>
     /// <param name="sizeHint"></param>
@@ -53,10 +46,8 @@ public ref struct SpanWriter(Span<Byte> buffer)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
 
-        return _span[.._index];
+        return _span[_index..];
     }
-
-    //public Span<Byte> GetRemain() => _buffer[_index..];
     #endregion
 
     #region 写入方法
@@ -68,7 +59,10 @@ public ref struct SpanWriter(Span<Byte> buffer)
             throw new InvalidOperationException("Not enough data to write.");
     }
 
-    /// <summary>写入字节。</summary>
+    /// <summary>写入字节</summary>
+    public Int32 WriteByte(Int32 value) => Write((Byte)value);
+
+    /// <summary>写入字节</summary>
     /// <param name="value">要写入的字节值。</param>
     public Int32 Write(Byte value)
     {

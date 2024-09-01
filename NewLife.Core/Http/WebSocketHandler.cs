@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+﻿using NewLife.Data;
+using NewLife.Log;
 
 namespace NewLife.Http;
 

@@ -208,6 +208,8 @@ public class Packet : IPacket
         }
     }
 
+    IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
+
     /// <summary>查找目标数组</summary>
     /// <param name="data">目标数组</param>
     /// <param name="offset">本数组起始偏移</param>

@@ -122,7 +122,7 @@ public struct OwnerPacket : IDisposable, IPacket
         if (offset == 0)
             return new OwnerPacket(_owner, count);
 
-        return new MemoryPacket(_owner.Memory[offset], count);
+        return new MemoryPacket(_owner.Memory.Slice(offset, count), count);
     }
 }
 
@@ -234,4 +234,21 @@ public struct ArrayPacket : IPacket
 
         return new ArrayPacket(_buffer, _offset + offset, count);
     }
+
+    #region 重载运算符
+    /// <summary>重载类型转换，字节数组直接转为Packet对象</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static implicit operator ArrayPacket(Byte[] value) => new(value);
+
+    /// <summary>重载类型转换，一维数组直接转为Packet对象</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static implicit operator ArrayPacket(ArraySegment<Byte> value) => new(value.Array!, value.Offset, value.Count);
+
+    /// <summary>重载类型转换，字符串直接转为Packet对象</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static implicit operator ArrayPacket(String value) => new(value.GetBytes());
+    #endregion
 }

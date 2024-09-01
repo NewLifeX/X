@@ -1,5 +1,7 @@
-﻿using NewLife.Collections;
+﻿using System.Buffers.Binary;
+using System.Text;
 using NewLife.Data;
+using NewLife.Serialization;
 
 namespace NewLife.Http;
 
@@ -39,7 +41,7 @@ public class WebSocketMessage
     public Byte[]? MaskKey { get; set; }
 
     /// <summary>负载数据</summary>
-    public Packet? Payload { get; set; }
+    public IPacket? Payload { get; set; }
 
     /// <summary>关闭状态。仅用于Close消息</summary>
     public Int32 CloseStatus { get; set; }
@@ -52,12 +54,16 @@ public class WebSocketMessage
     /// <summary>读取消息</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public Boolean Read(Packet pk)
+    public Boolean Read(IPacket pk)
     {
-        if (pk.Count < 2) return false;
+        if (pk.Length < 2) return false;
 
-        var ms = pk.GetStream();
-        var b = ms.ReadByte();
+        var reader = new SpanReader(pk.GetSpan())
+        {
+            IsLittleEndian = false
+        };
+        //var reader = pk.GetStream();
+        var b = reader.ReadByte();
 
         Type = (WebSocketMessageType)(b & 0x7F);
 
@@ -65,9 +71,9 @@ public class WebSocketMessage
         Fin = (b & 0x80) == 0x80;
         if (!Fin) return false;
 
-        var len = ms.ReadByte();
+        var b2 = reader.ReadByte();
 
-        var mask = (len & 0x80) == 0x80;
+        var mask = (b2 & 0x80) == 0x80;
 
         /*
          * 数据长度
@@ -75,33 +81,28 @@ public class WebSocketMessage
          * len = 126    后续2字节表示长度，大端
          * len = 127    后续8字节表示长度
          */
-        len &= 0x7F;
+        var len = (Int64)(b2 & 0x7F);
         if (len == 126)
-            len = (ms.ReadByte() << 8) | ms.ReadByte();
+            len = reader.ReadUInt16();
         else if (len == 127)
-        {
-            var buf = Pool.Shared.Rent(8);
-            ms.Read(buf, 0, buf.Length);
-            // 没有人会传输超大数据
-            len = (Int32)BitConverter.ToUInt64(buf, 0);
-            Pool.Shared.Return(buf);
-        }
+            len = reader.ReadInt64();
 
         // 如果mask，剩下的就是数据，避免拷贝，提升性能
         if (!mask)
         {
-            Payload = pk.Slice((Int32)ms.Position, len);
+            Payload = pk.Slice(reader.Position, (Int32)len);
         }
         else
         {
             var masks = new Byte[4];
-            if (mask) ms.Read(masks, 0, masks.Length);
+            if (mask) reader.ReadBytes(4).CopyTo(masks);
             MaskKey = masks;
 
             if (mask)
             {
                 // 直接在数据缓冲区修改，避免拷贝
-                var data = Payload = pk.Slice((Int32)ms.Position, len);
+                Payload = pk.Slice(reader.Position, (Int32)len);
+                var data = Payload.GetSpan();
                 for (var i = 0; i < len; i++)
                 {
                     data[i] = (Byte)(data[i] ^ masks[i % 4]);
@@ -110,14 +111,11 @@ public class WebSocketMessage
         }
 
         // 特殊处理关闭消息
-        if (Type == WebSocketMessageType.Close)
+        if (Type == WebSocketMessageType.Close && Payload != null)
         {
-            var data = Payload;
-            if (data != null)
-            {
-                CloseStatus = data.ReadBytes(0, 2).ToUInt16(0, false);
-                StatusDescription = data.Slice(2).ToStr();
-            }
+            var data = Payload.GetSpan();
+            CloseStatus = BinaryPrimitives.ReadUInt16BigEndian(data[..2]);
+            StatusDescription = data[2..].ToStr();
         }
 
         return true;
@@ -125,23 +123,25 @@ public class WebSocketMessage
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    public virtual Packet ToPacket()
+    public virtual IPacket ToPacket()
     {
         var pk = Payload;
-        var len = pk == null ? 0 : pk.Total;
+        var len = pk == null ? 0 : pk.Length;
 
         // 特殊处理关闭消息
         if (len == 0 && Type == WebSocketMessageType.Close)
         {
-            pk = new Packet(((UInt16)CloseStatus).GetBytes(false))
-            {
-                Next = StatusDescription.GetBytes()
-            };
-            len = pk.Total;
+            len = 2;
+            if (!StatusDescription.IsNullOrEmpty()) len += Encoding.UTF8.GetByteCount(StatusDescription);
         }
 
-        var ms = new MemoryStream();
-        ms.WriteByte((Byte)(0x80 | (Byte)Type));
+        var rs = new OwnerPacket(1 + 1 + 8 + 4 + len);
+        var writer = new SpanWriter(rs.GetSpan())
+        {
+            IsLittleEndian = false
+        };
+
+        writer.WriteByte((Byte)(0x80 | (Byte)Type));
 
         var masks = MaskKey;
 
@@ -156,42 +156,42 @@ public class WebSocketMessage
         {
             if (len < 126)
             {
-                ms.WriteByte((Byte)len);
+                writer.WriteByte((Byte)len);
             }
             else if (len < 0xFFFF)
             {
-                ms.WriteByte(126);
-                ms.Write(((Int16)len).GetBytes(false));
+                writer.WriteByte(126);
+                writer.Write((Int16)len);
             }
             else
             {
-                ms.WriteByte(127);
-                ms.Write(((Int64)len).GetBytes(false));
+                writer.WriteByte(127);
+                writer.Write((Int64)len);
             }
         }
         else
         {
             if (len < 126)
             {
-                ms.WriteByte((Byte)(len | 0x80));
+                writer.WriteByte((Byte)(len | 0x80));
             }
             else if (len < 0xFFFF)
             {
-                ms.WriteByte(126 | 0x80);
-                ms.Write(((Int16)len).GetBytes(false));
+                writer.WriteByte(126 | 0x80);
+                writer.Write((Int16)len);
             }
             else
             {
-                ms.WriteByte(127 | 0x80);
-                ms.Write(((Int64)len).GetBytes(false));
+                writer.WriteByte(127 | 0x80);
+                writer.Write((Int64)len);
             }
 
-            ms.Write(masks);
+            writer.Write(masks);
 
             // 掩码混淆数据。直接在数据缓冲区修改，避免拷贝
-            var data = Payload;
-            if (data != null)
+            if (Payload != null)
             {
+                var data = Payload.GetSpan();
                 for (var i = 0; i < len; i++)
                 {
                     data[i] = (Byte)(data[i] ^ masks[i % 4]);
@@ -199,7 +199,15 @@ public class WebSocketMessage
             }
         }
 
-        return new Packet(ms.ToArray()) { Next = pk };
+        if (pk != null && pk.Length > 0)
+            writer.Write(pk.GetSpan());
+        else if (Type == WebSocketMessageType.Close)
+        {
+            writer.Write((Int16)CloseStatus);
+            if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription);
+        }
+
+        return rs.Slice(0, writer.Position);
     }
     #endregion
 }

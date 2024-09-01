@@ -1,4 +1,5 @@
-﻿using NewLife.Http;
+﻿using NewLife.Data;
+using NewLife.Http;
 using NewLife.Log;
 
 namespace Zero.WebSocketServer;

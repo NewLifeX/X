@@ -13,8 +13,8 @@ public ref struct SpanReader(Span<Byte> span)
     private readonly Span<Byte> _span = span;
 
     private Int32 _index;
-    /// <summary>已写入字节数</summary>
-    public Int32 WrittenCount => _index;
+    /// <summary>已读取字节数</summary>
+    public Int32 Position => _index;
 
     /// <summary>总容量</summary>
     public Int32 Capacity => _span.Length;
@@ -27,12 +27,12 @@ public ref struct SpanReader(Span<Byte> span)
     #endregion
 
     #region 基础方法
-    /// <summary>告知有多少数据已写入缓冲区</summary>
+    /// <summary>告知有多少数据已从缓冲区读取</summary>
     /// <param name="count"></param>
     public void Advance(Int32 count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-        if (_index > _span.Length - count) throw new ArgumentOutOfRangeException(nameof(count));
+        if (_index + count > _span.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
         _index += count;
     }
@@ -45,7 +45,7 @@ public ref struct SpanReader(Span<Byte> span)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
 
-        return _span[.._index];
+        return _span[_index..];
     }
     #endregion
 

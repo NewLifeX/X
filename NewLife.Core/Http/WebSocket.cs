@@ -64,7 +64,7 @@ public class WebSocket
 
     /// <summary>处理WebSocket数据包，不支持超大数据帧（默认8k）</summary>
     /// <param name="pk"></param>
-    public void Process(Packet pk)
+    public void Process(IPacket pk)
     {
         var message = new WebSocketMessage();
         if (message.Read(pk))
@@ -92,7 +92,7 @@ public class WebSocket
                         var msg = new WebSocketMessage
                         {
                             Type = WebSocketMessageType.Pong,
-                            Payload = $"Pong {DateTime.UtcNow.ToFullString()}",
+                            Payload = (ArrayPacket)$"Pong {DateTime.UtcNow.ToFullString()}",
                         };
                         Send(msg);
                     }
@@ -107,10 +107,11 @@ public class WebSocket
         var socket = Context?.Socket;
         if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
 
+        var data = msg.ToPacket().GetSpan().ToArray();
         if (session != null)
-            session.Send(msg.ToPacket());
+            session.Send(data);
         else
-            socket?.Send(msg.ToPacket());
+            socket?.Send(data);
     }
 
     /// <summary>发送消息</summary>
@@ -134,7 +135,8 @@ public class WebSocket
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        session.Host.SendAllAsync(msg.ToPacket(), predicate);
+        var data2 = msg.ToPacket().GetSpan().ToArray();
+        session.Host.SendAllAsync(data2, predicate);
     }
 
     /// <summary>想所有连接发送文本消息</summary>

@@ -188,7 +188,7 @@ public class WebSocketClient : TcpSession
         var msg = new WebSocketMessage
         {
             Type = WebSocketMessageType.Ping,
-            Payload = $"Ping {DateTime.UtcNow.ToFullString()}",
+            Payload = (ArrayPacket)$"Ping {DateTime.UtcNow.ToFullString()}",
         };
 
         SendMessage(msg);
