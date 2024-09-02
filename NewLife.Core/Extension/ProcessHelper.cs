@@ -41,6 +41,12 @@ public static class ProcessHelper
         return pname;
     }
 
+    /// <summary>获取二级进程名</summary>
+    /// <param name="process"></param>
+    /// <returns></returns>
+    [Obsolete("=>GetProcessName", true)]
+    public static String GetProcessName2(this Process process) => GetProcessName(process);
+
     ///// <summary>根据名称获取进程。支持dotnet/java</summary>
     ///// <param name="name"></param>
     ///// <returns></returns>
