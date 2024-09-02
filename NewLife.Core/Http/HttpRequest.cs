@@ -1,4 +1,5 @@
-﻿using NewLife.Collections;
+﻿using System;
+using NewLife.Collections;
 using NewLife.Data;
 
 namespace NewLife.Http;
@@ -51,14 +52,15 @@ public class HttpRequest : HttpBase
     /// <summary>快速分析请求头，只分析第一行</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public Boolean FastParse(Packet pk)
+    public Boolean FastParse(IPacket pk)
     {
-        if (!FastValidHeader(pk)) return false;
+        var data = pk.GetSpan();
+        if (!FastValidHeader(data)) return false;
 
-        var p = pk.IndexOf(NewLine);
+        var p = data.IndexOf(NewLine);
         if (p < 0) return false;
 
-        var line = pk.ReadBytes(0, p).ToStr();
+        var line = data.Slice(0, p).ToStr();
 
         Body = pk.Slice(p + 2);
 
@@ -130,7 +132,8 @@ public class HttpRequest : HttpBase
         if (boundary.IsNullOrEmpty()) return dic;
 
         var body = Body;
-        if (body == null || body.Total == 0) return dic;
+        if (body == null || body.Length == 0) return dic;
+        var data = body.GetSpan();
 
         /*
          * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
@@ -153,18 +156,18 @@ public class HttpRequest : HttpBase
         do
         {
             // 找到开始边界
-            if (p == 0) p = body.IndexOf(bd, p);
+            if (p == 0) p = data[p..].IndexOf(bd);
             if (p < 0) break;
             p += bd.Length + 2;
 
             // 截取整个部分，最后2个字节的换行不要
-            var pPart = body.IndexOf(bd, p);
+            var pPart = data[p..].IndexOf(bd);
             if (pPart < 0) break;
 
-            var part = body.Slice(p, pPart - p - 2);
+            var part = data.Slice(p, pPart - p - 2);
 
-            var pHeader = part.IndexOf(NewLine2);
-            var header = part.Slice(0, pHeader);
+            var pHeader = data.IndexOf(NewLine2);
+            var header = part[..pHeader];
 
             var lines = header.ToStr().SplitAsDictionary(":", "\r\n");
             if (lines.TryGetValue("Content-Disposition", out var str))
@@ -181,7 +184,7 @@ public class HttpRequest : HttpBase
                     file.ContentType = str;
 
                 var fileData = part.Slice(pHeader + NewLine2.Length);
-                file.Data = fileData;
+                file.Data = fileData.ToArray();
 
                 if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
             }
@@ -191,7 +194,7 @@ public class HttpRequest : HttpBase
 
             p = pPart;
 
-        } while (p < body.Total);
+        } while (p < body.Length);
 
         return dic;
     }

@@ -1,10 +1,9 @@
-﻿using System.Globalization;
+﻿using System.Buffers;
+using System.Globalization;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Web;
 using NewLife.Collections;
 using NewLife.Data;
@@ -128,7 +127,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="uri"></param>
     /// <param name="request"></param>
     /// <returns></returns>
-    protected virtual async Task<Packet> SendDataAsync(Uri? uri, Packet? request)
+    protected virtual async Task<IPacket> SendDataAsync(Uri? uri, IPacket? request)
     {
         var ns = await GetStreamAsync(uri).ConfigureAwait(false);
 
@@ -136,16 +135,16 @@ public class TinyHttpClient : DisposeBase
         if (request != null) await request.CopyToAsync(ns).ConfigureAwait(false);
 
         // 接收
-        var buf = new Byte[BufferSize];
+        var pk = new ArrayPacket(BufferSize);
         using var source = new CancellationTokenSource(Timeout);
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-        var count = await ns.ReadAsync(buf, source.Token).ConfigureAwait(false);
+#if NETCOREAPP || NETSTANDARD2_1
+        var count = await ns.ReadAsync(pk.GetMemory(), source.Token).ConfigureAwait(false);
 #else
-        var count = await ns.ReadAsync(buf, 0, buf.Length, source.Token).ConfigureAwait(false);
+        var count = await ns.ReadAsync(pk.Buffer, 0, pk.Length, source.Token).ConfigureAwait(false);
 #endif
 
-        return new Packet(buf, 0, count);
+        return pk.Slice(0, count);
     }
 
     /// <summary>异步发出请求，并接收响应</summary>
@@ -158,13 +157,13 @@ public class TinyHttpClient : DisposeBase
         var req = request.Build();
 
         var res = new HttpResponse();
-        Packet? rs = null;
+        IPacket? rs = null;
         var retry = 5;
         while (retry-- > 0)
         {
             // 发出请求
             rs = await SendDataAsync(uri, req).ConfigureAwait(false);
-            if (rs == null || rs.Count == 0) return null;
+            if (rs == null || rs.Length == 0) return null;
 
             // 解析响应
             if (!res.Parse(rs)) return res;
@@ -194,9 +193,9 @@ public class TinyHttpClient : DisposeBase
         if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
         // 如果没有收完数据包
-        if (rs != null && res.ContentLength > 0 && rs.Count < res.ContentLength)
+        if (rs != null && res.ContentLength > 0 && rs.Length < res.ContentLength)
         {
-            var total = rs.Total;
+            var total = rs.Length;
             var last = rs;
             while (total < res.ContentLength)
             {
@@ -204,7 +203,7 @@ public class TinyHttpClient : DisposeBase
                 last.Append(pk);
 
                 last = pk;
-                total += pk.Total;
+                total += pk.Length;
             }
         }
 
@@ -212,7 +211,7 @@ public class TinyHttpClient : DisposeBase
         if (rs != null && res.Headers.TryGetValue("Transfer-Encoding", out var s) && s.EqualIgnoreCase("chunked"))
         {
             // 如果不足则读取一个chunk，因为有可能第一个响应包只有头部
-            if (rs.Count == 0)
+            if (rs.Length == 0)
                 rs = await SendDataAsync(null, null).ConfigureAwait(false);
 
             res.Body = await ReadChunkAsync(rs);
@@ -227,7 +226,7 @@ public class TinyHttpClient : DisposeBase
     /// <summary>读取分片，返回链式Packet</summary>
     /// <param name="body"></param>
     /// <returns></returns>
-    protected virtual async Task<Packet> ReadChunkAsync(Packet body)
+    protected virtual async Task<IPacket> ReadChunkAsync(IPacket body)
     {
         var rs = body;
         var last = body;
@@ -240,7 +239,7 @@ public class TinyHttpClient : DisposeBase
 
             // 更新pk，可能还有粘包数据。每一帧数据后面有\r\n
             var next = offset + len + 2;
-            if (next < pk.Total)
+            if (next < pk.Length)
                 pk = pk.Slice(next);
             else
                 pk = null;
@@ -254,7 +253,7 @@ public class TinyHttpClient : DisposeBase
             last = chunk;
 
             // 如果该片段数据不足，则需要多次读取
-            var total = chunk.Total;
+            var total = chunk.Length;
             while (total < len)
             {
                 var pk2 = await SendDataAsync(null, null).ConfigureAwait(false);
@@ -265,17 +264,17 @@ public class TinyHttpClient : DisposeBase
 
                 // 结尾的间断符号（如换行或00）。这里有可能一个数据包里面同时返回多个分片
                 var count = len - total;
-                if (pk != null && count <= pk.Total)
+                if (pk != null && count <= pk.Length)
                 {
                     var pk3 = pk.Slice(0, count);
 
                     last.Append(pk3);
                     last = pk3;
-                    total += pk3.Total;
+                    total += pk3.Length;
 
                     // 如果还有剩余，作为下一个chunk
                     count += 2;
-                    if (count < pk.Total)
+                    if (count < pk.Length)
                         pk = pk.Slice(count);
                     else
                         pk = null;
@@ -283,12 +282,12 @@ public class TinyHttpClient : DisposeBase
             }
 
             // 还有粘包数据，继续分析
-            if (pk == null || pk.Total == 0) break;
-            if (pk.Total > 0) continue;
+            if (pk == null || pk.Length == 0) break;
+            if (pk.Length > 0) continue;
 
             // 读取新的数据片段，如果不存在则跳出
             pk = await SendDataAsync(null, null).ConfigureAwait(false);
-            if (pk == null || pk.Total == 0) break;
+            if (pk == null || pk.Length == 0) break;
         }
 
         return rs;
@@ -297,18 +296,19 @@ public class TinyHttpClient : DisposeBase
 
     #region 辅助
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
-    private Packet ParseChunk(Packet rs, out Int32 offset, out Int32 octets)
+    private IPacket ParseChunk(IPacket rs, out Int32 offset, out Int32 octets)
     {
         // chunk编码
         // 1 ba \r\n xxxx \r\n 0 \r\n\r\n
 
         offset = 0;
         octets = 0;
-        var p = rs.IndexOf(NewLine);
+        var data = rs.GetSpan();
+        var p = data.IndexOf(NewLine);
         if (p <= 0) return rs;
 
         // 第一段长度
-        var str = rs.Slice(0, p).ToStr();
+        var str = data[..p].ToStr();
         //if (str.Length % 2 != 0) str = "0" + str;
         //var len = (Int32)str.ToHex().ToUInt32(0, false);
         //Int32.TryParse(str, NumberStyles.HexNumber, null, out var len);
@@ -351,7 +351,7 @@ public class TinyHttpClient : DisposeBase
 
         var rs = await SendAsync(request);
 
-        if (rs == null || rs.Body == null || rs.Body.Total == 0) return default;
+        if (rs == null || rs.Body == null || rs.Body.Length == 0) return default;
 
         return ProcessResponse<TResult>(rs.Body);
     }
@@ -369,7 +369,7 @@ public class TinyHttpClient : DisposeBase
 
         var ps = args.ToDictionary();
         if (method.EqualIgnoreCase("Post"))
-            req.Body = JsonHost.Write(ps).GetBytes();
+            req.Body = (ArrayPacket)JsonHost.Write(ps).GetBytes();
         else
         {
             var sb = Pool.StringBuilder.Get();
@@ -392,7 +392,7 @@ public class TinyHttpClient : DisposeBase
         return req;
     }
 
-    private TResult? ProcessResponse<TResult>(Packet rs)
+    private TResult? ProcessResponse<TResult>(IPacket rs)
     {
         var str = rs.ToStr();
         if (typeof(TResult).IsBaseType()) return str.ChangeType<TResult>();

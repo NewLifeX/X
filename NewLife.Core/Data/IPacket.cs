@@ -20,6 +20,9 @@ public interface IPacket
     /// <summary>数据长度</summary>
     Int32 Length { get; }
 
+    /// <summary>下一个链式包</summary>
+    IPacket? Next { get; set; }
+
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     Span<Byte> GetSpan();
@@ -42,15 +45,82 @@ public interface IPacket
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
 {
+    /// <summary>附加一个包到当前包链的末尾</summary>
+    /// <param name="pk"></param>
+    /// <param name="next"></param>
+    public static IPacket Append(this IPacket pk, IPacket next)
+    {
+        if (next == null) return pk;
+
+        var p = pk;
+        while (p.Next != null) p = p.Next;
+        p.Next = next;
+
+        return pk;
+    }
+
     /// <summary>转字符串并释放</summary>
     /// <param name="pk"></param>
     /// <param name="encoding"></param>
     /// <returns></returns>
     public static String ToStr(this IPacket pk, Encoding? encoding = null)
     {
-        var rs = pk.GetSpan().ToStr(encoding);
-        pk.TryDispose();
-        return rs;
+        if (pk.Next == null)
+        {
+            var rs = pk.GetSpan().ToStr(encoding);
+            pk.TryDispose();
+            return rs;
+        }
+
+        var sb = Pool.StringBuilder.Get();
+        for (var p = pk; p != null; p = p.Next)
+        {
+            sb.Append(p.GetSpan().ToStr(encoding));
+        }
+        return sb.Return(true);
+    }
+
+    /// <summary>拷贝</summary>
+    /// <param name="pk"></param>
+    /// <param name="stream"></param>
+    public static void CopyTo(this IPacket pk, Stream stream)
+    {
+#if NETCOREAPP
+        for (var p = pk; p != null; p = p.Next)
+        {
+            stream.Write(p.GetSpan());
+        }
+#else
+        for (var p = pk; p != null; p = p.Next)
+        {
+            if (p is ArrayPacket ap)
+                stream.Write(ap.Buffer, ap.Offset, ap.Length);
+            else
+                stream.Write(p.GetSpan().ToArray());
+        }
+#endif
+    }
+
+    /// <summary>异步拷贝</summary>
+    /// <param name="pk"></param>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    public static async Task CopyToAsync(this IPacket pk, Stream stream)
+    {
+        for (var p = pk; p != null; p = p.Next)
+        {
+            await stream.WriteAsync(p.GetMemory());
+        }
+    }
+
+    /// <summary>获取数据流</summary>
+    /// <param name="pk"></param>
+    /// <returns></returns>
+    public static Stream GetStream(this IPacket pk)
+    {
+        if (pk is ArrayPacket ap) return new MemoryStream(ap.Buffer, ap.Offset, ap.Length);
+
+        return new MemoryStream(pk.GetSpan().ToArray());
     }
 }
 
@@ -71,6 +141,9 @@ public struct OwnerPacket : IDisposable, IPacket
 
     /// <summary>是否拥有管理权</summary>
     public Boolean HasOwner { get; set; }
+
+    /// <summary>下一个链式包</summary>
+    public IPacket? Next { get; set; }
     #endregion
 
     /// <summary>实例化指定长度的内存包，从共享内存池中借出</summary>
@@ -163,6 +236,9 @@ public struct MemoryPacket : IPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
+
+    /// <summary>下一个链式包</summary>
+    public IPacket? Next { get; set; }
     #endregion
 
     /// <summary>实例化内存包，指定内存和长度</summary>
@@ -223,6 +299,9 @@ public struct ArrayPacket : IDisposable, IPacket
 
     /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
     public Boolean HasOwner { get; set; }
+
+    /// <summary>下一个链式包</summary>
+    public IPacket? Next { get; set; }
     #endregion
 
     /// <summary>通过指定字节数组来实例化数据包</summary>

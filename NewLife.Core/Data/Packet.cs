@@ -30,6 +30,8 @@ public class Packet : IPacket
 
     /// <summary>总长度</summary>
     public Int32 Total => Count + (Next != null ? Next.Total : 0);
+
+    IPacket? IPacket.Next { get => Next; set => Next = (value as Packet) ?? throw new InvalidDataException(); }
     #endregion
 
     #region 构造

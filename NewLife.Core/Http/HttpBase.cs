@@ -1,5 +1,7 @@
-﻿using NewLife.Collections;
+﻿using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Serialization;
 
 namespace NewLife.Http;
 
@@ -17,10 +19,10 @@ public abstract class HttpBase
     public String? ContentType { get; set; }
 
     /// <summary>请求或响应的主体部分</summary>
-    public Packet? Body { get; set; }
+    public IPacket? Body { get; set; }
 
     /// <summary>主体长度</summary>
-    public Int32 BodyLength => Body == null ? 0 : Body.Total;
+    public Int32 BodyLength => Body == null ? 0 : Body.Length;
 
     /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
     public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
@@ -36,48 +38,75 @@ public abstract class HttpBase
 
     #region 解析
     /// <summary>快速验证协议头，剔除非HTTP协议。仅排除，验证通过不一定就是HTTP协议</summary>
-    /// <param name="pk"></param>
+    /// <param name="data"></param>
     /// <returns></returns>
-    public static Boolean FastValidHeader(Packet pk)
+    public static Boolean FastValidHeader(ReadOnlySpan<Byte> data)
     {
         // 性能优化，Http头部第一行以请求谓语或响应版本开头，然后是一个空格。最长谓语Options/Connect，版本HTTP/1.1，不超过10个字符
-        var p = pk.IndexOf([(Byte)' '], 0, 10);
-        if (p < 0) return false;
-
-        return true;
+        if (data.Length > 10) data = data[..10];
+        var p = data.IndexOf((Byte)' ');
+        return p >= 0;
     }
 
-    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
+    private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
+    private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析请求头</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public Boolean Parse(Packet pk)
+    public Boolean Parse(IPacket pk)
     {
-        if (!FastValidHeader(pk)) return false;
+        var data = pk.GetSpan();
+        if (!FastValidHeader(data)) return false;
 
         // 识别整个请求头
-        var p = pk.IndexOf(NewLine);
+        var p = data.IndexOf(NewLine2);
         if (p < 0) return false;
 
-        var str = pk.ReadBytes(0, p).ToStr();
+        // 分析头部
+        var header = data[..(p + 2)];
+        var firstLine = "";
+        while (true)
+        {
+            var p2 = header.IndexOf(NewLine);
+            if (p2 < 0) break;
+
+            var line = header[..p2];
+            if (firstLine.IsNullOrEmpty())
+                firstLine = line.ToStr();
+            else
+            {
+                var p3 = line.IndexOf((Byte)':');
+                if (p3 > 0)
+                {
+                    var name = line[..p3].ToStr();
+                    var value = line[(p3 + 1)..].ToStr();
+                    Headers[name] = value;
+                }
+            }
+
+            if (p2 + 2 == header.Length) break;
+            header = header[(p2 + 2)..];
+        }
+
+        //var str = pk.ReadBytes(0, p).ToStr();
 
         // 截取
-        var lines = str.Split("\r\n");
+        //var lines = str.Split("\r\n");
         Body = pk.Slice(p + 4);
 
-        // 分析头部
-        for (var i = 1; i < lines.Length; i++)
-        {
-            var line = lines[i];
-            p = line.IndexOf(':');
-            if (p > 0) Headers[line[..p]] = line[(p + 1)..].Trim();
-        }
+        //// 分析头部
+        //for (var i = 1; i < lines.Length; i++)
+        //{
+        //    var line = lines[i];
+        //    p = line.IndexOf(':');
+        //    if (p > 0) Headers[line[..p]] = line[(p + 1)..].Trim();
+        //}
 
         ContentLength = Headers["Content-Length"].ToInt(-1);
         ContentType = Headers["Content-Type"];
 
         // 分析第一行
-        if (!OnParse(lines[0])) return false;
+        if (!OnParse(firstLine)) return false;
 
         return true;
     }
@@ -90,18 +119,29 @@ public abstract class HttpBase
     #region 读写
     /// <summary>创建请求响应包</summary>
     /// <returns></returns>
-    public virtual Packet Build()
+    public virtual IPacket Build()
     {
-        var data = Body;
-        var len = data != null ? data.Count : -1;
+        var body = Body;
+        var len = body != null ? body.Length : -1;
 
         var header = BuildHeader(len);
-        var rs = new Packet(header.GetBytes())
-        {
-            Next = data
-        };
+        var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);
+        var writer = new SpanWriter(pk.GetSpan());
 
-        return rs;
+        //BuildHeader(writer, len);
+        writer.Write(header);
+
+        if (body != null) writer.Write(body.GetSpan());
+
+        return pk.Slice(0, writer.Position);
+
+        //var header = BuildHeader(len);
+        //var rs = new Packet(header.GetBytes())
+        //{
+        //    Next = data
+        //};
+
+        //return rs;
     }
 
     /// <summary>创建头部</summary>

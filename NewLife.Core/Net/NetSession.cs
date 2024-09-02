@@ -232,7 +232,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     #region 发送数据
     /// <summary>发送数据，直达网卡</summary>
     /// <param name="data">数据包</param>
-    public virtual INetSession Send(Packet data)
+    public virtual INetSession Send(IPacket data)
     {
         var ns = (this as INetSession).Host;
         using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data);

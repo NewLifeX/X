@@ -43,12 +43,12 @@ public class HttpResponse : HttpBase
 
     /// <summary>创建请求响应包</summary>
     /// <returns></returns>
-    public override Packet Build()
+    public override IPacket Build()
     {
         // 如果响应异常，则使用响应描述作为内容
         if (StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())
         {
-            Body = StatusDescription.GetBytes();
+            Body = (ArrayPacket)StatusDescription.GetBytes();
         }
 
         return base.Build();
@@ -116,22 +116,22 @@ public class HttpResponse : HttpBase
         else if (result is Byte[] buffer)
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-            Body = buffer;
+            Body = (ArrayPacket)buffer;
         }
         else if (result is Stream stream)
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
-            Body = stream.ReadBytes(-1);
+            Body = (ArrayPacket)stream.ReadBytes(-1);
         }
         else if (result is String str)
         {
             if (contentType.IsNullOrEmpty()) contentType = "text/html";
-            Body = str.GetBytes();
+            Body = (ArrayPacket)str.GetBytes();
         }
         else
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/json";
-            Body = result.ToJson().GetBytes();
+            Body = (ArrayPacket)result.ToJson().GetBytes();
         }
 
         if (ContentType.IsNullOrEmpty()) ContentType = contentType;

@@ -49,7 +49,7 @@ public interface INetSession : IDisposable2
     #region 收发
     /// <summary>发送数据，直达网卡</summary>
     /// <param name="data">数据包</param>
-    INetSession Send(Packet data);
+    INetSession Send(IPacket data);
 
     /// <summary>发送数据流，直达网卡</summary>
     /// <param name="stream"></param>

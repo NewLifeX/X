@@ -114,7 +114,7 @@ public class HttpSession : INetHandler
         {
             // 改变数据
             data.Message = req;
-            data.Packet = req.Body;
+            data.Packet = req.Body as Packet;
         }
 
         // 收到全部数据后，触发请求处理
@@ -168,10 +168,12 @@ public class HttpSession : INetHandler
                 var flag = false;
                 if (request.BodyLength > 0 &&
                     request.Body != null &&
-                    request.Body.Total < 8 * 1024 &&
+                    request.Body.Length < 8 * 1024 &&
                     request.ContentType.EqualIgnoreCase(TagTypes))
                 {
-                    span.AppendTag("\r\n<=\r\n" + request.Body.ToStr(null, 0, 1024));
+                    var body = request.Body.GetSpan();
+                    if (body.Length > 1024) body = body[..1024];
+                    span.AppendTag("\r\n<=\r\n" + body.ToStr(null));
                     flag = true;
                 }
 
@@ -260,7 +262,7 @@ public class HttpSession : INetHandler
         // POST提交参数，支持Url编码、表单提交、Json主体
         if (req.Method == "POST" && req.BodyLength > 0 && req.Body != null)
         {
-            var body = req.Body;
+            var body = req.Body.GetSpan();
             if (req.ContentType.StartsWithIgnoreCase("application/x-www-form-urlencoded", "application/x-www-urlencoded"))
             {
                 var qs = body.ToStr().SplitAsDictionary("=", "&")
@@ -274,7 +276,7 @@ public class HttpSession : INetHandler
                 if (fs.Length > 0) req.Files = fs;
                 ps.Merge(dic);
             }
-            else if (body[0] == (Byte)'{' && body[body.Total - 1] == (Byte)'}')
+            else if (body[0] == (Byte)'{' && body[^1] == (Byte)'}')
             {
                 var js = body.ToStr().DecodeJson();
                 if (js != null) ps.Merge(js);

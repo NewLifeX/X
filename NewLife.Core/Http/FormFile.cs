@@ -19,15 +19,15 @@ public class FormFile
     public String? FileName { get; set; }
 
     /// <summary>数据</summary>
-    public Packet? Data { get; set; }
+    public Byte[]? Data { get; set; }
 
     /// <summary>长度</summary>
-    public Int64 Length => Data?.Total ?? 0;
+    public Int64 Length => Data?.Length ?? 0;
     #endregion
 
     /// <summary>打开数据读取流</summary>
     /// <returns></returns>
-    public Stream? OpenReadStream() => Data?.GetStream();
+    public Stream? OpenReadStream() => Data == null ? null : new MemoryStream(Data);
 
     /// <summary>保存到文件</summary>
     /// <param name="fileName"></param>
@@ -40,7 +40,8 @@ public class FormFile
         fileName.EnsureDirectory(true);
 
         using var fs = File.OpenWrite(fileName.GetFullPath());
-        Data.CopyTo(fs);
+        //Data.CopyTo(fs);
+        fs.Write(Data);
         fs.SetLength(fs.Position);
     }
 }
