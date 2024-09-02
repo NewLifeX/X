@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Linq;
 using NewLife.Configuration;
 using NewLife.Log;
 
@@ -9,66 +10,32 @@ namespace NewLife;
 
 /// <summary>进程助手类</summary>
 /// <remarks>
-/// 文档 https://newlifex.com/core/string_helper
+/// 文档 https://newlifex.com/core/process_helper
 /// </remarks>
 public static class ProcessHelper
 {
     #region 进程查找
-    /// <summary>获取进程名。dotnet/java进程取文件名，Windows系统中比较耗时</summary>
+    /// <summary>获取二级进程名。默认一级，如果是dotnet/java则取二级</summary>
     /// <param name="process"></param>
     /// <returns></returns>
     public static String GetProcessName(this Process process)
     {
-        var name = process.ProcessName;
-
-        //if (Runtime.Linux)
-        //{
-        //    try
-        //    {
-        //        var file = $"/proc/{process.Id}/cmdline";
-        //        if (File.Exists(file))
-        //        {
-        //            var lines = File.ReadAllText(file).Trim('\0', ' ').Split('\0');
-        //            if (lines.Length > 1) name = Path.GetFileNameWithoutExtension(lines[1]);
-        //        }
-        //    }
-        //    catch { }
-        //}
-        //else if (Runtime.Windows)
-        //{
-        //    try
-        //    {
-        //        var dic = MachineInfo.ReadWmic("process where processId=" + process.Id, "commandline");
-        //        if (dic.TryGetValue("commandline", out var str) && !str.IsNullOrEmpty())
-        //        {
-        //            var ss = str.Split(' ').Select(e => e.Trim('\"')).ToArray();
-        //            str = ss.FirstOrDefault(e => e.EndsWithIgnoreCase(".dll", ".jar"));
-        //            if (!str.IsNullOrEmpty()) name = Path.GetFileNameWithoutExtension(str);
-        //        }
-        //    }
-        //    catch { }
-        //}
-
-        var args = GetCommandLineArgs(process.Id);
-        if (args != null)
-        {
-
-        }
-
-        return name;
-    }
-
-    /// <summary>获取二级进程名。默认一级，如果是dotnet/java则取二级</summary>
-    /// <param name="process"></param>
-    /// <returns></returns>
-    public static String GetProcessName2(this Process process)
-    {
         var pname = process.ProcessName;
-        if (
-           pname == "dotnet" || "*/dotnet".IsMatch(pname) ||
-           pname == "java" || "*/java".IsMatch(pname))
+        if (pname == "dotnet" || "*/dotnet".IsMatch(pname))
         {
-            return GetProcessName(process);
+            var args = GetCommandLineArgs(process.Id);
+            if (args != null && args.Length >= 2 && args[0].Contains("dotnet"))
+            {
+                return Path.GetFileNameWithoutExtension(args[1]);
+            }
+        }
+        if (pname == "java" || "*/java".IsMatch(pname))
+        {
+            var args = GetCommandLineArgs(process.Id);
+            if (args != null && args.Length >= 3 && args[0].Contains("java") && args[1] == "-jar")
+            {
+                return Path.GetFileNameWithoutExtension(args[2]);
+            }
         }
 
         return pname;

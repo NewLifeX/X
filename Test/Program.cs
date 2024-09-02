@@ -25,6 +25,7 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Threading;
+using NewLife.Web;
 using Stardust;
 using Stardust.Models;
 using XCode.Membership;
@@ -75,7 +76,7 @@ public class Program
             try
             {
 #endif
-                Test1();
+            Test8();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -97,60 +98,12 @@ public class Program
     static StarClient _client;
     private static void Test1()
     {
-        var file = "D:\\ZTO\\Simulink\\Bin\\Backup\\RouteDispBaseInfo_20240729190159.gz";
-        file = file.GetFullPath();
-
-        var buf = File.ReadAllBytes(file);
-        buf = buf.DecompressGZip();
-
-        var dt = new DbTable();
-        //var rs = dt.LoadFile(file, false);
-        var rs = dt.Read(buf);
-
-        {
-            using var apiServer = new ApiServer(19000)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-            //apiServer.Server.TryDispose();
-        }
-        GC.Collect();
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://0.0.0.0:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://[::]:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        Thread.Sleep(3000);
-        Console.WriteLine();
-        {
-            var netUri = new NetUri("tcp://*:19000");
-            using var apiServer = new ApiServer(netUri)
-            {
-                Log = XTrace.Log,
-                EncoderLog = XTrace.Log,
-            };
-            apiServer.Start();
-        }
-        //Thread.Sleep(3000);
+        var client = new WebClientX { Log = XTrace.Log };
+        client.AuthKey = "NewLife";
+        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
+        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf", "tt/");
+        var rs = client.DownloadLink("http://sh03.newlifex.com,https://x.newlifex.com/dotNet/8.0.7", "dotnet-runtime-8.0.7-linux-x64", "tt/");
+        XTrace.WriteLine(rs);
     }
 
     private static void Test2()
@@ -180,6 +133,8 @@ public class Program
         count *= ts.Count;
 
         XTrace.WriteLine("生成 {0:n0}，耗时 {1}，速度 {2:n0}tps", count, sw.Elapsed, count * 1000 / sw.ElapsedMilliseconds);
+
+        Runtime.FreeMemory();
     }
 
     private static void Test3()
@@ -276,6 +231,8 @@ public class Program
 
         XTrace.WriteLine("总测试数据：{0:n0}", rs);
         //if (ch is Redis rds2) XTrace.WriteLine(rds2.Counter + "");
+
+        Runtime.FreeMemory();
     }
 
     private static NetServer _server;
@@ -424,8 +381,14 @@ public class Program
         //Console.ReadKey();
     }
 
-    private static async void Test8()
+    private static void Test8()
     {
+        foreach (var p in Process.GetProcessesByName("dotnet"))
+        {
+            //Runtime.FreeMemory(p.Id);
+            var name = p.GetProcessName();
+            XTrace.WriteLine("{0}\t{1}", p.Id, name);
+        }
     }
 
     private static void Test9()

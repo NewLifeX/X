@@ -1,7 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
+using NewLife.Http;
 using NewLife.Log;
+using NewLife.Security;
 
 namespace NewLife.Web;
 
@@ -9,8 +14,14 @@ namespace NewLife.Web;
 public class WebClientX : DisposeBase
 {
     #region 属性
-    /// <summary>超时，默认15000毫秒</summary>
-    public Int32 Timeout { get; set; } = 15000;
+    /// <summary>超时，默认30000毫秒</summary>
+    public Int32 Timeout { get; set; } = 30_000;
+
+    /// <summary>验证密钥。适配CDN的URL验证，在url后面增加auth_key={timestamp-rand-uid-md5hash}</summary>
+    public String? AuthKey { get; set; }
+
+    ///// <summary>验证有效时间。默认1800秒</summary>
+    //public TimeSpan AuthExpire { get; set; } = TimeSpan.FromSeconds(1800);
 
     /// <summary>最后使用的连接名</summary>
     public Link? LastLink { get; set; }
@@ -41,6 +52,8 @@ public class WebClientX : DisposeBase
 
     #region 核心方法
     private HttpClient? _client;
+    private String? _lastAddress;
+    private Dictionary<String, String>? _cookies;
 
     /// <summary>创建客户端会话</summary>
     /// <returns></returns>
@@ -51,6 +64,7 @@ public class WebClientX : DisposeBase
         {
             http = DefaultTracer.Instance.CreateHttpClient();
             http.Timeout = TimeSpan.FromMilliseconds(Timeout);
+            http.SetUserAgent();
 
             _client = http;
         }
@@ -68,11 +82,80 @@ public class WebClientX : DisposeBase
 
         Log.Info("{2}.{1} {0}", address, content != null ? "Post" : "Get", GetType().Name);
 
+        var request = new HttpRequestMessage
+        {
+            Method = content != null ? HttpMethod.Post : HttpMethod.Get,
+            RequestUri = new Uri(address),
+            Content = content,
+        };
+
+        if (!_lastAddress.IsNullOrEmpty()) request.Headers.Referrer = new Uri(_lastAddress);
+
+        if (_cookies != null && _cookies.Count > 0)
+        {
+            request.Headers.Add("Cookie", _cookies.Select(e => $"{e.Key}={e.Value}"));
+        }
+
         // 发送请求
-        var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
-        var rs = await task;
+        //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
+        //var rs = await task;
+        var rs = await http.SendAsync(request);
+
+        if (rs.StatusCode < HttpStatusCode.BadRequest)
+        {
+            // 记录最后一次地址，作为下一次的Referer
+            _lastAddress = http.BaseAddress == null ? address : new Uri(http.BaseAddress, address).ToString();
+
+            // 保存Cookie
+            if (rs.Headers.TryGetValues("Set-Cookie", out var setCookies))
+            {
+                foreach (var cookie in setCookies)
+                {
+                    var p1 = cookie.IndexOf('=');
+                    if (p1 < 0) continue;
+                    var p2 = cookie.IndexOf(';', p1);
+                    if (p2 < 0) p2 = cookie.Length;
+
+                    var cs = _cookies ??= [];
+                    cs[cookie[..p1]] = cookie.Substring(p1 + 1, p2 - p1 - 1);
+                }
+            }
+        }
 
         return rs.Content;
+    }
+
+    String CheckAuth(String url)
+    {
+        // 增加CDN的URL验证
+        if (!AuthKey.IsNullOrEmpty() && !url.Contains("auth_key="))
+        {
+            // http://DomainName/Filename?auth_key={<timestamp>-rand-uid-<md5hash>}
+            var uri = new Uri(url);
+            var path = uri.AbsolutePath;
+
+            // 如果地址中有中文，需要编码
+            var encoding = Encoding.UTF8;
+            if (encoding.GetByteCount(path) != path.Length)
+            {
+                var us = path.Split('/');
+                for (var i = 0; i < us.Length; i++)
+                {
+                    us[i] = HttpUtility.UrlEncode(us[i]);
+                }
+                path = String.Join("/", us);
+            }
+
+            var time = DateTime.UtcNow.ToInt();
+            var rand = Rand.Next(100_000, 1_000_000);
+            var hash = $"{path}-{time}-{rand}-0-{AuthKey}".MD5().ToLower();
+            var key = $"{time}-{rand}-0-{hash}";
+
+            url += url.Contains('?') ? "&" : "?";
+            url += "auth_key=" + key;
+        }
+
+        return url;
     }
 
     /// <summary>下载字符串</summary>
@@ -80,6 +163,8 @@ public class WebClientX : DisposeBase
     /// <returns></returns>
     public virtual async Task<String> DownloadStringAsync(String address)
     {
+        address = CheckAuth(address);
+
         var rs = await SendAsync(address);
         return await rs.ReadAsStringAsync();
     }
@@ -89,6 +174,8 @@ public class WebClientX : DisposeBase
     /// <param name="fileName"></param>
     public virtual async Task DownloadFileAsync(String address, String fileName)
     {
+        address = CheckAuth(address);
+
         var rs = await SendAsync(address);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
@@ -135,7 +222,7 @@ public class WebClientX : DisposeBase
             try
             {
                 var ls = GetLinks(url);
-                if (ls.Length == 0) return file;
+                if (ls.Length == 0) continue;
 
                 // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
                 //foreach (var item in names)
@@ -176,12 +263,32 @@ public class WebClientX : DisposeBase
         // 已经提前检查过，这里几乎不可能有文件存在
         if (File.Exists(file2))
         {
-            // 如果连接名所表示的文件存在，并且带有时间，那么就智能是它啦
+            // 如果连接名所表示的文件存在，并且带有时间，那么就只能是它啦
             var p = linkName.LastIndexOf("_");
             if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
             {
-                Log.Info("分析得到文件 {0}，目标文件已存在，无需下载 {1}", linkName, link.Url);
+                Log.Info("分析得到文件：{0}，目标文件已存在，无需下载：{1}", linkName, link.Url);
                 return file2;
+            }
+            // 校验哈希是否一致
+            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 32)
+            {
+                var hash = file2.AsFile().MD5().ToHex();
+                if (link.Hash.EqualIgnoreCase(hash))
+                {
+                    Log.Info("分析得到文件：{0}，目标文件已存在，且MD5哈希一致", linkName, link.Url);
+                    return file2;
+                }
+            }
+            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 128)
+            {
+                using var fs = file2.AsFile().OpenRead();
+                var hash = SHA512.Create().ComputeHash(fs).ToHex();
+                if (link.Hash.EqualIgnoreCase(hash))
+                {
+                    Log.Info("分析得到文件：{0}，目标文件已存在，且SHA512哈希一致", linkName, link.Url);
+                    return file2;
+                }
             }
         }
 
@@ -190,7 +297,7 @@ public class WebClientX : DisposeBase
         file2 = file2.EnsureDirectory();
 
         var sw = Stopwatch.StartNew();
-        Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait();
+        Task.Run(() => DownloadFileAsync(link.Url, file2)).Wait(Timeout);
         sw.Stop();
 
         if (File.Exists(file2))

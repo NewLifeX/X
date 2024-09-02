@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.InteropServices;
+using NewLife.Log;
 
 namespace NewLife;
 
@@ -112,6 +114,15 @@ public static class Runtime
     }
 #endif
 
+    private static Int32 _ProcessId;
+#if NET5_0_OR_GREATER
+    /// <summary>当前进程Id</summary>
+    public static Int32 ProcessId => _ProcessId > 0 ? _ProcessId : _ProcessId = Environment.ProcessId;
+#else
+    /// <summary>当前进程Id</summary>
+    public static Int32 ProcessId => _ProcessId > 0 ? _ProcessId : _ProcessId = Process.GetCurrentProcess().Id;
+#endif
+
     /// <summary>
     /// 获取环境变量。不区分大小写
     /// </summary>
@@ -170,5 +181,84 @@ public static class Runtime
         }
         set { _createConfigOnMissing = value; }
     }
+    #endregion
+
+    #region 内存
+    /// <summary>释放内存。GC回收后再释放虚拟内存</summary>
+    /// <param name="processId">进程Id。默认0表示当前进程</param>
+    /// <param name="gc">是否GC回收</param>
+    /// <param name="workingSet">是否释放工作集</param>
+    public static Boolean FreeMemory(Int32 processId = 0, Boolean gc = true, Boolean workingSet = true)
+    {
+        if (processId <= 0) processId = ProcessId;
+
+        var p = Process.GetProcessById(processId);
+        if (p == null) return false;
+
+        if (processId != ProcessId) gc = false;
+
+        var log = XTrace.Log;
+        if (log != null && log.Enable && log.Level <= LogLevel.Debug)
+        {
+            p ??= Process.GetCurrentProcess();
+            var gcm = GC.GetTotalMemory(false) / 1024;
+            var ws = p.WorkingSet64 / 1024;
+            var prv = p.PrivateMemorySize64 / 1024;
+            if (gc)
+                log.Debug("[{3}/{4}]开始释放内存：GC={0:n0}K，WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+            else
+                log.Debug("[{3}/{4}]开始释放内存：WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+        }
+
+        if (gc)
+        {
+            var max = GC.MaxGeneration;
+            var mode = GCCollectionMode.Forced;
+#if NET8_0_OR_GREATER
+            mode = GCCollectionMode.Aggressive;
+#endif
+#if NET451_OR_GREATER || NETSTANDARD || NETCOREAPP
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+#endif
+            GC.Collect(max, mode);
+            GC.WaitForPendingFinalizers();
+            GC.Collect(max, mode);
+        }
+
+        if (workingSet)
+        {
+            if (Runtime.Windows)
+            {
+                try
+                {
+                    p ??= Process.GetProcessById(processId);
+                    EmptyWorkingSet(p.Handle);
+                }
+                catch (Exception ex)
+                {
+                    log?.Error("EmptyWorkingSet失败：{0}", ex.Message);
+                    return false;
+                }
+            }
+        }
+
+        if (log != null && log.Enable && log.Level <= LogLevel.Debug)
+        {
+            p ??= Process.GetProcessById(processId);
+            p.Refresh();
+            var gcm = GC.GetTotalMemory(false) / 1024;
+            var ws = p.WorkingSet64 / 1024;
+            var prv = p.PrivateMemorySize64 / 1024;
+            if (gc)
+                log.Debug("[{3}/{4}]释放内存完成：GC={0:n0}K，WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+            else
+                log.Debug("[{3}/{4}]释放内存完成：WorkingSet={1:n0}K，PrivateMemory={2:n0}K", gcm, ws, prv, p.ProcessName, p.Id);
+        }
+
+        return true;
+    }
+
+    [DllImport("psapi.dll", SetLastError = true)]
+    internal static extern Boolean EmptyWorkingSet(IntPtr hProcess);
     #endregion
 }

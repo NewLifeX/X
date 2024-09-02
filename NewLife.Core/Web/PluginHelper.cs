@@ -6,11 +6,14 @@ namespace NewLife.Web;
 /// <summary>插件助手</summary>
 public static class PluginHelper
 {
+    /// <summary>创建客户端。便于外部自定义</summary>
+    public static Func<String, WebClientX> CreateClient { get; set; } = linkName => new WebClientX { AuthKey = "NewLife", Log = XTrace.Log };
+
     /// <summary>加载插件</summary>
-    /// <param name="typeName"></param>
-    /// <param name="disname"></param>
-    /// <param name="dll"></param>
-    /// <param name="linkName"></param>
+    /// <param name="typeName">插件类型</param>
+    /// <param name="disname">显示名</param>
+    /// <param name="dll">DLL文件</param>
+    /// <param name="linkName">链接名。要在下载页面中搜索的链接名</param>
     /// <param name="urls">提供下载地址的多个目标页面</param>
     /// <returns></returns>
     public static Type? LoadPlugin(String typeName, String? disname, String dll, String linkName, String? urls = null)
@@ -68,13 +71,14 @@ public static class PluginHelper
             {
                 XTrace.WriteLine("{0}不存在或平台版本不正确，准备联网获取 {1}", !disname.IsNullOrEmpty() ? disname : dll, urls);
 
-                var client = new WebClientX()
-                {
-                    Log = XTrace.Log
-                };
+                //var client = new WebClientX()
+                //{
+                //    Log = XTrace.Log
+                //};
+                using var client = CreateClient(linkName);
                 var dir = Path.GetDirectoryName(file);
                 var file2 = client.DownloadLinkAndExtract(urls, linkName, dir!);
-                client.TryDispose();
+                //client.TryDispose();
             }
             if (!File.Exists(file))
             {
