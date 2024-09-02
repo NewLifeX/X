@@ -239,7 +239,7 @@ public class WebSocketClient : TcpSession
 
             // 接收响应
             var rs = client.Receive();
-            if (rs == null || rs.Count == 0) return false;
+            if (rs == null || rs.Length == 0) return false;
 
             // 解析响应
             var res = new HttpResponse();

@@ -247,7 +247,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     #region 接收
     /// <summary>接收数据</summary>
     /// <returns></returns>
-    public Packet Receive()
+    public IPacket Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
@@ -256,11 +256,11 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var buf = new Byte[Server.BufferSize];
-            var size = Server.Client.ReceiveFrom(buf, ref ep);
+            var pk = new ArrayPacket(Server.BufferSize);
+            var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
             if (span != null) span.Value = size;
 
-            return new Packet(buf, 0, size);
+            return pk.Slice(0, size);
         }
         catch (Exception ex)
         {
@@ -271,7 +271,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>异步接收数据</summary>
     /// <returns></returns>
-    public virtual async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
@@ -280,20 +280,23 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var buf = new Byte[Server.BufferSize];
+            var pk = new ArrayPacket(Server.BufferSize);
             var socket = Server.Client;
 #if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = socket.BeginReceiveFrom(buf, 0, buf.Length, SocketFlags.None, ref ep, null, socket);
+            var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
             var size = ar.IsCompleted ?
                 socket.EndReceive(ar) :
                 await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep));
+#elif NET7_0_OR_GREATER
+            var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken);
+            var size = result.ReceivedBytes;
 #else
-            var result = await socket.ReceiveFromAsync(buf, SocketFlags.None, ep);
+            var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep);
             var size = result.ReceivedBytes;
 #endif
             if (span != null) span.Value = size;
 
-            return new Packet(buf, 0, size);
+            return pk.Slice(0, size);
         }
         catch (Exception ex)
         {

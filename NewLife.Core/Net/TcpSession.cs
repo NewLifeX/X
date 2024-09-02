@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Collections;
+using System.Drawing;
 
 namespace NewLife.Net;
 
@@ -368,7 +369,7 @@ public class TcpSession : SessionBase, ISocketSession
     #region 接收
     /// <summary>异步接收数据。重载以支持SSL</summary>
     /// <returns></returns>
-    public override async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public override async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (!Open() || Client == null) return null;
 
@@ -378,10 +379,11 @@ public class TcpSession : SessionBase, ISocketSession
             using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
             try
             {
-                var buf = new Byte[BufferSize];
-                var count = await ss.ReadAsync(buf, 0, buf.Length, cancellationToken);
-                if (span != null) span.Value = count;
-                return new Packet(buf, 0, count);
+                var pk = new ArrayPacket(BufferSize);
+                var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken);
+                if (span != null) span.Value = size;
+
+                return pk.Slice(0, size);
             }
             catch (Exception ex)
             {

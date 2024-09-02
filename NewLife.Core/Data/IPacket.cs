@@ -1,13 +1,17 @@
 ﻿using System.Buffers;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife.Data;
 
-/// <summary>数据包接口。统一提供数据包，内部可能是内存池、数组和旧版Packet等多种实现</summary>
+/// <summary>数据包接口。几乎内存共享理念，统一提供数据包，内部可能是内存池、数组和旧版Packet等多种实现</summary>
 /// <remarks>
 /// 常用于网络编程和协议解析，为了避免大量内存分配和拷贝，采用数据包对象池，复用内存。
 /// 数据包接口一般由结构体实现，提升GC性能。
-/// 特别需要注意内存管理权转移问题，外部持有管理权的主要逻辑，有责任在使用完成时释放内存。
+/// 
+/// 特别需要注意内存管理权转移问题，一般由调用栈的上部负责释放内存。
+/// Socket非阻塞事件接收时，负责申请与释放内存，数据处理是调用栈下游；
+/// Socket阻塞接收时，接收函数内部申请内存，外部使用方释放内存，管理权甚至在此次传递给消息层；
 /// 
 /// 作为过渡期，旧版Packet也会实现该接口，以便逐步替换。
 /// </remarks>
@@ -16,15 +20,15 @@ public interface IPacket
     /// <summary>数据长度</summary>
     Int32 Length { get; }
 
-    /// <summary>获取分片包</summary>
+    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     Span<Byte> GetSpan();
 
-    /// <summary>获取内存包</summary>
+    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     Memory<Byte> GetMemory();
 
-    /// <summary>切片得到新数据包</summary>
+    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
     /// 可能是引用同一块内存，也可能是新的内存。
     /// 可能就是当前数据包，也可能引用相同的所有者或数组。
@@ -64,6 +68,9 @@ public struct OwnerPacket : IDisposable, IPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
+
+    /// <summary>是否拥有管理权</summary>
+    public Boolean HasOwner { get; set; }
     #endregion
 
     /// <summary>实例化指定长度的内存包，从共享内存池中借出</summary>
@@ -76,6 +83,7 @@ public struct OwnerPacket : IDisposable, IPacket
 
         _owner = MemoryPool<Byte>.Shared.Rent(length);
         _length = length;
+        HasOwner = true;
     }
 
     /// <summary>实例化内存包，指定内存所有者和长度</summary>
@@ -94,20 +102,27 @@ public struct OwnerPacket : IDisposable, IPacket
     /// <summary>释放</summary>
     public void Dispose()
     {
-        // 释放内存所有者以后，直接置空，避免重复使用
-        _owner?.Dispose();
-        _owner = null!;
+        //if (!HasOwner) throw new InvalidOperationException("Has not owner.");
+
+        var owner = _owner;
+        if (HasOwner && owner != null)
+        {
+            // 释放内存所有者以后，直接置空，避免重复使用
+            _owner = null!;
+            owner.Dispose();
+            HasOwner = false;
+        }
     }
 
-    /// <summary>获取分片包</summary>
+    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Span<Byte> GetSpan() => _owner.Memory.Span[.._length];
 
-    /// <summary>获取内存包</summary>
+    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Memory<Byte> GetMemory() => _owner.Memory[.._length];
 
-    /// <summary>切片得到新数据包</summary>
+    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
     /// 可能是引用同一块内存，也可能是新的内存。
     /// 可能就是当前数据包，也可能引用相同的所有者或数组。
@@ -120,9 +135,17 @@ public struct OwnerPacket : IDisposable, IPacket
         if (offset == 0 && count == _length) return this;
 
         if (offset == 0)
-            return new OwnerPacket(_owner, count);
+        {
+            var pk = new OwnerPacket(_owner, count) { HasOwner = HasOwner };
+            HasOwner = false;
+            return pk;
+        }
 
-        return new MemoryPacket(_owner.Memory.Slice(offset, count), count);
+        // 当前数据包可能会释放，必须拷贝数据
+        //return new MemoryPacket(_owner.Memory.Slice(offset, count), count);
+        var rs = new ArrayPacket(count);
+        GetSpan().CopyTo(rs.GetSpan());
+        return rs;
     }
 }
 
@@ -155,11 +178,11 @@ public struct MemoryPacket : IPacket
         _length = length;
     }
 
-    /// <summary>获取分片包</summary>
+    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Span<Byte> GetSpan() => _memory.Span[.._length];
 
-    /// <summary>获取内存包</summary>
+    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Memory<Byte> GetMemory() => _memory[.._length];
 
@@ -183,10 +206,10 @@ public struct MemoryPacket : IPacket
 }
 
 /// <summary>字节数组包</summary>
-public struct ArrayPacket : IPacket
+public struct ArrayPacket : IDisposable, IPacket
 {
     #region 属性
-    private readonly Byte[] _buffer;
+    private Byte[] _buffer;
     /// <summary>缓冲区</summary>
     public Byte[] Buffer => _buffer;
 
@@ -197,9 +220,12 @@ public struct ArrayPacket : IPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
+
+    /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
+    public Boolean HasOwner { get; set; }
     #endregion
 
-    /// <summary>实例化</summary>
+    /// <summary>通过指定字节数组来实例化数据包</summary>
     /// <param name="buf"></param>
     /// <param name="offset"></param>
     /// <param name="count"></param>
@@ -212,15 +238,44 @@ public struct ArrayPacket : IPacket
         _length = count;
     }
 
-    /// <summary>获取分片包</summary>
+    /// <summary>通过从池里借出字节数组来实例化数据包</summary>
+    /// <param name="length"></param>
+    public ArrayPacket(Int32 length)
+    {
+        if (length <= 1024 * 1024 * 1024)
+        {
+            _buffer = Pool.Shared.Rent(length);
+            _length = length;
+            HasOwner = true;
+        }
+        else
+        {
+            _buffer = new Byte[length];
+            _length = length;
+        }
+    }
+
+    /// <summary>释放</summary>
+    public void Dispose()
+    {
+        var buf = _buffer;
+        if (HasOwner && buf != null)
+        {
+            _buffer = null!;
+            Pool.Shared.Return(buf);
+            HasOwner = false;
+        }
+    }
+
+    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Span<Byte> GetSpan() => new(_buffer, _offset, _length);
 
-    /// <summary>获取内存包</summary>
+    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
-    /// <summary>切片得到新数据包</summary>
+    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
     /// 可能是引用同一块内存，也可能是新的内存。
     /// 可能就是当前数据包，也可能引用相同的所有者或数组。
@@ -232,7 +287,10 @@ public struct ArrayPacket : IPacket
         if (count < 0) count = _length - offset;
         if (offset == 0 && count == _length) return this;
 
-        return new ArrayPacket(_buffer, _offset + offset, count);
+        var pk = new ArrayPacket(_buffer, _offset + offset, count) { HasOwner = HasOwner };
+        HasOwner = false;
+
+        return pk;
     }
 
     #region 重载运算符

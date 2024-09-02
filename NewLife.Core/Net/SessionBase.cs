@@ -262,7 +262,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>接收数据</summary>
     /// <returns></returns>
-    public virtual Packet? Receive()
+    public virtual IPacket? Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -271,11 +271,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
         try
         {
-            var buf = new Byte[BufferSize];
-            var size = Client.Receive(buf);
+            var pk = new ArrayPacket(BufferSize);
+            var size = Client.Receive(pk.Buffer, SocketFlags.None);
             if (span != null) span.Value = size;
 
-            return new Packet(buf, 0, size);
+            return pk.Slice(0, size);
         }
         catch (Exception ex)
         {
@@ -286,7 +286,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>异步接收数据</summary>
     /// <returns></returns>
-    public virtual async Task<Packet?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -295,18 +295,18 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
         try
         {
-            var buf = new Byte[BufferSize];
+            var pk = new ArrayPacket(BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
-            var ar = Client.BeginReceive(buf, 0, buf.Length, SocketFlags.None, null, Client);
+            var ar = Client.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, Client);
             var size = ar.IsCompleted ?
                 Client.EndReceive(ar) :
                 await Task.Factory.FromAsync(ar, Client.EndReceive);
 #else
-            var size = await Client.ReceiveAsync(new ArraySegment<Byte>(buf), SocketFlags.None, cancellationToken);
+            var size = await Client.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken);
 #endif
             if (span != null) span.Value = size;
 
-            return new Packet(buf, 0, size);
+            return pk.Slice(0, size);
         }
         catch (Exception ex)
         {
