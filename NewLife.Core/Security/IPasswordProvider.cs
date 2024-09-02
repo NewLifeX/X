@@ -6,13 +6,13 @@ namespace NewLife.Security;
 public interface IPasswordProvider
 {
     /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
-    /// <param name="password"></param>
+    /// <param name="password">密码明文</param>
     /// <returns></returns>
     String Hash(String password);
 
     /// <summary>验证密码散列，包括加盐判断</summary>
-    /// <param name="password"></param>
-    /// <param name="hash"></param>
+    /// <param name="password">传输密码。可能是明文、MD5</param>
+    /// <param name="hash">哈希密文。服务端数据库保存，带有算法、盐值、哈希值</param>
     /// <returns></returns>
     Boolean Verify(String password, String hash);
 }
@@ -21,13 +21,13 @@ public interface IPasswordProvider
 public class PasswordProvider : IPasswordProvider
 {
     /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
-    /// <param name="password"></param>
+    /// <param name="password">密码明文</param>
     /// <returns></returns>
     public String Hash(String password) => password;
 
     /// <summary>验证密码散列，包括加盐判断</summary>
-    /// <param name="password"></param>
-    /// <param name="hash"></param>
+    /// <param name="password">传输密码。可能是明文、MD5</param>
+    /// <param name="hash">哈希密文。服务端数据库保存，带有算法、盐值、哈希值</param>
     /// <returns></returns>
     public Boolean Verify(String password, String hash) => password.EqualIgnoreCase(hash);
 }
@@ -36,18 +36,22 @@ public class PasswordProvider : IPasswordProvider
 public class MD5PasswordProvider : IPasswordProvider
 {
     /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
-    /// <param name="password"></param>
+    /// <param name="password">密码明文</param>
     /// <returns></returns>
     public String Hash(String password) => password.MD5();
 
     /// <summary>验证密码散列，包括加盐判断</summary>
-    /// <param name="password"></param>
-    /// <param name="hash"></param>
+    /// <param name="password">传输密码。可能是明文、MD5</param>
+    /// <param name="hash">哈希密文。服务端数据库保存，带有算法、盐值、哈希值</param>
     /// <returns></returns>
     public Boolean Verify(String password, String hash) => hash.EqualIgnoreCase(password, password.MD5());
 }
 
 /// <summary>盐值密码提供者</summary>
+/// <remarks>
+/// 1，在Web应用中，数据库保存哈希密码hash，登录时传输密码明文pass，服务端验证密码。算法配置为md5+sha512时，传输MD5散列。
+/// 2，在App验证时，数据库保存密码明文pass，登录时传输哈希密码hash，服务端验证密码。
+/// </remarks>
 public class SaltPasswordProvider : IPasswordProvider
 {
     /// <summary>算法。支持md5/sha1/sha512</summary>
@@ -58,7 +62,7 @@ public class SaltPasswordProvider : IPasswordProvider
     public Int32 SaltTime { get; set; }
 
     /// <summary>对密码进行散列处理，此处可以加盐，结果保存在数据库</summary>
-    /// <param name="password">密码</param>
+    /// <param name="password">密码明文</param>
     /// <returns></returns>
     public String Hash(String password)
     {
@@ -68,6 +72,8 @@ public class SaltPasswordProvider : IPasswordProvider
             "md5" => (password.MD5() + salt).MD5(),
             "sha1" => password.GetBytes().SHA1(salt.GetBytes()).ToBase64(),
             "sha512" => password.GetBytes().SHA512(salt.GetBytes()).ToBase64(),
+            "md5+sha1" => password.MD5().GetBytes().SHA1(salt.GetBytes()).ToBase64(),
+            "md5+sha512" => password.MD5().GetBytes().SHA512(salt.GetBytes()).ToBase64(),
             _ => throw new NotImplementedException(),
         };
 
@@ -94,15 +100,15 @@ public class SaltPasswordProvider : IPasswordProvider
     }
 
     /// <summary>验证密码散列，包括加盐判断</summary>
-    /// <param name="password"></param>
-    /// <param name="hash"></param>
+    /// <param name="password">传输密码。可能是明文、MD5</param>
+    /// <param name="hash">哈希密文。服务端数据库保存，带有算法、盐值、哈希值</param>
     /// <returns></returns>
     public Boolean Verify(String password, String hash)
     {
         var ss = hash?.Split('$');
         if (ss == null || ss.Length == 0) throw new ArgumentNullException(nameof(hash));
 
-        // 老式MD5，password可能是密码原文，也可能是前端已经md5散列的值
+        // 老式MD5，password可能是密码原文，也可能是前端已经md5散列的值。数据库里刚好也是明文或MD5散列
         if (ss.Length == 1) return hash.EqualIgnoreCase(password, password.MD5());
 
         if (ss.Length != 4) throw new NotSupportedException("Unsupported password hash value");
@@ -121,8 +127,17 @@ public class SaltPasswordProvider : IPasswordProvider
                 if (ss[3] == (password.MD5() + salt).MD5()) return true;
                 return ss[3] == (password + salt).MD5();
             case "sha1":
+                // 传输密码是明文
+                if (ss[3] == password.MD5().GetBytes().SHA1(salt.GetBytes()).ToBase64()) return true;
+                // 传输密码是MD5哈希
                 return ss[3] == password.GetBytes().SHA1(salt.GetBytes()).ToBase64();
             case "sha512":
+                if (ss[3] == password.MD5().GetBytes().SHA512(salt.GetBytes()).ToBase64()) return true;
+                return ss[3] == password.GetBytes().SHA512(salt.GetBytes()).ToBase64();
+            case "md5+sha1":
+                // 传输密码是MD5哈希
+                return ss[3] == password.GetBytes().SHA1(salt.GetBytes()).ToBase64();
+            case "md5+sha512":
                 return ss[3] == password.GetBytes().SHA512(salt.GetBytes()).ToBase64();
             default:
                 throw new NotSupportedException($"Unsupported password hash mode [{ss[1]}]");
