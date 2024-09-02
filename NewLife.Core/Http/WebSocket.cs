@@ -73,6 +73,9 @@ public class WebSocket
 
             Handler?.Invoke(this, message);
 
+            // 释放内存
+            message.Payload?.TryDispose();
+
             var session = Context?.Connection;
             var socket = Context?.Socket;
             if (session == null && socket == null) return;

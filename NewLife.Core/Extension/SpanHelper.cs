@@ -100,4 +100,58 @@ public static class SpanHelper
             }
         });
     }
+
+#if NETFRAMEWORK || NETSTANDARD
+    /// <summary>去掉前后字符</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="span"></param>
+    /// <param name="trimElement"></param>
+    /// <returns></returns>
+    public static ReadOnlySpan<T> Trim<T>(this ReadOnlySpan<T> span, T trimElement) where T : IEquatable<T>
+    {
+        var start = ClampStart(span, trimElement);
+        var length = ClampEnd(span, start, trimElement);
+        return span.Slice(start, length);
+    }
+
+    /// <summary>去掉前后字符</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="span"></param>
+    /// <param name="trimElement"></param>
+    /// <returns></returns>
+    public static Span<T> Trim<T>(this Span<T> span, T trimElement) where T : IEquatable<T>
+    {
+        var start = ClampStart(span, trimElement);
+        var length = ClampEnd(span, start, trimElement);
+        return span.Slice(start, length);
+    }
+
+    private static Int32 ClampStart<T>(ReadOnlySpan<T> span, T trimElement) where T : IEquatable<T>
+    {
+        var i = 0;
+        for (; i < span.Length; i++)
+        {
+            ref var reference = ref trimElement;
+            if (!reference.Equals(span[i]))
+            {
+                break;
+            }
+        }
+        return i;
+    }
+    private static Int32 ClampEnd<T>(ReadOnlySpan<T> span, Int32 start, T trimElement) where T : IEquatable<T>
+    {
+        var num = span.Length - 1;
+        while (num >= start)
+        {
+            ref var reference = ref trimElement;
+            if (!reference.Equals(span[num]))
+            {
+                break;
+            }
+            num--;
+        }
+        return num - start + 1;
+    }
+#endif
 }

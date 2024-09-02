@@ -291,13 +291,14 @@ public class TcpSession : SessionBase, ISocketSession
     /// </remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(Packet pk)
+    protected override Int32 OnSend(IPacket pk)
     {
-        var count = pk.Total;
+        var count = pk.Length;
+        var data = pk.GetSpan();
 
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "", pk.Total);
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
 
         var rs = count;
         var sock = Client;
@@ -318,7 +319,11 @@ public class TcpSession : SessionBase, ISocketSession
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
                 else if (pk.Next == null)
-                    rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+#if NETCOREAPP || NETSTANDARD2_1
+                    rs = sock.Send(data);
+#else
+                    rs = sock.Send(data.ToArray(), count, SocketFlags.None);
+#endif
                 else
                     rs = sock.Send(pk.ToSegments());
             }
@@ -327,9 +332,13 @@ public class TcpSession : SessionBase, ISocketSession
                 if (count == 0)
                     _Stream.Write([]);
                 else if (pk.Next == null)
-                    _Stream.Write(pk.Data, pk.Offset, count);
+#if NETCOREAPP || NETSTANDARD2_1
+                    _Stream.Write(data);
+#else
+                    _Stream.Write(data.ToArray());
+#endif
                 else
-                    _Stream.Write(pk.ToArray());
+                    pk.CopyTo(_Stream);
             }
 
             //// 检查返回值

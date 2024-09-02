@@ -116,7 +116,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 var remote = Remote;
                 if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
                 {
-                    Send(Pool.Empty);
+                    this.Send(Pool.Empty);
                 }
 
                 Client = null;
@@ -145,13 +145,14 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// </remarks>
     /// <param name="pk">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(Packet pk) => OnSend(pk, Remote.EndPoint);
+    protected override Int32 OnSend(IPacket pk) => OnSend(pk, Remote.EndPoint);
 
-    internal Int32 OnSend(Packet pk, IPEndPoint remote)
+    internal Int32 OnSend(IPacket pk, IPEndPoint remote)
     {
-        var count = pk.Total;
+        var count = pk.Length;
+        var data = pk.GetSpan();
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Send", pk.Total + "", pk.Total);
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
 
         try
         {
@@ -161,22 +162,30 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             {
                 if (sock.Connected && !sock.EnableBroadcast)
                 {
-                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
+                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
 
                     if (pk.Next == null)
-                        rs = sock.Send(pk.Data, pk.Offset, count, SocketFlags.None);
+#if NETCOREAPP || NETSTANDARD2_1
+                        rs = sock.Send(data);
+#else
+                        rs = sock.Send(data.ToArray(), count, SocketFlags.None);
+#endif
                     else
                         rs = sock.Send(pk.ToSegments(), SocketFlags.None);
                 }
                 else
                 {
                     sock.CheckBroadcast(remote.Address);
-                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(LogDataLength), remote);
+                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, data.ToHex(LogDataLength), remote);
 
                     if (pk.Next == null)
-                        rs = sock.SendTo(pk.Data, pk.Offset, count, SocketFlags.None, remote);
+#if NET6_0_OR_GREATER
+                        rs = sock.SendTo(data, remote);
+#else
+                        rs = sock.SendTo(data.ToArray(), 0, count, SocketFlags.None, remote);
+#endif
                     else
-                        rs = sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
+                        rs = sock.SendTo(data.ToArray(), 0, count, SocketFlags.None, remote);
                 }
             }
 

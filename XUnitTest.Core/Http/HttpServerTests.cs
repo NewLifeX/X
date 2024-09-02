@@ -134,7 +134,7 @@ public class HttpServerTests
 
             // 数据部分，链式
             var pk = context.Request.Body;
-            Assert.Equal(8 * 1024 * 2, pk.Total);
+            Assert.Equal(8 * 1024 * 2, pk.Length);
 
             var name = context.Parameters["name"];
             var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";

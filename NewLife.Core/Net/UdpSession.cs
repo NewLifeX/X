@@ -135,7 +135,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    public Int32 Send(Packet data)
+    public Int32 Send(IPacket data)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 

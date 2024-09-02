@@ -90,11 +90,12 @@ public class NetHandlerContext : HandlerContext
         // 发送一包数据
         if (message is Byte[] buf) return session.Send(buf);
         if (message is Packet pk) return session.Send(pk);
+        if (message is IPacket ip) return session.Send(ip);
         if (message is String str) return session.Send(str.GetBytes());
         if (message is IAccessor acc) return session.Send(acc.ToPacket());
 
         // 发送一批数据包
-        if (message is IEnumerable<Packet> pks)
+        if (message is IEnumerable<IPacket> pks)
         {
             var rs = 0;
             foreach (var item in pks)

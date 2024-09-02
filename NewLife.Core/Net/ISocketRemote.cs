@@ -26,7 +26,7 @@ public interface ISocketRemote : ISocket, IExtend
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    Int32 Send(Packet data);
+    Int32 Send(IPacket data);
     #endregion
 
     #region 接收
@@ -69,6 +69,20 @@ public interface ISocketRemote : ISocket, IExtend
 public static class SocketRemoteHelper
 {
     #region 发送
+    /// <summary>发送数组</summary>
+    /// <param name="session"></param>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public static Int32 Send(this ISocketRemote session, Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+    {
+        if (count < 0) count = buffer.Length - offset;
+        var pk = new ArrayPacket(buffer, offset, count);
+
+        return session.Send(pk);
+    }
+
     /// <summary>发送数据流</summary>
     /// <param name="session">会话</param>
     /// <param name="stream">数据流</param>
@@ -86,7 +100,7 @@ public static class SocketRemoteHelper
             var count = stream.Read(buffer, 0, buffer.Length);
             if (count <= 0) break;
 
-            var pk = new Packet(buffer, 0, count);
+            var pk = new ArrayPacket(buffer, 0, count);
             var count2 = session.Send(pk);
             if (count2 < 0) break;
             rs += count2;
@@ -158,7 +172,7 @@ public static class SocketRemoteHelper
             if (rs <= 0) break;
 
             // 打包数据，标准编码器StandardCodec将会在头部加上4字节头部，交给下层Tcp发出
-            var pk = new Packet(buffer, 0, rs);
+            var pk = new ArrayPacket(buffer, 0, rs);
             session.SendMessage(pk);
 
             count++;

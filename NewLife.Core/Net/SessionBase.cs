@@ -240,7 +240,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    public Int32 Send(Packet data)
+    public Int32 Send(IPacket data)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (!Open()) return -1;
@@ -254,7 +254,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    protected abstract Int32 OnSend(Packet data);
+    protected abstract Int32 OnSend(IPacket data);
 
     #endregion 发送
 

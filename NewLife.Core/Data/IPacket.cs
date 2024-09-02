@@ -122,6 +122,24 @@ public static class PacketHelper
 
         return new MemoryStream(pk.GetSpan().ToArray());
     }
+
+    /// <summary>返回数据段集合</summary>
+    /// <returns></returns>
+    public static IList<ArraySegment<Byte>> ToSegments(this IPacket pk)
+    {
+        // 初始4元素，优化扩容
+        var list = new List<ArraySegment<Byte>>(4);
+
+        for (var p = pk; p != null; p = p.Next)
+        {
+            if (p is ArrayPacket ap)
+                list.Add(new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length));
+            else
+                list.Add(new ArraySegment<Byte>(p.GetSpan().ToArray(), 0, p.Length));
+        }
+
+        return list;
+    }
 }
 
 /// <summary>所有权内存包。具有所有权管理，不再使用时释放</summary>

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Serialization;
@@ -78,8 +79,8 @@ public abstract class HttpBase
                 var p3 = line.IndexOf((Byte)':');
                 if (p3 > 0)
                 {
-                    var name = line[..p3].ToStr();
-                    var value = line[(p3 + 1)..].ToStr();
+                    var name = line[..p3].Trim((Byte)' ').ToStr();
+                    var value = line[(p3 + 1)..].Trim((Byte)' ').ToStr();
                     Headers[name] = value;
                 }
             }
@@ -122,7 +123,7 @@ public abstract class HttpBase
     public virtual IPacket Build()
     {
         var body = Body;
-        var len = body != null ? body.Length : -1;
+        var len = body != null ? body.Length : 0;
 
         var header = BuildHeader(len);
         var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);

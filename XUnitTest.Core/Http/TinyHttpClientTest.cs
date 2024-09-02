@@ -3,6 +3,7 @@ using NewLife;
 using NewLife.Http;
 using NewLife.Log;
 using Xunit;
+using NewLife.Data;
 
 namespace XUnitTest.Http;
 

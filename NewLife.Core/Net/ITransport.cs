@@ -17,7 +17,7 @@ public interface ITransport : IDisposable
 
     /// <summary>写入数据</summary>
     /// <param name="data">数据包</param>
-    Int32 Send(Packet data);
+    Int32 Send(IPacket data);
 
     /// <summary>读取数据</summary>
     /// <returns></returns>
