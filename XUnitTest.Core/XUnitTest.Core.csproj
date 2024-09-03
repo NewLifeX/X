@@ -57,7 +57,7 @@
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
-    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="Moq" Version="4.20.71" />
     <PackageReference Include="NewLife.Modbus" Version="1.8.2024.217" />
     <PackageReference Include="NewLife.UnitTest" Version="1.0.2023.1204" />
     <PackageReference Include="xunit" Version="2.9.0" />
