@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NewLife.Serialization;
+namespace NewLife.Buffers;
 
 /// <summary>Span写入器</summary>
 /// <param name="buffer"></param>

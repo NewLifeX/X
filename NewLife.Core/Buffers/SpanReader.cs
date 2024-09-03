@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NewLife.Serialization;
+namespace NewLife.Buffers;
 
 /// <summary>Span读取器</summary>
 /// <param name="span"></param>

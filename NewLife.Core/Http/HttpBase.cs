@@ -1,8 +1,7 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
+using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Serialization;
 
 namespace NewLife.Http;
 

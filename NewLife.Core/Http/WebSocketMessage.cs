@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Text;
+using NewLife.Buffers;
 using NewLife.Data;
-using NewLife.Serialization;
 
 namespace NewLife.Http;
 
