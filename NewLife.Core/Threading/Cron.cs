@@ -116,7 +116,7 @@ public class Cron
     /// <returns></returns>
     public Boolean Parse(String expression)
     {
-        var ss = expression.Split(' ');
+        var ss = expression.Split([' '], StringSplitOptions.RemoveEmptyEntries);
         if (ss.Length == 0) return false;
 
         if (!TryParse(ss[0], 0, 60, out var vs)) return false;

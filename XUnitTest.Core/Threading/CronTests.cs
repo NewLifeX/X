@@ -24,8 +24,6 @@ public class CronTests
         //Assert.False(cron.IsTime(DateTime.Parse("11:01:00 10/12/2008")));
     }
 
-
-
     [Theory]
     [InlineData("*/2")]
     [InlineData("* * * * *")]
@@ -38,6 +36,17 @@ public class CronTests
     [InlineData("1,10,20 * * * *")]
     [InlineData("* 1,10,20 * * *")]
     [InlineData("* 1-10,13,5/20 * * *")]
+    [InlineData("*/2 ")]
+    [InlineData("* *  * * *")]
+    [InlineData("0 * *   * *")]
+    [InlineData("0,1,2 *   * *  *")]
+    [InlineData("*/2 * *  * * ")]
+    [InlineData("5/20 *  * *  *")]
+    [InlineData("1-4 * *  * * ")]
+    [InlineData("1-55/3  * *  * * ")]
+    [InlineData("1,10,20  *  * *  *")]
+    [InlineData(" * 1,10,20  * *  *")]
+    [InlineData(" * 1-10,13,5/20 *  * *")]
     public void Valid(String expression)
     {
         var cron = new Cron();
