@@ -222,7 +222,8 @@ public struct OwnerPacket : IDisposable, IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public IPacket Slice(Int32 offset, Int32 count)
     {
-        if (count < 0) count = _length - offset;
+        var remain = _length - offset;
+        if (count < 0 || count > remain) count = remain;
         if (offset == 0 && count == _length) return this;
 
         if (offset == 0)
@@ -289,7 +290,8 @@ public struct MemoryPacket : IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public IPacket Slice(Int32 offset, Int32 count)
     {
-        if (count < 0) count = _length - offset;
+        var remain = _length - offset;
+        if (count < 0 || count > remain) count = remain;
         if (offset == 0 && count == _length) return this;
 
         if (offset == 0)
@@ -381,7 +383,8 @@ public struct ArrayPacket : IDisposable, IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public IPacket Slice(Int32 offset, Int32 count)
     {
-        if (count < 0) count = _length - offset;
+        var remain = _length - offset;
+        if (count < 0 || count > remain) count = remain;
         if (offset == 0 && count == _length) return this;
 
         var pk = new ArrayPacket(_buffer, _offset + offset, count) { HasOwner = HasOwner };
