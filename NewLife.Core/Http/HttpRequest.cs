@@ -151,25 +151,20 @@ public class HttpRequest : HttpBase
          */
 
         // 前面加两个横杠，作为分隔符。最后一行分隔符的末尾也有两个横杠
-        var bd = ("--" + boundary).GetBytes();
-        var p = 0;
+        var bd = ("--" + boundary + "\r\n").GetBytes();
+        var bd2 = ("\r\n--" + boundary).GetBytes();
         do
         {
-            // 找到开始边界
-            if (p == 0) p = data[p..].IndexOf(bd);
-            if (p < 0) break;
-            p += bd.Length + 2;
+            // 找到边界
+            var (s, e) = data.IndexOf(bd, bd2);
+            if (e < 0) break;
 
-            // 截取整个部分，最后2个字节的换行不要
-            var pPart = data[p..].IndexOf(bd);
-            if (pPart < 0) break;
+            // 截取一段，剩下的以bd开头作为新的data。这一段的开头结尾都有\r\n
+            var part = data.Slice(s, e);
+            data = data[(s + e)..];
 
-            var part = data.Slice(p, pPart - p - 2);
-
-            var pHeader = data.IndexOf(NewLine2);
-            var header = part[..pHeader];
-
-            var lines = header.ToStr().SplitAsDictionary(":", "\r\n");
+            var pHeader = part.IndexOf(NewLine2);
+            var lines = part[..pHeader].ToStr().SplitAsDictionary(":", "\r\n");
             if (lines.TryGetValue("Content-Disposition", out var str))
             {
                 var ss = str.SplitAsDictionary("=", ";", true);
@@ -183,18 +178,16 @@ public class HttpRequest : HttpBase
                 if (lines.TryGetValue("Content-Type", out str))
                     file.ContentType = str;
 
-                var fileData = part.Slice(pHeader + NewLine2.Length);
+                var fileData = part[(pHeader + NewLine2.Length)..];
                 file.Data = fileData.ToArray();
 
                 if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
             }
 
             // 判断是否最后一个分隔符
-            if (body.Slice(pPart + bd.Length, 2).ToStr() == "--") break;
+            if (data.Slice(bd2.Length, 2).ToStr() == "--") break;
 
-            p = pPart;
-
-        } while (p < body.Length);
+        } while (data.Length > 0);
 
         return dic;
     }

@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -7,6 +8,7 @@ namespace NewLife;
 /// <summary>Span帮助类</summary>
 public static class SpanHelper
 {
+    #region 字符串扩展
     /// <summary>转字符串</summary>
     /// <param name="span"></param>
     /// <param name="encoding"></param>
@@ -74,6 +76,83 @@ public static class SpanHelper
         return span.ToArray().ToHex(separate, groupSize);
     }
 
+    /// <summary>通过指定开始与结束边界来截取数据源</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static ReadOnlySpan<T> Substring<T>(this ReadOnlySpan<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
+    {
+        var startIndex = source.IndexOf(start);
+        if (startIndex == -1) return [];
+
+        startIndex += start.Length;
+
+        var endIndex = source[startIndex..].IndexOf(end);
+        if (endIndex == -1) return [];
+
+        return source.Slice(startIndex, endIndex);
+    }
+
+    /// <summary>通过指定开始与结束边界来截取数据源</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static Span<T> Substring<T>(this Span<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
+    {
+        var startIndex = source.IndexOf(start);
+        if (startIndex == -1) return [];
+
+        startIndex += start.Length;
+
+        var endIndex = source[startIndex..].IndexOf(end);
+        if (endIndex == -1) return [];
+
+        return source.Slice(startIndex, endIndex);
+    }
+
+    /// <summary>在数据源中查找开始与结束边界</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static (Int32 offset, Int32 count) IndexOf<T>(this ReadOnlySpan<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
+    {
+        var startIndex = source.IndexOf(start);
+        if (startIndex == -1) return (-1, -1);
+
+        startIndex += start.Length;
+
+        var endIndex = source[startIndex..].IndexOf(end);
+        if (endIndex == -1) return (startIndex, -1);
+
+        return (startIndex, endIndex);
+    }
+
+    /// <summary>在数据源中查找开始与结束边界</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public static (Int32 offset, Int32 count) IndexOf<T>(this Span<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
+    {
+        var startIndex = source.IndexOf(start);
+        if (startIndex == -1) return (-1, -1);
+
+        startIndex += start.Length;
+
+        var endIndex = source[startIndex..].IndexOf(end);
+        if (endIndex == -1) return (startIndex, -1);
+
+        return (startIndex, endIndex);
+    }
+    #endregion
+
     /// <summary>写入Memory到数据流</summary>
     /// <param name="stream"></param>
     /// <param name="buffer"></param>
@@ -139,6 +218,7 @@ public static class SpanHelper
         }
         return i;
     }
+
     private static Int32 ClampEnd<T>(ReadOnlySpan<T> span, Int32 start, T trimElement) where T : IEquatable<T>
     {
         var num = span.Length - 1;
