@@ -32,6 +32,21 @@ public class BinaryNormal : BinaryHandlerBase
 
             return true;
         }
+        else if (type == typeof(IPacket))
+        {
+            //var bn = Host as Binary;
+            if (value is IPacket pk)
+            {
+                Host.WriteSize(pk.GetTotal());
+                pk.CopyTo(Host.Stream);
+            }
+            else
+            {
+                Host.WriteSize(0);
+            }
+
+            return true;
+        }
         else if (type == typeof(Packet))
         {
             //var bn = Host as Binary;

@@ -71,7 +71,7 @@ public class NetHandlerContext : HandlerContext
         if (message is DefaultMessage dm)
         {
             var raw = dm.GetRaw();
-            if (raw != null) data.Packet = raw as Packet;
+            if (raw != null) data.Packet = raw;
         }
 
         Session?.Process(data);
@@ -89,7 +89,6 @@ public class NetHandlerContext : HandlerContext
 
         // 发送一包数据
         if (message is Byte[] buf) return session.Send(buf);
-        if (message is Packet pk) return session.Send(pk);
         if (message is IPacket ip) return session.Send(ip);
         if (message is String str) return session.Send(str.GetBytes());
         if (message is IAccessor acc) return session.Send(acc.ToPacket());

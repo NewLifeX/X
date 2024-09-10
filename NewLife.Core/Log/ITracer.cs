@@ -211,15 +211,16 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         }
         else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
         {
-            if (tag is Packet pk)
+            if (tag is IPacket pk)
             {
                 // 头尾是Xml/Json时，使用字符串格式
-                if (pk.Total >= 2 && (pk[0] == '{' || pk[0] == '<' || pk[pk.Total - 1] == '}' || pk[pk.Total - 1] == '>'))
+                var total = pk.GetTotal();
+                if (total >= 2 && (pk[0] == '{' || pk[0] == '<' || pk[total - 1] == '}' || pk[total - 1] == '>'))
                     span.Tag = pk.ToStr(null, 0, len);
                 else
                     span.Tag = pk.ToHex(len / 2);
 
-                span.Value = pk.Total;
+                span.Value = total;
             }
             //else if (tag is IMessage msg)
             //    span.Tag = msg.ToPacket().ToHex(len / 2);

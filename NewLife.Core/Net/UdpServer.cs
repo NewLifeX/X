@@ -237,7 +237,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    internal protected override ISocketSession? OnPreReceive(Packet pk, IPAddress local, IPEndPoint remote)
+    internal protected override ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote)
     {
         // 过滤自己广播的环回数据。放在这里，兼容UdpSession
         if (!Loopback && remote.Port == Port)
@@ -275,7 +275,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         else
         {
             // 没有匹配到任何会话时，才在这里显示日志。理论上不存在这个可能性
-            if (Log.Enable && LogReceive && pk != null) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
+            if (Log.Enable && LogReceive && pk != null) WriteLog("Recv [{0}]: {1}", pk.Length, pk.ToHex(LogDataLength));
         }
 
         if (session != null) RaiseReceive(session, e);

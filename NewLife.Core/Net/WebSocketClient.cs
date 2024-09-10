@@ -131,7 +131,7 @@ public class WebSocketClient : TcpSession
     /// <param name="data"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task SendTextAsync(Packet data, CancellationToken cancellationToken = default)
+    public Task SendTextAsync(IPacket data, CancellationToken cancellationToken = default)
     {
         var msg = new WebSocketMessage
         {
@@ -146,13 +146,13 @@ public class WebSocketClient : TcpSession
     /// <param name="text"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task SendTextAsync(String text, CancellationToken cancellationToken = default) => SendTextAsync(text.GetBytes(), cancellationToken);
+    public Task SendTextAsync(String text, CancellationToken cancellationToken = default) => SendTextAsync((ArrayPacket)text.GetBytes(), cancellationToken);
 
     /// <summary>发送二进制数据</summary>
     /// <param name="data"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task SendBinaryAsync(Packet data, CancellationToken cancellationToken = default)
+    public Task SendBinaryAsync(IPacket data, CancellationToken cancellationToken = default)
     {
         var msg = new WebSocketMessage
         {

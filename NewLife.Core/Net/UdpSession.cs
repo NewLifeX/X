@@ -315,7 +315,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (e != null) Received?.Invoke(this, e);
 
         // 我们约定，UDP收到空数据包时，结束会话
-        if (e != null && (e.Packet == null || e.Packet.Total == 0))
+        if (e != null && (e.Packet == null || e.Packet.Length == 0))
         {
             Stop("Finish");
             Dispose();

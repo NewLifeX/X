@@ -7,7 +7,7 @@ public class MessageEventArgs : EventArgs
 {
     #region 属性
     /// <summary>数据包</summary>
-    public Packet? Packet { get; set; }
+    public IPacket? Packet { get; set; }
 
     /// <summary>消息</summary>
     public IMessage? Message { get; set; }

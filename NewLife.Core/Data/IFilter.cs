@@ -15,7 +15,7 @@ public interface IFilter
 public class FilterContext
 {
     /// <summary>封包</summary>
-    public virtual Packet? Packet { get; set; }
+    public virtual IPacket? Packet { get; set; }
 }
 
 /// <summary>过滤器助手</summary>

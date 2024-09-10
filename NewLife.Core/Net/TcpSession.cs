@@ -452,9 +452,9 @@ public class TcpSession : SessionBase, ISocketSession
     /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    protected internal override ISocketSession? OnPreReceive(Packet pk, IPAddress local, IPEndPoint remote)
+    protected internal override ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote)
     {
-        if (pk.Count == 0)
+        if (pk.Length == 0)
         {
             using var span = Tracer?.NewSpan($"net:{Name}:EmptyData", remote?.ToString());
 

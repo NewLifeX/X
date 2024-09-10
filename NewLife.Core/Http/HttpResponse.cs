@@ -108,6 +108,11 @@ public class HttpResponse : HttpBase
 
             StatusDescription = ex.Message;
         }
+        else if (result is IPacket pk2)
+        {
+            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
+            Body = pk2;
+        }
         else if (result is Packet pk)
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";

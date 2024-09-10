@@ -461,7 +461,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
     /// <param name="session"></param>
     /// <param name="pk"></param>
-    protected virtual void OnReceive(INetSession session, Packet pk) { }
+    protected virtual void OnReceive(INetSession session, IPacket pk) { }
 
     /// <summary>收到数据时，最原始的数据处理，但不影响会话内部的数据处理</summary>
     /// <param name="session"></param>
@@ -542,7 +542,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <summary>异步群发数据给所有客户端</summary>
     /// <param name="data"></param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Task<Int32> SendAllAsync(Packet data)
+    public virtual Task<Int32> SendAllAsync(IPacket data)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 
@@ -559,7 +559,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <param name="data"></param>
     /// <param name="predicate">过滤器，判断指定会话是否需要发送</param>
     /// <returns>已群发客户端总数</returns>
-    public virtual Task<Int32> SendAllAsync(Packet data, Func<INetSession, Boolean>? predicate = null)
+    public virtual Task<Int32> SendAllAsync(IPacket data, Func<INetSession, Boolean>? predicate = null)
     {
         if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
 

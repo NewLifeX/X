@@ -44,7 +44,7 @@ public class WebSocketCodec : Handler
     /// <returns></returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
-        if (message is Packet pk)
+        if (message is IPacket pk)
         {
             var msg = new WebSocketMessage();
             if (msg.Read(pk))
@@ -65,7 +65,7 @@ public class WebSocketCodec : Handler
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
-        if (UserPacket && message is Packet pk)
+        if (UserPacket && message is IPacket pk)
             message = new WebSocketMessage { Type = WebSocketMessageType.Binary, Payload = pk };
 
         if (message is WebSocketMessage msg)

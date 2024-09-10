@@ -72,21 +72,33 @@ public static class PacketHelper
     /// <summary>转字符串并释放</summary>
     /// <param name="pk"></param>
     /// <param name="encoding"></param>
+    /// <param name="offset"></param>
+    /// <param name="count"></param>
     /// <returns></returns>
-    public static String ToStr(this IPacket pk, Encoding? encoding = null)
+    public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
         if (pk.Next == null)
         {
-            var rs = pk.GetSpan().ToStr(encoding);
+            if (count < 0) count = pk.Length - offset;
+            var span = pk.GetSpan();
+            if (span.Length > count) span = span[..count];
+
+            var rs = span.ToStr(encoding);
             pk.TryDispose();
             return rs;
         }
 
+        if (count < 0) count = pk.GetTotal() - offset;
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk; p != null; p = p.Next)
+        for (var p = pk; p != null && count > 0; p = p.Next)
         {
-            sb.Append(p.GetSpan().ToStr(encoding));
+            var span = p.GetSpan();
+            if (span.Length > count) span = span[..count];
+
+            sb.Append(span.ToStr(encoding));
             p.TryDispose();
+
+            count -= span.Length;
         }
         return sb.Return(true);
     }

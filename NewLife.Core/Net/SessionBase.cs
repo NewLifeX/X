@@ -486,7 +486,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 if (bytes < 0) bytes = se.BytesTransferred;
                 if (se.Buffer != null)
                 {
-                    var pk = new Packet(se.Buffer, se.Offset, bytes);
+                    var pk = new ArrayPacket(se.Buffer, se.Offset, bytes);
 
                     // 同步执行，直接使用数据，不需要拷贝
                     // 直接在IO线程调用业务逻辑
@@ -521,12 +521,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="pk">数据包</param>
     /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
-    private void ProcessReceive(Packet pk, IPAddress local, IPEndPoint remote)
+    private void ProcessReceive(IPacket pk, IPAddress local, IPEndPoint remote)
     {
         // 打断上下文调用链，这里必须是起点
         DefaultSpan.Current = null;
 
-        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", pk.Total + "", pk.Total);
+        var total = pk.Length;
+        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", total + "", total);
         try
         {
             LastTime = DateTime.Now;
@@ -535,7 +536,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var ss = OnPreReceive(pk, local, remote);
             if (ss == null) return;
 
-            if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", pk.Total, pk.ToHex(LogDataLength));
+            if (LogReceive && Log != null && Log.Enable) WriteLog("Recv [{0}]: {1}", total, pk.ToHex(LogDataLength));
 
             if (Local.IsTcp) remote = Remote.EndPoint;
 
@@ -566,7 +567,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="local">接收数据的本地地址</param>
     /// <param name="remote">远程地址</param>
     /// <returns>将要处理该数据包的会话</returns>
-    protected internal abstract ISocketSession? OnPreReceive(Packet pk, IPAddress local, IPEndPoint remote);
+    protected internal abstract ISocketSession? OnPreReceive(IPacket pk, IPAddress local, IPEndPoint remote);
 
     /// <summary>处理收到的数据。默认匹配同步接收委托</summary>
     /// <param name="e">接收事件参数</param>

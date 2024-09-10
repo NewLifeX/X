@@ -316,7 +316,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         var request = ApiHelper.BuildRequest(method, action, args, jsonHost);
 
         // 指定返回类型
-        if (returnType == typeof(Byte[]) || returnType == typeof(Packet))
+        if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
         else
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

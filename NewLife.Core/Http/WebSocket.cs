@@ -120,7 +120,7 @@ public class WebSocket
     /// <summary>发送消息</summary>
     /// <param name="data"></param>
     /// <param name="type"></param>
-    public void Send(Packet data, WebSocketMessageType type)
+    public void Send(IPacket data, WebSocketMessageType type)
     {
         var msg = new WebSocketMessage { Type = type, Payload = data };
         Send(msg);
@@ -128,24 +128,24 @@ public class WebSocket
 
     /// <summary>发送文本消息</summary>
     /// <param name="message"></param>
-    public void Send(String message) => Send(message.GetBytes(), WebSocketMessageType.Text);
+    public void Send(String message) => Send((ArrayPacket)message.GetBytes(), WebSocketMessageType.Text);
 
     /// <summary>向所有连接发送消息</summary>
     /// <param name="data"></param>
     /// <param name="type"></param>
     /// <param name="predicate"></param>
-    public void SendAll(Packet data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
+    public void SendAll(IPacket data, WebSocketMessageType type, Func<INetSession, Boolean>? predicate = null)
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        var data2 = msg.ToPacket().GetSpan().ToArray();
+        var data2 = msg.ToPacket();
         session.Host.SendAllAsync(data2, predicate);
     }
 
     /// <summary>想所有连接发送文本消息</summary>
     /// <param name="message"></param>
     /// <param name="predicate"></param>
-    public void SendAll(String message, Func<INetSession, Boolean>? predicate = null) => SendAll(message.GetBytes(), WebSocketMessageType.Text, predicate);
+    public void SendAll(String message, Func<INetSession, Boolean>? predicate = null) => SendAll((ArrayPacket)message.GetBytes(), WebSocketMessageType.Text, predicate);
 
     /// <summary>发送关闭连接</summary>
     /// <param name="closeStatus"></param>

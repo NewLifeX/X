@@ -1,4 +1,5 @@
 ﻿using NewLife;
+using NewLife.Data;
 using NewLife.Model;
 using NewLife.Net;
 using Zero.TcpServer.Handlers;
@@ -38,7 +39,7 @@ class MyNetSession : NetSession<MyNetServer>
     /// <param name="e"></param>
     protected override void OnReceive(ReceivedEventArgs e)
     {
-        if (e.Packet.Total == 0) return;
+        if (e.Packet.Length == 0) return;
 
         WriteLog("收到：{0}", e.Packet.ToStr());
 

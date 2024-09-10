@@ -540,8 +540,11 @@ public class Binary : FormatterBase, IBinary
         bn.Stream.Seek(8, SeekOrigin.Current);
         bn.Write(value);
 
-        var buf = bn.GetBytes();
-        return new ArrayPacket(buf, 8, buf.Length - 8);
+        //var buf = bn.GetBytes();
+        //return new ArrayPacket(buf, 8, buf.Length - 8);
+
+        bn.Stream.Position = 8;
+        return new ArrayPacket(bn.Stream);
     }
 
     /// <summary>快速写入</summary>

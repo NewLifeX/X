@@ -7,7 +7,7 @@ public interface IData
 {
     #region 属性
     /// <summary>原始数据包</summary>
-    Packet? Packet { get; set; }
+    IPacket? Packet { get; set; }
 
     /// <summary>远程地址</summary>
     IPEndPoint? Remote { get; set; }

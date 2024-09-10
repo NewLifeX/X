@@ -91,7 +91,7 @@ public static class ApiHelper
         var request = BuildRequest(method, action, args);
 
         // 指定返回类型
-        if (returnType == typeof(Byte[]) || returnType == typeof(Packet))
+        if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
         else
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -141,11 +141,11 @@ public static class ApiHelper
             request.Content = content;
         else if (method == HttpMethod.Get || method == HttpMethod.Delete)
         {
-            if (args is Packet pk)
+            if (args is IPacket pk)
             {
                 var url = action;
                 url += url.Contains('?') ? "&" : "?";
-                url += pk.ToArray().ToUrlBase64();
+                url += pk.GetSpan().ToArray().ToUrlBase64();
                 request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
             else if (args is Byte[] buf)
@@ -164,13 +164,13 @@ public static class ApiHelper
         }
         else if (method == HttpMethod.Post || method == HttpMethod.Put || method.Method == "PATCH")
         {
-            if (args is Packet pk)
+            if (args is IPacket pk)
             {
                 request.Content = BuildContent(pk);
             }
             else if (args is Byte[] buf)
             {
-                if (buf != null) request.Content = BuildContent(buf);
+                if (buf != null) request.Content = BuildContent((ArrayPacket)buf);
             }
             else if (args != null)
             {
@@ -187,12 +187,12 @@ public static class ApiHelper
     /// <summary>为二进制数据生成请求体内容。对超长内容进行压缩</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static HttpContent BuildContent(Packet pk)
+    public static HttpContent BuildContent(IPacket pk)
     {
         var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
-        if (gzip > 0 && pk.Total >= gzip)
+        if (gzip > 0 && pk.GetTotal() >= gzip)
         {
-            var buf = pk.ReadBytes();
+            var buf = pk.GetSpan().ToArray();
             buf = buf.CompressGZip();
             var content = new ByteArrayContent(buf);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/x-gzip");
@@ -200,9 +200,9 @@ public static class ApiHelper
         }
         else
         {
-            var content = pk.Next == null ?
-                new ByteArrayContent(pk.Data, pk.Offset, pk.Count) :
-                new ByteArrayContent(pk.ToArray());
+            var content = pk.Next == null && pk is ArrayPacket ap ?
+                new ByteArrayContent(ap.Buffer, ap.Offset, ap.Length) :
+                new ByteArrayContent(pk.GetSpan().ToArray());
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             return content;
         }

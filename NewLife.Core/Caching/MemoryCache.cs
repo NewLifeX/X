@@ -780,7 +780,7 @@ public class MemoryCache : Cache
                 //var type = Type.GetType(typeName);
                 var type = typeName?.GetTypeEx();
 
-                var pk = bn.Read<Packet>();
+                var pk = bn.Read<IPacket>();
                 value = pk;
                 if (type != null && pk != null)
                 {

@@ -49,7 +49,7 @@ public class HttpSession : INetHandler
     public void Process(IData data)
     {
         var pk = data.Packet;
-        if (pk == null || pk.Total == 0) return;
+        if (pk == null || pk.Length == 0) return;
 
         // WebSocket 数据
         if (_websocket != null)
@@ -114,7 +114,7 @@ public class HttpSession : INetHandler
         {
             // 改变数据
             data.Message = req;
-            data.Packet = req.Body as Packet;
+            data.Packet = req.Body;
         }
 
         // 收到全部数据后，触发请求处理

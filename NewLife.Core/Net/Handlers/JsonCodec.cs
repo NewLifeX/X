@@ -33,7 +33,7 @@ public class JsonCodec : Handler
             // 通知标准网络封包使用的Flag
             if (ext != null) ext["Flag"] = DataKinds.String;
         }
-        else if (message is not Packet and not IMessage)
+        else if (message is not IPacket and not IMessage)
         {
             message = JsonHost.Write(message).GetBytes();
 
@@ -57,11 +57,11 @@ public class JsonCodec : Handler
     /// <returns></returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
-        if (message is Packet pk)
+        if (message is IPacket pk)
         {
-            //var str = pk.ToStr();
-            //if (!str.IsNullOrEmpty())
-            //    message = JsonParser.Decode(str);
+            var str = pk.ToStr();
+            if (!str.IsNullOrEmpty())
+                message = JsonParser.Decode(str)!;
         }
 
         return base.Read(context, message);
