@@ -1,5 +1,4 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text;
 using NewLife.Collections;
 
@@ -92,6 +91,19 @@ public static class PacketHelper
         return sb.Return(true);
     }
 
+    /// <summary>以十六进制编码表示</summary>
+    /// <param name="pk"></param>
+    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
+    /// <param name="separate">分隔符</param>
+    /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+    /// <returns></returns>
+    public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
+    {
+        if (pk.Length == 0) return String.Empty;
+
+        return pk.GetSpan().ToHex(maxLength, separate, groupSize);
+    }
+
     /// <summary>拷贝</summary>
     /// <param name="pk"></param>
     /// <param name="stream"></param>
@@ -139,9 +151,15 @@ public static class PacketHelper
     /// <returns></returns>
     public static Stream GetStream(this IPacket pk)
     {
-        if (pk is ArrayPacket ap) return new MemoryStream(ap.Buffer, ap.Offset, ap.Length);
+        if (pk is ArrayPacket ap && ap.Next == null) return new MemoryStream(ap.Buffer, ap.Offset, ap.Length);
 
-        return new MemoryStream(pk.GetSpan().ToArray());
+        //return new MemoryStream(pk.GetSpan().ToArray());
+
+        var ms = new MemoryStream();
+        pk.CopyTo(ms);
+        ms.Position = 0;
+
+        return ms;
     }
 
     /// <summary>返回数据段集合</summary>
@@ -396,6 +414,48 @@ public struct ArrayPacket : IDisposable, IPacket
             _buffer = new Byte[length];
             _length = length;
         }
+    }
+
+    /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
+    /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
+    /// <param name="stream"></param>
+    public ArrayPacket(Stream stream)
+    {
+        if (stream is MemoryStream ms)
+        {
+#if !NET45
+            // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
+            if (ms.TryGetBuffer(out var seg))
+            {
+                if (seg.Array == null) throw new ArgumentNullException(nameof(seg));
+
+                _buffer = seg.Array;
+                _offset = seg.Offset + (Int32)ms.Position;
+                _length = seg.Count - (Int32)ms.Position;
+                return;
+            }
+            // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
+            // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
+
+            //try
+            //{
+            //    Set(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
+            //}
+            //catch (UnauthorizedAccessException) { }
+#endif
+        }
+
+        //Set(stream.ToArray());
+
+        var buf = new Byte[stream.Length - stream.Position];
+        var count = stream.Read(buf, 0, buf.Length);
+        //Set(buf, 0, count);
+        _buffer = buf;
+        _offset = 0;
+        _length = count;
+
+        // 必须确保数据流位置不变
+        if (count > 0) stream.Seek(-count, SeekOrigin.Current);
     }
 
     /// <summary>释放</summary>

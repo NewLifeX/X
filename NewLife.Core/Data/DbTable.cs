@@ -295,9 +295,9 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <summary>读取</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public Boolean Read(Packet pk)
+    public Boolean Read(IPacket pk)
     {
-        if (pk == null || pk.Total == 0) return false;
+        if (pk == null || pk.Length == 0) return false;
 
         Read(pk.GetStream());
 
@@ -413,7 +413,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     /// <summary>转数据包</summary>
     /// <returns></returns>
-    public Packet ToPacket()
+    public IPacket ToPacket()
     {
         var ms = new MemoryStream
         {
@@ -423,7 +423,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         Write(ms);
 
         ms.Position = 8;
-        return new Packet(ms);
+        return new ArrayPacket(ms);
     }
 
     /// <summary>保存到文件</summary>

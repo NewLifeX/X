@@ -104,7 +104,7 @@ public class HttpSession : INetHandler
                 if (_cache.Length >= req.ContentLength)
                 {
                     _cache.Position = 0;
-                    req.Body = new Packet(_cache);
+                    req.Body = new ArrayPacket(_cache);
                     _cache = null;
                 }
             }

@@ -127,10 +127,10 @@ public abstract class FormatterBase //: IFormatterX
 
     /// <summary>获取流里面的数据包</summary>
     /// <returns></returns>
-    public Packet GetPacket()
+    public IPacket GetPacket()
     {
         Stream.Position = 0;
-        return new(Stream);
+        return new ArrayPacket(Stream);
     }
     #endregion
 

@@ -98,12 +98,13 @@ public class PacketCodec
                 // 该方案在NET40/NET45上会导致拷贝大量数据，而读取包头长度没必要拷贝那么多数据，不划算
                 //var pk2 = new Packet(ms);
                 // 这里可以肯定能够窃取内部缓冲区
-                var pk2 = new Packet(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
+                var pk2 = new ArrayPacket(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
                 var len = func(pk2);
-                if (len <= 0 || len > pk2.Total) break;
+                if (len <= 0 || len > pk2.Length) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
-                pk2.Set(pk2.Data, pk2.Offset, Offset + len);
+                //pk2.Set(pk2.Data, pk2.Offset, Offset + len);
+                pk2 = new ArrayPacket(pk2.Buffer, pk2.Offset, pk2.Offset + len);
                 list.Add(pk2);
 
                 ms.Seek(Offset + len, SeekOrigin.Current);

@@ -42,7 +42,7 @@ public class JsonCodec : Handler
         }
 
         if (message is Byte[] buf)
-            message = new Packet(buf);
+            message = new ArrayPacket(buf);
 
         return base.Write(context, message);
     }

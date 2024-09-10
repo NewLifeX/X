@@ -138,9 +138,10 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, Packet? pk)
+    public static IPacket MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, IPacket? pk)
     {
-        if (method.IsNullOrEmpty()) method = pk?.Count > 0 ? "POST" : "GET";
+        var count = pk?.GetTotal() ?? 0;
+        if (method.IsNullOrEmpty()) method = count > 0 ? "POST" : "GET";
 
         // 分解主机和资源
         var host = "";
@@ -171,7 +172,7 @@ public static class HttpHelper
         //if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
 
         // 内容长度
-        if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
+        if (count > 0) sb.AppendFormat("Content-Length:{0}\r\n", count);
 
         if (headers != null)
         {
@@ -184,7 +185,7 @@ public static class HttpHelper
         sb.Append("\r\n");
 
         //return sb.ToString();
-        var rs = new Packet(sb.Return(true).GetBytes())
+        var rs = new ArrayPacket(sb.Return(true).GetBytes())
         {
             Next = pk
         };
@@ -196,14 +197,15 @@ public static class HttpHelper
     /// <param name="headers"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Packet MakeResponse(HttpStatusCode code, IDictionary<String, Object?>? headers, Packet? pk)
+    public static IPacket MakeResponse(HttpStatusCode code, IDictionary<String, Object?>? headers, IPacket? pk)
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
         // 内容长度
-        if (pk?.Count > 0) sb.AppendFormat("Content-Length:{0}\r\n", pk.Count);
+        var count = pk?.GetTotal() ?? 0;
+        if (count > 0) sb.AppendFormat("Content-Length:{0}\r\n", count);
 
         if (headers != null)
         {
@@ -216,7 +218,7 @@ public static class HttpHelper
         sb.Append("\r\n");
 
         //return sb.ToString();
-        var rs = new Packet(sb.Return(true).GetBytes())
+        var rs = new ArrayPacket(sb.Return(true).GetBytes())
         {
             Next = pk
         };

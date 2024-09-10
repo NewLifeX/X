@@ -42,13 +42,13 @@ public static class AccessorHelper
     /// <param name="accessor">访问器</param>
     /// <param name="context">上下文</param>
     /// <returns></returns>
-    public static Packet ToPacket(this IAccessor accessor, Object? context = null)
+    public static IPacket ToPacket(this IAccessor accessor, Object? context = null)
     {
         var ms = new MemoryStream();
         accessor.Write(ms, context);
 
         ms.Position = 0;
-        return new Packet(ms);
+        return new ArrayPacket(ms);
     }
 
     /// <summary>通过访问器读取</summary>
@@ -56,7 +56,7 @@ public static class AccessorHelper
     /// <param name="pk"></param>
     /// <param name="context">上下文</param>
     /// <returns></returns>
-    public static Object? AccessorRead(this Type type, Packet pk, Object? context = null)
+    public static Object? AccessorRead(this Type type, IPacket pk, Object? context = null)
     {
         var obj = type.CreateInstance();
         if (obj is IAccessor accessor)

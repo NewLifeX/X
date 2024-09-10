@@ -259,6 +259,12 @@ public class JsonReader
             return Convert.FromBase64String(value + "");
         }
 
+        if (type == typeof(IPacket))
+        {
+            if (value is IPacket v) return v;
+
+            return new ArrayPacket(Convert.FromBase64String(value + ""));
+        }
         if (type == typeof(Packet))
         {
             if (value is Packet v) return v;

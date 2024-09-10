@@ -30,7 +30,7 @@ public class StandardCodec : MessageCodec<IMessage>
         }
         else if (message is Byte[] buf)
         {
-            message = new Packet(buf);
+            message = new ArrayPacket(buf);
         }
         else if (message is IAccessor accessor)
         {

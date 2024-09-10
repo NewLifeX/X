@@ -20,7 +20,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(10, pk.Total);
+        Assert.Equal(10, pk.Length);
         Assert.Equal("000004D20553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream() };
@@ -39,7 +39,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
@@ -58,7 +58,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(10, pk.Total);
+        Assert.Equal(10, pk.Length);
         Assert.Equal("D20400000553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), IsLittleEndian = true };
@@ -77,7 +77,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(6, pk.Total);
+        Assert.Equal(6, pk.Length);
         Assert.Equal("0553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), UseFieldSize = true };
@@ -96,7 +96,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(11, pk.Total);
+        Assert.Equal(11, pk.Length);
         Assert.Equal("000004D2000553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), SizeWidth = 2 };
@@ -115,7 +115,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(10, pk.Total);
+        Assert.Equal(10, pk.Length);
         Assert.Equal("000004D20553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), UseProperty = false };
@@ -135,7 +135,7 @@ public class BinaryTests
         bn.Write(model);
 
         var pk = bn.GetPacket();
-        Assert.Equal(6, pk.Total);
+        Assert.Equal(6, pk.Length);
         Assert.Equal("0553746F6E65", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream() };
@@ -150,9 +150,9 @@ public class BinaryTests
     {
         var model = new MyModel { Code = 1234, Name = "Stone" };
         var pk = Binary.FastWrite(model);
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
-        Assert.Equal("0gkFU3RvbmU=", pk.ToArray().ToBase64());
+        Assert.Equal("0gkFU3RvbmU=", pk.GetSpan().ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModel>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);
@@ -175,9 +175,9 @@ public class BinaryTests
     {
         var model = new MyModelWithAccessor { Code = 1234, Name = "Stone" };
         var pk = Binary.FastWrite(model);
-        Assert.Equal(10, pk.Total);
+        Assert.Equal(10, pk.Length);
         Assert.Equal("D20400000553746F6E65", pk.ToHex());
-        Assert.Equal("0gQAAAVTdG9uZQ==", pk.ToArray().ToBase64());
+        Assert.Equal("0gQAAAVTdG9uZQ==", pk.GetSpan().ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModelWithAccessor>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);
@@ -218,9 +218,9 @@ public class BinaryTests
     {
         var model = new MyModelWithMemberAccessor { Code = 1234, Name = "Stone" };
         var pk = Binary.FastWrite(model);
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
-        Assert.Equal("0gkFU3RvbmU=", pk.ToArray().ToBase64());
+        Assert.Equal("0gkFU3RvbmU=", pk.GetSpan().ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModelWithMemberAccessor>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);
@@ -297,7 +297,7 @@ public class BinaryTests
     {
         var model = new MyModelWithMemberAccessorAtt { Code = 1234, Name = "Stone" };
         var pk = Binary.FastWrite(model);
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
 
         var model2 = Binary.FastRead<MyModelWithMemberAccessorAtt>(pk.GetStream());
@@ -348,7 +348,7 @@ public class BinaryTests
         var bn = new Binary { EncodeInt = true };
         bn.Write(model);
         var pk = bn.GetPacket();
-        Assert.Equal(10, pk.Total);
+        Assert.Equal(10, pk.Length);
         Assert.Equal("D20953746F6E65000000", pk.ToHex());
 
         var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
@@ -373,7 +373,7 @@ public class BinaryTests
 
         // 默认压缩整数，反而用了5字节
         var pk = Binary.FastWrite(dt);
-        Assert.Equal(5, pk.Total);
+        Assert.Equal(5, pk.Length);
 
         var dt2 = Binary.FastRead<DateTime>(pk.GetStream());
         var n2 = dt2.ToInt();
@@ -385,7 +385,7 @@ public class BinaryTests
         var bn = new Binary { EncodeInt = false };
         bn.Write(dt);
         pk = bn.GetPacket();
-        Assert.Equal(4, pk.Total);
+        Assert.Equal(4, pk.Length);
 
         bn = new Binary { EncodeInt = false, Stream = pk.GetStream() };
         dt2 = bn.Read<DateTime>();
@@ -403,7 +403,7 @@ public class BinaryTests
         var n1 = dt.ToLong();
 
         var pk = Binary.FastWrite(dt);
-        Assert.Equal(5, pk.Total);
+        Assert.Equal(5, pk.Length);
 
         var dt2 = Binary.FastRead<DateTime>(pk.GetStream());
         var n2 = dt2.ToLong();
@@ -419,7 +419,7 @@ public class BinaryTests
         var n1 = dt.ToLong();
 
         var pk = Binary.FastWrite(dt);
-        Assert.Equal(1, pk.Total);
+        Assert.Equal(1, pk.Length);
 
         var dt2 = Binary.FastRead<DateTime>(pk.GetStream());
         var n2 = dt2.ToLong();
@@ -455,7 +455,7 @@ public class BinaryTests
         var bn = new Binary { FullTime = true };
         bn.Write(dt);
         var pk = bn.GetPacket();
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
 
         // 反序列化
         bn = new Binary { FullTime = true, Stream = pk.GetStream() };
@@ -474,7 +474,7 @@ public class BinaryTests
         var bn = new Binary { FullTime = true };
         bn.Write(dt);
         var pk = bn.GetPacket();
-        Assert.Equal(8, pk.Total);
+        Assert.Equal(8, pk.Length);
 
         // 反序列化
         bn = new Binary { FullTime = true, Stream = pk.GetStream() };

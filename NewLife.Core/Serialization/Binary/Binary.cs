@@ -533,7 +533,7 @@ public class Binary : FormatterBase, IBinary
     /// <param name="value">对象</param>
     /// <param name="encodeInt">使用7位编码整数</param>
     /// <returns></returns>
-    public static Packet FastWrite(Object value, Boolean encodeInt = true)
+    public static IPacket FastWrite(Object value, Boolean encodeInt = true)
     {
         // 头部预留8字节，方便加协议头
         var bn = new Binary { EncodeInt = encodeInt };
@@ -541,7 +541,7 @@ public class Binary : FormatterBase, IBinary
         bn.Write(value);
 
         var buf = bn.GetBytes();
-        return new Packet(buf, 8, buf.Length - 8);
+        return new ArrayPacket(buf, 8, buf.Length - 8);
     }
 
     /// <summary>快速写入</summary>

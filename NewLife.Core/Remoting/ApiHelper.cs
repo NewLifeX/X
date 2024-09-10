@@ -267,6 +267,7 @@ public static class ApiHelper
 
         // 原始数据
         if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
+        if (rtype == typeof(IPacket)) return (TResult)(Object)new ArrayPacket(buf);
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
 
         var str = buf.ToStr().Trim();

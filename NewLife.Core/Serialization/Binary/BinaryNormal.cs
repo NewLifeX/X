@@ -119,6 +119,12 @@ public class BinaryNormal : BinaryHandlerBase
             value = ReadBytes(-1);
             return true;
         }
+        else if (type == typeof(IPacket))
+        {
+            var buf = ReadBytes(-1);
+            value = new ArrayPacket(buf);
+            return true;
+        }
         else if (type == typeof(Packet))
         {
             var buf = ReadBytes(-1);
