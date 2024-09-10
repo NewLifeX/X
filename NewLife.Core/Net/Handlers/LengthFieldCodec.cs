@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 
@@ -22,12 +23,14 @@ public class LengthFieldCodec : MessageCodec<Packet>
     /// <param name="context"></param>
     /// <param name="msg"></param>
     /// <returns></returns>
-    protected override Object Encode(IHandlerContext context, Packet msg)
+    protected override Object Encode(IHandlerContext context, IPacket msg)
     {
         var len = Math.Abs(Size);
-        var buf = msg.Data;
+        //var buf = msg.Data;
         var idx = 0;
-        var dlen = msg.Total;
+        var dlen = msg.Length;
+
+        var reader = new SpanReader(msg.GetSpan());
 
         // 修正压缩编码
         if (len == 0) len = IOHelper.GetEncodedInt(dlen).Length;
@@ -77,7 +80,7 @@ public class LengthFieldCodec : MessageCodec<Packet>
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected override IList<Packet>? Decode(IHandlerContext context, Packet pk)
+    protected override IList<Packet>? Decode(IHandlerContext context, IPacket pk)
     {
         if (context.Owner is not IExtend ss) return null;
 

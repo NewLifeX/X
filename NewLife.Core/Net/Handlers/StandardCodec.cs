@@ -26,7 +26,7 @@ public class StandardCodec : MessageCodec<IMessage>
         // 基础类型优先编码
         if (message.GetType().IsBaseType())
         {
-            message = new DefaultMessage { Flag = (Byte)DataKinds.String, Payload = (message + "").GetBytes() };
+            message = new DefaultMessage { Flag = (Byte)DataKinds.String, Payload = (ArrayPacket)(message + "").GetBytes() };
         }
         else if (message is Byte[] buf)
         {
@@ -37,7 +37,7 @@ public class StandardCodec : MessageCodec<IMessage>
             message = accessor.ToPacket();
         }
 
-        if (message is Packet pk)
+        if (message is IPacket pk)
         {
             var dm = new DefaultMessage { Flag = (Byte)DataKinds.Packet, Payload = pk };
             message = dm;
@@ -66,7 +66,7 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected override IList<IMessage>? Decode(IHandlerContext context, Packet pk)
+    protected override IList<IMessage>? Decode(IHandlerContext context, IPacket pk)
     {
         if (context.Owner is not IExtend ss) return null;
 

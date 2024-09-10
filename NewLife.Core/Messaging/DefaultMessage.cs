@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Messaging;
@@ -41,7 +42,7 @@ public class DefaultMessage : Message
     public Int32 Sequence { get; set; }
 
     /// <summary>解析数据时的原始报文</summary>
-    private Packet? _raw;
+    private IPacket? _raw;
     #endregion
 
     #region 方法
@@ -65,16 +66,16 @@ public class DefaultMessage : Message
     /// <summary>从数据包中读取消息</summary>
     /// <param name="pk"></param>
     /// <returns>是否成功</returns>
-    public override Boolean Read(Packet pk)
+    public override Boolean Read(IPacket pk)
     {
         _raw = pk;
 
-        var count = pk.Total;
+        var count = pk.Length;
         if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
         // 取头部4个字节
         var size = 4;
-        var buf = pk.ReadBytes(0, size);
+        var buf = pk.GetSpan()[..size];
 
         // 前2位作为标识位
         Flag = (Byte)(buf[0] & 0b0011_1111);
@@ -102,58 +103,59 @@ public class DefaultMessage : Message
             size += 4;
             if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 8 bytes");
 
-            len = pk.ReadBytes(size - 4, 4).ToInt();
+            len = pk.GetSpan().Slice(size - 4, 4).ToArray().ToInt();
             if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
         }
 
         // 负载数据
-        if (pk.Next == null)
-            Payload = new Packet(pk.Data, pk.Offset + size, len);
-        else
-            Payload = pk.Slice(size, len);
+        Payload = pk.Slice(size, len);
 
         return true;
     }
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    public override Packet ToPacket()
+    public override IPacket ToPacket()
     {
         var body = Payload;
         var len = 0;
-        if (body != null) len = body.Total;
+        if (body != null) len = body.Length;
 
         // 增加4字节头部，如果负载数据之前有足够空间则直接使用，否则新建数据包形成链式结构
         var size = len < 0xFFFF ? 4 : 8;
-        Packet pk;
-        if (body != null && body.Offset >= size)
-            pk = new Packet(body.Data, body.Offset - size, body.Count + size) { Next = body.Next };
+        IPacket pk;
+        if (body is ArrayPacket ap && ap.Offset >= size)
+            pk = new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
         else
-            pk = new Packet(new Byte[size]) { Next = body };
+            pk = new ArrayPacket(new Byte[size]) { Next = body };
 
         // 标记位
+        var header = pk.GetSpan();
         var b = Flag & 0b0011_1111;
         if (Reply) b |= 0x80;
         if (Error || OneWay) b |= 0x40;
-        pk[0] = (Byte)b;
+        header[0] = (Byte)b;
 
         // 序列号
-        pk[1] = (Byte)(Sequence & 0xFF);
+        header[1] = (Byte)(Sequence & 0xFF);
 
         if (len < 0xFFFF)
         {
             // 2字节长度，小端字节序
-            pk[2] = (Byte)(len & 0xFF);
-            pk[3] = (Byte)(len >> 8);
+            header[2] = (Byte)(len & 0xFF);
+            header[3] = (Byte)(len >> 8);
         }
         // 支持64k以上超大包
         else
         {
-            pk[2] = 0xFF;
-            pk[3] = 0xFF;
+            header[2] = 0xFF;
+            header[3] = 0xFF;
 
             // 再来4字节写长度
-            pk.Data.Write((UInt32)len, pk.Offset + 4, true);
+            //pk.Data.Write((UInt32)len, pk.Offset + 4, true);
+            //BinaryPrimitives.WriteInt32LittleEndian(header[4..], len);
+            var writer = new SpanWriter(header) { IsLittleEndian = true };
+            writer.Write(len);
         }
 
         return pk;
@@ -164,23 +166,27 @@ public class DefaultMessage : Message
     /// <summary>获取数据包长度</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Int32 GetLength(Packet pk)
+    public static Int32 GetLength(IPacket pk)
     {
-        if (pk.Total < 4) return 0;
+        if (pk.Length < 4) return 0;
+
+        var reader = new SpanReader(pk.GetSpan()) { IsLittleEndian = true };
 
         // 小于64k，直接返回
-        var len = pk.Data.ToUInt16(pk.Offset + 2);
+        //var len = pk.Data.ToUInt16(pk.Offset + 2);
+        var len = reader.ReadUInt16();
         if (len < 0xFFFF) return 4 + len;
 
         // 超过64k的超大数据包，再来4个字节
-        if (pk.Total < 8) return 0;
+        if (pk.Length < 8) return 0;
 
-        return 8 + (Int32)pk.Data.ToUInt32(pk.Offset + 2 + 2);
+        //return 8 + (Int32)pk.Data.ToUInt32(pk.Offset + 2 + 2);
+        return 8 + reader.ReadInt32();
     }
 
     /// <summary>获取解析数据时的原始报文</summary>
     /// <returns></returns>
-    public Packet? GetRaw() => _raw;
+    public IPacket? GetRaw() => _raw;
 
     /// <summary>消息摘要</summary>
     /// <returns></returns>

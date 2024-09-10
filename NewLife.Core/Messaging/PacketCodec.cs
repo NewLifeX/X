@@ -17,7 +17,7 @@ public class PacketCodec
     public MemoryStream? Stream { get; set; }
 
     /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
-    public Func<Packet, Int32>? GetLength { get; set; }
+    public Func<IPacket, Int32>? GetLength { get; set; }
 
     /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
     public Int32 Offset { get; set; }
@@ -38,36 +38,37 @@ public class PacketCodec
     /// <summary>数据包加入缓存数据末尾，分析数据流，得到一帧或多帧数据</summary>
     /// <param name="pk">待分析数据包</param>
     /// <returns></returns>
-    public virtual IList<Packet> Parse(Packet pk)
+    public virtual IList<IPacket> Parse(IPacket pk)
     {
         var ms = Stream;
         var nodata = ms == null || ms.Position < 0 || ms.Position >= ms.Length;
 
         var func = GetLength ?? throw new ArgumentNullException(nameof(GetLength));
 
-        var list = new List<Packet>();
+        var list = new List<IPacket>();
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
         if (nodata)
         {
-            if (pk == null || pk.Total == 0) return list.ToArray();
+            if (pk == null || pk.Length == 0) return list.ToArray();
 
             //using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
 
             var idx = 0;
-            while (idx < pk.Total)
+            while (idx < pk.Length)
             {
                 // 切出来一片，计算长度
                 var pk2 = pk.Slice(idx);
                 var len = func(pk2);
-                if (len <= 0 || len > pk2.Total) break;
+                if (len <= 0 || len > pk2.Length) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
-                pk2.Set(pk2.Data, pk2.Offset, Offset + len);
+                //pk2.Set(pk2.Data, pk2.Offset, Offset + len);
+                pk2 = pk2.Slice(0, len);
                 list.Add(pk2);
                 idx += Offset + len;
             }
             // 如果没有剩余，可以返回
-            if (idx == pk.Total) return list.ToArray();
+            if (idx == pk.Length) return list.ToArray();
 
             // 剩下的
             pk = pk.Slice(idx);
@@ -80,10 +81,10 @@ public class PacketCodec
             CheckCache();
             ms = Stream;
 
-            using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Total}]{pk.ToHex(500)}", pk.Total);
+            using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Length}]{pk.GetSpan().ToHex(500)}", pk.Length);
 
             // 合并数据到最后面
-            if (pk != null && pk.Total > 0)
+            if (pk != null && pk.Length > 0)
             {
                 var p = ms.Position;
                 ms.Position = ms.Length;
@@ -138,6 +139,7 @@ public class PacketCodec
             var count = ms.Read(buf, 0, buf.Length);
             var hex = buf.ToHex(0, count);
             Pool.Shared.Return(buf);
+
             using var span = Tracer?.NewSpan("net:PacketCodec:DropCache", $"[{retain}]{hex}", retain);
             span?.SetError(new Exception($"数据包编码器放弃数据 retain={retain} MaxCache={MaxCache}"), null);
 

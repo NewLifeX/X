@@ -1,4 +1,5 @@
-﻿using NewLife.Data;
+﻿using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 
@@ -110,7 +111,7 @@ public class MessageCodec<T> : Handler
     /// <returns></returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
-        if (message is not Packet pk) return base.Read(context, message);
+        if (message is not IPacket pk) return base.Read(context, message);
 
         // 解码得到多个消息
         var list = Decode(context, pk);
@@ -134,7 +135,8 @@ public class MessageCodec<T> : Handler
                 {
                     //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
                     // Match里面TrySetResult时，必然唤醒原来阻塞的Task，如果不是当前io线程执行后续代码，必然导致两个线程共用了数据区，因此需要拷贝
-                    if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload) msg4.Payload = msg4.Payload.Clone();
+                    if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload)
+                        msg4.Payload = (ArrayPacket)msg4.Payload.GetSpan().ToArray();
 
                     Queue?.Match(context.Owner, msg, rs ?? msg, IsMatch);
                 }
@@ -157,7 +159,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected virtual IList<T>? Decode(IHandlerContext context, Packet pk) => null;
+    protected virtual IList<T>? Decode(IHandlerContext context, IPacket pk) => null;
 
     /// <summary>是否匹配响应</summary>
     /// <param name="request"></param>
@@ -171,46 +173,58 @@ public class MessageCodec<T> : Handler
     /// <param name="offset">长度的偏移量</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
     /// <returns>数据帧长度（包含头部长度位）</returns>
-    public static Int32 GetLength(Packet pk, Int32 offset, Int32 size)
+    public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size)
     {
-        if (offset < 0) return pk.Total - pk.Offset;
+        if (offset < 0) return pk.Length;
 
         // 数据不够，连长度都读取不了
-        if (offset >= pk.Total) return 0;
+        if (offset >= pk.Length) return 0;
+
+        var reader = new SpanReader(pk.GetSpan());
+        reader.Advance(offset);
 
         // 读取大小
         var len = 0;
         switch (size)
         {
             case 0:
-                var ms = pk.GetStream();
-                if (offset > 0) ms.Seek(offset, SeekOrigin.Current);
-                len = ms.ReadEncodedInt();
+                //var ms = pk.GetStream();
+                //if (offset > 0) ms.Seek(offset, SeekOrigin.Current);
+                //len = ms.ReadEncodedInt();
 
-                // 计算变长的头部长度
-                len += (Int32)(ms.Position - offset);
+                //// 计算变长的头部长度
+                //len += (Int32)(ms.Position - offset);
+                var p = reader.Position;
+                len = reader.ReadEncodedInt() + reader.Position - p;
                 break;
             case 1:
-                len = pk[offset];
+                //len = pk[offset];
+                len = reader.ReadByte();
                 break;
             case 2:
-                len = pk.ReadBytes(offset, 2).ToUInt16();
+                //len = pk.ReadBytes(offset, 2).ToUInt16();
+                len = reader.ReadUInt16();
                 break;
             case 4:
-                len = (Int32)pk.ReadBytes(offset, 4).ToUInt32();
+                //len = (Int32)pk.ReadBytes(offset, 4).ToUInt32();
+                len = reader.ReadInt32();
                 break;
             case -2:
-                len = pk.ReadBytes(offset, 2).ToUInt16(0, false);
+                //len = pk.ReadBytes(offset, 2).ToUInt16(0, false);
+                reader.IsLittleEndian = false;
+                len = reader.ReadUInt16();
                 break;
             case -4:
-                len = (Int32)pk.ReadBytes(offset, 4).ToUInt32(0, false);
+                //len = (Int32)pk.ReadBytes(offset, 4).ToUInt32(0, false);
+                reader.IsLittleEndian = false;
+                len = reader.ReadInt32();
                 break;
             default:
                 throw new NotSupportedException();
         }
 
         // 判断后续数据是否足够
-        if (len > pk.Total) return 0;
+        if (len > pk.Length) return 0;
 
         // 数据长度加上头部长度
         len += Math.Abs(size);
