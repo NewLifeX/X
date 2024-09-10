@@ -53,7 +53,7 @@ static class ClientTest
 
         var buf = new Byte[1024];
         var rs = await client.ReceiveAsync(buf, default);
-        XTrace.WriteLine(new Packet(buf, 0, rs.Count).ToStr());
+        XTrace.WriteLine(new Span<Byte>(buf, 0, rs.Count).ToStr());
 
         // 关闭连接
         await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);

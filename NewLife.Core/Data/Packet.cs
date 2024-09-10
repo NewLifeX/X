@@ -23,7 +23,7 @@ public class Packet : IPacket
     /// <summary>长度</summary>
     public Int32 Count { get; private set; }
 
-    Int32 IPacket.Length => Total;
+    Int32 IPacket.Length => Count;
 
     /// <summary>下一个链式包</summary>
     public Packet? Next { get; set; }
@@ -290,7 +290,7 @@ public class Packet : IPacket
     {
         //if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
 
-        if (Next == null) Data.ReadBytes(Offset, Count);
+        if (Next == null) return Data.ReadBytes(Offset, Count);
 
         // 链式包输出
         var ms = Pool.MemoryStream.Get();

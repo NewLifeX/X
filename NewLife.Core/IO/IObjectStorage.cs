@@ -46,7 +46,7 @@ public interface IObjectStorage
     /// <param name="id">对象文件名。可以为空，此时自动生成文件名</param>
     /// <param name="data">数据内容</param>
     /// <returns>可能是自动生成的新文件名</returns>
-    Task<IObjectInfo?> Put(String id, Packet data);
+    Task<IObjectInfo?> Put(String id, IPacket data);
 
     /// <summary>删除文件对象</summary>
     /// <param name="id">对象文件名</param>

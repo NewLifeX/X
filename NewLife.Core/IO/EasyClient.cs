@@ -77,7 +77,7 @@ public class EasyClient : IObjectStorage
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public virtual async Task<IObjectInfo?> Put(String id, Packet data)
+    public virtual async Task<IObjectInfo?> Put(String id, IPacket data)
     {
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
@@ -99,7 +99,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        var rs = await client.GetAsync<Packet>(BaseAction + "Get", new { id });
+        var rs = await client.GetAsync<IPacket>(BaseAction + "Get", new { id });
         if (rs == null) return null;
 
         return new ObjectInfo { Name = id, Data = rs };

@@ -200,14 +200,14 @@ public class OssClient : IObjectStorage
     /// <param name="objectName">对象文件名</param>
     /// <param name="data">数据内容</param>
     /// <returns></returns>
-    public async Task<IObjectInfo?> Put(String objectName, Packet data)
+    public async Task<IObjectInfo?> Put(String objectName, IPacket data)
     {
         SetBucket(BucketName);
 
-        var content = data.Next == null ?
-            new ByteArrayContent(data.Data, data.Offset, data.Count) :
+        var content = data.Next == null && data is ArrayPacket ap ?
+            new ByteArrayContent(ap.Buffer, ap.Offset, ap.Length) :
             new ByteArrayContent(data.ReadBytes());
-        var rs = await InvokeAsync<Packet>(HttpMethod.Put, "/" + objectName, content);
+        var rs = await InvokeAsync<IPacket>(HttpMethod.Put, "/" + objectName, content);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }
@@ -219,7 +219,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var rs = await InvokeAsync<Packet>(HttpMethod.Get, "/" + objectName);
+        var rs = await InvokeAsync<IPacket>(HttpMethod.Get, "/" + objectName);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }

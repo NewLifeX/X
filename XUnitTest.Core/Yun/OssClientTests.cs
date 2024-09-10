@@ -2,6 +2,7 @@
 using System.Linq;
 using NewLife;
 using NewLife.Configuration;
+using NewLife.Data;
 using NewLife.Log;
 using NewLife.Yun;
 using Xunit;
@@ -92,12 +93,12 @@ public class OssClientTests
         var objectName = "Log/" + fi.Name;
 
         // 上传
-        await client.Put(objectName, buf);
+        await client.Put(objectName, (ArrayPacket)buf);
 
         // 获取
         var obj = await client.Get(objectName);
         Assert.NotNull(obj);
-        Assert.Equal(buf.ToBase64(), obj.Data.ToBase64());
+        Assert.Equal(buf.ToBase64(), obj.Data.ReadBytes().ToBase64());
 
         // 删除
         await client.Delete(objectName);

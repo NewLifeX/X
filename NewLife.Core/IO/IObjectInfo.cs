@@ -19,7 +19,7 @@ public interface IObjectInfo
     Boolean IsDirectory { get; set; }
 
     /// <summary>数据</summary>
-    Packet? Data { get; set; }
+    IPacket? Data { get; set; }
 }
 
 /// <summary>对象信息。代表文件存储对象，或者磁盘文件，也可以是目录</summary>
@@ -39,5 +39,5 @@ public class ObjectInfo : IObjectInfo
     public Boolean IsDirectory { get; set; }
 
     /// <summary>数据</summary>
-    public Packet? Data { get; set; }
+    public IPacket? Data { get; set; }
 }

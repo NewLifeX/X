@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using NewLife;
+using NewLife.Data;
 using NewLife.IO;
 using Xunit;
 
@@ -16,7 +17,7 @@ public class EasyClientTests
             Server = "http://localhost:5300/io/",
         };
 
-        var data = "学无先后达者为师".GetBytes();
+        var data = (ArrayPacket)"学无先后达者为师".GetBytes();
         var name = "aa.txt";
         var inf = await client.Put(name, data);
         Assert.NotNull(inf);

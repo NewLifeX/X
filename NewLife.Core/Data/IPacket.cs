@@ -72,6 +72,11 @@ public static class PacketHelper
         return pk;
     }
 
+    /// <summary>附加一个包到当前包链的末尾</summary>
+    /// <param name="pk"></param>
+    /// <param name="next"></param>
+    public static IPacket Append(this IPacket pk, Byte[] next) => Append(pk, new ArrayPacket(next));
+
     /// <summary>转字符串并释放</summary>
     /// <param name="pk"></param>
     /// <param name="encoding"></param>
@@ -193,6 +198,48 @@ public static class PacketHelper
         }
 
         return list;
+    }
+
+    /// <summary>返回字节数组。无差别复制，一定返回新数组</summary>
+    /// <returns></returns>
+    public static Byte[] ToArray(this IPacket pk)
+    {
+        if (pk.Next == null)
+        {
+            if (pk is ArrayPacket ap) return ap.Buffer.ReadBytes(ap.Offset, ap.Length);
+
+            return pk.GetSpan().ToArray();
+        }
+
+        // 链式包输出
+        var ms = Pool.MemoryStream.Get();
+        pk.CopyTo(ms);
+
+        return ms.Return(true);
+    }
+
+    /// <summary>从封包中读取指定数据区，读取全部时直接返回缓冲区，以提升性能</summary>
+    /// <param name="pk"></param>
+    /// <param name="offset">相对于数据包的起始位置，实际上是数组的Offset+offset</param>
+    /// <param name="count">字节个数</param>
+    /// <returns></returns>
+    public static Byte[] ReadBytes(this IPacket pk, Int32 offset = 0, Int32 count = -1)
+    {
+        // 读取全部
+        if (offset == 0 && count < 0 && pk is ArrayPacket ap)
+        {
+            if (ap.Offset == 0 && (ap.Length < 0 || ap.Offset + ap.Length == ap.Buffer.Length) && ap.Next == null)
+                return ap.Buffer;
+        }
+
+        if (pk.Next == null)
+        {
+            var span = pk.GetSpan();
+            if (count < 0) count = span.Length - offset;
+            return span.Slice(offset, count).ToArray();
+        }
+
+        return pk.ToArray().ReadBytes(offset, count);
     }
 }
 
@@ -395,10 +442,10 @@ public struct ArrayPacket : IDisposable, IPacket
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
 
-    /// <summary>获取/设置 指定位置的字节</summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
+    ///// <summary>获取/设置 指定位置的字节</summary>
+    ///// <param name="index"></param>
+    ///// <returns></returns>
+    //public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
 
     /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
     public Boolean HasOwner { get; set; }
@@ -408,6 +455,53 @@ public struct ArrayPacket : IDisposable, IPacket
 
     /// <summary>总长度</summary>
     public Int32 Total => Length + (Next?.Total ?? 0);
+    #endregion
+
+    #region 索引
+    /// <summary>获取/设置 指定位置的字节</summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public Byte this[Int32 index]
+    {
+        get
+        {
+            // 超过下标直接报错,谁也不想处理了异常的数据也不知道
+            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
+
+            var p = Offset + index;
+            if (p >= Offset + _length)
+            {
+                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
+
+                return Next[index - _length];
+            }
+
+            return Buffer[p];
+
+            // Offset 至 Offset+Count 代表了当前链的可用数据区
+            // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
+            // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.              
+        }
+        set
+        {
+            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
+
+            // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
+            var p = Offset + index;
+            if (index >= _length)
+            {
+                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
+
+                Next[p - Buffer.Length] = value;
+            }
+            else
+            {
+                Buffer[p] = value;
+            }
+
+            // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
+        }
+    }
     #endregion
 
     /// <summary>通过指定字节数组来实例化数据包</summary>

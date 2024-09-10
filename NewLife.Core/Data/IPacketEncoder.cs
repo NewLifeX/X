@@ -70,8 +70,8 @@ public class DefaultPacketEncoder : IPacketEncoder
         try
         {
             if (type == typeof(IPacket)) return data;
-            if (type == typeof(Packet)) return data is Packet pk ? pk : data.GetSpan().ToArray();
-            if (type == typeof(Byte[])) return data.GetSpan().ToArray();
+            if (type == typeof(Packet)) return data is Packet pk ? pk : data.ReadBytes();
+            if (type == typeof(Byte[])) return data.ReadBytes();
             if (type.As<IAccessor>()) return type.AccessorRead(data);
 
             // 可空类型

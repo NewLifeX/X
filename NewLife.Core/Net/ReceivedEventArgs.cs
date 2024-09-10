@@ -9,7 +9,8 @@ public class ReceivedEventArgs : EventArgs, IData
     #region 属性
     /// <summary>原始数据包</summary>
     /// <remarks>
-    /// Packet内部的Data可能是网络缓冲区，并非全部数据都属于当前消息，需要ReadBytes得到有效数据。
+    /// Packet内部直接引用网络缓冲区，以实现零拷贝，并非全部数据都属于当前消息。
+    /// 需要注意所有权，当前数据事件结束时回收，不应被外部引用。
     /// </remarks>
     public IPacket? Packet { get; set; }
 
