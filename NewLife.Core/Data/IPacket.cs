@@ -97,32 +97,41 @@ public static class PacketHelper
     /// <param name="stream"></param>
     public static void CopyTo(this IPacket pk, Stream stream)
     {
-#if NETCOREAPP
         for (var p = pk; p != null; p = p.Next)
         {
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
             stream.Write(p.GetSpan());
-        }
 #else
-        for (var p = pk; p != null; p = p.Next)
-        {
             if (p is ArrayPacket ap)
                 stream.Write(ap.Buffer, ap.Offset, ap.Length);
             else
-                stream.Write(p.GetSpan().ToArray());
-        }
+                stream.Write(p.GetMemory());
 #endif
+        }
     }
 
     /// <summary>异步拷贝</summary>
     /// <param name="pk"></param>
     /// <param name="stream"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task CopyToAsync(this IPacket pk, Stream stream)
+    public static async Task CopyToAsync(this IPacket pk, Stream stream, CancellationToken cancellationToken = default)
     {
         for (var p = pk; p != null; p = p.Next)
         {
-            await stream.WriteAsync(p.GetMemory());
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            await stream.WriteAsync(p.GetMemory(), cancellationToken);
+#else
+            if (p is ArrayPacket ap)
+                await stream.WriteAsync(ap.Buffer, ap.Offset, ap.Length, cancellationToken);
+            else
+                await stream.WriteAsync(p.GetMemory(), cancellationToken);
+#endif
         }
+        //for (var p = pk; p != null; p = p.Next)
+        //{
+        //    await stream.WriteAsync(p.GetMemory());
+        //}
     }
 
     /// <summary>获取数据流</summary>
@@ -256,6 +265,10 @@ public struct OwnerPacket : IDisposable, IPacket
         GetSpan().CopyTo(rs.GetSpan());
         return rs;
     }
+
+    /// <summary>已重载</summary>
+    /// <returns></returns>
+    public override String ToString() => $"[{_owner.Memory.Length}](0, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
 }
 
 /// <summary>内存包</summary>
@@ -321,6 +334,10 @@ public struct MemoryPacket : IPacket
 
         return new MemoryPacket(_memory[offset..], count);
     }
+
+    /// <summary>已重载</summary>
+    /// <returns></returns>
+    public override String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
 }
 
 /// <summary>字节数组包</summary>
@@ -471,5 +488,9 @@ public struct ArrayPacket : IDisposable, IPacket
     /// <param name="value"></param>
     /// <returns></returns>
     public static implicit operator ArrayPacket(String value) => new(value.GetBytes());
+
+    /// <summary>已重载</summary>
+    /// <returns></returns>
+    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
     #endregion
 }

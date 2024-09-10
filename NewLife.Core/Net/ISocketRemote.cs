@@ -163,16 +163,15 @@ public static class SocketRemoteHelper
 
         // 缓冲区大小，要减去4字节标准消息头。BufferSize默认8k，能得到最大吞吐。如果网络质量较差，这里可使用TCP最大包1448
         var bufferSize = SocketSetting.Current.BufferSize;
-        bufferSize -= 4;
 
         var buffer = Pool.Shared.Rent(bufferSize);
         while (true)
         {
-            var rs = stream.Read(buffer, 0, buffer.Length);
+            var rs = stream.Read(buffer, 4, bufferSize - 4);
             if (rs <= 0) break;
 
             // 打包数据，标准编码器StandardCodec将会在头部加上4字节头部，交给下层Tcp发出
-            var pk = new ArrayPacket(buffer, 0, rs);
+            var pk = new ArrayPacket(buffer, 4, rs);
             session.SendMessage(pk);
 
             count++;

@@ -293,7 +293,7 @@ public class TcpSession : SessionBase, ISocketSession
     /// <returns>是否成功</returns>
     protected override Int32 OnSend(IPacket pk)
     {
-        var count = pk.Length;
+        var count = pk.GetTotal();
         var data = pk.GetSpan();
 
         if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
@@ -335,7 +335,7 @@ public class TcpSession : SessionBase, ISocketSession
 #if NETCOREAPP || NETSTANDARD2_1
                     _Stream.Write(data);
 #else
-                    _Stream.Write(data.ToArray());
+                    _Stream.Write(pk.GetMemory());
 #endif
                 else
                     pk.CopyTo(_Stream);

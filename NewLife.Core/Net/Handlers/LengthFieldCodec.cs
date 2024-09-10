@@ -25,7 +25,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
     /// <returns></returns>
     protected override Object Encode(IHandlerContext context, IPacket msg)
     {
-        var dlen = msg.Length;
+        var dlen = msg.GetTotal();
 
         // 修正压缩编码
         var len = Math.Abs(Size);

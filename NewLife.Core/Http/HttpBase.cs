@@ -22,7 +22,7 @@ public abstract class HttpBase
     public IPacket? Body { get; set; }
 
     /// <summary>主体长度</summary>
-    public Int32 BodyLength => Body == null ? 0 : Body.Length;
+    public Int32 BodyLength => Body == null ? 0 : Body.GetTotal();
 
     /// <summary>是否已完整。头部未指定长度，或指定长度后内容已满足</summary>
     public Boolean IsCompleted => ContentLength < 0 || ContentLength <= BodyLength;
@@ -122,7 +122,7 @@ public abstract class HttpBase
     public virtual IPacket Build()
     {
         var body = Body;
-        var len = body != null ? body.Length : 0;
+        var len = body != null ? body.GetTotal() : 0;
 
         var header = BuildHeader(len);
         var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);

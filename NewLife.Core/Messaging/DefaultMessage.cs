@@ -171,6 +171,7 @@ public class DefaultMessage : Message
         if (pk.Length < 4) return 0;
 
         var reader = new SpanReader(pk.GetSpan()) { IsLittleEndian = true };
+        reader.Advance(2);
 
         // 小于64k，直接返回
         //var len = pk.Data.ToUInt16(pk.Offset + 2);

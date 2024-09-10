@@ -156,6 +156,33 @@ public static class SpanHelper
     /// <summary>写入Memory到数据流</summary>
     /// <param name="stream"></param>
     /// <param name="buffer"></param>
+    /// <returns></returns>
+    public static void Write(this Stream stream, ReadOnlyMemory<Byte> buffer)
+    {
+        if (MemoryMarshal.TryGetArray(buffer, out var segment))
+        {
+            stream.Write(segment.Array!, segment.Offset, segment.Count);
+
+            return;
+        }
+
+        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
+
+        try
+        {
+            buffer.Span.CopyTo(array);
+
+            stream.Write(array, 0, buffer.Length);
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(array);
+        }
+    }
+
+    /// <summary>写入Memory到数据流</summary>
+    /// <param name="stream"></param>
+    /// <param name="buffer"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static Task WriteAsync(this Stream stream, ReadOnlyMemory<Byte> buffer, CancellationToken cancellationToken = default)
