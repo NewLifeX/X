@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace NewLife.Serialization;
 
@@ -32,27 +33,11 @@ public class BinaryNormal : BinaryHandlerBase
 
             return true;
         }
-        else if (type == typeof(IPacket))
+        else if (type == typeof(IPacket) || type.As<IPacket>())
         {
-            //var bn = Host as Binary;
             if (value is IPacket pk)
             {
                 Host.WriteSize(pk.GetTotal());
-                pk.CopyTo(Host.Stream);
-            }
-            else
-            {
-                Host.WriteSize(0);
-            }
-
-            return true;
-        }
-        else if (type == typeof(Packet))
-        {
-            //var bn = Host as Binary;
-            if (value is Packet pk)
-            {
-                Host.WriteSize(pk.Total);
                 pk.CopyTo(Host.Stream);
             }
             else

@@ -49,7 +49,7 @@ public class ISocketRemoteTests
         svr.Received += (s, e) =>
         {
             // 收到的所有数据全部写入文件。用户可以根据自己的协议，识别文件头和文件内容
-            if (e.Message is Packet pk)
+            if (e.Message is IPacket pk)
                 pk.CopyTo(target);
         };
 
