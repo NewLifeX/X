@@ -149,7 +149,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     internal Int32 OnSend(IPacket pk, IPEndPoint remote)
     {
-        var count = pk.GetTotal();
+        var count = pk.Total;
         var data = pk.GetSpan();
 
         using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);

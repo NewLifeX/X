@@ -140,7 +140,7 @@ public static class HttpHelper
     /// <returns></returns>
     public static IPacket MakeRequest(String method, Uri uri, IDictionary<String, Object?>? headers, IPacket? pk)
     {
-        var count = pk?.GetTotal() ?? 0;
+        var count = pk?.Total ?? 0;
         if (method.IsNullOrEmpty()) method = count > 0 ? "POST" : "GET";
 
         // 分解主机和资源
@@ -204,7 +204,7 @@ public static class HttpHelper
         sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (Int32)code, code);
 
         // 内容长度
-        var count = pk?.GetTotal() ?? 0;
+        var count = pk?.Total ?? 0;
         if (count > 0) sb.AppendFormat("Content-Length:{0}\r\n", count);
 
         if (headers != null)

@@ -132,7 +132,7 @@ public class HttpRequest : HttpBase
         if (boundary.IsNullOrEmpty()) return dic;
 
         var body = Body;
-        if (body == null || body.GetTotal() == 0) return dic;
+        if (body == null || body.Length == 0) return dic;
         var data = body.GetSpan();
 
         /*

@@ -293,7 +293,7 @@ public class TcpSession : SessionBase, ISocketSession
     /// <returns>是否成功</returns>
     protected override Int32 OnSend(IPacket pk)
     {
-        var count = pk.GetTotal();
+        var count = pk.Total;
         var data = pk.GetSpan();
 
         if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));

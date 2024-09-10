@@ -48,7 +48,6 @@ public class DefaultPacketEncoder : IPacketEncoder
         if (value == null) return null!;
 
         if (value is IPacket pk) return pk;
-        if (value is Packet pk2) return pk2;
         if (value is Byte[] buf) return (ArrayPacket)buf;
         if (value is IAccessor acc) return acc.ToPacket();
 
@@ -71,12 +70,12 @@ public class DefaultPacketEncoder : IPacketEncoder
         try
         {
             if (type == typeof(IPacket)) return data;
-            if (type == typeof(Packet)) return data;
+            if (type == typeof(Packet)) return data is Packet pk ? pk : data.GetSpan().ToArray();
             if (type == typeof(Byte[])) return data.GetSpan().ToArray();
             if (type.As<IAccessor>()) return type.AccessorRead(data);
 
             // 可空类型
-            if (data.GetTotal() == 0 && type.IsNullable()) return null;
+            if (data.Length == 0 && type.IsNullable()) return null;
 
             var str = data.ToStr();
             if (type.GetTypeCode() == TypeCode.String) return str;

@@ -267,7 +267,7 @@ public class DefaultSpan : ISpan
         else if (tag is IPacket pk)
         {
             // 头尾是Xml/Json时，使用字符串格式
-            var total = pk.GetTotal();
+            var total = pk.Total;
             if (total >= 2 && (pk[0] == '{' || pk[0] == '<' || pk[total - 1] == '}' || pk[total - 1] == '>'))
                 Tag = pk.ToStr(null, 0, len);
             else

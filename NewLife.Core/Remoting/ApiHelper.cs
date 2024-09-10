@@ -190,7 +190,7 @@ public static class ApiHelper
     public static HttpContent BuildContent(IPacket pk)
     {
         var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
-        if (gzip > 0 && pk.GetTotal() >= gzip)
+        if (gzip > 0 && pk.Total >= gzip)
         {
             var buf = pk.GetSpan().ToArray();
             buf = buf.CompressGZip();

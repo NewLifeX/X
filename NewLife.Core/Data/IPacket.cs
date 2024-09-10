@@ -17,11 +17,14 @@ namespace NewLife.Data;
 /// </remarks>
 public interface IPacket
 {
-    /// <summary>数据长度</summary>
+    /// <summary>数据长度。仅当前数据包，不包括Next</summary>
     Int32 Length { get; }
 
     /// <summary>下一个链式包</summary>
     IPacket? Next { get; set; }
+
+    /// <summary>总长度。包括Next链的长度</summary>
+    Int32 Total { get; }
 
     /// <summary>获取/设置 指定位置的字节</summary>
     /// <param name="index"></param>
@@ -50,10 +53,10 @@ public interface IPacket
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
 {
-    /// <summary>整个数据包调用链长度</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
-    public static Int32 GetTotal(this IPacket pk) => pk.Length + (pk.Next?.GetTotal() ?? 0);
+    ///// <summary>整个数据包调用链长度</summary>
+    ///// <param name="pk"></param>
+    ///// <returns></returns>
+    //public static Int32 GetTotal(this IPacket pk) => pk.Length + (pk.Next?.GetTotal() ?? 0);
 
     /// <summary>附加一个包到当前包链的末尾</summary>
     /// <param name="pk"></param>
@@ -88,7 +91,7 @@ public static class PacketHelper
             return rs;
         }
 
-        if (count < 0) count = pk.GetTotal() - offset;
+        if (count < 0) count = pk.Total - offset;
         var sb = Pool.StringBuilder.Get();
         for (var p = pk; p != null && count > 0; p = p.Next)
         {
@@ -218,6 +221,9 @@ public struct OwnerPacket : IDisposable, IPacket
 
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
+
+    /// <summary>总长度</summary>
+    public Int32 Total => Length + (Next?.Total ?? 0);
     #endregion
 
     /// <summary>实例化指定长度的内存包，从共享内存池中借出</summary>
@@ -298,7 +304,7 @@ public struct OwnerPacket : IDisposable, IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_owner.Memory.Length}](0, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
+    public override String ToString() => $"[{_owner.Memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
 }
 
 /// <summary>内存包</summary>
@@ -323,6 +329,9 @@ public struct MemoryPacket : IPacket
 
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
+
+    /// <summary>总长度</summary>
+    public Int32 Total => Length + (Next?.Total ?? 0);
     #endregion
 
     /// <summary>实例化内存包，指定内存和长度</summary>
@@ -367,7 +376,7 @@ public struct MemoryPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
+    public override String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
 }
 
 /// <summary>字节数组包</summary>
@@ -396,6 +405,9 @@ public struct ArrayPacket : IDisposable, IPacket
 
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
+
+    /// <summary>总长度</summary>
+    public Int32 Total => Length + (Next?.Total ?? 0);
     #endregion
 
     /// <summary>通过指定字节数组来实例化数据包</summary>
@@ -563,6 +575,6 @@ public struct ArrayPacket : IDisposable, IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{this.GetTotal()}>");
+    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{Total}>");
     #endregion
 }

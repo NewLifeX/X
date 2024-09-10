@@ -138,7 +138,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     private void Ss_Received(Object? sender, ReceivedEventArgs e)
     {
         var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns?.Name}:Receive", e.Message, e.Packet?.GetTotal() ?? 0);
+        using var span = ns?.Tracer?.NewSpan($"net:{ns?.Name}:Receive", e.Message, e.Packet?.Total ?? 0);
 
         try
         {

@@ -37,7 +37,7 @@ public class BinaryNormal : BinaryHandlerBase
         {
             if (value is IPacket pk)
             {
-                Host.WriteSize(pk.GetTotal());
+                Host.WriteSize(pk.Total);
                 pk.CopyTo(Host.Stream);
             }
             else

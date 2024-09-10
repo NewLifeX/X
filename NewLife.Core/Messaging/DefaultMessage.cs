@@ -70,7 +70,7 @@ public class DefaultMessage : Message
     {
         _raw = pk;
 
-        var count = pk.GetTotal();
+        var count = pk.Total;
         if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
         // 取头部4个字节
