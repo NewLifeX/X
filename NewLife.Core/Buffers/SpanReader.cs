@@ -121,29 +121,6 @@ public ref struct SpanReader(Span<Byte> span)
         return result;
     }
 
-    /// <summary>以压缩格式读取32位整数</summary>
-    /// <returns></returns>
-    public Int32 ReadEncodedInt()
-    {
-        Byte b;
-        UInt32 rs = 0;
-        Byte n = 0;
-        while (true)
-        {
-            var bt = ReadByte();
-            if (bt < 0) throw new Exception($"The data stream is out of range! The integer read is {rs: n0}");
-            b = (Byte)bt;
-
-            // 必须转为Int32，否则可能溢出
-            rs |= (UInt32)((b & 0x7f) << n);
-            if ((b & 0x80) == 0) break;
-
-            n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
-        }
-        return (Int32)rs;
-    }
-
     /// <summary>读取Int64整数</summary>
     /// <returns></returns>
     public Int64 ReadInt64()
@@ -232,6 +209,31 @@ public ref struct SpanReader(Span<Byte> span)
         var result = MemoryMarshal.Read<T>(_span.Slice(_index));
         _index += size;
         return result;
+    }
+    #endregion
+
+    #region 扩展读取
+    /// <summary>以压缩格式读取32位整数</summary>
+    /// <returns></returns>
+    public Int32 ReadEncodedInt()
+    {
+        Byte b;
+        UInt32 rs = 0;
+        Byte n = 0;
+        while (true)
+        {
+            var bt = ReadByte();
+            if (bt < 0) throw new Exception($"The data stream is out of range! The integer read is {rs: n0}");
+            b = (Byte)bt;
+
+            // 必须转为Int32，否则可能溢出
+            rs |= (UInt32)((b & 0x7f) << n);
+            if ((b & 0x80) == 0) break;
+
+            n += 7;
+            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
+        }
+        return (Int32)rs;
     }
     #endregion
 }

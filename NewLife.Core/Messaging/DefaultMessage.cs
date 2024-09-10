@@ -70,16 +70,16 @@ public class DefaultMessage : Message
     {
         _raw = pk;
 
-        var count = pk.Length;
+        var count = pk.GetTotal();
         if (count < 4) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 4 bytes");
 
         // 取头部4个字节
         var size = 4;
-        var buf = pk.GetSpan()[..size];
+        var header = pk.GetSpan()[..size];
 
         // 前2位作为标识位
-        Flag = (Byte)(buf[0] & 0b0011_1111);
-        var mode = buf[0] >> 6;
+        Flag = (Byte)(header[0] & 0b0011_1111);
+        var mode = header[0] >> 6;
         switch (mode)
         {
             case 0: Reply = false; break;
@@ -91,10 +91,10 @@ public class DefaultMessage : Message
         }
 
         // 1个字节的序列号
-        Sequence = buf[1];
+        Sequence = header[1];
 
         // 负载长度
-        var len = (buf[3] << 8) | buf[2];
+        var len = (header[3] << 8) | header[2];
         if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
 
         // 支持超过64k的超大包

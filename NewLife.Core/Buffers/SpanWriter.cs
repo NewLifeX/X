@@ -80,9 +80,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(Int16);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteInt16LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt16LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteInt16BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt16BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -94,9 +94,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(UInt16);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteUInt16LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt16LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteUInt16BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt16BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -108,9 +108,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(Int32);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteInt32LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt32LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteInt32BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt32BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -122,9 +122,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(UInt32);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteUInt32LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt32LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteUInt32BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt32BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -136,9 +136,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(Int64);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteInt64LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt64LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteInt64BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteInt64BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -150,9 +150,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
         var size = sizeof(UInt64);
         EnsureSpace(size);
         if (IsLittleEndian)
-            BinaryPrimitives.WriteUInt64LittleEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt64LittleEndian(_span[_index..], value);
         else
-            BinaryPrimitives.WriteUInt64BigEndian(_span.Slice(_index), value);
+            BinaryPrimitives.WriteUInt64BigEndian(_span[_index..], value);
         _index += size;
         return size;
     }
@@ -187,7 +187,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
     {
         if (value == null) throw new ArgumentNullException(nameof(value));
 
-        var count = Encoding.UTF8.GetBytes(value.AsSpan(), _span.Slice(_index));
+        var count = Encoding.UTF8.GetBytes(value.AsSpan(), _span[_index..]);
         _index += count;
 
         return count;
@@ -202,7 +202,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
         if (value == null)
             throw new ArgumentNullException(nameof(value));
 
-        value.CopyTo(_span.Slice(_index));
+        value.CopyTo(_span[_index..]);
         _index += value.Length;
 
         return value.Length;
@@ -213,7 +213,18 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <returns></returns>
     public Int32 Write(ReadOnlySpan<Byte> span)
     {
-        span.CopyTo(_span.Slice(_index));
+        span.CopyTo(_span[_index..]);
+        _index += span.Length;
+
+        return span.Length;
+    }
+
+    /// <summary>写入Span</summary>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    public Int32 Write(Span<Byte> span)
+    {
+        span.CopyTo(_span[_index..]);
         _index += span.Length;
 
         return span.Length;
@@ -230,6 +241,32 @@ public ref struct SpanWriter(Span<Byte> buffer)
         MemoryMarshal.Write(_span.Slice(_index, size), ref value);
         _index += size;
         return size;
+    }
+    #endregion
+
+    #region 扩展写入
+    /// <summary>
+    /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
+    /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+    /// </summary>
+    /// <param name="value">数值</param>
+    /// <returns>实际写入字节数</returns>
+    public Int32 WriteEncodedInt(Int64 value)
+    {
+        var span = _span[_index..];
+
+        var count = 0;
+        var num = (UInt32)value;
+        while (num >= 0x80)
+        {
+            span[count++] = (Byte)(num | 0x80);
+            num >>= 7;
+        }
+        span[count++] = (Byte)num;
+
+        _index += span.Length;
+
+        return count;
     }
     #endregion
 }

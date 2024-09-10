@@ -6,7 +6,7 @@ using NewLife.Model;
 namespace NewLife.Net.Handlers;
 
 /// <summary>长度字段作为头部</summary>
-public class LengthFieldCodec : MessageCodec<Packet>
+public class LengthFieldCodec : MessageCodec<IPacket>
 {
     #region 属性
     /// <summary>长度所在位置</summary>
@@ -25,49 +25,43 @@ public class LengthFieldCodec : MessageCodec<Packet>
     /// <returns></returns>
     protected override Object Encode(IHandlerContext context, IPacket msg)
     {
-        var len = Math.Abs(Size);
-        //var buf = msg.Data;
-        var idx = 0;
         var dlen = msg.Length;
 
-        var reader = new SpanReader(msg.GetSpan());
-
         // 修正压缩编码
-        if (len == 0) len = IOHelper.GetEncodedInt(dlen).Length;
+        var len = Math.Abs(Size);
+        if (Size == 0) len = IOHelper.GetEncodedInt(dlen).Length;
 
         // 尝试退格，直接利用缓冲区
-        if (msg.Offset >= len)
+        if (msg is ArrayPacket ap && ap.Offset >= len)
         {
-            idx = msg.Offset - len;
-            msg.Set(msg.Data, msg.Offset - len, msg.Count + len);
+            msg = new ArrayPacket(ap.Buffer, ap.Offset - len, ap.Length + len) { Next = ap.Next };
         }
-        // 新建数据包，形成链式结构
         else
         {
-            buf = new Byte[len];
-            msg = new Packet(buf) { Next = msg };
+            msg = new ArrayPacket(len) { Next = msg };
         }
+
+        var writer = new SpanWriter(msg.GetSpan()) { IsLittleEndian = Size > 0 };
 
         switch (Size)
         {
             case 0:
-                var buf2 = IOHelper.GetEncodedInt(dlen);
-                buf.Write(idx, buf2);
+                writer.WriteEncodedInt(dlen);
                 break;
             case 1:
-                buf[idx] = (Byte)dlen;
+                writer.WriteByte((Byte)dlen);
                 break;
             case 2:
-                buf.Write((UInt16)dlen, idx);
+                writer.Write((UInt16)dlen);
                 break;
             case 4:
-                buf.Write((UInt32)dlen, idx);
+                writer.Write((UInt32)dlen);
                 break;
             case -2:
-                buf.Write((UInt16)dlen, idx, false);
+                writer.Write((UInt16)dlen);
                 break;
             case -4:
-                buf.Write((UInt32)dlen, idx, false);
+                writer.Write((UInt32)dlen);
                 break;
             default:
                 throw new NotSupportedException();
@@ -80,7 +74,7 @@ public class LengthFieldCodec : MessageCodec<Packet>
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected override IList<Packet>? Decode(IHandlerContext context, IPacket pk)
+    protected override IList<IPacket>? Decode(IHandlerContext context, IPacket pk)
     {
         if (context.Owner is not IExtend ss) return null;
 
@@ -100,9 +94,9 @@ public class LengthFieldCodec : MessageCodec<Packet>
 
         // 跳过头部长度
         var len = Offset + Math.Abs(Size);
-        foreach (var item in pks)
+        for (var i = 0; i < pks.Count; i++)
         {
-            item.Set(item.Data, item.Offset + len, item.Count - len);
+            pks[i] = pks[i].Slice(len);
         }
 
         return pks;

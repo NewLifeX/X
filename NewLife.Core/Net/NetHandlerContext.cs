@@ -71,7 +71,7 @@ public class NetHandlerContext : HandlerContext
         if (message is DefaultMessage dm)
         {
             var raw = dm.GetRaw();
-            if (raw != null) data.Packet = raw;
+            if (raw != null) data.Packet = raw as Packet;
         }
 
         Session?.Process(data);

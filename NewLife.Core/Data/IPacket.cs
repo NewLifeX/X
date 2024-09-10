@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 using System.Text;
 using NewLife.Collections;
 
@@ -23,6 +24,11 @@ public interface IPacket
     /// <summary>下一个链式包</summary>
     IPacket? Next { get; set; }
 
+    /// <summary>获取/设置 指定位置的字节</summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    Byte this[Int32 index] { get; set; }
+
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
     Span<Byte> GetSpan();
@@ -45,6 +51,11 @@ public interface IPacket
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
 {
+    /// <summary>整个数据包调用链长度</summary>
+    /// <param name="pk"></param>
+    /// <returns></returns>
+    public static Int32 GetTotal(this IPacket pk) => pk.Length + (pk.Next?.GetTotal() ?? 0);
+
     /// <summary>附加一个包到当前包链的末尾</summary>
     /// <param name="pk"></param>
     /// <param name="next"></param>
@@ -76,6 +87,7 @@ public static class PacketHelper
         for (var p = pk; p != null; p = p.Next)
         {
             sb.Append(p.GetSpan().ToStr(encoding));
+            p.TryDispose();
         }
         return sb.Return(true);
     }
@@ -156,6 +168,11 @@ public struct OwnerPacket : IDisposable, IPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
+
+    /// <summary>获取/设置 指定位置的字节</summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public Byte this[Int32 index] { get => _owner.Memory.Span[index]; set => _owner.Memory.Span[index] = value; }
 
     /// <summary>是否拥有管理权</summary>
     public Boolean HasOwner { get; set; }
@@ -256,6 +273,11 @@ public struct MemoryPacket : IPacket
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
 
+    /// <summary>获取/设置 指定位置的字节</summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public Byte this[Int32 index] { get => _memory.Span[index]; set => _memory.Span[index] = value; }
+
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
     #endregion
@@ -316,6 +338,11 @@ public struct ArrayPacket : IDisposable, IPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
+
+    /// <summary>获取/设置 指定位置的字节</summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
 
     /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
     public Boolean HasOwner { get; set; }
@@ -383,11 +410,47 @@ public struct ArrayPacket : IDisposable, IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public IPacket Slice(Int32 offset, Int32 count)
     {
-        var remain = _length - offset;
-        if (count < 0 || count > remain) count = remain;
-        if (offset == 0 && count == _length) return this;
+        //var remain = _length - offset;
+        //if (count < 0 || count > remain) count = remain;
+        //if (offset == 0 && count == _length) return this;
 
-        var pk = new ArrayPacket(_buffer, _offset + offset, count) { HasOwner = HasOwner };
+        //var pk = new ArrayPacket(_buffer, _offset + offset, count) { HasOwner = HasOwner };
+        //HasOwner = false;
+
+        //return pk;
+
+        IPacket? pk = null;
+        var start = Offset + offset;
+        var remain = _length - offset;
+
+        if (Next == null)
+        {
+            // count 是 offset 之后的个数
+            if (count < 0 || count > remain) count = remain;
+            if (count < 0) count = 0;
+
+            pk = new ArrayPacket(_buffer, start, count);
+        }
+        else
+        {
+            // 如果当前段用完，则取下一段
+            if (remain <= 0)
+                pk = Next.Slice(offset - _length, count);
+
+            // 当前包用一截，剩下的全部
+            else if (count < 0)
+                pk = new ArrayPacket(_buffer, start, remain) { Next = Next };
+
+            // 当前包可以读完
+            else if (count <= remain)
+                pk = new ArrayPacket(_buffer, start, count);
+
+            // 当前包用一截，剩下的再截取
+            else
+                pk = new ArrayPacket(_buffer, start, remain) { Next = Next.Slice(0, count - remain) };
+        }
+
+        if (pk is ArrayPacket ap) ap.HasOwner = HasOwner;
         HasOwner = false;
 
         return pk;

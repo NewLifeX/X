@@ -67,7 +67,7 @@ public class SplitDataCodec : Handler
     /// <param name="context"></param>
     /// <param name="pk">包</param>
     /// <returns></returns>
-    protected IList<Packet>? Decode(IHandlerContext context, Packet pk)
+    protected IList<IPacket>? Decode(IHandlerContext context, IPacket pk)
     {
         if (context.Owner is not IExtend ss) return null;
 
@@ -89,9 +89,9 @@ public class SplitDataCodec : Handler
     /// </summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected Int32 GetLineLength(Packet pk)
+    protected Int32 GetLineLength(IPacket pk)
     {
-        var idx = pk.IndexOf(SplitData);
+        var idx = pk.GetSpan().IndexOf(SplitData);
         if (idx < 0) return 0;
 
         return idx + SplitData.Length;
