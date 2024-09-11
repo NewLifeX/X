@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using NewLife.Log;
 using NewLife.Security;
 
@@ -402,32 +403,50 @@ public abstract class Cache : DisposeBase, ICache
         _ = Get<String>(key);
         Remove(key);
 
+        var key2 = "bint_";
+        var keys = new String[times];
+        var keys2 = new String[times];
+        var sb = new StringBuilder();
+        for (var i = 0; i < times; i++)
+        {
+            //keys[i] = key + i;
+            //keys2[i] = key2 + i;
+            sb.Clear();
+            sb.Append(key);
+            sb.Append(i);
+            keys[i] = sb.ToString();
+
+            sb.Clear();
+            sb.Append(key2);
+            sb.Append(i);
+            keys2[i] = sb.ToString();
+        }
+
         // 赋值测试
-        rs += BenchSet(key, times, threads, rand, batch);
+        rs += BenchSet(keys, times, threads, rand, batch);
 
         // 读取测试
-        rs += BenchGet(key, times, threads, rand, batch);
+        rs += BenchGet(keys, times, threads, rand, batch);
 
         // 删除测试
-        rs += BenchRemove(key, times, threads, rand, batch);
+        rs += BenchRemove(keys, times, threads, rand, batch);
 
         // 累加测试
-        key = "bint_";
-        rs += BenchInc(key, times, threads, rand, batch);
+        rs += BenchInc(keys2, times, threads, rand, batch);
 
         return rs;
     }
 
     /// <summary>读取测试</summary>
-    /// <param name="key">键</param>
+    /// <param name="keys">键</param>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
     /// <param name="rand">随机读写</param>
     /// <param name="batch">批量操作</param>
-    protected virtual Int64 BenchGet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    protected virtual Int64 BenchGet(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
         //提前执行一次网络操作，预热链路
-        var v = Get<String>(key);
+        var v = Get<String>(keys[0]);
 
         var sw = Stopwatch.StartNew();
         if (rand)
@@ -439,26 +458,26 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        var val = Get<String>(key + i);
+                        var val = Get<String>(keys[i]);
                     }
                 }
                 else
                 {
                     var n = 0;
-                    var keys = new String[batch];
+                    var keys2 = new String[batch];
                     for (var i = k; i < times; i += threads)
                     {
-                        keys[n++] = key + i;
+                        keys2[n++] = keys[i];
 
                         if (n >= batch)
                         {
-                            var vals = GetAll<String>(keys);
+                            var vals = GetAll<String>(keys2);
                             n = 0;
                         }
                     }
                     if (n > 0)
                     {
-                        var vals = GetAll<String>(keys.Take(n));
+                        var vals = GetAll<String>(keys2.Take(n));
                     }
                 }
             });
@@ -468,7 +487,7 @@ public abstract class Cache : DisposeBase, ICache
             // 顺序操作，每个线程多次操作同一个key
             Parallel.For(0, threads, k =>
             {
-                var mykey = key + k;
+                var mykey = keys[k];
                 var count = times / threads;
                 for (var i = 0; i < count; i++)
                 {
@@ -479,20 +498,20 @@ public abstract class Cache : DisposeBase, ICache
         sw.Stop();
 
         var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        XTrace.WriteLine($"读取 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
 
     /// <summary>赋值测试</summary>
-    /// <param name="key">键</param>
+    /// <param name="keys">键</param>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
     /// <param name="rand">随机读写</param>
     /// <param name="batch">批量操作</param>
-    protected virtual Int64 BenchSet(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    protected virtual Int64 BenchSet(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
-        Set(key, Rand.NextString(32));
+        Set(keys[0], Rand.NextString(32));
 
         var sw = Stopwatch.StartNew();
         if (rand)
@@ -505,7 +524,7 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        Set(key + i, val);
+                        Set(keys[i], val);
                     }
                 }
                 else
@@ -514,7 +533,7 @@ public abstract class Cache : DisposeBase, ICache
                     var dic = new Dictionary<String, String>();
                     for (var i = k; i < times; i += threads)
                     {
-                        dic[key + i] = val;
+                        dic[keys[i]] = val;
                         n++;
 
                         if (n >= batch)
@@ -539,7 +558,7 @@ public abstract class Cache : DisposeBase, ICache
             // 顺序操作，每个线程多次操作同一个key
             Parallel.For(0, threads, k =>
             {
-                var mykey = key + k;
+                var mykey = keys[k];
                 var val = Rand.NextString(8);
                 var count = times / threads;
                 for (var i = 0; i < count; i++)
@@ -554,21 +573,21 @@ public abstract class Cache : DisposeBase, ICache
         sw.Stop();
 
         var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        XTrace.WriteLine($"赋值 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
 
     /// <summary>删除测试</summary>
-    /// <param name="key">键</param>
+    /// <param name="keys">键</param>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
     /// <param name="rand">随机读写</param>
     /// <param name="batch">批量操作</param>
-    protected virtual Int64 BenchRemove(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    protected virtual Int64 BenchRemove(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
         //提前执行一次网络操作，预热链路
-        Remove(key);
+        Remove(keys[0]);
 
         var sw = Stopwatch.StartNew();
         if (rand)
@@ -580,26 +599,26 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        Remove(key + i);
+                        Remove(keys[i]);
                     }
                 }
                 else
                 {
                     var n = 0;
-                    var keys = new String[batch];
+                    var keys2 = new String[batch];
                     for (var i = k; i < times; i += threads)
                     {
-                        keys[n++] = key + i;
+                        keys2[n++] = keys[i];
 
                         if (n >= batch)
                         {
-                            Remove(keys);
+                            Remove(keys2);
                             n = 0;
                         }
                     }
                     if (n > 0)
                     {
-                        Remove(keys.Take(n).ToArray());
+                        Remove(keys2.Take(n).ToArray());
                     }
                 }
 
@@ -612,7 +631,7 @@ public abstract class Cache : DisposeBase, ICache
             // 顺序操作，每个线程多次操作同一个key
             Parallel.For(0, threads, k =>
             {
-                var mykey = key + k;
+                var mykey = keys[k];
                 var count = times / threads;
                 for (var i = 0; i < count; i++)
                 {
@@ -626,21 +645,21 @@ public abstract class Cache : DisposeBase, ICache
         sw.Stop();
 
         var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        XTrace.WriteLine($"删除 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
 
     /// <summary>累加测试</summary>
-    /// <param name="key">键</param>
+    /// <param name="keys">键</param>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
     /// <param name="rand">随机读写</param>
     /// <param name="batch">批量操作</param>
-    protected virtual Int64 BenchInc(String key, Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    protected virtual Int64 BenchInc(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
         //提前执行一次网络操作，预热链路
-        Increment(key, 1);
+        Increment(keys[0], 1);
 
         var sw = Stopwatch.StartNew();
         if (rand)
@@ -651,7 +670,7 @@ public abstract class Cache : DisposeBase, ICache
                 var val = Rand.Next(100);
                 for (var i = k; i < times; i += threads)
                 {
-                    Increment(key + i, val);
+                    Increment(keys[i], val);
                 }
 
                 // 提交变更
@@ -663,7 +682,7 @@ public abstract class Cache : DisposeBase, ICache
             // 顺序操作，每个线程多次操作同一个key
             Parallel.For(0, threads, k =>
             {
-                var mykey = key + k;
+                var mykey = keys[k];
                 var val = Rand.Next(100);
                 var count = times / threads;
                 for (var i = 0; i < count; i++)
@@ -678,7 +697,7 @@ public abstract class Cache : DisposeBase, ICache
         sw.Stop();
 
         var speed = times * 1000 / sw.ElapsedMilliseconds;
-        XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,9:n0} ops");
+        XTrace.WriteLine($"累加 耗时 {sw.ElapsedMilliseconds,7:n0}ms 速度 {speed,11:n0} ops");
 
         return times + 1;
     }
