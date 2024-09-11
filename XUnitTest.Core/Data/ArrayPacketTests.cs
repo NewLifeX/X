@@ -77,7 +77,7 @@ public class ArrayPacketTests
     }
 
     [Fact]
-    public void SlicetTest()
+    public void SliceTest()
     {
         var buf = "Stone".GetBytes();
 

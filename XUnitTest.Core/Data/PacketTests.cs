@@ -116,7 +116,7 @@ public class PacketTests
     }
 
     [Fact]
-    public void SlicetTest()
+    public void SliceTest()
     {
         var buf = "Stone".GetBytes();
 
@@ -177,6 +177,7 @@ public class PacketTests
         Assert.NotNull(pk.Next);
         Assert.Equal(pk[12],(byte)0x11);
     }
+
     [Fact]
     public void NextTest()
     {

@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Text;
 using NewLife.Collections;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace NewLife.Data;
 
@@ -60,11 +61,6 @@ public interface IOwnerPacket : IPacket, IDisposable
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
 {
-    ///// <summary>整个数据包调用链长度</summary>
-    ///// <param name="pk"></param>
-    ///// <returns></returns>
-    //public static Int32 GetTotal(this IPacket pk) => pk.Length + (pk.Next?.GetTotal() ?? 0);
-
     /// <summary>附加一个包到当前包链的末尾</summary>
     /// <param name="pk"></param>
     /// <param name="next"></param>
@@ -189,6 +185,19 @@ public static class PacketHelper
         return ms;
     }
 
+    /// <summary>返回数据段</summary>
+    /// <returns></returns>
+    public static ArraySegment<Byte> ToSegment(this IPacket pk)
+    {
+        if (pk is ArrayPacket ap && pk.Next == null) return new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
+
+        var ms = new MemoryStream();
+        pk.CopyTo(ms);
+        ms.Position = 0;
+
+        return new ArraySegment<Byte>(ms.Return(true));
+    }
+
     /// <summary>返回数据段集合</summary>
     /// <returns></returns>
     public static IList<ArraySegment<Byte>> ToSegments(this IPacket pk)
@@ -247,6 +256,26 @@ public static class PacketHelper
         }
 
         return pk.ToArray().ReadBytes(offset, count);
+    }
+
+    /// <summary>深度克隆一份数据包，拷贝数据区</summary>
+    /// <returns></returns>
+    public static IPacket Clone(this IPacket pk)
+    {
+        if (pk.Next == null)
+        {
+            // 需要深度拷贝，避免重用缓冲区
+            //if (pk is ArrayPacket ap) return new ArrayPacket(ap.Buffer, ap.Offset, ap.Length);
+
+            return new ArrayPacket(pk.GetSpan().ToArray());
+        }
+
+        // 链式包输出
+        var ms = new MemoryStream();
+        pk.CopyTo(ms);
+        ms.Position = 0;
+
+        return new ArrayPacket(ms);
     }
 }
 
