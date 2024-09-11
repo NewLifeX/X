@@ -499,7 +499,7 @@ public class BinaryGeneral : BinaryHandlerBase
     /// <returns></returns>
     public virtual Char ReadChar() => Convert.ToChar(ReadByte());
 
-    /// <summary>从当前流中读取一个字符串。字符串有长度前缀，一次 7 位地被编码为整数。</summary>
+    /// <summary>从当前流中读取一个字符串。字符串有长度前缀，7位压缩编码整数。</summary>
     /// <returns></returns>
     public virtual String ReadString()
     {

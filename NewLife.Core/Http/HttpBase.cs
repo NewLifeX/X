@@ -137,7 +137,7 @@ public abstract class HttpBase : IDisposable
         var writer = new SpanWriter(pk.GetSpan());
 
         //BuildHeader(writer, len);
-        writer.Write(header);
+        writer.WriteFixedString(header, -1);
 
         if (body != null) writer.Write(body.GetSpan());
 

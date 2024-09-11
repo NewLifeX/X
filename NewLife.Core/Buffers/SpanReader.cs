@@ -52,6 +52,7 @@ public ref struct SpanReader(Span<Byte> span)
     #region 读取方法
     /// <summary>确保缓冲区中有足够的空间。</summary>
     /// <param name="size">需要的字节数。</param>
+    /// <exception cref="InvalidOperationException"></exception>
     private void EnsureSpace(Int32 size)
     {
         if (_index + size > _span.Length)
@@ -171,14 +172,18 @@ public ref struct SpanReader(Span<Byte> span)
 #endif
     }
 
-    /// <summary>读取字符串</summary>
-    /// <param name="length"></param>
-    /// <param name="encoding"></param>
+    /// <summary>读取字符串。先读取7位压缩编码整数作为长度</summary>
+    /// <param name="encoding">字符串编码，默认UTF8</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public String ReadString(Int32 length, Encoding encoding)
+    public String ReadString(Encoding? encoding = null)
     {
+        var length = ReadEncodedInt();
+        if (length == 0) return String.Empty;
+
         EnsureSpace(length);
+
+        encoding ??= Encoding.UTF8;
 
         var result = encoding.GetString(_span.Slice(_index, length));
         _index += length;
@@ -234,6 +239,23 @@ public ref struct SpanReader(Span<Byte> span)
             if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
         }
         return (Int32)rs;
+    }
+
+    /// <summary>读取定长字符串</summary>
+    /// <param name="length">需要读取的长度。-1表示读取全部</param>
+    /// <param name="encoding">字符串编码，默认UTF8</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public String ReadFixedString(Int32 length, Encoding? encoding = null)
+    {
+        if (length < 0) length = _span.Length - _index;
+        EnsureSpace(length);
+
+        encoding ??= Encoding.UTF8;
+
+        var result = encoding.GetString(_span.Slice(_index, length));
+        _index += length;
+        return result;
     }
     #endregion
 }

@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -179,18 +180,31 @@ public ref struct SpanWriter(Span<Byte> buffer)
 #endif
     }
 
-    /// <summary>写入字符串</summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <summary>写入字符串。先写入7位压缩编码整数表示的长度</summary>
+    /// <param name="value">要写入的字符串</param>
+    /// <param name="encoding">字符串编码，默认UTF8</param>
+    /// <returns>返回写入字节数，包括头部长度和字符串部分</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public Int32 Write(String value)
+    public Int32 Write(String value, Encoding? encoding = null)
     {
-        if (value == null) throw new ArgumentNullException(nameof(value));
+        //if (value == null) throw new ArgumentNullException(nameof(value));
 
-        var count = Encoding.UTF8.GetBytes(value.AsSpan(), _span[_index..]);
+        var p = _index;
+        if (value.IsNullOrEmpty())
+        {
+            WriteEncodedInt(0);
+            return _index - p;
+        }
+
+        encoding ??= Encoding.UTF8;
+        var length = encoding.GetByteCount(value);
+        WriteEncodedInt(length);
+        EnsureSpace(length);
+
+        var count = encoding.GetBytes(value.AsSpan(), _span[_index..]);
         _index += count;
 
-        return count;
+        return _index - p;
     }
 
     /// <summary>写入字节数组</summary>
@@ -245,10 +259,11 @@ public ref struct SpanWriter(Span<Byte> buffer)
     #endregion
 
     #region 扩展写入
-    /// <summary>
+    /// <summary>写入7位压缩编码整数</summary>
+    /// <remarks>
     /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
     /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-    /// </summary>
+    /// </remarks>
     /// <param name="value">数值</param>
     /// <returns>实际写入字节数</returns>
     public Int32 WriteEncodedInt(Int64 value)
@@ -265,6 +280,30 @@ public ref struct SpanWriter(Span<Byte> buffer)
         span[count++] = (Byte)num;
 
         _index += span.Length;
+
+        return count;
+    }
+
+    /// <summary>写入定长字符串</summary>
+    /// <param name="value">要写入的字符串</param>
+    /// <param name="length">最大长度。字节数，不足时填充字节0，超长时截取</param>
+    /// <param name="encoding">字符串编码，默认UTF8</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public Int32 WriteFixedString(String value, Int32 length, Encoding? encoding = null)
+    {
+        //if (value == null) throw new ArgumentNullException(nameof(value));
+        value ??= "";
+        encoding ??= Encoding.UTF8;
+        if (length < 0) length = encoding.GetByteCount(value);
+
+        EnsureSpace(length);
+
+        var span = _span[_index..];
+        if (length < span.Length) span = span[..length];
+
+        var count = encoding.GetBytes(value.AsSpan(), span);
+        _index += count;
 
         return count;
     }
