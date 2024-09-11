@@ -134,7 +134,7 @@ public class WebSocket
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        session.Host.SendAllAsync(msg.ToPacket(), predicate);
+        session.Host.SendAllAsync(msg.ToPacket(), predicate).Wait();
     }
 
     /// <summary>想所有连接发送文本消息</summary>
