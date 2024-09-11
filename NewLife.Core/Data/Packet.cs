@@ -265,7 +265,7 @@ public class Packet
     {
         //if (Offset == 0 && (Count < 0 || Offset + Count == Data.Length) && Next == null) return Data;
 
-        if (Next == null) Data.ReadBytes(Offset, Count);
+        if (Next == null) return Data.ReadBytes(Offset, Count);
 
         // 链式包输出
         var ms = Pool.MemoryStream.Get();
