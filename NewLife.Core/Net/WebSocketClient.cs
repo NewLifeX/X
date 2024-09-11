@@ -105,7 +105,7 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public virtual async Task<WebSocketMessage?> ReceiveMessageAsync(CancellationToken cancellationToken = default)
     {
-        var rs = await base.ReceiveAsync(cancellationToken);
+        using var rs = await base.ReceiveAsync(cancellationToken);
         if (rs == null) return null;
 
         var msg = new WebSocketMessage();
@@ -233,16 +233,18 @@ public class WebSocketClient : TcpSession
         using var span = client.Tracer?.NewSpan($"net:{client.Name}:WebSocket", uri + "");
         try
         {
-            // 发送请求
-            var req = request.Build();
-            client.Send(req);
+            // 发送请求。用完后释放数据包，还给缓冲池
+            {
+                using var req = request.Build();
+                client.Send(req);
+            }
 
             // 接收响应
-            var rs = client.Receive();
+            using var rs = client.Receive();
             if (rs == null || rs.Length == 0) return false;
 
             // 解析响应
-            var res = new HttpResponse();
+            using var res = new HttpResponse();
             if (!res.Parse(rs)) return false;
 
             //if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");

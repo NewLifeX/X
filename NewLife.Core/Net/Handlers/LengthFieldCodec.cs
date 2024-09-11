@@ -34,7 +34,8 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         // 尝试退格，直接利用缓冲区
         if (msg is ArrayPacket ap && ap.Offset >= len)
         {
-            msg = new ArrayPacket(ap.Buffer, ap.Offset - len, ap.Length + len) { Next = ap.Next };
+            // 向下传递时，不要转移所有权。向上传递到较高层级才需要转移所有权。
+            msg = new ArrayPacket(ap.Buffer, ap.Offset - len, ap.Length + len) { Next = ap.Next/*, HasOwner = ap.HasOwner*/ };
         }
         else
         {

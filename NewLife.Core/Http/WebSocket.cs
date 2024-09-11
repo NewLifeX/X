@@ -66,7 +66,7 @@ public class WebSocket
     /// <param name="pk"></param>
     public void Process(IPacket pk)
     {
-        var message = new WebSocketMessage();
+        using var message = new WebSocketMessage();
         if (message.Read(pk))
         {
             ActiveTime = DateTime.Now;
@@ -110,7 +110,7 @@ public class WebSocket
         var socket = Context?.Socket;
         if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
 
-        var data = msg.ToPacket();
+        using var data = msg.ToPacket();
         if (session != null)
             session.Send(data);
         else
@@ -138,7 +138,7 @@ public class WebSocket
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        var data2 = msg.ToPacket();
+        using var data2 = msg.ToPacket();
         session.Host.SendAllAsync(data2, predicate);
     }
 

@@ -130,6 +130,8 @@ public abstract class FormatterBase //: IFormatterX
     public IPacket GetPacket()
     {
         Stream.Position = 0;
+
+        // 包装为数据包，直接窃取内存流内部的缓冲区
         return new ArrayPacket(Stream);
     }
     #endregion

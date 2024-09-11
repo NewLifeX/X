@@ -21,7 +21,7 @@ public interface ITransport : IDisposable
 
     /// <summary>读取数据</summary>
     /// <returns></returns>
-    IPacket? Receive();
+    IOwnerPacket? Receive();
 
     /// <summary>数据到达事件</summary>
     event EventHandler<ReceivedEventArgs> Received;

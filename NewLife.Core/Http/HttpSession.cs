@@ -81,8 +81,10 @@ public class HttpSession : INetHandler
                 if (req.ContentLength > MaxRequestLength)
                 {
                     var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
-                    _session.Send(rs.Build());
 
+                    // 发送响应。用完后释放数据包，还给缓冲池
+                    using var res = rs.Build();
+                    _session.Send(res);
                     _session.Dispose();
 
                     return;
@@ -91,6 +93,10 @@ public class HttpSession : INetHandler
                 _cache = new MemoryStream(req.ContentLength);
                 req.Body?.CopyTo(_cache);
                 //req.Body = req.Body.Clone();
+
+                // 请求主体数据来自缓冲区，要还回去
+                req.Body.TryDispose();
+                req.Body = null;
             }
         }
         else if (req != null)
@@ -130,10 +136,19 @@ public class HttpSession : INetHandler
                 var closing = !req.KeepAlive && _websocket == null;
                 if (closing && !rs.Headers.ContainsKey("Connection")) rs.Headers["Connection"] = "close";
 
-                _session.Send(rs.Build());
+                // 发送响应。用完后释放数据包，还给缓冲池
+                using var res = rs.Build();
+                _session.Send(res);
 
                 if (closing) _session.Dispose();
             }
+        }
+
+        // 请求主体数据来自缓冲区，要还回去
+        if (req != null)
+        {
+            req.Body.TryDispose();
+            req.Body = null;
         }
     }
 

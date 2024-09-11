@@ -32,11 +32,11 @@ public interface ISocketRemote : ISocket, IExtend
     #region 接收
     /// <summary>接收数据。阻塞当前线程等待返回</summary>
     /// <returns></returns>
-    IPacket? Receive();
+    IOwnerPacket? Receive();
 
     /// <summary>异步接收数据</summary>
     /// <returns></returns>
-    Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default);
+    Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default);
 
     /// <summary>数据到达事件</summary>
     event EventHandler<ReceivedEventArgs> Received;
@@ -133,7 +133,7 @@ public static class SocketRemoteHelper
     /// <returns></returns>
     public static String ReceiveString(this ISocketRemote session, Encoding? encoding = null)
     {
-        var pk = session.Receive();
+        using var pk = session.Receive();
         if (pk == null || pk.Length == 0) return String.Empty;
 
         return pk.ToStr(encoding ?? Encoding.UTF8);

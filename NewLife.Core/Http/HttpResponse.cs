@@ -43,7 +43,7 @@ public class HttpResponse : HttpBase
 
     /// <summary>创建请求响应包</summary>
     /// <returns></returns>
-    public override IPacket Build()
+    public override IOwnerPacket Build()
     {
         // 如果响应异常，则使用响应描述作为内容
         if (StatusCode > HttpStatusCode.OK && Body == null && !StatusDescription.IsNullOrEmpty())

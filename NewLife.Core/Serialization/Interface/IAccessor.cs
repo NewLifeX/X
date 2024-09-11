@@ -44,10 +44,12 @@ public static class AccessorHelper
     /// <returns></returns>
     public static IPacket ToPacket(this IAccessor accessor, Object? context = null)
     {
-        var ms = new MemoryStream();
+        var ms = new MemoryStream { Position = 8 };
         accessor.Write(ms, context);
 
-        ms.Position = 0;
+        ms.Position = 8;
+
+        // 包装为数据包，直接窃取内存流内部的缓冲区
         return new ArrayPacket(ms);
     }
 

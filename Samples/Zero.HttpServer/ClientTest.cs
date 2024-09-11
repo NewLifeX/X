@@ -77,7 +77,7 @@ static class ClientTest
 
         await client.SendTextAsync("Hello NewLife");
 
-        var rs = await client.ReceiveMessageAsync(default);
+        using var rs = await client.ReceiveMessageAsync(default);
         client.WriteLog(rs.Payload.ToStr());
 
         await Task.Delay(6_000);
@@ -86,8 +86,8 @@ static class ClientTest
         await client.CloseAsync(1000, "通信完成", default);
         client.WriteLog("Close");
 
-        rs = await client.ReceiveMessageAsync(default);
-        client.WriteLog("Close [{0}] {1}", rs.CloseStatus, rs.StatusDescription);
+        using var rs2 = await client.ReceiveMessageAsync(default);
+        client.WriteLog("Close [{0}] {1}", rs2.CloseStatus, rs2.StatusDescription);
 
         client.Dispose();
     }

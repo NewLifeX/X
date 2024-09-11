@@ -56,7 +56,15 @@ public class WebSocketCodec : Handler
             }
         }
 
-        return base.Read(context, message);
+        try
+        {
+            return base.Read(context, message);
+        }
+        finally
+        {
+            // 下游可能忘了释放内存，这里兜底释放
+            message.TryDispose();
+        }
     }
 
     /// <summary>发送消息时，写入数据</summary>
@@ -71,6 +79,14 @@ public class WebSocketCodec : Handler
         if (message is WebSocketMessage msg)
             message = msg.ToPacket();
 
-        return base.Write(context, message);
+        try
+        {
+            return base.Write(context, message);
+        }
+        finally
+        {
+            // 下游可能忘了释放内存，这里兜底释放
+            message.TryDispose();
+        }
     }
 }

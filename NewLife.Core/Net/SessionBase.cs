@@ -262,7 +262,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>接收数据</summary>
     /// <returns></returns>
-    public virtual IPacket? Receive()
+    public virtual IOwnerPacket? Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -271,7 +271,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
         try
         {
-            var pk = new ArrayPacket(BufferSize);
+            using var pk = new ArrayPacket(BufferSize);
             var size = Client.Receive(pk.Buffer, SocketFlags.None);
             if (span != null) span.Value = size;
 
@@ -286,7 +286,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>异步接收数据</summary>
     /// <returns></returns>
-    public virtual async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
@@ -295,7 +295,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
         try
         {
-            var pk = new ArrayPacket(BufferSize);
+            using var pk = new ArrayPacket(BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = Client.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, Client);
             var size = ar.IsCompleted ?

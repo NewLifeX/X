@@ -6,7 +6,7 @@ using NewLife.Data;
 namespace NewLife.Http;
 
 /// <summary>Http请求响应基类</summary>
-public abstract class HttpBase
+public abstract class HttpBase : IDisposable
 {
     #region 属性
     /// <summary>协议版本</summary>
@@ -36,6 +36,11 @@ public abstract class HttpBase
     public String this[String key] { get => Headers[key] + ""; set => Headers[key] = value; }
     #endregion
 
+    #region 构造
+    /// <summary>释放</summary>
+    public void Dispose() => Body.TryDispose();
+    #endregion
+
     #region 解析
     /// <summary>快速验证协议头，剔除非HTTP协议。仅排除，验证通过不一定就是HTTP协议</summary>
     /// <param name="data"></param>
@@ -50,7 +55,7 @@ public abstract class HttpBase
 
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n'];
     private static readonly Byte[] NewLine2 = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析请求头</summary>
+    /// <summary>分析请求头。截取Body时获取缓冲区所有权</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
     public Boolean Parse(IPacket pk)
@@ -90,7 +95,7 @@ public abstract class HttpBase
 
         //var str = pk.ReadBytes(0, p).ToStr();
 
-        // 截取
+        // 截取主体，获取所有权
         //var lines = str.Split("\r\n");
         Body = pk.Slice(p + 4);
 
@@ -118,14 +123,17 @@ public abstract class HttpBase
 
     #region 读写
     /// <summary>创建请求响应包</summary>
+    /// <remarks>数据来自缓冲池，使用者用完返回数据包后应该释放，以便把缓冲区放回池里</remarks>
     /// <returns></returns>
-    public virtual IPacket Build()
+    public virtual IOwnerPacket Build()
     {
         var body = Body;
         var len = body != null ? body.Total : 0;
 
         var header = BuildHeader(len);
-        var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);
+
+        // 从内存池申请缓冲区，Slice后管理权转移，外部使用完以后释放
+        using var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);
         var writer = new SpanWriter(pk.GetSpan());
 
         //BuildHeader(writer, len);

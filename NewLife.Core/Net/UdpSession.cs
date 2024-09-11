@@ -247,7 +247,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     #region 接收
     /// <summary>接收数据</summary>
     /// <returns></returns>
-    public IPacket Receive()
+    public IOwnerPacket Receive()
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
@@ -256,7 +256,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var pk = new ArrayPacket(Server.BufferSize);
+            using var pk = new ArrayPacket(Server.BufferSize);
             var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
             if (span != null) span.Value = size;
 
@@ -271,7 +271,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>异步接收数据</summary>
     /// <returns></returns>
-    public virtual async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
@@ -280,7 +280,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            var pk = new ArrayPacket(Server.BufferSize);
+            using var pk = new ArrayPacket(Server.BufferSize);
             var socket = Server.Client;
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);

@@ -87,7 +87,7 @@ static class ClientTest
         if (client is TcpSession tcp) tcp.MaxAsync = 0;
 
         // 接收服务端握手。内部自动建立连接
-        var rs = await client.ReceiveAsync(default);
+        using var rs = await client.ReceiveAsync(default);
         client.WriteLog("<={0}", rs.ToStr());
 
         // 发送数据
@@ -96,8 +96,8 @@ static class ClientTest
         client.Send(str);
 
         // 接收数据
-        rs = await client.ReceiveAsync(default);
-        client.WriteLog("<={0}", rs.ToStr());
+        using var rs2 = await client.ReceiveAsync(default);
+        client.WriteLog("<={0}", rs2.ToStr());
 
         // 关闭连接
         client.Close("测试完成");
@@ -123,12 +123,12 @@ static class ClientTest
         client.Send(str);
 
         // 接收服务端握手
-        var rs = await client.ReceiveAsync(default);
+        using var rs = await client.ReceiveAsync(default);
         client.WriteLog("<={0}", rs.ToStr());
 
         // 接收数据
-        rs = await client.ReceiveAsync(default);
-        client.WriteLog("<={0}", rs.ToStr());
+        using var rs2 = await client.ReceiveAsync(default);
+        client.WriteLog("<={0}", rs2.ToStr());
 
         // 关闭连接
         client.Close("测试完成");

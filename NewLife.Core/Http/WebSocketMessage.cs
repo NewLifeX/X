@@ -28,7 +28,7 @@ public enum WebSocketMessageType
 }
 
 /// <summary>WebSocket消息</summary>
-public class WebSocketMessage
+public class WebSocketMessage : IDisposable
 {
     #region 属性
     /// <summary>消息是否结束</summary>
@@ -48,6 +48,11 @@ public class WebSocketMessage
 
     /// <summary>关闭状态描述。仅用于Close消息</summary>
     public String? StatusDescription { get; set; }
+    #endregion
+
+    #region 构造
+    /// <summary>销毁。回收数据包到内存池</summary>
+    public void Dispose() => Payload.TryDispose();
     #endregion
 
     #region 方法
@@ -123,7 +128,7 @@ public class WebSocketMessage
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    public virtual IPacket ToPacket()
+    public virtual IOwnerPacket ToPacket()
     {
         var pk = Payload;
         var len = pk == null ? 0 : pk.Length;
@@ -207,7 +212,7 @@ public class WebSocketMessage
             if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription);
         }
 
-        return rs.Slice(0, writer.Position);
+        return (rs.Slice(0, writer.Position) as IOwnerPacket)!;
     }
     #endregion
 }

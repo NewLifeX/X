@@ -378,7 +378,7 @@ public class TcpSession : SessionBase, ISocketSession
     #region 接收
     /// <summary>异步接收数据。重载以支持SSL</summary>
     /// <returns></returns>
-    public override async Task<IPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
+    public override async Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default)
     {
         if (!Open() || Client == null) return null;
 
@@ -388,7 +388,7 @@ public class TcpSession : SessionBase, ISocketSession
             using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
             try
             {
-                var pk = new ArrayPacket(BufferSize);
+                using var pk = new ArrayPacket(BufferSize);
                 var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken);
                 if (span != null) span.Value = size;
 

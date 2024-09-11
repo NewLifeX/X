@@ -50,6 +50,13 @@ public interface IPacket
     IPacket Slice(Int32 offset, Int32 count = -1);
 }
 
+/// <summary>拥有管理权的数据包。使用完以后需要释放</summary>
+public interface IOwnerPacket : IPacket, IDisposable
+{
+    /// <summary>是否拥有管理权</summary>
+    Boolean HasOwner { get; set; }
+}
+
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
 {
@@ -247,7 +254,7 @@ public static class PacketHelper
 /// <remarks>
 /// 使用时务必明确所有权归属，用完后及时释放。
 /// </remarks>
-public struct OwnerPacket : IDisposable, IPacket
+public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
 {
     #region 属性
     private IMemoryOwner<Byte> _owner;
@@ -427,7 +434,7 @@ public struct MemoryPacket : IPacket
 }
 
 /// <summary>字节数组包</summary>
-public struct ArrayPacket : IDisposable, IPacket
+public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
 {
     #region 属性
     private Byte[] _buffer;
@@ -455,6 +462,9 @@ public struct ArrayPacket : IDisposable, IPacket
 
     /// <summary>总长度</summary>
     public Int32 Total => Length + (Next?.Total ?? 0);
+
+    /// <summary>空数组</summary>
+    public static ArrayPacket Empty = new([]);
     #endregion
 
     #region 索引
@@ -504,6 +514,7 @@ public struct ArrayPacket : IDisposable, IPacket
     }
     #endregion
 
+    #region 构造
     /// <summary>通过指定字节数组来实例化数据包</summary>
     /// <param name="buf"></param>
     /// <param name="offset"></param>
@@ -563,11 +574,8 @@ public struct ArrayPacket : IDisposable, IPacket
 #endif
         }
 
-        //Set(stream.ToArray());
-
         var buf = new Byte[stream.Length - stream.Position];
         var count = stream.Read(buf, 0, buf.Length);
-        //Set(buf, 0, count);
         _buffer = buf;
         _offset = 0;
         _length = count;
@@ -587,6 +595,7 @@ public struct ArrayPacket : IDisposable, IPacket
             HasOwner = false;
         }
     }
+    #endregion
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
@@ -603,16 +612,18 @@ public struct ArrayPacket : IDisposable, IPacket
     /// </remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public IPacket Slice(Int32 offset, Int32 count)
+    public ArrayPacket Slice(Int32 offset, Int32 count) => (ArrayPacket)(this as IPacket).Slice(offset, count);
+
+    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
+    /// <remarks>
+    /// 可能是引用同一块内存，也可能是新的内存。
+    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
+    /// </remarks>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    IPacket IPacket.Slice(Int32 offset, Int32 count)
     {
-        //var remain = _length - offset;
-        //if (count < 0 || count > remain) count = remain;
-        //if (offset == 0 && count == _length) return this;
-
-        //var pk = new ArrayPacket(_buffer, _offset + offset, count) { HasOwner = HasOwner };
-        //HasOwner = false;
-
-        //return pk;
+        if (count == 0) return Empty;
 
         IPacket? pk = null;
         var start = Offset + offset;
@@ -645,8 +656,12 @@ public struct ArrayPacket : IDisposable, IPacket
                 pk = new ArrayPacket(_buffer, start, remain) { Next = Next.Slice(0, count - remain) };
         }
 
-        if (pk is ArrayPacket ap) ap.HasOwner = HasOwner;
-        HasOwner = false;
+        // 所有权转移
+        if (pk is ArrayPacket ap && ap._buffer == _buffer)
+        {
+            ap.HasOwner = HasOwner;
+            HasOwner = false;
+        }
 
         return pk;
     }

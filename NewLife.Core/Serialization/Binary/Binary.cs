@@ -544,6 +544,8 @@ public class Binary : FormatterBase, IBinary
         //return new ArrayPacket(buf, 8, buf.Length - 8);
 
         bn.Stream.Position = 8;
+
+        // 包装为数据包，直接窃取内存流内部的缓冲区
         return new ArrayPacket(bn.Stream);
     }
 

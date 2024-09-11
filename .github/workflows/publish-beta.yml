@@ -2,11 +2,11 @@ name: publish-beta
 
 on:
   push:
-    branches: [ master, dev, v10 ]
+    branches: [ master, dev ]
     paths:
         - 'NewLife.Core/**'
   pull_request:
-    branches: [ master, dev, v10 ]
+    branches: [ master, dev ]
     paths:
         - 'NewLife.Core/**'
   workflow_dispatch:

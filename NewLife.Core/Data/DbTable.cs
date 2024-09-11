@@ -415,6 +415,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <returns></returns>
     public IPacket ToPacket()
     {
+        // 不确定所需大小，只能使用内存流，再包装为数据包。
+        // 头部预留8个字节，方便网络传输时添加协议头。
         var ms = new MemoryStream
         {
             Position = 8
@@ -423,6 +425,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         Write(ms);
 
         ms.Position = 8;
+
+        // 包装为数据包，直接窃取内存流内部的缓冲区
         return new ArrayPacket(ms);
     }
 

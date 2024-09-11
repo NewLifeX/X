@@ -127,7 +127,7 @@ public class TinyHttpClient : DisposeBase
     /// <param name="uri"></param>
     /// <param name="request"></param>
     /// <returns></returns>
-    protected virtual async Task<IPacket> SendDataAsync(Uri? uri, IPacket? request)
+    protected virtual async Task<IOwnerPacket> SendDataAsync(Uri? uri, IPacket? request)
     {
         var ns = await GetStreamAsync(uri).ConfigureAwait(false);
 
@@ -135,7 +135,7 @@ public class TinyHttpClient : DisposeBase
         if (request != null) await request.CopyToAsync(ns).ConfigureAwait(false);
 
         // 接收
-        var pk = new ArrayPacket(BufferSize);
+        using var pk = new ArrayPacket(BufferSize);
         using var source = new CancellationTokenSource(Timeout);
 
 #if NETCOREAPP || NETSTANDARD2_1
@@ -162,11 +162,11 @@ public class TinyHttpClient : DisposeBase
         while (retry-- > 0)
         {
             // 发出请求
-            rs = await SendDataAsync(uri, req).ConfigureAwait(false);
-            if (rs == null || rs.Length == 0) return null;
+            using var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
+            if (rs2 == null || rs2.Length == 0) return null;
 
             // 解析响应
-            if (!res.Parse(rs)) return res;
+            if (!res.Parse(rs2)) return res;
             rs = res.Body;
 
             // 跳转
@@ -181,6 +181,8 @@ public class TinyHttpClient : DisposeBase
 
                     uri = uri2;
                     request.RequestUri = uri;
+
+                    req.TryDispose();
                     req = request.Build();
 
                     continue;
@@ -189,6 +191,9 @@ public class TinyHttpClient : DisposeBase
 
             break;
         }
+
+        // 释放数据包，还给缓冲池
+        req.TryDispose();
 
         if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
@@ -199,6 +204,7 @@ public class TinyHttpClient : DisposeBase
             var last = rs;
             while (total < res.ContentLength)
             {
+                //todo 这里的IPacket.Append可能有问题，因为last本质上是结构体
                 var pk = await SendDataAsync(null, null).ConfigureAwait(false);
                 last.Append(pk);
 
@@ -212,7 +218,10 @@ public class TinyHttpClient : DisposeBase
         {
             // 如果不足则读取一个chunk，因为有可能第一个响应包只有头部
             if (rs.Length == 0)
+            {
+                rs.TryDispose();
                 rs = await SendDataAsync(null, null).ConfigureAwait(false);
+            }
 
             res.Body = await ReadChunkAsync(rs);
         }
@@ -284,6 +293,8 @@ public class TinyHttpClient : DisposeBase
             // 还有粘包数据，继续分析
             if (pk == null || pk.Length == 0) break;
             if (pk.Length > 0) continue;
+
+            pk.TryDispose();
 
             // 读取新的数据片段，如果不存在则跳出
             pk = await SendDataAsync(null, null).ConfigureAwait(false);
