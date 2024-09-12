@@ -47,11 +47,15 @@ public class MessageCodec<T> : Handler
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
+        // 谁申请，谁归还
+        IOwnerPacket? owner = null;
         if (message is T msg)
         {
             var rs = Encode(context, msg);
             if (rs == null) return null;
+
             message = rs;
+            owner = rs as IOwnerPacket;
 
             // 加入队列，忽略请求消息
             if (message is IMessage msg2)
@@ -62,7 +66,15 @@ public class MessageCodec<T> : Handler
                 AddToQueue(context, msg);
         }
 
-        return base.Write(context, message);
+        try
+        {
+            return base.Write(context, message);
+        }
+        finally
+        {
+            // 下游可能忘了释放内存，这里兜底释放
+            owner?.Dispose();
+        }
     }
 
     /// <summary>编码消息，一般是编码为Packet后传给下一个处理器</summary>

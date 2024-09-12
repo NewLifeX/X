@@ -140,7 +140,7 @@ public class WebSocketMessage : IDisposable
             if (!StatusDescription.IsNullOrEmpty()) len += Encoding.UTF8.GetByteCount(StatusDescription);
         }
 
-        var rs = new ArrayPacket(1 + 1 + 8 + 4 + len);
+        var rs = new OwnerPacket(1 + 1 + 8 + 4 + len);
         var writer = new SpanWriter(rs.GetSpan())
         {
             IsLittleEndian = false
@@ -212,7 +212,7 @@ public class WebSocketMessage : IDisposable
             if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription, -1);
         }
 
-        return (rs.Slice(0, writer.Position) as IOwnerPacket)!;
+        return rs.Slice(0, writer.Position);
     }
     #endregion
 }

@@ -135,7 +135,7 @@ public class TinyHttpClient : DisposeBase
         if (request != null) await request.CopyToAsync(ns).ConfigureAwait(false);
 
         // 接收
-        using var pk = new ArrayPacket(BufferSize);
+        var pk = new OwnerPacket(BufferSize);
         using var source = new CancellationTokenSource(Timeout);
 
 #if NETCOREAPP || NETSTANDARD2_1
@@ -162,7 +162,7 @@ public class TinyHttpClient : DisposeBase
         while (retry-- > 0)
         {
             // 发出请求
-            using var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
+            var rs2 = await SendDataAsync(uri, req).ConfigureAwait(false);
             if (rs2 == null || rs2.Length == 0) return null;
 
             // 解析响应
@@ -204,7 +204,7 @@ public class TinyHttpClient : DisposeBase
             var last = rs;
             while (total < res.ContentLength)
             {
-                //todo 这里的IPacket.Append可能有问题，因为last本质上是结构体
+                // 这里的IPacket.Append可能有问题，因为last不能是结构体
                 var pk = await SendDataAsync(null, null).ConfigureAwait(false);
                 last.Append(pk);
 
@@ -343,7 +343,7 @@ public class TinyHttpClient : DisposeBase
             RequestUri = new Uri(url),
         };
 
-        var rs = (await SendAsync(request).ConfigureAwait(false));
+        using var rs = (await SendAsync(request).ConfigureAwait(false));
         return rs?.Body?.ToStr();
     }
     #endregion
@@ -360,7 +360,7 @@ public class TinyHttpClient : DisposeBase
         var baseAddress = BaseAddress ?? throw new ArgumentNullException(nameof(BaseAddress));
         var request = BuildRequest(baseAddress, method, action, args);
 
-        var rs = await SendAsync(request);
+        using var rs = await SendAsync(request);
 
         if (rs == null || rs.Body == null || rs.Body.Length == 0) return default;
 

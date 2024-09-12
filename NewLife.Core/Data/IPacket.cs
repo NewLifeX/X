@@ -54,8 +54,8 @@ public interface IPacket
 /// <summary>拥有管理权的数据包。使用完以后需要释放</summary>
 public interface IOwnerPacket : IPacket, IDisposable
 {
-    /// <summary>是否拥有管理权</summary>
-    Boolean HasOwner { get; set; }
+    ///// <summary>是否拥有管理权</summary>
+    //Boolean HasOwner { get; set; }
 }
 
 /// <summary>内存包辅助类</summary>
@@ -80,7 +80,7 @@ public static class PacketHelper
     /// <param name="next"></param>
     public static IPacket Append(this IPacket pk, Byte[] next) => Append(pk, new ArrayPacket(next));
 
-    /// <summary>转字符串并释放</summary>
+    /// <summary>转字符串</summary>
     /// <param name="pk"></param>
     /// <param name="encoding"></param>
     /// <param name="offset"></param>
@@ -95,7 +95,7 @@ public static class PacketHelper
             if (span.Length > count) span = span[..count];
 
             var rs = span.ToStr(encoding);
-            pk.TryDispose();
+            //pk.TryDispose();
             return rs;
         }
 
@@ -107,7 +107,7 @@ public static class PacketHelper
             if (span.Length > count) span = span[..count];
 
             sb.Append(span.ToStr(encoding));
-            p.TryDispose();
+            //p.TryDispose();
 
             count -= span.Length;
         }
@@ -297,6 +297,8 @@ public static class PacketHelper
     {
         if (pk.Next == null)
         {
+            if (pk is OwnerPacket op && op.TryGetArray(out segment)) return true;
+
             if (pk is ArrayPacket ap)
             {
                 segment = new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
@@ -316,12 +318,16 @@ public static class PacketHelper
 /// <remarks>
 /// 使用时务必明确所有权归属，用完后及时释放。
 /// </remarks>
-public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
+public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 {
     #region 属性
-    private IMemoryOwner<Byte> _owner;
-    /// <summary>内存所有者</summary>
-    public IMemoryOwner<Byte> Owner => _owner;
+    private Byte[] _buffer;
+    /// <summary>缓冲区</summary>
+    public Byte[] Buffer => _buffer;
+
+    private readonly Int32 _offset;
+    /// <summary>数据偏移</summary>
+    public Int32 Offset => _offset;
 
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
@@ -330,10 +336,7 @@ public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
     /// <summary>获取/设置 指定位置的字节</summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    public Byte this[Int32 index] { get => _owner.Memory.Span[index]; set => _owner.Memory.Span[index] = value; }
-
-    /// <summary>是否拥有管理权</summary>
-    public Boolean HasOwner { get; set; }
+    public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
 
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
@@ -342,6 +345,7 @@ public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
     public Int32 Total => Length + (Next?.Total ?? 0);
     #endregion
 
+    #region 构造
     /// <summary>实例化指定长度的内存包，从共享内存池中借出</summary>
     /// <param name="length">长度</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
@@ -350,46 +354,50 @@ public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
         if (length < 0)
             throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
 
-        _owner = MemoryPool<Byte>.Shared.Rent(length);
+        _buffer = ArrayPool<Byte>.Shared.Rent(length);
+        _offset = 0;
         _length = length;
-        HasOwner = true;
     }
 
     /// <summary>实例化内存包，指定内存所有者和长度</summary>
-    /// <param name="memoryOwner">内存所有者</param>
+    /// <param name="buffer">缓冲区</param>
+    /// <param name="offset"></param>
     /// <param name="length">长度</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public OwnerPacket(IMemoryOwner<Byte> memoryOwner, Int32 length)
+    private OwnerPacket(Byte[] buffer, Int32 offset, Int32 length)
     {
-        if (length < 0 || length > memoryOwner.Memory.Length)
+        if (offset < 0 || length < 0 || offset + length > buffer.Length)
             throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
 
-        _owner = memoryOwner;
+        _buffer = buffer;
+        _offset = offset;
         _length = length;
     }
 
-    /// <summary>释放</summary>
-    public void Dispose()
+    /// <summary>销毁释放</summary>
+    /// <param name="disposing"></param>
+    protected override void Dispose(Boolean disposing)
     {
-        //if (!HasOwner) throw new InvalidOperationException("Has not owner.");
-
-        var owner = _owner;
-        if (HasOwner && owner != null)
+        var buffer = _buffer;
+        if (buffer != null)
         {
             // 释放内存所有者以后，直接置空，避免重复使用
-            _owner = null!;
-            owner.Dispose();
-            HasOwner = false;
+            _buffer = null!;
+
+            ArrayPool<Byte>.Shared.Return(buffer);
         }
+
+        Next.TryDispose();
     }
+    #endregion
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Span<Byte> GetSpan() => _owner.Memory.Span[.._length];
+    public override Span<Byte> GetSpan() => new(_buffer, _offset, _length);
 
     /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Memory<Byte> GetMemory() => _owner.Memory[.._length];
+    public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
     /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
@@ -398,29 +406,47 @@ public struct OwnerPacket : IDisposable, IPacket, IOwnerPacket
     /// </remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public IPacket Slice(Int32 offset, Int32 count)
+    IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
+
+    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
+    /// <remarks>
+    /// 可能是引用同一块内存，也可能是新的内存。
+    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
+    /// </remarks>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    public OwnerPacket Slice(Int32 offset, Int32 count)
     {
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;
-        if (offset == 0 && count == _length) return this;
 
-        if (offset == 0)
-        {
-            var pk = new OwnerPacket(_owner, count) { HasOwner = HasOwner };
-            HasOwner = false;
-            return pk;
-        }
-
-        // 当前数据包可能会释放，必须拷贝数据
-        //return new MemoryPacket(_owner.Memory.Slice(offset, count), count);
-        var rs = new ArrayPacket(count);
-        GetSpan().CopyTo(rs.GetSpan());
-        return rs;
+        return new OwnerPacket(_buffer, _offset + offset, count);
     }
 
+    /// <summary>尝试获取数据段</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    protected override Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        segment = new ArraySegment<Byte>(_buffer, _offset, _length);
+        return true;
+    }
+
+    /// <summary>钉住内存</summary>
+    /// <param name="elementIndex"></param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    public override MemoryHandle Pin(Int32 elementIndex = 0) => throw new NotSupportedException();
+
+    /// <summary>取消钉内存</summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public override void Unpin() => throw new NotImplementedException();
+
+    #region 重载运算符
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_owner.Memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
+    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{Total}>");
+    #endregion
 }
 
 /// <summary>内存包</summary>
@@ -510,11 +536,6 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
-
-    ///// <summary>获取/设置 指定位置的字节</summary>
-    ///// <param name="index"></param>
-    ///// <returns></returns>
-    //public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
 
     /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
     public Boolean HasOwner { get; set; }
@@ -660,6 +681,8 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
             Pool.Shared.Return(buf);
             HasOwner = false;
         }
+
+        Next.TryDispose();
     }
     #endregion
 

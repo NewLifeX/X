@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -133,23 +134,16 @@ public abstract class HttpBase : IDisposable
         var header = BuildHeader(len);
 
         // 从内存池申请缓冲区，Slice后管理权转移，外部使用完以后释放
-        using var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);
+        //using var pk = new ArrayPacket(Encoding.UTF8.GetByteCount(header) + len);
+        len += Encoding.UTF8.GetByteCount(header);
+        var pk = new OwnerPacket(len);
         var writer = new SpanWriter(pk.GetSpan());
 
-        //BuildHeader(writer, len);
         writer.Write(header, -1);
 
         if (body != null) writer.Write(body.GetSpan());
 
         return pk.Slice(0, writer.Position);
-
-        //var header = BuildHeader(len);
-        //var rs = new Packet(header.GetBytes())
-        //{
-        //    Next = data
-        //};
-
-        //return rs;
     }
 
     /// <summary>创建头部</summary>

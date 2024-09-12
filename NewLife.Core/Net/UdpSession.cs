@@ -256,7 +256,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            using var pk = new ArrayPacket(Server.BufferSize);
+            var pk = new OwnerPacket(Server.BufferSize);
             var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
             if (span != null) span.Value = size;
 
@@ -280,7 +280,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ep = Remote.EndPoint as EndPoint;
-            using var pk = new ArrayPacket(Server.BufferSize);
+            var pk = new OwnerPacket(Server.BufferSize);
             var socket = Server.Client;
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);

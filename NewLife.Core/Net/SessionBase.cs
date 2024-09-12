@@ -271,7 +271,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
         try
         {
-            using var pk = new ArrayPacket(BufferSize);
+            var pk = new OwnerPacket(BufferSize);
             var size = Client.Receive(pk.Buffer, SocketFlags.None);
             if (span != null) span.Value = size;
 
@@ -295,7 +295,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
         try
         {
-            using var pk = new ArrayPacket(BufferSize);
+            var pk = new OwnerPacket(BufferSize);
 #if NETFRAMEWORK || NETSTANDARD2_0
             var ar = Client.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, Client);
             var size = ar.IsCompleted ?

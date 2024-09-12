@@ -387,7 +387,7 @@ public class TcpSession : SessionBase, ISocketSession
             using var span = Tracer?.NewSpan($"net:{Name}:ReceiveAsync", BufferSize + "");
             try
             {
-                using var pk = new ArrayPacket(BufferSize);
+                var pk = new OwnerPacket(BufferSize);
                 var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken);
                 if (span != null) span.Value = size;
 

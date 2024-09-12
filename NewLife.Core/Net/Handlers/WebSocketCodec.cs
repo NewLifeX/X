@@ -56,15 +56,7 @@ public class WebSocketCodec : Handler
             }
         }
 
-        try
-        {
-            return base.Read(context, message);
-        }
-        finally
-        {
-            // 下游可能忘了释放内存，这里兜底释放
-            message.TryDispose();
-        }
+        return base.Read(context, message);
     }
 
     /// <summary>发送消息时，写入数据</summary>
@@ -76,8 +68,10 @@ public class WebSocketCodec : Handler
         if (UserPacket && message is IPacket pk)
             message = new WebSocketMessage { Type = WebSocketMessageType.Binary, Payload = pk };
 
+        // 谁申请，谁归还
+        IOwnerPacket? owner = null;
         if (message is WebSocketMessage msg)
-            message = msg.ToPacket();
+            message = owner = msg.ToPacket();
 
         try
         {
@@ -86,7 +80,7 @@ public class WebSocketCodec : Handler
         finally
         {
             // 下游可能忘了释放内存，这里兜底释放
-            message.TryDispose();
+            owner?.Dispose();
         }
     }
 }

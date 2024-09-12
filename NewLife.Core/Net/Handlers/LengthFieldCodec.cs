@@ -39,7 +39,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         }
         else
         {
-            msg = new ArrayPacket(len) { Next = msg };
+            msg = new OwnerPacket(len) { Next = msg };
         }
 
         var writer = new SpanWriter(msg.GetSpan()) { IsLittleEndian = Size > 0 };

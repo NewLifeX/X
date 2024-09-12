@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Caching;
+using NewLife.Collections;
 using NewLife.Common;
 using NewLife.Data;
 using NewLife.Http;
@@ -76,7 +77,7 @@ public class Program
             try
             {
 #endif
-            Test4();
+            Test1();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -98,12 +99,32 @@ public class Program
     static StarClient _client;
     private static void Test1()
     {
-        var client = new WebClientX { Log = XTrace.Log };
-        client.AuthKey = "NewLife";
-        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
-        //var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf", "tt/");
-        var rs = client.DownloadLink("http://sh03.newlifex.com,https://x.newlifex.com/dotNet/8.0.7", "dotnet-runtime-8.0.7-linux-x64", "tt/");
-        XTrace.WriteLine(rs);
+        var pool = Pool.Shared;
+        var buf = pool.Rent(1000);
+
+        buf[3] = 0x35;
+        Thread.Sleep(1000);
+
+        pool.Return(buf);
+        pool.Return(buf);
+
+        buf = pool.Rent(1000);
+        XTrace.WriteLine(buf.ToHex("-", 0, 8));
+
+        var buf2 = pool.Rent(800);
+        XTrace.WriteLine(buf2.ToHex("-", 0, 8));
+
+        buf[4] = 0x37;
+        buf2[4] = 0x39;
+        XTrace.WriteLine(buf.ToHex("-", 0, 8));
+        XTrace.WriteLine(buf2.ToHex("-", 0, 8));
+
+        //var client = new WebClientX { Log = XTrace.Log };
+        //client.AuthKey = "NewLife";
+        ////var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "ip.gz", "tt/");
+        ////var rs = client.DownloadLink("http://sh03.newlifex.com,http://x.newlifex.com", "leaf", "tt/");
+        //var rs = client.DownloadLink("http://sh03.newlifex.com,https://x.newlifex.com/dotNet/8.0.7", "dotnet-runtime-8.0.7-linux-x64", "tt/");
+        //XTrace.WriteLine(rs);
     }
 
     private static void Test2()
