@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -223,7 +222,23 @@ public ref struct SpanWriter(Span<Byte> buffer)
             var span = GetSpan(length);
             if (span.Length > length) span = span[..length];
 
-            var count = encoding.GetBytes(value.AsSpan(), span);
+            // 输出缓冲区不能过小，否则报错。大小足够时，直接把字符串写入到目标
+            var source = value.AsSpan();
+            var max = encoding.GetMaxByteCount(source.Length);
+            if (max <= length)
+                encoding.GetBytes(source, span);
+            else
+            {
+                // 目标大小可能不足，申请临时缓冲区，输出后做局部拷贝
+                var buf = Pool.Shared.Rent(max);
+                var count = encoding.GetBytes(source, buf);
+
+                // 局部拷贝，仅拷贝需要部分，抛弃超长部分
+                new Span<Byte>(buf, 0, length).CopyTo(span);
+
+                Pool.Shared.Return(buf, true);
+            }
+
             _index += length;
 
             return length;
@@ -302,7 +317,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
         }
         span[count++] = (Byte)num;
 
-        _index += span.Length;
+        _index += count;
 
         return count;
     }
