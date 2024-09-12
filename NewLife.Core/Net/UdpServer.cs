@@ -169,8 +169,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 #if NETCOREAPP || NETSTANDARD2_1
                         rs = sock.Send(data);
 #else
-                        if (pk is ArrayPacket ap)
-                            rs = sock.Send(ap.Buffer, ap.Offset, ap.Length, SocketFlags.None);
+                        if (pk.TryGetArray(out var segment))
+                            rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
                         else
                             rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
 #endif
@@ -188,8 +188,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 #if NET6_0_OR_GREATER
                         rs = sock.SendTo(data, remote);
 #else
-                        if (pk is ArrayPacket ap)
-                            rs = sock.Send(ap.Buffer, ap.Offset, ap.Length, SocketFlags.None);
+                        if (pk.TryGetArray(out var segment))
+                            rs = sock.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, remote);
                         else
                             rs = sock.SendTo(data.ToArray(), 0, data.Length, SocketFlags.None, remote);
 #endif

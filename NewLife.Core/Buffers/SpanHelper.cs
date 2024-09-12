@@ -73,7 +73,7 @@ public static class SpanHelper
         if (span.Length == 0) return String.Empty;
 
         if (span.Length > maxLength) span = span[..maxLength];
-        return span.ToArray().ToHex(separate, groupSize);
+        return span.ToArray().ToHex(separate, groupSize, maxLength);
     }
 
     /// <summary>通过指定开始与结束边界来截取数据源</summary>

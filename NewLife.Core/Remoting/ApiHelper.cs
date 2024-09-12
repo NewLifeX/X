@@ -200,8 +200,8 @@ public static class ApiHelper
         }
         else
         {
-            var content = pk.Next == null && pk is ArrayPacket ap ?
-                new ByteArrayContent(ap.Buffer, ap.Offset, ap.Length) :
+            var content = pk.TryGetArray(out var segment) ?
+                new ByteArrayContent(segment.Array!, segment.Offset, segment.Count) :
                 new ByteArrayContent(pk.ReadBytes());
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             return content;

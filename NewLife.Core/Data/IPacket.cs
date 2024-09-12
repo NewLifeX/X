@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
 
@@ -123,7 +124,26 @@ public static class PacketHelper
     {
         if (pk.Length == 0) return String.Empty;
 
-        return pk.GetSpan().ToHex(maxLength, separate, groupSize);
+        if (pk.Next == null)
+        {
+            if (pk is ArrayPacket ap && separate == null && groupSize == 0)
+                return ap.Buffer.ToHex(ap.Offset, Math.Min(maxLength, ap.Length));
+            else
+                return pk.GetSpan().ToHex(maxLength, separate, groupSize);
+        }
+
+        var sb = Pool.StringBuilder.Get();
+        for (var p = pk; p != null; p = p.Next)
+        {
+            if (p is ArrayPacket ap && separate == null && groupSize == 0)
+                sb.Append(ap.Buffer.ToHex(ap.Offset, Math.Min(maxLength, ap.Length)));
+            else
+                sb.Append(p.GetSpan().ToHex(maxLength, separate, groupSize));
+
+            maxLength -= p.Length;
+            if (maxLength <= 0) break;
+        }
+        return sb.Return(true);
     }
 
     /// <summary>拷贝</summary>
@@ -162,10 +182,6 @@ public static class PacketHelper
                 await stream.WriteAsync(p.GetMemory(), cancellationToken);
 #endif
         }
-        //for (var p = pk; p != null; p = p.Next)
-        //{
-        //    await stream.WriteAsync(p.GetMemory());
-        //}
     }
 
     /// <summary>获取数据流</summary>
@@ -173,9 +189,7 @@ public static class PacketHelper
     /// <returns></returns>
     public static Stream GetStream(this IPacket pk)
     {
-        if (pk is ArrayPacket ap && ap.Next == null) return new MemoryStream(ap.Buffer, ap.Offset, ap.Length);
-
-        //return new MemoryStream(pk.GetSpan().ToArray());
+        if (pk.TryGetArray(out var segment)) return new MemoryStream(segment.Array!, segment.Offset, segment.Count);
 
         var ms = new MemoryStream();
         pk.CopyTo(ms);
@@ -188,7 +202,7 @@ public static class PacketHelper
     /// <returns></returns>
     public static ArraySegment<Byte> ToSegment(this IPacket pk)
     {
-        if (pk is ArrayPacket ap && pk.Next == null) return new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
+        if (pk.TryGetArray(out var segment)) return segment;
 
         var ms = new MemoryStream();
         pk.CopyTo(ms);
@@ -206,8 +220,8 @@ public static class PacketHelper
 
         for (var p = pk; p != null; p = p.Next)
         {
-            if (p is ArrayPacket ap)
-                list.Add(new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length));
+            if (p.TryGetArray(out var segment))
+                list.Add(segment);
             else
                 list.Add(new ArraySegment<Byte>(p.GetSpan().ToArray(), 0, p.Length));
         }
@@ -240,15 +254,15 @@ public static class PacketHelper
     /// <returns></returns>
     public static Byte[] ReadBytes(this IPacket pk, Int32 offset = 0, Int32 count = -1)
     {
-        // 读取全部
-        if (offset == 0 && count < 0 && pk is ArrayPacket ap)
-        {
-            if (ap.Offset == 0 && (ap.Length < 0 || ap.Offset + ap.Length == ap.Buffer.Length) && ap.Next == null)
-                return ap.Buffer;
-        }
-
         if (pk.Next == null)
         {
+            // 读取全部
+            if (offset == 0 && count < 0 && pk is ArrayPacket ap)
+            {
+                if (ap.Offset == 0 && (ap.Length < 0 || ap.Offset + ap.Length == ap.Buffer.Length))
+                    return ap.Buffer;
+            }
+
             var span = pk.GetSpan();
             if (count < 0) count = span.Length - offset;
             return span.Slice(offset, count).ToArray();
@@ -264,8 +278,6 @@ public static class PacketHelper
         if (pk.Next == null)
         {
             // 需要深度拷贝，避免重用缓冲区
-            //if (pk is ArrayPacket ap) return new ArrayPacket(ap.Buffer, ap.Offset, ap.Length);
-
             return new ArrayPacket(pk.GetSpan().ToArray());
         }
 
@@ -275,6 +287,28 @@ public static class PacketHelper
         ms.Position = 0;
 
         return new ArrayPacket(ms);
+    }
+
+    /// <summary>尝试获取缓冲区</summary>
+    /// <param name="pk"></param>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public static Boolean TryGetArray(this IPacket pk, out ArraySegment<Byte> segment)
+    {
+        if (pk.Next == null)
+        {
+            if (pk is ArrayPacket ap)
+            {
+                segment = new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
+                return true;
+            }
+
+            if (MemoryMarshal.TryGetArray(pk.GetMemory(), out segment)) return true;
+        }
+
+        segment = default;
+
+        return false;
     }
 }
 
@@ -611,6 +645,10 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
         // 必须确保数据流位置不变
         if (count > 0) stream.Seek(-count, SeekOrigin.Current);
     }
+
+    /// <summary>从数据段实例化数据包</summary>
+    /// <param name="segment"></param>
+    public ArrayPacket(ArraySegment<Byte> segment) : this(segment.Array!, segment.Offset, segment.Count) { }
 
     /// <summary>释放</summary>
     public void Dispose()

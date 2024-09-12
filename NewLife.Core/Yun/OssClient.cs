@@ -204,8 +204,8 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var content = data.Next == null && data is ArrayPacket ap ?
-            new ByteArrayContent(ap.Buffer, ap.Offset, ap.Length) :
+        var content = data.TryGetArray(out var segment) ?
+            new ByteArrayContent(segment.Array!, segment.Offset, segment.Count) :
             new ByteArrayContent(data.ReadBytes());
         var rs = await InvokeAsync<IPacket>(HttpMethod.Put, "/" + objectName, content);
 
