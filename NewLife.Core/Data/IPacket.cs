@@ -220,8 +220,8 @@ public static class PacketHelper
 
         for (var p = pk; p != null; p = p.Next)
         {
-            if (p.TryGetArray(out var segment))
-                list.Add(segment);
+            if (p is ArrayPacket ap)
+                list.Add(new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length));
             else
                 list.Add(new ArraySegment<Byte>(p.GetSpan().ToArray(), 0, p.Length));
         }
