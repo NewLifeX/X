@@ -49,17 +49,17 @@ public class PacketCodec
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
         if (nodata)
         {
-            if (pk == null || pk.Length == 0) return list.ToArray();
+            if (pk == null || pk.Total == 0) return list.ToArray();
 
             //using var span = Tracer?.NewSpan("net:PacketCodec:NoCache", pk.Total + "");
 
             var idx = 0;
-            while (idx < pk.Length)
+            while (idx < pk.Total)
             {
                 // 切出来一片，计算长度
                 var pk2 = pk.Slice(idx);
                 var len = func(pk2);
-                if (len <= 0 || len > pk2.Length) break;
+                if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
                 //pk2.Set(pk2.Data, pk2.Offset, Offset + len);
@@ -68,7 +68,7 @@ public class PacketCodec
                 idx += Offset + len;
             }
             // 如果没有剩余，可以返回
-            if (idx == pk.Length) return list.ToArray();
+            if (idx == pk.Total) return list.ToArray();
 
             // 剩下的
             pk = pk.Slice(idx);
@@ -84,7 +84,7 @@ public class PacketCodec
             using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Length}]{pk.GetSpan().ToHex(500)}", pk.Length);
 
             // 合并数据到最后面
-            if (pk != null && pk.Length > 0)
+            if (pk != null && pk.Total > 0)
             {
                 var p = ms.Position;
                 ms.Position = ms.Length;
@@ -100,7 +100,7 @@ public class PacketCodec
                 // 这里可以肯定能够窃取内部缓冲区
                 //var pk2 = new ArrayPacket(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
                 var len = func(pk2);
-                if (len <= 0 || len > pk2.Length) break;
+                if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
                 //pk2.Set(pk2.Data, pk2.Offset, Offset + len);

@@ -175,10 +175,10 @@ public class MessageCodec<T> : Handler
     /// <returns>数据帧长度（包含头部长度位）</returns>
     public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size)
     {
-        if (offset < 0) return pk.Length;
+        if (offset < 0) return pk.Total;
 
         // 数据不够，连长度都读取不了
-        if (offset >= pk.Length) return 0;
+        if (offset >= pk.Total) return 0;
 
         var reader = new SpanReader(pk.GetSpan());
         reader.Advance(offset);
@@ -224,7 +224,7 @@ public class MessageCodec<T> : Handler
         }
 
         // 判断后续数据是否足够
-        if (len > pk.Length) return 0;
+        if (len > pk.Total) return 0;
 
         // 数据长度加上头部长度
         len += Math.Abs(size);

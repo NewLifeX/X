@@ -119,7 +119,7 @@ public class DefaultMessage : Message
     {
         var body = Payload;
         var len = 0;
-        if (body != null) len = body.Length;
+        if (body != null) len = body.Total;
 
         // 增加4字节头部，如果负载数据之前有足够空间则直接使用，否则新建数据包形成链式结构
         var size = len < 0xFFFF ? 4 : 8;

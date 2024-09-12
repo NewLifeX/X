@@ -131,7 +131,7 @@ public class WebSocketMessage : IDisposable
     public virtual IOwnerPacket ToPacket()
     {
         var pk = Payload;
-        var len = pk == null ? 0 : pk.Length;
+        var len = pk == null ? 0 : pk.Total;
 
         // 特殊处理关闭消息
         if (len == 0 && Type == WebSocketMessageType.Close)

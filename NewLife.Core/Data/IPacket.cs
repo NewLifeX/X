@@ -701,7 +701,7 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
             if (count < 0 || count > remain) count = remain;
             if (count < 0) count = 0;
 
-            pk = new ArrayPacket(_buffer, start, count);
+            pk = new ArrayPacket(_buffer, start, count) { HasOwner = HasOwner };
         }
         else
         {
@@ -711,21 +711,21 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
 
             // 当前包用一截，剩下的全部
             else if (count < 0)
-                pk = new ArrayPacket(_buffer, start, remain) { Next = Next };
+                pk = new ArrayPacket(_buffer, start, remain) { Next = Next, HasOwner = HasOwner };
 
             // 当前包可以读完
             else if (count <= remain)
-                pk = new ArrayPacket(_buffer, start, count);
+                pk = new ArrayPacket(_buffer, start, count) { HasOwner = HasOwner };
 
             // 当前包用一截，剩下的再截取
             else
-                pk = new ArrayPacket(_buffer, start, remain) { Next = Next.Slice(0, count - remain) };
+                pk = new ArrayPacket(_buffer, start, remain) { Next = Next.Slice(0, count - remain), HasOwner = HasOwner };
         }
 
         // 所有权转移
-        if (pk is ArrayPacket ap && ap._buffer == _buffer)
+        if (pk is ArrayPacket ap && ap.HasOwner && ap._buffer == _buffer)
         {
-            ap.HasOwner = HasOwner;
+            //ap.HasOwner = HasOwner;
             HasOwner = false;
         }
 

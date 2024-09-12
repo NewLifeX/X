@@ -4,7 +4,7 @@ using NewLife.Reflection;
 namespace NewLife.Messaging;
 
 /// <summary>消息命令</summary>
-public interface IMessage
+public interface IMessage : IDisposable
 {
     /// <summary>是否响应</summary>
     Boolean Reply { get; }
@@ -46,6 +46,11 @@ public class Message : IMessage
 
     /// <summary>负载数据</summary>
     public IPacket? Payload { get; set; }
+
+    #region 构造
+    /// <summary>销毁。回收数据包到内存池</summary>
+    public void Dispose() => Payload.TryDispose();
+    #endregion
 
     /// <summary>根据请求创建配对的响应消息</summary>
     /// <returns></returns>
