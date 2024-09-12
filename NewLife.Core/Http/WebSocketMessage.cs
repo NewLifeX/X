@@ -209,7 +209,7 @@ public class WebSocketMessage : IDisposable
         else if (Type == WebSocketMessageType.Close)
         {
             writer.Write((Int16)CloseStatus);
-            if (!StatusDescription.IsNullOrEmpty()) writer.WriteFixedString(StatusDescription, -1);
+            if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription, -1);
         }
 
         return (rs.Slice(0, writer.Position) as IOwnerPacket)!;

@@ -192,7 +192,7 @@ public static class ApiHelper
         var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
         if (gzip > 0 && pk.Total >= gzip)
         {
-            var buf = pk.GetSpan().ToArray();
+            var buf = pk.ReadBytes();
             buf = buf.CompressGZip();
             var content = new ByteArrayContent(buf);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/x-gzip");
@@ -202,7 +202,7 @@ public static class ApiHelper
         {
             var content = pk.Next == null && pk is ArrayPacket ap ?
                 new ByteArrayContent(ap.Buffer, ap.Offset, ap.Length) :
-                new ByteArrayContent(pk.GetSpan().ToArray());
+                new ByteArrayContent(pk.ReadBytes());
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             return content;
         }

@@ -319,11 +319,16 @@ public class TcpSession : SessionBase, ISocketSession
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
                 else if (pk.Next == null)
+                {
 #if NETCOREAPP || NETSTANDARD2_1
                     rs = sock.Send(data);
 #else
-                    rs = sock.Send(data.ToArray(), count, SocketFlags.None);
+                    if (pk is ArrayPacket ap)
+                        rs = sock.Send(ap.Buffer, ap.Offset, ap.Length, SocketFlags.None);
+                    else
+                        rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
 #endif
+                }
                 else
                     rs = sock.Send(pk.ToSegments());
             }
@@ -331,12 +336,6 @@ public class TcpSession : SessionBase, ISocketSession
             {
                 if (count == 0)
                     _Stream.Write([]);
-                else if (pk.Next == null)
-#if NETCOREAPP || NETSTANDARD2_1
-                    _Stream.Write(data);
-#else
-                    _Stream.Write(pk.GetMemory());
-#endif
                 else
                     pk.CopyTo(_Stream);
             }

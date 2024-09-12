@@ -165,11 +165,16 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
 
                     if (pk.Next == null)
+                    {
 #if NETCOREAPP || NETSTANDARD2_1
                         rs = sock.Send(data);
 #else
-                        rs = sock.Send(data.ToArray(), count, SocketFlags.None);
+                        if (pk is ArrayPacket ap)
+                            rs = sock.Send(ap.Buffer, ap.Offset, ap.Length, SocketFlags.None);
+                        else
+                            rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
 #endif
+                    }
                     else
                         rs = sock.Send(pk.ToSegments(), SocketFlags.None);
                 }
@@ -179,13 +184,18 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, data.ToHex(LogDataLength), remote);
 
                     if (pk.Next == null)
+                    {
 #if NET6_0_OR_GREATER
                         rs = sock.SendTo(data, remote);
 #else
-                        rs = sock.SendTo(data.ToArray(), 0, count, SocketFlags.None, remote);
+                        if (pk is ArrayPacket ap)
+                            rs = sock.Send(ap.Buffer, ap.Offset, ap.Length, SocketFlags.None);
+                        else
+                            rs = sock.SendTo(data.ToArray(), 0, data.Length, SocketFlags.None, remote);
 #endif
+                    }
                     else
-                        rs = sock.SendTo(data.ToArray(), 0, count, SocketFlags.None, remote);
+                        rs = sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                 }
             }
 
