@@ -29,5 +29,5 @@ public class ReceivedEventArgs : EventArgs, IData
 
     /// <summary>获取当前事件的原始数据。避免用户错误使用Packet.Data</summary>
     /// <returns></returns>
-    public Byte[]? GetBytes() => Packet?.GetSpan().ToArray();
+    public Byte[]? GetBytes() => Packet?.ToArray();
 }

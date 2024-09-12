@@ -198,7 +198,7 @@ public class JsonWriter
                 WriteStringFast(Convert.ToBase64String(buf, 0, buf.Length, Base64FormattingOptions.None));
         }
         else if (obj is IPacket pk)
-            WriteStringFast(ByteArrayAsHex ? pk.ToHex(-1) : pk.GetSpan().ToArray().ToBase64());
+            WriteStringFast(ByteArrayAsHex ? pk.ToHex(-1) : pk.ToArray().ToBase64());
         else if (obj is StringDictionary dictionary2)
             WriteSD(dictionary2);
 

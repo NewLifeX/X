@@ -152,7 +152,7 @@ public class BinaryTests
         var pk = Binary.FastWrite(model);
         Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
-        Assert.Equal("0gkFU3RvbmU=", pk.GetSpan().ToArray().ToBase64());
+        Assert.Equal("0gkFU3RvbmU=", pk.ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModel>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);
@@ -177,7 +177,7 @@ public class BinaryTests
         var pk = Binary.FastWrite(model);
         Assert.Equal(10, pk.Length);
         Assert.Equal("D20400000553746F6E65", pk.ToHex());
-        Assert.Equal("0gQAAAVTdG9uZQ==", pk.GetSpan().ToArray().ToBase64());
+        Assert.Equal("0gQAAAVTdG9uZQ==", pk.ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModelWithAccessor>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);
@@ -220,7 +220,7 @@ public class BinaryTests
         var pk = Binary.FastWrite(model);
         Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
-        Assert.Equal("0gkFU3RvbmU=", pk.GetSpan().ToArray().ToBase64());
+        Assert.Equal("0gkFU3RvbmU=", pk.ToArray().ToBase64());
 
         var model2 = Binary.FastRead<MyModelWithMemberAccessor>(pk.GetStream());
         Assert.Equal(model.Code, model2.Code);

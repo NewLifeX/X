@@ -145,7 +145,7 @@ public static class ApiHelper
             {
                 var url = action;
                 url += url.Contains('?') ? "&" : "?";
-                url += pk.GetSpan().ToArray().ToUrlBase64();
+                url += pk.ToArray().ToUrlBase64();
                 request.RequestUri = new Uri(url, UriKind.RelativeOrAbsolute);
             }
             else if (args is Byte[] buf)
