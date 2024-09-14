@@ -68,6 +68,11 @@ public abstract class Cache : DisposeBase, ICache
     [return: MaybeNull]
     public abstract T Get<T>(String key);
 
+    /// <summary>移除缓存项</summary>
+    /// <param name="key">键</param>
+    /// <returns></returns>
+    public abstract Int32 Remove(String key);
+
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>
     /// <returns></returns>
@@ -358,7 +363,30 @@ public abstract class Cache : DisposeBase, ICache
         XTrace.WriteLine($"{Name}性能测试[{(rand ? "随机" : "顺序")}]，批大小[{batch}]，逻辑处理器 {cpu:n0} 个");
 
         var rs = 0L;
-        var times = 10_000;
+        var times = GetTimesPerThread(rand, batch);
+
+        // 提前准备Keys，减少性能测试中的干扰
+        var key = "bstr_";
+        var key2 = "bint_";
+        var max = cpu > 64 ? cpu : 64;
+        var maxTimes = times * max;
+        if (!rand) maxTimes = max;
+        _keys = new String[maxTimes];
+        _keys2 = new String[maxTimes];
+
+        var sb = new StringBuilder();
+        for (var i = 0; i < _keys.Length; i++)
+        {
+            sb.Clear();
+            sb.Append(key);
+            sb.Append(i);
+            _keys[i] = sb.ToString();
+
+            sb.Clear();
+            sb.Append(key2);
+            sb.Append(i);
+            _keys2[i] = sb.ToString();
+        }
 
         // 单线程
         rs += BenchOne(times, 1, rand, batch);
@@ -382,6 +410,14 @@ public abstract class Cache : DisposeBase, ICache
         return rs;
     }
 
+    /// <summary>获取每个线程测试次数</summary>
+    /// <param name="rand"></param>
+    /// <param name="batch"></param>
+    /// <returns></returns>
+    protected virtual Int32 GetTimesPerThread(Boolean rand, Int32 batch) => 10_000;
+
+    private String[]? _keys;
+    private String[]? _keys2;
     /// <summary>使用指定线程测试指定次数</summary>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
@@ -392,47 +428,27 @@ public abstract class Cache : DisposeBase, ICache
         if (threads <= 0) threads = Environment.ProcessorCount;
         if (times <= 0) times = threads * 1_000;
 
-        //XTrace.WriteLine("");
         XTrace.WriteLine($"测试 {times:n0} 项，{threads,3:n0} 线程");
 
         var rs = 3L;
 
         //提前执行一次网络操作，预热链路
-        var key = "bstr_";
+        var key = _keys![0];
         Set(key, Rand.NextString(32));
         _ = Get<String>(key);
         Remove(key);
 
-        var key2 = "bint_";
-        var keys = new String[times];
-        var keys2 = new String[times];
-        var sb = new StringBuilder();
-        for (var i = 0; i < times; i++)
-        {
-            //keys[i] = key + i;
-            //keys2[i] = key2 + i;
-            sb.Clear();
-            sb.Append(key);
-            sb.Append(i);
-            keys[i] = sb.ToString();
-
-            sb.Clear();
-            sb.Append(key2);
-            sb.Append(i);
-            keys2[i] = sb.ToString();
-        }
-
         // 赋值测试
-        rs += BenchSet(keys, times, threads, rand, batch);
+        rs += BenchSet(_keys, times, threads, rand, batch);
 
         // 读取测试
-        rs += BenchGet(keys, times, threads, rand, batch);
+        rs += BenchGet(_keys, times, threads, rand, batch);
 
         // 删除测试
-        rs += BenchRemove(keys, times, threads, rand, batch);
+        rs += BenchRemove(_keys, times, threads, rand, batch);
 
         // 累加测试
-        rs += BenchInc(keys2, times, threads, rand, batch);
+        rs += BenchInc(_keys2!, times, threads, rand, batch);
 
         return rs;
     }

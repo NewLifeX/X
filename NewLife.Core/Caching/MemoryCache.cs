@@ -165,8 +165,26 @@ public class MemoryCache : Cache
 
         var rs = item.Visit();
         if (rs == null) return default;
+        if (rs is T t) return t;
 
         return rs.ChangeType<T>();
+    }
+
+    /// <summary>移除缓存项</summary>
+    /// <param name="key">键</param>
+    /// <returns>实际移除个数</returns>
+    public override Int32 Remove(String key)
+    {
+        var count = 0;
+
+        if (_cache.TryRemove(key, out _))
+        {
+            count++;
+
+            Interlocked.Decrement(ref _count);
+        }
+
+        return count;
     }
 
     /// <summary>批量移除缓存项</summary>
@@ -522,8 +540,8 @@ public class MemoryCache : Cache
             Object oldValue;
             do
             {
-                oldValue = _Value ?? 0;
-                newValue = oldValue.ToLong() + value.ToLong();
+                oldValue = _Value ?? 0L;
+                newValue = (oldValue is Int64 n ? n : oldValue.ToLong()) + value;
             } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
             Visit();
@@ -541,8 +559,8 @@ public class MemoryCache : Cache
             Object oldValue;
             do
             {
-                oldValue = _Value ?? 0;
-                newValue = oldValue.ToDouble() + value.ToDouble();
+                oldValue = _Value ?? 0d;
+                newValue = (oldValue is Double n ? n : oldValue.ToDouble()) + value;
             } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
             Visit();
@@ -560,8 +578,8 @@ public class MemoryCache : Cache
             Object oldValue;
             do
             {
-                oldValue = _Value ?? 0;
-                newValue = oldValue.ToLong() - value.ToLong();
+                oldValue = _Value ?? 0L;
+                newValue = (oldValue is Int64 n ? n : oldValue.ToLong()) - value;
             } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
             Visit();
@@ -579,8 +597,8 @@ public class MemoryCache : Cache
             Object oldValue;
             do
             {
-                oldValue = _Value ?? 0;
-                newValue = oldValue.ToDouble() - value.ToDouble();
+                oldValue = _Value ?? 0d;
+                newValue = (oldValue is Double n ? n : oldValue.ToDouble()) - value;
             } while (Interlocked.CompareExchange(ref _Value, newValue, oldValue) != oldValue);
 
             Visit();
@@ -807,19 +825,20 @@ public class MemoryCache : Cache
     #endregion
 
     #region 性能测试
-    /// <summary>使用指定线程测试指定次数</summary>
-    /// <param name="times">次数</param>
-    /// <param name="threads">线程</param>
-    /// <param name="rand">随机读写</param>
-    /// <param name="batch">批量操作</param>
-    public override Int64 BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    /// <summary>获取每个线程测试次数</summary>
+    /// <param name="rand"></param>
+    /// <param name="batch"></param>
+    /// <returns></returns>
+    protected override Int32 GetTimesPerThread(Boolean rand, Int32 batch)
     {
+        var times = base.GetTimesPerThread(rand, batch);
+
         if (rand)
             times *= 100;
         else
-            times *= 1000;
+            times *= 10000;
 
-        return base.BenchOne(times, threads, rand, batch);
+        return times;
     }
     #endregion
 }

@@ -53,6 +53,11 @@ public interface ICache
     [return: MaybeNull]
     T Get<T>(String key);
 
+    /// <summary>移除缓存项</summary>
+    /// <param name="key">键</param>
+    /// <returns></returns>
+    Int32 Remove(String key);
+
     /// <summary>批量移除缓存项</summary>
     /// <param name="keys">键集合</param>
     /// <returns></returns>

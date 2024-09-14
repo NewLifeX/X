@@ -77,7 +77,7 @@ public class Program
             try
             {
 #endif
-            Test1();
+                Test4();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -239,9 +239,12 @@ public class Program
         if (Console.ReadKey().KeyChar != '1') mode = true;
 
         var batch = 0;
-        Console.WriteLine();
-        Console.Write("选择输入批大小[0]：");
-        batch = Console.ReadLine().ToInt();
+        if (mode)
+        {
+            Console.WriteLine();
+            Console.Write("选择输入批大小[0]：");
+            batch = Console.ReadLine().ToInt();
+        }
 
         Console.Clear();
 
