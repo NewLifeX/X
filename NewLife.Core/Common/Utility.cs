@@ -202,9 +202,15 @@ public class DefaultConvert
         if (value is String str)
         {
             // 拷贝而来的逗号分隔整数
-            str = str.Replace(",", null);
-            str = ToDBC(str).Trim();
-            return str.IsNullOrEmpty() ? defaultValue : Int32.TryParse(str, out var n) ? n : defaultValue;
+            Span<Char> tmp = stackalloc Char[str.Length];
+            var rs = TrimNumber(str.AsSpan(), tmp);
+            if (rs == 0) return defaultValue;
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            return Int32.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+#else
+            return Int32.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+#endif
         }
 
         // 特殊处理时间，转Unix秒
@@ -278,9 +284,15 @@ public class DefaultConvert
         if (value is String str)
         {
             // 拷贝而来的逗号分隔整数
-            str = str.Replace(",", null);
-            str = ToDBC(str).Trim();
-            return str.IsNullOrEmpty() ? defaultValue : Int64.TryParse(str, out var n) ? n : defaultValue;
+            Span<Char> tmp = stackalloc Char[str.Length];
+            var rs = TrimNumber(str.AsSpan(), tmp);
+            if (rs == 0) return defaultValue;
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            return Int64.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+#else
+            return Int64.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+#endif
         }
 
         // 特殊处理时间，转Unix毫秒
@@ -349,8 +361,15 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            str = ToDBC(str).Trim();
-            return str.IsNullOrEmpty() ? defaultValue : Double.TryParse(str, out var n) ? n : defaultValue;
+            Span<Char> tmp = stackalloc Char[str.Length];
+            var rs = TrimNumber(str.AsSpan(), tmp);
+            if (rs == 0) return defaultValue;
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            return Double.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+#else
+            return Double.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+#endif
         }
 
         if (value is Byte[] buf && buf.Length <= 8)
@@ -383,8 +402,15 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            str = ToDBC(str).Trim();
-            return str.IsNullOrEmpty() ? defaultValue : Decimal.TryParse(str, out var n) ? n : defaultValue;
+            Span<Char> tmp = stackalloc Char[str.Length];
+            var rs = TrimNumber(str.AsSpan(), tmp);
+            if (rs == 0) return defaultValue;
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+            return Decimal.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+#else
+            return Decimal.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+#endif
         }
 
         if (value is Byte[] buf)
@@ -450,7 +476,6 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            //str = ToDBC(str).Trim();
             str = str.Trim();
             if (str.IsNullOrEmpty()) return defaultValue;
 
@@ -459,8 +484,6 @@ public class DefaultConvert
             if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
             if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
-            // 特殊处理用数字0和1表示布尔型
-            str = ToDBC(str);
             return Int32.TryParse(str, out var n) ? n > 0 : defaultValue;
         }
 
@@ -604,22 +627,32 @@ public class DefaultConvert
         }
     }
 
-    /// <summary>全角为半角</summary>
-    /// <remarks>全角半角的关系是相差0xFEE0</remarks>
-    /// <param name="str"></param>
+    /// <summary>清理整数字符串，去掉常见分隔符，替换全角数字为半角数字</summary>
+    /// <param name="input"></param>
+    /// <param name="output"></param>
     /// <returns></returns>
-    private static String ToDBC(String str)
+    private static Int32 TrimNumber(ReadOnlySpan<Char> input, Span<Char> output)
     {
-        var ch = str.ToCharArray();
-        for (var i = 0; i < ch.Length; i++)
+        var rs = 0;
+        for (var i = 0; i < input.Length; i++)
         {
+            // 去掉逗号分隔符
+            var ch = input[i];
+            if (ch == ',' || ch == '_' || ch == ' ') continue;
+
             // 全角空格
-            if (ch[i] == 0x3000)
-                ch[i] = (Char)0x20;
-            else if (ch[i] is > (Char)0xFF00 and < (Char)0xFF5F)
-                ch[i] = (Char)(ch[i] - 0xFEE0);
+            if (ch == 0x3000)
+                ch = (Char)0x20;
+            else if (ch is > (Char)0xFF00 and < (Char)0xFF5F)
+                ch = (Char)(input[i] - 0xFEE0);
+
+            // 数字和小数点 以外字符，认为非数字
+            if (ch is not '.' and (< '0' or > '9')) return 0;
+
+            output[rs++] = ch;
         }
-        return new String(ch);
+
+        return rs;
     }
 
     /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
