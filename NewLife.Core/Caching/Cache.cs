@@ -36,6 +36,16 @@ public abstract class Cache : DisposeBase, ICache
     #region 构造
     /// <summary>构造函数</summary>
     protected Cache() => Name = GetType().Name.TrimEnd("Cache");
+
+    /// <summary>销毁。释放资源</summary>
+    /// <param name="disposing"></param>
+    protected override void Dispose(Boolean disposing)
+    {
+        base.Dispose(disposing);
+
+        _keys = null;
+        //_keys2 = null;
+    }
     #endregion
 
     #region 基础操作
@@ -367,12 +377,12 @@ public abstract class Cache : DisposeBase, ICache
 
         // 提前准备Keys，减少性能测试中的干扰
         var key = "bstr_";
-        var key2 = "bint_";
+        //var key2 = "bint_";
         var max = cpu > 64 ? cpu : 64;
         var maxTimes = times * max;
         if (!rand) maxTimes = max;
         _keys = new String[maxTimes];
-        _keys2 = new String[maxTimes];
+        //_keys2 = new String[maxTimes];
 
         var sb = new StringBuilder();
         for (var i = 0; i < _keys.Length; i++)
@@ -382,10 +392,10 @@ public abstract class Cache : DisposeBase, ICache
             sb.Append(i);
             _keys[i] = sb.ToString();
 
-            sb.Clear();
-            sb.Append(key2);
-            sb.Append(i);
-            _keys2[i] = sb.ToString();
+            //sb.Clear();
+            //sb.Append(key2);
+            //sb.Append(i);
+            //_keys2[i] = sb.ToString();
         }
 
         // 单线程
@@ -417,7 +427,7 @@ public abstract class Cache : DisposeBase, ICache
     protected virtual Int32 GetTimesPerThread(Boolean rand, Int32 batch) => 10_000;
 
     private String[]? _keys;
-    private String[]? _keys2;
+    //private String[]? _keys2;
     /// <summary>使用指定线程测试指定次数</summary>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
@@ -444,11 +454,11 @@ public abstract class Cache : DisposeBase, ICache
         // 读取测试
         rs += BenchGet(_keys, times, threads, rand, batch);
 
+        // 累加测试
+        rs += BenchInc(_keys!, times, threads, rand, batch);
+
         // 删除测试
         rs += BenchRemove(_keys, times, threads, rand, batch);
-
-        // 累加测试
-        rs += BenchInc(_keys2!, times, threads, rand, batch);
 
         return rs;
     }

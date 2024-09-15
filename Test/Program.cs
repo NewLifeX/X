@@ -204,8 +204,12 @@ public class Program
 
     private static void Test4()
     {
-        var v = Rand.NextBytes(32);
-        Console.WriteLine(v.ToBase64());
+        // 提升进程优先级
+        var p = Process.GetCurrentProcess();
+        p.PriorityClass = ProcessPriorityClass.High;
+
+        //var v = Rand.NextBytes(32);
+        //Console.WriteLine(v.ToBase64());
 
         ICache ch = null;
         //ICache ch = new DbCache();

@@ -17,7 +17,7 @@ public class KeyEventArgs : CancelEventArgs
     public String Key { get; set; } = null!;
 }
 
-/// <summary>默认字典缓存</summary>
+/// <summary>内存缓存。并行字典实现，峰值性能10亿ops</summary>
 public class MemoryCache : Cache
 {
     #region 属性
@@ -497,7 +497,22 @@ public class MemoryCache : Cache
         /// <summary>设置数值和过期时间</summary>
         /// <param name="value"></param>
         /// <param name="expire">过期时间，秒</param>
-        public void Set<T>(T value, Int32 expire) => Set(value, TimeSpan.FromSeconds(expire));
+        public void Set<T>(T value, Int32 expire)
+        {
+            var type = typeof(T);
+            TypeCode = type.GetTypeCode();
+
+            if (IsInt())
+                _valueLong = value.ToLong();
+            else
+                _value = value;
+
+            var now = VisitTime = Runtime.TickCount64;
+            if (expire <= 0)
+                ExpiredTime = Int64.MaxValue;
+            else
+                ExpiredTime = now + expire * 1000;
+        }
 
         /// <summary>设置数值和过期时间</summary>
         /// <param name="value"></param>
