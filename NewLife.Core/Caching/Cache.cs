@@ -376,13 +376,11 @@ public abstract class Cache : DisposeBase, ICache
         var times = GetTimesPerThread(rand, batch);
 
         // 提前准备Keys，减少性能测试中的干扰
-        var key = "bstr_";
-        //var key2 = "bint_";
+        var key = "b_";
         var max = cpu > 64 ? cpu : 64;
         var maxTimes = times * max;
         if (!rand) maxTimes = max;
         _keys = new String[maxTimes];
-        //_keys2 = new String[maxTimes];
 
         var sb = new StringBuilder();
         for (var i = 0; i < _keys.Length; i++)
@@ -391,11 +389,6 @@ public abstract class Cache : DisposeBase, ICache
             sb.Append(key);
             sb.Append(i);
             _keys[i] = sb.ToString();
-
-            //sb.Clear();
-            //sb.Append(key2);
-            //sb.Append(i);
-            //_keys2[i] = sb.ToString();
         }
 
         // 单线程

@@ -27,12 +27,35 @@ public class Pool<T> : IPool<T> where T : class
 
     #region 构造
     /// <summary>实例化对象池。默认大小CPU*2</summary>
-    /// <param name="max"></param>
+    /// <param name="max">最大对象数。默认大小CPU*2</param>
     public Pool(Int32 max = 0)
     {
         if (max <= 0) max = Environment.ProcessorCount * 2;
 
         Max = max;
+    }
+
+    /// <summary>实例化对象池。GC2时回收</summary>
+    /// <param name="max">最大对象数。默认大小CPU*2</param>
+    /// <param name="useGcClear">是否在二代GC时回收池里对象</param>
+    protected Pool(Int32 max, Boolean useGcClear) : this(max)
+    {
+        if (useGcClear) Gen2GcCallback.Register(s => (s as Pool<T>)!.OnGen2(), this);
+    }
+
+    private Int64 _next;
+    private Boolean OnGen2()
+    {
+        var now = Runtime.TickCount64;
+        if (_next <= 0)
+            _next = now + 60000;
+        else if (_next < now)
+        {
+            Clear();
+            _next = now + 60000;
+        }
+
+        return true;
     }
 
     [MemberNotNull(nameof(_items))]
@@ -75,21 +98,8 @@ public class Pool<T> : IPool<T> where T : class
     /// <summary>归还</summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public virtual Boolean Put(T value)
-    {
-        // 最热的一个对象在外层，便于快速存取
-        if (_current == null && Interlocked.CompareExchange(ref _current, value, null) == null) return true;
-
-        Init();
-
-        var items = _items;
-        for (var i = 0; i < items.Length; ++i)
-        {
-            if (Interlocked.CompareExchange(ref items[i].Value, value, null) == null) return true;
-        }
-
-        return false;
-    }
+    [Obsolete("Please use Return from 2024-02-01")]
+    public virtual Boolean Put(T value) => Return(value);
 
     /// <summary>归还</summary>
     /// <param name="value"></param>

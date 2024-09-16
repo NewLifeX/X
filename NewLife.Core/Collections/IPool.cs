@@ -19,6 +19,7 @@ public interface IPool<T>
 
     /// <summary>归还</summary>
     /// <param name="value"></param>
+    [Obsolete("Please use Return from 2024-02-01")]
     Boolean Put(T value);
 
     /// <summary>归还</summary>
@@ -35,9 +36,6 @@ public interface IPool<T>
 /// </remarks>
 public static class Pool
 {
-    #region 扩展
-    #endregion
-
     #region StringBuilder
     /// <summary>字符串构建器池</summary>
     public static IPool<StringBuilder> StringBuilder { get; set; } = new StringBuilderPool();
@@ -53,7 +51,7 @@ public static class Pool
 
         var str = requireResult ? sb.ToString() : String.Empty;
 
-        Pool.StringBuilder.Put(sb);
+        Pool.StringBuilder.Return(sb);
 
         return str;
     }
@@ -68,7 +66,7 @@ public static class Pool
 
         var str = returnResult ? sb.ToString() : String.Empty;
 
-        Pool.StringBuilder.Put(sb);
+        Pool.StringBuilder.Return(sb);
 
         return str;
     }
@@ -82,21 +80,12 @@ public static class Pool
         /// <summary>最大容量。超过该大小时不进入池内，默认4k</summary>
         public Int32 MaximumCapacity { get; set; } = 4 * 1024;
 
+        /// <summary>实例化字符串池。GC2时回收</summary>
+        public StringBuilderPool() : base(0, true) { }
+
         /// <summary>创建</summary>
         /// <returns></returns>
         protected override StringBuilder OnCreate() => new(InitialCapacity);
-
-        /// <summary>归还</summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public override Boolean Put(StringBuilder value)
-        {
-            if (value.Capacity > MaximumCapacity) return false;
-
-            value.Clear();
-
-            return base.Put(value);
-        }
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
@@ -121,16 +110,7 @@ public static class Pool
     /// <param name="requireResult">是否需要返回结果</param>
     /// <returns></returns>
     [Obsolete("Please use Return from 2024-02-01")]
-    public static Byte[] Put(this MemoryStream ms, Boolean requireResult = false)
-    {
-        //if (ms == null) return null;
-
-        var buf = requireResult ? ms.ToArray() : Empty;
-
-        Pool.MemoryStream.Put(ms);
-
-        return buf;
-    }
+    public static Byte[] Put(this MemoryStream ms, Boolean requireResult = false) => Return(ms, requireResult);
 
     /// <summary>归还一个内存流到对象池</summary>
     /// <param name="ms"></param>
@@ -142,7 +122,7 @@ public static class Pool
 
         var buf = returnResult ? ms.ToArray() : Empty;
 
-        Pool.MemoryStream.Put(ms);
+        Pool.MemoryStream.Return(ms);
 
         return buf;
     }
@@ -156,22 +136,12 @@ public static class Pool
         /// <summary>最大容量。超过该大小时不进入池内，默认64k</summary>
         public Int32 MaximumCapacity { get; set; } = 64 * 1024;
 
+        /// <summary>实例化字符串池。GC2时回收</summary>
+        public MemoryStreamPool() : base(0, true) { }
+
         /// <summary>创建</summary>
         /// <returns></returns>
         protected override MemoryStream OnCreate() => new(InitialCapacity);
-
-        /// <summary>归还</summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public override Boolean Put(MemoryStream value)
-        {
-            if (value.Capacity > MaximumCapacity) return false;
-
-            value.Position = 0;
-            value.SetLength(0);
-
-            return base.Put(value);
-        }
 
         /// <summary>归还</summary>
         /// <param name="value"></param>
@@ -191,7 +161,7 @@ public static class Pool
     #region ByteArray
     /// <summary>字节数组共享存储</summary>
     public static ArrayPool<Byte> Shared { get; set; } = ArrayPool<Byte>.Shared;
-   
+
     /// <summary>空数组</summary>
     public static Byte[] Empty { get; } = [];
     #endregion

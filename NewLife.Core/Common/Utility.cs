@@ -91,13 +91,13 @@ public static class Utility
     /// <returns></returns>
     public static DateTimeOffset ToDateTimeOffset(this Object? value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
 
-    /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
     public static DateTime Trim(this DateTime value, String format = "s") => Convert.Trim(value, format);
 
-    /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
@@ -517,7 +517,6 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            //str = ToDBC(str).Trim();
             str = str.Trim();
             if (str.IsNullOrEmpty()) return defaultValue;
 
@@ -655,7 +654,7 @@ public class DefaultConvert
         return rs;
     }
 
-    /// <summary>去掉时间日期秒后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>

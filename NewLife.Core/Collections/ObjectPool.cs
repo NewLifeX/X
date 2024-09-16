@@ -183,59 +183,8 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 
     /// <summary>归还</summary>
     /// <param name="value"></param>
-    public virtual Boolean Put(T value)
-    {
-        if (value == null) return false;
-
-        // 从繁忙队列找到并移除缓存项
-        if (!_busy.TryRemove(value, out var pi))
-        {
-#if DEBUG
-            WriteLog("Put Error");
-#endif
-            Interlocked.Increment(ref _ReleaseCount);
-
-            return false;
-        }
-
-        Interlocked.Decrement(ref _BusyCount);
-
-        // 是否可用
-        if (!OnPut(value))
-        {
-            Interlocked.Increment(ref _ReleaseCount);
-            return false;
-        }
-
-        if (value is DisposeBase db && db.Disposed)
-        {
-            Interlocked.Increment(ref _ReleaseCount);
-            return false;
-        }
-
-        var min = Min;
-
-        // 如果空闲数不足最小值，则返回到基础空闲集合
-        if (_FreeCount < min /*|| _free.Count < min*/)
-            _free.Push(pi);
-        else
-            _free2.Enqueue(pi);
-
-        // 最后时间
-        pi.LastTime = TimerX.Now;
-
-        Interlocked.Increment(ref _FreeCount);
-
-        // 启动定期清理的定时器
-        StartTimer();
-
-        return true;
-    }
-
-    /// <summary>归还时是否可用</summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    protected virtual Boolean OnPut(T value) => true;
+    [Obsolete("Please use Return from 2024-02-01")]
+    public virtual Boolean Put(T value) => Return(value);
 
     /// <summary>归还</summary>
     /// <param name="value"></param>
@@ -247,7 +196,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         if (!_busy.TryRemove(value, out var pi))
         {
 #if DEBUG
-            WriteLog("Put Error");
+            WriteLog("Return Error");
 #endif
             Interlocked.Increment(ref _ReleaseCount);
 
@@ -483,7 +432,7 @@ public class PoolItem<T> : DisposeBase
     {
         base.Dispose(disposing);
 
-        Pool.Put(Value);
+        Pool.Return(Value);
     }
     #endregion
 }

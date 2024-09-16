@@ -122,6 +122,7 @@
     <Compile Remove="Algorithms\MaxSampling.cs" />
     <Compile Remove="Algorithms\MinSampling.cs" />
     <Compile Remove="Algorithms\SumSampling.cs" />
+    <Compile Remove="Buffers\BufferSegment.cs" />
     <Compile Remove="Caching\Redis.cs" />
     <Compile Remove="Caching\RedisClient.cs" />
     <Compile Remove="Caching\RedisEncoder.cs" />
