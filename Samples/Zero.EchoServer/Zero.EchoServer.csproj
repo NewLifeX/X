@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyTitle>Http服务器</AssemblyTitle>
-    <Description>轻量级Http服务器，支持WebSocket，可用于追求简单Http服务的场景，例如暴露硬件控制为Http接口，如打印组件</Description>
+    <AssemblyTitle>回声服务器</AssemblyTitle>
+    <Description>网络回声服务端，把收到的数据原样发回去，用于网络性能压测</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2024 NewLife</Copyright>
     <VersionPrefix>1.0</VersionPrefix>
@@ -13,14 +13,13 @@
     <FileVersion>$(Version)</FileVersion>
     <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
     <Deterministic>false</Deterministic>
-    <OutputPath>..\..\Bin\HttpServer</OutputPath>
+    <OutputPath>..\..\Bin\EchoServer</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Redis" Version="6.0.2024.917-beta0105" />
     <PackageReference Include="NewLife.Stardust" Version="3.1.2024.917-beta0909" />
   </ItemGroup>
 

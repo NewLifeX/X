@@ -283,7 +283,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         {
             var uri = Local;
             var family = AddressFamily;
-            if (AddressFamily <= AddressFamily.Unspecified && uri.Host != "*")
+            if (family <= AddressFamily.Unspecified && uri.Host != "*" && !uri.Address.IsAny())
                 family = uri.Address.AddressFamily;
             var list = CreateServer(uri.Address, uri.Port, uri.Type, family);
             foreach (var item in list)
