@@ -189,7 +189,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         if (Interlocked.CompareExchange(ref _running, 0, 1) != 1) return;
 
         var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Disconnect");
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Disconnect", new { remote = Remote?.ToString(), reason });
         try
         {
             WriteLog("Disconnect [{0}] {1}", Session, reason);
@@ -217,7 +217,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
 
     /// <summary>客户端连接已断开</summary>
     [Obsolete("=>OnDisconnected(String reason)")]
-    protected virtual void OnDisconnected() { }
+    protected virtual void OnDisconnected() => Disconnected?.Invoke(this, EventArgs.Empty);
 
     /// <summary>收到客户端发来的数据。基类负责触发Received事件</summary>
     /// <param name="e"></param>
@@ -235,7 +235,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     public virtual INetSession Send(IPacket data)
     {
         var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data);
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data, data.Total);
 
         Session.Send(data);
 
@@ -260,8 +260,9 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <param name="encoding"></param>
     public virtual INetSession Send(String msg, Encoding? encoding = null)
     {
+        encoding ??= Encoding.UTF8;
         var ns = (this as INetSession).Host;
-        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", msg);
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", msg, encoding.GetByteCount(msg));
 
         Session.Send(msg, encoding);
 

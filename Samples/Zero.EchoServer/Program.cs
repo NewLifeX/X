@@ -20,6 +20,7 @@ var server = new EchoNetServer
     ServiceProvider = provider,
     Name = "回声服务端",
 
+    StatPeriod = 10,
     Log = XTrace.Log,
     Tracer = star?.Tracer,
 
