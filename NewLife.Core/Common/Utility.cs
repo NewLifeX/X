@@ -209,7 +209,7 @@ public class DefaultConvert
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
             return Int32.TryParse(tmp[..rs], out var n) ? n : defaultValue;
 #else
-            return Int32.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+            return Int32.TryParse(tmp[..rs].ToString(), out var n) ? n : defaultValue;
 #endif
         }
 
