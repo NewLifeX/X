@@ -282,4 +282,13 @@ public class UtilityTests
         //Assert.NotEqual(str, time.ToLocalTime().ToFullString());
         //Assert.NotEqual(str, time.ToUniversalTime().ToFullString());
     }
+
+    [Fact]
+    public void NegativeNumber()
+    {
+        var n = "-1";
+        var v = n.ToInt();
+
+        Assert.Equal(-1, v);
+    }
 }
