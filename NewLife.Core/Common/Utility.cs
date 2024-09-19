@@ -633,11 +633,24 @@ public class DefaultConvert
     private static Int32 TrimNumber(ReadOnlySpan<Char> input, Span<Char> output)
     {
         var rs = 0;
+        var hasNegativeSign = false;
+
         for (var i = 0; i < input.Length; i++)
         {
             // 去掉逗号分隔符
             var ch = input[i];
             if (ch == ',' || ch == '_' || ch == ' ') continue;
+
+            // 检查负号
+            if (ch == '-')
+            {
+                if (rs == 0) // 负号只能在开头
+                {
+                    output[rs++] = ch;
+                    hasNegativeSign = true;
+                }
+                continue; // 跳过负号的后续处理
+            }
 
             // 全角空格
             if (ch == 0x3000)
@@ -650,6 +663,9 @@ public class DefaultConvert
 
             output[rs++] = ch;
         }
+
+        // 如果没有有效的数字，返回0
+        if (rs == 0 && !hasNegativeSign) return 0;
 
         return rs;
     }
