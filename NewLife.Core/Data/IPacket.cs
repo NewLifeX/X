@@ -297,7 +297,7 @@ public static class PacketHelper
     {
         if (pk.Next == null)
         {
-            if (pk is OwnerPacket op && op.TryGetArray(out segment)) return true;
+            if (pk is OwnerPacket op && op.TryGet(out segment)) return true;
 
             if (pk is ArrayPacket ap)
             {
@@ -431,6 +431,11 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         segment = new ArraySegment<Byte>(_buffer, _offset, _length);
         return true;
     }
+
+    /// <summary>尝试获取数据段</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public Boolean TryGet(out ArraySegment<Byte> segment) => TryGetArray(out segment);
 
     /// <summary>钉住内存</summary>
     /// <param name="elementIndex"></param>
