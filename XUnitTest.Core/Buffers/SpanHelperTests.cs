@@ -54,9 +54,9 @@ public class SpanHelperTests
         var count = Encoding.UTF8.GetBytes(str.AsSpan(), span);
 
         Assert.Equal(buf.ToHex(), span.ToHex());
-        Assert.Equal(buf.ToHex(null, 0, 8), span.ToHex(8));
-        Assert.Equal(buf.ToHex("-", 0, 8), span.ToHex(8, "-"));
-        Assert.Equal(buf.ToHex("+&", 5, 8), span.ToHex(8, "+&", 5));
+        Assert.Equal(buf.ToHex(null, 0, 8), span.ToHex(null, 0, 8));
+        Assert.Equal(buf.ToHex("-", 0, 8), span.ToHex("-", 0, 8));
+        Assert.Equal(buf.ToHex("+&", 5, 8), span.ToHex("+&", 5, 8));
 
         ReadOnlySpan<Byte> span2 = span;
         Assert.Equal(buf.ToHex(), span2.ToHex());

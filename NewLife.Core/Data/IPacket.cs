@@ -49,14 +49,15 @@ public interface IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     /// <returns></returns>
     IPacket Slice(Int32 offset, Int32 count = -1);
+
+    /// <summary>尝试获取缓冲区</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    Boolean TryGetArray(out ArraySegment<Byte> segment);
 }
 
 /// <summary>拥有管理权的数据包。使用完以后需要释放</summary>
-public interface IOwnerPacket : IPacket, IDisposable
-{
-    ///// <summary>是否拥有管理权</summary>
-    //Boolean HasOwner { get; set; }
-}
+public interface IOwnerPacket : IPacket, IDisposable { }
 
 /// <summary>内存包辅助类</summary>
 public static class PacketHelper
@@ -86,7 +87,7 @@ public static class PacketHelper
     /// <param name="offset"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
+    public static String ToStr<T>(this T pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1) where T : IPacket
     {
         if (pk.Next == null)
         {
@@ -94,20 +95,18 @@ public static class PacketHelper
             var span = pk.GetSpan();
             if (span.Length > count) span = span[..count];
 
-            var rs = span.ToStr(encoding);
-            //pk.TryDispose();
-            return rs;
+            return span.ToStr(encoding);
         }
 
         if (count < 0) count = pk.Total - offset;
+
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk; p != null && count > 0; p = p.Next)
+        for (var p = pk as IPacket; p != null && count > 0; p = p.Next)
         {
             var span = p.GetSpan();
             if (span.Length > count) span = span[..count];
 
             sb.Append(span.ToStr(encoding));
-            //p.TryDispose();
 
             count -= span.Length;
         }
@@ -120,25 +119,17 @@ public static class PacketHelper
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
     /// <returns></returns>
-    public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
+    public static String ToHex<T>(this T pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0) where T : IPacket
     {
         if (pk.Length == 0) return String.Empty;
 
         if (pk.Next == null)
-        {
-            if (pk is ArrayPacket ap && separate == null && groupSize == 0)
-                return ap.Buffer.ToHex(ap.Offset, Math.Min(maxLength, ap.Length));
-            else
-                return pk.GetSpan().ToHex(maxLength, separate, groupSize);
-        }
+            return pk.GetSpan().ToHex(separate, groupSize, maxLength);
 
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk; p != null; p = p.Next)
+        for (var p = pk as IPacket; p != null; p = p.Next)
         {
-            if (p is ArrayPacket ap && separate == null && groupSize == 0)
-                sb.Append(ap.Buffer.ToHex(ap.Offset, Math.Min(maxLength, ap.Length)));
-            else
-                sb.Append(p.GetSpan().ToHex(maxLength, separate, groupSize));
+            sb.Append(p.GetSpan().ToHex(separate, groupSize, maxLength));
 
             maxLength -= p.Length;
             if (maxLength <= 0) break;
@@ -233,12 +224,7 @@ public static class PacketHelper
     /// <returns></returns>
     public static Byte[] ToArray(this IPacket pk)
     {
-        if (pk.Next == null)
-        {
-            if (pk is ArrayPacket ap) return ap.Buffer.ReadBytes(ap.Offset, ap.Length);
-
-            return pk.GetSpan().ToArray();
-        }
+        if (pk.Next == null) return pk.GetSpan().ToArray();
 
         // 链式包输出
         var ms = Pool.MemoryStream.Get();
@@ -289,29 +275,29 @@ public static class PacketHelper
         return new ArrayPacket(ms);
     }
 
-    /// <summary>尝试获取缓冲区</summary>
-    /// <param name="pk"></param>
-    /// <param name="segment"></param>
-    /// <returns></returns>
-    public static Boolean TryGetArray(this IPacket pk, out ArraySegment<Byte> segment)
-    {
-        if (pk.Next == null)
-        {
-            if (pk is OwnerPacket op && op.TryGet(out segment)) return true;
+    ///// <summary>尝试获取缓冲区</summary>
+    ///// <param name="pk"></param>
+    ///// <param name="segment"></param>
+    ///// <returns></returns>
+    //public static Boolean TryGetArray(this IPacket pk, out ArraySegment<Byte> segment)
+    //{
+    //    if (pk.Next == null)
+    //    {
+    //        if (pk is OwnerPacket op && op.TryGet(out segment)) return true;
 
-            if (pk is ArrayPacket ap)
-            {
-                segment = new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
-                return true;
-            }
+    //        if (pk is ArrayPacket ap)
+    //        {
+    //            segment = new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
+    //            return true;
+    //        }
 
-            if (MemoryMarshal.TryGetArray(pk.GetMemory(), out segment)) return true;
-        }
+    //        if (MemoryMarshal.TryGetArray(pk.GetMemory(), out segment)) return true;
+    //    }
 
-        segment = default;
+    //    segment = default;
 
-        return false;
-    }
+    //    return false;
+    //}
 }
 
 /// <summary>所有权内存包。具有所有权管理，不再使用时释放</summary>
@@ -435,7 +421,14 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <summary>尝试获取数据段</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    public Boolean TryGet(out ArraySegment<Byte> segment) => TryGetArray(out segment);
+    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment)
+    {
+        if (Next == null) return TryGetArray(out segment);
+
+        segment = default;
+
+        return false;
+    }
 
     /// <summary>钉住内存</summary>
     /// <param name="elementIndex"></param>
@@ -519,6 +512,21 @@ public struct MemoryPacket : IPacket
             return new MemoryPacket(_memory, count);
 
         return new MemoryPacket(_memory[offset..], count);
+    }
+
+    /// <summary>尝试获取缓冲区</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        if (Next == null)
+        {
+            if (MemoryMarshal.TryGetArray(GetMemory(), out segment)) return true;
+        }
+
+        segment = default;
+
+        return false;
     }
 
     /// <summary>已重载</summary>
@@ -758,6 +766,22 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
         }
 
         return pk;
+    }
+
+    /// <summary>尝试获取缓冲区</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        if (Next == null)
+        {
+            segment = new ArraySegment<Byte>(_buffer, _offset, _length);
+            return true;
+        }
+
+        segment = default;
+
+        return false;
     }
 
     #region 重载运算符

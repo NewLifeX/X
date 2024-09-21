@@ -150,7 +150,6 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     internal Int32 OnSend(IPacket pk, IPEndPoint remote)
     {
         var count = pk.Total;
-        var data = pk.GetSpan();
 
         using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
 
@@ -162,10 +161,11 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             {
                 if (sock.Connected && !sock.EnableBroadcast)
                 {
-                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
+                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
                     if (pk.Next == null)
                     {
+                        var data = pk.GetSpan();
 #if NETCOREAPP || NETSTANDARD2_1
                         rs = sock.Send(data);
 #else
@@ -181,10 +181,11 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 else
                 {
                     sock.CheckBroadcast(remote.Address);
-                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, data.ToHex(LogDataLength), remote);
+                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(LogDataLength), remote);
 
                     if (pk.Next == null)
                     {
+                        var data = pk.GetSpan();
 #if NET6_0_OR_GREATER
                         rs = sock.SendTo(data, remote);
 #else

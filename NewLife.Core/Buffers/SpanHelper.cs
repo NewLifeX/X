@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
+using NewLife.Collections;
 
 namespace NewLife;
 
@@ -47,32 +48,94 @@ public static class SpanHelper
 #endif
     }
 
+    /// <summary>把字节数组编码为十六进制字符串</summary>
+    /// <param name="data">字节数组</param>
+    /// <returns></returns>
+    public static String ToHex(this ReadOnlySpan<Byte> data)
+    {
+        if (data.Length == 0) return String.Empty;
+
+        Span<Char> cs = stackalloc Char[data.Length * 2];
+        for (Int32 i = 0, j = 0; i < data.Length; i++, j += 2)
+        {
+            var b = data[i];
+            cs[j] = GetHexValue(b >> 4);
+            cs[j + 1] = GetHexValue(b & 0x0F);
+        }
+        return cs.ToString();
+    }
+
+    /// <summary>把字节数组编码为十六进制字符串</summary>
+    /// <param name="data">字节数组</param>
+    /// <returns></returns>
+    public static String ToHex(this Span<Byte> data) => ToHex((ReadOnlySpan<Byte>)data);
+
+    private static Char GetHexValue(Int32 i) => i < 10 ? (Char)(i + '0') : (Char)(i - 10 + 'A');
+
     /// <summary>以十六进制编码表示</summary>
-    /// <param name="span"></param>
-    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
+    /// <param name="data"></param>
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
     /// <returns></returns>
-    public static String ToHex(this ReadOnlySpan<Byte> span, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
+    public static String ToHex(this ReadOnlySpan<Byte> data, String? separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
-        if (span.Length == 0) return String.Empty;
+        if (data.Length == 0 || maxLength == 0) return String.Empty;
 
-        if (span.Length > maxLength) span = span[..maxLength];
-        return span.ToArray().ToHex(separate, groupSize);
+        if (maxLength > 0 && data.Length > maxLength) data = data[..maxLength];
+        //return data.ToArray().ToHex(separate, groupSize);
+
+        if (groupSize < 0) groupSize = 0;
+
+        var count = data.Length;
+        if (groupSize == 0)
+        {
+            // 没有分隔符
+            if (String.IsNullOrEmpty(separate)) return data.ToHex();
+
+            //// 特殊处理
+            //if (separate == "-") return BitConverter.ToString(data, 0, count);
+        }
+
+        var len = count * 2;
+        if (!separate.IsNullOrEmpty()) len += (count - 1) * separate.Length;
+        if (groupSize > 0)
+        {
+            // 计算分组个数
+            var g = (count - 1) / groupSize;
+            len += g * 2;
+            // 扣除间隔
+            if (!separate.IsNullOrEmpty()) _ = g * separate.Length;
+        }
+
+        var sb = Pool.StringBuilder.Get();
+        for (var i = 0; i < count; i++)
+        {
+            if (sb.Length > 0)
+            {
+                if (groupSize <= 0 || i % groupSize == 0)
+                    sb.Append(separate);
+            }
+
+            var b = data[i];
+            sb.Append(GetHexValue(b >> 4));
+            sb.Append(GetHexValue(b & 0x0F));
+        }
+
+        return sb.Return(true) ?? String.Empty;
     }
 
     /// <summary>以十六进制编码表示</summary>
     /// <param name="span"></param>
-    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
+    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
     /// <returns></returns>
-    public static String ToHex(this Span<Byte> span, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
+    public static String ToHex(this Span<Byte> span, String? separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
-        if (span.Length == 0) return String.Empty;
+        if (span.Length == 0 || maxLength == 0) return String.Empty;
 
-        if (span.Length > maxLength) span = span[..maxLength];
-        return span.ToArray().ToHex(separate, groupSize, maxLength);
+        return ToHex((ReadOnlySpan<Byte>)span, separate, groupSize, maxLength);
     }
 
     /// <summary>通过指定开始与结束边界来截取数据源</summary>
@@ -152,7 +215,7 @@ public static class SpanHelper
     }
     #endregion
 
-    /// <summary>写入Memory到数据流</summary>
+    /// <summary>写入Memory到数据流。从内存池借出缓冲区拷贝，仅作为兜底使用</summary>
     /// <param name="stream"></param>
     /// <param name="buffer"></param>
     /// <returns></returns>
@@ -179,7 +242,7 @@ public static class SpanHelper
         }
     }
 
-    /// <summary>写入Memory到数据流</summary>
+    /// <summary>写入Memory到数据流。从内存池借出缓冲区拷贝，仅作为兜底使用</summary>
     /// <param name="stream"></param>
     /// <param name="buffer"></param>
     /// <param name="cancellationToken"></param>

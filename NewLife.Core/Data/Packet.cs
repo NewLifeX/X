@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
@@ -460,6 +461,22 @@ public class Packet : IPacket
         CopyTo(ms);
 
         return new Packet(ms.Return(true));
+    }
+
+    /// <summary>尝试获取缓冲区</summary>
+    /// <param name="segment"></param>
+    /// <returns></returns>
+    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        if (Next == null)
+        {
+            segment = new ArraySegment<Byte>(Data, Offset, Count);
+            return true;
+        }
+
+        segment = default;
+
+        return false;
     }
 
     /// <summary>以字符串表示</summary>

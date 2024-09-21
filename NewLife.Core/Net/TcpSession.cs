@@ -294,9 +294,8 @@ public class TcpSession : SessionBase, ISocketSession
     protected override Int32 OnSend(IPacket pk)
     {
         var count = pk.Total;
-        var data = pk.GetSpan();
 
-        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
+        if (Log != null && Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
         using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
 
@@ -320,6 +319,7 @@ public class TcpSession : SessionBase, ISocketSession
                     rs = sock.Send(Pool.Empty);
                 else if (pk.Next == null)
                 {
+                    var data = pk.GetSpan();
 #if NETCOREAPP || NETSTANDARD2_1
                     rs = sock.Send(data);
 #else

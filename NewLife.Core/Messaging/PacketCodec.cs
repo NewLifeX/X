@@ -81,7 +81,7 @@ public class PacketCodec
             CheckCache();
             ms = Stream;
 
-            using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Length}]{pk.GetSpan().ToHex(500)}", pk.Length);
+            using var span = Tracer?.NewSpan("net:PacketCodec:MergeCache", $"Position={ms.Position} Length={ms.Length} NewData=[{pk.Length}]{pk.ToHex(500)}", pk.Length);
 
             // 合并数据到最后面
             if (pk != null && pk.Total > 0)
