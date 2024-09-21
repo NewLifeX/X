@@ -12,12 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotNET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
-          6.0.x
-          7.0.x
-          8.0.x
+          6.x
+          7.x
+          8.x
+          9.x
     - name: Get Version
       run: echo "VERSION=$(date '+%Y.%m%d')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     - name: Build
