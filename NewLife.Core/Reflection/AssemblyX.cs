@@ -310,18 +310,29 @@ public class AssemblyX
         // 如果type是null，则返回所有类型
         if (_plugins.TryGetValue(baseType, out var list)) return list;
 
+        Type?[]? types = null;
         list = [];
         try
         {
-            foreach (var item in Asm.GetTypes())
-            {
-                if (item.IsInterface || item.IsAbstract || item.IsGenericType) continue;
-                if (item != baseType && item.As(baseType)) list.Add(item);
-            }
+            types = Asm.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // 即使抛出加载异常，也有一部分类型可以用
+            types = ex.Types;
+            XTrace.WriteException(ex);
         }
         catch (Exception ex)
         {
             XTrace.WriteException(ex);
+        }
+
+        if (types != null)
+        {
+            foreach (var item in types)
+            {
+                if (item != null && !item.IsInterface && !item.IsAbstract && !item.IsGenericType && item != baseType && item.As(baseType)) list.Add(item);
+            }
         }
 
         _plugins.TryAdd(baseType, list);
