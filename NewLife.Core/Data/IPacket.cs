@@ -87,7 +87,7 @@ public static class PacketHelper
     /// <param name="offset"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public static String ToStr<T>(this T pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1) where T : IPacket
+    public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
         if (pk.Next == null)
         {
@@ -101,7 +101,7 @@ public static class PacketHelper
         if (count < 0) count = pk.Total - offset;
 
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk as IPacket; p != null && count > 0; p = p.Next)
+        for (var p = pk; p != null && count > 0; p = p.Next)
         {
             var span = p.GetSpan();
             if (span.Length > count) span = span[..count];
@@ -119,7 +119,7 @@ public static class PacketHelper
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
     /// <returns></returns>
-    public static String ToHex<T>(this T pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0) where T : IPacket
+    public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
     {
         if (pk.Length == 0) return String.Empty;
 
@@ -127,7 +127,7 @@ public static class PacketHelper
             return pk.GetSpan().ToHex(separate, groupSize, maxLength);
 
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk as IPacket; p != null; p = p.Next)
+        for (var p = pk; p != null; p = p.Next)
         {
             sb.Append(p.GetSpan().ToHex(separate, groupSize, maxLength));
 
