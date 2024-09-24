@@ -9,7 +9,7 @@ public interface IPacketEncoder
     /// <summary>数值转数据包</summary>
     /// <param name="value">数值对象</param>
     /// <returns></returns>
-    IPacket Encode(Object value);
+    IPacket? Encode(Object value);
 
     /// <summary>数据包转对象</summary>
     /// <param name="data">数据包</param>
@@ -43,7 +43,7 @@ public class DefaultPacketEncoder : IPacketEncoder
     /// <summary>数值转数据包</summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public virtual IPacket Encode(Object value)
+    public virtual IPacket? Encode(Object value)
     {
         if (value == null) return null!;
 
@@ -51,13 +51,23 @@ public class DefaultPacketEncoder : IPacketEncoder
         if (value is Byte[] buf) return (ArrayPacket)buf;
         if (value is IAccessor acc) return acc.ToPacket();
 
+        var str = OnEncode(value);
+
+        return (ArrayPacket)str.GetBytes();
+    }
+
+    /// <summary>编码为字符串。复杂类型采用Json序列化</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    protected virtual String? OnEncode(Object value)
+    {
         var type = value.GetType();
-        return (type.GetTypeCode()) switch
+        return type.GetTypeCode() switch
         {
-            TypeCode.Object => (ArrayPacket)JsonHost.Write(value).GetBytes(),
-            TypeCode.String => (ArrayPacket)(value as String).GetBytes(),
-            TypeCode.DateTime => (ArrayPacket)((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss").GetBytes(),
-            _ => (ArrayPacket)(value + "").GetBytes(),
+            TypeCode.Object => JsonHost.Write(value),
+            TypeCode.String => value as String,
+            TypeCode.DateTime => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff"),
+            _ => value + "",
         };
     }
 
@@ -78,10 +88,7 @@ public class DefaultPacketEncoder : IPacketEncoder
             if (data.Length == 0 && type.IsNullable()) return null;
 
             var str = data.ToStr();
-            if (type.GetTypeCode() == TypeCode.String) return str;
-            if (type.IsBaseType()) return str.ChangeType(type);
-
-            return JsonHost.Read(str, type);
+            return OnDecode(str, type);
         }
         catch
         {
@@ -89,5 +96,17 @@ public class DefaultPacketEncoder : IPacketEncoder
 
             return null;
         }
+    }
+
+    /// <summary>字符串解码为对象。复杂类型采用Json反序列化</summary>
+    /// <param name="value"></param>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    protected virtual Object? OnDecode(String value, Type type)
+    {
+        if (type.GetTypeCode() == TypeCode.String) return value;
+        if (type.IsBaseType()) return value.ChangeType(type);
+
+        return JsonHost.Read(value, type);
     }
 }
