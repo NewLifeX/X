@@ -264,11 +264,21 @@ public class ReflectTests
 
     [Theory]
     [InlineData("true", typeof(Boolean), true)]
+    [InlineData("False", typeof(Boolean), false)]
     [InlineData("1", typeof(Boolean), true)]
     [InlineData("0", typeof(Boolean), false)]
+    [InlineData("2", typeof(Boolean), true)]
+    [InlineData("-1", typeof(Boolean), true)]
+    [InlineData(1, typeof(Boolean), true)]
+    [InlineData(0, typeof(Boolean), false)]
+    [InlineData(-1, typeof(Boolean), true)]
     [InlineData("1234", typeof(Int16), (Int16)1234)]
     [InlineData("1234", typeof(Int32), 1234)]
+    [InlineData("-1234", typeof(Int32), -1234)]
+    [InlineData("0", typeof(Int32), 0)]
+    [InlineData("-1", typeof(Int32), -1)]
     [InlineData("12.34", typeof(Double), 12.34)]
+    [InlineData("-12.34", typeof(Double), -12.34)]
     [InlineData("byte[]", typeof(Type), typeof(Byte[]))]
     public void ChangeTypeTest(Object value, Type targetType, Object target)
     {

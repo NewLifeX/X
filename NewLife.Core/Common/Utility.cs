@@ -484,7 +484,7 @@ public class DefaultConvert
             if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
             if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
-            return Int32.TryParse(str, out var n) ? n > 0 : defaultValue;
+            return Int32.TryParse(str, out var n) ? n != 0 : defaultValue;
         }
 
         try
