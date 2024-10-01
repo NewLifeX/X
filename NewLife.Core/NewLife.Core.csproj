@@ -30,7 +30,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>v11目标是优化内存占用降低GC</PackageReleaseNotes>
+    <PackageReleaseNotes>v11目标是优化内存占用降低GC；设计IPacket全面替换Packet，使用Span降低内存分配</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
