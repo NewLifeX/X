@@ -454,24 +454,24 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 public struct MemoryPacket : IPacket
 {
     #region 属性
-    private Memory<Byte> _memory;
+    private readonly Memory<Byte> _memory;
     /// <summary>内存</summary>
-    public Memory<Byte> Memory => _memory;
+    public readonly Memory<Byte> Memory => _memory;
 
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
-    public Int32 Length => _length;
+    public readonly Int32 Length => _length;
 
     /// <summary>获取/设置 指定位置的字节</summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    public Byte this[Int32 index] { get => _memory.Span[index]; set => _memory.Span[index] = value; }
+    public readonly Byte this[Int32 index] { get => _memory.Span[index]; set => _memory.Span[index] = value; }
 
     /// <summary>下一个链式包</summary>
     public IPacket? Next { get; set; }
 
     /// <summary>总长度</summary>
-    public Int32 Total => Length + (Next?.Total ?? 0);
+    public readonly Int32 Total => Length + (Next?.Total ?? 0);
     #endregion
 
     /// <summary>实例化内存包，指定内存和长度</summary>
@@ -489,11 +489,11 @@ public struct MemoryPacket : IPacket
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Span<Byte> GetSpan() => _memory.Span[.._length];
+    public readonly Span<Byte> GetSpan() => _memory.Span[.._length];
 
     /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Memory<Byte> GetMemory() => _memory[.._length];
+    public readonly Memory<Byte> GetMemory() => _memory[.._length];
 
     /// <summary>切片得到新数据包</summary>
     /// <remarks>
@@ -502,7 +502,7 @@ public struct MemoryPacket : IPacket
     /// </remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public IPacket Slice(Int32 offset, Int32 count)
+    public readonly IPacket Slice(Int32 offset, Int32 count)
     {
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;
@@ -517,7 +517,7 @@ public struct MemoryPacket : IPacket
     /// <summary>尝试获取缓冲区</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    public readonly Boolean TryGetArray(out ArraySegment<Byte> segment)
     {
         if (Next == null)
         {
@@ -531,7 +531,7 @@ public struct MemoryPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
+    public override readonly String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
 }
 
 /// <summary>字节数组包</summary>
@@ -540,15 +540,15 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     #region 属性
     private Byte[] _buffer;
     /// <summary>缓冲区</summary>
-    public Byte[] Buffer => _buffer;
+    public readonly Byte[] Buffer => _buffer;
 
     private readonly Int32 _offset;
     /// <summary>数据偏移</summary>
-    public Int32 Offset => _offset;
+    public readonly Int32 Offset => _offset;
 
     private readonly Int32 _length;
     /// <summary>数据长度</summary>
-    public Int32 Length => _length;
+    public readonly Int32 Length => _length;
 
     /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
     public Boolean HasOwner { get; set; }
@@ -557,7 +557,7 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     public IPacket? Next { get; set; }
 
     /// <summary>总长度</summary>
-    public Int32 Total => Length + (Next?.Total ?? 0);
+    public readonly Int32 Total => Length + (Next?.Total ?? 0);
 
     /// <summary>空数组</summary>
     public static ArrayPacket Empty = new([]);
@@ -652,7 +652,7 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
             // 尝试抠了内部存储区，下面代码需要.Net 4.6支持
             if (ms.TryGetBuffer(out var seg))
             {
-                if (seg.Array == null) throw new ArgumentNullException(nameof(seg));
+                if (seg.Array == null) throw new InvalidDataException();
 
                 _buffer = seg.Array;
                 _offset = seg.Offset + (Int32)ms.Position;
@@ -701,11 +701,11 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Span<Byte> GetSpan() => new(_buffer, _offset, _length);
+    public readonly Span<Byte> GetSpan() => new(_buffer, _offset, _length);
 
     /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
-    public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
+    public readonly Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
     /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
@@ -714,7 +714,7 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     /// </remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public ArrayPacket Slice(Int32 offset, Int32 count) => (ArrayPacket)(this as IPacket).Slice(offset, count);
+    public readonly ArrayPacket Slice(Int32 offset, Int32 count) => (ArrayPacket)(this as IPacket).Slice(offset, count);
 
     /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>
@@ -771,7 +771,7 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     /// <summary>尝试获取缓冲区</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    public Boolean TryGetArray(out ArraySegment<Byte> segment)
+    public readonly Boolean TryGetArray(out ArraySegment<Byte> segment)
     {
         if (Next == null)
         {

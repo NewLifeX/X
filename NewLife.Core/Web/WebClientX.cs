@@ -30,11 +30,13 @@ public class WebClientX : DisposeBase
     #region 构造
     static WebClientX()
     {
+#if !NET9_0_OR_GREATER
         try
         {
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
         }
         catch { }
+#endif
     }
 
     /// <summary>实例化</summary>

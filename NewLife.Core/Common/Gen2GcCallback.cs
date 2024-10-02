@@ -8,9 +8,9 @@ namespace NewLife;
 [EditorBrowsable(EditorBrowsableState.Never)]
 public class Gen2GcCallback : CriticalFinalizerObject
 {
-    private readonly Func<Boolean> _callback0;
+    private readonly Func<Boolean>? _callback0;
 
-    private readonly Func<Object, Boolean> _callback1;
+    private readonly Func<Object, Boolean>? _callback1;
 
     private GCHandle _weakTargetObj;
 
@@ -26,21 +26,16 @@ public class Gen2GcCallback : CriticalFinalizerObject
     /// Registers a callback to be invoked during Gen2 garbage collection.
     /// </summary>
     /// <param name="callback">The callback function to be invoked.</param>
-    public static void Register(Func<Boolean> callback)
-    {
-        new Gen2GcCallback(callback);
-    }
+    public static void Register(Func<Boolean> callback) => new Gen2GcCallback(callback);
 
     /// <summary>
     /// Registers a callback to be invoked during Gen2 garbage collection with a target object.
     /// </summary>
     /// <param name="callback">The callback function to be invoked.</param>
     /// <param name="targetObj">The target object associated with the callback.</param>
-    public static void Register(Func<Object, Boolean> callback, Object targetObj)
-    {
-        new Gen2GcCallback(callback, targetObj);
-    }
+    public static void Register(Func<Object, Boolean> callback, Object targetObj) => new Gen2GcCallback(callback, targetObj);
 
+    /// <summary>析构</summary>
     ~Gen2GcCallback()
     {
         if (_weakTargetObj.IsAllocated)
@@ -53,7 +48,7 @@ public class Gen2GcCallback : CriticalFinalizerObject
             }
             try
             {
-                if (!_callback1(target))
+                if (_callback1 != null && !_callback1(target))
                 {
                     _weakTargetObj.Free();
                     return;
@@ -65,7 +60,7 @@ public class Gen2GcCallback : CriticalFinalizerObject
         {
             try
             {
-                if (!_callback0())
+                if (_callback0 != null && !_callback0())
                 {
                     return;
                 }

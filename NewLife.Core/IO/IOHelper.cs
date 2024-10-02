@@ -191,7 +191,8 @@ public static class IOHelper
         if (len > MaxSafeArraySize) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", len, MaxSafeArraySize);
 
         var buf = new Byte[len];
-        des.Read(buf, 0, buf.Length);
+        des.ReadExactly(buf, 0, buf.Length);
+
         return buf;
     }
 
@@ -213,7 +214,7 @@ public static class IOHelper
     public static DateTime ReadDateTime(this Stream stream)
     {
         _encodes ??= new Byte[16];
-        stream.Read(_encodes, 0, 4);
+        stream.ReadExactly(_encodes, 0, 4);
         var seconds = (Int32)_encodes.ToUInt32();
 
         return seconds.ToDateTime();
@@ -254,6 +255,33 @@ public static class IOHelper
     #endregion
 
     #region 数据流转换
+#if !NET7_0_OR_GREATER
+    /// <summary>从流中完全读取数据，直到指定大小或者到达流结束</summary>
+    /// <remarks>
+    /// 主要为了对抗net6开始对Stream.Read的微调。
+    /// https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+    /// </remarks>
+    /// <param name="stream"></param>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public static Int32 ReadExactly(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
+    {
+        //if (count < 0) count = buffer.Length - offset;
+
+        var totalRead = 0;
+        while (totalRead < count)
+        {
+            var bytesRead = stream.Read(buffer, offset + totalRead, count - totalRead);
+            if (bytesRead == 0) break;
+            totalRead += bytesRead;
+        }
+
+        return totalRead;
+    }
+#endif
+
     /// <summary>数据流转为字节数组</summary>
     /// <remarks>
     /// 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
@@ -276,15 +304,8 @@ public static class IOHelper
         {
             //!!! Stream.Read 的官方设计从未承诺填满缓冲区，需要用户自己多次读取
             // https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
-            var p = 0;
             var buf = new Byte[length];
-            while (true)
-            {
-                var n = stream.Read(buf, p, buf.Length - p);
-                if (n == 0 || p + n == buf.Length) break;
-
-                p += n;
-            }
+            stream.ReadExactly(buf, 0, buf.Length);
             return buf;
         }
 
@@ -295,7 +316,7 @@ public static class IOHelper
             length = (Int32)(stream.Length - stream.Position);
 
             var buf = new Byte[length];
-            stream.Read(buf, 0, buf.Length);
+            stream.ReadExactly(buf, 0, buf.Length);
             return buf;
         }
 

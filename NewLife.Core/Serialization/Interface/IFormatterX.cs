@@ -121,7 +121,7 @@ public abstract class FormatterBase //: IFormatterX
         ms.Position = start;
 
         var buf = new Byte[pos - start];
-        ms.Read(buf, 0, buf.Length);
+        ms.ReadExactly(buf, 0, buf.Length);
         return buf;
     }
 

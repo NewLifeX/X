@@ -16,13 +16,13 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     private Int32 _index;
     /// <summary>已写入字节数</summary>
-    public Int32 Position => _index;
+    public readonly Int32 Position => _index;
 
     /// <summary>总容量</summary>
-    public Int32 Capacity => _span.Length;
+    public readonly Int32 Capacity => _span.Length;
 
     /// <summary>空闲容量</summary>
-    public Int32 FreeCapacity => _span.Length - _index;
+    public readonly Int32 FreeCapacity => _span.Length - _index;
 
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
@@ -43,7 +43,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <param name="sizeHint"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public Span<Byte> GetSpan(Int32 sizeHint = 0)
+    public readonly Span<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
 
@@ -54,7 +54,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
     #region 写入方法
     /// <summary>确保缓冲区中有足够的空间。</summary>
     /// <param name="size">需要的字节数。</param>
-    private void EnsureSpace(Int32 size)
+    private readonly void EnsureSpace(Int32 size)
     {
         if (_index + size > _span.Length)
             throw new InvalidOperationException("Not enough data to write.");
@@ -290,7 +290,11 @@ public ref struct SpanWriter(Span<Byte> buffer)
     {
         var size = Unsafe.SizeOf<T>();
         EnsureSpace(size);
+#if NET8_0_OR_GREATER
+        MemoryMarshal.Write(_span.Slice(_index, size), in value);
+#else
         MemoryMarshal.Write(_span.Slice(_index, size), ref value);
+#endif
         _index += size;
         return size;
     }

@@ -329,7 +329,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <summary>会话集合。用地址端口作为标识，业务应用自己维持地址端口与业务主键的对应关系。</summary>
     public IDictionary<String, ISocketSession> Sessions => _Sessions;
 
-    private readonly IDictionary<Int32, ISocketSession> _broadcasts = new Dictionary<Int32, ISocketSession>();
+    private readonly Dictionary<Int32, ISocketSession> _broadcasts = [];
 
     Int32 g_ID = 0;
     /// <summary>创建会话</summary>
@@ -503,8 +503,8 @@ public static class UdpHelper
     {
         if (udp.Client != null && udp.Client.LocalEndPoint != null)
         {
-            var ip = udp.Client.LocalEndPoint as IPEndPoint;
-            if (ip != null && !ip.Address.IsIPv4()) throw new NotSupportedException("IPv6 does not support broadcasting!");
+            if (udp.Client.LocalEndPoint is IPEndPoint ip && !ip.Address.IsIPv4())
+                throw new NotSupportedException("IPv6 does not support broadcasting!");
         }
 
         if (!udp.EnableBroadcast) udp.EnableBroadcast = true;
