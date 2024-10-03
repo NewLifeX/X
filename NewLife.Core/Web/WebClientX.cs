@@ -202,6 +202,29 @@ public class WebClientX : DisposeBase
         return Link.Parse(html, url);
     }
 
+    /// <summary>获取指定目录的文件信息</summary>
+    /// <param name="dir"></param>
+    /// <returns></returns>
+    public Link[] GetLinksInDirectory(String dir)
+    {
+        if (dir.IsNullOrEmpty()) return [];
+
+        var di = dir.AsDirectory();
+        if (!di.Exists) return [];
+
+        // 遍历目录下文件，按照Link格式解析并返回
+        var rs = new List<Link>();
+        foreach (var fi in di.GetAllFiles("*.zip;*.gz;*.tar.gz"))
+        {
+            var link = new Link();
+            link.Parse(fi.FullName);
+
+            rs.Add(link);
+        }
+
+        return rs.ToArray();
+    }
+
     /// <summary>分析指定页面指定名称的链接，并下载到目标目录，返回目标文件</summary>
     /// <remarks>
     /// 根据版本或时间降序排序选择
@@ -239,16 +262,25 @@ public class WebClientX : DisposeBase
                 ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
                 link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
             }
-            catch (WebException ex)
-            {
-                Log.Error(ex.Message);
-            }
+            //catch (WebException ex)
+            //{
+            //    Log.Error(ex.Message);
+            //}
             catch (Exception ex)
             {
                 lastError = ex;
             }
             if (link != null) break;
         }
+
+        // 如果连不上服务器，或者在服务器找不到压缩包，则尝试在目标目录中查找
+        if (link == null)
+        {
+            var ls = GetLinksInDirectory(destdir);
+            ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
+            link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
+        }
+
         if (link == null)
         {
             if (lastError != null) throw lastError;
@@ -262,37 +294,8 @@ public class WebClientX : DisposeBase
         var linkName = link.FullName;
         var file2 = destdir.CombinePath(linkName).EnsureDirectory();
 
-        // 已经提前检查过，这里几乎不可能有文件存在
-        if (File.Exists(file2))
-        {
-            // 如果连接名所表示的文件存在，并且带有时间，那么就只能是它啦
-            var p = linkName.LastIndexOf("_");
-            if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
-            {
-                Log.Info("分析得到文件：{0}，目标文件已存在，无需下载：{1}", linkName, link.Url);
-                return file2;
-            }
-            // 校验哈希是否一致
-            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 32)
-            {
-                var hash = file2.AsFile().MD5().ToHex();
-                if (link.Hash.EqualIgnoreCase(hash))
-                {
-                    Log.Info("分析得到文件：{0}，目标文件已存在，且MD5哈希一致", linkName, link.Url);
-                    return file2;
-                }
-            }
-            if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 128)
-            {
-                using var fs = file2.AsFile().OpenRead();
-                var hash = SHA512.Create().ComputeHash(fs).ToHex();
-                if (link.Hash.EqualIgnoreCase(hash))
-                {
-                    Log.Info("分析得到文件：{0}，目标文件已存在，且SHA512哈希一致", linkName, link.Url);
-                    return file2;
-                }
-            }
-        }
+        // 验证本地已有文件。已经提前检查过，这里几乎不可能有文件存在
+        if (File.Exists(file2) && ValidLocal(linkName, link, file2)) return file2;
 
         Log.Info("分析得到文件 {0}，准备下载 {1}，保存到 {2}", linkName, link.Url, file2);
         // 开始下载文件，注意要提前建立目录，否则会报错
@@ -309,6 +312,46 @@ public class WebClientX : DisposeBase
         }
 
         return file;
+    }
+
+    Boolean ValidLocal(String linkName, Link link, String file)
+    {
+        // 如果连接名所表示的文件存在，并且带有时间，那么就只能是它啦
+        var p = linkName.LastIndexOf("_");
+        if (p > 0 && (p + 8 + 1 == linkName.Length || p + 14 + 1 == linkName.Length))
+        {
+            Log.Info("分析得到文件：{0}，目标文件已存在，无需下载：{1}", linkName, link.Url);
+            return true;
+        }
+        // 校验哈希是否一致
+        if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 32)
+        {
+            var hash = file.AsFile().MD5().ToHex();
+            if (link.Hash.EqualIgnoreCase(hash))
+            {
+                Log.Info("分析得到文件：{0}，目标文件已存在，且MD5哈希一致", linkName, link.Url);
+                return true;
+            }
+        }
+        if (!link.Hash.IsNullOrEmpty() && link.Hash.Length == 128)
+        {
+            using var fs = file.AsFile().OpenRead();
+            var hash = SHA512.Create().ComputeHash(fs).ToHex();
+            if (link.Hash.EqualIgnoreCase(hash))
+            {
+                Log.Info("分析得到文件：{0}，目标文件已存在，且SHA512哈希一致", linkName, link.Url);
+                return true;
+            }
+        }
+
+        // 本地文件
+        if (link.Hash.IsNullOrEmpty() && File.Exists(file))
+        {
+            Log.Info("分析得到文件：{0}，下载失败，使用已存在的目标文件", linkName, link.Url);
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>分析指定页面指定名称的链接，并下载到目标目录，解压Zip后返回目标文件</summary>
@@ -350,8 +393,8 @@ public class WebClientX : DisposeBase
             Log.Info("解压缩到 {0}", destdir);
             file.AsFile().Extract(destdir, overwrite);
 
-            // 删除zip
-            File.Delete(file);
+            //// 删除zip
+            //File.Delete(file);
 
             return file;
         }

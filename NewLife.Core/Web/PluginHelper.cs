@@ -16,7 +16,7 @@ public static class PluginHelper
     /// <param name="linkName">链接名。要在下载页面中搜索的链接名</param>
     /// <param name="urls">提供下载地址的多个目标页面</param>
     /// <returns></returns>
-    public static Type? LoadPlugin(String typeName, String? disname, String dll, String linkName, String? urls = null)
+    public static Type? LoadPlugin(String typeName, String? disname, String? dll, String? linkName, String? urls = null)
     {
         if (typeName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(typeName));
 
