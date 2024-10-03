@@ -163,9 +163,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
-                    if (pk.Next == null)
+                    if (pk.TryGetSpan(out var data))
                     {
-                        var data = pk.GetSpan();
 #if NETCOREAPP || NETSTANDARD2_1
                         rs = sock.Send(data);
 #else
@@ -183,9 +182,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     sock.CheckBroadcast(remote.Address);
                     if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(LogDataLength), remote);
 
-                    if (pk.Next == null)
+                    if (pk.TryGetSpan(out var data))
                     {
-                        var data = pk.GetSpan();
 #if NET6_0_OR_GREATER
                         rs = sock.SendTo(data, remote);
 #else

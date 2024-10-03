@@ -317,9 +317,8 @@ public class TcpSession : SessionBase, ISocketSession
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
-                else if (pk.Next == null)
+                else if (pk.TryGetSpan(out var data))
                 {
-                    var data = pk.GetSpan();
 #if NETCOREAPP || NETSTANDARD2_1
                     rs = sock.Send(data);
 #else

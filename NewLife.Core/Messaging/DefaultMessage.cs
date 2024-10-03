@@ -123,11 +123,9 @@ public class DefaultMessage : Message
 
         // 增加4字节头部，如果负载数据之前有足够空间则直接使用，否则新建数据包形成链式结构
         var size = len < 0xFFFF ? 4 : 8;
-        IPacket pk;
-        if (body is ArrayPacket ap && ap.Offset >= size)
-            pk = new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
-        else
-            pk = new ArrayPacket(new Byte[size]) { Next = body };
+        var pk = body is ArrayPacket ap && ap.Offset >= size
+            ? new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next }
+            : new ArrayPacket(new Byte[size]) { Next = body };
 
         // 标记位
         var header = pk.GetSpan();

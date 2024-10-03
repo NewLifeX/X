@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
@@ -22,6 +23,7 @@ public interface IPacket
     Int32 Length { get; }
 
     /// <summary>下一个链式包</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     IPacket? Next { get; set; }
 
     /// <summary>总长度。包括Next链的长度</summary>
@@ -101,7 +103,7 @@ public static class PacketHelper
         if (count < 0) count = pk.Total - offset;
 
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk; p != null && count > 0; p = p.Next)
+        for (var p = pk; p != null; p = p.Next)
         {
             var span = p.GetSpan();
             if (span.Length > count) span = span[..count];
@@ -109,6 +111,7 @@ public static class PacketHelper
             sb.Append(span.ToStr(encoding));
 
             count -= span.Length;
+            if (count <= 0) break;
         }
         return sb.Return(true);
     }
@@ -275,29 +278,21 @@ public static class PacketHelper
         return new ArrayPacket(ms);
     }
 
-    ///// <summary>尝试获取缓冲区</summary>
-    ///// <param name="pk"></param>
-    ///// <param name="segment"></param>
-    ///// <returns></returns>
-    //public static Boolean TryGetArray(this IPacket pk, out ArraySegment<Byte> segment)
-    //{
-    //    if (pk.Next == null)
-    //    {
-    //        if (pk is OwnerPacket op && op.TryGet(out segment)) return true;
+    /// <summary>尝试获取内存片段。非链式数据包时直接返回</summary>
+    /// <param name="pk"></param>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    public static Boolean TryGetSpan(this IPacket pk, out Span<Byte> span)
+    {
+        if (pk.Next == null)
+        {
+            span = pk.GetSpan();
+            return true;
+        }
 
-    //        if (pk is ArrayPacket ap)
-    //        {
-    //            segment = new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length);
-    //            return true;
-    //        }
-
-    //        if (MemoryMarshal.TryGetArray(pk.GetMemory(), out segment)) return true;
-    //    }
-
-    //    segment = default;
-
-    //    return false;
-    //}
+        span = default;
+        return false;
+    }
 }
 
 /// <summary>所有权内存包。具有所有权管理，不再使用时释放</summary>
@@ -325,6 +320,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
 
     /// <summary>下一个链式包</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
     /// <summary>总长度</summary>
@@ -403,10 +399,20 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public OwnerPacket Slice(Int32 offset, Int32 count)
     {
+        // 带有Next时，不支持Slice
+        if (Next != null) throw new NotSupportedException("Slice with Next");
+
+        // 只有一次Slice机会
+        if (_buffer == null) throw new InvalidDataException();
+
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;
 
-        return new OwnerPacket(_buffer, _offset + offset, count);
+        // 转移管理权
+        var buffer = _buffer;
+        _buffer = null!;
+
+        return new OwnerPacket(buffer, _offset + offset, count);
     }
 
     /// <summary>尝试获取数据段</summary>
@@ -443,7 +449,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     #region 重载运算符
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{Total}>");
+    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
     #endregion
 }
 
@@ -468,6 +474,7 @@ public struct MemoryPacket : IPacket
     public readonly Byte this[Int32 index] { get => _memory.Span[index]; set => _memory.Span[index] = value; }
 
     /// <summary>下一个链式包</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
     /// <summary>总长度</summary>
@@ -504,6 +511,9 @@ public struct MemoryPacket : IPacket
     /// <param name="count">个数。默认-1表示到末尾</param>
     public readonly IPacket Slice(Int32 offset, Int32 count)
     {
+        // 带有Next时，不支持Slice
+        if (Next != null) throw new NotSupportedException("Slice with Next");
+
         var remain = _length - offset;
         if (count < 0 || count > remain) count = remain;
         if (offset == 0 && count == _length) return this;
@@ -535,7 +545,7 @@ public struct MemoryPacket : IPacket
 }
 
 /// <summary>字节数组包</summary>
-public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
+public struct ArrayPacket : IPacket
 {
     #region 属性
     private Byte[] _buffer;
@@ -550,10 +560,8 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     /// <summary>数据长度</summary>
     public readonly Int32 Length => _length;
 
-    /// <summary>是否拥有管理权。Dispose时，若有管理权则还给池里</summary>
-    public Boolean HasOwner { get; set; }
-
     /// <summary>下一个链式包</summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
     /// <summary>总长度</summary>
@@ -624,23 +632,6 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
         _length = count;
     }
 
-    /// <summary>通过从池里借出字节数组来实例化数据包</summary>
-    /// <param name="length"></param>
-    public ArrayPacket(Int32 length)
-    {
-        if (length <= 1024 * 1024 * 1024)
-        {
-            _buffer = Pool.Shared.Rent(length);
-            _length = length;
-            HasOwner = true;
-        }
-        else
-        {
-            _buffer = new Byte[length];
-            _length = length;
-        }
-    }
-
     /// <summary>从可扩展内存流实例化，尝试窃取内存流内部的字节数组，失败后拷贝</summary>
     /// <remarks>因数据包内数组窃取自内存流，需要特别小心，避免多线程共用。常用于内存流转数据包，而内存流不再使用</remarks>
     /// <param name="stream"></param>
@@ -683,20 +674,6 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
     /// <summary>从数据段实例化数据包</summary>
     /// <param name="segment"></param>
     public ArrayPacket(ArraySegment<Byte> segment) : this(segment.Array!, segment.Offset, segment.Count) { }
-
-    /// <summary>释放</summary>
-    public void Dispose()
-    {
-        var buf = _buffer;
-        if (HasOwner && buf != null)
-        {
-            _buffer = null!;
-            Pool.Shared.Return(buf);
-            HasOwner = false;
-        }
-
-        Next.TryDispose();
-    }
     #endregion
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
@@ -731,38 +708,32 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
         var start = Offset + offset;
         var remain = _length - offset;
 
-        if (Next == null)
+        var next = Next;
+        if (next == null)
         {
             // count 是 offset 之后的个数
             if (count < 0 || count > remain) count = remain;
             if (count < 0) count = 0;
 
-            pk = new ArrayPacket(_buffer, start, count) { HasOwner = HasOwner };
+            pk = new ArrayPacket(_buffer, start, count);
         }
         else
         {
             // 如果当前段用完，则取下一段
             if (remain <= 0)
-                pk = Next.Slice(offset - _length, count);
+                pk = next.Slice(offset - _length, count);
 
             // 当前包用一截，剩下的全部
             else if (count < 0)
-                pk = new ArrayPacket(_buffer, start, remain) { Next = Next, HasOwner = HasOwner };
+                pk = new ArrayPacket(_buffer, start, remain) { Next = next };
 
             // 当前包可以读完
             else if (count <= remain)
-                pk = new ArrayPacket(_buffer, start, count) { HasOwner = HasOwner };
+                pk = new ArrayPacket(_buffer, start, count);
 
             // 当前包用一截，剩下的再截取
             else
-                pk = new ArrayPacket(_buffer, start, remain) { Next = Next.Slice(0, count - remain), HasOwner = HasOwner };
-        }
-
-        // 所有权转移
-        if (pk is ArrayPacket ap && ap.HasOwner && ap._buffer == _buffer)
-        {
-            //ap.HasOwner = HasOwner;
-            HasOwner = false;
+                pk = new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain) };
         }
 
         return pk;
@@ -802,6 +773,6 @@ public struct ArrayPacket : IDisposable, IPacket, IOwnerPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})" + (Next == null ? "" : $"<{Total}>");
+    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
     #endregion
 }
