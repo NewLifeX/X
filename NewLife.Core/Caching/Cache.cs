@@ -392,22 +392,22 @@ public abstract class Cache : DisposeBase, ICache
         }
 
         // 单线程
-        rs += BenchOne(times, 1, rand, batch);
+        rs += BenchOne(_keys, times, 1, rand, batch);
 
         // 多线程
-        if (cpu != 2) rs += BenchOne(times * 2, 2, rand, batch);
-        if (cpu != 4) rs += BenchOne(times * 4, 4, rand, batch);
-        if (cpu != 8) rs += BenchOne(times * 8, 8, rand, batch);
+        if (cpu != 2) rs += BenchOne(_keys, times * 2, 2, rand, batch);
+        if (cpu != 4) rs += BenchOne(_keys, times * 4, 4, rand, batch);
+        if (cpu != 8) rs += BenchOne(_keys, times * 8, 8, rand, batch);
 
         // CPU个数
-        rs += BenchOne(times * cpu, cpu, rand, batch);
+        rs += BenchOne(_keys, times * cpu, cpu, rand, batch);
 
         //// 1.5倍
         //var cpu2 = cpu * 3 / 2;
         //if (!(new[] { 2, 4, 8, 64, 256 }).Contains(cpu2)) BenchOne(times * cpu2, cpu2, rand);
 
         // 最大
-        if (cpu < 64) rs += BenchOne(times * cpu, 64, rand, batch);
+        if (cpu < 64) rs += BenchOne(_keys, times * cpu, 64, rand, batch);
         //if (cpu * 8 >= 256) BenchOne(times * cpu, cpu * 8, rand);
 
         return rs;
@@ -420,13 +420,13 @@ public abstract class Cache : DisposeBase, ICache
     protected virtual Int32 GetTimesPerThread(Boolean rand, Int32 batch) => 10_000;
 
     private String[]? _keys;
-    //private String[]? _keys2;
     /// <summary>使用指定线程测试指定次数</summary>
+    /// <param name="keys"></param>
     /// <param name="times">次数</param>
     /// <param name="threads">线程</param>
     /// <param name="rand">随机读写</param>
     /// <param name="batch">批量操作</param>
-    public virtual Int64 BenchOne(Int64 times, Int32 threads, Boolean rand, Int32 batch)
+    public virtual Int64 BenchOne(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
         if (threads <= 0) threads = Environment.ProcessorCount;
         if (times <= 0) times = threads * 1_000;
@@ -442,16 +442,16 @@ public abstract class Cache : DisposeBase, ICache
         Remove(key);
 
         // 赋值测试
-        rs += BenchSet(_keys, times, threads, rand, batch);
+        rs += BenchSet(keys, times, threads, rand, batch);
 
         // 读取测试
-        rs += BenchGet(_keys, times, threads, rand, batch);
-
-        // 累加测试
-        rs += BenchInc(_keys!, times, threads, rand, batch);
+        rs += BenchGet(keys, times, threads, rand, batch);
 
         // 删除测试
-        rs += BenchRemove(_keys, times, threads, rand, batch);
+        rs += BenchRemove(keys, times, threads, rand, batch);
+
+        // 累加测试
+        rs += BenchInc(keys, times, threads, rand, batch);
 
         return rs;
     }
