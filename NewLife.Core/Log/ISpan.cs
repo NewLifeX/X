@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
@@ -50,6 +51,10 @@ public interface ISpan : IDisposable
     /// <summary>设置数据标签。内部根据长度截断</summary>
     /// <param name="tag">标签</param>
     void SetTag(Object tag);
+
+    /// <summary>抛弃埋点，不计入采集</summary>
+    /// <remarks>在Web应用中，经常遇到各种扫描，导致记录大量并不存在的异常埋点，此时需要抛弃这些404埋点</remarks>
+    void Abandon();
 }
 
 /// <summary>性能跟踪片段。轻量级APM</summary>
@@ -211,16 +216,27 @@ public class DefaultSpan : ISpan
         // 从本线程中清除跟踪标识
         Current = _parent;
 
-        var name = Builder?.Name;
+        var builder = Builder;
+        if (builder == null) return;
+
+        var name = builder.Name;
         if (!name.IsNullOrEmpty())
         {
             // Builder这一批可能已经上传，重新取一次，以防万一
-            var builder = Builder?.Tracer?.BuildSpan(name);
+            builder = builder.Tracer?.BuildSpan(name);
             builder?.Finish(this);
         }
 
         // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
         // 也有可能原来的Builder已经上传，现在加入了新的builder集合
+        Builder = null;
+    }
+
+    /// <summary>抛弃埋点，不计入采集</summary>
+    /// <remarks>在Web应用中，经常遇到各种扫描，导致记录大量并不存在的异常埋点，此时需要抛弃这些404埋点</remarks>
+    public virtual void Abandon()
+    {
+        _finished = 1;
         Builder = null;
     }
 

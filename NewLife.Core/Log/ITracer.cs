@@ -161,6 +161,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         }
     }
 
+    private static Char[] _seps = ['?', '#', '&'];
     /// <summary>建立Span构建器</summary>
     /// <param name="name"></param>
     /// <returns></returns>
@@ -172,7 +173,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         name ??= "";
 
         // http 中可能有问号，需要截断。问号开头就不管了
-        var p = name.IndexOf('?');
+        var p = name.IndexOfAny(_seps);
         if (p > 0) name = name[..p];
 
         return _builders.GetOrAdd(name, k => OnBuildSpan(k));
