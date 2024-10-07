@@ -61,4 +61,4 @@ _ = Task.Run(ClientTest.UdpSessionTest);
 // 阻塞，等待友好退出
 var host = services.BuildHost();
 await host.RunAsync();
-
+server.Stop("stop");

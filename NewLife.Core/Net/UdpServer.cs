@@ -86,7 +86,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
                 if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+                if (sock.AddressFamily == AddressFamily.InterNetwork)
+                    sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
             }
             catch (Exception ex)
             {

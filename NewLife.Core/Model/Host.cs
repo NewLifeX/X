@@ -204,7 +204,7 @@ public class Host : DisposeBase, IHost
 
         _life = new TaskCompletionSource<Object>();
 
-        RegisterExit((s, e) => Close(s?.GetType().Name));
+        RegisterExit((s, e) => Close(s as String ?? s?.GetType().Name));
 
         await StartAsync(source.Token);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
