@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Xml.Linq;
 using NewLife.Configuration;
 using NewLife.Log;
 
@@ -212,7 +211,7 @@ public static class ProcessHelper
     {
         if (process == null || process.GetHasExited()) return process;
 
-        XTrace.WriteLine("安全，温柔一刀！PID={0}/{1}", process.Id, process.ProcessName);
+        //XTrace.WriteLine("安全，温柔一刀！PID={0}/{1}", process.Id, process.ProcessName);
 
         try
         {
@@ -250,7 +249,7 @@ public static class ProcessHelper
     {
         if (process == null || process.GetHasExited()) return process;
 
-        XTrace.WriteLine("强杀，大力出奇迹！PID={0}/{1}", process.Id, process.ProcessName);
+        //XTrace.WriteLine("强杀，大力出奇迹！PID={0}/{1}", process.Id, process.ProcessName);
 
         // 终止指定的进程及启动的子进程,如nginx等
         // 在Core 3.0, Core 3.1, 5, 6, 7, 8, 9 中支持此重载
@@ -260,6 +259,7 @@ public static class ProcessHelper
 #else
         process.Kill();
 #endif
+        if (process.GetHasExited()) return process;
 
         try
         {
@@ -359,7 +359,14 @@ public static class ProcessHelper
         if (msWait < 0)
             p.WaitForExit();
         else if (!p.WaitForExit(msWait))
+        {
+#if NETCOREAPP
+            p.Kill(true);
+#else
+            p.Kill();
+#endif
             return -1;
+        }
 
         return p.ExitCode;
     }
@@ -428,7 +435,11 @@ public static class ProcessHelper
 
             if (msWait > 0 && !process.WaitForExit(msWait))
             {
+#if NETCOREAPP
+                process.Kill(true);
+#else
                 process.Kill();
+#endif
                 return null;
             }
 
