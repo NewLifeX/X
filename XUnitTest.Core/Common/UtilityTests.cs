@@ -290,5 +290,9 @@ public class UtilityTests
         var v = n.ToInt();
 
         Assert.Equal(-1, v);
+
+        n = "+1";
+        v = n.ToInt();
+        Assert.Equal(+1, v);
     }
 }

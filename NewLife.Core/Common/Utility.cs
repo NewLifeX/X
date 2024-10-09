@@ -632,7 +632,7 @@ public class DefaultConvert
     /// <returns></returns>
     private static Int32 TrimNumber(ReadOnlySpan<Char> input, Span<Char> output)
     {
-        var rs = 0;
+        var idx = 0;
 
         for (var i = 0; i < input.Length; i++)
         {
@@ -640,8 +640,15 @@ public class DefaultConvert
             var ch = input[i];
             if (ch == ',' || ch == '_' || ch == ' ') continue;
 
+            // 支持前缀正号。Redis响应中就会返回带正号的整数
+            if (ch == '+')
+            {
+                if (idx == 0) continue;
+                return 0;
+            }
+
             // 支持负数
-            if (ch == '-' && rs > 0) return 0;
+            if (ch == '-' && idx > 0) return 0;
 
             // 全角空格
             if (ch == 0x3000)
@@ -652,10 +659,10 @@ public class DefaultConvert
             // 数字和小数点 以外字符，认为非数字
             if (ch is not '.' and not '-' and (< '0' or > '9')) return 0;
 
-            output[rs++] = ch;
+            output[idx++] = ch;
         }
 
-        return rs;
+        return idx;
     }
 
     /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
