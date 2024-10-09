@@ -390,7 +390,7 @@ public class TcpSession : SessionBase, ISocketSession
                 var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken);
                 if (span != null) span.Value = size;
 
-                return pk.Slice(0, size);
+                return pk.SliceSingle(0, size);
             }
             catch (Exception ex)
             {

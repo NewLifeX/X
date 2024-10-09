@@ -144,7 +144,7 @@ public class TinyHttpClient : DisposeBase
         var count = await ns.ReadAsync(pk.Buffer, 0, pk.Length, source.Token).ConfigureAwait(false);
 #endif
 
-        return pk.Slice(0, count);
+        return pk.SliceSingle(0, count);
     }
 
     /// <summary>异步发出请求，并接收响应</summary>

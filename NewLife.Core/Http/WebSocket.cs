@@ -110,11 +110,12 @@ public class WebSocket
         var socket = Context?.Socket;
         if (session == null && socket == null) throw new ObjectDisposedException(nameof(Context));
 
-        using var data = msg.ToPacket();
+        var data = msg.ToPacket();
         if (session != null)
             session.Send(data);
         else
             socket?.Send(data);
+        data.TryDispose();
     }
 
     /// <summary>发送消息</summary>
@@ -138,8 +139,9 @@ public class WebSocket
     {
         var session = (Context?.Connection) ?? throw new ObjectDisposedException(nameof(Context));
         var msg = new WebSocketMessage { Type = type, Payload = data };
-        using var data2 = msg.ToPacket();
+        var data2 = msg.ToPacket();
         session.Host.SendAllAsync(data2, predicate).Wait();
+        data.TryDispose();
     }
 
     /// <summary>想所有连接发送文本消息</summary>

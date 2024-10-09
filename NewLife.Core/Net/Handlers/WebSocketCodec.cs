@@ -69,7 +69,7 @@ public class WebSocketCodec : Handler
             message = new WebSocketMessage { Type = WebSocketMessageType.Binary, Payload = pk };
 
         // 谁申请，谁归还
-        IOwnerPacket? owner = null;
+        IPacket? owner = null;
         if (message is WebSocketMessage msg)
             message = owner = msg.ToPacket();
 
@@ -80,7 +80,7 @@ public class WebSocketCodec : Handler
         finally
         {
             // 下游可能忘了释放内存，这里兜底释放
-            owner?.Dispose();
+            owner.TryDispose();
         }
     }
 }

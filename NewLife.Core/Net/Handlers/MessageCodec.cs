@@ -48,14 +48,14 @@ public class MessageCodec<T> : Handler
     public override Object? Write(IHandlerContext context, Object message)
     {
         // 谁申请，谁归还
-        IOwnerPacket? owner = null;
+        IPacket? owner = null;
         if (message is T msg)
         {
             var rs = Encode(context, msg);
             if (rs == null) return null;
 
             message = rs;
-            owner = rs as IOwnerPacket;
+            owner = rs as IPacket;
 
             // 加入队列，忽略请求消息
             if (message is IMessage msg2)
@@ -73,7 +73,7 @@ public class MessageCodec<T> : Handler
         finally
         {
             // 下游可能忘了释放内存，这里兜底释放
-            owner?.Dispose();
+            owner.TryDispose();
         }
     }
 

@@ -128,10 +128,10 @@ public class WebSocketMessage : IDisposable
 
     /// <summary>把消息转为封包</summary>
     /// <returns></returns>
-    public virtual IOwnerPacket ToPacket()
+    public virtual IPacket ToPacket()
     {
-        var pk = Payload;
-        var len = pk == null ? 0 : pk.Total;
+        var body = Payload;
+        var len = body == null ? 0 : body.Total;
 
         // 特殊处理关闭消息
         if (len == 0 && Type == WebSocketMessageType.Close)
@@ -194,9 +194,9 @@ public class WebSocketMessage : IDisposable
             writer.Write(masks);
 
             // 掩码混淆数据。直接在数据缓冲区修改，避免拷贝
-            if (Payload != null)
+            if (body != null)
             {
-                var data = Payload.GetSpan();
+                var data = body.GetSpan();
                 for (var i = 0; i < len; i++)
                 {
                     data[i] = (Byte)(data[i] ^ masks[i % 4]);
@@ -204,8 +204,12 @@ public class WebSocketMessage : IDisposable
             }
         }
 
-        if (pk != null && pk.Length > 0)
-            writer.Write(pk.GetSpan());
+        if (body != null && body.Length > 0)
+        {
+            // 注意body可能是链式数据包
+            //writer.Write(body.GetSpan());
+            return rs.Slice(0, writer.Position).Append(body);
+        }
         else if (Type == WebSocketMessageType.Close)
         {
             writer.Write((Int16)CloseStatus);
