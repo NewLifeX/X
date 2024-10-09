@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
@@ -293,6 +294,32 @@ public static class PacketHelper
         span = default;
         return false;
     }
+
+    /// <summary>尝试扩展头部，用于填充包头，减少内存分配</summary>
+    /// <param name="pk"></param>
+    /// <param name="size"></param>
+    /// <param name="newPacket"></param>
+    /// <returns></returns>
+    public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
+    {
+        newPacket = null;
+
+        if (pk is ArrayPacket ap && ap.Offset >= size)
+        {
+            newPacket = new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
+
+            return true;
+        }
+        else if (pk is OwnerPacket owner && owner.Offset >= size)
+        {
+            newPacket = new OwnerPacket(owner.Buffer, owner.Offset - size, owner.Length + size) { Next = owner.Next };
+            owner.Free();
+
+            return true;
+        }
+
+        return false;
+    }
 }
 
 /// <summary>所有权内存包。具有所有权管理，不再使用时释放</summary>
@@ -346,7 +373,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <param name="offset"></param>
     /// <param name="length">长度</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private OwnerPacket(Byte[] buffer, Int32 offset, Int32 length)
+    public OwnerPacket(Byte[] buffer, Int32 offset, Int32 length)
     {
         if (offset < 0 || length < 0 || offset + length > buffer.Length)
             throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
@@ -500,6 +527,13 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         segment = default;
 
         return false;
+    }
+
+    /// <summary>释放所有权，不再使用</summary>
+    public void Free()
+    {
+        _buffer = null!;
+        Next = null;
     }
 
     /// <summary>钉住内存</summary>

@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Drawing;
 using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
@@ -132,6 +133,7 @@ public class WebSocketMessage : IDisposable
     {
         var body = Payload;
         var len = body == null ? 0 : body.Total;
+        var masks = MaskKey;
 
         // 特殊处理关闭消息
         if (len == 0 && Type == WebSocketMessageType.Close)
@@ -140,15 +142,28 @@ public class WebSocketMessage : IDisposable
             if (!StatusDescription.IsNullOrEmpty()) len += Encoding.UTF8.GetByteCount(StatusDescription);
         }
 
-        var rs = new OwnerPacket(1 + 1 + 8 + 4 + len);
+        //var rs = new OwnerPacket(1 + 1 + 8 + 4 + len);
+        var size = len switch
+        {
+            < 126 => 1 + 1,
+            < 0xFFFF => 1 + 1 + 2,
+            _ => 1 + 1 + 8,
+        };
+        if (masks != null) size += masks.Length;
+
+        if (body == null || !body.TryExpandHeader(size, out var rs))
+        {
+            if (Type == WebSocketMessageType.Close)
+                rs = new OwnerPacket(size + len);
+            else
+                rs = new OwnerPacket(size) { Next = body };
+        }
         var writer = new SpanWriter(rs.GetSpan())
         {
             IsLittleEndian = false
         };
 
         writer.WriteByte((Byte)(0x80 | (Byte)Type));
-
-        var masks = MaskKey;
 
         /*
          * 数据长度
@@ -208,7 +223,11 @@ public class WebSocketMessage : IDisposable
         {
             // 注意body可能是链式数据包
             //writer.Write(body.GetSpan());
-            return rs.Slice(0, writer.Position).Append(body);
+
+            // 扩展得到的数据包，直接写入了头部，尾部数据不用拷贝也无需切片
+            return rs;
+
+            //return rs.Slice(0, writer.Position).Append(body);
         }
         else if (Type == WebSocketMessageType.Close)
         {
