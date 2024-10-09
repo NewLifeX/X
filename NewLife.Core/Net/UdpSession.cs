@@ -23,16 +23,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>底层Socket</summary>
     Socket? ISocket.Client => Server?.Client;
 
-    ///// <summary>数据流</summary>
-    //public Stream Stream { get; set; }
-
-    private NetUri? _Local;
     /// <summary>本地地址</summary>
-    public NetUri Local
-    {
-        get => _Local ??= Server.Local;
-        set => Server.Local = _Local = value;
-    }
+    public NetUri Local { get; set; }
 
     /// <summary>端口</summary>
     public Int32 Port { get => Local.Port; set => Local.Port = value; }
@@ -83,6 +75,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         Remote = new NetUri(NetType.Udp, remote);
         Tracer = server.Tracer;
 
+        Local = server.Local.Clone();
         if (local != null) Local.Address = local;
 
         // 检查并开启广播

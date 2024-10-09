@@ -86,8 +86,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 // 启用地址重用后，即使旧进程未退出，新进程也可以监听，但只有旧进程退出后，新进程才能接受对该端口的连接请求
                 if (ReuseAddress) sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                if (sock.AddressFamily == AddressFamily.InterNetwork)
-                    sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+                // 无需设置SocketOptionName.PacketInformation，在ReceiveMessageFromAsync时会自动设置
+                //if (sock.AddressFamily == AddressFamily.InterNetwork)
+                //    sock.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
             }
             catch (Exception ex)
             {
@@ -237,6 +238,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
         // 每次接收以后，这个会被设置为远程地址，这里重置一下，以防万一
         se.RemoteEndPoint = new IPEndPoint(IPAddress.Any.GetRightAny(Local.EndPoint.AddressFamily), 0);
+
+        // 在StarAgent中，此时可能收到广播包，SocketFlags是Broadcast，需要清空，否则报错“参考的对象类型不支持尝试的操作”
+        se.SocketFlags = SocketFlags.None;
 
         //return Client.ReceiveFromAsync(se);
         return Client.ReceiveMessageFromAsync(se);
