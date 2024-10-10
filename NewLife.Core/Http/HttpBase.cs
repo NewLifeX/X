@@ -143,7 +143,7 @@ public abstract class HttpBase : IDisposable
 
         if (body != null) writer.Write(body.GetSpan());
 
-        return pk.SliceSingle(0, writer.Position);
+        return pk.Resize(writer.Position);
     }
 
     /// <summary>创建头部</summary>

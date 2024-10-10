@@ -333,11 +333,11 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <summary>缓冲区</summary>
     public Byte[] Buffer => _buffer;
 
-    private readonly Int32 _offset;
+    private Int32 _offset;
     /// <summary>数据偏移</summary>
     public Int32 Offset => _offset;
 
-    private readonly Int32 _length;
+    private Int32 _length;
     /// <summary>数据长度</summary>
     public Int32 Length => _length;
 
@@ -416,6 +416,30 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     ///// <param name="offset">偏移</param>
     ///// <param name="count">个数。默认-1表示到末尾</param>
     //IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
+
+    /// <summary>重新设置数据包大小。一般用于申请缓冲区并读取数据后设置为实际大小</summary>
+    /// <param name="size"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public OwnerPacket Resize(Int32 size)
+    {
+        if (size < 0) throw new ArgumentNullException(nameof(size));
+
+        if (Next == null)
+        {
+            if (size > _buffer.Length) throw new ArgumentOutOfRangeException(nameof(size));
+
+            _length = size;
+        }
+        else
+        {
+            if (size < _length)
+                _length = size;
+            else
+                throw new NotSupportedException();
+        }
+
+        return this;
+    }
 
     /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
     /// <remarks>

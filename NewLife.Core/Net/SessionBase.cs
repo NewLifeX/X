@@ -275,7 +275,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var size = Client.Receive(pk.Buffer, SocketFlags.None);
             if (span != null) span.Value = size;
 
-            return pk.SliceSingle(0, size);
+            return pk.Resize(size);
         }
         catch (Exception ex)
         {
@@ -306,7 +306,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 #endif
             if (span != null) span.Value = size;
 
-            return pk.SliceSingle(0, size);
+            return pk.Resize(size);
         }
         catch (Exception ex)
         {

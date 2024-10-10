@@ -253,7 +253,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
             if (span != null) span.Value = size;
 
-            return pk.SliceSingle(0, size);
+            return pk.Resize(size);
         }
         catch (Exception ex)
         {
@@ -289,7 +289,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 #endif
             if (span != null) span.Value = size;
 
-            return pk.SliceSingle(0, size);
+            return pk.Resize(size);
         }
         catch (Exception ex)
         {
