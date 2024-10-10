@@ -32,17 +32,8 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         if (Size == 0) len = IOHelper.GetEncodedInt(dlen).Length;
 
         // 尝试退格，直接利用缓冲区
-        if (msg is ArrayPacket ap && ap.Offset >= len)
-        {
-            // 向下传递时，不要转移所有权。向上传递到较高层级才需要转移所有权。
-            msg = new ArrayPacket(ap.Buffer, ap.Offset - len, ap.Length + len) { Next = ap.Next };
-        }
-        else
-        {
-            msg = new OwnerPacket(len) { Next = msg };
-        }
-
-        var writer = new SpanWriter(msg.GetSpan()) { IsLittleEndian = Size > 0 };
+        var pk = msg.ExpandHeader(len);
+        var writer = new SpanWriter(pk.GetSpan()) { IsLittleEndian = Size > 0 };
 
         switch (Size)
         {
@@ -68,7 +59,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
                 throw new NotSupportedException();
         }
 
-        return msg;
+        return pk;
     }
 
     /// <summary>解码</summary>

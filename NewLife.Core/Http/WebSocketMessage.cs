@@ -136,13 +136,12 @@ public class WebSocketMessage : IDisposable
         var masks = MaskKey;
 
         // 特殊处理关闭消息
-        if (len == 0 && Type == WebSocketMessageType.Close)
+        if (Type == WebSocketMessageType.Close)
         {
             len = 2;
             if (!StatusDescription.IsNullOrEmpty()) len += Encoding.UTF8.GetByteCount(StatusDescription);
         }
 
-        //var rs = new OwnerPacket(1 + 1 + 8 + 4 + len);
         var size = len switch
         {
             < 126 => 1 + 1,
@@ -150,14 +149,9 @@ public class WebSocketMessage : IDisposable
             _ => 1 + 1 + 8,
         };
         if (masks != null) size += masks.Length;
+        if (Type == WebSocketMessageType.Close) size += len;
 
-        if (body == null || !body.TryExpandHeader(size, out var rs))
-        {
-            if (Type == WebSocketMessageType.Close)
-                rs = new OwnerPacket(size + len);
-            else
-                rs = new OwnerPacket(size) { Next = body };
-        }
+        var rs = body.ExpandHeader(size);
         var writer = new SpanWriter(rs.GetSpan())
         {
             IsLittleEndian = false
@@ -233,6 +227,8 @@ public class WebSocketMessage : IDisposable
         {
             writer.Write((Int16)CloseStatus);
             if (!StatusDescription.IsNullOrEmpty()) writer.Write(StatusDescription, -1);
+
+            rs.Next = null;
         }
 
         return rs.Slice(0, writer.Position);

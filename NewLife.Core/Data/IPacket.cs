@@ -296,10 +296,11 @@ public static class PacketHelper
     }
 
     /// <summary>尝试扩展头部，用于填充包头，减少内存分配</summary>
-    /// <param name="pk"></param>
-    /// <param name="size"></param>
-    /// <param name="newPacket"></param>
+    /// <param name="pk">数据包</param>
+    /// <param name="size">要扩大的头部大小，不包括负载数据</param>
+    /// <param name="newPacket">扩展后的数据包</param>
     /// <returns></returns>
+    [Obsolete]
     public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
     {
         newPacket = null;
@@ -319,6 +320,27 @@ public static class PacketHelper
         }
 
         return false;
+    }
+
+    /// <summary>扩展头部，用于填充包头，减少内存分配</summary>
+    /// <param name="pk">数据包</param>
+    /// <param name="size">要扩大的头部大小，不包括负载数据</param>
+    /// <returns>扩展后的数据包</returns>
+    public static IPacket ExpandHeader(this IPacket? pk, Int32 size)
+    {
+        if (pk is ArrayPacket ap && ap.Offset >= size)
+        {
+            return new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
+        }
+        else if (pk is OwnerPacket owner && owner.Offset >= size)
+        {
+            var newPacket = new OwnerPacket(owner.Buffer, owner.Offset - size, owner.Length + size) { Next = owner.Next };
+            owner.Free();
+
+            return newPacket;
+        }
+
+        return new OwnerPacket(size) { Next = pk };
     }
 }
 
