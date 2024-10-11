@@ -313,8 +313,7 @@ public static class PacketHelper
         }
         else if (pk is OwnerPacket owner && owner.Offset >= size)
         {
-            newPacket = new OwnerPacket(owner.Buffer, owner.Offset - size, owner.Length + size) { Next = owner.Next };
-            owner.Free();
+            newPacket = new OwnerPacket(owner, size);
 
             return true;
         }
@@ -334,10 +333,7 @@ public static class PacketHelper
         }
         else if (pk is OwnerPacket owner && owner.Offset >= size)
         {
-            var newPacket = new OwnerPacket(owner.Buffer, owner.Offset - size, owner.Length + size) { Next = owner.Next };
-            owner.Free();
-
-            return newPacket;
+            return new OwnerPacket(owner, size);
         }
 
         return new OwnerPacket(size) { Next = pk };
@@ -374,6 +370,8 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 
     /// <summary>总长度</summary>
     public Int32 Total => Length + (Next?.Total ?? 0);
+
+    private Boolean _hasOwner;
     #endregion
 
     #region 构造
@@ -388,14 +386,16 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         _buffer = ArrayPool<Byte>.Shared.Rent(length);
         _offset = 0;
         _length = length;
+        _hasOwner = true;
     }
 
     /// <summary>实例化内存包，指定内存所有者和长度</summary>
     /// <param name="buffer">缓冲区</param>
     /// <param name="offset"></param>
     /// <param name="length">长度</param>
+    /// <param name="hasOwner">是否转移所有权</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public OwnerPacket(Byte[] buffer, Int32 offset, Int32 length)
+    public OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, Boolean hasOwner)
     {
         if (offset < 0 || length < 0 || offset + length > buffer.Length)
             throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
@@ -403,12 +403,31 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         _buffer = buffer;
         _offset = offset;
         _length = length;
+        _hasOwner = hasOwner;
+    }
+
+    /// <summary>从另一个内存包创建新内存包，共用缓冲区</summary>
+    /// <param name="owner"></param>
+    /// <param name="expandSize"></param>
+    public OwnerPacket(OwnerPacket owner, Int32 expandSize)
+    {
+        _buffer = owner.Buffer;
+        _offset = owner.Offset - expandSize;
+        _length = owner.Length + expandSize;
+        Next = owner.Next;
+
+        // 转移所有权
+        _hasOwner = owner._hasOwner;
+        owner._hasOwner = false;
     }
 
     /// <summary>销毁释放</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
     {
+        if (!_hasOwner) return;
+        _hasOwner = true;
+
         var buffer = _buffer;
         if (buffer != null)
         {
@@ -430,15 +449,6 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <returns></returns>
     public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
-    ///// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    ///// <remarks>
-    ///// 可能是引用同一块内存，也可能是新的内存。
-    ///// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    ///// </remarks>
-    ///// <param name="offset">偏移</param>
-    ///// <param name="count">个数。默认-1表示到末尾</param>
-    //IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
-
     /// <summary>重新设置数据包大小。一般用于申请缓冲区并读取数据后设置为实际大小</summary>
     /// <param name="size"></param>
     /// <exception cref="ArgumentNullException"></exception>
@@ -454,38 +464,12 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         }
         else
         {
-            if (size < _length)
-                _length = size;
-            else
-                throw new NotSupportedException();
+            if (size >= _length) throw new NotSupportedException();
+
+            _length = size;
         }
 
         return this;
-    }
-
-    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    public OwnerPacket SliceSingle(Int32 offset, Int32 count)
-    {
-        // 带有Next时，不支持Slice
-        if (Next != null) throw new NotSupportedException("Slice with Next");
-
-        // 只有一次Slice机会
-        if (_buffer == null) throw new InvalidDataException();
-
-        var remain = _length - offset;
-        if (count < 0 || count > remain) count = remain;
-
-        // 转移管理权
-        var buffer = _buffer;
-        _buffer = null!;
-
-        return new OwnerPacket(buffer, _offset + offset, count);
     }
 
     /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
@@ -503,8 +487,10 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         // 只有一次Slice机会
         if (_buffer == null) throw new InvalidDataException();
 
+        var buffer = _buffer;
         var start = _offset + offset;
         var remain = _length - offset;
+        var hasOwner = _hasOwner;
 
         // 超出范围
         if (count > Total - offset) throw new ArgumentOutOfRangeException(nameof(count), "count must be non-negative and less than or equal to the memory owner's length.");
@@ -513,44 +499,27 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         if (Next == null)
         {
             // 转移管理权
-            var buffer = _buffer;
-            _buffer = null!;
+            _hasOwner = false;
 
             if (count < 0 || count > remain) count = remain;
-            return new OwnerPacket(buffer, start, count);
+            return new OwnerPacket(buffer, start, count, hasOwner);
         }
         else
         {
             // 如果当前段用完，则取下一段
-            if (remain <= 0)
-            {
-                var rs = Next.Slice(offset - _length, count);
-                // 切分后数据包要用到Next，这里清空避免当前包释放时把Next也释放
-                Next = null;
-                return rs;
-            }
+            if (remain <= 0) return Next.Slice(offset - _length, count);
 
             // 转移管理权
-            var buffer = _buffer;
-            _buffer = null!;
+            _hasOwner = false;
 
             // 当前包用一截，剩下的全部
-            if (count < 0)
-            {
-                var rs = new OwnerPacket(buffer, start, remain) { Next = Next };
-                Next = null;
-                return rs;
-            }
+            if (count < 0) return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next };
 
             // 当前包可以读完
-            if (count <= remain) return new OwnerPacket(buffer, start, count);
+            if (count <= remain) return new OwnerPacket(buffer, start, count, hasOwner);
 
             // 当前包用一截，剩下的再截取
-            {
-                var rs = new OwnerPacket(buffer, start, remain) { Next = Next.Slice(0, count - remain) };
-                Next = null;
-                return rs;
-            }
+            return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next.Slice(0, count - remain) };
         }
     }
 
