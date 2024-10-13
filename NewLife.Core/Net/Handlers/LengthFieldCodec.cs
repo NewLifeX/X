@@ -76,7 +76,8 @@ public class LengthFieldCodec : MessageCodec<IPacket>
             {
                 Expire = Expire,
                 GetLength = p => GetLength(p, Offset, Size),
-                Offset = Offset,
+                GetLength2 = p => GetLength(p, Offset, Size),
+                //Offset = Offset,
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };

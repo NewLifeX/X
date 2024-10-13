@@ -75,6 +75,7 @@ public class StandardCodec : MessageCodec<IMessage>
             ss["Codec"] = pc = new PacketCodec
             {
                 GetLength = DefaultMessage.GetLength,
+                GetLength2 = DefaultMessage.GetLength,
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };

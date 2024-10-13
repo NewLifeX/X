@@ -200,34 +200,24 @@ public class MessageCodec<T> : Handler
         switch (size)
         {
             case 0:
-                //var ms = pk.GetStream();
-                //if (offset > 0) ms.Seek(offset, SeekOrigin.Current);
-                //len = ms.ReadEncodedInt();
-
-                //// 计算变长的头部长度
-                //len += (Int32)(ms.Position - offset);
+                // 计算变长的头部长度
                 var p = reader.Position;
                 len = reader.ReadEncodedInt() + reader.Position - p;
                 break;
             case 1:
-                //len = pk[offset];
                 len = reader.ReadByte();
                 break;
             case 2:
-                //len = pk.ReadBytes(offset, 2).ToUInt16();
                 len = reader.ReadUInt16();
                 break;
             case 4:
-                //len = (Int32)pk.ReadBytes(offset, 4).ToUInt32();
                 len = reader.ReadInt32();
                 break;
             case -2:
-                //len = pk.ReadBytes(offset, 2).ToUInt16(0, false);
                 reader.IsLittleEndian = false;
                 len = reader.ReadUInt16();
                 break;
             case -4:
-                //len = (Int32)pk.ReadBytes(offset, 4).ToUInt32(0, false);
                 reader.IsLittleEndian = false;
                 len = reader.ReadInt32();
                 break;
@@ -241,7 +231,61 @@ public class MessageCodec<T> : Handler
         // 数据长度加上头部长度
         len += Math.Abs(size);
 
-        return len;
+        return offset + len;
+    }
+
+    /// <summary>从数据流中获取整帧数据长度</summary>
+    /// <param name="span">数据包</param>
+    /// <param name="offset">长度的偏移量</param>
+    /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
+    /// <returns>数据帧长度（包含头部长度位）</returns>
+    public static Int32 GetLength(ReadOnlySpan<Byte> span, Int32 offset, Int32 size)
+    {
+        if (offset < 0) return span.Length;
+
+        // 数据不够，连长度都读取不了
+        if (offset >= span.Length) return 0;
+
+        var reader = new SpanReader(span);
+        reader.Advance(offset);
+
+        // 读取大小
+        var len = 0;
+        switch (size)
+        {
+            case 0:
+                // 计算变长的头部长度
+                var p = reader.Position;
+                len = reader.ReadEncodedInt() + reader.Position - p;
+                break;
+            case 1:
+                len = reader.ReadByte();
+                break;
+            case 2:
+                len = reader.ReadUInt16();
+                break;
+            case 4:
+                len = reader.ReadInt32();
+                break;
+            case -2:
+                reader.IsLittleEndian = false;
+                len = reader.ReadUInt16();
+                break;
+            case -4:
+                reader.IsLittleEndian = false;
+                len = reader.ReadInt32();
+                break;
+            default:
+                throw new NotSupportedException();
+        }
+
+        // 判断后续数据是否足够
+        if (len > span.Length) return 0;
+
+        // 数据长度加上头部长度
+        len += Math.Abs(size);
+
+        return offset + len;
     }
     #endregion
 }

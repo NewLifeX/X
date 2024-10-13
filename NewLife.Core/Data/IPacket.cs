@@ -371,7 +371,35 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <summary>获取/设置 指定位置的字节</summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    public Byte this[Int32 index] { get => _buffer[_offset + index]; set => _buffer[_offset + index] = value; }
+    public Byte this[Int32 index]
+    {
+        get
+        {
+            var p = index - _length;
+            if (p >= 0)
+            {
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
+
+                return Next[p];
+            }
+
+            return _buffer[_offset + index];
+        }
+        set
+        {
+            var p = index - _length;
+            if (p >= 0)
+            {
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
+
+                Next[p] = value;
+            }
+            else
+            {
+                _buffer[_offset + index] = value;
+            }
+        }
+    }
 
     /// <summary>下一个链式包</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -596,7 +624,35 @@ public struct MemoryPacket : IPacket
     /// <summary>获取/设置 指定位置的字节</summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    public readonly Byte this[Int32 index] { get => _memory.Span[index]; set => _memory.Span[index] = value; }
+    public Byte this[Int32 index]
+    {
+        get
+        {
+            var p = index - _length;
+            if (p >= 0)
+            {
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
+
+                return Next[p];
+            }
+
+            return _memory.Span[index];
+        }
+        set
+        {
+            var p = index - _length;
+            if (p >= 0)
+            {
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
+
+                Next[p] = value;
+            }
+            else
+            {
+                _memory.Span[index] = value;
+            }
+        }
+    }
 
     /// <summary>下一个链式包</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -706,41 +762,29 @@ public struct ArrayPacket : IPacket
     {
         get
         {
-            // 超过下标直接报错,谁也不想处理了异常的数据也不知道
-            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
-
-            var p = Offset + index;
-            if (p >= Offset + _length)
+            var p = index - _length;
+            if (p >= 0)
             {
-                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
 
-                return Next[index - _length];
+                return Next[p];
             }
 
-            return Buffer[p];
-
-            // Offset 至 Offset+Count 代表了当前链的可用数据区
-            // Count 是当前链的实际可用数据长度,(而用 Data.Length 是不准确的,Data的数据不是全部可用),
-            // 所以  这里通过索引取整个链表的索引数据应该用 Count 作运算.              
+            return _buffer[_offset + index];
         }
         set
         {
-            if (index < 0) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds");
-
-            // 设置 对应索引 的数据 应该也是针对整个链表的有效数据区
-            var p = Offset + index;
-            if (index >= _length)
+            var p = index - _length;
+            if (p >= 0)
             {
-                if (Next == null) throw new IndexOutOfRangeException($"Index [{index}] is out of bounds [>{Total - 1}]");
+                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
 
-                Next[p - Buffer.Length] = value;
+                Next[p] = value;
             }
             else
             {
-                Buffer[p] = value;
+                _buffer[_offset + index] = value;
             }
-
-            // 基础类需要严谨给出明确功用，不能模棱两可，因此不能越界
         }
     }
     #endregion

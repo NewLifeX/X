@@ -162,11 +162,16 @@ public class DefaultMessage : Message
     /// <summary>获取数据包长度</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
-    public static Int32 GetLength(IPacket pk)
-    {
-        if (pk.Length < 4) return 0;
+    public static Int32 GetLength(IPacket pk) => GetLength(pk.GetSpan());
 
-        var reader = new SpanReader(pk.GetSpan()) { IsLittleEndian = true };
+    /// <summary>获取数据包长度</summary>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    public static Int32 GetLength(ReadOnlySpan<Byte> span)
+    {
+        if (span.Length < 4) return 0;
+
+        var reader = new SpanReader(span) { IsLittleEndian = true };
         reader.Advance(2);
 
         // 小于64k，直接返回
@@ -175,7 +180,7 @@ public class DefaultMessage : Message
         if (len < 0xFFFF) return 4 + len;
 
         // 超过64k的超大数据包，再来4个字节
-        if (pk.Length < 8) return 0;
+        if (span.Length < 8) return 0;
 
         //return 8 + (Int32)pk.Data.ToUInt32(pk.Offset + 2 + 2);
         return 8 + reader.ReadInt32();

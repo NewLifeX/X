@@ -5,6 +5,11 @@ using NewLife.Log;
 
 namespace NewLife.Messaging;
 
+/// <summary>获取长度的委托</summary>
+/// <param name="span"></param>
+/// <returns></returns>
+public delegate Int32 GetLengthDelegate(ReadOnlySpan<Byte> span);
+
 /// <summary>数据包编码器</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/packet_codec
@@ -19,8 +24,11 @@ public class PacketCodec
     /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
     public Func<IPacket, Int32>? GetLength { get; set; }
 
-    /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
-    public Int32 Offset { get; set; }
+    /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
+    public GetLengthDelegate? GetLength2 { get; set; }
+
+    ///// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
+    //public Int32 Offset { get; set; }
 
     /// <summary>最后一次解包成功，而不是最后一次接收</summary>
     public DateTime Last { get; set; } = DateTime.Now;
@@ -43,7 +51,9 @@ public class PacketCodec
         var ms = Stream;
         var nodata = ms == null || ms.Position < 0 || ms.Position >= ms.Length;
 
-        var func = GetLength ?? throw new ArgumentNullException(nameof(GetLength));
+        var func = GetLength;
+        var func2 = GetLength2;
+        if (func == null && func2 == null) throw new ArgumentNullException(nameof(GetLength));
 
         var list = new List<IPacket>();
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
@@ -56,16 +66,26 @@ public class PacketCodec
             var idx = 0;
             while (idx < pk.Total)
             {
-                // 切出来一片，计算长度
-                var pk2 = pk.Slice(idx, -1, false);
-                var len = func(pk2);
-                if (len <= 0 || len > pk2.Total) break;
+                // 基于Span的性能更优，但是它不支持链式包。网络接收中几乎不存在链式包
+                var len = 0;
+                if (func2 != null && pk.Next == null)
+                {
+                    // 切出来一片，计算长度
+                    var span = pk.GetSpan().Slice(idx);
+                    len = func2(span);
+                    if (len <= 0 || len > span.Length) break;
+                }
+                else
+                {
+                    // 切出来一片，计算长度
+                    var pk2 = pk.Slice(idx, -1, false);
+                    len = func!(pk2);
+                    if (len <= 0 || len > pk2.Total) break;
+                }
 
                 // 根据计算得到的长度，重新设置数据片正确长度
-                //pk2.Set(pk2.Data, pk2.Offset, Offset + len);
-                pk2 = pk2.Slice(0, Offset + len, false);
-                list.Add(pk2);
-                idx += Offset + len;
+                list.Add(pk.Slice(idx, len, false));
+                idx += len;
             }
             // 如果没有剩余，可以返回
             if (idx == pk.Total) return list.ToArray();
@@ -99,7 +119,7 @@ public class PacketCodec
                 var pk2 = new ArrayPacket(ms);
                 // 这里可以肯定能够窃取内部缓冲区
                 //var pk2 = new ArrayPacket(ms.GetBuffer(), (Int32)ms.Position, (Int32)(ms.Length - ms.Position));
-                var len = func(pk2);
+                var len = func2 != null ? func2(pk2.GetSpan()) : func!(pk2);
                 if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
@@ -107,7 +127,7 @@ public class PacketCodec
                 //pk2 = new ArrayPacket(pk2.Buffer, pk2.Offset, pk2.Offset + len);
                 list.Add(pk2.Slice(0, len));
 
-                ms.Seek(Offset + len, SeekOrigin.Current);
+                ms.Seek(len, SeekOrigin.Current);
             }
 
             // 如果读完了数据，需要重置缓冲区

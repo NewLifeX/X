@@ -77,6 +77,7 @@ public class SplitDataCodec : Handler
             {
                 MaxCache = MaxCacheDataLength,
                 GetLength = GetLineLength,
+                GetLength2 = GetLineLength,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
         }
@@ -92,6 +93,19 @@ public class SplitDataCodec : Handler
     protected Int32 GetLineLength(IPacket pk)
     {
         var idx = pk.GetSpan().IndexOf(SplitData);
+        if (idx < 0) return 0;
+
+        return idx + SplitData.Length;
+    }
+
+    /// <summary>
+    /// 获取包含分割字节在内的数据长度
+    /// </summary>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    protected Int32 GetLineLength(ReadOnlySpan<Byte> span)
+    {
+        var idx = span.IndexOf(SplitData);
         if (idx < 0) return 0;
 
         return idx + SplitData.Length;

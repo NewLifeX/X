@@ -7,10 +7,10 @@ namespace NewLife.Buffers;
 
 /// <summary>Span读取器</summary>
 /// <param name="span"></param>
-public ref struct SpanReader(Span<Byte> span)
+public ref struct SpanReader//(ReadOnlySpan<Byte> span)
 {
     #region 属性
-    private readonly Span<Byte> _span = span;
+    private readonly ReadOnlySpan<Byte> _span;
 
     private Int32 _index;
     /// <summary>已读取字节数</summary>
@@ -24,6 +24,16 @@ public ref struct SpanReader(Span<Byte> span)
 
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
+    #endregion
+
+    #region 构造
+    /// <summary>实例化。暂时兼容旧版，后面使用主构造函数</summary>
+    /// <param name="span"></param>
+    public SpanReader(ReadOnlySpan<Byte> span) => _span = span;
+
+    /// <summary>实例化。暂时兼容旧版，后面删除</summary>
+    /// <param name="span"></param>
+    public SpanReader(Span<Byte> span) => _span = span;
     #endregion
 
     #region 基础方法
@@ -41,7 +51,7 @@ public ref struct SpanReader(Span<Byte> span)
     /// <param name="sizeHint"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public Span<Byte> GetSpan(Int32 sizeHint = 0)
+    public ReadOnlySpan<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
 
@@ -198,7 +208,7 @@ public ref struct SpanReader(Span<Byte> span)
     /// <param name="length"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public Span<Byte> ReadBytes(Int32 length)
+    public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
         EnsureSpace(length);
 
