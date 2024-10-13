@@ -62,7 +62,7 @@ public class HttpRequest : HttpBase
 
         var line = data.Slice(0, p).ToStr();
 
-        Body = pk.Slice(p + 2);
+        Body = pk.Slice(p + 2, -1, true);
 
         // 分析第一行
         if (!OnParse(line)) return false;

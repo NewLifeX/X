@@ -108,7 +108,7 @@ public class DefaultMessage : Message
         }
 
         // 负载数据
-        Payload = pk.Slice(size, len);
+        Payload = pk.Slice(size, len, true);
 
         return true;
     }

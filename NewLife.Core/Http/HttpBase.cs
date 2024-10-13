@@ -94,19 +94,8 @@ public abstract class HttpBase : IDisposable
             header = header[(p2 + 2)..];
         }
 
-        //var str = pk.ReadBytes(0, p).ToStr();
-
         // 截取主体，获取所有权
-        //var lines = str.Split("\r\n");
-        Body = pk.Slice(p + 4);
-
-        //// 分析头部
-        //for (var i = 1; i < lines.Length; i++)
-        //{
-        //    var line = lines[i];
-        //    p = line.IndexOf(':');
-        //    if (p > 0) Headers[line[..p]] = line[(p + 1)..].Trim();
-        //}
+        Body = pk.Slice(p + 4, -1, true);
 
         ContentLength = Headers["Content-Length"].ToInt(-1);
         ContentType = Headers["Content-Type"];

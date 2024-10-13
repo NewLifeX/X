@@ -96,7 +96,7 @@ public class WebSocketMessage : IDisposable
         // 如果mask，剩下的就是数据，避免拷贝，提升性能
         if (!mask)
         {
-            Payload = pk.Slice(reader.Position, (Int32)len);
+            Payload = pk.Slice(reader.Position, (Int32)len, true);
         }
         else
         {
@@ -107,7 +107,7 @@ public class WebSocketMessage : IDisposable
             if (mask)
             {
                 // 直接在数据缓冲区修改，避免拷贝
-                Payload = pk.Slice(reader.Position, (Int32)len);
+                Payload = pk.Slice(reader.Position, (Int32)len, true);
                 var data = Payload.GetSpan();
                 for (var i = 0; i < len; i++)
                 {
@@ -231,7 +231,7 @@ public class WebSocketMessage : IDisposable
             rs.Next = null;
         }
 
-        return rs.Slice(0, writer.Position);
+        return rs.Slice(0, writer.Position, true);
     }
     #endregion
 }

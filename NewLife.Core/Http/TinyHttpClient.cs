@@ -268,7 +268,7 @@ public class TinyHttpClient : DisposeBase
                 // 更新pk，可能还有粘包数据。每一帧数据后面有\r\n
                 var next = offset + len + 2;
                 if (next < pk.Length)
-                    pk = pk.Slice(next);
+                    pk = pk.Slice(next, -1, true);
                 else
                 {
                     pk.TryDispose();
@@ -298,7 +298,7 @@ public class TinyHttpClient : DisposeBase
 
                         // 如果还有剩余，作为下一个chunk
                         if (remain + 2 < memory.Length)
-                            pk = pk2.Slice(remain + 2);
+                            pk = pk2.Slice(remain + 2, -1, true);
                         else
                             pk2.TryDispose();
 

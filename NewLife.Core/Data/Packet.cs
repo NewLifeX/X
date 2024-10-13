@@ -212,6 +212,7 @@ public class Packet : IPacket
     }
 
     IPacket IPacket.Slice(Int32 offset, Int32 count) => Slice(offset, count);
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
     /// <summary>查找目标数组</summary>
     /// <param name="data">目标数组</param>

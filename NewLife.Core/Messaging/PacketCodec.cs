@@ -57,13 +57,13 @@ public class PacketCodec
             while (idx < pk.Total)
             {
                 // 切出来一片，计算长度
-                var pk2 = pk.Slice(idx);
+                var pk2 = pk.Slice(idx, -1, false);
                 var len = func(pk2);
                 if (len <= 0 || len > pk2.Total) break;
 
                 // 根据计算得到的长度，重新设置数据片正确长度
                 //pk2.Set(pk2.Data, pk2.Offset, Offset + len);
-                pk2 = pk2.Slice(0, len);
+                pk2 = pk2.Slice(0, Offset + len, false);
                 list.Add(pk2);
                 idx += Offset + len;
             }
@@ -71,7 +71,7 @@ public class PacketCodec
             if (idx == pk.Total) return list.ToArray();
 
             // 剩下的
-            pk = pk.Slice(idx);
+            pk = pk.Slice(idx, -1, false);
         }
 
         // 加锁，避免多线程冲突

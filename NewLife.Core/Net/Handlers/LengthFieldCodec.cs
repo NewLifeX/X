@@ -9,14 +9,14 @@ namespace NewLife.Net.Handlers;
 public class LengthFieldCodec : MessageCodec<IPacket>
 {
     #region 属性
-    /// <summary>长度所在位置</summary>
+    /// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
     public Int32 Offset { get; set; }
 
     /// <summary>长度占据字节数，1/2/4个字节，0表示压缩编码整数，默认2</summary>
     public Int32 Size { get; set; } = 2;
 
-    /// <summary>过期时间，超过该时间后按废弃数据处理，默认500ms</summary>
-    public Int32 Expire { get; set; } = 500;
+    /// <summary>过期时间，超过该时间后按废弃数据处理，默认5000ms</summary>
+    public Int32 Expire { get; set; } = 5_000;
     #endregion
 
     /// <summary>编码</summary>
@@ -88,7 +88,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         var len = Offset + Math.Abs(Size);
         for (var i = 0; i < pks.Count; i++)
         {
-            pks[i] = pks[i].Slice(len);
+            pks[i] = pks[i].Slice(len, -1, true);
         }
 
         return pks;

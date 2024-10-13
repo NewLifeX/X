@@ -43,15 +43,24 @@ public interface IPacket
     /// <returns></returns>
     Memory<Byte> GetMemory();
 
-    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
+    /// <summary>切片得到新数据包</summary>
+    /// <remarks>引用相同内存块或缓冲区，减少内存分配</remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
     /// <returns></returns>
     IPacket Slice(Int32 offset, Int32 count = -1);
+
+    /// <summary>切片得到新数据包，同时转移内存管理权</summary>
+    /// <remarks>
+    /// 引用相同内存块或缓冲区，减少内存分配。
+    /// 如果原数据包只切一次给新包，可以转移内存管理权，由新数据包负责释放；
+    /// 如果原数据包需要切多次，不要转移内存管理权，由原数据包负责释放。
+    /// </remarks>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。若为true则由新数据包负责归还缓冲区，只能转移一次。并非所有数据包都支持</param>
+    /// <returns></returns>
+    IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
 
     /// <summary>尝试获取缓冲区</summary>
     /// <param name="segment"></param>
@@ -472,25 +481,26 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         return this;
     }
 
-    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
+    /// <summary>切片得到新数据包</summary>
+    /// <remarks>引用相同内存块，减少内存分配</remarks>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public IPacket Slice(Int32 offset, Int32 count)
-    {
-        //// 带有Next时，不支持Slice
-        //if (Next != null) throw new NotSupportedException("Slice with Next");
+    public IPacket Slice(Int32 offset, Int32 count) => Slice(offset, count, true);
 
-        // 只有一次Slice机会
+    /// <summary>切片得到新数据包，同时转移内存管理权</summary>
+    /// <remarks>引用相同内存块，减少内存分配</remarks>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。若为true则由新数据包负责归还缓冲区，只能转移一次</param>
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)
+    {
+        // 释放后无法再次使用
         if (_buffer == null) throw new InvalidDataException();
 
         var buffer = _buffer;
         var start = _offset + offset;
         var remain = _length - offset;
-        var hasOwner = _hasOwner;
+        var hasOwner = _hasOwner && transferOwner;
 
         // 超出范围
         if (count > Total - offset) throw new ArgumentOutOfRangeException(nameof(count), "count must be non-negative and less than or equal to the memory owner's length.");
@@ -499,27 +509,27 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         if (Next == null)
         {
             // 转移管理权
-            _hasOwner = false;
+            if (transferOwner) _hasOwner = false;
 
             if (count < 0 || count > remain) count = remain;
             return new OwnerPacket(buffer, start, count, hasOwner);
         }
         else
         {
-            // 如果当前段用完，则取下一段
-            if (remain <= 0) return Next.Slice(offset - _length, count);
+            // 如果当前段用完，则取下一段。当前包自己负责释放
+            if (remain <= 0) return Next.Slice(offset - _length, count, transferOwner);
 
             // 转移管理权
-            _hasOwner = false;
+            if (transferOwner) _hasOwner = false;
 
-            // 当前包用一截，剩下的全部
+            // 当前包用一截，剩下的全部。转移管理权后，Next随新包一起释放
             if (count < 0) return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next };
 
-            // 当前包可以读完
+            // 当前包可以读完。转移管理权后，Next失去释放机会
             if (count <= remain) return new OwnerPacket(buffer, start, count, hasOwner);
 
-            // 当前包用一截，剩下的再截取
-            return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next.Slice(0, count - remain) };
+            // 当前包用一截，剩下的再截取。转移管理权后，Next再次转移管理权，随新包一起释放
+            return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next.Slice(0, count - remain, transferOwner) };
         }
     }
 
@@ -617,14 +627,16 @@ public struct MemoryPacket : IPacket
     /// <returns></returns>
     public readonly Memory<Byte> GetMemory() => _memory[.._length];
 
-    /// <summary>切片得到新数据包</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
+    /// <summary>切片得到新数据包，共用内存块</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public readonly IPacket Slice(Int32 offset, Int32 count)
+    public IPacket Slice(Int32 offset, Int32 count) => Slice(offset, count, true);
+
+    /// <summary>切片得到新数据包，共用内存块</summary>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。不支持</param>
+    public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)
     {
         // 带有Next时，不支持Slice
         if (Next != null) throw new NotSupportedException("Slice with Next");
@@ -656,7 +668,7 @@ public struct MemoryPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override readonly String ToString() => $"[{_memory.Length}](0, {_length})" + (Next == null ? "" : $"<{Total}>");
+    public override readonly String ToString() => $"[{_memory.Length}](0, {_length})<{Total}>";
 }
 
 /// <summary>字节数组包</summary>
@@ -799,27 +811,34 @@ public struct ArrayPacket : IPacket
     /// <returns></returns>
     public readonly Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
-    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
+    /// <summary>切片得到新数据包，共用缓冲区</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    public readonly ArrayPacket Slice(Int32 offset, Int32 count) => (ArrayPacket)(this as IPacket).Slice(offset, count);
+    IPacket IPacket.Slice(Int32 offset, Int32 count) => (this as IPacket).Slice(offset, count, true);
 
-    /// <summary>切片得到新数据包，同时转移内存管理权，当前数据包应尽快停止使用</summary>
-    /// <remarks>
-    /// 可能是引用同一块内存，也可能是新的内存。
-    /// 可能就是当前数据包，也可能引用相同的所有者或数组。
-    /// </remarks>
+    /// <summary>切片得到新数据包，共用缓冲区</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    IPacket IPacket.Slice(Int32 offset, Int32 count)
+    /// <param name="transferOwner">转移所有权。仅对Next有效</param>
+    IPacket IPacket.Slice(Int32 offset, Int32 count, Boolean transferOwner)
     {
         if (count == 0) return Empty;
 
-        IPacket? pk = null;
+        var remain = _length - offset;
+        var next = Next;
+        if (next != null && remain <= 0) return next.Slice(offset - _length, count, transferOwner);
+
+        return Slice(offset, count, transferOwner);
+    }
+
+    /// <summary>切片得到新数据包，共用缓冲区，无内存分配</summary>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">个数。默认-1表示到末尾</param>
+    /// <param name="transferOwner">转移所有权。仅对Next有效</param>
+    public ArrayPacket Slice(Int32 offset, Int32 count = -1, Boolean transferOwner = false)
+    {
+        if (count == 0) return Empty;
+
         var start = Offset + offset;
         var remain = _length - offset;
 
@@ -830,28 +849,25 @@ public struct ArrayPacket : IPacket
             if (count < 0 || count > remain) count = remain;
             if (count < 0) count = 0;
 
-            pk = new ArrayPacket(_buffer, start, count);
+            return new ArrayPacket(_buffer, start, count);
         }
         else
         {
-            // 如果当前段用完，则取下一段
+            // 如果当前段用完，则取下一段。强转ArrayPacket，如果不是则抛出异常
             if (remain <= 0)
-                pk = next.Slice(offset - _length, count);
+                return (ArrayPacket)next.Slice(offset - _length, count, transferOwner);
 
             // 当前包用一截，剩下的全部
-            else if (count < 0)
-                pk = new ArrayPacket(_buffer, start, remain) { Next = next };
+            if (count < 0)
+                return new ArrayPacket(_buffer, start, remain) { Next = next };
 
             // 当前包可以读完
-            else if (count <= remain)
-                pk = new ArrayPacket(_buffer, start, count);
+            if (count <= remain)
+                return new ArrayPacket(_buffer, start, count);
 
             // 当前包用一截，剩下的再截取
-            else
-                pk = new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain) };
+            return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain, transferOwner) };
         }
-
-        return pk;
     }
 
     /// <summary>尝试获取缓冲区</summary>
