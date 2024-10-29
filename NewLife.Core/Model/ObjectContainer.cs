@@ -21,12 +21,12 @@ public class ObjectContainer : IObjectContainer
     {
         var ioc = new ObjectContainer();
         Current = ioc;
-        Provider = ioc.BuildServiceProvider() ?? new ServiceProvider(ioc);
+        Provider = ioc.BuildServiceProvider();
     }
     #endregion
 
     #region 属性
-    private readonly IList<IObject> _list = new List<IObject>();
+    private readonly IList<IObject> _list = [];
     /// <summary>服务集合</summary>
     public IList<IObject> Services => _list;
 
@@ -126,7 +126,7 @@ public class ObjectContainer : IObjectContainer
         if (item.Lifetime == ObjectLifetime.Singleton && map?.Instance != null) return map.Instance;
 
         var type = item.ImplementationType ?? item.ServiceType;
-        serviceProvider ??= new ServiceProvider(this);
+        serviceProvider ??= new ServiceProvider(this, null);
         switch (item.Lifetime)
         {
             case ObjectLifetime.Singleton:
@@ -287,13 +287,13 @@ public class ServiceDescriptor : IObject
     #endregion
 }
 
-internal class ServiceProvider : IServiceProvider
+internal class ServiceProvider(IObjectContainer container, IServiceProvider? innerServiceProvider) : IServiceProvider
 {
-    private readonly IObjectContainer _container;
+    private readonly IObjectContainer _container = container;
     /// <summary>容器</summary>
     public IObjectContainer Container => _container;
 
-    public ServiceProvider(IObjectContainer container) => _container = container;
+    public IServiceProvider? InnerServiceProvider { get; set; } = innerServiceProvider;
 
     public Object? GetService(Type serviceType)
     {
@@ -311,6 +311,9 @@ internal class ServiceProvider : IServiceProvider
             });
         }
 
-        return _container.Resolve(serviceType, this);
+        var service = _container.Resolve(serviceType, this);
+        if (service != null) return service;
+
+        return InnerServiceProvider?.GetService(serviceType);
     }
 }

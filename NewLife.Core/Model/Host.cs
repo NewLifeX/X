@@ -85,7 +85,6 @@ public class Host : DisposeBase, IHost
     /// <summary>服务提供者</summary>
     public IServiceProvider ServiceProvider { get; set; }
 
-    //private readonly IList<Type> _serviceTypes = new List<Type>();
     /// <summary>服务集合</summary>
     public IList<IHostedService> Services { get; } = [];
     #endregion
@@ -125,9 +124,6 @@ public class Host : DisposeBase, IHost
     /// <typeparam name="TService"></typeparam>
     public void Add<TService>() where TService : class, IHostedService
     {
-        //var type = typeof(TService);
-        //_serviceTypes.Add(type);
-
         // 把服务类型注册到容器中，以便后续获取
         var ioc = (ServiceProvider as ServiceProvider)?.Container ?? ObjectContainer.Current;
         //ioc.TryAddTransient(type, type);

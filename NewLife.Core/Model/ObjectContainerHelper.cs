@@ -362,16 +362,22 @@ public static class ObjectContainerHelper
 
     #region 构建
     /// <summary>从对象容器创建服务提供者</summary>
-    /// <param name="container"></param>
+    /// <param name="container">对象容器</param>
     /// <returns></returns>
-    public static IServiceProvider BuildServiceProvider(this IObjectContainer container)
+    public static IServiceProvider BuildServiceProvider(this IObjectContainer container) => BuildServiceProvider(container, null);
+
+    /// <summary>从对象容器创建服务提供者，支持传入另一个服务提供者作为内部提供者</summary>
+    /// <param name="container">对象容器</param>
+    /// <param name="innerServiceProvider">内部服务提供者，常用于NETCore的IoC</param>
+    /// <returns></returns>
+    public static IServiceProvider BuildServiceProvider(this IObjectContainer container, IServiceProvider? innerServiceProvider)
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
         var provider = container.Resolve(typeof(IServiceProvider)) as IServiceProvider;
         if (provider != null) return provider;
 
-        var provider2 = new ServiceProvider(container);
+        var provider2 = new ServiceProvider(container, innerServiceProvider);
 
         container.TryAddSingleton(provider2);
 
