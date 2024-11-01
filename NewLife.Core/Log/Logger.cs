@@ -257,11 +257,16 @@ public abstract class Logger : ILog
         ThreadPool.GetAvailableThreads(out var avaWorker, out var avaIO);
         sb.AppendFormat("#ThreadPool: Min={0}/{1}, Max={2}/{3}, Available={4}/{5}\r\n", minWorker, minIO, maxWorker, maxIO, avaWorker, avaIO);
 
+        var set = Setting.Current;
         sb.AppendFormat("#SystemStarted: {0}\r\n", TimeSpan.FromMilliseconds(Runtime.TickCount64));
-        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now.AddHours(Setting.Current.UtcIntervalHours));
+        sb.AppendFormat("#Date: {0:yyyy-MM-dd}\r\n", DateTime.Now.AddHours(set.UtcIntervalHours));
         sb.AppendFormat("#详解：{0}\r\n", "https://newlifex.com/core/log");
         sb.AppendFormat("#字段: 时间 线程ID 线程池Y/网页W/普通N/定时T 线程名/任务ID 消息内容\r\n");
-        sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");
+        //sb.AppendFormat("#Fields: Time ThreadID Kind Name Message\r\n");
+
+        var format = set.LogLineFormat;
+        if (format.IsNullOrEmpty()) format = "Time|ThreadId|Kind|Name|Message";
+        sb.AppendFormat("#Fields: {0}\r\n", format.Replace('|', ' '));
 
         return sb.ToString();
     }

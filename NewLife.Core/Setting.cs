@@ -39,6 +39,10 @@ public class Setting : Config<Setting>
     [Description("日志文件格式。默认{0:yyyy_MM_dd}.log，支持日志等级如 {1}_{0:yyyy_MM_dd}.log")]
     public String LogFileFormat { get; set; } = "{0:yyyy_MM_dd}.log";
 
+    /// <summary>日志行格式。默认Time|ThreadId|Kind|Name|Message，还支持Level</summary>
+    [Description("日志行格式。默认Time|ThreadId|Kind|Name|Message，还支持Level")]
+    public String LogLineFormat { get; set; } = "Time|ThreadId|Kind|Name|Message";
+
     /// <summary>网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log</summary>
     [Description("网络日志。本地子网日志广播udp://255.255.255.255:514，或者http://xxx:80/log")]
     public String NetworkLog { get; set; } = "";

@@ -1,4 +1,6 @@
-﻿namespace NewLife.Log;
+﻿using NewLife.Collections;
+
+namespace NewLife.Log;
 
 /// <summary>写日志事件参数</summary>
 public class WriteLogEventArgs : EventArgs
@@ -112,6 +114,8 @@ public class WriteLogEventArgs : EventArgs
         return msg;
     }
 
+    private static String[]? _lines;
+    private static String? _lineFormat;
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString()
@@ -125,7 +129,49 @@ public class WriteLogEventArgs : EventArgs
         if (name.EqualIgnoreCase(".NET Long Running Task")) name = "LongTask";
         if (name.EqualIgnoreCase(".NET TP Worker")) name = "TP";
 
-        return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
+        //return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
+
+        var lines = _lines;
+        if (lines == null || lines.Length == 0)
+        {
+            var format = Setting.Current.LogLineFormat;
+            if (format.IsNullOrEmpty()) format = "Time|ThreadId|Kind|Name|Message";
+            lines = _lines = format.Split("|");
+        }
+
+        var sb = Pool.StringBuilder.Get();
+
+        for (var i = 0; i < lines.Length; i++)
+        {
+            if (i > 0) sb.Append(' ');
+            switch (lines[i])
+            {
+                case "Time":
+                    sb.Append(Time.ToString("HH:mm:ss.fff"));
+                    break;
+                case "ThreadId":
+                    sb.Append(ThreadID.ToString("00"));
+                    break;
+                case "Kind":
+                    sb.Append(IsPool ? (IsWeb ? 'W' : 'Y') : 'N');
+                    break;
+                case "Name":
+                    sb.Append(name);
+                    break;
+                case "Level":
+                    sb.Append('[');
+                    sb.Append(Level);
+                    sb.Append(']');
+                    break;
+                case "Message":
+                    if (!Message.IsNullOrEmpty()) sb.Append(Message);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return sb.Return(true);
     }
     #endregion
 
