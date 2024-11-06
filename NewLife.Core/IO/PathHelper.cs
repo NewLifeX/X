@@ -531,14 +531,15 @@ public static class PathHelper
     /// <summary>压缩</summary>
     /// <param name="di"></param>
     /// <param name="destFile"></param>
-    public static void Compress(this DirectoryInfo di, String? destFile = null)
+    /// <param name="includeBaseDirectory"></param>
+    public static void Compress(this DirectoryInfo di, String? destFile = null, Boolean includeBaseDirectory = true)
     {
         if (destFile.IsNullOrEmpty()) destFile = di.Name + ".zip";
 
         if (File.Exists(destFile)) File.Delete(destFile);
 
         if (destFile.EndsWithIgnoreCase(".zip"))
-            ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, true);
+            ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, includeBaseDirectory);
         else
             //new SevenZip().Compress(di.FullName, destFile);
             throw new NotSupportedException();
