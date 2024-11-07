@@ -510,7 +510,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual HttpClient CreateClient()
     {
-        var handler = HttpHelper.CreateHandler(UseProxy, false);
+        var handler = HttpHelper.CreateHandler(UseProxy, false, true);
 
         if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
 
