@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.Json.Nodes;
+
 using Microsoft.Extensions.Primitives;
 using NewLife.Log;
 using Xunit;
@@ -294,5 +296,16 @@ public class UtilityTests
         n = "+1";
         v = n.ToInt();
         Assert.Equal(+1, v);
+    }
+
+    [Fact]
+    public void JsonNodeTest()
+    {
+        var json = "{\"Code\":1}";
+        var jsonNode = JsonNode.Parse(json);
+
+        var c = jsonNode["Code"];
+
+        Assert.Equal(1, c.ToInt());
     }
 }
