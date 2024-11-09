@@ -351,6 +351,9 @@ public static class PathHelper
 
         if (fi.Name.EndsWithIgnoreCase(".zip"))
         {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+            ZipFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
+#else
             using var zip = ZipFile.Open(fi.FullName, ZipArchiveMode.Read, null);
             var di = Directory.CreateDirectory(destDir);
             var fullName = di.FullName;
@@ -376,6 +379,7 @@ public static class PathHelper
                     catch { }
                 }
             }
+#endif
         }
         else
         {
@@ -531,8 +535,13 @@ public static class PathHelper
     /// <summary>压缩</summary>
     /// <param name="di"></param>
     /// <param name="destFile"></param>
+    public static void Compress(this DirectoryInfo di, String? destFile = null) => Compress(di, destFile, false);
+
+    /// <summary>压缩</summary>
+    /// <param name="di"></param>
+    /// <param name="destFile"></param>
     /// <param name="includeBaseDirectory"></param>
-    public static void Compress(this DirectoryInfo di, String? destFile = null, Boolean includeBaseDirectory = true)
+    public static void Compress(this DirectoryInfo di, String? destFile, Boolean includeBaseDirectory)
     {
         if (destFile.IsNullOrEmpty()) destFile = di.Name + ".zip";
 
