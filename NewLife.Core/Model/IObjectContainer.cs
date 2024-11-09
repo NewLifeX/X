@@ -24,6 +24,9 @@ public interface IObjectContainer
     /// <summary>尝试添加</summary>
     /// <param name="item"></param>
     Boolean TryAdd(IObject item);
+
+    /// <summary>服务集合</summary>
+    IList<IObject> Services { get; }
     #endregion
 
     #region 解析
