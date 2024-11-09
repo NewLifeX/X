@@ -37,6 +37,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <summary>身份验证</summary>
     public AuthenticationHeaderValue? Authentication { get; set; }
 
+    /// <summary>证书验证。进行SSL通信时，是否验证证书有效性，默认false不验证</summary>
+    public Boolean CertificateValidation { get; set; }
+
     /// <summary>默认用户浏览器UserAgent。默认为空，可取值HttpHelper.DefaultUserAgent</summary>
     public String? DefaultUserAgent { get; set; }
 
@@ -510,7 +513,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <returns></returns>
     protected virtual HttpClient CreateClient()
     {
-        var handler = HttpHelper.CreateHandler(UseProxy, false, true);
+        var handler = HttpHelper.CreateHandler(UseProxy, false, !CertificateValidation);
 
         if (Tracer != null) handler = new HttpTraceHandler(handler) { Tracer = Tracer };
 
