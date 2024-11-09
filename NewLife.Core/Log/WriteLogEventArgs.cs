@@ -115,7 +115,6 @@ public class WriteLogEventArgs : EventArgs
     }
 
     private static String[]? _lines;
-    private static String? _lineFormat;
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String ToString()

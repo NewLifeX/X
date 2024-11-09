@@ -97,10 +97,13 @@ public class TracerTests
         };
 
         // 正常采样
+        //XTrace.WriteLine("Start TestSamples");
         for (var i = 0; i < 10; i++)
         {
+            //XTrace.WriteLine("NewSpan {0}", i + 1);
             using var span = tracer.NewSpan("test");
         }
+        //XTrace.WriteLine("End TestSamples");
 
         var builder = tracer.BuildSpan("test");
         var samples = builder.Samples;

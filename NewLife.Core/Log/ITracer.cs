@@ -1,7 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Net;
-using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Model;
@@ -90,6 +91,16 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
     public String? AttachParameter { get; set; } = "traceparent";
 
+    private IPool<ISpanBuilder>? _BuilderPool;
+    /// <summary>片段对象池</summary>
+    [IgnoreDataMember]
+    public IPool<ISpanBuilder> BuilderPool => _BuilderPool ??= new MyBuilderPool(this);
+
+    private IPool<ISpan>? _SpanPool;
+    /// <summary>埋点对象池</summary>
+    [IgnoreDataMember]
+    public IPool<ISpan> SpanPool => _SpanPool ??= new MySpanPool();
+
     /// <summary>Span构建器集合</summary>
     protected ConcurrentDictionary<String, ISpanBuilder> _builders = new();
 
@@ -129,6 +140,18 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         if (builders != null && builders.Length > 0)
         {
             ProcessSpans(builders);
+
+            // 归还对象池
+            foreach (var item in builders)
+            {
+                if (item is DefaultSpanBuilder builder)
+                {
+                    builder.Return(builder.Samples);
+                    builder.Return(builder.ErrorSamples);
+                    builder.Clear();
+                    BuilderPool.Return(item);
+                }
+            }
         }
 
         // 采样周期可能改变
@@ -182,7 +205,12 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>实例化Span构建器</summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    protected virtual ISpanBuilder OnBuildSpan(String name) => new DefaultSpanBuilder(this, name);
+    protected virtual ISpanBuilder OnBuildSpan(String name)
+    {
+        var builder = BuilderPool.Get();
+        builder.Name = name;
+        return builder;
+    }
 
     /// <summary>开始一个Span</summary>
     /// <param name="name">操作名</param>
@@ -251,7 +279,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     public virtual ISpanBuilder[] TakeAll()
     {
         var bs = _builders;
-        if (!bs.Any()) return new ISpanBuilder[0];
+        if (bs.IsEmpty) return [];
 
         _builders = new ConcurrentDictionary<String, ISpanBuilder>();
 
@@ -264,6 +292,18 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         }
 
         return bs2;
+    }
+    #endregion
+
+    #region 对象池
+    class MyBuilderPool(ITracer tracer) : Pool<ISpanBuilder>
+    {
+        protected override ISpanBuilder? OnCreate() => new DefaultSpanBuilder(tracer, null!);
+    }
+
+    class MySpanPool : Pool<ISpan>
+    {
+        protected override ISpan? OnCreate() => new DefaultSpan();
     }
     #endregion
 

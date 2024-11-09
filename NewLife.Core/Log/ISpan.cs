@@ -66,7 +66,7 @@ public class DefaultSpan : ISpan
     #region 属性
     /// <summary>构建器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-    public ISpanBuilder? Builder { get; private set; }
+    public ISpanBuilder? Builder { get; set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
     public String Id { get; set; } = null!;
@@ -116,11 +116,7 @@ public class DefaultSpan : ISpan
 
     /// <summary>实例化</summary>
     /// <param name="builder"></param>
-    public DefaultSpan(ISpanBuilder builder)
-    {
-        Builder = builder;
-        StartTime = DateTime.UtcNow.ToLong();
-    }
+    public DefaultSpan(ISpanBuilder builder) => Builder = builder;
 
     static DefaultSpan()
     {
@@ -147,6 +143,8 @@ public class DefaultSpan : ISpan
     /// <summary>设置跟踪标识</summary>
     public virtual void Start()
     {
+        StartTime = DateTime.UtcNow.ToLong();
+
         //if (Id.IsNullOrEmpty()) Id = Rand.NextBytes(8).ToHex().ToLower();
         if (Id.IsNullOrEmpty()) Id = CreateId();
 
@@ -293,6 +291,24 @@ public class DefaultSpan : ISpan
         }
         else
             Tag = tag.ToJson().Cut(len);
+    }
+
+    /// <summary>清空已有数据</summary>
+    public void Clear()
+    {
+        Builder = null;
+        Id = null!;
+        ParentId = null;
+        TraceId = null!;
+        StartTime = 0;
+        EndTime = 0;
+        Value = 0;
+        Tag = null;
+        TraceFlag = 0;
+        Error = null;
+
+        _parent = null;
+        _finished = 0;
     }
 
     /// <summary>已重载。</summary>

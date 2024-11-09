@@ -6,8 +6,7 @@ using System.Text;
 namespace NewLife.Buffers;
 
 /// <summary>Span读取器</summary>
-/// <param name="span"></param>
-public ref struct SpanReader//(ReadOnlySpan<Byte> span)
+public ref struct SpanReader
 {
     #region 属性
     private readonly ReadOnlySpan<Byte> _span;

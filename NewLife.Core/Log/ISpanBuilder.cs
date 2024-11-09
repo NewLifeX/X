@@ -63,7 +63,7 @@ public class DefaultSpanBuilder : ISpanBuilder
     #region 属性
     /// <summary>跟踪器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-    public ITracer? Tracer { get; }
+    public ITracer? Tracer { get; set; }
 
     /// <summary>操作名</summary>
     public String Name { get; set; } = null!;
@@ -125,7 +125,14 @@ public class DefaultSpanBuilder : ISpanBuilder
     /// <returns></returns>
     public virtual ISpan Start()
     {
-        var span = new DefaultSpan(this);
+        DefaultSpan? span = null;
+        if (Tracer is DefaultTracer tracer)
+        {
+            span = tracer.SpanPool.Get() as DefaultSpan;
+            if (span != null) span.Builder = this;
+        }
+
+        span ??= new DefaultSpan(this);
         span.Start();
 
         // 指示当前节点开始的后续节点强制采样
@@ -158,9 +165,11 @@ public class DefaultSpanBuilder : ISpanBuilder
 
         // 检查跟踪标识，上游指示强制采样，确保链路采样完整
         var force = false;
-        if (span is DefaultSpan ds && ds.TraceFlag > 0) force = true;
+        var ds = span as DefaultSpan;
+        if (ds != null && ds.TraceFlag > 0) force = true;
 
         // 处理采样
+        var flag = false;
         if (span.Error != null)
         {
             if (Interlocked.Increment(ref _Errors) <= tracer.MaxErrors || force && _Errors <= tracer.MaxErrors * 10)
@@ -169,6 +178,7 @@ public class DefaultSpanBuilder : ISpanBuilder
                 lock (ss)
                 {
                     ss.Add(span);
+                    flag = true;
                 }
             }
         }
@@ -179,8 +189,43 @@ public class DefaultSpanBuilder : ISpanBuilder
             lock (ss)
             {
                 ss.Add(span);
+                flag = true;
             }
         }
+
+        // 如果埋点没有加入链表，则归还对象池
+        if (!flag && Tracer is DefaultTracer tracer2 && ds != null)
+        {
+            ds.Clear();
+            tracer2.SpanPool.Return(span);
+        }
+    }
+
+    internal void Return(IList<ISpan>? spans)
+    {
+        if (spans == null) return;
+        if (Tracer is not DefaultTracer tracer) return;
+
+        foreach (var elm in spans)
+        {
+            if (elm is DefaultSpan ds)
+            {
+                ds.Clear();
+                tracer.SpanPool.Return(ds);
+            }
+        }
+    }
+
+    /// <summary>清空已有数据</summary>
+    public void Clear()
+    {
+        Tracer = null;
+        Name = null!;
+        StartTime = 0;
+        EndTime = 0;
+        Value = 0;
+        Samples = null;
+        ErrorSamples = null;
     }
 
     /// <summary>已重载。</summary>
