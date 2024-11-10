@@ -1,5 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Log;
+#if !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Model;
 
@@ -67,9 +70,6 @@ public abstract class Actor : DisposeBase, IActor
     private Task? _task;
     private Exception? _error;
     private CancellationTokenSource? _source;
-
-    ///// <summary>已完成任务</summary>
-    //public static Task CompletedTask { get; } = Task.CompletedTask;
     #endregion
 
     #region 构造
@@ -250,26 +250,14 @@ public abstract class Actor : DisposeBase, IActor
         }
     }
 
-#if NET45
     /// <summary>处理消息。批大小为1时使用该方法</summary>
     /// <param name="context">上下文</param>
     /// <param name="cancellationToken">取消通知</param>
-    protected virtual Task ReceiveAsync(ActorContext context, CancellationToken cancellationToken) => Task.FromResult(0);
+    protected virtual Task ReceiveAsync(ActorContext context, CancellationToken cancellationToken) => TaskEx.CompletedTask;
 
     /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
     /// <param name="contexts">上下文集合</param>
     /// <param name="cancellationToken">取消通知</param>
-    protected virtual Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken) => Task.FromResult(0);
-#else
-    /// <summary>处理消息。批大小为1时使用该方法</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="cancellationToken">取消通知</param>
-    protected virtual Task ReceiveAsync(ActorContext context, CancellationToken cancellationToken) => Task.CompletedTask;
-
-    /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
-    /// <param name="contexts">上下文集合</param>
-    /// <param name="cancellationToken">取消通知</param>
-    protected virtual Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken) => Task.CompletedTask;
-#endif
+    protected virtual Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken) => TaskEx.CompletedTask;
     #endregion
 }

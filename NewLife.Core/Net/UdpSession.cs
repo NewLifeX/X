@@ -4,6 +4,9 @@ using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
+#if !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Net;
 
@@ -167,16 +170,16 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ctx = Server.CreateContext(this);
+#if NET45
             var source = new TaskCompletionSource<Object>();
+#else
+            var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-#if NET45
-            if (rs < 0) return Task.FromResult(0);
-#else
-            if (rs < 0) return Task.CompletedTask;
-#endif
+            if (rs < 0) return TaskEx.CompletedTask;
 
             return await source.Task;
         }
@@ -203,16 +206,16 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ctx = Server.CreateContext(this);
+#if NET45
             var source = new TaskCompletionSource<Object>();
+#else
+            var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
             ctx["TaskSource"] = source;
             ctx["Span"] = span;
 
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-#if NET45
-            if (rs < 0) return Task.FromResult(0);
-#else
-            if (rs < 0) return Task.CompletedTask;
-#endif
+            if (rs < 0) return TaskEx.CompletedTask;
 
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             using (cancellationToken.Register(TrySetCanceled, source))

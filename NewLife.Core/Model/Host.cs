@@ -1,5 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using NewLife.Log;
+#if !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Model;
 
@@ -198,7 +201,11 @@ public class Host : DisposeBase, IHost
 
         using var source = new CancellationTokenSource();
 
+#if NET45
         _life = new TaskCompletionSource<Object>();
+#else
+        _life = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
 
         RegisterExit((s, e) => Close(s as String ?? s?.GetType().Name));
 
@@ -291,11 +298,7 @@ public abstract class BackgroundService : IHostedService, IDisposable
     {
         _stoppingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _executingTask = ExecuteAsync(_stoppingCts.Token);
-#if NET45
-        return _executingTask.IsCompleted ? _executingTask : Task.FromResult(0);
-#else
-        return _executingTask.IsCompleted ? _executingTask : Task.CompletedTask;
-#endif
+        return _executingTask.IsCompleted ? _executingTask : TaskEx.CompletedTask;
     }
 
     /// <summary>停止</summary>

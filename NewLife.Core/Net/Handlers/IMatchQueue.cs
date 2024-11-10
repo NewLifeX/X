@@ -116,7 +116,11 @@ public class DefaultMatchQueue : IMatchQueue
                 if (src != null && !src.Task.IsCompleted)
                 {
                     qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.SetResult(Matched)");
+#if NET45
                     Task.Factory.StartNew(() => src.TrySetResult(result));
+#else
+                    src.TrySetResult(result);
+#endif
                 }
 
                 return true;
@@ -155,7 +159,11 @@ public class DefaultMatchQueue : IMatchQueue
                 {
                     qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.Expired({qi.EndTime}<={now})");
 
+#if NET45
                     Task.Factory.StartNew(() => src.TrySetCanceled());
+#else
+                    src.TrySetCanceled();
+#endif
                 }
             }
         }
@@ -179,7 +187,11 @@ public class DefaultMatchQueue : IMatchQueue
             {
                 qi.Span?.AppendTag("MatchQueue.Clear()");
 
+#if NET45
                 Task.Factory.StartNew(() => src.TrySetCanceled());
+#else
+                src.TrySetCanceled();
+#endif
             }
         }
         _Count = 0;
