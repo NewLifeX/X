@@ -1,4 +1,6 @@
-﻿using NewLife.Data;
+﻿using System.Net;
+using System.Net.Sockets;
+using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
@@ -14,6 +16,12 @@ public class NetHandlerContext : HandlerContext
 
     /// <summary>数据帧</summary>
     public IData? Data { get; set; }
+
+    /// <summary>远程地址。因为ProxyProtocol协议存在，haproxy/nginx等代理会返回原始客户端IP端口</summary>
+    public IPEndPoint? Remote { get; set; }
+
+    /// <summary>Socket事件参数</summary>
+    public SocketAsyncEventArgs? EventArgs { get; set; }
 
     /// <summary>读取管道过滤后最终处理消息</summary>
     /// <param name="message"></param>
@@ -66,6 +74,10 @@ public class NetHandlerContext : HandlerContext
         //{
         var data = Data ?? new ReceivedEventArgs();
         data.Message = message;
+
+        // 因为ProxyProtocol协议存在，haproxy/nginx等代理会返回原始客户端IP端口
+        // 这里修改Remote以后，NetSession层将会使用新的Remote地址
+        if (Remote != null) data.Remote = Remote;
 
         // 解析协议指令后，事件变量里面的数据是之前的原始报文，有可能多帧指令粘包在一起，需要拆分填充当前指令的数据报文，避免上层重复使用原始大报文
         if (message is DefaultMessage dm)

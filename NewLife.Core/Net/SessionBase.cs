@@ -554,6 +554,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             {
                 var ctx = CreateContext(ss);
                 ctx.Data = e;
+                ctx.EventArgs = se;
 
                 // 进入管道处理，如果有一个或多个结果通过Finish来处理
                 pp.Read(ctx, pk);
