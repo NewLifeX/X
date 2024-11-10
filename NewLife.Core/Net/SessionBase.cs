@@ -493,7 +493,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
                     // 同步执行，直接使用数据，不需要拷贝
                     // 直接在IO线程调用业务逻辑
-                    ProcessReceive(pk, se.ReceiveMessageFromPacketInfo.Address, ep);
+                    ProcessReceive(pk, se, ep);
                 }
             }
 
@@ -522,15 +522,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>接收预处理，粘包拆包</summary>
     /// <param name="pk">数据包</param>
-    /// <param name="local">接收数据的本地地址</param>
+    /// <param name="se">socket异步事件</param>
     /// <param name="remote">远程地址</param>
-    private void ProcessReceive(IPacket pk, IPAddress local, IPEndPoint remote)
+    private void ProcessReceive(IPacket pk, SocketAsyncEventArgs se, IPEndPoint remote)
     {
         // 打断上下文调用链，这里必须是起点
         DefaultSpan.Current = null;
 
         var total = pk.Length;
-        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", total + "", total);
+        var local = se.ReceiveMessageFromPacketInfo.Address;
+        using var span = Tracer?.NewSpan($"net:{Name}:ProcessReceive", new { total, local, remote }, total);
         try
         {
             LastTime = DateTime.Now;
