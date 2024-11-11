@@ -213,6 +213,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     #region 二进制读取
     private const Byte _Ver = 3;
+    private const String MAGIC = "NewLifeDbTable";
 
     /// <summary>从数据流读取</summary>
     /// <param name="stream"></param>
@@ -237,8 +238,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     public void ReadHeader(Binary bn)
     {
         // 头部，幻数、版本和标记
-        var magic = bn.ReadBytes(14).ToStr();
-        if (magic != "NewLifeDbTable") throw new InvalidDataException();
+        var magic = bn.ReadBytes(MAGIC.Length).ToStr();
+        if (magic != MAGIC) throw new InvalidDataException();
 
         var ver = bn.Read<Byte>();
         _ = bn.Read<Byte>();
@@ -348,7 +349,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
         // 头部，幻数、版本和标记
-        bn.Write("NewLifeDbTable".GetBytes(), 0, 14);
+        var buf = MAGIC.GetBytes();
+        bn.Write(buf, 0, buf.Length);
         bn.Write(_Ver);
         bn.Write(0);
 
