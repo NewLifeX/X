@@ -106,6 +106,7 @@ public class CsvFile : IDisposable
     #endregion
 
     #region 读取
+    private Int32 _columnCount;
     /// <summary>读取一行</summary>
     /// <returns></returns>
     public String[]? ReadLine()
@@ -119,56 +120,47 @@ public class CsvFile : IDisposable
 
         // 直接分解，引号合并
         var arr = line.Split(Separator);
+        // 如果字段数不足，可能有换行符，读取后面的行
+        while (_columnCount > 0 && arr.Length < _columnCount)
+        {
+            var next = _reader?.ReadLine();
+            if (next == null) break;
+
+            line += Environment.NewLine + next;
+
+            arr = line.Split(Separator);
+        }
         for (var i = 0; i < arr.Length; i++)
         {
-            var str = (arr[i] + "").Trim();
-            if (str.StartsWith("\""))
+            var txt = (arr[i] + "").Trim();
+            if (txt.Length >= 2 && txt[0] == '\"' && txt[^1] == '\"')
             {
-                var txt = "";
-                if (str.EndsWith("\"") && !str.EndsWith("\"\""))
-                    txt = str.Trim('\"');
-                else
-                {
-                    // 找到下一个以引号结尾的项
-                    for (var j = i + 1; j < arr.Length; j++)
-                    {
-                        if (arr[j].EndsWith("\""))
-                        {
-                            txt = arr.Skip(i).Take(j - i + 1).Join(Separator + "").Trim('\"');
-
-                            // 跳过去一大步
-                            i = j;
-                            break;
-                        }
-                    }
-                }
+                txt = txt[1..^1];
 
                 // 两个引号是一个引号的转义
                 txt = txt.Replace("\"\"", "\"");
-                list.Add(txt);
             }
-            else
-                list.Add(str);
+
+            list.Add(txt);
         }
+
+        // 记录列数
+        if (_columnCount == 0 && list.Count > 0) _columnCount = list.Count;
 
         return list.ToArray();
     }
 
     /// <summary>读取所有行</summary>
     /// <returns></returns>
-    public String[][] ReadAll()
+    public IEnumerable<String[]> ReadAll()
     {
-        var list = new List<String[]>();
-
         while (true)
         {
             var line = ReadLine();
             if (line == null) break;
 
-            list.Add(line);
+            yield return line;
         }
-
-        return list.ToArray();
     }
 
     private StreamReader? _reader;
@@ -232,28 +224,40 @@ public class CsvFile : IDisposable
         {
             if (sb.Length > 0) sb.Append(Separator);
 
-            var str = item switch
+            if (item is DateTime dt)
             {
-                String str2 => str2,
-                DateTime dt => dt.ToFullString(""),
-                Boolean b => b ? "1" : "0",
-                _ => item + "",
-            };
-
-            // 避免出现科学计数问题 数据前增加制表符"\t"
-            // 不同软件显示不太一样 wps超过9位就自动转为科学计数，有的软件是超过11位，所以采用最小范围9
-            var reg = new Regex("^\\d+$");
-            if (str.Length > 9 && reg.Match(str).Success)
-            {
-                str = $"\t{str}";
+                sb.Append(dt.ToFullString(""));
             }
-
-            if (str.Contains('"'))
-                sb.AppendFormat("\"{0}\"", str.Replace("\"", "\"\""));
-            else if (str.Contains(Separator) || str.Contains('\r') || str.Contains('\n'))
-                sb.AppendFormat("\"{0}\"", str);
+            else if (item is Boolean b)
+            {
+                sb.Append(b ? "1" : "0");
+            }
             else
-                sb.Append(str);
+            {
+                if (item is not String str) str = item + "";
+
+                // 避免出现科学计数问题 数据前增加制表符"\t"
+                // 不同软件显示不太一样 wps超过9位就自动转为科学计数，有的软件是超过11位，所以采用最小范围9
+                if (str.Length > 9 && Int64.TryParse(str, out _))
+                {
+                    sb.Append('\t');
+                    sb.Append(str);
+                }
+                else if (str.Contains('"'))
+                {
+                    sb.Append('\"');
+                    sb.Append(str.Replace("\"", "\"\""));
+                    sb.Append('\"');
+                }
+                else if (str.Contains(Separator) || str.Contains('\r') || str.Contains('\n'))
+                {
+                    sb.Append('\"');
+                    sb.Append(str);
+                    sb.Append('\"');
+                }
+                else
+                    sb.Append(str);
+            }
         }
 
         return sb.Return(true);

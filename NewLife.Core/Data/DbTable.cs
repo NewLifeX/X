@@ -585,7 +585,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         using var csv = new CsvFile(file, false);
         var cs = csv.ReadLine();
         if (cs != null) Columns = cs;
-        Rows = csv.ReadAll();
+        Rows = csv.ReadAll().Cast<Object?[]>().ToList();
     }
     #endregion
 
