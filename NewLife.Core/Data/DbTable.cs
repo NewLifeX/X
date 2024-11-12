@@ -507,7 +507,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         //return doc.OuterXml;
 
         var ms = new MemoryStream();
-        WriteXml(ms).Wait();
+        WriteXml(ms).Wait(15_000);
 
         return ms.ToArray().ToStr();
     }

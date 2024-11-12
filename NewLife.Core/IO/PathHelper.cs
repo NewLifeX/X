@@ -334,6 +334,7 @@ public static class PathHelper
         }
 
         fs.SetLength(fs.Position);
+        fs.Flush();
 
         return fs.Position;
     }

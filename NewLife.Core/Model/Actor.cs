@@ -51,8 +51,8 @@ public abstract class Actor : DisposeBase, IActor
     /// <summary>批大小。每次处理消息数，默认1，大于1表示启用批量处理模式</summary>
     public Int32 BatchSize { get; set; } = 1;
 
-    /// <summary>是否长时间运行。长时间运行任务使用独立线程，默认false</summary>
-    public Boolean LongRunning { get; set; }
+    /// <summary>是否长时间运行。长时间运行任务使用独立线程，默认true</summary>
+    public Boolean LongRunning { get; set; } = true;
 
     /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
     protected BlockingCollection<ActorContext>? MailBox { get; set; }

@@ -77,8 +77,9 @@ public class WebClientX : DisposeBase
     /// <summary>发送请求，获取响应</summary>
     /// <param name="address"></param>
     /// <param name="content"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual async Task<HttpContent> SendAsync(String address, HttpContent? content = null)
+    public virtual async Task<HttpContent> SendAsync(String address, HttpContent? content = null, CancellationToken cancellationToken = default)
     {
         var http = EnsureCreate();
 
@@ -101,7 +102,8 @@ public class WebClientX : DisposeBase
         // 发送请求
         //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
         //var rs = await task;
-        var rs = await http.SendAsync(request);
+        using var ctx = CancellationTokenSource.CreateLinkedTokenSource(new CancellationTokenSource(Timeout).Token, cancellationToken);
+        var rs = await http.SendAsync(request, ctx.Token);
 
         if (rs.StatusCode < HttpStatusCode.BadRequest)
         {
@@ -162,26 +164,30 @@ public class WebClientX : DisposeBase
 
     /// <summary>下载字符串</summary>
     /// <param name="address"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual async Task<String> DownloadStringAsync(String address)
+    public virtual async Task<String> DownloadStringAsync(String address, CancellationToken cancellationToken = default)
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address);
+        var rs = await SendAsync(address, null, cancellationToken);
         return await rs.ReadAsStringAsync();
     }
 
     /// <summary>下载文件</summary>
     /// <param name="address"></param>
     /// <param name="fileName"></param>
-    public virtual async Task DownloadFileAsync(String address, String fileName)
+    /// <param name="cancellationToken"></param>
+    public virtual async Task DownloadFileAsync(String address, String fileName, CancellationToken cancellationToken = default)
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address);
+        var rs = await SendAsync(address, null, cancellationToken);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs);
+        fs.SetLength(fs.Position);
+        await fs.FlushAsync();
     }
     #endregion
 
@@ -189,7 +195,7 @@ public class WebClientX : DisposeBase
     /// <summary>获取指定地址的Html，自动处理文本编码</summary>
     /// <param name="url"></param>
     /// <returns></returns>
-    public String GetHtml(String url) => Task.Run(() => DownloadStringAsync(url)).Result;
+    public String GetHtml(String url) => DownloadStringAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>获取指定地址的Html，分析所有超链接</summary>
     /// <param name="url"></param>

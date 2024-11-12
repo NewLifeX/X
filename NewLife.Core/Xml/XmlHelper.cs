@@ -98,6 +98,7 @@ public static class XmlHelper
         obj.ToXml(stream, encoding, attachComment);
         // 必须通过设置文件流长度来实现截断，否则后面可能会多一截旧数据
         stream.SetLength(stream.Position);
+        stream.Flush();
     }
     #endregion
 

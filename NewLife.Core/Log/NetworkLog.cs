@@ -55,7 +55,7 @@ public class NetworkLog : Logger, IDisposable
         if (_client != null)
             _client.Send(value);
         else
-            _http?.PostAsync("", new StringContent(value)).Wait();
+            _http?.PostAsync("", new StringContent(value)).Wait(30_000);
     }
 
     private Boolean _inited;

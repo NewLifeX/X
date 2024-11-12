@@ -99,6 +99,7 @@ public class CsvDb<T> : DisposeBase where T : new()
 
         csv.TryDispose();
         fs.SetLength(fs.Position);
+        fs.Flush();
     }
 
     /// <summary>尾部插入数据，性能极好</summary>

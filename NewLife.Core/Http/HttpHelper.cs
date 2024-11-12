@@ -490,7 +490,12 @@ public static class HttpHelper
     public static String GetString(this HttpClient client, String requestUri, IDictionary<String, String>? headers = null)
     {
         if (headers != null) client.AddHeaders(headers);
+#if NET5_0_OR_GREATER
+        using var source = new CancellationTokenSource(client.Timeout);
+        return client.GetStringAsync(requestUri, source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
+#else
         return client.GetStringAsync(requestUri).ConfigureAwait(false).GetAwaiter().GetResult();
+#endif
     }
 
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)

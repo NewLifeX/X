@@ -1,6 +1,4 @@
-﻿using NewLife.Data;
-
-namespace NewLife.Http;
+﻿namespace NewLife.Http;
 
 /// <summary>表单部分</summary>
 public class FormFile
@@ -43,5 +41,6 @@ public class FormFile
         //Data.CopyTo(fs);
         fs.Write(Data);
         fs.SetLength(fs.Position);
+        fs.Flush();
     }
 }
