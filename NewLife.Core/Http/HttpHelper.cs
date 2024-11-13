@@ -408,7 +408,7 @@ public static class HttpHelper
             {
                 content = new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded");
             }
-#if NET5_0
+#if NET5_0_OR_GREATER
             else if (data is IDictionary<String?, String?> dic)
             {
                 content = new FormUrlEncodedContent(dic);
