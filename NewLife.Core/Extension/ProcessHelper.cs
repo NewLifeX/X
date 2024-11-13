@@ -311,7 +311,7 @@ public static class ProcessHelper
     /// <param name="onExit">进程退出时执行</param>
     /// <param name="working">工作目录</param>
     /// <returns>进程退出代码</returns>
-    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null) => Run(cmd, arguments, msWait, output, Encoding.UTF8, onExit, working);
+    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null) => RunNew(cmd, arguments, msWait, output, Encoding.UTF8, onExit, working);
 
     /// <summary>以隐藏窗口执行命令行</summary>
     /// <param name="cmd">文件名</param>
@@ -322,7 +322,7 @@ public static class ProcessHelper
     /// <param name="onExit">进程退出时执行</param>
     /// <param name="working">工作目录</param>
     /// <returns>进程退出代码</returns>
-    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Encoding? encoding = null, Action<Process>? onExit = null, String? working = null)
+    public static Int32 RunNew(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Encoding? encoding = null, Action<Process>? onExit = null, String? working = null)
     {
         if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
