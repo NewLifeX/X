@@ -21,7 +21,6 @@ jobs:
           7.x
           8.x
           9.x
-        cache: true
     - name: Build
       run: |
         dotnet build -c Release
