@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <AssemblyTitle>Http服务器</AssemblyTitle>
     <Description>轻量级Http服务器，支持WebSocket，可用于追求简单Http服务的场景，例如暴露硬件控制为Http接口，如打印组件</Description>
     <Company>新生命开发团队</Company>
