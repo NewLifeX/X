@@ -311,13 +311,26 @@ public static class ProcessHelper
     /// <param name="onExit">进程退出时执行</param>
     /// <param name="working">工作目录</param>
     /// <returns>进程退出代码</returns>
-    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null)
+    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Action<Process>? onExit = null, String? working = null) => Run(cmd, arguments, msWait, output, Encoding.UTF8, onExit, working);
+
+    /// <summary>以隐藏窗口执行命令行</summary>
+    /// <param name="cmd">文件名</param>
+    /// <param name="arguments">命令参数</param>
+    /// <param name="msWait">等待毫秒数</param>
+    /// <param name="output">进程输出内容。默认为空时输出到日志</param>
+    /// <param name="encoding">输出内容编码</param>
+    /// <param name="onExit">进程退出时执行</param>
+    /// <param name="working">工作目录</param>
+    /// <returns>进程退出代码</returns>
+    public static Int32 Run(this String cmd, String? arguments = null, Int32 msWait = 0, Action<String?>? output = null, Encoding? encoding = null, Action<Process>? onExit = null, String? working = null)
     {
         if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteLine("Run {0} {1} {2}", cmd, arguments, msWait);
 
         // 修正文件路径
         var fileName = cmd;
         //if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
+
+        encoding ??= Encoding.UTF8;
 
         var p = new Process();
         var si = p.StartInfo;
@@ -332,7 +345,8 @@ public static class ProcessHelper
             si.UseShellExecute = false;
             si.RedirectStandardOutput = true;
             si.RedirectStandardError = true;
-            si.StandardOutputEncoding = Encoding.UTF8;
+            si.StandardOutputEncoding = encoding;
+            si.StandardErrorEncoding = encoding;
             if (output != null)
             {
                 p.OutputDataReceived += (s, e) => output(e.Data);
