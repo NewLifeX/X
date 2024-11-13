@@ -330,7 +330,7 @@ public static class ProcessHelper
         var fileName = cmd;
         //if (!Path.IsPathRooted(fileName) && !working.IsNullOrEmpty()) fileName = working.CombinePath(fileName);
 
-        if (encoding == null) encoding = Encoding.UTF8;
+        encoding ??= Encoding.UTF8;
 
         var p = new Process();
         var si = p.StartInfo;
