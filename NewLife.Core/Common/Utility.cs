@@ -913,18 +913,26 @@ public class DefaultConvert
     /// <returns></returns>
     public virtual String GetMessage(Exception ex)
     {
-        var msg = ex + "";
-        if (msg.IsNullOrEmpty()) return ex.Message;
+        // 部分异常ToString可能报错，例如System.Data.SqlClient.SqlException
+        try
+        {
+            var msg = ex + "";
+            if (msg.IsNullOrEmpty()) return ex.Message;
 
-        var ss = msg.Split(Environment.NewLine);
-        var ns = ss.Where(e =>
-        !e.StartsWith("---") &&
-        !e.Contains("System.Runtime.ExceptionServices") &&
-        !e.Contains("System.Runtime.CompilerServices"));
+            var ss = msg.Split(Environment.NewLine);
+            var ns = ss.Where(e =>
+            !e.StartsWith("---") &&
+            !e.Contains("System.Runtime.ExceptionServices") &&
+            !e.Contains("System.Runtime.CompilerServices"));
 
-        msg = ns.Join(Environment.NewLine);
+            msg = ns.Join(Environment.NewLine);
 
-        return msg;
+            return msg;
+        }
+        catch
+        {
+            return ex.GetType().FullName!;
+        }
     }
 
     /// <summary>字节单位字符串</summary>
