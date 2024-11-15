@@ -208,7 +208,11 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     protected virtual ISpanBuilder OnBuildSpan(String name)
     {
         var builder = BuilderPool.Get();
-        builder.Name = name;
+        if (builder is DefaultSpanBuilder dsb)
+            dsb.Init(name);
+        else
+            builder.Name = name;
+
         return builder;
     }
 

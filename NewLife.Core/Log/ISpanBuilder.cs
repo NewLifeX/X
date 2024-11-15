@@ -113,14 +113,21 @@ public class DefaultSpanBuilder : ISpanBuilder
     public DefaultSpanBuilder(ITracer tracer, String name)
     {
         Tracer = tracer;
-        Name = name;
-        MinCost = -1;
 
-        StartTime = DateTime.UtcNow.ToLong();
+        Init(name);
     }
     #endregion
 
     #region 方法
+    /// <summary>初始化。重用已有对象</summary>
+    /// <param name="name"></param>
+    public void Init(String name)
+    {
+        Name = name;
+        MinCost = -1;
+        StartTime = DateTime.UtcNow.ToLong();
+    }
+
     /// <summary>开始一个Span，开始计时</summary>
     /// <returns></returns>
     public virtual ISpan Start()
@@ -201,6 +208,8 @@ public class DefaultSpanBuilder : ISpanBuilder
         }
     }
 
+    /// <summary>把集合中的ISpan归还到池里</summary>
+    /// <param name="spans"></param>
     internal void Return(IList<ISpan>? spans)
     {
         if (spans == null) return;
