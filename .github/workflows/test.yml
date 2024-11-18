@@ -9,21 +9,26 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        dotnet-version: [ '4.6.2', '5.x', '6.x', '7.x', '8.x', '9.x' ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        target-framework: [ 'net6.0', 'net8.0', 'net9.0' ]
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotNET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+          9.x
     - name: Build
       run: |
         dotnet build -c Release
     - name: Test
       run: |
-        dotnet test
+        dotnet test -f ${{ matrix.target-framework }}

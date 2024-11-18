@@ -62,7 +62,7 @@ public abstract class JsonTestBase
         Assert.Equal("/uploader/swiperPic/405621836.jpg", m.AdImgUrl);
         Assert.Equal(typeof(NewLife.Common.PinYin), m.Type);
         Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
-#if NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         Assert.Equal(DateOnly.Parse("2022-11-29"), m.Date);
         Assert.Equal(TimeOnly.Parse("14:13:17.8763881"), m.Time);
 #endif
@@ -81,7 +81,7 @@ public abstract class JsonTestBase
         Assert.Equal("/uploader/swiperPic/1978468752.jpg", m.AdImgUrl);
         Assert.Equal(typeof(String), m.Type);
         Assert.Equal(DateTimeOffset.Parse("2022-11-29T14:13:17.8763881+08:00"), m.Offset);
-#if NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         Assert.Equal(DateOnly.Parse("2022-11-29"), m.Date);
         Assert.Equal(TimeOnly.Parse("14:13:17.8763881"), m.Time);
 #endif
@@ -101,7 +101,7 @@ public abstract class JsonTestBase
         public String AdImgUrl { get; set; }
         public Type Type { get; set; }
         public DateTimeOffset Offset { get; set; }
-#if NET6_0_OR_GREATER
+#if NET7_0_OR_GREATER
         public DateOnly Date { get; set; }
         public TimeOnly Time { get; set; }
 #endif  

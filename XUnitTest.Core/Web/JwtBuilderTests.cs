@@ -363,6 +363,7 @@ MwIDAQAB
         Assert.True(builder2["admin"].ToBoolean());
     }
 
+#if NETCOREAPP
     [Fact]
     public void ES256()
     {
@@ -502,6 +503,7 @@ q9UU8I5mEovUf86QZ7kOBIjJwqnzD1omageEHWwHdBO6B+dFabmdT9POxg==
         Assert.Equal("NewLife", builder2["name"]);
         Assert.True(builder2["admin"].ToBoolean());
     }
+#endif
 
     [Fact]
     public void Decode()
