@@ -87,6 +87,7 @@ public class SpanReaderTests
         writer.WriteEncodedInt(n);
         Assert.Equal(n, reader.ReadEncodedInt());
 
+#if NET6_0_OR_GREATER
         var buf = Rand.NextBytes(57);
         writer.Write(buf);
         Assert.Equal(buf, reader.ReadBytes(buf.Length));
@@ -98,6 +99,7 @@ public class SpanReaderTests
         var span3 = new ReadOnlySpan<Byte>(buf);
         writer.Write(span3);
         Assert.Equal(span3, reader.ReadBytes(buf.Length));
+#endif
 
         var str = Rand.NextString(33);
         writer.Write(str);

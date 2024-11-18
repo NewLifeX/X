@@ -11,16 +11,16 @@ jobs:
   test:
     runs-on: windows-latest
 
+    strategy:
+      matrix:
+        dotnet-version: [ '4.6.2', '5.x', '6.x', '7.x', '8.x', '9.x' ]
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup dotNET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: |
-          6.x
-          7.x
-          8.x
-          9.x
+        dotnet-version: ${{ matrix.dotnet-version }}
     - name: Build
       run: |
         dotnet build -c Release

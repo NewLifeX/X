@@ -21,7 +21,7 @@ public class HttpConfigProviderTests
         else
         {
             _server = "http://127.0.0.1:7080,http://10.0.0.1:7080";
-            File.WriteAllText(file, _server);
+            File.WriteAllText(file.EnsureDirectory(true), _server);
         }
     }
 

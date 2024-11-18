@@ -33,7 +33,7 @@ public class HttpServerTests
     }
 
     [Fact]
-    public async void MapDelegate()
+    public async Task MapDelegate()
     {
         _server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
 
@@ -46,7 +46,7 @@ public class HttpServerTests
     }
 
     [Fact]
-    public async void MapApi()
+    public async Task MapApi()
     {
         _server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
 
@@ -57,7 +57,7 @@ public class HttpServerTests
     }
 
     [Fact]
-    public async void MapStaticFiles()
+    public async Task MapStaticFiles()
     {
         XTrace.WriteLine("root: {0}", "http/".GetFullPath());
         _server.MapStaticFiles("/logos", "http/");
@@ -70,7 +70,7 @@ public class HttpServerTests
     }
 
     //[Fact]
-    //public async void MapController()
+    //public async Task MapController()
     //{
     //    _server.MapController<ApiController>("/api");
 
@@ -81,7 +81,7 @@ public class HttpServerTests
     //}
 
     [Fact]
-    public async void MapMyHttpHandler()
+    public async Task MapMyHttpHandler()
     {
         _server.Map("/my", new MyHttpHandler());
 
@@ -102,7 +102,7 @@ public class HttpServerTests
     }
 
     [Fact]
-    public async void BigPost()
+    public async Task BigPost()
     {
         _server.Map("/my2", new MyHttpHandler2());
 
@@ -111,8 +111,16 @@ public class HttpServerTests
         var buf1 = new Byte[8 * 1024];
         var buf2 = new Byte[8 * 1024];
 
+#if NET462
+        for (var i = 0; i < buf1.Length; i++)
+        {
+            buf1[i] = (Byte)'0';
+            buf2[i] = (Byte)'0';
+        }
+#else
         Array.Fill(buf1, (Byte)'0');
         Array.Fill(buf2, (Byte)'0');
+#endif
 
         buf1[0] = (Byte)'1';
         buf2[0] = (Byte)'2';
@@ -143,7 +151,7 @@ public class HttpServerTests
     }
 
     [Fact]
-    public async void MapWebSocket()
+    public async Task MapWebSocket()
     {
         _server.Map("/ws", new WebSocketHandler());
 
@@ -151,10 +159,10 @@ public class HttpServerTests
 
         var client = new ClientWebSocket();
         await client.ConnectAsync(new Uri("ws://127.0.0.1:18080/ws"), default);
-        await client.SendAsync(content, System.Net.WebSockets.WebSocketMessageType.Text, true, default);
+        await client.SendAsync(new ArraySegment<Byte>(content), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
         var buf = new Byte[1024];
-        var rs = await client.ReceiveAsync(buf, default);
+        var rs = await client.ReceiveAsync(new ArraySegment<Byte>(buf), default);
         Assert.EndsWith("说，Hello NewLife", new Packet(buf, 0, rs.Count).ToStr());
 
         await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "通信完成", default);

@@ -297,6 +297,7 @@ public class ReflectTests
         Assert.Equal(target, rs);
     }
 
+#if NET6_0_OR_GREATER
     [Fact]
     public void DateOnlyChangeTypeTest()
     {
@@ -322,6 +323,7 @@ public class ReflectTests
         var rs = value.ChangeType(targetType);
         Assert.Equal(target, rs);
     }
+#endif
 
     [Fact]
     public void AsListTest()

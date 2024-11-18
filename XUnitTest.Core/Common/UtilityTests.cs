@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text.Json.Nodes;
-
-using Microsoft.Extensions.Primitives;
+﻿using Microsoft.Extensions.Primitives;
 using NewLife.Log;
 using Xunit;
 
@@ -298,14 +295,16 @@ public class UtilityTests
         Assert.Equal(+1, v);
     }
 
+#if NET6_0_OR_GREATER
     [Fact]
     public void JsonNodeTest()
     {
         var json = "{\"Code\":1}";
-        var jsonNode = JsonNode.Parse(json);
+        var jsonNode = System.Text.Json.Nodes.JsonNode.Parse(json);
 
         var c = jsonNode["Code"];
 
         Assert.Equal(1, c.ToInt());
     }
+#endif
 }

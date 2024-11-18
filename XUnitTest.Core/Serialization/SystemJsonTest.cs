@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET6_0_OR_GREATER
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using NewLife;
@@ -47,6 +48,7 @@ public class SystemJsonTest : JsonTestBase
         CheckModel(models);
     }
 
+#if NET7_0_OR_GREATER
     [Fact]
     public void InterfaceTest()
     {
@@ -209,4 +211,6 @@ public class SystemJsonTest : JsonTestBase
         Assert.Equal(456, dic["bbb"]);
         Assert.Equal(789, dic["ccc"]);
     }
+#endif
 }
+#endif

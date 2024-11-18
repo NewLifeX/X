@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Reflection;
 using NewLife.Configuration;
 using NewLife.Reflection;
 using NewLife.Security;
@@ -127,6 +128,9 @@ public class SysConfig : Config<SysConfig>
             {
                 var asm = AssemblyX.Entry;
                 if (asm != null) return asm;
+
+                var sm = Assembly.GetCallingAssembly();
+                if (sm != null) return AssemblyX.Create(sm);
 
                 var list = AssemblyX.GetMyAssemblies();
 

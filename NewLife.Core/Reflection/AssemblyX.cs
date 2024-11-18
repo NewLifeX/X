@@ -673,10 +673,12 @@ public class AssemblyX
             // 加载程序集列表很容易抛出异常，全部屏蔽
             try
             {
-                if (asmx.FileVersion.IsNullOrEmpty()) continue;
+                //if (asmx.FileVersion.IsNullOrEmpty()) continue;
 
                 var file = "";
-                //file = asmx.Asm.CodeBase;
+#if NETFRAMEWORK
+                file = asmx.Asm.CodeBase;
+#endif
                 if (file.IsNullOrEmpty()) file = asmx.Asm.Location;
                 if (file.IsNullOrEmpty()) continue;
 

@@ -22,6 +22,7 @@ public class JsonTest : JsonTestBase
             NetworkLog = null,
             DataPath = null,
             BackupPath = null,
+            PluginPath = null,
             ServiceAddress = null,
         };
 
@@ -33,6 +34,7 @@ public class JsonTest : JsonTestBase
         Assert.Equal(LogLevel.Error, set2.LogLevel);
         Assert.Equal("xxx", set2.LogPath);
 
+#if NETCOREAPP
         var sjs = new SystemJson();
         var js2 = sjs.Write(set, true, false, false);
         Assert.Equal(js, js2);
@@ -42,6 +44,7 @@ public class JsonTest : JsonTestBase
         Assert.Equal(set.Debug, set3.Debug);
         Assert.Equal(set.LogLevel, set3.LogLevel);
         Assert.Equal(set.LogPath, set3.LogPath);
+#endif
     }
 
     [Fact]
@@ -276,6 +279,7 @@ public class JsonTest : JsonTestBase
         }
     }
 
+#if NETCOREAPP
     [Fact(DisplayName = "多层数组嵌套SystemJson")]
     public void MutilLevelTest_System()
     {
@@ -369,6 +373,7 @@ public class JsonTest : JsonTestBase
             }
         }
     }
+#endif
 
     class LineModel
     {
