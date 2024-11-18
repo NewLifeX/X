@@ -9,12 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        target-framework: [ 'net6.0', 'net8.0', 'net9.0' ]
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -31,4 +26,7 @@ jobs:
         dotnet build -c Release
     - name: Test
       run: |
-        dotnet test -f ${{ matrix.target-framework }}
+        dotnet test -f net462
+        dotnet test -f net6.0
+        dotnet test -f net8.0
+        dotnet test -f net9.0
