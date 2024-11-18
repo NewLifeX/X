@@ -52,22 +52,6 @@ public class SysConfig : Config<SysConfig>
     /// <summary>加载后触发</summary>
     protected override void OnLoaded()
     {
-        // 从命令参数或环境变量获取系统名称，强制覆盖SysConfig，方便星尘发布根据命令行控制系统名称
-        var name = "";
-        // 命令参数
-        var args = Environment.GetCommandLineArgs();
-        for (var i = 0; i < args.Length; i++)
-        {
-            if (args[i].EqualIgnoreCase("-Name") && i + 1 < args.Length)
-            {
-                name = args[i + 1];
-                break;
-            }
-        }
-
-        // 环境变量
-        if (name.IsNullOrEmpty()) name = Runtime.GetEnvironmentVariable("Name");
-
         if (IsNew)
         {
             var asmx = SysAssembly;
@@ -82,6 +66,7 @@ public class SysConfig : Config<SysConfig>
         }
 
         // 强制设置
+        var name = GetSysName();
         if (!name.IsNullOrEmpty()) Name = name;
 
         // 本地实例，取IPv4地址后两段
@@ -108,6 +93,29 @@ public class SysConfig : Config<SysConfig>
         }
 
         base.OnLoaded();
+    }
+
+    /// <summary>获取系统名</summary>
+    /// <returns></returns>
+    public static String? GetSysName()
+    {
+        // 从命令参数或环境变量获取系统名称，强制覆盖SysConfig，方便星尘发布根据命令行控制系统名称
+        var name = "";
+        // 命令参数
+        var args = Environment.GetCommandLineArgs();
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i].EqualIgnoreCase("-Name") && i + 1 < args.Length)
+            {
+                name = args[i + 1];
+                break;
+            }
+        }
+
+        // 环境变量
+        if (name.IsNullOrEmpty()) name = Runtime.GetEnvironmentVariable("Name");
+
+        return name;
     }
 
     /// <summary>系统主程序集</summary>

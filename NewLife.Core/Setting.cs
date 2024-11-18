@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;
 
@@ -50,7 +51,7 @@ public class Setting : Config<Setting>
     /// <summary>日志记录时间UTC校正，单位：小时。默认0表示使用的是本地时间，使用UTC时间的系统转换成本地时间则相差8小时</summary>
     [Description("日志记录时间UTC校正，小时")]
     public Int32 UtcIntervalHours { get; set; } = 0;
-    
+
     /// <summary>数据目录。本地数据库目录，默认Data子目录</summary>
     [Description("数据目录。本地数据库目录，默认Data子目录")]
     public String DataPath { get; set; } = "";
@@ -61,10 +62,10 @@ public class Setting : Config<Setting>
 
     /// <summary>插件目录</summary>
     [Description("插件目录")]
-    public String PluginPath { get; set; } = "Plugins";
+    public String PluginPath { get; set; } = "";
 
-    /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件</summary>
-    [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件")]
+    /// <summary>插件服务器。将从该网页上根据关键字分析链接并下载插件，部分嵌入式设备不支持https</summary>
+    [Description("插件服务器。将从该网页上根据关键字分析链接并下载插件，部分嵌入式设备不支持https")]
     public String PluginServer { get; set; } = "http://x.newlifex.com/";
 
     /// <summary>辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false</summary>
@@ -80,9 +81,31 @@ public class Setting : Config<Setting>
     /// <summary>加载完成后</summary>
     protected override void OnLoaded()
     {
-        if (LogPath.IsNullOrEmpty()) LogPath = "Log";
-        if (DataPath.IsNullOrEmpty()) DataPath = "Data";
-        if (BackupPath.IsNullOrEmpty()) BackupPath = "Backup";
+        // 多应用项目，需要把基础目录向上提升一级
+        var root = "../";
+        var di = ".".AsDirectory();
+        if (di.Name.StartsWithIgnoreCase("netcoreapp", "net2", "net4", "net5", "net6", "net7", "net8", "net9", "net10"))
+        {
+            root = "../../";
+            di = di.Parent;
+        }
+        var name = SysConfig.GetSysName() ?? SysConfig.SysAssembly?.Name;
+        if (name.IsNullOrEmpty()) name = di.Name;
+        if (name.EndsWithIgnoreCase("Web", "Api", "Server", "Service", "Job"))
+        {
+            // 日志目录分开，其它目录共用
+            if (LogPath.IsNullOrEmpty()) LogPath = $"{root}{di.Name}Log";
+            if (DataPath.IsNullOrEmpty()) DataPath = $"{root}Data";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = $"{root}Backup";
+            if (PluginPath.IsNullOrEmpty()) PluginPath = $"{root}Plugins";
+        }
+        else
+        {
+            if (LogPath.IsNullOrEmpty()) LogPath = "Log";
+            if (DataPath.IsNullOrEmpty()) DataPath = "Data";
+            if (BackupPath.IsNullOrEmpty()) BackupPath = "Backup";
+            if (PluginPath.IsNullOrEmpty()) PluginPath = "Plugins";
+        }
         if (LogFileFormat.IsNullOrEmpty()) LogFileFormat = "{0:yyyy_MM_dd}.log";
 
         if (PluginServer.IsNullOrWhiteSpace()) PluginServer = "http://x.newlifex.com/";
