@@ -236,7 +236,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     #endregion 打开关闭
 
     #region 发送
-
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
     /// <remarks>
     /// 目标地址由<seealso cref="Remote"/>决定
@@ -259,6 +258,27 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(IPacket data);
 
+    /// <summary>直接发送数据包 Byte[]/Packet</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    public Int32 Send(ReadOnlySpan<Byte> data)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open()) return -1;
+
+        return OnSend(data);
+    }
+
+    /// <summary>发送数据</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    protected abstract Int32 OnSend(ReadOnlySpan<Byte> data);
     #endregion 发送
 
     #region 接收

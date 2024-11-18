@@ -51,6 +51,11 @@ public interface INetSession : IDisposable2
     /// <param name="data">数据包</param>
     INetSession Send(IPacket data);
 
+    /// <summary>发送数据，直达网卡</summary>
+    /// <param name="data">数据包</param>
+    /// <returns></returns>
+    INetSession Send(ReadOnlySpan<Byte> data);
+
     /// <summary>发送数据流，直达网卡</summary>
     /// <param name="stream"></param>
     /// <returns></returns>

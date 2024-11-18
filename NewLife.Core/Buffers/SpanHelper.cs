@@ -67,6 +67,19 @@ public static class SpanHelper
 
     /// <summary>把字节数组编码为十六进制字符串</summary>
     /// <param name="data">字节数组</param>
+    /// <param name="maxLength">最大长度</param>
+    /// <returns></returns>
+    public static String ToHex(this ReadOnlySpan<Byte> data, Int32 maxLength)
+    {
+        if (data.Length == 0) return String.Empty;
+
+        if (maxLength > 0 && data.Length > maxLength) data = data[..maxLength];
+
+        return data.ToHex();
+    }
+
+    /// <summary>把字节数组编码为十六进制字符串</summary>
+    /// <param name="data">字节数组</param>
     /// <returns></returns>
     public static String ToHex(this Span<Byte> data) => ToHex((ReadOnlySpan<Byte>)data);
 

@@ -664,7 +664,7 @@ public static class HttpHelper
                 if (msg != null)
                 {
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
-                    socket.Send((ArrayPacket)buf, WebSocketMessageType.Text);
+                    socket.Send(buf, WebSocketMessageType.Text);
                 }
                 else
                 {

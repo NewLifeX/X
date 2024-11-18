@@ -2,7 +2,6 @@
 using System.Security.Cryptography;
 using NewLife.Data;
 using NewLife.Net;
-using NewLife.Security;
 
 namespace NewLife.Http;
 
@@ -127,9 +126,18 @@ public class WebSocket
         Send(msg);
     }
 
+    /// <summary>发送消息</summary>
+    /// <param name="data"></param>
+    /// <param name="type"></param>
+    public void Send(Byte[] data, WebSocketMessageType type)
+    {
+        var msg = new WebSocketMessage { Type = type, Payload = (ArrayPacket)data };
+        Send(msg);
+    }
+
     /// <summary>发送文本消息</summary>
     /// <param name="message"></param>
-    public void Send(String message) => Send((ArrayPacket)message.GetBytes(), WebSocketMessageType.Text);
+    public void Send(String message) => Send(message.GetBytes(), WebSocketMessageType.Text);
 
     /// <summary>向所有连接发送消息</summary>
     /// <param name="data"></param>

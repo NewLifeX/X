@@ -145,9 +145,17 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <remarks>
     /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
     /// </remarks>
-    /// <param name="pk">数据包</param>
+    /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
-    protected override Int32 OnSend(IPacket pk) => OnSend(pk, Remote.EndPoint);
+    protected override Int32 OnSend(IPacket data) => OnSend(data, Remote.EndPoint);
+
+    /// <summary>发送数据</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    protected override Int32 OnSend(ReadOnlySpan<Byte> data) => OnSend(data, Remote.EndPoint);
 
     internal Int32 OnSend(IPacket pk, IPEndPoint remote)
     {
@@ -214,6 +222,55 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 //Close();
 
                 //if (ThrowException) throw;
+            }
+            return -1;
+        }
+    }
+
+    internal Int32 OnSend(ReadOnlySpan<Byte> data, IPEndPoint remote)
+    {
+        var count = data.Length;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
+
+        try
+        {
+            var rs = 0;
+            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
+            lock (sock)
+            {
+                if (sock.Connected && !sock.EnableBroadcast)
+                {
+                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.ToHex(LogDataLength));
+
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+                    rs = sock.Send(data, SocketFlags.None);
+#else
+                    rs = sock.Send(data.ToArray(), SocketFlags.None);
+#endif
+                }
+                else
+                {
+                    sock.CheckBroadcast(remote.Address);
+                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, data.ToHex(LogDataLength), remote);
+
+#if NET6_0_OR_GREATER
+                    rs = sock.SendTo(data, SocketFlags.None, remote);
+#else
+                    rs = sock.SendTo(data.ToArray(), SocketFlags.None, remote);
+#endif
+                }
+            }
+
+            return rs;
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, data.ToHex(LogDataLength));
+
+            if (!ex.IsDisposed())
+            {
+                OnError("Send", ex);
             }
             return -1;
         }

@@ -242,6 +242,18 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         return this;
     }
 
+    /// <summary>发送数据，直达网卡</summary>
+    /// <param name="data">数据包</param>
+    public virtual INetSession Send(ReadOnlySpan<Byte> data)
+    {
+        var ns = (this as INetSession).Host;
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", null, data.Length);
+
+        Session.Send(data);
+
+        return this;
+    }
+
     /// <summary>发送数据流，直达网卡</summary>
     /// <param name="stream"></param>
     /// <returns></returns>

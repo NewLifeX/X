@@ -138,6 +138,17 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         return Server.OnSend(data, Remote.EndPoint);
     }
 
+    /// <summary>发送数据</summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public Int32 Send(ReadOnlySpan<Byte> data)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        return Server.OnSend(data, Remote.EndPoint);
+    }
+
     /// <summary>发送消息，不等待响应</summary>
     /// <param name="message"></param>
     /// <returns></returns>

@@ -27,6 +27,14 @@ public interface ISocketRemote : ISocket, IExtend
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     Int32 Send(IPacket data);
+
+    /// <summary>发送原始数据包</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    Int32 Send(ReadOnlySpan<Byte> data);
     #endregion
 
     #region 接收
@@ -122,7 +130,7 @@ public static class SocketRemoteHelper
         if (String.IsNullOrEmpty(msg)) return session.Send(Pool.Empty);
 
         encoding ??= Encoding.UTF8;
-        return session.Send(encoding.GetBytes(msg));
+        return session.Send(encoding.GetBytes(msg), 0, -1);
     }
     #endregion
 
