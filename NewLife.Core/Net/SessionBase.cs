@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
@@ -257,6 +258,48 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
     protected abstract Int32 OnSend(IPacket data);
+
+    /// <summary>直接发送数据包 Byte[]/Packet</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">字节数组</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">字节数</param>
+    /// <returns>是否成功</returns>
+    public Int32 Send(Byte[] data, Int32 offset = 0, Int32 count = -1)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open()) return -1;
+
+#if NET6_0_OR_GREATER
+        return OnSend(new ReadOnlySpan<Byte>(data, offset, count));
+#else
+        return OnSend(new ArraySegment<Byte>(data, offset, count));
+#endif
+    }
+
+    /// <summary>直接发送数据包 Byte[]/Packet</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    public Int32 Send(ArraySegment<Byte> data)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+        if (!Open()) return -1;
+
+        return OnSend(data);
+    }
+
+    /// <summary>发送数据</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    protected abstract Int32 OnSend(ArraySegment<Byte> data);
 
     /// <summary>直接发送数据包 Byte[]/Packet</summary>
     /// <remarks>

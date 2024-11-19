@@ -316,15 +316,14 @@ public class TcpSession : SessionBase, ISocketSession
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
+                else if (pk.TryGetArray(out var segment))
+                    rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
                 else if (pk.TryGetSpan(out var data))
                 {
 #if NETCOREAPP || NETSTANDARD2_1
                     rs = sock.Send(data);
 #else
-                    if (pk.TryGetArray(out var segment))
-                        rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
-                    else
-                        rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
+                    rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
 #endif
                 }
                 else
@@ -337,12 +336,10 @@ public class TcpSession : SessionBase, ISocketSession
                 else
                     pk.CopyTo(_Stream);
             }
-
-            //// 检查返回值
-            //if (rs != count) throw new NetException($"发送[{count:n0}]而成功[{rs:n0}]");
         }
         catch (Exception ex)
         {
+            // 发生异常时，全量数据写入埋点
             span?.SetError(ex, pk);
 
             if (!ex.IsDisposed())
@@ -351,11 +348,76 @@ public class TcpSession : SessionBase, ISocketSession
 
                 // 发送异常可能是连接出了问题，需要关闭
                 Close("SendError");
+            }
 
-                //// 异步重连
-                //ThreadPoolX.QueueUserWorkItem(Reconnect);
+            return -1;
+        }
+        finally
+        {
+            if (gotLock) _spinLock.Exit();
+        }
 
-                //if (ThrowException) throw;
+        LastTime = DateTime.Now;
+
+        return rs;
+    }
+
+    /// <summary>发送数据</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
+    protected override Int32 OnSend(ArraySegment<Byte> data)
+    {
+        var count = data.Count;
+        var logCount = count > LogDataLength ? count : LogDataLength;
+
+        if (Log != null && Log.Enable && LogSend)
+            WriteLog("Send [{0}]: {1}", count, data.Array.ToHex(data.Offset, logCount));
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
+
+        var rs = count;
+        var sock = Client;
+        if (sock == null) return -1;
+
+        var gotLock = false;
+        try
+        {
+            // 修改发送缓冲区，读取SendBufferSize耗时很大
+            if (_bsize == 0) _bsize = sock.SendBufferSize;
+            if (_bsize < count) sock.SendBufferSize = _bsize = count;
+
+            // 加锁发送
+            _spinLock.Enter(ref gotLock);
+
+            if (_Stream == null)
+            {
+                if (count == 0)
+                    rs = sock.Send(Pool.Empty);
+                else
+                    rs = sock.Send(data.Array!, data.Offset, data.Count, SocketFlags.None);
+            }
+            else
+            {
+                if (count == 0)
+                    _Stream.Write([]);
+                else
+                    _Stream.Write(data.Array!, data.Offset, data.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(ex, data.Array.ToHex(data.Offset, data.Count));
+
+            if (!ex.IsDisposed())
+            {
+                OnError("Send", ex);
+
+                // 发送异常可能是连接出了问题，需要关闭
+                Close("SendError");
             }
 
             return -1;
@@ -423,7 +485,8 @@ public class TcpSession : SessionBase, ISocketSession
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, data.ToHex(LogDataLength));
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(ex, data.ToHex());
 
             if (!ex.IsDisposed())
             {

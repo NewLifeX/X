@@ -84,7 +84,7 @@ public class Setting : Config<Setting>
         // 多应用项目，需要把基础目录向上提升一级
         var root = "../";
         var di = ".".AsDirectory();
-        if (di.Name.StartsWithIgnoreCase("netcoreapp", "net2", "net4", "net5", "net6", "net7", "net8", "net9", "net10"))
+        if (di.Name.StartsWithIgnoreCase("netcoreapp", "net2", "net4", "net5", "net6", "net7", "net8", "net9", "net10") && di.Parent != null)
         {
             root = "../../";
             di = di.Parent;

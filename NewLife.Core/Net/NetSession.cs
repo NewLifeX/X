@@ -243,6 +243,20 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     }
 
     /// <summary>发送数据，直达网卡</summary>
+    /// <param name="data">字节数组</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">字节数</param>
+    public virtual INetSession Send(Byte[] data, Int32 offset = 0, Int32 count = -1)
+    {
+        var ns = (this as INetSession).Host;
+        using var span = ns?.Tracer?.NewSpan($"net:{ns.Name}:Send", data.ToHex(offset, count), count > 0 ? count : data.Length - offset);
+
+        Session.Send(data, offset, count);
+
+        return this;
+    }
+
+    /// <summary>发送数据，直达网卡</summary>
     /// <param name="data">数据包</param>
     public virtual INetSession Send(ReadOnlySpan<Byte> data)
     {

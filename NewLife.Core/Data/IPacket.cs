@@ -150,7 +150,7 @@ public static class PacketHelper
         return sb.Return(true);
     }
 
-    /// <summary>拷贝</summary>
+    /// <summary>写入数据流，netfx中可能有二次拷贝</summary>
     /// <param name="pk"></param>
     /// <param name="stream"></param>
     public static void CopyTo(this IPacket pk, Stream stream)
@@ -162,6 +162,8 @@ public static class PacketHelper
 #else
             if (p is ArrayPacket ap)
                 stream.Write(ap.Buffer, ap.Offset, ap.Length);
+            else if (p.TryGetArray(out var segment))
+                stream.Write(segment.Array!, segment.Offset, segment.Count);
             else
                 stream.Write(p.GetMemory());
 #endif
@@ -202,7 +204,7 @@ public static class PacketHelper
         return ms;
     }
 
-    /// <summary>返回数据段</summary>
+    /// <summary>返回数据段，可能有拷贝</summary>
     /// <returns></returns>
     public static ArraySegment<Byte> ToSegment(this IPacket pk)
     {
@@ -215,7 +217,7 @@ public static class PacketHelper
         return new ArraySegment<Byte>(ms.Return(true));
     }
 
-    /// <summary>返回数据段集合</summary>
+    /// <summary>返回数据段集合，可能有拷贝</summary>
     /// <returns></returns>
     public static IList<ArraySegment<Byte>> ToSegments(this IPacket pk)
     {

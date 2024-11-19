@@ -139,6 +139,34 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     }
 
     /// <summary>发送数据</summary>
+    /// <param name="data">字节数组</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">字节数</param>
+    /// <returns></returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public Int32 Send(Byte[] data, Int32 offset = 0, Int32 count = -1)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+#if NET6_0_OR_GREATER
+        return Server.OnSend(new ReadOnlySpan<Byte>(data, offset, count), Remote.EndPoint);
+#else
+        return Server.OnSend(new ArraySegment<Byte>(data, offset, count), Remote.EndPoint);
+#endif
+    }
+
+    /// <summary>发送数据</summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public Int32 Send(ArraySegment<Byte> data)
+    {
+        if (Disposed) throw new ObjectDisposedException(GetType().Name);
+
+        return Server.OnSend(data, Remote.EndPoint);
+    }
+
+    /// <summary>发送数据</summary>
     /// <param name="data"></param>
     /// <returns></returns>
     /// <exception cref="ObjectDisposedException"></exception>

@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-using NewLife.Collections;
 
 namespace NewLife.Net;
 
@@ -118,7 +118,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 var remote = Remote;
                 if (remote != null && !remote.Address.IsAny() && remote.Port != 0)
                 {
-                    this.Send(Pool.Empty);
+                    Send(Pool.Empty);
                 }
 
                 Client = null;
@@ -155,6 +155,14 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// </remarks>
     /// <param name="data">数据包</param>
     /// <returns>是否成功</returns>
+    protected override Int32 OnSend(ArraySegment<Byte> data) => OnSend(data, Remote.EndPoint);
+
+    /// <summary>发送数据</summary>
+    /// <remarks>
+    /// 目标地址由<seealso cref="SessionBase.Remote"/>决定
+    /// </remarks>
+    /// <param name="data">数据包</param>
+    /// <returns>是否成功</returns>
     protected override Int32 OnSend(ReadOnlySpan<Byte> data) => OnSend(data, Remote.EndPoint);
 
     internal Int32 OnSend(IPacket pk, IPEndPoint remote)
@@ -173,15 +181,16 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
-                    if (pk.TryGetSpan(out var data))
+                    if (count == 0)
+                        rs = sock.Send(Pool.Empty);
+                    else if (pk.TryGetArray(out var segment))
+                        rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
+                    else if (pk.TryGetSpan(out var data))
                     {
 #if NETCOREAPP || NETSTANDARD2_1
                         rs = sock.Send(data);
 #else
-                        if (pk.TryGetArray(out var segment))
-                            rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
-                        else
-                            rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
+                        rs = sock.Send(data.ToArray(), 0, data.Length, SocketFlags.None);
 #endif
                     }
                     else
@@ -192,15 +201,16 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                     sock.CheckBroadcast(remote.Address);
                     if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, pk.ToHex(LogDataLength), remote);
 
-                    if (pk.TryGetSpan(out var data))
+                    if (count == 0)
+                        rs = sock.SendTo(Pool.Empty, remote);
+                    else if (pk.TryGetArray(out var segment))
+                        rs = sock.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, remote);
+                    else if (pk.TryGetSpan(out var data))
                     {
 #if NET6_0_OR_GREATER
                         rs = sock.SendTo(data, remote);
 #else
-                        if (pk.TryGetArray(out var segment))
-                            rs = sock.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, remote);
-                        else
-                            rs = sock.SendTo(data.ToArray(), 0, data.Length, SocketFlags.None, remote);
+                        rs = sock.SendTo(data.ToArray(), 0, data.Length, SocketFlags.None, remote);
 #endif
                     }
                     else
@@ -212,16 +222,64 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         }
         catch (Exception ex)
         {
+            // 发生异常时，全量数据写入埋点
             span?.SetError(ex, pk);
 
             if (!ex.IsDisposed())
             {
                 OnError("Send", ex);
+            }
+            return -1;
+        }
+    }
 
-                // 发送异常可能是连接出了问题，UDP不需要关闭
-                //Close();
+    internal Int32 OnSend(Byte[] data, Int32 offset, Int32 count, IPEndPoint remote)
+    {
+#if NET6_0_OR_GREATER
+        return OnSend(new ReadOnlySpan<Byte>(data, offset, count), remote);
+#else
+        return OnSend(new ArraySegment<Byte>(data, offset, count), remote);
+#endif
+    }
 
-                //if (ThrowException) throw;
+    internal Int32 OnSend(ArraySegment<Byte> data, IPEndPoint remote)
+    {
+        var count = data.Count;
+        var logCount = count > LogDataLength ? count : LogDataLength;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Send", count + "", count);
+
+        try
+        {
+            var rs = 0;
+            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
+            lock (sock)
+            {
+                if (sock.Connected && !sock.EnableBroadcast)
+                {
+                    if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, data.Array.ToHex(data.Offset, logCount));
+
+                    rs = sock.Send(data.Array!, data.Offset, data.Count, SocketFlags.None);
+                }
+                else
+                {
+                    sock.CheckBroadcast(remote.Address);
+                    if (Log.Enable && LogSend) WriteLog("Send {2} [{0}]: {1}", count, data.Array.ToHex(data.Offset, logCount), remote);
+
+                    rs = sock.SendTo(data.Array!, data.Offset, data.Count, SocketFlags.None, remote);
+                }
+            }
+
+            return rs;
+        }
+        catch (Exception ex)
+        {
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(ex, data.Array.ToHex(data.Offset, data.Count));
+
+            if (!ex.IsDisposed())
+            {
+                OnError("Send", ex);
             }
             return -1;
         }
@@ -266,7 +324,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         }
         catch (Exception ex)
         {
-            span?.SetError(ex, data.ToHex(LogDataLength));
+            // 发生异常时，全量数据写入埋点
+            span?.SetError(ex, data.ToHex());
 
             if (!ex.IsDisposed())
             {

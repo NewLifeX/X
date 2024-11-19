@@ -52,6 +52,13 @@ public interface INetSession : IDisposable2
     INetSession Send(IPacket data);
 
     /// <summary>发送数据，直达网卡</summary>
+    /// <param name="data">字节数组</param>
+    /// <param name="offset">偏移</param>
+    /// <param name="count">字节数</param>
+    /// <returns></returns>
+    INetSession Send(Byte[] data, Int32 offset = 0, Int32 count = -1);
+
+    /// <summary>发送数据，直达网卡</summary>
     /// <param name="data">数据包</param>
     /// <returns></returns>
     INetSession Send(ReadOnlySpan<Byte> data);
