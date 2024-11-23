@@ -152,13 +152,20 @@ public class DefaultSpanBuilder : ISpanBuilder
     /// <param name="span"></param>
     public virtual void Finish(ISpan span)
     {
-        // 总次数
-        var total = Interlocked.Increment(ref _Total);
+        var tracer = Tracer;
+        if (tracer == null) return;
 
         // 累计耗时。时间回退的耗时，一律清零，避免出现负数耗时
         var cost = (Int32)(span.EndTime - span.StartTime);
         if (cost < 0) cost = 0;
+
+        // 抛弃耗时过大的埋点，避免污染统计数据
+        if (cost > 3600_000) return;
+
         Interlocked.Add(ref _Cost, cost);
+
+        // 总次数
+        var total = Interlocked.Increment(ref _Total);
 
         // 累加用户数值
         if (span.Value != 0) Interlocked.Add(ref _Value, span.Value);
@@ -166,9 +173,6 @@ public class DefaultSpanBuilder : ISpanBuilder
         // 最大最小耗时
         if (MaxCost < cost) MaxCost = cost;
         if (MinCost > cost || MinCost < 0) MinCost = cost;
-
-        var tracer = Tracer;
-        if (tracer == null) return;
 
         // 检查跟踪标识，上游指示强制采样，确保链路采样完整
         var force = false;
