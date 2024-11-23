@@ -89,15 +89,15 @@ public class CsvFile : IDisposable
         _disposed = true;
 
         // 必须刷新写入器，否则可能丢失一截数据
-        if (_writer != null) await _writer.FlushAsync();
+        if (_writer != null) await _writer.FlushAsync().ConfigureAwait(false);
 
         if (!_leaveOpen && _stream != null)
         {
             _reader.TryDispose();
 
-            if (_writer != null) await _writer.DisposeAsync();
+            if (_writer != null) await _writer.DisposeAsync().ConfigureAwait(false);
 
-            await _stream.DisposeAsync();
+            await _stream.DisposeAsync().ConfigureAwait(false);
         }
 
         GC.SuppressFinalize(this);
@@ -210,7 +210,7 @@ public class CsvFile : IDisposable
 
         var str = BuildLine(line);
 
-        await _writer.WriteLineAsync(str);
+        await _writer.WriteLineAsync(str).ConfigureAwait(false);
     }
 
     /// <summary>构建一行</summary>

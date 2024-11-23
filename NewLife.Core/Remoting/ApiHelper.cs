@@ -107,7 +107,7 @@ public static class ApiHelper
             // 发起请求
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
 
-            var response = await client.SendAsync(request, cancellationToken);
+            var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
 
@@ -241,7 +241,7 @@ public static class ApiHelper
         var rtype = typeof(TResult);
         if (rtype == typeof(HttpResponseMessage)) return (TResult)(Object)response;
 
-        var buf = response.Content == null ? null : (await response.Content.ReadAsByteArrayAsync());
+        var buf = response.Content == null ? null : (await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false));
 
         // 异常处理
         if (response.StatusCode >= HttpStatusCode.BadRequest)

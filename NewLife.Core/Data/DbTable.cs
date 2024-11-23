@@ -525,8 +525,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         };
         using var writer = XmlWriter.Create(stream, set);
 
-        await writer.WriteStartDocumentAsync();
-        await writer.WriteStartElementAsync(null, "DbTable", null);
+        await writer.WriteStartDocumentAsync().ConfigureAwait(false);
+        await writer.WriteStartElementAsync(null, "DbTable", null).ConfigureAwait(false);
 
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
@@ -536,11 +536,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         {
             foreach (var row in rows)
             {
-                await writer.WriteStartElementAsync(null, "Table", null);
+                await writer.WriteStartElementAsync(null, "Table", null).ConfigureAwait(false);
                 for (var i = 0; i < cs.Length; i++)
                 {
                     //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
-                    await writer.WriteStartElementAsync(null, cs[i], null);
+                    await writer.WriteStartElementAsync(null, cs[i], null).ConfigureAwait(false);
 
                     //writer.WriteValue(row[i]);
                     if (ts[i] == typeof(Boolean))
@@ -550,18 +550,18 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                     else if (ts[i] == typeof(DateTimeOffset))
                         writer.WriteValue(row[i].ChangeType<DateTimeOffset>());
                     else if (row[i] is IFormattable ft)
-                        await writer.WriteStringAsync(ft + "");
+                        await writer.WriteStringAsync(ft + "").ConfigureAwait(false);
                     else
-                        await writer.WriteStringAsync(row[i] + "");
+                        await writer.WriteStringAsync(row[i] + "").ConfigureAwait(false);
 
-                    await writer.WriteEndElementAsync();
+                    await writer.WriteEndElementAsync().ConfigureAwait(false);
                 }
-                await writer.WriteEndElementAsync();
+                await writer.WriteEndElementAsync().ConfigureAwait(false);
             }
         }
 
-        await writer.WriteEndElementAsync();
-        await writer.WriteEndDocumentAsync();
+        await writer.WriteEndElementAsync().ConfigureAwait(false);
+        await writer.WriteEndDocumentAsync().ConfigureAwait(false);
     }
     #endregion
 

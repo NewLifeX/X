@@ -220,7 +220,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
             if (rs < 0) return TaskEx.CompletedTask;
 
-            return await source.Task;
+            return await source.Task.ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -259,7 +259,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             // 注册取消时的处理，如果没有收到响应，取消发送等待
             using (cancellationToken.Register(TrySetCanceled, source))
             {
-                return await source.Task;
+                return await source.Task.ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -321,12 +321,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var ar = socket.BeginReceiveFrom(pk.Buffer, 0, pk.Length, SocketFlags.None, ref ep, null, socket);
             var size = ar.IsCompleted ?
                 socket.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep));
+                await Task.Factory.FromAsync(ar, e => socket.EndReceiveFrom(e, ref ep)).ConfigureAwait(false);
 #elif NET7_0_OR_GREATER
-            var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken);
+            var result = await socket.ReceiveFromAsync(pk.GetMemory(), ep, cancellationToken).ConfigureAwait(false);
             var size = result.ReceivedBytes;
 #else
-            var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep);
+            var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
             var size = result.ReceivedBytes;
 #endif
             if (span != null) span.Value = size;

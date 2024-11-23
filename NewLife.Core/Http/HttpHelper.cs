@@ -150,9 +150,9 @@ public static class HttpHelper
             var addrs = NetUri.ParseAddress(ep.Host);
             span?.AppendTag($"addrs={addrs?.Join()}");
             if (addrs != null && addrs.Length > 0)
-                await socket.ConnectAsync(addrs, ep.Port, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                await socket.ConnectAsync(addrs, ep.Port, cancellationToken).ConfigureAwait(false);
             else
-                await socket.ConnectAsync(ep, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                await socket.ConnectAsync(ep, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -529,14 +529,14 @@ public static class HttpHelper
         {
             if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
 
-            var response = await client.SendAsync(request, cancellationToken);
+            var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
 
 #if NET5_0_OR_GREATER
-            var result = await response.Content.ReadAsStringAsync(cancellationToken);
+            var result = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 #else
-            var result = await response.Content.ReadAsStringAsync();
+            var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
 
             // 增加埋点数据
@@ -577,11 +577,11 @@ public static class HttpHelper
     /// <param name="fileName">目标文件名</param>
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName)
     {
-        var rs = await client.GetStreamAsync(requestUri);
+        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs);
-        await fs.FlushAsync();
+        await rs.CopyToAsync(fs).ConfigureAwait(false);
+        await fs.FlushAsync().ConfigureAwait(false);
     }
 
     /// <summary>下载文件</summary>
@@ -592,23 +592,23 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
 #if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken);
+        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs, cancellationToken);
-        await fs.FlushAsync(cancellationToken);
+        await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #elif NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        var rs = await client.GetStreamAsync(requestUri);
+        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs, cancellationToken);
-        await fs.FlushAsync(cancellationToken);
+        await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #else
-        var rs = await client.GetStreamAsync(requestUri);
+        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs, 81920, cancellationToken);
-        await fs.FlushAsync(cancellationToken);
+        await rs.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
+        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #endif
     }
 
@@ -711,7 +711,7 @@ public static class HttpHelper
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
 
                     if (buf != null && buf.Length > 0)
-                        await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+                        await socket.SendAsync(new ArraySegment<Byte>(buf), System.Net.WebSockets.WebSocketMessageType.Text, true, token).ConfigureAwait(false);
                 }
                 else
                 {
@@ -750,7 +750,7 @@ public static class HttpHelper
             var buf = new Byte[4 * 1024];
             while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
             {
-                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token);
+                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token).ConfigureAwait(false);
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
                 {
@@ -763,7 +763,7 @@ public static class HttpHelper
             if (!source.IsCancellationRequested) source.Cancel();
 
             if (socket.State == WebSocketState.Open)
-                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default);
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default).ConfigureAwait(false);
         }
         catch (TaskCanceledException) { }
         catch (OperationCanceledException) { }

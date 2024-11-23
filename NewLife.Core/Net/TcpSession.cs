@@ -523,7 +523,7 @@ public class TcpSession : SessionBase, ISocketSession
             try
             {
                 var pk = new OwnerPacket(BufferSize);
-                var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken);
+                var size = await ss.ReadAsync(pk.Buffer, 0, pk.Length, cancellationToken).ConfigureAwait(false);
                 if (span != null) span.Value = size;
 
                 return pk.Resize(size);

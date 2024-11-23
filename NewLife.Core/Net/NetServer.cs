@@ -552,7 +552,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             ts.Add(Task.Run(() => item.Value.Send(data)));
         }
 
-        await Task.WhenAll(ts);
+        await Task.WhenAll(ts).ConfigureAwait(false);
 
         return Sessions.Count;
     }
@@ -572,7 +572,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
                 ts.Add(Task.Run(() => item.Value.Send(data)));
         }
 
-        await Task.WhenAll(ts);
+        await Task.WhenAll(ts).ConfigureAwait(false);
 
         return Sessions.Count;
     }

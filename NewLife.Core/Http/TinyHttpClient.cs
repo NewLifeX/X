@@ -202,7 +202,7 @@ public class TinyHttpClient : DisposeBase
         {
             // 使用内存流拼接需要多次接收的数据包，降低逻辑复杂度
             var ms = new MemoryStream(res.ContentLength);
-            await rs.CopyToAsync(ms);
+            await rs.CopyToAsync(ms).ConfigureAwait(false);
 
             var total = rs.Length;
             while (total < res.ContentLength)

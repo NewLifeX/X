@@ -103,7 +103,7 @@ public class WebClientX : DisposeBase
         //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
         //var rs = await task;
         using var ctx = CancellationTokenSource.CreateLinkedTokenSource(new CancellationTokenSource(Timeout).Token, cancellationToken);
-        var rs = await http.SendAsync(request, ctx.Token);
+        var rs = await http.SendAsync(request, ctx.Token).ConfigureAwait(false);
 
         if (rs.StatusCode < HttpStatusCode.BadRequest)
         {
@@ -171,7 +171,7 @@ public class WebClientX : DisposeBase
         address = CheckAuth(address);
 
         var rs = await SendAsync(address, null, cancellationToken);
-        return await rs.ReadAsStringAsync();
+        return await rs.ReadAsStringAsync().ConfigureAwait(false);
     }
 
     /// <summary>下载文件</summary>
@@ -185,9 +185,9 @@ public class WebClientX : DisposeBase
         var rs = await SendAsync(address, null, cancellationToken);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs);
+        await rs.CopyToAsync(fs).ConfigureAwait(false);
         fs.SetLength(fs.Position);
-        await fs.FlushAsync();
+        await fs.FlushAsync().ConfigureAwait(false);
     }
     #endregion
 

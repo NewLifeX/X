@@ -425,8 +425,8 @@ public class Packet : IPacket
     /// <returns></returns>
     public async Task CopyToAsync(Stream stream)
     {
-        await stream.WriteAsync(Data, Offset, Count);
-        if (Next != null) await Next.CopyToAsync(stream);
+        await stream.WriteAsync(Data, Offset, Count).ConfigureAwait(false);
+        if (Next != null) await Next.CopyToAsync(stream).ConfigureAwait(false);
     }
 
     /// <summary>异步复制到目标数据流</summary>
@@ -435,8 +435,8 @@ public class Packet : IPacket
     /// <returns></returns>
     public async Task CopyToAsync(Stream stream, CancellationToken cancellationToken)
     {
-        await stream.WriteAsync(Data, Offset, Count, cancellationToken);
-        if (Next != null) await Next.CopyToAsync(stream, cancellationToken);
+        await stream.WriteAsync(Data, Offset, Count, cancellationToken).ConfigureAwait(false);
+        if (Next != null) await Next.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>深度克隆一份数据包，拷贝数据区</summary>

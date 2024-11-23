@@ -180,12 +180,12 @@ public static class PacketHelper
         for (var p = pk; p != null; p = p.Next)
         {
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            await stream.WriteAsync(p.GetMemory(), cancellationToken);
+            await stream.WriteAsync(p.GetMemory(), cancellationToken).ConfigureAwait(false);
 #else
             if (p is ArrayPacket ap)
-                await stream.WriteAsync(ap.Buffer, ap.Offset, ap.Length, cancellationToken);
+                await stream.WriteAsync(ap.Buffer, ap.Offset, ap.Length, cancellationToken).ConfigureAwait(false);
             else
-                await stream.WriteAsync(p.GetMemory(), cancellationToken);
+                await stream.WriteAsync(p.GetMemory(), cancellationToken).ConfigureAwait(false);
 #endif
         }
     }

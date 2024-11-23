@@ -991,7 +991,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
         {
             if (timeout <= 0) return default;
 
-            if (!await _occupiedNodes.WaitAsync(timeout * 1000)) return default;
+            if (!await _occupiedNodes.WaitAsync(timeout * 1000).ConfigureAwait(false)) return default;
         }
 
         return _collection.TryTake(out var item) ? item : default;
@@ -1007,7 +1007,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
         {
             if (timeout <= 0) return default;
 
-            if (!await _occupiedNodes.WaitAsync(timeout * 1000, cancellationToken)) return default;
+            if (!await _occupiedNodes.WaitAsync(timeout * 1000, cancellationToken).ConfigureAwait(false)) return default;
         }
 
         return _collection.TryTake(out var item) ? item : default;

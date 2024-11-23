@@ -106,7 +106,7 @@ public class OssClient : IObjectStorage
         request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AppId + ":" + signature);
 
         var http = GetClient();
-        var rs = await http.SendAsync(request);
+        var rs = await http.SendAsync(request).ConfigureAwait(false);
 
         return await ApiHelper.ProcessResponse<TResult>(rs);
     }

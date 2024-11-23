@@ -499,7 +499,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         var filter = Filter;
         if (filter != null) await filter.OnRequest(client, request, this, cancellationToken);
 
-        var response = await client.SendAsync(request, cancellationToken);
+        var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         if (filter != null) await filter.OnResponse(client, response, this, cancellationToken);
 

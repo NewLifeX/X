@@ -366,9 +366,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var ar = Client.BeginReceive(pk.Buffer, 0, pk.Length, SocketFlags.None, null, Client);
             var size = ar.IsCompleted ?
                 Client.EndReceive(ar) :
-                await Task.Factory.FromAsync(ar, Client.EndReceive);
+                await Task.Factory.FromAsync(ar, Client.EndReceive).ConfigureAwait(false);
 #else
-            var size = await Client.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken);
+            var size = await Client.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
 #endif
             if (span != null) span.Value = size;
 
@@ -729,7 +729,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
             if (rs < 0) return TaskEx.CompletedTask;
 
-            return await source.Task;
+            return await source.Task.ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -769,7 +769,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             // https://stackoverflow.com/questions/14627226/why-is-my-async-await-with-cancellationtokensource-leaking-memory
             using (cancellationToken.Register(TrySetCanceled, source))
             {
-                return await source.Task;
+                return await source.Task.ConfigureAwait(false);
             }
         }
         catch (Exception ex)
