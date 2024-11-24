@@ -148,6 +148,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
+        // 全部发送
+        if (count < 0) count = data.Length - offset;
+
 #if NET6_0_OR_GREATER
         return Server.OnSend(new ReadOnlySpan<Byte>(data, offset, count), Remote.EndPoint);
 #else

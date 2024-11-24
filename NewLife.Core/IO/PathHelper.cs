@@ -218,7 +218,7 @@ public static class PathHelper
         using var fs = file.OpenRead();
         fs.Position = offset;
 
-        if (count <= 0) count = (Int32)(fs.Length - offset);
+        if (count < 0) count = (Int32)(fs.Length - offset);
 
         var buf = new Byte[count];
         fs.ReadExactly(buf, 0, buf.Length);

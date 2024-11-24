@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace NewLife.Security;
+﻿namespace NewLife.Security;
 
 /// <summary>CRC16校验</summary>
 public sealed class Crc16
@@ -71,7 +68,7 @@ public sealed class Crc16
     public Crc16 Update(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
     {
         if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-        if (count <= 0) count = buffer.Length;
+        if (count < 0) count = buffer.Length;
         if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
 
         var crc = Value;

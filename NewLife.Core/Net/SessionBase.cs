@@ -272,6 +272,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (!Open()) return -1;
 
+        // 全部发送
+        if (count < 0) count = data.Length - offset;
+
 #if NET6_0_OR_GREATER
         return OnSend(new ReadOnlySpan<Byte>(data, offset, count));
 #else
