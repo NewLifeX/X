@@ -171,6 +171,11 @@ public class TcpSession : SessionBase, ISocketSession
                 sock.Connect(addrs, uri.Port);
             else
             {
+#if NET5_0_OR_GREATER
+                var cts = new CancellationTokenSource(timeout);
+                using var _ = cts.Token.Register(() => sock.Close());
+                sock.ConnectAsync(addrs, uri.Port, cts.Token).AsTask().Wait(timeout);
+#else
                 // 采用异步来解决连接超时设置问题
                 var ar = sock.BeginConnect(addrs, uri.Port, null, null);
                 if (!ar.AsyncWaitHandle.WaitOne(timeout, true))
@@ -180,6 +185,7 @@ public class TcpSession : SessionBase, ISocketSession
                 }
 
                 sock.EndConnect(ar);
+#endif
             }
 
             // 作为客户端，启用KeepAlive，及时释放无效连接

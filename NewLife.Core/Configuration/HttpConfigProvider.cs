@@ -94,13 +94,15 @@ public class HttpConfigProvider : ConfigProvider
     #region 方法
     /// <summary>获取客户端</summary>
     /// <returns></returns>
-    protected virtual IApiClient GetClient()
+    protected virtual IApiClient? GetClient()
     {
-        if (Server.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Server));
+        if (Client != null) return Client;
+
+        if (Server.IsNullOrEmpty()) return null;
 
         Client ??= new ApiHttpClient(Server)
         {
-            Timeout = 3_000
+            Timeout = 15_000
         };
 
         return Client;
