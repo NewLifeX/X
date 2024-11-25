@@ -477,7 +477,7 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        var val = Get<String>(keys[i]);
+                        var val = Get<String>(keys[i % keys.Length]);
                     }
                 }
                 else
@@ -486,7 +486,7 @@ public abstract class Cache : DisposeBase, ICache
                     var keys2 = new String[batch];
                     for (var i = k; i < times; i += threads)
                     {
-                        keys2[n++] = keys[i];
+                        keys2[n++] = keys[i % keys.Length];
 
                         if (n >= batch)
                         {
@@ -543,7 +543,7 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        Set(keys[i], val);
+                        Set(keys[i % keys.Length], val);
                     }
                 }
                 else
@@ -552,7 +552,7 @@ public abstract class Cache : DisposeBase, ICache
                     var dic = new Dictionary<String, String>();
                     for (var i = k; i < times; i += threads)
                     {
-                        dic[keys[i]] = val;
+                        dic[keys[i % keys.Length]] = val;
                         n++;
 
                         if (n >= batch)
@@ -618,7 +618,7 @@ public abstract class Cache : DisposeBase, ICache
                 {
                     for (var i = k; i < times; i += threads)
                     {
-                        Remove(keys[i]);
+                        Remove(keys[i % keys.Length]);
                     }
                 }
                 else
@@ -627,7 +627,7 @@ public abstract class Cache : DisposeBase, ICache
                     var keys2 = new String[batch];
                     for (var i = k; i < times; i += threads)
                     {
-                        keys2[n++] = keys[i];
+                        keys2[n++] = keys[i % keys.Length];
 
                         if (n >= batch)
                         {
@@ -689,7 +689,7 @@ public abstract class Cache : DisposeBase, ICache
                 var val = Rand.Next(100);
                 for (var i = k; i < times; i += threads)
                 {
-                    Increment(keys[i], val);
+                    Increment(keys[i % keys.Length], val);
                 }
 
                 // 提交变更
