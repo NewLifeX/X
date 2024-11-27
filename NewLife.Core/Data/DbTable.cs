@@ -305,6 +305,21 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         return true;
     }
 
+    /// <summary>读取</summary>
+    /// <param name="buffer"></param>
+    /// <param name="offset"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    public Boolean Read(Byte[] buffer, Int32 offset = 0, Int32 count = -1)
+    {
+        if (count < 0) count = buffer.Length - offset;
+
+        var ms = new MemoryStream(buffer, offset, count);
+        Read(ms);
+
+        return true;
+    }
+
     /// <summary>从文件加载</summary>
     /// <param name="file"></param>
     /// <param name="compressed">是否压缩</param>
