@@ -113,7 +113,7 @@ public abstract class Actor : DisposeBase, IActor
         {
             if (Active) return _task;
 
-            if (Tracer == null && TracerParent is DefaultSpan ds) Tracer = ds.Builder?.Tracer;
+            if (Tracer == null && TracerParent is DefaultSpan ds) Tracer = ds.Tracer;
 
             using var span = Tracer?.NewSpan("actor:Start", Name);
 

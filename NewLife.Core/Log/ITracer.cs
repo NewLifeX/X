@@ -66,9 +66,9 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     {
         // 注册默认类型，便于Json反序列化时为接口属性创造实例
         var ioc = ObjectContainer.Current;
-        ioc.AddTransient<ITracer, DefaultTracer>();
-        ioc.AddTransient<ISpanBuilder, DefaultSpanBuilder>();
-        ioc.AddTransient<ISpan, DefaultSpan>();
+        ioc.TryAddTransient<ITracer, DefaultTracer>();
+        ioc.TryAddTransient<ISpanBuilder, DefaultSpanBuilder>();
+        ioc.TryAddTransient<ISpan, DefaultSpan>();
     }
     #endregion
 
@@ -248,7 +248,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             {
                 // 头尾是Xml/Json时，使用字符串格式
                 var total = pk.Total;
-                if (total >= 2 && (pk[0] == '{' || pk[0] == '<' || pk[total - 1] == '}' || pk[total - 1] == '>'))
+                if (total >= 2 && (pk[0] == '{' || pk[0] == '<') && (pk[total - 1] == '}' || pk[total - 1] == '>'))
                     span.Tag = pk.ToStr(null, 0, len);
                 else
                     span.Tag = pk.ToHex(len / 2);
@@ -406,7 +406,7 @@ public static class TracerExtension
 
         if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
         {
-            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+            var maxLength = ds.Tracer?.MaxTagLength ?? 1024;
             if (request.Content is ByteArrayContent content &&
                 content.Headers.ContentLength != null &&
                 content.Headers.ContentLength < 1024 * 8 &&

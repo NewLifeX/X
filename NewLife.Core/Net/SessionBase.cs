@@ -337,7 +337,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
         if (!Open() || Client == null) return null;
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive", BufferSize + "");
+        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var pk = new OwnerPacket(BufferSize);

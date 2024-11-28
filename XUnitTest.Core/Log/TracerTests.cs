@@ -380,7 +380,7 @@ public class TracerTests
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             var span = tracer.NewSpan(request) as DefaultSpan;
 
-            Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+            Assert.Equal("http://sso.newlifex.com/user/query", span.Name);
             Assert.StartsWith("GET http://sso.newlifex.com/user/query?id=12345", span.Tag);
         }
 
@@ -389,7 +389,7 @@ public class TracerTests
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             var span = tracer.NewSpan(request) as DefaultSpan;
 
-            Assert.Equal("user/query", span.Builder.Name);
+            Assert.Equal("user/query", span.Name);
             Assert.StartsWith("GET user/query?id=12345", span.Tag);
         }
     }
@@ -404,7 +404,7 @@ public class TracerTests
             var request = WebRequest.CreateHttp(url);
             var span = tracer.NewSpan(request) as DefaultSpan;
 
-            Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+            Assert.Equal("http://sso.newlifex.com/user/query", span.Name);
             Assert.Equal("GET http://sso.newlifex.com/user/query?id=12345", span.Tag);
         }
 
@@ -413,7 +413,7 @@ public class TracerTests
         //    var request = WebRequest.CreateHttp(new Uri(url, UriKind.RelativeOrAbsolute));
         //    var span = tracer.NewSpan(request) as DefaultSpan;
 
-        //    Assert.Equal("http://sso.newlifex.com/user/query", span.Builder.Name);
+        //    Assert.Equal("http://sso.newlifex.com/user/query", span.Name);
         //    Assert.Equal("/user/query?id=12345", span.Tag);
         //}
     }

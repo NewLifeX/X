@@ -65,7 +65,7 @@ public class DefaultSpanBuilder : ISpanBuilder
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public ITracer? Tracer { get; set; }
 
-    /// <summary>操作名</summary>
+    /// <summary>埋点名</summary>
     public String Name { get; set; } = null!;
 
     /// <summary>开始时间。Unix毫秒</summary>
@@ -133,17 +133,25 @@ public class DefaultSpanBuilder : ISpanBuilder
     public virtual ISpan Start()
     {
         DefaultSpan? span = null;
-        if (Tracer is DefaultTracer tracer)
+        var tracer = Tracer;
+        if (tracer is DefaultTracer tracer2)
         {
-            span = tracer.SpanPool.Get() as DefaultSpan;
-            if (span != null) span.Builder = this;
+            span = tracer2.SpanPool.Get() as DefaultSpan;
+            if (span != null)
+            {
+                span.Tracer = tracer2;
+                span.Name = Name;
+#pragma warning disable CS0612 // 类型或成员已过时
+                span.Builder = this;
+#pragma warning restore CS0612 // 类型或成员已过时
+            }
         }
 
-        span ??= new DefaultSpan(this);
+        span ??= new DefaultSpan(tracer!);
         span.Start();
 
         // 指示当前节点开始的后续节点强制采样
-        if (span.TraceFlag == 0 && Tracer != null && Total < Tracer.MaxSamples) span.TraceFlag = 1;
+        if (span.TraceFlag == 0 && tracer != null && Total < tracer.MaxSamples) span.TraceFlag = 1;
 
         return span;
     }
@@ -205,9 +213,9 @@ public class DefaultSpanBuilder : ISpanBuilder
         }
 
         // 如果埋点没有加入链表，则归还对象池
-        if (!flag && Tracer is DefaultTracer tracer2 && ds != null)
+        if (!flag && Tracer is DefaultTracer tracer2)
         {
-            ds.Clear();
+            ds?.Clear();
             tracer2.SpanPool.Return(span);
         }
     }
@@ -232,13 +240,21 @@ public class DefaultSpanBuilder : ISpanBuilder
     /// <summary>清空已有数据</summary>
     public void Clear()
     {
+        //!!! 不能清空Tracer，否则长时间Span完成时，Builder已被处理，Span无法创建新的Builder来统计埋点数据
         Tracer = null;
+
         Name = null!;
         StartTime = 0;
         EndTime = 0;
         Value = 0;
         Samples = null;
         ErrorSamples = null;
+
+        _Total = 0;
+        _Errors = 0;
+        _Cost = 0;
+        MaxCost = 0;
+        MinCost = 0;
     }
 
     /// <summary>已重载。</summary>

@@ -290,7 +290,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive", Server.BufferSize + "");
+        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var ep = Remote.EndPoint as EndPoint;
@@ -314,7 +314,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
         if (Server?.Client == null) throw new InvalidOperationException(nameof(Server));
 
-        using var span = Tracer?.NewSpan($"net:{Name}:Receive", Server.BufferSize + "");
+        using var span = Tracer?.NewSpan($"net:{Name}:Receive");
         try
         {
             var ep = Remote.EndPoint as EndPoint;

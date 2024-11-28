@@ -17,6 +17,9 @@ static class ClientTest
         XTrace.WriteLine("");
         XTrace.WriteLine("Http客户端开始连接！");
 
+        var tracer = DefaultTracer.Instance;
+        using var span = tracer?.NewSpan(nameof(HttpClientTest));
+
         // 基础请求
         var client = new HttpClient
         {
@@ -27,8 +30,11 @@ static class ClientTest
         XTrace.WriteLine(html);
 
         // Api接口请求
-        var http = new ApiHttpClient("http://127.0.0.5:8080");
-        http.Log = XTrace.Log;
+        var http = new ApiHttpClient("http://127.0.0.5:8080")
+        {
+            Tracer = tracer,
+            Log = XTrace.Log
+        };
 
         // 请求接口，返回data部分
         var rs = await http.GetAsync<String>("/user", new { act = "Delete", uid = 1234 });
@@ -68,9 +74,13 @@ static class ClientTest
         XTrace.WriteLine("");
         XTrace.WriteLine("WebSocketClient开始连接！");
 
+        var tracer = DefaultTracer.Instance;
+        using var span = tracer?.NewSpan(nameof(WebSocketClientTest));
+
         var client = new WebSocketClient("ws://127.0.0.7:8080/ws")
         {
             Name = "小ws客户",
+            Tracer = tracer,
             Log = XTrace.Log
         };
         if (client is TcpSession tcp) tcp.MaxAsync = 0;

@@ -22,6 +22,9 @@ public interface ISpan : IDisposable
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
     String Id { get; set; }
 
+    /// <summary>埋点名</summary>
+    String Name { get; set; }
+
     /// <summary>父级片段标识</summary>
     String? ParentId { get; set; }
 
@@ -64,12 +67,21 @@ public interface ISpan : IDisposable
 public class DefaultSpan : ISpan
 {
     #region 属性
+    /// <summary>跟踪器</summary>
+    [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+    public ITracer? Tracer { get; set; }
+
     /// <summary>构建器</summary>
+    [Obsolete]
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public ISpanBuilder? Builder { get; set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
     public String Id { get; set; } = null!;
+
+    /// <summary>埋点名</summary>
+    [XmlIgnore, ScriptIgnore, IgnoreDataMember]
+    public String Name { get; set; } = null!;
 
     /// <summary>父级片段标识</summary>
     public String? ParentId { get; set; }
@@ -115,8 +127,8 @@ public class DefaultSpan : ISpan
     public DefaultSpan() { }
 
     /// <summary>实例化</summary>
-    /// <param name="builder"></param>
-    public DefaultSpan(ISpanBuilder builder) => Builder = builder;
+    /// <param name="tracer"></param>
+    public DefaultSpan(ITracer tracer) => Tracer = tracer;
 
     static DefaultSpan()
     {
@@ -214,20 +226,22 @@ public class DefaultSpan : ISpan
         // 从本线程中清除跟踪标识
         Current = _parent;
 
-        var builder = Builder;
-        if (builder == null) return;
+        var tracer = Tracer;
+        if (tracer == null) return;
 
-        var name = builder.Name;
+        var name = Name;
         if (!name.IsNullOrEmpty())
         {
-            // Builder这一批可能已经上传，重新取一次，以防万一
-            builder = builder.Tracer?.BuildSpan(name);
+            //!!! Builder这一批可能已经上传，重新取一次，以防万一。如果在星尘平台没见到埋点数据，大概率是这里的问题
+            var builder = tracer?.BuildSpan(name);
             builder?.Finish(this);
         }
 
         // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
         // 也有可能原来的Builder已经上传，现在加入了新的builder集合
+#pragma warning disable CS0612 // 类型或成员已过时
         Builder = null;
+#pragma warning restore CS0612 // 类型或成员已过时
     }
 
     /// <summary>抛弃埋点，不计入采集</summary>
@@ -235,7 +249,9 @@ public class DefaultSpan : ISpan
     public virtual void Abandon()
     {
         _finished = 1;
-        Builder = null;
+        //Builder = null;
+
+        // 不能还给对象池，因为外部还有引用，Dispose尚未调用
     }
 
     /// <summary>设置错误信息，ApiException除外</summary>
@@ -259,7 +275,7 @@ public class DefaultSpan : ISpan
                 Error = ex.GetMessage();
 
             // 所有异常，独立记录埋点，便于按异常分类统计
-            using var span = Builder?.Tracer?.NewSpan(name, tag);
+            using var span = Tracer?.NewSpan(name, tag);
             span?.AppendTag(ex.ToString());
             if (span != null) span.StartTime = StartTime;
         }
@@ -271,7 +287,7 @@ public class DefaultSpan : ISpan
     {
         if (tag == null) return;
 
-        var len = Builder?.Tracer?.MaxTagLength ?? 1024;
+        var len = Tracer?.MaxTagLength ?? 1024;
         if (len <= 0) return;
 
         if (tag is String str)
@@ -296,8 +312,12 @@ public class DefaultSpan : ISpan
     /// <summary>清空已有数据</summary>
     public void Clear()
     {
+        Tracer = null;
+#pragma warning disable CS0612 // 类型或成员已过时
         Builder = null;
+#pragma warning restore CS0612 // 类型或成员已过时
         Id = null!;
+        Name = null!;
         ParentId = null;
         TraceId = null!;
         StartTime = 0;
@@ -323,8 +343,7 @@ public static class SpanExtension
     #region 扩展方法
     private static String? GetAttachParameter(ISpan span)
     {
-        var builder = (span as DefaultSpan)?.Builder;
-        var tracer = (builder as DefaultSpanBuilder)?.Tracer;
+        var tracer = (span as DefaultSpan)?.Tracer;
         return tracer?.AttachParameter;
     }
 
@@ -520,7 +539,7 @@ public static class SpanExtension
 
         if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
         {
-            var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+            var maxLength = ds.Tracer?.MaxTagLength ?? 1024;
             if (span.Tag.IsNullOrEmpty())
                 span.SetTag(tag);
             else if (span.Tag.Length < maxLength)
@@ -546,7 +565,7 @@ public static class SpanExtension
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                var maxLength = ds.Builder?.Tracer?.MaxTagLength ?? 1024;
+                var maxLength = ds.Tracer?.MaxTagLength ?? 1024;
                 if (span.Tag.IsNullOrEmpty() || span.Tag.Length < maxLength)
                 {
                     // 判断类型和长度
