@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <AssemblyTitle>客户端桌面应用</AssemblyTitle>
+    <Description>CS架构的客户端桌面应用，给用户提供便捷操作，可对接硬件</Description>
+    <Company>新生命开发团队</Company>
+    <Copyright>©2002-2024 NewLife</Copyright>
+    <VersionPrefix>1.0</VersionPrefix>
+    <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
+    <Version>$(VersionPrefix).$(VersionSuffix)</Version>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(VersionPrefix).*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
+    <OutputPath>..\..\Bin\Desktop</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <ApplicationVisualStyles>true</ApplicationVisualStyles>
+    <ApplicationUseCompatibleTextRendering>false</ApplicationUseCompatibleTextRendering>
+    <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+    <ApplicationDefaultFont>Microsoft Sans Serif, 8.25pt</ApplicationDefaultFont>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NewLife.Remoting" Version="3.2.2024.1116" />
+    <PackageReference Include="NewLife.Stardust" Version="3.2.2024.1117" />
+    <PackageReference Include="System.Speech" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+</Project>
