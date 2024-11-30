@@ -28,12 +28,14 @@ public class HttpTraceHandler : DelegatingHandler
 
         // 如果父级已经做了ApiHelper.Invoke埋点，这里不需要再做一次
         var parent = DefaultSpan.Current;
-        if (parent != null && parent.Tag == uri + "" || request.Headers.Contains("traceparent")) return await base.SendAsync(request, cancellationToken);
+        if (parent != null && parent.Tag == uri + "" || request.Headers.Contains("traceparent"))
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         using var span = Tracer?.NewSpan(request);
         try
         {
-            var response = await base.SendAsync(request, cancellationToken);
+            // 任何层级，只要是通用库代码，await时都应该调用ConfigureAwait(false)
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             span?.AppendTag(response);
 

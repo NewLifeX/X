@@ -108,10 +108,10 @@ public class OssClient : IObjectStorage
         var http = GetClient();
         var rs = await http.SendAsync(request).ConfigureAwait(false);
 
-        return await ApiHelper.ProcessResponse<TResult>(rs);
+        return await ApiHelper.ProcessResponse<TResult>(rs).ConfigureAwait(false);
     }
 
-    private async Task<IDictionary<String, Object?>?> GetAsync(String action, Object? args = null) => await InvokeAsync<IDictionary<String, Object?>>(HttpMethod.Get, action, args);
+    private Task<IDictionary<String, Object?>?> GetAsync(String action, Object? args = null) => InvokeAsync<IDictionary<String, Object?>>(HttpMethod.Get, action, args);
     #endregion
 
     #region Bucket操作
@@ -121,7 +121,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(null);
 
-        var rs = await GetAsync("/");
+        var rs = await GetAsync("/").ConfigureAwait(false);
 
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"];
@@ -141,7 +141,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(null);
 
-        var rs = await GetAsync("/", new { prefix, marker, maxKeys });
+        var rs = await GetAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
 
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"] as IList<Object>;
@@ -164,7 +164,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var rs = await GetAsync("/");
+        var rs = await GetAsync("/").ConfigureAwait(false);
 
         var contents = rs?["Contents"];
         if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object?>)!["Key"] + "").ToArray();
@@ -182,7 +182,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var rs = await GetAsync("/", new { prefix, marker, maxKeys });
+        var rs = await GetAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
 
         var contents = rs?["Contents"];
         if (contents is not IList<Object> list) return null;
@@ -207,7 +207,7 @@ public class OssClient : IObjectStorage
         var content = data.TryGetArray(out var segment) ?
             new ByteArrayContent(segment.Array!, segment.Offset, segment.Count) :
             new ByteArrayContent(data.ReadBytes());
-        var rs = await InvokeAsync<IPacket>(HttpMethod.Put, "/" + objectName, content);
+        var rs = await InvokeAsync<IPacket>(HttpMethod.Put, "/" + objectName, content).ConfigureAwait(false);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }
@@ -219,7 +219,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var rs = await InvokeAsync<IPacket>(HttpMethod.Get, "/" + objectName);
+        var rs = await InvokeAsync<IPacket>(HttpMethod.Get, "/" + objectName).ConfigureAwait(false);
 
         return new ObjectInfo { Name = objectName, Data = rs };
     }
@@ -236,7 +236,7 @@ public class OssClient : IObjectStorage
     {
         SetBucket(BucketName);
 
-        var rs = await InvokeAsync<Object>(HttpMethod.Delete, "/" + objectName);
+        var rs = await InvokeAsync<Object>(HttpMethod.Delete, "/" + objectName).ConfigureAwait(false);
 
         return rs != null ? 1 : 0;
     }

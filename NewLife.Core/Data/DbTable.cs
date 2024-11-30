@@ -103,7 +103,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     public async Task ReadAsync(DbDataReader dr, CancellationToken cancellationToken = default)
     {
         ReadHeader(dr);
-        await ReadDataAsync(dr, null, cancellationToken);
+        await ReadDataAsync(dr, null, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>读取数据</summary>
@@ -554,10 +554,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 await writer.WriteStartElementAsync(null, "Table", null).ConfigureAwait(false);
                 for (var i = 0; i < cs.Length; i++)
                 {
-                    //await writer.WriteElementStringAsync(null, Columns[i], null, row[i] + "");
                     await writer.WriteStartElementAsync(null, cs[i], null).ConfigureAwait(false);
 
-                    //writer.WriteValue(row[i]);
                     if (ts[i] == typeof(Boolean))
                         writer.WriteValue(row[i].ToBoolean());
                     else if (ts[i] == typeof(DateTime))

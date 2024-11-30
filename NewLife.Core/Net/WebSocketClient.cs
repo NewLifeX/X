@@ -105,7 +105,7 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     public virtual async Task<WebSocketMessage?> ReceiveMessageAsync(CancellationToken cancellationToken = default)
     {
-        using var rs = await base.ReceiveAsync(cancellationToken);
+        using var rs = await base.ReceiveAsync(cancellationToken).ConfigureAwait(false);
         if (rs == null) return null;
 
         var msg = new WebSocketMessage();

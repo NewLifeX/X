@@ -82,7 +82,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        var rs = await client.PutAsync<ObjectInfo>(BaseAction + $"Put?id={HttpUtility.UrlEncode(id)}", data);
+        var rs = await client.PutAsync<ObjectInfo>(BaseAction + $"Put?id={HttpUtility.UrlEncode(id)}", data).ConfigureAwait(false);
         if (rs == null) return null;
 
         rs.Data ??= data;
@@ -99,7 +99,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        var rs = await client.GetAsync<IPacket>(BaseAction + "Get", new { id });
+        var rs = await client.GetAsync<IPacket>(BaseAction + "Get", new { id }).ConfigureAwait(false);
         if (rs == null) return null;
 
         return new ObjectInfo { Name = id, Data = rs };
@@ -113,7 +113,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        return await client.GetAsync<String>(BaseAction + "GetUrl", new { id });
+        return await client.GetAsync<String>(BaseAction + "GetUrl", new { id }).ConfigureAwait(false);
     }
 
     /// <summary>删除文件对象</summary>
@@ -124,7 +124,7 @@ public class EasyClient : IObjectStorage
         if (id.IsNullOrEmpty()) throw new ArgumentNullException(nameof(id));
 
         var client = GetClient();
-        return await client.DeleteAsync<Int32>(BaseAction + "Delete", new { id });
+        return await client.DeleteAsync<Int32>(BaseAction + "Delete", new { id }).ConfigureAwait(false);
     }
 
     /// <summary>搜索文件</summary>
@@ -137,7 +137,7 @@ public class EasyClient : IObjectStorage
         //if (searchPattern.IsNullOrEmpty()) throw new ArgumentNullException(nameof(searchPattern));
 
         var client = GetClient();
-        var rs = await client.GetAsync<IList<ObjectInfo>>(BaseAction + "Search", new { pattern, start, count });
+        var rs = await client.GetAsync<IList<ObjectInfo>>(BaseAction + "Search", new { pattern, start, count }).ConfigureAwait(false);
         return rs?.Cast<IObjectInfo>().ToList();
     }
     #endregion

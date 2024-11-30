@@ -541,7 +541,7 @@ public class TcpSession : SessionBase, ISocketSession
             }
         }
 
-        return await base.ReceiveAsync(cancellationToken);
+        return await base.ReceiveAsync(cancellationToken).ConfigureAwait(false);
     }
 
     internal override Boolean OnReceiveAsync(SocketAsyncEventArgs se)

@@ -302,7 +302,7 @@ public class TimerScheduler : ILogFeature
             }
 
             var func = timer.Method.As<Func<Object?, Task>>(target);
-            await func!(timer.State);
+            await func!(timer.State).ConfigureAwait(false);
         }
         catch (ThreadAbortException) { throw; }
         catch (ThreadInterruptedException) { throw; }

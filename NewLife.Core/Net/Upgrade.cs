@@ -169,7 +169,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            await web.DownloadFileAsync(url, file, cancellationToken);
+            await web.DownloadFileAsync(url, file, cancellationToken).ConfigureAwait(false);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

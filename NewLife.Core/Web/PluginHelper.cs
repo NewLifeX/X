@@ -77,7 +77,7 @@ public static class PluginHelper
                 //};
                 using var client = CreateClient(linkName);
                 var dir = Path.GetDirectoryName(file);
-                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir!);
+                var file2 = client.DownloadLinkAndExtract(urls, linkName, dir!, true);
                 //client.TryDispose();
             }
             if (!File.Exists(file))

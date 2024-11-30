@@ -209,14 +209,14 @@ public class Host : DisposeBase, IHost
 
         RegisterExit((s, e) => Close(s as String ?? s?.GetType().Name));
 
-        await StartAsync(source.Token);
+        await StartAsync(source.Token).ConfigureAwait(false);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
 
-        await _life.Task;
+        await _life.Task.ConfigureAwait(false);
 
         XTrace.WriteLine("Application is shutting down...");
 
-        await StopAsync(source.Token);
+        await StopAsync(source.Token).ConfigureAwait(false);
 
         XTrace.WriteLine("Stopped!");
     }
@@ -314,7 +314,7 @@ public abstract class BackgroundService : IHostedService, IDisposable
             }
             finally
             {
-                await Task.WhenAny(_executingTask, Task.Delay(-1, cancellationToken)).ConfigureAwait(continueOnCapturedContext: false);
+                await Task.WhenAny(_executingTask, Task.Delay(-1, cancellationToken)).ConfigureAwait(false);
             }
         }
     }

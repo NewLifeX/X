@@ -230,7 +230,7 @@ public class TinyHttpClient : DisposeBase
                 rs = await SendDataAsync(null, null).ConfigureAwait(false);
             }
 
-            res.Body = await ReadChunkAsync(rs);
+            res.Body = await ReadChunkAsync(rs).ConfigureAwait(false);
         }
 
         // 断开连接
@@ -381,7 +381,7 @@ public class TinyHttpClient : DisposeBase
         var baseAddress = BaseAddress ?? throw new ArgumentNullException(nameof(BaseAddress));
         var request = BuildRequest(baseAddress, method, action, args);
 
-        using var rs = await SendAsync(request);
+        using var rs = await SendAsync(request).ConfigureAwait(false);
 
         if (rs == null || rs.Body == null || rs.Body.Length == 0) return default;
 

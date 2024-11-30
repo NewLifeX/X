@@ -80,7 +80,7 @@ public class TokenHttpFilter : IHttpFilter
         var token = Token;
         if (token == null || Expire < now)
         {
-            token = await SendAuth(client, cancellationToken);
+            token = await SendAuth(client, cancellationToken).ConfigureAwait(false);
             if (token != null)
             {
                 Token = token;
@@ -96,7 +96,7 @@ public class TokenHttpFilter : IHttpFilter
         {
             try
             {
-                token = await SendRefresh(client, cancellationToken);
+                token = await SendRefresh(client, cancellationToken).ConfigureAwait(false);
                 if (token != null)
                 {
                     Token = token;
@@ -140,7 +140,7 @@ public class TokenHttpFilter : IHttpFilter
             username = UserName,
             password = pass,
             clientId = ClientId,
-        }, cancellationToken);
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>发起刷新令牌请求</summary>
@@ -158,7 +158,7 @@ public class TokenHttpFilter : IHttpFilter
             grant_type = "refresh_token",
             refresh_token = Token.RefreshToken,
             clientId = ClientId,
-        }, cancellationToken);
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>编码密码，在传输中保护安全，一般使用RSA加密</summary>

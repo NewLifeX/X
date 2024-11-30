@@ -4,6 +4,7 @@ using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
 using NewLife.Threading;
+using NewLife.Web;
 
 namespace Zero.Desktop;
 
@@ -139,6 +140,13 @@ public partial class FrmMain : Form
 
     private void btnDownloadPlugin_Click(object sender, EventArgs e)
     {
+        var file = Setting.Current.PluginPath.CombinePath("System.Data.SQLite.dll");
+        if (File.Exists(file)) File.Delete(file);
 
+        // 下载时，内部存在同步调用异步，这里不应该卡死UI线程
+        var linkName = "System.Data.SQLite.win-x64,System.Data.SQLite.win,System.Data.SQLite_net80,System.Data.SQLite_net70,System.Data.SQLite_net60,System.Data.SQLite_net50,System.Data.SQLite_netstandard21,System.Data.SQLite_netstandard20,System.Data.SQLite";
+        //var type = PluginHelper.LoadPlugin("", "", "System.Data.SQLite", "");
+        var type = PluginHelper.LoadPlugin("System.Data.SQLite.SQLiteFactory", null, "System.Data.SQLite.dll", linkName);
+        XTrace.WriteLine("Type={0}", type);
     }
 }

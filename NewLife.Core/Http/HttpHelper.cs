@@ -342,7 +342,7 @@ public static class HttpHelper
 
         //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
 
-        return await PostAsync(client, requestUri, content, headers, cancellationToken);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>同步提交Json</summary>
@@ -373,7 +373,7 @@ public static class HttpHelper
         //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
         //client.AddHeaders(headers);
 
-        return await PostAsync(client, requestUri, content, headers, cancellationToken);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>同步提交Xml</summary>
@@ -441,7 +441,7 @@ public static class HttpHelper
 #endif
         }
 
-        return await PostAsync(client, requestUri, content, headers, cancellationToken);
+        return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>同步提交表单，名值对传输字典参数</summary>
@@ -479,7 +479,7 @@ public static class HttpHelper
                 content.Add(new StringContent(item.Value.ToJson()), item.Key);
         }
 
-        return await PostAsync(client, requestUri, content, null, cancellationToken);
+        return await PostAsync(client, requestUri, content, null, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>同步获取字符串</summary>
@@ -527,11 +527,11 @@ public static class HttpHelper
         var filter = Filter;
         try
         {
-            if (filter != null) await filter.OnRequest(client, request, null, cancellationToken);
+            if (filter != null) await filter.OnRequest(client, request, null, cancellationToken).ConfigureAwait(false);
 
             var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken);
+            if (filter != null) await filter.OnResponse(client, response, request, cancellationToken).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
             var result = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -549,7 +549,7 @@ public static class HttpHelper
             // 跟踪异常
             span?.SetError(ex, null);
 
-            if (filter != null) await filter.OnError(client, ex, request, cancellationToken);
+            if (filter != null) await filter.OnError(client, ex, request, cancellationToken).ConfigureAwait(false);
 
             throw;
         }
@@ -641,7 +641,7 @@ public static class HttpHelper
             }
         }
 
-        return await PostAsync(client, requestUri, content, null, cancellationToken);
+        return await PostAsync(client, requestUri, content, null, cancellationToken).ConfigureAwait(false);
     }
     #endregion
 
@@ -660,7 +660,7 @@ public static class HttpHelper
         {
             while (!token.IsCancellationRequested && socket.Connected)
             {
-                var msg = await queue.TakeOneAsync(30, token);
+                var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
                 if (msg != null)
                 {
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
@@ -668,7 +668,7 @@ public static class HttpHelper
                 }
                 else
                 {
-                    await Task.Delay(100, token);
+                    await Task.Delay(100, token).ConfigureAwait(false);
                 }
             }
         }
@@ -689,7 +689,7 @@ public static class HttpHelper
     /// <param name="topic">主题</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
+    public static Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
 
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
     /// <param name="socket">WebSocket实例</param>
@@ -705,7 +705,7 @@ public static class HttpHelper
         {
             while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
             {
-                var msg = await queue.TakeOneAsync(30, token);
+                var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
                 if (msg != null)
                 {
                     var buf = onProcess != null ? onProcess(msg) : msg.GetBytes();
@@ -715,7 +715,7 @@ public static class HttpHelper
                 }
                 else
                 {
-                    await Task.Delay(100, token);
+                    await Task.Delay(100, token).ConfigureAwait(false);
                 }
             }
         }
@@ -736,7 +736,7 @@ public static class HttpHelper
     /// <param name="topic">主题</param>
     /// <param name="source">取消通知源</param>
     /// <returns></returns>
-    public static async Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => await ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
+    public static Task ConsumeAndPushAsync(this System.Net.WebSockets.WebSocket socket, ICache host, String topic, CancellationTokenSource source) => ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
 
     /// <summary>阻塞等待WebSocket关闭</summary>
     /// <param name="socket">WebSocket实例</param>

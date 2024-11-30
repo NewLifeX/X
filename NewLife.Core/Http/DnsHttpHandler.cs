@@ -22,7 +22,7 @@ public class DnsHttpHandler : DelegatingHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var uri = request.RequestUri;
-        if (uri == null) return await base.SendAsync(request, cancellationToken);
+        if (uri == null) return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         // 调用自定义DNS解析器
         var addrs = Resolver?.Resolve(uri.Host);
@@ -55,6 +55,6 @@ public class DnsHttpHandler : DelegatingHandler
             request.RequestUri = builder.Uri;
         }
 
-        return await base.SendAsync(request, cancellationToken);
+        return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
     }
 }

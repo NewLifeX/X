@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-    <TargetFrameworks>net45;net461;net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows;net7.0;net7.0-windows;net8.0;net8.0-windows;net9.0;net9.0-windows</TargetFrameworks>  
+    <TargetFrameworks>net45;net461;net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0;net5.0-windows;net6.0-windows;net7.0;net7.0-windows;net8.0;net8.0-windows;net9.0;net9.0-windows</TargetFrameworks>
     <AssemblyName>NewLife.Core</AssemblyName>
     <RootNamespace>NewLife</RootNamespace>
     <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
@@ -20,6 +20,7 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
     <NoWarn>1701;1702;NU5104;NU1505;NETSDK1138;CS7035</NoWarn>
+    <WarningsAsErrors>CA2007</WarningsAsErrors>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
@@ -77,7 +78,7 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net461'">
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="System.Memory" Version="4.6.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">
     <!--<PackageReference Include="System.Net.Http" Version="4.3.4" />-->
@@ -225,4 +226,4 @@
   </ItemGroup>
 
 
-</Project> 
+</Project>

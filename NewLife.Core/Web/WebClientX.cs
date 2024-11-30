@@ -100,8 +100,6 @@ public class WebClientX : DisposeBase
         }
 
         // 发送请求
-        //var task = content != null ? http.PostAsync(address, content) : http.GetAsync(address);
-        //var rs = await task;
         using var ctx = CancellationTokenSource.CreateLinkedTokenSource(new CancellationTokenSource(Timeout).Token, cancellationToken);
         var rs = await http.SendAsync(request, ctx.Token).ConfigureAwait(false);
 
@@ -170,7 +168,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken);
+        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
         return await rs.ReadAsStringAsync().ConfigureAwait(false);
     }
 
@@ -182,7 +180,7 @@ public class WebClientX : DisposeBase
     {
         address = CheckAuth(address);
 
-        var rs = await SendAsync(address, null, cancellationToken);
+        var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs).ConfigureAwait(false);
