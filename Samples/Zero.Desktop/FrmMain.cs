@@ -136,4 +136,9 @@ public partial class FrmMain : Form
         var act = cbApi.Text.Substring(" ", "(");
         var rs = await _client.InvokeAsync<String>(act, null);
     }
+
+    private void btnDownloadPlugin_Click(object sender, EventArgs e)
+    {
+
+    }
 }

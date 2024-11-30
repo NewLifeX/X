@@ -34,6 +34,7 @@
             btnOpen = new Button();
             label1 = new Label();
             groupBox2 = new GroupBox();
+            btnCallAsync = new Button();
             textBox2 = new TextBox();
             label3 = new Label();
             btnCall = new Button();
@@ -41,7 +42,7 @@
             label2 = new Label();
             groupBox3 = new GroupBox();
             richTextBox1 = new RichTextBox();
-            btnCallAsync = new Button();
+            btnDownloadPlugin = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -50,6 +51,7 @@
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.Controls.Add(btnDownloadPlugin);
             groupBox1.Controls.Add(btnOpenAsync);
             groupBox1.Controls.Add(txtServer);
             groupBox1.Controls.Add(btnOpen);
@@ -121,6 +123,16 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "内容区";
             // 
+            // btnCallAsync
+            // 
+            btnCallAsync.Location = new Point(630, 67);
+            btnCallAsync.Name = "btnCallAsync";
+            btnCallAsync.Size = new Size(106, 45);
+            btnCallAsync.TabIndex = 5;
+            btnCallAsync.Text = "异步调用";
+            btnCallAsync.UseVisualStyleBackColor = true;
+            btnCallAsync.Click += btnCallAsync_Click;
+            // 
             // textBox2
             // 
             textBox2.Location = new Point(96, 79);
@@ -187,15 +199,16 @@
             richTextBox1.TabIndex = 0;
             richTextBox1.Text = "";
             // 
-            // btnCallAsync
+            // btnDownloadPlugin
             // 
-            btnCallAsync.Location = new Point(630, 67);
-            btnCallAsync.Name = "btnCallAsync";
-            btnCallAsync.Size = new Size(106, 45);
-            btnCallAsync.TabIndex = 5;
-            btnCallAsync.Text = "异步调用";
-            btnCallAsync.UseVisualStyleBackColor = true;
-            btnCallAsync.Click += btnCallAsync_Click;
+            btnDownloadPlugin.Location = new Point(766, 19);
+            btnDownloadPlugin.Margin = new Padding(3, 2, 3, 2);
+            btnDownloadPlugin.Name = "btnDownloadPlugin";
+            btnDownloadPlugin.Size = new Size(106, 45);
+            btnDownloadPlugin.TabIndex = 5;
+            btnDownloadPlugin.Text = "插件下载";
+            btnDownloadPlugin.UseVisualStyleBackColor = true;
+            btnDownloadPlugin.Click += btnDownloadPlugin_Click;
             // 
             // FrmMain
             // 
@@ -234,5 +247,6 @@
         private Label label3;
         private Button btnOpenAsync;
         private Button btnCallAsync;
+        private Button btnDownloadPlugin;
     }
 }
