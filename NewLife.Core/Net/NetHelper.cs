@@ -424,9 +424,22 @@ public static class NetHelper
 
         // 带网关的接口地址很重要，优先返回
         // Linux下不支持PrefixOrigin
-        var ips = dic.OrderByDescending(e => e.Value)
-            //.ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
-            .Select(e => e.Key.Address).ToList();
+        //var ips = dic.OrderByDescending(e => e.Value)
+        //    //.ThenByDescending(e => e.Key.PrefixOrigin == PrefixOrigin.Dhcp || e.Key.PrefixOrigin == PrefixOrigin.Manual)
+        //    .Select(e => e.Key.Address).ToList();
+
+        // 去除重复IP地址
+        var ips = new List<IPAddress>();
+        var hash = new List<String>();
+        foreach (var item in dic.OrderByDescending(e => e.Value))
+        {
+            var address = item.Key.Address + "";
+            if (!hash.Contains(address))
+            {
+                ips.Add(item.Key.Address);
+                hash.Add(address);
+            }
+        }
 
         return ips;
     }
