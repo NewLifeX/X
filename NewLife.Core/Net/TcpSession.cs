@@ -322,16 +322,12 @@ public class TcpSession : SessionBase, ISocketSession
             {
                 if (count == 0)
                     rs = sock.Send(Pool.Empty);
-                else if (pk.TryGetArray(out var segment))
+                else if (pk.Next == null && pk.TryGetArray(out var segment))
                     rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
-                else if (pk.TryGetSpan(out var data))
-                {
 #if NETCOREAPP || NETSTANDARD2_1
+                else if (pk.TryGetSpan(out var data))
                     rs = sock.Send(data);
-#else
-                    rs = sock.Send(data.ToArray(), data.Length, SocketFlags.None);
 #endif
-                }
                 else
                     rs = sock.Send(pk.ToSegments());
             }

@@ -62,7 +62,7 @@ public interface IPacket
     /// <returns></returns>
     IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
 
-    /// <summary>尝试获取缓冲区</summary>
+    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
     Boolean TryGetArray(out ArraySegment<Byte> segment);
@@ -157,16 +157,10 @@ public static class PacketHelper
     {
         for (var p = pk; p != null; p = p.Next)
         {
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            stream.Write(p.GetSpan());
-#else
-            if (p is ArrayPacket ap)
-                stream.Write(ap.Buffer, ap.Offset, ap.Length);
-            else if (p.TryGetArray(out var segment))
+            if (p.TryGetArray(out var segment))
                 stream.Write(segment.Array!, segment.Offset, segment.Count);
             else
                 stream.Write(p.GetMemory());
-#endif
         }
     }
 
@@ -179,14 +173,10 @@ public static class PacketHelper
     {
         for (var p = pk; p != null; p = p.Next)
         {
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            await stream.WriteAsync(p.GetMemory(), cancellationToken).ConfigureAwait(false);
-#else
-            if (p is ArrayPacket ap)
-                await stream.WriteAsync(ap.Buffer, ap.Offset, ap.Length, cancellationToken).ConfigureAwait(false);
+            if (p.TryGetArray(out var segment))
+                await stream.WriteAsync(segment.Array!, segment.Offset, segment.Count).ConfigureAwait(false);
             else
                 await stream.WriteAsync(p.GetMemory(), cancellationToken).ConfigureAwait(false);
-#endif
         }
     }
 
@@ -195,9 +185,7 @@ public static class PacketHelper
     /// <returns></returns>
     public static Stream GetStream(this IPacket pk)
     {
-        if (pk.TryGetArray(out var segment)) return new MemoryStream(segment.Array!, segment.Offset, segment.Count);
-
-        var ms = new MemoryStream();
+        var ms = new MemoryStream(pk.Total);
         pk.CopyTo(ms);
         ms.Position = 0;
 
@@ -208,9 +196,9 @@ public static class PacketHelper
     /// <returns></returns>
     public static ArraySegment<Byte> ToSegment(this IPacket pk)
     {
-        if (pk.TryGetArray(out var segment)) return segment;
+        if (pk.Next == null && pk.TryGetArray(out var segment)) return segment;
 
-        var ms = new MemoryStream();
+        var ms = Pool.MemoryStream.Get();
         pk.CopyTo(ms);
         ms.Position = 0;
 
@@ -226,8 +214,8 @@ public static class PacketHelper
 
         for (var p = pk; p != null; p = p.Next)
         {
-            if (p is ArrayPacket ap)
-                list.Add(new ArraySegment<Byte>(ap.Buffer, ap.Offset, ap.Length));
+            if (p.TryGetArray(out var seg))
+                list.Add(seg);
             else
                 list.Add(new ArraySegment<Byte>(p.GetSpan().ToArray(), 0, p.Length));
         }
@@ -257,15 +245,20 @@ public static class PacketHelper
     {
         if (pk.Next == null)
         {
-            // 读取全部
-            if (offset == 0 && count < 0 && pk is ArrayPacket ap)
+            if (count < 0) count = pk.Length - offset;
+
+            if (pk.TryGetArray(out var seg))
             {
-                if (ap.Offset == 0 && (ap.Length < 0 || ap.Offset + ap.Length == ap.Buffer.Length))
-                    return ap.Buffer;
+                // 读取全部
+                if (offset == 0 && count == pk.Length)
+                {
+                    if (seg.Offset == 0 && seg.Count == seg.Array!.Length) return seg.Array;
+                }
+
+                return seg.Array!.ReadBytes(offset, count);
             }
 
             var span = pk.GetSpan();
-            if (count < 0) count = span.Length - offset;
             return span.Slice(offset, count).ToArray();
         }
 
@@ -563,7 +556,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         }
     }
 
-    /// <summary>尝试获取数据段</summary>
+    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
     protected override Boolean TryGetArray(out ArraySegment<Byte> segment)
@@ -575,14 +568,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <summary>尝试获取数据段</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment)
-    {
-        if (Next == null) return TryGetArray(out segment);
-
-        segment = default;
-
-        return false;
-    }
+    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment) => TryGetArray(out segment);
 
     /// <summary>释放所有权，不再使用</summary>
     public void Free()
@@ -709,20 +695,10 @@ public struct MemoryPacket : IPacket
         return new MemoryPacket(_memory[offset..], count);
     }
 
-    /// <summary>尝试获取缓冲区</summary>
+    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    public readonly Boolean TryGetArray(out ArraySegment<Byte> segment)
-    {
-        if (Next == null)
-        {
-            if (MemoryMarshal.TryGetArray(GetMemory(), out segment)) return true;
-        }
-
-        segment = default;
-
-        return false;
-    }
+    public readonly Boolean TryGetArray(out ArraySegment<Byte> segment) => MemoryMarshal.TryGetArray(GetMemory(), out segment);
 
     /// <summary>已重载</summary>
     /// <returns></returns>
@@ -916,20 +892,13 @@ public struct ArrayPacket : IPacket
         }
     }
 
-    /// <summary>尝试获取缓冲区</summary>
+    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
     public readonly Boolean TryGetArray(out ArraySegment<Byte> segment)
     {
-        if (Next == null)
-        {
-            segment = new ArraySegment<Byte>(_buffer, _offset, _length);
-            return true;
-        }
-
-        segment = default;
-
-        return false;
+        segment = new ArraySegment<Byte>(_buffer, _offset, _length);
+        return true;
     }
 
     #region 重载运算符

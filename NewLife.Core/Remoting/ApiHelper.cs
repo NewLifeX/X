@@ -185,14 +185,14 @@ public static class ApiHelper
     }
 
     /// <summary>为二进制数据生成请求体内容。对超长内容进行压缩</summary>
-    /// <param name="pk"></param>
+    /// <param name="data"></param>
     /// <returns></returns>
-    public static HttpContent BuildContent(IPacket pk)
+    public static HttpContent BuildContent(IPacket data)
     {
         var gzip = NewLife.Net.SocketSetting.Current.AutoGZip;
-        if (gzip > 0 && pk.Total >= gzip)
+        if (gzip > 0 && data.Total >= gzip)
         {
-            var buf = pk.ReadBytes();
+            var buf = data.ReadBytes();
             buf = buf.CompressGZip();
             var content = new ByteArrayContent(buf);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/x-gzip");
@@ -200,9 +200,9 @@ public static class ApiHelper
         }
         else
         {
-            var content = pk.TryGetArray(out var segment) ?
+            var content = data.Next == null && data.TryGetArray(out var segment) ?
                 new ByteArrayContent(segment.Array!, segment.Offset, segment.Count) :
-                new ByteArrayContent(pk.ReadBytes());
+                new ByteArrayContent(data.ReadBytes());
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             return content;
         }

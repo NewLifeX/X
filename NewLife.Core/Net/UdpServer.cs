@@ -183,16 +183,12 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
                     if (count == 0)
                         rs = sock.Send(Pool.Empty);
-                    else if (pk.TryGetArray(out var segment))
+                    else if (pk.Next == null && pk.TryGetArray(out var segment))
                         rs = sock.Send(segment.Array!, segment.Offset, segment.Count, SocketFlags.None);
-                    else if (pk.TryGetSpan(out var data))
-                    {
 #if NETCOREAPP || NETSTANDARD2_1
+                    else if (pk.TryGetSpan(out var data))
                         rs = sock.Send(data);
-#else
-                        rs = sock.Send(data.ToArray(), 0, data.Length, SocketFlags.None);
 #endif
-                    }
                     else
                         rs = sock.Send(pk.ToSegments(), SocketFlags.None);
                 }
@@ -203,16 +199,12 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
                     if (count == 0)
                         rs = sock.SendTo(Pool.Empty, remote);
-                    else if (pk.TryGetArray(out var segment))
+                    else if (pk.Next == null && pk.TryGetArray(out var segment))
                         rs = sock.SendTo(segment.Array!, segment.Offset, segment.Count, SocketFlags.None, remote);
-                    else if (pk.TryGetSpan(out var data))
-                    {
 #if NET6_0_OR_GREATER
+                    else if (pk.TryGetSpan(out var data))
                         rs = sock.SendTo(data, remote);
-#else
-                        rs = sock.SendTo(data.ToArray(), 0, data.Length, SocketFlags.None, remote);
 #endif
-                    }
                     else
                         rs = sock.SendTo(pk.ToArray(), 0, count, SocketFlags.None, remote);
                 }
