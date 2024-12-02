@@ -151,6 +151,7 @@ public class DefaultMessage : Message
             //pk.Data.Write((UInt32)len, pk.Offset + 4, true);
             //BinaryPrimitives.WriteInt32LittleEndian(header[4..], len);
             var writer = new SpanWriter(header) { IsLittleEndian = true };
+            writer.Advance(4);
             writer.Write(len);
         }
 
