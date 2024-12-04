@@ -209,7 +209,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     {
         var builder = BuilderPool.Get();
         if (builder is DefaultSpanBuilder dsb)
-            dsb.Init(name);
+            dsb.Init(this, name);
         else
             builder.Name = name;
 

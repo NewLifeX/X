@@ -112,17 +112,17 @@ public class DefaultSpanBuilder : ISpanBuilder
     /// <param name="name"></param>
     public DefaultSpanBuilder(ITracer tracer, String name)
     {
-        Tracer = tracer;
-
-        Init(name);
+        Init(tracer, name);
     }
     #endregion
 
     #region 方法
     /// <summary>初始化。重用已有对象</summary>
+    /// <param name="tracer"></param>
     /// <param name="name"></param>
-    public void Init(String name)
+    public void Init(ITracer tracer, String name)
     {
+        Tracer = tracer;
         Name = name;
         MinCost = -1;
         StartTime = DateTime.UtcNow.ToLong();
@@ -241,7 +241,7 @@ public class DefaultSpanBuilder : ISpanBuilder
     public void Clear()
     {
         //!!! 不能清空Tracer，否则长时间Span完成时，Builder已被处理，Span无法创建新的Builder来统计埋点数据
-        Tracer = null;
+        //Tracer = null;
 
         Name = null!;
         StartTime = 0;
