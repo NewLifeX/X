@@ -255,7 +255,7 @@ public static class PacketHelper
                     if (seg.Offset == 0 && seg.Count == seg.Array!.Length) return seg.Array;
                 }
 
-                return seg.Array!.ReadBytes(offset, count);
+                return seg.Array!.ReadBytes(seg.Offset + offset, count);
             }
 
             var span = pk.GetSpan();
