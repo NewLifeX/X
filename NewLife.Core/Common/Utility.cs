@@ -91,13 +91,13 @@ public static class Utility
     /// <returns></returns>
     public static DateTimeOffset ToDateTimeOffset(this Object? value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
 
-    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、纳秒ns</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
     public static DateTime Trim(this DateTime value, String format = "s") => Convert.Trim(value, format);
 
-    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、纳秒ns</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
@@ -556,7 +556,7 @@ public class DefaultConvert
 
             // 处理UTC
             var utc = false;
-            if (str.EndsWithIgnoreCase(" UTC"))
+            if (str.EndsWithIgnoreCase(" UTC") || str.EndsWith("Z") && str.Contains('T'))
             {
                 utc = true;
                 str = str[0..^4];
@@ -702,7 +702,7 @@ public class DefaultConvert
         return idx;
     }
 
-    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、纳秒ns</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
@@ -712,6 +712,7 @@ public class DefaultConvert
         {
 #if NET7_0_OR_GREATER
             "us" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Microsecond, value.Kind),
+            "ns" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Microsecond / 100 * 100, value.Kind),
 #endif
             "ms" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind),
             "s" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind),

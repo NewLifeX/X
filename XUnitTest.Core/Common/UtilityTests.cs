@@ -13,13 +13,26 @@ public class UtilityTests
         Assert.Equal(DateTimeKind.Local, dt.Kind);
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToFullString());
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), dt.ToFullString(true));
+
         var dt_ = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
+        Assert.Equal(DateTimeKind.Unspecified, dt_.Kind);
         Assert.Equal(dt.Trim(), dt_);
-        Assert.Equal(dt.Trim(), dt.ToFullString().ToDateTime());
-        Assert.Equal(dt.Trim(), dt.ToInt().ToDateTime());
+
+        var dt2 = dt.ToFullString().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
+        Assert.Equal(dt.Trim(), dt2);
+
+        dt2 = dt.ToInt().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
+        Assert.Equal(dt.Trim(), dt2);
+
+        dt2 = dt.ToLong().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
         Assert.Equal(dt.Trim("ms"), dt.ToLong().ToDateTime());
-        Assert.Equal(dt.Trim("m"), dt.ToInt().ToDateTime().AddSeconds(-dt.Second));
-        Assert.Equal(dt.Trim("h"), dt.ToInt().ToDateTime().AddSeconds(-dt.Second).AddMinutes(-dt.Minute));
+
+        dt2 = dt.ToInt().ToDateTime();
+        Assert.Equal(dt.Trim("m"), dt2.AddSeconds(-dt2.Second));
+        Assert.Equal(dt.Trim("h"), dt2.AddSeconds(-dt2.Second).AddMinutes(-dt2.Minute));
         Assert.Empty(DateTime.MinValue.ToFullString(""));
         Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToString("", ""));
         Assert.Empty(DateTime.MinValue.ToString("", ""));
@@ -29,7 +42,49 @@ public class UtilityTests
         var dtU = str.ToDateTime();
         Assert.Equal(dt, dtU);
         Assert.Equal(dt.Kind, dtU.Kind);
+    }
 
+    [Fact]
+    public void UtcTest()
+    {
+        var dt = DateTime.UtcNow;
+        Assert.Equal(DateTimeKind.Utc, dt.Kind);
+        Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToFullString());
+        Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss.fff"), dt.ToFullString(true));
+
+        var dt_ = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, DateTimeKind.Utc);
+        Assert.Equal(DateTimeKind.Utc, dt_.Kind);
+        Assert.Equal(dt.Trim(), dt_);
+
+        var dt2 = dt.ToFullString().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
+        Assert.Equal(dt.Trim(), dt2);
+
+        dt2 = dt.ToInt().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
+        Assert.Equal(dt.Trim(), dt2);
+
+        dt2 = dt.ToLong().ToDateTime();
+        Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
+        Assert.Equal(dt.Trim("ms"), dt.ToLong().ToDateTime());
+
+        dt2 = dt.ToInt().ToDateTime();
+        Assert.Equal(dt.Trim("m"), dt2.AddSeconds(-dt2.Second));
+        Assert.Equal(dt.Trim("h"), dt2.AddSeconds(-dt2.Second).AddMinutes(-dt2.Minute));
+        Assert.Empty(DateTime.MinValue.ToFullString(""));
+        Assert.Equal(dt.ToString("yyyy-MM-dd HH:mm:ss"), dt.ToString("", ""));
+        Assert.Empty(DateTime.MinValue.ToString("", ""));
+
+        var str = dt.ToString("O");
+        XTrace.WriteLine(str);
+        var dtU = str.ToDateTime();
+        Assert.Equal(dt.Trim("ns"), dtU);
+        Assert.Equal(dt.Kind, dtU.Kind);
+    }
+
+    [Fact]
+    public void TimeZoneInfoTest()
+    {
         var dto = DateTimeOffset.Now;
         Assert.Equal(dto.ToString("yyyy-MM-dd HH:mm:ss zzz"), dto.ToFullString());
         Assert.Equal(dto.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"), dto.ToFullString(true));
@@ -111,6 +166,19 @@ public class UtilityTests
         str = "2022/4/6";
         dt = str.ToDateTime();
         Assert.Equal(new DateTime(2022, 4, 6), dt);
+
+        var dt1970 = new DateTime(1970, 1, 1);
+        var dt1970b = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // DateTime 改变时区后再相减，结果改变；而 DateTimeOffset 不会
+        // DateTime 减去目标时间，忽略目标时区，直接减去时间值
+        dt = DateTime.UtcNow;
+        var n1 = (Int32)(dt - dt1970).TotalSeconds;
+        var n2 = (Int32)(dt.ToLocalTime() - dt1970).TotalSeconds;
+        var n3 = (Int32)(dt - dt1970b).TotalSeconds;
+        var n4 = (Int32)(dt.ToLocalTime() - dt1970b).TotalSeconds;
+        Assert.Equal(n1, n3);
+        Assert.Equal(n2, n4);
     }
 
     [Fact]
@@ -123,6 +191,18 @@ public class UtilityTests
         str = "2020-03-09T21:16:25.9052764+08:00";
         var df = str.ToDateTimeOffset();
         Assert.Equal(new DateTimeOffset(2020, 3, 9, 21, 16, 25, 905, TimeSpan.FromHours(8)).AddTicks(2764), df);
+
+        var dt1970 = new DateTimeOffset(new DateTime(1970, 1, 1));
+        var dt1970b = new DateTimeOffset(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        // DateTimeOffset 可以改变时区后再相减，结果不变
+        var dto = DateTimeOffset.UtcNow;
+        var n1 = (Int32)(dto - dt1970).TotalSeconds;
+        var n2 = (Int32)(dto.ToLocalTime() - dt1970).TotalSeconds;
+        var n3 = (Int32)(dto - dt1970b).TotalSeconds;
+        var n4 = (Int32)(dto.ToLocalTime() - dt1970b).TotalSeconds;
+        Assert.Equal(n1, n2);
+        Assert.Equal(n3, n4);
     }
 
     [Fact]
