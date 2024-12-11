@@ -124,7 +124,8 @@ public class TcpSession : SessionBase, ISocketSession
     }
 
     /// <summary>打开</summary>
-    protected override Boolean OnOpen()
+    /// <param name="cancellationToken">取消通知</param>
+    protected override async Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
     {
         // 服务端会话没有打开
         if (_Server != null) return false;
@@ -173,8 +174,9 @@ public class TcpSession : SessionBase, ISocketSession
             {
 #if NET5_0_OR_GREATER
                 var cts = new CancellationTokenSource(timeout);
-                using var _ = cts.Token.Register(() => sock.Close());
-                sock.ConnectAsync(addrs, uri.Port, cts.Token).AsTask().Wait(timeout);
+                var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
+                using var _ = cts2.Token.Register(() => sock.Close());
+                await sock.ConnectAsync(addrs, uri.Port, cts2.Token).ConfigureAwait(false);
 #else
                 // 采用异步来解决连接超时设置问题
                 var ar = sock.BeginConnect(addrs, uri.Port, null, null);
@@ -184,7 +186,8 @@ public class TcpSession : SessionBase, ISocketSession
                     throw new TimeoutException($"The connection to server [{uri}] timed out! [{timeout}ms]");
                 }
 
-                sock.EndConnect(ar);
+                //sock.EndConnect(ar);
+                await Task.Factory.FromAsync(ar, sock.EndConnect).ConfigureAwait(false);
 #endif
             }
 
@@ -208,7 +211,7 @@ public class TcpSession : SessionBase, ISocketSession
 
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
-                sslStream.AuthenticateAsClient(host, certs, sp, false);
+                await sslStream.AuthenticateAsClientAsync(host, certs, sp, false).ConfigureAwait(false);
 
                 _Stream = sslStream;
             }
@@ -251,7 +254,8 @@ public class TcpSession : SessionBase, ISocketSession
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
-    protected override Boolean OnClose(String reason)
+    /// <param name="cancellationToken">取消通知</param>
+    protected override Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken)
     {
         var client = Client;
         if (client != null)
@@ -275,12 +279,12 @@ public class TcpSession : SessionBase, ISocketSession
                 if (!ex.IsDisposed()) OnError("Close", ex);
                 //if (ThrowException) throw;
 
-                return false;
+                return Task.FromResult(false);
             }
             Client = null;
         }
 
-        return true;
+        return Task.FromResult(true);
     }
 
     #endregion 方法

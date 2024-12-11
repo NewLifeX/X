@@ -97,21 +97,27 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>打开</summary>
     /// <returns>是否成功</returns>
-    public virtual Boolean Open()
+    public virtual Boolean Open() => OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+    /// <summary>打开</summary>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    public virtual async Task<Boolean> OpenAsync(CancellationToken cancellationToken = default)
     {
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
         if (Active) return true;
-        lock (this)
+        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
         {
             if (Active) return true;
+            if (cancellationToken.IsCancellationRequested) return false;
 
             using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());
             try
             {
                 _RecvCount = 0;
 
-                var rs = OnOpen();
+                var rs = await OnOpenAsync(cancellationToken).ConfigureAwait(false);
                 if (!rs) return false;
 
                 var timeout = Timeout;
@@ -151,19 +157,27 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>打开</summary>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
     [MemberNotNullWhen(true, nameof(Client))]
-    protected abstract Boolean OnOpen();
+    protected abstract Task<Boolean> OnOpenAsync(CancellationToken cancellationToken);
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <returns>是否成功</returns>
-    public virtual Boolean Close(String reason)
+    public virtual Boolean Close(String reason) => CloseAsync(reason).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    /// <summary>关闭</summary>
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    public virtual async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
         if (!Active) return true;
-        lock (this)
+        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
         {
             if (!Active) return true;
+            if (cancellationToken.IsCancellationRequested) return false;
 
             using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
             try
@@ -173,17 +187,16 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 // 管道
                 Pipeline?.Close(CreateContext(this), reason);
 
-                var rs = true;
-                if (OnClose(reason ?? (GetType().Name + "Close"))) rs = false;
+                var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
                 _RecvCount = 0;
 
                 // 触发关闭完成的事件
                 Closed?.Invoke(this, EventArgs.Empty);
 
-                Active = rs;
+                Active = !rs;
 
-                return !rs;
+                return rs;
             }
             catch (Exception ex)
             {
@@ -195,8 +208,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected abstract Boolean OnClose(String reason);
+    protected abstract Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken);
 
     Boolean ITransport.Close() => Close("TransportClose");
 

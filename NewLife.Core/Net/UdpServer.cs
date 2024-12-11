@@ -66,7 +66,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     #region 方法
     /// <summary>打开</summary>
-    protected override Boolean OnOpen()
+    /// <param name="cancellationToken">取消通知</param>
+    protected override Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
     {
         var sock = Client;
         if (sock == null || !sock.IsBound)
@@ -101,11 +102,13 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             WriteLog("Open {0}", this);
         }
 
-        return true;
+        return Task.FromResult(true);
     }
 
     /// <summary>关闭</summary>
-    protected override Boolean OnClose(String reason)
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
+    protected override Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken)
     {
         var sock = Client;
         if (sock != null)
@@ -132,11 +135,11 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                 if (!ex.IsDisposed()) OnError("Close", ex);
                 //if (ThrowException) throw;
 
-                return false;
+                return Task.FromResult(false);
             }
         }
 
-        return true;
+        return Task.FromResult(true);
     }
     #endregion
 

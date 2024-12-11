@@ -19,10 +19,21 @@ public interface ISocketClient : ISocketRemote
     /// <returns>是否成功</returns>
     Boolean Open();
 
+    /// <summary>打开连接</summary>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    Task<Boolean> OpenAsync(CancellationToken cancellationToken);
+
     /// <summary>关闭连接</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <returns>是否成功</returns>
     Boolean Close(String reason);
+
+    /// <summary>关闭连接</summary>
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功</returns>
+    Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken);
 
     /// <summary>打开后触发。</summary>
     event EventHandler Opened;

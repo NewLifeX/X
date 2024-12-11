@@ -50,8 +50,9 @@ public class WebSocketClient : TcpSession
     #endregion
 
     /// <summary>打开连接，建立WebSocket请求</summary>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected override Boolean OnOpen()
+    protected override async Task<Boolean> OnOpenAsync(CancellationToken cancellationToken)
     {
         var remote = Remote;
         if (remote == null || remote.Address.IsAny() || remote.Port == 0)
@@ -59,7 +60,8 @@ public class WebSocketClient : TcpSession
             remote = Remote = new NetUri(Uri.ToString());
         }
 
-        if (!base.OnOpen()) return false;
+        var rs = await base.OnOpenAsync(cancellationToken).ConfigureAwait(false);
+        if (!rs) return false;
 
         //// 连接必须是ws/wss协议
         //if (remote.Type != NetType.WebSocket) return false;
@@ -79,14 +81,15 @@ public class WebSocketClient : TcpSession
     }
 
     /// <summary>关闭连接</summary>
-    /// <param name="reason"></param>
+    /// <param name="reason">关闭原因。便于日志分析</param>
+    /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected override Boolean OnClose(String reason)
+    protected override Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken)
     {
         _timer.TryDispose();
         _timer = null;
 
-        return base.OnClose(reason);
+        return base.OnCloseAsync(reason, cancellationToken);
     }
 
     /// <summary>设置请求头。ws握手时可以传递Token</summary>
