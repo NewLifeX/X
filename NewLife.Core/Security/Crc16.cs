@@ -42,8 +42,9 @@ public sealed class Crc16
         0x6E17,0x7E36,0x4E55,0x5E74,0x2E93,0x3EB2,0x0ED1,0x1EF0
     ];
 
+    const UInt16 CrcSeed = 0xFFFF;
     /// <summary>校验值</summary>
-    public UInt16 Value { get; set; } = 0xFFFF;
+    public UInt16 Value { get; set; } = CrcSeed;
     #endregion
 
     /// <summary>重置清零</summary>
@@ -71,11 +72,25 @@ public sealed class Crc16
         if (count < 0) count = buffer.Length;
         if (offset < 0 || offset + count > buffer.Length) throw new ArgumentOutOfRangeException(nameof(offset));
 
-        var crc = Value;
-        crc ^= crc;
+        var crc = (UInt16)(Value ^ CrcSeed);
         for (var i = 0; i < count; i++)
         {
             crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[offset + i]) & 0xFF]);
+        }
+        Value = crc;
+
+        return this;
+    }
+
+    /// <summary>添加数据区进行检验</summary>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public Crc16 Update(ReadOnlySpan<Byte> buffer)
+    {
+        var crc = (UInt16)(Value ^ CrcSeed);
+        for (var i = 0; i < buffer.Length; i++)
+        {
+            crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ buffer[i]) & 0xFF]);
         }
         Value = crc;
 
@@ -88,22 +103,23 @@ public sealed class Crc16
     public Crc16 Update(Stream stream, Int64 count = -1)
     {
         if (stream == null) throw new ArgumentNullException(nameof(stream));
-        if (count <= 0) count = Int64.MaxValue;
+        if (count <= 0) count = stream.Length - stream.Position;
 
-        var crc = Value;
+        var crc = (UInt16)(Value ^ CrcSeed);
         while (--count >= 0)
         {
             var b = stream.ReadByte();
             if (b == -1) break;
 
-            crc ^= (Byte)b;
-            for (var i = 0; i < 8; i++)
-            {
-                if ((crc & 0x0001) != 0)
-                    crc = (UInt16)((crc >> 1) ^ 0xa001);
-                else
-                    crc = (UInt16)(crc >> 1);
-            }
+            crc = (UInt16)((crc << 8) ^ CrcTable[(crc >> 8 ^ b) & 0xFF]);
+            //crc ^= (Byte)b;
+            //for (var i = 0; i < 8; i++)
+            //{
+            //    if ((crc & 0x0001) != 0)
+            //        crc = (UInt16)((crc >> 1) ^ 0xa001);
+            //    else
+            //        crc = (UInt16)(crc >> 1);
+            //}
         }
         Value = crc;
 
@@ -119,6 +135,16 @@ public sealed class Crc16
     {
         var crc = new Crc16();
         crc.Update(buf, offset, count);
+        return crc.Value;
+    }
+
+    /// <summary>计算校验码</summary>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public static UInt16 Compute(ReadOnlySpan<Byte> buffer)
+    {
+        var crc = new Crc16();
+        crc.Update(buffer);
         return crc.Value;
     }
 
@@ -143,7 +169,7 @@ public sealed class Crc16
     /// <param name="position">如果大于等于0，则表示从该位置开始计算</param>
     /// <param name="count">字节数偏移量，一般用负数表示</param>
     /// <returns></returns>
-    public static UInt16 Compute(Stream stream, Int64 position = -1, Int32 count = -1)
+    public static UInt16 Compute(Stream stream, Int64 position, Int32 count)
     {
         if (position >= 0)
         {
@@ -172,7 +198,7 @@ public sealed class Crc16
         UInt16 u = 0xFFFF;
         Byte b;
 
-        if (count == 0) count = data.Length - offset;
+        if (count <= 0) count = data.Length - offset;
 
         for (var i = offset; i < count; i++)
         {

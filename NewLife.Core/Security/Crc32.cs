@@ -1,6 +1,5 @@
 ﻿namespace NewLife.Security;
 
-
 /// <summary>CRC32校验</summary>
 /// <remarks>
 /// Generate a table for a byte-wise 32-bit CRC calculation on the polynomial:
@@ -100,6 +99,19 @@ public sealed class Crc32 //: HashAlgorithm
         return this;
     }
 
+    /// <summary>添加数据区进行检验</summary>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public Crc32 Update(ReadOnlySpan<Byte> buffer)
+    {
+        for (var i = 0; i < buffer.Length; i++)
+        {
+            crc = Table[(crc ^ buffer[i]) & 0xFF] ^ (crc >> 8);
+        }
+
+        return this;
+    }
+
     /// <summary>添加数据流进行校验</summary>
     /// <param name="stream"></param>
     /// <param name="count">数量</param>
@@ -129,6 +141,16 @@ public sealed class Crc32 //: HashAlgorithm
     {
         var crc = new Crc32();
         crc.Update(buf, offset, count);
+        return crc.Value;
+    }
+
+    /// <summary>计算校验码</summary>
+    /// <param name="buffer"></param>
+    /// <returns></returns>
+    public static UInt32 Compute(ReadOnlySpan<Byte> buffer)
+    {
+        var crc = new Crc32();
+        crc.Update(buffer);
         return crc.Value;
     }
 

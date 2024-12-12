@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System.Buffers;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -146,6 +148,41 @@ public class Binary : FormatterBase, IBinary
     {
         if (count < 0) count = buffer.Length - offset;
         Stream.Write(buffer, offset, count);
+    }
+
+    /// <summary>写入数据</summary>
+    /// <param name="buffer"></param>
+    public virtual void Write(ReadOnlySpan<Byte> buffer)
+    {
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+        Stream.Write(buffer);
+#else
+        var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
+        try
+        {
+            buffer.CopyTo(array);
+
+            Stream.Write(array, 0, buffer.Length);
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(array);
+        }
+#endif
+    }
+
+    /// <summary>写入数据</summary>
+    /// <param name="buffer"></param>
+    public virtual void Write(ReadOnlyMemory<Byte> buffer)
+    {
+        if (MemoryMarshal.TryGetArray(buffer, out var segment))
+        {
+            Stream.Write(segment.Array!, segment.Offset, segment.Count);
+
+            return;
+        }
+
+        Write(buffer.Span);
     }
 
     /// <summary>写入大小，如果有FieldSize则返回，否则写入编码的大小并返回-1</summary>
