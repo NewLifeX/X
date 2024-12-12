@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using NewLife.Data;
 
 namespace NewLife.Buffers;
 
@@ -10,10 +11,12 @@ public ref struct SpanReader
 {
     #region 属性
     private readonly ReadOnlySpan<Byte> _span;
+    /// <summary>数据片段</summary>
+    public ReadOnlySpan<Byte> Span => _span;
 
     private Int32 _index;
     /// <summary>已读取字节数</summary>
-    public Int32 Position => _index;
+    public Int32 Position { get => _index; set => _index = value; }
 
     /// <summary>总容量</summary>
     public Int32 Capacity => _span.Length;
@@ -33,6 +36,10 @@ public ref struct SpanReader
     /// <summary>实例化。暂时兼容旧版，后面删除</summary>
     /// <param name="span"></param>
     public SpanReader(Span<Byte> span) => _span = span;
+
+    /// <summary>实例化Span读取器</summary>
+    /// <param name="data"></param>
+    public SpanReader(IPacket data) : this(data.GetSpan()) { }
     #endregion
 
     #region 基础方法

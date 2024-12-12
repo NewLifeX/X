@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
+using NewLife.Data;
 
 namespace NewLife.Buffers;
 
@@ -13,10 +14,12 @@ public ref struct SpanWriter(Span<Byte> buffer)
 {
     #region 属性
     private readonly Span<Byte> _span = buffer;
+    /// <summary>数据片段</summary>
+    public Span<Byte> Span => _span;
 
     private Int32 _index;
     /// <summary>已写入字节数</summary>
-    public readonly Int32 Position => _index;
+    public Int32 Position { get => _index; set => _index = value; }
 
     /// <summary>总容量</summary>
     public readonly Int32 Capacity => _span.Length;
@@ -26,6 +29,12 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
+    #endregion
+
+    #region 构造
+    /// <summary>实例化Span读取器</summary>
+    /// <param name="data"></param>
+    public SpanWriter(IPacket data) : this(data.GetSpan()) { }
     #endregion
 
     #region 基础方法
