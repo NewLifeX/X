@@ -68,6 +68,7 @@ public class EventBus<TEvent> : IEventBus<TEvent>
         {
             var handler = item.Value;
             await handler.HandleAsync(@event, context).ConfigureAwait(false);
+            rs++;
         }
 
         return rs;
