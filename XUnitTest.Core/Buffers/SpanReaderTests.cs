@@ -115,4 +115,73 @@ public class SpanReaderTests
         writer.Write(str, -1, Encoding.Default);
         Assert.Equal(str, reader.ReadString(-1, Encoding.Default)[..str.Length]);
     }
+
+    [Fact]
+    public void ReadByteTest()
+    {
+        var data = new Byte[] { 1, 2, 3 };
+        var reader = new SpanReader(data);
+
+        Assert.Equal(1, reader.ReadByte());
+        Assert.Equal(2, reader.ReadByte());
+        Assert.Equal(3, reader.ReadByte());
+    }
+
+    [Fact]
+    public void ReadInt16Test()
+    {
+        var data = new Byte[] { 1, 0, 2, 0 };
+        var reader = new SpanReader(data);
+
+        Assert.Equal(1, reader.ReadInt16());
+        Assert.Equal(2, reader.ReadInt16());
+    }
+
+    [Fact]
+    public void ReadInt32Test()
+    {
+        var data = new Byte[] { 1, 0, 0, 0, 2, 0, 0, 0 };
+        var reader = new SpanReader(data);
+
+        Assert.Equal(1, reader.ReadInt32());
+        Assert.Equal(2, reader.ReadInt32());
+    }
+
+    [Fact]
+    public void ReadStringTest()
+    {
+        var data = Encoding.UTF8.GetBytes("Hello, World!");
+        var reader = new SpanReader(data);
+
+        Assert.Equal("Hello, World!", reader.ReadString(data.Length));
+    }
+
+    [Fact]
+    public void ReadBytesTest()
+    {
+        var data = new Byte[] { 1, 2, 3, 4, 5 };
+        var reader = new SpanReader(data);
+
+        var result = reader.ReadBytes(3);
+        Assert.Equal(new Byte[] { 1, 2, 3 }, result.ToArray());
+    }
+
+    [Fact]
+    public void GCAllocationTest()
+    {
+        var data = new Byte[100];
+        var reader = new SpanReader(data);
+
+        var initialGen0Collections = GC.CollectionCount(0);
+        var initialGen1Collections = GC.CollectionCount(1);
+        var initialGen2Collections = GC.CollectionCount(2);
+        var memory = GC.GetAllocatedBytesForCurrentThread();
+
+        reader.ReadBytes(50);
+
+        Assert.Equal(memory, GC.GetAllocatedBytesForCurrentThread());
+        Assert.Equal(initialGen0Collections, GC.CollectionCount(0));
+        Assert.Equal(initialGen1Collections, GC.CollectionCount(1));
+        Assert.Equal(initialGen2Collections, GC.CollectionCount(2));
+    }
 }

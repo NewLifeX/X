@@ -31,9 +31,11 @@ public class IPacketTests
         Assert.Equal(123, memory.Length);
         Assert.Equal('A', (Char)memory.Span[77]);
 
+        var gcmemory = GC.GetAllocatedBytesForCurrentThread();
         pk.Resize(127);
 
         var pk2 = pk.Slice(7, 70, false) as OwnerPacket;
+        Assert.Equal(gcmemory + 48, GC.GetAllocatedBytesForCurrentThread());
         Assert.NotNull(pk2);
         Assert.Equal(70, pk2.Length);
         Assert.Equal(7, pk2.Offset);
@@ -62,7 +64,9 @@ public class IPacketTests
     public void MemoryPacketTest()
     {
         var buf = Rand.NextBytes(125);
+        var gcmemory = GC.GetAllocatedBytesForCurrentThread();
         var pk = new MemoryPacket(buf, 123);
+        Assert.Equal(gcmemory, GC.GetAllocatedBytesForCurrentThread());
 
         Assert.Equal(125, pk.Memory.Length);
         Assert.Equal(123, pk.Length);
