@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using NewLife;
 using Xunit;
@@ -8,6 +7,21 @@ namespace XUnitTest.Security;
 
 public class SecurityHelperTests
 {
+    [Fact]
+    public void MD5_Test()
+    {
+        var data = "NewLife";
+        var md5 = data.MD5();
+        Assert.Equal("F6D828D3E3B3D8E9A3E6D6B7D9A6F0A4", md5);
+
+        var buf = data.GetBytes();
+        buf = buf.MD5();
+        Assert.Equal("F6D828D3E3B3D8E9A3E6D6B7D9A6F0A4".ToHex(), buf);
+
+        var md5_16 = data.MD5_16();
+        Assert.Equal("E3B3D8E9A3E6D6B7", md5_16);
+    }
+
     [Fact]
     public void DES_Test()
     {

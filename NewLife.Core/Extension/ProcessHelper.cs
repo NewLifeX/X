@@ -442,7 +442,8 @@ public static class ProcessHelper
                 CreateNoWindow = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 RedirectStandardOutput = true,
-                StandardOutputEncoding = outputEncoding
+                StandardOutputEncoding = outputEncoding,
+                StandardErrorEncoding = outputEncoding,
             };
             var process = Process.Start(psi);
             if (process == null) return null;
