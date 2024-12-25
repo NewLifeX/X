@@ -17,6 +17,11 @@ public class ThreadPoolX : DisposeBase
             if (io < 32) io = 32;
             ThreadPool.SetMinThreads(wt, io);
         }
+
+#if NET7_0_OR_GREATER
+        // 线程池最大延迟，超过这个延迟后，线程池会增加线程数。@一线码农
+        AppContext.SetData("System.Threading.ThreadPool.Blocking.MaxDelayMs", 50);
+#endif
     }
 
     /// <summary>初始化线程池
