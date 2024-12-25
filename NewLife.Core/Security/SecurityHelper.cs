@@ -25,14 +25,25 @@ public static class SecurityHelper
 
     /// <summary>MD5散列</summary>
     /// <param name="data"></param>
-    /// <param name="encoding">字符串编码，默认Default</param>
+    /// <param name="encoding">字符串编码，默认UTF8</param>
     /// <returns></returns>
-    public static String MD5(this String data, Encoding? encoding = null)
+    public static unsafe String MD5(this String data, Encoding? encoding = null)
     {
         encoding ??= Encoding.UTF8;
 
+#if NETCOREAPP || NETSTANDARD2_1
+        Span<Byte> src = stackalloc Byte[data.Length * 3];
+        var len = encoding.GetBytes(data.AsSpan(), src);
+
+        Span<Byte> buf = stackalloc Byte[16];
+        _md5 ??= System.Security.Cryptography.MD5.Create();
+        _md5.TryComputeHash(src[..len], buf, out len);
+
+        return buf.ToHex();
+#else
         var buf = MD5(encoding.GetBytes(data + ""));
         return buf.ToHex();
+#endif
     }
 
     /// <summary>MD5散列</summary>

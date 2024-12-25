@@ -72,8 +72,8 @@ public class SaltPasswordProvider : IPasswordProvider
             "md5" => (password.MD5() + salt).MD5(),
             "sha1" => password.GetBytes().SHA1(salt.GetBytes()).ToBase64(),
             "sha512" => password.GetBytes().SHA512(salt.GetBytes()).ToBase64(),
-            "md5+sha1" => password.MD5().GetBytes().SHA1(salt.GetBytes()).ToBase64(),
-            "md5+sha512" => password.MD5().GetBytes().SHA512(salt.GetBytes()).ToBase64(),
+            "md5+sha1" => password.GetBytes().MD5().SHA1(salt.GetBytes()).ToBase64(),
+            "md5+sha512" => password.GetBytes().MD5().SHA512(salt.GetBytes()).ToBase64(),
             _ => throw new NotImplementedException(),
         };
 
@@ -124,22 +124,30 @@ public class SaltPasswordProvider : IPasswordProvider
         switch (ss[1])
         {
             case "md5":
+                // 传输密码是明文
                 if (ss[3] == (password.MD5() + salt).MD5()) return true;
+                // 传输密码是MD5哈希
                 return ss[3] == (password + salt).MD5();
             case "sha1":
-                // 传输密码是明文
-                if (ss[3] == password.MD5().GetBytes().SHA1(salt.GetBytes()).ToBase64()) return true;
-                // 传输密码是MD5哈希
                 return ss[3] == password.GetBytes().SHA1(salt.GetBytes()).ToBase64();
             case "sha512":
-                if (ss[3] == password.MD5().GetBytes().SHA512(salt.GetBytes()).ToBase64()) return true;
                 return ss[3] == password.GetBytes().SHA512(salt.GetBytes()).ToBase64();
             case "md5+sha1":
+                // 标准校验
+                if (ss[3] == password.GetBytes().MD5().SHA1(salt.GetBytes()).ToBase64()) return true;
+                // 兼容sha1。不大可能出现
+                if (ss[3] == password.GetBytes().SHA1(salt.GetBytes()).ToBase64()) return true;
                 // 传输密码是MD5哈希
-                return ss[3] == password.GetBytes().SHA1(salt.GetBytes()).ToBase64();
+                if (ss[3] == password.ToHex().SHA1(salt.GetBytes()).ToBase64()) return true;
+                return false;
             case "md5+sha512":
+                // 标准校验
+                if (ss[3] == password.GetBytes().MD5().SHA512(salt.GetBytes()).ToBase64()) return true;
+                // 兼容sha512。不大可能出现
                 if (ss[3] == password.GetBytes().SHA512(salt.GetBytes()).ToBase64()) return true;
-                return ss[3] == password.MD5().GetBytes().SHA512(salt.GetBytes()).ToBase64();
+                // 传输密码是MD5哈希
+                if (ss[3] == password.ToHex().SHA512(salt.GetBytes()).ToBase64()) return true;
+                return false;
             default:
                 throw new NotSupportedException($"Unsupported password hash mode [{ss[1]}]");
         }
