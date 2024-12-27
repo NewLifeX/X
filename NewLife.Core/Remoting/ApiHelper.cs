@@ -261,7 +261,13 @@ public static class ApiHelper
             }
             if (msg.IsNullOrEmpty()) msg = response.ReasonPhrase;
             if (msg.IsNullOrEmpty()) msg = response.StatusCode + "";
-            throw new ApiException((Int32)response.StatusCode, msg);
+            //throw new ApiException((Int32)response.StatusCode, msg);
+            // Http异常响应状态，不应该抛出ApiException异常，因为后者会被认为是业务异常
+#if NET5_0_OR_GREATER
+            throw new HttpRequestException(msg, null, response.StatusCode);
+#else
+            throw new HttpRequestException(msg);
+#endif
         }
         if (buf == null || buf.Length == 0) return default;
 
