@@ -6,7 +6,7 @@
     <AssemblyTitle>回声服务器</AssemblyTitle>
     <Description>网络回声服务端，把收到的数据原样发回去，用于网络性能压测</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2024 NewLife</Copyright>
+    <Copyright>©2002-2025 NewLife</Copyright>
     <VersionPrefix>1.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="3.2.2024.1117" />
+    <PackageReference Include="NewLife.Stardust" Version="3.2.2024.1211" />
   </ItemGroup>
 
   <ItemGroup>

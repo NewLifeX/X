@@ -21,15 +21,5 @@ bld/
 *.htm
 *.nuspec
 *.nupkg
-/XCode/Membership/Config
-/XCode/Sharding/Config
-/XCode/Demo/Config
-/XCode/Membership
-/Keys
-/Avatars
-/BinSamples
-/Samples/SplitTableOrDatabase/Config
-/TestResults
-/BinCoreTest
-/BinXCodeTest
-/XUnitTest.XCode/TestEntity/Config
+[Cc]onfig/
+[Ll]og/
