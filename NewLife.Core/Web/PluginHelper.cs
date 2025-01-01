@@ -59,7 +59,7 @@ public static class PluginHelper
         // 按类型名锁定，超时取不到锁，则放弃
         if (!Monitor.TryEnter(typeName, 15_000)) return null;
 
-        //lock (typeName)
+        try
         {
             type = Type.GetType(typeName);
             if (type != null) return type;
@@ -107,6 +107,10 @@ public static class PluginHelper
             }
 
             return null;
+        }
+        finally
+        {
+            Monitor.Exit(typeName);
         }
     }
 }

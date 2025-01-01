@@ -97,7 +97,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>打开</summary>
     /// <returns>是否成功</returns>
-    public virtual Boolean Open() => OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+    public virtual Boolean Open()
+    {
+        if (Active) return true;
+        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
+        try
+        {
+            return OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            Monitor.Exit(this);
+        }
+    }
 
     /// <summary>打开</summary>
     /// <param name="cancellationToken">取消通知</param>
@@ -107,50 +119,46 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (Disposed) throw new ObjectDisposedException(GetType().Name);
 
         if (Active) return true;
-        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
+        if (cancellationToken.IsCancellationRequested) return false;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());
+        try
         {
-            if (Active) return true;
-            if (cancellationToken.IsCancellationRequested) return false;
+            _RecvCount = 0;
 
-            using var span = Tracer?.NewSpan($"net:{Name}:Open", Remote?.ToString());
-            try
+            var rs = await OnOpenAsync(cancellationToken).ConfigureAwait(false);
+            if (!rs) return false;
+
+            var timeout = Timeout;
+            if (timeout > 0 && Client != null)
             {
-                _RecvCount = 0;
-
-                var rs = await OnOpenAsync(cancellationToken).ConfigureAwait(false);
-                if (!rs) return false;
-
-                var timeout = Timeout;
-                if (timeout > 0 && Client != null)
-                {
-                    Client.SendTimeout = timeout;
-                    Client.ReceiveTimeout = timeout;
-                }
-
-                Active = true;
-
-                if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
-                {
-                    WriteLog("初始化管道：");
-                    foreach (var handler in pipe.Handlers)
-                    {
-                        WriteLog("    {0}", handler);
-                    }
-                }
-
-                // 初始化管道
-                Pipeline?.Open(CreateContext(this));
-
-                ReceiveAsync();
-
-                // 触发打开完成的事件
-                Opened?.Invoke(this, EventArgs.Empty);
+                Client.SendTimeout = timeout;
+                Client.ReceiveTimeout = timeout;
             }
-            catch (Exception ex)
+
+            Active = true;
+
+            if (Pipeline is Pipeline pipe && pipe.Handlers.Count > 0)
             {
-                span?.SetError(ex, null);
-                throw;
+                WriteLog("初始化管道：");
+                foreach (var handler in pipe.Handlers)
+                {
+                    WriteLog("    {0}", handler);
+                }
             }
+
+            // 初始化管道
+            Pipeline?.Open(CreateContext(this));
+
+            ReceiveAsync();
+
+            // 触发打开完成的事件
+            Opened?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
         }
 
         return true;
@@ -165,7 +173,19 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <returns>是否成功</returns>
-    public virtual Boolean Close(String reason) => CloseAsync(reason).ConfigureAwait(false).GetAwaiter().GetResult();
+    public virtual Boolean Close(String reason)
+    {
+        if (!Active) return true;
+        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
+        try
+        {
+            return CloseAsync(reason).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        finally
+        {
+            Monitor.Exit(this);
+        }
+    }
 
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
@@ -174,35 +194,31 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     public virtual async Task<Boolean> CloseAsync(String reason, CancellationToken cancellationToken = default)
     {
         if (!Active) return true;
-        if (!Monitor.TryEnter(this, Timeout + 100)) return false;
+        if (cancellationToken.IsCancellationRequested) return false;
+
+        using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
+        try
         {
-            if (!Active) return true;
-            if (cancellationToken.IsCancellationRequested) return false;
+            CloseReason = reason;
 
-            using var span = Tracer?.NewSpan($"net:{Name}:Close", Remote?.ToString());
-            try
-            {
-                CloseReason = reason;
+            // 管道
+            Pipeline?.Close(CreateContext(this), reason);
 
-                // 管道
-                Pipeline?.Close(CreateContext(this), reason);
+            var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
-                var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
+            _RecvCount = 0;
 
-                _RecvCount = 0;
+            // 触发关闭完成的事件
+            Closed?.Invoke(this, EventArgs.Empty);
 
-                // 触发关闭完成的事件
-                Closed?.Invoke(this, EventArgs.Empty);
+            Active = !rs;
 
-                Active = !rs;
-
-                return rs;
-            }
-            catch (Exception ex)
-            {
-                span?.SetError(ex, null);
-                throw;
-            }
+            return rs;
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, null);
+            throw;
         }
     }
 
