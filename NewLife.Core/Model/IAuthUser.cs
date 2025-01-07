@@ -84,7 +84,7 @@ public static class ManageUserHelper
     public static void SaveLogin(this IAuthUser user, INetSession session)
     {
         user.Logins++;
-        user.LastLogin = DateTime.Now;
+        user.LastLogin = Runtime.UtcNow.ToLocalTime().DateTime;
 
         if (session != null)
         {
@@ -109,7 +109,7 @@ public static class ManageUserHelper
     public static void SaveRegister(this IAuthUser user, INetSession session)
     {
         //user.Registers++;
-        user.RegisterTime = DateTime.Now;
+        user.RegisterTime = Runtime.UtcNow.ToLocalTime().DateTime;
         //user.RegisterIP = ns.Remote.EndPoint.Address + "";
 
         if (session != null)

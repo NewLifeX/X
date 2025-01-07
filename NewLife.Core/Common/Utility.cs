@@ -177,7 +177,7 @@ public static class Utility
 public class DefaultConvert
 {
     private static readonly DateTime _dt1970 = new(1970, 1, 1);
-    private static readonly DateTimeOffset _dto1970 = new(new DateTime(1970, 1, 1));
+    private static readonly DateTimeOffset _dto1970 = new(new DateTime(1970, 1, 1), TimeSpan.Zero);
     private static readonly Int64 _maxSeconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalSeconds;
     private static readonly Int64 _maxMilliseconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalMilliseconds;
 

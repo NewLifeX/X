@@ -148,7 +148,7 @@ public class WebClientX : DisposeBase
                 path = String.Join("/", us);
             }
 
-            var time = DateTime.UtcNow.ToInt();
+            var time = Runtime.UtcNow.ToInt();
             var rand = Rand.Next(100_000, 1_000_000);
             var hash = $"{path}-{time}-{rand}-0-{AuthKey}".MD5().ToLower();
             var key = $"{time}-{rand}-0-{hash}";

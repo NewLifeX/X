@@ -86,7 +86,7 @@ public class SaltPasswordProvider : IPasswordProvider
     /// <returns></returns>
     protected virtual String CreateSalt()
     {
-        if (SaltTime > 0) return DateTime.UtcNow.ToInt().ToString();
+        if (SaltTime > 0) return Runtime.UtcNow.ToInt().ToString();
 
         var length = 16;
         var sb = Pool.StringBuilder.Get();
@@ -117,7 +117,7 @@ public class SaltPasswordProvider : IPasswordProvider
         if (SaltTime > 0)
         {
             // Unix秒作为盐值，时间差不得超过 SaltTime
-            var t = DateTime.UtcNow.ToInt() - salt.ToInt();
+            var t = Runtime.UtcNow.ToInt() - salt.ToInt();
             if (Math.Abs(t) > SaltTime) return false;
         }
 

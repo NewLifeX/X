@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime;
 using System.Runtime.InteropServices;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife;
 
@@ -113,6 +114,10 @@ public static class Runtime
         }
     }
 #endif
+
+    /// <summary>获取当前UTC时间。基于全局时间提供者，在星尘应用中会屏蔽服务器时间差</summary>
+    /// <returns></returns>
+    public static DateTimeOffset UtcNow => TimerScheduler.GlobalTimeProvider.GetUtcNow();
 
     private static Int32 _ProcessId;
 #if NET5_0_OR_GREATER

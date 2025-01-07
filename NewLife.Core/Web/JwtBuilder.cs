@@ -41,7 +41,7 @@ public class JwtBuilder : IExtend
     public String? Audience { get; set; }
 
     /// <summary>有效期。默认2小时</summary>
-    public DateTime Expire { get; set; } = DateTime.Now.AddHours(2);
+    public DateTime Expire { get; set; } = Runtime.UtcNow.ToLocalTime().DateTime.AddHours(2);
 
     /// <summary>生效时间，在此之前是无效的</summary>
     public DateTime NotBefore { get; set; }
@@ -91,7 +91,7 @@ public class JwtBuilder : IExtend
     {
         if (Secret.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Secret));
 
-        var now = DateTime.Now;
+        var now = Runtime.UtcNow.ToLocalTime().DateTime;
 
         var dic = payload.ToDictionary();
         if (!dic.ContainsKey("iss") && !Issuer.IsNullOrEmpty()) dic["iss"] = Issuer;
@@ -187,7 +187,7 @@ public class JwtBuilder : IExtend
         if (ts == null) return false;
 
         // 验证关键字段
-        var now = DateTime.Now;
+        var now = Runtime.UtcNow.ToLocalTime().DateTime;
         if (Expire.Year > 2000 && Expire < now)
         {
             message = "令牌已过期";
