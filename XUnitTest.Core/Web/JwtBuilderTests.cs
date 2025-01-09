@@ -1,4 +1,4 @@
-﻿using System;
+﻿using NewLife;
 using NewLife.Security;
 using NewLife.Web;
 using Xunit;

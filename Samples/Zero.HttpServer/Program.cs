@@ -1,4 +1,5 @@
-﻿using NewLife.Caching;
+﻿using NewLife;
+using NewLife.Caching;
 using NewLife.Caching.Services;
 using NewLife.Http;
 using NewLife.Log;

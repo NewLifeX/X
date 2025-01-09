@@ -1,4 +1,4 @@
-﻿using System;
+﻿using NewLife;
 using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Http;

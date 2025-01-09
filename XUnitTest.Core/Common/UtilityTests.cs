@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Primitives;
+using NewLife;
 using NewLife.Log;
 using Xunit;
 
