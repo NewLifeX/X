@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using NewLife;
+
 using NewLife.Collections;
 
-namespace System;
+namespace NewLife;
 
 /// <summary>工具类</summary>
 /// <remarks>
