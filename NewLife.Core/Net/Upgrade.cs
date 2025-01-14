@@ -76,46 +76,58 @@ public class Upgrade
         // 删除备份文件
         DeleteBackup(DestinationPath);
 
-        var url = Server;
-
-        WriteLog("检查资源包 {0}", url);
-
-        var web = CreateClient();
-        var html = web.GetString(url);
-        var links = Link.Parse(html, url, item => !item.Name.IsNullOrEmpty() && item.Name.ToLower().Contains(Name.ToLower()));
-        if (links == null || links.Length == 0)
+        Exception? lastError = null;
+        foreach (var url in Server.Split(',', ';'))
         {
-            WriteLog("找不到资源包");
-            return false;
-        }
+            if (url.IsNullOrEmpty()) continue;
 
-        // 先比较版本
-        if (Version > new Version(0, 0))
-        {
-            var link = links.OrderByDescending(e => e.Version).FirstOrDefault()!;
-            if (link.Version > Version)
+            WriteLog("检查资源包 {0}", url);
+            try
             {
-                Link = link;
-                WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+                var web = CreateClient();
+                var html = web.GetString(url);
+                var links = Link.Parse(html, url, item => !item.Name.IsNullOrEmpty() && item.Name.ToLower().Contains(Name.ToLower()));
+                if (links == null || links.Length == 0)
+                {
+                    WriteLog("找不到资源包");
+                    continue;
+                }
+
+                // 先比较版本
+                if (Version > new Version(0, 0))
+                {
+                    var link = links.OrderByDescending(e => e.Version).FirstOrDefault()!;
+                    if (link.Version > Version)
+                    {
+                        Link = link;
+                        WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Version, Version);
+                    }
+                    else
+                        WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
+                }
+                // 再比较时间
+                else
+                {
+                    var link = links.OrderByDescending(e => e.Time).FirstOrDefault()!;
+                    // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
+                    if (link.Time > Time.AddMinutes(10))
+                    {
+                        Link = link;
+                        WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+                    }
+                    else
+                        WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
+                }
+
+                return Link != null;
             }
-            else
-                WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Version, Version);
-        }
-        // 再比较时间
-        else
-        {
-            var link = links.OrderByDescending(e => e.Time).FirstOrDefault()!;
-            // 只有文件时间大于编译时间才更新，需要考虑文件编译后过一段时间才打包
-            if (link.Time > Time.AddMinutes(10))
+            catch (Exception ex)
             {
-                Link = link;
-                WriteLog("线上版本[{0}]较新 {1}>{2}", link.FullName, link.Time, Time);
+                lastError = ex;
             }
-            else
-                WriteLog("线上版本[{0}]较旧 {1}<={2}", link.FullName, link.Time, Time);
         }
 
-        return Link != null;
+        return false;
     }
 
     /// <summary>开始更新</summary>
