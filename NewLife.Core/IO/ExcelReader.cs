@@ -21,7 +21,7 @@ public class ExcelReader : DisposeBase
 
     private ZipArchive _zip;
     private String[]? _sharedStrings;
-    private String?[]? _styles;
+    private ExcelNumberFormat?[]? _styles;
     private IDictionary<String, ZipArchiveEntry>? _entries;
     #endregion
 
@@ -114,12 +114,12 @@ public class ExcelReader : DisposeBase
 
         foreach (var row in data.Elements())
         {
-            var vs = new List<String?>();
+            var vs = new List<Object?>();
             var c = 'A';
             foreach (var col in row.Elements())
             {
                 // 值
-                var val = col.Value;
+                Object? val = col.Value;
 
                 // 某些列没有数据，被跳过。r=CellReference
                 var r = col.Attribute("r");
@@ -127,8 +127,9 @@ public class ExcelReader : DisposeBase
                 {
                     // 按最后一个字母递增，最多支持25个空列
                     var c2 = r.Value.Last(Char.IsLetter);
-                    while (c2 != c) { 
-                        vs.Add(null); 
+                    while (c2 != c)
+                    {
+                        vs.Add(null);
                         if (c == 'Z')
                             c = 'A';
                         else
@@ -151,21 +152,9 @@ public class ExcelReader : DisposeBase
                         var si = s.Value.ToInt();
                         if (si < styles.Length)
                         {
+                            // 按引用格式转换数值，没有引用格式时不转换
                             var st = styles[si];
-                            if (st != null && st.StartsWith("yy"))
-                            {
-                                if (val.Contains('.'))
-                                {
-                                    var ss = val.Split('.');
-                                    var dt = _1900.AddDays(ss[0].ToInt() - 2);
-                                    dt = dt.AddSeconds(ss[1].ToLong() / 115740);
-                                    val = dt.ToFullString();
-                                }
-                                else
-                                {
-                                    val = _1900.AddDays(val.ToInt() - 2).ToString("yyyy-MM-dd");
-                                }
-                            }
+                            if (st != null) val = ChangeType(val, st);
                         }
                         else
                         {
@@ -193,6 +182,25 @@ public class ExcelReader : DisposeBase
         }
     }
 
+    private Object? ChangeType(Object? val, ExcelNumberFormat st)
+    {
+        // 日期格式。1900-1-1依赖的天数，例如1900-1-1时为1
+        if ((st.Format.Contains("yy") || st.Format.Contains("mmm")))
+        {
+            if (val is String str)
+            {
+                // 暂时不明白为何要减2，实际上这么做就对了
+                val = _1900.AddDays(str.ToDouble() - 2);
+                //var ss = str.Split('.');
+                //var dt = _1900.AddDays(ss[0].ToInt() - 2);
+                //dt = dt.AddSeconds(ss[1].ToLong() / 115740);
+                //val = dt.ToFullString();
+            }
+        }
+
+        return val;
+    }
+
     private String[]? ReadStrings(Stream ms)
     {
         var doc = XDocument.Load(ms);
@@ -207,12 +215,45 @@ public class ExcelReader : DisposeBase
         return list.ToArray();
     }
 
-    private String?[]? ReadStyles(Stream ms)
+    private ExcelNumberFormat?[]? ReadStyles(Stream ms)
     {
         var doc = XDocument.Load(ms);
         if (doc?.Root == null) return null;
 
-        var fmts = new Dictionary<Int32, String?>();
+        // 内置默认样式
+        var fmts = new Dictionary<Int32, String>
+        {
+            [0] = "General",
+            [1] = "0",
+            [2] = "0.00",
+            [3] = "#,##0",
+            [4] = "#,##0.00",
+            [9] = "0%",
+            [10] = "0.00%",
+            [11] = "0.00E+00",
+            [12] = "# ?/?",
+            [13] = "# ??/??",
+            [14] = "mm/dd/yy",
+            [15] = "d-mmm-yy",
+            [16] = "d-mmm",
+            [17] = "mmm-yy",
+            [18] = "h:mm AM/PM",
+            [19] = "h:mm:ss AM/PM",
+            [20] = "h:mm",
+            [21] = "h:mm:dd",
+            [22] = "m/d/yy h:mm",
+            [37] = "#,##0 ;(#,##0)",
+            [38] = "#,##0 ;[Red](#,##0)",
+            [39] = "#,##0.00;(#,##0.00)",
+            [40] = "#,##0.00;[Red](#,##0.00)",
+            [45] = "mm:ss",
+            [46] = "[h]:mm:ss",
+            [47] = "mmss.0",
+            [48] = "##0.0E+0",
+            [49] = "@"
+        };
+
+        // 自定义样式
         var numFmts = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "numFmts");
         if (numFmts != null)
         {
@@ -220,19 +261,22 @@ public class ExcelReader : DisposeBase
             {
                 var id = item.Attribute("numFmtId");
                 var code = item.Attribute("formatCode");
-                if (id != null) fmts.Add(id.Value.ToInt(), code?.Value);
+                if (id != null && code != null) fmts[id.Value.ToInt()] = code.Value;
             }
         }
 
-        var list = new List<String?>();
+        var list = new List<ExcelNumberFormat?>();
         var xfs = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName == "cellXfs");
         if (xfs != null)
         {
             foreach (var item in xfs.Elements())
             {
                 var fid = item.Attribute("numFmtId");
-                if (fid != null && fmts.TryGetValue(fid.Value.ToInt(), out var code))
-                    list.Add(code);
+                if (fid == null) continue;
+
+                var id = fid.Value.ToInt();
+                if (fmts.TryGetValue(id, out var code))
+                    list.Add(new ExcelNumberFormat(id, code));
                 else
                     list.Add(null);
             }
@@ -284,6 +328,14 @@ public class ExcelReader : DisposeBase
         }
 
         return dic2;
+    }
+    #endregion
+
+    #region 内嵌类
+    class ExcelNumberFormat(Int32 numFmtId, String format)
+    {
+        public Int32 NumFmtId { get; set; } = numFmtId;
+        public String Format { get; set; } = format;
     }
     #endregion
 }
