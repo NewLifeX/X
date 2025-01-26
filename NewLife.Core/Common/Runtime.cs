@@ -51,6 +51,9 @@ public static class Runtime
     /// <summary>是否Mono环境</summary>
     public static Boolean Mono { get; } = Type.GetType("Mono.Runtime") != null;
 
+    /// <summary>是否Unity环境</summary>
+    public static Boolean Unity { get; } = Type.GetType("UnityEngine.Application, UnityEngine") != null;
+
 #if !NETFRAMEWORK
     private static Boolean? _IsWeb;
     /// <summary>是否Web环境</summary>

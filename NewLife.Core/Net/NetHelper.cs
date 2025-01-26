@@ -21,9 +21,12 @@ public static class NetHelper
     #region 构造
     static NetHelper()
     {
-        // 网络有变化时，清空所有缓存
-        NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
-        NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
+        if (!Runtime.Unity)
+        {
+            // 网络有变化时，清空所有缓存
+            NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
+            NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
+        }
     }
 
     private static void NetworkChange_NetworkAvailabilityChanged(Object? sender, NetworkAvailabilityEventArgs e) => _Cache.Clear();
