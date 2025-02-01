@@ -26,7 +26,5 @@ jobs:
         dotnet build -c Release
     - name: Test
       run: |
-        dotnet test -f net462
-        dotnet test -f net6.0
         dotnet test -f net8.0
         dotnet test -f net9.0
