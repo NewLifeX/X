@@ -1,6 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
+using NewLife;
 using NewLife.IO;
 using Xunit;
 
@@ -32,7 +31,10 @@ public class ExcelReaderTests
         Assert.Equal(values.Length, row1.Length);
         for (var i = 0; i < values.Length; i++)
         {
-            Assert.Equal(values[i], row1[i]);
+            if (row1[i] is DateTime dt)
+                Assert.Equal(values[i].ToDateTime(), dt);
+            else
+                Assert.Equal(values[i], row1[i]);
         }
     }
 

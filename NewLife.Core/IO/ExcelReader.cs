@@ -190,7 +190,9 @@ public class ExcelReader : DisposeBase
             if (val is String str)
             {
                 // 暂时不明白为何要减2，实际上这么做就对了
-                val = _1900.AddDays(str.ToDouble() - 2);
+                //val = _1900.AddDays(str.ToDouble() - 2);
+                // 取整，剔除毫秒部分
+                val = _1900.AddSeconds(Math.Round((str.ToDouble() - 2) * 24 * 3600));
                 //var ss = str.Split('.');
                 //var dt = _1900.AddDays(ss[0].ToInt() - 2);
                 //dt = dt.AddSeconds(ss[1].ToLong() / 115740);

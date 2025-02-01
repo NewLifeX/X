@@ -6,7 +6,7 @@
     <Description>扩展加密算法</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2025 NewLife</Copyright>
-    <VersionPrefix>11.3</VersionPrefix>
+    <VersionPrefix>11.4</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
