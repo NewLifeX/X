@@ -101,4 +101,17 @@ public class StringHelperTests
         Assert.False(rules.ContainsKey("ip"));
         Assert.False(rules.ContainsKey("iP"));
     }
+
+    [Fact]
+    public void SplitAsDictionary2()
+    {
+        var str = "TAGS\u0001Tag1\u0002KEYS\u0001Key1\u0002DELAY\u00012\u0002WAIT\u0001False\u0002";
+        var dic = str.SplitAsDictionary("\u0001", "\u0002");
+
+        Assert.Equal(4, dic.Count);
+        Assert.Equal("Tag1", dic["TAGS"]);
+        Assert.Equal("Key1", dic["Keys"]);
+        Assert.Equal("2", dic["DELAY"]);
+        Assert.Equal("False", dic["WAIT"]);
+    }
 }
