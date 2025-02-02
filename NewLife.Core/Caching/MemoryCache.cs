@@ -511,7 +511,7 @@ public class MemoryCache : Cache
             if (expire <= 0)
                 ExpiredTime = Int64.MaxValue;
             else
-                ExpiredTime = now + expire * 1000;
+                ExpiredTime = now + expire * 1000L;
         }
 
         /// <summary>设置数值和过期时间</summary>

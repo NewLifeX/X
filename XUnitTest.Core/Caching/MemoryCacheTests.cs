@@ -350,4 +350,25 @@ public class MemoryCacheTests
         var ex = Assert.Throws<InvalidCastException>(() => mc.GetQueue<String>("queue"));
         Assert.StartsWith("Unable to convert the value of [queue]", ex.Message);
     }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(24)]
+    [InlineData(25)]
+    [InlineData(3650)]
+    public void LongExpireSet(Int32 days)
+    {
+        var mc = new MemoryCache();
+
+        mc.Set("name", "Stone", TimeSpan.FromDays(days));
+
+        var rs = mc.ContainsKey("name");
+        Assert.True(rs);
+
+        var val = mc.Get<String>("name");
+        Assert.Equal("Stone", val);
+
+        var exp = mc.GetExpire("name");
+        Assert.Equal(days, exp.Days);
+    }
 }
