@@ -185,7 +185,7 @@ public class ExcelReader : DisposeBase
     private Object? ChangeType(Object? val, ExcelNumberFormat st)
     {
         // 日期格式。1900-1-1依赖的天数，例如1900-1-1时为1
-        if ((st.Format.Contains("yy") || st.Format.Contains("mmm")))
+        if (st.Format.Contains("yy") || st.Format.Contains("mmm") || st.NumFmtId >= 14 && st.NumFmtId <= 17 || st.NumFmtId == 22)
         {
             if (val is String str)
             {
@@ -197,6 +197,13 @@ public class ExcelReader : DisposeBase
                 //var dt = _1900.AddDays(ss[0].ToInt() - 2);
                 //dt = dt.AddSeconds(ss[1].ToLong() / 115740);
                 //val = dt.ToFullString();
+            }
+        }
+        else if (st.NumFmtId is >= 18 and <= 21 or >= 45 and <= 47)
+        {
+            if (val is String str)
+            {
+                val = TimeSpan.FromSeconds(Math.Round(str.ToDouble() * 24 * 3600));
             }
         }
 
