@@ -32,6 +32,9 @@ public interface ITracer
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认W3C标准的traceparent</summary>
     String? AttachParameter { get; set; }
+
+    /// <summary>埋点解析器，扩展自定义功能</summary>
+    ITracerResolver Resolver { get; set; }
     #endregion
 
     /// <summary>建立Span构建器</summary>
@@ -90,6 +93,9 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
 
     /// <summary>向http/rpc请求注入TraceId的参数名，为空表示不注入，默认是W3C标准的traceparent</summary>
     public String? AttachParameter { get; set; } = "traceparent";
+
+    /// <summary>埋点解析器，扩展自定义功能</summary>
+    public ITracerResolver Resolver { get; set; } = new DefaultTracerResolver();
 
     private IPool<ISpanBuilder>? _BuilderPool;
     /// <summary>片段对象池</summary>
@@ -367,64 +373,11 @@ public static class TracerExtension
         //if (tracer == null) return null;
         if (request.RequestUri == null) return null;
 
-        var span = CreateSpan(tracer, request.Method.Method, request.RequestUri, request);
+        var span = tracer.Resolver.CreateSpan(tracer, request.RequestUri, request);
         span.Attach(request);
 
         var len = request?.Content?.Headers?.ContentLength;
         if (len != null) span.Value = len.Value;
-
-        return span;
-    }
-
-    /// <summary>支持作为标签数据的内容类型</summary>
-    static readonly String[] _TagTypes = [
-        "text/plain", "text/xml", "application/json", "application/xml", "application/x-www-form-urlencoded"
-    ];
-    static readonly String[] _ExcludeHeaders = ["traceparent", "Cookie"];
-    private static ISpan CreateSpan(ITracer tracer, String method, Uri uri, HttpRequestMessage? request)
-    {
-        var url = uri.ToString();
-
-        // 太长的Url分段，不适合作为埋点名称
-        if (url.Length > 20 + 16)
-        {
-            var ss = url.Split('/', '?');
-            // 从第三段开始查，跳过开头的http://和域名
-            for (var i = 3; i < ss.Length; i++)
-            {
-                if (ss[i].Length > 16)
-                {
-                    url = ss.Take(i).Join("/");
-                    break;
-                }
-            }
-        }
-
-        var p1 = url.IndexOf('?');
-        var span = tracer.NewSpan(p1 < 0 ? url : url[..p1]);
-        var tag = $"{method} {uri}";
-
-        if (span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
-        {
-            var maxLength = ds.Tracer?.MaxTagLength ?? 1024;
-            if (request.Content is ByteArrayContent content &&
-                content.Headers.ContentLength != null &&
-                content.Headers.ContentLength < 1024 * 8 &&
-                content.Headers.ContentType != null &&
-                content.Headers.ContentType.MediaType.StartsWithIgnoreCase(_TagTypes))
-            {
-                // 既然都读出来了，不管多长，都要前面1024字符
-                var str = request.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > maxLength ? str[..maxLength] : str);
-            }
-
-            if (tag.Length < 500)
-            {
-                var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(_ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value.Join(";"));
-                tag += "\r\n" + vs.Join("\r\n", e => $"{e.Key}: {e.Value}");
-            }
-        }
-        span.SetTag(tag);
 
         return span;
     }
@@ -437,7 +390,7 @@ public static class TracerExtension
     {
         //if (tracer == null) return null;
 
-        var span = CreateSpan(tracer, request.Method, request.RequestUri, null);
+        var span = tracer.Resolver.CreateSpan(tracer, request.RequestUri, request);
         span.Attach(request);
 
         var len = request?.Headers["Content-Length"];
