@@ -374,6 +374,8 @@ public static class TracerExtension
         if (request.RequestUri == null) return null;
 
         var span = tracer.Resolver.CreateSpan(tracer, request.RequestUri, request);
+        if (span == null) return null;
+
         span.Attach(request);
 
         var len = request?.Content?.Headers?.ContentLength;
@@ -386,11 +388,13 @@ public static class TracerExtension
     /// <param name="tracer">跟踪器</param>
     /// <param name="request">Http请求</param>
     /// <returns></returns>
-    public static ISpan NewSpan(this ITracer tracer, WebRequest request)
+    public static ISpan? NewSpan(this ITracer tracer, WebRequest request)
     {
         //if (tracer == null) return null;
 
         var span = tracer.Resolver.CreateSpan(tracer, request.RequestUri, request);
+        if (span == null) return null;
+
         span.Attach(request);
 
         var len = request?.Headers["Content-Length"];

@@ -9,16 +9,16 @@ public interface ITracerResolver
     /// <param name="uri"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    String ResolveName(Uri uri, Object? userState);
+    String? ResolveName(Uri uri, Object? userState);
 
     /// <summary>解析埋点名称</summary>
     /// <param name="name"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    String ResolveName(String name, Object? userState);
+    String? ResolveName(String name, Object? userState);
 
     /// <summary>创建Http请求埋点</summary>
-    ISpan CreateSpan(ITracer tracer, Uri uri, Object? userState);
+    ISpan? CreateSpan(ITracer tracer, Uri uri, Object? userState);
 }
 
 /// <summary>默认追踪器解析器</summary>
@@ -44,27 +44,24 @@ public class DefaultTracerResolver : ITracerResolver
     /// <param name="uri"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    public virtual String ResolveName(Uri uri, Object? userState)
+    public virtual String? ResolveName(Uri uri, Object? userState)
     {
-        var url = uri.ToString();
-
-        // 太长的Url分段，不适合作为埋点名称
-        if (url.Length > 20 + 16)
+        String name;
+        if (uri.IsAbsoluteUri)
         {
-            var ss = url.Split('/', '?');
-            // 从第三段开始查，跳过开头的http://和域名
-            for (var i = 3; i < ss.Length; i++)
-            {
-                if (ss[i].Length > 16)
-                {
-                    url = ss.Take(i).Join("/");
-                    break;
-                }
-            }
+            // 太长的Url分段，不适合作为埋点名称
+            var segments = uri.Segments.Skip(1).TakeWhile(e => e.Length <= 16).ToArray();
+            name = segments.Length > 0
+               ? $"{uri.Scheme}://{uri.Authority}/{String.Concat(segments)}"
+               : $"{uri.Scheme}://{uri.Authority}";
+        }
+        else
+        {
+            name = uri.ToString();
+            var p = name.IndexOf('?');
+            if (p > 0) name = name[..p];
         }
 
-        var p1 = url.IndexOf('?');
-        var name = p1 < 0 ? url : url[..p1];
         return ResolveName(name, userState);
     }
 
@@ -72,12 +69,14 @@ public class DefaultTracerResolver : ITracerResolver
     /// <param name="name"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    public virtual String ResolveName(String name, Object? userState) => name;
+    public virtual String? ResolveName(String name, Object? userState) => name;
 
     /// <summary>创建Http请求埋点</summary>
-    public virtual ISpan CreateSpan(ITracer tracer, Uri uri, Object? userState)
+    public virtual ISpan? CreateSpan(ITracer tracer, Uri uri, Object? userState)
     {
         var name = tracer.Resolver.ResolveName(uri, userState);
+        if (name.IsNullOrEmpty()) return null;
+
         var span = tracer.NewSpan(name);
 
         var request = userState as HttpRequestMessage;

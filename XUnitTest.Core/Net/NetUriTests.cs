@@ -72,4 +72,20 @@ public class NetUriTests
         //Assert.Equal(3, addrs3.Length);
         Assert.True(addrs.Length > 0);
     }
+
+    [Fact]
+    public void TestUri()
+    {
+        var uri = new Uri("https://newlifex.com/cube/info?state=1234");
+        Assert.Equal("/cube/info", uri.AbsolutePath);
+        Assert.NotEmpty(uri.Segments);
+        Assert.Equal("/", uri.Segments[0]);
+        Assert.Equal("cube/", uri.Segments[1]);
+        Assert.Equal("info", uri.Segments[2]);
+
+        uri = new Uri("https://newlifex.com");
+        Assert.Equal("/", uri.AbsolutePath);
+        Assert.NotEmpty(uri.Segments);
+        Assert.Equal("/", uri.Segments[0]);
+    }
 }

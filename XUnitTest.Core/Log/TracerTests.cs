@@ -312,7 +312,7 @@ public class TracerTests
         var bs = tracer.TakeAll();
         var keys = bs.Select(e => e.Name).ToArray();
         Assert.Equal(3, bs.Length);
-        Assert.Contains("https://newlifex.com/", keys);
+        Assert.Contains("https://newlifex.com", keys);
         Assert.Contains("https://www.newlifexxx.com/notfound", keys);
 
         // 其中一项
