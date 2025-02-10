@@ -44,7 +44,7 @@ public class DefaultTracerResolver : ITracerResolver
     /// <param name="uri"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    public String ResolveName(Uri uri, Object? userState)
+    public virtual String ResolveName(Uri uri, Object? userState)
     {
         var url = uri.ToString();
 
@@ -72,10 +72,10 @@ public class DefaultTracerResolver : ITracerResolver
     /// <param name="name"></param>
     /// <param name="userState"></param>
     /// <returns></returns>
-    public String ResolveName(String name, Object? userState) => name;
+    public virtual String ResolveName(String name, Object? userState) => name;
 
     /// <summary>创建Http请求埋点</summary>
-    public ISpan CreateSpan(ITracer tracer, Uri uri, Object? userState)
+    public virtual ISpan CreateSpan(ITracer tracer, Uri uri, Object? userState)
     {
         var name = tracer.Resolver.ResolveName(uri, userState);
         var span = tracer.NewSpan(name);
