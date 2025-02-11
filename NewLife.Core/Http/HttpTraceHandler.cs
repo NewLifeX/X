@@ -37,7 +37,8 @@ public class HttpTraceHandler : DelegatingHandler
             // 任何层级，只要是通用库代码，await时都应该调用ConfigureAwait(false)
             var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-            span?.AppendTag(response);
+            if (Tracer?.Resolver is DefaultTracerResolver resolver && resolver.RequestContentAsTag)
+                span?.AppendTag(response);
 
             return response;
         }
