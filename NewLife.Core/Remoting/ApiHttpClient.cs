@@ -123,20 +123,26 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             Name = name
         };
 
-        // 解析名称
-        var p = url.IndexOf('=');
+        // master=3*http://newlifex.com
+        var p = url.IndexOf("://");
         if (p > 0)
         {
-            svc.Name = url[..p];
-            url = url[(p + 1)..];
-        }
+            // 解析名称
+            var p2 = url.IndexOf('=');
+            if (p2 > 0 && p2 < p)
+            {
+                svc.Name = url[..p2];
+                url = url[(p2 + 1)..];
+            }
 
-        // 解析权重
-        p = url.IndexOf("*http");
-        if (p > 0)
-        {
-            svc.Weight = url[..p].ToInt();
-            url = url[(p + 1)..];
+            // 解析权重
+            p = url.IndexOf("://");
+            p2 = url.IndexOf("*http", StringComparison.OrdinalIgnoreCase);
+            if (p2 > 0 && p2 < p)
+            {
+                svc.Weight = url[..p2].ToInt();
+                url = url[(p2 + 1)..];
+            }
         }
 
         svc.Address = new Uri(url);
