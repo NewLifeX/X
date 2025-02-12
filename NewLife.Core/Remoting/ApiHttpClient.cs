@@ -145,6 +145,13 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
         }
 
+        p = url.IndexOf("#token=", StringComparison.OrdinalIgnoreCase);
+        if (p > 0)
+        {
+            svc.Token = url[(p + 7)..];
+            url = url[..p];
+        }
+
         svc.Address = new Uri(url);
         services.Add(svc);
     }
@@ -376,6 +383,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
                 client = CreateClient();
                 client.BaseAddress = service.Address;
+                if (!service.Token.IsNullOrEmpty()) Token = service.Token;
+
                 service.Client = client;
                 service.CreateTime = DateTime.Now;
             }
@@ -552,6 +561,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
         /// <summary>权重。用于负载均衡，默认1</summary>
         public Int32 Weight { get; set; } = 1;
+
+        /// <summary>访问令牌</summary>
+        public String? Token { get; set; }
 
         /// <summary>轮询均衡时，本项第几次使用</summary>
         internal Int32 Index;
