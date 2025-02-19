@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using NewLife.Data;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
@@ -437,6 +438,19 @@ public class MemoryCache : Cache
         var item = GetOrAddItem(key, k => new HashSet<T>());
         return item.Visit<ICollection<T>>() ??
             throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(ICollection<T>)}");
+    }
+
+    /// <summary>获取事件总线，可发布消息或订阅消息</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="topic">事件主题</param>
+    /// <param name="clientId">客户标识/消息分组</param>
+    /// <returns></returns>
+    public override IEventBus<T> GetEventBus<T>(String topic, String clientId = "")
+    {
+        var key = $"eventbus:{topic}";
+        var item = GetOrAddItem(key, k => new QueueEventBus<T>(this, topic, clientId));
+        return item.Visit<IEventBus<T>>() ??
+            throw new InvalidCastException($"Unable to convert the value of [{topic}] from {item.TypeCode} to {typeof(IEventBus<T>)}");
     }
 
     /// <summary>获取 或 添加 缓存项</summary>

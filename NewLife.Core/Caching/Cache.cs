@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife.Log;
+using NewLife.Messaging;
 using NewLife.Security;
 
 namespace NewLife.Caching;
@@ -159,6 +160,14 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="key"></param>
     /// <returns></returns>
     public virtual ICollection<T> GetSet<T>(String key) => throw new NotSupportedException();
+
+    /// <summary>获取事件总线，可发布消息或订阅消息</summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="topic">事件主题</param>
+    /// <param name="clientId">客户标识/消息分组</param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    public virtual IEventBus<T> GetEventBus<T>(String topic, String clientId = "") => throw new NotSupportedException();
     #endregion
 
     #region 高级操作

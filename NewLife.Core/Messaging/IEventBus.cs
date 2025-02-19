@@ -47,11 +47,11 @@ public interface IEventHandler<TEvent>
     /// <param name="event"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    Task HandleAsync(TEvent @event, IEventContext<TEvent> context);
+    Task HandleAsync(TEvent @event, IEventContext<TEvent>? context);
 }
 
 /// <summary>事件总线</summary>
-public class EventBus<TEvent> : IEventBus<TEvent>
+public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
 {
     private ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
 
@@ -96,25 +96,29 @@ public static class EventBusExtensions
     /// <typeparam name="TEvent"></typeparam>
     /// <param name="bus"></param>
     /// <param name="action"></param>
-    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent> action) => bus.Subscribe(new DelegateEventHandler<TEvent>(action));
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <param name="bus"></param>
     /// <param name="action"></param>
-    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent, IEventContext<TEvent>> action) => bus.Subscribe(new DelegateEventHandler<TEvent>(action));
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent, IEventContext<TEvent>> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <param name="bus"></param>
     /// <param name="action"></param>
-    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, Task> action) => bus.Subscribe(new DelegateEventHandler<TEvent>(action));
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <param name="bus"></param>
     /// <param name="action"></param>
-    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, Task> action) => bus.Subscribe(new DelegateEventHandler<TEvent>(action));
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 }
 
 /// <summary>事件上下文接口</summary>
@@ -151,14 +155,14 @@ public class DelegateEventHandler<TEvent>(Delegate method) : IEventHandler<TEven
     /// <param name="context"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public Task HandleAsync(TEvent @event, IEventContext<TEvent> context)
+    public Task HandleAsync(TEvent @event, IEventContext<TEvent>? context)
     {
         if (method is Func<TEvent, Task> func) return func(@event);
-        if (method is Func<TEvent, IEventContext<TEvent>, Task> func2) return func2(@event, context);
+        if (method is Func<TEvent, IEventContext<TEvent>?, Task> func2) return func2(@event, context);
 
         if (method is Action<TEvent> act)
             act(@event);
-        else if (method is Action<TEvent, IEventContext<TEvent>> act2)
+        else if (method is Action<TEvent, IEventContext<TEvent>?> act2)
             act2(@event, context);
         else
             throw new NotSupportedException();
