@@ -512,10 +512,15 @@ public class Binary : FormatterBase, IBinary
     /// <param name="max"></param>
     public void WriteFixedString(String? value, Int32 max)
     {
+        var len = 0;
         var buf = Pool.Shared.Rent(max);
-        if (!value.IsNullOrEmpty()) Encoding.GetBytes(value, 0, value.Length, buf, 0);
+        if (!value.IsNullOrEmpty()) len = Encoding.GetBytes(value, 0, value.Length, buf, 0);
+
+        // 清空空白部分，避免出现脏数据
+        if (len < max) Array.Clear(buf, len, max - len);
 
         Write(buf, 0, max);
+
         Pool.Shared.Return(buf);
     }
 
