@@ -32,7 +32,8 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     /// <summary>发布消息到消息队列</summary>
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
-    public override Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null)
+    /// <param name="cancellationToken">取消令牌</param>
+    public override Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default)
     {
         Init();
         var rs = _queue.Add(@event);
@@ -73,7 +74,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
                 if (msg != null)
                 {
                     // 发布到事件总线
-                    await base.PublishAsync(msg).ConfigureAwait(false);
+                    await DispatchAsync(msg, null, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {

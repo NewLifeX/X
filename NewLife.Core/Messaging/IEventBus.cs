@@ -1,10 +1,9 @@
-﻿#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
-
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using NewLife.Collections;
 using NewLife.Data;
+#if !NET45
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace NewLife.Messaging;
 
@@ -24,13 +23,14 @@ namespace NewLife.Messaging;
 /// <typeparam name="TEvent"></typeparam>
 public interface IEventBus<TEvent>
 {
-    /// <summary>发布消息</summary>
+    /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
-    Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null);
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default);
 
-    /// <summary>订阅消息</summary>
-    /// <param name="handler">处理器</param>
+    /// <summary>订阅事件</summary>
+    /// <param name="handler">事件处理器</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     Boolean Subscribe(IEventHandler<TEvent> handler, String clientId = "");
 
@@ -44,21 +44,30 @@ public interface IEventBus<TEvent>
 public interface IEventHandler<TEvent>
 {
     /// <summary>处理事件</summary>
-    /// <param name="event"></param>
-    /// <param name="context"></param>
+    /// <param name="event">事件</param>
+    /// <param name="context">上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    Task HandleAsync(TEvent @event, IEventContext<TEvent>? context);
+    Task HandleAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken);
 }
 
 /// <summary>事件总线</summary>
 public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
 {
-    private ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
+    private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
 
-    /// <summary>发布消息</summary>
+    /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
-    public virtual async Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null)
+    /// <param name="cancellationToken">取消令牌</param>
+    public virtual Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default) => DispatchAsync(@event, context, cancellationToken);
+
+    /// <summary>分发事件给各个处理器。进程内分发</summary>
+    /// <param name="event"></param>
+    /// <param name="context"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    protected virtual async Task<Int32> DispatchAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken)
     {
         var rs = 0;
 
@@ -67,7 +76,7 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
         foreach (var item in _handlers)
         {
             var handler = item.Value;
-            await handler.HandleAsync(@event, context).ConfigureAwait(false);
+            await handler.HandleAsync(@event, context, cancellationToken).ConfigureAwait(false);
             rs++;
         }
 
@@ -94,31 +103,31 @@ public static class EventBusExtensions
 {
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
-    /// <param name="bus"></param>
-    /// <param name="action"></param>
+    /// <param name="bus">事件总线</param>
+    /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
-    /// <param name="bus"></param>
-    /// <param name="action"></param>
+    /// <param name="bus">事件总线</param>
+    /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent, IEventContext<TEvent>> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
-    /// <param name="bus"></param>
-    /// <param name="action"></param>
+    /// <param name="bus">事件总线</param>
+    /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
     /// <typeparam name="TEvent"></typeparam>
-    /// <param name="bus"></param>
-    /// <param name="action"></param>
+    /// <param name="bus">事件总线</param>
+    /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
-    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
+    public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, CancellationToken, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 }
 
 /// <summary>事件上下文接口</summary>
@@ -151,14 +160,15 @@ public class EventContext<TEvent>(IEventBus<TEvent> bus) : IEventContext<TEvent>
 public class DelegateEventHandler<TEvent>(Delegate method) : IEventHandler<TEvent>
 {
     /// <summary>处理事件</summary>
-    /// <param name="event"></param>
-    /// <param name="context"></param>
+    /// <param name="event">事件</param>
+    /// <param name="context">上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    public Task HandleAsync(TEvent @event, IEventContext<TEvent>? context)
+    public Task HandleAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken = default)
     {
         if (method is Func<TEvent, Task> func) return func(@event);
-        if (method is Func<TEvent, IEventContext<TEvent>?, Task> func2) return func2(@event, context);
+        if (method is Func<TEvent, IEventContext<TEvent>?, CancellationToken, Task> func2) return func2(@event, context, cancellationToken);
 
         if (method is Action<TEvent> act)
             act(@event);
