@@ -7,6 +7,8 @@ using NewLife.Collections;
 using System.Buffers.Binary;
 #endif
 
+namespace NewLife.Security;
+
 /// <summary>SM4（国密4）</summary>
 public class SM4 : SymmetricAlgorithm
 {
@@ -244,7 +246,7 @@ public class SM4Transform : ICryptoTransform
     }
 
     /// <summary>销毁</summary>
-    public void Dispose() { }
+    void IDisposable.Dispose() { }
     #endregion
 
     /// <summary>块加密数据，传入缓冲区必须是整块数据</summary>

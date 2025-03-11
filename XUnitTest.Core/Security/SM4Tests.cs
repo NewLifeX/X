@@ -1,11 +1,11 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using NewLife;
+using NewLife.Security;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto;
 using Xunit;
-using System;
 
 namespace XUnitTest.Security;
 
@@ -23,6 +23,24 @@ public class SM4Tests
 
         var sm42 = SM4.Create();
         var text3 = sm42.Decrypt(text2.ToBase64(), key.GetBytes(), CipherMode.ECB, PaddingMode.PKCS7).ToStr();
+        Assert.Equal(text, text3);
+    }
+
+    /// <summary>
+    /// https://github.com/NewLifeX/X/issues/151
+    /// </summary>
+    [Fact]
+    public void SM4_ECB_PKCS7_Test_Chinese()
+    {
+        var text = "中国人民万岁";
+        var key = "sasdx-asdas-111".GetBytes();
+
+        var sm4 = SM4.Create();
+        var text2 = sm4.Encrypt(text.GetBytes(), key, CipherMode.ECB, PaddingMode.PKCS7).ToBase64();
+        Assert.Equal("5ivCW7pfHwb8eb0FygSLa1GG7RsVIRF8ymOHZmOS1+A=", text2);
+
+        var sm42 = SM4.Create();
+        var text3 = sm42.Decrypt(text2.ToBase64(), key, CipherMode.ECB, PaddingMode.PKCS7).ToStr();
         Assert.Equal(text, text3);
     }
 

@@ -1,5 +1,4 @@
 ﻿using System.Security.Cryptography;
-using NewLife.Collections;
 
 namespace NewLife.Security;
 
@@ -114,10 +113,10 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
     /// <returns></returns>
     public Byte[] TransformFinalBlock(Byte[] inputBuffer, Int32 inputOffset, Int32 inputCount)
     {
-        if (inputCount == 0) return [];
-
         if (_encryptMode)
         {
+            if (inputCount == 0) return [];
+
             var paddingLength = InputBlockSize - (inputCount % InputBlockSize);
             var paddingValue = _mode switch
             {
@@ -150,6 +149,8 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
         }
         else
         {
+            if (inputCount == 0 && !_hasWithheldBlock) return [];
+
             var data = _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);
             if (_hasWithheldBlock)
             {
@@ -165,6 +166,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
             var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
             var paddingError = 0;
             if (_mode != PaddingMode.ISO10126)
+            {
                 for (var i = OutputBlockSize; i >= 1; i--)
                 {
                     // if i > paddingLength ignore;
@@ -172,6 +174,7 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
                     var posMask = ~(paddingLength - i) >> 31;
                     paddingError |= (paddingValue ^ data[data.Length - i]) & posMask;
                 }
+            }
 
             if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
                 throw new CryptographicException("Invalid padding");
