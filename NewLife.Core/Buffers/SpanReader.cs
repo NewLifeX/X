@@ -7,10 +7,14 @@ using NewLife.Data;
 namespace NewLife.Buffers;
 
 /// <summary>Span读取器</summary>
+/// <remarks>
+/// 引用结构的Span读取器确保高性能无GC读取。
+/// 支持Stream扩展，当数据不足时，自动从数据流中读取，常用于解析Redis/MySql等协议。
+/// </remarks>
 public ref struct SpanReader
 {
     #region 属性
-    private readonly ReadOnlySpan<Byte> _span;
+    private ReadOnlySpan<Byte> _span;
     /// <summary>数据片段</summary>
     public ReadOnlySpan<Byte> Span => _span;
 
@@ -39,7 +43,43 @@ public ref struct SpanReader
 
     /// <summary>实例化Span读取器</summary>
     /// <param name="data"></param>
-    public SpanReader(IPacket data) : this(data.GetSpan()) { }
+    public SpanReader(IPacket data)
+    {
+        _data = data;
+        _span = data.GetSpan();
+        _total = data.Total;
+    }
+    #endregion
+
+    #region 扩容增强
+    /// <summary>最大容量。多次从数据流读取数据时，受限于此最大值</summary>
+    public Int32 MaxCapacity { get; set; }
+
+    private readonly Stream? _stream;
+    private readonly Int32 _bufferSize;
+    private IPacket? _data;
+    private Int32 _total;
+
+    /// <summary>实例化Span读取器。支持从数据流中读取更多数据，突破大小限制</summary>
+    /// <remarks>
+    /// 解析网络协议时，有时候数据帧较大，超过特定缓冲区大小，导致无法一次性读取完整数据帧。
+    /// 加入数据流参数后，在读取数据不足时，SpanReader会自动从数据流中读取一批数据。
+    /// </remarks>
+    /// <param name="stream">数据流。一般是网络流</param>
+    /// <param name="data"></param>
+    /// <param name="bufferSize"></param>
+    public SpanReader(Stream stream, IPacket? data = null, Int32 bufferSize = 8192)
+    {
+        _stream = stream;
+        _bufferSize = bufferSize;
+
+        if (data != null)
+        {
+            _data = data;
+            _span = data.GetSpan();
+            _total = data.Total;
+        }
+    }
     #endregion
 
     #region 基础方法
@@ -69,8 +109,49 @@ public ref struct SpanReader
     /// <summary>确保缓冲区中有足够的空间。</summary>
     /// <param name="size">需要的字节数。</param>
     /// <exception cref="InvalidOperationException"></exception>
-    private void EnsureSpace(Int32 size)
+    public void EnsureSpace(Int32 size)
     {
+        // 检查剩余空间大小，不足时，再从数据流中读取。此时需要注意，创建新的OwnerPacket后，需要先把之前剩余的一点数据拷贝过去，然后再读取Stream
+        var remain = FreeCapacity;
+        if (remain < size && _stream != null)
+        {
+            // 申请指定大小的数据包缓冲区，至少达到缓冲区大小，但不超过最大容量
+            var idx = 0;
+            var bsize = size;
+            if (bsize < _bufferSize) bsize = _bufferSize;
+            if (MaxCapacity > 0 && bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
+            var pk = new OwnerPacket(bsize);
+            if (_data != null && remain > 0)
+            {
+                if (!_data.TryGetArray(out var arr)) throw new NotSupportedException();
+
+                arr.AsSpan(_index, remain).CopyTo(pk.Buffer);
+                idx += remain;
+            }
+
+            _data.TryDispose();
+            _data = pk;
+            _index = 0;
+
+            // 多次读取，直到满足需求
+            //var n = _stream.ReadExactly(pk.Buffer, pk.Offset + idx, pk.Length - idx);
+            while (idx < size)
+            {
+                // 实际缓冲区大小可能大于申请大小，充分利用缓冲区，避免多次读取
+                var len = pk.Buffer.Length - pk.Offset;
+                var n = _stream.Read(pk.Buffer, pk.Offset + idx, len - idx);
+                if (n <= 0) break;
+
+                idx += n;
+            }
+            if (idx < size)
+                throw new InvalidOperationException("Not enough data to read.");
+            pk.Resize(idx);
+
+            _span = pk.GetSpan();
+            _total += idx - remain;
+        }
+
         if (_index + size > _span.Length)
             throw new InvalidOperationException("Not enough data to read.");
     }
@@ -213,12 +294,39 @@ public ref struct SpanReader
     /// <summary>读取字节数组</summary>
     /// <param name="length"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
     public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
         EnsureSpace(length);
 
         var result = _span.Slice(_index, length);
+        _index += length;
+        return result;
+    }
+
+    /// <summary>读取字节数组</summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public Int32 Read(Span<Byte> data)
+    {
+        var length = data.Length;
+        EnsureSpace(length);
+
+        var result = _span.Slice(_index, length);
+        result.CopyTo(data);
+        _index += length;
+        return length;
+    }
+
+    /// <summary>读取数据包。直接对内部数据包进行切片</summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    public IPacket ReadPacket(Int32 length)
+    {
+        if (_data == null) throw new InvalidOperationException("No data stream to read!");
+
+        //EnsureSpace(length);
+
+        var result = _data.Slice(_index, length);
         _index += length;
         return result;
     }

@@ -185,54 +185,7 @@ public class MessageCodec<T> : Handler
     /// <param name="offset">长度的偏移量</param>
     /// <param name="size">长度大小。0变长，1/2/4小端字节，-2/-4大端字节</param>
     /// <returns>数据帧长度（包含头部长度位）</returns>
-    public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size)
-    {
-        if (offset < 0) return pk.Total;
-
-        // 数据不够，连长度都读取不了
-        if (offset >= pk.Total) return 0;
-
-        var reader = new SpanReader(pk.GetSpan());
-        reader.Advance(offset);
-
-        // 读取大小
-        var len = 0;
-        switch (size)
-        {
-            case 0:
-                // 计算变长的头部长度
-                var p = reader.Position;
-                len = reader.ReadEncodedInt() + reader.Position - p;
-                break;
-            case 1:
-                len = reader.ReadByte();
-                break;
-            case 2:
-                len = reader.ReadUInt16();
-                break;
-            case 4:
-                len = reader.ReadInt32();
-                break;
-            case -2:
-                reader.IsLittleEndian = false;
-                len = reader.ReadUInt16();
-                break;
-            case -4:
-                reader.IsLittleEndian = false;
-                len = reader.ReadInt32();
-                break;
-            default:
-                throw new NotSupportedException();
-        }
-
-        // 判断后续数据是否足够
-        if (len > pk.Total) return 0;
-
-        // 数据长度加上头部长度
-        len += Math.Abs(size);
-
-        return offset + len;
-    }
+    public static Int32 GetLength(IPacket pk, Int32 offset, Int32 size) => GetLength(pk.GetSpan(), offset, size);
 
     /// <summary>从数据流中获取整帧数据长度</summary>
     /// <param name="span">数据包</param>
@@ -246,7 +199,7 @@ public class MessageCodec<T> : Handler
         // 数据不够，连长度都读取不了
         if (offset >= span.Length) return 0;
 
-        var reader = new SpanReader(span);
+        var reader = new SpanReader(span) { IsLittleEndian = true };
         reader.Advance(offset);
 
         // 读取大小

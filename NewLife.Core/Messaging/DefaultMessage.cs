@@ -176,14 +176,12 @@ public class DefaultMessage : Message
         reader.Advance(2);
 
         // 小于64k，直接返回
-        //var len = pk.Data.ToUInt16(pk.Offset + 2);
         var len = reader.ReadUInt16();
         if (len < 0xFFFF) return 4 + len;
 
         // 超过64k的超大数据包，再来4个字节
         if (span.Length < 8) return 0;
 
-        //return 8 + (Int32)pk.Data.ToUInt32(pk.Offset + 2 + 2);
         return 8 + reader.ReadInt32();
     }
 

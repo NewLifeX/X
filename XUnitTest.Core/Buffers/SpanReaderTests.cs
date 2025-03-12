@@ -1,7 +1,6 @@
-﻿using System;
-using System.Text;
-using NewLife;
+﻿using System.Text;
 using NewLife.Buffers;
+using NewLife.Data;
 using NewLife.Security;
 using Xunit;
 
@@ -161,9 +160,62 @@ public class SpanReaderTests
     {
         var data = new Byte[] { 1, 2, 3, 4, 5 };
         var reader = new SpanReader(data);
+        reader.Advance(1);
 
         var result = reader.ReadBytes(3);
-        Assert.Equal(new Byte[] { 1, 2, 3 }, result.ToArray());
+        Assert.Equal(new Byte[] { 2, 3, 4 }, result.ToArray());
+    }
+
+    [Fact]
+    public void ReadTest()
+    {
+        var data = new Byte[] { 1, 2, 3, 4, 5 };
+        var reader = new SpanReader(data);
+        reader.Advance(1);
+
+        var buf = new Byte[3];
+        var result = reader.Read(buf);
+        Assert.Equal(new Byte[] { 2, 3, 4 }, buf);
+    }
+
+    [Fact]
+    public void ReadPacket()
+    {
+        var data = new Byte[] { 1, 2, 3, 4, 5 };
+        var reader = new SpanReader(data);
+        reader.Advance(1);
+
+        //Assert.Throws<ArgumentOutOfRangeException>(() => reader.ReadPacket(3));
+        try
+        {
+            reader.ReadPacket(3);
+        }
+        catch (Exception ex)
+        {
+
+            Assert.NotNull(ex as InvalidOperationException);
+        }
+
+        var pk = new ArrayPacket(data);
+        reader = new SpanReader(pk);
+        reader.Advance(1);
+
+        var result = reader.ReadPacket(3);
+        Assert.Equal(new Byte[] { 2, 3, 4 }, result.ToArray());
+        Assert.True(data == ((ArrayPacket)result).Buffer);
+    }
+
+    [Fact]
+    public void StreamReadTest()
+    {
+        var data = new Byte[] { 1, 2, 3, 4, 5 };
+        var ms = new MemoryStream(data);
+        var reader = new SpanReader(ms);
+        //reader.Advance(1);
+        reader.ReadByte();
+
+        var result = reader.ReadBytes(3);
+        Assert.Equal(new Byte[] { 2, 3, 4 }, result.ToArray());
     }
 
     [Fact]

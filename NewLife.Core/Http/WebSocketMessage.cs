@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using System.Drawing;
 using System.Text;
 using NewLife.Buffers;
 using NewLife.Data;
@@ -64,11 +63,7 @@ public class WebSocketMessage : IDisposable
     {
         if (pk.Length < 2) return false;
 
-        var reader = new SpanReader(pk.GetSpan())
-        {
-            IsLittleEndian = false
-        };
-        //var reader = pk.GetStream();
+        var reader = new SpanReader(pk) { IsLittleEndian = false };
         var b = reader.ReadByte();
 
         Type = (WebSocketMessageType)(b & 0x7F);
@@ -96,18 +91,18 @@ public class WebSocketMessage : IDisposable
         // 如果mask，剩下的就是数据，避免拷贝，提升性能
         if (!mask)
         {
-            Payload = pk.Slice(reader.Position, (Int32)len, true);
+            Payload = reader.ReadPacket((Int32)len);
         }
         else
         {
             var masks = new Byte[4];
-            if (mask) reader.ReadBytes(4).CopyTo(masks);
+            if (mask) reader.Read(masks);
             MaskKey = masks;
 
             if (mask)
             {
                 // 直接在数据缓冲区修改，避免拷贝
-                Payload = pk.Slice(reader.Position, (Int32)len, true);
+                Payload = reader.ReadPacket((Int32)len);
                 var data = Payload.GetSpan();
                 for (var i = 0; i < len; i++)
                 {
@@ -152,10 +147,7 @@ public class WebSocketMessage : IDisposable
         if (Type == WebSocketMessageType.Close) size += len;
 
         var rs = body.ExpandHeader(size);
-        var writer = new SpanWriter(rs.GetSpan())
-        {
-            IsLittleEndian = false
-        };
+        var writer = new SpanWriter(rs) { IsLittleEndian = false };
 
         writer.WriteByte((Byte)(0x80 | (Byte)Type));
 
