@@ -77,7 +77,7 @@ public class Program
             try
             {
 #endif
-                Test4();
+            Test1();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -99,6 +99,9 @@ public class Program
     static StarClient _client;
     private static void Test1()
     {
+        var type = Type.GetType("UnityEngine.Application, UnityEngine");
+        XTrace.WriteLine("UnityEngine：{0}", type?.FullName);
+
         var pool = Pool.Shared;
         var buf = pool.Rent(1000);
 
