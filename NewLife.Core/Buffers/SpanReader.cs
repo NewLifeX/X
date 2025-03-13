@@ -88,6 +88,9 @@ public ref struct SpanReader
     public void Advance(Int32 count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+
+        if (count > 0) EnsureSpace(count);
+
         if (_index + count > _span.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
         _index += count;
@@ -118,8 +121,11 @@ public ref struct SpanReader
             // 申请指定大小的数据包缓冲区，至少达到缓冲区大小，但不超过最大容量
             var idx = 0;
             var bsize = size;
-            if (bsize < _bufferSize) bsize = _bufferSize;
-            if (MaxCapacity > 0 && bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
+            if (MaxCapacity > 0)
+            {
+                if (bsize < _bufferSize) bsize = _bufferSize;
+                if (bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
+            }
             var pk = new OwnerPacket(bsize);
             if (_data != null && remain > 0)
             {
@@ -133,17 +139,16 @@ public ref struct SpanReader
             _data = pk;
             _index = 0;
 
-            // 多次读取，直到满足需求
-            //var n = _stream.ReadExactly(pk.Buffer, pk.Offset + idx, pk.Length - idx);
-            while (idx < size)
-            {
-                // 实际缓冲区大小可能大于申请大小，充分利用缓冲区，避免多次读取
-                var len = pk.Buffer.Length - pk.Offset;
-                var n = _stream.Read(pk.Buffer, pk.Offset + idx, len - idx);
-                if (n <= 0) break;
+            // 多次读取，直到满足需求。不要超过最大容量，否则可能读取到下一个数据帧的数据
+            _stream.ReadExactly(pk.Buffer, pk.Offset + idx, pk.Length - idx);
+            idx = pk.Length;
+            //while (idx < size)
+            //{
+            //    var n = _stream.Read(pk.Buffer, pk.Offset + idx, pk.Length - idx);
+            //    if (n <= 0) break;
 
-                idx += n;
-            }
+            //    idx += n;
+            //}
             if (idx < size)
                 throw new InvalidOperationException("Not enough data to read.");
             pk.Resize(idx);
