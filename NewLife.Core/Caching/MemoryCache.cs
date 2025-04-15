@@ -8,7 +8,6 @@ using NewLife.Reflection;
 using NewLife.Serialization;
 using NewLife.Threading;
 
-//#nullable enable
 namespace NewLife.Caching;
 
 /// <summary>缓存键事件参数</summary>
@@ -1032,4 +1031,3 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     /// <returns></returns>
     public Int32 Acknowledge(params String[] keys) => 0;
 }
-//#nullable restore

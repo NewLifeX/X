@@ -12,8 +12,6 @@ using NewLife.Reflection;
 using NewLife.Threading;
 using NewLife.Windows;
 
-#nullable enable
-
 namespace NewLife.Log;
 
 /// <summary>日志类，包含跟踪调试功能</summary>
@@ -418,5 +416,3 @@ public static class XTrace
 
     #endregion 版本信息
 }
-
-#nullable restore

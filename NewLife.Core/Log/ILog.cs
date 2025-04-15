@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace NewLife.Log;
+﻿namespace NewLife.Log;
 
 /// <summary>日志接口</summary>
 /// <remarks>
@@ -44,4 +43,3 @@ public interface ILog
     /// <summary>日志等级，只输出大于等于该级别的日志，默认Info</summary>
     LogLevel Level { get; set; }
 }
-#nullable restore
