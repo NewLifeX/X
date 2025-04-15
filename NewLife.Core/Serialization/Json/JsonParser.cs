@@ -103,7 +103,7 @@ public class JsonParser
         if (ch != '{' && ch != '[')
         {
             var len = _json.Length;
-            if (len > 32) len = 32;
+            if (len > 128) len = 128;
 
             throw new XException($"Non standard Json string [{_json.Substring(0, len)}]");
         }
