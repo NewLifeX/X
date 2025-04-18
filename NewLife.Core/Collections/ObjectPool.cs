@@ -327,13 +327,21 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
             // 移除扩展空闲集合里面的超时项
             while (_free2.TryPeek(out var pi) && pi.LastTime < exp)
             {
-                // 取出来销毁
-                if (_free2.TryDequeue(out pi))
+                // 取出来销毁。在并行操作中，此时返回可能是另一个对象
+                if (_free2.TryDequeue(out var pi2))
                 {
-                    pi.Value.TryDispose();
+                    if (pi2.LastTime < exp)
+                    {
+                        pi2.Value.TryDispose();
 
-                    count++;
-                    Interlocked.Decrement(ref _FreeCount);
+                        count++;
+                        Interlocked.Decrement(ref _FreeCount);
+                    }
+                    else
+                    {
+                        // 可能是另一个对象，放回去
+                        _free2.Enqueue(pi2);
+                    }
                 }
             }
         }
@@ -345,12 +353,20 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
             while (_free.TryPeek(out var pi) && pi.LastTime < exp)
             {
                 // 取出来销毁
-                if (_free.TryPop(out pi))
+                if (_free.TryPop(out var pi2))
                 {
-                    pi.Value.TryDispose();
+                    if (pi2.LastTime < exp)
+                    {
+                        pi2.Value.TryDispose();
 
-                    count++;
-                    Interlocked.Decrement(ref _FreeCount);
+                        count++;
+                        Interlocked.Decrement(ref _FreeCount);
+                    }
+                    else
+                    {
+                        // 可能是另一个对象，放回去
+                        _free.Push(pi2);
+                    }
                 }
             }
         }
