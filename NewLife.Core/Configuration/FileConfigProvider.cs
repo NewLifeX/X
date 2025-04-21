@@ -126,11 +126,19 @@ public abstract class FileConfigProvider : ConfigProvider
     {
         var str = GetString(section);
         var old = "";
-        if (File.Exists(fileName)) old = File.ReadAllText(fileName);
+        if (File.Exists(fileName)) old = File.ReadAllText(fileName)?.Trim() ?? "";
 
-        if (str != old)
+        if (str != null && str != old)
         {
-            XTrace.WriteLine("保存配置 {0}", fileName);
+            // 如果文件内容有变化，输出差异
+            var i = 0;
+            while (i < str.Length && i < old.Length && str[i] == old[i]) i++;
+
+            var s = i > 16 ? i - 16 : 0;
+            var e = i + 16 < str.Length ? i + 16 : str.Length;
+            var diff = str.Substring(s, e - s).Replace("\r", "\\r").Replace("\n", "\\n");
+
+            XTrace.WriteLine("保存配置：{0}，差异：\"...{1}...\"", fileName, diff);
 
             File.WriteAllText(fileName, str);
         }
