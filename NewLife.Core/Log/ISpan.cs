@@ -274,7 +274,7 @@ public class DefaultSpan : ISpan
 
             // 所有异常，独立记录埋点，便于按异常分类统计
             using var span = Tracer?.NewSpan(name, tag);
-            span?.AppendTag(ex.ToString());
+            span?.AppendTag(ex.GetMessage());
             if (span != null) span.StartTime = StartTime;
         }
     }

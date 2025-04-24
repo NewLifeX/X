@@ -932,7 +932,7 @@ public class DefaultConvert
         }
         catch
         {
-            return ex.GetType().FullName!;
+            return ex.Message;
         }
     }
 
