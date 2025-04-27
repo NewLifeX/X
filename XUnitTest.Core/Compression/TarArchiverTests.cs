@@ -169,6 +169,7 @@ public class TarArchiverTests
         // 创建带有长文件名的测试文件
         CreateTestFile(longFilePath, "这是一个有很长文件名的测试文件");
 
+        if (File.Exists(_tarFile)) File.Delete(_tarFile);
         using var archiver = new TarArchiver(_tarFile, true);
         archiver.CreateFromDirectory(_testDir);
         archiver.Dispose();

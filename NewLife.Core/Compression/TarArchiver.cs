@@ -194,7 +194,7 @@ public class TarArchiver : DisposeBase
             {
                 // 构建目标文件路径
                 var filePath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
-                if (overwriteFiles || File.Exists(filePath))
+                if (overwriteFiles || !File.Exists(filePath))
                 {
                     filePath.EnsureDirectory(true);
 
