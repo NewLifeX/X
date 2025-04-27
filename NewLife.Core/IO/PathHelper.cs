@@ -385,7 +385,11 @@ public static class PathHelper
         }
         else if (fi.Name.EndsWithIgnoreCase(".tar", ".tar.gz"))
         {
+#if NET7_0_OR_GREATER
+            System.Formats.Tar.TarFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
+#else
             TarFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
+#endif
         }
         else
         {
@@ -413,7 +417,11 @@ public static class PathHelper
         }
         else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz"))
         {
+#if NET7_0_OR_GREATER
+            System.Formats.Tar.TarFile.CreateFromDirectory(fi.FullName, destFile, false);
+#else
             TarFile.CreateFromDirectory(fi.FullName, destFile);
+#endif
         }
         else
         {
@@ -564,7 +572,13 @@ public static class PathHelper
         if (destFile.EndsWithIgnoreCase(".zip"))
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, includeBaseDirectory);
         else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz"))
+        {
+#if NET7_0_OR_GREATER
+            System.Formats.Tar.TarFile.CreateFromDirectory(di.FullName, destFile, includeBaseDirectory);
+#else
             TarFile.CreateFromDirectory(di.FullName, destFile);
+#endif
+        }
         else
         {
             if (NewLife.Runtime.Windows)
