@@ -1,4 +1,5 @@
-﻿using NewLife.Compression;
+﻿using NewLife;
+using NewLife.Compression;
 using NewLife.Log;
 using Xunit;
 
@@ -195,6 +196,15 @@ public class TarFileTests
     [Fact(DisplayName = "测试超长文件名2")]
     public void TestLongFileName2()
     {
+        using var tar = new TarFile(_testDir.CombinePath("../test_gnu.tar"));
+        Assert.NotEmpty(tar.Entries);
+
+        var entry = tar.Entries.First();
+        Assert.Equal("这是一个有很长文件名的测试文件", entry.Open().ReadBytes(entry.FileSize).ToStr());
+
+        //using var tar2 = new TarFile(_testDir.CombinePath("../test_pax.tar"));
+        //Assert.NotEmpty(tar2.Entries);
+
         var longFileName = new String('a', 190) + ".txt";
         var longFilePath = Path.Combine(_testDir, longFileName);
 

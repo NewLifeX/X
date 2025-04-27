@@ -1,5 +1,9 @@
 ﻿using System.IO.Compression;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Web.Script.Serialization;
+using System.Xml.Serialization;
+using NewLife.Serialization;
 
 namespace NewLife.Compression;
 
@@ -281,6 +285,7 @@ public class TarEntry
 {
     #region 属性
     /// <summary>归档器</summary>
+    [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public TarFile Archiver { get; set; } = null!;
 
     /// <summary>文件名，最长 100 字节。</summary>
@@ -339,15 +344,27 @@ public class TarEntry
     /// <summary>将文件头写入到流中，固定 512 字节。</summary>
     public void Write(Stream stream)
     {
+        var name = FileName;
+        var type = TypeFlag;
+        var entry2 = this;
+        if (name.Length > 100)
+        {
+            entry2 = (MemberwiseClone() as TarEntry)!;
+
+            name = "././@LongLink";
+            type = TarEntryType.LongPath;
+            FileSize = FileName.Length;
+        }
+
         var header = new Byte[512];
-        WriteString(header, 0, FileName, 100);
+        WriteString(header, 0, name, 100);
         WriteString(header, 100, Mode, 8);
         WriteString(header, 108, OwnerId, 8);
         WriteString(header, 116, GroupId, 8);
         WriteString(header, 124, Convert.ToString(FileSize, 8).PadLeft(11, '0') + "\0", 12);
         WriteString(header, 136, Convert.ToString(LastModified.ToInt(), 8).PadLeft(11, '0') + "\0", 12);
         WriteString(header, 148, "000000\0 ", 8);
-        header[156] = (Byte)TypeFlag;
+        header[156] = (Byte)type;
         WriteString(header, 157, LinkName, 100);
         WriteString(header, 257, Magic, 6);
         WriteString(header, 263, Version.ToString("00"), 2);
@@ -369,6 +386,19 @@ public class TarEntry
         WriteString(header, 148, Convert.ToString(checksum, 8).PadLeft(6, '0') + "\0 ", 8);
 
         stream.Write(header, 0, 512);
+
+        // 超长文件名
+        if (type == TarEntryType.LongPath)
+        {
+            var longName = Encoding.ASCII.GetBytes(FileName);
+            stream.Write(longName, 0, longName.Length);
+
+            var padding = 512 - longName.Length % 512;
+            if (padding > 0) stream.Write(new Byte[padding], 0, padding);
+
+            entry2.FileName = "@PathCut";
+            entry2.Write(stream);
+        }
     }
 
     /// <summary>从流中读取文件头。</summary>
@@ -398,17 +428,31 @@ public class TarEntry
             Prefix = ReadString(header, 345, 155),
         };
 
+        if (entry.TypeFlag is TarEntryType.ExtendedAttributes)
+        {
+        }
         // 处理长文件名
-        if (entry.TypeFlag == TarEntryType.LongLink && entry.FileName == "././@LongLink")
+        else if (entry.TypeFlag is TarEntryType.LongLink or TarEntryType.LongPath)
         {
             read = stream.Read(header, 0, 512);
             if (read > 0)
             {
-                entry.FileName = Encoding.ASCII.GetString(header, 0, read);
+                var str = Encoding.ASCII.GetString(header, 0, Math.Min(read, (Int32)entry.FileSize)).Trim('\0');
+                if (entry.TypeFlag == TarEntryType.LongLink)
+                    entry.LinkName = str;
+                else
+                    entry.FileName = str;
+
+                entry.TypeFlag = TarEntryType.RegularFile;
 
                 // 对齐512字节，如果刚好是512倍数，也要空出来512字节
                 var padding = (512 - read % 512);
-                read = stream.Read(header, 0, padding);
+                if (padding > 0)
+                {
+                    //read = stream.Read(header, 0, padding);
+                    var entry2 = Read(stream);
+                    if (entry2 != null) entry.FileSize = entry2.FileSize;
+                }
             }
         }
 
