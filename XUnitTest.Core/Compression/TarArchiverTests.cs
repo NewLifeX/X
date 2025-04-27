@@ -4,7 +4,15 @@ using Xunit;
 
 namespace XUnitTest.Compression;
 
-[Collection("TarArchiverTests")]
+//[CollectionDefinition("TarArchiver", DisableParallelization = true)]
+//public class TarArchiverTestsCollection
+//{
+//    // 这个类不需要包含任何代码
+//    // 它的作用是定义一个测试集合，并禁用并行化
+//}
+
+//[Collection("TarArchiver")]
+[TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class TarArchiverTests
 {
     private static String _testDir;
@@ -13,6 +21,8 @@ public class TarArchiverTests
 
     static TarArchiverTests()
     {
+        XTrace.WriteLine("TarArchiverTests");
+
         var root = NewLife.Setting.Current.DataPath.GetFullPath();
 
         // 准备测试目录和文件
@@ -38,7 +48,7 @@ public class TarArchiverTests
         CreateTestFile(Path.Combine(subDir, "test3.txt"), "子目录中的测试文件");
     }
 
-    private static void CreateTestFile(String path, String content)
+    static void CreateTestFile(String path, String content)
     {
         File.WriteAllText(path, content);
     }
@@ -79,7 +89,7 @@ public class TarArchiverTests
         }
 
         // 解压tar文件
-        var extractArchiver = new TarArchiver(_tarFile);
+        using var extractArchiver = new TarArchiver(_tarFile);
         extractArchiver.ExtractToDirectory(_outputDir, true);
 
         // 验证文件已解压
@@ -122,7 +132,7 @@ public class TarArchiverTests
     public void TestTarHeaderReadWrite()
     {
         // 创建一个TarHeader
-        var originalHeader = new TarArchiveEntry
+        var originalHeader = new TarEntry
         {
             FileName = "test.txt",
             Mode = "0000644",
@@ -150,7 +160,7 @@ public class TarArchiverTests
         stream.Position = 0;
 
         // 读取头部
-        var readHeader = TarArchiveEntry.Read(stream);
+        var readHeader = TarEntry.Read(stream);
 
         // 验证读取的头部与原始头部一致
         Assert.NotNull(readHeader);
@@ -182,6 +192,28 @@ public class TarArchiverTests
         Assert.Contains(longFileName, extractArchiver.Entries.Select(e => e.FileName).ToList());
     }
 
+    [Fact(DisplayName = "测试超长文件名2")]
+    public void TestLongFileName2()
+    {
+        var longFileName = new String('a', 190) + ".txt";
+        var longFilePath = Path.Combine(_testDir, longFileName);
+
+        // 创建带有长文件名的测试文件
+        CreateTestFile(longFilePath, "这是一个有很长文件名的测试文件");
+
+        if (File.Exists(_tarFile)) File.Delete(_tarFile);
+        using var archiver = new TarArchiver(_tarFile, true);
+        archiver.CreateFromDirectory(_testDir);
+        archiver.Dispose();
+
+        // 解压并验证长文件名被正确处理
+        using var extractArchiver = new TarArchiver(_tarFile);
+        extractArchiver.ExtractToDirectory(_outputDir);
+
+        Assert.True(File.Exists(Path.Combine(_outputDir, longFileName)));
+        Assert.Contains(longFileName, extractArchiver.Entries.Select(e => e.FileName).ToList());
+    }
+
     [Fact]
     public void TestFiles()
     {
@@ -190,7 +222,7 @@ public class TarArchiverTests
         {
             XTrace.WriteLine("解析Tar文件：{0}", fi.Name);
 
-            var tar = new TarArchiver(fi.FullName);
+            using var tar = new TarArchiver(fi.FullName);
 
             var entries = tar.Entries;
 

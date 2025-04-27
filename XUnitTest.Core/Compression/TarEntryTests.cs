@@ -1,5 +1,4 @@
-﻿using System.IO;
-using NewLife;
+﻿using NewLife;
 using NewLife.Compression;
 using NewLife.Log;
 using NewLife.Security;
@@ -7,13 +6,13 @@ using Xunit;
 
 namespace XUnitTest.Compression;
 
-public class TarArchiveEntryTests
+public class TarEntryTests
 {
     [Fact(DisplayName = "测试文件头读写")]
     public void TestTarHeaderReadWrite()
     {
         // 创建一个TarHeader
-        var originalHeader = new TarArchiveEntry
+        var originalHeader = new TarEntry
         {
             FileName = "test.txt",
             Mode = "0000644",
@@ -41,7 +40,7 @@ public class TarArchiveEntryTests
         stream.Position = 0;
 
         // 读取头部
-        var readHeader = TarArchiveEntry.Read(stream);
+        var readHeader = TarEntry.Read(stream);
 
         // 验证读取的头部与原始头部一致
         Assert.NotNull(readHeader);
@@ -55,7 +54,7 @@ public class TarArchiveEntryTests
     public void Test1()
     {
         // 创建一个TarHeader
-        var header = new TarArchiveEntry
+        var header = new TarEntry
         {
             FileName = Rand.NextString(32),
             FileSize = Rand.Next(),
@@ -71,7 +70,7 @@ public class TarArchiveEntryTests
         stream.Position = 0;
 
         // 读取头部
-        var header2 = TarArchiveEntry.Read(stream);
+        var header2 = TarEntry.Read(stream);
 
         // 验证读取的头部与原始头部一致
         Assert.NotNull(header2);
@@ -97,7 +96,7 @@ public class TarArchiveEntryTests
             var stream = fi.OpenRead().DecompressGZip();
 
             // 读取头部
-            var header = TarArchiveEntry.Read(stream);
+            var header = TarEntry.Read(stream);
 
             Assert.NotNull(header);
             Assert.NotEmpty(header.FileName);

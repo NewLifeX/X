@@ -13,9 +13,9 @@ public class TarArchiver : DisposeBase
     /// <summary>获取或设置编码方式，默认为 ASCII 编码。</summary>
     public Encoding Encoding { get; set; } = Encoding.ASCII;
 
-    private List<TarArchiveEntry> _entries = [];
+    private List<TarEntry> _entries = [];
     /// <summary>文件列表</summary>
-    public IReadOnlyCollection<TarArchiveEntry> Entries => _entries.AsReadOnly();
+    public IReadOnlyCollection<TarEntry> Entries => _entries.AsReadOnly();
 
     private Stream _stream;
     private Boolean _leaveOpen = false;
@@ -88,7 +88,7 @@ public class TarArchiver : DisposeBase
         while (true)
         {
             // 读取文件头
-            var entry = TarArchiveEntry.Read(stream);
+            var entry = TarEntry.Read(stream);
             if (entry == null || entry.FileName.IsNullOrEmpty()) break;
 
             entry.Archiver = this;
@@ -117,7 +117,7 @@ public class TarArchiver : DisposeBase
     }
 
     /// <summary>创建一个 Tar 归档文件的条目。</summary>
-    public TarArchiveEntry CreateEntryFromFile(String sourceFileName, String entryName)
+    public TarEntry CreateEntryFromFile(String sourceFileName, String entryName)
     {
         if (sourceFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceFileName));
         //if (entryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(entryName));
@@ -125,7 +125,7 @@ public class TarArchiver : DisposeBase
 
         //var fi = sourceFileName.AsFile();
 
-        var entry = new TarArchiveEntry
+        var entry = new TarEntry
         {
             Archiver = this,
             FileName = entryName,
@@ -227,7 +227,7 @@ public class TarArchiver : DisposeBase
 /// 表示 Tar 文件头的类，存储文件的元数据信息。
 /// 遵循 POSIX ustar 格式，文件头长度为 512 字节。
 /// </summary>
-public class TarArchiveEntry
+public class TarEntry
 {
     #region 属性
     /// <summary>归档器</summary>
@@ -322,13 +322,13 @@ public class TarArchiveEntry
     }
 
     /// <summary>从流中读取文件头。</summary>
-    public static TarArchiveEntry? Read(Stream stream)
+    public static TarEntry? Read(Stream stream)
     {
         var header = new Byte[512];
         var read = stream.Read(header, 0, 512);
         if (read < 512 || header.All(e => e == 0)) return null;
 
-        var tarHeader = new TarArchiveEntry
+        var tarHeader = new TarEntry
         {
             FileName = ReadString(header, 0, 100),
             Mode = ReadString(header, 100, 8),
