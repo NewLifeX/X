@@ -13,13 +13,13 @@ namespace XUnitTest.Compression;
 
 //[Collection("TarArchiver")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
-public class TarArchiverTests
+public class TarFileTests
 {
     private static String _testDir;
     private static String _outputDir;
     private static String _tarFile;
 
-    static TarArchiverTests()
+    static TarFileTests()
     {
         XTrace.WriteLine("TarArchiverTests");
 
@@ -57,7 +57,7 @@ public class TarArchiverTests
     public void TestCreateTar()
     {
         if (File.Exists(_tarFile)) File.Delete(_tarFile);
-        using var archiver = new TarArchiver(_tarFile, true);
+        using var archiver = new TarFile(_tarFile, true);
 
         // 创建tar文件
         archiver.CreateFromDirectory(_testDir);
@@ -82,14 +82,14 @@ public class TarArchiverTests
     {
         if (File.Exists(_tarFile)) File.Delete(_tarFile);
         {
-            using var archiver = new TarArchiver(_tarFile, true);
+            using var archiver = new TarFile(_tarFile, true);
 
             // 先创建tar文件
             archiver.CreateFromDirectory(_testDir);
         }
 
         // 解压tar文件
-        using var extractArchiver = new TarArchiver(_tarFile);
+        using var extractArchiver = new TarFile(_tarFile);
         extractArchiver.ExtractToDirectory(_outputDir, true);
 
         // 验证文件已解压
@@ -120,7 +120,7 @@ public class TarArchiverTests
         var emptyTarFile = Path.Combine(Path.GetTempPath(), "empty.tar");
         if (File.Exists(emptyTarFile)) File.Delete(emptyTarFile);
 
-        using var archiver = new TarArchiver(emptyTarFile, true);
+        using var archiver = new TarFile(emptyTarFile, true);
         archiver.CreateFromDirectory(emptyDir);
 
         // 验证tar文件已创建且文件清单为空
@@ -141,7 +141,7 @@ public class TarArchiverTests
             FileSize = 1024,
             LastModified = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             Checksum = 0,
-            TypeFlag = '0',
+            TypeFlag = TarEntryType.RegularFile,
             LinkName = String.Empty,
             Magic = "ustar",
             Version = 0,
@@ -180,12 +180,12 @@ public class TarArchiverTests
         CreateTestFile(longFilePath, "这是一个有很长文件名的测试文件");
 
         if (File.Exists(_tarFile)) File.Delete(_tarFile);
-        using var archiver = new TarArchiver(_tarFile, true);
+        using var archiver = new TarFile(_tarFile, true);
         archiver.CreateFromDirectory(_testDir);
         archiver.Dispose();
 
         // 解压并验证长文件名被正确处理
-        using var extractArchiver = new TarArchiver(_tarFile);
+        using var extractArchiver = new TarFile(_tarFile);
         extractArchiver.ExtractToDirectory(_outputDir);
 
         Assert.True(File.Exists(Path.Combine(_outputDir, longFileName)));
@@ -202,12 +202,12 @@ public class TarArchiverTests
         CreateTestFile(longFilePath, "这是一个有很长文件名的测试文件");
 
         if (File.Exists(_tarFile)) File.Delete(_tarFile);
-        using var archiver = new TarArchiver(_tarFile, true);
+        using var archiver = new TarFile(_tarFile, true);
         archiver.CreateFromDirectory(_testDir);
         archiver.Dispose();
 
         // 解压并验证长文件名被正确处理
-        using var extractArchiver = new TarArchiver(_tarFile);
+        using var extractArchiver = new TarFile(_tarFile);
         extractArchiver.ExtractToDirectory(_outputDir);
 
         Assert.True(File.Exists(Path.Combine(_outputDir, longFileName)));
@@ -222,7 +222,7 @@ public class TarArchiverTests
         {
             XTrace.WriteLine("解析Tar文件：{0}", fi.Name);
 
-            using var tar = new TarArchiver(fi.FullName);
+            using var tar = new TarFile(fi.FullName);
 
             var entries = tar.Entries;
 

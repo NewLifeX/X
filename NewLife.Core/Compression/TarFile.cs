@@ -1,18 +1,72 @@
-﻿using System.IO;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Text;
 
 namespace NewLife.Compression;
 
+/// <summary>Tar条目类型</summary>
+public enum TarEntryType : Byte
+{
+    /// <summary>普通文件。此条目类型特定于 Ustar、Pax 和 Gnu 格式。</summary>
+    RegularFile = (Byte)'0',
+
+    /// <summary>硬链接。</summary>
+    HardLink = (Byte)'1',
+
+    /// <summary>符号链接。</summary>
+    SymbolicLink = (Byte)'2',
+
+    /// <summary>字符设备特殊文件。此条目类型仅在 Unix 平台上支持写入。</summary>
+    CharacterDevice = (Byte)'3',
+
+    /// <summary>块设备特殊文件。此条目类型仅在 Unix 平台上支持写入。</summary>
+    BlockDevice = (Byte)'4',
+
+    /// <summary>目录。</summary>
+    Directory = (Byte)'5',
+
+    /// <summary>FIFO 特殊文件。此条目类型仅在 Unix 平台上支持写入。</summary>
+    Fifo = (Byte)'6',
+
+    /// <summary>GNU 连续文件。此条目类型特定于 Gnu 格式，并被视为普通文件类型。</summary>
+    ContiguousFile = (Byte)'7',
+
+    /// <summary>PAX 扩展属性条目。元数据条目类型。</summary>
+    ExtendedAttributes = (Byte)'x',
+
+    /// <summary>PAX 全局扩展属性条目。元数据条目类型。</summary>
+    GlobalExtendedAttributes = (Byte)'g',
+
+    /// <summary>GNU 包含条目列表的目录。此条目类型特定于 Gnu 格式，并被视为包含数据部分的目录类型。</summary>
+    DirectoryList = (Byte)'D',
+
+    /// <summary>GNU 长链接。元数据条目类型。</summary>
+    LongLink = (Byte)'K',
+
+    /// <summary>GNU 长路径。元数据条目类型。</summary>
+    LongPath = (Byte)'L',
+
+    /// <summary>GNU 多卷文件。此条目类型特定于 Gnu 格式，不支持写入。</summary>
+    MultiVolume = (Byte)'M',
+
+    /// <summary>V7 普通文件。此条目类型特定于 V7 格式。</summary>
+    V7RegularFile = (Byte)'\0',
+
+    /// <summary>GNU 文件重命名或符号链接。此条目类型特定于 Gnu 格式，被认为不安全，其他工具会忽略。</summary>
+    RenamedOrSymlinked = (Byte)'N',
+
+    /// <summary>GNU 稀疏文件。此条目类型特定于 Gnu 格式，不支持写入。</summary>
+    SparseFile = (Byte)'S',
+
+    /// <summary>GNU 磁带卷。此条目类型特定于 Gnu 格式，不支持写入。</summary>
+    TapeVolume = (Byte)'V',
+}
+
 /// <summary>
 /// Tar 文件的压缩与解压缩类，支持创建和提取 Tar 归档文件。
 /// </summary>
-public class TarArchiver : DisposeBase
+public class TarFile : DisposeBase
 {
     #region 属性
-    /// <summary>获取或设置编码方式，默认为 ASCII 编码。</summary>
-    public Encoding Encoding { get; set; } = Encoding.ASCII;
-
     private List<TarEntry> _entries = [];
     /// <summary>文件列表</summary>
     public IReadOnlyCollection<TarEntry> Entries => _entries.AsReadOnly();
@@ -22,17 +76,17 @@ public class TarArchiver : DisposeBase
     #endregion
 
     #region 构造
-    public TarArchiver() { }
+    public TarFile() { }
 
     /// <summary>初始化一个 Tar 归档文件</summary>
-    public TarArchiver(Stream stream, Boolean leveOpen = false)
+    public TarFile(Stream stream, Boolean leveOpen = false)
     {
         _stream = stream;
         _leaveOpen = leveOpen;
     }
 
     /// <summary>打开一个 Tar 归档文件</summary>
-    public TarArchiver(String fileName, Boolean isWrite = false)
+    public TarFile(String fileName, Boolean isWrite = false)
     {
         if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
 
@@ -120,10 +174,7 @@ public class TarArchiver : DisposeBase
     public TarEntry CreateEntryFromFile(String sourceFileName, String entryName)
     {
         if (sourceFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceFileName));
-        //if (entryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(entryName));
         if (entryName.IsNullOrEmpty()) entryName = Path.GetFileName(sourceFileName);
-
-        //var fi = sourceFileName.AsFile();
 
         var entry = new TarEntry
         {
@@ -135,7 +186,7 @@ public class TarArchiver : DisposeBase
             //FileSize = fi.Length,
             //LastModified = fi.LastAccessTimeUtc,
             Checksum = 0, // 初始值，写入时会重新计算
-            TypeFlag = '0', // 普通文件
+            TypeFlag = TarEntryType.RegularFile, // 普通文件
             LinkName = String.Empty,
             Magic = "ustar",
             Version = 0,
@@ -178,7 +229,7 @@ public class TarArchiver : DisposeBase
         if (sourceDirectoryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceDirectoryName));
         if (destinationArchiveFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(destinationArchiveFileName));
 
-        using var tar = new TarArchiver(destinationArchiveFileName, true);
+        using var tar = new TarFile(destinationArchiveFileName, true);
         tar.CreateFromDirectory(sourceDirectoryName);
     }
 
@@ -189,8 +240,7 @@ public class TarArchiver : DisposeBase
     {
         foreach (var entry in _entries)
         {
-            // 仅处理普通文件
-            if (entry.TypeFlag == '0')
+            if (entry.TypeFlag == TarEntryType.RegularFile)
             {
                 // 构建目标文件路径
                 var filePath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
@@ -217,7 +267,7 @@ public class TarArchiver : DisposeBase
 
         destinationDirectoryName.EnsureDirectory(false);
 
-        using var tar = new TarArchiver(sourceArchiveFileName, false);
+        using var tar = new TarFile(sourceArchiveFileName, false);
         tar.ExtractToDirectory(destinationDirectoryName, overwriteFiles);
     }
     #endregion
@@ -231,7 +281,7 @@ public class TarEntry
 {
     #region 属性
     /// <summary>归档器</summary>
-    public TarArchiver Archiver { get; set; } = null!;
+    public TarFile Archiver { get; set; } = null!;
 
     /// <summary>文件名，最长 100 字节。</summary>
     public String FileName { get; set; } = null!;
@@ -255,7 +305,7 @@ public class TarEntry
     public UInt64 Checksum { get; set; }
 
     /// <summary>文件类型标志，1 字节（'0' 表示普通文件）。</summary>
-    public Char TypeFlag { get; set; }
+    public TarEntryType TypeFlag { get; set; }
 
     /// <summary>链接目标文件名，100 字节。</summary>
     public String? LinkName { get; set; }
@@ -328,7 +378,7 @@ public class TarEntry
         var read = stream.Read(header, 0, 512);
         if (read < 512 || header.All(e => e == 0)) return null;
 
-        var tarHeader = new TarEntry
+        var entry = new TarEntry
         {
             FileName = ReadString(header, 0, 100),
             Mode = ReadString(header, 100, 8),
@@ -337,7 +387,7 @@ public class TarEntry
             FileSize = Convert.ToInt64(ReadString(header, 124, 12).Trim(), 8),
             LastModified = ReadString(header, 136, 12).Trim('\0').TrimStart('0').ToInt().ToDateTime(),
             Checksum = (UInt64)ReadString(header, 148, 8).ToLong(),
-            TypeFlag = (Char)header[156],
+            TypeFlag = (TarEntryType)header[156],
             LinkName = ReadString(header, 157, 100),
             Magic = ReadString(header, 257, 6),
             Version = (UInt16)ReadString(header, 263, 2).ToInt(),
@@ -348,7 +398,21 @@ public class TarEntry
             Prefix = ReadString(header, 345, 155),
         };
 
-        return tarHeader;
+        // 处理长文件名
+        if (entry.TypeFlag == TarEntryType.LongLink && entry.FileName == "././@LongLink")
+        {
+            read = stream.Read(header, 0, 512);
+            if (read > 0)
+            {
+                entry.FileName = Encoding.ASCII.GetString(header, 0, read);
+
+                // 对齐512字节，如果刚好是512倍数，也要空出来512字节
+                var padding = (512 - read % 512);
+                read = stream.Read(header, 0, padding);
+            }
+        }
+
+        return entry;
     }
 
     /// <summary>读取内容。返回是否读取成功</summary>
@@ -435,5 +499,5 @@ public class TarEntry
 
     /// <summary>已重载。</summary>
     /// <returns></returns>
-    public override String ToString() => FileName ?? base.ToString();
+    public override String ToString() => FileName ?? base.ToString()!;
 }

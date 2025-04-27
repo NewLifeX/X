@@ -21,7 +21,7 @@ public class TarEntryTests
             FileSize = 1024,
             LastModified = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             Checksum = 0,
-            TypeFlag = '0',
+            TypeFlag = TarEntryType.RegularFile,
             LinkName = String.Empty,
             Magic = "ustar",
             Version = 0,
@@ -58,7 +58,7 @@ public class TarEntryTests
         {
             FileName = Rand.NextString(32),
             FileSize = Rand.Next(),
-            TypeFlag = (Char)Rand.Next(0, 256),
+            TypeFlag = (TarEntryType)Rand.Next(0, 256),
             Magic = Rand.NextString(8),
         };
 
