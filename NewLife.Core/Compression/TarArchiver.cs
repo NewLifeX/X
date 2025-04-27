@@ -104,6 +104,7 @@ public class TarArchiver : DisposeBase
         foreach (var entry in _entries)
         {
             entry.Write(stream);
+            entry.WriteContent(stream);
         }
 
         // 写入结束标志（两个空块）
@@ -198,7 +199,7 @@ public class TarArchiver : DisposeBase
                     filePath.EnsureDirectory(true);
 
                     using var fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
-                    entry.Open().CopyTo(fs);
+                    entry.Open().CopyTo(fs, entry.FileSize, 4096);
 
                     fs.SetLength(fs.Position);
                 }
@@ -381,6 +382,17 @@ public class TarArchiveEntry
         }
 
         return true;
+    }
+
+    /// <summary>写入内存到数据流</summary>
+    /// <param name="stream"></param>
+    public void WriteContent(Stream stream)
+    {
+        var ms = Open();
+        ms.CopyTo(stream, FileSize, 4096);
+
+        var padding = (512 - FileSize % 512) % 512;
+        if (padding > 0) stream.Seek(padding, SeekOrigin.Current);
     }
 
     /// <summary>设置文件</summary>
