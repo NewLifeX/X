@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 namespace NewLife.Compression;
@@ -9,14 +10,6 @@ namespace NewLife.Compression;
 public class TarArchiver : DisposeBase
 {
     #region 属性
-    // 存储文件清单
-    private readonly List<String> _fileList = [];
-
-    /// <summary>
-    /// 获取归档中的文件清单。
-    /// </summary>
-    public IReadOnlyList<String> FileList => _fileList.AsReadOnly();
-
     /// <summary>获取或设置编码方式，默认为 ASCII 编码。</summary>
     public Encoding Encoding { get; set; } = Encoding.ASCII;
 
@@ -54,6 +47,8 @@ public class TarArchiver : DisposeBase
                 _stream = new GZipStream(fs, CompressionMode.Decompress, false);
             else
                 _stream = fs;
+
+            Read(_stream);
         }
         else
         {
@@ -66,8 +61,6 @@ public class TarArchiver : DisposeBase
             else
                 _stream = fs;
         }
-
-        Read(_stream);
     }
 
     /// <summary>销毁</summary>
@@ -87,7 +80,7 @@ public class TarArchiver : DisposeBase
     }
     #endregion
 
-    #region 读写方法
+    #region 方法
     /// <summary>读取 Tar 归档文件的内容。</summary>
     /// <param name="stream"></param>
     public void Read(Stream stream)
@@ -95,119 +88,138 @@ public class TarArchiver : DisposeBase
         while (true)
         {
             // 读取文件头
-            var header = TarArchiveEntry.Read(stream);
-            if (header == null || header.FileName.IsNullOrEmpty()) break;
+            var entry = TarArchiveEntry.Read(stream);
+            if (entry == null || entry.FileName.IsNullOrEmpty()) break;
 
-            header.ReadContent(stream);
+            entry.Archiver = this;
+            entry.ReadContent(stream);
 
-            _entries.Add(header);
+            _entries.Add(entry);
         }
     }
-    #endregion
 
-    /// <summary>
-    /// 创建一个 Tar 归档文件，将指定目录中的所有文件打包。
-    /// </summary>
-    /// <param name="sourceDirectory">源目录路径</param>
-    /// <param name="tarFilePath">目标 Tar 文件路径</param>
-    public void CreateTar(String sourceDirectory, String tarFilePath)
+    /// <summary>写入 Tar 归档文件的内容。</summary>
+    public void Write(Stream stream)
     {
-        _fileList.Clear();
-
-        using var stream = new FileStream(tarFilePath, FileMode.Create, FileAccess.Write);
-        foreach (var filePath in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+        foreach (var entry in _entries)
         {
-            // 计算相对路径作为文件名
-            var relativePath = filePath.Substring(sourceDirectory.Length + 1).Replace('\\', '/');
-            _fileList.Add(relativePath);
-
-            // 读取文件内容
-            var fileData = File.ReadAllBytes(filePath);
-            Int64 fileSize = fileData.Length;
-            var time = File.GetLastWriteTimeUtc(filePath);
-
-            // 创建文件头
-            var header = new TarArchiveEntry
-            {
-                FileName = relativePath,
-                Mode = "0000644", // 普通文件权限
-                OwnerId = "0000000",
-                GroupId = "0000000",
-                FileSize = fileSize,
-                LastModified = time,
-                Checksum = 0, // 初始值，写入时会重新计算
-                TypeFlag = '0', // 普通文件
-                LinkName = String.Empty,
-                Magic = "ustar",
-                Version = 0,
-                OwnerName = String.Empty,
-                GroupName = String.Empty,
-                DeviceMajor = "0000000\0",
-                DeviceMinor = "0000000\0",
-                Prefix = String.Empty
-            };
-
-            // 写入文件头
-            header.Write(stream);
-
-            // 写入文件内容
-            stream.Write(fileData, 0, fileData.Length);
-
-            // 补齐到 512 字节的倍数
-            var padding = (512 - fileSize % 512) % 512;
-            stream.Write(new Byte[padding], 0, (Int32)padding);
+            entry.Write(stream);
         }
 
         // 写入结束标志（两个空块）
         stream.Write(new Byte[1024], 0, 1024);
+        stream.Flush();
+
+        // 修改文件时，截断超长部分
+        if (stream is FileStream fs)
+            fs.SetLength(fs.Position);
     }
 
-    /// <summary>
-    /// 解压 Tar 文件到指定目录。
-    /// </summary>
-    /// <param name="tarFilePath">Tar 文件路径</param>
-    /// <param name="destinationDirectory">目标目录路径</param>
-    public void ExtractTar(String tarFilePath, String destinationDirectory)
+    /// <summary>创建一个 Tar 归档文件的条目。</summary>
+    public TarArchiveEntry CreateEntryFromFile(String sourceFileName, String entryName)
     {
-        _fileList.Clear();
+        if (sourceFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceFileName));
+        //if (entryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(entryName));
+        if (entryName.IsNullOrEmpty()) entryName = Path.GetFileName(sourceFileName);
 
-        destinationDirectory.EnsureDirectory(false);
+        //var fi = sourceFileName.AsFile();
 
-        using var stream = new FileStream(tarFilePath, FileMode.Open, FileAccess.Read);
-        while (true)
+        var entry = new TarArchiveEntry
         {
-            // 读取文件头
-            var header = TarArchiveEntry.Read(stream);
-            if (header == null || String.IsNullOrEmpty(header.FileName)) break;
+            Archiver = this,
+            FileName = entryName,
+            Mode = "0000644", // 普通文件权限
+            OwnerId = "0000000",
+            GroupId = "0000000",
+            //FileSize = fi.Length,
+            //LastModified = fi.LastAccessTimeUtc,
+            Checksum = 0, // 初始值，写入时会重新计算
+            TypeFlag = '0', // 普通文件
+            LinkName = String.Empty,
+            Magic = "ustar",
+            Version = 0,
+            OwnerName = String.Empty,
+            GroupName = String.Empty,
+            DeviceMajor = "0000000\0",
+            DeviceMinor = "0000000\0",
+            Prefix = String.Empty
+        };
 
-            _fileList.Add(header.FileName);
+        entry.SetFile(sourceFileName);
 
+        _entries.Add(entry);
+
+        return entry;
+    }
+
+    /// <summary>将指定目录中的所有文件打包。</summary>
+    public void CreateFromDirectory(String sourceDirectoryName)
+    {
+        if (sourceDirectoryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceDirectoryName));
+
+        var di = sourceDirectoryName.AsDirectory();
+        foreach (var fi in di.GetAllFiles(null, true))
+        {
+            // 计算相对路径作为文件名
+            var relativePath = fi.FullName.Substring(sourceDirectoryName.Length + 1).Replace('\\', '/');
+
+            var entry = CreateEntryFromFile(fi.FullName, relativePath);
+        }
+
+        Write(_stream);
+    }
+
+    /// <summary>创建一个 Tar 归档文件，将指定目录中的所有文件打包。</summary>
+    /// <param name="sourceDirectoryName">源目录路径</param>
+    /// <param name="destinationArchiveFileName">目标 Tar 文件路径</param>
+    public static void CreateFromDirectory(String sourceDirectoryName, String destinationArchiveFileName)
+    {
+        if (sourceDirectoryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceDirectoryName));
+        if (destinationArchiveFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(destinationArchiveFileName));
+
+        using var tar = new TarArchiver(destinationArchiveFileName, true);
+        tar.CreateFromDirectory(sourceDirectoryName);
+    }
+
+    /// <summary>解压 Tar 文件到指定目录。</summary>
+    /// <param name="destinationDirectoryName">目标目录路径</param>
+    /// <param name="overwriteFiles">是否覆盖已存在文件</param>
+    public void ExtractToDirectory(String destinationDirectoryName, Boolean overwriteFiles = false)
+    {
+        foreach (var entry in _entries)
+        {
             // 仅处理普通文件
-            if (header.TypeFlag == '0')
+            if (entry.TypeFlag == '0')
             {
                 // 构建目标文件路径
-                var filePath = Path.Combine(destinationDirectory, header.FileName.Replace('/', Path.DirectorySeparatorChar));
-                var dirPath = Path.GetDirectoryName(filePath);
-                if (!Directory.Exists(dirPath))
-                    Directory.CreateDirectory(dirPath);
+                var filePath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
+                if (overwriteFiles || File.Exists(filePath))
+                {
+                    filePath.EnsureDirectory(true);
 
-                // 读取文件内容
-                var fileData = new Byte[header.FileSize];
-                stream.Read(fileData, 0, fileData.Length);
-                File.WriteAllBytes(filePath, fileData);
+                    using var fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+                    entry.Open().CopyTo(fs);
 
-                // 跳过补齐字节
-                var padding = (512 - header.FileSize % 512) % 512;
-                stream.Seek(padding, SeekOrigin.Current);
-            }
-            else
-            {
-                // 跳过非普通文件的内容
-                var padding = (512 - header.FileSize % 512) % 512;
-                stream.Seek(header.FileSize + padding, SeekOrigin.Current);
+                    fs.SetLength(fs.Position);
+                }
             }
         }
     }
+
+    /// <summary>解压 Tar 文件到指定目录。</summary>
+    /// <param name="sourceArchiveFileName">Tar 文件路径</param>
+    /// <param name="destinationDirectoryName">目标目录路径</param>
+    /// <param name="overwriteFiles">是否覆盖已存在文件</param>
+    public static void ExtractToDirectory(String sourceArchiveFileName, String destinationDirectoryName, Boolean overwriteFiles = false)
+    {
+        if (sourceArchiveFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceArchiveFileName));
+
+        destinationDirectoryName.EnsureDirectory(false);
+
+        using var tar = new TarArchiver(sourceArchiveFileName, false);
+        tar.ExtractToDirectory(destinationDirectoryName, overwriteFiles);
+    }
+    #endregion
 }
 
 /// <summary>
@@ -217,6 +229,9 @@ public class TarArchiver : DisposeBase
 public class TarArchiveEntry
 {
     #region 属性
+    /// <summary>归档器</summary>
+    public TarArchiver Archiver { get; set; } = null!;
+
     /// <summary>文件名，最长 100 字节。</summary>
     public String FileName { get; set; } = null!;
 
@@ -267,6 +282,7 @@ public class TarArchiveEntry
 
     private Stream? _stream;
     private Int64 _position;
+    private String? _file;
     #endregion
 
     /// <summary>将文件头写入到流中，固定 512 字节。</summary>
@@ -367,10 +383,26 @@ public class TarArchiveEntry
         return true;
     }
 
+    /// <summary>设置文件</summary>
+    public void SetFile(String fileName)
+    {
+        var fi = fileName.AsFile();
+
+        FileSize = fi.Length;
+        LastModified = fi.LastWriteTimeUtc;
+
+        _file = fileName;
+        _stream = null;
+        _position = 0;
+    }
+
     /// <summary>打开流</summary>
     public Stream Open()
     {
         var stream = _stream;
+        if (stream == null && !_file.IsNullOrEmpty())
+            stream = _stream = new FileStream(_file, FileMode.Open, FileAccess.Read);
+
         stream!.Position = _position;
 
         return stream;
@@ -388,4 +420,8 @@ public class TarArchiveEntry
         while (end < offset + length && buffer[end] != 0) end++;
         return Encoding.ASCII.GetString(buffer, offset, end - offset);
     }
+
+    /// <summary>已重载。</summary>
+    /// <returns></returns>
+    public override String ToString() => FileName ?? base.ToString();
 }

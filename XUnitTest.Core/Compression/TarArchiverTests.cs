@@ -1,23 +1,24 @@
 ﻿using NewLife.Compression;
 using NewLife.Log;
 using Xunit;
-using System.IO;
-using NewLife.IO;
 
 namespace XUnitTest.Compression;
 
+[Collection("TarArchiverTests")]
 public class TarArchiverTests
 {
-    private readonly String _testDir;
-    private readonly String _outputDir;
-    private readonly String _tarFile;
+    private static String _testDir;
+    private static String _outputDir;
+    private static String _tarFile;
 
-    public TarArchiverTests()
+    static TarArchiverTests()
     {
+        var root = NewLife.Setting.Current.DataPath.GetFullPath();
+
         // 准备测试目录和文件
-        _testDir = Path.Combine(Path.GetTempPath(), "TarTest_Source");
-        _outputDir = Path.Combine(Path.GetTempPath(), "TarTest_Extract");
-        _tarFile = Path.Combine(Path.GetTempPath(), "test.tar");
+        _testDir = Path.Combine(root, "TarTest_Source");
+        _outputDir = Path.Combine(root, "TarTest_Extract");
+        _tarFile = Path.Combine(root, "test.tar");
 
         // 确保目录存在且为空
         if (Directory.Exists(_testDir)) Directory.Delete(_testDir, true);
@@ -37,7 +38,7 @@ public class TarArchiverTests
         CreateTestFile(Path.Combine(subDir, "test3.txt"), "子目录中的测试文件");
     }
 
-    private void CreateTestFile(String path, String content)
+    private static void CreateTestFile(String path, String content)
     {
         File.WriteAllText(path, content);
     }
@@ -45,10 +46,11 @@ public class TarArchiverTests
     [Fact(DisplayName = "测试创建Tar文件")]
     public void TestCreateTar()
     {
-        var archiver = new TarArchiver();
+        if (File.Exists(_tarFile)) File.Delete(_tarFile);
+        using var archiver = new TarArchiver(_tarFile, true);
 
         // 创建tar文件
-        archiver.CreateTar(_testDir, _tarFile);
+        archiver.CreateFromDirectory(_testDir);
 
         // 验证tar文件已创建
         Assert.True(File.Exists(_tarFile));
@@ -58,7 +60,7 @@ public class TarArchiverTests
         Assert.True(fileInfo.Length > 0);
 
         // 验证文件清单
-        var fileList = archiver.FileList;
+        var fileList = archiver.Entries.Select(e => e.FileName).ToList();
         Assert.Equal(3, fileList.Count);
         Assert.Contains("test1.txt", fileList);
         Assert.Contains("test2.txt", fileList);
@@ -68,14 +70,17 @@ public class TarArchiverTests
     [Fact(DisplayName = "测试解压Tar文件")]
     public void TestExtractTar()
     {
-        var archiver = new TarArchiver();
+        if (File.Exists(_tarFile)) File.Delete(_tarFile);
+        {
+            using var archiver = new TarArchiver(_tarFile, true);
 
-        // 先创建tar文件
-        archiver.CreateTar(_testDir, _tarFile);
+            // 先创建tar文件
+            archiver.CreateFromDirectory(_testDir);
+        }
 
         // 解压tar文件
-        var extractArchiver = new TarArchiver();
-        extractArchiver.ExtractTar(_tarFile, _outputDir);
+        var extractArchiver = new TarArchiver(_tarFile);
+        extractArchiver.ExtractToDirectory(_outputDir, true);
 
         // 验证文件已解压
         Assert.True(File.Exists(Path.Combine(_outputDir, "test1.txt")));
@@ -88,7 +93,7 @@ public class TarArchiverTests
         Assert.Equal("子目录中的测试文件", File.ReadAllText(Path.Combine(_outputDir, "subdir", "test3.txt")));
 
         // 验证文件清单
-        var fileList = extractArchiver.FileList;
+        var fileList = extractArchiver.Entries.Select(e => e.FileName).ToList();
         Assert.Equal(3, fileList.Count);
         Assert.Contains("test1.txt", fileList);
         Assert.Contains("test2.txt", fileList);
@@ -105,12 +110,12 @@ public class TarArchiverTests
         var emptyTarFile = Path.Combine(Path.GetTempPath(), "empty.tar");
         if (File.Exists(emptyTarFile)) File.Delete(emptyTarFile);
 
-        var archiver = new TarArchiver();
-        archiver.CreateTar(emptyDir, emptyTarFile);
+        using var archiver = new TarArchiver(emptyTarFile, true);
+        archiver.CreateFromDirectory(emptyDir);
 
         // 验证tar文件已创建且文件清单为空
         Assert.True(File.Exists(emptyTarFile));
-        Assert.Empty(archiver.FileList);
+        Assert.Empty(archiver.Entries);
     }
 
     [Fact(DisplayName = "测试文件头读写")]
@@ -164,15 +169,15 @@ public class TarArchiverTests
         // 创建带有长文件名的测试文件
         CreateTestFile(longFilePath, "这是一个有很长文件名的测试文件");
 
-        var archiver = new TarArchiver();
-        archiver.CreateTar(_testDir, _tarFile);
+        using var archiver = new TarArchiver(_tarFile);
+        archiver.CreateFromDirectory(_testDir);
 
         // 解压并验证长文件名被正确处理
-        var extractArchiver = new TarArchiver();
-        extractArchiver.ExtractTar(_tarFile, _outputDir);
+        using var extractArchiver = new TarArchiver(_tarFile);
+        extractArchiver.ExtractToDirectory(_outputDir);
 
         Assert.True(File.Exists(Path.Combine(_outputDir, longFileName)));
-        Assert.Contains(longFileName, extractArchiver.FileList);
+        Assert.Contains(longFileName, extractArchiver.Entries.Select(e => e.FileName).ToList());
     }
 
     [Fact]
