@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using NewLife;
+using NewLife.Compression;
 
 namespace System.IO;
 
@@ -384,8 +385,10 @@ public static class PathHelper
         }
         else
         {
-            throw new NotSupportedException();
-            //new SevenZip().Extract(fi.FullName, destDir);
+            if (NewLife.Runtime.Windows)
+                new SevenZip().Extract(fi.FullName, destDir);
+            else
+                throw new NotSupportedException();
         }
     }
 
@@ -406,8 +409,10 @@ public static class PathHelper
         }
         else
         {
-            throw new NotSupportedException();
-            //new SevenZip().Compress(fi.FullName, destFile);
+            if (NewLife.Runtime.Windows)
+                new SevenZip().Compress(fi.FullName, destFile);
+            else
+                throw new NotSupportedException();
         }
     }
     #endregion
@@ -551,8 +556,12 @@ public static class PathHelper
         if (destFile.EndsWithIgnoreCase(".zip"))
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, includeBaseDirectory);
         else
-            //new SevenZip().Compress(di.FullName, destFile);
-            throw new NotSupportedException();
+        {
+            if (NewLife.Runtime.Windows)
+                new SevenZip().Compress(di.FullName, destFile);
+            else
+                throw new NotSupportedException();
+        }
     }
     #endregion
 }

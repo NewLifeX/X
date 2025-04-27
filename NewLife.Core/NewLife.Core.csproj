@@ -101,7 +101,6 @@
   <ItemGroup>
     <Compile Remove="Agent\**" />
     <Compile Remove="Applications\**" />
-    <Compile Remove="Compression\**" />
     <Compile Remove="Expressions\**" />
     <Compile Remove="Json\**" />
     <Compile Remove="Remoting\Controllers\**" />
@@ -109,14 +108,12 @@
     <Compile Remove="Web\OAuth\**" />
     <Compile Remove="Yun\**" />
     <EmbeddedResource Remove="Applications\**" />
-    <EmbeddedResource Remove="Compression\**" />
     <EmbeddedResource Remove="Expressions\**" />
     <EmbeddedResource Remove="Json\**" />
     <EmbeddedResource Remove="Remoting\Controllers\**" />
     <EmbeddedResource Remove="Remoting\Filters\**" />
     <EmbeddedResource Remove="Yun\**" />
     <None Remove="Applications\**" />
-    <None Remove="Compression\**" />
     <None Remove="Expressions\**" />
     <None Remove="Json\**" />
     <None Remove="Remoting\Controllers\**" />
