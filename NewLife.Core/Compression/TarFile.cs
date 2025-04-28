@@ -75,11 +75,12 @@ public class TarFile : DisposeBase
     /// <summary>文件列表</summary>
     public IReadOnlyCollection<TarEntry> Entries => _entries.AsReadOnly();
 
-    private Stream _stream;
+    private Stream? _stream;
     private Boolean _leaveOpen = false;
     #endregion
 
     #region 构造
+    /// <summary>实例化</summary>
     public TarFile() { }
 
     /// <summary>初始化一个 Tar 归档文件</summary>
@@ -95,7 +96,7 @@ public class TarFile : DisposeBase
         if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
 
         var fi = fileName.AsFile();
-        var isGz = fileName.EndsWithIgnoreCase(".gz");
+        var isGz = fileName.EndsWithIgnoreCase(".gz", ".tgz");
 
         // 如果文件存在，则打开文件进行读取，否则创建新文件
         if (fi.Exists)

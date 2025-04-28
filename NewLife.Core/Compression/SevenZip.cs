@@ -1,4 +1,5 @@
-﻿using NewLife.Log;
+﻿using System.Text;
+using NewLife.Log;
 using NewLife.Web;
 
 namespace NewLife.Compression;
@@ -12,14 +13,16 @@ public class SevenZip
     static SevenZip()
     {
         var p = "";
+        var set = Setting.Current;
 
         // 附近文件
         if (p.IsNullOrEmpty())
         {
-            var f = "7z.exe".GetFullPath();
-            if (!File.Exists(f)) p = "7z/7z.exe".GetFullPath();
-            if (!File.Exists(f)) p = "../7z/7z.exe".GetFullPath();
-            if (!File.Exists(f)) p = "";
+            p = "7z.exe".GetFullPath();
+            if (!File.Exists(p)) p = set.PluginPath.CombinePath("7z.exe").GetFullPath();
+            if (!File.Exists(p)) p = "7z/7z.exe".GetFullPath();
+            if (!File.Exists(p)) p = "../7z/7z.exe".GetFullPath();
+            if (!File.Exists(p)) p = "";
         }
 
         // 自动下载
@@ -27,7 +30,6 @@ public class SevenZip
         {
             XTrace.WriteLine("准备下载7z扩展包");
 
-            var set = Setting.Current;
             var url = set.PluginServer;
             var client = new WebClientX()
             {
@@ -53,11 +55,11 @@ public class SevenZip
     /// <param name="path"></param>
     /// <param name="destFile"></param>
     /// <returns></returns>
-    public Boolean Compress(String path, String destFile)
+    public void Compress(String path, String destFile)
     {
         if (Directory.Exists(path)) path = path.GetFullPath().EnsureEnd("\\") + "*";
 
-        return Run($"a \"{destFile}\" \"{path}\" -mx9 -ssw");
+        Run($"a \"{destFile}\" \"{path}\" -mx9 -ssw");
     }
 
     /// <summary>解压缩文件</summary>
@@ -65,7 +67,7 @@ public class SevenZip
     /// <param name="destDir"></param>
     /// <param name="overwrite">是否覆盖目标同名文件</param>
     /// <returns></returns>
-    public Boolean Extract(String file, String destDir, Boolean overwrite = false)
+    public void Extract(String file, String destDir, Boolean overwrite = false)
     {
         destDir.EnsureDirectory(false);
 
@@ -75,9 +77,9 @@ public class SevenZip
         else
             args += " -aos";
 
-        return Run(args);
+        Run(args);
     }
 
-    private Boolean Run(String args) => _7z.Run(args, 5000) == 0;
+    private Int32 Run(String args) => _7z.Run(args, 5000);
     #endregion
 }

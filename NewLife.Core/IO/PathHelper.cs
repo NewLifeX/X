@@ -1,6 +1,9 @@
 ﻿using System.IO.Compression;
 using NewLife;
 using NewLife.Compression;
+#if NET7_0_OR_GREATER
+using System.Formats.Tar;
+#endif
 
 namespace System.IO;
 
@@ -383,10 +386,19 @@ public static class PathHelper
             }
 #endif
         }
-        else if (fi.Name.EndsWithIgnoreCase(".tar", ".tar.gz"))
+        else if (fi.Name.EndsWithIgnoreCase(".tar", ".tar.gz", ".tgz"))
         {
 #if NET7_0_OR_GREATER
-            System.Formats.Tar.TarFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
+            destDir.EnsureDirectory(false);
+            if (fi.Name.EndsWithIgnoreCase(".tar"))
+                System.Formats.Tar.TarFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
+            else
+            {
+                using var fs = fi.OpenRead();
+                using var gs = new GZipStream(fs, CompressionMode.Decompress, true);
+                using var bs = new BufferedStream(gs);
+                System.Formats.Tar.TarFile.ExtractToDirectory(bs, destDir, overwrite);
+            }
 #else
             TarFile.ExtractToDirectory(fi.FullName, destDir, overwrite);
 #endif
@@ -415,10 +427,26 @@ public static class PathHelper
             using var zip = ZipFile.Open(destFile, ZipArchiveMode.Create);
             zip.CreateEntryFromFile(fi.FullName, fi.Name, CompressionLevel.Optimal);
         }
-        else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz"))
+        else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz", ".tgz"))
         {
 #if NET7_0_OR_GREATER
-            System.Formats.Tar.TarFile.CreateFromDirectory(fi.FullName, destFile, false);
+            if (destFile.EndsWithIgnoreCase(".tar"))
+            {
+                using var fs = new FileStream(destFile, FileMode.OpenOrCreate, FileAccess.Write);
+                using var tarWriter = new TarWriter(fs, TarEntryFormat.Pax, false);
+                tarWriter.WriteEntry(fi.FullName, fi.Name);
+                fs.SetLength(fs.Position);
+            }
+            else
+            {
+                using var fs = new FileStream(destFile, FileMode.OpenOrCreate, FileAccess.Write);
+                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
+                using var tarWriter = new TarWriter(gs, TarEntryFormat.Pax, false);
+                tarWriter.WriteEntry(fi.FullName, fi.Name);
+
+                gs.Flush();
+                fs.SetLength(fs.Position);
+            }
 #else
             TarFile.CreateFromDirectory(fi.FullName, destFile);
 #endif
@@ -571,10 +599,19 @@ public static class PathHelper
 
         if (destFile.EndsWithIgnoreCase(".zip"))
             ZipFile.CreateFromDirectory(di.FullName, destFile, CompressionLevel.Optimal, includeBaseDirectory);
-        else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz"))
+        else if (destFile.EndsWithIgnoreCase(".tar", ".tar.gz", ".tgz"))
         {
 #if NET7_0_OR_GREATER
-            System.Formats.Tar.TarFile.CreateFromDirectory(di.FullName, destFile, includeBaseDirectory);
+            if (destFile.EndsWithIgnoreCase(".tar"))
+                System.Formats.Tar.TarFile.CreateFromDirectory(di.FullName, destFile, includeBaseDirectory);
+            else
+            {
+                using var fs = new FileStream(destFile, FileMode.OpenOrCreate, FileAccess.Write);
+                using var gs = new GZipStream(fs, CompressionMode.Compress, true);
+                System.Formats.Tar.TarFile.CreateFromDirectory(di.FullName, gs, includeBaseDirectory);
+                gs.Flush();
+                fs.SetLength(fs.Position);
+            }
 #else
             TarFile.CreateFromDirectory(di.FullName, destFile);
 #endif
