@@ -92,7 +92,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     /// <summary>实例化</summary>
     /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
-    public ApiHttpClient(String urls) : this() => Init(urls);
+    public ApiHttpClient(String urls) : this() => SetServer(urls);
 
     /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
     /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
@@ -157,7 +157,9 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     }
 
     private String? _lastUrls;
-    private void Init(String urls)
+    /// <summary>设置服务端地址。如果新地址跟旧地址不同，将会替换旧地址构造的Services</summary>
+    /// <param name="urls"></param>
+    public void SetServer(String urls)
     {
         if (!urls.IsNullOrEmpty() && urls != _lastUrls)
         {
@@ -174,7 +176,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
     void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
     {
-        if (section != null && section.Value != null) Init(section.Value);
+        if (section != null && section.Value != null) SetServer(section.Value);
     }
     #endregion
 
