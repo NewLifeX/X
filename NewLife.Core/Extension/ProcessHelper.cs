@@ -211,13 +211,17 @@ public static class ProcessHelper
     {
         if (process == null || process.GetHasExited()) return process;
 
+        var span = DefaultSpan.Current;
         //XTrace.WriteLine("安全，温柔一刀！PID={0}/{1}", process.Id, process.ProcessName);
+        span?.AppendTag($"SafetyKill，温柔一刀！PID={process.Id}/{process.ProcessName}");
 
+        // 杀进程，如果命令未成功则马上退出（后续强杀），否则循环检测并等待
         try
         {
             if (Runtime.Linux)
             {
-                Process.Start("kill", process.Id.ToString()).WaitForExit(msWait);
+                var p = Process.Start("kill", process.Id.ToString());
+                if (p.WaitForExit(msWait) && p.ExitCode != 0) return process;
 
                 for (var i = 0; i < times && !process.GetHasExited(); i++)
                 {
@@ -226,7 +230,8 @@ public static class ProcessHelper
             }
             else if (Runtime.Windows)
             {
-                Process.Start("taskkill", $"-pid {process.Id}").WaitForExit(msWait);
+                var p = Process.Start("taskkill", $"-pid {process.Id}");
+                if (p.WaitForExit(msWait) && p.ExitCode != 0) return process;
 
                 for (var i = 0; i < times && !process.GetHasExited(); i++)
                 {
@@ -234,7 +239,10 @@ public static class ProcessHelper
                 }
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            span?.AppendTag(ex.Message);
+        }
 
         //if (!process.GetHasExited()) process.Kill();
 
@@ -249,16 +257,26 @@ public static class ProcessHelper
     {
         if (process == null || process.GetHasExited()) return process;
 
+        var span = DefaultSpan.Current;
         //XTrace.WriteLine("强杀，大力出奇迹！PID={0}/{1}", process.Id, process.ProcessName);
+        span?.AppendTag($"ForceKill，大力出奇迹！PID={process.Id}/{process.ProcessName}");
 
         // 终止指定的进程及启动的子进程,如nginx等
         // 在Core 3.0, Core 3.1, 5, 6, 7, 8, 9 中支持此重载
         // https://learn.microsoft.com/zh-cn/dotnet/api/system.diagnostics.process.kill?view=net-8.0#system-diagnostics-process-kill(system-boolean)
+        try
+        {
 #if NETCOREAPP
-        process.Kill(true);
+            process.Kill(true);
 #else
-        process.Kill();
+            process.Kill();
 #endif
+        }
+        catch (Exception ex)
+        {
+            span?.AppendTag(ex.Message);
+        }
+
         if (process.GetHasExited()) return process;
 
         try
@@ -275,10 +293,27 @@ public static class ProcessHelper
                 Process.Start("taskkill", $"/t /f /pid {process.Id}").WaitForExit(msWait);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            span?.AppendTag(ex.Message);
+        }
 
         // 兜底再来一次
-        if (!process.GetHasExited()) process.Kill();
+        if (!process.GetHasExited())
+        {
+            try
+            {
+#if NETCOREAPP
+                process.Kill(true);
+#else
+                process.Kill();
+#endif
+            }
+            catch (Exception ex)
+            {
+                span?.AppendTag(ex.Message);
+            }
+        }
 
         return process;
     }
