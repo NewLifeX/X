@@ -26,6 +26,9 @@ public class WebSocket
     /// <summary>版本</summary>
     public String? Version { get; set; }
 
+    /// <summary>协议。如mqtt</summary>
+    public String? Protocol { get; set; }
+
     /// <summary>活跃时间</summary>
     public DateTime ActiveTime { get; set; }
     #endregion
@@ -39,6 +42,19 @@ public class WebSocket
         var request = context.Request;
         if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return null;
 
+        var manager = new WebSocket();
+        manager.ProcessRequest(context);
+
+        return manager;
+    }
+
+    /// <summary>处理 WebSocket 握手</summary>
+    /// <param name="context"></param>
+    public Boolean ProcessRequest(IHttpContext context)
+    {
+        var request = context.Request;
+        if (!request.Headers.TryGetValue("Sec-WebSocket-Key", out var key) || key.IsNullOrEmpty()) return false;
+
         var buf = SHA1.Create().ComputeHash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").GetBytes());
         key = buf.ToBase64();
 
@@ -48,17 +64,19 @@ public class WebSocket
         response.Headers["Connection"] = "Upgrade";
         response.Headers["Sec-WebSocket-Accept"] = key;
 
-        var manager = new WebSocket
-        {
-            Context = context,
-            Connected = true,
-            ActiveTime = DateTime.Now,
-        };
-        if (context is DefaultHttpContext dhc) dhc.WebSocket = manager;
+        if (context is DefaultHttpContext dhc) dhc.WebSocket = this;
 
-        if (request.Headers.TryGetValue("Sec-WebSocket-Version", out var ver)) manager.Version = ver;
+        if (!Protocol.IsNullOrEmpty())
+            response.Headers["Sec-WebSocket-Protocol"] = Protocol;
+        if (!Version.IsNullOrEmpty())
+            response.Headers["Sec-WebSocket-Version"] = Version;
+        //if (request.Headers.TryGetValue("Sec-WebSocket-Version", out var ver)) Version = ver;
 
-        return manager;
+        Context = context;
+        Connected = true;
+        ActiveTime = DateTime.Now;
+
+        return true;
     }
 
     /// <summary>处理WebSocket数据包，不支持超大数据帧（默认8k）</summary>
