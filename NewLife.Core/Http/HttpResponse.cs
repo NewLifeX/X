@@ -71,7 +71,7 @@ public class HttpResponse : HttpBase
         // 内容长度
         if (length > 0)
             Headers["Content-Length"] = length + "";
-        else if (!Headers.ContainsKey("Transfer-Encoding"))
+        else if (!Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
             Headers["Content-Length"] = "0";
 
         if (!ContentType.IsNullOrEmpty()) Headers["Content-Type"] = ContentType;
