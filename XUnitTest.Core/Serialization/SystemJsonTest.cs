@@ -211,6 +211,24 @@ public class SystemJsonTest : JsonTestBase
         Assert.Equal(456, dic["bbb"]);
         Assert.Equal(789, dic["ccc"]);
     }
+
+    [Fact]
+    public void ReadTime()
+    {
+        var json = """{"Code":null,"Secret":null,"ClientId":"10.0.0.12@2116","Version":"1.0.2025.0523","Compile":1747977022000,"IP":"10.0.0.12","Macs":"90-FC-42-B5-09-C8,A4-15-C1-79-14-45","UUID":"C40E8D38C77A2BD79419B8C424A0F36E","Time":1747987231793,"ProductCode":"A2FullTest","Name":"A2","OSName":"Ubuntu 18.04 LTS","OSVersion":"3.4.39.0","Architecture":"Arm","MachineName":"A2","UserName":"root","ProcessorCount":4,"Memory":521736192,"TotalSize":7637516288}""";
+
+        XTrace.WriteLine(json);
+
+        var js = new SystemJson();
+        var info = js.Read<NodeInfo>(json);
+        XTrace.WriteLine(info.Compile.ToFullString());
+        Assert.Equal("2025-05-23 13:10:22".ToDateTime(), info.Compile);
+    }
+
+    class NodeInfo
+    {
+        public DateTime Compile { get; set; }
+    }
 #endif
 }
 #endif

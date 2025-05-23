@@ -24,6 +24,10 @@ public class LocalTimeConverter : JsonConverter<DateTime>
     /// <returns></returns>
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
+        // 优先处理Unix时间戳
+        if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var unixTime))
+            return unixTime.ToDateTime().ToLocalTime();
+
         var str = reader.GetString();
         if (DateTimeOffset.TryParse(str, out var dto)) return dto.LocalDateTime;
 
