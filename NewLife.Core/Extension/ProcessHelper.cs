@@ -498,7 +498,11 @@ public static class ProcessHelper
 
             return rs;
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            if (XTrace.Log.Level <= LogLevel.Debug) XTrace.Log.Error(ex.Message);
+            return null;
+        }
     }
     #endregion
 
