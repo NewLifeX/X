@@ -253,6 +253,7 @@ public class WebClientX : DisposeBase
                 var ls = GetLinks(url);
                 if (ls.Length == 0) continue;
 
+                var total = ls.Length;
                 // 过滤名称后降序排序，多名称时，先确保前面的存在，即使后面名称也存在并且也时间更新都不能用
                 //foreach (var item in names)
                 //{
@@ -265,6 +266,8 @@ public class WebClientX : DisposeBase
                 //}
                 ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
                 link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
+
+                Log.Info("在页面[{0}]个链接中找到[{1}]个，选择：{2}", total, ls.Length, link);
             }
             //catch (WebException ex)
             //{

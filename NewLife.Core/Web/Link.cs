@@ -36,7 +36,8 @@ public class Link
     #endregion
 
     #region 方法
-    static readonly Regex _regA = new("""<td>(?<时间>[^<]*)</td>\s*<td>(?<大小>[^<]*)</td>\s*<td>\s*<a[^>]* href="?(?<链接>[^>"]*)"?[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex _regA = new("""<a[^>]* href=?"(?<链接>[^>"]*)?"[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+    static readonly Regex _regB = new("""<td>(?<时间>[^<]*)</td>\s*<td>(?<大小>[^<]*)</td>\s*<td>\s*<a[^>]* href="?(?<链接>[^>"]*)"?[^>]*>(?<名称>[^<]*)</a>\s*</td>[^>]*<td[^>]*>(?<哈希>[^<]*)</td>""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
     static readonly Regex _regTitle = new("""title=("?)(?<标题>[^ ']*?)\1""", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
     /// <summary>分析HTML中的链接</summary>
@@ -53,7 +54,9 @@ public class Link
         // 分析所有链接
         var list = new List<Link>();
         var buri = baseUrl.IsNullOrEmpty() ? null : new Uri(baseUrl);
-        foreach (var item in _regA.Matches(html))
+        var ms = _regB.Matches(html);
+        if (ms.Count == 0) ms = _regA.Matches(html);
+        foreach (var item in ms)
         {
             if (item is not Match match) continue;
 
