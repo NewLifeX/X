@@ -17,4 +17,7 @@ public class JsonOptions
 
     /// <summary>使用完整的时间格式。如：2022-11-29T14:13:17.8763881+08:00，默认false</summary>
     public Boolean FullTime { get; set; }
+
+    /// <summary>枚举使用字符串。默认false使用数字</summary>
+    public Boolean EnumString { get; set; }
 }

@@ -97,6 +97,17 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>埋点解析器，扩展自定义功能</summary>
     public ITracerResolver Resolver { get; set; } = new DefaultTracerResolver();
 
+    /// <summary>Json序列化选项</summary>
+    public JsonOptions JsonOptions { get; set; } = new JsonOptions
+    {
+        CamelCase = false,
+        IgnoreNullValues = false,
+        IgnoreCycles = true,
+        WriteIndented = false,
+        FullTime = false,
+        EnumString = true,
+    };
+
     private IPool<ISpanBuilder>? _BuilderPool;
     /// <summary>片段对象池</summary>
     [IgnoreDataMember]
@@ -272,7 +283,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                 // 避免数据标签的序列化抛出异常影响业务层
                 try
                 {
-                    span.Tag = tag.ToJson().Cut(len);
+                    span.Tag = tag.ToJson(JsonOptions).Cut(len);
                 }
                 catch
                 {

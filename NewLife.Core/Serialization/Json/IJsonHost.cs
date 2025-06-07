@@ -349,6 +349,8 @@ public class SystemJson : IJsonHost
             opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
         if (jsonOptions.CamelCase)
             opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        if (jsonOptions.EnumString)
+            opt.Converters.Add(new JsonStringEnumConverter(null, true));
 #if NET6_0_OR_GREATER
         if (jsonOptions.IgnoreCycles)
             opt.ReferenceHandler = ReferenceHandler.IgnoreCycles;

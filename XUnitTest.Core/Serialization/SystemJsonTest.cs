@@ -1,7 +1,4 @@
-﻿#if NET6_0_OR_GREATER
-using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using NewLife;
 using NewLife.Log;
 using NewLife.Model;
@@ -229,6 +226,30 @@ public class SystemJsonTest : JsonTestBase
     {
         public DateTime Compile { get; set; }
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void EnumTest(Boolean enumString)
+    {
+        // 字符串
+        var sjs = new SystemJson();
+        var option = new JsonOptions { EnumString = enumString };
+
+        var data = new { Level = LogLevel.Fatal };
+        var json = sjs.Write(data, option);
+
+        var js = new JsonParser(json);
+        var dic = js.Decode() as IDictionary<String, Object>;
+        Assert.NotNull(dic);
+
+        if (enumString)
+            Assert.Equal("Fatal", dic["Level"]);
+        else
+        {
+            Assert.Equal(5, dic["Level"]);
+            Assert.Equal((Int32)LogLevel.Fatal, dic["Level"].ToInt());
+        }
+    }
 #endif
 }
-#endif
