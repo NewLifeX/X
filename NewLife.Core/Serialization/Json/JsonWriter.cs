@@ -44,7 +44,8 @@ public class JsonWriter
     public Boolean IgnoreCycles => Options.IgnoreCycles;
 
     /// <summary>枚举使用字符串。默认false使用数字</summary>
-    public Boolean EnumString { get; set; }
+    [Obsolete("=>Options")]
+    public Boolean EnumString { get => Options.EnumString; set => Options.EnumString = value; }
 
     /// <summary>缩进。默认false</summary>
     [Obsolete("=>Options")]
@@ -215,7 +216,7 @@ public class JsonWriter
 
         else if (obj is Enum)
         {
-            if (EnumString)
+            if (Options.EnumString)
                 WriteValue(obj + "");
             else
                 WriteValue(obj.ToLong());

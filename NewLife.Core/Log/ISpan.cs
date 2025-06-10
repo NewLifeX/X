@@ -303,6 +303,8 @@ public class DefaultSpan : ISpan
 
             if (Value == 0) Value = total;
         }
+        else if (Tracer is DefaultTracer defaultTracer)
+            Tag = tag.ToJson(defaultTracer.JsonOptions).Cut(len);
         else
             Tag = tag.ToJson().Cut(len);
     }

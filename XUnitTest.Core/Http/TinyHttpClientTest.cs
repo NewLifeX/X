@@ -62,7 +62,7 @@ public class TinyHttpClientTest
     [Fact(DisplayName = "https")]
     public async void GetStringHttps()
     {
-        var url = "https://www.newlifex.com";
+        var url = "https://newlifex.com";
         var client = new TinyHttpClient();
         var html = await client.GetStringAsync(url);
 

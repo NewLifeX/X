@@ -218,7 +218,8 @@ public class JsonWriterTests
     public void EnumTest(Boolean enumString)
     {
         // 字符串
-        var writer = new JsonWriter { EnumString = enumString };
+        var writer = new JsonWriter();
+        writer.Options.EnumString = enumString;
 
         var data = new { Level = LogLevel.Fatal };
         writer.Write(data);
