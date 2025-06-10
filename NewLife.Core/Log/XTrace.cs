@@ -37,6 +37,9 @@ public static class XTrace
     /// <param name="msg">信息</param>
     public static void WriteLine(String msg)
     {
+        // 只过滤null和空字符串，保留包含空格的字符串
+        if (String.IsNullOrEmpty(msg)) return;
+
         if (!InitLog()) return;
 
         WriteVersion();
@@ -49,32 +52,14 @@ public static class XTrace
     /// <param name="args"></param>
     public static void WriteLine(String format, params Object?[] args)
     {
+        // 只过滤null和空字符串，保留包含空格的字符串
+        if (String.IsNullOrEmpty(format)) return;
+
         if (!InitLog()) return;
 
         WriteVersion();
 
         Log.Info(format, args);
-    }
-
-    /// <summary>安全输出日志，过滤空值</summary>
-    /// <param name="msg">信息</param>
-    public static void WriteLineSafe(String msg)
-    {
-        // 只过滤null和空字符串，保留包含空格的字符串
-        if (String.IsNullOrEmpty(msg)) return;
-
-        WriteLine(msg);
-    }
-
-    /// <summary>安全写日志，过滤空值</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
-    public static void WriteLineSafe(String format, params Object?[] args)
-    {
-        // 只过滤null和空字符串，保留包含空格的字符串
-        if (String.IsNullOrEmpty(format)) return;
-
-        WriteLine(format, args);
     }
 
     ///// <summary>异步写日志</summary>
