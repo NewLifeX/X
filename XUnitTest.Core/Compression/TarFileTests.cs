@@ -227,8 +227,11 @@ public class TarFileTests
     [Fact]
     public void TestFiles()
     {
+        var di = "../data".AsDirectory();
+        if (!di.Exists) return;
+
         // 遍历当前目录下的所有tar.gz文件，逐个解析文件头
-        foreach (var fi in "../data".AsDirectory().GetFiles("*.tar.gz"))
+        foreach (var fi in di.GetFiles("*.tar.gz"))
         {
             XTrace.WriteLine("解析Tar文件：{0}", fi.Name);
 
