@@ -200,16 +200,10 @@ public class JsonWriterTests
             Assert.Equal("Password", key);
     }
 
-    class Model
+    class Model(String name, String pass)
     {
-        public String Name { get; set; }
-        public String Password { get; }
-
-        public Model(String name, String pass)
-        {
-            Name = name;
-            Password = pass;
-        }
+        public String Name { get; set; } = name;
+        public String Password { get; } = pass;
     }
 
     [Theory]
@@ -267,5 +261,22 @@ public class JsonWriterTests
 
         var str = JsonWriter.ToJson(dt);
         Assert.Equal("{\"Columns\":[\"id1\",\"id1\",\"id1\",\"id1\"],\"Rows\":[[12,34,56,78],[87,65,43,32]],\"Total\":1234}", str);
+    }
+
+    [Fact]
+    public void UnicodeEncode()
+    {
+        var writer = new JsonWriter();
+
+        writer.Write(new Model("Hello\u0001World", "智能Stone"));
+
+        var str = writer.GetString();
+        Assert.Equal("""{"Name":"Hello\u0001World","Password":"智能Stone"}""", str);
+
+        var js = new JsonParser(str);
+        var dic = js.Decode() as IDictionary<String, Object>;
+        Assert.NotNull(dic);
+        Assert.Equal("Hello\u0001World", dic["Name"]);
+        Assert.Equal("智能Stone", dic["Password"]);
     }
 }

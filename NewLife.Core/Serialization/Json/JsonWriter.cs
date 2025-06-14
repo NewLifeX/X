@@ -596,10 +596,10 @@ public class JsonWriter
         {
             var c = str[index];
 
-            if (c is not '\t' and not '\n' and not '\r' and not '\"' and not '\\')// && c != ':' && c!=',')
+            // 需要转义的字符
+            if (c is not '\t' and not '\n' and not '\r' and not '\"' and not '\\' and >= ' ' and <= '~')
             {
                 if (idx == -1) idx = index;
-
                 continue;
             }
 
@@ -617,8 +617,11 @@ public class JsonWriter
                 case '"':
                 case '\\': _Builder.Append('\\'); _Builder.Append(c); break;
                 default:
-                    _Builder.Append(c);
-
+                    // 非可见字符或需要转义的Unicode字符
+                    if (c is < (Char)32 /*or > (Char)126*/)
+                        _Builder.AppendFormat("\\u{0:X4}", (Int32)c);
+                    else
+                        _Builder.Append(c);
                     break;
             }
         }
