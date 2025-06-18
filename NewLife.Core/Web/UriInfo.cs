@@ -3,6 +3,7 @@
 /// <summary>资源定位。无限制解析Url地址</summary>
 public class UriInfo
 {
+    #region 属性
     /// <summary>协议</summary>
     public String? Scheme { get; set; }
 
@@ -31,10 +32,6 @@ public class UriInfo
         }
     }
 
-    /// <summary>实例化</summary>
-    /// <param name="value"></param>
-    public UriInfo(String value) => Parse(value);
-
     /// <summary>主机与端口。省略默认端口</summary>
     public String? Authority
     {
@@ -51,12 +48,33 @@ public class UriInfo
             return $"{Host}:{Port}";
         }
     }
+    #endregion
+
+    #region 构造
+    /// <summary>实例化</summary>
+    public UriInfo() { }
+
+    /// <summary>实例化</summary>
+    /// <param name="value"></param>
+    public UriInfo(String value) => Parse(value);
+    #endregion
+
+    #region 方法
+    /// <summary>尝试解析Url字符串</summary>
+    public static Boolean TryParse(String? value, out UriInfo? uriInfo)
+    {
+        uriInfo = null;
+        if (value.IsNullOrWhiteSpace()) return false;
+
+        uriInfo = new UriInfo();
+        return uriInfo.Parse(value);
+    }
 
     /// <summary>解析Url字符串</summary>
     /// <param name="value"></param>
-    public void Parse(String value)
+    public Boolean Parse(String value)
     {
-        if (value.IsNullOrWhiteSpace()) return;
+        if (value.IsNullOrWhiteSpace()) return false;
 
         // 先处理头尾，再处理中间的主机和端口
         var p = value.IndexOf("://");
@@ -89,7 +107,13 @@ public class UriInfo
             }
         }
 
+        // 如果主要部分都没有，标记为失败
+        if (Scheme.IsNullOrEmpty() && Host.IsNullOrEmpty() && AbsolutePath.IsNullOrEmpty())
+            return false;
+
         if (AbsolutePath.IsNullOrEmpty()) AbsolutePath = "/";
+
+        return true;
     }
 
     private void ParsePath(String value, Int32 p)
@@ -122,6 +146,32 @@ public class UriInfo
         }
     }
 
+    /// <summary>拼接请求参数</summary>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public UriInfo Append(String name, Object? value)
+    {
+        var q = Query;
+        Query = q.IsNullOrEmpty() ? $"{name}={value}" : $"{q}&{name}={value}";
+
+        return this;
+    }
+
+    /// <summary>拼接请求参数（非空）</summary>
+    /// <param name="name"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public UriInfo AppendNotEmpty(String name, Object? value)
+    {
+        if (value == null || value.ToString().IsNullOrEmpty()) return this;
+
+        var q = Query;
+        Query = q.IsNullOrEmpty() ? $"{name}={value}" : $"{q}&{name}={value}";
+
+        return this;
+    }
+
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String? ToString()
@@ -136,4 +186,5 @@ public class UriInfo
 
         return $"{Scheme}://{authority}{PathAndQuery}";
     }
+    #endregion
 }

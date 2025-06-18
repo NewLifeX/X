@@ -210,5 +210,44 @@ public class UriInfoTests
         uri.Query = "name=newlife";
 
         Assert.Equal(url + "?" + uri.Query, uri.ToString());
+
+        var rs = UriInfo.TryParse(url, out var uri2);
+        Assert.True(rs);
+        Assert.NotNull(uri2);
+    }
+
+    [Fact]
+    public void Append()
+    {
+        var uri = new UriInfo();
+        Assert.Null(uri.ToString());
+
+        uri = new UriInfo("/");
+        Assert.Equal("/", uri.ToString());
+
+        uri.Append("age", 18);
+        Assert.Equal("/?age=18", uri.ToString());
+
+        uri = new UriInfo("/cube/info?name=newlife");
+        Assert.Equal("/cube/info?name=newlife", uri.ToString());
+
+        uri.Append("age", 18);
+        Assert.Equal("/cube/info?name=newlife&age=18", uri.ToString());
+    }
+
+    [Fact]
+    public void AppendNotEmpty()
+    {
+        var uri = new UriInfo("/");
+        Assert.Equal("/", uri.ToString());
+
+        uri.AppendNotEmpty("age", 18);
+        Assert.Equal("/?age=18", uri.ToString());
+
+        uri = new UriInfo("/cube/info?name=newlife");
+        Assert.Equal("/cube/info?name=newlife", uri.ToString());
+
+        uri.AppendNotEmpty("age", null);
+        Assert.Equal("/cube/info?name=newlife", uri.ToString());
     }
 }
