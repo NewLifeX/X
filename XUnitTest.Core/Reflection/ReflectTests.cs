@@ -287,6 +287,26 @@ public class ReflectTests
     }
 
     [Fact]
+    public void ChangeTypeWithNullable()
+    {
+        {
+            var value = "2025-6-23";
+            var rs = value.ChangeType(typeof(DateTime?));
+            Assert.Equal(new DateTime(2025, 6, 23), rs);
+        }
+        {
+            var value = "";
+            var rs = value.ChangeType(typeof(DateTime?));
+            Assert.Equal(DateTime.MinValue, rs);
+        }
+        {
+            Object value = null;
+            var rs = value.ChangeType(typeof(DateTime?));
+            Assert.Null(rs);
+        }
+    }
+
+    [Fact]
     public void DateTimeOffsetChangeTypeTest()
     {
         var value = "2023/4/5 11:32 +08:00";
