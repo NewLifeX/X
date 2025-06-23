@@ -723,14 +723,22 @@ public class DefaultReflect : IReflect
                     return value.ToDateTime();
                 case TypeCode.Double:
                     return value.ToDouble();
+                case TypeCode.Single:
+                    return (Single)value.ToDouble();
+                case TypeCode.Decimal:
+                    return value.ToDecimal();
                 case TypeCode.Int16:
                     return (Int16)value.ToInt();
                 case TypeCode.Int32:
                     return value.ToInt();
+                case TypeCode.Int64:
+                    return value.ToLong();
                 case TypeCode.UInt16:
                     return (UInt16)value.ToInt();
                 case TypeCode.UInt32:
                     return (UInt32)value.ToInt();
+                case TypeCode.UInt64:
+                    return (UInt64)value.ToLong();
                 default:
                     break;
             }
@@ -757,8 +765,20 @@ public class DefaultReflect : IReflect
                 // 支持IParsable<TSelf>接口
                 if (conversionType.GetInterfaces().Any(e => e.IsGenericType && e.GetGenericTypeDefinition() == typeof(IParsable<>)))
                 {
-                    var mi = conversionType.GetMethod("Parse", [typeof(String), typeof(IFormatProvider)]);
-                    if (mi != null) return mi.Invoke(null, [value, null]);
+                    // 获取 TryParse 静态方法
+                    var tryParse = conversionType.GetMethod("TryParse", [typeof(String), typeof(IFormatProvider), conversionType.MakeByRefType()]);
+                    if (tryParse != null)
+                    {
+                        var parameters = new Object?[] { str, null, null };
+                        var success = (Boolean)tryParse.Invoke(null, parameters)!;
+                        if (success) return parameters[2];
+                        //return null;
+                    }
+                    else
+                    {
+                        var mi = conversionType.GetMethod("Parse", [typeof(String), typeof(IFormatProvider)]);
+                        if (mi != null) return mi.Invoke(null, [value, null]);
+                    }
                 }
 #endif
             }

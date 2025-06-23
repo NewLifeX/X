@@ -307,6 +307,26 @@ public class ReflectTests
     }
 
     [Fact]
+    public void ChangeTypeWithDecimal()
+    {
+        {
+            var value = "2025.0623";
+            var rs = value.ChangeType(typeof(Decimal));
+            Assert.Equal(2025.0623m, rs);
+        }
+        {
+            var value = "";
+            var rs = value.ChangeType(typeof(Decimal));
+            Assert.Equal(0m, rs);
+        }
+        {
+            Object value = null;
+            var rs = value.ChangeType(typeof(Decimal));
+            Assert.Equal(0m, rs);
+        }
+    }
+
+    [Fact]
     public void DateTimeOffsetChangeTypeTest()
     {
         var value = "2023/4/5 11:32 +08:00";
