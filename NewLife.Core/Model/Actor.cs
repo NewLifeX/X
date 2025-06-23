@@ -106,7 +106,15 @@ public abstract class Actor : DisposeBase, IActor
     /// <remarks>
     /// 添加消息时自动触发
     /// </remarks>
-    public virtual Task? Start()
+    public virtual Task? Start() => Start(default);
+
+    /// <summary>通知开始处理</summary>
+    /// <remarks>
+    /// 添加消息时自动触发
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌。可用于通知内部取消工作</param>
+    /// <returns></returns>
+    public virtual Task? Start(CancellationToken cancellationToken = default)
     {
         if (Active) return _task;
         lock (this)
@@ -117,7 +125,7 @@ public abstract class Actor : DisposeBase, IActor
 
             using var span = Tracer?.NewSpan("actor:Start", Name);
 
-            _source = new CancellationTokenSource();
+            _source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             MailBox ??= new BlockingCollection<ActorContext>(BoundedCapacity);
 
             // 启动异步
@@ -125,7 +133,7 @@ public abstract class Actor : DisposeBase, IActor
             {
                 lock (this)
                 {
-                    _task ??= OnStart();
+                    _task ??= OnStart(_source.Token);
                 }
             }
 
@@ -137,7 +145,12 @@ public abstract class Actor : DisposeBase, IActor
 
     /// <summary>开始时，返回执行线程包装任务</summary>
     /// <returns></returns>
-    protected virtual Task OnStart() => Task.Factory.StartNew(DoActorWork, LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None);
+    protected virtual Task OnStart(CancellationToken cancellationToken)
+    {
+        var creationOptions = LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None;
+        var scheduler = TaskScheduler.Current ?? TaskScheduler.Default;
+        return Task.Factory.StartNew(DoActorWork, cancellationToken, creationOptions, scheduler);
+    }
 
     /// <summary>通知停止添加消息，并等待处理完成</summary>
     /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
