@@ -13,13 +13,21 @@ public static class SpanHelper
     /// <param name="span"></param>
     /// <param name="encoding"></param>
     /// <returns></returns>
-    public static String ToStr(this ReadOnlySpan<Byte> span, Encoding? encoding = null) => (encoding ?? Encoding.UTF8).GetString(span);
+    public static String ToStr(this ReadOnlySpan<Byte> span, Encoding? encoding = null)
+    {
+        if (span.Length == 0) return String.Empty;
+        return (encoding ?? Encoding.UTF8).GetString(span);
+    }
 
     /// <summary>转字符串</summary>
     /// <param name="span"></param>
     /// <param name="encoding"></param>
     /// <returns></returns>
-    public static String ToStr(this Span<Byte> span, Encoding? encoding = null) => (encoding ?? Encoding.UTF8).GetString(span);
+    public static String ToStr(this Span<Byte> span, Encoding? encoding = null)
+    {
+        if (span.Length == 0) return String.Empty;
+        return (encoding ?? Encoding.UTF8).GetString(span);
+    }
 
     /// <summary>获取字符串的字节数组</summary>
     public static unsafe Int32 GetBytes(this Encoding encoding, ReadOnlySpan<Char> chars, Span<Byte> bytes)

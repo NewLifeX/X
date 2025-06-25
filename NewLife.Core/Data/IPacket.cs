@@ -103,10 +103,13 @@ public static class PacketHelper
     {
         // 总是有异常数据，这里屏蔽异常
         if (pk == null) return null!;
+        if (pk.Total == 0) return String.Empty;
 
         if (pk.Next == null)
         {
             if (count < 0) count = pk.Length - offset;
+            if (count == 0) return String.Empty;
+
             var span = pk.GetSpan();
             if (span.Length > count) span = span[..count];
 
