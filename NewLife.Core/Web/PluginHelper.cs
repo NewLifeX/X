@@ -31,8 +31,12 @@ public static class PluginHelper
         var file = "";
         if (!dll.IsNullOrEmpty())
         {
-            // 先检查当前目录，再检查插件目录
-            file = dll.GetCurrentPath();
+            // 先检查程序集所在目录，再检查当前目录、基准目录和插件目录。在应用发布时，插件很可能跟常规应用程序集放在同一目录下
+            var exe = Assembly.GetEntryAssembly()?.Location;
+            if (exe.IsNullOrEmpty()) exe = Assembly.GetCallingAssembly()?.Location;
+            if (exe.IsNullOrEmpty()) exe = Assembly.GetExecutingAssembly()?.Location;
+            if (!exe.IsNullOrEmpty()) file = Path.GetDirectoryName(exe).CombinePath(dll).GetFullPath();
+            if (!File.Exists(file)) file = dll.GetCurrentPath();
             if (!File.Exists(file)) file = dll.GetFullPath();
             if (!File.Exists(file)) file = dll.GetBasePath();
             if (!File.Exists(file)) file = set.PluginPath.CombinePath(dll).GetFullPath();
