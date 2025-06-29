@@ -201,15 +201,17 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
+            if (Int32.TryParse(str, out var n)) return n;
+
             // 拷贝而来的逗号分隔整数
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Int32.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+            return Int32.TryParse(tmp[..rs], out n) ? n : defaultValue;
 #else
-            return Int32.TryParse(tmp[..rs].ToString(), out var n) ? n : defaultValue;
+            return Int32.TryParse(tmp[..rs].ToString(), out n) ? n : defaultValue;
 #endif
         }
 
@@ -290,15 +292,17 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
+            if (Int64.TryParse(str, out var n)) return n;
+
             // 拷贝而来的逗号分隔整数
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Int64.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+            return Int64.TryParse(tmp[..rs], out n) ? n : defaultValue;
 #else
-            return Int64.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+            return Int64.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
         }
 
@@ -374,14 +378,16 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
+            if (Double.TryParse(str, out var n)) return n;
+
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Double.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+            return Double.TryParse(tmp[..rs], out n) ? n : defaultValue;
 #else
-            return Double.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+            return Double.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
         }
 
@@ -422,14 +428,16 @@ public class DefaultConvert
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
+            if (Decimal.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent, null, out var n)) return n;
+
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Decimal.TryParse(tmp[..rs], out var n) ? n : defaultValue;
+            return Decimal.TryParse(tmp[..rs], out n) ? n : defaultValue;
 #else
-            return Decimal.TryParse(new String(tmp[..rs].ToArray()), out var n) ? n : defaultValue;
+            return Decimal.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
         }
 
@@ -699,9 +707,19 @@ public class DefaultConvert
                 ch = (Char)(input[i] - 0xFEE0);
 
             // 数字和小数点 以外字符，认为非数字
-            if (ch is not '.' and not '-' and (< '0' or > '9')) return 0;
-
-            output[idx++] = ch;
+            if (ch is '.' or '-' or not < '0' and not > '9')
+                output[idx++] = ch;
+            else
+            {
+                // 支持科学计数法，e/E后面可以跟正负号，之后至少跟一个数字
+                if ((ch is 'e' or 'E') && idx > 0 && i + 2 < input.Length && (input[i + 1] is '+' or '-'))
+                {
+                    output[idx++] = ch;
+                    output[idx++] = input[++i];
+                }
+                else
+                    return 0;
+            }
         }
 
         return idx;

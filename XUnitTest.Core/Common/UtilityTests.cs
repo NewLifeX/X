@@ -388,4 +388,41 @@ public class UtilityTests
         Assert.Equal(1, c.ToInt());
     }
 #endif
+
+    [Fact]
+    public void BigDoubleTest()
+    {
+        var ticks = DateTime.Now.Ticks;
+        var str = ticks.ToString();
+        var d = str.ToDouble();
+        Assert.Equal(ticks, d);
+
+        str = ticks.ToString("E");
+        var d2 = Double.Parse(str);
+        //Assert.True(Math.Abs(ticks - d) < 10);
+        Assert.Equal(ticks, d2, 1000_0000_0000f);
+
+        var d3 = str.ToDouble();
+        Assert.Equal(ticks, d3, 1000_0000_0000f);
+        Assert.Equal(d2, d3);
+    }
+
+    [Fact]
+    public void BigDecimalTest()
+    {
+        var ticks = (Decimal)DateTime.Now.Ticks;
+        var str = ticks.ToString();
+        var d = str.ToDecimal();
+        Assert.Equal(ticks, d);
+
+        str = ticks.ToString("e");
+        //var d2 = Decimal.Parse(str);
+        //Assert.Equal(ticks, d2, 17);
+        Assert.Throws<FormatException>(() => Decimal.Parse(str));
+
+        var d3 = str.ToDecimal();
+        //Assert.Equal(ticks, d3, 17);
+        Assert.True(Math.Abs(ticks - d3) < 100_0000_0000);
+        //Assert.Equal(d2, d3);
+    }
 }
