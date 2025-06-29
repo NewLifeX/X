@@ -79,7 +79,7 @@ public class UtilityTests
         var str = dt.ToString("O");
         XTrace.WriteLine(str);
         var dtU = str.ToDateTime();
-        Assert.Equal(dt.Trim("ns"), dtU);
+        Assert.Equal(dt, dtU);
         Assert.Equal(dt.Kind, dtU.Kind);
     }
 

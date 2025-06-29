@@ -556,10 +556,15 @@ public class DefaultConvert
 
             // 处理UTC
             var utc = false;
-            if (str.EndsWithIgnoreCase(" UTC") || str.EndsWith("Z") && str.Contains('T'))
+            if (str.EndsWithIgnoreCase(" UTC"))
             {
                 utc = true;
                 str = str[0..^4];
+            }
+            else if (str.EndsWith("Z"))
+            {
+                utc = true;
+                str = str[0..^1];
             }
 
             if (!DateTime.TryParse(str, out var dt) &&
