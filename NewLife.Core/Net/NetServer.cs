@@ -329,7 +329,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     {
         EnsureCreateServer();
 
-        if (Servers.Count == 0) throw new Exception("Failed to listen to all ports!");
+        if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
 
         WriteLog("准备开始监听{0}个服务器", Servers.Count);
 

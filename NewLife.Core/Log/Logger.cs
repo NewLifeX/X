@@ -59,7 +59,7 @@ public abstract class Logger : ILog
     /// <param name="format"></param>
     /// <param name="args"></param>
     /// <returns></returns>
-    protected virtual String Format(String format, Object?[]? args)
+    internal protected virtual String Format(String format, Object?[]? args)
     {
         //处理时间的格式化
         if (args != null && args.Length > 0)
@@ -70,7 +70,7 @@ public abstract class Logger : ILog
 
             for (var i = 0; i < args.Length; i++)
             {
-                if (args[i] != null && args[i] is DateTime dt)
+                if (args[i] != null && args[i] is DateTime dt && format.Contains("{" + i + "}"))
                 {
                     // 根据时间值的精确度选择不同的格式化输出
                     //var dt = (DateTime)args[i];
