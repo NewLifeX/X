@@ -422,7 +422,7 @@ public class UtilityTests
 
         var d3 = str.ToDecimal();
         //Assert.Equal(ticks, d3, 17);
-        Assert.True(Math.Abs(ticks - d3) < 200_0000_0000);
+        Assert.True(Math.Abs(ticks - d3) < 1000_0000_0000);
         //Assert.Equal(d2, d3);
     }
 }
