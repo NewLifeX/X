@@ -37,13 +37,21 @@ public interface ICacheProvider
     /// <returns></returns>
     IProducerConsumer<T> GetInnerQueue<T>(String topic);
 
-    /// <summary>申请分布式锁</summary>
+    /// <summary>申请分布式锁（简易版）。使用完以后需要主动释放</summary>
     /// <remarks>
+    /// 需要注意，使用完锁后需调用Dispose方法以释放锁，申请与释放一定是成对出现。
+    /// 
     /// 一般实现为Redis分布式锁，申请锁的具体表现为锁定某个key，锁维持时间为msTimeout，遇到冲突时等待msTimeout时间。
     /// 如果在等待时间内获得锁，则返回一个IDisposable对象，离开using代码块时自动释放锁。
     /// 如果在等待时间内没有获得锁，则抛出异常，需要自己处理锁冲突的情况。
     /// 
     /// 如果希望指定不同的维持时间和等待时间，可以使用<see cref="ICache"/>接口的<see cref="ICache.AcquireLock(String, Int32, Int32, Boolean)"/>方法。
+    /// 
+    /// <code>
+    /// using var rlock = cacheProvider.AcquireLock("myKey", 5000);
+    /// //todo 需要分布式锁保护的代码
+    /// rlock.Dispose(); //释放锁。也可以在using语句结束时自动释放
+    /// </code>
     /// </remarks>
     /// <param name="lockKey">要锁定的键值。建议加上应用模块等前缀以避免冲突</param>
     /// <param name="msTimeout">遇到冲突时等待的最大时间，同时也是锁维持的时间</param>

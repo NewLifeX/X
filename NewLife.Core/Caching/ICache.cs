@@ -187,13 +187,38 @@ public interface ICache
     /// <returns></returns>
     Int32 Commit();
 
-    /// <summary>申请分布式锁</summary>
+    /// <summary>申请分布式锁（简易版）。使用完以后需要主动释放</summary>
+    /// <remarks>
+    /// 需要注意，使用完锁后需调用Dispose方法以释放锁，申请与释放一定是成对出现。
+    /// 
+    /// 线程A申请得到锁key以后，在A主动释放锁或者到达超时时间msTimeout之前，其它线程B申请这个锁都会被阻塞。
+    /// 线程B申请锁key的最大阻塞时间为msTimeout，在到期之前，如果线程A主动释放锁或者A锁定key的超时时间msTimeout已到，那么线程B会抢到锁。
+    /// 
+    /// <code>
+    /// using var rlock = cache.AcquireLock("myKey", 5000);
+    /// //todo 需要分布式锁保护的代码
+    /// rlock.Dispose(); //释放锁。也可以在using语句结束时自动释放
+    /// </code>
+    /// </remarks>
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，单位毫秒</param>
     /// <returns></returns>
     IDisposable? AcquireLock(String key, Int32 msTimeout);
 
-    /// <summary>申请分布式锁</summary>
+    /// <summary>申请分布式锁。使用完以后需要主动释放</summary>
+    /// <remarks>
+    /// 需要注意，使用完锁后需调用Dispose方法以释放锁，申请与释放一定是成对出现。
+    /// 
+    /// 线程A申请得到锁key以后，在A主动释放锁或者到达超时时间msExpire之前，其它线程B申请这个锁都会被阻塞。
+    /// 线程B申请锁key的最大阻塞时间为msTimeout，在到期之前，如果线程A主动释放锁或者A锁定key的超时时间msExpire已到，那么线程B会抢到锁。
+    /// 
+    /// <code>
+    /// using var rlock = cache.AcquireLock("myKey", 5000, 15000, false);
+    /// if (rlock ==null) throw new Exception("申请锁失败！");
+    /// //todo 需要分布式锁保护的代码
+    /// rlock.Dispose(); //释放锁。也可以在using语句结束时自动释放
+    /// </code>
+    /// </remarks>
     /// <param name="key">要锁定的key</param>
     /// <param name="msTimeout">锁等待时间，申请加锁时如果遇到冲突则等待的最大时间，单位毫秒</param>
     /// <param name="msExpire">锁过期时间，超过该时间如果没有主动释放则自动释放锁，必须整数秒，单位毫秒</param>
