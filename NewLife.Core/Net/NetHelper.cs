@@ -23,16 +23,9 @@ public static class NetHelper
     {
         if (!Runtime.Unity)
         {
-            try
-            {
-                // 网络有变化时，清空所有缓存
-                NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
-                //NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteLine(ex.Message);
-            }
+            // 网络有变化时，清空所有缓存
+            NetworkChange.NetworkAddressChanged += NetworkChange_NetworkAddressChanged;
+            NetworkChange.NetworkAvailabilityChanged += NetworkChange_NetworkAvailabilityChanged;
         }
     }
 
@@ -287,14 +280,6 @@ public static class NetHelper
     /// <returns></returns>
     public static IEnumerable<IPInterfaceProperties> GetActiveInterfaces()
     {
-        var os = Environment.OSVersion;
-        if (os.Platform == PlatformID.Win32NT && os.Version.Major < 6)
-        {
-#if DEBUG
-            XTrace.WriteLine("Windows XP及以下版本不支持多网卡IP地址获取");
-#endif
-            yield break;
-        }
         foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (item.OperationalStatus != OperationalStatus.Up) continue;
@@ -383,8 +368,12 @@ public static class NetHelper
     public static IEnumerable<IPAddress> GetIPs()
     {
         var dic = new Dictionary<UnicastIPAddressInformation, Int32>();
-        foreach (var ipp in GetActiveInterfaces())
+        foreach (var item in NetworkInterface.GetAllNetworkInterfaces())
         {
+            if (item.OperationalStatus != OperationalStatus.Up) continue;
+            if (item.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel or NetworkInterfaceType.Unknown) continue;
+
+            var ipp = item.GetIPProperties();
             if (ipp != null && ipp.UnicastAddresses.Count > 0)
             {
                 var gw = 0;

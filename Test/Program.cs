@@ -102,14 +102,6 @@ public class Program
         var type = Type.GetType("UnityEngine.Application, UnityEngine");
         XTrace.WriteLine("UnityEngine：{0}", type?.FullName);
 
-        XTrace.WriteLine("OS: {0}", Environment.OSVersion);
-
-        var ips = NetHelper.GetIPs().ToList();
-        XTrace.WriteLine(ips.Join());
-
-        var ns = NetHelper.GetDns().ToList();
-        XTrace.WriteLine(ns.Join());
-
         var pool = Pool.Shared;
         var buf = pool.Rent(1000);
 
