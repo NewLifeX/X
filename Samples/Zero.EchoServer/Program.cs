@@ -1,10 +1,14 @@
 ﻿using NewLife.Log;
 using NewLife.Model;
+using NewLife.Threading;
 using Stardust;
 using Zero.EchoServer;
 
 // 启用控制台日志，拦截所有异常
 XTrace.UseConsole();
+#if DEBUG
+TimerScheduler.Default.Log = XTrace.Log;
+#endif
 
 var services = ObjectContainer.Current;
 
@@ -38,5 +42,6 @@ star?.Service?.Register("EchoServer", () => $"tcp://*:{server.Port},udp://*:{ser
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
+(host as Host).MaxTime = 5_000;
 await host.RunAsync();
 server.Stop("stop");

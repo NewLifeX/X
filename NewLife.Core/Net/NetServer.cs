@@ -193,28 +193,6 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         base.Dispose(disposing);
 
         if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
-
-        var sessions = _Sessions;
-        if (sessions != null)
-        {
-            WriteLog("准备释放网络会话{0}个！", sessions.Count);
-            foreach (var item in sessions.Values.ToArray())
-            {
-                item.TryDispose();
-            }
-            sessions.Clear();
-        }
-
-        var severs = Servers;
-        if (severs != null)
-        {
-            WriteLog("准备释放服务{0}个！", severs.Count);
-            foreach (var item in severs)
-            {
-                item.TryDispose();
-            }
-            severs.Clear();
-        }
     }
     #endregion
 
@@ -388,6 +366,28 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
         {
             WriteLog("停止监听 {0}", item);
             item.Stop(reason);
+        }
+
+        var sessions = _Sessions;
+        if (sessions != null)
+        {
+            WriteLog("准备释放网络会话{0}个！", sessions.Count);
+            foreach (var item in sessions.Values.ToArray())
+            {
+                item.TryDispose();
+            }
+            sessions.Clear();
+        }
+
+        var severs = Servers;
+        if (severs != null)
+        {
+            WriteLog("准备释放服务{0}个！", severs.Count);
+            foreach (var item in severs)
+            {
+                item.TryDispose();
+            }
+            severs.Clear();
         }
     }
     #endregion

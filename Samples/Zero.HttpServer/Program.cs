@@ -5,11 +5,15 @@ using NewLife.Http;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Remoting;
+using NewLife.Threading;
 using Stardust;
 using Zero.HttpServer;
 
 // 启用控制台日志，拦截所有异常
 XTrace.UseConsole();
+#if DEBUG
+TimerScheduler.Default.Log = XTrace.Log;
+#endif
 
 var services = ObjectContainer.Current;
 
@@ -56,7 +60,7 @@ server.Start();
 XTrace.WriteLine("服务端启动完成！");
 
 // 注册到星尘，非必须
-await star.Service?.RegisterAsync("Zero.HttpServer", $"http://*:{server.Port}");
+star.Service?.RegisterAsync("Zero.HttpServer", $"http://*:{server.Port}");
 
 // 客户端测试，非服务端代码，正式使用时请注释掉
 _ = Task.Run(ClientTest.HttpClientTest);
@@ -65,5 +69,6 @@ _ = Task.Run(ClientTest.WebSocketClientTest);
 
 // 异步阻塞，友好退出
 var host = services.BuildHost();
+(host as Host).MaxTime = 10_000;
 await host.RunAsync();
 server.Stop("stop");
