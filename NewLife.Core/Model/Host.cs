@@ -117,7 +117,6 @@ public class Host : DisposeBase, IHost
     {
         base.Dispose(disposing);
 
-        //_life?.TrySetResult(0);
         Close(disposing ? "Dispose" : "GC");
     }
     #endregion
@@ -190,6 +189,7 @@ public class Host : DisposeBase, IHost
 
     #region 运行大循环
     private TaskCompletionSource<Object>? _life;
+    private TaskCompletionSource<Object>? _life2;
     /// <summary>同步运行，大循环阻塞</summary>
     public void Run() => RunAsync().GetAwaiter().GetResult();
 
@@ -203,15 +203,18 @@ public class Host : DisposeBase, IHost
 
 #if NET45
         _life = new TaskCompletionSource<Object>();
+        _life2 = new TaskCompletionSource<Object>();
 #else
         _life = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _life2 = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
 #endif
 
-        RegisterExit((s, e) => Close(s as String ?? s?.GetType().Name));
+        RegisterExit((s, e) => Close(s as String ?? s?.GetType().Name ?? (e as ConsoleCancelEventArgs)?.SpecialKey.ToString()));
 
         await StartAsync(source.Token).ConfigureAwait(false);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
 
+        // 等待生命周期结束
         await _life.Task.ConfigureAwait(false);
 
         XTrace.WriteLine("Application is shutting down...");
@@ -219,6 +222,9 @@ public class Host : DisposeBase, IHost
         await StopAsync(source.Token).ConfigureAwait(false);
 
         XTrace.WriteLine("Stopped!");
+
+        // 通知外部，主循环已完成
+        _life2.TrySetResult(0);
     }
 
     /// <summary>关闭主机</summary>
@@ -227,7 +233,14 @@ public class Host : DisposeBase, IHost
     {
         XTrace.WriteLine("Application closed. {0}", reason);
 
+        // 通知主循环，可以进入Stop流程
         _life?.TrySetResult(0);
+
+        // 需要阻塞，等待StopAsync执行完成。调用者可能是外部SIGINT信号，需要阻塞它，给Stop留出执行时间
+        _life2?.Task.Wait(15_000);
+
+        // 再阻塞一会，让host.RunAsync后面的清理代码有机会执行
+        if (reason == "SIGINT") Thread.Sleep(500);
     }
     #endregion
 
