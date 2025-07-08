@@ -9,6 +9,7 @@ using NewLife.Log;
 using NewLife.Messaging;
 using NewLife.Net;
 using NewLife.Net.Handlers;
+using NewLife.Security;
 using NewLife.Serialization;
 using Xunit;
 
@@ -20,9 +21,21 @@ public class ISocketRemoteTests
     {
         FileInfo src = null;
         var di = "D:\\Tools".AsDirectory();
-        if (di.Exists) src = di.GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
-        src ??= "../../".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
-        src ??= "data/".AsDirectory().GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
+        if (!di.Exists) di = "../../".AsDirectory();
+        if (!di.Exists) di = "data/".AsDirectory();
+        if (di.Exists)
+            src = di.GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
+
+        var file = "bigSrc.bin".GetFullPath();
+        if (src == null && File.Exists(file)) src = file.AsFile();
+
+        if (src == null)
+        {
+            var buf = Rand.NextBytes(10 * 1024 * 1024);
+            File.WriteAllBytes(file, buf);
+            src = file.AsFile();
+        }
+
         XTrace.WriteLine("发送文件：{0}", src.FullName);
         XTrace.WriteLine("文件大小：{0}", src.Length.ToGMK());
 
@@ -33,7 +46,7 @@ public class ISocketRemoteTests
     public void SendFile()
     {
         // 目标文件
-        var file = "bigfile.bin".GetFullPath();
+        var file = "bigDest.bin".GetFullPath();
         if (File.Exists(file)) File.Delete(file);
 
         using var target = File.Create(file);
