@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Data;
+using NewLife;
 using NewLife.Data;
 using Xunit;
-using NewLife;
-using System.Data;
 
 namespace XUnitTest.Data;
 
@@ -16,12 +12,12 @@ public class DbTableTests
     {
         var dt = new DbTable
         {
-            Columns = new[] { "Id", "Name", "CreateTime" },
-            Rows = new List<Object[]>
-            {
-                new Object[] { 123, "Stone", DateTime.Now },
-                new Object[] { 456, "NewLife", DateTime.Today }
-            }
+            Columns = ["Id", "Name", "CreateTime"],
+            Rows =
+            [
+                [123, "Stone", DateTime.Now],
+                [456, "NewLife", DateTime.Today]
+            ]
         };
 
         Assert.Equal(123, dt.Get<Int32>(0, "Id"));
@@ -65,12 +61,12 @@ public class DbTableTests
     {
         var db = new DbTable
         {
-            Columns = new[] { "Id", "Name", "CreateTime" },
-            Rows = new List<Object[]>
-            {
-                new Object[] { 123, "Stone", DateTime.Now },
-                new Object[] { 456, "NewLife", DateTime.Today }
-            }
+            Columns = ["Id", "Name", "CreateTime"],
+            Rows =
+            [
+                [123, "Stone", DateTime.Now],
+                [456, "NewLife", DateTime.Today]
+            ]
         };
 
         var json = db.ToJson();
@@ -86,12 +82,12 @@ public class DbTableTests
     {
         var db = new DbTable
         {
-            Columns = new[] { "Id", "Name", "CreateTime" },
-            Rows = new List<Object[]>
-            {
-                new Object[] { 123, "Stone", DateTime.Now },
-                new Object[] { 456, "NewLife", DateTime.Today }
-            }
+            Columns = ["Id", "Name", "CreateTime"],
+            Rows =
+            [
+                [123, "Stone", DateTime.Now],
+                [456, "NewLife", DateTime.Today]
+            ]
         };
 
         var list = db.ToDictionary();
@@ -110,14 +106,14 @@ public class DbTableTests
 
         var dt = new DbTable
         {
-            Columns = new[] { "ID", "Name", "Time" },
-            Types = new[] { typeof(Int32), typeof(String), typeof(DateTime) },
-            Rows = new List<Object[]>
-            {
-                new Object[] { 11, "Stone", DateTime.Now.Trim() },
-                new Object[] { 22, "大石头", DateTime.Today },
-                new Object[] { 33, "新生命", DateTime.UtcNow.Trim() }
-            }
+            Columns = ["ID", "Name", "Time"],
+            Types = [typeof(Int32), typeof(String), typeof(DateTime)],
+            Rows =
+            [
+                [11, "Stone", DateTime.Now.Trim()],
+                [22, "大石头", DateTime.Today],
+                [33, "新生命", DateTime.UtcNow.Trim()]
+            ]
         };
         dt.SaveFile(file, true);
 
@@ -144,14 +140,14 @@ public class DbTableTests
 
         var dt = new DbTable
         {
-            Columns = new[] { "ID", "Name", "Time" },
-            Types = new[] { typeof(Int32), typeof(String), typeof(DateTime) },
-            Rows = new List<Object[]>
-            {
-                new Object[] { 11, "Stone", DateTime.Now.Trim() },
-                new Object[] { 22, "大石头", DateTime.Today },
-                new Object[] { 33, "新生命", DateTime.UtcNow.Trim() }
-            }
+            Columns = ["ID", "Name", "Time"],
+            Types = [typeof(Int32), typeof(String), typeof(DateTime)],
+            Rows =
+            [
+                [11, "Stone", DateTime.Now.Trim()],
+                [22, "大石头", DateTime.Today],
+                [33, "新生命", DateTime.UtcNow.Trim()]
+            ]
         };
         var pk = dt.ToPacket();
 
