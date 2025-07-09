@@ -130,6 +130,7 @@ public class ISocketRemoteTests
         Thread.Sleep(1000);
 
         // 验证接收文件是否完整
+        Assert.NotEmpty(svr.Files);
         var dest = svr.Files[^1].AsFile();
         Assert.Equal(src.Length, dest.Length);
         Assert.Equal(src.MD5().ToHex(), dest.MD5().ToHex());
