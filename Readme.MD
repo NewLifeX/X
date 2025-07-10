@@ -14,7 +14,30 @@
 
 ## 框架概述
 
-​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持从 .NET 4.5 到 .NET 9.0 的多个 .NET 版本，从而在不同环境中实现广泛的兼容性。
+​	NewLife 由多个组件库组成，NewLife.Core 提供了基础。该框架支持从 .NET 2.0 到 .NET 9.0 的多个 .NET 版本，从而在不同环境中实现广泛的兼容性。
+
+
+
+## 快速拥有
+
+​	使用NewLife组件的最简便方式是从Nuget引用，例如在项目Nuget管理中搜索`NewLife.Core` 并引入。
+
+​	NewLife组件由社区共创20多年，使用MIT开源协议，**任何人可任意修改并再次发行**（无需声明来源）！许多企业基于此构建内部开发框架时，甚至可通过批量替换源码中所有`NewLife`字符串为贵公司名实现私有化定制。
+
+​	团队始终秉承开放态度，不仅支持VisualStudio（最新正式版）打开解决方案编译，也兼容`dotnet build`命令行编译，项目文件摒弃复杂功能以追求简单易用，真正做到开箱即用。
+
+​	我们公开强命名证书`newlife.snk`以支持独自编译替换程序集。
+
+
+
+​	命令行中运行以下命令快速体验NewLife组件：
+
+```
+dotnet new install NewLife.Templates
+dotnet new nconsole --name test
+cd test
+dotnet run
+```
 
 
 
