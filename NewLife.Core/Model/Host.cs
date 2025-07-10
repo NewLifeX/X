@@ -90,6 +90,9 @@ public class Host : DisposeBase, IHost
 
     /// <summary>服务集合</summary>
     public IList<IHostedService> Services { get; } = [];
+
+    /// <summary>最大执行时间。单位毫秒，默认-1表示永久阻塞，等待外部ControlC/SIGINT信号</summary>
+    public Int32 MaxTime { get; set; } = -1;
     #endregion
 
     #region 构造
@@ -215,7 +218,10 @@ public class Host : DisposeBase, IHost
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
 
         // 等待生命周期结束
-        await _life.Task.ConfigureAwait(false);
+        if (MaxTime >= 0)
+            _life.Task.Wait(TimeSpan.FromMilliseconds(MaxTime));
+        else
+            await _life.Task.ConfigureAwait(false);
 
         XTrace.WriteLine("Application is shutting down...");
 

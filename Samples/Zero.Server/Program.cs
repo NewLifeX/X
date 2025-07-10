@@ -2,6 +2,7 @@
 using NewLife.Caching.Services;
 using NewLife.Log;
 using NewLife.Model;
+using NewLife.Threading;
 using Stardust;
 using Zero.Server;
 using Zero.TcpServer;
@@ -9,6 +10,9 @@ using Zero.TcpServer.Handlers;
 
 // 启用控制台日志，拦截所有异常
 XTrace.UseConsole();
+#if DEBUG
+TimerScheduler.Default.Log = XTrace.Log;
+#endif
 
 //var services = new ServiceCollection();
 var services = ObjectContainer.Current;
@@ -60,5 +64,6 @@ _ = Task.Run(ClientTest.UdpSessionTest);
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
+(host as Host).MaxTime = 10_000;
 await host.RunAsync();
 server.Stop("stop");
