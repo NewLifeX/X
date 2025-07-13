@@ -21,6 +21,9 @@ public class ApiCode
     /// <summary>服务器找不到请求的资源</summary>
     public const Int32 NotFound = 404;
 
+    /// <summary>限制请求速率。用户在给定的时间内发送了太多请求</summary>
+    public const Int32 TooManyRequests = 429;
+
     /// <summary>内部服务错误。通用错误</summary>
     public const Int32 InternalServerError = 500;
 }
