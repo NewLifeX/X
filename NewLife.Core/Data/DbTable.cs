@@ -403,38 +403,38 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     }
 
     /// <summary>写入头部到数据流</summary>
-    /// <param name="bn">二进制序列化器</param>
-    public void WriteHeader(Binary bn)
+    /// <param name="binary">二进制序列化器</param>
+    public void WriteHeader(Binary binary)
     {
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
         // 头部，幻数、版本和标记
         var buf = MAGIC.GetBytes();
-        bn.Write(buf, 0, buf.Length);
-        bn.Write(_Ver);
-        bn.Write(0);
+        binary.Write(buf, 0, buf.Length);
+        binary.Write(_Ver);
+        binary.Write(0);
 
         // 写入头部
         var count = cs.Length;
-        bn.Write(count);
+        binary.Write(count);
         for (var i = 0; i < count; i++)
         {
-            bn.Write(cs[i]);
+            binary.Write(cs[i]);
 
             // 复杂类型写入类型字符串
             var code = ts[i].GetTypeCode();
-            bn.Write((Byte)code);
-            if (code == TypeCode.Object) bn.Write(ts[i].FullName);
+            binary.Write((Byte)code);
+            if (code == TypeCode.Object) binary.Write(ts[i].FullName);
         }
 
         // 数据行数
-        bn.Write(Total.GetBytes(), 0, 4);
+        binary.Write(Total.GetBytes(), 0, 4);
     }
 
     /// <summary>写入数据部分到数据流</summary>
-    /// <param name="bn">二进制序列化器</param>
-    public void WriteData(Binary bn)
+    /// <param name="binary">二进制序列化器</param>
+    public void WriteData(Binary binary)
     {
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
         var rs = Rows;
@@ -445,15 +445,15 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         {
             for (var i = 0; i < row.Length; i++)
             {
-                bn.Write(row[i], ts[i]);
+                binary.Write(row[i], ts[i]);
             }
         }
     }
 
     /// <summary>写入数据部分到数据流</summary>
-    /// <param name="bn">二进制序列化器</param>
+    /// <param name="binary">二进制序列化器</param>
     /// <param name="fields">要写入的字段序列</param>
-    public void WriteData(Binary bn, Int32[] fields)
+    public void WriteData(Binary binary, Int32[] fields)
     {
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
         var rs = Rows;
@@ -467,19 +467,19 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 // 找到目标顺序，实际上几乎不可能出现-1
                 var idx = fields[i];
                 if (idx >= 0)
-                    bn.Write(row[idx], ts[idx]);
+                    binary.Write(row[idx], ts[idx]);
                 else
-                    bn.Write(null, ts[idx]);
+                    binary.Write(null, ts[idx]);
             }
         }
     }
 
     /// <summary>使用迭代器模式写入数据。调用方可以一边处理数据一边写入</summary>
-    /// <param name="bn">二进制序列化器</param>
+    /// <param name="binary">二进制序列化器</param>
     /// <param name="rows">数据源</param>
     /// <param name="fields">要写入的字段序列</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public Int32 WriteRows(Binary bn, IEnumerable<Object?[]> rows, Int32[]? fields = null)
+    public Int32 WriteRows(Binary binary, IEnumerable<Object?[]> rows, Int32[]? fields = null)
     {
         if (rows == null) throw new ArgumentNullException(nameof(rows));
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
@@ -488,30 +488,44 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         var count = 0;
         foreach (var row in rows)
         {
-            if (fields == null)
-            {
-                for (var i = 0; i < row.Length; i++)
-                {
-                    bn.Write(row[i], ts[i]);
-                }
-            }
-            else
-            {
-                for (var i = 0; i < fields.Length; i++)
-                {
-                    // 找到目标顺序，实际上几乎不可能出现-1
-                    var idx = fields[i];
-                    if (idx >= 0)
-                        bn.Write(row[idx], ts[idx]);
-                    else
-                        bn.Write(null, ts[idx]);
-                }
-            }
+            WriteRow(binary, row, fields);
 
             count++;
         }
 
         return count;
+    }
+
+    /// <summary>写入一行数据</summary>
+    /// <param name="binary"></param>
+    /// <param name="row"></param>
+    /// <param name="fields"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void WriteRow(Binary binary, Object?[] row, Int32[]? fields = null)
+    {
+        if (row == null) throw new ArgumentNullException(nameof(row));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+
+        // 写入数据
+        if (fields == null)
+        {
+            for (var i = 0; i < row.Length; i++)
+            {
+                binary.Write(row[i], ts[i]);
+            }
+        }
+        else
+        {
+            for (var i = 0; i < fields.Length; i++)
+            {
+                // 找到目标顺序，实际上几乎不可能出现-1
+                var idx = fields[i];
+                if (idx >= 0)
+                    binary.Write(row[idx], ts[idx]);
+                else
+                    binary.Write(null, ts[idx]);
+            }
+        }
     }
 
     /// <summary>转数据包</summary>
