@@ -235,73 +235,88 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         ReadData(bn, Total);
     }
 
-    /// <summary>读取头部</summary>
-    /// <param name="bn">二进制序列化器</param>
-    public void ReadHeader(Binary bn)
+    /// <summary>读取头部。获取列名、类型和行数等信息</summary>
+    /// <param name="binary">二进制序列化器</param>
+    public void ReadHeader(Binary binary)
     {
         // 头部，幻数、版本和标记
-        var magic = bn.ReadBytes(MAGIC.Length).ToStr();
+        var magic = binary.ReadBytes(MAGIC.Length).ToStr();
         if (magic != MAGIC) throw new InvalidDataException();
 
-        var ver = bn.Read<Byte>();
-        _ = bn.Read<Byte>();
+        var ver = binary.Read<Byte>();
+        _ = binary.Read<Byte>();
 
         // 版本兼容
         if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
 
         // v3开始支持FullTime
-        if (ver < 3) bn.FullTime = false;
+        if (ver < 3) binary.FullTime = false;
 
         // 读取头部
-        var count = bn.Read<Int32>();
+        var count = binary.Read<Int32>();
         var cs = new String[count];
         var ts = new Type[count];
         for (var i = 0; i < count; i++)
         {
-            cs[i] = bn.Read<String>() + "";
+            cs[i] = binary.Read<String>() + "";
 
             // 复杂类型写入类型字符串
-            var tc = (TypeCode)bn.Read<Byte>();
+            var tc = (TypeCode)binary.Read<Byte>();
             if (tc != TypeCode.Object)
                 ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
             else if (ver >= 2)
-                ts[i] = Type.GetType(bn.Read<String>() + "") ?? typeof(Object);
+                ts[i] = Type.GetType(binary.Read<String>() + "") ?? typeof(Object);
         }
         Columns = cs;
         Types = ts;
 
-        Total = bn.ReadBytes(4).ToInt();
+        Total = binary.ReadBytes(4).ToInt();
     }
 
     /// <summary>读取数据</summary>
-    /// <param name="bn">二进制序列化器</param>
+    /// <param name="binary">二进制序列化器</param>
     /// <param name="rows">行数</param>
     /// <returns></returns>
-    public void ReadData(Binary bn, Int32 rows)
+    public void ReadData(Binary binary, Int32 rows)
     {
         if (rows <= 0) return;
 
-        Rows = ReadRows(bn, rows).ToList();
+        Rows = ReadRows(binary, rows).ToList();
     }
 
     /// <summary>使用迭代器模式读取行数据。调用者可以一边读取一边处理数据</summary>
-    /// <param name="bn">二进制序列化器</param>
-    /// <param name="rows">行数</param>
+    /// <param name="binary">二进制序列化器</param>
+    /// <param name="rows">行数。传入-1时，循环遍历数据流</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public IEnumerable<Object?[]> ReadRows(Binary bn, Int32 rows)
+    public IEnumerable<Object?[]> ReadRows(Binary binary, Int32 rows)
     {
-        if (rows <= 0) yield break;
+        if (rows == 0) yield break;
 
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
-        for (var k = 0; k < rows; k++)
+        if (rows > 0)
         {
-            var row = new Object?[ts.Length];
-            for (var i = 0; i < ts.Length; i++)
+            for (var k = 0; k < rows; k++)
             {
-                row[i] = bn.Read(ts[i]);
+                var row = new Object?[ts.Length];
+                for (var i = 0; i < ts.Length; i++)
+                {
+                    row[i] = binary.Read(ts[i]);
+                }
+                yield return row;
             }
-            yield return row;
+        }
+        else
+        {
+            while (!binary.EndOfStream())
+            {
+                var row = new Object?[ts.Length];
+                for (var i = 0; i < ts.Length; i++)
+                {
+                    row[i] = binary.Read(ts[i]);
+                }
+                yield return row;
+            }
         }
     }
 
@@ -355,7 +370,11 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         ReadHeader(bn);
 
-        return ReadRows(bn, Total);
+        // 有些场景生成db文件时，无法在开始写入长度。
+        var rows = Total;
+        if (rows == 0 && fs.Length > 0) rows = -1;
+
+        return ReadRows(bn, rows);
     }
 
     Boolean IAccessor.Read(Stream stream, Object? context)
