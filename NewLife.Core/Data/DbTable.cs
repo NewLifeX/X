@@ -219,7 +219,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     /// <summary>创建二进制序列化器</summary>
     /// <param name="stream">数据流</param>
     /// <returns></returns>
-    public Binary CreateBinary(Stream stream) => new() { FullTime = true, EncodeInt = true, Stream = stream, };
+    public Binary CreateBinary(Stream stream) => new(stream) { FullTime = true, EncodeInt = true };
 
     /// <summary>从数据流读取</summary>
     /// <param name="stream"></param>
@@ -317,7 +317,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
         }
         else
         {
-            while (!binary.EndOfStream())
+            while (!binary.EndOfStream)
             {
                 var row = new Object?[ts.Length];
                 for (var i = 0; i < ts.Length; i++)

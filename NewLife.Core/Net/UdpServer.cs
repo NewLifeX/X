@@ -354,7 +354,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         se.SocketFlags = SocketFlags.None;
 
         //return Client.ReceiveFromAsync(se);
-        //TODO: Android 不支持 ReceiveMessageFromAsync 方法
+        // Android 不支持 ReceiveMessageFromAsync 方法
         if (Runtime.Mono)
             return Client.ReceiveFromAsync(se);
         else

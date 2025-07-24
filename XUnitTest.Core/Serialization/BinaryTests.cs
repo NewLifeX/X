@@ -27,6 +27,11 @@ public class BinaryTests
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(bn2.Total, pk.Length);
+
+        //Assert.False(bn2.EndOfStream);
+        Object? value = null;
+        Assert.False(bn2.TryRead(typeof(MyModel), ref value));
+        Assert.True(bn2.EndOfStream);
     }
 
     [Fact]

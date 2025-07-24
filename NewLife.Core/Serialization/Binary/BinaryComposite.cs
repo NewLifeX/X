@@ -167,8 +167,9 @@ public class BinaryComposite : BinaryHandlerBase
             if (TryGetAccessor(member, out var acc) && acc.Read(Host, context)) continue;
 
             // 数据流不足时，放弃读取目标成员，并认为整体成功
-            var hs = Host.Stream;
-            if (hs.CanSeek && hs.Position >= hs.Length) break;
+            //var hs = Host.Stream;
+            //if (hs.CanSeek && hs.Position >= hs.Length) break;
+            if (Host is Binary bn && bn.EndOfStream) break;
 
             Object? v = null;
             v = value is IModel src ? src[member.Name] : value.GetValue(member);

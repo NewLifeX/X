@@ -766,9 +766,8 @@ public class MemoryCache : Cache
     /// <returns></returns>
     public Int64 Save(Stream stream)
     {
-        var bn = new Binary
+        var bn = new Binary(stream)
         {
-            Stream = stream,
             EncodeInt = true,
         };
 
@@ -817,9 +816,8 @@ public class MemoryCache : Cache
     /// <returns></returns>
     public Int64 Load(Stream stream)
     {
-        var bn = new Binary
+        var bn = new Binary(stream)
         {
-            Stream = stream,
             EncodeInt = true,
         };
 
@@ -862,9 +860,8 @@ public class MemoryCache : Cache
                 value = pk;
                 if (type != null && pk != null)
                 {
-                    var bn2 = new Binary() { Stream = pk.GetStream(), EncodeInt = true };
+                    var bn2 = new Binary(pk.GetStream()) { EncodeInt = true };
                     value = bn2.Read(type);
-                    bn.Total += bn2.Total;
                 }
             }
 

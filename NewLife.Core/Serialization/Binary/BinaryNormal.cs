@@ -111,31 +111,42 @@ public class BinaryNormal : BinaryHandlerBase
     /// <returns></returns>
     public override Boolean TryRead(Type type, ref Object? value)
     {
+        var bn = (Host as Binary)!;
         if (type == typeof(Guid))
         {
-            value = new Guid(ReadBytes(16));
+            var buf = Host.ReadBytes(16);
+            if (buf.Length == 0) return false;
+
+            value = new Guid(buf);
             return true;
         }
         else if (type == typeof(Byte[]))
         {
-            value = ReadBytes(-1);
+            if (!TryReadArray(-1, out var buf)) return false;
+
+            value = buf;
             return true;
         }
         else if (type == typeof(IPacket))
         {
-            var buf = ReadBytes(-1);
+            if (!TryReadArray(-1, out var buf)) return false;
+
             value = new ArrayPacket(buf);
             return true;
         }
         else if (type == typeof(Packet))
         {
-            var buf = ReadBytes(-1);
+            if (!TryReadArray(-1, out var buf)) return false;
+
             value = new Packet(buf);
             return true;
         }
         else if (type == typeof(Char[]))
         {
-            value = ReadChars(-1);
+            //value = ReadChars(-1);
+            if (!TryReadArray(-1, out var buf)) return false;
+
+            value = Host.Encoding.GetChars(buf);
             return true;
         }
         else if (type == typeof(DateTimeOffset))
@@ -157,12 +168,16 @@ public class BinaryNormal : BinaryHandlerBase
 #endif
         else if (type == typeof(IPAddress))
         {
-            value = new IPAddress(ReadBytes(-1));
+            if (!TryReadArray(-1, out var buf)) return false;
+
+            value = new IPAddress(buf);
             return true;
         }
         else if (type == typeof(IPEndPoint))
         {
-            var ip = new IPAddress(ReadBytes(-1));
+            if (!TryReadArray(-1, out var buf)) return false;
+
+            var ip = new IPAddress(buf);
             var port = Host.Read<UInt16>();
             value = new IPEndPoint(ip, port);
             return true;
@@ -173,27 +188,20 @@ public class BinaryNormal : BinaryHandlerBase
 
     /// <summary>从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。</summary>
     /// <param name="count">要读取的字节数。</param>
+    /// <param name="buffer"></param>
     /// <returns></returns>
-    protected virtual Byte[] ReadBytes(Int32 count)
+    protected virtual Boolean TryReadArray(Int32 count, out Byte[] buffer)
     {
-        if (Host is not Binary bn) throw new NotSupportedException();
+        buffer = [];
+        if (count < 0 && !Host.TryReadSize(out count)) return false;
 
-        var bc = bn.GetHandler<BinaryGeneral>();
-        if (bc == null) throw new NotSupportedException();
+        if (count <= 0) return true;
 
-        return bc.ReadBytes(count);
-    }
+        var max = IOHelper.MaxSafeArraySize;
+        if (count > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", count, max);
 
-    /// <summary>从当前流中读取 count 个字符，以字符数组的形式返回数据，并根据所使用的 Encoding 和从流中读取的特定字符，提升当前位置。</summary>
-    /// <param name="count">要读取的字符数。</param>
-    /// <returns></returns>
-    public virtual Char[] ReadChars(Int32 count)
-    {
-        if (count < 0) count = Host.ReadSize();
+        buffer = Host.ReadBytes(count);
 
-        // 首先按最小值读取
-        var data = ReadBytes(count);
-
-        return Host.Encoding.GetChars(data);
+        return true;
     }
 }

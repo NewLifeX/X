@@ -121,10 +121,12 @@ public class BinaryGeneral : BinaryHandlerBase
         }
 
         // 可空类型，先写入一个字节表示是否为空
+        Byte b = 0;
         if (type.IsNullable())
         {
-            var v = Host.ReadByte();
-            if (v == 0)
+            if (!Host.TryReadByte(out b)) return false;
+            //var v = Host.ReadByte();
+            if (b == 0)
             {
                 value = null;
                 return true;
@@ -135,14 +137,18 @@ public class BinaryGeneral : BinaryHandlerBase
         switch (code)
         {
             case TypeCode.Boolean:
-                value = Host.ReadByte() > 0;
+                if (!Host.TryReadByte(out b)) return false;
+                value = b > 0;
                 return true;
             case TypeCode.Byte:
             case TypeCode.SByte:
-                value = Host.ReadByte();
+                if (!Host.TryReadByte(out b)) return false;
+                value = b;
                 return true;
             case TypeCode.Char:
-                value = ReadChar();
+                if (!Host.TryReadByte(out b)) return false;
+                value = Convert.ToChar(b);
+                //value = ReadChar();
                 return true;
             case TypeCode.DBNull:
                 value = DBNull.Value;
@@ -150,52 +156,85 @@ public class BinaryGeneral : BinaryHandlerBase
             case TypeCode.DateTime:
                 if (Host is Binary bn && bn.FullTime)
                 {
-                    var n = ReadInt64();
+                    if (!TryReadInt64(out var n)) return false;
                     value = DateTime.FromBinary(n);
                 }
                 else
                 {
-                    var n = ReadUInt32();
+                    if (!TryReadInt32(out var n)) return false;
                     if (n == 0)
                         value = DateTime.MinValue;
                     else
-                        value = _dt1970.AddSeconds(n);
+                        value = _dt1970.AddSeconds((UInt32)n);
                 }
                 return true;
             case TypeCode.Decimal:
-                value = ReadDecimal();
+                //value = ReadDecimal();
+                var data = new Int32[4];
+                for (var i = 0; i < data.Length; i++)
+                {
+                    if (!TryReadInt32(out data[i])) return false;
+                }
+                value = new Decimal(data);
                 return true;
             case TypeCode.Double:
-                value = ReadDouble();
+                {
+                    if (!TryReadDouble(out var num)) return false;
+                    value = num;
+                }
                 return true;
             case TypeCode.Empty:
                 value = null;
                 return true;
             case TypeCode.Int16:
-                value = ReadInt16();
+                {
+                    if (!TryReadInt16(out var num)) return false;
+                    value = num;
+                }
                 return true;
             case TypeCode.Int32:
-                value = ReadInt32();
+                {
+                    if (!TryReadInt32(out var num)) return false;
+                    value = num;
+                }
                 return true;
             case TypeCode.Int64:
-                value = ReadInt64();
+                {
+                    if (!TryReadInt64(out var num)) return false;
+                    value = num;
+                }
                 return true;
             case TypeCode.Object:
                 break;
             case TypeCode.Single:
-                value = ReadSingle();
+                {
+                    if (!TryReadSingle(out var num)) return false;
+                    value = num;
+                }
                 return true;
             case TypeCode.String:
-                value = ReadString();
+                {
+                    if (!TryReadString(out var str)) return false;
+                    value = str;
+                }
                 return true;
             case TypeCode.UInt16:
-                value = ReadUInt16();
+                {
+                    if (!TryReadInt16(out var num)) return false;
+                    value = (UInt16)num;
+                }
                 return true;
             case TypeCode.UInt32:
-                value = ReadUInt32();
+                {
+                    if (!TryReadInt32(out var num)) return false;
+                    value = (UInt32)num;
+                }
                 return true;
             case TypeCode.UInt64:
-                value = ReadUInt64();
+                {
+                    if (!TryReadInt64(out var num)) return false;
+                    value = (UInt64)num;
+                }
                 return true;
             default:
                 break;
@@ -271,8 +310,8 @@ public class BinaryGeneral : BinaryHandlerBase
     /// <param name="value">要写入的 2 字节有符号整数。</param>
     public virtual void Write(Int16 value)
     {
-        if (Host.EncodeInt)
-            WriteEncoded(value);
+        if (Host.EncodeInt && Host is Binary bn)
+            bn.WriteEncoded(value);
         else
             WriteIntBytes(BitConverter.GetBytes(value));
     }
@@ -281,8 +320,8 @@ public class BinaryGeneral : BinaryHandlerBase
     /// <param name="value">要写入的 4 字节有符号整数。</param>
     public virtual void Write(Int32 value)
     {
-        if (Host.EncodeInt)
-            WriteEncoded(value);
+        if (Host.EncodeInt && Host is Binary bn)
+            bn.WriteEncoded(value);
         else
             WriteIntBytes(BitConverter.GetBytes(value));
     }
@@ -291,8 +330,8 @@ public class BinaryGeneral : BinaryHandlerBase
     /// <param name="value">要写入的 8 字节有符号整数。</param>
     public virtual void Write(Int64 value)
     {
-        if (Host.EncodeInt)
-            WriteEncoded(value);
+        if (Host.EncodeInt && Host is Binary bn)
+            bn.WriteEncoded(value);
         else
             WriteIntBytes(BitConverter.GetBytes(value));
     }
@@ -399,36 +438,13 @@ public class BinaryGeneral : BinaryHandlerBase
     #endregion
 
     #region 基元类型读取
-    #region 字节
-    /// <summary>从当前流中读取下一个字节，并使流的当前位置提升 1 个字节。</summary>
-    /// <returns></returns>
-    public virtual Byte ReadByte() => Host.ReadByte();
-
-    /// <summary>从当前流中将 count 个字节读入字节数组，如果count小于0，则先读取字节数组长度。</summary>
-    /// <param name="count">要读取的字节数。</param>
-    /// <returns></returns>
-    public virtual Byte[] ReadBytes(Int32 count)
-    {
-        if (count < 0) count = Host.ReadSize();
-
-        if (count <= 0) return [];
-
-        var max = IOHelper.MaxSafeArraySize;
-        if (count > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", count, max);
-
-        var buffer = Host.ReadBytes(count);
-
-        return buffer;
-    }
-    #endregion
-
     #region 有符号整数
     /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
     /// <param name="count">数量</param>
     /// <returns></returns>
     protected virtual Byte[] ReadIntBytes(Int32 count)
     {
-        var buffer = ReadBytes(count);
+        var buffer = Host.ReadBytes(count);
 
         // 如果不是小端字节顺序，则倒序
         if (!Host.IsLittleEndian) Array.Reverse(buffer);
@@ -438,237 +454,116 @@ public class BinaryGeneral : BinaryHandlerBase
 
     /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
     /// <returns></returns>
-    public virtual Int16 ReadInt16()
+    public virtual Boolean TryReadInt16(out Int16 value)
     {
-        if (Host.EncodeInt)
-            return ReadEncodedInt16();
-        else
-            return BitConverter.ToInt16(ReadIntBytes(2), 0);
+        value = 0;
+
+        if (Host.EncodeInt && Host is Binary bn)
+            return bn.TryReadEncodedInt16(out value);
+
+        var buf = ReadIntBytes(2);
+        if (buf.Length == 0) return false;
+
+        value = BitConverter.ToInt16(buf, 0);
+
+        return true;
     }
 
     /// <summary>从当前流中读取 4 字节有符号整数，并使流的当前位置提升 4 个字节。</summary>
     /// <returns></returns>
-    public virtual Int32 ReadInt32()
+    public virtual Boolean TryReadInt32(out Int32 value)
     {
-        if (Host.EncodeInt)
-            return ReadEncodedInt32();
-        else
-            return BitConverter.ToInt32(ReadIntBytes(4), 0);
+        value = 0;
+
+        if (Host.EncodeInt && Host is Binary bn)
+            return bn.TryReadEncodedInt32(out value);
+
+        var buf = ReadIntBytes(4);
+        if (buf.Length == 0) return false;
+
+        value = BitConverter.ToInt32(buf, 0);
+
+        return true;
     }
 
     /// <summary>从当前流中读取 8 字节有符号整数，并使流的当前位置向前移动 8 个字节。</summary>
     /// <returns></returns>
-    public virtual Int64 ReadInt64()
+    public virtual Boolean TryReadInt64(out Int64 value)
     {
-        if (Host.EncodeInt)
-            return ReadEncodedInt64();
-        else
-            return BitConverter.ToInt64(ReadIntBytes(8), 0);
+        value = 0;
+
+        if (Host.EncodeInt && Host is Binary bn)
+            return bn.TryReadEncodedInt64(out value);
+
+        var buf = ReadIntBytes(8);
+        if (buf.Length == 0) return false;
+
+        value = BitConverter.ToInt64(buf, 0);
+
+        return true;
     }
-    #endregion
-
-    #region 无符号整数
-    /// <summary>使用 Little-Endian 编码从当前流中读取 2 字节无符号整数，并将流的位置提升 2 个字节。</summary>
-    /// <returns></returns>
-    //[CLSCompliant(false)]
-    public virtual UInt16 ReadUInt16() => (UInt16)ReadInt16();
-
-    /// <summary>从当前流中读取 4 字节无符号整数并使流的当前位置提升 4 个字节。</summary>
-    /// <returns></returns>
-    //[CLSCompliant(false)]
-    public virtual UInt32 ReadUInt32() => (UInt32)ReadInt32();
-
-    /// <summary>从当前流中读取 8 字节无符号整数并使流的当前位置提升 8 个字节。</summary>
-    /// <returns></returns>
-    //[CLSCompliant(false)]
-    public virtual UInt64 ReadUInt64() => (UInt64)ReadInt64();
     #endregion
 
     #region 浮点数
     /// <summary>从当前流中读取 4 字节浮点值，并使流的当前位置提升 4 个字节。</summary>
     /// <returns></returns>
-    public virtual Single ReadSingle() => BitConverter.ToSingle(ReadBytes(4), 0);
+    public virtual Boolean TryReadSingle(out Single value)
+    {
+        value = 0;
+
+        var buf = ReadIntBytes(4);
+        if (buf.Length == 0) return false;
+
+        value = BitConverter.ToSingle(buf, 0);
+
+        return true;
+    }
 
     /// <summary>从当前流中读取 8 字节浮点值，并使流的当前位置提升 8 个字节。</summary>
     /// <returns></returns>
-    public virtual Double ReadDouble() => BitConverter.ToDouble(ReadBytes(8), 0);
+    public virtual Boolean TryReadDouble(out Double value)
+    {
+        value = 0;
+
+        var buf = ReadIntBytes(4);
+        if (buf.Length == 0) return false;
+
+        value = BitConverter.ToDouble(buf, 0);
+
+        return true;
+    }
     #endregion
 
     #region 字符串
-    /// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
-    /// <returns></returns>
-    public virtual Char ReadChar() => Convert.ToChar(ReadByte());
+    ///// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
+    ///// <returns></returns>
+    //public virtual Char ReadChar() => Convert.ToChar(ReadByte());
 
     /// <summary>从当前流中读取一个字符串。字符串有长度前缀，7位压缩编码整数。</summary>
     /// <returns></returns>
-    public virtual String ReadString()
+    public virtual Boolean TryReadString(out String value)
     {
+        value = String.Empty;
+
         // 先读长度
-        var n = Host.ReadSize();
+        if (!Host.TryReadSize(out var n)) return false;
+        //var n = Host.ReadSize();
         //if (n > 1000) n = Host.ReadSize();
-        if (n <= 0) return String.Empty;
+        if (n <= 0) return true;
         //if (n == 0) return String.Empty;
 
-        var buffer = ReadBytes(n);
+        var buffer = Host.ReadBytes(n);
+        if (buffer.Length == 0) return false;
+
         var enc = Host.Encoding ?? Encoding.UTF8;
 
         var str = enc.GetString(buffer);
         if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
 
-        return str ?? String.Empty;
+        value = str ?? String.Empty;
+
+        return true;
     }
     #endregion
-
-    #region 其它
-    /// <summary>从当前流中读取十进制数值，并将该流的当前位置提升十六个字节。</summary>
-    /// <returns></returns>
-    public virtual Decimal ReadDecimal()
-    {
-        var data = new Int32[4];
-        for (var i = 0; i < data.Length; i++)
-        {
-            data[i] = ReadInt32();
-        }
-        return new Decimal(data);
-    }
-    #endregion
-
-    #region 7位压缩编码整数
-    /// <summary>以压缩格式读取16位整数</summary>
-    /// <returns></returns>
-    public Int16 ReadEncodedInt16()
-    {
-        Byte b;
-        Int16 rs = 0;
-        Byte n = 0;
-        while (true)
-        {
-            b = ReadByte();
-            // 必须转为Int16，否则可能溢出
-            rs += (Int16)((b & 0x7f) << n);
-            if ((b & 0x80) == 0) break;
-
-            n += 7;
-            if (n >= 16) throw new FormatException("The number value is too large to read in compressed format!");
-        }
-        return rs;
-    }
-
-    /// <summary>以压缩格式读取32位整数</summary>
-    /// <returns></returns>
-    public Int32 ReadEncodedInt32()
-    {
-        Byte b;
-        var rs = 0;
-        Byte n = 0;
-        while (true)
-        {
-            b = ReadByte();
-            // 必须转为Int32，否则可能溢出
-            rs += (b & 0x7f) << n;
-            if ((b & 0x80) == 0) break;
-
-            n += 7;
-            if (n >= 32) throw new FormatException("The number value is too large to read in compressed format!");
-        }
-        return rs;
-    }
-
-    /// <summary>以压缩格式读取64位整数</summary>
-    /// <returns></returns>
-    public Int64 ReadEncodedInt64()
-    {
-        Byte b;
-        Int64 rs = 0;
-        Byte n = 0;
-        while (true)
-        {
-            b = ReadByte();
-            // 必须转为Int64，否则可能溢出
-            rs += (Int64)(b & 0x7f) << n;
-            if ((b & 0x80) == 0) break;
-
-            n += 7;
-            if (n >= 64) throw new FormatException("The number value is too large to read in compressed format!");
-        }
-        return rs;
-    }
-    #endregion
-    #endregion
-
-    #region 7位压缩编码整数
-    [ThreadStatic]
-    private static Byte[]? _encodes;
-    /// <summary>
-    /// 以7位压缩格式写入16位整数，小于7位用1个字节，小于14位用2个字节。
-    /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-    /// </summary>
-    /// <param name="value">数值</param>
-    /// <returns>实际写入字节数</returns>
-    public Int32 WriteEncoded(Int16 value)
-    {
-        _encodes ??= new Byte[16];
-
-        var count = 0;
-        var num = (UInt16)value;
-        while (num >= 0x80)
-        {
-            _encodes[count++] = (Byte)(num | 0x80);
-            num = (UInt16)(num >> 7);
-        }
-        _encodes[count++] = (Byte)num;
-
-        Write(_encodes, 0, count);
-
-        return count;
-    }
-
-    /// <summary>
-    /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
-    /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-    /// </summary>
-    /// <param name="value">数值</param>
-    /// <returns>实际写入字节数</returns>
-    public Int32 WriteEncoded(Int32 value)
-    {
-        _encodes ??= new Byte[16];
-
-        var count = 0;
-        var num = (UInt32)value;
-        while (num >= 0x80)
-        {
-            _encodes[count++] = (Byte)(num | 0x80);
-            num >>= 7;
-        }
-        _encodes[count++] = (Byte)num;
-
-        Write(_encodes, 0, count);
-
-        return count;
-    }
-
-    /// <summary>
-    /// 以7位压缩格式写入64位整数，小于7位用1个字节，小于14位用2个字节。
-    /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
-    /// </summary>
-    /// <param name="value">数值</param>
-    /// <returns>实际写入字节数</returns>
-    public Int32 WriteEncoded(Int64 value)
-    {
-        _encodes ??= new Byte[16];
-
-        var count = 0;
-        var num = (UInt64)value;
-        while (num >= 0x80)
-        {
-            _encodes[count++] = (Byte)(num | 0x80);
-            num >>= 7;
-        }
-        _encodes[count++] = (Byte)num;
-
-        Write(_encodes, 0, count);
-
-        return count;
-    }
     #endregion
 }

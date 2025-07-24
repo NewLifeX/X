@@ -42,6 +42,11 @@ public interface IBinary : IFormatterX
     /// <returns></returns>
     Byte ReadByte();
 
+    /// <summary>尝试从当前流中读取一个字节</summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    Boolean TryReadByte(out Byte value);
+
     /// <summary>从当前流中将 count 个字节读入字节数组</summary>
     /// <param name="count">要读取的字节数。</param>
     /// <returns></returns>
@@ -50,6 +55,10 @@ public interface IBinary : IFormatterX
     /// <summary>读取大小</summary>
     /// <returns></returns>
     Int32 ReadSize();
+
+    /// <summary>读取大小</summary>
+    /// <returns></returns>
+    Boolean TryReadSize(out Int32 value);
     #endregion
 }
 
