@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -114,10 +115,19 @@ public class BinaryNormal : BinaryHandlerBase
         var bn = (Host as Binary)!;
         if (type == typeof(Guid))
         {
-            var buf = Host.ReadBytes(16);
-            if (buf.Length == 0) return false;
+#if NETCOREAPP || NETSTANDARD2_1
+            Span<Byte> buffer = stackalloc Byte[16];
+            if (Host.ReadBytes(buffer) == 0) return false;
 
-            value = new Guid(buf);
+            value = new Guid(buffer);
+#else
+            var buffer = Pool.Shared.Rent(16);
+            if (Host.ReadBytes(buffer, 0, 16) == 0) return false;
+
+            value = new Guid(buffer);
+            Pool.Shared.Return(buffer);
+#endif
+
             return true;
         }
         else if (type == typeof(Byte[]))

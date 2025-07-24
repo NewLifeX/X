@@ -52,6 +52,20 @@ public interface IBinary : IFormatterX
     /// <returns></returns>
     Byte[] ReadBytes(Int32 count);
 
+#if NETCOREAPP || NETSTANDARD2_1
+    /// <summary>从当前流中读取字节数组</summary>
+    /// <param name="span">字节数组</param>
+    /// <returns></returns>
+    Int32 ReadBytes(Span<Byte> span);
+#endif
+
+    /// <summary>从当前流中读取字节数组</summary>
+    /// <param name="buffer">字节数组</param>
+    /// <param name="offset">偏移量</param>
+    /// <param name="count">个数</param>
+    /// <returns></returns>
+    Int32 ReadBytes(Byte[] buffer, Int32 offset, Int32 count);
+
     /// <summary>读取大小</summary>
     /// <returns></returns>
     Int32 ReadSize();

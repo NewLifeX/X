@@ -1,5 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
+﻿using System.Drawing;
+using NewLife.Collections;
 
 namespace NewLife.Serialization;
 
@@ -36,8 +36,8 @@ public class BinaryColor : BinaryHandlerBase
     {
         if (type != typeof(Color)) return false;
 
-        var buf = Host.ReadBytes(4);
-        if (buf.Length < 4) return false;
+        var buf = Pool.Shared.Rent(4);
+        if (Host.ReadBytes(buf, 0, 4) < 4) return false;
 
         var a = buf[0];
         var r = buf[1];
@@ -46,6 +46,8 @@ public class BinaryColor : BinaryHandlerBase
         var color = Color.FromArgb(a, r, g, b);
         WriteLog("ReadColor {0}", color);
         value = color;
+
+        Pool.Shared.Return(buf);
 
         return true;
     }

@@ -383,6 +383,72 @@ public class Binary : FormatterBase, IBinary
         return buffer;
     }
 
+#if NETCOREAPP || NETSTANDARD2_1
+    /// <summary>从当前流中读取字节数组</summary>
+    /// <param name="span">字节数组</param>
+    /// <returns></returns>
+    public virtual Int32 ReadBytes(Span<Byte> span)
+    {
+        if (span.Length == 0) return 0;
+
+        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+
+        var totalRead = 0;
+        while (totalRead < span.Length)
+        {
+            var bytesRead = Stream.Read(span.Slice(totalRead));
+            if (bytesRead <= 0)
+            {
+                Total += totalRead;
+                EndOfStream = true;
+                return totalRead;
+            }
+
+            totalRead += bytesRead;
+        }
+        Total += totalRead;
+
+        // 探测数据流是否已经到达末尾
+        var ms = Stream;
+        if (ms.CanSeek && ms.Position >= ms.Length) EndOfStream = true;
+
+        return totalRead;
+    }
+#endif
+
+    /// <summary>从当前流中读取字节数组</summary>
+    /// <param name="buffer">字节数组</param>
+    /// <param name="offset">偏移量</param>
+    /// <param name="count">个数</param>
+    /// <returns></returns>
+    public virtual Int32 ReadBytes(Byte[] buffer, Int32 offset, Int32 count)
+    {
+        if (count == 0) return 0;
+
+        if (EndOfStream) throw new EndOfStreamException("The data stream is out of range!");
+
+        var totalRead = 0;
+        while (totalRead < count)
+        {
+            var bytesRead = Stream.Read(buffer, offset + totalRead, count - totalRead);
+            if (bytesRead <= 0)
+            {
+                Total += totalRead;
+                EndOfStream = true;
+                return totalRead;
+            }
+
+            totalRead += bytesRead;
+        }
+        Total += totalRead;
+
+        // 探测数据流是否已经到达末尾
+        var ms = Stream;
+        if (ms.CanSeek && ms.Position >= ms.Length) EndOfStream = true;
+
+        return totalRead;
+    }
+
     /// <summary>读取大小</summary>
     /// <returns></returns>
     public virtual Int32 ReadSize()

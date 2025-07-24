@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers.Binary;
+using System.Text;
 using NewLife.Collections;
 using NewLife.Reflection;
 
@@ -439,19 +440,6 @@ public class BinaryGeneral : BinaryHandlerBase
 
     #region 基元类型读取
     #region 有符号整数
-    /// <summary>读取整数的字节数组，某些写入器（如二进制写入器）可能需要改变字节顺序</summary>
-    /// <param name="count">数量</param>
-    /// <returns></returns>
-    protected virtual Byte[] ReadIntBytes(Int32 count)
-    {
-        var buffer = Host.ReadBytes(count);
-
-        // 如果不是小端字节顺序，则倒序
-        if (!Host.IsLittleEndian) Array.Reverse(buffer);
-
-        return buffer;
-    }
-
     /// <summary>从当前流中读取 2 字节有符号整数，并使流的当前位置提升 2 个字节。</summary>
     /// <returns></returns>
     public virtual Boolean TryReadInt16(out Int16 value)
@@ -461,10 +449,24 @@ public class BinaryGeneral : BinaryHandlerBase
         if (Host.EncodeInt && Host is Binary bn)
             return bn.TryReadEncodedInt16(out value);
 
-        var buf = ReadIntBytes(2);
-        if (buf.Length == 0) return false;
+        const Int32 SIZE = 2;
+#if NETCOREAPP || NETSTANDARD2_1
+        Span<Byte> buffer = stackalloc Byte[SIZE];
+        if (Host.ReadBytes(buffer) == 0) return false;
 
-        value = BitConverter.ToInt16(buf, 0);
+        if (Host.IsLittleEndian)
+            value = BinaryPrimitives.ReadInt16LittleEndian(buffer);
+        else
+            value = BinaryPrimitives.ReadInt16BigEndian(buffer);
+#else
+        var buffer = Pool.Shared.Rent(SIZE);
+        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+
+        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+
+        value = BitConverter.ToInt16(buffer, 0);
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
@@ -478,10 +480,24 @@ public class BinaryGeneral : BinaryHandlerBase
         if (Host.EncodeInt && Host is Binary bn)
             return bn.TryReadEncodedInt32(out value);
 
-        var buf = ReadIntBytes(4);
-        if (buf.Length == 0) return false;
+        const Int32 SIZE = 4;
+#if NETCOREAPP || NETSTANDARD2_1
+        Span<Byte> buffer = stackalloc Byte[SIZE];
+        if (Host.ReadBytes(buffer) == 0) return false;
 
-        value = BitConverter.ToInt32(buf, 0);
+        if (Host.IsLittleEndian)
+            value = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+        else
+            value = BinaryPrimitives.ReadInt32BigEndian(buffer);
+#else
+        var buffer = Pool.Shared.Rent(SIZE);
+        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+
+        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+
+        value = BitConverter.ToInt32(buffer, 0);
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
@@ -495,10 +511,24 @@ public class BinaryGeneral : BinaryHandlerBase
         if (Host.EncodeInt && Host is Binary bn)
             return bn.TryReadEncodedInt64(out value);
 
-        var buf = ReadIntBytes(8);
-        if (buf.Length == 0) return false;
+        const Int32 SIZE = 8;
+#if NETCOREAPP || NETSTANDARD2_1
+        Span<Byte> buffer = stackalloc Byte[SIZE];
+        if (Host.ReadBytes(buffer) == 0) return false;
 
-        value = BitConverter.ToInt64(buf, 0);
+        if (Host.IsLittleEndian)
+            value = BinaryPrimitives.ReadInt64LittleEndian(buffer);
+        else
+            value = BinaryPrimitives.ReadInt64BigEndian(buffer);
+#else
+        var buffer = Pool.Shared.Rent(SIZE);
+        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+
+        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+
+        value = BitConverter.ToInt64(buffer, 0);
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
@@ -511,10 +541,24 @@ public class BinaryGeneral : BinaryHandlerBase
     {
         value = 0;
 
-        var buf = ReadIntBytes(4);
-        if (buf.Length == 0) return false;
+        const Int32 SIZE = 4;
+#if NET5_0_OR_GREATER
+        Span<Byte> buffer = stackalloc Byte[SIZE];
+        if (Host.ReadBytes(buffer) == 0) return false;
 
-        value = BitConverter.ToSingle(buf, 0);
+        if (Host.IsLittleEndian)
+            value = BinaryPrimitives.ReadSingleLittleEndian(buffer);
+        else
+            value = BinaryPrimitives.ReadSingleBigEndian(buffer);
+#else
+        var buffer = Pool.Shared.Rent(SIZE);
+        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+
+        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+
+        value = BitConverter.ToSingle(buffer, 0);
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
@@ -525,20 +569,30 @@ public class BinaryGeneral : BinaryHandlerBase
     {
         value = 0;
 
-        var buf = ReadIntBytes(4);
-        if (buf.Length == 0) return false;
+        const Int32 SIZE = 8;
+#if NET5_0_OR_GREATER
+        Span<Byte> buffer = stackalloc Byte[SIZE];
+        if (Host.ReadBytes(buffer) == 0) return false;
 
-        value = BitConverter.ToDouble(buf, 0);
+        if (Host.IsLittleEndian)
+            value = BinaryPrimitives.ReadDoubleLittleEndian(buffer);
+        else
+            value = BinaryPrimitives.ReadDoubleBigEndian(buffer);
+#else
+        var buffer = Pool.Shared.Rent(SIZE);
+        if (Host.ReadBytes(buffer, 0, SIZE) == 0) return false;
+
+        if (!Host.IsLittleEndian) Array.Reverse(buffer, 0, SIZE);
+
+        value = BitConverter.ToDouble(buffer, 0);
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
     #endregion
 
     #region 字符串
-    ///// <summary>从当前流中读取下一个字符，并根据所使用的 Encoding 和从流中读取的特定字符，提升流的当前位置。</summary>
-    ///// <returns></returns>
-    //public virtual Char ReadChar() => Convert.ToChar(ReadByte());
-
     /// <summary>从当前流中读取一个字符串。字符串有长度前缀，7位压缩编码整数。</summary>
     /// <returns></returns>
     public virtual Boolean TryReadString(out String value)
@@ -547,13 +601,15 @@ public class BinaryGeneral : BinaryHandlerBase
 
         // 先读长度
         if (!Host.TryReadSize(out var n)) return false;
-        //var n = Host.ReadSize();
-        //if (n > 1000) n = Host.ReadSize();
         if (n <= 0) return true;
-        //if (n == 0) return String.Empty;
 
-        var buffer = Host.ReadBytes(n);
-        if (buffer.Length == 0) return false;
+#if NETCOREAPP || NETSTANDARD2_1
+        Span<Byte> buffer = stackalloc Byte[n];
+        if (Host.ReadBytes(buffer) == 0) return false;
+#else
+        var buffer = Pool.Shared.Rent(n);
+        if (Host.ReadBytes(buffer, 0, n) == 0) return false;
+#endif
 
         var enc = Host.Encoding ?? Encoding.UTF8;
 
@@ -561,6 +617,11 @@ public class BinaryGeneral : BinaryHandlerBase
         if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
 
         value = str ?? String.Empty;
+
+#if NETCOREAPP || NETSTANDARD2_1
+#else
+        Pool.Shared.Return(buffer);
+#endif
 
         return true;
     }
