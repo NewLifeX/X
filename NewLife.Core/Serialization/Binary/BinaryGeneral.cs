@@ -370,11 +370,39 @@ public class BinaryGeneral : BinaryHandlerBase
     #region 浮点数
     /// <summary>将 4 字节浮点值写入当前流，并将流的位置提升 4 个字节。</summary>
     /// <param name="value">要写入的 4 字节浮点值。</param>
-    public virtual void Write(Single value) => Write(BitConverter.GetBytes(value), -1);
+    public virtual void Write(Single value)
+    {
+#if NET5_0_OR_GREATER
+        Span<Byte> buffer = stackalloc Byte[4];
+        if (Host.IsLittleEndian)
+            BinaryPrimitives.WriteSingleLittleEndian(buffer, value);
+        else
+            BinaryPrimitives.WriteSingleBigEndian(buffer, value);
+        Host.Write(buffer);
+#else
+        var buffer = BitConverter.GetBytes(value);
+        if (!Host.IsLittleEndian) Array.Reverse(buffer);
+        Host.Write(buffer, 0, buffer.Length);
+#endif
+    }
 
     /// <summary>将 8 字节浮点值写入当前流，并将流的位置提升 8 个字节。</summary>
     /// <param name="value">要写入的 8 字节浮点值。</param>
-    public virtual void Write(Double value) => Write(BitConverter.GetBytes(value), -1);
+    public virtual void Write(Double value)
+    {
+#if NET5_0_OR_GREATER
+        Span<Byte> buffer = stackalloc Byte[8];
+        if (Host.IsLittleEndian)
+            BinaryPrimitives.WriteDoubleLittleEndian(buffer, value);
+        else
+            BinaryPrimitives.WriteDoubleBigEndian(buffer, value);
+        Host.Write(buffer);
+#else
+        var buffer = BitConverter.GetBytes(value);
+        if (!Host.IsLittleEndian) Array.Reverse(buffer);
+        Host.Write(buffer, 0, buffer.Length);
+#endif
+    }
 
     /// <summary>将一个十进制值写入当前流，并将流位置提升十六个字节。</summary>
     /// <param name="value">要写入的十进制值。</param>

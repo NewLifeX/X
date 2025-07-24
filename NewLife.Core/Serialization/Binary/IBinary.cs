@@ -31,6 +31,10 @@ public interface IBinary : IFormatterX
     /// <param name="count">要写入的字节数。</param>
     void Write(Byte[] buffer, Int32 offset, Int32 count);
 
+    /// <summary>写入数据</summary>
+    /// <param name="buffer"></param>
+    void Write(ReadOnlySpan<Byte> buffer);
+
     /// <summary>写入大小</summary>
     /// <param name="size">要写入的大小值</param>
     /// <returns>返回特性指定的固定长度，如果没有则返回-1</returns>
