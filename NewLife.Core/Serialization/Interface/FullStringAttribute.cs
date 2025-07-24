@@ -14,9 +14,10 @@ public class FullStringAttribute : AccessorAttribute
     {
         if (formatter is Binary bn && context.Value != null && context.Member != null)
         {
-            //var buf = bn.Stream.ReadBytes(-1);
-            //var str = bn.Encoding.GetString(buf);
-            var str = bn.Stream.ToStr(bn.Encoding);
+            var buf = bn.Stream.ReadBytes(-1);
+            var str = bn.Encoding.GetString(buf);
+            bn.Total += buf.Length;
+            //var str = bn.Stream.ToStr(bn.Encoding);
             if (bn.TrimZero && str != null) str = str.Trim('\0');
 
             context.Value.SetValue(context.Member, str);
