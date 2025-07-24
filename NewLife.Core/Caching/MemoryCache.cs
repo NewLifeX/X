@@ -764,7 +764,7 @@ public class MemoryCache : Cache
     /// <summary>保存到数据流</summary>
     /// <param name="stream"></param>
     /// <returns></returns>
-    public void Save(Stream stream)
+    public Int64 Save(Stream stream)
     {
         var bn = new Binary
         {
@@ -808,12 +808,14 @@ public class MemoryCache : Cache
                 }
             }
         }
+
+        return bn.Total;
     }
 
     /// <summary>从数据流加载</summary>
     /// <param name="stream"></param>
     /// <returns></returns>
-    public void Load(Stream stream)
+    public Int64 Load(Stream stream)
     {
         var bn = new Binary
         {
@@ -862,11 +864,14 @@ public class MemoryCache : Cache
                 {
                     var bn2 = new Binary() { Stream = pk.GetStream(), EncodeInt = true };
                     value = bn2.Read(type);
+                    bn.Total += bn2.Total;
                 }
             }
 
             if (key != null) Set(key, value, exp - (Int32)(Runtime.TickCount64 / 1000));
         }
+
+        return bn.Total;
     }
 
     /// <summary>保存到文件</summary>

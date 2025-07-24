@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using NewLife;
+﻿using NewLife;
 using NewLife.Data;
 using NewLife.Serialization;
 using NewLife.Serialization.Interface;
@@ -22,11 +20,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(10, pk.Length);
         Assert.Equal("000004D20553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream() };
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -41,11 +41,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(8, pk.Length);
         Assert.Equal("D2090553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -60,11 +62,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(10, pk.Length);
         Assert.Equal("D20400000553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream(), IsLittleEndian = true };
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -79,11 +83,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(6, pk.Length);
         Assert.Equal("0553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream(), UseFieldSize = true };
         var model2 = bn2.Read<MyModelWithFieldSize>();
         Assert.Equal(model.Length, model2.Length);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -98,11 +104,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(11, pk.Length);
         Assert.Equal("000004D2000553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream(), SizeWidth = 2 };
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -117,11 +125,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(10, pk.Length);
         Assert.Equal("000004D20553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream(), UseProperty = false };
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -137,12 +147,14 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(6, pk.Length);
         Assert.Equal("0553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Length);
 
         var bn2 = new Binary { Stream = pk.GetStream() };
         bn2.IgnoreMembers.Add("Code");
         var model2 = bn2.Read<MyModel>();
         Assert.Equal(0, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Length);
     }
 
     [Fact]
@@ -159,8 +171,9 @@ public class BinaryTests
         Assert.Equal(model.Name, model2.Name);
 
         var ms = new MemoryStream();
-        Binary.FastWrite(model, ms);
+        var total = Binary.FastWrite(model, ms);
         Assert.Equal("D2090553746F6E65", ms.ToArray().ToHex());
+        Assert.Equal(total, ms.Length);
     }
 
     private class MyModel
@@ -184,8 +197,9 @@ public class BinaryTests
         Assert.Equal(model.Name, model2.Name);
 
         var ms = new MemoryStream();
-        Binary.FastWrite(model, ms);
+        var total = Binary.FastWrite(model, ms);
         Assert.Equal("D20400000553746F6E65", ms.ToArray().ToHex());
+        Assert.Equal(total, ms.Length);
     }
 
     private class MyModelWithAccessor : IAccessor
@@ -200,6 +214,11 @@ public class BinaryTests
             Code = reader.ReadInt32();
             Name = reader.ReadString();
 
+            if (context is Binary bn)
+            {
+                bn.Total += 4 + 1 + Name.GetBytes(bn.Encoding).Length;
+            }
+
             return true;
         }
 
@@ -208,6 +227,11 @@ public class BinaryTests
             var writer = new BinaryWriter(stream);
             writer.Write(Code);
             writer.Write(Name);
+
+            if (context is Binary bn)
+            {
+                bn.Total += 4 + 1 + Name.GetBytes(bn.Encoding).Length;
+            }
 
             return true;
         }
@@ -227,8 +251,9 @@ public class BinaryTests
         Assert.Equal(model.Name, model2.Name);
 
         var ms = new MemoryStream();
-        Binary.FastWrite(model, ms);
+        var total = Binary.FastWrite(model, ms);
         Assert.Equal("D2090553746F6E65", ms.ToArray().ToHex());
+        Assert.Equal(total, ms.Length);
     }
 
     private class MyModelWithMemberAccessor : IMemberAccessor
@@ -277,11 +302,13 @@ public class BinaryTests
         Assert.Equal(5, model.Length);
         Assert.Equal(6, pk.Total);
         Assert.Equal("0553746F6E65", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Total);
 
         var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true, UseFieldSize = true };
         var model2 = bn2.Read<MyModelWithFieldSize>();
         Assert.Equal(model.Length, model2.Length);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Total);
     }
 
     private class MyModelWithFieldSize
@@ -350,11 +377,13 @@ public class BinaryTests
         var pk = bn.GetPacket();
         Assert.Equal(10, pk.Length);
         Assert.Equal("D20953746F6E65000000", pk.ToHex());
+        Assert.Equal(bn.Total, pk.Total);
 
         var bn2 = new Binary { Stream = pk.GetStream(), EncodeInt = true };
         var model2 = bn2.Read<MyModelWithFixed>();
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(bn2.Total, pk.Total);
     }
 
     private class MyModelWithFixed
@@ -386,6 +415,7 @@ public class BinaryTests
         bn.Write(dt);
         pk = bn.GetPacket();
         Assert.Equal(4, pk.Length);
+        Assert.Equal(bn.Total, pk.Total);
 
         bn = new Binary { EncodeInt = false, Stream = pk.GetStream() };
         dt2 = bn.Read<DateTime>();
@@ -393,6 +423,7 @@ public class BinaryTests
 
         Assert.Equal(dt.Trim(), dt2);
         Assert.Equal(n1, n2);
+        Assert.Equal(bn.Total, pk.Total);
     }
 
     [Fact]
@@ -456,6 +487,7 @@ public class BinaryTests
         bn.Write(dt);
         var pk = bn.GetPacket();
         Assert.Equal(8, pk.Length);
+        Assert.Equal(bn.Total, pk.Total);
 
         // 反序列化
         bn = new Binary { FullTime = true, Stream = pk.GetStream() };
@@ -464,6 +496,7 @@ public class BinaryTests
 
         Assert.Equal(dt, dt2);
         Assert.Equal(n1, n2);
+        Assert.Equal(bn.Total, pk.Total);
     }
 
     private static void WriteFullTimeByKind(DateTime dt)
@@ -475,6 +508,7 @@ public class BinaryTests
         bn.Write(dt);
         var pk = bn.GetPacket();
         Assert.Equal(8, pk.Length);
+        Assert.Equal(bn.Total, pk.Total);
 
         // 反序列化
         bn = new Binary { FullTime = true, Stream = pk.GetStream() };
@@ -484,6 +518,7 @@ public class BinaryTests
         Assert.Equal(dt.Kind, dt2.Kind);
         Assert.Equal(dt, dt2);
         Assert.Equal(n1, n2);
+        Assert.Equal(bn.Total, pk.Total);
     }
 
     [Fact]

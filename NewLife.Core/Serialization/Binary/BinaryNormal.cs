@@ -39,6 +39,8 @@ public class BinaryNormal : BinaryHandlerBase
             {
                 Host.WriteSize(pk.Total);
                 pk.CopyTo(Host.Stream);
+
+                if (Host is Binary bn) bn.Total += pk.Total;
             }
             else
             {

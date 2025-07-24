@@ -40,6 +40,9 @@ public class Binary : FormatterBase, IBinary
 
     /// <summary>处理器列表</summary>
     public IList<IBinaryHandler> Handlers { get; private set; }
+
+    /// <summary>总的字节数。读取或写入</summary>
+    public Int64 Total { get; set; }
     #endregion
 
     #region 构造
@@ -138,7 +141,12 @@ public class Binary : FormatterBase, IBinary
 
     /// <summary>写入字节</summary>
     /// <param name="value"></param>
-    public virtual void Write(Byte value) => Stream.WriteByte(value);
+    public virtual void Write(Byte value)
+    {
+        Stream.WriteByte(value);
+
+        Total++;
+    }
 
     /// <summary>将字节数组部分写入当前流，不写入数组长度。</summary>
     /// <param name="buffer">包含要写入的数据的字节数组。</param>
@@ -148,6 +156,8 @@ public class Binary : FormatterBase, IBinary
     {
         if (count < 0) count = buffer.Length - offset;
         Stream.Write(buffer, offset, count);
+
+        Total += count;
     }
 
     /// <summary>写入数据</summary>
@@ -169,6 +179,7 @@ public class Binary : FormatterBase, IBinary
             ArrayPool<Byte>.Shared.Return(array);
         }
 #endif
+        Total += buffer.Length;
     }
 
     /// <summary>写入数据</summary>
@@ -178,6 +189,7 @@ public class Binary : FormatterBase, IBinary
         if (MemoryMarshal.TryGetArray(buffer, out var segment))
         {
             Stream.Write(segment.Array!, segment.Offset, segment.Count);
+            Total += segment.Count;
 
             return;
         }
@@ -267,6 +279,8 @@ public class Binary : FormatterBase, IBinary
     {
         var b = Stream.ReadByte();
         if (b < 0) throw new Exception("The data stream is out of range!");
+        Total++;
+
         return (Byte)b;
     }
 
@@ -277,6 +291,7 @@ public class Binary : FormatterBase, IBinary
     {
         var buffer = Stream.ReadBytes(count);
         //if (n != count) throw new InvalidDataException($"数据不足，需要{count}，实际{n}");
+        Total += buffer.Length;
 
         return buffer;
     }
@@ -596,7 +611,7 @@ public class Binary : FormatterBase, IBinary
     /// <param name="stream">目标数据流</param>
     /// <param name="encodeInt">使用7位编码整数</param>
     /// <returns></returns>
-    public static void FastWrite(Object value, Stream stream, Boolean encodeInt = true)
+    public static Int64 FastWrite(Object value, Stream stream, Boolean encodeInt = true)
     {
         var bn = new Binary
         {
@@ -604,6 +619,8 @@ public class Binary : FormatterBase, IBinary
             EncodeInt = encodeInt,
         };
         bn.Write(value);
+
+        return bn.Total;
     }
     #endregion
 }
