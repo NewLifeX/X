@@ -29,20 +29,20 @@
         private void InitializeComponent()
         {
             groupBox1 = new GroupBox();
+            btnDownloadPlugin = new Button();
             btnOpenAsync = new Button();
             txtServer = new TextBox();
             btnOpen = new Button();
             label1 = new Label();
             groupBox2 = new GroupBox();
             btnCallAsync = new Button();
-            textBox2 = new TextBox();
+            txtArgument = new TextBox();
             label3 = new Label();
             btnCall = new Button();
             cbApi = new ComboBox();
             label2 = new Label();
             groupBox3 = new GroupBox();
             richTextBox1 = new RichTextBox();
-            btnDownloadPlugin = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -64,6 +64,17 @@
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "数据库连接";
+            // 
+            // btnDownloadPlugin
+            // 
+            btnDownloadPlugin.Location = new Point(766, 19);
+            btnDownloadPlugin.Margin = new Padding(3, 2, 3, 2);
+            btnDownloadPlugin.Name = "btnDownloadPlugin";
+            btnDownloadPlugin.Size = new Size(106, 45);
+            btnDownloadPlugin.TabIndex = 5;
+            btnDownloadPlugin.Text = "插件下载";
+            btnDownloadPlugin.UseVisualStyleBackColor = true;
+            btnDownloadPlugin.Click += btnDownloadPlugin_Click;
             // 
             // btnOpenAsync
             // 
@@ -108,7 +119,7 @@
             // 
             groupBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             groupBox2.Controls.Add(btnCallAsync);
-            groupBox2.Controls.Add(textBox2);
+            groupBox2.Controls.Add(txtArgument);
             groupBox2.Controls.Add(label3);
             groupBox2.Controls.Add(btnCall);
             groupBox2.Controls.Add(cbApi);
@@ -133,12 +144,12 @@
             btnCallAsync.UseVisualStyleBackColor = true;
             btnCallAsync.Click += btnCallAsync_Click;
             // 
-            // textBox2
+            // txtArgument
             // 
-            textBox2.Location = new Point(96, 79);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(346, 26);
-            textBox2.TabIndex = 4;
+            txtArgument.Location = new Point(96, 79);
+            txtArgument.Name = "txtArgument";
+            txtArgument.Size = new Size(346, 26);
+            txtArgument.TabIndex = 4;
             // 
             // label3
             // 
@@ -199,17 +210,6 @@
             richTextBox1.TabIndex = 0;
             richTextBox1.Text = "";
             // 
-            // btnDownloadPlugin
-            // 
-            btnDownloadPlugin.Location = new Point(766, 19);
-            btnDownloadPlugin.Margin = new Padding(3, 2, 3, 2);
-            btnDownloadPlugin.Name = "btnDownloadPlugin";
-            btnDownloadPlugin.Size = new Size(106, 45);
-            btnDownloadPlugin.TabIndex = 5;
-            btnDownloadPlugin.Text = "插件下载";
-            btnDownloadPlugin.UseVisualStyleBackColor = true;
-            btnDownloadPlugin.Click += btnDownloadPlugin_Click;
-            // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(10F, 20F);
@@ -243,7 +243,7 @@
         private Button btnCall;
         private ComboBox cbApi;
         private Label label2;
-        private TextBox textBox2;
+        private TextBox txtArgument;
         private Label label3;
         private Button btnOpenAsync;
         private Button btnCallAsync;

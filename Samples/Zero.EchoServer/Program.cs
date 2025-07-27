@@ -42,6 +42,6 @@ star?.Service?.Register("EchoServer", () => $"tcp://*:{server.Port},udp://*:{ser
 
 // 阻塞，等待友好退出
 var host = services.BuildHost();
-(host as Host).MaxTime = 5_000;
+//(host as Host).MaxTime = 5_000;
 await host.RunAsync();
 server.Stop("stop");

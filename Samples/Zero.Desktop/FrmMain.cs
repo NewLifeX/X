@@ -3,6 +3,7 @@ using NewLife;
 using NewLife.Log;
 using NewLife.Reflection;
 using NewLife.Remoting;
+using NewLife.Serialization;
 using NewLife.Threading;
 using NewLife.Web;
 
@@ -129,13 +130,15 @@ public partial class FrmMain : Form
     private void btnCall_Click(object sender, EventArgs e)
     {
         var act = cbApi.Text.Substring(" ", "(");
-        var rs = _client.Invoke<String>(act, null);
+        var args = txtArgument.Text.Trim().DecodeJson();
+        var rs = _client.Invoke<String>(act, args);
     }
 
     private async void btnCallAsync_Click(object sender, EventArgs e)
     {
         var act = cbApi.Text.Substring(" ", "(");
-        var rs = await _client.InvokeAsync<String>(act, null);
+        var args = txtArgument.Text.Trim().DecodeJson();
+        var rs = await _client.InvokeAsync<String>(act, args);
     }
 
     private void btnDownloadPlugin_Click(object sender, EventArgs e)
