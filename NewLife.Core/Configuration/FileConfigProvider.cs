@@ -130,15 +130,22 @@ public abstract class FileConfigProvider : ConfigProvider
 
         if (str != null && str != old)
         {
-            // 如果文件内容有变化，输出差异
-            var i = 0;
-            while (i < str.Length && i < old.Length && str[i] == old[i]) i++;
+            if (old.IsNullOrEmpty())
+                XTrace.WriteLine("新建配置：{0}", fileName);
+            else
+            {
+                // 如果文件内容有变化，输出差异
+                var i = 0;
+                while (i < str.Length && i < old.Length && str[i] == old[i]) i++;
 
-            var s = i > 16 ? i - 16 : 0;
-            var e = i + 16 < str.Length ? i + 16 : str.Length;
-            var diff = str.Substring(s, e - s).Replace("\r", "\\r").Replace("\n", "\\n");
+                var s = i > 16 ? i - 16 : 0;
+                var e = i + 32 < old.Length ? i + 32 : old.Length;
+                var ori = old.Substring(s, e - s).Replace("\r", "\\r").Replace("\n", "\\n");
+                var e2 = i + 32 < str.Length ? i + 32 : str.Length;
+                var diff = str.Substring(s, e2 - s).Replace("\r", "\\r").Replace("\n", "\\n");
 
-            XTrace.WriteLine("保存配置：{0}，差异：\"...{1}...\"", fileName, diff);
+                XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
+            }
 
             File.WriteAllText(fileName, str);
         }
