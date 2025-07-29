@@ -691,13 +691,17 @@ public class MachineInfo : IExtend
             if (dic.TryGetValue("MemTotal", out var str) && !str.IsNullOrEmpty())
                 Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
 
-            if (dic.TryGetValue("MemAvailable", out str) && !str.IsNullOrEmpty())
-                AvailableMemory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
-            else if (dic.TryGetValue("MemFree", out str) && !str.IsNullOrEmpty())
-                AvailableMemory =
-                    (UInt64)(str.TrimEnd(" kB").ToInt() +
-                    dic["Buffers"]?.TrimEnd(" kB").ToInt() ?? 0 +
-                    dic["Cached"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
+            // MemAvailable是系统内核预测的可用内存，过低则认为不能安全分配给新进程，可能过于悲观；
+            // MemFree是完全空闲的内存，未被使用的物理内存页，但内核不敢用；
+            var ma = (UInt64)(dic["MemAvailable"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
+            var mf = (UInt64)(dic["MemFree"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
+            var mc = (UInt64)(dic["Cached"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
+
+            // 空闲内存 100% 可用，缓存内存 40% 可快速回收（保守估计）
+            mf += (UInt64)(mc * 0.4);
+            if (mf > 5ul * 1024 * 1024 * 1024) mf = 5ul * 1024 * 1024 * 1024;
+
+            AvailableMemory = ma > mf ? ma : mf;
         }
 
         // A2/A4温度获取，Buildroot，CPU温度和主板温度
