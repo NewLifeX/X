@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Globalization;
+using System.IO.Compression;
 using System.Text;
 using System.Xml.Linq;
 
@@ -206,6 +207,49 @@ public class ExcelReader : DisposeBase
                 val = TimeSpan.FromSeconds(Math.Round(str.ToDouble() * 24 * 3600));
             }
         }
+        // 自动处理0/General
+        else if (st.NumFmtId == 0)
+        {
+            if (val is String str)
+            {
+                if (Int32.TryParse(str, out var n)) return n;
+                if (Int64.TryParse(str, out var m)) return m;
+                if (Decimal.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) return d;
+                if (Double.TryParse(str, out var d2)) return d2;
+            }
+        }
+        else if (st.NumFmtId is 1 or 3 or 37 or 38)
+        {
+            if (val is String str)
+            {
+                if (Int32.TryParse(str, out var n)) return n;
+                if (Int64.TryParse(str, out var m)) return m;
+            }
+        }
+        else if (st.NumFmtId is 2 or 4 or 11 or 39 or 40)
+        {
+            if (val is String str)
+            {
+                if (Decimal.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) return d;
+                if (Double.TryParse(str, out var d2)) return d2;
+            }
+        }
+        else if (st.NumFmtId is 9 or 10)
+        {
+            if (val is String str)
+            {
+                if (Double.TryParse(str, out var d2)) return d2;
+            }
+        }
+        // 文本Text
+        else if (st.NumFmtId == 49)
+        {
+            if (val is String str)
+            {
+                if (Decimal.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) return d.ToString();
+                if (Double.TryParse(str, out var d2)) return d2.ToString();
+            }
+        }
 
         return val;
     }
@@ -242,14 +286,14 @@ public class ExcelReader : DisposeBase
             [11] = "0.00E+00",
             [12] = "# ?/?",
             [13] = "# ??/??",
-            [14] = "mm/dd/yy",
+            [14] = "mm-dd-yy",
             [15] = "d-mmm-yy",
             [16] = "d-mmm",
             [17] = "mmm-yy",
             [18] = "h:mm AM/PM",
             [19] = "h:mm:ss AM/PM",
             [20] = "h:mm",
-            [21] = "h:mm:dd",
+            [21] = "h:mm:ss",
             [22] = "m/d/yy h:mm",
             [37] = "#,##0 ;(#,##0)",
             [38] = "#,##0 ;[Red](#,##0)",
