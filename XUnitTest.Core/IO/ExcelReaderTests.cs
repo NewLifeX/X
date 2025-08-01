@@ -36,7 +36,7 @@ public class ExcelReaderTests
             else if (row1[i] is TimeSpan ts)
                 Assert.Equal(TimeSpan.Parse(values[i]), ts);
             else
-                Assert.Equal(values[i], row1[i]);
+                Assert.Equal(values[i], row1[i] + "");
         }
     }
 

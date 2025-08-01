@@ -7,7 +7,7 @@
     <Description>Core basic components: log (file / network), configuration (XML / JSON / HTTP), cache, network (TCP / UDP / HTTP /WebSocket), serialization (binary / XML / JSON), APM performance tracking. 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存、网络（Tcp/Udp/Http/WebSocket）、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2025 NewLife</Copyright>
-    <VersionPrefix>11.5</VersionPrefix>
+    <VersionPrefix>11.6</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>改进ChangeType；浮点数转换支持科学计数法</PackageReleaseNotes>
+    <PackageReleaseNotes>改进Host.Close让应用有序退出；增强DbTable的大数据文件读写能力，支持机器学场景；优化Binary二进制读写，支持压缩数据流；改进Linux内存采集；改进ExcelReader对常规数字的读取；</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
