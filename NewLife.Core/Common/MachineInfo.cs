@@ -95,6 +95,10 @@ public class MachineInfo : IExtend
     [DisplayName("可用内存")]
     public UInt64 AvailableMemory { get; set; }
 
+    /// <summary>空闲内存。在Linux上空闲内存不一定可用，单位Byte</summary>
+    [DisplayName("空闲内存")]
+    public UInt64 FreeMemory { get; set; }
+
     /// <summary>CPU占用率</summary>
     [DisplayName("CPU占用率")]
     public Double CpuRate { get; set; }
@@ -590,6 +594,7 @@ public class MachineInfo : IExtend
         {
             Memory = ms.ullTotalPhys;
             AvailableMemory = ms.ullAvailPhys;
+            FreeMemory = ms.ullAvailPhys;
         }
 
         GetSystemTimes(out var idleTime, out var kernelTime, out var userTime);
@@ -699,9 +704,10 @@ public class MachineInfo : IExtend
 
             // 空闲内存 100% 可用，缓存内存 40% 可快速回收（保守估计）
             mf += (UInt64)(mc * 0.4);
-            if (mf > 5ul * 1024 * 1024 * 1024) mf = 5ul * 1024 * 1024 * 1024;
+            //if (mf > 5ul * 1024 * 1024 * 1024) mf = 5ul * 1024 * 1024 * 1024;
 
-            AvailableMemory = ma > mf ? ma : mf;
+            AvailableMemory = ma;
+            FreeMemory = mf;
         }
 
         // A2/A4温度获取，Buildroot，CPU温度和主板温度
