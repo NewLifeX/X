@@ -203,10 +203,24 @@ public static class XTrace
 
     private static Boolean _useConsole;
 
+    /// <summary>使用控制台输出日志。如果是后台服务则只用文本日志不用控制台日志</summary>
+    public static void UseConsole()
+    {
+        if (Environment.UserInteractive)
+        {
+            UseConsole(true, true);
+        }
+        else
+        {
+            InitLog();
+            //UseConsole(true, true);
+        }
+    }
+
     /// <summary>使用控制台输出日志，只能调用一次</summary>
     /// <param name="useColor">是否使用颜色，默认使用</param>
     /// <param name="useFileLog">是否同时使用文件日志，默认使用</param>
-    public static void UseConsole(Boolean useColor = true, Boolean useFileLog = true)
+    public static void UseConsole(Boolean useColor, Boolean useFileLog = true)
     {
         if (_useConsole) return;
         _useConsole = true;
