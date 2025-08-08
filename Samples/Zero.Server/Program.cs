@@ -10,6 +10,7 @@ using Zero.TcpServer.Handlers;
 
 // 启用控制台日志，拦截所有异常
 XTrace.UseConsole();
+XTrace.WriteLine("Zero.Server");
 #if DEBUG
 TimerScheduler.Default.Log = XTrace.Log;
 #endif
