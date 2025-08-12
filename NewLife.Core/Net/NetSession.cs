@@ -61,7 +61,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <returns></returns>
     public virtual Object? this[String key] { get => Session[key]; set => Session[key] = value; }
 
-    /// <summary>服务提供者</summary>
+    /// <summary>会话级作用域服务提供者</summary>
     /// <remarks>
     /// 根据会话创建Scoped范围服务，以使得各服务解析在本会话中唯一。
     /// 基类使用内置ObjectContainer的Scope，在WebApi/Worker项目中，使用者需要自己创建Scope并赋值服务提供者。
@@ -361,7 +361,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         if (serviceType == typeof(ISocketSession)) return Session;
         if (serviceType == typeof(ISocketServer)) return Server;
 
-        return ServiceProvider!.GetService(serviceType)!;
+        return ServiceProvider?.GetService(serviceType)!;
     }
     #endregion
 }
