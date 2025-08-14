@@ -47,7 +47,8 @@ NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展�
 ### 基本规范
 - **基础类型**: 使用.Net类型名而不是C#关键字（如String而不是string，Int32而不是int，Boolean而不是bool）
 - **语法**: 使用最新版C#语法来简化代码，例如自动属性、模式匹配、表达式主体成员、record类型等
-- **命名**: 遵循Pascal命名法用于类型和公共成员，camelCase用于私有字段和参数
+- **命名**: 遵循Pascal命名法用于类型和公共成员，camelCase用于参数，camelCase加下划线前缀用于私有字段
+- **换行**: if语句后只有一行代码时不使用大括号，并且跟if在同一行；多行代码时使用大括号并另起一行
 
 ### 文档注释要求
 - 所有公开的类或成员都需要编写XML文档注释
@@ -74,13 +75,17 @@ public async Task<Boolean> SaveAsync(String? path = null)
 
 ### 错误处理
 - 使用具体的异常类型而不是通用Exception
+- 需要抛出带有错误码的异常时，优先使用ApiException，并优先考虑ApiCode枚举中符合需要的错误码
 - 在日志中记录异常信息，使用XTrace.WriteException
 - 对于性能敏感的代码，考虑使用try-parse模式而不是异常
+- 私有方法内部不需要捕获异常，也不需要校验输入参数
+- 修改代码时，不必增加try-catch，除非有明确的异常处理需求
 
 ### 性能优化原则
 - 使用对象池减少GC压力
 - 优先使用Span<T>和Memory<T>处理大数据
 - 避免不必要的字符串拼接，使用StringBuilder或字符串插值
+- 频繁创建StringBuiler或MemoryStream时，使用对象池Pool中的StringBuilder和MemoryStream池
 - 合理使用缓存避免重复计算
 
 ## 测试规范
@@ -118,7 +123,7 @@ public async Task<Boolean> SaveAsync(String? path = null)
 - 网络操作考虑并发性能
 
 ### 日志和诊断
-- 使用ILog接口进行日志记录
-- 支持APM性能追踪
+- 使用ILog接口进行日志记录，重要功能类（带有Start/Open等方法如xxxServer）增加Log属性和WriteLog方法
+- 支持APM性能追踪，重要功能类（带有Start/Open等方法如xxxServer）增加Trace属性
 - 提供详细的错误信息用于问题诊断
 - 考虑不同日志级别的性能影响

@@ -29,9 +29,11 @@ namespace NewLife;
 public interface IMachineInfo
 {
     /// <summary>初始化静态数据</summary>
+    /// <param name="info">机器信息实例</param>
     void Init(MachineInfo info);
 
     /// <summary>刷新动态数据</summary>
+    /// <param name="info">机器信息实例</param>
     void Refresh(MachineInfo info);
 }
 
@@ -123,8 +125,8 @@ public class MachineInfo : IExtend
     IDictionary<String, Object?> IExtend.Items => _items;
 
     /// <summary>获取 或 设置 扩展属性数据</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">属性键名</param>
+    /// <returns>属性值</returns>
     public Object? this[String key] { get => _items.TryGetValue(key, out var obj) ? obj : null; set => _items[key] = value; }
     #endregion
 
@@ -139,7 +141,7 @@ public class MachineInfo : IExtend
 
     private static Task<MachineInfo>? _task;
     /// <summary>异步注册一个初始化后的机器信息实例</summary>
-    /// <returns></returns>
+    /// <returns>初始化后的机器信息实例</returns>
     public static Task<MachineInfo> RegisterAsync()
     {
         if (_task != null) return _task;
@@ -200,11 +202,11 @@ public class MachineInfo : IExtend
     }
 
     /// <summary>获取当前信息，如果未设置则等待异步注册结果</summary>
-    /// <returns></returns>
+    /// <returns>当前机器信息实例</returns>
     public static MachineInfo GetCurrent() => Current ?? RegisterAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
     /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
-    /// <returns></returns>
+    /// <returns>机器信息实例</returns>
     public static MachineInfo? Resolve() => ObjectContainer.Current.Resolve<MachineInfo>();
     #endregion
 
@@ -827,7 +829,7 @@ public class MachineInfo : IExtend
 
     #region 辅助
     /// <summary>获取Linux发行版名称</summary>
-    /// <returns></returns>
+    /// <returns>Linux发行版名称</returns>
     public static String? GetLinuxName()
     {
         var fr = "/etc/redhat-release";
@@ -890,9 +892,9 @@ public class MachineInfo : IExtend
     }
 
     /// <summary>读取文件信息，分割为字典</summary>
-    /// <param name="file"></param>
-    /// <param name="separate"></param>
-    /// <returns></returns>
+    /// <param name="file">文件路径</param>
+    /// <param name="separate">分隔符</param>
+    /// <returns>解析后的字典</returns>
     public static IDictionary<String, String?>? ReadInfo(String file, Char separate = ':')
     {
         if (file.IsNullOrEmpty() || !File.Exists(file)) return null;
@@ -928,9 +930,9 @@ public class MachineInfo : IExtend
         return str.SplitAsDictionary(":", "\n", true);
     }
 
-    /// <summary>
-    /// 通过 PowerShell 命令读取信息
-    /// </summary>
+    /// <summary>通过 PowerShell 命令读取信息</summary>
+    /// <param name="command">PowerShell命令</param>
+    /// <returns>解析后的字典</returns>
     public static IDictionary<String, String> ReadPowerShell(String command)
     {
         var dic = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
@@ -948,9 +950,9 @@ public class MachineInfo : IExtend
     }
 
     /// <summary>通过WMIC命令读取信息</summary>
-    /// <param name="type"></param>
-    /// <param name="keys"></param>
-    /// <returns></returns>
+    /// <param name="type">WMI类型</param>
+    /// <param name="keys">查询字段</param>
+    /// <returns>解析后的字典</returns>
     public static IDictionary<String, String> ReadWmic(String type, params String[] keys)
     {
         var dic = new Dictionary<String, IList<String>>(StringComparer.OrdinalIgnoreCase);
@@ -987,10 +989,8 @@ public class MachineInfo : IExtend
         return dic2;
     }
 
-    /// <summary>
-    /// 获取设备信息。用于Xamarin
-    /// </summary>
-    /// <returns></returns>
+    /// <summary>获取设备信息。用于Xamarin</summary>
+    /// <returns>设备信息字典</returns>
     public static IDictionary<String, String?> ReadDeviceInfo()
     {
         var dic = new Dictionary<String, String?>();
@@ -1040,10 +1040,8 @@ public class MachineInfo : IExtend
         return dic;
     }
 
-    /// <summary>
-    /// 获取设备电量。用于 Xamarin
-    /// </summary>
-    /// <returns></returns>
+    /// <summary>获取设备电量。用于 Xamarin</summary>
+    /// <returns>设备电量信息字典</returns>
     public static IDictionary<String, Object?> ReadDeviceBattery()
     {
         var dic = new Dictionary<String, Object?>();
@@ -1097,7 +1095,7 @@ public class MachineInfo : IExtend
 
     #region 磁盘
     /// <summary>获取指定目录所在盘可用空间，默认当前目录</summary>
-    /// <param name="path"></param>
+    /// <param name="path">目录路径</param>
     /// <returns>返回可用空间，字节，获取失败返回-1</returns>
     public static Int64 GetFreeSpace(String? path = null)
     {
@@ -1119,9 +1117,9 @@ public class MachineInfo : IExtend
     }
 
     /// <summary>获取指定目录下文件名，支持去掉后缀的去重，主要用于Linux</summary>
-    /// <param name="path"></param>
-    /// <param name="trimSuffix"></param>
-    /// <returns></returns>
+    /// <param name="path">目录路径</param>
+    /// <param name="trimSuffix">是否去掉后缀进行去重</param>
+    /// <returns>文件名集合</returns>
     public static ICollection<String> GetFiles(String path, Boolean trimSuffix = false)
     {
         var list = new List<String>();
@@ -1180,10 +1178,10 @@ public class MachineInfo : IExtend
 
 #if NETFRAMEWORK
     /// <summary>获取WMI信息</summary>
-    /// <param name="path"></param>
-    /// <param name="property"></param>
-    /// <param name="nameSpace"></param>
-    /// <returns></returns>
+    /// <param name="path">WMI路径</param>
+    /// <param name="property">属性名</param>
+    /// <param name="nameSpace">命名空间</param>
+    /// <returns>查询结果</returns>
     public static String GetInfo(String path, String property, String? nameSpace = null)
     {
         // Linux Mono不支持WMI
