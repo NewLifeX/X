@@ -144,18 +144,17 @@ dotnet run
 
 
 
-## 新生命开发团队
-![XCode](https://newlifex.com/logo.png)  
+---
+# 新生命开发团队
+![XCode](https://newlifex.com/logo.png)
 
-新生命团队（NewLife）成立于2002年，是新时代物联网行业解决方案提供者，致力于提供软硬件应用方案咨询、系统架构规划与开发服务。  
-团队主导的80多个开源项目已被广泛应用于各行业，Nuget累计下载量高达400余万次。  
-团队开发的大数据中间件NewLife.XCode、蚂蚁调度计算平台AntJob、星尘分布式平台Stardust、缓存队列组件NewLife.Redis以及物联网平台FIoT，均成功应用于电力、高校、互联网、电信、交通、物流、工控、医疗、文博等行业，为客户提供了大量先进、可靠、安全、高质量、易扩展的产品和系统集成服务。  
+新生命团队（NewLife）成立于2002年，是新时代物联网行业解决方案提供者，致力于提供软硬件应用方案咨询、系统架构规划与开发服务。NuGet 累计下载 413万+。团队核心组件（XCode / Redis / Stardust / AntJob / IoT 等）已在电力、工业、交通、环保、医疗、文博等行业大规模应用。
 
-我们将不断通过服务的持续改进，成为客户长期信赖的合作伙伴，通过不断的创新和发展，成为国内优秀的IoT服务供应商。  
+我们持续改进，力求成为值得长期信赖的 .NET / IoT / 分布式技术伙伴。
 
-`新生命团队始于2002年，部分开源项目具有20年以上漫长历史，源码库保留有2010年以来所有修改记录`  
-网站：https://newlifex.com  
-开源：https://github.com/newlifex  
-QQ群：1600800/1600838  
+网站：https://newlifex.com   开源组织：https://github.com/NewLifeX  
 微信公众号：  
-![智能大石头](https://newlifex.com/stone.jpg)  
+![智能大石头](https://newlifex.com/stone.jpg)
+
+---
+> 如果本项目对你有帮助，欢迎 Star、分享给团队，或通过 Issue/PR 反馈改进建议。
