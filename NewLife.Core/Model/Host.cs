@@ -57,6 +57,9 @@ public static class HostedServiceExtensions
 /// </remarks>
 public interface IHost
 {
+    /// <summary>服务提供者</summary>
+    IServiceProvider Services { get; }
+
     /// <summary>添加服务</summary>
     /// <param name="service"></param>
     void Add(IHostedService service);
@@ -64,6 +67,16 @@ public interface IHost
     /// <summary>添加服务</summary>
     /// <typeparam name="TService"></typeparam>
     void Add<TService>() where TService : class, IHostedService;
+
+    /// <summary>开始</summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task StartAsync(CancellationToken cancellationToken);
+
+    /// <summary>停止</summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task StopAsync(CancellationToken cancellationToken);
 
     /// <summary>同步运行，大循环阻塞</summary>
     void Run();
@@ -79,17 +92,19 @@ public interface IHost
 
 /// <summary>轻量级应用主机</summary>
 /// <remarks>
+/// 通过指定服务提供者来实例化一个应用主机
 /// 文档 https://newlifex.com/core/host
 /// 销毁主机时，会触发所有服务的停止事件
 /// </remarks>
-public class Host : DisposeBase, IHost
+/// <param name="serviceProvider"></param>
+public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
 {
     #region 属性
     /// <summary>服务提供者</summary>
-    public IServiceProvider ServiceProvider { get; set; }
+    public IServiceProvider Services { get; } = serviceProvider;
 
     /// <summary>服务集合</summary>
-    public IList<IHostedService> Services { get; } = [];
+    public IList<IHostedService> HostedServices { get; } = [];
 
     /// <summary>最大执行时间。单位毫秒，默认-1表示永久阻塞，等待外部ControlC/SIGINT信号</summary>
     public Int32 MaxTime { get; set; } = -1;
@@ -110,10 +125,6 @@ public class Host : DisposeBase, IHost
 #endif
     }
 
-    /// <summary>通过制定服务提供者来实例化一个应用主机</summary>
-    /// <param name="serviceProvider"></param>
-    public Host(IServiceProvider serviceProvider) => ServiceProvider = serviceProvider;
-
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
     protected override void Dispose(Boolean disposing)
@@ -130,14 +141,14 @@ public class Host : DisposeBase, IHost
     public void Add<TService>() where TService : class, IHostedService
     {
         // 把服务类型注册到容器中，以便后续获取
-        var ioc = (ServiceProvider as ServiceProvider)?.Container ?? ObjectContainer.Current;
+        var ioc = (Services as ServiceProvider)?.Container ?? ObjectContainer.Current;
         //ioc.TryAddTransient(type, type);
         ioc.AddHostedService<TService>();
     }
 
     /// <summary>添加服务</summary>
     /// <param name="service"></param>
-    public void Add(IHostedService service) => Services.Add(service);
+    public void Add(IHostedService service) => HostedServices.Add(service);
     #endregion
 
     #region 开始停止
@@ -148,14 +159,14 @@ public class Host : DisposeBase, IHost
     {
         // 从容器中获取所有服务。此时服务是倒序，需要反转
         var svcs = new List<IHostedService>();
-        foreach (var item in ServiceProvider.GetServices<IHostedService>())
+        foreach (var item in Services.GetServices<IHostedService>())
         {
             svcs.Add(item);
         }
         svcs.Reverse();
         foreach (var item in svcs)
         {
-            Services.Add(item);
+            HostedServices.Add(item);
         }
 
         //// 从容器中获取所有服务
@@ -165,7 +176,7 @@ public class Host : DisposeBase, IHost
         //}
 
         // 开始所有服务，任意服务出错都导致启动失败
-        foreach (var item in Services)
+        foreach (var item in HostedServices)
         {
             await item.StartAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -176,7 +187,7 @@ public class Host : DisposeBase, IHost
     /// <returns></returns>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        foreach (var item in Services)
+        foreach (var item in HostedServices)
         {
             try
             {
