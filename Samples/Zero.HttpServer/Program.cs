@@ -69,6 +69,6 @@ _ = Task.Run(ClientTest.WebSocketClientTest);
 
 // 异步阻塞，友好退出
 var host = services.BuildHost();
-(host as Host).MaxTime = 10_000;
+(host as Host).MaxTime = 15_000;
 await host.RunAsync();
 server.Stop("stop");

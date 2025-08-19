@@ -68,6 +68,32 @@ public class TimerScheduler : IDisposable, ILogFeature
     /// <summary>销毁</summary>
     public void Dispose()
     {
+        if (_disposing) return;
+        _disposing = true;
+
+        WriteLog("正在销毁定时调度器：{0}", Name);
+
+        // 先设置退出标志，然后唤醒调度线程
+        Wake();
+
+        // 等待调度线程退出，最多等待5秒
+        var th = thread;
+        if (th != null && th.IsAlive)
+        {
+            if (!th.Join(5000))
+            {
+#if NETFRAMEWORK
+                try
+                {
+                    WriteLog("调度线程未能在5秒内退出，强制终止");
+                    // 在.NET Framework中可以使用Abort，但在现代.NET中已移除
+                    th.Abort();
+                }
+                catch { }
+#endif
+            }
+        }
+
         var ts = Timers?.ToList();
         if (ts != null && ts.Count > 0)
         {
@@ -77,6 +103,11 @@ public class TimerScheduler : IDisposable, ILogFeature
                 item.Dispose();
             }
         }
+
+        // 清理资源
+        _waitForTimer?.Dispose();
+        _waitForTimer = null;
+        thread = null;
     }
     #endregion
 
@@ -95,6 +126,7 @@ public class TimerScheduler : IDisposable, ILogFeature
 
     private Thread? thread;
     private Int32 _tid;
+    private volatile Boolean _disposing;
 
     private TimerX[] Timers = [];
     #endregion
@@ -104,6 +136,7 @@ public class TimerScheduler : IDisposable, ILogFeature
     public void Add(TimerX timer)
     {
         if (timer == null) throw new ArgumentNullException(nameof(timer));
+        if (_disposing) throw new ObjectDisposedException(nameof(TimerScheduler));
 
         using var span = DefaultTracer.Instance?.NewSpan("timer:Add", new { Name, timer = timer.ToString() });
 
@@ -180,7 +213,7 @@ public class TimerScheduler : IDisposable, ILogFeature
     private void Process(Object? state)
     {
         Current = this;
-        while (true)
+        while (!_disposing)
         {
             // 准备好定时器列表
             var arr = Timers;
@@ -205,6 +238,9 @@ public class TimerScheduler : IDisposable, ILogFeature
                 _period = 60_000;
                 foreach (var timer in arr)
                 {
+                    // 如果正在销毁，跳出循环
+                    if (_disposing) break;
+
                     if (!timer.Calling && CheckTime(timer, now))
                     {
                         // 必须在主线程设置状态，否则可能异步线程还没来得及设置开始状态，主线程又开始了新的一轮调度
@@ -234,9 +270,14 @@ public class TimerScheduler : IDisposable, ILogFeature
             catch (ThreadInterruptedException) { break; }
             catch { }
 
+            // 如果正在销毁，立即退出
+            if (_disposing) break;
+
             _waitForTimer ??= new AutoResetEvent(false);
             if (_period > 0) _waitForTimer.WaitOne(_period, true);
         }
+
+        WriteLog("调度线程已退出：{0}", Name);
     }
 
     /// <summary>检查定时器是否到期</summary>
