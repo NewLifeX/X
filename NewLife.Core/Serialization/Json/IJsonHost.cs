@@ -354,6 +354,11 @@ public class SystemJson : IJsonHost
 #if NET6_0_OR_GREATER
         if (jsonOptions.IgnoreCycles)
             opt.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        if (jsonOptions.Int64AsString)
+        {
+            opt.Converters.Add(new SafeInt64Converter());
+            opt.Converters.Add(new SafeUInt64Converter());
+        }
 #endif
 
         return JsonSerializer.Serialize(value, opt);

@@ -20,4 +20,7 @@ public class JsonOptions
 
     /// <summary>枚举使用字符串。默认false使用数字</summary>
     public Boolean EnumString { get; set; }
+
+    /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，只有值真的超过前端接受范围时才会进行转换，默认false</summary>
+    public Boolean Int64AsString { get; set; }
 }
