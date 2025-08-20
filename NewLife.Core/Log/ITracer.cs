@@ -104,7 +104,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         IgnoreNullValues = false,
         IgnoreCycles = true,
         WriteIndented = false,
-        FullTime = false,
+        FullTime = true,
         EnumString = true,
     };
 
@@ -201,7 +201,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
         }
     }
 
-    private static Char[] _seps = ['?', '#', '&'];
+    private static readonly Char[] _seps = ['?', '#', '&'];
     /// <summary>建立Span构建器</summary>
     /// <param name="name"></param>
     /// <returns></returns>
@@ -351,9 +351,9 @@ public static class TracerExtension
     {
         handler ??= HttpHelper.CreateHandler(false, false);
 
-        var client = tracer == null ?
-            new HttpClient(handler) :
-            new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
+        var client = tracer == null
+            ? new HttpClient(handler)
+            : new HttpClient(new HttpTraceHandler(handler) { Tracer = tracer });
 
         //// 默认UserAgent
         //client.SetUserAgent();

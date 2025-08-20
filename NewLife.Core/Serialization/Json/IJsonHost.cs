@@ -228,7 +228,12 @@ public class FastJson : IJsonHost
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
     /// <summary>配置项</summary>
-    public JsonOptions Options { get; set; } = new JsonOptions { CamelCase = false, IgnoreNullValues = false, WriteIndented = false };
+    public JsonOptions Options { get; set; } = new JsonOptions
+    {
+        CamelCase = false,
+        IgnoreNullValues = false,
+        WriteIndented = false
+    };
 
     #region IJsonHost 成员
     /// <summary>写入对象，得到Json字符串</summary>
@@ -277,7 +282,12 @@ public class SystemJson : IJsonHost
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
     /// <summary>配置项</summary>
-    public JsonOptions Options { get; set; } = new JsonOptions { CamelCase = false, IgnoreNullValues = false, WriteIndented = false };
+    public JsonOptions Options { get; set; } = new JsonOptions
+    {
+        CamelCase = false,
+        IgnoreNullValues = false,
+        WriteIndented = false
+    };
 
     #region 静态
     /// <summary>获取序列化配置项</summary>

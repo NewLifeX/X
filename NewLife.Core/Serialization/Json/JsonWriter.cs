@@ -55,6 +55,7 @@ public class JsonWriter
     //public Boolean SmartIndented { get; set; }
 
     /// <summary>长整型作为字符串序列化。避免长整型传输给前端时精度丢失，只有值真的超过前端接受范围时才会进行转换，默认false</summary>
+    [Obsolete("=>Options")]
     public Boolean Int64AsString { get => Options.Int64AsString; set => Options.Int64AsString = value; }
 
     ///// <summary>整数序列化为十六进制</summary>
@@ -140,10 +141,10 @@ public class JsonWriter
         else if (obj is Boolean)
             _Builder.Append((obj + "").ToLower());
 
-        else if ((obj is Int64 vInt64) && Int64AsString && (vInt64 > 9007199254740991 || vInt64 < -9007199254740991))
+        else if ((obj is Int64 vInt64) && Options.Int64AsString && (vInt64 > 9007199254740991 || vInt64 < -9007199254740991))
             WriteStringFast(obj + "");
 
-        else if ((obj is UInt64 vUInt64) && Int64AsString && vUInt64 > 9007199254740991)
+        else if ((obj is UInt64 vUInt64) && Options.Int64AsString && vUInt64 > 9007199254740991)
             WriteStringFast(obj + "");
 
         else if (
@@ -349,11 +350,7 @@ public class JsonWriter
                 String? comment = null;
                 if (!IgnoreComment && Options.WriteIndented) comment = pi.GetDisplayName() ?? pi.GetDescription();
 
-                if (!hs.Contains(name))
-                {
-                    hs.Add(name);
-                    WriteMember(name, value, comment, ref first);
-                }
+                if (hs.Add(name)) WriteMember(name, value, comment, ref first);
             }
         }
 
@@ -365,11 +362,7 @@ public class JsonWriter
             foreach (var item in dic)
             {
                 var name = FormatName(item.Key);
-                if (!hs.Contains(name))
-                {
-                    hs.Add(name);
-                    WriteMember(name, item.Value, null, ref first);
-                }
+                if (hs.Add(name)) WriteMember(name, item.Value, null, ref first);
             }
         }
         //else if (obj is IExtend2 ext2 && ext2.Keys != null)
