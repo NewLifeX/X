@@ -20,6 +20,9 @@ public interface IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     IServiceProvider ServiceProvider { get; set; }
 
+    /// <summary>配置项</summary>
+    JsonOptions Options { get; set; }
+
     /// <summary>写入对象，得到Json字符串</summary>
     /// <param name="value"></param>
     /// <param name="indented">是否缩进。默认false</param>
@@ -224,6 +227,9 @@ public class FastJson : IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
+    /// <summary>配置项</summary>
+    public JsonOptions Options { get; set; } = new JsonOptions { CamelCase = false, IgnoreNullValues = false, WriteIndented = false };
+
     #region IJsonHost 成员
     /// <summary>写入对象，得到Json字符串</summary>
     /// <param name="value"></param>
@@ -237,7 +243,7 @@ public class FastJson : IJsonHost
     /// <param name="value"></param>
     /// <param name="jsonOptions">序列化选项</param>
     /// <returns></returns>
-    public String Write(Object value, JsonOptions jsonOptions) => JsonWriter.ToJson(value, jsonOptions);
+    public String Write(Object value, JsonOptions jsonOptions) => JsonWriter.ToJson(value, jsonOptions ?? Options);
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
@@ -270,6 +276,9 @@ public class SystemJson : IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
+    /// <summary>配置项</summary>
+    public JsonOptions Options { get; set; } = new JsonOptions { CamelCase = false, IgnoreNullValues = false, WriteIndented = false };
+
     #region 静态
     /// <summary>获取序列化配置项</summary>
     /// <returns></returns>
@@ -295,7 +304,7 @@ public class SystemJson : IJsonHost
 
     #region 属性
     /// <summary>配置项</summary>
-    public JsonSerializerOptions Options { get; set; }
+    public JsonSerializerOptions SerializerOptions { get; set; }
     #endregion
 
     #region 构造
@@ -312,7 +321,7 @@ public class SystemJson : IJsonHost
             }
         };
 #endif
-        Options = opt;
+        SerializerOptions = opt;
     }
     #endregion
 
@@ -325,7 +334,7 @@ public class SystemJson : IJsonHost
     /// <returns></returns>
     public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
     {
-        var opt = new JsonSerializerOptions(Options)
+        var opt = new JsonSerializerOptions(SerializerOptions)
         {
             WriteIndented = indented
         };
@@ -341,7 +350,8 @@ public class SystemJson : IJsonHost
     /// <returns></returns>
     public String Write(Object value, JsonOptions jsonOptions)
     {
-        var opt = new JsonSerializerOptions(Options)
+        jsonOptions ??= Options;
+        var opt = new JsonSerializerOptions(SerializerOptions)
         {
             WriteIndented = jsonOptions.WriteIndented,
         };
@@ -370,7 +380,7 @@ public class SystemJson : IJsonHost
     /// <returns></returns>
     public Object? Read(String json, Type type)
     {
-        var opt = Options;
+        var opt = SerializerOptions;
 #if NET7_0_OR_GREATER
         //opt.TypeInfoResolver = new DataMemberResolver { Modifiers = { OnModifierType } };
 #endif
