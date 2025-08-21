@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Model;
 using NewLife.Serialization;
@@ -32,14 +33,13 @@ public class MachineInfoTests
     }
 
     [Fact]
-    public void RegisterTest()
+    public async Task RegisterTest()
     {
         //MachineInfo.Current = null;
-        var task = MachineInfo.RegisterAsync();
-        var mi = task.Result;
+        var mi = await MachineInfo.RegisterAsync();
         Assert.Equal(mi, MachineInfo.Current);
 
-        var mi2 = ObjectContainer.Current.Resolve<MachineInfo>();
+        var mi2 = ObjectContainer.Current.GetService<MachineInfo>();
         Assert.Equal(mi, mi2);
 
         var file = Path.GetTempPath().CombinePath("machine_info.json").GetFullPath();

@@ -101,6 +101,22 @@ public class ObjectContainer : IObjectContainer
     #region 解析
     /// <summary>在指定容器中解析类型的实例</summary>
     /// <param name="serviceType">接口类型</param>
+    /// <returns></returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public virtual Object? GetService(Type serviceType)
+    {
+        if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
+
+        // 优先查找最后一个，避免重复注册
+        //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
+        var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
+        if (item == null) return null;
+
+        return Resolve(item, null);
+    }
+
+    /// <summary>在指定容器中解析类型的实例</summary>
+    /// <param name="serviceType">接口类型</param>
     /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
@@ -145,7 +161,7 @@ public class ObjectContainer : IObjectContainer
         }
     }
 
-    private static IDictionary<TypeCode, Object?>? _defs;
+    private static Dictionary<TypeCode, Object?>? _defs;
     internal static Object? CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory, Boolean throwOnError)
     {
         if (factory != null) return factory(provider);
@@ -301,7 +317,8 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
         if (serviceType == typeof(ObjectContainer)) return _container;
         if (serviceType == typeof(IServiceProvider)) return this;
 
-        if (_container is ObjectContainer ioc && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
+        var ioc = _container as ObjectContainer;
+        if (ioc != null && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
         {
             //oc.AddSingleton<IServiceScopeFactory>(new MyServiceScopeFactory { ServiceProvider = this });
             ioc.TryAdd(new ServiceDescriptor(typeof(IServiceScopeFactory))
@@ -311,7 +328,7 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
             });
         }
 
-        var service = _container.Resolve(serviceType, this);
+        var service = ioc?.Resolve(serviceType, this);
         if (service != null) return service;
 
         return InnerServiceProvider?.GetService(serviceType);

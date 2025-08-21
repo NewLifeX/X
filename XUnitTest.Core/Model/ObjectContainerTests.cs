@@ -50,13 +50,13 @@ public class ObjectContainerTests
     }
 
     [Fact]
-    public void Resolve()
+    public void GetService()
     {
         var ioc = new ObjectContainer();
         ioc.Register(typeof(MemoryCache), null, null);
         ioc.Register(typeof(ICache), typeof(MemoryCache), null);
 
-        var mc = ioc.Resolve(typeof(MemoryCache));
+        var mc = ioc.GetService(typeof(MemoryCache));
         Assert.NotNull(mc);
 
         //var rds = ioc.Resolve(typeof(Redis));
@@ -64,7 +64,7 @@ public class ObjectContainerTests
         //var rds2 = ioc.Resolve(typeof(Redis));
         //Assert.NotEqual(rds, rds2);
 
-        var cache = ioc.Resolve(typeof(ICache));
+        var cache = ioc.GetService(typeof(ICache));
         Assert.NotNull(cache);
     }
 
@@ -95,10 +95,10 @@ public class ObjectContainerTests
 
         ioc.AddSingleton<ICache, MemoryCache>();
         Assert.Equal(1, ioc.Count);
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         ioc.AddSingleton<ICache>(p => new MemoryCache());
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         Assert.Equal(2, services.Count);
         Assert.Equal(ObjectLifetime.Singleton, services[0].Lifetime);
@@ -125,10 +125,10 @@ public class ObjectContainerTests
 
         ioc.AddScoped<ICache, MemoryCache>();
         Assert.Equal(1, ioc.Count);
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         ioc.AddScoped<ICache>(p => new MemoryCache());
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         Assert.Equal(2, services.Count);
         Assert.Equal(ObjectLifetime.Scoped, services[0].Lifetime);
@@ -193,10 +193,10 @@ public class ObjectContainerTests
 
         ioc.AddTransient<ICache, MemoryCache>();
         Assert.Equal(1, ioc.Count);
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         ioc.AddTransient<ICache>(p => new MemoryCache());
-        Assert.True(ioc.Resolve<ICache>() is MemoryCache);
+        Assert.True(ioc.GetService<ICache>() is MemoryCache);
 
         Assert.Equal(2, services.Count);
         Assert.Equal(ObjectLifetime.Transient, services[0].Lifetime);
@@ -239,7 +239,7 @@ public class ObjectContainerTests
             ioc.AddSingleton<ICache, MemoryCache>();
             ioc.AddTransient<MyService>();
 
-            var svc = ioc.Resolve<MyService>();
+            var svc = ioc.GetService<MyService>();
             Assert.Equal(1, svc.Kind);
         }
 
@@ -248,7 +248,7 @@ public class ObjectContainerTests
             ioc.AddSingleton<MemoryCache>();
             ioc.AddTransient<MyService>();
 
-            var svc = ioc.Resolve<MyService>();
+            var svc = ioc.GetService<MyService>();
             Assert.Equal(2, svc.Kind);
         }
 
@@ -257,7 +257,7 @@ public class ObjectContainerTests
             ioc.AddSingleton<ICache, MemoryCache>();
             ioc.AddTransient<MyService>();
 
-            var svc = ioc.Resolve<MyService>();
+            var svc = ioc.GetService<MyService>();
             Assert.Equal(1, svc.Kind);
         }
 
@@ -266,7 +266,7 @@ public class ObjectContainerTests
             ioc.AddSingleton<ICache, MemoryCache>();
             ioc.AddTransient<MyService>();
 
-            var svc = ioc.Resolve<MyService>();
+            var svc = ioc.GetService<MyService>();
             Assert.Equal(1, svc.Kind);
         }
 
@@ -276,7 +276,7 @@ public class ObjectContainerTests
             ioc.AddSingleton<ILog>(XTrace.Log);
             ioc.AddTransient<MyService>();
 
-            var svc = ioc.Resolve<MyService>();
+            var svc = ioc.GetService<MyService>();
             Assert.Equal(3, svc.Kind);
         }
     }

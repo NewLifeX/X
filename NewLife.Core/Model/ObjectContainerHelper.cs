@@ -374,14 +374,14 @@ public static class ObjectContainerHelper
     {
         if (container == null) throw new ArgumentNullException(nameof(container));
 
-        var provider = container.Resolve(typeof(IServiceProvider)) as IServiceProvider;
+        var provider = container.GetService<IServiceProvider>();
         if (provider != null) return provider;
 
         var provider2 = new ServiceProvider(container, innerServiceProvider);
 
         container.TryAddSingleton(provider2);
 
-        provider = container.Resolve(typeof(IServiceProvider)) as IServiceProvider;
+        provider = container.GetService<IServiceProvider>();
         if (provider != null) return provider;
 
         return provider2;
@@ -404,6 +404,12 @@ public static class ObjectContainerHelper
         var provider = container.BuildServiceProvider(innerServiceProvider);
         return provider.GetRequiredService<IHost>();
     }
+
+    /// <summary>获取指定类型的服务对象</summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <param name="container"></param>
+    /// <returns></returns>
+    public static TService? GetService<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
     #endregion
 
     #region 旧版方法
@@ -411,7 +417,8 @@ public static class ObjectContainerHelper
     /// <typeparam name="TService">接口类型</typeparam>
     /// <param name="container">对象容器</param>
     /// <returns></returns>
+    [Obsolete("=>GetService")]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static TService? Resolve<TService>(this IObjectContainer container) => (TService?)container.Resolve(typeof(TService));
+    public static TService? Resolve<TService>(this IObjectContainer container) => (TService?)container.GetService(typeof(TService));
     #endregion
 }

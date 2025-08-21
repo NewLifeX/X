@@ -30,10 +30,14 @@ public interface IObjectContainer
     #endregion
 
     #region 解析
+    /// <summary>解析类型的实例</summary>
+    Object? GetService(Type serviceType);
+
     /// <summary>在指定容器中解析类型的实例</summary>
     /// <param name="serviceType">接口类型</param>
     /// <param name="serviceProvider">容器</param>
     /// <returns></returns>
+    [Obsolete("=>GetService")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     Object? Resolve(Type serviceType, IServiceProvider? serviceProvider = null);
     #endregion

@@ -207,7 +207,7 @@ public class MachineInfo : IExtend
 
     /// <summary>从对象容器中获取一个已注册机器信息实例</summary>
     /// <returns>机器信息实例</returns>
-    public static MachineInfo? Resolve() => ObjectContainer.Current.Resolve<MachineInfo>();
+    public static MachineInfo? Resolve() => ObjectContainer.Current.GetService<MachineInfo>();
     #endregion
 
     #region 方法

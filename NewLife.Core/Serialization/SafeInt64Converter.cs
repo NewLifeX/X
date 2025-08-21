@@ -32,7 +32,7 @@ public sealed class SafeInt64Converter : JsonConverter<Int64>
     }
 }
 
-// <summary>安全的UInt64转换器</summary>
+/// <summary>安全的UInt64转换器</summary>
 public sealed class SafeUInt64Converter : JsonConverter<UInt64>
 {
     private const UInt64 JsSafeMax = 9_007_199_254_740_991;
