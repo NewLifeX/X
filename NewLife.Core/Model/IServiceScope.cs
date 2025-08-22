@@ -23,10 +23,11 @@ class MyServiceScope : IServiceScope, IServiceProvider
     public void Dispose()
     {
         // 销毁所有缓存
-        foreach (var item in _cache)
-        {
-            if (item.Value is IDisposable dsp) dsp.Dispose();
-        }
+        //foreach (var item in _cache)
+        //{
+        //    if (item.Value is IDisposable dsp) dsp.Dispose();
+        //}
+        _cache.Clear();
     }
 
     public Object? GetService(Type serviceType)

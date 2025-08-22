@@ -179,7 +179,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         //Server = null;
         //Session = null;
 
-        _scope.TryDispose();
+        _scope?.Dispose();
     }
 
     /// <summary>关闭跟客户端的网络连接</summary>
