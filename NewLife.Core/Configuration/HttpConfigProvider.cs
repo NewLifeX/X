@@ -82,7 +82,7 @@ public class HttpConfigProvider : ConfigProvider
     {
         base.Dispose(disposing);
 
-        _timer.TryDispose();
+        _timer?.Dispose();
         Client.TryDispose();
     }
 

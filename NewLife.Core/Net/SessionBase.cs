@@ -469,7 +469,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             se.SetBuffer(null, 0, 0);
         }
         catch { }
-        se.TryDispose();
+        se.Dispose();
     }
 
     /// <summary>当前进入线程递归数量，超过10就另外起线程</summary>

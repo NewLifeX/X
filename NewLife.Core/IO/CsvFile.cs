@@ -72,9 +72,9 @@ public class CsvFile : IDisposable
 
         if (!_leaveOpen && _stream != null)
         {
-            _reader.TryDispose();
+            _reader?.Dispose();
 
-            _writer.TryDispose();
+            _writer?.Dispose();
 
             _stream.Close();
         }
@@ -93,7 +93,7 @@ public class CsvFile : IDisposable
 
         if (!_leaveOpen && _stream != null)
         {
-            _reader.TryDispose();
+            _reader?.Dispose();
 
             if (_writer != null) await _writer.DisposeAsync().ConfigureAwait(false);
 

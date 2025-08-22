@@ -60,7 +60,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
         if (Active) Close(GetType().Name + (disposing ? "Dispose" : "GC"));
 
-        _Sessions.TryDispose();
+        _Sessions.Dispose();
     }
     #endregion
 
@@ -532,7 +532,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             {
                 WriteLog("准备释放会话{0}个！", sessions.Count);
                 sessions.CloseAll(nameof(CloseAllSession));
-                sessions.TryDispose();
+                sessions.Dispose();
                 sessions.Clear();
             }
         }

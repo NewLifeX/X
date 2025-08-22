@@ -54,7 +54,7 @@ public class MemoryCache : Cache
     {
         base.Dispose(disposing);
 
-        _clearTimer.TryDispose();
+        _clearTimer?.Dispose();
         _clearTimer = null;
     }
     #endregion
@@ -947,7 +947,7 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     {
         base.Dispose(disposing);
 
-        _occupiedNodes.TryDispose();
+        _occupiedNodes.Dispose();
     }
 
     /// <summary>生产添加</summary>

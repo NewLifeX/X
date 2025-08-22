@@ -46,8 +46,8 @@ public class NetworkLog : Logger, IDisposable
                 Thread.Sleep(500);
         }
 
-        _client.TryDispose();
-        _http.TryDispose();
+        _client?.Dispose();
+        _http?.Dispose();
     }
 
     private void Send(String value)

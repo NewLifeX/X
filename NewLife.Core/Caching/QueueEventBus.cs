@@ -17,7 +17,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     {
         base.Dispose(disposing);
 
-        _source?.TryDispose();
+        _source?.Dispose();
     }
 
     /// <summary>初始化</summary>

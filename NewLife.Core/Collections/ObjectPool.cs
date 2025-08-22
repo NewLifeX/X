@@ -67,7 +67,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     {
         base.Dispose(disposing);
 
-        _timer.TryDispose();
+        _timer?.Dispose();
 
         WriteLog($"Dispose {typeof(T).FullName} FreeCount={FreeCount:n0} BusyCount={BusyCount:n0} Total={Total:n0}");
 

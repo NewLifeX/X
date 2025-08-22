@@ -182,7 +182,7 @@ public class TinyHttpClient : DisposeBase
                     uri = uri2;
                     request.RequestUri = uri;
 
-                    req.TryDispose();
+                    req?.Dispose();
                     req = request.Build();
 
                     continue;
@@ -193,7 +193,7 @@ public class TinyHttpClient : DisposeBase
         }
 
         // 释放数据包，还给缓冲池
-        req.TryDispose();
+        req?.Dispose();
 
         if (res.StatusCode != HttpStatusCode.OK) throw new Exception($"{(Int32)res.StatusCode} {res.StatusDescription}");
 
@@ -300,7 +300,7 @@ public class TinyHttpClient : DisposeBase
                         if (remain + 2 < memory.Length)
                             pk = pk2.Slice(remain + 2, -1, true);
                         else
-                            pk2.TryDispose();
+                            pk2?.Dispose();
 
                         remain = 0;
                     }
@@ -309,7 +309,7 @@ public class TinyHttpClient : DisposeBase
                         ms.Write(memory);
                         remain -= memory.Length;
 
-                        pk2.TryDispose();
+                        pk2?.Dispose();
                     }
                 }
             }

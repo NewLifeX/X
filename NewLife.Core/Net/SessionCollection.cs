@@ -28,7 +28,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     {
         base.Dispose(disposing);
 
-        _clearTimer.TryDispose();
+        _clearTimer?.Dispose();
 
         var reason = GetType().Name + (disposing ? "Dispose" : "GC");
         try

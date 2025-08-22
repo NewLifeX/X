@@ -65,7 +65,7 @@ public class DeferredQueue : DisposeBase
     {
         base.Dispose(disposing);
 
-        _Timer.TryDispose();
+        _Timer?.Dispose();
         _Entities?.Clear();
     }
 

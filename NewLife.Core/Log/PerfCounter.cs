@@ -29,7 +29,7 @@ public class PerfCounter : DisposeBase, ICounter
     {
         base.Dispose(disposing);
 
-        _Timer.TryDispose();
+        _Timer?.Dispose();
     }
     #endregion
 

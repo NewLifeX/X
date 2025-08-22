@@ -64,7 +64,7 @@ public class ExcelReader : DisposeBase
         base.Dispose(disposing);
 
         _entries?.Clear();
-        _zip.TryDispose();
+        _zip?.Dispose();
     }
     #endregion
 

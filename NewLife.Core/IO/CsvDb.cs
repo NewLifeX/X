@@ -97,7 +97,7 @@ public class CsvDb<T> : DisposeBase where T : new()
                 csv.WriteLine(pis.Select(e => item.GetValue(e)));
         }
 
-        csv.TryDispose();
+        csv?.Dispose();
         fs.SetLength(fs.Position);
         fs.Flush();
     }

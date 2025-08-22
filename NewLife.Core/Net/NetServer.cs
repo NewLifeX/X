@@ -344,7 +344,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <param name="reason">关闭原因。便于日志分析</param>
     public void Stop(String? reason)
     {
-        _Timer.TryDispose();
+        _Timer?.Dispose();
 
         var ss = Servers.Where(e => e.Active).ToArray();
         if (ss == null || ss.Length == 0) return;

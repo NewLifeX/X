@@ -102,8 +102,8 @@ public class WebSocket
                 case WebSocketMessageType.Close:
                     {
                         Close(1000, "Finished");
-                        session.TryDispose();
-                        socket.TryDispose();
+                        session?.Dispose();
+                        socket?.Dispose();
                         Connected = false;
                     }
                     break;

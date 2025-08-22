@@ -135,7 +135,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     {
         base.Dispose(disposing);
 
-        _timer.TryDispose();
+        _timer?.Dispose();
 
         DoProcessSpans();
     }

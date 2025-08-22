@@ -201,7 +201,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     {
         base.Dispose(disposing);
 
-        _Timer.TryDispose();
+        _Timer?.Dispose();
     }
     #endregion
 

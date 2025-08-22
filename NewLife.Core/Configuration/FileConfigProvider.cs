@@ -24,7 +24,7 @@ public abstract class FileConfigProvider : ConfigProvider
     {
         base.Dispose(disposing);
 
-        _timer.TryDispose();
+        _timer?.Dispose();
     }
 
     /// <summary>已重载。输出友好信息</summary>

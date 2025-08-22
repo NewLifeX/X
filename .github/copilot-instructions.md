@@ -223,7 +223,7 @@ public class DemoServer : DisposeBase
     /// <inheritdoc />
     protected override void OnDispose(Boolean disposing)
     {
-        _timer.TryDispose();
+        _timer?.Dispose();
         base.OnDispose(disposing);
     }
 }

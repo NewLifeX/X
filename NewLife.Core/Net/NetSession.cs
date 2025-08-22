@@ -174,7 +174,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
         catch { }
 
         //Session.Dispose();//去掉这句话，因为在释放的时候Session有的时候为null，会出异常报错，导致整个程序退出。去掉后正常。
-        Session.TryDispose();
+        Session?.Dispose();
 
         //Server = null;
         //Session = null;

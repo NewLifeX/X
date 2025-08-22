@@ -86,7 +86,7 @@ public class WebSocketClient : TcpSession
     /// <returns></returns>
     protected override Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken)
     {
-        _timer.TryDispose();
+        _timer?.Dispose();
         _timer = null;
 
         return base.OnCloseAsync(reason, cancellationToken);

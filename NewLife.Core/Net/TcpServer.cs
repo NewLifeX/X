@@ -108,7 +108,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 
         if (Active) Stop(GetType().Name + (disposing ? "Dispose" : "GC"));
 
-        _Sessions.TryDispose();
+        _Sessions?.Dispose();
     }
     #endregion
 
@@ -212,7 +212,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         if (!Active || Client == null)
         {
-            se.TryDispose();
+            se?.Dispose();
             return false;
         }
 
@@ -249,7 +249,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     {
         if (!Active || Client == null)
         {
-            se.TryDispose();
+            se?.Dispose();
             return;
         }
 
@@ -264,7 +264,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
                 var ex = se.GetException();
                 if (ex != null) OnError("AcceptAsync", ex);
 
-                se.TryDispose();
+                se?.Dispose();
                 return;
             }
         }
@@ -355,7 +355,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             {
                 WriteLog("准备释放会话{0}个！", sessions.Count);
                 sessions.CloseAll(nameof(CloseAllSession));
-                sessions.TryDispose();
+                sessions.Dispose();
                 sessions.Clear();
             }
         }

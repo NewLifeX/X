@@ -88,12 +88,12 @@ public abstract class Actor : DisposeBase, IActor
         if (_source != null)
         {
             _source.Cancel();
-            _source.TryDispose();
+            _source.Dispose();
         }
 
-        _task.TryDispose();
+        _task?.Dispose();
 
-        MailBox.TryDispose();
+        MailBox?.Dispose();
     }
 
     /// <summary>已重载。显示名称</summary>

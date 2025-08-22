@@ -91,7 +91,7 @@ public class TextFileLog : Logger, IDisposable
     /// <param name="disposing"></param>
     protected virtual void Dispose(Boolean disposing)
     {
-        _Timer.TryDispose();
+        _Timer?.Dispose();
 
         // 销毁前把队列日志输出
         if (Interlocked.CompareExchange(ref _writing, 1, 0) == 0) WriteAndClose(DateTime.MinValue);
@@ -182,7 +182,7 @@ public class TextFileLog : Logger, IDisposable
 
         if (!_isFile && logFile != CurrentLogFile)
         {
-            writer.TryDispose();
+            writer?.Dispose();
             writer = null;
 
             CurrentLogFile = logFile;
@@ -277,7 +277,7 @@ public class TextFileLog : Logger, IDisposable
             // 连续5秒没日志，就关闭
             if (writer != null && closeTime < TimerX.Now.AddHours(Setting.Current.UtcIntervalHours))
             {
-                writer.TryDispose();
+                writer?.Dispose();
                 LogWriter = null;
             }
         }
