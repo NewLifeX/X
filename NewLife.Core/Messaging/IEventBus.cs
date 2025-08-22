@@ -18,7 +18,7 @@ namespace NewLife.Messaging;
 /// 事件总线一般有两种实现和使用方式：
 /// 1，基于泛型接口的事件总线，通过接口约定事件总线的行为，具体实现可以是内存、消息队列、数据库等。
 /// 2，基于普通接口的实现，发布和订阅时指定主题Topic。
-/// 这里采取第一种设计，不同业务领域可以实例化自己的时间总线，互不干扰。
+/// 这里采取第一种设计，不同业务领域可以实例化自己的事件总线，互不干扰。
 /// </remarks>
 /// <typeparam name="TEvent"></typeparam>
 public interface IEventBus<TEvent>
@@ -51,10 +51,17 @@ public interface IEventHandler<TEvent>
     Task HandleAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken);
 }
 
-/// <summary>事件总线</summary>
+/// <summary>默认事件总线。即时分发消息，不存储</summary>
+/// <remarks>
+/// 即时分发消息，意味着不在线的订阅者将无法收到消息。
+/// </remarks>
 public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
 {
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
+    /// <summary>已订阅的事件处理器集合</summary>
+    public IDictionary<String, IEventHandler<TEvent>> Handlers => _handlers;
+
+    private readonly Pool<EventContext<TEvent>> _pool = new();
 
     /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
@@ -72,12 +79,26 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
         var rs = 0;
 
         // 创建上下文，循环调用处理器
-        context ??= new EventContext<TEvent>(this);
+        EventContext<TEvent>? ctx = null;
+        if (context == null)
+        {
+            // 从对象池中获取上下文
+            ctx = _pool.Get();
+            ctx.EventBus = this;
+            context = ctx;
+        }
+        //context ??= new EventContext<TEvent>(this);
         foreach (var item in _handlers)
         {
             var handler = item.Value;
             await handler.HandleAsync(@event, context, cancellationToken).ConfigureAwait(false);
             rs++;
+        }
+
+        if (ctx != null)
+        {
+            ctx.Reset();
+            _pool.Return(ctx);
         }
 
         return rs;
@@ -140,10 +161,10 @@ public interface IEventContext<TEvent>
 
 /// <summary>事件上下文</summary>
 /// <typeparam name="TEvent"></typeparam>
-public class EventContext<TEvent>(IEventBus<TEvent> bus) : IEventContext<TEvent>, IExtend
+public class EventContext<TEvent> : IEventContext<TEvent>, IExtend
 {
     /// <summary>事件总线</summary>
-    public IEventBus<TEvent> EventBus { get; } = bus;
+    public IEventBus<TEvent> EventBus { get; set; } = null!;
 
     /// <summary>数据项</summary>
     public IDictionary<String, Object?> Items { get; } = new NullableDictionary<String, Object?>();
@@ -152,6 +173,14 @@ public class EventContext<TEvent>(IEventBus<TEvent> bus) : IEventContext<TEvent>
     /// <param name="key"></param>
     /// <returns></returns>
     public Object? this[String key] { get => Items.TryGetValue(key, out var obj) ? obj : null; set => Items[key] = value; }
+
+    /// <summary>重置上下文，便于放入对象池</summary>
+    public void Reset()
+    {
+        // 清空上下文数据
+        EventBus = null!;
+        Items.Clear();
+    }
 }
 
 /// <summary>Action事件处理器</summary>
