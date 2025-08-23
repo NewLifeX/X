@@ -62,7 +62,8 @@ public class ObjectContainer : IObjectContainer
     /// <param name="item"></param>
     public Boolean TryAdd(IObject item)
     {
-        if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
+        // 对象集合仅在应用启动早期用到几十次，后续不再使用，不需要优化性能。lock之间的判断，可能抛出集合修改异常
+        //if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
         lock (_list)
         {
             if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
