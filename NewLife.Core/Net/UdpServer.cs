@@ -180,7 +180,21 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
             lock (sock)
             {
-                if (sock.Connected && !sock.EnableBroadcast)
+                // Linux+Mono 的Connected总是true，需要特殊处理
+                var connected = sock.Connected;
+                if (Runtime.Mono && Runtime.Linux)
+                {
+                    try
+                    {
+                        var r = sock.RemoteEndPoint;
+                        connected = r is IPEndPoint ep && !ep.Address.IsAny() && ep.Port > 0;
+                    }
+                    catch
+                    {
+                        connected = false;
+                    }
+                }
+                if (connected && !sock.EnableBroadcast)
                 {
                     if (Log.Enable && LogSend) WriteLog("Send [{0}]: {1}", count, pk.ToHex(LogDataLength));
 
