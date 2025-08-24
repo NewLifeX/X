@@ -111,6 +111,7 @@ public class TcpSession : SessionBase, ISocketSession
             var sslStream = new SslStream(ns, false);
 
             var sp = SslProtocol;
+            if (sp == SslProtocols.None) sp = SslProtocols.Tls12;
 
             WriteLog("服务端SSL认证，SslProtocol={0}，Issuer: {1}", sp, cert.Issuer);
 
@@ -166,6 +167,7 @@ public class TcpSession : SessionBase, ISocketSession
         try
         {
             var addrs = uri.GetAddresses();
+            addrs = addrs.Where(ip => ip.AddressFamily == sock.AddressFamily).ToArray();
             span?.AppendTag($"addrs={addrs.Join()} port={uri.Port}");
 
             if (timeout <= 0)
@@ -211,7 +213,20 @@ public class TcpSession : SessionBase, ISocketSession
 
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
+#if NETCOREAPP
+                var source = new CancellationTokenSource(timeout);
+                await sslStream.AuthenticateAsClientAsync(
+                    new SslClientAuthenticationOptions
+                    {
+                        TargetHost = host,
+                        ClientCertificates = certs,
+                        EnabledSslProtocols = sp,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    },
+                    source.Token).ConfigureAwait(false);
+#else
                 await sslStream.AuthenticateAsClientAsync(host, certs, sp, false).ConfigureAwait(false);
+#endif
 
                 _Stream = sslStream;
             }

@@ -103,7 +103,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (!Monitor.TryEnter(this, Timeout + 100)) return false;
         try
         {
-            return OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            var source = new CancellationTokenSource(Timeout);
+            return OpenAsync(source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         finally
         {
@@ -179,7 +180,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         if (!Monitor.TryEnter(this, Timeout + 100)) return false;
         try
         {
-            return CloseAsync(reason).ConfigureAwait(false).GetAwaiter().GetResult();
+            var source = new CancellationTokenSource(Timeout);
+            return CloseAsync(reason, source.Token).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         finally
         {

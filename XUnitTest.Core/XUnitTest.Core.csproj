@@ -45,12 +45,18 @@
     <Compile Remove="PageParameterTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="certs\newlifex.com.pem" />
+    <None Remove="certs\newlifex.com.pfx" />
+    <None Remove="certs\newlifex.com.privatekey.pem" />
     <None Remove="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="certs\newlifex.com.pem" />
+    <EmbeddedResource Include="certs\newlifex.com.pfx" />
+    <EmbeddedResource Include="certs\newlifex.com.privatekey.pem" />
     <EmbeddedResource Include="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>

@@ -93,6 +93,23 @@ public class DnsResolver : IDnsResolver
         return item;
     }
 
+    /// <summary>设置缓存</summary>
+    /// <remarks>一般用于单元测试，或者局部篡改DNS解析。受Expire影响，过期后仍然刷新</remarks>
+    /// <param name="host">域名</param>
+    /// <param name="addrs">IP地址集合</param>
+    /// <param name="expire">过期时间。默认0秒，使用Exire</param>
+    public void Set(String host, IPAddress[] addrs, Int32 expire = 0)
+    {
+        var item = new DnsItem
+        {
+            Host = host,
+            Addresses = addrs,
+            CreateTime = DateTime.Now,
+            UpdateTime = DateTime.Now.AddSeconds(expire)
+        };
+        _cache[host] = item;
+    }
+
     class DnsItem
     {
         public String Host { get; set; } = null!;

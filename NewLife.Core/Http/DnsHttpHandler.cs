@@ -4,16 +4,13 @@ using NewLife.Net;
 namespace NewLife.Http;
 
 /// <summary>支持优化Dns解析的HttpClient处理器</summary>
-public class DnsHttpHandler : DelegatingHandler
+/// <param name="innerHandler"></param>
+public class DnsHttpHandler(HttpMessageHandler innerHandler) : DelegatingHandler(innerHandler)
 {
     #region 属性
     /// <summary>DNS解析器</summary>
     public IDnsResolver Resolver { get; set; } = DnsResolver.Instance;
     #endregion
-
-    /// <summary>实例化一个支持APM的HttpClient处理器</summary>
-    /// <param name="innerHandler"></param>
-    public DnsHttpHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
 
     /// <summary>发送请求</summary>
     /// <param name="request"></param>
