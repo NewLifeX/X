@@ -75,52 +75,50 @@ public class PluginManager : DisposeBase, IServiceProvider
     #endregion
 
     #region 方法
-    /// <summary>加载插件。此时是加载所有插件，无法识别哪些是需要的</summary>
+    /// <summary>加载插件。仅保留属于当前宿主且实例化成功的插件，支持从容器服务提供者中实例化</summary>
     public void Load()
     {
         var list = new List<IPlugin>();
         // 此时是加载所有插件，无法识别哪些是需要的
-        foreach (var item in LoadPlugins())
+        foreach (var type in LoadPlugins())
         {
-            if (item != null)
-            {
-                try
-                {
-                    // 插件类注册到容器中，方便后续获取
-                    var container = Provider?.GetService<IObjectContainer>();
-                    container?.TryAddTransient(item, item);
+            if (type == null) continue;
 
-                    var obj = Provider?.GetService(item) ?? item.CreateInstance();
-                    if (obj is IPlugin plugin) list.Add(plugin);
-                }
-                catch (Exception ex)
-                {
-                    Log?.Debug(String.Empty, ex);
-                }
+            try
+            {
+                // 插件类注册到容器中，方便后续获取
+                var container = Provider?.GetService<IObjectContainer>();
+                container?.TryAddTransient(type, type);
+
+                var obj = Provider?.GetService(type) ?? Provider?.CreateInstance(type) ?? type.CreateInstance();
+                if (obj is IPlugin plugin) list.Add(plugin);
+            }
+            catch (Exception ex)
+            {
+                Log?.Debug(String.Empty, ex);
             }
         }
         Plugins = list.ToArray();
     }
 
-    /// <summary>加载插件</summary>
+    /// <summary>加载插件。仅保留属于当前宿主的插件</summary>
     /// <returns></returns>
     public IEnumerable<Type> LoadPlugins()
     {
         // 此时是加载所有插件，无法识别哪些是需要的
-        foreach (var item in AssemblyX.FindAllPlugins(typeof(IPlugin), true))
+        foreach (var type in AssemblyX.FindAllPlugins(typeof(IPlugin), true))
         {
-            if (item != null)
-            {
-                // 如果有插件特性，并且所有特性都不支持当前宿主，则跳过
-                var atts = item.GetCustomAttributes<PluginAttribute>(true);
-                if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
+            if (type == null) continue;
 
-                yield return item;
-            }
+            // 如果有插件特性，并且所有特性都不支持当前宿主，则跳过
+            var atts = type.GetCustomAttributes<PluginAttribute>(true);
+            if (atts != null && atts.Any(a => a.Identity != Identity)) continue;
+
+            yield return type;
         }
     }
 
-    /// <summary>开始初始化。初始化之后，不属于当前宿主的插件将会被过滤掉</summary>
+    /// <summary>开始初始化。仅保留初始化成功的插件</summary>
     public void Init()
     {
         var ps = Plugins;

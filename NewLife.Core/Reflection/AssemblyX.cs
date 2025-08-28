@@ -555,13 +555,22 @@ public class AssemblyX
                 var basedir = AppDomain.CurrentDomain.BaseDirectory;
                 if (!basedir.IsNullOrEmpty()) set.Add(basedir);
 
+                basedir = ".".GetBasePath();
+                if (!basedir.IsNullOrEmpty()) set.Add(basedir);
+
+                basedir = ".".GetFullPath();
+                if (!basedir.IsNullOrEmpty()) set.Add(basedir);
+
+                basedir = Environment.CurrentDirectory;
+                if (!basedir.IsNullOrEmpty()) set.Add(basedir);
+
                 var cfg = Setting.Current;
                 if (!cfg.PluginPath.IsNullOrEmpty())
                 {
-                    var plugin = cfg.PluginPath.GetFullPath();
+                    var plugin = cfg.PluginPath.GetBasePath();
                     if (!set.Contains(plugin)) set.Add(plugin);
 
-                    plugin = cfg.PluginPath.GetBasePath();
+                    plugin = cfg.PluginPath.GetFullPath();
                     if (!set.Contains(plugin)) set.Add(plugin);
                 }
 
