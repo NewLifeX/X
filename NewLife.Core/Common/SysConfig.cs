@@ -16,7 +16,7 @@ public class SysConfig : Config<SysConfig>
     #region 属性
     /// <summary>系统名称</summary>
     [DisplayName("系统名称")]
-    [Description("用于标识系统的英文名,不能有空格")]
+    [Description("用于标识系统的英文名，不能有空格")]
     public String Name { get; set; } = "";
 
     /// <summary>系统版本</summary>
