@@ -577,11 +577,13 @@ public static class HttpHelper
     /// <param name="fileName">目标文件名</param>
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName)
     {
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+        fileName = fileName.GetFullPath();
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
         await rs.CopyToAsync(fs).ConfigureAwait(false);
         await fs.FlushAsync().ConfigureAwait(false);
+        fs.SetLength(fs.Position);
     }
 
     /// <summary>下载文件</summary>
@@ -591,25 +593,23 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
-#if NET5_0_OR_GREATER
-        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        fileName = fileName.GetFullPath();
         fileName.EnsureDirectory(true);
         using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+#if NET5_0_OR_GREATER
+        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
         await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
         await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #elif NETSTANDARD2_1_OR_GREATER || NETCOREAPP
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
-        fileName.EnsureDirectory(true);
-        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
         await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #else
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
-        fileName.EnsureDirectory(true);
-        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
         await rs.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
         await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #endif
+        fs.SetLength(fs.Position);
     }
 
     /// <summary>上传文件以及表单数据</summary>
