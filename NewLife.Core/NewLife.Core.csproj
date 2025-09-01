@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>改进Host.Close让应用有序退出；增强DbTable的大数据文件读写能力，支持机器学场景；优化Binary二进制读写，支持压缩数据流；改进Linux内存采集；改进ExcelReader对常规数字的读取；</PackageReleaseNotes>
+    <PackageReleaseNotes>重构控制台日志为队列输出；增强Json序列化长整数；增强对象容器；改进支持机器学习</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
