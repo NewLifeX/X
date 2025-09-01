@@ -29,7 +29,7 @@ public class BinaryTests
         Assert.Equal(bn2.Total, pk.Length);
 
         //Assert.False(bn2.EndOfStream);
-        Object? value = null;
+        Object value = null;
         Assert.False(bn2.TryRead(typeof(MyModel), ref value));
         Assert.True(bn2.EndOfStream);
     }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
+﻿using System.Net;
 using System.Threading.Tasks;
 using NewLife;
 using NewLife.Log;
@@ -214,7 +209,7 @@ public class TracerTests
     }
 
     [Fact]
-    public void TestParentId()
+    public async Task TestParentId()
     {
         var tracer = new DefaultTracer();
 
@@ -245,7 +240,7 @@ public class TracerTests
             Thread.Sleep(100);
 
             // 另一个线程建立span
-            using var span2 = Task.Run(() => tracer.NewSpan("test2")).Result;
+            using var span2 = await Task.Run(() => tracer.NewSpan("test2"));
             Assert.Equal(span.TraceId, span2.TraceId);
             Assert.Equal(span.Id, span2.ParentId);
         }
@@ -256,7 +251,7 @@ public class TracerTests
             Thread.Sleep(100);
 
             // 另一个线程建立span
-            using var span2 = Task.Factory.StartNew(() => tracer.NewSpan("test2"), TaskCreationOptions.LongRunning).Result;
+            using var span2 = await Task.Factory.StartNew(() => tracer.NewSpan("test2"), TaskCreationOptions.LongRunning);
             Assert.Equal(span.TraceId, span2.TraceId);
             Assert.Equal(span.Id, span2.ParentId);
         }
@@ -294,7 +289,7 @@ public class TracerTests
     }
 
     [Fact]
-    public async void TestHttpClient()
+    public async Task TestHttpClient()
     {
         var tracer = new DefaultTracer();
 
@@ -352,7 +347,7 @@ public class TracerTests
         //Assert.Equal("test", model.Builders[0].Name);
         //Assert.Equal("test2", model.Builders[1].Name);
         var test2 = model.Builders.First(e => e.Name == "test2");
-        Assert.Equal(1, test2.ErrorSamples.Count);
+        Assert.Single(test2.ErrorSamples);
     }
 
     class MyModel
@@ -402,7 +397,9 @@ public class TracerTests
 
         {
             var url = "http://sso.newlifex.com/user/query?id=12345";
+#pragma warning disable SYSLIB0014 // 类型或成员已过时
             var request = WebRequest.CreateHttp(url);
+#pragma warning restore SYSLIB0014 // 类型或成员已过时
             var span = tracer.NewSpan(request) as DefaultSpan;
 
             Assert.Equal("http://sso.newlifex.com/user/query", span.Name);

@@ -10,7 +10,7 @@ namespace XUnitTest.IO;
 public class EasyClientTests
 {
     [Fact(Skip = "仅开发使用")]
-    public async void Test()
+    public async Task Test()
     {
         var client = new EasyClient
         {

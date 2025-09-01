@@ -41,10 +41,10 @@ public class ExcelReaderTests
     }
 
     //[Fact]
-    public void Test2()
-    {
-        var reader = new ExcelReader("test.xlsx");
-        var rows = reader.ReadRows().ToList();
-        Assert.Equal(927, rows.Count);
-    }
+    //public void Test2()
+    //{
+    //    var reader = new ExcelReader("test.xlsx");
+    //    var rows = reader.ReadRows().ToList();
+    //    Assert.Equal(927, rows.Count);
+    //}
 }

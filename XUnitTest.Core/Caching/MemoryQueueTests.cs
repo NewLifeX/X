@@ -11,7 +11,7 @@ namespace XUnitTest.Caching;
 public class MemoryQueueTests
 {
     [Fact]
-    public async void Test1()
+    public async Task Test1()
     {
         XTrace.WriteLine("MemoryQueueTests.Test1");
 

@@ -28,7 +28,7 @@ public class TinyHttpClientTest
     //}
 
     [Fact(DisplayName = "异步请求")]
-    public async void SendAsyncTest()
+    public async Task SendAsyncTest()
     {
         var uri = new Uri("http://newlifex.com");
         var req = new HttpRequest { RequestUri = uri };
@@ -50,7 +50,7 @@ public class TinyHttpClientTest
     //}
 
     [Fact(DisplayName = "异步字符串")]
-    public async void GetStringAsync()
+    public async Task GetStringAsync()
     {
         var url = "http://x.newlifex.com";
         var client = new TinyHttpClient();
@@ -60,7 +60,7 @@ public class TinyHttpClientTest
     }
 
     [Fact(DisplayName = "https")]
-    public async void GetStringHttps()
+    public async Task GetStringHttps()
     {
         var url = "https://newlifex.com";
         var client = new TinyHttpClient();

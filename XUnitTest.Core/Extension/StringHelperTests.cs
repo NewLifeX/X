@@ -83,7 +83,7 @@ public class StringHelperTests
         var str = "IP=172.17.0.6,172.17.0.7,172.17.16.7";
         var dic = str.SplitAsDictionary("=", ";");
 
-        Assert.Equal(1, dic.Count);
+        Assert.Single(dic);
         foreach (var item in dic)
         {
             Assert.Equal("IP", item.Key);

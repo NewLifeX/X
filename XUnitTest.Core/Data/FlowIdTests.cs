@@ -128,7 +128,7 @@ public class FlowIdTests
     }
 
     [Fact]
-    public void ValidRepeat()
+    public async Task ValidRepeat()
     {
         var sw = Stopwatch.StartNew();
 
@@ -179,7 +179,7 @@ public class FlowIdTests
                 rs[wid - 1] = repeat;
             }));
         }
-        Task.WaitAll(ts.ToArray());
+        await Task.WhenAll(ts.ToArray());
 
         sw.Stop();
 
@@ -188,7 +188,7 @@ public class FlowIdTests
         //Assert.Equal(0, count);
         for (var i = 0; i < ss.Length; i++)
         {
-            Assert.Equal(0, rs[i].Count);
+            //Assert.Equal(0, rs[i].Count);
             Assert.Empty(rs[i]);
         }
     }
@@ -276,7 +276,7 @@ public class FlowIdTests
     }
 
     [Fact]
-    public void Benchmark()
+    public async Task Benchmark()
     {
         var sw = Stopwatch.StartNew();
 
@@ -297,7 +297,7 @@ public class FlowIdTests
             }));
         }
 
-        Task.WaitAll(ts.ToArray());
+        await Task.WhenAll(ts.ToArray());
 
         sw.Stop();
 

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -173,11 +174,11 @@ public class PacketTests
         pk.Append("22222".GetBytes());
         pk[12] = 0x11;
         Assert.NotNull(pk.Next);
-        Assert.Equal(pk[12],(byte)0x11);
+        Assert.Equal((Byte)0x11, pk[12]);
     }
 
     [Fact]
-    public void NextTest()
+    public async Task NextTest()
     {
         var buf = "Stone".GetBytes();
 
@@ -220,7 +221,7 @@ public class PacketTests
         Assert.Equal("StoneNewLife", ms.ToStr());
 
         ms = new MemoryStream();
-        pk.CopyToAsync(ms).Wait();
+        await pk.CopyToAsync(ms);
         Assert.Equal(5 + 7, ms.Position);
         Assert.Equal(5 + 7, ms.Length);
         ms.Position = 0;

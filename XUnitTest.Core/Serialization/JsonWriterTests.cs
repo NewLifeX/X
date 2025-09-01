@@ -165,7 +165,8 @@ public class JsonWriterTests
     [InlineData(false)]
     public void IgnoreNullValues_Setting(Boolean ignoreNullValues)
     {
-        var writer = new JsonWriter { IgnoreNullValues = ignoreNullValues };
+        var writer = new JsonWriter();
+        writer.Options.IgnoreNullValues = ignoreNullValues;
 
         writer.Write(new { Name = "", UserName = "Stone" });
 

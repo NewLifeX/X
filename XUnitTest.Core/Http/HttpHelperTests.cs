@@ -36,7 +36,7 @@ public class HttpHelperTests
     }
 
     [Fact]
-    public async void PostJson()
+    public async Task PostJson()
     {
         var url = "http://star.newlifex.com/cube/info";
 
@@ -53,7 +53,7 @@ public class HttpHelperTests
     }
 
     [Fact]
-    public async void PostXml()
+    public async Task PostXml()
     {
         var url = "http://star.newlifex.com/cube/info";
 
@@ -78,7 +78,7 @@ public class HttpHelperTests
     }
 
     [Fact]
-    public async void PostForm()
+    public async Task PostForm()
     {
         var url = "http://star.newlifex.com/cube/info";
 
@@ -127,7 +127,7 @@ public class HttpHelperTests
     }
 
     [Fact]
-    public async void UploadFile()
+    public async Task UploadFile()
     {
         var url = "http://star.newlifex.com/cube/info";
         var file = "up.txt";

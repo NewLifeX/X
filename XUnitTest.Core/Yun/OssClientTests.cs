@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using NewLife;
+﻿using NewLife;
 using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Log;
@@ -44,7 +42,7 @@ public class OssClientTests
     }
 
     [Fact(Skip = "跳过")]
-    public async void ListBuckets()
+    public async Task ListBuckets()
     {
         var client = GetClient();
 
@@ -53,7 +51,7 @@ public class OssClientTests
     }
 
     [Fact(Skip = "跳过")]
-    public async void ListBuckets2()
+    public async Task ListBuckets2()
     {
         var client = GetClient();
 
@@ -62,7 +60,7 @@ public class OssClientTests
     }
 
     [Fact(Skip = "跳过")]
-    public async void ListObjects()
+    public async Task ListObjects()
     {
         var client = GetClient();
         client.BucketName = "newlife-x";
@@ -72,7 +70,7 @@ public class OssClientTests
     }
 
     [Fact(Skip = "跳过")]
-    public async void ListObjects2()
+    public async Task ListObjects2()
     {
         var client = GetClient();
         client.BucketName = "newlife-x";
@@ -82,7 +80,7 @@ public class OssClientTests
     }
 
     [Fact(Skip = "跳过")]
-    public async void PutGetDelete()
+    public async Task PutGetDelete()
     {
         var client = GetClient();
         client.BucketName = "newlife-x";

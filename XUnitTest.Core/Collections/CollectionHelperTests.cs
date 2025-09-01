@@ -34,7 +34,7 @@ public class CollectionHelperTests
     [Fact]
     public void CheckNullable()
     {
-        var dic = new Dictionary<String, String?>()
+        var dic = new Dictionary<String, String>()
         {
             ["a"] = "a",
             ["b"] = null,
@@ -44,7 +44,7 @@ public class CollectionHelperTests
         var rs = dic is IDictionary<String, String>;
         Assert.True(rs);
 
-        rs = dic is IDictionary<String, String?>;
+        rs = dic is IDictionary<String, String>;
         Assert.True(rs);
     }
 }
