@@ -290,7 +290,7 @@ public static class SpanHelper
         });
     }
 
-#if NETFRAMEWORK || NETSTANDARD
+    //#if NETFRAMEWORK || NETSTANDARD
     /// <summary>去掉前后字符</summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="span"></param>
@@ -343,5 +343,5 @@ public static class SpanHelper
         }
         return num - start + 1;
     }
-#endif
+    //#endif
 }

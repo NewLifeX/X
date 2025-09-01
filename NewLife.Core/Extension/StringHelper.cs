@@ -359,7 +359,7 @@ public static class StringHelper
         return p == input.Length;
     }
 
-#if NETFRAMEWORK || NETSTANDARD2_0
+    //#if NETFRAMEWORK || NETSTANDARD2_0
     /// <summary>Returns a value indicating whether a specified character occurs within this string.</summary>
     /// <param name="value"></param>
     /// <param name="inputChar">The character to seek.</param>
@@ -375,8 +375,8 @@ public static class StringHelper
     /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more characters in <paramref name="separator" />. For more information, see the Remarks section.</returns>
     /// <exception cref="T:System.ArgumentException">
     /// <paramref name="options" /> is not one of the <see cref="T:System.StringSplitOptions" /> values.</exception>
-    public static String[] Split(this String value, Char separator, StringSplitOptions options = StringSplitOptions.None) => value.Split(new Char[] { separator }, options);
-#endif
+    public static String[] Split(this String value, Char separator, StringSplitOptions options = StringSplitOptions.None) => value.Split([separator], options);
+    //#endif
     #endregion
 
     #region 截取扩展
