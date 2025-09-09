@@ -115,7 +115,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         {
             item.WriteLog("超过{0}秒不活跃销毁 {1}", timeout, item);
 
-            if (item is INetSession ss) ss.Close(nameof(RemoveNotAlive));
+            if (item is ISocketClient ss) ss.Close(nameof(RemoveNotAlive));
             //item.Dispose();
             item.TryDispose();
         }
