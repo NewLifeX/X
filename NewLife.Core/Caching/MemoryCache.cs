@@ -166,27 +166,40 @@ public class MemoryCache : Cache
         return item.Visit<T>();
     }
 
-    /// <summary>移除缓存项</summary>
+    /// <summary>移除缓存项。支持*模糊匹配</summary>
     /// <param name="key">键</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(String key)
     {
-        var count = 0;
-
-        if (_cache.TryRemove(key, out _))
+        if (key.Contains('*'))
         {
-            count++;
-
-            Interlocked.Decrement(ref _count);
+            var keys = Search(key).ToArray();
+            return RemoveInternal(keys);
         }
 
-        return count;
+        return RemoveInternal([key]);
     }
 
-    /// <summary>批量移除缓存项</summary>
+    /// <summary>批量移除缓存项。支持*模糊匹配</summary>
     /// <param name="keys">键集合</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(params String[] keys)
+    {
+        var count = 0;
+        foreach (var item in _cache)
+        {
+            var key = item.Key;
+            if (keys.Any(e => e.IsMatch(key)) && _cache.TryRemove(key, out _))
+            {
+                count++;
+
+                Interlocked.Decrement(ref _count);
+            }
+        }
+        return count;
+    }
+
+    private Int32 RemoveInternal(IEnumerable<String> keys)
     {
         var count = 0;
         foreach (var k in keys)
@@ -379,6 +392,32 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => 0d);
         return item.Dec(value);
+    }
+
+    /// <summary>搜索键</summary>
+    /// <param name="pattern">匹配字符串。一般支持*，Redis还支持?</param>
+    /// <param name="offset">开始行。默认从0开始，Redis对海量key搜索时需要分批</param>
+    /// <param name="count">搜索个数。默认-1表示全部，Redis对海量key搜索时需要分批</param>
+    /// <returns></returns>
+    public override IEnumerable<String> Search(String pattern, Int32 offset = 0, Int32 count = -1)
+    {
+        // 遍历字典，找到匹配的键
+        foreach (var item in _cache)
+        {
+            var key = item.Key;
+            if (pattern.IsNullOrEmpty() || pattern == key || pattern.IsMatch(key))
+            {
+                if (offset > 0)
+                {
+                    offset--;
+                    continue;
+                }
+                if (count == 0) yield break;
+                if (count > 0) count--;
+
+                yield return key;
+            }
+        }
     }
     #endregion
 

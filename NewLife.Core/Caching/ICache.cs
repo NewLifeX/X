@@ -53,12 +53,12 @@ public interface ICache
     [return: MaybeNull]
     T Get<T>(String key);
 
-    /// <summary>移除缓存项</summary>
+    /// <summary>移除缓存项。支持*模糊匹配</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
     Int32 Remove(String key);
 
-    /// <summary>批量移除缓存项</summary>
+    /// <summary>批量移除缓存项。支持*模糊匹配</summary>
     /// <param name="keys">键集合</param>
     /// <returns></returns>
     Int32 Remove(params String[] keys);
@@ -180,6 +180,13 @@ public interface ICache
     /// <param name="value">变化量</param>
     /// <returns></returns>
     Double Decrement(String key, Double value);
+
+    /// <summary>搜索键</summary>
+    /// <param name="pattern">匹配字符串。一般支持*，Redis还支持?</param>
+    /// <param name="offset">开始行。默认从0开始，Redis对海量key搜索时需要分批</param>
+    /// <param name="count">搜索个数。默认-1表示全部，Redis对海量key搜索时需要分批</param>
+    /// <returns></returns>
+    IEnumerable<String> Search(String pattern, Int32 offset = 0, Int32 count = -1);
     #endregion
 
     #region 事务

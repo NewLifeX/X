@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
+﻿using System.Diagnostics;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Security;
 using NewLife.Serialization;
-using NewLife.UnitTest;
 using Xunit;
 
 namespace XUnitTest.Caching;
@@ -370,5 +365,88 @@ public class MemoryCacheTests
 
         var exp = mc.GetExpire("name");
         Assert.Equal(days, exp.Days);
+    }
+
+    [Fact(DisplayName = "移除-单键与通配")]
+    public void Remove_Single_And_Wildcard()
+    {
+        var mc = new MemoryCache();
+        mc.Set("user:1", 1);
+        mc.Set("user:2", 2);
+        mc.Set("role:1", 3);
+
+        // 按通配删除
+        var removedByWildcard = mc.Remove("user:*");
+        Assert.Equal(2, removedByWildcard);
+        Assert.False(mc.ContainsKey("user:1"));
+        Assert.False(mc.ContainsKey("user:2"));
+        Assert.True(mc.ContainsKey("role:1"));
+
+        // 精确删除
+        var removedExact = mc.Remove("role:1");
+        Assert.Equal(1, removedExact);
+        Assert.False(mc.ContainsKey("role:1"));
+
+        // 删除不存在
+        var removedNone = mc.Remove("not-exist");
+        Assert.Equal(0, removedNone);
+    }
+
+    [Fact(DisplayName = "移除-批量与通配")]
+    public void Remove_Batch_With_Wildcards()
+    {
+        var mc = new MemoryCache();
+        mc.Set("user:1", 1);
+        mc.Set("user:2", 2);
+        mc.Set("user:3", 3);
+        mc.Set("role:1", 10);
+        mc.Set("role:2", 20);
+        mc.Set("menu:1", 100);
+
+        // 同时传入通配与精确键
+        var removed = mc.Remove("user:*", "role:2");
+        Assert.Equal(4, removed); // user:1, user:2, user:3, role:2
+
+        // 剩余键校验
+        Assert.False(mc.ContainsKey("user:1"));
+        Assert.False(mc.ContainsKey("user:2"));
+        Assert.False(mc.ContainsKey("user:3"));
+        Assert.False(mc.ContainsKey("role:2"));
+        Assert.True(mc.ContainsKey("role:1"));
+        Assert.True(mc.ContainsKey("menu:1"));
+
+        // 再次移除相同模式应为0
+        var removedAgain = mc.Remove("user:*", "role:2");
+        Assert.Equal(0, removedAgain);
+    }
+
+    [Fact(DisplayName = "搜索-匹配与分页")]
+    public void Search_With_Pattern_Offset_Count()
+    {
+        var mc = new MemoryCache();
+        var keys = new[] { "s:001", "s:002", "s:003", "a:001", "b:001" };
+        foreach (var k in keys) mc.Set(k, 1);
+
+        // 模式匹配
+        var matched = mc.Search("s:*").ToList();
+        var expectedSet = new HashSet<String>(new[] { "s:001", "s:002", "s:003" });
+        Assert.Equal(expectedSet.Count, matched.Count);
+        Assert.True(matched.All(expectedSet.Contains));
+
+        // 偏移量（不关心顺序，只验证数量）
+        var matchedWithOffset = mc.Search("s:*", offset: 1).ToList();
+        Assert.Equal(expectedSet.Count - 1, matchedWithOffset.Count);
+        Assert.True(matchedWithOffset.All(expectedSet.Contains));
+
+        // 限制返回数量
+        var limited = mc.Search("s:*", count: 2).ToList();
+        Assert.Equal(2, limited.Count);
+        Assert.True(limited.All(expectedSet.Contains));
+
+        // 空/空字符串应返回全部键
+        var all1 = mc.Search(null).ToList();
+        var all2 = mc.Search(String.Empty).ToList();
+        Assert.Equal(mc.Count, all1.Count);
+        Assert.Equal(mc.Count, all2.Count);
     }
 }
