@@ -35,9 +35,9 @@ public static class CollectionHelper
     //}
 
     /// <summary>集合转为数组，加锁确保安全</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="collection"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="collection">集合</param>
+    /// <returns>数组副本，永不返回 null</returns>
     public static T[] ToArray<T>(this ICollection<T> collection)
     {
         //if (collection == null) return null;
@@ -54,34 +54,37 @@ public static class CollectionHelper
         }
     }
 
-    /// <summary>集合转为数组</summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="collection"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0) where TKey : notnull
+    /// <summary>
+    /// 获取字典键数组（快照）。如果是 <see cref="ConcurrentDictionary{TKey, TValue}"/> ，直接返回其内部 Keys 列表以避免复制。
+    /// </summary>
+    /// <typeparam name="TKey">键类型</typeparam>
+    /// <typeparam name="TValue">值类型</typeparam>
+    /// <param name="collection">字典实例</param>
+    /// <returns>键数组（IList 视图）。</returns>
+    public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection) where TKey : notnull
     {
         //if (collection == null) return null;
 
+        // 当是并发字典时，直接复用其 Keys 集合（避免复制开销）
         if (collection is ConcurrentDictionary<TKey, TValue> cdiv && cdiv.Keys is IList<TKey> list) return list;
 
         if (collection.Count == 0) return [];
         lock (collection)
         {
-            var arr = new TKey[collection.Count - index];
-            collection.Keys.CopyTo(arr, index);
+            var arr = new TKey[collection.Count];
+            collection.Keys.CopyTo(arr, 0);
             return arr;
         }
     }
 
-    /// <summary>集合转为数组</summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="collection"></param>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection, Int32 index = 0) where TKey : notnull
+    /// <summary>
+    /// 获取字典值数组（快照）。如果是 <see cref="ConcurrentDictionary{TKey, TValue}"/> ，直接返回其内部 Values 列表以避免复制。
+    /// </summary>
+    /// <typeparam name="TKey">键类型</typeparam>
+    /// <typeparam name="TValue">值类型</typeparam>
+    /// <param name="collection">字典实例</param>
+    /// <returns>值数组（IList 视图）。</returns>
+    public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection) where TKey : notnull
     {
         //if (collection == null) return null;
 
@@ -91,15 +94,15 @@ public static class CollectionHelper
         if (collection.Count == 0) return [];
         lock (collection)
         {
-            var arr = new TValue[collection.Count - index];
-            collection.Values.CopyTo(arr, index);
+            var arr = new TValue[collection.Count];
+            collection.Values.CopyTo(arr, 0);
             return arr;
         }
     }
 
     /// <summary>目标匿名参数对象转为名值字典</summary>
-    /// <param name="source"></param>
-    /// <returns></returns>
+    /// <param name="source">匿名对象 / POCO / 字典 / JsonElement</param>
+    /// <returns>大小写不敏感的名值字典（永不为 null）</returns>
     public static IDictionary<String, Object?> ToDictionary(this Object source)
     {
         //!! 即使传入为空，也返回字典，而不是null，避免业务层需要大量判空
@@ -136,7 +139,8 @@ public static class CollectionHelper
                         JsonValueKind.True or JsonValueKind.False => item.Value.GetBoolean(),
                         _ => item.Value.GetString(),
                     };
-                    if (v is Int64 n && n < Int32.MaxValue) v = (Int32)n;
+                    // 将 Int64 收缩到 Int32 范围（若可能），避免不必要的 64 位数值
+                    if (v is Int64 n && n >= Int32.MinValue && n <= Int32.MaxValue) v = (Int32)n;
                     dic[item.Name] = v;
                 }
             }
@@ -168,8 +172,8 @@ public static class CollectionHelper
 
 #if NETCOREAPP
     /// <summary>Json对象转为数组</summary>
-    /// <param name="element"></param>
-    /// <returns></returns>
+    /// <param name="element">Json元素（数组）</param>
+    /// <returns>列表</returns>
     public static IList<Object?> ToArray(this JsonElement element)
     {
         var list = new List<Object?>();
@@ -185,7 +189,8 @@ public static class CollectionHelper
                 JsonValueKind.True or JsonValueKind.False => item.GetBoolean(),
                 _ => item.GetString(),
             };
-            if (v is Int64 n && n < Int32.MaxValue) v = (Int32)n;
+            // 将 Int64 收缩到 Int32 范围（若可能）
+            if (v is Int64 n && n >= Int32.MinValue && n <= Int32.MaxValue) v = (Int32)n;
             list.Add(v);
         }
 
@@ -194,11 +199,11 @@ public static class CollectionHelper
 #endif
 
     /// <summary>合并字典参数</summary>
-    /// <param name="dic">字典</param>
-    /// <param name="target">目标对象</param>
-    /// <param name="overwrite">是否覆盖同名参数</param>
-    /// <param name="excludes">排除项</param>
-    /// <returns></returns>
+    /// <param name="dic">基础字典（被写入）</param>
+    /// <param name="target">待合并对象（匿名 / 字典 / JsonElement / POCO）</param>
+    /// <param name="overwrite">同名键是否覆盖</param>
+    /// <param name="excludes">排除键集合（大小写不敏感）</param>
+    /// <returns>合并后的同一 <paramref name="dic"/> 引用</returns>
     public static IDictionary<String, Object?> Merge(this IDictionary<String, Object?> dic, Object target, Boolean overwrite = true, String[]? excludes = null)
     {
         if (target == null || target.GetType().IsBaseType()) return dic;
@@ -216,11 +221,11 @@ public static class CollectionHelper
     }
 
     /// <summary>转为可空字典</summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TValue"></typeparam>
-    /// <param name="collection"></param>
-    /// <param name="comparer"></param>
-    /// <returns></returns>
+    /// <typeparam name="TKey">键类型</typeparam>
+    /// <typeparam name="TValue">值类型</typeparam>
+    /// <param name="collection">源字典</param>
+    /// <param name="comparer">可选比较器</param>
+    /// <returns>可空字典（如果本身已是则直接返回）</returns>
     public static IDictionary<TKey, TValue> ToNullable<TKey, TValue>(this IDictionary<TKey, TValue> collection, IEqualityComparer<TKey>? comparer = null) where TKey : notnull
     {
         //if (collection == null) return null;
@@ -233,11 +238,11 @@ public static class CollectionHelper
             return new NullableDictionary<TKey, TValue>(collection, comparer);
     }
 
-    /// <summary>从队列里面获取指定个数元素</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="collection">消费集合</param>
-    /// <param name="count">元素个数</param>
-    /// <returns></returns>
+    /// <summary>从队列里面获取指定个数元素并消费（Dequeue）</summary>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="collection">队列</param>
+    /// <param name="count">最大获取数量</param>
+    /// <returns>枚举序列</returns>
     public static IEnumerable<T> Take<T>(this Queue<T> collection, Int32 count)
     {
         if (collection == null) yield break;
@@ -248,11 +253,11 @@ public static class CollectionHelper
         }
     }
 
-    /// <summary>从消费集合里面获取指定个数元素</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="collection">消费集合</param>
-    /// <param name="count">元素个数</param>
-    /// <returns></returns>
+    /// <summary>从并发生产消费集合里获取指定个数元素并消费（TryTake）</summary>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="collection">生产消费集合</param>
+    /// <param name="count">最大获取数量</param>
+    /// <returns>枚举序列</returns>
     public static IEnumerable<T> Take<T>(this IProducerConsumerCollection<T> collection, Int32 count)
     {
         if (collection == null) yield break;
