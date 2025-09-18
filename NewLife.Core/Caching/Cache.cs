@@ -8,6 +8,15 @@ using NewLife.Security;
 namespace NewLife.Caching;
 
 /// <summary>缓存</summary>
+/// <remarks>
+/// 基础抽象，定义通用缓存语义：
+/// <list type="bullet">
+/// <item><description><see cref="Expire"/> 作为默认 TTL（秒），当各 Set 方法传入 <c>expire &lt; 0</c> 时使用。</description></item>
+/// <item><description><c>expire == 0</c> 表示永不过期；<c>&gt; 0</c> 表示从当前起的相对过期（TTL）。</description></item>
+/// <item><description>实现可采用惰性过期策略，已过期键在访问时才清理。</description></item>
+/// <item><description>远端 / 分布式实现中，<see cref="Keys"/>、<see cref="Count"/>、<see cref="Search(String, Int32, Int32)"/> 可能是高复杂度操作，应仅用于诊断。</description></item>
+/// </list>
+/// </remarks>
 public abstract class Cache : DisposeBase, ICache
 {
     #region 静态默认实现
@@ -19,12 +28,15 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>名称</summary>
     public String Name { get; set; }
 
-    /// <summary>默认过期时间。避免Set操作时没有设置过期时间，默认0秒表示不过期</summary>
+    /// <summary>默认过期时间。避免 Set 操作时没有设置过期时间，默认 0 秒表示不过期</summary>
+    /// <remarks>当 Set 相关 API 传入 <c>expire &lt; 0</c> 时使用该值。</remarks>
     public Int32 Expire { get; set; }
 
     /// <summary>获取和设置缓存，使用默认过期时间</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">键</param>
+    /// <remarks>
+    /// 通过索引器设置的键等价于 Set(key, value, -1)，即使用 <see cref="Expire"/>；若未设置默认过期时间（为 0）则表示永不过期。
+    /// </remarks>
     public virtual Object? this[String key] { get => Get<Object>(key); set => Set(key, value); }
 
     /// <summary>缓存个数</summary>
@@ -51,26 +63,23 @@ public abstract class Cache : DisposeBase, ICache
 
     #region 基础操作
     /// <summary>使用连接字符串初始化配置</summary>
-    /// <param name="config"></param>
+    /// <param name="config">连接/配置字符串；不同实现自行解析</param>
     public virtual void Init(String config) { }
 
     /// <summary>是否包含缓存项</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">键</param>
     public abstract Boolean ContainsKey(String key);
 
     /// <summary>设置缓存项</summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="expire">过期时间，秒</param>
-    /// <returns></returns>
+    /// <param name="expire">过期时间，秒。&lt;0 使用 <see cref="Expire"/>；0 永不过期；&gt;0 相对过期</param>
     public abstract Boolean Set<T>(String key, T value, Int32 expire = -1);
 
     /// <summary>设置缓存项</summary>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="expire">过期时间</param>
-    /// <returns></returns>
+    /// <param name="expire">过期时间，相对过期。<see cref="TimeSpan.Zero"/> 永不过期</param>
     public virtual Boolean Set<T>(String key, T value, TimeSpan expire) => Set(key, value, (Int32)expire.TotalSeconds);
 
     /// <summary>获取缓存项</summary>
@@ -79,14 +88,12 @@ public abstract class Cache : DisposeBase, ICache
     [return: MaybeNull]
     public abstract T Get<T>(String key);
 
-    /// <summary>移除缓存项。支持*模糊匹配</summary>
-    /// <param name="key">键</param>
-    /// <returns></returns>
+    /// <summary>移除缓存项。支持 * 模糊匹配</summary>
+    /// <param name="key">键或模式</param>
     public abstract Int32 Remove(String key);
 
-    /// <summary>批量移除缓存项。支持*模糊匹配</summary>
-    /// <param name="keys">键集合</param>
-    /// <returns></returns>
+    /// <summary>批量移除缓存项。支持 * 模糊匹配</summary>
+    /// <param name="keys">键或模式集合</param>
     public abstract Int32 Remove(params String[] keys);
 
     /// <summary>清空所有缓存项</summary>
@@ -94,20 +101,19 @@ public abstract class Cache : DisposeBase, ICache
 
     /// <summary>设置缓存项有效期</summary>
     /// <param name="key">键</param>
-    /// <param name="expire">过期时间，秒</param>
+    /// <param name="expire">过期时间，TTL。<see cref="TimeSpan.Zero"/> 永不过期</param>
     public abstract Boolean SetExpire(String key, TimeSpan expire);
 
     /// <summary>获取缓存项有效期</summary>
     /// <param name="key">键</param>
-    /// <returns></returns>
+    /// <returns>剩余 TTL；建议：永不过期返回 <see cref="TimeSpan.Zero"/></returns>
     public abstract TimeSpan GetExpire(String key);
     #endregion
 
     #region 集合操作
     /// <summary>批量获取缓存项</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="keys"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">值类型</typeparam>
+    /// <param name="keys">键集合</param>
     public virtual IDictionary<String, T?> GetAll<T>(IEnumerable<String> keys)
     {
         var dic = new Dictionary<String, T?>();
@@ -120,9 +126,9 @@ public abstract class Cache : DisposeBase, ICache
     }
 
     /// <summary>批量设置缓存项</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="values"></param>
-    /// <param name="expire">过期时间，秒</param>
+    /// <typeparam name="T">值类型</typeparam>
+    /// <param name="values">键值对集合</param>
+    /// <param name="expire">过期时间，秒。&lt;0 使用默认，0 永不过期</param>
     public virtual void SetAll<T>(IDictionary<String, T> values, Int32 expire = -1)
     {
         foreach (var item in values)
@@ -155,14 +161,13 @@ public abstract class Cache : DisposeBase, ICache
     /// <returns></returns>
     public virtual IProducerConsumer<T> GetStack<T>(String key) => throw new NotSupportedException();
 
-    /// <summary>获取Set</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <summary>获取 Set</summary>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="key">键</param>
     public virtual ICollection<T> GetSet<T>(String key) => throw new NotSupportedException();
 
     /// <summary>获取事件总线，可发布消息或订阅消息</summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">事件类型</typeparam>
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
     /// <returns></returns>
@@ -175,8 +180,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
-    /// <param name="expire">过期时间，秒</param>
-    /// <returns></returns>
+    /// <param name="expire">过期时间，秒。&lt;0 使用默认</param>
     public virtual Boolean Add<T>(String key, T value, Int32 expire = -1)
     {
         if (ContainsKey(key)) return false;
@@ -197,30 +201,32 @@ public abstract class Cache : DisposeBase, ICache
         return rs;
     }
 
-    /// <summary>尝试获取指定键，返回是否包含值。有可能缓存项刚好是默认值，或者只是反序列化失败</summary>
+    /// <summary>尝试获取指定键，返回是否包含值</summary>
+    /// <remarks>
+    /// 当返回 <c>false</c> 时一定不存在；返回 <c>true</c> 时，<paramref name="value"/> 可能为默认值（例如存储的是 0 / null）。
+    /// 默认实现：先 Get，若返回非默认值直接成功；否则再调用 ContainsKey 区分“默认值”与“不存在”。
+    /// </remarks>
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
-    /// <param name="value">值。即使有值也不一定能够返回，可能缓存项刚好是默认值，或者只是反序列化失败</param>
-    /// <returns>返回是否包含值，即使反序列化失败</returns>
+    /// <param name="value">输出值（可能为默认值）</param>
     public virtual Boolean TryGetValue<T>(String key, [MaybeNullWhen(false)] out T value)
     {
-        value = Get<T>(key);
-        if (!Equals(value, default)) return true;
+        value = Get<T>(key)!;
+        if (!Equals(value, default(T))) return true;
 
         return ContainsKey(key);
     }
 
     /// <summary>获取 或 添加 缓存数据，在数据不存在时执行委托请求数据</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <param name="callback"></param>
-    /// <param name="expire">过期时间，秒。小于0时采用默认缓存时间<seealso cref="Cache.Expire"/></param>
-    /// <returns></returns>
+    /// <typeparam name="T">值类型</typeparam>
+    /// <param name="key">键</param>
+    /// <param name="callback">缺失时构造函数</param>
+    /// <param name="expire">过期时间，秒。&lt;0 使用默认</param>
     [return: MaybeNull]
     public virtual T GetOrAdd<T>(String key, Func<String, T> callback, Int32 expire = -1)
     {
         var value = Get<T>(key);
-        if (!Equals(value, default)) return value;
+        if (!Equals(value, default(T))) return value;
 
         if (ContainsKey(key)) return value;
 
@@ -297,16 +303,14 @@ public abstract class Cache : DisposeBase, ICache
     }
 
     /// <summary>搜索键</summary>
-    /// <param name="pattern">匹配字符串。一般支持*，Redis还支持?</param>
-    /// <param name="offset">开始行。默认从0开始，Redis对海量key搜索时需要分批</param>
-    /// <param name="count">搜索个数。默认-1表示全部，Redis对海量key搜索时需要分批</param>
-    /// <returns></returns>
+    /// <param name="pattern">匹配字符串。一般支持 *，远端实现可支持 ?</param>
+    /// <param name="offset">开始行（分页偏移）</param>
+    /// <param name="count">搜索个数。默认 -1 表示全部</param>
     public virtual IEnumerable<String> Search(String pattern, Int32 offset = 0, Int32 count = -1) => [];
     #endregion
 
     #region 事务
-    /// <summary>提交变更。部分提供者需要刷盘</summary>
-    /// <returns></returns>
+    /// <summary>提交变更（部分提供者需要刷盘）</summary>
     public virtual Int32 Commit() => 0;
 
     /// <summary>申请分布式锁（简易版）。使用完以后需要主动释放</summary>
@@ -321,10 +325,10 @@ public abstract class Cache : DisposeBase, ICache
     /// //todo 需要分布式锁保护的代码
     /// rlock.Dispose(); //释放锁。也可以在using语句结束时自动释放
     /// </code>
+    /// 简化语义：等待时间 = 锁持有时间（<paramref name="msTimeout"/>）。相当于 <see cref="AcquireLock(String, Int32, Int32, Boolean)"/> 中 <c>msExpire = msTimeout</c>。
     /// </remarks>
-    /// <param name="key">要锁定的key</param>
-    /// <param name="msTimeout">锁等待时间，单位毫秒</param>
-    /// <returns></returns>
+    /// <param name="key">锁键</param>
+    /// <param name="msTimeout">等待及过期时间（毫秒）</param>
     public virtual IDisposable? AcquireLock(String key, Int32 msTimeout)
     {
         var rlock = new CacheLock(this, key);

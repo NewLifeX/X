@@ -18,6 +18,10 @@ public class KeyEventArgs : CancelEventArgs
 }
 
 /// <summary>内存缓存。并行字典实现，峰值性能10亿ops</summary>
+/// <remarks>
+/// 过期语义：所有 Set / Add / GetOrAdd / Replace 使用“相对过期（TTL）”。expire &lt; 0 使用 <see cref="Cache.Expire"/>；0 = 永不过期；&gt;0 = 从当前起的秒数。
+/// Keys/Count 均为 O(1) 读取（ConcurrentDictionary 快照视图），但在极高并发场景下仍需注意遍历成本。
+/// </remarks>
 public class MemoryCache : Cache
 {
     #region 属性
@@ -64,13 +68,14 @@ public class MemoryCache : Cache
     /// <summary>缓存项。原子计数</summary>
     public override Int32 Count => _count;
 
-    /// <summary>所有键。实际返回只读列表新实例，数据量较大时注意性能</summary>
+    /// <summary>所有键。
+    /// 注意：返回的是底层字典的键集合（实时视图），在高并发写入时遍历成本与一致性需评估；若需静态快照请自行 ToArray()</summary>
     public override ICollection<String> Keys => _cache.Keys;
     #endregion
 
     #region 方法
     /// <summary>初始化配置</summary>
-    /// <param name="config"></param>
+    /// <param name="config">未使用</param>
     public override void Init(String? config)
     {
         if (_clearTimer == null)
@@ -80,7 +85,7 @@ public class MemoryCache : Cache
         }
     }
 
-    /// <summary>获取或添加缓存项</summary>
+    /// <summary>获取或添加缓存项（值工厂已存在则不执行）</summary>
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
@@ -155,7 +160,7 @@ public class MemoryCache : Cache
         return true;
     }
 
-    /// <summary>获取缓存项，不存在时返回默认值</summary>
+    /// <summary>获取缓存项，不存在或已过期时返回默认值</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
     [return: MaybeNull]
@@ -166,7 +171,7 @@ public class MemoryCache : Cache
         return item.Visit<T>();
     }
 
-    /// <summary>移除缓存项。支持*模糊匹配</summary>
+    /// <summary>移除缓存项。支持 * 模糊匹配</summary>
     /// <param name="key">键</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(String key)
@@ -180,16 +185,23 @@ public class MemoryCache : Cache
         return RemoveInternal([key]);
     }
 
-    /// <summary>批量移除缓存项。支持*模糊匹配</summary>
+    /// <summary>批量移除缓存项。支持 * 模糊匹配</summary>
     /// <param name="keys">键集合</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(params String[] keys)
     {
+        // 性能优化：如果全部都不含通配符，直接按键删除
+        if (keys.All(k => !k.Contains('*') && !k.Contains('?')))
+        {
+            return RemoveInternal(keys);
+        }
+
+        var patterns = keys;
         var count = 0;
         foreach (var item in _cache)
         {
             var key = item.Key;
-            if (keys.Any(e => e.IsMatch(key)) && _cache.TryRemove(key, out _))
+            if (patterns.Any(e => e.IsMatch(key)) && _cache.TryRemove(key, out _))
             {
                 count++;
 
@@ -234,7 +246,7 @@ public class MemoryCache : Cache
         return true;
     }
 
-    /// <summary>获取缓存项有效期，不存在时返回Zero</summary>
+    /// <summary>获取缓存项有效期，不存在时返回 Zero</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
     public override TimeSpan GetExpire(String key)
@@ -246,7 +258,7 @@ public class MemoryCache : Cache
     #endregion
 
     #region 高级操作
-    /// <summary>添加，已存在时不更新，常用于锁争夺</summary>
+    /// <summary>添加，已存在且未过期时不更新，常用于锁争夺</summary>
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
     /// <param name="value">值</param>
@@ -708,7 +720,7 @@ public class MemoryCache : Cache
     /// <summary>清理会话计时器</summary>
     private TimerX? _clearTimer;
 
-    /// <summary>移除过期的缓存项</summary>
+    /// <summary>移除过期的缓存项 + LRU 淘汰</summary>
     private void RemoveNotAlive(Object? state)
     {
         var tx = _clearTimer;
@@ -719,13 +731,11 @@ public class MemoryCache : Cache
 
         // 过期时间升序，用于缓存满以后删除
         var slist = new SortedList<Int64, IList<String>>();
-        // 超出个数
-        var exceed = true;
-        if (Capacity <= 0 || _count <= Capacity) exceed = false;
+        var exceed = Capacity > 0 && _count > Capacity;
 
         // 60分钟之内过期的数据，进入LRU淘汰
         var now = Runtime.TickCount64;
-        var exp = now + 3600_000;
+        var exp = now + 3600_000; // 1 小时内过期的键参与 LRU
         var k = 0;
 
         // 这里先计算，性能很重要
@@ -743,9 +753,7 @@ public class MemoryCache : Cache
                 // 超出个数，且1小时内过期的数据，进入LRU淘汰
                 if (exceed && ci.ExpiredTime < exp)
                 {
-                    if (!slist.TryGetValue(ci.VisitTime, out var ss))
-                        slist.Add(ci.VisitTime, ss = []);
-
+                    if (!slist.TryGetValue(ci.VisitTime, out var ss)) slist.Add(ci.VisitTime, ss = []);
                     ss.Add(item.Key);
                 }
             }
@@ -775,11 +783,18 @@ public class MemoryCache : Cache
             XTrace.WriteLine("[{0}]满，{1:n0}>{2:n0}，删除[{3:n0}]个", Name, _count, Capacity, toDels.Count);
         }
 
-        // 确认删除
+        // 确认删除。若 OnExpire 取消删除，需要补回计数
+        var removed = 0;
         foreach (var item in toDels)
         {
             if (OnExpire(item))
-                _cache.Remove(item);
+            {
+                if (_cache.Remove(item)) removed++;
+            }
+            else
+            {
+                k++; // 被取消删除，仍然存活
+            }
         }
 
         // 修正
