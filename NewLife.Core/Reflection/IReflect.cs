@@ -544,7 +544,10 @@ public class DefaultReflect : IReflect
 
     #region 对象拷贝
     private static Dictionary<Type, IDictionary<String, PropertyInfo>> _properties = [];
-    /// <summary>从源对象拷贝数据到目标对象</summary>
+    /// <summary>从源对象拷贝数据到目标对象。针对IModel优化</summary>
+    /// <remarks>
+    /// 来源或目标对象为IModel时，借助IModel的索引器来取值赋值，提升性能。
+    /// </remarks>
     /// <param name="target">目标对象</param>
     /// <param name="source">源对象</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
@@ -556,6 +559,8 @@ public class DefaultReflect : IReflect
         var targetType = target.GetType();
         // 基础类型无法拷贝
         if (targetType.IsBaseType()) throw new XException("The base type {0} cannot be copied", targetType.FullName);
+        if (!_properties.TryGetValue(targetType, out var targetProperties))
+            _properties[targetType] = targetProperties = targetType.GetProperties(true).ToDictionary(e => e.Name, e => e);
 
         var sourceType = source.GetType();
         if (!_properties.TryGetValue(sourceType, out var sourceProperties))
@@ -565,9 +570,9 @@ public class DefaultReflect : IReflect
         if (!deep)
         {
             // 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
-            if (target is IModel dst && target is not IExtend)
+            if (target is IModel dst and not IExtend)
             {
-                foreach (var pi in targetType.GetProperties(true))
+                foreach (var pi in targetProperties.Values)
                 {
                     if (!pi.CanWrite) continue;
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
@@ -578,7 +583,7 @@ public class DefaultReflect : IReflect
             }
             else
             {
-                foreach (var pi in targetType.GetProperties(true))
+                foreach (var pi in targetProperties.Values)
                 {
                     if (!pi.CanWrite) continue;
                     if (excludes != null && excludes.Contains(pi.Name)) continue;
