@@ -20,9 +20,9 @@ public class AverageSampling : ISampling
     /// <summary>
     /// 降采样处理。保留边界两个点
     /// </summary>
-    /// <param name="data">原始数据</param>
+    /// <param name="data">原始数据（升序）</param>
     /// <param name="threshold">阈值，采样数</param>
-    /// <returns></returns>
+    /// <returns>降采样后的数据</returns>
     public TimePoint[] Down(TimePoint[] data, Int32 threshold)
     {
         //if (data == null || data.Length < 2) return data;
@@ -36,20 +36,22 @@ public class AverageSampling : ISampling
         for (var i = 0; i < buckets.Length; i++)
         {
             var item = buckets[i];
-            TimePoint point = default;
-            var vs = 0.0;
-            for (var j = item.Start; j < item.End; j++)
-            {
-                vs += data[j].Value;
-            }
-            point.Value = vs / (item.End - item.Start);
+            var start = item.Start;
+            var end = item.End;
+            var count = end - start;
 
-            // 对齐
+            Double sum = 0;
+            for (var j = start; j < end; j++) sum += data[j].Value;
+
+            TimePoint point = default;
+            point.Value = sum / count;
+
+            // 对齐 X 轴（时间）
             point.Time = AlignMode switch
             {
-                AlignModes.Right => data[item.End - 1].Time,
-                AlignModes.Center => data[(Int32)Math.Round((item.Start + item.End - 1) / 2.0)].Time,
-                _ => data[item.Start].Time,
+                AlignModes.Right => data[end - 1].Time,
+                AlignModes.Center => data[(Int32)Math.Round((start + end - 1) / 2.0)].Time,
+                _ => data[start].Time,
             };
             sampled[i] = point;
         }
@@ -60,10 +62,10 @@ public class AverageSampling : ISampling
     /// <summary>
     /// 混合处理，降采样和插值，不保留边界节点
     /// </summary>
-    /// <param name="data">原始数据</param>
+    /// <param name="data">原始数据（升序）</param>
     /// <param name="size">桶大小。如60/3600/86400</param>
     /// <param name="offset">偏移量。时间不是对齐零点时使用</param>
-    /// <returns></returns>
+    /// <returns>采样 + 插值结果</returns>
     public TimePoint[] Process(TimePoint[] data, Int32 size, Int32 offset = 0)
     {
         //if (data == null || data.Length < 2) return data;
@@ -78,30 +80,29 @@ public class AverageSampling : ISampling
 
         // 每个桶选择一个点作为代表
         var sampled = new TimePoint[buckets.Length];
-        var last = 0;
+        var last = 0; // 上一个有效点索引，用于跨缺口插值
         for (var i = 0; i < buckets.Length; i++)
         {
-            // 断层，插值
             var item = buckets[i];
             if (item.Start < 0)
             {
-                // 取last用于插值起点，如果不存在，可以取0点
-                // 此时End指向下一个有效点，即使下一个桶也是断层
-                sampled[i].Time = i * size;
+                // 缺口：使用 last -> item.End 的两个点做线性插值（外推/插值）
+                sampled[i].Time = i * size; // 桶起点对齐
                 sampled[i].Value = Interpolation.Process(data, last, item.End, i);
                 continue;
             }
 
-            TimePoint point = default;
-            var vs = 0.0;
-            for (var j = item.Start; j < item.End; j++)
-            {
-                vs += data[j].Value;
-            }
-            last = item.End - 1;
-            point.Value = vs / (item.End - item.Start);
+            var start = item.Start;
+            var end = item.End;
+            var count = end - start;
 
-            // 对齐
+            Double sum = 0;
+            for (var j = start; j < end; j++) sum += data[j].Value;
+            last = end - 1;
+
+            TimePoint point = default;
+            point.Value = sum / count;
+
             point.Time = AlignMode switch
             {
                 AlignModes.Right => (i + 1) * size - 1,
