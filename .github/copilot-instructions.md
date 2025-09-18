@@ -40,7 +40,7 @@
 - 禁止擅自删除已有代码注释（含单行 // 与 XML 文档注释），可以修改或追加。
 
 ## 6. 文档注释
-- `public` / `protected` 必须：`<summary>` 单行；补 `<param>` `<returns>`。
+- `public` / `protected` 必须具备注释：`<summary>` 单行简洁；详细描述放 `<remarks>`；补充 `<param>` `<returns>`。
 - 示例可裁剪；避免泄露密钥、真实内部地址。
 - `[Obsolete]` 成员必须含迁移建议。
 - 中文优先，必要时补精简英文（同一 `<remarks>`）。

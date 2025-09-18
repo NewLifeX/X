@@ -6,13 +6,13 @@ using NewLife.Collections;
 namespace NewLife;
 
 /// <summary>Span帮助类</summary>
+/// <remarks>提供Span/Memory常用扩展，避免额外分配。</remarks>
 public static class SpanHelper
 {
     #region 字符串扩展
     /// <summary>转字符串</summary>
-    /// <param name="span"></param>
-    /// <param name="encoding"></param>
-    /// <returns></returns>
+    /// <param name="span">字节数据</param>
+    /// <param name="encoding">编码，默认UTF8</param>
     public static String ToStr(this ReadOnlySpan<Byte> span, Encoding? encoding = null)
     {
         if (span.Length == 0) return String.Empty;
@@ -20,28 +20,25 @@ public static class SpanHelper
     }
 
     /// <summary>转字符串</summary>
-    /// <param name="span"></param>
-    /// <param name="encoding"></param>
-    /// <returns></returns>
+    /// <param name="span">字节数据</param>
+    /// <param name="encoding">编码，默认UTF8</param>
     public static String ToStr(this Span<Byte> span, Encoding? encoding = null)
     {
         if (span.Length == 0) return String.Empty;
         return (encoding ?? Encoding.UTF8).GetString(span);
     }
 
-    /// <summary>获取字符串的字节数组</summary>
+    /// <summary>获取字符串的字节数组写入数量（指针路径，避免中间数组）。</summary>
     public static unsafe Int32 GetBytes(this Encoding encoding, ReadOnlySpan<Char> chars, Span<Byte> bytes)
     {
         fixed (Char* chars2 = &MemoryMarshal.GetReference(chars))
+        fixed (Byte* bytes2 = &MemoryMarshal.GetReference(bytes))
         {
-            fixed (Byte* bytes2 = &MemoryMarshal.GetReference(bytes))
-            {
-                return encoding.GetBytes(chars2, chars.Length, bytes2, bytes.Length);
-            }
+            return encoding.GetBytes(chars2, chars.Length, bytes2, bytes.Length);
         }
     }
 
-    /// <summary>获取字节数组的字符串</summary>
+    /// <summary>获取字节数组的字符串（指针路径，避免额外拷贝）。</summary>
     public static unsafe String GetString(this Encoding encoding, ReadOnlySpan<Byte> bytes)
     {
         if (bytes.IsEmpty) return String.Empty;
@@ -73,7 +70,7 @@ public static class SpanHelper
         return cs.ToString();
     }
 
-    /// <summary>把字节数组编码为十六进制字符串</summary>
+    /// <summary>把字节数组编码为十六进制字符串（限制最大长度）。</summary>
     /// <param name="data">字节数组</param>
     /// <param name="maxLength">最大长度</param>
     /// <returns></returns>
@@ -93,12 +90,11 @@ public static class SpanHelper
 
     private static Char GetHexValue(Int32 i) => i < 10 ? (Char)(i + '0') : (Char)(i - 10 + 'A');
 
-    /// <summary>以十六进制编码表示</summary>
-    /// <param name="data"></param>
+    /// <summary>以十六进制编码表示，支持分隔符与分组。</summary>
+    /// <param name="data">数据</param>
     /// <param name="separate">分隔符</param>
-    /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
-    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
-    /// <returns></returns>
+    /// <param name="groupSize">分组大小，为0表示每个字节前都可插入分隔符</param>
+    /// <param name="maxLength">最大显示字节数，-1表示全部</param>
     public static String ToHex(this ReadOnlySpan<Byte> data, String? separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
         if (data.Length == 0 || maxLength == 0) return String.Empty;
@@ -108,36 +104,20 @@ public static class SpanHelper
 
         if (groupSize < 0) groupSize = 0;
 
+        // 没有分隔符并且未指定分组，走快速路径
+        if (groupSize == 0 && String.IsNullOrEmpty(separate)) return data.ToHex();
+
         var count = data.Length;
-        if (groupSize == 0)
-        {
-            // 没有分隔符
-            if (String.IsNullOrEmpty(separate)) return data.ToHex();
-
-            //// 特殊处理
-            //if (separate == "-") return BitConverter.ToString(data, 0, count);
-        }
-
-        var len = count * 2;
-        if (!separate.IsNullOrEmpty()) len += (count - 1) * separate.Length;
-        if (groupSize > 0)
-        {
-            // 计算分组个数
-            var g = (count - 1) / groupSize;
-            len += g * 2;
-            // 扣除间隔
-            if (!separate.IsNullOrEmpty()) _ = g * separate.Length;
-        }
-
         var sb = Pool.StringBuilder.Get();
         for (var i = 0; i < count; i++)
         {
-            if (sb.Length > 0)
+            if (i > 0)
             {
                 if (groupSize <= 0 || i % groupSize == 0)
-                    sb.Append(separate);
+                {
+                    if (!separate.IsNullOrEmpty()) sb.Append(separate);
+                }
             }
-
             var b = data[i];
             sb.Append(GetHexValue(b >> 4));
             sb.Append(GetHexValue(b & 0x0F));
@@ -146,7 +126,7 @@ public static class SpanHelper
         return sb.Return(true) ?? String.Empty;
     }
 
-    /// <summary>以十六进制编码表示</summary>
+    /// <summary>以十六进制编码表示，支持分隔符与分组。</summary>
     /// <param name="span"></param>
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
@@ -290,8 +270,7 @@ public static class SpanHelper
         });
     }
 
-    //#if NETFRAMEWORK || NETSTANDARD
-    /// <summary>去掉前后字符</summary>
+    /// <summary>去掉前后指定元素。</summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="span"></param>
     /// <param name="trimElement"></param>
@@ -303,7 +282,7 @@ public static class SpanHelper
         return span.Slice(start, length);
     }
 
-    /// <summary>去掉前后字符</summary>
+    /// <summary>去掉前后指定元素。</summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="span"></param>
     /// <param name="trimElement"></param>
@@ -321,10 +300,7 @@ public static class SpanHelper
         for (; i < span.Length; i++)
         {
             ref var reference = ref trimElement;
-            if (!reference.Equals(span[i]))
-            {
-                break;
-            }
+            if (!reference.Equals(span[i])) break;
         }
         return i;
     }
@@ -335,13 +311,9 @@ public static class SpanHelper
         while (num >= start)
         {
             ref var reference = ref trimElement;
-            if (!reference.Equals(span[num]))
-            {
-                break;
-            }
+            if (!reference.Equals(span[num])) break;
             num--;
         }
         return num - start + 1;
     }
-    //#endif
 }

@@ -8,8 +8,8 @@ namespace NewLife.Buffers;
 
 /// <summary>Span读取器</summary>
 /// <remarks>
-/// 引用结构的Span读取器确保高性能无GC读取。
-/// 支持Stream扩展，当数据不足时，自动从数据流中读取，常用于解析Redis/MySql等协议。
+/// 引用结构，零分配读取二进制数据，支持自动从底层 <see cref="Stream"/> 追加读取。
+/// 典型用于解析 Redis/MySql/自定义协议帧；支持 7 位压缩整数、结构体直接反序列化等。
 /// </remarks>
 public ref struct SpanReader
 {
@@ -25,16 +25,16 @@ public ref struct SpanReader
     /// <summary>总容量</summary>
     public Int32 Capacity => _span.Length;
 
-    /// <summary>空闲容量</summary>
+    /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
     public Int32 FreeCapacity => _span.Length - _index;
 
-    /// <summary>是否小端字节序。默认true</summary>
+    /// <summary>是否小端字节序。默认 true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
     #endregion
 
     #region 构造
     /// <summary>实例化。暂时兼容旧版，后面使用主构造函数</summary>
-    /// <param name="span"></param>
+    /// <param name="span">数据</param>
     public SpanReader(ReadOnlySpan<Byte> span) => _span = span;
 
     /// <summary>实例化。暂时兼容旧版，后面删除</summary>
@@ -52,7 +52,7 @@ public ref struct SpanReader
     #endregion
 
     #region 扩容增强
-    /// <summary>最大容量。多次从数据流读取数据时，受限于此最大值</summary>
+    /// <summary>最大容量。多次从数据流读取数据时，受限于此最大值（0 表示不限制）。</summary>
     public Int32 MaxCapacity { get; set; }
 
     private readonly Stream? _stream;
@@ -60,14 +60,14 @@ public ref struct SpanReader
     private IPacket? _data;
     private Int32 _total;
 
-    /// <summary>实例化Span读取器。支持从数据流中读取更多数据，突破大小限制</summary>
+    /// <summary>支持从数据流中读取更多数据，突破初始大小限制。</summary>
     /// <remarks>
     /// 解析网络协议时，有时候数据帧较大，超过特定缓冲区大小，导致无法一次性读取完整数据帧。
     /// 加入数据流参数后，在读取数据不足时，SpanReader会自动从数据流中读取一批数据。
     /// </remarks>
-    /// <param name="stream">数据流。一般是网络流</param>
-    /// <param name="data"></param>
-    /// <param name="bufferSize"></param>
+    /// <param name="stream">数据流，一般为网络流</param>
+    /// <param name="data">初始数据包，可为空</param>
+    /// <param name="bufferSize">追加读取缓冲区建议大小</param>
     public SpanReader(Stream stream, IPacket? data = null, Int32 bufferSize = 8192)
     {
         _stream = stream;
@@ -83,16 +83,12 @@ public ref struct SpanReader
     #endregion
 
     #region 基础方法
-    /// <summary>告知有多少数据已从缓冲区读取</summary>
-    /// <param name="count"></param>
+    /// <summary>告知已消耗 <paramref name="count"/> 字节数据。</summary>
     public void Advance(Int32 count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
-
         if (count > 0) EnsureSpace(count);
-
         if (_index + count > _span.Length) throw new ArgumentOutOfRangeException(nameof(count));
-
         _index += count;
     }
 
@@ -103,22 +99,21 @@ public ref struct SpanReader
     public ReadOnlySpan<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
-
         return _span[_index..];
     }
     #endregion
 
     #region 读取方法
-    /// <summary>确保缓冲区中有足够的空间。</summary>
+    /// <summary>确保缓冲区中有足够的空间，必要时从底层流追加读取。</summary>
     /// <param name="size">需要的字节数。</param>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="InvalidOperationException">数据不足</exception>
     public void EnsureSpace(Int32 size)
     {
         // 检查剩余空间大小，不足时，再从数据流中读取。此时需要注意，创建新的OwnerPacket后，需要先把之前剩余的一点数据拷贝过去，然后再读取Stream
         var remain = FreeCapacity;
         if (remain < size && _stream != null)
         {
-            // 申请指定大小的数据包缓冲区，至少达到缓冲区大小，但不超过最大容量
+            // 申请新的数据块：至少满足 size，且考虑 bufferSize / MaxCapacity。
             var idx = 0;
             var bsize = size;
             if (MaxCapacity > 0)
@@ -127,6 +122,8 @@ public ref struct SpanReader
                 if (bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
             }
             var pk = new OwnerPacket(bsize);
+
+            // 把剩余未读数据拷贝到新数据块前部，避免丢失
             if (_data != null && remain > 0)
             {
                 if (!_data.TryGetArray(out var arr)) throw new NotSupportedException();
@@ -137,28 +134,19 @@ public ref struct SpanReader
 
             _data.TryDispose();
             _data = pk;
-            _index = 0;
+            _index = 0; // 重置索引，后续直接从新缓冲读取
 
-            // 多次读取，直到满足需求。不要超过最大容量，否则可能读取到下一个数据帧的数据
+            // 直接读取指定大小，必要时抛异常，防止阻塞等待不确定长度数据
             _stream.ReadExactly(pk.Buffer, pk.Offset + idx, pk.Length - idx);
             idx = pk.Length;
-            //while (idx < size)
-            //{
-            //    var n = _stream.Read(pk.Buffer, pk.Offset + idx, pk.Length - idx);
-            //    if (n <= 0) break;
-
-            //    idx += n;
-            //}
-            if (idx < size)
-                throw new InvalidOperationException("Not enough data to read.");
+            if (idx < size) throw new InvalidOperationException("Not enough data to read.");
             pk.Resize(idx);
 
             _span = pk.GetSpan();
             _total += idx - remain;
         }
 
-        if (_index + size > _span.Length)
-            throw new InvalidOperationException("Not enough data to read.");
+        if (_index + size > _span.Length) throw new InvalidOperationException("Not enough data to read.");
     }
 
     /// <summary>读取单个字节</summary>
@@ -186,7 +174,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取UInt16整数</summary>
-    /// <returns></returns>
     public UInt16 ReadUInt16()
     {
         var size = sizeof(UInt16);
@@ -199,7 +186,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取Int32整数</summary>
-    /// <returns></returns>
     public Int32 ReadInt32()
     {
         var size = sizeof(Int32);
@@ -212,7 +198,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取UInt32整数</summary>
-    /// <returns></returns>
     public UInt32 ReadUInt32()
     {
         var size = sizeof(UInt32);
@@ -225,7 +210,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取Int64整数</summary>
-    /// <returns></returns>
     public Int64 ReadInt64()
     {
         var size = sizeof(Int64);
@@ -238,7 +222,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取UInt64整数</summary>
-    /// <returns></returns>
     public UInt64 ReadUInt64()
     {
         var size = sizeof(UInt64);
@@ -251,7 +234,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取单精度浮点数</summary>
-    /// <returns></returns>
     public unsafe Single ReadSingle()
     {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
@@ -263,7 +245,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取双精度浮点数</summary>
-    /// <returns></returns>
     public Double ReadDouble()
     {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
@@ -274,11 +255,9 @@ public ref struct SpanReader
 #endif
     }
 
-    /// <summary>读取字符串。支持定长、全部和长度前缀</summary>
-    /// <param name="length">需要读取的长度。-1表示读取全部，默认0表示读取7位压缩编码整数长度</param>
-    /// <param name="encoding">字符串编码，默认UTF8</param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <summary>读取字符串。支持定长、读取全部与 7 位压缩长度前缀。</summary>
+    /// <param name="length">需要读取的长度。-1 读取剩余全部；0 读取 7 位压缩长度前缀；&gt;0 定长</param>
+    /// <param name="encoding">编码，默认 UTF8</param>
     public String ReadString(Int32 length = 0, Encoding? encoding = null)
     {
         if (length < 0)
@@ -296,9 +275,7 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取字节数组</summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
+    /// <summary>读取字节数组片段</summary>
     public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
         EnsureSpace(length);
@@ -308,9 +285,7 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取字节数组</summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
+    /// <summary>读取到目标 Span。</summary>
     public Int32 Read(Span<Byte> data)
     {
         var length = data.Length;
@@ -322,9 +297,7 @@ public ref struct SpanReader
         return length;
     }
 
-    /// <summary>读取数据包。直接对内部数据包进行切片</summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
+    /// <summary>读取数据包（对内部数据切片，不复制）。</summary>
     public IPacket ReadPacket(Int32 length)
     {
         if (_data == null) throw new InvalidOperationException("No data stream to read!");
@@ -336,9 +309,7 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取结构体</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
+    /// <summary>读取结构体（按内存布局直接反序列化）。</summary>
     public T Read<T>() where T : struct
     {
         var size = Unsafe.SizeOf<T>();
@@ -351,8 +322,7 @@ public ref struct SpanReader
     #endregion
 
     #region 扩展读取
-    /// <summary>以压缩格式读取32位整数</summary>
-    /// <returns></returns>
+    /// <summary>以 7 位压缩格式读取 32 位整数。</summary>
     public Int32 ReadEncodedInt()
     {
         Byte b;

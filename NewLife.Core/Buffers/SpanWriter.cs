@@ -9,7 +9,10 @@ using NewLife.Data;
 namespace NewLife.Buffers;
 
 /// <summary>Span写入器</summary>
-/// <param name="buffer"></param>
+/// <remarks>
+/// 引用结构，面向高性能无 GC 写入。支持写入基础类型、结构体以及 7 位压缩整数、长度前缀字符串等。
+/// </remarks>
+/// <param name="buffer">目标缓冲区</param>
 public ref struct SpanWriter(Span<Byte> buffer)
 {
     #region 属性
@@ -27,13 +30,18 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <summary>空闲容量</summary>
     public readonly Int32 FreeCapacity => _span.Length - _index;
 
+    /// <summary>已写入数据</summary>
+    public readonly ReadOnlySpan<Byte> WrittenSpan => _span[.._index];
+
+    /// <summary>已写入长度</summary>
+    public readonly Int32 WrittenCount => _index;
+
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
     #endregion
 
     #region 构造
-    /// <summary>实例化Span读取器</summary>
-    /// <param name="data"></param>
+    /// <summary>实例化Span写入器</summary>
     public SpanWriter(IPacket data) : this(data.GetSpan()) { }
     #endregion
 
@@ -65,8 +73,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <param name="size">需要的字节数。</param>
     private readonly void EnsureSpace(Int32 size)
     {
-        if (_index + size > _span.Length)
-            throw new InvalidOperationException("Not enough data to write.");
+        if (_index + size > _span.Length) throw new InvalidOperationException("Not enough data to write.");
     }
 
     /// <summary>写入字节</summary>
@@ -191,10 +198,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     /// <summary>写入字符串。支持定长、全部和长度前缀</summary>
     /// <param name="value">要写入的字符串</param>
-    /// <param name="length">最大长度。字节数，-1表示写入全部，默认0表示写入7位压缩编码整数长度。不足时填充字节0，超长时截取</param>
-    /// <param name="encoding">字符串编码，默认UTF8</param>
-    /// <returns>返回写入字节数，包括头部长度和字符串部分</returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="length">最大长度（字节）。-1: 全部；0: 先写入 7 位压缩长度；>0: 固定长度（不足填0，超长截断）</param>
+    /// <param name="encoding">编码，默认UTF8</param>
+    /// <returns>写入字节数（含头部）</returns>
     public Int32 Write(String value, Int32 length = 0, Encoding? encoding = null)
     {
         var p = _index;
