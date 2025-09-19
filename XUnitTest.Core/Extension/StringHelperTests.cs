@@ -78,6 +78,40 @@ public class StringHelperTests
     }
 
     [Fact]
+    public void IsMatch_WithQuestionMark()
+    {
+        // 单个?
+        Assert.True("?".IsMatch("a"));
+        Assert.False("?".IsMatch(""));
+
+        // 固定长度匹配
+        Assert.True("a?c".IsMatch("abc"));
+        Assert.True("a?c".IsMatch("aXc"));
+        Assert.False("a?c".IsMatch("ac"));
+        Assert.True("??".IsMatch("ab"));
+        Assert.False("??".IsMatch("a"));
+
+        // 文件名
+        Assert.True("file?.txt".IsMatch("file1.txt"));
+        Assert.False("file?.txt".IsMatch("file12.txt"));
+
+        // 与*组合
+        Assert.True("a?c*".IsMatch("aXc"));
+        Assert.True("a?c*".IsMatch("aXcd"));
+        Assert.True("*?.zip".IsMatch("abc.zip"));
+        Assert.True("*?.zip".IsMatch("a.zip")); // * 可匹配空串，? 匹配一个字符
+
+        // 大小写
+        Assert.True("a?c".IsMatch("aXc", StringComparison.OrdinalIgnoreCase));
+        Assert.True("A?C".IsMatch("aXc", StringComparison.OrdinalIgnoreCase));
+        Assert.False("A?C".IsMatch("aXc", StringComparison.Ordinal));
+
+        // 边界
+        Assert.False("??".IsMatch(""));
+        Assert.False("?".IsMatch(null));
+    }
+
+    [Fact]
     public void SplitAsDictionary()
     {
         var str = "IP=172.17.0.6,172.17.0.7,172.17.16.7";

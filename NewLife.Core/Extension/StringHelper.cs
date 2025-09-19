@@ -308,8 +308,8 @@ public static class StringHelper
         return String.Format(value, args);
     }
 
-    /// <summary>指定输入是否匹配目标表达式，支持*匹配</summary>
-    /// <param name="pattern">匹配表达式</param>
+    /// <summary>指定输入是否匹配目标表达式，支持*和?匹配</summary>
+    /// <param name="pattern">匹配表达式。* 匹配任意长度（含0）任意字符，? 匹配任意单个字符</param>
     /// <param name="input">输入字符串</param>
     /// <param name="comparisonType">字符串比较方式</param>
     /// <returns></returns>
@@ -321,42 +321,63 @@ public static class StringHelper
         if (pattern == "*") return true;
         if (input.IsNullOrEmpty()) return false;
 
-        // 普通表达式，直接包含
-        var p = pattern.IndexOf('*');
-        if (p < 0) return String.Equals(input, pattern, comparisonType);
+        // 普通表达式，直接相等
+        var hasStar = pattern.IndexOf('*') >= 0;
+        var hasQm = pattern.IndexOf('?') >= 0;
+        if (!hasStar && !hasQm) return String.Equals(input, pattern, comparisonType);
 
-        // 表达式分组
-        var ps = pattern.Split('*');
+        // 通用通配符匹配（支持 * 和 ? ）
+        var i = 0; // pattern 指针
+        var j = 0; // input 指针
+        var starIdx = -1; // 最近一次出现 *的位置
+        var match = 0; // 当存在*时，记录在 input 中回溯匹配的起始位置
 
-        // 头尾专用匹配
-        if (ps.Length == 2)
+        while (j < input.Length)
         {
-            if (p == 0) return input.EndsWith(ps[1], comparisonType);
-            if (p == pattern.Length - 1) return input.StartsWith(ps[0], comparisonType);
-        }
-
-        // 逐项跳跃式匹配
-        p = 0;
-        for (var i = 0; i < ps.Length; i++)
-        {
-            // 最后一组反向匹配
-            if (i == ps.Length - 1)
-                p = input.LastIndexOf(ps[i], input.Length - 1, input.Length - p, comparisonType);
+            if (i < pattern.Length && (pattern[i] == '?' || CharEquals(pattern[i], input[j], comparisonType)))
+            {
+                // 普通字符或?逐个前进
+                i++;
+                j++;
+            }
+            else if (i < pattern.Length && pattern[i] == '*')
+            {
+                // 记录*位置，先让*匹配空串，后续不匹配再回溯
+                starIdx = i;
+                i++;
+                match = j;
+            }
+            else if (starIdx != -1)
+            {
+                // 回溯：让之前的*多吞一个字符
+                i = starIdx + 1;
+                match++;
+                j = match;
+            }
             else
-                p = input.IndexOf(ps[i], p, comparisonType);
-            if (p < 0) return false;
-
-            // 第一组必须开头
-            if (i == 0 && p > 0) return false;
-
-            p += ps[i].Length;
+            {
+                return false;
+            }
         }
 
-        // 最后一组*允许不到边界
-        if (ps[^1].IsNullOrEmpty()) return p <= input.Length;
+        // 处理结尾多余的*
+        while (i < pattern.Length && pattern[i] == '*') i++;
 
-        // 最后一组必须结尾
-        return p == input.Length;
+        return i == pattern.Length;
+
+        static Boolean CharEquals(Char a, Char b, StringComparison comparisonType)
+        {
+            if (a == b) return true;
+
+            return comparisonType switch
+            {
+                StringComparison.Ordinal or StringComparison.CurrentCulture or StringComparison.InvariantCulture => false,
+                StringComparison.OrdinalIgnoreCase => Char.ToUpperInvariant(a) == Char.ToUpperInvariant(b),
+                StringComparison.CurrentCultureIgnoreCase => Char.ToUpper(a, System.Globalization.CultureInfo.CurrentCulture) == Char.ToUpper(b, System.Globalization.CultureInfo.CurrentCulture),
+                StringComparison.InvariantCultureIgnoreCase => Char.ToUpper(a, System.Globalization.CultureInfo.InvariantCulture) == Char.ToUpper(b, System.Globalization.CultureInfo.InvariantCulture),
+                _ => false,
+            };
+        }
     }
 
     //#if NETFRAMEWORK || NETSTANDARD2_0
