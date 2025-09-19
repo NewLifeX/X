@@ -171,12 +171,12 @@ public class MemoryCache : Cache
         return item.Visit<T>();
     }
 
-    /// <summary>移除缓存项。支持 * 模糊匹配</summary>
-    /// <param name="key">键</param>
+    /// <summary>移除缓存项。支持 * 与 ? 模式匹配</summary>
+    /// <param name="key">键或模式</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(String key)
     {
-        if (key.Contains('*'))
+        if (key.Contains('*') || key.Contains('?'))
         {
             var keys = Search(key).ToArray();
             return RemoveInternal(keys);
@@ -185,7 +185,7 @@ public class MemoryCache : Cache
         return RemoveInternal([key]);
     }
 
-    /// <summary>批量移除缓存项。支持 * 模糊匹配</summary>
+    /// <summary>批量移除缓存项。支持 * 模式匹配</summary>
     /// <param name="keys">键集合</param>
     /// <returns>实际移除个数</returns>
     public override Int32 Remove(params String[] keys)
@@ -246,12 +246,14 @@ public class MemoryCache : Cache
         return true;
     }
 
-    /// <summary>获取缓存项有效期，不存在时返回 Zero</summary>
+    /// <summary>获取缓存项有效期。永不过期返回 <see cref="TimeSpan.Zero"/>；不存在或已过期返回负值</summary>
     /// <param name="key">键</param>
     /// <returns></returns>
     public override TimeSpan GetExpire(String key)
     {
-        if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.Zero;
+        if (!_cache.TryGetValue(key, out var item) || item == null) return TimeSpan.FromSeconds(-1);
+
+        if (item.ExpiredTime == Int64.MaxValue) return TimeSpan.Zero;
 
         return TimeSpan.FromMilliseconds(item.ExpiredTime - Runtime.TickCount64);
     }
@@ -1039,44 +1041,73 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     }
 
     /// <summary>消费一个</summary>
-    /// <param name="timeout">超时。默认0秒，永久等待</param>
+    /// <param name="timeout">超时。0 表示永久等待，负数表示不等待；正数按秒等待</param>
     /// <returns></returns>
     public T? TakeOne(Int32 timeout = 0)
     {
         if (!_occupiedNodes.Wait(0))
         {
-            if (timeout <= 0 || !_occupiedNodes.Wait(timeout * 1000)) return default;
+            if (timeout < 0)
+            {
+                return default; // 不等待
+            }
+            else if (timeout == 0)
+            {
+                _occupiedNodes.Wait(); // 永久等待
+            }
+            else if (!_occupiedNodes.Wait(timeout * 1000))
+            {
+                return default; // 超时
+            }
         }
 
         return _collection.TryTake(out var item) ? item : default;
     }
 
     /// <summary>消费获取，异步阻塞</summary>
-    /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
+    /// <param name="timeout">超时。单位秒，0 表示永久等待，负数表示不等待；正数按秒等待</param>
     /// <returns></returns>
     public async Task<T?> TakeOneAsync(Int32 timeout = 0)
     {
         if (!_occupiedNodes.Wait(0))
         {
-            if (timeout <= 0) return default;
-
-            if (!await _occupiedNodes.WaitAsync(timeout * 1000).ConfigureAwait(false)) return default;
+            if (timeout < 0)
+            {
+                return default; // 不等待
+            }
+            else if (timeout == 0)
+            {
+                await _occupiedNodes.WaitAsync().ConfigureAwait(false); // 永久等待
+            }
+            else if (!await _occupiedNodes.WaitAsync(timeout * 1000).ConfigureAwait(false))
+            {
+                return default; // 超时
+            }
         }
 
         return _collection.TryTake(out var item) ? item : default;
     }
 
     /// <summary>消费获取，异步阻塞</summary>
-    /// <param name="timeout">超时。单位秒，0秒表示永久等待</param>
+    /// <param name="timeout">超时。单位秒，0 表示永久等待，负数表示不等待；正数按秒等待</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
     public async Task<T?> TakeOneAsync(Int32 timeout, CancellationToken cancellationToken)
     {
         if (!_occupiedNodes.Wait(0, cancellationToken))
         {
-            if (timeout <= 0) return default;
-
-            if (!await _occupiedNodes.WaitAsync(timeout * 1000, cancellationToken).ConfigureAwait(false)) return default;
+            if (timeout < 0)
+            {
+                return default; // 不等待
+            }
+            else if (timeout == 0)
+            {
+                await _occupiedNodes.WaitAsync(cancellationToken).ConfigureAwait(false); // 永久等待
+            }
+            else if (!await _occupiedNodes.WaitAsync(timeout * 1000, cancellationToken).ConfigureAwait(false))
+            {
+                return default; // 超时
+            }
         }
 
         return _collection.TryTake(out var item) ? item : default;

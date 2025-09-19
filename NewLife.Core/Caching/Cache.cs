@@ -88,11 +88,11 @@ public abstract class Cache : DisposeBase, ICache
     [return: MaybeNull]
     public abstract T Get<T>(String key);
 
-    /// <summary>移除缓存项。支持 * 模糊匹配</summary>
+    /// <summary>移除缓存项。支持 * 与 ? 模式匹配</summary>
     /// <param name="key">键或模式</param>
     public abstract Int32 Remove(String key);
 
-    /// <summary>批量移除缓存项。支持 * 模糊匹配</summary>
+    /// <summary>批量移除缓存项。支持 * 与 ? 模式匹配</summary>
     /// <param name="keys">键或模式集合</param>
     public abstract Int32 Remove(params String[] keys);
 
@@ -106,7 +106,7 @@ public abstract class Cache : DisposeBase, ICache
 
     /// <summary>获取缓存项有效期</summary>
     /// <param name="key">键</param>
-    /// <returns>剩余 TTL；建议：永不过期返回 <see cref="TimeSpan.Zero"/></returns>
+    /// <returns>剩余 TTL；建议：永不过期返回 <see cref="TimeSpan.Zero"/>；不存在或已过期返回负值</returns>
     public abstract TimeSpan GetExpire(String key);
     #endregion
 
