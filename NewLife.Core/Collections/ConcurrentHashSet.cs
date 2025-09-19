@@ -40,10 +40,14 @@ public class ConcurrentHashSet<T> : IEnumerable<T> where T : notnull
     public Boolean TryRemove(T item) => _dic.TryRemove(item, out _);
 
     #region IEnumerable<T> 成员
+    /// <summary>枚举集合元素。遍历的是字典键的快照视图</summary>
+    /// <returns>元素枚举器</returns>
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dic.Keys.GetEnumerator();
     #endregion
 
     #region IEnumerable 成员
+    /// <summary>枚举集合元素。遍历的是字典键的快照视图</summary>
+    /// <returns>元素枚举器</returns>
     IEnumerator IEnumerable.GetEnumerator() => _dic.Keys.GetEnumerator();
     #endregion
 }

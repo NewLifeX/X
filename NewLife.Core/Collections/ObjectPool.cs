@@ -95,7 +95,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         /// <summary>数值</summary>
         public T? Value { get; set; }
 
-        /// <summary>过期时间</summary>
+        /// <summary>最后操作时间（借出或归还）。用于过期清理</summary>
         public DateTime LastTime { get; set; }
     }
     #endregion

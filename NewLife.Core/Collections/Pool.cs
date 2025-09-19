@@ -91,7 +91,7 @@ public class Pool<T> : IPool<T> where T : class
         }
 
         var rs = OnCreate();
-        if (rs == null) throw new InvalidOperationException($"[Pool]Unable to create an instance of [{typeof(T).FullName}]");
+        if (rs == null) throw new InvalidOperationException($"[Pool] Unable to create an instance of [{typeof(T).FullName}]");
 
         return rs;
     }

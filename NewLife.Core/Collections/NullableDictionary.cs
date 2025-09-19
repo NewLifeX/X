@@ -21,9 +21,13 @@ public class NullableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IDicti
     /// <param name="comparer"></param>
     public NullableDictionary(IDictionary<TKey, TValue> dic, IEqualityComparer<TKey> comparer) : base(dic, comparer) { }
 
-    /// <summary>获取 或 设置 数据</summary>
-    /// <param name="item"></param>
-    /// <returns></returns>
+    /// <summary>
+    /// 获取 或 设置 数据。
+    /// 当键不存在时返回 <c>default(TValue)</c>，而不是抛出 <see cref="KeyNotFoundException"/>。
+    /// 注意：当 <typeparamref name="TValue"/> 为值类型时，这意味着返回其默认值。
+    /// </summary>
+    /// <param name="item">键</param>
+    /// <returns>键对应的值或默认值</returns>
     public new TValue this[TKey item]
     {
         get

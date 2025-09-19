@@ -55,17 +55,18 @@ public static class CollectionHelper
     }
 
     /// <summary>
-    /// 获取字典键数组（快照）。如果是 <see cref="ConcurrentDictionary{TKey, TValue}"/> ，直接返回其内部 Keys 列表以避免复制。
+    /// 获取字典键数组（快照或视图）。
+    /// 当目标是 <see cref="ConcurrentDictionary{TKey, TValue}"/> 时，直接返回其内部 Keys 视图以避免复制；否则返回新数组快照。
     /// </summary>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
     /// <param name="collection">字典实例</param>
-    /// <returns>键数组（IList 视图）。</returns>
+    /// <returns>键集合：并发字典返回视图（会反映后续变更），普通字典返回快照数组。</returns>
     public static IList<TKey> ToKeyArray<TKey, TValue>(this IDictionary<TKey, TValue> collection) where TKey : notnull
     {
         //if (collection == null) return null;
 
-        // 当是并发字典时，直接复用其 Keys 集合（避免复制开销）
+        // 并发字典：复用 Keys 视图，避免复制
         if (collection is ConcurrentDictionary<TKey, TValue> cdiv && cdiv.Keys is IList<TKey> list) return list;
 
         if (collection.Count == 0) return [];
@@ -78,17 +79,17 @@ public static class CollectionHelper
     }
 
     /// <summary>
-    /// 获取字典值数组（快照）。如果是 <see cref="ConcurrentDictionary{TKey, TValue}"/> ，直接返回其内部 Values 列表以避免复制。
+    /// 获取字典值数组（快照或视图）。
+    /// 当目标是 <see cref="ConcurrentDictionary{TKey, TValue}"/> 时，直接返回其内部 Values 视图以避免复制；否则返回新数组快照。
     /// </summary>
     /// <typeparam name="TKey">键类型</typeparam>
     /// <typeparam name="TValue">值类型</typeparam>
     /// <param name="collection">字典实例</param>
-    /// <returns>值数组（IList 视图）。</returns>
+    /// <returns>值集合：并发字典返回视图（会反映后续变更），普通字典返回快照数组。</returns>
     public static IList<TValue> ToValueArray<TKey, TValue>(this IDictionary<TKey, TValue> collection) where TKey : notnull
     {
         //if (collection == null) return null;
 
-        //if (collection is ConcurrentDictionary<TKey, TValue> cdiv) return cdiv.Values as IList<TValue>;
         if (collection is ConcurrentDictionary<TKey, TValue> cdiv && cdiv.Values is IList<TValue> list) return list;
 
         if (collection.Count == 0) return [];
@@ -134,7 +135,8 @@ public static class CollectionHelper
                         JsonValueKind.Object => item.Value.ToDictionary(),
                         JsonValueKind.Array => ToArray(item.Value),
                         JsonValueKind.String => item.Value.GetString(),
-                        JsonValueKind.Number when item.Value.GetRawText().Contains('.') => item.Value.GetDouble(),
+                        // 包含小数点或指数 e/E 视为双精度
+                        JsonValueKind.Number when HasFloatMarker(item.Value.GetRawText()) => item.Value.GetDouble(),
                         JsonValueKind.Number => item.Value.GetInt64(),
                         JsonValueKind.True or JsonValueKind.False => item.Value.GetBoolean(),
                         _ => item.Value.GetString(),
@@ -184,7 +186,8 @@ public static class CollectionHelper
                 JsonValueKind.Object => item.ToDictionary(),
                 JsonValueKind.Array => ToArray(item),
                 JsonValueKind.String => item.GetString(),
-                JsonValueKind.Number when item.GetRawText().Contains('.') => item.GetDouble(),
+                // 包含小数点或指数 e/E 视为双精度
+                JsonValueKind.Number when HasFloatMarker(item.GetRawText()) => item.GetDouble(),
                 JsonValueKind.Number => item.GetInt64(),
                 JsonValueKind.True or JsonValueKind.False => item.GetBoolean(),
                 _ => item.GetString(),
@@ -195,6 +198,12 @@ public static class CollectionHelper
         }
 
         return list;
+    }
+
+    private static Boolean HasFloatMarker(String text)
+    {
+        // 避免创建临时 char[]，多次 Contains(char) 无分配
+        return text.Contains('.') || text.Contains('e') || text.Contains('E');
     }
 #endif
 
