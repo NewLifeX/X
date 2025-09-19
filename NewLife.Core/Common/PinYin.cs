@@ -633,7 +633,7 @@ public class PinYin
     /// <returns>转换后的拼音(全拼)字符串</returns>
     public static String[] GetAll(String str)
     {
-        if (str.IsNullOrEmpty()) return new String[0];
+        if (str.IsNullOrEmpty()) return [];
 
         // 重点地区支持
         if (str == "重庆") return ["Chong", "Qing"];

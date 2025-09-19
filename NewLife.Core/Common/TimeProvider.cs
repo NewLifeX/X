@@ -15,21 +15,19 @@ public abstract class TimeProvider
 
     private static readonly Int64 s_maxDateTicks = DateTime.MaxValue.Ticks;
 
-    /// <summary>获取一个 TimeProvider ，它提供基于 UtcNow的时钟、基于 的 Local时区、基于 的 Stopwatch高性能时间戳和基于 的 Timer计时器。</summary>
+    /// <summary>获取系统默认的 TimeProvider，提供基于 UtcNow 的时钟、Local 时区、高性能时间戳和计时器。</summary>
     public static TimeProvider System { get; set; } = new SystemTimeProvider();
 
-    /// <summary>根据此 TimeProvider的时间概念获取本地时区。</summary>
+    /// <summary>根据当前 TimeProvider 的时间概念获取本地时区。</summary>
     public virtual TimeZoneInfo LocalTimeZone => TimeZoneInfo.Local;
 
-    /// <summary>获取 的频率 GetTimestamp() 作为每秒时钟周期数。</summary>
+    /// <summary>获取时间戳频率（单位：每秒时钟周期数）。</summary>
     public virtual Int64 TimestampFrequency => Stopwatch.Frequency;
 
-    /// <summary>根据此 TimeProvider的时间概念，获取当前协调世界时 (UTC) 日期和时间，偏移量为零。</summary>
-    /// <returns></returns>
+    /// <summary>根据当前 TimeProvider 的时间概念，获取当前 UTC 时间。</summary>
     public virtual DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow;
 
-    /// <summary>根据基于 TimeProvider的时间概念 GetUtcNow()获取当前日期和时间，偏移量设置为 LocalTimeZone与协调世界时 (UTC) 的偏移量。</summary>
-    /// <returns></returns>
+    /// <summary>基于 <see cref="GetUtcNow"/> 获取当前本地时间，偏移量由 <see cref="LocalTimeZone"/> 与 UTC 的差确定。</summary>
     public DateTimeOffset GetLocalNow()
     {
         var utcNow = GetUtcNow();
@@ -45,14 +43,10 @@ public abstract class TimeProvider
         return new DateTimeOffset(num, utcOffset);
     }
 
-    /// <summary>获取当前高频值，该值旨在测量计时器机制中精度较高的小时间间隔。</summary>
-    /// <returns></returns>
+    /// <summary>获取高频时间戳，用于测量小时间间隔（通常来自 <see cref="Stopwatch.GetTimestamp"/>）。</summary>
     public virtual Int64 GetTimestamp() => Stopwatch.GetTimestamp();
 
-    /// <summary>获取使用 GetTimestamp()检索到的两个时间戳之间的已用时间。</summary>
-    /// <param name="startingTimestamp"></param>
-    /// <param name="endingTimestamp"></param>
-    /// <returns></returns>
+    /// <summary>计算两个时间戳（来自 <see cref="GetTimestamp"/>）之间的耗时。</summary>
     public TimeSpan GetElapsedTime(Int64 startingTimestamp, Int64 endingTimestamp)
     {
         var timestampFrequency = TimestampFrequency;
@@ -61,9 +55,7 @@ public abstract class TimeProvider
         return new TimeSpan((Int64)((endingTimestamp - startingTimestamp) * (10000000.0 / timestampFrequency)));
     }
 
-    /// <summary>获取自使用 GetTimestamp()检索值以来startingTimestamp的运行时间。</summary>
-    /// <param name="startingTimestamp"></param>
-    /// <returns></returns>
+    /// <summary>计算自指定时间戳（来自 <see cref="GetTimestamp"/>）以来的运行时间。</summary>
     public TimeSpan GetElapsedTime(Int64 startingTimestamp) => GetElapsedTime(startingTimestamp, GetTimestamp());
 }
 #endif

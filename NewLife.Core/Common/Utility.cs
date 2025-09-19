@@ -377,7 +377,25 @@ public class DefaultConvert
 #endif
         }
 
-        if (value is Byte[] buf && buf.Length <= 8) return BitConverter.ToDouble(buf, 0);
+        // 字节数组（小端）转浮点：长度为 8 直接转换；长度 1/2/4/5/6/7 采用补零到 8 字节再转换。
+        if (value is Byte[] buf)
+        {
+            if (buf.Length == 0) return defaultValue;
+            if (buf.Length >= 8) return BitConverter.ToDouble(buf, 0);
+
+            // 兼容不足 8 字节的场景（例如来自网络/存储的裁剪值），按小端补零
+            var tmp8 = Pool.Shared.Rent(8);
+            try
+            {
+                Array.Clear(tmp8, 0, 8);
+                Buffer.BlockCopy(buf, 0, tmp8, 0, buf.Length);
+                return BitConverter.ToDouble(tmp8, 0);
+            }
+            finally
+            {
+                Pool.Shared.Return(tmp8);
+            }
+        }
 
         try
         {
@@ -955,6 +973,9 @@ public class DefaultConvert
         if (val < 1024) return val.ToString(format) + "P";
 
         val /= 1024;
-        return val.ToString(format) + "E";
+        if (val < 1024) return val.ToString(format) + "E";
+
+        val /= 1024;
+        return val.ToString(format) + "Z";
     }
 }

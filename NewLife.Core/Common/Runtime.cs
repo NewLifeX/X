@@ -43,7 +43,7 @@ public static class Runtime
 
             try
             {
-                var flag = Console.ForegroundColor;
+                _ = Console.ForegroundColor; // 触发控制台可用性检查
                 if (Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero)
                     _IsConsole = false;
                 else
