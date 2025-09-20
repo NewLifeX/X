@@ -12,22 +12,22 @@ namespace XUnitTest.Serialization
         /// <summary>
         /// 
         /// </summary>
-        public string id { get; set; }
+        public String id { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public string FDID { get; set; }
+        public String FDID { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public string name { get; set; }
+        public String name { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public string faceLibType { get; set; }
+        public String faceLibType { get; set; }
 
     }
 
@@ -35,12 +35,12 @@ namespace XUnitTest.Serialization
     public class FDLibBaseCfgList
     {
 
-        public string xmlns { get; set; }
+        public String xmlns { get; set; }
         /// <summary>
         /// 
         /// </summary>
         [XmlAttribute]
-        public string version { get; set; }
+        public String version { get; set; }
 
         /// <summary>
         /// FDLibBaseCfg
