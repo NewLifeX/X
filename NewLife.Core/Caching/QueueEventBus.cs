@@ -17,7 +17,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     private Task? _consumerTask;
 
     /// <summary>销毁。先取消后台任务，再释放资源</summary>
-    /// <param name="disposing">是否由 <see cref="Dispose()"/> 调用</param>
+    /// <param name="disposing">是否由 <see cref="DisposeBase.Dispose()"/> 调用</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
