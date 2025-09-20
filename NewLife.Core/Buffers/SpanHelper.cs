@@ -13,6 +13,7 @@ public static class SpanHelper
     /// <summary>转字符串</summary>
     /// <param name="span">字节数据</param>
     /// <param name="encoding">编码，默认UTF8</param>
+    /// <returns>把字节序列按指定编码解码为字符串</returns>
     public static String ToStr(this ReadOnlySpan<Byte> span, Encoding? encoding = null)
     {
         if (span.Length == 0) return String.Empty;
@@ -22,6 +23,7 @@ public static class SpanHelper
     /// <summary>转字符串</summary>
     /// <param name="span">字节数据</param>
     /// <param name="encoding">编码，默认UTF8</param>
+    /// <returns>把字节序列按指定编码解码为字符串</returns>
     public static String ToStr(this Span<Byte> span, Encoding? encoding = null)
     {
         if (span.Length == 0) return String.Empty;
@@ -55,7 +57,7 @@ public static class SpanHelper
 
     /// <summary>把字节数组编码为十六进制字符串</summary>
     /// <param name="data">字节数组</param>
-    /// <returns></returns>
+    /// <returns>大写十六进制字符串（无分隔）</returns>
     public static String ToHex(this ReadOnlySpan<Byte> data)
     {
         if (data.Length == 0) return String.Empty;
@@ -73,10 +75,10 @@ public static class SpanHelper
     /// <summary>把字节数组编码为十六进制字符串（限制最大长度）。</summary>
     /// <param name="data">字节数组</param>
     /// <param name="maxLength">最大长度</param>
-    /// <returns></returns>
+    /// <returns>大写十六进制字符串（无分隔）</returns>
     public static String ToHex(this ReadOnlySpan<Byte> data, Int32 maxLength)
     {
-        if (data.Length == 0) return String.Empty;
+        if (data.Length == 0 || maxLength == 0) return String.Empty;
 
         if (maxLength > 0 && data.Length > maxLength) data = data[..maxLength];
 
@@ -85,16 +87,18 @@ public static class SpanHelper
 
     /// <summary>把字节数组编码为十六进制字符串</summary>
     /// <param name="data">字节数组</param>
-    /// <returns></returns>
+    /// <returns>大写十六进制字符串（无分隔）</returns>
     public static String ToHex(this Span<Byte> data) => ToHex((ReadOnlySpan<Byte>)data);
 
-    private static Char GetHexValue(Int32 i) => i < 10 ? (Char)(i + '0') : (Char)(i - 10 + 'A');
+    // Hex 查表（大写）
+    private static Char GetHexValue(Int32 i) => "0123456789ABCDEF"[i & 0xF];
 
     /// <summary>以十六进制编码表示，支持分隔符与分组。</summary>
     /// <param name="data">数据</param>
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0表示每个字节前都可插入分隔符</param>
     /// <param name="maxLength">最大显示字节数，-1表示全部</param>
+    /// <returns>大写十六进制字符串（可选分隔符/分组）</returns>
     public static String ToHex(this ReadOnlySpan<Byte> data, String? separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
         if (data.Length == 0 || maxLength == 0) return String.Empty;
@@ -102,10 +106,9 @@ public static class SpanHelper
         if (maxLength > 0 && data.Length > maxLength) data = data[..maxLength];
         //return data.ToArray().ToHex(separate, groupSize);
 
-        if (groupSize < 0) groupSize = 0;
+        if (String.IsNullOrEmpty(separate)) return data.ToHex();
 
-        // 没有分隔符并且未指定分组，走快速路径
-        if (groupSize == 0 && String.IsNullOrEmpty(separate)) return data.ToHex();
+        if (groupSize < 0) groupSize = 0;
 
         var count = data.Length;
         var sb = Pool.StringBuilder.Get();
@@ -127,11 +130,11 @@ public static class SpanHelper
     }
 
     /// <summary>以十六进制编码表示，支持分隔符与分组。</summary>
-    /// <param name="span"></param>
+    /// <param name="span">数据</param>
     /// <param name="separate">分隔符</param>
     /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
     /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
-    /// <returns></returns>
+    /// <returns>大写十六进制字符串（可选分隔符/分组）</returns>
     public static String ToHex(this Span<Byte> span, String? separate, Int32 groupSize = 0, Int32 maxLength = -1)
     {
         if (span.Length == 0 || maxLength == 0) return String.Empty;
@@ -140,11 +143,11 @@ public static class SpanHelper
     }
 
     /// <summary>通过指定开始与结束边界来截取数据源</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="source"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="source">源数据</param>
+    /// <param name="start">起始边界</param>
+    /// <param name="end">结束边界</param>
+    /// <returns>位于边界之间的切片；未命中返回空切片</returns>
     public static ReadOnlySpan<T> Substring<T>(this ReadOnlySpan<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
     {
         var startIndex = source.IndexOf(start);
@@ -159,11 +162,11 @@ public static class SpanHelper
     }
 
     /// <summary>通过指定开始与结束边界来截取数据源</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="source"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="source">源数据</param>
+    /// <param name="start">起始边界</param>
+    /// <param name="end">结束边界</param>
+    /// <returns>位于边界之间的切片；未命中返回空切片</returns>
     public static Span<T> Substring<T>(this Span<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
     {
         var startIndex = source.IndexOf(start);
@@ -178,11 +181,11 @@ public static class SpanHelper
     }
 
     /// <summary>在数据源中查找开始与结束边界</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="source"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="source">源数据</param>
+    /// <param name="start">起始边界</param>
+    /// <param name="end">结束边界</param>
+    /// <returns>返回 (offset, count)。未命中返回 (-1, -1)，只命中起始返回 (startOffset, -1)</returns>
     public static (Int32 offset, Int32 count) IndexOf<T>(this ReadOnlySpan<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
     {
         var startIndex = source.IndexOf(start);
@@ -197,11 +200,11 @@ public static class SpanHelper
     }
 
     /// <summary>在数据源中查找开始与结束边界</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="source"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="source">源数据</param>
+    /// <param name="start">起始边界</param>
+    /// <param name="end">结束边界</param>
+    /// <returns>返回 (offset, count)。未命中返回 (-1, -1)，只命中起始返回 (startOffset, -1)</returns>
     public static (Int32 offset, Int32 count) IndexOf<T>(this Span<T> source, ReadOnlySpan<T> start, ReadOnlySpan<T> end) where T : IEquatable<T>
     {
         var startIndex = source.IndexOf(start);
@@ -217,11 +220,12 @@ public static class SpanHelper
     #endregion
 
     /// <summary>写入Memory到数据流。从内存池借出缓冲区拷贝，仅作为兜底使用</summary>
-    /// <param name="stream"></param>
-    /// <param name="buffer"></param>
-    /// <returns></returns>
+    /// <param name="stream">目标流</param>
+    /// <param name="buffer">源内存</param>
     public static void Write(this Stream stream, ReadOnlyMemory<Byte> buffer)
     {
+        if (buffer.Length == 0) return;
+
         if (MemoryMarshal.TryGetArray(buffer, out var segment))
         {
             stream.Write(segment.Array!, segment.Offset, segment.Count);
@@ -244,37 +248,36 @@ public static class SpanHelper
     }
 
     /// <summary>写入Memory到数据流。从内存池借出缓冲区拷贝，仅作为兜底使用</summary>
-    /// <param name="stream"></param>
-    /// <param name="buffer"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static Task WriteAsync(this Stream stream, ReadOnlyMemory<Byte> buffer, CancellationToken cancellationToken = default)
+    /// <param name="stream">目标流</param>
+    /// <param name="buffer">源内存</param>
+    /// <param name="cancellationToken">取消标记</param>
+    public static async Task WriteAsync(this Stream stream, ReadOnlyMemory<Byte> buffer, CancellationToken cancellationToken = default)
     {
+        if (buffer.Length == 0) return;
+
         if (MemoryMarshal.TryGetArray(buffer, out var segment))
-            return stream.WriteAsync(segment.Array!, segment.Offset, segment.Count, cancellationToken);
+        {
+            await stream.WriteAsync(segment.Array!, segment.Offset, segment.Count, cancellationToken).ConfigureAwait(false);
+            return;
+        }
 
         var array = ArrayPool<Byte>.Shared.Rent(buffer.Length);
-        buffer.Span.CopyTo(array);
-
-        var writeTask = stream.WriteAsync(array, 0, buffer.Length, cancellationToken);
-        return Task.Run(async () =>
+        try
         {
-            try
-            {
-                await writeTask.ConfigureAwait(false);
-            }
-            finally
-            {
-                ArrayPool<Byte>.Shared.Return(array);
-            }
-        });
+            buffer.Span.CopyTo(array);
+            await stream.WriteAsync(array, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(array);
+        }
     }
 
     /// <summary>去掉前后指定元素。</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="span"></param>
-    /// <param name="trimElement"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="span">目标切片</param>
+    /// <param name="trimElement">要修剪的元素</param>
+    /// <returns>去除前后连续 <paramref name="trimElement"/> 后的切片</returns>
     public static ReadOnlySpan<T> Trim<T>(this ReadOnlySpan<T> span, T trimElement) where T : IEquatable<T>
     {
         var start = ClampStart(span, trimElement);
@@ -283,10 +286,10 @@ public static class SpanHelper
     }
 
     /// <summary>去掉前后指定元素。</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="span"></param>
-    /// <param name="trimElement"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">元素类型</typeparam>
+    /// <param name="span">目标切片</param>
+    /// <param name="trimElement">要修剪的元素</param>
+    /// <returns>去除前后连续 <paramref name="trimElement"/> 后的切片</returns>
     public static Span<T> Trim<T>(this Span<T> span, T trimElement) where T : IEquatable<T>
     {
         var start = ClampStart(span, trimElement);
@@ -299,8 +302,7 @@ public static class SpanHelper
         var i = 0;
         for (; i < span.Length; i++)
         {
-            ref var reference = ref trimElement;
-            if (!reference.Equals(span[i])) break;
+            if (!trimElement.Equals(span[i])) break;
         }
         return i;
     }
@@ -310,8 +312,7 @@ public static class SpanHelper
         var num = span.Length - 1;
         while (num >= start)
         {
-            ref var reference = ref trimElement;
-            if (!reference.Equals(span[num])) break;
+            if (!trimElement.Equals(span[num])) break;
             num--;
         }
         return num - start + 1;
