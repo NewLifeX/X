@@ -47,7 +47,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     #region 基础方法
     /// <summary>告知有多少数据已写入缓冲区</summary>
-    /// <param name="count"></param>
+    /// <param name="count">要前进的字节数</param>
     public void Advance(Int32 count)
     {
         if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
@@ -56,10 +56,10 @@ public ref struct SpanWriter(Span<Byte> buffer)
         _index += count;
     }
 
-    /// <summary>返回要写入到的Span，其大小按 sizeHint 参数指定至少为所请求的大小</summary>
-    /// <param name="sizeHint"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <summary>返回要写入到的 Span，其大小按 <paramref name="sizeHint"/> 指定至少为所请求的大小</summary>
+    /// <param name="sizeHint">期望的最小大小提示。如果剩余空间小于该值则抛出异常</param>
+    /// <returns>当前位置到末尾的可写字节片段</returns>
+    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="sizeHint"/> 大于剩余可写字节数时抛出</exception>
     public readonly Span<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
@@ -73,7 +73,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <param name="size">需要的字节数。</param>
     private readonly void EnsureSpace(Int32 size)
     {
-        if (_index + size > _span.Length) throw new InvalidOperationException("Not enough data to write.");
+        if (_index + size > _span.Length) throw new InvalidOperationException("Not enough space to write.");
     }
 
     /// <summary>写入字节</summary>
@@ -198,7 +198,7 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     /// <summary>写入字符串。支持定长、全部和长度前缀</summary>
     /// <param name="value">要写入的字符串</param>
-    /// <param name="length">最大长度（字节）。-1: 全部；0: 先写入 7 位压缩长度；>0: 固定长度（不足填0，超长截断）</param>
+    /// <param name="length">最大长度（字节）。-1: 全部；0: 先写入 7 位压缩长度；&gt;0: 固定长度（不足填0，超长截断）</param>
     /// <param name="encoding">编码，默认UTF8</param>
     /// <returns>写入字节数（含头部）</returns>
     public Int32 Write(String value, Int32 length = 0, Encoding? encoding = null)
@@ -207,7 +207,10 @@ public ref struct SpanWriter(Span<Byte> buffer)
         encoding ??= Encoding.UTF8;
         if (length < 0)
         {
-            // 写入字符串全部内容
+            // 写入字符串全部内容：必须确保容量充足，避免静默截断
+            var byteCount = encoding.GetByteCount(value);
+            EnsureSpace(byteCount);
+
             var count = encoding.GetBytes(value.AsSpan(), _span[_index..]);
             _index += count;
 
@@ -233,25 +236,24 @@ public ref struct SpanWriter(Span<Byte> buffer)
         }
         else
         {
-            // 写入指定长度，不足是填充字节0，超长时截取
+            // 写入指定长度：不足填充字节 0，超长时截取（按字节截断）
             var span = GetSpan(length);
             if (span.Length > length) span = span[..length];
 
-            // 输出缓冲区不能过小，否则报错。大小足够时，直接把字符串写入到目标
             var source = value.AsSpan();
-            var max = encoding.GetMaxByteCount(source.Length);
-            if (max <= length)
-                encoding.GetBytes(source, span);
+            var need = encoding.GetByteCount(value); // 使用 string 重载以兼容旧 TFMs
+            if (need <= length)
+            {
+                var count = encoding.GetBytes(source, span);
+                if (count < length) span[count..length].Clear();
+            }
             else
             {
-                // 目标大小可能不足，申请临时缓冲区，输出后做局部拷贝
-                var buf = Pool.Shared.Rent(max);
+                // 编码结果超过目标长度：先编码到临时缓冲，拷贝前 length 个字节
+                var buf = Pool.Shared.Rent(need);
                 var count = encoding.GetBytes(source, buf);
-
-                // 局部拷贝，仅拷贝需要部分，抛弃超长部分
-                new Span<Byte>(buf, 0, length).CopyTo(span);
-
-                Pool.Shared.Return(buf, true);
+                new ReadOnlySpan<Byte>(buf, 0, length).CopyTo(span);
+                Pool.Shared.Return(buf);
             }
 
             _index += length;
@@ -261,14 +263,15 @@ public ref struct SpanWriter(Span<Byte> buffer)
     }
 
     /// <summary>写入字节数组</summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <param name="value">要写入的数据</param>
+    /// <returns>写入的字节数</returns>
     /// <exception cref="ArgumentNullException"></exception>
     public Int32 Write(Byte[] value)
     {
         if (value == null)
             throw new ArgumentNullException(nameof(value));
 
+        EnsureSpace(value.Length);
         value.CopyTo(_span[_index..]);
         _index += value.Length;
 
@@ -276,10 +279,11 @@ public ref struct SpanWriter(Span<Byte> buffer)
     }
 
     /// <summary>写入Span</summary>
-    /// <param name="span"></param>
-    /// <returns></returns>
+    /// <param name="span">要写入的数据</param>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(ReadOnlySpan<Byte> span)
     {
+        EnsureSpace(span.Length);
         span.CopyTo(_span[_index..]);
         _index += span.Length;
 
@@ -287,10 +291,11 @@ public ref struct SpanWriter(Span<Byte> buffer)
     }
 
     /// <summary>写入Span</summary>
-    /// <param name="span"></param>
-    /// <returns></returns>
+    /// <param name="span">要写入的数据</param>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(Span<Byte> span)
     {
+        EnsureSpace(span.Length);
         span.CopyTo(_span[_index..]);
         _index += span.Length;
 
@@ -298,9 +303,9 @@ public ref struct SpanWriter(Span<Byte> buffer)
     }
 
     /// <summary>写入结构体</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">结构体类型</typeparam>
+    /// <param name="value">要写入的值</param>
+    /// <returns>写入的字节数</returns>
     public Int32 Write<T>(T value) where T : struct
     {
         var size = Unsafe.SizeOf<T>();
@@ -316,19 +321,20 @@ public ref struct SpanWriter(Span<Byte> buffer)
     #endregion
 
     #region 扩展写入
-    /// <summary>写入7位压缩编码整数</summary>
+    /// <summary>写入 7 位压缩编码的 32 位整数。</summary>
     /// <remarks>
-    /// 以7位压缩格式写入32位整数，小于7位用1个字节，小于14位用2个字节。
-    /// 由每次写入的一个字节的第一位标记后面的字节是否还是当前数据，所以每个字节实际可利用存储空间只有后7位。
+    /// 以 7 位压缩格式写入 32 位整数，小于 7 位用 1 字节，小于 14 位用 2 字节。
+    /// 每个字节高位表示后续是否还有数据，低 7 位存储数值。
+    /// 兼容 <see cref="SpanReader.ReadEncodedInt"/>。
     /// </remarks>
-    /// <param name="value">数值</param>
+    /// <param name="value">数值（可为负数，内部按无符号位模式编码）</param>
     /// <returns>实际写入字节数</returns>
-    public Int32 WriteEncodedInt(Int64 value)
+    public Int32 WriteEncodedInt(Int32 value)
     {
         var span = _span[_index..];
 
         var count = 0;
-        var num = (UInt32)value;
+        var num = (UInt32)value; // 与 BinaryWriter.Write7BitEncodedInt 一致，允许负数（将占 5 字节）
         while (num >= 0x80)
         {
             span[count++] = (Byte)(num | 0x80);
