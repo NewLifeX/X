@@ -38,11 +38,11 @@ public ref struct SpanReader
     public SpanReader(ReadOnlySpan<Byte> span) => _span = span;
 
     /// <summary>实例化。暂时兼容旧版，后面删除</summary>
-    /// <param name="span"></param>
+    /// <param name="span">数据</param>
     public SpanReader(Span<Byte> span) => _span = span;
 
     /// <summary>实例化Span读取器</summary>
-    /// <param name="data"></param>
+    /// <param name="data">初始数据包</param>
     public SpanReader(IPacket data)
     {
         _data = data;
@@ -62,8 +62,8 @@ public ref struct SpanReader
 
     /// <summary>支持从数据流中读取更多数据，突破初始大小限制。</summary>
     /// <remarks>
-    /// 解析网络协议时，有时候数据帧较大，超过特定缓冲区大小，导致无法一次性读取完整数据帧。
-    /// 加入数据流参数后，在读取数据不足时，SpanReader会自动从数据流中读取一批数据。
+    /// 解析网络协议时，数据帧可能超过初始缓冲区大小。提供 <paramref name="stream"/> 后，
+    /// 当剩余可读字节不足时，会自动从流中读取一批数据并扩充内部缓冲区。
     /// </remarks>
     /// <param name="stream">数据流，一般为网络流</param>
     /// <param name="data">初始数据包，可为空</param>
@@ -92,10 +92,10 @@ public ref struct SpanReader
         _index += count;
     }
 
-    /// <summary>返回要写入到的Span，其大小按 sizeHint 参数指定至少为所请求的大小</summary>
-    /// <param name="sizeHint"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <summary>返回剩余可读数据片段（只读）。</summary>
+    /// <param name="sizeHint">期望的最小大小提示。如果剩余空间小于该值则抛出异常</param>
+    /// <returns>当前位置到末尾的只读字节片段</returns>
+    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="sizeHint"/> 大于剩余可读字节数时抛出</exception>
     public ReadOnlySpan<Byte> GetSpan(Int32 sizeHint = 0)
     {
         if (sizeHint > FreeCapacity) throw new ArgumentOutOfRangeException(nameof(sizeHint));
@@ -105,11 +105,12 @@ public ref struct SpanReader
 
     #region 读取方法
     /// <summary>确保缓冲区中有足够的空间，必要时从底层流追加读取。</summary>
-    /// <param name="size">需要的字节数。</param>
-    /// <exception cref="InvalidOperationException">数据不足</exception>
+    /// <param name="size">需要的字节数</param>
+    /// <exception cref="InvalidOperationException">数据不足，且无法从流中补齐</exception>
     public void EnsureSpace(Int32 size)
     {
-        // 检查剩余空间大小，不足时，再从数据流中读取。此时需要注意，创建新的OwnerPacket后，需要先把之前剩余的一点数据拷贝过去，然后再读取Stream
+        // 检查剩余空间大小，不足时再从数据流中读取。创建新的 OwnerPacket 后，
+        // 先把之前剩余的未读数据拷贝到新缓冲的前部，避免丢失，再从流中读取补齐。
         var remain = FreeCapacity;
         if (remain < size && _stream != null)
         {
@@ -150,7 +151,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取单个字节</summary>
-    /// <returns></returns>
     public Byte ReadByte()
     {
         var size = sizeof(Byte);
@@ -161,7 +161,6 @@ public ref struct SpanReader
     }
 
     /// <summary>读取Int16整数</summary>
-    /// <returns></returns>
     public Int16 ReadInt16()
     {
         var size = sizeof(Int16);
@@ -278,6 +277,7 @@ public ref struct SpanReader
     /// <summary>读取字节数组片段</summary>
     public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
         EnsureSpace(length);
 
         var result = _span.Slice(_index, length);
@@ -289,6 +289,7 @@ public ref struct SpanReader
     public Int32 Read(Span<Byte> data)
     {
         var length = data.Length;
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(data));
         EnsureSpace(length);
 
         var result = _span.Slice(_index, length);
@@ -301,8 +302,9 @@ public ref struct SpanReader
     public IPacket ReadPacket(Int32 length)
     {
         if (_data == null) throw new InvalidOperationException("No data stream to read!");
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
 
-        //EnsureSpace(length);
+        EnsureSpace(length);
 
         var result = _data.Slice(_index, length);
         _index += length;
@@ -325,16 +327,13 @@ public ref struct SpanReader
     /// <summary>以 7 位压缩格式读取 32 位整数。</summary>
     public Int32 ReadEncodedInt()
     {
-        Byte b;
         UInt32 rs = 0;
         Byte n = 0;
         while (true)
         {
-            var bt = ReadByte();
-            if (bt < 0) throw new Exception($"The data stream is out of range! The integer read is {rs: n0}");
-            b = (Byte)bt;
+            var b = ReadByte();
 
-            // 必须转为Int32，否则可能溢出
+            // 必须转为 UInt32，否则可能溢出
             rs |= (UInt32)((b & 0x7f) << n);
             if ((b & 0x80) == 0) break;
 
