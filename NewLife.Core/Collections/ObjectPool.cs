@@ -34,7 +34,12 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认10s</summary>
     public Int32 IdleTime { get; set; } = 10;
 
-    /// <summary>完全空闲清理时间。最小个数之下的资源超过空闲时间时被清理，默认0s永不清理</summary>
+    /// <summary>
+    /// 完全空闲清理时间。默认0表示不清理。
+    /// - 基础空闲集合（_free）中的对象超过该时间将被清理；
+    /// - 借出但长时间未归还（_busy）且最后操作时间超过该时间也会被移除，避免“有借无还”。
+    /// 单位：秒。
+    /// </summary>
     public Int32 AllIdleTime { get; set; } = 0;
 
     /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
@@ -45,6 +50,9 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 
     /// <summary>借出去的放在这</summary>
     private readonly ConcurrentDictionary<T, Item> _busy = new();
+
+    /// <summary>内部同步对象。避免锁定this降低外部误锁风险</summary>
+    private readonly Object _sync = new();
 
     //private readonly Object SyncRoot = new();
     #endregion
@@ -68,6 +76,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         base.Dispose(disposing);
 
         _timer?.Dispose();
+        _timer = null; // 允许后续在需要时重新启动
 
         WriteLog($"Dispose {typeof(T).FullName} FreeCount={FreeCount:n0} BusyCount={BusyCount:n0} Total={Total:n0}");
 
@@ -79,7 +88,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     {
         if (_inited) return;
 
-        lock (this)
+        lock (_sync)
         {
             if (_inited) return;
             _inited = true;
@@ -231,8 +240,8 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 
         Interlocked.Increment(ref _FreeCount);
 
-        // 启动定期清理的定时器
-        StartTimer();
+        // 启动定期清理的定时器（仅在需要清理时）
+        if (IdleTime > 0 || AllIdleTime > 0) StartTimer();
 
         return true;
     }
@@ -285,7 +294,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     private void StartTimer()
     {
         if (_timer != null) return;
-        lock (this)
+        lock (_sync)
         {
             if (_timer != null) return;
 
@@ -301,8 +310,8 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         // 遍历并干掉过期项
         var count = 0;
 
-        // 清理过期不还。避免有借没还
-        if (!_busy.IsEmpty)
+        // 清理过期不还。避免有借没还（仅在设置 AllIdleTime>0 时生效）
+        if (AllIdleTime > 0 && !_busy.IsEmpty)
         {
             var exp = TimerX.Now.AddSeconds(-AllIdleTime);
             foreach (var item in _busy)
