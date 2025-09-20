@@ -32,6 +32,11 @@ public static class Runtime
     #region 控制台
     private static Boolean? _IsConsole;
     /// <summary>是否控制台。用于判断是否可以执行一些控制台操作。</summary>
+    /// <remarks>
+    /// 通过访问 <see cref="Console.ForegroundColor"/> 触发控制台可用性检查；
+    /// 若当前进程存在主窗口句柄（Windows GUI 应用），则视为非控制台；否则视为控制台。
+    /// 任何异常（如无控制台缓冲区）将被视为非控制台环境。
+    /// </remarks>
     public static Boolean IsConsole
     {
         get
@@ -60,7 +65,8 @@ public static class Runtime
     }
 
     /// <summary>是否在容器中运行</summary>
-    public static Boolean Container => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+    /// <remarks>依据环境变量 DOTNET_RUNNING_IN_CONTAINER，兼容 "true"/"1"（不区分大小写）。</remarks>
+    public static Boolean Container => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER").ToBoolean();
     #endregion
 
     #region 系统特性
@@ -73,6 +79,7 @@ public static class Runtime
 #if !NETFRAMEWORK
     private static Boolean? _IsWeb;
     /// <summary>是否Web环境</summary>
+    /// <remarks>通过检测已加载的程序集是否包含 ASP.NET Core 相关组件来判断。</remarks>
     public static Boolean IsWeb
     {
         get
@@ -123,15 +130,37 @@ public static class Runtime
     public static Int64 TickCount64 => Environment.TickCount64;
 #else
     /// <summary>系统启动以来的毫秒数</summary>
+    /// <remarks>
+    /// 在旧目标框架下：
+    /// - Windows 优先调用 <c>GetTickCount64</c>，确保不回绕；
+    /// - 非 Windows 回退到 <see cref="Stopwatch"/> 估算；若不可用，则退化为 <c>Environment.TickCount</c>（可能回绕）。
+    /// </remarks>
     public static Int64 TickCount64
     {
         get
         {
+            if (Windows)
+            {
+                try
+                {
+                    // Windows 下的 GetTickCount64（毫秒）
+                    return unchecked((Int64)GetTickCount64());
+                }
+                catch
+                {
+                    // 回退
+                }
+            }
+
             if (Stopwatch.IsHighResolution) return Stopwatch.GetTimestamp() * 1000 / Stopwatch.Frequency;
 
+            // 最后的兜底：可能 49 天回绕
             return Environment.TickCount;
         }
     }
+
+    [DllImport("kernel32.dll")]
+    private static extern UInt64 GetTickCount64();
 #endif
 
     /// <summary>获取当前UTC时间。基于全局时间提供者，在星尘应用中会屏蔽服务器时间差</summary>
@@ -147,9 +176,7 @@ public static class Runtime
     public static Int32 ProcessId => _ProcessId > 0 ? _ProcessId : _ProcessId = Process.GetCurrentProcess().Id;
 #endif
 
-    /// <summary>
-    /// 获取环境变量。不区分大小写
-    /// </summary>
+    /// <summary>获取环境变量。不区分大小写</summary>
     /// <param name="variable"></param>
     /// <returns></returns>
     public static String? GetEnvironmentVariable(String variable)
@@ -216,15 +243,24 @@ public static class Runtime
     {
         if (processId <= 0) processId = ProcessId;
 
-        var p = Process.GetProcessById(processId);
-        if (p == null) return false;
+        Process? p = null;
+        try
+        {
+            p = Process.GetProcessById(processId);
+        }
+        catch (Exception ex)
+        {
+            XTrace.Log?.Error("获取进程[{0}]失败：{1}", processId, ex.Message);
+            return false;
+        }
+
+        if (p == null || p.HasExited) return false;
 
         if (processId != ProcessId) gc = false;
 
         var log = XTrace.Log;
         if (log != null && log.Enable && log.Level <= LogLevel.Debug)
         {
-            p ??= Process.GetCurrentProcess();
             var gcm = GC.GetTotalMemory(false) / 1024;
             var ws = p.WorkingSet64 / 1024;
             var prv = p.PrivateMemorySize64 / 1024;
@@ -249,26 +285,21 @@ public static class Runtime
             GC.Collect(max, mode);
         }
 
-        if (workingSet)
+        if (workingSet && Windows)
         {
-            if (Runtime.Windows)
+            try
             {
-                try
-                {
-                    p ??= Process.GetProcessById(processId);
-                    EmptyWorkingSet(p.Handle);
-                }
-                catch (Exception ex)
-                {
-                    log?.Error("EmptyWorkingSet失败：{0}", ex.Message);
-                    return false;
-                }
+                EmptyWorkingSet(p.Handle);
+            }
+            catch (Exception ex)
+            {
+                log?.Error("EmptyWorkingSet失败：{0}", ex.Message);
+                return false;
             }
         }
 
         if (log != null && log.Enable && log.Level <= LogLevel.Debug)
         {
-            p ??= Process.GetProcessById(processId);
             p.Refresh();
             var gcm = GC.GetTotalMemory(false) / 1024;
             var ws = p.WorkingSet64 / 1024;
