@@ -298,13 +298,25 @@ public ref struct SpanReader
         return length;
     }
 
-    /// <summary>读取数据包（对内部数据切片，不复制）。</summary>
+    /// <summary>
+    /// 读取数据包（对内部数据切片，不复制）。
+    /// </summary>
+    /// <remarks>
+    /// 本方法直接在底层 <see cref="IPacket"/> 上进行切片并返回新数据包，避免任何数据拷贝；
+    /// 为了支持跨段（链式）数据包的零拷贝读取，此处不调用 <see cref="EnsureSpace(int)"/>，
+    /// 否则当当前 <see cref="Span"/> 不足而总长度足够时也会错误抛出异常（例如 WebSocket 头部在首段、负载在 Next 段）。
+    /// 注意：该方法不触发从流追加读取，不能与基于流扩容的模式混用；若 <paramref name="length"/> 超出剩余总长度，将由底层 <c>IPacket.Slice</c> 抛出异常。
+    /// </remarks>
     public IPacket ReadPacket(Int32 length)
     {
         if (_data == null) throw new InvalidOperationException("No data stream to read!");
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
 
-        EnsureSpace(length);
+        // 不要在这里调用 EnsureSpace(length)。
+        // 这里需要支持跨段 Packet 的切片，如果仅依据当前 _span 校验，
+        // 在首段仅包含头部、负载在 Next 段的场景（如 WebSocket 数据包）会被误判为数据不足。
+        // 由 IPacket.Slice 自行根据总长度进行边界检查并抛出异常。
+        //EnsureSpace(length);
 
         var result = _data.Slice(_index, length);
         _index += length;
