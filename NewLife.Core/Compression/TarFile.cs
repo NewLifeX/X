@@ -3,7 +3,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using NewLife.Serialization;
 
 namespace NewLife.Compression;
 
@@ -84,6 +83,8 @@ public class TarFile : DisposeBase
     public TarFile() { }
 
     /// <summary>初始化一个 Tar 归档文件</summary>
+    /// <param name="stream">要读取或写入的底层数据流</param>
+    /// <param name="leveOpen">释放本对象时是否保留底层流为打开状态</param>
     public TarFile(Stream stream, Boolean leveOpen = false)
     {
         _stream = stream;
@@ -91,6 +92,8 @@ public class TarFile : DisposeBase
     }
 
     /// <summary>打开一个 Tar 归档文件</summary>
+    /// <param name="fileName">Tar 文件路径，支持 .tar、.tar.gz/.tgz</param>
+    /// <param name="isWrite">是否以可写方式打开；不存在时可创建</param>
     public TarFile(String fileName, Boolean isWrite = false)
     {
         if (fileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(fileName));
@@ -123,7 +126,7 @@ public class TarFile : DisposeBase
     }
 
     /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <param name="disposing">从 Dispose() 调用或终结器调用</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
@@ -141,7 +144,7 @@ public class TarFile : DisposeBase
 
     #region 方法
     /// <summary>读取 Tar 归档文件的内容。</summary>
-    /// <param name="stream"></param>
+    /// <param name="stream">包含 Tar 数据的输入流</param>
     public void Read(Stream stream)
     {
         while (true)
@@ -158,6 +161,7 @@ public class TarFile : DisposeBase
     }
 
     /// <summary>写入 Tar 归档文件的内容。</summary>
+    /// <param name="stream">写入目标流</param>
     public void Write(Stream stream)
     {
         foreach (var entry in _entries)
@@ -176,6 +180,9 @@ public class TarFile : DisposeBase
     }
 
     /// <summary>创建一个 Tar 归档文件的条目。</summary>
+    /// <param name="sourceFileName">源文件路径</param>
+    /// <param name="entryName">写入归档内的路径名称，留空则使用文件名</param>
+    /// <returns>创建的条目</returns>
     public TarEntry CreateEntryFromFile(String sourceFileName, String entryName)
     {
         if (sourceFileName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceFileName));
@@ -210,6 +217,7 @@ public class TarFile : DisposeBase
     }
 
     /// <summary>将指定目录中的所有文件打包。</summary>
+    /// <param name="sourceDirectoryName">源目录路径</param>
     public void CreateFromDirectory(String sourceDirectoryName)
     {
         if (sourceDirectoryName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(sourceDirectoryName));
@@ -258,6 +266,12 @@ public class TarFile : DisposeBase
 
                     fs.SetLength(fs.Position);
                 }
+            }
+            else if (entry.TypeFlag == TarEntryType.Directory)
+            {
+                // 显式目录条目，确保空目录也能创建
+                var dirPath = Path.Combine(destinationDirectoryName, entry.FileName.Replace('/', Path.DirectorySeparatorChar));
+                dirPath.EnsureDirectory(false);
             }
         }
     }
@@ -343,18 +357,25 @@ public class TarEntry
     #endregion
 
     /// <summary>将文件头写入到流中，固定 512 字节。</summary>
+    /// <param name="stream">写入目标流</param>
     public void Write(Stream stream)
     {
         var name = FileName;
         var type = TypeFlag;
         var entry2 = this;
+        Int64? origSize = null;
         if (name.Length > 100)
         {
+            // 克隆条目用于实际文件头，当前条目将写入长路径元数据条目
             entry2 = (MemberwiseClone() as TarEntry)!;
 
             name = "././@LongLink";
             type = TarEntryType.LongPath;
-            FileSize = FileName.Length;
+
+            // 暂存原始大小，将当前条目的大小设置为长路径字节长度（ASCII）
+            origSize = FileSize;
+            var longNameBytesLen = Encoding.ASCII.GetBytes(FileName).Length;
+            FileSize = longNameBytesLen;
         }
 
         var header = new Byte[512];
@@ -397,12 +418,17 @@ public class TarEntry
             var padding = 512 - longName.Length % 512;
             if (padding > 0) stream.Write(new Byte[padding], 0, padding);
 
+            // 写入真实文件头（已在克隆对象中保留原始 FileSize）
             entry2.FileName = "@PathCut";
             entry2.Write(stream);
+
+            // 恢复当前条目的文件大小，供后续 WriteContent 使用
+            if (origSize.HasValue) FileSize = origSize.Value;
         }
     }
 
     /// <summary>从流中读取文件头。</summary>
+    /// <param name="stream">包含 Tar 数据的输入流</param>
     public static TarEntry? Read(Stream stream)
     {
         var header = new Byte[512];
@@ -461,6 +487,7 @@ public class TarEntry
     }
 
     /// <summary>读取内容。返回是否读取成功</summary>
+    /// <param name="stream">包含 Tar 数据的输入流</param>
     public Boolean ReadContent(Stream stream)
     {
         // 如果不是可读流，则读取出来在内存中
@@ -496,17 +523,23 @@ public class TarEntry
     }
 
     /// <summary>写入内存到数据流</summary>
-    /// <param name="stream"></param>
+    /// <param name="stream">写入目标流</param>
     public void WriteContent(Stream stream)
     {
         var ms = Open();
         ms.CopyTo(stream, FileSize, 4096);
 
+        // 按 512 字节对齐，显式写入填充零，不使用 Seek 以避免未真正写入
         var padding = (512 - FileSize % 512) % 512;
-        if (padding > 0) stream.Seek(padding, SeekOrigin.Current);
+        if (padding > 0)
+        {
+            var zeros = new Byte[padding];
+            stream.Write(zeros, 0, zeros.Length);
+        }
     }
 
     /// <summary>设置文件</summary>
+    /// <param name="fileName">要写入的源文件路径</param>
     public void SetFile(String fileName)
     {
         var fi = fileName.AsFile();
@@ -520,6 +553,7 @@ public class TarEntry
     }
 
     /// <summary>打开流</summary>
+    /// <returns>可读取条目内容的流</returns>
     public Stream Open()
     {
         var stream = _stream;
@@ -545,6 +579,6 @@ public class TarEntry
     }
 
     /// <summary>已重载。</summary>
-    /// <returns></returns>
+    /// <returns>文件名</returns>
     public override String ToString() => FileName ?? base.ToString()!;
 }
