@@ -2,6 +2,7 @@
 using NewLife;
 using NewLife.Log;
 using Xunit;
+using System.Globalization;
 
 namespace XUnitTest.Common;
 
@@ -424,5 +425,117 @@ public class UtilityTests
         //Assert.Equal(ticks, d3, 17);
         Assert.True(Math.Abs(ticks - d3) < 1000_0000_0000);
         //Assert.Equal(d2, d3);
+    }
+
+    [Fact]
+    public void GMK_Negative_Format()
+    {
+        var n = -1024L;
+        Assert.Equal("-1.00K", n.ToGMK("n2"));
+
+        n = -1L;
+        Assert.Equal("-1", n.ToGMK());
+    }
+
+    [Fact]
+    public void Trim_Ticks_Precision()
+    {
+        var now = DateTime.Now;
+        var ms = now.Trim("ms");
+        Assert.Equal(0, ms.Ticks % TimeSpan.TicksPerMillisecond);
+
+        var s = now.Trim("s");
+        Assert.Equal(0, s.Ticks % TimeSpan.TicksPerSecond);
+
+        var m = now.Trim("m");
+        Assert.Equal(0, m.Ticks % TimeSpan.TicksPerMinute);
+
+        var h = now.Trim("h");
+        Assert.Equal(0, h.Ticks % TimeSpan.TicksPerHour);
+
+        var us = now.Trim("us");
+        Assert.Equal(0, us.Ticks % 10);
+
+        var ns = now.Trim("ns");
+        // DateTime tick = 100ns，按 1 tick 裁剪等于不变
+        Assert.Equal(now, ns);
+    }
+
+    [Fact]
+    public void Decimal_From_Bytes_16()
+    {
+        var expected = 12345.6789m;
+        var bits = decimal.GetBits(expected); // lo, mid, hi, flags
+        var buf = new byte[16];
+        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[0]), 0, buf, 0, 4);
+        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[1]), 0, buf, 4, 4);
+        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[2]), 0, buf, 8, 4);
+        System.Buffer.BlockCopy(BitConverter.GetBytes(bits[3]), 0, buf, 12, 4);
+
+        var val = buf.ToDecimal();
+        Assert.Equal(expected, val);
+    }
+
+    [Fact]
+    public void Boolean_Synonyms()
+    {
+        Assert.True("yes".ToBoolean());
+        Assert.True("Y".ToBoolean());
+        Assert.True("On".ToBoolean());
+        Assert.True("ENABLED".ToBoolean());
+
+        Assert.False("no".ToBoolean());
+        Assert.False("N".ToBoolean());
+        Assert.False("off".ToBoolean());
+        Assert.False("disabled".ToBoolean());
+    }
+
+    [Fact]
+    public void InvariantCulture_Number_Parsing()
+    {
+        var old = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
+            // 小数点必须是点，千分位逗号：InvariantCulture 不受当前区域影响
+            Assert.Equal(1234.56, "1,234.56".ToDouble());
+            Assert.Equal(1234.56m, "1,234.56".ToDecimal());
+
+            // 设计目标：去掉空格/逗号等分隔符，法语写法会被清理为整数
+            Assert.Equal(123456d, "1 234,56".ToDouble());
+            Assert.Equal(123456m, "1 234,56".ToDecimal());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = old;
+        }
+    }
+
+    [Fact]
+    public void TrimNumber_Cleans_Common_Separators()
+    {
+        // 逗号 / 空格 / 下划线 会被清理
+        Assert.Equal(123456d, "1,234,56".ToDouble());
+        Assert.Equal(123456d, "1 234 56".ToDouble());
+        Assert.Equal(123456d, "1_234_56".ToDouble());
+
+        // 科学计数法保留
+        Assert.Equal(1.23e6, "1.23e6".ToDouble());
+
+        // 全角数字与全角空格
+        var fullWidth = "１，２３４　５６"; // 1,234⎵56（全角）
+        Assert.Equal(123456d, fullWidth.ToDouble());
+
+        // 正/负号
+        Assert.Equal(+123456d, "+123,456".ToDouble());
+        Assert.Equal(-123456d, "-123,456".ToDouble());
+
+        // 小数点 + 千分符
+        Assert.Equal(1234.56d, "1,234.56".ToDouble());
+        Assert.Equal(1234.56m, "1,234.56".ToDecimal());
+
+        // 使用逗号作为小数点（如法语），按当前转换策略将被视为清理后整数
+        Assert.Equal(123456d, "1 234,56".ToDouble());
+        Assert.Equal(123456m, "1 234,56".ToDecimal());
     }
 }

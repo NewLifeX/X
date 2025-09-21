@@ -91,7 +91,7 @@ public static class Utility
     /// <returns></returns>
     public static DateTimeOffset ToDateTimeOffset(this Object? value, DateTimeOffset defaultValue) => Convert.ToDateTimeOffset(value, defaultValue);
 
-    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、纳秒ns</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、微秒us、纳秒ns</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
@@ -156,7 +156,7 @@ public static class Utility
     /// <param name="value">数值</param>
     /// <param name="format">格式化字符串</param>
     /// <returns></returns>
-    public static String ToGMK(this Int64 value, String? format = null) => value < 0 ? value + "" : Convert.ToGMK((UInt64)value, format);
+    public static String ToGMK(this Int64 value, String? format = null) => value < 0 ? "-" + Convert.ToGMK((UInt64)(-value), format) : Convert.ToGMK((UInt64)value, format);
     #endregion
 
     #region 异常处理
@@ -452,8 +452,24 @@ public class DefaultConvert
                 case 2: return BitConverter.ToInt16(buf, 0);
                 case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
                 case 4: return BitConverter.ToInt32(buf, 0);
+                case 16:
+                    {
+                        // 按 Decimal 内部 4*Int32 bits 构造（lo, mid, hi, flags）。仅在 flags 合法时采纳，否则回退。
+                        var lo = BitConverter.ToInt32(buf, 0);
+                        var mid = BitConverter.ToInt32(buf, 4);
+                        var hi = BitConverter.ToInt32(buf, 8);
+                        var flags = BitConverter.ToInt32(buf, 12);
+                        var scale = (flags >> 16) & 0xFF;
+                        var reserved = flags & 0x7F00FFFF; // 除去符号位与比例位，其余应为0
+                        if (scale <= 28 && reserved == 0)
+                        {
+                            try { return new Decimal([lo, mid, hi, flags]); } catch { /* fallthrough */ }
+                        }
+                        // 非法 flags，回退为 Double 解析
+                        goto default;
+                    }
                 default:
-                    // 凑够8字节
+                    // 凑够8字节，使用 Double 近似解析
                     if (buf.Length < 8)
                     {
                         var bts = Pool.Shared.Rent(8);
@@ -506,7 +522,13 @@ public class DefaultConvert
             if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
             if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
-            return Int32.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n != 0 : defaultValue;
+            // 常见配置值同义词
+            return str.ToLowerInvariant() switch
+            {
+                "y" or "yes" or "on" or "enable" or "enabled" => true,
+                "n" or "no" or "off" or "disable" or "disabled" => false,
+                _ => Int32.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n != 0 : defaultValue,
+            };
         }
 
         try
@@ -663,6 +685,10 @@ public class DefaultConvert
         {
             // 去掉逗号分隔符
             var ch = input[i];
+            if (ch == 0x3000)
+                ch = (Char)0x20; // 全角空格
+            else if (ch is > (Char)0xFF00 and < (Char)0xFF5F)
+                ch = (Char)(input[i] - 0xFEE0);
             if (ch == ',' || ch == '_' || ch == ' ') continue;
 
             // 支持前缀正号。Redis响应中就会返回带正号的整数
@@ -674,12 +700,6 @@ public class DefaultConvert
 
             // 支持负数
             if (ch == '-' && idx > 0) return 0;
-
-            // 全角空格
-            if (ch == 0x3000)
-                ch = (Char)0x20;
-            else if (ch is > (Char)0xFF00 and < (Char)0xFF5F)
-                ch = (Char)(input[i] - 0xFEE0);
 
             // 数字和小数点 以外字符，认为非数字
             if (ch is '.' or '-' or not < '0' and not > '9')
@@ -704,24 +724,26 @@ public class DefaultConvert
         return idx;
     }
 
-    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、纳秒ns</summary>
+    /// <summary>去掉时间日期指定位置后面部分，可指定毫秒ms、秒s、分m、小时h、微秒us、纳秒ns</summary>
     /// <param name="value">时间日期</param>
     /// <param name="format">格式字符串，默认s格式化到秒，ms格式化到毫秒</param>
     /// <returns></returns>
     public virtual DateTime Trim(DateTime value, String format)
     {
-        return format switch
+        // 统一使用 ticks 粒度裁剪，更高效且避免构造函数校验/进位误差
+        var step = format switch
         {
-#if NET7_0_OR_GREATER
-            "us" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Microsecond, value.Kind),
-            "ns" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Microsecond / 100 * 100, value.Kind),
-#endif
-            "ms" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Millisecond, value.Kind),
-            "s" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind),
-            "m" => new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0, value.Kind),
-            "h" => new DateTime(value.Year, value.Month, value.Day, value.Hour, 0, 0, value.Kind),
-            _ => value,
+            "ms" => TimeSpan.TicksPerMillisecond,
+            "s" => TimeSpan.TicksPerSecond,
+            "m" => TimeSpan.TicksPerMinute,
+            "h" => TimeSpan.TicksPerHour,
+            "us" => 10,                 // 1 微秒 = 10 ticks
+            "ns" => 1,                  // 1 tick = 100ns，已是最小粒度
+            _ => 0,
         };
+        if (step <= 0) return value;
+        var ticks = value.Ticks / step * step;
+        return new DateTime(ticks, value.Kind);
     }
 
     /// <summary>时间日期转为yyyy-MM-dd HH:mm:ss完整字符串</summary>
@@ -891,9 +913,9 @@ public class DefaultConvert
     {
         if (emptyValue != null && value <= DateTime.MinValue) return emptyValue;
 
-        //return value.ToString(format ?? "yyyy-MM-dd HH:mm:ss");
-
-        return format.IsNullOrEmpty() || format == "yyyy-MM-dd HH:mm:ss" ? ToFullString(value, false, emptyValue) : value.ToString(format);
+        return format.IsNullOrEmpty() || format == "yyyy-MM-dd HH:mm:ss"
+            ? ToFullString(value, false, emptyValue)
+            : value.ToString(format, CultureInfo.InvariantCulture);
     }
 
     /// <summary>获取内部真实异常</summary>
