@@ -243,15 +243,15 @@ public class MachineInfo : IExtend
         }
 
         // 裁剪不可见字符，顺带去掉两头空白
-        OSName = OSName.TrimInvisible()?.Trim();
-        OSVersion = OSVersion.TrimInvisible()?.Trim();
-        Product = Product.TrimInvisible()?.Trim();
-        Processor = Processor.TrimInvisible()?.Trim();
-        UUID = UUID.TrimInvisible()?.Trim();
-        Guid = Guid.TrimInvisible()?.Trim();
-        Serial = Serial.TrimInvisible()?.Trim();
-        Board = Board.TrimInvisible()?.Trim();
-        DiskID = DiskID.TrimInvisible()?.Trim();
+        OSName = Clean(OSName);
+        OSVersion = Clean(OSVersion);
+        Product = Clean(Product);
+        Processor = Clean(Processor);
+        UUID = Clean(UUID);
+        Guid = Clean(Guid);
+        Serial = Clean(Serial);
+        Board = Clean(Board);
+        DiskID = Clean(DiskID);
 
         // 无法读取系统标识时，随机生成一个guid，借助文件缓存确保其不变
         if (Guid.IsNullOrEmpty()) Guid = "0-" + System.Guid.NewGuid().ToString();
@@ -266,6 +266,9 @@ public class MachineInfo : IExtend
             if (XTrace.Log.Level <= LogLevel.Debug) XTrace.WriteException(ex);
         }
     }
+
+    /// <summary>裁剪不可见字符并去除两端空白</summary>
+    private static String? Clean(String? value) => value.TrimInvisible()?.Trim();
 
 #if NET5_0_OR_GREATER
     [SupportedOSPlatform("windows")]
@@ -430,6 +433,9 @@ public class MachineInfo : IExtend
 #endif
     }
 
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("linux")]
+#endif
     private void LoadLinuxInfo()
     {
         var str = GetLinuxName();
@@ -542,13 +548,16 @@ public class MachineInfo : IExtend
         }
     }
 
+#if NET5_0_OR_GREATER
+    [SupportedOSPlatform("macos")]
+#endif
     private void LoadMacInfo()
     {
         var dic = ReadCommand("sw_vers");
         if (dic != null)
         {
             if (dic.TryGetValue("ProductName", out var str)) OSName = str;
-            if (dic.TryGetValue("productVersion", out str)) OSVersion = str;
+            if (dic.TryGetValue("ProductVersion", out str)) OSVersion = str;
         }
 
         dic = ReadCommand("system_profiler", "SPHardwareDataType");
@@ -560,7 +569,6 @@ public class MachineInfo : IExtend
             if (dic.TryGetValue("Memory", out str)) Memory = (UInt64)str.TrimEnd("GB").Trim().ToLong() * 1024 * 1024 * 1024;
             if (dic.TryGetValue("Serial Number (system)", out str)) Serial = str;
             if (dic.TryGetValue("Hardware UUID", out str)) UUID = str;
-            if (dic.TryGetValue("Processor Name", out str)) Processor = str;
         }
 
         if (Vendor.IsNullOrEmpty()) Vendor = "Apple";
@@ -778,7 +786,7 @@ public class MachineInfo : IExtend
             }
             catch
             {
-                _excludes.Add(nameof(_excludes));
+                _excludes.Add(nameof(CpuRate));
             }
         }
     }
@@ -839,7 +847,12 @@ public class MachineInfo : IExtend
         if (TryRead(dr, out value)) return value;
 
         var sr = "/etc/os-release";
-        if (TryRead(sr, out value)) return value?.SplitAsDictionary("=", "\n", true)["PRETTY_NAME"].Trim();
+        if (TryRead(sr, out value))
+        {
+            var dic = value.SplitAsDictionary("=", "\n", true);
+            if (dic.TryGetValue("PRETTY_NAME", out var pretty) && !pretty.IsNullOrEmpty()) return pretty.Trim();
+            if (dic.TryGetValue("NAME", out var name) && !name.IsNullOrEmpty()) return name.Trim();
+        }
 
         var uname = "uname".Execute("-sr", 0, false)?.Trim();
         if (!uname.IsNullOrEmpty())
