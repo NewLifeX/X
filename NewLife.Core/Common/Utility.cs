@@ -181,6 +181,21 @@ public class DefaultConvert
     private static readonly Int64 _maxSeconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalSeconds;
     private static readonly Int64 _maxMilliseconds = (Int64)(DateTime.MaxValue - DateTime.MinValue).TotalMilliseconds;
 
+    /// <summary>
+    /// 解包表单/查询字符串提交的多值列表，仅返回第一个非空字符串；否则返回原始对象。
+    /// </summary>
+    /// <param name="value">原始对象或字符串列表</param>
+    /// <returns>首个非空字符串或原始对象</returns>
+    private static Object? UnwrapStringList(Object? value)
+    {
+        if (value is IList<String> list)
+        {
+            if (list.Count == 0) return null;
+            return list.FirstOrDefault(e => !e.IsNullOrEmpty());
+        }
+        return value;
+    }
+
     /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
     /// <param name="value">待转换对象</param>
     /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -191,12 +206,8 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
@@ -209,7 +220,7 @@ public class DefaultConvert
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Int32.TryParse(tmp[..rs], out n) ? n : defaultValue;
+            return Int32.TryParse(tmp[..rs], NumberStyles.Integer, CultureInfo.InvariantCulture, out n) ? n : defaultValue;
 #else
             return Int32.TryParse(tmp[..rs].ToString(), out n) ? n : defaultValue;
 #endif
@@ -247,7 +258,7 @@ public class DefaultConvert
             {
                 case 1: return buf[0];
                 case 2: return BitConverter.ToInt16(buf, 0);
-                case 3: return BitConverter.ToInt32([buf[0], buf[1], buf[2], (Byte)0], 0);
+                case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
                 case 4: return BitConverter.ToInt32(buf, 0);
             }
         }
@@ -276,12 +287,8 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
@@ -294,7 +301,7 @@ public class DefaultConvert
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Int64.TryParse(tmp[..rs], out n) ? n : defaultValue;
+            return Int64.TryParse(tmp[..rs], NumberStyles.Integer, CultureInfo.InvariantCulture, out n) ? n : defaultValue;
 #else
             return Int64.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
@@ -324,7 +331,7 @@ public class DefaultConvert
             {
                 case 1: return buf[0];
                 case 2: return BitConverter.ToInt16(buf, 0);
-                case 3: return BitConverter.ToInt32([buf[0], buf[1], buf[2], (Byte)0], 0);
+                case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
                 case 4: return BitConverter.ToInt32(buf, 0);
                 case 8: return BitConverter.ToInt64(buf, 0);
             }
@@ -354,24 +361,20 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            if (Double.TryParse(str, out var n)) return n;
+            if (Double.TryParse(str, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var n)) return n;
 
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Double.TryParse(tmp[..rs], out n) ? n : defaultValue;
+            return Double.TryParse(tmp[..rs], NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out n) ? n : defaultValue;
 #else
             return Double.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
@@ -408,7 +411,7 @@ public class DefaultConvert
 
         // 转字符串再转整数，作为兜底方案
         var str2 = value.ToString();
-        return !str2.IsNullOrEmpty() && Double.TryParse(str2.Trim(), out var n2) ? n2 : defaultValue;
+        return !str2.IsNullOrEmpty() && Double.TryParse(str2.Trim(), NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var n2) ? n2 : defaultValue;
     }
 
     /// <summary>转为高精度浮点数</summary>
@@ -421,24 +424,20 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
         {
-            if (Decimal.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent, null, out var n)) return n;
+            if (Decimal.TryParse(str, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var n)) return n;
 
             Span<Char> tmp = stackalloc Char[str.Length];
             var rs = TrimNumber(str.AsSpan(), tmp);
             if (rs == 0) return defaultValue;
 
 #if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-            return Decimal.TryParse(tmp[..rs], out n) ? n : defaultValue;
+            return Decimal.TryParse(tmp[..rs], NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out n) ? n : defaultValue;
 #else
             return Decimal.TryParse(new String(tmp[..rs].ToArray()), out n) ? n : defaultValue;
 #endif
@@ -451,7 +450,7 @@ public class DefaultConvert
             {
                 case 1: return buf[0];
                 case 2: return BitConverter.ToInt16(buf, 0);
-                case 3: return BitConverter.ToInt32([buf[0], buf[1], buf[2], (Byte)0], 0);
+                case 3: return buf[0] | (buf[1] << 8) | (buf[2] << 16);
                 case 4: return BitConverter.ToInt32(buf, 0);
                 default:
                     // 凑够8字节
@@ -480,7 +479,7 @@ public class DefaultConvert
 
         // 转字符串再转整数，作为兜底方案
         var str2 = value.ToString();
-        return !str2.IsNullOrEmpty() && Decimal.TryParse(str2.Trim(), out var n2) ? n2 : defaultValue;
+        return !str2.IsNullOrEmpty() && Decimal.TryParse(str2.Trim(), NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var n2) ? n2 : defaultValue;
     }
 
     /// <summary>转为布尔型。支持大小写True/False、0和非零</summary>
@@ -493,12 +492,8 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
@@ -511,7 +506,7 @@ public class DefaultConvert
             if (String.Equals(str, Boolean.TrueString, StringComparison.OrdinalIgnoreCase)) return true;
             if (String.Equals(str, Boolean.FalseString, StringComparison.OrdinalIgnoreCase)) return false;
 
-            return Int32.TryParse(str, out var n) ? n != 0 : defaultValue;
+            return Int32.TryParse(str, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n != 0 : defaultValue;
         }
 
         try
@@ -541,12 +536,8 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
@@ -623,12 +614,8 @@ public class DefaultConvert
         if (value is DateTime dateTime) return dateTime;
 
         // 支持表单提交的StringValues
-        if (value is IList<String> list)
-        {
-            if (list.Count == 0) return defaultValue;
-            value = list.FirstOrDefault(e => !e.IsNullOrEmpty());
-            if (value == null) return defaultValue;
-        }
+        value = UnwrapStringList(value);
+        if (value == null) return defaultValue;
 
         // 特殊处理字符串，也是最常见的
         if (value is String str)
@@ -699,11 +686,15 @@ public class DefaultConvert
                 output[idx++] = ch;
             else
             {
-                // 支持科学计数法，e/E后面可以跟正负号，之后至少跟一个数字
-                if ((ch is 'e' or 'E') && idx > 0 && i + 2 < input.Length && (input[i + 1] is '+' or '-'))
+                // 支持科学计数法：e/E 后可选正负号，之后至少跟一个数字
+                if (ch is 'e' or 'E' && idx > 0)
                 {
                     output[idx++] = ch;
-                    output[idx++] = input[++i];
+                    if (i + 1 < input.Length && (input[i + 1] is '+' or '-'))
+                    {
+                        output[idx++] = input[++i];
+                    }
+                    continue;
                 }
                 else
                     return 0;
@@ -976,6 +967,9 @@ public class DefaultConvert
         if (val < 1024) return val.ToString(format) + "E";
 
         val /= 1024;
-        return val.ToString(format) + "Z";
+        if (val < 1024) return val.ToString(format) + "Z";
+
+        val /= 1024;
+        return val.ToString(format) + "Y";
     }
 }
