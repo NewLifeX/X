@@ -260,7 +260,7 @@ public class CompositeConfigProvider : IConfigProvider
 
     private event EventHandler? _Changed;
     /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
-    public event EventHandler Changed
+    public event EventHandler? Changed
     {
         add
         {

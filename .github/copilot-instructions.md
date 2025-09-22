@@ -39,6 +39,39 @@
 - 使用 file-scoped namespace。
 - 禁止擅自删除已有代码注释（含单行 // 与 XML 文档注释），可以修改或追加。
 
+### 5.1 现代 C# 语法偏好（优先）
+
+- 使用 switch 表达式与模式匹配（含 relational、logical、property/positional patterns）。
+- 使用集合表达式与简化初始化（C# 12）：`[]`、`[..spread]`、`"key" => value`。
+- 使用目标类型 new、文件作用域命名空间、`init`/`required` 成员、record/record struct。
+- 使用插值原始多行字符串与 `using var` 声明减少样板代码。
+
+示例（简洁优先）：
+
+```csharp
+// 文件作用域命名空间
+namespace Demo;
+
+public readonly record struct User(string Name, int Age);
+
+static string Describe(int code) => code switch
+{
+		200 => "OK",
+		>= 400 and < 500 => "ClientError",
+		>= 500 => "ServerError",
+		_ => "Other"
+};
+
+// 集合表达式（C# 12）
+var baseList = [1, 2, 3];
+List<int> list = [..baseList, 4];
+Dictionary<string, int> map = ["a" => 1, "b" => 2];
+
+// 目标类型 new 与 using 声明
+using var ms = new MemoryStream();
+List<User> users = [];
+```
+
 ## 6. 文档注释
 - `public` / `protected` 必须具备注释：`<summary>` 单行简洁；详细描述放 `<remarks>`；补充 `<param>` `<returns>`。
 - `<summary>` 与 `</summary>` 必须在同一行，示例：`<summary>开始服务</summary>`；除非内容确需多段落，非必要不得使用三行（上下各独立）格式。

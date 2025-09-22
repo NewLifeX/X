@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using NewLife;
+﻿using NewLife;
 using NewLife.Common;
 using NewLife.Configuration;
 using NewLife.Log;

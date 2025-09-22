@@ -11,10 +11,10 @@ public static class ConfigHelper
 {
     #region 扩展
     /// <summary>查找配置项。可得到子级和配置</summary>
-    /// <param name="section"></param>
-    /// <param name="key"></param>
-    /// <param name="createOnMiss"></param>
-    /// <returns></returns>
+    /// <param name="section">起始配置节</param>
+    /// <param name="key">键路径，冒号分隔</param>
+    /// <param name="createOnMiss">当不存在时是否自动创建</param>
+    /// <returns>返回匹配配置节；未找到且不创建时返回 null</returns>
     public static IConfigSection? Find(this IConfigSection section, String key, Boolean createOnMiss = false)
     {
         if (key.IsNullOrEmpty()) return section;
@@ -42,24 +42,24 @@ public static class ConfigHelper
     }
 
     /// <summary>添加子节点</summary>
-    /// <param name="section"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="section">父配置节</param>
+    /// <param name="key">子节点键名</param>
+    /// <returns>创建的子配置节</returns>
     public static IConfigSection AddChild(this IConfigSection section, String key)
     {
         //if (section == null) return null;
 
         var cfg = new ConfigSection { Key = key };
-        section.Childs ??= new List<IConfigSection>();
+        section.Childs ??= [];
         section.Childs.Add(cfg);
 
         return cfg;
     }
 
     /// <summary>查找或添加子节点</summary>
-    /// <param name="section"></param>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="section">父配置节</param>
+    /// <param name="key">子节点键名</param>
+    /// <returns>已存在或新建的子配置节</returns>
     public static IConfigSection GetOrAddChild(this IConfigSection section, String key)
     {
         //if (section == null) return null;
@@ -68,21 +68,21 @@ public static class ConfigHelper
         if (cfg != null) return cfg;
 
         cfg = new ConfigSection { Key = key };
-        section.Childs ??= new List<IConfigSection>();
+        section.Childs ??= [];
         section.Childs.Add(cfg);
 
         return cfg;
     }
 
     /// <summary>设置节点值。格式化友好字符串</summary>
-    /// <param name="section"></param>
-    /// <param name="value"></param>
+    /// <param name="section">目标配置节</param>
+    /// <param name="value">待设置的值</param>
     internal static void SetValue(this IConfigSection section, Object? value)
     {
         if (value is DateTime dt)
             section.Value = dt.ToFullString();
         else if (value is Boolean b)
-            section.Value = b.ToString().ToLower();
+            section.Value = b.ToString().ToLowerInvariant();
         else
             section.Value = value?.ToString();
     }
@@ -95,7 +95,7 @@ public static class ConfigHelper
     /// <param name="provider">提供者</param>
     public static void MapTo(this IConfigSection section, Object model, IConfigProvider provider)
     {
-        var childs = section?.Childs?.ToArray();
+        var childs = section.Childs?.ToArray();
         if (childs == null || childs.Length == 0 || model == null) return;
 
         // 支持字典
@@ -163,7 +163,7 @@ public static class ConfigHelper
                 if (val == null)
                 {
                     // 如果有无参构造函数，则实例化一个
-                    var ctor = pi.PropertyType.GetConstructor(new Type[0]);
+                    var ctor = pi.PropertyType.GetConstructor(Type.EmptyTypes);
                     if (ctor != null)
                     {
                         val = ctor.Invoke(null);
@@ -220,30 +220,14 @@ public static class ConfigHelper
         var elementType = pi.PropertyType.GetElementTypeEx();
         if (elementType == null) return;
 
-        // 实例化列表
-        if (model.GetValue(pi) is IList list)
+        // 确保存在列表实例
+        IList list;
+        var current = model.GetValue(pi);
+        if (current is IList l)
         {
+            list = l;
             // 映射前清空原有数据
             list.Clear();
-
-            if (section.Childs == null) return;
-
-            // 逐个映射
-            var childs = section.Childs.ToArray();
-            for (var i = 0; i < childs.Length; i++)
-            {
-                var val = elementType.CreateInstance();
-                if (elementType.IsBaseType())
-                {
-                    val = childs[i].Value;
-                }
-                else
-                {
-                    if (val != null) MapTo(childs[i], val, provider);
-                    //list[i] = val;
-                }
-                list.Add(val);
-            }
         }
         else
         {
@@ -251,15 +235,37 @@ public static class ConfigHelper
                 pi.PropertyType.CreateInstance() :
                 typeof(List<>).MakeGenericType(elementType).CreateInstance();
 
-            if (obj is not IList list2) return;
+            if (obj is not IList newList) return;
 
-            model.SetValue(pi, list2);
+            model.SetValue(pi, newList);
+            list = newList;
+        }
+
+        if (section.Childs == null) return;
+
+        // 逐个映射
+        var childs = section.Childs.ToArray();
+        for (var i = 0; i < childs.Length; i++)
+        {
+            Object? val = null;
+            if (elementType.IsBaseType())
+            {
+                // 将字符串值转换为目标元素类型
+                val = childs[i].Value?.ChangeType(elementType);
+            }
+            else
+            {
+                val = elementType.CreateInstance();
+                if (val != null) MapTo(childs[i], val, provider);
+                //list[i] = val;
+            }
+            list.Add(val);
         }
     }
 
     /// <summary>从实例公有属性映射到配置树</summary>
-    /// <param name="section"></param>
-    /// <param name="model"></param>
+    /// <param name="section">目标配置节</param>
+    /// <param name="model">模型实例</param>
     public static void MapFrom(this IConfigSection section, Object model)
     {
         if (section == null) return;
@@ -335,14 +341,15 @@ public static class ConfigHelper
 
     private static void MapArray(IConfigSection section, IConfigSection cfg, IList list, Type elementType)
     {
-        if (section.Childs == null) return;
+        // 确保父节子节点集合存在
+        section.Childs ??= [];
 
         // 为了避免数组元素叠加，干掉原来的
         section.Childs.Remove(cfg);
         cfg = new ConfigSection
         {
             Key = cfg.Key,
-            Childs = new List<IConfigSection>(),
+            Childs = [],
             Comment = cfg.Comment
         };
         section.Childs.Add(cfg);

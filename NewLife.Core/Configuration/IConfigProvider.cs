@@ -1,16 +1,15 @@
-﻿using NewLife.Reflection;
+﻿using System.Collections.Concurrent;
+using NewLife.Reflection;
 
 namespace NewLife.Configuration;
 
 /// <summary>配置提供者</summary>
 /// <remarks>
-/// 建立树状配置数据体系，以分布式配置中心为核心，支持基于key的索引读写，也支持Load/Save/Bind的实体模型转换。
-/// key索引支持冒号分隔的多层结构，在配置中心中不同命名空间使用不同提供者实例，在文件配置中不同文件使用不同提供者实例。
-/// 
-/// 一个配置类，支持从不同持久化提供者读取，可根据需要选择配置持久化策略。
-/// 例如，小系统采用ini/xml/json文件配置，分布式系统采用配置中心。
-/// 
-/// 可通过实现IConfigMapping接口来自定义映射配置到模型实例。
+/// 建立树状配置数据体系，以分布式配置中心为核心：
+/// - 支持以“冒号分隔”的层级 Key 索引读写
+/// - 支持 Load/Save/Bind 将配置与实体模型互相映射
+/// - 配置中心可用不同命名空间实例隔离；文件配置可用不同文件实例隔离
+/// 可通过实现 IConfigMapping 来自定义映射策略。
 /// </remarks>
 public interface IConfigProvider
 {
@@ -21,64 +20,71 @@ public interface IConfigProvider
     IConfigSection Root { get; set; }
 
     /// <summary>所有键</summary>
+    /// <remarks>
+    /// 返回当前“根级”直接子节点的键集合（不保证包含深层键），主要用于枚举或提示。
+    /// 具体实现可按需覆盖，返回包含深层键的集合。
+    /// </remarks>
     ICollection<String> Keys { get; }
 
     /// <summary>是否新的配置文件</summary>
+    /// <remarks>true 表示数据源尚不存在或刚创建；用于决定是否在首次加载后持久化默认值。</remarks>
     Boolean IsNew { get; set; }
 
-    /// <summary>获取 或 设置 配置值</summary>
+    /// <summary>获取/设置配置值</summary>
     /// <param name="key">配置名，支持冒号分隔的多级名称</param>
-    /// <returns></returns>
+    /// <returns>找到时返回配置值；未找到返回 null</returns>
     String? this[String key] { get; set; }
 
-    /// <summary>查找配置项。可得到子级和配置</summary>
-    /// <param name="key">配置名</param>
-    /// <returns></returns>
+    /// <summary>查找配置项（返回节点对象，可获取子级与值）</summary>
+    /// <param name="key">配置名，支持冒号分隔的多级名称</param>
+    /// <returns>匹配的配置节；未找到时返回 null</returns>
     IConfigSection? GetSection(String key);
 
-    /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
-    event EventHandler Changed;
+    /// <summary>配置改变事件</summary>
+    /// <remarks>调用 Save/SaveAll、远端推送/轮询变更、文件变更等场景会触发。订阅方应避免在回调中执行耗时逻辑。</remarks>
+    event EventHandler? Changed;
 
     /// <summary>返回获取配置的委托</summary>
     GetConfigCallback GetConfig { get; }
 
     /// <summary>从数据源加载数据到配置树</summary>
+    /// <returns>true 表示加载成功；false 表示被忽略或失败</returns>
     Boolean LoadAll();
 
     /// <summary>保存配置树到数据源</summary>
+    /// <returns>true 表示保存成功；false 表示被忽略或失败</returns>
     Boolean SaveAll();
 
     /// <summary>加载配置到模型</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
-    /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    /// <returns></returns>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
+    /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
+    /// <returns>模型实例；未找到对应配置时返回默认实例或 null（由实现决定）</returns>
     T? Load<T>(String? path = null) where T : new();
 
     /// <summary>保存模型实例</summary>
-    /// <typeparam name="T">模型</typeparam>
+    /// <typeparam name="T">模型类型</typeparam>
     /// <param name="model">模型实例</param>
-    /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
+    /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
+    /// <returns>true 表示保存成功；false 表示失败</returns>
     Boolean Save<T>(T model, String? path = null);
 
-    /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+    /// <summary>绑定模型以实现热更新：配置数据变化时同步修改模型属性</summary>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
     /// <param name="model">模型实例</param>
-    /// <param name="autoReload">是否自动更新。默认true</param>
-    /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+    /// <param name="autoReload">是否自动更新（默认 true）</param>
+    /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
     void Bind<T>(T model, Boolean autoReload = true, String? path = null);
 
-    /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+    /// <summary>绑定模型以实现热更新：配置变化时回调自定义逻辑</summary>
+    /// <typeparam name="T">模型类型。可通过实现 IConfigMapping 自定义映射</typeparam>
     /// <param name="model">模型实例</param>
-    /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
+    /// <param name="path">路径/命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
     void Bind<T>(T model, String path, Action<IConfigSection> onChange);
 }
 
 /// <summary>配置提供者基类</summary>
-/// <remarks>
-/// 同时也是基于Items字典的内存配置提供者。
-/// </remarks>
+/// <remarks>同时也是基于 Items 字典的内存配置提供者。</remarks>
 public abstract class ConfigProvider : DisposeBase, IConfigProvider
 {
     #region 属性
@@ -93,13 +99,13 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     {
         get
         {
-            //Root?.Childs?.Select(e => e.Key).ToList();
-
-            var list = new List<String>();
+            // 确保已加载
+            EnsureLoad();
 
             var childs = Root?.Childs;
-            if (childs == null) return list;
+            if (childs == null || childs.Count == 0) return new List<String>();
 
+            var list = new List<String>(childs.Count);
             foreach (var item in childs)
             {
                 if (item.Key != null) list.Add(item.Key);
@@ -109,11 +115,11 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         }
     }
 
-    /// <summary>已使用的键</summary>
-    public ICollection<String> UsedKeys { get; } = new List<String>();
+    /// <summary>已使用的键（一次会话内访问过的键）</summary>
+    public ICollection<String> UsedKeys { get; } = new HashSet<String>();
 
-    /// <summary>缺失的键</summary>
-    public ICollection<String> MissedKeys { get; } = new List<String>();
+    /// <summary>缺失的键（访问时未命中的键）</summary>
+    public ICollection<String> MissedKeys { get; } = new HashSet<String>();
 
     /// <summary>返回获取配置的委托</summary>
     public virtual GetConfigCallback GetConfig => key => Find(key, false)?.Value;
@@ -133,7 +139,6 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     #region 方法
     /// <summary>获取 或 设置 配置值</summary>
     /// <param name="key">键</param>
-    /// <returns></returns>
     public virtual String? this[String key]
     {
         get { EnsureLoad(); return Find(key, false)?.Value; }
@@ -145,15 +150,13 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     }
 
     /// <summary>查找配置项。可得到子级和配置</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">键</param>
     public virtual IConfigSection? GetSection(String key) => Find(key, false);
 
     /// <summary>查找配置项，可指定是否创建</summary>
-    /// <remarks>配置提供者可以重载该方法以实现增强功能。例如星尘配置从注册中心读取数据</remarks>
-    /// <param name="key"></param>
-    /// <param name="createOnMiss"></param>
-    /// <returns></returns>
+    /// <remarks>配置提供者可以重载该方法以增强功能，例如：从注册中心或远端配置中心读取数据。</remarks>
+    /// <param name="key">键</param>
+    /// <param name="createOnMiss">未找到时是否创建</param>
     protected virtual IConfigSection? Find(String key, Boolean createOnMiss)
     {
         UseKey(key);
@@ -177,7 +180,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     }
 
     /// <summary>初始化提供者</summary>
-    /// <param name="value"></param>
+    /// <param name="value">初始化参数</param>
     public virtual void Init(String value) { }
     #endregion
 
@@ -186,10 +189,12 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public virtual Boolean LoadAll() => true;
 
     private Boolean _Loaded;
+    private readonly Object _syncRoot = new();
+
     private void EnsureLoad()
     {
         if (_Loaded) return;
-        lock (this)
+        lock (_syncRoot)
         {
             if (_Loaded) return;
 
@@ -202,7 +207,6 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <summary>加载配置到模型</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    /// <returns></returns>
     public virtual T? Load<T>(String? path = null) where T : new()
     {
         EnsureLoad();
@@ -247,8 +251,9 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     #endregion
 
     #region 绑定
-    private readonly IDictionary<Object, String> _models = new Dictionary<Object, String>();
-    private readonly IDictionary<Object, ModelWrap> _models2 = new Dictionary<Object, ModelWrap>();
+    private readonly ConcurrentDictionary<Object, String> _models = new();
+    private readonly ConcurrentDictionary<Object, ModelWrap> _models2 = new();
+
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
     /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
@@ -270,10 +275,10 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
                 source.MapTo(model, this);
         }
 
-        if (autoReload && !_models.ContainsKey(model))
+        if (autoReload)
         {
             path ??= String.Empty;
-            _models.Add(model, path);
+            _models.TryAdd(model, path);
         }
     }
 
@@ -298,9 +303,9 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
                 source.MapTo(model, this);
         }
 
-        if (onChange != null && !_models2.ContainsKey(model))
+        if (onChange != null)
         {
-            _models2.Add(model, new ModelWrap(path, onChange));
+            _models2.TryAdd(model, new ModelWrap(path, onChange));
         }
     }
 
@@ -312,7 +317,8 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         foreach (var item in _models)
         {
             var model = item.Key;
-            var source = GetSection(item.Value);
+            var path = item.Value;
+            var source = path.IsNullOrEmpty() ? Root : GetSection(path);
             if (source != null)
             {
                 if (model is IConfigMapping map)
@@ -323,8 +329,8 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         }
         foreach (var item in _models2)
         {
-            var model = item.Key;
-            var source = GetSection(item.Value.Path);
+            var path = item.Value.Path;
+            var source = path.IsNullOrEmpty() ? Root : GetSection(path);
             if (source != null) item.Value.OnChange(source);
         }
 
@@ -334,7 +340,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     #endregion
 
     #region 静态
-    /// <summary>默认提供者。默认xml</summary>
+    /// <summary>默认提供者。默认 xml</summary>
     public static String DefaultProvider { get; set; } = "xml";
 
     static ConfigProvider()
@@ -361,18 +367,20 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         Register<XmlConfigProvider>("config");
     }
 
-    private static readonly IDictionary<String, Type> _providers = new Dictionary<String, Type>(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<String, Type> _providers = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>注册提供者</summary>
-    /// <typeparam name="TProvider"></typeparam>
-    /// <param name="name"></param>
-    public static void Register<TProvider>(String name) where TProvider : IConfigProvider, new() => _providers[name] = typeof(TProvider);
+    /// <typeparam name="TProvider">实现 IConfigProvider 的类型</typeparam>
+    /// <param name="name">提供者名称或文件后缀（不含点）</param>
+    public static void Register<TProvider>(String name) where TProvider : IConfigProvider, new()
+    {
+        if (name.IsNullOrEmpty()) throw new ArgumentNullException(nameof(name));
+        _providers[name] = typeof(TProvider);
+    }
 
     /// <summary>根据指定名称创建提供者</summary>
-    /// <remarks>
-    /// 如果是文件名，根据后缀确定使用哪一种提供者。
-    /// </remarks>
-    /// <param name="name"></param>
-    /// <returns></returns>
+    /// <remarks>传入文件名则按扩展名选择提供者；否则按名称选择。</remarks>
+    /// <param name="name">名称或文件名；null/空时使用 <see cref="DefaultProvider"/></param>
     public static IConfigProvider? Create(String? name)
     {
         if (name.IsNullOrEmpty()) name = DefaultProvider;
