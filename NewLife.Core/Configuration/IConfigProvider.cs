@@ -137,7 +137,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     #endregion
 
     #region 方法
-    /// <summary>获取 或 设置 配置值</summary>
+    /// <summary>获取或设置配置值</summary>
     /// <param name="key">键</param>
     public virtual String? this[String key]
     {
@@ -188,19 +188,19 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     /// <summary>从数据源加载数据到配置树</summary>
     public virtual Boolean LoadAll() => true;
 
-    private Boolean _Loaded;
+    private volatile Boolean _loaded;
     private readonly Object _syncRoot = new();
 
     private void EnsureLoad()
     {
-        if (_Loaded) return;
+        if (_loaded) return;
         lock (_syncRoot)
         {
-            if (_Loaded) return;
+            if (_loaded) return;
 
             LoadAll();
 
-            _Loaded = true;
+            _loaded = true;
         }
     }
 

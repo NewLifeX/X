@@ -27,12 +27,15 @@ public static class ConfigHelper
         // 逐级下钻
         for (var i = 0; i < ss.Length; i++)
         {
-            var cfg = sec.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(ss[i]));
+            var part = ss[i];
+            if (part.IsNullOrEmpty()) continue;
+
+            var cfg = sec.Childs?.FirstOrDefault(e => e.Key.EqualIgnoreCase(part));
             if (cfg == null)
             {
                 if (!createOnMiss) return null;
 
-                cfg = sec.AddChild(ss[i]);
+                cfg = sec.AddChild(part);
             }
 
             sec = cfg;
@@ -83,6 +86,8 @@ public static class ConfigHelper
             section.Value = dt.ToFullString();
         else if (value is Boolean b)
             section.Value = b.ToString().ToLowerInvariant();
+        else if (value is Enum)
+            section.Value = value.ToString();
         else
             section.Value = value?.ToString();
     }
@@ -105,10 +110,8 @@ public static class ConfigHelper
             {
                 if (cfg.Key.IsNullOrEmpty()) continue;
 
-                dic[cfg.Key] = cfg.Value;
-
-                if (cfg.Childs != null && cfg.Childs.Count > 0)
-                    dic[cfg.Key] = cfg.Childs;
+                // 如有子级，则优先返回子级集合，否则返回值
+                dic[cfg.Key] = (cfg.Childs != null && cfg.Childs.Count > 0) ? cfg.Childs : cfg.Value;
             }
 
             return;
@@ -186,8 +189,8 @@ public static class ConfigHelper
 
         var count = section.Childs.Count;
 
-        // 实例化数组
-        if (model.GetValue(pi) is not Array arr || arr.Length == 0)
+        // 实例化或调整数组，按配置元素数量精确创建，避免保留旧数据
+        if (model.GetValue(pi) is not Array arr || arr.Length != count)
         {
             arr = Array.CreateInstance(elementType, count);
             model.SetValue(pi, arr);
@@ -198,13 +201,11 @@ public static class ConfigHelper
         {
             var sec = section.Childs[i];
 
-            // 基元类型
+            // 基元类型或可直接转换的简单类型
             if (elementType.IsBaseType())
             {
-                if (sec.Key == elementType.Name)
-                {
-                    arr.SetValue(sec.Value?.ChangeType(elementType), i);
-                }
+                // 放宽 Key 限制，优先使用值进行转换
+                arr.SetValue(sec.Value?.ChangeType(elementType), i);
             }
             else
             {
@@ -329,7 +330,7 @@ public static class ConfigHelper
             if (val is IList list)
             {
                 var elementType = type.GetElementTypeEx();
-                if (elementType != null) MapArray(section, cfg, list, elementType);
+                if (elementType != null) MapArray(cfg, list, elementType);
             }
         }
         else if (val != null)
@@ -339,20 +340,11 @@ public static class ConfigHelper
         }
     }
 
-    private static void MapArray(IConfigSection section, IConfigSection cfg, IList list, Type elementType)
+    private static void MapArray(IConfigSection cfg, IList list, Type elementType)
     {
-        // 确保父节子节点集合存在
-        section.Childs ??= [];
-
-        // 为了避免数组元素叠加，干掉原来的
-        section.Childs.Remove(cfg);
-        cfg = new ConfigSection
-        {
-            Key = cfg.Key,
-            Childs = [],
-            Comment = cfg.Comment
-        };
-        section.Childs.Add(cfg);
+        // 直接重用并清空当前配置节的子节点，避免顺序漂移并保留注释
+        cfg.Childs ??= [];
+        if (cfg.Childs.Count > 0) cfg.Childs.Clear();
 
         // 数组元素是没有key的集合
         foreach (var item in list)
