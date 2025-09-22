@@ -65,7 +65,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     /// <summary>读取数据</summary>
     /// <param name="dr">数据读取器</param>
-    /// <param name="fields">要读取的字段序列</param>
+    /// <param name="fields">要读取的字段序列（将目标列 i 映射到数据读取器列 fields[i]）</param>
     public void ReadData(IDataReader dr, Int32[]? fields = null)
     {
         // 字段
@@ -84,9 +84,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 // MySql在读取0000时间数据时会报错
                 try
                 {
-                    var val = dr[fields[i]];
+                    var idx = fields[i];
+                    var val = dr[idx];
 
-                    if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                    if (val == DBNull.Value)
+                    {
+                        // 按目标列 i 的类型填充默认值
+                        val = GetDefault(ts[i].GetTypeCode());
+                    }
                     row[i] = val;
                 }
                 catch { }
@@ -109,7 +114,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     /// <summary>读取数据</summary>
     /// <param name="dr">数据读取器</param>
-    /// <param name="fields">要读取的字段序列</param>
+    /// <param name="fields">要读取的字段序列（将目标列 i 映射到数据读取器列 fields[i]）</param>
     /// <param name="cancellationToken">取消通知</param>
     public async Task ReadDataAsync(DbDataReader dr, Int32[]? fields = null, CancellationToken cancellationToken = default)
     {
@@ -129,9 +134,14 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 // MySql在读取0000时间数据时会报错
                 try
                 {
-                    var val = dr[fields[i]];
+                    var idx = fields[i];
+                    var val = dr[idx];
 
-                    if (val == DBNull.Value) val = GetDefault(ts[i].GetTypeCode());
+                    if (val == DBNull.Value)
+                    {
+                        // 按目标列 i 的类型填充默认值
+                        val = GetDefault(ts[i].GetTypeCode());
+                    }
                     row[i] = val;
                 }
                 catch { }
@@ -171,6 +181,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 rs.Add(dr.ItemArray);
         }
         Rows = rs;
+        Total = rs.Count;
 
         return rs.Count;
     }
@@ -471,7 +482,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
     /// <summary>写入数据部分到数据流</summary>
     /// <param name="binary">二进制序列化器</param>
-    /// <param name="fields">要写入的字段序列</param>
+    /// <param name="fields">要写入的字段序列（目标列 i 对应源行列索引 fields[i]。-1 表示写入空值）</param>
     public Int64 WriteData(Binary binary, Int32[] fields)
     {
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
@@ -490,7 +501,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 if (idx >= 0)
                     binary.Write(row[idx], ts[idx]);
                 else
-                    binary.Write(null, ts[idx]);
+                    // idx < 0 时写入空值，按目标列 i 的类型写入，避免 ts[-1] 越界。
+                    binary.Write(null, ts[i]);
             }
         }
 
@@ -548,7 +560,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
                 if (idx >= 0)
                     binary.Write(row[idx], ts[idx]);
                 else
-                    binary.Write(null, ts[idx]);
+                    // idx < 0 时写入空值，按目标列 i 的类型写入，避免 ts[-1] 越界。
+                    binary.Write(null, ts[i]);
             }
         }
 
@@ -984,15 +997,19 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
             var rs = Table.Rows;
             if (rs == null || rs.Count == 0) return false;
 
-            if (_row < 0 || _row >= rs.Count)
+            // 支持 Reset 后再次枚举
+            if (_row < 0)
+                _row = 0;
+            else
+                _row++;
+
+            if (_row >= rs.Count)
             {
                 _Current = default;
                 return false;
             }
 
             _Current = new DbRow(Table, _row);
-
-            _row++;
 
             return true;
         }
@@ -1003,7 +1020,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
             _row = -1;
         }
 
-        public readonly void Dispose() { }
+        public void Dispose() { }
     }
     #endregion
 }
