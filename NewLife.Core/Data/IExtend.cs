@@ -1,25 +1,33 @@
 ﻿namespace NewLife.Data;
 
-/// <summary>具有可读写的扩展数据</summary>
+/// <summary>具有可读写的扩展数据（仅扩展属性，不含基本属性）</summary>
 /// <remarks>
-/// 仅限于扩展属性，不包括基本属性，区别于 IModel
+/// 用于在对象上携带“非模型/非常规”属性的数据字典，区别于 <see cref="IModel"/> 的“模型属性”访问。
+/// - 常用于网络会话、上下文对象等需要按需挂载临时数据的场景
+/// - 推荐实现为永不为 null 的字典；高频场景可选用可空字典以避免 KeyNotFoundException
+/// - 约定：索引读取缺失键时应返回 null，而非抛出异常
+/// - 线程安全由实现方自行保证（如必要可使用并发字典）
 /// </remarks>
 public interface IExtend
 {
-    /// <summary>数据项</summary>
+    /// <summary>扩展数据项字典</summary>
+    /// <remarks>
+    /// 建议返回非空实例，避免调用方判空；具体大小写敏感性由实现决定（建议 OrdinalIgnoreCase）。
+    /// </remarks>
     IDictionary<String, Object?> Items { get; }
 
-    /// <summary>设置 或 获取 数据项</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <summary>设置 或 获取 扩展数据项</summary>
+    /// <param name="key">扩展数据键</param>
+    /// <returns>存在则返回对应值；未命中应返回 null</returns>
+    /// <remarks>典型实现可直接代理到 <see cref="Items"/>：get 使用 TryGetValue，set 直接赋值。</remarks>
     Object? this[String key] { get; set; }
 }
 
 /// <summary>具有扩展数据字典</summary>
 /// <remarks>
-/// 仅限于扩展属性，不包括基本属性
+/// 仅限于扩展属性，不包括基本属性。
 /// </remarks>
-[Obsolete("逐步取消 IExtend2")]
+[Obsolete("逐步取消 IExtend2，建议直接使用 IExtend 或 IModel")]
 public interface IExtend2 : IExtend
 {
     /// <summary>扩展数据键集合</summary>
@@ -28,9 +36,9 @@ public interface IExtend2 : IExtend
 
 /// <summary>具有扩展数据字典</summary>
 /// <remarks>
-/// 仅限于扩展属性，不包括基本属性
+/// 仅限于扩展属性，不包括基本属性。
 /// </remarks>
-[Obsolete("逐步取消 IExtend3")]
+[Obsolete("逐步取消 IExtend3，建议直接使用 IExtend 或 IModel")]
 public interface IExtend3 : IExtend
 {
 }
