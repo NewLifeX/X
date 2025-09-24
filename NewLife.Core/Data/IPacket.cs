@@ -7,14 +7,17 @@ using NewLife.Collections;
 
 namespace NewLife.Data;
 
-/// <summary>数据包接口。几乎内存共享理念，统一提供数据包，内部可能是内存池、数组和旧版Packet等多种实现</summary>
+/// <summary>数据包接口。基于内存共享理念，统一提供数据包处理能力</summary>
 /// <remarks>
-/// 常用于网络编程和协议解析，为了避免大量内存分配和拷贝，采用数据包对象池，复用内存。数据包接口一般由结构体实现以降低 GC 压力。
-/// 需特别注意 <b>内存管理权</b> 转移：调用栈上层（获得包的一方）负责最终释放（实现 <see cref="IDisposable"/> 或所有权回收）。
-/// - 非阻塞 Socket：接收方申请与释放；解析逻辑只消费不负责释放；
-/// - 阻塞 Socket：接收函数申请，外部使用方释放，管理权可进一步传递；
-/// 旧版 Packet 作为过渡也实现该接口，便于逐步替换。切片 <see cref="Slice"/> 默认共享底层缓冲区，必要时可指定是否转移所有权（并非所有实现都支持）。
-/// 所有临时获得的 <see cref="Span{T}"/> / <see cref="Memory{T}"/> 仅在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。
+/// <para>常用于网络编程和协议解析，通过对象池复用内存避免大量分配和拷贝。</para>
+/// <para>数据包接口一般由结构体实现以降低 GC 压力。</para>
+/// <para><b>内存管理权转移规则</b>：调用栈上层（获得包的一方）负责最终释放。</para>
+/// <list type="bullet">
+/// <item>非阻塞 Socket：接收方申请与释放；解析逻辑只消费不负责释放</item>
+/// <item>阻塞 Socket：接收函数申请，外部使用方释放，管理权可进一步传递</item>
+/// </list>
+/// <para>切片 <see cref="Slice"/> 默认共享底层缓冲区，必要时可指定是否转移所有权。</para>
+/// <para><b>重要</b>：所有临时获得的 <see cref="Span{T}"/>/<see cref="Memory{T}"/> 仅在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。</para>
 /// </remarks>
 public interface IPacket
 {
@@ -55,16 +58,18 @@ public interface IPacket
 }
 
 /// <summary>拥有管理权的数据包。使用完以后需要释放</summary>
-public interface IOwnerPacket : IPacket, IDisposable { }
+public interface IOwnerPacket : IPacket, IDisposable;
 
 /// <summary>数据包辅助扩展方法</summary>
 /// <remarks>
-/// 提供数据包链式操作、数据转换、流处理等核心功能。
-/// 设计原则：
-/// 1. 性能优先：单包快速路径，多包链式处理
-/// 2. 内存友好：复用缓冲区，减少分配
-/// 3. 安全防护：环检测，边界校验
-/// 4. 兼容扩展：支持 null 调用，便于链式编程
+/// <para>提供数据包链式操作、数据转换、流处理等核心功能。</para>
+/// <para><b>设计原则</b>：</para>
+/// <list type="number">
+/// <item>性能优先：单包快速路径，多包链式处理</item>
+/// <item>内存友好：复用缓冲区，减少分配</item>
+/// <item>安全防护：环检测，边界校验</item>
+/// <item>兼容扩展：支持 null 调用，便于链式编程</item>  
+/// </list>
 /// </remarks>
 public static class PacketHelper
 {
@@ -74,9 +79,11 @@ public static class PacketHelper
     /// <param name="next">要追加的数据包（可包含自身链）</param>
     /// <returns>原包链头节点，便于链式调用</returns>
     /// <remarks>
-    /// - 时间复杂度：O(n)，n 为当前链长度
-    /// - 防护机制：自引用检测、环路检测
-    /// - 若 next 已包含链，会整体挂接
+    /// <list type="bullet">
+    /// <item>时间复杂度：O(n)，n 为当前链长度</item>
+    /// <item>防护机制：自引用检测、环路检测</item>
+    /// <item>若 next 已包含链，会整体挂接</item>
+    /// </list>
     /// </remarks>
     public static IPacket Append(this IPacket pk, IPacket next)
     {
@@ -111,10 +118,12 @@ public static class PacketHelper
     /// <param name="count">读取字节数，-1 表示到末尾</param>
     /// <returns>转换后的字符串，pk 为 null 时返回 null</returns>
     /// <remarks>
-    /// 性能优化策略：
-    /// 1. 单包：直接 Span 切片 + 编码，零分配
-    /// 2. 多包链：StringBuilder 池化，按段拼接
-    /// 3. 参数规范化：负偏移归零，超界截断
+    /// <para><b>性能优化策略</b>：</para>
+    /// <list type="number">
+    /// <item>单包：直接 Span 切片 + 编码，零分配</item>
+    /// <item>多包链：StringBuilder 池化，按段拼接</item>
+    /// <item>参数规范化：负偏移归零，超界截断</item>
+    /// </list>
     /// </remarks>
     public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
@@ -188,8 +197,10 @@ public static class PacketHelper
     /// <param name="groupSize">分组大小，0 表示每字节分隔，负数等同于 0</param>
     /// <returns>十六进制字符串表示</returns>
     /// <remarks>
-    /// 修正问题：基于 Total 判空，避免首段为空时误判
-    /// 多包处理：保持全局字节计数，确保分隔符在跨段时连续正确
+    /// <list type="bullet">
+    /// <item>基于 Total 判空，避免首段为空时误判</item>
+    /// <item>多包处理：保持全局字节计数，确保分隔符在跨段时连续正确</item>
+    /// </list>
     /// </remarks>
     public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separator = null, Int32 groupSize = 0)
     {
@@ -247,6 +258,7 @@ public static class PacketHelper
     /// <param name="pk">源数据包</param>
     /// <param name="stream">目标流</param>
     /// <remarks>在 .NET Framework 中可能存在二次拷贝</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="stream"/> 为 null</exception>
     public static void CopyTo(this IPacket pk, Stream stream)
     {
         if (stream == null) throw new ArgumentNullException(nameof(stream));
@@ -264,6 +276,7 @@ public static class PacketHelper
     /// <param name="pk">源数据包</param>
     /// <param name="stream">目标流</param>
     /// <param name="cancellationToken">取消令牌</param>
+    /// <exception cref="ArgumentNullException"><paramref name="stream"/> 为 null</exception>
     public static async Task CopyToAsync(this IPacket pk, Stream stream, CancellationToken cancellationToken = default)
     {
         if (stream == null) throw new ArgumentNullException(nameof(stream));
@@ -347,9 +360,7 @@ public static class PacketHelper
     /// <param name="offset">相对起始偏移量</param>
     /// <param name="count">读取字节数，-1 表示到末尾</param>
     /// <returns>读取的字节数组，可能直接返回底层数组以优化性能</returns>
-    /// <remarks>
-    /// 性能优化：读取全部数据且满足条件时，直接返回底层数组避免复制
-    /// </remarks>
+    /// <remarks>性能优化：读取全部数据且满足条件时，直接返回底层数组避免复制</remarks>
     public static Byte[] ReadBytes(this IPacket pk, Int32 offset = 0, Int32 count = -1)
     {
         if (pk.Next == null)
@@ -413,8 +424,8 @@ public static class PacketHelper
     /// <param name="newPacket">扩展后的新数据包</param>
     /// <returns>是否成功扩展</returns>
     /// <remarks>
-    /// 已过时，请使用 <see cref="ExpandHeader"/> 方法。
-    /// 该方法仅在原包有足够前置空间时成功，否则返回 false。
+    /// <para>已过时，请使用 <see cref="ExpandHeader"/> 方法。</para>
+    /// <para>该方法仅在原包有足够前置空间时成功，否则返回 false。</para>
     /// </remarks>
     [Obsolete("请改用 ExpandHeader，并确保根据返回结果继续使用新实例。")]
     public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
@@ -439,9 +450,11 @@ public static class PacketHelper
     /// <param name="size">需要扩展的头部字节数</param>
     /// <returns>扩展后的数据包，可能复用原缓冲区或创建新缓冲区</returns>
     /// <remarks>
-    /// 扩展策略：
-    /// 1. ArrayPacket/OwnerPacket 有足够前置空间时，直接扩展
-    /// 2. 否则创建新的 OwnerPacket，原包作为后继链节点
+    /// <para><b>扩展策略</b>：</para>
+    /// <list type="number">
+    /// <item>ArrayPacket/OwnerPacket 有足够前置空间时，直接扩展</item>
+    /// <item>否则创建新的 OwnerPacket，原包作为后继链节点</item>
+    /// </list>
     /// </remarks>
     public static IPacket ExpandHeader(this IPacket? pk, Int32 size)
     {
@@ -569,7 +582,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     protected override void Dispose(Boolean disposing)
     {
         if (!_hasOwner) return;
-        _hasOwner = true;
+        _hasOwner = false;
 
         var buffer = _buffer;
         if (buffer != null)
@@ -706,9 +719,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 }
 
 /// <summary>内存包</summary>
-/// <remarks>
-/// 内存包可能来自内存池，失去所有权时已被释放，因此不应该长期持有。
-/// </remarks>
+/// <remarks>内存包可能来自内存池，失去所有权时已被释放，因此不应该长期持有。</remarks>
 public struct MemoryPacket : IPacket
 {
     #region 属性
@@ -817,10 +828,10 @@ public struct MemoryPacket : IPacket
 }
 
 /// <summary>字节数组包</summary>
-public struct ArrayPacket : IPacket
+public record struct ArrayPacket : IPacket
 {
     #region 属性
-    private Byte[] _buffer;
+    private readonly Byte[] _buffer;
     /// <summary>缓冲区</summary>
     public readonly Byte[] Buffer => _buffer;
 
@@ -1030,6 +1041,6 @@ public struct ArrayPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
+    public override readonly String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
     #endregion
 }

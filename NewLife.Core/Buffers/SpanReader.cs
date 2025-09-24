@@ -165,9 +165,9 @@ public ref struct SpanReader
     {
         var size = sizeof(Int16);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadInt16LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadInt16BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadInt16LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadInt16BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
@@ -177,9 +177,9 @@ public ref struct SpanReader
     {
         var size = sizeof(UInt16);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadUInt16LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadUInt16BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadUInt16LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadUInt16BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
@@ -189,9 +189,9 @@ public ref struct SpanReader
     {
         var size = sizeof(Int32);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadInt32LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadInt32BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadInt32LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadInt32BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
@@ -201,9 +201,9 @@ public ref struct SpanReader
     {
         var size = sizeof(UInt32);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadUInt32LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadUInt32BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadUInt32LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadUInt32BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
@@ -213,9 +213,9 @@ public ref struct SpanReader
     {
         var size = sizeof(Int64);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadInt64LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadInt64BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadInt64LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadInt64BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
@@ -225,9 +225,9 @@ public ref struct SpanReader
     {
         var size = sizeof(UInt64);
         EnsureSpace(size);
-        var result = IsLittleEndian ?
-            BinaryPrimitives.ReadUInt64LittleEndian(_span.Slice(_index, size)) :
-            BinaryPrimitives.ReadUInt64BigEndian(_span.Slice(_index, size));
+        var result = IsLittleEndian
+            ? BinaryPrimitives.ReadUInt64LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadUInt64BigEndian(_span.Slice(_index, size));
         _index += size;
         return result;
     }
