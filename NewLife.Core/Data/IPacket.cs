@@ -136,17 +136,36 @@ public static class PacketHelper
     {
         if (pk.Length == 0) return String.Empty;
 
-        if (pk.Next == null)
-            return pk.GetSpan().ToHex(separate, groupSize, maxLength);
+        // 单包直接走 SpanHelper 优化
+        if (pk.Next == null) return pk.GetSpan().ToHex(separate, groupSize, maxLength);
 
+        if (maxLength == 0) return String.Empty;
+
+        if (groupSize < 0) groupSize = 0;
+
+        // 需要跨段连续的分隔/分组：手写循环，保持全局已写入字节计数
         var sb = Pool.StringBuilder.Get();
+        const String HEX = "0123456789ABCDEF";
+        var written = 0; // 全局已写入字节数
         for (var p = pk; p != null; p = p.Next)
         {
-            sb.Append(p.GetSpan().ToHex(separate, groupSize, maxLength));
+            var span = p.GetSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (maxLength >= 0 && written >= maxLength) goto END;
 
-            maxLength -= p.Length;
-            if (maxLength <= 0) break;
+                if (written > 0 && !separate.IsNullOrEmpty())
+                {
+                    if (groupSize <= 0 || written % groupSize == 0) sb.Append(separate);
+                }
+
+                var b = span[i];
+                sb.Append(HEX[b >> 4]);
+                sb.Append(HEX[b & 0x0F]);
+                written++;
+            }
         }
+END:
         return sb.Return(true);
     }
 
