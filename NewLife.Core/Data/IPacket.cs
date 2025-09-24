@@ -470,70 +470,80 @@ public static class PacketHelper
     #endregion
 }
 
-/// <summary>所有权内存包。具有所有权管理，不再使用时需调用 <see cref="Dispose"/> 或通过上层机制释放</summary>
-/// <remarks>内部使用 <see cref="ArrayPool{T}"/>。切片可转移所有权（仅一次）。</remarks>
+/// <summary>所有权内存包。基于 ArrayPool 的高性能内存管理，支持链式结构与所有权转移</summary>
+/// <remarks>
+/// <para><b>核心特性</b>：</para>
+/// <list type="bullet">
+/// <item>内存池复用：使用 <see cref="ArrayPool{T}.Shared"/> 减少 GC 压力</item>
+/// <item>所有权转移：切片操作可选择转移内存管理责任（仅一次）</item>
+/// <item>链式结构：支持多段数据包连接，透明处理跨段访问</item>
+/// <item>零拷贝切片：共享底层缓冲区，避免不必要的内存分配</item>
+/// </list>
+/// <para><b>生命周期管理</b>：必须调用 <see cref="Dispose"/> 归还池化内存，或通过所有权转移由新实例负责释放。</para>
+/// </remarks>
 public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 {
-    #region 属性
-    private Byte[] _buffer;
-    /// <summary>缓冲区</summary>
-    public Byte[] Buffer => _buffer;
-
+    #region 字段与属性
+    private Byte[]? _buffer;
     private Int32 _offset;
-    /// <summary>数据偏移</summary>
+    private Int32 _length;
+    private Boolean _hasOwner;
+
+    /// <summary>缓冲区数组</summary>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    public Byte[] Buffer => _buffer ?? throw new ObjectDisposedException(nameof(OwnerPacket));
+
+    /// <summary>数据在缓冲区中的起始偏移量</summary>
     public Int32 Offset => _offset;
 
-    private Int32 _length;
-    /// <summary>数据长度</summary>
+    /// <summary>当前数据包的有效数据长度</summary>
     public Int32 Length => _length;
 
-    /// <summary>获取/设置 指定位置的字节</summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
-    public Byte this[Int32 index]
-    {
-        get
-        {
-            var p = index - _length;
-            if (p >= 0)
-            {
-                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
-
-                return Next[p];
-            }
-
-            return _buffer[_offset + index];
-        }
-        set
-        {
-            var p = index - _length;
-            if (p >= 0)
-            {
-                if (Next == null) throw new IndexOutOfRangeException(nameof(index));
-
-                Next[p] = value;
-            }
-            else
-            {
-                _buffer[_offset + index] = value;
-            }
-        }
-    }
-
-    /// <summary>下一个链式包</summary>
+    /// <summary>下一个链式数据包节点</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
-    /// <summary>总长度</summary>
+    /// <summary>包含链式结构的总数据长度</summary>
     public Int32 Total => Length + (Next?.Total ?? 0);
 
-    private Boolean _hasOwner;
+    /// <summary>获取或设置指定位置的字节值，支持跨链式包访问</summary>
+    /// <param name="index">从当前包起始的相对索引位置</param>
+    /// <returns>指定位置的字节值</returns>
+    /// <exception cref="IndexOutOfRangeException">索引超出有效范围</exception>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    public Byte this[Int32 index]
+    {
+        get => index switch
+        {
+            < 0 => throw new IndexOutOfRangeException($"Index cannot be negative: {index}"),
+            var i when i < _length => Buffer[_offset + i],
+            var i when Next != null => Next[i - _length],
+            _ => throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}")
+        };
+        set
+        {
+            switch (index)
+            {
+                case < 0:
+                    throw new IndexOutOfRangeException($"Index cannot be negative: {index}");
+                case var i when i < _length:
+                    Buffer[_offset + i] = value;
+                    break;
+                case var i when Next != null:
+                    Next[i - _length] = value;
+                    break;
+                default:
+                    throw new IndexOutOfRangeException($"Index {index} exceeds total length {Total}");
+            }
+        }
+    }
     #endregion
 
-    #region 构造
-    /// <summary>实例化指定长度的内存包，从共享内存池中借出</summary>
-    /// <param name="length">长度</param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    #region 构造函数
+    /// <summary>创建指定长度的内存包，从共享内存池借用缓冲区</summary>
+    /// <param name="length">所需缓冲区长度</param>
+    /// <exception cref="ArgumentOutOfRangeException">长度为负数</exception>
+    /// <remarks>实际分配的缓冲区可能大于请求长度，以适配内存池的分片策略</remarks>
     public OwnerPacket(Int32 length)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
@@ -544,16 +554,21 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         _hasOwner = true;
     }
 
-    /// <summary>实例化内存包，指定内存所有者和长度</summary>
-    /// <param name="buffer">缓冲区</param>
-    /// <param name="offset"></param>
-    /// <param name="length">长度</param>
-    /// <param name="hasOwner">是否转移所有权</param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <summary>创建内存包，使用现有缓冲区</summary>
+    /// <param name="buffer">数据缓冲区</param>
+    /// <param name="offset">数据起始偏移量</param>
+    /// <param name="length">有效数据长度</param>
+    /// <param name="hasOwner">是否拥有缓冲区管理权限</param>
+    /// <exception cref="ArgumentNullException">缓冲区为 null</exception>
+    /// <exception cref="ArgumentOutOfRangeException">偏移量或长度超出缓冲区范围</exception>
     public OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, Boolean hasOwner)
     {
-        if (offset < 0 || length < 0 || offset + length > buffer.Length)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
+        if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset), "Offset must be non-negative.");
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
+        if (offset + length > buffer.Length)
+            throw new ArgumentOutOfRangeException(nameof(length),
+                "Offset and length must be within buffer bounds.");
 
         _buffer = buffer;
         _offset = offset;
@@ -561,159 +576,221 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
         _hasOwner = hasOwner;
     }
 
-    /// <summary>从另一个内存包创建新内存包，共用缓冲区</summary>
-    /// <param name="owner"></param>
-    /// <param name="expandSize"></param>
+    /// <summary>基于现有实例创建扩展头部的新内存包，转移所有权</summary>
+    /// <param name="owner">源内存包实例</param>
+    /// <param name="expandSize">向前扩展的字节数</param>
+    /// <exception cref="ArgumentNullException">源实例为 null</exception>
+    /// <exception cref="ArgumentOutOfRangeException">扩展大小超出可用前置空间</exception>
+    /// <remarks>
+    /// <para>新实例接管源实例的所有权和链式结构，源实例失去管理权限。</para>
+    /// <para>要求源实例的 Offset 不小于 expandSize，否则无法向前扩展。</para>
+    /// </remarks>
     public OwnerPacket(OwnerPacket owner, Int32 expandSize)
     {
-        _buffer = owner.Buffer;
-        _offset = owner.Offset - expandSize;
-        _length = owner.Length + expandSize;
+        if (owner == null) throw new ArgumentNullException(nameof(owner));
+        if (expandSize < 0)
+            throw new ArgumentOutOfRangeException(nameof(expandSize), "Expand size must be non-negative.");
+
+        if (owner._offset < expandSize)
+            throw new ArgumentOutOfRangeException(nameof(expandSize),
+                $"Expand size {expandSize} exceeds available front space {owner._offset}");
+
+        _buffer = owner._buffer;
+        _offset = owner._offset - expandSize;
+        _length = owner._length + expandSize;
         Next = owner.Next;
 
-        // 转移所有权
+        // 转移所有权：新实例接管，原实例失权
         _hasOwner = owner._hasOwner;
         owner._hasOwner = false;
     }
+    #endregion
 
-    /// <summary>销毁释放</summary>
-    /// <param name="disposing"></param>
+    #region 内存管理
+    /// <summary>释放资源，归还池化缓冲区并清理链式结构</summary>
+    /// <param name="disposing">是否由 Dispose 调用</param>
     protected override void Dispose(Boolean disposing)
     {
         if (!_hasOwner) return;
+
         _hasOwner = false;
-
         var buffer = _buffer;
+        _buffer = null; // 防止重复使用已释放的缓冲区
+
         if (buffer != null)
-        {
-            // 释放内存所有者以后，直接置空，避免重复使用
-            _buffer = null!;
-
             ArrayPool<Byte>.Shared.Return(buffer);
-        }
 
+        // 安全释放链式后续节点
         Next.TryDispose();
+        Next = null;
+    }
+
+    /// <summary>立即放弃所有权，不归还缓冲区</summary>
+    /// <remarks>
+    /// <para>用于特殊场景下的所有权转移，调用后实例变为无效状态。</para>
+    /// <para>警告：缓冲区不会被归还到池中，可能导致内存泄漏。</para>
+    /// </remarks>
+    public void Free()
+    {
+        _buffer = null;
+        Next = null;
+        _hasOwner = false;
     }
     #endregion
 
-    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
-    /// <returns></returns>
-    public override Span<Byte> GetSpan() => new(_buffer, _offset, _length);
+    #region 内存访问
+    /// <summary>获取当前数据包的内存片段视图</summary>
+    /// <returns>只读内存片段，仅在实例生命周期内有效</returns>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    public override Span<Byte> GetSpan() => new(Buffer, _offset, _length);
 
-    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
-    /// <returns></returns>
-    public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
+    /// <summary>获取当前数据包的内存块</summary>
+    /// <returns>内存块，仅在实例生命周期内有效</returns>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    public Memory<Byte> GetMemory() => new(Buffer, _offset, _length);
 
-    /// <summary>重新设置数据包大小。一般用于申请缓冲区并读取数据后设置为实际大小</summary>
-    /// <param name="size"></param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <summary>尝试获取当前片段的数组段表示</summary>
+    /// <param name="segment">输出的数组段</param>
+    /// <returns>始终返回 true</returns>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    protected override Boolean TryGetArray(out ArraySegment<Byte> segment)
+    {
+        segment = new ArraySegment<Byte>(Buffer, _offset, _length);
+        return true;
+    }
+
+    /// <summary>尝试获取当前片段的数组段表示（显式接口实现）</summary>
+    /// <param name="segment">输出的数组段</param>
+    /// <returns>始终返回 true</returns>
+    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment) => TryGetArray(out segment);
+    #endregion
+
+    #region 大小调整
+    /// <summary>调整数据包的有效长度</summary>
+    /// <param name="size">新的数据长度</param>
+    /// <returns>当前实例，支持链式调用</returns>
+    /// <exception cref="ArgumentOutOfRangeException">大小为负数或超出缓冲区容量</exception>
+    /// <exception cref="NotSupportedException">存在链式后续节点且尝试增大长度</exception>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    /// <remarks>
+    /// <para>主要用于从缓冲区读取数据后，根据实际读取量调整有效长度。</para>
+    /// <para>当存在 Next 节点时，仅允许减小当前段长度。</para>
+    /// </remarks>
     public OwnerPacket Resize(Int32 size)
     {
         if (size < 0) throw new ArgumentOutOfRangeException(nameof(size), "Size must be non-negative.");
 
         if (Next == null)
         {
-            if (size > _buffer.Length) throw new ArgumentOutOfRangeException(nameof(size));
+            if (size > Buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(size),
+                    $"Size {size} exceeds buffer capacity {Buffer.Length}");
 
             _length = size;
         }
         else
         {
-            if (size >= _length) throw new NotSupportedException();
+            if (size >= _length)
+                throw new NotSupportedException("Cannot increase size when Next segment exists");
 
             _length = size;
         }
 
         return this;
     }
+    #endregion
 
-    /// <summary>切片得到新数据包</summary>
-    /// <remarks>引用相同内存块，减少内存分配</remarks>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    public IPacket Slice(Int32 offset, Int32 count) => Slice(offset, count, true);
+    #region 切片操作
+    /// <summary>切片生成新数据包，默认转移所有权</summary>
+    /// <param name="offset">相对当前包的起始偏移</param>
+    /// <param name="count">切片长度，-1 表示到末尾</param>
+    /// <returns>新的数据包实例</returns>
+    public IPacket Slice(Int32 offset, Int32 count = -1) => Slice(offset, count, transferOwner: true);
 
-    /// <summary>切片得到新数据包，同时转移内存管理权</summary>
-    /// <remarks>引用相同内存块，减少内存分配</remarks>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。若为true则由新数据包负责归还缓冲区，只能转移一次</param>
+    /// <summary>切片生成新数据包，可选择是否转移所有权</summary>
+    /// <param name="offset">相对当前包的起始偏移</param>
+    /// <param name="count">切片长度，-1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移内存管理权</param>
+    /// <returns>新的数据包实例</returns>
+    /// <exception cref="ArgumentOutOfRangeException">偏移量或长度超出有效范围</exception>
+    /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    /// <remarks>
+    /// <para>切片操作共享底层缓冲区以避免内存拷贝。</para>
+    /// <para>当 transferOwner 为 true 时，新实例负责缓冲区释放，原实例失去管理权。</para>
+    /// <para>支持跨链式包切片，自动处理边界情况。</para>
+    /// </remarks>
     public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)
     {
-        // 释放后无法再次使用
-        if (_buffer == null) throw new InvalidDataException();
+        if (_buffer == null) throw new ObjectDisposedException(nameof(OwnerPacket));
 
-        var buffer = _buffer;
-        var start = _offset + offset;
-        var remain = _length - offset;
-        var hasOwner = _hasOwner && transferOwner;
+        if (offset < 0)
+            throw new ArgumentOutOfRangeException(nameof(offset), "Offset cannot be negative.");
 
-        // 超出范围
-        if (count > Total - offset) throw new ArgumentOutOfRangeException(nameof(count), "count must be non-negative and less than or equal to the memory owner's length.");
+        if (count > Total - offset)
+            throw new ArgumentOutOfRangeException(nameof(count),
+                $"Count {count} with offset {offset} exceeds total length {Total}");
 
-        // 单个数据包
+        var startPosition = _offset + offset;
+        var remainInCurrent = _length - offset;
+        var hasOwnership = _hasOwner && transferOwner;
+
+        // 单段数据包处理
         if (Next == null)
         {
             // 转移管理权
             if (transferOwner) _hasOwner = false;
 
-            if (count < 0 || count > remain) count = remain;
-            return new OwnerPacket(buffer, start, count, hasOwner);
+            var actualCount = count < 0 || count > remainInCurrent ? remainInCurrent : count;
+            return new OwnerPacket(_buffer, startPosition, actualCount, hasOwnership);
         }
-        else
+
+        // 多段链式包处理
+        if (remainInCurrent <= 0)
         {
-            // 如果当前段用完，则取下一段。当前包自己负责释放
-            if (remain <= 0) return Next.Slice(offset - _length, count, transferOwner);
-
-            // 转移管理权
-            if (transferOwner) _hasOwner = false;
-
-            // 当前包用一截，剩下的全部。转移管理权后，Next随新包一起释放
-            if (count < 0) return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next };
-
-            // 当前包可以读完。转移管理权后，Next失去释放机会
-            if (count <= remain) return new OwnerPacket(buffer, start, count, hasOwner);
-
-            // 当前包用一截，剩下的再截取。转移管理权后，Next再次转移管理权，随新包一起释放
-            return new OwnerPacket(buffer, start, remain, hasOwner) { Next = Next.Slice(0, count - remain, transferOwner) };
+            // 完全跳过当前段，递归处理后续段
+            return Next.Slice(offset - _length, count, transferOwner);
         }
+
+        // 转移管理权
+        if (transferOwner) _hasOwner = false;
+
+        if (count < 0)
+        {
+            // 当前段部分 + 所有后续段
+            return new OwnerPacket(_buffer, startPosition, remainInCurrent, hasOwnership) { Next = Next };
+        }
+
+        if (count <= remainInCurrent)
+        {
+            // 仅在当前段内
+            return new OwnerPacket(_buffer, startPosition, count, hasOwnership);
+        }
+
+        // 跨段处理：当前段 + 后续段切片
+        return new OwnerPacket(_buffer, startPosition, remainInCurrent, hasOwnership)
+        {
+            Next = Next.Slice(0, count - remainInCurrent, transferOwner)
+        };
     }
+    #endregion
 
-    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
-    /// <param name="segment"></param>
-    /// <returns></returns>
-    protected override Boolean TryGetArray(out ArraySegment<Byte> segment)
-    {
-        segment = new ArraySegment<Byte>(_buffer, _offset, _length);
-        return true;
-    }
+    #region 不支持的 MemoryManager 操作
+    /// <summary>不支持内存钉住操作</summary>
+    /// <exception cref="NotSupportedException">该操作不被支持</exception>
+    public override MemoryHandle Pin(Int32 elementIndex = 0) =>
+        throw new NotSupportedException("Memory pinning is not supported by OwnerPacket");
 
-    /// <summary>尝试获取数据段</summary>
-    /// <param name="segment"></param>
-    /// <returns></returns>
-    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment) => TryGetArray(out segment);
+    /// <summary>不支持取消内存钉住操作</summary>
+    /// <exception cref="NotSupportedException">该操作不被支持</exception>
+    public override void Unpin() =>
+        throw new NotSupportedException("Memory unpinning is not supported by OwnerPacket");
+    #endregion
 
-    /// <summary>释放所有权，不再使用</summary>
-    public void Free()
-    {
-        _buffer = null!;
-        Next = null;
-    }
-
-    /// <summary>钉住内存</summary>
-    /// <param name="elementIndex"></param>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    public override MemoryHandle Pin(Int32 elementIndex = 0) => throw new NotSupportedException();
-
-    /// <summary>取消钉内存</summary>
-    /// <exception cref="NotImplementedException"></exception>
-    public override void Unpin() => throw new NotImplementedException();
-
-    #region 重载运算符
-    /// <summary>已重载</summary>
-    /// <returns></returns>
-    public override String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
+    #region 字符串表示
+    /// <summary>返回数据包的字符串表示形式</summary>
+    /// <returns>包含缓冲区大小、偏移量、长度和总长度的格式化字符串</returns>
+    public override String ToString() =>
+        $"[{_buffer?.Length ?? 0}]({_offset}, {_length})<{Total}>";
     #endregion
 }
 
@@ -919,7 +996,7 @@ public record struct ArrayPacket : IPacket
                 _length = seg.Count - (Int32)ms.Position;
                 return;
             }
-            // GetBuffer窃取内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
+            // GetBuffer窃盗内部缓冲区后，无法得知真正的起始位置index，可能导致错误取数
             // public MemoryStream(byte[] buffer, int index, int count, bool writable, bool publiclyVisible)
 
             //try
