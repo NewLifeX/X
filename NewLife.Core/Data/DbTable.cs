@@ -997,19 +997,19 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
             var rs = Table.Rows;
             if (rs == null || rs.Count == 0) return false;
 
-            // 支持 Reset 后再次枚举
-            if (_row < 0)
-                _row = 0;
-            else
-                _row++;
+            // 首次或 Reset 后的第一次枚举，_row 可能是 -1（Reset 设置）或默认 0。
+            if (_row < 0) _row = 0;
 
+            // 已到结尾
             if (_row >= rs.Count)
             {
                 _Current = default;
                 return false;
             }
 
+            // 先构建当前行，再为下一次枚举准备索引，避免第一次返回索引1
             _Current = new DbRow(Table, _row);
+            _row++;
 
             return true;
         }
