@@ -16,7 +16,7 @@ namespace NewLife.Data;
 /// <item>非阻塞 Socket：接收方申请与释放；解析逻辑只消费不负责释放</item>
 /// <item>阻塞 Socket：接收函数申请，外部使用方释放，管理权可进一步传递</item>
 /// </list>
-/// <para>切片 <see cref="Slice"/> 默认共享底层缓冲区，必要时可指定是否转移所有权。</para>
+/// <para>切片 <see cref="Slice(Int32, Int32)"/> 默认共享底层缓冲区，必要时可指定是否转移所有权。</para>
 /// <para><b>重要</b>：所有临时获得的 <see cref="Span{T}"/>/<see cref="Memory{T}"/> 仅在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。</para>
 /// </remarks>
 public interface IPacket
@@ -536,8 +536,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public OwnerPacket(Int32 length)
     {
-        if (length < 0)
-            throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative and less than or equal to the memory owner's length.");
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative.");
 
         _buffer = ArrayPool<Byte>.Shared.Rent(length);
         _offset = 0;
@@ -610,7 +609,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <exception cref="ArgumentNullException"></exception>
     public OwnerPacket Resize(Int32 size)
     {
-        if (size < 0) throw new ArgumentNullException(nameof(size));
+        if (size < 0) throw new ArgumentOutOfRangeException(nameof(size), "Size must be non-negative.");
 
         if (Next == null)
         {
@@ -811,10 +810,9 @@ public struct MemoryPacket : IPacket
         if (count < 0 || count > remain) count = remain;
         if (offset == 0 && count == _length) return this;
 
-        if (offset == 0)
-            return new MemoryPacket(_memory, count);
-
-        return new MemoryPacket(_memory[offset..], count);
+        return offset == 0
+            ? new MemoryPacket(_memory, count)
+            : new MemoryPacket(_memory[offset..], count);
     }
 
     /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
@@ -991,27 +989,23 @@ public record struct ArrayPacket : IPacket
         {
             // count 是 offset 之后的个数
             if (count < 0 || count > remain) count = remain;
-            if (count < 0) count = 0;
+            return count <= 0 ? Empty : new ArrayPacket(_buffer, start, count);
+        }
 
+        // 如果当前段用完，则取下一段。强转ArrayPacket，如果不是则抛出异常
+        if (remain <= 0)
+            return (ArrayPacket)next.Slice(offset - _length, count, transferOwner);
+
+        // 当前包用一截，剩下的全部
+        if (count < 0)
+            return new ArrayPacket(_buffer, start, remain) { Next = next };
+
+        // 当前包可以读完
+        if (count <= remain)
             return new ArrayPacket(_buffer, start, count);
-        }
-        else
-        {
-            // 如果当前段用完，则取下一段。强转ArrayPacket，如果不是则抛出异常
-            if (remain <= 0)
-                return (ArrayPacket)next.Slice(offset - _length, count, transferOwner);
 
-            // 当前包用一截，剩下的全部
-            if (count < 0)
-                return new ArrayPacket(_buffer, start, remain) { Next = next };
-
-            // 当前包可以读完
-            if (count <= remain)
-                return new ArrayPacket(_buffer, start, count);
-
-            // 当前包用一截，剩下的再截取
-            return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain, transferOwner) };
-        }
+        // 当前包用一截，剩下的再截取
+        return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain, transferOwner) };
     }
 
     /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
