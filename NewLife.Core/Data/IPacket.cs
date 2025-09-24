@@ -61,48 +61,68 @@ public interface IOwnerPacket : IPacket, IDisposable { }
 public static class PacketHelper
 {
     /// <summary>附加一个包到当前包链的末尾</summary>
-    /// <param name="pk"></param>
-    /// <param name="next"></param>
+    /// <remarks>保持 O(n) 尾插；若 <paramref name="next"/> 已经包含链，会整体挂接。避免自引用造成死循环。</remarks>
+    /// <param name="pk">当前链首</param>
+    /// <param name="next">要追加的包（可包含自身链）</param>
+    /// <returns>链首（保持不变便于链式调用）</returns>
     public static IPacket Append(this IPacket pk, IPacket next)
     {
         if (next == null) return pk;
+        if (ReferenceEquals(pk, next)) return pk; // 防止自连接
 
         var p = pk;
-        while (p.Next != null) p = p.Next;
+        while (p.Next != null)
+        {
+            // 避免形成环：若即将跨越到 next（或其后续）则终止，防御性处理
+            if (ReferenceEquals(p.Next, pk)) break;
+            p = p.Next;
+        }
         p.Next = next;
 
         return pk;
     }
 
     /// <summary>附加一个字节数组为新包到末尾</summary>
-    /// <param name="pk"></param>
-    /// <param name="next"></param>
+    /// <param name="pk">当前链首</param>
+    /// <param name="next">字节数组</param>
     public static IPacket Append(this IPacket pk, Byte[] next) => Append(pk, new ArrayPacket(next));
 
     /// <summary>转字符串</summary>
-    /// <param name="pk">数据包</param>
-    /// <param name="encoding">编码。默认使用 UTF8（内部扩展会处理 null）</param>
-    /// <param name="offset">起始偏移（跨链式整体）</param>
+    /// <remarks>
+    /// 1. 单包路径：直接切片 + <c>Span</c> 编码，避免额外分配。
+    /// 2. 多包链：按需跳过 <paramref name="offset"/>，逐段拷贝，严格控制 <paramref name="count"/>。
+    /// 3. <paramref name="count"/> 为 -1 表示到末尾；超出可用长度时自动截断。
+    /// 4. 允许以扩展方式在空引用上调用：若 <paramref name="pk"/> 为 <c>null</c> 返回 <c>null</c>（兼容既有单测）。
+    /// </remarks>
+    /// <param name="pk">数据包（可为 null）</param>
+    /// <param name="encoding">编码。null 表示 UTF8（由外部扩展处理）</param>
+    /// <param name="offset">起始偏移（跨链整体）</param>
     /// <param name="count">读取字节数，-1 表示直到结尾</param>
+    /// <returns>得到的字符串；<c>pk</c> 为 null 时返回 null</returns>
     public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
-        // 屏蔽异常输入
+        // 允许 null（单测覆盖）
         if (pk == null) return null!;
-        if (pk.Total == 0) return String.Empty;
+
         if (offset < 0) offset = 0;
         if (count == 0) return String.Empty;
 
-        // 单包直接切片
+        // 总长度为 0
+        var total = pk.Total;
+        if (total == 0) return String.Empty;
+        if (offset >= total) return String.Empty;
+
+        // 单包快速路径（热点）
         if (pk.Next == null)
         {
-            if (offset >= pk.Length) return String.Empty;
-            if (count < 0 || count > pk.Length - offset) count = pk.Length - offset;
-            var span = pk.GetSpan().Slice(offset, count);
-            return span.ToStr(encoding);
+            var len = pk.Length;
+            if (offset >= len) return String.Empty;
+            if (count < 0 || count > len - offset) count = len - offset;
+            return pk.GetSpan().Slice(offset, count).ToStr(encoding);
         }
 
-        // 链式
-        if (count < 0) count = pk.Total - offset; // 规范化 count
+        // 规范化 count（多包）
+        if (count < 0 || count > total - offset) count = total - offset;
         if (count <= 0) return String.Empty;
 
         var skip = offset;
@@ -121,6 +141,7 @@ public static class PacketHelper
             span = span[skip..];
             skip = 0;
             if (span.Length > remain) span = span[..remain];
+
             sb.Append(span.ToStr(encoding));
             remain -= span.Length;
         }
@@ -128,25 +149,32 @@ public static class PacketHelper
     }
 
     /// <summary>以十六进制编码表示</summary>
+    /// <remarks>
+    /// 修正：原实现以首段 <c>Length</c> 判空，若首段长度为 0 但存在后续链会错误返回空；现改为基于 <c>Total</c> 判空。
+    /// 遍历多段时保持全局已写入计数，确保分隔与分组逻辑在跨段时连续。
+    /// </remarks>
     /// <param name="pk">数据包</param>
     /// <param name="maxLength">最大显示字节数。默认 32，-1 显示全部</param>
-    /// <param name="separate">分隔符</param>
+    /// <param name="separate">分隔符。null/空表示不分隔</param>
     /// <param name="groupSize">分组大小。0 表示每字节应用分隔符</param>
+    /// <returns>十六进制字符串</returns>
     public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
     {
-        if (pk.Length == 0) return String.Empty;
+        if (pk == null) return null!;
 
-        // 单包直接走 SpanHelper 优化
-        if (pk.Next == null) return pk.GetSpan().ToHex(separate, groupSize, maxLength);
-
+        var total = pk.Total;
+        if (total == 0) return String.Empty;
         if (maxLength == 0) return String.Empty;
-
         if (groupSize < 0) groupSize = 0;
 
-        // 需要跨段连续的分隔/分组：手写循环，保持全局已写入字节计数
+        // 单包快速路径
+        if (pk.Next == null) return pk.GetSpan().ToHex(separate, groupSize, maxLength);
+
+        // 多包：需要跨段连续的分隔/分组
         var sb = Pool.StringBuilder.Get();
         const String HEX = "0123456789ABCDEF";
         var written = 0; // 全局已写入字节数
+
         for (var p = pk; p != null; p = p.Next)
         {
             var span = p.GetSpan();
@@ -170,8 +198,8 @@ END:
     }
 
     /// <summary>写入数据流，netfx 中可能有二次拷贝</summary>
-    /// <param name="pk"></param>
-    /// <param name="stream"></param>
+    /// <param name="pk">数据包</param>
+    /// <param name="stream">目标流</param>
     public static void CopyTo(this IPacket pk, Stream stream)
     {
         for (var p = pk; p != null; p = p.Next)
@@ -184,10 +212,9 @@ END:
     }
 
     /// <summary>异步拷贝</summary>
-    /// <param name="pk"></param>
-    /// <param name="stream"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="pk">数据包</param>
+    /// <param name="stream">目标流</param>
+    /// <param name="cancellationToken">取消令牌</param>
     public static async Task CopyToAsync(this IPacket pk, Stream stream, CancellationToken cancellationToken = default)
     {
         for (var p = pk; p != null; p = p.Next)
@@ -200,18 +227,19 @@ END:
     }
 
     /// <summary>获取数据流（复制）</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <param name="pk">数据包</param>
+    /// <returns>独立可读写的内存流</returns>
     public static Stream GetStream(this IPacket pk)
     {
         var ms = new MemoryStream(pk.Total);
         pk.CopyTo(ms);
         ms.Position = 0;
-
         return ms;
     }
 
     /// <summary>返回数据段，可能有拷贝</summary>
+    /// <param name="pk">数据包</param>
+    /// <returns>数据段（若多包则聚合复制）</returns>
     public static ArraySegment<Byte> ToSegment(this IPacket pk)
     {
         if (pk.Next == null && pk.TryGetArray(out var segment)) return segment;
@@ -219,16 +247,16 @@ END:
         var ms = Pool.MemoryStream.Get();
         pk.CopyTo(ms);
         ms.Position = 0;
-
         return new ArraySegment<Byte>(ms.Return(true));
     }
 
     /// <summary>返回数据段集合，可能有拷贝</summary>
+    /// <param name="pk">数据包</param>
+    /// <returns>段集合（每个元素对应链上一个片段；不展开再聚合）</returns>
     public static IList<ArraySegment<Byte>> ToSegments(this IPacket pk)
     {
         // 初始4元素，优化扩容
         var list = new List<ArraySegment<Byte>>(4);
-
         for (var p = pk; p != null; p = p.Next)
         {
             if (p.TryGetArray(out var seg))
@@ -236,11 +264,11 @@ END:
             else
                 list.Add(new ArraySegment<Byte>(p.GetSpan().ToArray(), 0, p.Length));
         }
-
         return list;
     }
 
     /// <summary>返回字节数组。无差别复制，一定返回新数组</summary>
+    /// <param name="pk">数据包</param>
     public static Byte[] ToArray(this IPacket pk)
     {
         if (pk.Next == null) return pk.GetSpan().ToArray();
@@ -248,15 +276,13 @@ END:
         // 链式包输出
         var ms = Pool.MemoryStream.Get();
         pk.CopyTo(ms);
-
         return ms.Return(true);
     }
 
     /// <summary>从封包中读取指定数据区。读取全部时可能直接返回底层数组以提升性能</summary>
-    /// <param name="pk"></param>
+    /// <param name="pk">数据包</param>
     /// <param name="offset">相对于数据包的起始位置，实际上是数组的Offset+offset</param>
-    /// <param name="count">字节个数</param>
-    /// <returns></returns>
+    /// <param name="count">字节个数。-1 表示直到末尾</param>
     public static Byte[] ReadBytes(this IPacket pk, Int32 offset = 0, Int32 count = -1)
     {
         if (pk.Next == null)
@@ -265,12 +291,11 @@ END:
 
             if (pk.TryGetArray(out var seg))
             {
-                // 读取全部
+                // 读取全部（直接返回以减少复制）
                 if (offset == 0 && count == pk.Length)
                 {
                     if (seg.Offset == 0 && seg.Count == seg.Array!.Length) return seg.Array;
                 }
-
                 return seg.Array!.ReadBytes(seg.Offset + offset, count);
             }
 
@@ -282,26 +307,21 @@ END:
     }
 
     /// <summary>深度克隆一份数据包（拷贝数据区）</summary>
+    /// <param name="pk">数据包</param>
     public static IPacket Clone(this IPacket pk)
     {
-        if (pk.Next == null)
-        {
-            // 需要深度拷贝，避免重用缓冲区
-            return new ArrayPacket(pk.GetSpan().ToArray());
-        }
+        if (pk.Next == null) return new ArrayPacket(pk.GetSpan().ToArray());
 
-        // 链式包输出
         var ms = new MemoryStream();
         pk.CopyTo(ms);
         ms.Position = 0;
-
         return new ArrayPacket(ms);
     }
 
     /// <summary>尝试获取内存片段。非链式数据包时直接返回</summary>
-    /// <param name="pk"></param>
-    /// <param name="span"></param>
-    /// <returns></returns>
+    /// <param name="pk">数据包</param>
+    /// <param name="span">输出的内存片段</param>
+    /// <returns>是否成功（仅当无 Next 链）</returns>
     public static Boolean TryGetSpan(this IPacket pk, out Span<Byte> span)
     {
         if (pk.Next == null)
@@ -309,7 +329,6 @@ END:
             span = pk.GetSpan();
             return true;
         }
-
         span = default;
         return false;
     }
@@ -318,7 +337,6 @@ END:
     /// <param name="pk">数据包</param>
     /// <param name="size">要扩大的头部大小，不包括负载数据</param>
     /// <param name="newPacket">扩展后的数据包</param>
-    /// <returns></returns>
     [Obsolete("请改用 ExpandHeader，并确保根据返回结果继续使用新实例。")]
     public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
     {
@@ -327,22 +345,20 @@ END:
         if (pk is ArrayPacket ap && ap.Offset >= size)
         {
             newPacket = new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
-
             return true;
         }
         else if (pk is OwnerPacket owner && owner.Offset >= size)
         {
             newPacket = new OwnerPacket(owner, size);
-
             return true;
         }
-
         return false;
     }
 
     /// <summary>扩展头部，用于填充包头，减少内存分配</summary>
     /// <param name="pk">原始数据包</param>
     /// <param name="size">需增加的头部大小</param>
+    /// <returns>新的数据包（可能复用原缓冲区）</returns>
     public static IPacket ExpandHeader(this IPacket? pk, Int32 size)
     {
         if (pk is ArrayPacket ap && ap.Offset >= size)

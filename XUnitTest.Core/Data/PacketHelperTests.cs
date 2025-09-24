@@ -205,4 +205,85 @@ public class PacketHelperTests
         Assert.Equal(expected, hex);
     }
     #endregion
+
+    #region 新增边界 & 防护测试
+    [Fact]
+    public void ToHex_FirstSegmentEmpty_UsesFollowingSegments()
+    {
+        IPacket pk = new ArrayPacket(Array.Empty<byte>()); // 首段空
+        pk = pk.Append("ABC".GetBytes());
+        var hex = pk.ToHex(-1);
+        Assert.Equal("414243", hex); // ABC
+    }
+
+    [Fact]
+    public void ToHex_FirstSegmentEmpty_WithMaxLength()
+    {
+        IPacket pk = new ArrayPacket(Array.Empty<byte>())
+            .Append(new byte[] { 0x01, 0x02, 0x03 });
+        var hex = pk.ToHex(2); // 仅前2字节
+        Assert.Equal("0102", hex);
+    }
+
+    [Fact]
+    public void ToHex_NegativeGroupSize_TreatedAsEveryByte()
+    {
+        var data = new byte[] { 0xAA, 0xBB };
+        IPacket pk = new ArrayPacket(Array.Empty<byte>()).Append(data);
+        var hex = pk.ToHex(-1, "-", -5); // groupSize<0 等价每字节
+        Assert.Equal("AA-BB", hex);
+    }
+
+    [Fact]
+    public void ToStr_NegativeOffset_TreatedAsZero()
+    {
+        IPacket pk = new ArrayPacket("Hello".GetBytes());
+        var rs = pk.ToStr(null, -10, 2);
+        Assert.Equal("He", rs);
+    }
+
+    [Fact]
+    public void ToStr_MultiChain_OffsetBeyondTotal_ReturnsEmpty()
+    {
+        IPacket pk = new ArrayPacket("Hello".GetBytes()).Append("World".GetBytes()); // 10
+        var rs = pk.ToStr(null, 50, 5);
+        Assert.Equal(string.Empty, rs);
+    }
+
+    [Fact]
+    public void ToStr_CountZero_ReturnsEmpty()
+    {
+        IPacket pk = new ArrayPacket("Data".GetBytes());
+        var rs = pk.ToStr(null, 1, 0);
+        Assert.Equal(string.Empty, rs);
+    }
+
+    [Fact]
+    public void Append_SelfAppend_NoLoop()
+    {
+        IPacket pk = new ArrayPacket("Loop".GetBytes());
+        pk = pk.Append(pk); // 自连接，预期被忽略
+        Assert.Null(pk.Next);
+    }
+
+    [Fact]
+    public void Append_RingBrokenSafely()
+    {
+        // 使用引用类型 OwnerPacket 构造环
+        IPacket pk = new OwnerPacket(3).Resize(3); // 长度 3
+        var second = new OwnerPacket(2).Resize(2);
+        pk.Append(second);
+        // 人为制造环：second.Next 指回首节点
+        second.Next = pk;
+
+        // 追加第三段，预期算法检测环并在环处终止，然后挂接新段
+        var third = new OwnerPacket(1).Resize(1);
+        pk.Append(third);
+
+        // 遍历不应死循环，限制步数
+        var steps = 0;
+        for (var p = pk; p != null && steps < 10; p = p.Next) steps++;
+        Assert.True(steps <= 5, "链表遍历步骤异常，可能存在环");
+    }
+    #endregion
 }
