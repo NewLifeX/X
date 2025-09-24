@@ -9,62 +9,48 @@ namespace NewLife.Data;
 
 /// <summary>数据包接口。几乎内存共享理念，统一提供数据包，内部可能是内存池、数组和旧版Packet等多种实现</summary>
 /// <remarks>
-/// 常用于网络编程和协议解析，为了避免大量内存分配和拷贝，采用数据包对象池，复用内存。
-/// 数据包接口一般由结构体实现，提升GC性能。
-/// 
-/// 特别需要注意内存管理权转移问题，一般由调用栈的上部负责释放内存。
-/// Socket非阻塞事件接收时，负责申请与释放内存，数据处理是调用栈下游；
-/// Socket阻塞接收时，接收函数内部申请内存，外部使用方释放内存，管理权甚至在此次传递给消息层；
-/// 
-/// 作为过渡期，旧版Packet也会实现该接口，以便逐步替换。
+/// 常用于网络编程和协议解析，为了避免大量内存分配和拷贝，采用数据包对象池，复用内存。数据包接口一般由结构体实现以降低 GC 压力。
+/// 需特别注意 <b>内存管理权</b> 转移：调用栈上层（获得包的一方）负责最终释放（实现 <see cref="IDisposable"/> 或所有权回收）。
+/// - 非阻塞 Socket：接收方申请与释放；解析逻辑只消费不负责释放；
+/// - 阻塞 Socket：接收函数申请，外部使用方释放，管理权可进一步传递；
+/// 旧版 Packet 作为过渡也实现该接口，便于逐步替换。切片 <see cref="Slice"/> 默认共享底层缓冲区，必要时可指定是否转移所有权（并非所有实现都支持）。
+/// 所有临时获得的 <see cref="Span{T}"/> / <see cref="Memory{T}"/> 仅在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。
 /// </remarks>
 public interface IPacket
 {
-    /// <summary>数据长度。仅当前数据包，不包括Next</summary>
+    /// <summary>数据长度。仅当前数据包，不包括 <see cref="Next"/></summary>
     Int32 Length { get; }
 
     /// <summary>下一个链式包</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     IPacket? Next { get; set; }
 
-    /// <summary>总长度。包括Next链的长度</summary>
+    /// <summary>总长度。包括 <see cref="Next"/> 链的长度</summary>
     Int32 Total { get; }
 
-    /// <summary>获取/设置 指定位置的字节</summary>
-    /// <param name="index"></param>
-    /// <returns></returns>
+    /// <summary>获取/设置 指定绝对位置的字节（跨越链式包）</summary>
+    /// <param name="index">0 基起始的全局位置</param>
     Byte this[Int32 index] { get; set; }
 
-    /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
-    /// <returns></returns>
+    /// <summary>获取分片视图。在管理权生命周期内短暂使用，禁止长期保存</summary>
     Span<Byte> GetSpan();
 
-    /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
-    /// <returns></returns>
+    /// <summary>获取内存块。在管理权生命周期内短暂使用，禁止长期保存</summary>
     Memory<Byte> GetMemory();
 
-    /// <summary>切片得到新数据包</summary>
-    /// <remarks>引用相同内存块或缓冲区，减少内存分配</remarks>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <returns></returns>
+    /// <summary>切片得到新数据包，共享底层内存以减少分配</summary>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
     IPacket Slice(Int32 offset, Int32 count = -1);
 
-    /// <summary>切片得到新数据包，同时转移内存管理权</summary>
-    /// <remarks>
-    /// 引用相同内存块或缓冲区，减少内存分配。
-    /// 如果原数据包只切一次给新包，可以转移内存管理权，由新数据包负责释放；
-    /// 如果原数据包需要切多次，不要转移内存管理权，由原数据包负责释放。
-    /// </remarks>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">个数。默认-1表示到末尾</param>
-    /// <param name="transferOwner">转移所有权。若为true则由新数据包负责归还缓冲区，只能转移一次。并非所有数据包都支持</param>
-    /// <returns></returns>
+    /// <summary>切片得到新数据包，可选择转移内存管理权</summary>
+    /// <remarks>若 <paramref name="transferOwner"/> 为 true，表示新包负责归还缓冲区（仅支持一次转移）；多次切分同一来源时不要转移。</remarks>
+    /// <param name="offset">相对当前包起始偏移</param>
+    /// <param name="count">个数。默认 -1 表示到末尾</param>
+    /// <param name="transferOwner">是否转移所有权（实现可能不支持）</param>
     IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
 
-    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
-    /// <param name="segment"></param>
-    /// <returns></returns>
+    /// <summary>尝试获取当前片段的 <see cref="ArraySegment{T}"/>（不含链式后续）</summary>
     Boolean TryGetArray(out ArraySegment<Byte> segment);
 }
 
@@ -88,56 +74,64 @@ public static class PacketHelper
         return pk;
     }
 
-    /// <summary>附加一个包到当前包链的末尾</summary>
+    /// <summary>附加一个字节数组为新包到末尾</summary>
     /// <param name="pk"></param>
     /// <param name="next"></param>
     public static IPacket Append(this IPacket pk, Byte[] next) => Append(pk, new ArrayPacket(next));
 
     /// <summary>转字符串</summary>
-    /// <param name="pk"></param>
-    /// <param name="encoding"></param>
-    /// <param name="offset"></param>
-    /// <param name="count"></param>
-    /// <returns></returns>
+    /// <param name="pk">数据包</param>
+    /// <param name="encoding">编码。默认使用 UTF8（内部扩展会处理 null）</param>
+    /// <param name="offset">起始偏移（跨链式整体）</param>
+    /// <param name="count">读取字节数，-1 表示直到结尾</param>
     public static String ToStr(this IPacket pk, Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)
     {
-        // 总是有异常数据，这里屏蔽异常
+        // 屏蔽异常输入
         if (pk == null) return null!;
         if (pk.Total == 0) return String.Empty;
+        if (offset < 0) offset = 0;
+        if (count == 0) return String.Empty;
 
+        // 单包直接切片
         if (pk.Next == null)
         {
-            if (count < 0) count = pk.Length - offset;
-            if (count == 0) return String.Empty;
-
-            var span = pk.GetSpan();
-            if (span.Length > count) span = span[..count];
-
+            if (offset >= pk.Length) return String.Empty;
+            if (count < 0 || count > pk.Length - offset) count = pk.Length - offset;
+            var span = pk.GetSpan().Slice(offset, count);
             return span.ToStr(encoding);
         }
 
-        if (count < 0) count = pk.Total - offset;
+        // 链式
+        if (count < 0) count = pk.Total - offset; // 规范化 count
+        if (count <= 0) return String.Empty;
 
+        var skip = offset;
+        var remain = count;
         var sb = Pool.StringBuilder.Get();
-        for (var p = pk; p != null; p = p.Next)
+        for (var p = pk; p != null && remain > 0; p = p.Next)
         {
             var span = p.GetSpan();
-            if (span.Length > count) span = span[..count];
+            if (skip >= span.Length)
+            {
+                skip -= span.Length;
+                continue;
+            }
 
+            // 进入有效区
+            span = span[skip..];
+            skip = 0;
+            if (span.Length > remain) span = span[..remain];
             sb.Append(span.ToStr(encoding));
-
-            count -= span.Length;
-            if (count <= 0) break;
+            remain -= span.Length;
         }
         return sb.Return(true);
     }
 
     /// <summary>以十六进制编码表示</summary>
-    /// <param name="pk"></param>
-    /// <param name="maxLength">最大显示多少个字节。默认-1显示全部</param>
+    /// <param name="pk">数据包</param>
+    /// <param name="maxLength">最大显示字节数。默认 32，-1 显示全部</param>
     /// <param name="separate">分隔符</param>
-    /// <param name="groupSize">分组大小，为0时对每个字节应用分隔符，否则对每个分组使用</param>
-    /// <returns></returns>
+    /// <param name="groupSize">分组大小。0 表示每字节应用分隔符</param>
     public static String ToHex(this IPacket pk, Int32 maxLength = 32, String? separate = null, Int32 groupSize = 0)
     {
         if (pk.Length == 0) return String.Empty;
@@ -156,7 +150,7 @@ public static class PacketHelper
         return sb.Return(true);
     }
 
-    /// <summary>写入数据流，netfx中可能有二次拷贝</summary>
+    /// <summary>写入数据流，netfx 中可能有二次拷贝</summary>
     /// <param name="pk"></param>
     /// <param name="stream"></param>
     public static void CopyTo(this IPacket pk, Stream stream)
@@ -186,7 +180,7 @@ public static class PacketHelper
         }
     }
 
-    /// <summary>获取数据流</summary>
+    /// <summary>获取数据流（复制）</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
     public static Stream GetStream(this IPacket pk)
@@ -199,7 +193,6 @@ public static class PacketHelper
     }
 
     /// <summary>返回数据段，可能有拷贝</summary>
-    /// <returns></returns>
     public static ArraySegment<Byte> ToSegment(this IPacket pk)
     {
         if (pk.Next == null && pk.TryGetArray(out var segment)) return segment;
@@ -212,7 +205,6 @@ public static class PacketHelper
     }
 
     /// <summary>返回数据段集合，可能有拷贝</summary>
-    /// <returns></returns>
     public static IList<ArraySegment<Byte>> ToSegments(this IPacket pk)
     {
         // 初始4元素，优化扩容
@@ -230,7 +222,6 @@ public static class PacketHelper
     }
 
     /// <summary>返回字节数组。无差别复制，一定返回新数组</summary>
-    /// <returns></returns>
     public static Byte[] ToArray(this IPacket pk)
     {
         if (pk.Next == null) return pk.GetSpan().ToArray();
@@ -242,7 +233,7 @@ public static class PacketHelper
         return ms.Return(true);
     }
 
-    /// <summary>从封包中读取指定数据区，读取全部时直接返回缓冲区，以提升性能</summary>
+    /// <summary>从封包中读取指定数据区。读取全部时可能直接返回底层数组以提升性能</summary>
     /// <param name="pk"></param>
     /// <param name="offset">相对于数据包的起始位置，实际上是数组的Offset+offset</param>
     /// <param name="count">字节个数</param>
@@ -271,8 +262,7 @@ public static class PacketHelper
         return pk.ToArray().ReadBytes(offset, count);
     }
 
-    /// <summary>深度克隆一份数据包，拷贝数据区</summary>
-    /// <returns></returns>
+    /// <summary>深度克隆一份数据包（拷贝数据区）</summary>
     public static IPacket Clone(this IPacket pk)
     {
         if (pk.Next == null)
@@ -305,12 +295,12 @@ public static class PacketHelper
         return false;
     }
 
-    /// <summary>尝试扩展头部，用于填充包头，减少内存分配</summary>
+    /// <summary>尝试扩展头部，用于填充包头，减少内存分配（过渡 API）</summary>
     /// <param name="pk">数据包</param>
     /// <param name="size">要扩大的头部大小，不包括负载数据</param>
     /// <param name="newPacket">扩展后的数据包</param>
     /// <returns></returns>
-    [Obsolete]
+    [Obsolete("请改用 ExpandHeader，并确保根据返回结果继续使用新实例。")]
     public static Boolean TryExpandHeader(this IPacket pk, Int32 size, [NotNullWhen(true)] out IPacket? newPacket)
     {
         newPacket = null;
@@ -332,28 +322,21 @@ public static class PacketHelper
     }
 
     /// <summary>扩展头部，用于填充包头，减少内存分配</summary>
-    /// <param name="pk">数据包</param>
-    /// <param name="size">要扩大的头部大小，不包括负载数据</param>
-    /// <returns>扩展后的数据包</returns>
+    /// <param name="pk">原始数据包</param>
+    /// <param name="size">需增加的头部大小</param>
     public static IPacket ExpandHeader(this IPacket? pk, Int32 size)
     {
         if (pk is ArrayPacket ap && ap.Offset >= size)
-        {
             return new ArrayPacket(ap.Buffer, ap.Offset - size, ap.Length + size) { Next = ap.Next };
-        }
         else if (pk is OwnerPacket owner && owner.Offset >= size)
-        {
             return new OwnerPacket(owner, size);
-        }
 
         return new OwnerPacket(size) { Next = pk };
     }
 }
 
-/// <summary>所有权内存包。具有所有权管理，不再使用时释放</summary>
-/// <remarks>
-/// 使用时务必明确所有权归属，用完后及时释放。
-/// </remarks>
+/// <summary>所有权内存包。具有所有权管理，不再使用时需调用 <see cref="Dispose"/> 或通过上层机制释放</summary>
+/// <remarks>内部使用 <see cref="ArrayPool{T}"/>。切片可转移所有权（仅一次）。</remarks>
 public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 {
     #region 属性
