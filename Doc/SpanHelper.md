@@ -1,298 +1,185 @@
-# SpanHelper - Span 帮助类
+# SpanHelper 文档
 
 ## 概述
 
-`SpanHelper` 是 NewLife.Core 提供的 Span/Memory 扩展工具类，专为高性能场景设计，提供常用的 Span 操作扩展方法，避免额外内存分配。
+`SpanHelper` 是一个静态帮助类，提供了 `Span<T>` 和 `ReadOnlySpan<T>` 的常用扩展方法。它专注于高性能、零分配的操作，包括字符串编码转换、十六进制编码、边界搜索、流操作和数据修剪等功能。
 
-## 主要功能
+## 核心特性
 
-- **字符串转换**：高效的字节数组与字符串相互转换
-- **十六进制编码**：支持分隔符和分组的十六进制字符串生成
-- **边界截取**：基于边界标记的数据切片操作
-- **流操作**：Memory 到 Stream 的高效写入
-- **数据修剪**：去除前后指定元素的操作
+- **零分配转换**：提供字节数组到字符串的高效转换
+- **十六进制编码**：支持多种格式的十六进制字符串生成
+- **边界搜索**：在字节流中查找特定的开始和结束边界
+- **流操作扩展**：扩展 `Stream` 以支持 `Memory<byte>` 写入
+- **数据修剪**：去除前后指定的元素
+- **跨平台兼容**：兼容 .NET Framework 4.5 到 .NET 9
 
-## API 参考
+## 字符串编码转换
 
-### 字符串扩展
-
-#### ToStr 方法
-
-将字节 Span 转换为字符串。
+### 基础转换
 
 ```csharp
-// 基本用法 - 使用 UTF8 编码
-ReadOnlySpan<byte> data = [72, 101, 108, 108, 111]; // "Hello"
-string result = data.ToStr();
+using NewLife;
 
-// 指定编码
-string result2 = data.ToStr(Encoding.ASCII);
+// ReadOnlySpan<byte> 到字符串
+ReadOnlySpan<byte> data = stackalloc byte[] { 72, 101, 108, 108, 111 }; // "Hello"
+string text = data.ToStr(); // 使用 UTF8 编码
+string gbkText = data.ToStr(Encoding.GetEncoding("GBK"));
 
-// Span<byte> 重载
-Span<byte> spanData = stackalloc byte[] { 72, 101, 108, 108, 111 };
-string result3 = spanData.ToStr();
+// Span<byte> 到字符串
+Span<byte> buffer = stackalloc byte[] { 87, 111, 114, 108, 100 }; // "World"
+string text2 = buffer.ToStr();
 ```
 
-**参数：**
-- `span`：字节数据
-- `encoding`：编码格式，默认 UTF8
-
-**返回值：**解码后的字符串
-
-#### GetBytes 方法
-
-获取字符串的字节表示（指针路径，避免中间数组分配）。
+### 高性能编码操作
 
 ```csharp
+// 字符串编码到 Span<byte>（避免中间数组分配）
 string text = "Hello World";
 Span<byte> buffer = stackalloc byte[100];
-
-// 高效编码，避免额外分配
 int bytesWritten = Encoding.UTF8.GetBytes(text.AsSpan(), buffer);
-Console.WriteLine($"写入了 {bytesWritten} 个字节");
+
+// 字节解码为字符串（指针路径，.NET Framework 4.5+ 兼容）
+ReadOnlySpan<byte> utf8Bytes = stackalloc byte[] { 72, 101, 108, 108, 111 };
+string decoded = Encoding.UTF8.GetString(utf8Bytes);
 ```
 
-**参数：**
-- `encoding`：编码对象
-- `chars`：字符序列
-- `bytes`：目标字节序列
+## 十六进制编码
 
-**返回值：**实际写入的字节数
-
-#### GetString 方法
-
-获取字节数组的字符串（指针路径，避免额外拷贝）。
+### 基础十六进制转换
 
 ```csharp
-ReadOnlySpan<byte> data = [72, 101, 108, 108, 111];
-string result = Encoding.UTF8.GetString(data);
+// 基础十六进制编码（大写，无分隔符）
+ReadOnlySpan<byte> data = stackalloc byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+string hex = data.ToHex(); // "0123456789ABCDEF"
+
+// Span<byte> 版本
+Span<byte> buffer = stackalloc byte[] { 0xFF, 0x00, 0x80 };
+string hex2 = buffer.ToHex(); // "FF0080"
 ```
 
-### 十六进制编码
-
-#### ToHex 方法
-
-将字节数据编码为十六进制字符串。
+### 限制长度的十六进制
 
 ```csharp
-// 基本用法
-ReadOnlySpan<byte> data = [0x48, 0x65, 0x6C, 0x6C, 0x6F];
-string hex = data.ToHex(); // "48656C6C6F"
+byte[] largeData = new byte[1000];
+// ... 填充数据 ...
 
-// 限制长度
-string shortHex = data.ToHex(3); // "48656C"
+// 只显示前16字节的十六进制
+string hex = largeData.AsSpan().ToHex(16); // 只转换前16字节
 
-// 添加分隔符
-string separated = data.ToHex("-"); // "48-65-6C-6C-6F"
-
-// 分组显示
-string grouped = data.ToHex(" ", 2); // "4865 6C6C 6F"
-
-// 限制长度并分组
-string limited = data.ToHex("-", 2, 4); // "48-65-6C-6C"
+// 如果数据少于指定长度，显示全部
+byte[] smallData = { 0x01, 0x02 };
+string hex2 = smallData.AsSpan().ToHex(10); // "0102"
 ```
 
-**重载版本：**
-
-1. `ToHex(ReadOnlySpan<byte>)` - 基本十六进制转换
-2. `ToHex(ReadOnlySpan<byte>, int)` - 限制最大长度
-3. `ToHex(ReadOnlySpan<byte>, string?, int, int)` - 完整功能版本
-4. `ToHex(Span<byte>, ...)` - 对应的 Span 重载
-
-**参数：**
-- `data`：要转换的字节数据
-- `separate`：分隔符字符串
-- `groupSize`：分组大小，0 表示每个字节前都插入分隔符
-- `maxLength`：最大显示字节数，-1 表示全部
-
-### 边界截取扩展
-
-#### Substring 方法
-
-通过指定开始与结束边界来截取数据源。
+### 带分隔符和分组的十六进制
 
 ```csharp
-// 字节数组示例
-ReadOnlySpan<byte> source = "Hello[World]End"u8;
+ReadOnlySpan<byte> data = stackalloc byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB };
+
+// 每个字节用空格分隔
+string hex1 = data.ToHex(" "); // "01 23 45 67 89 AB"
+
+// 每2字节用连字符分隔
+string hex2 = data.ToHex("-", groupSize: 2); // "0123-4567-89AB"
+
+// 每4字节用下划线分隔
+string hex3 = data.ToHex("_", groupSize: 4); // "01234567_89AB"
+
+// 限制显示长度并分组
+string hex4 = data.ToHex(" ", groupSize: 0, maxLength: 4); // "01 23 45 67"
+```
+
+## 边界搜索
+
+### 基础边界搜索
+
+```csharp
+// 查找边界之间的内容
+ReadOnlySpan<byte> html = "<div>Hello World</div>"u8;
+ReadOnlySpan<byte> startTag = "<div>"u8;
+ReadOnlySpan<byte> endTag = "</div>"u8;
+
+// 提取边界之间的内容
+ReadOnlySpan<byte> content = html.Substring(startTag, endTag); // "Hello World"
+
+// Span<byte> 版本
+Span<byte> buffer = stackalloc byte[100];
+// ... 填充 HTML 内容 ...
+Span<byte> extracted = buffer.Substring(startTag, endTag);
+```
+
+### 获取边界位置信息
+
+```csharp
+ReadOnlySpan<byte> data = "prefix[content]suffix"u8;
 ReadOnlySpan<byte> start = "["u8;
 ReadOnlySpan<byte> end = "]"u8;
 
-ReadOnlySpan<byte> result = source.Substring(start, end);
-string extracted = Encoding.UTF8.GetString(result); // "World"
-
-// 字符示例
-ReadOnlySpan<char> text = "Hello[World]End";
-ReadOnlySpan<char> startChar = "[";
-ReadOnlySpan<char> endChar = "]";
-
-ReadOnlySpan<char> charResult = text.Substring(startChar, endChar); // "World"
-```
-
-**返回值：**位于边界之间的切片；未匹配返回空切片
-
-#### IndexOf 方法
-
-查找开始与结束边界的位置信息。
-
-```csharp
-ReadOnlySpan<byte> source = "Hello[World]End"u8;
-ReadOnlySpan<byte> start = "["u8;
-ReadOnlySpan<byte> end = "]"u8;
-
-var (offset, count) = source.IndexOf(start, end);
-if (offset != -1 && count != -1)
+// 获取详细位置信息
+var (offset, count) = data.IndexOf(start, end);
+if (offset >= 0 && count >= 0)
 {
-    var result = source.Slice(offset, count);
-    // 处理提取的数据
+    // offset: 内容开始位置
+    // count: 内容长度
+    var content = data.Slice(offset, count); // "content"
+}
+else if (offset >= 0 && count == -1)
+{
+    // 找到开始边界但未找到结束边界
+    Console.WriteLine("未找到结束标记");
+}
+else
+{
+    // 未找到开始边界
+    Console.WriteLine("未找到开始标记");
 }
 ```
 
-**返回值：**
-- `(offset, count)` 元组
-- 未匹配返回 `(-1, -1)`
-- 只匹配起始返回 `(startOffset, -1)`
+## 流操作扩展
 
-### 流扩展
-
-#### Write 方法
-
-将 ReadOnlyMemory 写入到数据流，支持内存池优化。
+### Memory 写入流
 
 ```csharp
+// 同步写入 ReadOnlyMemory<byte> 到流
+ReadOnlyMemory<byte> data = new byte[] { 1, 2, 3, 4, 5 };
 using var stream = new MemoryStream();
-ReadOnlyMemory<byte> data = "Hello World"u8.ToArray();
 
-// 同步写入
-stream.Write(data);
+stream.Write(data); // 扩展方法，自动处理数组池回退
 
 // 异步写入
-await stream.WriteAsync(data, cancellationToken);
+await stream.WriteAsync(data);
+await stream.WriteAsync(data, CancellationToken.None);
 ```
 
-**特点：**
-- 优先尝试直接访问底层数组
-- 无法直接访问时使用 ArrayPool 进行缓冲
-- 异步版本支持取消令牌
+## 数据修剪
 
-### 修剪扩展
-
-#### Trim 方法
-
-去除 Span 前后的指定元素。
+### 基础修剪操作
 
 ```csharp
-// 去除前后的零值
+// 去除前后的零字节
 ReadOnlySpan<byte> data = stackalloc byte[] { 0, 0, 1, 2, 3, 0, 0 };
 ReadOnlySpan<byte> trimmed = data.Trim((byte)0); // [1, 2, 3]
 
 // 去除前后的空格字符
-ReadOnlySpan<char> text = "  Hello World  ";
+ReadOnlySpan<char> text = "  Hello World  ".AsSpan();
 ReadOnlySpan<char> trimmedText = text.Trim(' '); // "Hello World"
 
-// 支持任意 IEquatable<T> 类型
-ReadOnlySpan<int> numbers = stackalloc int[] { -1, -1, 5, 10, 15, -1 };
-ReadOnlySpan<int> result = numbers.Trim(-1); // [5, 10, 15]
+// Span<T> 版本
+Span<byte> buffer = stackalloc byte[] { 0xFF, 1, 2, 3, 0xFF, 0xFF };
+Span<byte> trimmedBuffer = buffer.Trim((byte)0xFF); // [1, 2, 3]
 ```
 
-## 性能特点
+## 最佳实践
 
-### 零分配设计
-
-- 使用 `stackalloc` 进行栈上分配
-- 基于指针的字符串操作避免临时数组
-- 利用 `ArrayPool<T>` 进行缓冲区重用
-
-### 高效实现
-
-```csharp
-// 十六进制转换使用查表法，避免计算开销
-private static char GetHexValue(int i) => "0123456789ABCDEF"[i & 0xF];
-
-// 字符串编码使用 unsafe 指针操作
-fixed (char* charsPtr = &MemoryMarshal.GetReference(chars))
-fixed (byte* bytesPtr = &MemoryMarshal.GetReference(bytes))
-{
-    return encoding.GetBytes(charsPtr, chars.Length, bytesPtr, bytes.Length);
-}
-```
-
-### 多平台兼容
-
-- 支持 .NET Framework 4.5 到 .NET 9
-- 针对旧版本提供降级实现
-- 条件编译确保最佳性能
-
-## 使用示例
-
-### 协议解析场景
-
-```csharp
-// 解析网络协议数据包
-ReadOnlySpan<byte> packet = receivedData;
-ReadOnlySpan<byte> header = "PKT:"u8;
-ReadOnlySpan<byte> footer = "\r\n"u8;
-
-// 提取数据负载
-ReadOnlySpan<byte> payload = packet.Substring(header, footer);
-if (!payload.IsEmpty)
-{
-    string content = payload.ToStr();
-    Console.WriteLine($"接收到：{content}");
-}
-```
-
-### 日志格式化场景
-
-```csharp
-// 高效的日志数据格式化
-ReadOnlySpan<byte> logData = GetLogBytes();
-
-// 生成十六进制转储，便于调试
-string hexDump = logData.ToHex(" ", 16, 256); // 16字节一组，最多256字节
-Console.WriteLine($"数据转储：{hexDump}");
-```
-
-### 数据清理场景
-
-```csharp
-// 清理数据中的填充字节
-ReadOnlySpan<byte> rawData = ReadFromSensor();
-ReadOnlySpan<byte> cleanData = rawData.Trim((byte)0x00);
-
-// 转换为可读格式
-string result = cleanData.ToHex("-");
-```
-
-## 注意事项
-
-### 内存安全
-
-- 所有方法都是内存安全的，不会访问越界
-- `stackalloc` 使用需要注意栈空间大小
-- 返回的 Span 引用原始数据，需注意生命周期
-
-### 性能考虑
-
-- 适用于高频调用场景
-- 避免在 Span 上进行装箱操作
-- 大数据量建议分批处理
-
-### 兼容性
-
-- 完全兼容现有的字节数组操作
-- 可与 `Memory<T>` 和 `ReadOnlyMemory<T>` 无缝配合
-- 支持所有实现 `IEquatable<T>` 的类型
+1. **优先使用 ReadOnlySpan**：除非需要修改数据，否则使用只读版本
+2. **栈分配小缓冲区**：256字节以下优先使用 `stackalloc`
+3. **复用编码器实例**：避免重复创建 `Encoding` 对象
+4. **合理使用修剪**：避免在大数据上频繁修剪操作
+5. **错误处理**：边界搜索可能返回空结果，需要检查
+6. **性能测试**：在性能关键路径进行基准测试
 
 ## 相关类型
 
-- `System.Span<T>` - 基础 Span 类型
-- `System.ReadOnlySpan<T>` - 只读 Span 类型
-- `System.Memory<T>` - 托管内存抽象
-- `System.Buffers.ArrayPool<T>` - 数组池
-- `System.Text.Encoding` - 字符编码
-
-## 更多信息
-
-- [NewLife.Core 文档](https://newlifex.com/core)
-- [Span<T> 官方文档](https://docs.microsoft.com/zh-cn/dotnet/api/system.span-1)
-- [高性能 .NET 编程指南](https://newlifex.com/core/span_helper)
+- [`SpanReader`](./SpanReader.md) - 高性能字节流读取器
+- [`SpanWriter`](./SpanWriter.md) - 高性能字节流写入器
+- [`PooledByteBufferWriter`](./PooledByteBufferWriter.md) - 池化的动态缓冲区写入器
