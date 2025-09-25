@@ -19,7 +19,7 @@ public class KeyEventArgs : CancelEventArgs
 
 /// <summary>内存缓存。并行字典实现，峰值性能10亿ops</summary>
 /// <remarks>
-/// 过期语义：所有 Set / Add / GetOrAdd / Replace 使用“相对过期（TTL）”。expire &lt; 0 使用 <see cref="Cache.Expire"/>；0 = 永不过期；&gt;0 = 从当前起的秒数。
+/// 过期语义：所有 Set / Add / GetOrAdd / Replace 使用"相对过期（TTL）"。expire &lt; 0 使用 <see cref="Cache.Expire"/>；0 = 永不过期；&gt;0 = 从当前起的秒数。
 /// Keys/Count 均为 O(1) 读取（ConcurrentDictionary 快照视图），但在极高并发场景下仍需注意遍历成本。
 /// </remarks>
 public class MemoryCache : Cache
@@ -544,7 +544,7 @@ public class MemoryCache : Cache
         private Int64 _valueLong;
         private Object? _value;
         /// <summary>数值</summary>
-        public Object? Value { get => IsInt() ? _valueLong : _value; }
+        public Object? Value => IsInt() ? _valueLong : _value;
 
         /// <summary>过期时间。系统启动以来的毫秒数</summary>
         public Int64 ExpiredTime { get; set; }
@@ -949,12 +949,7 @@ public class MemoryCache : Cache
     {
         var times = base.GetTimesPerThread(rand, batch);
 
-        if (rand)
-            times *= 100;
-        else
-            times *= 10000;
-
-        return times;
+        return rand ? times * 100 : times * 10000;
     }
     #endregion
 }
@@ -985,17 +980,12 @@ public class MemoryQueue<T> : DisposeBase, IProducerConsumer<T>
     public Int32 Count => _collection.Count;
 
     /// <summary>集合是否为空</summary>
-    public Boolean IsEmpty
+    public Boolean IsEmpty => _collection switch
     {
-        get
-        {
-            if (_collection is ConcurrentQueue<T> queue) return queue.IsEmpty;
-            if (_collection is ConcurrentStack<T> stack) return stack.IsEmpty;
-
-            //throw new NotSupportedException();
-            return _collection.Count == 0;
-        }
-    }
+        ConcurrentQueue<T> queue => queue.IsEmpty,
+        ConcurrentStack<T> stack => stack.IsEmpty,
+        _ => _collection.Count == 0
+    };
 
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>

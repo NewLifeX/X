@@ -204,7 +204,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <summary>尝试获取指定键，返回是否包含值</summary>
     /// <remarks>
     /// 当返回 <c>false</c> 时一定不存在；返回 <c>true</c> 时，<paramref name="value"/> 可能为默认值（例如存储的是 0 / null）。
-    /// 默认实现：先 Get，若返回非默认值直接成功；否则再调用 ContainsKey 区分“默认值”与“不存在”。
+    /// 默认实现：先 Get，若返回非默认值直接成功；否则再调用 ContainsKey 区分"默认值"与"不存在"。
     /// </remarks>
     /// <typeparam name="T">值类型</typeparam>
     /// <param name="key">键</param>
@@ -480,8 +480,8 @@ public abstract class Cache : DisposeBase, ICache
 
         var rs = 3L;
 
-        //提前执行一次网络操作，预热链路
-        var key = _keys![0];
+        // 提前执行一次网络操作，预热链路
+        var key = keys[0];
         Set(key, Rand.NextString(32));
         _ = Get<String>(key);
         Remove(key);
@@ -509,7 +509,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="batch">批量操作</param>
     protected virtual Int64 BenchGet(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
-        //提前执行一次网络操作，预热链路
+        // 提前执行一次网络操作，预热链路
         var v = Get<String>(keys[0]);
 
         var sw = Stopwatch.StartNew();
@@ -650,7 +650,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="batch">批量操作</param>
     protected virtual Int64 BenchRemove(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
-        //提前执行一次网络操作，预热链路
+        // 提前执行一次网络操作，预热链路
         Remove(keys[0]);
 
         var sw = Stopwatch.StartNew();
@@ -722,7 +722,7 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="batch">批量操作</param>
     protected virtual Int64 BenchInc(String[] keys, Int64 times, Int32 threads, Boolean rand, Int32 batch)
     {
-        //提前执行一次网络操作，预热链路
+        // 提前执行一次网络操作，预热链路
         Increment(keys[0], 1);
 
         var sw = Stopwatch.StartNew();

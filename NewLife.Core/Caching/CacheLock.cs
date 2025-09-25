@@ -5,17 +5,16 @@ public class CacheLock : DisposeBase
 {
     private ICache Client { get; set; }
 
-    /// <summary>
-    /// 是否持有锁
-    /// </summary>
-    private Boolean _hasLock = false;
+    private Boolean _hasLock;
+    /// <summary>是否持有锁</summary>
+    public Boolean HasLock => _hasLock;
 
     /// <summary>键</summary>
     public String Key { get; set; }
 
     /// <summary>实例化</summary>
-    /// <param name="client"></param>
-    /// <param name="key"></param>
+    /// <param name="client">缓存客户端</param>
+    /// <param name="key">锁键</param>
     public CacheLock(ICache client, String key)
     {
         if (client == null) throw new ArgumentNullException(nameof(client));
@@ -28,7 +27,7 @@ public class CacheLock : DisposeBase
     /// <summary>申请锁</summary>
     /// <param name="msTimeout">锁等待时间，申请加锁时如果遇到冲突则等待的最大时间，单位毫秒</param>
     /// <param name="msExpire">锁过期时间，超过该时间如果没有主动释放则自动释放锁，必须整数秒，单位毫秒</param>
-    /// <returns></returns>
+    /// <returns>是否成功获取锁</returns>
     public Boolean Acquire(Int32 msTimeout, Int32 msExpire)
     {
         var ch = Client;

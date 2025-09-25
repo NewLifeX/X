@@ -45,12 +45,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
 
     /// <summary>初始化：按需创建队列实例</summary>
     [MemberNotNull(nameof(_queue))]
-    protected virtual void Init()
-    {
-        if (_queue != null) return;
-
-        _queue = cache.GetQueue<TEvent>(topic);
-    }
+    protected virtual void Init() => _queue ??= cache.GetQueue<TEvent>(topic);
 
     /// <summary>发布消息到消息队列</summary>
     /// <param name="event">事件</param>
