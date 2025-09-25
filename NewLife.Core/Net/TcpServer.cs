@@ -150,6 +150,9 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             //sock.Listen(Int32.MaxValue);
             sock.Listen(65535);
 
+            if (Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
+                Local.Port = ep.Port;
+
             if (Runtime.Windows)
             {
                 sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);

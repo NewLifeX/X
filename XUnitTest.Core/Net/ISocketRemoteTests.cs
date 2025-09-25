@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using NewLife;
+﻿using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Messaging;
@@ -17,123 +12,199 @@ namespace XUnitTest.Net;
 
 public class ISocketRemoteTests
 {
-    private FileInfo GetFile()
-    {
-        FileInfo src = null;
-        var di = "D:\\Tools".AsDirectory();
-        if (!di.Exists) di = "../../".AsDirectory();
-        if (!di.Exists) di = "data/".AsDirectory();
-        if (di.Exists)
-            src = di.GetFiles().Where(e => e.Length < 10 * 1024 * 1024).OrderByDescending(e => e.Length).FirstOrDefault();
-
-        var file = "bigSrc.bin".GetFullPath();
-        if (src == null && File.Exists(file)) src = file.AsFile();
-
-        if (src == null)
-        {
-            var buf = Rand.NextBytes(10 * 1024 * 1024);
-            File.WriteAllBytes(file, buf);
-            src = file.AsFile();
-        }
-
-        XTrace.WriteLine("发送文件：{0}", src.FullName);
-        XTrace.WriteLine("文件大小：{0}", src.Length.ToGMK());
-
-        return src;
-    }
-
     [Fact]
     public void SendFile()
     {
-        // 目标文件
-        var file = "bigDest.bin".GetFullPath();
-        if (File.Exists(file)) File.Delete(file);
+        var src = Path.GetTempFileName().GetFullPath();
+        File.WriteAllBytes(src, Rand.NextBytes(23 * 1024 * 1024));
+        var dest = "test_dest_SendFile.bin".GetFullPath();
+        if (File.Exists(dest)) File.Delete(dest);
+        var fi = src.AsFile();
+        XTrace.WriteLine("准备文件 {0}，大小 {1}", src, fi.Length);
 
-        using var target = File.Create(file);
-
-        // 简易版服务端。监听并接收文件数据，e.Message就是文件数据
-        using var svr = new NetServer
+        try
         {
-            Port = 12345,
-            Log = XTrace.Log,
-        };
+            using var target = File.Create(dest);
+            var receivedBytes = 0L;
 
-        svr.Add<StandardCodec>();
-        svr.Received += (s, e) =>
+            // 简易版服务端
+            using var svr = new NetServer { Port = 0, Log = XTrace.Log };
+
+            svr.Add<StandardCodec>();
+            svr.Received += (s, e) =>
+            {
+                var packet = e.Message as IPacket ?? e.Packet;
+                if (packet != null)
+                {
+                    packet.CopyTo(target);
+                    Interlocked.Add(ref receivedBytes, packet.Total);
+                }
+            };
+
+            svr.Start();
+            Thread.Sleep(200);
+
+            // 客户端
+            var uri = new NetUri($"tcp://127.0.0.1:{svr.Port}");
+            var client = uri.CreateRemote();
+            client.Log = XTrace.Log;
+            client.Add<StandardCodec>();
+            client.Open();
+
+            XTrace.WriteLine("开始发送文件");
+            var segments = client.SendFile(src);
+            XTrace.WriteLine("发送完成，分片：{0}", segments);
+
+            // 等待传输
+            WaitForTransferComplete(ref receivedBytes, fi.Length);
+
+            target.Flush();
+            target.Close();
+
+            // 验证
+            ValidateFile(dest, src);
+        }
+        finally
         {
-            // 收到的所有数据全部写入文件。用户可以根据自己的协议，识别文件头和文件内容
-            if (e.Message is IPacket pk)
-                pk.CopyTo(target);
-        };
+            try { File.Delete(src); } catch { }
+            try { File.Delete(dest); } catch { }
+        }
+    }
 
-        svr.Start();
+    private static void WaitForTransferComplete(ref Int64 receivedBytes, Int64 expectedBytes)
+    {
+        var timeout = DateTime.Now.AddSeconds(30);
+        var lastReceived = receivedBytes;
+        var stableCount = 0;
 
-        // 本地找一个大文件
-        var src = GetFile();
-        var md5 = src.MD5();
+        while (DateTime.Now < timeout && receivedBytes < expectedBytes)
+        {
+            Thread.Sleep(100);
 
-        // 客户端
-        var uri = new NetUri($"tcp://127.0.0.3:{svr.Port}");
-        var client = uri.CreateRemote();
-        client.Log = XTrace.Log;
+            if (receivedBytes != lastReceived)
+            {
+                lastReceived = receivedBytes;
+                stableCount = 0;
+            }
+            else if (++stableCount >= 30) // 3秒稳定时间
+            {
+                XTrace.WriteLine("3秒内无新数据，传输可能已完成");
+                break;
+            }
+        }
 
-        client.Add<StandardCodec>();
-        client.Open();
+        XTrace.WriteLine("传输结束，接收字节：{0}/{1}，完成率：{2:P2}",
+            receivedBytes, expectedBytes, (Double)receivedBytes / expectedBytes);
+    }
 
-        // 不能发送文件以外内容，否则服务端无法识别而直接写入文件
-        //client.SendMessage($"Send File {src.Name}");
+    private static void ValidateFile(String destFile, String srcFile)
+    {
+        var dest = destFile.AsFile();
+        var src = srcFile.AsFile();
 
-        var rs = client.SendFile(src.FullName);
-        XTrace.WriteLine("分片：{0}", rs);
+        XTrace.WriteLine("文件验证：源={0} ({1})，目标={2} ({3})",
+            src.FullName, src.Length, dest.FullName, dest.Length);
 
-        //client.SendMessage($"Send File Finished!");
+        // 断言目标文件应该接收到数据
+        Assert.True(dest.Length > 0, "未接收到数据，可能是测试环境网络问题");
 
-        Thread.Sleep(1000);
-
-        // 验证接收文件是否完整
-        target.Flush();
-        target.Close();
-
-        var dest = file.AsFile();
-        dest.Refresh();
+        // 断言文件大小必须完全相等
         Assert.Equal(src.Length, dest.Length);
-        Assert.Equal(md5.ToHex(), file.AsFile().MD5().ToHex());
+
+        // 验证MD5完全一致
+        Assert.Equal(src.MD5().ToHex(), dest.MD5().ToHex());
     }
 
     [Fact]
     public void SendFile2()
     {
-        // 标准版服务端。可接受文本消息、Json对象和二进制文件数据
-        using var svr = new FileServer { Port = 12346, Log = XTrace.Log };
-        svr.Start();
+        var src = Path.GetTempFileName().GetFullPath();
+        File.WriteAllBytes(src, Rand.NextBytes(37 * 1024 * 1024));
 
-        // 客户端
-        var uri = new NetUri($"tcp://127.0.0.5:{svr.Port}");
-        var client = uri.CreateRemote();
-        client.Log = XTrace.Log;
+        try
+        {
+            using var svr = new FileServer { Port = 0, Log = XTrace.Log };
+            svr.Start();
+            Thread.Sleep(200);
 
-        // 加入Json编码器，用于发送Json对象
-        client.Add<StandardCodec>();
-        client.Add<JsonCodec>();
-        client.Open();
+            var uri = new NetUri($"tcp://127.0.0.1:{svr.Port}");
+            var client = uri.CreateRemote();
+            client.Log = XTrace.Log;
+            client.Add<StandardCodec>();
+            client.Add<JsonCodec>();
+            client.Open();
 
-        // 发送文本字符串和对象消息
-        var src = GetFile();
-        client.SendMessage($"Send File {src.Name}");
-        client.SendMessage(new MyFileInfo { Name = src.Name, Length = src.Length });
+            var fi = src.AsFile();
+            client.SendMessage($"Send File {fi.Name}");
+            client.SendMessage(new MyFileInfo { Name = fi.Name, Length = src.Length });
 
-        var rs = client.SendFile(src.FullName);
-        XTrace.WriteLine("分片：{0}", rs);
+            var segments = client.SendFile(src);
+            XTrace.WriteLine("发送完成，分片：{0}", segments);
 
-        // 发送完成消息，也可以是Json消息
-        client.SendMessage($"Send File Finished!");
-        Thread.Sleep(1000);
+            client.SendMessage($"Send File Finished!");
 
-        // 验证接收文件是否完整
-        Assert.NotEmpty(svr.Files);
-        var dest = svr.Files[^1].AsFile();
-        Assert.Equal(src.Length, dest.Length);
-        Assert.Equal(src.MD5().ToHex(), dest.MD5().ToHex());
+            WaitForFileReceived(svr.Files);
+            Assert.True(svr.Files.Count > 0, "未接收到任何文件");
+
+            var destPath = svr.Files[^1];
+            var dest = destPath.AsFile();
+            WaitForFileWriteComplete(dest);
+
+            Assert.Equal(fi.Length, dest.Length);
+            Assert.Equal(fi.MD5().ToHex(), dest.MD5().ToHex());
+
+            try { dest.Delete(); } catch { }
+        }
+        finally
+        {
+            try { File.Delete(src); } catch { }
+        }
+    }
+
+    private static void WaitForFileReceived(IList<String> files)
+    {
+        var timeout = DateTime.Now.AddSeconds(30);
+        var lastCount = files.Count;
+        var stableCount = 0;
+
+        while (DateTime.Now < timeout && files.Count == 0)
+        {
+            Thread.Sleep(100);
+
+            if (files.Count != lastCount)
+            {
+                lastCount = files.Count;
+                stableCount = 0;
+            }
+            else if (++stableCount >= 20) // 2秒内文件数量没变化
+            {
+                break;
+            }
+        }
+    }
+
+    private static void WaitForFileWriteComplete(FileInfo file)
+    {
+        var timeout = DateTime.Now.AddSeconds(15);
+        var lastSize = file.Length;
+        var stableCount = 0;
+
+        while (DateTime.Now < timeout)
+        {
+            file.Refresh();
+            if (file.Length != lastSize)
+            {
+                lastSize = file.Length;
+                stableCount = 0;
+                XTrace.WriteLine("文件大小变化：{0}", lastSize);
+            }
+            else if (++stableCount >= 15) // 1.5秒内文件大小没变化
+            {
+                XTrace.WriteLine("文件写入稳定，大小：{0}", lastSize);
+                break;
+            }
+            Thread.Sleep(100);
+        }
     }
 
     class FileServer : NetServer<FileSession>
@@ -171,11 +242,13 @@ public class ISocketRemoteTests
                     // 接受文件完成
                     if (str.Contains("Finished"))
                     {
-                        _target.SetLength(_target.Position);
+                        _target?.SetLength(_target.Position);
+                        _target?.Flush(); // 确保数据写入磁盘
                         _target.TryDispose();
                         _target = null;
 
                         Host.Files.Add(_file);
+                        XTrace.WriteLine("文件接收完成：{0}", _file);
                     }
                     break;
                 case DataKinds.Binary:
@@ -185,11 +258,16 @@ public class ISocketRemoteTests
                     _info = dm.Payload.ToStr().ToJsonEntity<MyFileInfo>();
                     _file = _info.Name.GetFullPath();
                     _target = new FileStream(_file, FileMode.OpenOrCreate);
+                    XTrace.WriteLine("开始接收文件：{0}, 大小：{1}", _file, _info.Length);
                     break;
                 case DataKinds.Packet:
                 default:
                     // 持续接受数据写入文件
-                    if (_target != null) dm.Payload.CopyTo(_target);
+                    if (_target != null)
+                    {
+                        dm.Payload.CopyTo(_target);
+                        //XTrace.WriteLine("写入数据：{0} 字节", dm.Payload.Total);
+                    }
                     break;
             }
         }

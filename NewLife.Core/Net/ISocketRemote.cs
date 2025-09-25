@@ -6,221 +6,273 @@ using NewLife.Model;
 namespace NewLife.Net;
 
 /// <summary>远程通信Socket，仅具有收发功能</summary>
+/// <remarks>
+/// <para>提供基于网络连接的双向通信能力，专注于数据收发操作。</para>
+/// <para>设计理念：轻量化接口，统一TCP/UDP处理模式，支持异步和事件驱动编程。</para>
+/// <para>继承自 <see cref="ISocket"/> 和 <see cref="IExtend"/>，具备完整的Socket基础功能和扩展能力。</para>
+/// </remarks>
 public interface ISocketRemote : ISocket, IExtend
 {
     #region 属性
-    /// <summary>标识</summary>
+    /// <summary>会话标识符</summary>
+    /// <remarks>用于在多会话环境中唯一标识当前连接，便于日志追踪和会话管理</remarks>
     Int32 ID { get; }
 
-    /// <summary>远程地址</summary>
+    /// <summary>远程终结点地址</summary>
+    /// <remarks>
+    /// <para>发送操作的目标地址，同时也是接收数据的来源标识。</para>
+    /// <para>对于TCP连接，该地址在建立连接后固定；对于UDP，可动态设置不同的目标。</para>
+    /// </remarks>
     NetUri Remote { get; set; }
 
-    /// <summary>最后一次通信时间，主要表示会话活跃时间，包括收发</summary>
+    /// <summary>最后一次通信时间</summary>
+    /// <remarks>
+    /// <para>记录最近一次成功收发数据的时间戳，用于会话活跃度检测。</para>
+    /// <para>包括发送和接收操作，可用于实现超时断开、心跳检测等机制。</para>
+    /// </remarks>
     DateTime LastTime { get; }
     #endregion
 
-    #region 发送
-    /// <summary>发送原始数据包</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <returns>是否成功</returns>
+    #region 数据发送
+    /// <summary>发送数据包</summary>
+    /// <param name="data">要发送的数据包</param>
+    /// <returns>实际发送的字节数，失败时返回负数</returns>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
     Int32 Send(IPacket data);
 
-    /// <summary>发送原始数据包</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
+    /// <summary>发送字节数组</summary>
     /// <param name="data">字节数组</param>
-    /// <param name="offset">偏移</param>
-    /// <param name="count">字节数</param>
-    /// <returns>是否成功</returns>
+    /// <param name="offset">数据起始偏移量</param>
+    /// <param name="count">发送字节数，-1表示发送从偏移量开始的所有数据</param>
+    /// <returns>实际发送的字节数，失败时返回负数</returns>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
     Int32 Send(Byte[] data, Int32 offset = 0, Int32 count = -1);
 
-    /// <summary>发送原始数据包</summary>
-    /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
-    /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <returns>是否成功</returns>
+    /// <summary>发送数组段</summary>
+    /// <param name="data">数组段</param>
+    /// <returns>实际发送的字节数，失败时返回负数</returns>
+    /// <remarks>目标地址由 <see cref="Remote"/> 属性决定</remarks>
     Int32 Send(ArraySegment<Byte> data);
 
-    /// <summary>发送原始数据包</summary>
+    /// <summary>发送只读内存段</summary>
+    /// <param name="data">只读内存段</param>
+    /// <returns>实际发送的字节数，失败时返回负数</returns>
     /// <remarks>
-    /// 目标地址由<seealso cref="Remote"/>决定
+    /// <para>目标地址由 <see cref="Remote"/> 属性决定。</para>
+    /// <para>高性能API，避免不必要的内存拷贝，适用于.NET Core/.NET 5+环境。</para>
     /// </remarks>
-    /// <param name="data">数据包</param>
-    /// <returns>是否成功</returns>
     Int32 Send(ReadOnlySpan<Byte> data);
     #endregion
 
-    #region 接收
-    /// <summary>接收数据。阻塞当前线程等待返回</summary>
-    /// <returns></returns>
+    #region 数据接收
+    /// <summary>同步接收数据包</summary>
+    /// <returns>接收到的数据包，无数据时返回null</returns>
+    /// <remarks>
+    /// <para>该方法会阻塞当前线程直到有数据到达或连接关闭。</para>
+    /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
+    /// </remarks>
     IOwnerPacket? Receive();
 
-    /// <summary>异步接收数据</summary>
-    /// <returns></returns>
+    /// <summary>异步接收数据包</summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>接收到的数据包，无数据时返回null</returns>
+    /// <remarks>
+    /// <para>推荐的异步接收方式，不会阻塞调用线程。</para>
+    /// <para>返回的数据包需要在使用完毕后正确释放，避免内存泄漏。</para>
+    /// </remarks>
     Task<IOwnerPacket?> ReceiveAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>数据到达事件</summary>
+    /// <summary>数据接收事件</summary>
+    /// <remarks>
+    /// <para>当有新数据到达时触发，适用于事件驱动编程模式。</para>
+    /// <para>事件参数包含原始数据包和经过管道处理后的消息对象。</para>
+    /// </remarks>
     event EventHandler<ReceivedEventArgs> Received;
     #endregion
 
-    #region 消息包
+    #region 消息处理
     /// <summary>异步发送消息并等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <returns></returns>
+    /// <param name="message">要发送的消息对象</param>
+    /// <returns>响应消息对象</returns>
+    /// <remarks>
+    /// <para>高级消息通信API，支持请求-响应模式。</para>
+    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
+    /// </remarks>
     Task<Object> SendMessageAsync(Object message);
 
     /// <summary>异步发送消息并等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <returns></returns>
+    /// <param name="message">要发送的消息对象</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>响应消息对象</returns>
+    /// <remarks>
+    /// <para>高级消息通信API，支持请求-响应模式和超时控制。</para>
+    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
+    /// </remarks>
     Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken);
 
     /// <summary>发送消息，不等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <returns></returns>
+    /// <param name="message">要发送的消息对象</param>
+    /// <returns>实际发送的字节数，失败时返回负数</returns>
+    /// <remarks>
+    /// <para>单向消息发送，适用于通知、推送等场景。</para>
+    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送。</para>
+    /// </remarks>
     Int32 SendMessage(Object message);
 
-    /// <summary>处理消息数据帧</summary>
-    /// <param name="data">数据帧</param>
+    /// <summary>处理接收到的消息数据帧</summary>
+    /// <param name="data">消息数据帧</param>
+    /// <remarks>
+    /// <para>供内部管道处理器调用，用于处理解码后的消息。</para>
+    /// <para>通常由框架内部调用，应用代码一般无需直接使用。</para>
+    /// </remarks>
     void Process(IData data);
     #endregion
 }
 
-/// <summary>远程通信Socket扩展</summary>
+/// <summary>Socket远程通信扩展方法</summary>
+/// <remarks>
+/// <para>提供便捷的数据发送、接收和消息处理功能。</para>
+/// <para>包含字符串发送、流传输、文件传输等高级功能。</para>
+/// </remarks>
 public static class SocketRemoteHelper
 {
-    #region 发送
-    /// <summary>发送数组</summary>
-    /// <param name="session"></param>
-    /// <param name="buffer"></param>
-    /// <param name="offset"></param>
-    /// <param name="count"></param>
-    /// <returns></returns>
-    public static Int32 Send(this ISocketRemote session, Byte[] buffer, Int32 offset = 0, Int32 count = -1)
-    {
-        if (count < 0) count = buffer.Length - offset;
-        var pk = new ArrayPacket(buffer, offset, count);
-
-        return session.Send(pk);
-    }
-
+    #region 扩展发送方法
     /// <summary>发送数据流</summary>
-    /// <param name="session">会话</param>
+    /// <param name="session">Socket会话</param>
     /// <param name="stream">数据流</param>
-    /// <returns>返回是否成功</returns>
-    public static Int32 Send(this ISocketRemote session, Stream stream)
+    /// <param name="bufferSize"></param>
+    /// <returns>实际发送的字节数</returns>
+    /// <remarks>
+    /// <para>以8KB缓冲区分块读取并发送流数据，适用于大文件传输。</para>
+    /// <para>发送过程中如果出现错误会立即停止并返回已发送的字节数。</para>
+    /// </remarks>
+    public static Int32 Send(this ISocketRemote session, Stream stream, Int32 bufferSize = 8192)
     {
-        //// 空数据直接发出
-        //var remain = stream.Length - stream.Position;
-        //if (remain == 0) return session.Send([]);
+        var totalSent = 0;
+        var buffer = Pool.Shared.Rent(bufferSize);
 
-        var rs = 0;
-        var buffer = Pool.Shared.Rent(8192);
-        while (true)
+        try
         {
-            var count = stream.Read(buffer, 0, buffer.Length);
-            if (count <= 0) break;
+            while (true)
+            {
+                var bytesRead = stream.Read(buffer, 0, buffer.Length);
+                if (bytesRead <= 0) break;
 
-            var pk = new ArrayPacket(buffer, 0, count);
-            var count2 = session.Send(pk);
-            if (count2 < 0) break;
-            rs += count2;
+                var sent = session.Send(buffer, 0, bytesRead);
+                if (sent < 0) break;
 
-            if (count < buffer.Length) break;
+                totalSent += sent;
+                if (bytesRead < buffer.Length) break;
+            }
         }
-        Pool.Shared.Return(buffer);
+        finally
+        {
+            Pool.Shared.Return(buffer);
+        }
 
-        return rs;
+        return totalSent;
     }
 
     /// <summary>发送字符串</summary>
-    /// <param name="session">会话</param>
-    /// <param name="msg">要发送的字符串</param>
-    /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
-    /// <returns>返回自身，用于链式写法</returns>
-    public static Int32 Send(this ISocketRemote session, String msg, Encoding? encoding = null)
+    /// <param name="session">Socket会话</param>
+    /// <param name="message">要发送的字符串</param>
+    /// <param name="encoding">文本编码，null表示UTF-8</param>
+    /// <returns>实际发送的字节数</returns>
+    public static Int32 Send(this ISocketRemote session, String message, Encoding? encoding = null)
     {
-        if (String.IsNullOrEmpty(msg)) return session.Send(Pool.Empty);
+        if (String.IsNullOrEmpty(message))
+            return session.Send(Pool.Empty);
 
         encoding ??= Encoding.UTF8;
-        return session.Send(encoding.GetBytes(msg), 0, -1);
+        return session.Send(encoding.GetBytes(message));
     }
     #endregion
 
-    #region 接收
-    /// <summary>接收字符串</summary>
-    /// <param name="session">会话</param>
-    /// <param name="encoding">文本编码，默认null表示UTF-8编码</param>
-    /// <returns></returns>
+    #region 扩展接收方法
+    /// <summary>接收字符串数据</summary>
+    /// <param name="session">Socket会话</param>
+    /// <param name="encoding">文本编码，null表示UTF-8</param>
+    /// <returns>接收到的字符串，无数据时返回空字符串</returns>
+    /// <remarks>该方法会阻塞当前线程直到有数据到达</remarks>
     public static String ReceiveString(this ISocketRemote session, Encoding? encoding = null)
     {
-        using var pk = session.Receive();
-        if (pk == null || pk.Length == 0) return String.Empty;
+        using var packet = session.Receive();
+        if (packet == null || packet.Length == 0) return String.Empty;
 
-        return pk.ToStr(encoding ?? Encoding.UTF8);
+        return packet.ToStr(encoding ?? Encoding.UTF8);
     }
     #endregion
 
-    #region 消息包
-    /// <summary>添加处理器</summary>
-    /// <typeparam name="THandler"></typeparam>
-    /// <param name="session">会话</param>
-    public static void Add<THandler>(this ISocket session) where THandler : IHandler, new() => GetPipe(session).Add(new THandler());
+    #region 管道处理器扩展
+    /// <summary>添加类型化处理器</summary>
+    /// <typeparam name="THandler">处理器类型</typeparam>
+    /// <param name="session">Socket会话</param>
+    /// <remarks>处理器必须有无参构造函数</remarks>
+    public static void Add<THandler>(this ISocket session) where THandler : IHandler, new() => GetPipeline(session).Add(new THandler());
 
-    /// <summary>添加处理器</summary>
-    /// <param name="session">会话</param>
-    /// <param name="handler">处理器</param>
-    public static void Add(this ISocket session, IHandler handler) => GetPipe(session).Add(handler);
+    /// <summary>添加处理器实例</summary>
+    /// <param name="session">Socket会话</param>
+    /// <param name="handler">处理器实例</param>
+    public static void Add(this ISocket session, IHandler handler) => GetPipeline(session).Add(handler);
 
-    private static IPipeline GetPipe(ISocket session) => session.Pipeline ??= new Pipeline();
+    /// <summary>获取或创建消息管道</summary>
+    private static IPipeline GetPipeline(ISocket session) => session.Pipeline ??= new Pipeline();
+    #endregion
 
-    /// <summary>切分数据流为多个数据包消息进行发送，接收方按顺序组装</summary>
-    /// <param name="session">会话</param>
+    #region 高级消息传输
+    /// <summary>分块发送数据流为多个消息包</summary>
+    /// <param name="session">Socket会话</param>
     /// <param name="stream">数据流</param>
-    /// <returns>拆分消息数</returns>
+    /// <returns>发送的消息包数量</returns>
+    /// <remarks>
+    /// <para>将大数据流切分为多个消息包发送，接收方可按顺序重组。</para>
+    /// <para>每个消息包会添加标准4字节消息头，由StandardCodec处理器负责编解码。</para>
+    /// </remarks>
     public static Int32 SendMessages(this ISocketRemote session, Stream stream)
     {
-        var count = 0;
-
-        // 缓冲区大小，要减去4字节标准消息头。BufferSize默认8k，能得到最大吞吐。如果网络质量较差，这里可使用TCP最大包1448
+        var messageCount = 0;
         var bufferSize = SocketSetting.Current.BufferSize;
-
         var buffer = Pool.Shared.Rent(bufferSize);
-        while (true)
+
+        try
         {
-            var rs = stream.Read(buffer, 4, bufferSize - 4);
-            if (rs <= 0) break;
+            while (true)
+            {
+                // 预留4字节消息头空间
+                var bytesRead = stream.Read(buffer, 4, bufferSize - 4);
+                if (bytesRead <= 0) break;
 
-            // 打包数据，标准编码器StandardCodec将会在头部加上4字节头部，交给下层Tcp发出
-            var pk = new ArrayPacket(buffer, 4, rs);
-            session.SendMessage(pk);
-
-            count++;
+                // StandardCodec将在头部添加4字节长度信息
+                var packet = new ArrayPacket(buffer, 4, bytesRead);
+                session.SendMessage(packet);
+                messageCount++;
+            }
         }
-        Pool.Shared.Return(buffer);
+        finally
+        {
+            Pool.Shared.Return(buffer);
+        }
 
-        return count;
+        return messageCount;
     }
 
-    /// <summary>切分文件流为多个数据包发出，接收方按顺序组装</summary>
-    /// <param name="session"></param>
-    /// <param name="file"></param>
-    /// <param name="compressed"></param>
-    /// <returns></returns>
-    public static Int32 SendFile(this ISocketRemote session, String file, Boolean compressed = false)
+    /// <summary>以消息包形式发送文件</summary>
+    /// <param name="session">Socket会话</param>
+    /// <param name="filePath">文件路径</param>
+    /// <param name="compressed">是否启用压缩</param>
+    /// <returns>发送的消息包数量</returns>
+    /// <remarks>
+    /// <para>自动处理文件读取和分块传输，支持可选的压缩功能。</para>
+    /// <para>接收方需要按相同顺序重组消息包以还原完整文件。</para>
+    /// </remarks>
+    public static Int32 SendFile(this ISocketRemote session, String filePath, Boolean compressed = false)
     {
-        var rs = 0;
-        file.AsFile().OpenRead(compressed, s =>
+        var messageCount = 0;
+        filePath.AsFile().OpenRead(compressed, stream =>
         {
-            rs = session.SendMessages(s);
+            messageCount = session.SendMessages(stream);
         });
-
-        return rs;
+        return messageCount;
     }
     #endregion
 }
