@@ -8,10 +8,13 @@ namespace NewLife;
 /// <summary>Span帮助类</summary>
 /// <remarks>
 /// 提供Span/Memory常用扩展，避免额外分配。
-/// 文档 https://newlifex.com/core/span_helper
+/// 文档：https://newlifex.com/core/span_helper
 /// </remarks>
 public static class SpanHelper
 {
+    // Hex 查表（大写）- 使用字段就近原则，放在相关方法附近
+    private static readonly String HexChars = "0123456789ABCDEF";
+
     #region 字符串扩展
     /// <summary>转字符串</summary>
     /// <param name="span">字节数据</param>
@@ -76,8 +79,8 @@ public static class SpanHelper
         for (Int32 i = 0, j = 0; i < data.Length; i++, j += 2)
         {
             var b = data[i];
-            chars[j] = GetHexValue(b >> 4);
-            chars[j + 1] = GetHexValue(b & 0x0F);
+            chars[j] = HexChars[b >> 4];
+            chars[j + 1] = HexChars[b & 0x0F];
         }
         return chars.ToString();
     }
@@ -100,9 +103,6 @@ public static class SpanHelper
     /// <param name="data">字节数组</param>
     /// <returns>大写十六进制字符串（无分隔）</returns>
     public static String ToHex(this Span<Byte> data) => ToHex((ReadOnlySpan<Byte>)data);
-
-    // Hex 查表（大写）
-    private static Char GetHexValue(Int32 i) => "0123456789ABCDEF"[i & 0xF];
 
     /// <summary>以十六进制编码表示，支持分隔符与分组</summary>
     /// <param name="data">数据</param>
@@ -132,8 +132,8 @@ public static class SpanHelper
             }
 
             var b = data[i];
-            sb.Append(GetHexValue(b >> 4));
-            sb.Append(GetHexValue(b & 0x0F));
+            sb.Append(HexChars[b >> 4]);
+            sb.Append(HexChars[b & 0x0F]);
         }
 
         return sb.Return(true) ?? String.Empty;
@@ -205,9 +205,7 @@ public static class SpanHelper
         startIndex += start.Length;
 
         var endIndex = source[startIndex..].IndexOf(end);
-        if (endIndex == -1) return (startIndex, -1);
-
-        return (startIndex, endIndex);
+        return endIndex == -1 ? (startIndex, -1) : (startIndex, endIndex);
     }
 
     /// <summary>在数据源中查找开始与结束边界</summary>
@@ -333,9 +331,8 @@ public static class SpanHelper
     private static Int32 ClampEnd<T>(ReadOnlySpan<T> span, Int32 start, T trimElement) where T : IEquatable<T>
     {
         var num = span.Length - 1;
-        while (num >= start)
+        while (num >= start && trimElement.Equals(span[num]))
         {
-            if (!trimElement.Equals(span[num])) break;
             num--;
         }
         return num - start + 1;
