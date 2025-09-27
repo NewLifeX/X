@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
 using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
@@ -64,19 +63,20 @@ public abstract class HttpBase : IDisposable
         var data = pk.GetSpan();
         if (!FastValidHeader(data)) return false;
 
-        // 识别整个请求头
+        // 查找首个空行（CRLFCRLF）。p 指向空行起始位置
         var p = data.IndexOf(NewLine2);
         if (p < 0) return false;
 
-        // 分析头部
-        var header = data[..(p + 2)];
+        // 只取头部区域（不包含分隔空行），避免之前 (p+2) 的截取导致尾部半行进入解析产生潜在问题
+        var header = data[..p];
         var firstLine = "";
-        while (true)
+        while (header.Length > 0)
         {
             var p2 = header.IndexOf(NewLine);
-            if (p2 < 0) break;
+            //if (p2 < 0) break; // 不正常，但跳出以避免死循环
 
-            var line = header[..p2];
+            // 最后一行没有末尾换行符
+            var line = p2 < 0 ? header : header[..p2];
             if (firstLine.IsNullOrEmpty())
                 firstLine = line.ToStr();
             else
@@ -90,11 +90,11 @@ public abstract class HttpBase : IDisposable
                 }
             }
 
-            if (p2 + 2 == header.Length) break;
+            if (p2 < 0 || p2 + 2 >= header.Length) break;
             header = header[(p2 + 2)..];
         }
 
-        // 截取主体，获取所有权
+        // 截取主体，获取所有权（跳过 CRLFCRLF 共4字节）
         Body = pk.Slice(p + 4, -1, true);
 
         ContentLength = Headers["Content-Length"].ToInt(-1);

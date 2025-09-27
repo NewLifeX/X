@@ -17,7 +17,7 @@ public class HttpRequest : HttpBase
     /// <summary>目标主机</summary>
     public String? Host { get; set; }
 
-    /// <summary>保持连接</summary>
+    /// <summary>保持连接。HTTP/1.1 默认保持，除非显式 Connection: close；HTTP/1.0 仅在 keep-alive 时保持</summary>
     public Boolean KeepAlive { get; set; }
 
     /// <summary>文件集合</summary>
@@ -42,7 +42,12 @@ public class HttpRequest : HttpBase
         }
 
         Host = Headers["Host"];
-        KeepAlive = Headers["Connection"].EqualIgnoreCase("keep-alive");
+
+        var conn = Headers["Connection"];
+        if (Version == "1.1")
+            KeepAlive = !conn.EqualIgnoreCase("close");
+        else
+            KeepAlive = conn.EqualIgnoreCase("keep-alive");
 
         return true;
     }
@@ -83,19 +88,17 @@ public class HttpRequest : HttpBase
         if (Host.IsNullOrEmpty())
         {
             var host = "";
-            if (uri.Scheme.EqualIgnoreCase("http", "ws"))
+            if (uri.Host.IsNullOrEmpty())
             {
-                if (uri.Port == 80)
-                    host = uri.Host;
-                else
-                    host = $"{uri.Host}:{uri.Port}";
+                // 相对路径情况下由外部附加 Host 头；此处保持空字符串
+            }
+            else if (uri.Scheme.EqualIgnoreCase("http", "ws"))
+            {
+                host = uri.Port == 80 ? uri.Host : $"{uri.Host}:{uri.Port}";
             }
             else if (uri.Scheme.EqualIgnoreCase("https", "wss"))
             {
-                if (uri.Port == 443)
-                    host = uri.Host;
-                else
-                    host = $"{uri.Host}:{uri.Port}";
+                host = uri.Port == 443 ? uri.Host : $"{uri.Host}:{uri.Port}";
             }
             Host = host;
         }
@@ -103,7 +106,7 @@ public class HttpRequest : HttpBase
         // 构建头部
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("{0} {1} HTTP/{2}\r\n", Method, uri.PathAndQuery, Version);
-        sb.AppendFormat("Host: {0}\r\n", Host);
+        if (!Host.IsNullOrEmpty()) sb.AppendFormat("Host: {0}\r\n", Host);
 
         // 内容长度
         if (length > 0) Headers["Content-Length"] = length + "";
@@ -164,6 +167,7 @@ public class HttpRequest : HttpBase
             data = data[(s + e)..];
 
             var pHeader = part.IndexOf(NewLine2);
+            if (pHeader < 0) break; // 异常表单，跳出
             var lines = part[..pHeader].ToStr().SplitAsDictionary(":", "\r\n");
             if (lines.TryGetValue("Content-Disposition", out var str))
             {
@@ -185,7 +189,7 @@ public class HttpRequest : HttpBase
             }
 
             // 判断是否最后一个分隔符
-            if (data.Slice(bd2.Length, 2).ToStr() == "--") break;
+            if (data.Length >= bd2.Length + 2 && data.Slice(bd2.Length, 2).ToStr() == "--") break;
 
         } while (data.Length > 0);
 

@@ -41,7 +41,7 @@ public class HttpResponse : HttpBase
         return true;
     }
 
-    /// <summary>创建请求响应包</summary>
+    /// <summary>创建请求响应包。非成功状态且无主体时使用状态描述作为主体</summary>
     /// <returns></returns>
     public override IOwnerPacket Build()
     {
@@ -61,14 +61,14 @@ public class HttpResponse : HttpBase
     {
         // 构建头部
         var sb = Pool.StringBuilder.Get();
-        sb.AppendFormat("HTTP/{2} {0} {1}\r\n", (Int32)StatusCode, StatusCode, Version);
+        sb.AppendFormat("HTTP/{2} {0} {1}\r\n", (Int32)StatusCode, StatusDescription ?? StatusCode.ToString(), Version);
 
         //// cors
         //sb.AppendFormat("Access-Control-Allow-Origin:{0}\r\n", "*");
         //sb.AppendFormat("Access-Control-Allow-Methods:{0}\r\n", "POST, GET");
         //sb.AppendFormat("Access-Control-Allow-Headers:{0}\r\n", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-        // 内容长度
+        // 内容长度：存在主体明确长度；否则除非 Transfer-Encoding/Upgrade 才可省略，默认发送 0
         if (length > 0)
             Headers["Content-Length"] = length + "";
         else if (!Headers.ContainsKey("Transfer-Encoding") && !Headers.ContainsKey("Upgrade"))
@@ -93,8 +93,8 @@ public class HttpResponse : HttpBase
     }
 
     /// <summary>设置结果，影响Body和ContentType</summary>
-    /// <param name="result"></param>
-    /// <param name="contentType"></param>
+    /// <param name="result">业务结果或异常</param>
+    /// <param name="contentType">指定内容类型，缺省时按类型推断</param>
     public void SetResult(Object result, String? contentType = null)
     {
         if (result == null) return;
