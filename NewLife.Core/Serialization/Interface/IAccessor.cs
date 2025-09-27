@@ -62,7 +62,7 @@ public static class AccessorHelper
     {
         var obj = type.CreateInstance();
         if (obj is IAccessor accessor)
-            accessor.Read(pk.GetStream(), context);
+            accessor.Read(pk.GetStream(false), context);
 
         return obj;
     }
@@ -77,7 +77,7 @@ public static class AccessorHelper
         //if (!typeof(T).As<IAccessor>()) return default(T);
 
         var obj = new T();
-        obj.Read(pk.GetStream(), context);
+        obj.Read(pk.GetStream(false), context);
 
         return obj;
     }

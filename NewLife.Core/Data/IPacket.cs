@@ -290,11 +290,24 @@ public static class PacketHelper
         }
     }
 
-    /// <summary>获取包含数据包内容的独立内存流</summary>
+    /// <summary>获取包含数据包内容的内存流</summary>
     /// <param name="pk">源数据包</param>
     /// <returns>可读写的内存流，位置已重置为 0</returns>
-    public static Stream GetStream(this IPacket pk)
+    public static Stream GetStream(this IPacket pk) => GetStream(pk, true);
+
+    /// <summary>获取包含数据包内容的内存流</summary>
+    /// <param name="pk">源数据包</param>
+    /// <param name="writable">是否可写</param>
+    /// <returns>可读写的内存流，位置已重置为 0</returns>
+    public static Stream GetStream(this IPacket pk, Boolean writable)
     {
+        if (pk.Next == null)
+        {
+            // 独立包且可获取数组段时直接返回内存流
+            if (pk.TryGetArray(out var segment))
+                return new MemoryStream(segment.Array!, segment.Offset, segment.Count, writable);
+        }
+
         var ms = new MemoryStream(pk.Total);
         pk.CopyTo(ms);
         ms.Position = 0;

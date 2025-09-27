@@ -31,7 +31,7 @@ public class FormFile
     #region 读取
     /// <summary>打开数据读取流</summary>
     /// <returns>内存流；如果无数据返回 null</returns>
-    public Stream? OpenReadStream() => Data?.GetStream();
+    public Stream? OpenReadStream() => Data?.GetStream(false);
 
     /// <summary>复制数据到目标流</summary>
     /// <param name="destination">目标流</param>

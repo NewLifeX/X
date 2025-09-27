@@ -916,7 +916,7 @@ public class MemoryCache : Cache
                 value = pk;
                 if (type != null && pk != null)
                 {
-                    var bn2 = new Binary(pk.GetStream()) { EncodeInt = true };
+                    var bn2 = new Binary(pk.GetStream(false)) { EncodeInt = true };
                     value = bn2.Read(type);
                 }
             }

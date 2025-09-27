@@ -347,7 +347,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
     {
         if (pk == null || pk.Length == 0) return false;
 
-        Read(pk.GetStream());
+        Read(pk.GetStream(false));
 
         return true;
     }
