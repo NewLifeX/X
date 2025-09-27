@@ -3,13 +3,17 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Remoting;
+using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Http;
@@ -68,17 +72,6 @@ public class HttpServerTests
         Assert.NotNull(rs);
         Assert.Equal(93917, rs.ReadBytes(-1).Length);
     }
-
-    //[Fact]
-    //public async Task MapController()
-    //{
-    //    _server.MapController<ApiController>("/api");
-
-    //    var client = new HttpClient { BaseAddress = _baseUri };
-    //    var rs = await client.GetAsync<IDictionary<String, Object>>("/api/info", new { state = 1234 });
-
-    //    Assert.Equal("1234", rs["state"]);
-    //}
 
     [Fact]
     public async Task MapMyHttpHandler()
@@ -225,4 +218,176 @@ Content-Type: image/jpeg
         Assert.True(png.SequenceEqual(png2));
         Assert.Equal(png, (av.Data as Packet)?.Data);
     }
+
+    #region 新增覆盖测试
+    [Fact]
+    public async Task RouteOverridePriority()
+    {
+        _server.Map("/override", () => "first");
+        _server.Map("/override", () => "second");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/override");
+        Assert.Equal("second", txt);
+    }
+
+    [Fact]
+    public async Task WildcardVsExactMatch()
+    {
+        _server.Map("/test/*", () => "wild");
+        _server.Map("/test/path", () => "exact");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var txt = await client.GetStringAsync("/test/path");
+        Assert.Equal("exact", txt);
+
+        txt = await client.GetStringAsync("/test/other");
+        Assert.Equal("wild", txt);
+    }
+
+    [Fact]
+    public async Task ParameterBindingMultiOverloads()
+    {
+        // 模型绑定
+        _server.Map<Person, String>("/person", p => $"{p.Name}:{p.Age}");
+        // 2 参数
+        _server.Map<String, Int32, String>("/two", (a, b) => $"{a}:{b}");
+        // 3 参数
+        _server.Map<String, Int32, String, String>("/three", (a, b, c) => $"{a}:{b}:{c}");
+        // 4 参数
+        _server.Map<String, Int32, String, Int32, String>("/four", (a, b, c, d) => $"{a}:{b}:{c}:{d}");
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var v1 = await client.GetStringAsync("/person?Name=Al&Age=5");
+        Assert.Equal("Al:5", v1);
+
+        var v2 = await client.GetStringAsync("/two?a=hi&b=7");
+        Assert.Equal("hi:7", v2);
+
+        var v3 = await client.GetStringAsync("/three?a=x&b=8&c=ok");
+        Assert.Equal("x:8:ok", v3);
+
+        var v4 = await client.GetStringAsync("/four?a=A&b=1&c=B&d=2");
+        Assert.Equal("A:1:B:2", v4);
+    }
+
+    record Person(String Name, Int32 Age);
+
+    [Fact]
+    public async Task NotFoundRoute()
+    {
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var rsp = await client.GetAsync("/notfound/abc");
+        Assert.Equal(HttpStatusCode.NotFound, rsp.StatusCode);
+    }
+
+    [Fact]
+    public async Task PathSafetyForbidden()
+    {
+        var client = new HttpClient { BaseAddress = _baseUri };
+        var rsp = await client.GetAsync("/../etc/passwd");
+        Assert.Equal(HttpStatusCode.Forbidden, rsp.StatusCode);
+    }
+
+    [Fact]
+    public async Task ServerHeaderInjectionAndPreserve()
+    {
+        _server.Map("/header", () => "ok");
+        _server.Map("/header2", new CustomServerHeaderHandler());
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        var rsp1 = await client.GetAsync("/header");
+        Assert.True(rsp1.Headers.TryGetValues("Server", out var sv1));
+        Assert.Contains("NewLife-HttpServer", sv1.First());
+
+        var rsp2 = await client.GetAsync("/header2");
+        Assert.True(rsp2.Headers.TryGetValues("Server", out var sv2));
+        Assert.Equal("CustomServer", sv2.First());
+    }
+
+    class CustomServerHeaderHandler : IHttpHandler
+    {
+        public void ProcessRequest(IHttpContext context)
+        {
+            context.Response.Headers["Server"] = "CustomServer";
+            context.Response.SetResult("ok");
+        }
+    }
+
+    [Fact]
+    public async Task WildcardCacheBehavior()
+    {
+        _server.Map("/wild/*", new MyHttpHandler());
+
+        var client = new HttpClient { BaseAddress = _baseUri };
+
+        // 清理缓存（内部 _maps 私有）。
+        var mapsField = typeof(HttpServer).GetField("_maps", BindingFlags.Instance | BindingFlags.NonPublic);
+        var maps = mapsField.GetValue(_server) as System.Collections.IDictionary;
+        maps.Clear();
+
+        // 短路径（应缓存）  => /wild/x  Split('/') => ["", "wild", "x"] 长度=3 <=3
+        var txt = await client.GetStringAsync("/wild/x?name=abc");
+        Assert.Contains("abc", txt);
+        Assert.True(maps.Contains("/wild/x"));
+
+        // 长路径（不缓存） => /wild/a/b/c/d  分段长度>3
+        txt = await client.GetStringAsync("/wild/a/b/c/d?name=long");
+        Assert.Contains("long", txt);
+        Assert.False(maps.Contains("/wild/a/b/c/d"));
+    }
+
+    [Fact]
+    public async Task KeepAliveFalseAddsCloseHeader()
+    {
+        // 使用原始 TCP 发送 HTTP/1.0 请求，默认非 KeepAlive
+        var req = "GET /keepalive HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n";
+
+        _server.Map("/keepalive", () => "alive");
+
+        using var tcp = new TcpClient();
+        await tcp.ConnectAsync(IPAddress.Loopback, 18080);
+        using var ns = tcp.GetStream();
+        var bytes = Encoding.ASCII.GetBytes(req);
+        await ns.WriteAsync(bytes, 0, bytes.Length);
+        await ns.FlushAsync();
+
+        using var ms = new MemoryStream();
+        var buf = new Byte[4096];
+        // 读取一点足够解析头
+        await Task.Delay(50); // 微等待服务端响应
+        while (ns.DataAvailable)
+        {
+            var n = await ns.ReadAsync(buf, 0, buf.Length);
+            if (n <= 0) break;
+            ms.Write(buf, 0, n);
+        }
+        var resp = Encoding.ASCII.GetString(ms.ToArray());
+        Assert.Contains("Connection: close", resp, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("alive", resp);
+    }
+
+    [Fact]
+    public async Task MaxRequestLengthExceeded()
+    {
+        using var server = new SmallLimitHttpServer { Port = 18082, Limit = 16, Log = XTrace.Log, SessionLog = XTrace.Log };
+        server.Map("/small", () => "ok");
+        server.Start();
+
+        var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:18082") };
+        var content = new ByteArrayContent(new Byte[32]);
+        var rsp = await client.PostAsync("/small", content);
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, rsp.StatusCode);
+    }
+
+    class SmallLimitHttpServer : HttpServer
+    {
+        public Int32 Limit { get; set; } = 16;
+        public override INetHandler? CreateHandler(INetSession session)
+        {
+            return new HttpSession { MaxRequestLength = Limit };
+        }
+    }
+    #endregion
 }

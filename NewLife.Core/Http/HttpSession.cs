@@ -32,7 +32,7 @@ public class HttpSession : INetHandler
 
     private INetSession _session = null!;
     private WebSocket? _websocket;
-    private MemoryStream? _cache;
+    private MemoryStream? _cache; // 仅用于累积尚未接收完整的请求主体
     #endregion
 
     #region 收发数据
@@ -45,22 +45,20 @@ public class HttpSession : INetHandler
     }
 
     /// <summary>处理客户端发来的数据</summary>
-    /// <param name="data"></param>
+    /// <param name="data">数据帧</param>
     public void Process(IData data)
     {
         var pk = data.Packet;
         if (pk == null || pk.Length == 0) return;
 
-        // WebSocket 数据
+        // WebSocket 通道已建立，直接交给 WebSocket 处理
         if (_websocket != null)
         {
             _websocket.Process(pk);
-
-            //base.OnReceive(e);
             return;
         }
 
-        // 解码请求头，单个连接可能有多个请求
+        // 取当前请求上下文引用（可能为 null）
         var req = Request;
         var request = new HttpRequest();
         if (request.Parse(pk))
@@ -69,44 +67,52 @@ public class HttpSession : INetHandler
 
             (_session as NetSession)?.WriteLog("{0} {1}", request.Method, request.RequestUri);
 
-            _websocket = null;
+            // 限制最大请求体
+            if (req.ContentLength > MaxRequestLength)
+            {
+                var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
+
+                // 发送响应。用完后释放数据包，还给缓冲池
+                using var res = rs.Build();
+                _session.Send(res);
+                _session.Dispose();
+
+                return;
+            }
+
+            _websocket = null; // 新请求到来，清空 websocket 握手状态
             OnNewRequest(request, data);
 
             // 后面还有数据包，克隆缓冲区
             if (req.IsCompleted)
+            {
+                // 头部 + 空主体 或 已一次性接收完整主体
                 _cache = null;
+            }
             else
             {
-                // 限制最大请求为1G
-                if (req.ContentLength > MaxRequestLength)
+                // 预分配缓存流，用于持续接收后续主体分片
+                var len = req.ContentLength;
+                if (len <= 0) len = 0; // 非法长度保护
+                _cache = new MemoryStream(len > 0 ? len : 0);
+
+                if (req.Body != null && req.Body.Length > 0)
                 {
-                    var rs = new HttpResponse { StatusCode = HttpStatusCode.RequestEntityTooLarge };
-
-                    // 发送响应。用完后释放数据包，还给缓冲池
-                    using var res = rs.Build();
-                    _session.Send(res);
-                    _session.Dispose();
-
-                    return;
+                    // 解析阶段已经截取到的主体部分先写入缓存
+                    req.Body.CopyTo(_cache);
+                    req.Body.TryDispose();
+                    req.Body = null;
                 }
-
-                _cache = new MemoryStream(req.ContentLength);
-                req.Body?.CopyTo(_cache);
-                //req.Body = req.Body.Clone();
-
-                // 请求主体数据来自缓冲区，要还回去
-                req.Body.TryDispose();
-                req.Body = null;
             }
         }
         else if (req != null)
         {
+            // 已有正在接收的请求，继续拼接主体。
             if (_cache != null)
             {
-                // 链式数据包
-                //req.Body.Append(pk.Clone());
                 pk.CopyTo(_cache);
 
+                // 防御：若收到数据超过声明长度，立即截断并视为完成。
                 if (_cache.Length >= req.ContentLength)
                 {
                     _cache.Position = 0;
@@ -120,10 +126,10 @@ public class HttpSession : INetHandler
         {
             // 改变数据
             data.Message = req;
-            data.Packet = req.Body;
+            data.Packet = req.Body; // 仅在收到完整主体后非空
         }
 
-        // 收到全部数据后，触发请求处理
+        // 主体接收完成，触发业务处理
         if (req != null && req.IsCompleted)
         {
             var rs = ProcessRequest(req, data);
@@ -144,7 +150,7 @@ public class HttpSession : INetHandler
             }
         }
 
-        // 请求主体数据来自缓冲区，要还回去
+        // 请求结束后释放主体（响应发送后即可释放）
         if (req != null)
         {
             req.Body.TryDispose();
@@ -152,23 +158,29 @@ public class HttpSession : INetHandler
         }
     }
 
-    /// <summary>收到新的Http请求，只有头部</summary>
-    /// <param name="request"></param>
-    /// <param name="data"></param>
+    /// <summary>收到新的Http请求（仅请求头解析完成时触发）</summary>
+    /// <param name="request">请求</param>
+    /// <param name="data">原始数据帧</param>
     protected virtual void OnNewRequest(HttpRequest request, IData data) { }
 
     /// <summary>处理Http请求</summary>
-    /// <param name="request"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
+    /// <param name="request">请求</param>
+    /// <param name="data">数据帧</param>
+    /// <returns>响应</returns>
     protected virtual HttpResponse ProcessRequest(HttpRequest request, IData data)
     {
         if (request?.RequestUri == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
-        // 匹配路由处理器
+        //// 提取路径（不含查询）。使用 AbsolutePath 而非手动截取，避免奇异 ? 位置问题
+        //var rawUri = request.RequestUri;
+        //var path = rawUri.AbsolutePath; // AbsolutePath 已经处理百分号编码解码语义由下游决定
+        // 匹配路由处理器。rawUri 没有Host部分，导致取 AbsolutePath 时报错
         var path = request.RequestUri.OriginalString;
         var p = path.IndexOf('?');
         if (p > 0) path = path[..p];
+
+        // 路径安全检查
+        if (!IsPathSafe(path)) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
 
         // 埋点
         using var span = _session.Host.Tracer?.NewSpan(path);
@@ -180,25 +192,23 @@ public class HttpSession : INetHandler
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                var flag = false;
-                if (request.BodyLength > 0 &&
-                    request.Body != null &&
-                    request.Body.Length < 8 * 1024 &&
-                    request.ContentType.EqualIgnoreCase(TagTypes))
+                var includeBody = false;
+                var bodyLength = request.Body?.Length ?? 0;
+                if (request.BodyLength > 0 && request.Body != null && bodyLength > 0 && bodyLength < 8 * 1024 && request.ContentType.EqualIgnoreCase(TagTypes))
                 {
                     var body = request.Body.GetSpan();
                     if (body.Length > 1024) body = body[..1024];
                     span.AppendTag("\r\n<=\r\n" + body.ToStr(null));
-                    flag = true;
+                    includeBody = true;
                 }
 
                 if (span.Tag.Length < 500)
                 {
-                    if (!flag) span.AppendTag("\r\n<=");
+                    if (!includeBody) span.AppendTag("\r\n<=");
                     var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
                     span.AppendTag("\r\n" + vs.Join(Environment.NewLine, e => $"{e.Key}:{e.Value}"));
                 }
-                else if (!flag)
+                else if (!includeBody)
                 {
                     span.AppendTag("\r\n<=\r\n");
                     span.AppendTag($"ContentLength: {request.ContentLength}\r\n");
@@ -206,9 +216,6 @@ public class HttpSession : INetHandler
                 }
             }
         }
-
-        // 路径安全检查，防止越界
-        if (path.Contains("..")) return new HttpResponse { StatusCode = HttpStatusCode.Forbidden };
 
         var handler = Host?.MatchHandler(path, request);
         //if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
@@ -222,9 +229,7 @@ public class HttpSession : INetHandler
         {
             PrepareRequest(context);
 
-            //if (span != null && context.Parameters.Count > 0) span.SetError(null, context.Parameters);
-
-            // 处理 WebSocket 握手
+            // 处理 WebSocket 握手（只在第一次调用时尝试）
             _websocket ??= WebSocket.Handshake(context);
 
             if (handler != null)
@@ -251,8 +256,11 @@ public class HttpSession : INetHandler
         return context.Response;
     }
 
+    /// <summary>简单路径安全检查，防止目录穿越</summary>
+    private static Boolean IsPathSafe(String path) => path.IndexOf("..", StringComparison.Ordinal) < 0;
+
     /// <summary>准备请求参数</summary>
-    /// <param name="context"></param>
+    /// <param name="context">Http上下文</param>
     protected virtual void PrepareRequest(IHttpContext context)
     {
         var req = context.Request;
@@ -274,7 +282,7 @@ public class HttpSession : INetHandler
             ps.Merge(qs);
         }
 
-        // POST提交参数，支持Url编码、表单提交、Json主体
+        // POST 提交参数：Url编码、表单、Json
         if (req.Method == "POST" && req.BodyLength > 0 && req.Body != null)
         {
             var body = req.Body.GetSpan();
@@ -291,7 +299,7 @@ public class HttpSession : INetHandler
                 if (fs.Length > 0) req.Files = fs;
                 ps.Merge(dic);
             }
-            else if (body[0] == (Byte)'{' && body[^1] == (Byte)'}')
+            else if (body.Length >= 2 && body[0] == (Byte)'{' && body[^1] == (Byte)'}')
             {
                 var js = body.ToStr().DecodeJson();
                 if (js != null) ps.Merge(js);
