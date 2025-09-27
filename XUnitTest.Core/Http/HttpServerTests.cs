@@ -223,5 +223,6 @@ Content-Type: image/jpeg
         var png2 = av.OpenReadStream().ReadBytes(-1);
         Assert.Equal(png.Length, png2.Length);
         Assert.True(png.SequenceEqual(png2));
+        Assert.Equal(png, (av.Data as Packet)?.Data);
     }
 }

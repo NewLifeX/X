@@ -1,4 +1,6 @@
-﻿namespace NewLife.Http;
+﻿using NewLife.Data;
+
+namespace NewLife.Http;
 
 /// <summary>表单部分</summary>
 public class FormFile
@@ -17,10 +19,10 @@ public class FormFile
     public String? FileName { get; set; }
 
     /// <summary>数据</summary>
-    public Byte[]? Data { get; set; }
+    public IPacket? Data { get; set; }
 
     /// <summary>长度</summary>
-    public Int64 Length => Data?.Length ?? 0;
+    public Int64 Length => Data?.Total ?? 0;
 
     /// <summary>是否为空（无数据或长度为0）</summary>
     public Boolean IsEmpty => Length == 0;
@@ -29,17 +31,15 @@ public class FormFile
     #region 读取
     /// <summary>打开数据读取流</summary>
     /// <returns>内存流；如果无数据返回 null</returns>
-    public Stream? OpenReadStream() => Data == null ? null : new MemoryStream(Data, false);
+    public Stream? OpenReadStream() => Data?.GetStream();
 
     /// <summary>复制数据到目标流</summary>
     /// <param name="destination">目标流</param>
     public void WriteTo(Stream destination)
     {
         if (destination == null) throw new ArgumentNullException(nameof(destination));
-        if (Data == null || Data.Length == 0) return;
 
-        // 直接写入底层缓冲，避免再包装 MemoryStream 带来额外开销
-        destination.Write(Data, 0, Data.Length);
+        Data?.CopyTo(destination);
     }
     #endregion
 
@@ -111,10 +111,7 @@ public class FormFile
 
         // 使用 FileMode.Create 统一（自动截断旧文件），避免旧实现写短文件后尾部残留的风险
         using var fs = File.Open(full, FileMode.Create, FileAccess.Write, FileShare.None);
-        if (Data != null && Data.Length > 0)
-        {
-            fs.Write(Data, 0, Data.Length);
-        }
+        Data?.CopyTo(fs);
         fs.Flush();
     }
     #endregion

@@ -137,6 +137,7 @@ public class HttpRequest : HttpBase
         var body = Body;
         if (body == null || body.Length == 0) return dic;
         var data = body.GetSpan();
+        var idx = 0;
 
         /*
          * ------WebKitFormBoundary3ZXeqQWNjAzojVR7
@@ -183,13 +184,14 @@ public class HttpRequest : HttpBase
                     file.ContentType = str;
 
                 var fileData = part[(pHeader + NewLine2.Length)..];
-                file.Data = fileData.ToArray();
+                file.Data = body.Slice(idx + s + pHeader + NewLine2.Length, fileData.Length, false);
 
                 if (!file.Name.IsNullOrEmpty()) dic[file.Name] = file.FileName.IsNullOrEmpty() ? fileData.ToStr() : file;
             }
 
             // 判断是否最后一个分隔符
             if (data.Length >= bd2.Length + 2 && data.Slice(bd2.Length, 2).ToStr() == "--") break;
+            idx += s + e;
 
         } while (data.Length > 0);
 
