@@ -1,5 +1,5 @@
-﻿using System;
-using NewLife.Reflection;
+﻿using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Http;
 
@@ -54,6 +54,12 @@ public class DelegateHandler : IHttpHandler
         {
             if (parameters.TryGetValue(pis[i].Name + "", out var v))
                 args[i] = v.ChangeType(pis[i].ParameterType);
+        }
+
+        // 如果只有一个参数，且参数为空，则需要尝试从字典来反序列化
+        if (args.Length == 1 && args[0] == null)
+        {
+            args[0] = JsonHelper.Default.Convert(parameters, pis[0].ParameterType);
         }
 
         return handler.DynamicInvoke(args);

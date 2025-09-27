@@ -286,7 +286,9 @@ Content-Type: image/jpeg
     {
         var client = new HttpClient { BaseAddress = _baseUri };
         var rsp = await client.GetAsync("/../etc/passwd");
-        Assert.Equal(HttpStatusCode.Forbidden, rsp.StatusCode);
+        //Assert.Equal(HttpStatusCode.Forbidden, rsp.StatusCode);
+        // 在HttpClient中就被转为请求 /etc/passwd 了
+        Assert.Equal(HttpStatusCode.NotFound, rsp.StatusCode);
     }
 
     [Fact]
