@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Runtime.CompilerServices;
 using NewLife.Collections;
 
 namespace NewLife;
@@ -15,9 +16,11 @@ public static class StringHelper
     /// <summary>忽略大小写的字符串相等比较，判断是否与任意一个待比较字符串相等</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
-    /// <returns></returns>
+    /// <returns>若任一候选（忽略大小写）相等则返回 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean EqualIgnoreCase(this String? value, params String?[] strs)
     {
+        if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
             if (String.Equals(value, item, StringComparison.OrdinalIgnoreCase)) return true;
@@ -28,14 +31,15 @@ public static class StringHelper
     /// <summary>忽略大小写的字符串开始比较，判断是否与任意一个待比较字符串开始</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
-    /// <returns></returns>
+    /// <returns>任一前缀匹配时 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean StartsWithIgnoreCase(this String? value, params String?[] strs)
     {
-        if (value == null || String.IsNullOrEmpty(value)) return false;
-
+        if (value.IsNullOrEmpty()) return false;
+        if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
-            if (!String.IsNullOrEmpty(item) && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (!item.IsNullOrEmpty() && value.StartsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
         }
         return false;
     }
@@ -43,26 +47,29 @@ public static class StringHelper
     /// <summary>忽略大小写的字符串结束比较，判断是否以任意一个待比较字符串结束</summary>
     /// <param name="value">字符串</param>
     /// <param name="strs">待比较字符串数组</param>
-    /// <returns></returns>
+    /// <returns>任一后缀匹配时 true</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean EndsWithIgnoreCase(this String? value, params String?[] strs)
     {
-        if (value == null || String.IsNullOrEmpty(value)) return false;
-
+        if (value.IsNullOrEmpty()) return false;
+        if (strs == null || strs.Length == 0) return false;
         foreach (var item in strs)
         {
-            if (item != null && value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
+            if (!item.IsNullOrEmpty() && value.EndsWith(item, StringComparison.OrdinalIgnoreCase)) return true;
         }
         return false;
     }
 
     /// <summary>指示指定的字符串是 null 还是 String.Empty 字符串</summary>
     /// <param name="value">字符串</param>
-    /// <returns></returns>
-    public static Boolean IsNullOrEmpty([NotNullWhen(false)] this String? value) => value == null || value.Length <= 0;
+    /// <returns>true 表示 null 或空串</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean IsNullOrEmpty([NotNullWhen(false)] this String? value) => value == null || value.Length == 0;
 
     /// <summary>是否空或者空白字符串</summary>
     /// <param name="value">字符串</param>
-    /// <returns></returns>
+    /// <returns>true 表示 null / 空 / 全空白</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsNullOrWhiteSpace([NotNullWhen(false)] this String? value)
     {
         if (value != null)
@@ -78,13 +85,12 @@ public static class StringHelper
     /// <summary>拆分字符串，过滤空格，无效时返回空数组</summary>
     /// <param name="value">字符串</param>
     /// <param name="separators">分组分隔符，默认逗号分号</param>
-    /// <returns></returns>
+    /// <returns>分割后非空条目数组</returns>
     public static String[] Split(this String? value, params String[] separators)
     {
         //!! netcore3.0中新增Split(String? separator, StringSplitOptions options = StringSplitOptions.None)，优先于StringHelper扩展
-        if (value == null || String.IsNullOrEmpty(value)) return [];
-        if (separators == null || separators.Length <= 0 || separators.Length == 1 && separators[0].IsNullOrEmpty()) separators = [",", ";"];
-
+        if (value.IsNullOrEmpty()) return [];
+        if (separators == null || separators.Length == 0 || (separators.Length == 1 && separators[0].IsNullOrEmpty())) return [value];
         return value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
     }
 
@@ -92,14 +98,14 @@ public static class StringHelper
     /// <remarks>过滤空格、过滤无效、不过滤重复</remarks>
     /// <param name="value">字符串</param>
     /// <param name="separators">分组分隔符，默认逗号分号</param>
-    /// <returns></returns>
+    /// <returns>整型数组</returns>
     public static Int32[] SplitAsInt(this String? value, params String[] separators)
     {
-        if (value == null || String.IsNullOrEmpty(value)) return [];
-        if (separators == null || separators.Length <= 0) separators = [",", ";"];
+        if (value.IsNullOrEmpty()) return [];
+        if (separators == null || separators.Length == 0) separators = [",", ";"];
 
         var ss = value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
-        var list = new List<Int32>();
+        var list = new List<Int32>(ss.Length);
         foreach (var item in ss)
         {
             if (!Int32.TryParse(item.Trim(), out var id)) continue;
@@ -116,18 +122,18 @@ public static class StringHelper
     /// <param name="value">字符串</param>
     /// <param name="nameValueSeparator">名值分隔符，默认等于号</param>
     /// <param name="separator">分组分隔符，默认分号</param>
-    /// <param name="trimQuotation">去掉括号</param>
-    /// <returns></returns>
+    /// <param name="trimQuotation">是否去掉值两端引号</param>
+    /// <returns>大小写不敏感字典</returns>
     public static IDictionary<String, String> SplitAsDictionary(this String? value, String nameValueSeparator = "=", String separator = ";", Boolean trimQuotation = false)
     {
         var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-        if (value == null || value.IsNullOrWhiteSpace()) return dic;
+        if (value.IsNullOrWhiteSpace()) return dic;
 
         if (nameValueSeparator.IsNullOrEmpty()) nameValueSeparator = "=";
         //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
 
         var ss = value.Split([separator], StringSplitOptions.RemoveEmptyEntries);
-        if (ss == null || ss.Length <= 0) return dic;
+        if (ss == null || ss.Length == 0) return dic;
 
         var k = 0;
         foreach (var item in ss)
@@ -136,7 +142,7 @@ public static class StringHelper
             var p = item.IndexOf(nameValueSeparator, StringComparison.Ordinal);
             if (p <= 0)
             {
-                dic[$"[{k}]"] = item;
+                dic[$"[{k}]"] = item; // 未包含名值分隔符，按序号占位
                 k++;
                 continue;
             }
@@ -151,7 +157,7 @@ public static class StringHelper
                 if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
             }
 
-            k++;
+            //k++;
             //dic[key] = val;
 #if NETFRAMEWORK || NETSTANDARD2_0
             if (!dic.ContainsKey(key)) dic.Add(key, val);
@@ -163,51 +169,10 @@ public static class StringHelper
         return dic;
     }
 
-    ///// <summary>
-    ///// 在.netCore需要区分该部分内容
-    ///// </summary>
-    ///// <param name="value"></param>
-    ///// <param name="nameValueSeparator"></param>
-    ///// <param name="separator"></param>
-    ///// <param name="trimQuotation"></param>
-    ///// <returns></returns>
-    //public static IDictionary<String, String> SplitAsDictionaryT(this String? value, Char nameValueSeparator = '=', Char separator = ';', Boolean trimQuotation = false)
-    //{
-    //    var dic = new NullableDictionary<String, String>(StringComparer.OrdinalIgnoreCase);
-    //    if (value == null || value.IsNullOrWhiteSpace()) return dic;
-
-    //    //if (nameValueSeparator == null) nameValueSeparator = '=';
-    //    //if (separator == null || separator.Length <= 0) separator = new String[] { ",", ";" };
-
-    //    var ss = value.Split(new[] { separator }, StringSplitOptions.RemoveEmptyEntries);
-    //    if (ss == null || ss.Length <= 0) return dic;
-
-    //    foreach (var item in ss)
-    //    {
-    //        var p = item.IndexOf(nameValueSeparator);
-    //        if (p <= 0) continue;
-
-    //        var key = item[..p].Trim();
-    //        var val = item[(p + 1)..].Trim();
-
-
-    //        // 处理单引号双引号
-    //        if (trimQuotation && !val.IsNullOrEmpty())
-    //        {
-    //            if (val[0] == '\'' && val[^1] == '\'') val = val.Trim('\'');
-    //            if (val[0] == '"' && val[^1] == '"') val = val.Trim('"');
-    //        }
-
-    //        dic[key] = val;
-    //    }
-
-    //    return dic;
-    //}
-
     /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
-    /// <param name="value"></param>
+    /// <param name="value">序列</param>
     /// <param name="separator">组合分隔符，默认逗号</param>
-    /// <returns></returns>
+    /// <returns>拼接后的字符串</returns>
     public static String Join(this IEnumerable value, String separator = ",")
     {
         var sb = Pool.StringBuilder.Get();
@@ -221,31 +186,11 @@ public static class StringHelper
         return sb.Return(true);
     }
 
-    ///// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
-    ///// <param name="value"></param>
-    ///// <param name="separator">组合分隔符，默认逗号</param>
-    ///// <param name="func">把对象转为字符串的委托</param>
-    ///// <returns></returns>
-    //[Obsolete]
-    //public static String Join<T>(this IEnumerable<T> value, String separator, Func<T, String>? func)
-    //{
-    //    var sb = Pool.StringBuilder.Get();
-    //    if (value != null)
-    //    {
-    //        if (func == null) func = obj => obj + "";
-    //        foreach (var item in value)
-    //        {
-    //            sb.Separate(separator).Append(func(item));
-    //        }
-    //    }
-    //    return sb.Put(true);
-    //}
-
     /// <summary>把一个列表组合成为一个字符串，默认逗号分隔</summary>
-    /// <param name="value"></param>
+    /// <param name="value">序列</param>
     /// <param name="separator">组合分隔符，默认逗号</param>
-    /// <param name="func">把对象转为字符串的委托</param>
-    /// <returns></returns>
+    /// <param name="func">对象转字符串委托，默认直接 ToString()</param>
+    /// <returns>拼接后的字符串</returns>
     public static String Join<T>(this IEnumerable<T> value, String separator = ",", Func<T, Object?>? func = null)
     {
         var sb = Pool.StringBuilder.Get();
@@ -263,7 +208,8 @@ public static class StringHelper
     /// <summary>追加分隔符字符串，忽略开头，常用于拼接</summary>
     /// <param name="sb">字符串构造者</param>
     /// <param name="separator">分隔符</param>
-    /// <returns></returns>
+    /// <returns>同一个 <paramref name="sb"/></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static StringBuilder Separate(this StringBuilder sb, String separator)
     {
         if (/*sb == null ||*/ String.IsNullOrEmpty(separator)) return sb;
@@ -273,15 +219,14 @@ public static class StringHelper
         return sb;
     }
 
-    /// <summary>字符串转数组</summary>
+    /// <summary>字符串转字节数组</summary>
     /// <param name="value">字符串</param>
     /// <param name="encoding">编码，默认utf-8无BOM</param>
-    /// <returns></returns>
+    /// <returns>字节数组，空串返回空数组</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Byte[] GetBytes(this String? value, Encoding? encoding = null)
     {
-        //if (value == null) return null;
-        if (String.IsNullOrEmpty(value)) return [];
-
+        if (value.IsNullOrEmpty()) return [];
         encoding ??= Encoding.UTF8;
         return encoding.GetBytes(value);
     }
@@ -289,7 +234,7 @@ public static class StringHelper
     /// <summary>格式化字符串。特别支持无格式化字符串的时间参数</summary>
     /// <param name="value">格式字符串</param>
     /// <param name="args">参数</param>
-    /// <returns></returns>
+    /// <returns>格式化结果</returns>
     [Obsolete("建议使用插值字符串")]
     public static String F(this String value, params Object?[] args)
     {
@@ -308,20 +253,23 @@ public static class StringHelper
         return String.Format(value, args);
     }
 
-    /// <summary>指定输入是否匹配目标表达式，支持*和?匹配</summary>
+    /// <summary>指定输入是否匹配目标表达式，支持 * 和 ? 通配符</summary>
     /// <param name="pattern">匹配表达式。* 匹配任意长度（含0）任意字符，? 匹配任意单个字符</param>
     /// <param name="input">输入字符串</param>
     /// <param name="comparisonType">字符串比较方式</param>
-    /// <returns></returns>
+    /// <returns>匹配结果</returns>
+    /// <remarks>
+    /// 采用单指针 + 回溯（记录最近一次 * 位置）线性匹配算法，时间复杂度 O(n) ~ O(n*m) 之间，
+    /// 在常见场景较 Regex 具备更低开销。仅支持 * 与 ?，无需构造正则对象。
+    /// </remarks>
     public static Boolean IsMatch(this String pattern, String input, StringComparison comparisonType = StringComparison.CurrentCulture)
     {
         if (pattern.IsNullOrEmpty()) return false;
-
-        // 单独*匹配所有，即使输入字符串为空
+        // 单独 * 匹配所有（含空串）
         if (pattern == "*") return true;
         if (input.IsNullOrEmpty()) return false;
 
-        // 普通表达式，直接相等
+        // 普通表达式，直接相等（避免进入通配逻辑）
         var hasStar = pattern.IndexOf('*') >= 0;
         var hasQm = pattern.IndexOf('?') >= 0;
         if (!hasStar && !hasQm) return String.Equals(input, pattern, comparisonType);
@@ -343,9 +291,8 @@ public static class StringHelper
             else if (i < pattern.Length && pattern[i] == '*')
             {
                 // 记录*位置，先让*匹配空串，后续不匹配再回溯
-                starIdx = i;
-                i++;
-                match = j;
+                starIdx = i++;
+                match = j; // 先假设 * 匹配空串
             }
             else if (starIdx != -1)
             {
@@ -382,20 +329,16 @@ public static class StringHelper
 
     //#if NETFRAMEWORK || NETSTANDARD2_0
     /// <summary>Returns a value indicating whether a specified character occurs within this string.</summary>
-    /// <param name="value"></param>
-    /// <param name="inputChar">The character to seek.</param>
-    /// <returns>
-    /// <see langword="true" /> if the <paramref name="inputChar" /> parameter occurs within this string; otherwise, <see langword="false" />.</returns>
+    /// <param name="value">字符串</param>
+    /// <param name="inputChar">要查找的字符</param>
+    /// <returns>找到返回 true</returns>
     public static Boolean Contains(this String value, Char inputChar) => value.IndexOf(inputChar) >= 0;
 
-    /// <summary>Splits a string into substrings based on the characters in an array. You can specify whether the substrings include empty array elements.</summary>
-    /// <param name="value"></param>
-    /// <param name="separator">A character array that delimits the substrings in this string, an empty array that contains no delimiters, or <see langword="null" />.</param>
-    /// <param name="options">
-    /// <see cref="F:System.StringSplitOptions.RemoveEmptyEntries" /> to omit empty array elements from the array returned; or <see cref="F:System.StringSplitOptions.None" /> to include empty array elements in the array returned.</param>
-    /// <returns>An array whose elements contain the substrings in this string that are delimited by one or more characters in <paramref name="separator" />. For more information, see the Remarks section.</returns>
-    /// <exception cref="T:System.ArgumentException">
-    /// <paramref name="options" /> is not one of the <see cref="T:System.StringSplitOptions" /> values.</exception>
+    /// <summary>Splits a string into substrings based on a single character separator.</summary>
+    /// <param name="value">字符串</param>
+    /// <param name="separator">分隔字符</param>
+    /// <param name="options">是否移除空条目</param>
+    /// <returns>结果数组</returns>
     public static String[] Split(this String value, Char separator, StringSplitOptions options = StringSplitOptions.None) => value.Split([separator], options);
     //#endif
     #endregion
@@ -403,13 +346,12 @@ public static class StringHelper
     #region 截取扩展
     /// <summary>确保字符串以指定的另一字符串开始，不区分大小写</summary>
     /// <param name="str">字符串</param>
-    /// <param name="start"></param>
-    /// <returns></returns>
+    /// <param name="start">期望前缀</param>
+    /// <returns>处理后字符串</returns>
     public static String EnsureStart(this String? str, String start)
     {
-        if (String.IsNullOrEmpty(start)) return str + "";
-        if (String.IsNullOrEmpty(str) || str == null) return start + "";
-
+        if (start.IsNullOrEmpty()) return str + "";
+        if (str.IsNullOrEmpty()) return start + "";
         if (str.StartsWith(start, StringComparison.OrdinalIgnoreCase)) return str;
 
         return start + str;
@@ -417,13 +359,12 @@ public static class StringHelper
 
     /// <summary>确保字符串以指定的另一字符串结束，不区分大小写</summary>
     /// <param name="str">字符串</param>
-    /// <param name="end"></param>
-    /// <returns></returns>
+    /// <param name="end">期望后缀</param>
+    /// <returns>处理后字符串</returns>
     public static String EnsureEnd(this String? str, String end)
     {
-        if (String.IsNullOrEmpty(end)) return str + "";
-        if (String.IsNullOrEmpty(str) || str == null) return end + "";
-
+        if (end.IsNullOrEmpty()) return str + "";
+        if (str.IsNullOrEmpty()) return end + "";
         if (str.EndsWith(end, StringComparison.OrdinalIgnoreCase)) return str;
 
         return str + end;
@@ -431,13 +372,12 @@ public static class StringHelper
 
     /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
     /// <param name="str">当前字符串</param>
-    /// <param name="starts">另一字符串</param>
-    /// <returns></returns>
+    /// <param name="starts">前缀集合</param>
+    /// <returns>移除后的字符串</returns>
     public static String TrimStart(this String str, params String[] starts)
     {
-        if (String.IsNullOrEmpty(str)) return str;
-        if (starts == null || starts.Length <= 0 || String.IsNullOrEmpty(starts[0])) return str;
-
+        if (str.IsNullOrEmpty()) return str;
+        if (starts == null || starts.Length == 0 || starts[0].IsNullOrEmpty()) return str;
         for (var i = 0; i < starts.Length; i++)
         {
             if (str.StartsWith(starts[i], StringComparison.OrdinalIgnoreCase))
@@ -454,13 +394,12 @@ public static class StringHelper
 
     /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>
     /// <param name="str">当前字符串</param>
-    /// <param name="ends">另一字符串</param>
-    /// <returns></returns>
+    /// <param name="ends">后缀集合</param>
+    /// <returns>移除后的字符串</returns>
     public static String TrimEnd(this String str, params String[] ends)
     {
-        if (String.IsNullOrEmpty(str)) return str;
-        if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
-
+        if (str.IsNullOrEmpty()) return str;
+        if (ends == null || ends.Length == 0 || ends[0].IsNullOrEmpty()) return str;
         for (var i = 0; i < ends.Length; i++)
         {
             if (str.EndsWith(ends[i], StringComparison.OrdinalIgnoreCase))
@@ -475,37 +414,38 @@ public static class StringHelper
         return str;
     }
 
-    /// <summary>修剪不可见字符。仅修剪ASCII，不包含Unicode</summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <summary>修剪不可见字符。仅修剪ASCII控制字符，不包含 Unicode 其它类别</summary>
+    /// <param name="value">字符串</param>
+    /// <returns>处理后字符串（若未发现不可见字符返回原引用）</returns>
     public static String? TrimInvisible(this String? value)
     {
         if (value.IsNullOrEmpty()) return value;
+        // 先快速扫描，如没有控制字符直接返回原字符串，避免额外分配
+        if (!value.Any(e => e <= 31 || e == 127)) return value;
 
-        var builder = new StringBuilder();
-
+        var builder = new StringBuilder(value.Length);
         for (var i = 0; i < value.Length; i++)
         {
             // 可见字符。ASCII码中，第0～31号及第127号(共33个)是控制字符或通讯专用字符
-            if (value[i] is > (Char)31 and not (Char)127)
-                builder.Append(value[i]);
+            var c = value[i];
+            if (c > 31 && c != 127) builder.Append(c);
         }
 
         return builder.ToString();
     }
 
     /// <summary>从字符串中检索子字符串，在指定头部字符串之后，指定尾部字符串之前</summary>
-    /// <remarks>常用于截取xml某一个元素等操作</remarks>
+    /// <remarks>常用于截取 xml 某一个元素等操作</remarks>
     /// <param name="str">目标字符串</param>
     /// <param name="after">头部字符串，在它之后</param>
     /// <param name="before">尾部字符串，在它之前</param>
     /// <param name="startIndex">搜索的开始位置</param>
-    /// <param name="positions">位置数组，两个元素分别记录头尾位置</param>
-    /// <returns></returns>
+    /// <param name="positions">位置数组，两个元素分别记录头尾位置（内容起始与结束前一位）</param>
+    /// <returns>匹配的子串，未命中返回空串</returns>
     public static String Substring(this String str, String? after, String? before = null, Int32 startIndex = 0, Int32[]? positions = null)
     {
-        if (String.IsNullOrEmpty(str)) return str;
-        if (String.IsNullOrEmpty(after) && String.IsNullOrEmpty(before)) return str;
+        if (str.IsNullOrEmpty()) return str;
+        if (after.IsNullOrEmpty() && before.IsNullOrEmpty()) return str;
 
         /*
          * 1，只有start，从该字符串之后部分
@@ -516,7 +456,7 @@ public static class StringHelper
         var p = -1;
         if (!after.IsNullOrEmpty())
         {
-            p = str.IndexOf(after, startIndex);
+            p = str.IndexOf(after, startIndex, StringComparison.Ordinal);
             if (p < 0) return String.Empty;
             p += after.Length;
 
@@ -524,32 +464,26 @@ public static class StringHelper
             if (positions != null && positions.Length > 0) positions[0] = p;
         }
 
-        if (String.IsNullOrEmpty(before)) return str[p..];
-
-        var f = str.IndexOf(before, p >= 0 ? p : startIndex);
+        if (before.IsNullOrEmpty()) return str[p..];
+        var f = str.IndexOf(before, p >= 0 ? p : startIndex, StringComparison.Ordinal);
         if (f < 0) return String.Empty;
 
         // 记录位置
         if (positions != null && positions.Length > 1) positions[1] = f;
 
-        if (p >= 0)
-            return str[p..f];
-        else
-            return str[..f];
+        return p >= 0 ? str[p..f] : str[..f];
     }
 
     /// <summary>根据最大长度截取字符串，并允许以指定空白填充末尾</summary>
     /// <param name="str">字符串</param>
     /// <param name="maxLength">截取后字符串的最大允许长度，包含后面填充</param>
     /// <param name="pad">需要填充在后面的字符串，比如几个圆点</param>
-    /// <returns></returns>
+    /// <returns>截取结果（不足长度直接返回原串）</returns>
     public static String Cut(this String str, Int32 maxLength, String? pad = null)
     {
-        if (String.IsNullOrEmpty(str) || maxLength <= 0 || str.Length < maxLength) return str;
-
-        // 计算截取长度
+        if (str.IsNullOrEmpty() || maxLength <= 0 || str.Length < maxLength) return str;
         var len = maxLength;
-        if (pad != null && !String.IsNullOrEmpty(pad)) len -= pad.Length;
+        if (!pad.IsNullOrEmpty()) len -= pad.Length;
         if (len <= 0) throw new ArgumentOutOfRangeException(nameof(maxLength));
 
         return str[..len] + pad;
@@ -557,13 +491,12 @@ public static class StringHelper
 
     /// <summary>从当前字符串开头移除另一字符串以及之前的部分</summary>
     /// <param name="str">当前字符串</param>
-    /// <param name="starts">另一字符串</param>
-    /// <returns></returns>
+    /// <param name="starts">另一字符串集合</param>
+    /// <returns>处理后结果（顺序逐个，命中后继续后面的起始位置）</returns>
     public static String CutStart(this String str, params String[] starts)
     {
         if (str.IsNullOrEmpty()) return str;
-        if (starts == null || starts.Length <= 0 || starts[0].IsNullOrEmpty()) return str;
-
+        if (starts == null || starts.Length == 0 || starts[0].IsNullOrEmpty()) return str;
         for (var i = 0; i < starts.Length; i++)
         {
             var p = str.IndexOf(starts[i], StringComparison.Ordinal);
@@ -578,20 +511,19 @@ public static class StringHelper
 
     /// <summary>从当前字符串结尾移除另一字符串以及之后的部分</summary>
     /// <param name="str">当前字符串</param>
-    /// <param name="ends">另一字符串</param>
-    /// <returns></returns>
+    /// <param name="ends">另一字符串集合</param>
+    /// <returns>处理后结果</returns>
     public static String CutEnd(this String str, params String[] ends)
     {
-        if (String.IsNullOrEmpty(str)) return str;
-        if (ends == null || ends.Length <= 0 || String.IsNullOrEmpty(ends[0])) return str;
-
+        if (str.IsNullOrEmpty()) return str;
+        if (ends == null || ends.Length == 0 || ends[0].IsNullOrEmpty()) return str;
         for (var i = 0; i < ends.Length; i++)
         {
             var p = str.LastIndexOf(ends[i], StringComparison.Ordinal);
             if (p >= 0)
             {
                 str = str[..p];
-                if (String.IsNullOrEmpty(str)) break;
+                if (str.IsNullOrEmpty()) break;
             }
         }
         return str;
@@ -604,30 +536,23 @@ public static class StringHelper
     /// <remarks>
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
     /// </remarks>
-    /// <param name="key">关键字</param>
+    /// <param name="key">关键字（可含空格分词）</param>
     /// <param name="words">词组</param>
-    /// <returns></returns>
+    /// <returns>过滤后的候选集</returns>
     public static String[] LevenshteinSearch(String key, String[] words)
     {
         if (IsNullOrWhiteSpace(key)) return [];
+        if (words == null || words.Length == 0) return [];
 
         var keys = key.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-
         foreach (var item in keys)
         {
             var maxDist = (item.Length - 1) / 2;
-
             var q = from str in words
                     where item.Length <= str.Length
-                        && Enumerable.Range(0, maxDist + 1)
-                        .Any(dist =>
-                        {
-                            return Enumerable.Range(0, Math.Max(str.Length - item.Length - dist + 1, 0))
-                                .Any(f =>
-                                {
-                                    return LevenshteinDistance(item, str.Substring(f, item.Length + dist)) <= maxDist;
-                                });
-                        })
+                        && Enumerable.Range(0, maxDist + 1).Any(dist =>
+                            Enumerable.Range(0, Math.Max(str.Length - item.Length - dist + 1, 0))
+                                .Any(f => LevenshteinDistance(item, str.Substring(f, item.Length + dist)) <= maxDist))
                     orderby str
                     select str;
             words = q.ToArray();
@@ -636,36 +561,32 @@ public static class StringHelper
         return words;
     }
 
-    /// <summary>编辑距离</summary>
+    /// <summary>Levenshtein 编辑距离</summary>
     /// <remarks>
     /// 又称Levenshtein距离（也叫做Edit Distance），是指两个字串之间，由一个转成另一个所需的最少编辑操作次数。
     /// 许可的编辑操作包括将一个字符替换成另一个字符，插入一个字符，删除一个字符。
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
     /// </remarks>
-    /// <param name="str1"></param>
-    /// <param name="str2"></param>
-    /// <returns></returns>
+    /// <param name="str1">字符串1</param>
+    /// <param name="str2">字符串2</param>
+    /// <returns>最少编辑操作次数</returns>
     public static Int32 LevenshteinDistance(String str1, String str2)
     {
         var n = str1.Length;
         var m = str2.Length;
         var C = new Int32[n + 1, m + 1];
-        Int32 i, j, x, y, z;
-        for (i = 0; i <= n; i++)
-            C[i, 0] = i;
-        for (i = 1; i <= m; i++)
-            C[0, i] = i;
-        for (i = 0; i < n; i++)
-            for (j = 0; j < m; j++)
+        for (var i = 0; i <= n; i++) C[i, 0] = i;
+        for (var i = 1; i <= m; i++) C[0, i] = i;
+        for (var i = 0; i < n; i++)
+        {
+            for (var j = 0; j < m; j++)
             {
-                x = C[i, j + 1] + 1;
-                y = C[i + 1, j] + 1;
-                if (str1[i] == str2[j])
-                    z = C[i, j];
-                else
-                    z = C[i, j] + 1;
+                var x = C[i, j + 1] + 1;
+                var y = C[i + 1, j] + 1;
+                var z = C[i, j] + (str1[i] == str2[j] ? 0 : 1);
                 C[i + 1, j + 1] = Math.Min(Math.Min(x, y), z);
             }
+        }
         return C[n, m];
     }
     #endregion
@@ -676,19 +597,13 @@ public static class StringHelper
     /// <remarks>
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
     /// </remarks>
-    /// <param name="key"></param>
-    /// <param name="words"></param>
-    /// <returns></returns>
+    /// <param name="key">关键字</param>
+    /// <param name="words">候选词</param>
+    /// <returns>匹配集合</returns>
     public static String[] LCSSearch(String key, String[] words)
     {
         if (IsNullOrWhiteSpace(key) || words == null || words.Length == 0) return [];
-
-        var keys = key
-            .Split(_separator2, StringSplitOptions.RemoveEmptyEntries)
-            .OrderBy(s => s.Length)
-            .ToArray();
-
-        //var q = from sentence in items.AsParallel()
+        var keys = key.Split(_separator2, StringSplitOptions.RemoveEmptyEntries).OrderBy(s => s.Length).ToArray();
         var q = from word in words
                 let MLL = LCSDistance(word, keys)
                 where MLL >= 0
@@ -698,17 +613,17 @@ public static class StringHelper
         return q.ToArray();
     }
 
-    /// <summary>
+    /// <summary>计算多个关键字到指定单词的加权 LCS 距离</summary>
+    /// <remarks>
+    /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
+
     /// 最长公共子序列问题是寻找两个或多个已知数列最长的子序列。
     /// 一个数列 S，如果分别是两个或多个已知数列的子序列，且是所有符合此条件序列中最长的，则 S 称为已知序列的最长公共子序列。
     /// The longest common subsequence (LCS) problem is to find the longest subsequence common to all sequences in a set of sequences (often just two). Note that subsequence is different from a substring, see substring vs. subsequence. It is a classic computer science problem, the basis of diff (a file comparison program that outputs the differences between two files), and has applications in bioinformatics.
-    /// </summary>
-    /// <remarks>
-    /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
     /// </remarks>
-    /// <param name="word"></param>
-    /// <param name="keys">多个关键字。长度必须大于0，必须按照字符串长度升序排列。</param>
-    /// <returns></returns>
+    /// <param name="word">被匹配单词</param>
+    /// <param name="keys">多个关键字（长度升序）</param>
+    /// <returns>距离（-1 表示排除）</returns>
     public static Int32 LCSDistance(String word, String[] keys)
     {
         var sLength = word.Length;
@@ -723,44 +638,34 @@ public static class StringHelper
             Int32 i = 0, j = 0, LCS_L;
             //foreach 速度会有所提升，还可以加剪枝
             for (i = 0; i < sLength; i++)
+            {
                 for (j = 0; j < wLength; j++)
+                {
                     if (word[i] == key[j])
                     {
                         C[i + 1, j + 1] = C[i, j] + 1;
-                        if (first < C[i, j])
-                        {
-                            last = i;
-                            first = C[i, j];
-                        }
+                        if (first < C[i, j]) { last = i; first = C[i, j]; }
                     }
                     else
                         C[i + 1, j + 1] = Math.Max(C[i, j + 1], C[i + 1, j]);
-
+                }
+            }
             LCS_L = C[i, j];
-            if (LCS_L <= wLength >> 1)
-                return -1;
-
+            if (LCS_L <= wLength >> 1) return -1;
             while (i > 0 && j > 0)
             {
                 if (C[i - 1, j - 1] + 1 == C[i, j])
                 {
-                    i--;
-                    j--;
-                    if (!flags[i])
-                    {
-                        flags[i] = true;
-                        result--;
-                    }
+                    i--; j--;
+                    if (!flags[i]) { flags[i] = true; result--; }
                     first = i;
                 }
                 else if (C[i - 1, j] == C[i, j])
                     i--;
-                else// if (C[i, j - 1] == C[i, j])
+                else
                     j--;
             }
-
-            if (LCS_L <= (last - first + 1) >> 1)
-                return -1;
+            if (LCS_L <= (last - first + 1) >> 1) return -1;
         }
 
         return result;
@@ -810,12 +715,7 @@ public static class StringHelper
     public static IEnumerable<T> LCSSearch<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count = -1)
     {
         var rs = LCS(list, keys, keySelector);
-
-        if (count >= 0)
-            rs = rs.OrderBy(e => e.Value).Take(count);
-        else
-            rs = rs.OrderBy(e => e.Value);
-
+        rs = count >= 0 ? rs.OrderBy(e => e.Value).Take(count) : rs.OrderBy(e => e.Value);
         return rs.Select(e => e.Key);
     }
     #endregion
@@ -846,7 +746,7 @@ public static class StringHelper
             var dist = ks.Sum(e =>
             {
                 var kv = Match(name, e, e.Length);
-                return kv.Key - kv.Value * 0.1;
+                return kv.Key - kv.Value * 0.1; // 命中数 - (跳过数 * 惩罚系数)
             });
             if (dist > 0)
             {
@@ -877,12 +777,8 @@ public static class StringHelper
         var m = 0;
         // key下一次要匹配的位置
         var k = 0;
-
-        // 总匹配数
-        var match = 0;
-        // 跳过次数
-        var skip = 0;
-
+        var match = 0; // 总匹配数
+        var skip = 0;  // 跳过次数
         while (skip <= maxError && k < key.Length)
         {
             // 向前逐个匹配
@@ -921,24 +817,16 @@ public static class StringHelper
     public static IEnumerable<T> Match<T>(this IEnumerable<T> list, String keys, Func<T, String> keySelector, Int32 count, Double confidence = 0.5)
     {
         var rs = Match(list, keys, keySelector).Where(e => e.Value >= confidence);
-
-        if (count >= 0)
-            rs = rs.OrderByDescending(e => e.Value).Take(count);
-        else
-            rs = rs.OrderByDescending(e => e.Value);
-
+        rs = count >= 0 ? rs.OrderByDescending(e => e.Value).Take(count) : rs.OrderByDescending(e => e.Value);
         return rs.Select(e => e.Key);
     }
     #endregion
 
     #region 文字转语音
-    private static NewLife.Extension.SpeakProvider? _provider;
-    //private static System.Speech.Synthesis.SpeechSynthesizer _provider;
+    private static NewLife.Extension.SpeakProvider? _provider; // 延迟初始化，避免未使用时加载语音组件
     [MemberNotNull(nameof(_provider))]
     static void Init()
     {
-        //_provider = new Speech.Synthesis.SpeechSynthesizer();
-        //_provider.SetOutputToDefaultAudioDevice();
         _provider ??= new NewLife.Extension.SpeakProvider();
     }
 
@@ -968,18 +856,10 @@ public static class StringHelper
     public static void SpeechTip(this String value)
     {
         if (!EnableSpeechTip) return;
-
-        try
-        {
-            SpeakAsync(value);
-        }
-        catch { }
+        try { SpeakAsync(value); } catch { }
     }
 
-    /// <summary>
-    /// 停止所有语音播报
-    /// </summary>
-    /// <param name="value"></param>
+    /// <summary>停止所有语音播报</summary>
     public static String SpeakAsyncCancelAll(this String value)
     {
         Init();
