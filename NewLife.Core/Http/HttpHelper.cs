@@ -2,6 +2,7 @@
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Net.Http; // 补充：旧框架目标下无隐式全局 using，需要显式引用
 using System.Reflection;
 using System.Text;
 using NewLife.Caching;
@@ -16,12 +17,18 @@ using NewLife.Xml;
 namespace NewLife.Http;
 
 /// <summary>Http帮助类</summary>
+/// <remarks>
+/// 1. 兼容多 TargetFramework（含 .NET Framework 4.5 起）
+/// 2. 内部提供常用 Post / Get / 表单 / 多段上传等扩展
+/// 3. 通过 <see cref="Tracer"/> 注入链路追踪；<see cref="Filter"/> 可拦截请求/响应/异常
+/// 4. <see cref="CreateHandler"/> 提供自定义 <see cref="SocketsHttpHandler"/> 以解决 DNS 变更缓存 & 自定义证书验证
+/// </remarks>
 public static class HttpHelper
 {
     /// <summary>性能跟踪器</summary>
     public static ITracer? Tracer { get; set; } = DefaultTracer.Instance;
 
-    /// <summary>Http过滤器</summary>
+    /// <summary>Http过滤器。可在请求前后及异常时介入</summary>
     public static IHttpFilter? Filter { get; set; }
 
     /// <summary>默认用户浏览器UserAgent。用于内部创建的HttpClient请求</summary>
@@ -35,6 +42,7 @@ public static class HttpHelper
         {
             var aname = asm.GetName();
             var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+            // 仅当 OS 字符串为纯 UTF8 单字节（ASCII 子集）时附加，避免非 ASCII 引起的某些网关解析问题
             if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
                 DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
             else
@@ -43,9 +51,7 @@ public static class HttpHelper
     }
 
     #region 默认封装
-    /// <summary>设置浏览器UserAgent。默认使用应用名和版本</summary>
-    /// <param name="client"></param>
-    /// <returns></returns>
+    /// <summary>设置浏览器UserAgent。默认使用应用名和版本（仅当未手动设置）</summary>
     public static HttpClient SetUserAgent(this HttpClient client)
     {
         var userAgent = DefaultUserAgent;
@@ -71,12 +77,11 @@ public static class HttpHelper
     /// </remarks>
     /// <param name="useProxy">是否使用代理</param>
     /// <param name="useCookie">是否使用Cookie</param>
-    /// <param name="ignoreSSL">是否忽略证书检验</param>
-    /// <returns></returns>
+    /// <param name="ignoreSSL">是否忽略证书检验（仅测试/内网场景使用）</param>
     public static HttpMessageHandler CreateHandler(Boolean useProxy, Boolean useCookie, Boolean ignoreSSL)
     {
 #if NET5_0_OR_GREATER
-        var hander = new SocketsHttpHandler
+        var handler = new SocketsHttpHandler
         {
             UseProxy = useProxy,
             UseCookies = useCookie,
@@ -87,15 +92,14 @@ public static class HttpHelper
 
         if (ignoreSSL)
         {
-            hander.SslOptions = new SslClientAuthenticationOptions
+            handler.SslOptions = new SslClientAuthenticationOptions
             {
-                RemoteCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+                RemoteCertificateValidationCallback = (_, _, _, _) => true
             };
         }
-
-        return hander;
+        return handler;
 #elif NETCOREAPP3_0_OR_GREATER
-        var hander = new SocketsHttpHandler
+        var handler = new SocketsHttpHandler
         {
             UseProxy = useProxy,
             UseCookies = useCookie,
@@ -105,15 +109,15 @@ public static class HttpHelper
 
         if (ignoreSSL)
         {
-            hander.SslOptions = new SslClientAuthenticationOptions
+            handler.SslOptions = new SslClientAuthenticationOptions
             {
-                RemoteCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+                RemoteCertificateValidationCallback = (_, _, _, _) => true
             };
         }
-
-        return hander;
+        return handler;
 #else
-        var hander = new HttpClientHandler
+        // 旧框架使用 HttpClientHandler（不支持自定义 ConnectCallback）。忽略证书为全局副作用，谨慎使用。
+        var handler = new HttpClientHandler
         {
             UseProxy = useProxy,
             UseCookies = useCookie,
@@ -121,11 +125,8 @@ public static class HttpHelper
         };
 
         if (ignoreSSL)
-        {
-            ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
-        }
-
-        return hander;
+            ServicePointManager.ServerCertificateValidationCallback = (_, _, _, _) => true;
+        return handler;
 #endif
     }
 
@@ -140,10 +141,7 @@ public static class HttpHelper
         var method = context.InitialRequestMessage.Method?.ToString() ?? "Connect";
         using var span = Tracer?.NewSpan($"net:{dep.Host}:{dep.Port}:{method}");
 
-        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp)
-        {
-            NoDelay = true
-        };
+        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
         try
         {
             var ep = context.DnsEndPoint;
@@ -157,10 +155,7 @@ public static class HttpHelper
         catch (Exception ex)
         {
             span?.SetError(ex, null);
-
-            if (ex is SocketException se)
-                Tracer?.NewError($"socket:SocketError-{se.SocketErrorCode}", se);
-
+            if (ex is SocketException se) Tracer?.NewError($"socket:SocketError-{se.SocketErrorCode}", se);
             socket.Dispose();
             throw;
         }
@@ -171,7 +166,7 @@ public static class HttpHelper
     #endregion
 
     #region Http封包解包
-    /// <summary>创建请求包</summary>
+    /// <summary>创建请求包（低层轻量封包构造，仅用于内部或自定义 Tcp 级交互，不等价于 <see cref="HttpRequestMessage"/>）</summary>
     /// <param name="method"></param>
     /// <param name="uri"></param>
     /// <param name="headers"></param>
@@ -181,57 +176,38 @@ public static class HttpHelper
     {
         var count = pk?.Total ?? 0;
         if (method.IsNullOrEmpty()) method = count > 0 ? "POST" : "GET";
+        uri ??= new Uri("/"); // 兜底，确保 PathAndQuery 可用
 
-        // 分解主机和资源
-        var host = "";
-        if (uri == null) uri = new Uri("/");
-
-        if (uri.Scheme.EqualIgnoreCase("http", "ws"))
-        {
-            if (uri.Port == 80)
-                host = uri.Host;
-            else
-                host = $"{uri.Host}:{uri.Port}";
-        }
-        else if (uri.Scheme.EqualIgnoreCase("https"))
-        {
-            if (uri.Port == 443)
-                host = uri.Host;
-            else
-                host = $"{uri.Host}:{uri.Port}";
-        }
+        var host = GetHost(uri);
 
         // 构建头部
         var sb = Pool.StringBuilder.Get();
         sb.AppendFormat("{0} {1} HTTP/1.1\r\n", method, uri.PathAndQuery);
-        sb.AppendFormat("Host:{0}\r\n", host);
+        sb.AppendFormat("Host: {0}\r\n", host);
 
         //if (Compressed) sb.AppendLine("Accept-Encoding:gzip, deflate");
         //if (KeepAlive) sb.AppendLine("Connection:keep-alive");
         //if (!UserAgent.IsNullOrEmpty()) sb.AppendFormat("User-Agent:{0}\r\n", UserAgent);
 
         // 内容长度
-        if (count > 0) sb.AppendFormat("Content-Length:{0}\r\n", count);
+        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
 
         if (headers != null)
         {
             foreach (var item in headers)
             {
-                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                // 按 RFC 建议，在冒号后加空格以提升可读性
+                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
         }
 
         sb.Append("\r\n");
 
-        //return sb.ToString();
-        var rs = new ArrayPacket(sb.Return(true).GetBytes())
-        {
-            Next = pk
-        };
+        var rs = new ArrayPacket(sb.Return(true).GetBytes()) { Next = pk };
         return rs;
     }
 
-    /// <summary>创建响应包</summary>
+    /// <summary>创建响应包（低层轻量封包构造）</summary>
     /// <param name="code"></param>
     /// <param name="headers"></param>
     /// <param name="pk"></param>
@@ -244,28 +220,23 @@ public static class HttpHelper
 
         // 内容长度
         var count = pk?.Total ?? 0;
-        if (count > 0) sb.AppendFormat("Content-Length:{0}\r\n", count);
-
+        if (count > 0) sb.AppendFormat("Content-Length: {0}\r\n", count);
         if (headers != null)
         {
             foreach (var item in headers)
             {
-                sb.AppendFormat("{0}:{1}\r\n", item.Key, item.Value);
+                sb.AppendFormat("{0}: {1}\r\n", item.Key, item.Value);
             }
         }
 
         sb.Append("\r\n");
 
-        //return sb.ToString();
-        var rs = new ArrayPacket(sb.Return(true).GetBytes())
-        {
-            Next = pk
-        };
+        var rs = new ArrayPacket(sb.Return(true).GetBytes()) { Next = pk };
         return rs;
     }
 
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
-    /// <summary>分析头部</summary>
+    /// <summary>分析头部（修改原 <see cref="Packet"/>，截去首段头部）</summary>
     /// <param name="pk"></param>
     /// <returns></returns>
     public static IDictionary<String, Object> ParseHeader(Packet pk)
@@ -278,40 +249,30 @@ public static class HttpHelper
 
         // 截取
         var lines = pk.ReadBytes(0, p).ToStr().Split("\r\n");
-        // 重构
-        p += 4;
+        p += 4; // 跳过 CRLFCRLF
         pk.Set(pk.Data, pk.Offset + p, pk.Count - p);
 
         // 分析头部
         headers.Clear();
-        var line = lines[0];
         for (var i = 1; i < lines.Length; i++)
         {
-            line = lines[i];
-            p = line.IndexOf(':');
-            if (p > 0) headers[line[..p]] = line[(p + 1)..].Trim();
+            var line = lines[i];
+            var k = line.IndexOf(':');
+            if (k > 0) headers[line[..k]] = line[(k + 1)..].Trim();
         }
 
-        line = lines[0];
-        var ss = line.Split(' ');
-        // 分析请求方法 GET / HTTP/1.1
+        var first = lines.Length > 0 ? lines[0] : "";
+        var ss = first.Split(' ');
         if (ss.Length >= 3 && ss[2].StartsWithIgnoreCase("HTTP/"))
         {
             headers["Method"] = ss[0];
 
             // 构造资源路径
             var host = headers.TryGetValue("Host", out var s) ? s : "";
-            var uri = $"http://{host}";
-            //var uri = "{0}://{1}".F(IsSSL ? "https" : "http", host);
-            //if (host.IsNullOrEmpty() || !host.Contains(":"))
-            //{
-            //    var port = Local.Port;
-            //    if (IsSSL && port != 443 || !IsSSL && port != 80) uri += ":" + port;
-            //}
-            uri += ss[1];
+            var uri = $"http://{host}{ss[1]}"; // 仅能猜测 http，若需 https 应由上层携带
             headers["Url"] = new Uri(uri);
         }
-        else
+        else if (ss.Length >= 2)
         {
             // 分析响应码
             var code = ss[1].ToInt();
@@ -332,16 +293,9 @@ public static class HttpHelper
     /// <returns></returns>
     public static async Task<String> PostJsonAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent? content = null;
-        //if (data != null)
-        {
-            content = data is String str
-                ? new StringContent(str, Encoding.UTF8, "application/json")
-                : new StringContent(data.ToJson(), Encoding.UTF8, "application/json");
-        }
-
-        //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-
+        var content = data is String str
+            ? new StringContent(str, Encoding.UTF8, "application/json")
+            : new StringContent(data.ToJson(), Encoding.UTF8, "application/json");
         return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
@@ -362,17 +316,9 @@ public static class HttpHelper
     /// <returns></returns>
     public static async Task<String> PostXmlAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
-        HttpContent? content = null;
-        //if (data != null)
-        {
-            content = data is String str
-                ? new StringContent(str, Encoding.UTF8, "application/xml")
-                : new StringContent(data.ToXml(), Encoding.UTF8, "application/xml");
-        }
-
-        //if (headers == null && client.DefaultRequestHeaders.Accept.Count == 0) client.DefaultRequestHeaders.Accept.ParseAdd("application/xml");
-        //client.AddHeaders(headers);
-
+        var content = data is String str
+            ? new StringContent(str, Encoding.UTF8, "application/xml")
+            : new StringContent(data.ToXml(), Encoding.UTF8, "application/xml");
         return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
@@ -394,53 +340,41 @@ public static class HttpHelper
     public static async Task<String> PostFormAsync(this HttpClient client, String requestUri, Object data, IDictionary<String, String>? headers = null, CancellationToken cancellationToken = default)
     {
         HttpContent? content = null;
-        //if (data != null)
+        if (data is String str)
         {
-            //content = data is String str
-            //    ? new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded")
-            //    : (
-            //        data is IDictionary<String, String?> dic
-            //        ? new FormUrlEncodedContent(dic)
-            //        : new FormUrlEncodedContent(data.ToDictionary().ToDictionary(e => e.Key, e => e.Value + ""))
-            //    );
-
-            if (data is String str)
-            {
-                content = new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded");
-            }
-#if NET5_0_OR_GREATER
-            else if (data is IDictionary<String?, String?> dic)
-            {
-                content = new FormUrlEncodedContent(dic);
-            }
-            else
-            {
-                var list = new List<KeyValuePair<String?, String?>>();
-                //var dic2 = new Dictionary<String, String?>();
-                foreach (var item in data.ToDictionary())
-                {
-                    //dic2[item.Key + ""] = item.Value + "";
-                    list.Add(new KeyValuePair<String?, String?>(item.Key, item.Value + ""));
-                }
-                content = new FormUrlEncodedContent(list);
-            }
-#else
-            else if (data is IDictionary<String, String> dic)
-            {
-                content = new FormUrlEncodedContent(dic);
-            }
-            else
-            {
-                var dic2 = new Dictionary<String, String>();
-                foreach (var item in data.ToDictionary())
-                {
-                    dic2[item.Key + ""] = item.Value + "";
-                }
-                content = new FormUrlEncodedContent(dic2);
-            }
-#endif
+            content = new StringContent(str, Encoding.UTF8, "application/x-www-form-urlencoded");
         }
-
+#if NET5_0_OR_GREATER
+        else if (data is IDictionary<String?, String?> dic)
+        {
+            content = new FormUrlEncodedContent(dic);
+        }
+        else
+        {
+            var list = new List<KeyValuePair<String?, String?>>();
+            //var dic2 = new Dictionary<String, String?>();
+            foreach (var item in data.ToDictionary())
+            {
+                //dic2[item.Key + ""] = item.Value + "";
+                list.Add(new KeyValuePair<String?, String?>(item.Key, item.Value + ""));
+            }
+            content = new FormUrlEncodedContent(list);
+        }
+#else
+        else if (data is IDictionary<String, String> dic)
+        {
+            content = new FormUrlEncodedContent(dic);
+        }
+        else
+        {
+            var dic2 = new Dictionary<String, String>();
+            foreach (var item in data.ToDictionary())
+            {
+                dic2[item.Key + ""] = item.Value + "";
+            }
+            content = new FormUrlEncodedContent(dic2);
+        }
+#endif
         return await PostAsync(client, requestUri, content, headers, cancellationToken).ConfigureAwait(false);
     }
 
@@ -498,19 +432,16 @@ public static class HttpHelper
 #endif
     }
 
+    /// <summary>内部统一 Post 发送逻辑，支持 Filter / Tracer</summary>
     private static async Task<String> PostAsync(HttpClient client, String requestUri, HttpContent content, IDictionary<String, String>? headers, CancellationToken cancellationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
-        {
-            Content = content
-        };
-
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
         if (headers != null)
         {
             foreach (var item in headers)
             {
                 request.Headers.Add(item.Key, item.Value);
-            }
+        }
         }
 
         // 设置接受 mediaType
@@ -562,16 +493,14 @@ public static class HttpHelper
 
         foreach (var item in headers)
         {
-            //判断请求头中是否已存在，存在先删除，再添加
-            if (client.DefaultRequestHeaders.Contains(item.Key))
-                client.DefaultRequestHeaders.Remove(item.Key);
+            if (client.DefaultRequestHeaders.Contains(item.Key)) client.DefaultRequestHeaders.Remove(item.Key);
             client.DefaultRequestHeaders.Add(item.Key, item.Value);
         }
 
         return client;
     }
 
-    /// <summary>下载文件</summary>
+    /// <summary>下载文件到本地（覆盖/创建）</summary>
     /// <param name="client">Http客户端</param>
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="fileName">目标文件名</param>
@@ -586,7 +515,7 @@ public static class HttpHelper
         fs.SetLength(fs.Position);
     }
 
-    /// <summary>下载文件</summary>
+    /// <summary>下载文件到本地（可取消）</summary>
     /// <param name="client">Http客户端</param>
     /// <param name="requestUri">请求资源地址</param>
     /// <param name="fileName">目标文件名</param>
@@ -691,7 +620,7 @@ public static class HttpHelper
     /// <returns></returns>
     public static Task ConsumeAndPushAsync(this WebSocket socket, ICache host, String topic, CancellationTokenSource source) => ConsumeAndPushAsync(socket, host.GetQueue<String>(topic), null, source);
 
-    /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+    /// <summary>从队列消费消息并推送到System.Net.WebSockets客户端</summary>
     /// <param name="socket">WebSocket实例</param>
     /// <param name="queue">队列</param>
     /// <param name="onProcess">数据处理委托</param>
@@ -730,7 +659,7 @@ public static class HttpHelper
         }
     }
 
-    /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
+    /// <summary>从队列消费消息并推送到System.Net.WebSockets客户端</summary>
     /// <param name="socket">WebSocket实例</param>
     /// <param name="host">缓存主机</param>
     /// <param name="topic">主题</param>
@@ -755,8 +684,7 @@ public static class HttpHelper
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
                 {
                     var str = buf.ToStr(null, 0, data.Count);
-                    if (!str.IsNullOrEmpty())
-                        onReceive?.Invoke(str);
+                    if (!str.IsNullOrEmpty()) onReceive?.Invoke(str);
                 }
             }
 
@@ -775,6 +703,21 @@ public static class HttpHelper
         {
             source.Cancel();
         }
+    }
+    #endregion
+
+    #region 辅助
+    /// <summary>根据 Uri 计算 Host 头（含端口）；支持 http/https/ws/wss</summary>
+    private static String GetHost(Uri uri)
+    {
+        if (uri == null) return String.Empty;
+        var port = uri.Port;
+        return uri.Scheme.ToLowerInvariant() switch
+        {
+            "http" or "ws" => port == 80 ? uri.Host : $"{uri.Host}:{port}",
+            "https" or "wss" => port == 443 ? uri.Host : $"{uri.Host}:{port}",
+            _ => uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{port}"
+        };
     }
     #endregion
 }
