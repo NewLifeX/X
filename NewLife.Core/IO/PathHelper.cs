@@ -224,9 +224,7 @@ public static class PathHelper
 
         if (count < 0) count = (Int32)(fs.Length - offset);
 
-        var buf = new Byte[count];
-        fs.ReadExactly(buf, 0, buf.Length);
-        return buf;
+        return fs.ReadExactly(count);
     }
 
     /// <summary>把数据写入文件指定位置</summary>

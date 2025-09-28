@@ -191,10 +191,7 @@ public static class IOHelper
 
         if (len > MaxSafeArraySize) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", len, MaxSafeArraySize);
 
-        var buf = new Byte[len];
-        des.ReadExactly(buf, 0, buf.Length);
-
-        return buf;
+        return des.ReadExactly(len);
     }
 
     /// <summary>写入Unix格式时间，1970年以来秒数，绝对时间，非UTC</summary>
@@ -281,13 +278,36 @@ public static class IOHelper
     /// <remarks>
     /// 主要为了对抗net6开始对Stream.Read的微调。
     /// https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
+    /// 功能：尝试从 <paramref name="stream"/> 连续读取 <paramref name="count"/> 个字节写入 <paramref name="buffer"/>（起始于 <paramref name="offset"/>）。若底层流在填满前结束，则抛出 <see cref="EndOfStreamException"/>。
+    /// 设计背景：.NET 6 起基础库强调 <c>Stream.Read</c> 可能返回“部分数据”（partial read），调用方需自行循环；旧代码里大量“假设一次读满”逻辑会潜在失效。该方法提供一个语义清晰的“精准填充”入口，避免重复样板循环。
+    /// 内部实现：调用 <see cref="ReadAtLeast(Stream,Byte[],Int32,Int32,Int32,Boolean)"/>，将 <c>minimumBytes = count</c> 且 <c>throwOnEndOfStream = true</c>，保证要么读取足量要么抛异常。
+    /// 性能：仅在调用方提供的缓冲区内循环读取，无额外数组租借 / 复制；适合高频固定长度结构（协议头、长度前缀、魔数校验等）。
+    /// 使用建议：
+    /// <list type="bullet">
+    /// <item><description>需严格保证字节数 → 使用本方法。</description></item>
+    /// <item><description>允许不足（探测 EOF / 非阻塞流）→ 使用 <see cref="ReadAtLeast(Stream,Byte[],Int32,Int32,Int32,Boolean)"/> 并设置 <c>throwOnEndOfStream = false</c>。</description></item>
+    /// <item><description>需分配新数组 → 使用 <see cref="ReadExactly(Stream, Int32)"/> 重载。</description></item>
+    /// </list>
+    /// 边界：当 <paramref name="count"/> == 0 时立即返回 0；参数越界/空引用异常行为与 CLR / <c>Stream.Read</c> 保持一致。
+    /// 兼容：在所有支持的目标框架上行为一致，避免不同运行时对 <c>Read</c> 语义的潜在差异。
     /// </remarks>
-    /// <param name="stream"></param>
-    /// <param name="buffer"></param>
-    /// <param name="offset"></param>
-    /// <param name="count"></param>
-    /// <returns></returns>
+    /// <param name="stream">源数据流，必须可读。</param>
+    /// <param name="buffer">目标缓冲区，必须有足够空间容纳 <paramref name="offset"/> + <paramref name="count"/>。</param>
+    /// <param name="offset">写入起始偏移。</param>
+    /// <param name="count">期望读取且必须精确填充的字节数 (>=0)。</param>
+    /// <returns>成功时返回读取的总字节数（恒等于 <paramref name="count"/>；当 <paramref name="count"/> == 0 返回 0）。</returns>
     public static Int32 ReadExactly(this Stream stream, Byte[] buffer, Int32 offset, Int32 count) => ReadAtLeast(stream, buffer, offset, count, count, true);
+
+    /// <summary>读取指定数量字节数据（精确填充）。</summary>
+    /// <param name="stream">源数据流，必须可读。</param>
+    /// <param name="count">期望读取的精确字节数，需 >= 0。</param>
+    /// <returns>长度恰为 <paramref name="count"/> 的新字节数组。</returns>
+    public static Byte[] ReadExactly(this Stream stream, Int64 count)
+    {
+        var buf = new Byte[count];
+        ReadAtLeast(stream, buf, 0, buf.Length, (Int32)count, true);
+        return buf;
+    }
 
     /// <summary>从流中读取数据到缓冲区，至少读取指定字节数</summary>
     /// <remarks>
@@ -328,6 +348,8 @@ public static class IOHelper
     /// <param name="minimumBytes">期望至少读取的字节数（下限）。若超过 <paramref name="count"/> 将被截断</param>
     /// <param name="throwOnEndOfStream">到达流末尾且未满足最小字节数时是否抛异常</param>
     /// <returns>实际读取的字节数，范围 [0, count]</returns>
+    /// <exception cref="EndOfStreamException">实际可用数据不足 <paramref name="count"/>。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="count"/> 为负值（由 CLR 在数组分配时触发）。</exception>
     public static Int32 ReadAtLeast(this Stream stream, Byte[] buffer, Int32 offset, Int32 count, Int32 minimumBytes, Boolean throwOnEndOfStream = true)
     {
         if (minimumBytes < 0) throw new ArgumentOutOfRangeException(nameof(minimumBytes));
@@ -374,9 +396,7 @@ public static class IOHelper
         {
             //!!! Stream.Read 的官方设计从未承诺填满缓冲区，需要用户自己多次读取
             // https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/partial-byte-reads-in-streams
-            var buf = new Byte[length];
-            stream.ReadExactly(buf, 0, buf.Length);
-            return buf;
+            return stream.ReadExactly(length);
         }
 
         // 支持搜索
@@ -385,9 +405,7 @@ public static class IOHelper
             // 如果指定长度超过数据流长度，就让其报错，因为那是调用者所期望的值
             length = (Int32)(stream.Length - stream.Position);
 
-            var buf = new Byte[length];
-            stream.ReadExactly(buf, 0, buf.Length);
-            return buf;
+            return stream.ReadExactly(length);
         }
 
         // 如果要读完数据，又不支持定位，则采用内存流搬运

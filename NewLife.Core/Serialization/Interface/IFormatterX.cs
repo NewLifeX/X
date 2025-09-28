@@ -120,9 +120,7 @@ public abstract class FormatterBase //: IFormatterX
 
         ms.Position = start;
 
-        var buf = new Byte[pos - start];
-        ms.ReadExactly(buf, 0, buf.Length);
-        return buf;
+        return ms.ReadExactly(pos - start);
     }
 
     /// <summary>获取流里面的数据包</summary>

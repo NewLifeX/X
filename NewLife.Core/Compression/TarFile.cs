@@ -502,9 +502,7 @@ public class TarEntry
         }
         else
         {
-            var buf = new Byte[FileSize];
-            stream.ReadExactly(buf, 0, buf.Length);
-            //var buf = stream.ReadBytes(FileSize);
+            var buf = stream.ReadExactly(FileSize);
             _stream = new MemoryStream(buf);
             _position = 0;
 
