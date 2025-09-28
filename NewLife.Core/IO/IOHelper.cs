@@ -287,16 +287,65 @@ public static class IOHelper
     /// <param name="offset"></param>
     /// <param name="count"></param>
     /// <returns></returns>
-    public static Int32 ReadExactly(this Stream stream, Byte[] buffer, Int32 offset, Int32 count)
+    public static Int32 ReadExactly(this Stream stream, Byte[] buffer, Int32 offset, Int32 count) => ReadAtLeast(stream, buffer, offset, count, count, true);
+
+    /// <summary>从流中读取数据到缓冲区，至少读取指定字节数</summary>
+    /// <remarks>
+    /// 功能：在不超过 <paramref name="count"/> 的前提下，尽量读取不少于 <paramref name="minimumBytes"/> 个字节，并返回本次实际读取量。若底层流过早结束且未满足最小需求，根据 <paramref name="throwOnEndOfStream"/> 决定是否抛出 <see cref="EndOfStreamException"/>。
+    /// <para>性能背景：.NET (7/8+) 运行库只提供基于 <c>Span&lt;Byte&gt;</c> 的 <c>Stream.ReadAtLeast(Span&lt;Byte&gt; buffer, int minimumBytes, bool throwOnEndOfStream)</c> 重载。对于仅覆写传统 <c>Read(byte[], int, int)</c> 的自定义流，基类 <c>Read(Span&lt;Byte&gt;)</c> 默认实现流程：</para>
+    /// <list type="number">
+    /// <item><description>向 <see cref="System.Buffers.ArrayPool{T}"/> 租借临时字节数组。</description></item>
+    /// <item><description>调用旧版 <c>Read(byte[], int, int)</c> 填充。</description></item>
+    /// <item><description>将数据从临时数组拷贝回调用方 <c>Span</c>。</description></item>
+    /// <item><description>归还租借数组。</description></item>
+    /// </list>
+    /// 该过程引入额外租借与复制，在高频/小块读取场景下有额外开销与 GC 压力。本实现直接使用调用方传入的 <see cref="Byte[]"/>（携带 offset/count），避免：
+    /// <list type="bullet">
+    /// <item><description>额外数组租借与释放</description></item>
+    /// <item><description>二次内存复制</description></item>
+    /// <item><description>小块循环读取的池命中成本</description></item>
+    /// </list>
+    /// 语义：与 .NET ReadAtLeast 语义对齐（满足最小值，否则可选抛异常），但只提供数组版以复用现有缓冲策略（对象池 / 环形缓冲 / 协议解析缓存）。
+    /// 参数与返回：
+    /// <list type="bullet">
+    /// <item><description><paramref name="minimumBytes"/> 必须处于 [0, count]</description></item>
+    /// <item><description>返回值范围 [0, count]</description></item>
+    /// <item><description><paramref name="minimumBytes"/> == 0 或 <paramref name="count"/> == 0 时快速返回 0</description></item>
+    /// <item><description>若 <paramref name="throwOnEndOfStream"/> = true 且未达最小值，抛出 <see cref="EndOfStreamException"/></description></item>
+    /// </list>
+    /// 使用建议：
+    /// <list type="bullet">
+    /// <item><description>需要“尽量一次填满协议头 / 固定长度结构”时使用</description></item>
+    /// <item><description>必须严格保证长度：设置 <paramref name="throwOnEndOfStream"/> = true</description></item>
+    /// <item><description>允许提前结束（如文件截断/半关闭连接）：设置为 false 并检查返回值</description></item>
+    /// </list>
+    /// 边界与校验：显式检查偏移、长度、最小值；无内部线程安全；调用方需保证并发模型正确。
+    /// </remarks>
+    /// <param name="stream">源数据流</param>
+    /// <param name="buffer">目标缓冲区</param>
+    /// <param name="offset">写入起始偏移</param>
+    /// <param name="count">最多尝试读取的字节数（上限）</param>
+    /// <param name="minimumBytes">期望至少读取的字节数（下限）。若超过 <paramref name="count"/> 将被截断</param>
+    /// <param name="throwOnEndOfStream">到达流末尾且未满足最小字节数时是否抛异常</param>
+    /// <returns>实际读取的字节数，范围 [0, count]</returns>
+    public static Int32 ReadAtLeast(this Stream stream, Byte[] buffer, Int32 offset, Int32 count, Int32 minimumBytes, Boolean throwOnEndOfStream = true)
     {
-        //if (count < 0) count = buffer.Length - offset;
+        if (minimumBytes < 0) throw new ArgumentOutOfRangeException(nameof(minimumBytes));
+        if (minimumBytes > count) throw new ArgumentOutOfRangeException(nameof(minimumBytes));
+
+        // 快速返回：无需最小读取或没有读取空间。
+        if (minimumBytes == 0 || count == 0) return 0;
 
         var totalRead = 0;
-        while (totalRead < count)
+        while (totalRead < minimumBytes)
         {
             var bytesRead = stream.Read(buffer, offset + totalRead, count - totalRead);
-            if (bytesRead == 0) break;
-
+            if (bytesRead == 0)
+            {
+                // 到达 EOF，若未满足 minimumBytes 并要求抛异常，则抛出（与 .NET ReadAtLeast 一致）。
+                if (throwOnEndOfStream) throw new EndOfStreamException($"Unable to read the required minimum number of bytes. Expected {minimumBytes}, actual {totalRead}.");
+                break;
+            }
             totalRead += bytesRead;
         }
 

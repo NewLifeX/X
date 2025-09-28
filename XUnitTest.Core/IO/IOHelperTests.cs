@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -254,4 +250,138 @@ public class IOHelperTests
         var buf3 = value.GetBytes(false);
         Assert.Equal(buf, buf3);
     }
+
+    #region ReadAtLeast Tests
+    [Fact(DisplayName = "ReadAtLeast-正常读取达到最小值")]
+    public void ReadAtLeast_Normal()
+    {
+        var src = Enumerable.Range(1, 10).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        var n = IOHelper.ReadAtLeast(ms, buf, 0, 10, 6, true);
+        Assert.True(n >= 6);
+        Assert.Equal(src.AsSpan(0, n).ToArray(), buf.AsSpan(0, n).ToArray());
+    }
+
+    [Fact(DisplayName = "ReadAtLeast-EOF抛异常")]
+    public void ReadAtLeast_ThrowOnEOF()
+    {
+        var src = new Byte[] {1,2,3};
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        Assert.Throws<EndOfStreamException>(() => IOHelper.ReadAtLeast(ms, buf, 0, 10, 5, true));
+    }
+
+    [Fact(DisplayName = "ReadAtLeast-EOF不抛异常")]
+    public void ReadAtLeast_NoThrowEOF()
+    {
+        var src = new Byte[] {1,2,3};
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        var n = IOHelper.ReadAtLeast(ms, buf, 0, 10, 5, false);
+        Assert.Equal(3, n);
+    }
+
+    [Fact(DisplayName = "ReadAtLeast-minimum为0快速返回")]
+    public void ReadAtLeast_MinZero()
+    {
+        var src = new Byte[] {1,2,3};
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = IOHelper.ReadAtLeast(ms, buf, 0, 3, 0, true);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position); // 未读取
+    }
+
+    [Fact(DisplayName = "ReadAtLeast-count为0快速返回")]
+    public void ReadAtLeast_CountZero()
+    {
+        var src = new Byte[] {1,2,3};
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = IOHelper.ReadAtLeast(ms, buf, 0, 0, 0, true);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadAtLeast-参数异常验证")]
+    public void ReadAtLeast_ParamErrors()
+    {
+        using var ms = new MemoryStream(new Byte[] {1});
+        var buf = new Byte[5];
+        Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, -1, 1, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, 0, -1, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, 0, 5, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, 0, 5, 6));
+        Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, 4, 2, 1)); // count 越界
+    }
+    #endregion
+
+    #region ReadExactly Tests
+    // 模拟底层流每次只返回 1 字节，触发多轮循环
+    private sealed class SlowReadStream : MemoryStream
+    {
+        public SlowReadStream(Byte[] data) : base(data) { }
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count) => base.Read(buffer, offset, Math.Min(1, count));
+    }
+
+    [Fact(DisplayName = "ReadExactly-正常完整读取")]
+    public void ReadExactly_Normal()
+    {
+        var src = Enumerable.Range(0, 16).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[16];
+        var n = IOHelper.ReadExactly(ms, buf, 0, 16);
+        Assert.Equal(16, n);
+        Assert.Equal(src, buf);
+    }
+
+    [Fact(DisplayName = "ReadExactly-底层分段多次循环")]
+    public void ReadExactly_MultiLoop()
+    {
+        var src = Enumerable.Range(1, 8).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadStream(src);
+        var buf = new Byte[8];
+        var n = IOHelper.ReadExactly(ms, buf, 0, 8);
+        Assert.Equal(8, n);
+        Assert.Equal(src, buf);
+    }
+
+    [Fact(DisplayName = "ReadExactly-数据不足抛出异常")]
+    public void ReadExactly_EOF_Throws()
+    {
+        var src = new Byte[] { 10, 11, 12 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[5];
+        Assert.Throws<EndOfStreamException>(() => IOHelper.ReadExactly(ms, buf, 0, 5));
+    }
+
+    [Fact(DisplayName = "ReadExactly-偏移写入正确不破坏前缀")]
+    public void ReadExactly_WithOffset()
+    {
+        var src = new Byte[] { 1, 2, 3, 4 };
+        using var ms = new MemoryStream(src);
+        var buf = Enumerable.Repeat((Byte)0xCC, 10).ToArray();
+        var n = IOHelper.ReadExactly(ms, buf, 2, 4);
+        Assert.Equal(4, n);
+        // 前缀保持
+        Assert.True(buf[0] == 0xCC && buf[1] == 0xCC);
+        // 数据写入
+        Assert.Equal(src, buf.Skip(2).Take(4).ToArray());
+        // 尾部保持
+        Assert.True(buf.Skip(6).All(b => b == 0xCC));
+    }
+
+    [Fact(DisplayName = "ReadExactly-count为0快速返回且不移动位置")]
+    public void ReadExactly_CountZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = IOHelper.ReadExactly(ms, buf, 0, 0);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position);
+        Assert.True(buf.All(b => b == 0));
+    }
+    #endregion
 }
