@@ -27,6 +27,10 @@ public ref struct SpanReader
     public readonly Int32 Capacity => _span.Length;
 
     /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
+    [Obsolete("=>Available")]
+    public readonly Int32 FreeCapacity => _span.Length - _index;
+
+    /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
     public readonly Int32 Available => _span.Length - _index;
 
     /// <summary>是否小端字节序。默认 true</summary>
@@ -353,9 +357,6 @@ public ref struct SpanReader
     /// <summary>读取数据包（底层切片，不复制）。不触发流扩容。</summary>
     /// <remarks>
     /// 本方法直接在底层 <see cref="IPacket"/> 上进行切片并返回新数据包，避免任何数据拷贝；
-    /// 为了支持跨段（链式）数据包的零拷贝读取，此处不调用 <see cref="EnsureSpace(int)"/>，
-    /// 否则当当前 <see cref="Span"/> 不足而总长度足够时也会错误抛出异常（例如 WebSocket 头部在首段、负载在 Next 段）。
-    /// 注意：该方法不触发从流追加读取，不能与基于流扩容的模式混用；若 <paramref name="length"/> 超出剩余总长度，将由底层 <c>IPacket.Slice</c> 抛出异常。
     /// </remarks>
     /// <param name="length">要读取的字节数</param>
     /// <returns>数据包切片</returns>

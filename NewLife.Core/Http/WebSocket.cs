@@ -84,40 +84,39 @@ public class WebSocket
     public void Process(IPacket pk)
     {
         using var message = new WebSocketMessage();
-        if (message.Read(pk))
+        if (!message.Read(pk)) return;
+
+        ActiveTime = DateTime.Now;
+
+        Handler?.Invoke(this, message);
+
+        // 释放内存
+        message.Payload?.TryDispose();
+
+        var session = Context?.Connection;
+        var socket = Context?.Socket;
+        if (session == null && socket == null) return;
+
+        switch (message.Type)
         {
-            ActiveTime = DateTime.Now;
-
-            Handler?.Invoke(this, message);
-
-            // 释放内存
-            message.Payload?.TryDispose();
-
-            var session = Context?.Connection;
-            var socket = Context?.Socket;
-            if (session == null && socket == null) return;
-
-            switch (message.Type)
-            {
-                case WebSocketMessageType.Close:
+            case WebSocketMessageType.Close:
+                {
+                    Close(1000, "Finished");
+                    session?.Dispose();
+                    socket?.Dispose();
+                    Connected = false;
+                }
+                break;
+            case WebSocketMessageType.Ping:
+                {
+                    var msg = new WebSocketMessage
                     {
-                        Close(1000, "Finished");
-                        session?.Dispose();
-                        socket?.Dispose();
-                        Connected = false;
-                    }
-                    break;
-                case WebSocketMessageType.Ping:
-                    {
-                        var msg = new WebSocketMessage
-                        {
-                            Type = WebSocketMessageType.Pong,
-                            Payload = (ArrayPacket)$"Pong {DateTime.UtcNow.ToFullString()}",
-                        };
-                        Send(msg);
-                    }
-                    break;
-            }
+                        Type = WebSocketMessageType.Pong,
+                        Payload = (ArrayPacket)$"Pong {DateTime.UtcNow.ToFullString()}",
+                    };
+                    Send(msg);
+                }
+                break;
         }
     }
 
