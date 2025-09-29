@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Text.RegularExpressions;
 using NewLife.Collections;
 
 namespace NewLife.IO;
@@ -7,7 +6,13 @@ namespace NewLife.IO;
 /// <summary>Csv文件</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/csv_file
-/// 支持整体读写以及增量式读写，目标是读写超大Csv文件
+/// 支持整体读写以及增量式读写，目标是读写超大Csv文件。
+/// 读取解析实现遵循 RFC4180 基本规则：
+/// 1. 字段之间使用 <see cref="Separator"/> 分隔；
+/// 2. 含分隔符、换行、双引号的字段使用双引号包裹；
+/// 3. 字段内的双引号以两个双引号转义；
+/// 4. 允许字段内出现换行（位于成对引号内）。
+/// 旧版本按行 ReadLine + Split 方式无法正确处理含分隔符/换行的被引号包裹字段，现已改为流式逐字符状态机解析。
 /// </remarks>
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 public class CsvFile : IDisposable, IAsyncDisposable
@@ -41,8 +46,8 @@ public class CsvFile : IDisposable
     }
 
     /// <summary>Csv文件实例化</summary>
-    /// <param name="file"></param>
-    /// <param name="write"></param>
+    /// <param name="file">文件路径</param>
+    /// <param name="write">是否写入模式；写入模式用 <see cref="FileAccess.ReadWrite"/> 打开，不自动截断</param>
     public CsvFile(String file, Boolean write = false)
     {
         file = file.GetFullPath();
@@ -106,52 +111,34 @@ public class CsvFile : IDisposable
     #endregion
 
     #region 读取
-    private Int32 _columnCount;
-    /// <summary>读取一行</summary>
-    /// <returns></returns>
+    private Int32 _columnCount; // 首行列数，用于后续可能的列数校验（保持向后兼容）
+    private StreamReader? _reader;
+
+    /// <summary>读取一行（一个记录/Record）</summary>
+    /// <remarks>
+    /// 使用逐字符状态机解析，正确处理：
+    /// - 被引号包裹且内部含分隔符/CRLF
+    /// - 转义双引号 "" -> "
+    /// - 尾部空字段与空行
+    /// EOF 返回 null。
+    /// </remarks>
+    /// <returns>字段数组；EOF 返回 null</returns>
     public String[]? ReadLine()
     {
         EnsureReader();
+        if (_reader == null) return null;
 
-        var line = _reader?.ReadLine();
-        if (line == null) return null;
+        var fields = ReadRecord();
+        if (fields == null) return null;
 
-        var list = new List<String>();
+        // 记录首行列数，仅在首行赋值，向后兼容旧逻辑（不强制验证）
+        if (_columnCount == 0 && fields.Length > 0) _columnCount = fields.Length;
 
-        // 直接分解，引号合并
-        var arr = line.Split(Separator);
-        // 如果字段数不足，可能有换行符，读取后面的行
-        while (_columnCount > 0 && arr.Length < _columnCount)
-        {
-            var next = _reader?.ReadLine();
-            if (next == null) break;
-
-            line += Environment.NewLine + next;
-
-            arr = line.Split(Separator);
-        }
-        for (var i = 0; i < arr.Length; i++)
-        {
-            var txt = (arr[i] + "").Trim();
-            if (txt.Length >= 2 && txt[0] == '\"' && txt[^1] == '\"')
-            {
-                txt = txt[1..^1];
-
-                // 两个引号是一个引号的转义
-                txt = txt.Replace("\"\"", "\"");
-            }
-
-            list.Add(txt);
-        }
-
-        // 记录列数
-        if (_columnCount == 0 && list.Count > 0) _columnCount = list.Count;
-
-        return list.ToArray();
+        return fields;
     }
 
     /// <summary>读取所有行</summary>
-    /// <returns></returns>
+    /// <returns>枚举器</returns>
     public IEnumerable<String[]> ReadAll()
     {
         while (true)
@@ -163,16 +150,108 @@ public class CsvFile : IDisposable
         }
     }
 
-    private StreamReader? _reader;
+    /// <summary>核心逐字符解析。返回一条记录（字段集合）</summary>
+    /// <returns></returns>
+    private String[]? ReadRecord()
+    {
+        // EOF 情况：若尚未读取任何字符则返回 null
+        var reader = _reader!;
+
+        var fields = new List<String>();
+        var sb = Pool.StringBuilder.Get();
+        var inQuotes = false;   // 当前是否位于字段引号内
+        var firstCharInField = true; // 用于识别字段起始的引号
+        var anyChar = false;    // 本记录是否读取过任何字符
+
+        while (true)
+        {
+            var c = reader.Read();
+            if (c == -1)
+            {
+                // EOF
+                if (!anyChar)
+                {
+                    sb.Return();
+                    return null; // 完全没有数据
+                }
+                // 结束最后一个字段
+                fields.Add(sb.Return(true));
+                break;
+            }
+            anyChar = true;
+            var ch = (Char)c;
+
+            if (inQuotes)
+            {
+                if (ch == '"')
+                {
+                    // 可能的转义或结束
+                    var next = reader.Peek();
+                    if (next == '"')
+                    {
+                        reader.Read(); // 消费第二个引号
+                        sb.Append('"');
+                    }
+                    else
+                    {
+                        // 结束引号字段
+                        inQuotes = false;
+                        firstCharInField = false; // 字段已结束，引号后可能跟分隔符
+                    }
+                }
+                else
+                {
+                    sb.Append(ch);
+                }
+                continue;
+            }
+
+            // 不在引号内
+            if (firstCharInField && ch == '"')
+            {
+                inQuotes = true;
+                firstCharInField = false;
+                continue;
+            }
+
+            if (ch == Separator)
+            {
+                fields.Add(sb.Return(true));
+                sb = Pool.StringBuilder.Get();
+                firstCharInField = true;
+                continue;
+            }
+
+            if (ch == '\r')
+            {
+                // 兼容 CRLF。若下一个是 \n 则消费。
+                if (reader.Peek() == '\n') reader.Read();
+                fields.Add(sb.Return(true));
+                break;
+            }
+            if (ch == '\n')
+            {
+                fields.Add(sb.Return(true));
+                break;
+            }
+
+            sb.Append(ch);
+            firstCharInField = false;
+        }
+
+        return fields.ToArray();
+    }
+
     private void EnsureReader()
     {
+        // detectEncodingFromByteOrderMarks = true（默认），保持原行为
         _reader ??= new StreamReader(_stream, Encoding);
     }
     #endregion
 
     #region 写入
     /// <summary>写入全部</summary>
-    /// <param name="data"></param>
+    /// <param name="data">数据集合</param>
     public void WriteAll(IEnumerable<IEnumerable<Object?>> data)
     {
         foreach (var line in data)
@@ -182,7 +261,7 @@ public class CsvFile : IDisposable
     }
 
     /// <summary>写入一行</summary>
-    /// <param name="line"></param>
+    /// <param name="line">字段集合</param>
     public void WriteLine(IEnumerable<Object?> line)
     {
         EnsureWriter();
@@ -194,14 +273,12 @@ public class CsvFile : IDisposable
         _writer.WriteLine(str);
     }
 
-    /// <summary>
-    /// 写入一行
-    /// </summary>
-    /// <param name="values"></param>
+    /// <summary>写入一行</summary>
+    /// <param name="values">字段列表</param>
     public void WriteLine(params Object[] values) => WriteLine(line: values);
 
     /// <summary>异步写入一行</summary>
-    /// <param name="line"></param>
+    /// <param name="line">字段集合</param>
     public async Task WriteLineAsync(IEnumerable<Object> line)
     {
         EnsureWriter();
@@ -214,8 +291,8 @@ public class CsvFile : IDisposable
     }
 
     /// <summary>构建一行</summary>
-    /// <param name="line"></param>
-    /// <returns></returns>
+    /// <param name="line">字段集合</param>
+    /// <returns>CSV 格式化文本（不含行尾换行）</returns>
     protected virtual String BuildLine(IEnumerable<Object?> line)
     {
         var sb = Pool.StringBuilder.Get();
@@ -243,20 +320,22 @@ public class CsvFile : IDisposable
                     sb.Append('\t');
                     sb.Append(str);
                 }
-                else if (str.Contains('"'))
-                {
-                    sb.Append('\"');
-                    sb.Append(str.Replace("\"", "\"\""));
-                    sb.Append('\"');
-                }
-                else if (str.Contains(Separator) || str.Contains('\r') || str.Contains('\n'))
-                {
-                    sb.Append('\"');
-                    sb.Append(str);
-                    sb.Append('\"');
-                }
                 else
-                    sb.Append(str);
+                {
+                    // RFC4180：含 分隔符 / CR / LF / 双引号 时需要整体加双引号，内部双引号以两个双引号转义
+                    var needQuote = str.IndexOfAny(new[] { Separator, '\r', '\n', '"' }) >= 0;
+                    if (needQuote)
+                    {
+                        sb.Append('"');
+                        if (str.Contains('"')) str = str.Replace("\"", "\"\"");
+                        sb.Append(str);
+                        sb.Append('"');
+                    }
+                    else
+                    {
+                        sb.Append(str);
+                    }
+                }
             }
         }
 
