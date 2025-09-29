@@ -362,6 +362,162 @@ public class CsvDbTests
         var lines = File.ReadAllLines(db.FileName.GetFullPath());
         Assert.Equal(list.Count + 1 + 1, lines.Length);
     }
+
+    // ===== 新增覆盖测试 =====
+
+    [Fact]
+    public void WriteAppendEmpty_NoFile()
+    {
+        var db = GetDb("AppendEmpty");
+        // 追加空集合不应生成文件
+        db.Write(Array.Empty<GeoArea>(), true);
+        Assert.False(File.Exists(db.FileName));
+    }
+
+    [Fact]
+    public void Query_NotExist_ReturnEmpty()
+    {
+        var db = GetDb("QueryEmpty");
+        var rs = db.Query(null).ToList();
+        Assert.Empty(rs);
+    }
+
+    [Fact]
+    public void Remove_EmptyCollection_Return0()
+    {
+        var db = GetDb("RemoveEmpty");
+        var rs = db.Remove(new List<GeoArea>());
+        Assert.Equal(0, rs);
+    }
+
+    [Fact]
+    public void Update_NotExist_ReturnFalse()
+    {
+        var db = GetDb("UpdateNotExist");
+        var model = GetModel();
+        var rs = db.Update(model); // 没有数据文件，直接 false 分支
+        Assert.False(rs);
+    }
+
+    [Fact]
+    public void Find_NotFound_ReturnNull()
+    {
+        var db = GetDb("FindNotFound");
+        var model = GetModel();
+        db.Add(model);
+        var other = new GeoArea { Code = model.Code + 1, Name = "X" };
+        var rs = db.Find(other);
+        Assert.Null(rs);
+    }
+
+    [Fact]
+    public void Query_CountLimit()
+    {
+        var db = GetDb("QueryLimit");
+        var list = new List<GeoArea>();
+        for (var i = 0; i < 10; i++) list.Add(GetModel());
+        db.Add(list);
+        var top3 = db.Query(null, 3).ToList();
+        Assert.Equal(3, top3.Count);
+    }
+
+    [Fact]
+    public void Remove_NoFile_Return0()
+    {
+        var db = GetDb("RemoveNoFile");
+        var rs = db.Remove(x => x.Code == 1);
+        Assert.Equal(0, rs);
+    }
+
+    [Fact]
+    public void Set_UpdateFalsePath()
+    {
+        var db = GetDb("SetUpdateFalse");
+        var model = GetModel();
+        // Update(false) 分支 list.Count==0 返回 false
+        var flag = db.Update(model);
+        Assert.False(flag);
+    }
+
+    [Fact]
+    public void Transaction_CommitOnDispose()
+    {
+        var file = "data/TxnCommit.csv".GetFullPath();
+        if (File.Exists(file)) File.Delete(file);
+        var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
+        db.BeginTransaction();
+        var m = GetModel();
+        db.Add(m); // 仅缓存
+        db.Dispose(); // Dispose 自动 Commit
+        Assert.True(File.Exists(file));
+        var lines = File.ReadAllLines(file);
+        Assert.Equal(2, lines.Length);
+    }
+
+    [Fact]
+    public void Transaction_Rollback()
+    {
+        var file = "data/TxnRollback.csv".GetFullPath();
+        if (File.Exists(file)) File.Delete(file);
+        var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
+        db.BeginTransaction();
+        db.Add(GetModel());
+        db.Rollback(); // 清空缓存
+        db.Dispose(); // 不写入
+        Assert.False(File.Exists(file));
+    }
+
+    [Fact]
+    public void Transaction_ClearThenCommit()
+    {
+        var file = "data/TxnClear.csv".GetFullPath();
+        if (File.Exists(file)) File.Delete(file);
+        var db = new CsvDb<GeoArea>((a,b)=>a.Code==b.Code){ FileName = file };
+        db.BeginTransaction();
+        for (var i = 0; i < 5; i++) db.Add(GetModel());
+        db.Clear(); // 清空缓存
+        db.Commit(); // 写入空 => 只写表头
+        Assert.True(File.Exists(file));
+        var lines = File.ReadAllLines(file);
+        Assert.Single(lines);
+    }
+
+    [Fact]
+    public void CorruptedLine_Skipped()
+    {
+        var db = GetDb("Corrupt");
+        var file = db.FileName;
+        // 手工写入：表头 + 一行无效 + 一行有效
+        var header = GetHeaders().Join(",");
+        var good = GetModel();
+        var goodLine = GetValue(good).Join(",");
+        // 制造损坏：Int32 字段填非法字符串
+        var badLine = "BadName\0\0\0"; // Code, ParentCode 均非法
+        File.WriteAllText(file, header + Environment.NewLine + badLine + Environment.NewLine + goodLine);
+        db.Rollback();
+        var all = db.FindAll();
+        Assert.Single(all); // 损坏行被跳过
+        Assert.Equal(good.Code, all[0].Code);
+    }
+
+    [Fact]
+    public void FindCount_HeaderOnly()
+    {
+        var db = GetDb("HeaderOnly");
+        var file = db.FileName;
+        var header = GetHeaders().Join(",");
+        File.WriteAllText(file, header + Environment.NewLine); // 仅表头
+        var cnt = db.FindCount();
+        Assert.Equal(0, cnt);
+    }
+
+    [Fact]
+    public void FindCount_FileMissing()
+    {
+        var db = GetDb("MissingFile");
+        var cnt = db.FindCount();
+        Assert.Equal(0, cnt);
+    }
 }
 
 public class CsvDbWithTransactionTests : CsvDbTests
