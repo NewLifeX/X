@@ -21,7 +21,7 @@ namespace NewLife.Http;
 /// 1. 兼容多 TargetFramework（含 .NET Framework 4.5 起）
 /// 2. 内部提供常用 Post / Get / 表单 / 多段上传等扩展
 /// 3. 通过 <see cref="Tracer"/> 注入链路追踪；<see cref="Filter"/> 可拦截请求/响应/异常
-/// 4. <see cref="CreateHandler"/> 提供自定义 <see cref="SocketsHttpHandler"/> 以解决 DNS 变更缓存 & 自定义证书验证
+/// 4. <see cref="CreateHandler(bool, bool, bool)"/> 提供自定义 <c>SocketsHttpHandler</c> 以解决 DNS 变更缓存和自定义证书验证
 /// </remarks>
 public static class HttpHelper
 {

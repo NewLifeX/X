@@ -616,7 +616,6 @@ public static class StringHelper
     /// <summary>计算多个关键字到指定单词的加权 LCS 距离</summary>
     /// <remarks>
     /// 算法代码由@Aimeast 独立完成。http://www.cnblogs.com/Aimeast/archive/2011/09/05/2167844.html
-
     /// 最长公共子序列问题是寻找两个或多个已知数列最长的子序列。
     /// 一个数列 S，如果分别是两个或多个已知数列的子序列，且是所有符合此条件序列中最长的，则 S 称为已知序列的最长公共子序列。
     /// The longest common subsequence (LCS) problem is to find the longest subsequence common to all sequences in a set of sequences (often just two). Note that subsequence is different from a substring, see substring vs. subsequence. It is a classic computer science problem, the basis of diff (a file comparison program that outputs the differences between two files), and has applications in bioinformatics.

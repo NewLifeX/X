@@ -9,7 +9,7 @@ namespace NewLife.Http;
 /// 通过自定义 <see cref="IDnsResolver"/> 实现对域名的本地解析与多IP轮询。会把请求 Uri 中的主机替换为解析得到的 IP，并将原始域名保留在 <c>Host</c> 请求头中，
 /// 从而实现：自定义 DNS、IP 轮询、快速故障切换等能力。适用于 HTTP / HTTPS；注意：对于 HTTPS，.NET 在 TLS 握手阶段使用 <see cref="HttpRequestMessage.RequestUri"/> 的 Host 参与 SNI，
 /// 因此替换为 IP 后可能导致服务器返回的证书与 IP 不匹配而校验失败（常见于仅颁发给域名的证书）。如果目标服务器证书包含该域名且允许通过 IP 访问，或已禁用证书校验，则可正常使用。
-/// 如需在保持域名参与 SNI 前提下自定义解析，应考虑直接使用 <see cref="SocketsHttpHandler"/> 的 ConnectCallback（仅支持较新运行时）而非修改 Uri，这超出当前处理器能力范围。
+/// 如需在保持域名参与 SNI 前提下自定义解析，应考虑直接使用 <c>SocketsHttpHandler</c> 的 ConnectCallback（仅支持较新运行时）而非修改 Uri，这超出当前处理器能力范围。
 /// </remarks>
 /// <param name="innerHandler">下层处理器，一般为 SocketsHttpHandler 或 HttpClientHandler</param>
 public class DnsHttpHandler(HttpMessageHandler innerHandler) : DelegatingHandler(innerHandler)

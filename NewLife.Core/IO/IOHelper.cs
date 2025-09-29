@@ -286,7 +286,7 @@ public static class IOHelper
     /// <list type="bullet">
     /// <item><description>需严格保证字节数 → 使用本方法。</description></item>
     /// <item><description>允许不足（探测 EOF / 非阻塞流）→ 使用 <see cref="ReadAtLeast(Stream,Byte[],Int32,Int32,Int32,Boolean)"/> 并设置 <c>throwOnEndOfStream = false</c>。</description></item>
-    /// <item><description>需分配新数组 → 使用 <see cref="ReadExactly(Stream, Int32)"/> 重载。</description></item>
+    /// <item><description>需分配新数组 → 使用 <see cref="ReadExactly(Stream, Int64)"/> 重载。</description></item>
     /// </list>
     /// 边界：当 <paramref name="count"/> == 0 时立即返回 0；参数越界/空引用异常行为与 CLR / <c>Stream.Read</c> 保持一致。
     /// 兼容：在所有支持的目标框架上行为一致，避免不同运行时对 <c>Read</c> 语义的潜在差异。
@@ -319,7 +319,7 @@ public static class IOHelper
     /// <item><description>将数据从临时数组拷贝回调用方 <c>Span</c>。</description></item>
     /// <item><description>归还租借数组。</description></item>
     /// </list>
-    /// 该过程引入额外租借与复制，在高频/小块读取场景下有额外开销与 GC 压力。本实现直接使用调用方传入的 <see cref="Byte[]"/>（携带 offset/count），避免：
+    /// 该过程引入额外租借与复制，在高频/小块读取场景下有额外开销与 GC 压力。本实现直接使用调用方传入的 <see cref="Byte"/> 数组（携带 offset/count），避免：
     /// <list type="bullet">
     /// <item><description>额外数组租借与释放</description></item>
     /// <item><description>二次内存复制</description></item>

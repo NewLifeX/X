@@ -3,6 +3,7 @@ using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Security;
 using Xunit;
+using System.IO; // 新增：流扩容测试
 
 namespace XUnitTest.Buffers;
 
@@ -16,17 +17,15 @@ public class SpanReaderTests
 
         Assert.Equal(0, reader.Position);
         Assert.Equal(span.Length, reader.Capacity);
-        Assert.Equal(span.Length, reader.FreeCapacity);
+        Assert.Equal(span.Length, reader.Available);
         Assert.Equal(span.Length, reader.GetSpan().Length);
 
         reader.Advance(33);
 
         Assert.Equal(33, reader.Position);
         Assert.Equal(span.Length, reader.Capacity);
-        Assert.Equal(span.Length - 33, reader.FreeCapacity);
+        Assert.Equal(span.Length - 33, reader.Available);
         Assert.Equal(span.Length - 33, reader.GetSpan().Length);
-
-        //Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetSpan(100));
     }
 
     [Theory]
@@ -110,7 +109,6 @@ public class SpanReaderTests
         writer.Write(str, 44, Encoding.ASCII);
         Assert.Equal(str + new String('\0', 44 - 33), reader.ReadString(44, Encoding.ASCII));
 
-        // 这个测试必须在最后
         writer.Write(str, -1, Encoding.Default);
         Assert.Equal(str, reader.ReadString(-1, Encoding.Default)[..str.Length]);
     }
@@ -185,14 +183,12 @@ public class SpanReaderTests
         var reader = new SpanReader(data);
         reader.Advance(1);
 
-        //Assert.Throws<ArgumentOutOfRangeException>(() => reader.ReadPacket(3));
         try
         {
             reader.ReadPacket(3);
         }
         catch (Exception ex)
         {
-
             Assert.NotNull(ex as InvalidOperationException);
         }
 
@@ -211,11 +207,66 @@ public class SpanReaderTests
         var data = new Byte[] { 1, 2, 3, 4, 5 };
         var ms = new MemoryStream(data);
         var reader = new SpanReader(ms);
-        //reader.Advance(1);
         reader.ReadByte();
 
         var result = reader.ReadBytes(3);
         Assert.Equal(new Byte[] { 2, 3, 4 }, result.ToArray());
+    }
+
+    [Fact]
+    public void StreamAutoExpansion()
+    {
+        var head = new Byte[] { 0x05 }; // 长度前缀
+        var body = Encoding.UTF8.GetBytes("Hello");
+        using var ms = new MemoryStream();
+        ms.Write(head, 0, head.Length);
+        ms.Write(body, 0, body.Length);
+        ms.Position = 0;
+
+        var reader = new SpanReader(ms, bufferSize: 2) { MaxCapacity = 32 };
+        var len = reader.ReadByte();
+        Assert.Equal(5, len);
+        var payload = reader.ReadBytes(len);
+        Assert.Equal("Hello", Encoding.UTF8.GetString(payload));
+    }
+
+    [Fact]
+    public void ReadPacketFromChainedPacket()
+    {
+        ArrayPacket head = new(new Byte[] { 0x81, 0x05 });
+        ArrayPacket payload = new(Encoding.UTF8.GetBytes("Hello"));
+        head.Next = payload;
+
+        var reader = new SpanReader((IPacket)head);
+        var frameHead = reader.ReadPacket(2);
+        Assert.Equal(2, frameHead.Length);
+        var body = reader.ReadPacket(5);
+        Assert.Equal(5, body.Length);
+        Assert.Equal("Hello", body.ToStr());
+    }
+
+    [Fact]
+    public void MaxCapacityLimit()
+    {
+        using var ms = new MemoryStream();
+        ms.WriteByte(10); // 后续要读的长度
+        ms.Write(new Byte[10], 0, 10);
+        ms.Position = 0;
+
+        var reader = new SpanReader(ms, bufferSize: 4) { MaxCapacity = 8 };
+        var len = reader.ReadByte();
+        Assert.Equal(10, len);
+
+        var threw = false;
+        try
+        {
+            _ = reader.ReadBytes(len);
+        }
+        catch (InvalidOperationException)
+        {
+            threw = true;
+        }
+        Assert.True(threw);
     }
 
     [Fact]

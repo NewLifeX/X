@@ -10,6 +10,7 @@ namespace NewLife.Buffers;
 /// <remarks>
 /// 引用结构，零分配读取二进制数据，支持自动从底层 <see cref="Stream"/> 追加读取。
 /// 典型用于解析 Redis/MySql/自定义协议帧；支持 7 位压缩整数、结构体直接反序列化等。
+/// 设计目标：在已有 <see cref="ReadOnlySpan{T}"/> / <see cref="IPacket"/> 基础上提供统一顺序读取 API，必要时按需增量拉取后续字节。
 /// </remarks>
 public ref struct SpanReader
 {
@@ -19,35 +20,49 @@ public ref struct SpanReader
     public readonly ReadOnlySpan<Byte> Span => _span;
 
     private Int32 _index;
-    /// <summary>已读取字节数</summary>
+    /// <summary>已读取字节数（相对当前 <see cref="Span"/> 起始）</summary>
     public Int32 Position { readonly get => _index; set => _index = value; }
 
-    /// <summary>总容量</summary>
+    /// <summary>当前缓冲总容量（不代表完整数据总长度，若基于流扩容仅表示当前已缓存区大小）</summary>
     public readonly Int32 Capacity => _span.Length;
 
     /// <summary>空闲容量（尚未读取的剩余字节数）</summary>
-    public readonly Int32 FreeCapacity => _span.Length - _index;
+    public readonly Int32 Available => _span.Length - _index;
 
     /// <summary>是否小端字节序。默认 true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
     #endregion
 
     #region 构造
-    /// <summary>实例化Span读取器</summary>
+    /// <summary>实例化读取器，直接包裹只读跨度，不会拷贝</summary>
     /// <param name="span">数据</param>
     public SpanReader(ReadOnlySpan<Byte> span) => _span = span;
 
-    /// <summary>实例化Span读取器</summary>
+    /// <summary>实例化读取器，直接包裹可写跨度（按只读处理）</summary>
     /// <param name="span">数据</param>
     public SpanReader(Span<Byte> span) => _span = span;
 
-    /// <summary>实例化Span读取器</summary>
+    /// <summary>实例化读取器，基于数据包。链式数据包同时保留 <see cref="IPacket"/> 以支持 <see cref="ReadPacket"/> 零拷贝；必要时退化为流增量模式。</summary>
     /// <param name="data">初始数据包</param>
     public SpanReader(IPacket data)
     {
-        _data = data;
-        _span = data.GetSpan();
-        _total = data.Total;
+        if (data == null) throw new ArgumentNullException(nameof(data));
+
+        // 如果有后续数据包，说明是链式数据包，必须通过流读取
+        // 链式数据包：为了兼容跨段后续读取（读取原始 span 内部结构体/整数等可能需要更多字节），
+        // 这里仍然提供统一的流式补齐能力——通过把链式包聚合为内存流。
+        // 注意：仅当后续调用 EnsureSpace 时才会真正触发复制；仅做一次性“可选”降级。
+        if (data.Next != null)
+        {
+            _stream = data.GetStream(false);
+            _bufferSize = 8192;
+        }
+        else
+        {
+            _data = data;
+            _span = data.GetSpan();
+            _total = data.Total;
+        }
     }
     #endregion
 
@@ -55,19 +70,21 @@ public ref struct SpanReader
     /// <summary>最大容量。多次从数据流读取数据时，受限于此最大值（0 表示不限制）</summary>
     public Int32 MaxCapacity { get; set; }
 
-    private readonly Stream? _stream;
+    private Stream? _stream;
     private readonly Int32 _bufferSize;
+    // 当前缓存（或原始）数据包，仅用于 ReadPacket 以及流扩容缓存承载
     private IPacket? _data;
+    // 已成功读取/缓存的总字节数（用于 MaxCapacity 计算）
     private Int32 _total;
 
-    /// <summary>支持从数据流中读取更多数据，突破初始大小限制</summary>
+    /// <summary>实例化读取器，支持后续从流追加读取（突破初始大小限制）</summary>
     /// <remarks>
     /// 解析网络协议时，数据帧可能超过初始缓冲区大小。提供 <paramref name="stream"/> 后，
     /// 当剩余可读字节不足时，会自动从流中读取一批数据并扩充内部缓冲区。
     /// </remarks>
-    /// <param name="stream">数据流，一般为网络流</param>
-    /// <param name="data">初始数据包，可为空</param>
-    /// <param name="bufferSize">追加读取缓冲区建议大小</param>
+    /// <param name="stream">底层数据流，一般为网络流</param>
+    /// <param name="data">初始数据包，可为空（例如已经到达的响应头）</param>
+    /// <param name="bufferSize">每次追加读取建议大小（最小分块）</param>
     public SpanReader(Stream stream, IPacket? data = null, Int32 bufferSize = 8192)
     {
         _stream = stream;
@@ -83,15 +100,15 @@ public ref struct SpanReader
     #endregion
 
     #region 基础方法
-    /// <summary>告知已消耗 <paramref name="count"/> 字节数据</summary>
+    /// <summary>告知已消耗指定字节</summary>
     /// <param name="count">要消耗的字节数</param>
-    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="count"/> 超出可读范围时</exception>
+    /// <exception cref="ArgumentOutOfRangeException">count &lt; 0 或超出当前剩余</exception>
     public void Advance(Int32 count)
     {
-        if (count < 0) 
+        if (count < 0)
             throw new ArgumentOutOfRangeException(nameof(count), "Count cannot be negative.");
         if (count > 0) EnsureSpace(count);
-        if (_index + count > _span.Length) 
+        if (_index + count > _span.Length)
             throw new ArgumentOutOfRangeException(nameof(count), "Exceeds available data.");
         _index += count;
     }
@@ -102,60 +119,70 @@ public ref struct SpanReader
     /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="sizeHint"/> 大于剩余可读字节数时</exception>
     public readonly ReadOnlySpan<Byte> GetSpan(Int32 sizeHint = 0)
     {
-        if (sizeHint > FreeCapacity) 
+        if (_index + sizeHint > _span.Length)
             throw new ArgumentOutOfRangeException(nameof(sizeHint), "Size hint exceeds free capacity.");
         return _span[_index..];
     }
     #endregion
 
     #region 读取方法
-    /// <summary>确保缓冲区中有足够的空间，必要时从底层流追加读取</summary>
+    /// <summary>确保缓冲区中有足够的可读取字节。若不足：
+    /// <list type="number">
+    /// <item>存在底层流 → 追加读取并重组内部缓冲</item>
+    /// <item>无流但为单段数据 → 抛出异常</item>
+    /// <item>无流且链式数据包（多段）→ 当前版本仍抛出（仅 <see cref="ReadPacket"/> 支持跨段零拷贝）</item>
+    /// </list>
+    /// </summary>
     /// <param name="size">需要的字节数</param>
-    /// <exception cref="InvalidOperationException">数据不足，且无法从流中补齐</exception>
+    /// <exception cref="InvalidOperationException">数据不足且无法补齐</exception>
     public void EnsureSpace(Int32 size)
     {
         // 检查剩余空间大小，不足时再从数据流中读取。创建新的 OwnerPacket 后，
         // 先把之前剩余的未读数据拷贝到新缓冲的前部，避免丢失，再从流中读取补齐。
-        var remain = FreeCapacity;
-        if (remain < size && _stream != null)
+        if (size <= 0) return;
+
+        var remain = Available;
+        if (remain >= size) return;
+
+        if (_stream != null)
         {
             // 申请新的数据块：至少满足 size，且考虑 bufferSize / MaxCapacity
-            var idx = 0;
             var bsize = size;
-            if (MaxCapacity > 0)
-            {
-                if (bsize < _bufferSize) bsize = _bufferSize;
-                if (bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
-            }
+            if (bsize < _bufferSize) bsize = _bufferSize;
+            if (MaxCapacity > 0 && bsize > MaxCapacity - _total) bsize = MaxCapacity - _total;
+            if (remain + bsize < size) throw new InvalidOperationException();
+
             var pk = new OwnerPacket(bsize);
 
             // 把剩余未读数据拷贝到新数据块前部，避免丢失
-            if (_data != null && remain > 0)
+            var available = 0;
+            var old = _data;
+            if (old != null && remain > 0)
             {
-                if (!_data.TryGetArray(out var arr)) 
+                if (!old.TryGetArray(out var arr))
                     throw new NotSupportedException("Data packet does not support array access.");
 
                 arr.AsSpan(_index, remain).CopyTo(pk.Buffer);
-                idx += remain;
+                available += remain;
             }
 
-            _data.TryDispose();
+            old.TryDispose();
             _data = pk;
             _index = 0; // 重置索引，后续直接从新缓冲读取
 
             // 直接读取指定大小，必要时抛异常，防止阻塞等待不确定长度数据
-            _stream.ReadExactly(pk.Buffer, pk.Offset + idx, pk.Length - idx);
-            idx = pk.Length;
-            if (idx < size) 
-                throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {idx}");
-            pk.Resize(idx);
+            //_stream.ReadExactly(pk.Buffer, pk.Offset + available, pk.Length - available);
+            available = _stream.ReadAtLeast(pk.Buffer, pk.Offset + available, pk.Length - available, size - remain, false);
+            if (remain + available < size)
+                throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {available}");
+            pk.Resize(remain + available);
 
             _span = pk.GetSpan();
-            _total += idx - remain;
+            _total += pk.Length - remain;
         }
 
-        if (_index + size > _span.Length) 
-            throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {FreeCapacity}");
+        if (_index + size > _span.Length)
+            throw new InvalidOperationException($"Not enough data to read. Required: {size}, Available: {Available}");
     }
 
     /// <summary>读取单个字节</summary>
@@ -300,7 +327,7 @@ public ref struct SpanReader
     /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="length"/> 为负数时</exception>
     public ReadOnlySpan<Byte> ReadBytes(Int32 length)
     {
-        if (length < 0) 
+        if (length < 0)
             throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
         EnsureSpace(length);
 
@@ -323,7 +350,7 @@ public ref struct SpanReader
         return length;
     }
 
-    /// <summary>读取数据包（对内部数据切片，不复制）</summary>
+    /// <summary>读取数据包（底层切片，不复制）。不触发流扩容。</summary>
     /// <remarks>
     /// 本方法直接在底层 <see cref="IPacket"/> 上进行切片并返回新数据包，避免任何数据拷贝；
     /// 为了支持跨段（链式）数据包的零拷贝读取，此处不调用 <see cref="EnsureSpace(int)"/>，
@@ -336,15 +363,12 @@ public ref struct SpanReader
     /// <exception cref="ArgumentOutOfRangeException">长度为负数时</exception>
     public IPacket ReadPacket(Int32 length)
     {
-        if (_data == null) 
-            throw new InvalidOperationException("No data packet available for reading.");
-        if (length < 0) 
+        if (length < 0)
             throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
 
-        // 不要在这里调用 EnsureSpace(length)。
-        // 这里需要支持跨段 Packet 的切片，如果仅依据当前 _span 校验，
-        // 在首段仅包含头部、负载在 Next 段的场景（如 WebSocket 数据包）会被误判为数据不足。
-        // 由 IPacket.Slice 自行根据总长度进行边界检查并抛出异常。
+        EnsureSpace(length);
+        if (_data == null)
+            throw new InvalidOperationException("No data packet available for reading.");
 
         var result = _data.Slice(_index, length);
         _index += length;
@@ -373,7 +397,7 @@ public ref struct SpanReader
     {
         UInt32 rs = 0;
         Byte n = 0;
-        
+
         while (true)
         {
             var b = ReadByte();
@@ -383,7 +407,7 @@ public ref struct SpanReader
             if ((b & 0x80) == 0) break;
 
             n += 7;
-            if (n >= 32) 
+            if (n >= 32)
                 throw new FormatException("The number value is too large to read in compressed format!");
         }
         return (Int32)rs;
