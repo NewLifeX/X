@@ -75,13 +75,21 @@ public class ExcelReader : DisposeBase
         // 读取共享字符串（可缺失）
         {
             var entry = _zip.GetEntry("xl/sharedStrings.xml");
-            if (entry != null) _sharedStrings = ReadStrings(entry.Open());
+            if (entry != null)
+            {
+                using var es = entry.Open(); // 确保及时释放，避免后续再打开时报本地文件头损坏
+                _sharedStrings = ReadStrings(es);
+            }
         }
 
         // 读取样式（包含内置 & 自定义数字格式）
         {
             var entry = _zip.GetEntry("xl/styles.xml");
-            if (entry != null) _styles = ReadStyles(entry.Open());
+            if (entry != null)
+            {
+                using var es = entry.Open();
+                _styles = ReadStyles(es);
+            }
         }
 
         // 读取sheet条目索引
@@ -106,7 +114,8 @@ public class ExcelReader : DisposeBase
 
         if (!_entries.TryGetValue(sheet, out var entry)) throw new ArgumentOutOfRangeException(nameof(sheet), "Unable to find worksheet");
 
-        var doc = XDocument.Load(entry.Open());
+        using var esheet = entry.Open(); // 及时释放单个 sheet 流
+        var doc = XDocument.Load(esheet);
         if (doc.Root == null) yield break;
 
         var data = doc.Root.Elements().FirstOrDefault(e => e.Name.LocalName.EqualIgnoreCase("sheetData"));
@@ -152,7 +161,7 @@ public class ExcelReader : DisposeBase
                 }
                 else if (t == "b")
                 {
-                    // 布尔：0 / 1
+                    // 布尔：0 / 1 以及 true / false
                     if (val is String sb) val = sb == "1" || sb.EqualIgnoreCase("true");
                 }
                 else if (t == "inlineStr")
@@ -348,10 +357,11 @@ public class ExcelReader : DisposeBase
     {
         var dic = new Dictionary<String, String?>();
 
-        var entry = _zip.GetEntry("xl/workbook.xml");
+        var entry = zip.GetEntry("xl/workbook.xml");
         if (entry != null)
         {
-            var doc = XDocument.Load(entry.Open());
+            using var es = entry.Open(); // 释放 workbook.xml 流
+            var doc = XDocument.Load(es);
             if (doc?.Root != null)
             {
                 //var list = new List<String>();

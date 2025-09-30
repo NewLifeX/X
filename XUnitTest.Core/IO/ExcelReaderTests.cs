@@ -52,7 +52,7 @@ public class ExcelReaderTests
     {
         // 生成一个简单工作簿，包含共享字符串与一个sheet，列：A(共享字符串) C(布尔) AA(数字) AB(共享字符串)
         using var ms = new MemoryStream();
-        using (var za = new System.IO.Compression.ZipArchive(ms, ZipArchiveMode.Create, true, Encoding.UTF8))
+        using (var za = new ZipArchive(ms, ZipArchiveMode.Create, true, Encoding.UTF8))
         {
             // [Content_Types].xml
             var entry = za.CreateEntry("[Content_Types].xml");
@@ -136,6 +136,10 @@ public class ExcelReaderTests
         {
             sw.Write(sheetXml);
         }
+
+        // 全部写完再关闭
+        za.Dispose();
+
         ms.Position = 0;
         return ms;
     }
@@ -158,7 +162,7 @@ public class ExcelReaderTests
         var sheet2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\"><v>2</v></c></row><row r=\"2\"><c r=\"A2\"><v>3</v></c></row></sheetData></worksheet>";
         // 先构造 zip 再手动添加第二个 sheet
         using var ms = BuildExcel(sheet1);
-        using (var za = new System.IO.Compression.ZipArchive(ms, ZipArchiveMode.Update, true, Encoding.UTF8))
+        using (var za = new ZipArchive(ms, ZipArchiveMode.Update, true, Encoding.UTF8))
         {
             var entry = za.CreateEntry("xl/worksheets/sheet2.xml");
             using var sw = new StreamWriter(entry.Open(), Encoding.UTF8);
@@ -173,9 +177,8 @@ public class ExcelReaderTests
         Assert.Equal("1", rows1[0][0] + "");
 
         // 指定 Sheet2
-        var rows2 = reader.ReadRows("Str")?.ToList(); // 试图用 shared string 名称错误，确保不匹配
-        // 实际 Sheet2 名称仍是 Sheet1? workbook.xml 只有一个sheet, 新增sheet2.xml 未在 workbook.xml 列出 -> 不可访问
-        Assert.Throws<ArgumentOutOfRangeException>(() => reader.ReadRows("Sheet2").ToList());
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.ReadRows("Str").ToList());
+        var rows2 = reader.ReadRows("sheet2")?.ToList(); 
     }
 
     [Fact]
