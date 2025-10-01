@@ -29,7 +29,7 @@ public class ExcelWriterTests
 
         writer.Save();
 
-        File.WriteAllBytes("ew.xlsx", ms.ToArray());
+        //File.WriteAllBytes("ew.xlsx", ms.ToArray());
 
         // 用 ExcelReader 读取验证类型与数值
         ms.Position = 0;
@@ -134,5 +134,104 @@ public class ExcelWriterTests
         var r = new ExcelReader(ms, Encoding.UTF8);
         var list = r.ReadRows().ToList();
         Assert.Empty(list); // 无数据行
+    }
+
+    [Fact, DisplayName("Int64使用整数样式避免科学计数")] 
+    public void Int64_Uses_Integer_Style()
+    {
+        using var ms = new MemoryStream();
+        var w = new ExcelWriter(ms);
+        w.WriteHeader(null!, new[] { "LongVal" });
+        var longVal = 1234567890123456789L; // 19位，易被科学计数法处理
+        w.WriteRows(null, new[] { new Object?[] { longVal } });
+        w.Save();
+
+        ms.Position = 0;
+        using var za = new ZipArchive(ms, ZipArchiveMode.Read, true, Encoding.UTF8);
+        var sheet = za.GetEntry("xl/worksheets/sheet1.xml");
+        Assert.NotNull(sheet);
+        using var sr = new StreamReader(sheet!.Open(), Encoding.UTF8);
+        var xml = sr.ReadToEnd();
+        // 第二行第一列 (A2) 应该写入 s="1" (整数样式) 且直接数值字符串
+        Assert.Contains("<c r=\"A2\" s=\"1\"><v>1234567890123456789</v></c>", xml);
+
+        // 读取验证回转为 Int64
+        ms.Position = 0;
+        var r2 = new ExcelReader(ms, Encoding.UTF8);
+        var rows = r2.ReadRows().ToList();
+        Assert.Equal(longVal, (Int64)rows[1][0]!);
+    }
+
+    [Fact, DisplayName("三个不同Sheet表头与数据互不干扰")] 
+    public void MultiSheet_ThreeSheets_DifferentHeaders_And_Data()
+    {
+        using var ms = new MemoryStream();
+        var w = new ExcelWriter(ms);
+
+        // Sheet 1: Users
+        w.WriteHeader("Users", new[] { "UserId", "UserName", "Active" });
+        w.WriteRows("Users", new[]
+        {
+            new Object?[] { 1, "Tom", true },
+            new Object?[] { 2, "Jerry", false }
+        });
+
+        // Sheet 2: Orders
+        w.WriteHeader("Orders", new[] { "OrderId", "Amount", "Date" });
+        var orderDate = new DateTime(2024, 1, 2);
+        w.WriteRows("Orders", new[]
+        {
+            new Object?[] { 1001, 123.45m, orderDate },
+            new Object?[] { 1002, 200m, orderDate.AddDays(1) },
+            new Object?[] { 1003, 0.5m, orderDate.AddDays(2) }
+        });
+
+        // Sheet 3: Logs （包含时间与文本混合，不同列数）
+        w.WriteHeader("Logs", new[] { "Seq", "Level", "Message", "Time" });
+        var t0 = DateTime.Now.Date.AddHours(8).AddMinutes(15).AddSeconds(30);
+        w.WriteRows("Logs", new[]
+        {
+            new Object?[] { 1, "INFO", "Start", t0 },
+            new Object?[] { 2, "WARN", "Latency", t0.AddMinutes(5) },
+            new Object?[] { 3, "ERROR", "Failed", t0.AddMinutes(10) },
+            new Object?[] { 4, "INFO", "Done", t0.AddMinutes(15) }
+        });
+
+        w.Save();
+
+        //File.WriteAllBytes("ew.xlsx", ms.ToArray());
+
+        ms.Position = 0;
+        var r = new ExcelReader(ms, Encoding.UTF8);
+        // 验证 sheet 名称集合包含三个
+        var sheets = r.Sheets?.ToList();
+        Assert.NotNull(sheets);
+        Assert.Contains("Users", sheets!);
+        Assert.Contains("Orders", sheets!);
+        Assert.Contains("Logs", sheets!);
+
+        // Users
+        var users = r.ReadRows("Users").ToList();
+        Assert.Equal(3, users.Count); // header + 2
+        Assert.Equal("UserId", users[0][0]);
+        Assert.Equal(1, users[1][0]);
+        Assert.True(users[2][2] is Boolean && !(Boolean)users[2][2]!); // Active 列第二行 false
+
+        // Orders
+        var orders = r.ReadRows("Orders").ToList();
+        Assert.Equal(4, orders.Count); // header + 3
+        Assert.Equal("Amount", orders[0][1]);
+        Assert.True(orders[2][2] is DateTime dt2 && dt2.Date == orderDate.AddDays(1).Date);
+        Assert.True(orders[3][1] is Decimal or Double); // 金额小数
+
+        // Logs
+        var logs = r.ReadRows("Logs").ToList();
+        Assert.Equal(5, logs.Count); // header + 4
+        Assert.Equal("Level", logs[0][1]);
+        Assert.Equal("ERROR", logs[3][1]); // 第3条日志（数据行 Seq=3）
+        Assert.True(logs[4][3] is DateTime); // 时间列
+
+        // 互不串表：确认 Users 的列数 != Logs 的列数
+        Assert.NotEqual(users[0].Length, logs[0].Length);
     }
 }

@@ -125,6 +125,8 @@ public class ExcelReader : DisposeBase
         var styles = _styles;
         if (styles != null && styles.Length == 0) styles = null;
 
+        var headerColumnCount = -1; // 记录首行列数，用于补齐后续行尾部缺失列
+
         foreach (var row in data.Elements())
         {
             var vs = new List<Object?>();
@@ -191,6 +193,17 @@ public class ExcelReader : DisposeBase
 
                 vs.Add(val);
                 curIndex++; // 移动到下一列
+            }
+
+            // 记录首行列数
+            if (headerColumnCount == -1)
+            {
+                headerColumnCount = vs.Count;
+            }
+            else if (headerColumnCount > 0 && vs.Count < headerColumnCount)
+            {
+                // 补齐尾部缺失列（例如数据行末尾空值未写入单元格）
+                while (vs.Count < headerColumnCount) vs.Add(null);
             }
 
             yield return vs.ToArray();

@@ -9,11 +9,27 @@ namespace NewLife.IO;
 /// <summary>轻量级Excel写入器，支持多个工作表</summary>
 /// <remarks>
 /// 目标：快速导出简单数据，支持多工作表的列头与多行数据；识别常见数据类型并使用合适样式，避免长数字（如身份证、长整型）被 Excel / WPS 显示为科学计数。
-/// 仅生成最小必要的 xlsx 结构：ContentTypes / workbook / worksheets / styles / sharedStrings。
+/// 仅生成最小必要的 xlsx 结构：ContentTypes / workbook / worksheets / styles / sharedStrings（以及规范要求的关系 _rels/.rels、xl/_rels/workbook.xml.rels）。
 /// 不支持：合并单元格、富文本、超链接、公式等高级特性。读取可使用 <see cref="ExcelReader"/>。
 /// </remarks>
 public class ExcelWriter : DisposeBase
 {
+    #region 内部类型
+    /// <summary>单元格样式（值为 Excel 内置 numFmtId）。</summary>
+    private enum ExcelCellStyle : Int32
+    {
+        General = 0,  // General
+        Integer = 1,  // 0 （整数，避免长整型使用科学计数）
+        Decimal = 2,  // 0.00
+        Percent = 10, // 0.00%
+        Date = 14,    // mm-dd-yy
+        Time = 21,    // h:mm:ss
+        DateTime = 22 // m/d/yy h:mm
+    }
+
+    private static ExcelCellStyle[] _cellStyles = (ExcelCellStyle[])Enum.GetValues(typeof(ExcelCellStyle));
+    #endregion
+
     #region 属性
     /// <summary>文件路径（Save 时写入）</summary>
     public String? FileName { get; }
@@ -34,14 +50,6 @@ public class ExcelWriter : DisposeBase
 
     private readonly Dictionary<String, Int32> _shared = new(StringComparer.Ordinal); // 共享字符串去重
     private Int32 _sharedCount; // 总引用次数（含重复）
-
-    // 样式索引（cellXfs 顺序）—— 与 styles.xml 内顺序保持一致
-    private const Int32 StyleGeneral = 0; // 通用
-    private const Int32 StyleDate = 1;    // 日期 mm-dd-yy (14)
-    private const Int32 StyleDateTime = 2; // 日期时间 m/d/yy h:mm (22)
-    private const Int32 StyleTime = 3;    // 时间 h:mm:ss (21)
-    private const Int32 StyleDecimal = 4; // 小数 0.00 (2)
-    private const Int32 StylePercent = 5; // 百分比 0.00% (10)
     #endregion
 
     #region 构造
@@ -58,12 +66,7 @@ public class ExcelWriter : DisposeBase
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
-
-        // 数据流时需要调用保存，文件则不需要
-        if (Stream == null)
-        {
-            Save();
-        }
+        if (Stream == null) Save();
     }
     #endregion
 
@@ -132,7 +135,7 @@ public class ExcelWriter : DisposeBase
             var cellRef = GetColumnName(i) + rowIndex; // A1 / B2 ...
 
             // 识别类型
-            var style = StyleGeneral;
+            var style = ExcelCellStyle.General;
             String? tAttr = null; // t="s" / "b"
             String? inner = null; // <v>值</v>
 
@@ -143,23 +146,14 @@ public class ExcelWriter : DisposeBase
                         // 百分比：形如 "12.3%" / "45%"
                         if (str.Length > 0 && str.EndsWith("%") && TryParsePercent(str, out var pct))
                         {
-                            style = StylePercent;
+                            style = ExcelCellStyle.Percent;
                             inner = (pct / 100).ToString("0.##########", CultureInfo.InvariantCulture);
                         }
                         else
                         {
-                            // 纯数字且位数较长（>=12）或前导0，强制当文本，避免科学计数；身份证可能含 X -> 直接文本
-                            if (NeedsText(str))
-                            {
-                                tAttr = "s"; // 共享字符串
-                                inner = GetSharedStringIndex(str).ToString();
-                            }
-                            else
-                            {
-                                // 普通字符串走共享字符串，减少体积 & 避免被推断
-                                tAttr = "s";
-                                inner = GetSharedStringIndex(str).ToString();
-                            }
+                            // 普通字符串走共享字符串，减少体积 & 避免被推断
+                            tAttr = "s";
+                            inner = GetSharedStringIndex(str).ToString();
                         }
                         break;
                     }
@@ -175,40 +169,31 @@ public class ExcelWriter : DisposeBase
                         var baseDate = new DateTime(1900, 1, 1);
                         var serial = (dt - baseDate).TotalDays + 2; // 包含时间小数
                         var hasTime = dt.TimeOfDay.TotalSeconds > 0.1;
-                        style = hasTime ? StyleDateTime : StyleDate;
+                        style = hasTime ? ExcelCellStyle.DateTime : ExcelCellStyle.Date;
                         inner = serial.ToString("0.###############", CultureInfo.InvariantCulture);
                         break;
                     }
                 case TimeSpan ts:
-                    {
-                        var serial = ts.TotalDays; // 纯时间按天小数
-                        style = StyleTime;
-                        inner = serial.ToString("0.###############", CultureInfo.InvariantCulture);
-                        break;
-                    }
+                    style = ExcelCellStyle.Time;
+                    inner = ts.TotalDays.ToString("0.###############", CultureInfo.InvariantCulture);
+                    break;
                 case Int16 or Int32 or Int64 or Byte or SByte or UInt16 or UInt32 or UInt64:
-                    {
-                        inner = Convert.ToString(val, CultureInfo.InvariantCulture);
-                        break;
-                    }
+                    inner = Convert.ToString(val, CultureInfo.InvariantCulture);
+                    // 如果太长，为了避免出现科学计数法，改用字符串表示
+                    if (!inner.IsNullOrEmpty() && inner.Length > 9) style = ExcelCellStyle.Integer;
+                    break;
                 case Decimal dec:
-                    {
-                        inner = dec.ToString(CultureInfo.InvariantCulture);
-                        if (dec != Math.Truncate(dec)) style = StyleDecimal; // 有小数部分
-                        break;
-                    }
+                    inner = dec.ToString(CultureInfo.InvariantCulture);
+                    if (dec != Math.Truncate(dec)) style = ExcelCellStyle.Decimal;
+                    break;
                 case Double d:
-                    {
-                        inner = d.ToString("0.###############", CultureInfo.InvariantCulture);
-                        if (Math.Abs(d - Math.Truncate(d)) > Double.Epsilon) style = StyleDecimal;
-                        break;
-                    }
+                    inner = d.ToString("0.###############", CultureInfo.InvariantCulture);
+                    if (Math.Abs(d - Math.Truncate(d)) > Double.Epsilon) style = ExcelCellStyle.Decimal;
+                    break;
                 case Single f:
-                    {
-                        inner = f.ToString("0.###############", CultureInfo.InvariantCulture);
-                        if (Math.Abs(f - Math.Truncate(f)) > Single.Epsilon) style = StyleDecimal;
-                        break;
-                    }
+                    inner = f.ToString("0.###############", CultureInfo.InvariantCulture);
+                    if (Math.Abs(f - Math.Truncate(f)) > Single.Epsilon) style = ExcelCellStyle.Decimal;
+                    break;
                 default:
                     {
                         // 其它类型调用 ToString() 后按字符串处理
@@ -219,14 +204,15 @@ public class ExcelWriter : DisposeBase
                     }
             }
 
-            sb.Append("<c r=\"").Append(cellRef).Append('\"');
-            if (tAttr != null) sb.Append(' ').Append("t=\"").Append(tAttr).Append('\"');
+            sb.Append("<c r=\"").Append(cellRef).Append('"');
+            if (tAttr != null) sb.Append(' ').Append("t=\"").Append(tAttr).Append('"');
 
             // 若是非共享字符串/布尔（即 tAttr==null），统一写入样式属性以便读取端按样式解析类型（包括 General 情况）
             if (tAttr == null)
             {
-                // 若此前标记 forceStyleAttr 或 style 非 General 已经满足，也一并覆盖式写入（不重复判断）
-                sb.Append(' ').Append("s=\"").Append(style).Append('\"');
+                // 依据枚举数值升序确定索引（反射生成 styles.xml 时使用相同顺序）
+                var index = Array.IndexOf(_cellStyles, style);
+                sb.Append(' ').Append("s=\"").Append(index).Append('"');
             }
             sb.Append("><v>").Append(inner).Append("</v></c>");
         }
@@ -239,28 +225,7 @@ public class ExcelWriter : DisposeBase
     {
         value = 0m;
         var txt = str.Trim().TrimEnd('%');
-        if (Decimal.TryParse(txt, NumberStyles.Float, CultureInfo.InvariantCulture, out var d))
-        {
-            value = d;
-            return true;
-        }
-        return false;
-    }
-
-    private static Boolean NeedsText(String str)
-    {
-        if (str.IsNullOrEmpty()) return true;
-        // 只含数字且长度>=12 或 以0开头（不丢前导0）
-        var allDigit = true;
-        for (var i = 0; i < str.Length; i++)
-        {
-            if (str[i] < '0' || str[i] > '9') { allDigit = false; break; }
-        }
-        if (allDigit && (str.Length >= 12 || str[0] == '0')) return true;
-
-        // 含非数字但整体应保持文本（如身份证最后一位 X/x）
-        if (str.Length >= 15 && str.Any(e => e == 'X' || e == 'x')) return true;
-
+        if (Decimal.TryParse(txt, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)) { value = d; return true; }
         return false;
     }
 
@@ -268,7 +233,7 @@ public class ExcelWriter : DisposeBase
     {
         _sharedCount++;
         if (_shared.TryGetValue(str, out var idx)) return idx;
-        idx = _shared.Count; // 新索引
+        idx = _shared.Count;
         _shared[str] = idx;
         return idx;
     }
@@ -306,10 +271,16 @@ public class ExcelWriter : DisposeBase
 
         using var za = new ZipArchive(target, ZipArchiveMode.Create, leaveOpen: Stream != null, entryNameEncoding: Encoding);
 
-        // [Content_Types].xml
+        // _rels/.rels
+        using (var sw = new StreamWriter(za.CreateEntry("_rels/.rels").Open(), Encoding))
         {
-            using var sw = new StreamWriter(za.CreateEntry("[Content_Types].xml").Open(), Encoding);
-            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"xml\" ContentType=\"application/xml\"/>");
+            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+        }
+
+        // [Content_Types].xml
+        using (var sw = new StreamWriter(za.CreateEntry("[Content_Types].xml").Open(), Encoding))
+        {
+            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"xml\" ContentType=\"application/xml\"/><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>");
             sw.Write("<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>");
             for (var i = 0; i < _sheetNames.Count; i++)
             {
@@ -326,41 +297,44 @@ public class ExcelWriter : DisposeBase
         }
 
         // workbook.xml
+        using (var sw = new StreamWriter(za.CreateEntry("xl/workbook.xml").Open(), Encoding))
         {
-            using var sw = new StreamWriter(za.CreateEntry("xl/workbook.xml").Open(), Encoding);
-            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheets>");
+            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>");
             for (var i = 0; i < _sheetNames.Count; i++)
             {
                 var name = SecurityElement.Escape(_sheetNames[i]) ?? _sheetNames[i];
-                sw.Write("<sheet name=\"");
-                sw.Write(name);
-                sw.Write("\" sheetId=\"");
-                sw.Write(i + 1);
-                sw.Write("\" r:id=\"rId");
-                sw.Write(i + 1);
-                sw.Write("\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/>");
+                sw.Write($"<sheet name=\"{name}\" sheetId=\"{i + 1}\" r:id=\"rId{i + 1}\"/>");
             }
             sw.Write("</sheets></workbook>");
         }
 
-        // styles.xml
+        // workbook 关系
+        using (var sw = new StreamWriter(za.CreateEntry("xl/_rels/workbook.xml.rels").Open(), Encoding))
         {
-            using var sw = new StreamWriter(za.CreateEntry("xl/styles.xml").Open(), Encoding);
-            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><cellXfs count=\"6\">");
-            sw.Write("<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // General
-            sw.Write("<xf numFmtId=\"14\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // Date
-            sw.Write("<xf numFmtId=\"22\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // DateTime
-            sw.Write("<xf numFmtId=\"21\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // 时间 h:mm:ss (21)
-            sw.Write("<xf numFmtId=\"2\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // Decimal
-            sw.Write("<xf numFmtId=\"10\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>"); // Percent
+            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">");
+            for (var i = 0; i < _sheetNames.Count; i++) sw.Write($"<Relationship Id=\"rId{i + 1}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet{i + 1}.xml\"/>");
+            var nextId = _sheetNames.Count + 1;
+            sw.Write($"<Relationship Id=\"rId{nextId++}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>");
+            if (_shared.Count > 0) sw.Write($"<Relationship Id=\"rId{nextId}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings\" Target=\"sharedStrings.xml\"/>");
+            sw.Write("</Relationships>");
+        }
+
+        // styles.xml （按枚举数值升序）
+        using (var sw = new StreamWriter(za.CreateEntry("xl/styles.xml").Open(), Encoding))
+        {
+            sw.Write($"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><cellXfs count=\"{_cellStyles.Length}\">");
+            foreach (var st in _cellStyles)
+            {
+                sw.Write($"<xf numFmtId=\"{(Int32)st}\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/>");
+            }
             sw.Write("</cellXfs></styleSheet>");
         }
 
-        // sharedStrings
+        // sharedStrings.xml
         if (_shared.Count > 0)
         {
             using var sw = new StreamWriter(za.CreateEntry("xl/sharedStrings.xml").Open(), Encoding);
-            sw.Write($"<?xml version=\"1.0\" encoding=\"UTF-8\"?><sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" count=\"{_sharedCount}\" uniqueCount=\"{_shared.Count}\">");
+            sw.Write($"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><sst xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" count=\"{_sharedCount}\" uniqueCount=\"{_shared.Count}\">");
             foreach (var kv in _shared.OrderBy(e => e.Value))
             {
                 var txt = SecurityElement.Escape(kv.Key) ?? String.Empty;
@@ -371,12 +345,12 @@ public class ExcelWriter : DisposeBase
             sw.Write("</sst>");
         }
 
-        // 每个 sheetX.xml
+        // worksheets
         for (var i = 0; i < _sheetNames.Count; i++)
         {
-            var entry = za.CreateEntry("xl/worksheets/sheet" + (i + 1) + ".xml");
+            var entry = za.CreateEntry($"xl/worksheets/sheet{i + 1}.xml");
             using var sw = new StreamWriter(entry.Open(), Encoding);
-            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>");
+            sw.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:xdr=\"http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing\" xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\" xmlns:etc=\"http://www.wps.cn/officeDocument/2017/etCustomData\"><sheetData>");
             var sheet = _sheetNames[i];
             if (_sheetRows.TryGetValue(sheet, out var list))
             {
