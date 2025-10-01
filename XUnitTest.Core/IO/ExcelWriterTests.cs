@@ -8,13 +8,13 @@ namespace XUnitTest.IO;
 
 public class ExcelWriterTests
 {
-    [Fact, DisplayName("单Sheet全类型往返")] 
+    [Fact, DisplayName("单Sheet全类型往返")]
     public void SingleSheet_AllTypes_Roundtrip()
     {
         using var ms = new MemoryStream();
         var writer = new ExcelWriter(ms);
 
-        writer.WriteHeader(null!, new[] { "Name", "Percent", "Date", "DateTime", "Time", "Int", "Long", "DecFrac", "DecInt", "DoubleFrac", "BoolT", "BoolF", "BigNum", "LeadingZero", "IdCard", "PercentTextFail", "GapTest" });
+        writer.WriteHeader(null!, new[] { "Name", "Percent", "Date", "DateTime", "Time", "Int", "Long", "Long2", "Long3", "DecFrac", "DecInt", "DoubleFrac", "BoolT", "BoolF", "BigNum", "LeadingZero", "IdCard", "PercentTextFail", "GapTest" });
 
         var dateOnly = new DateTime(2024, 7, 1);
         var dateTime = new DateTime(2024, 7, 1, 12, 34, 56);
@@ -22,14 +22,14 @@ public class ExcelWriterTests
         // 各列说明：Name(string), Percent("12.5%" 成功解析), Date(DateOnly), DateTime(Date+Time), Time(TimeSpan), Int, Long, DecFrac(有小数), DecInt(无小数), DoubleFrac, BoolT, BoolF, BigNum(>12位), LeadingZero(前导0), IdCard(含X), PercentTextFail("abc%"失败分支), GapTest(中间前面留一个null)
         var row = new Object?[]
         {
-            "Alice", "12.5%", dateOnly, dateTime, time, 123, 2147483648L, 123.45m, 456m, 0.125d, true, false,
+            "Alice", "12.5%", dateOnly, dateTime, time, 123, 2147483648L, 214748364899L, 2147483648999999L, 123.45m, 456m, 0.125d, true, false,
             "1234567890123", "00123", "12345619900101888X", "abc%", null
         };
         writer.WriteRows(null, new[] { row });
 
         writer.Save();
 
-        //File.WriteAllBytes("ew.xlsx", ms.ToArray());
+        File.WriteAllBytes("ew.xlsx", ms.ToArray());
 
         // 用 ExcelReader 读取验证类型与数值
         ms.Position = 0;
@@ -48,20 +48,22 @@ public class ExcelWriterTests
         Assert.True(data[4] is TimeSpan && (TimeSpan)data[4]! == time);
         Assert.Equal("123", data[5] + "");
         Assert.Equal(2147483648L, (Int64)data[6]!); // long
-        Assert.True(data[7] is Decimal or Double); // 小数
-        Assert.True(data[8] is Int32 || data[8] is Int64 || data[8] is Decimal); // 整数小数样式不变
-        Assert.True(data[9] is Decimal or Double);
-        Assert.True(data[10] is Boolean && (Boolean)data[10]!);
-        Assert.True(data[11] is Boolean && !(Boolean)data[11]!);
-        Assert.Equal("1234567890123", data[12]); // 大数字保留文本
-        Assert.Equal("00123", data[13]); // 前导0保留
-        Assert.Equal("12345619900101888X", data[14]); // 身份证含X
-        Assert.Equal("abc%", data[15]); // 百分比解析失败 -> 文本
+        Assert.Equal(214748364899L, (Int64)data[7]!); // long
+        Assert.Equal("2147483648999999", data[8]!); // long
+        Assert.True(data[9] is Decimal or Double); // 小数
+        Assert.True(data[10] is Int32 or Int64 or Decimal); // 整数小数样式不变
+        Assert.True(data[11] is Decimal or Double);
+        Assert.True(data[12] is Boolean && (Boolean)data[12]!);
+        Assert.True(data[13] is Boolean && !(Boolean)data[13]!);
+        Assert.Equal("1234567890123", data[14]); // 大数字保留文本
+        Assert.Equal("00123", data[15]); // 前导0保留
+        Assert.Equal("12345619900101888X", data[16]); // 身份证含X
+        Assert.Equal("abc%", data[17]); // 百分比解析失败 -> 文本
         // GapTest (最后列前提供 null) => ExcelWriter 跳过，读取时为缺失列应自动补 null
-        Assert.Null(data[16]);
+        Assert.Null(data[18]);
     }
 
-    [Fact, DisplayName("多Sheet导出与读取")] 
+    [Fact, DisplayName("多Sheet导出与读取")]
     public void MultiSheet_Export_Read()
     {
         using var ms = new MemoryStream();
@@ -84,7 +86,7 @@ public class ExcelWriterTests
         Assert.True(stats[2][1] is Double d && Math.Abs(d - 0.5) < 1e-9);
     }
 
-    [Fact, DisplayName("无字符串时不生成sharedStrings")] 
+    [Fact, DisplayName("无字符串时不生成sharedStrings")]
     public void NoSharedStrings_FileStructure()
     {
         using var ms = new MemoryStream();
@@ -100,7 +102,7 @@ public class ExcelWriterTests
         Assert.NotNull(za.GetEntry("xl/worksheets/sheet1.xml"));
     }
 
-    [Fact, DisplayName("Dispose自动保存文件路径")] 
+    [Fact, DisplayName("Dispose自动保存文件路径")]
     public void Dispose_AutoSave_File()
     {
         var path = Path.Combine(Path.GetTempPath(), "excelwriter_test_" + Guid.NewGuid().ToString("N") + ".xlsx");
@@ -124,7 +126,7 @@ public class ExcelWriterTests
         }
     }
 
-    [Fact, DisplayName("空Writer保存生成空Sheet")] 
+    [Fact, DisplayName("空Writer保存生成空Sheet")]
     public void EmptyWriter_Save()
     {
         using var ms = new MemoryStream();
@@ -136,13 +138,13 @@ public class ExcelWriterTests
         Assert.Empty(list); // 无数据行
     }
 
-    [Fact, DisplayName("Int64使用整数样式避免科学计数")] 
+    [Fact, DisplayName("Int64使用整数样式避免科学计数")]
     public void Int64_Uses_Integer_Style()
     {
         using var ms = new MemoryStream();
         var w = new ExcelWriter(ms);
         w.WriteHeader(null!, new[] { "LongVal" });
-        var longVal = 1234567890123456789L; // 19位，易被科学计数法处理
+        var longVal = 1234567890123456789L; // 19位，超过15位后将改为共享字符串，避免精度与科学计数
         w.WriteRows(null, new[] { new Object?[] { longVal } });
         w.Save();
 
@@ -152,17 +154,28 @@ public class ExcelWriterTests
         Assert.NotNull(sheet);
         using var sr = new StreamReader(sheet!.Open(), Encoding.UTF8);
         var xml = sr.ReadToEnd();
-        // 第二行第一列 (A2) 应该写入 s="1" (整数样式) 且直接数值字符串
-        Assert.Contains("<c r=\"A2\" s=\"1\"><v>1234567890123456789</v></c>", xml);
+        // 现在超过15位的 Int64 以共享字符串方式写入，A1=表头(LongVal)->索引0，A2=长数字->索引1
+        Assert.Contains("<c r=\"A2\" t=\"s\"><v>1</v></c>", xml);
 
-        // 读取验证回转为 Int64
+        // 同时校验 sharedStrings.xml 中包含该长数字文本
+        var sharedEntry = za.GetEntry("xl/sharedStrings.xml");
+        Assert.NotNull(sharedEntry);
+        using (var ssr = new StreamReader(sharedEntry!.Open(), Encoding.UTF8))
+        {
+            var sharedXml = ssr.ReadToEnd();
+            Assert.Contains("LongVal", sharedXml);
+            Assert.Contains(longVal.ToString(), sharedXml);
+        }
+
+        // 读取验证：返回为字符串（避免精度丢失），调用方可自行再解析
         ms.Position = 0;
         var r2 = new ExcelReader(ms, Encoding.UTF8);
         var rows = r2.ReadRows().ToList();
-        Assert.Equal(longVal, (Int64)rows[1][0]!);
+        Assert.Equal(longVal.ToString(), rows[1][0]);
+        Assert.True(rows[1][0] is String);
     }
 
-    [Fact, DisplayName("三个不同Sheet表头与数据互不干扰")] 
+    [Fact, DisplayName("三个不同Sheet表头与数据互不干扰")]
     public void MultiSheet_ThreeSheets_DifferentHeaders_And_Data()
     {
         using var ms = new MemoryStream();
@@ -199,7 +212,7 @@ public class ExcelWriterTests
 
         w.Save();
 
-        //File.WriteAllBytes("ew.xlsx", ms.ToArray());
+        File.WriteAllBytes("ew2.xlsx", ms.ToArray());
 
         ms.Position = 0;
         var r = new ExcelReader(ms, Encoding.UTF8);
