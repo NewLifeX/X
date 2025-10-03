@@ -191,8 +191,15 @@ public class ExcelWriter : DisposeBase
                     }
                 case DateTime dt:
                     {
-                        // Excel 序列值：1=1900/1/1（含闰年Bug），读取时减2，这里写入需补2
                         var baseDate = new DateTime(1900, 1, 1);
+                        if (dt < baseDate)
+                        {
+                            // Excel 无法表示 1900-01-01 之前（或无效）日期，这里写入空字符串
+                            tAttr = "s";
+                            inner = GetSharedStringIndex(String.Empty).ToString();
+                            break;
+                        }
+                        // Excel 序列值：1=1900/1/1（含闰年Bug），读取时减2，这里写入需补2
                         var serial = (dt - baseDate).TotalDays + 2; // 包含时间小数
                         var hasTime = dt.TimeOfDay.Ticks != 0;
                         style = hasTime ? ExcelCellStyle.DateTime : ExcelCellStyle.Date;

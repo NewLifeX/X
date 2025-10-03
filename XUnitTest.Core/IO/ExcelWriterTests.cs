@@ -247,4 +247,29 @@ public class ExcelWriterTests
         // 互不串表：确认 Users 的列数 != Logs 的列数
         Assert.NotEqual(users[0].Length, logs[0].Length);
     }
+
+    [Fact, DisplayName("小于1900-01-01的日期写入为空字符串")]
+    public void Date_Before_1900_Written_As_EmptyString()
+    {
+        using var ms = new MemoryStream();
+        var w = new ExcelWriter(ms);
+        w.WriteHeader(null!, new[] { "D1", "D2", "D3" });
+        var invalidDate = new DateTime(1899, 12, 31);
+        var boundaryDate = new DateTime(1900, 1, 1);
+        var boundaryDateTime = new DateTime(1900, 1, 1, 12, 0, 0);
+        w.WriteRows(null, new[] { new Object?[] { invalidDate, boundaryDate, boundaryDateTime } });
+        w.Save();
+
+        ms.Position = 0;
+        var r = new ExcelReader(ms, Encoding.UTF8);
+        var rows = r.ReadRows().ToList();
+        Assert.Equal(2, rows.Count); // header + 1 数据行
+        var data = rows[1];
+        // 第1列：应为空字符串（共享字符串的空值）
+        Assert.True(data[0] is String s && s.Length == 0);
+        // 第2列：应解析为日期 1900-01-01
+        Assert.True(data[1] is DateTime d1 && d1.Date == boundaryDate.Date && d1.TimeOfDay == TimeSpan.Zero);
+        // 第3列：应解析为 日期时间 1900-01-01 12:00:00
+        Assert.True(data[2] is DateTime d2 && d2 == boundaryDateTime);
+    }
 }
