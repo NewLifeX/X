@@ -91,7 +91,7 @@ public abstract class Actor : DisposeBase, IActor
             _source.Dispose();
         }
 
-        _task?.Dispose();
+        //_task?.Dispose();
 
         MailBox?.Dispose();
     }

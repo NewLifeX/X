@@ -175,8 +175,8 @@ public class TcpSession : SessionBase, ISocketSession
             else
             {
 #if NET5_0_OR_GREATER
-                var cts = new CancellationTokenSource(timeout);
-                var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cts.Token);
+                using var source = new CancellationTokenSource(timeout);
+                using var cts2 = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, source.Token);
                 using var _ = cts2.Token.Register(() => sock.Close());
                 await sock.ConnectAsync(addrs, uri.Port, cts2.Token).ConfigureAwait(false);
 #else
@@ -214,7 +214,7 @@ public class TcpSession : SessionBase, ISocketSession
                 var ns = new NetworkStream(sock);
                 var sslStream = new SslStream(ns, false, OnCertificateValidationCallback);
 #if NETCOREAPP
-                var source = new CancellationTokenSource(timeout);
+                using var source = new CancellationTokenSource(timeout);
                 await sslStream.AuthenticateAsClientAsync(
                     new SslClientAuthenticationOptions
                     {
