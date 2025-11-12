@@ -169,16 +169,42 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
             HostedServices.Add(item);
         }
 
-        //// 从容器中获取所有服务
-        //foreach (var item in _serviceTypes)
-        //{
-        //    if (ServiceProvider.GetService(item) is IHostedService service) Services.Add(service);
-        //}
-
-        // 开始所有服务，任意服务出错都导致启动失败
+        // 开始所有服务，任意服务出错都导致启动失败。增加回滚，按已启动服务反向停止
+        var started = new List<IHostedService>();
+        var errors = new List<Exception>();
         foreach (var item in HostedServices)
         {
-            await item.StartAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await item.StartAsync(cancellationToken).ConfigureAwait(false);
+                started.Add(item);
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+                errors.Add(ex);
+                break; // 停止继续启动，进入回滚
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            // 回滚：反向停止已成功启动的服务
+            for (var i = started.Count - 1; i >= 0; i--)
+            {
+                var svc = started[i];
+                try
+                {
+                    await svc.StopAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex2)
+                {
+                    XTrace.WriteException(ex2);
+                    errors.Add(ex2);
+                }
+            }
+
+            throw new AggregateException("启动主机服务失败", errors);
         }
     }
 
@@ -187,8 +213,10 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
     /// <returns></returns>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        foreach (var item in HostedServices)
+        // 反向顺序停止，保证依赖后启动的先行释放
+        for (var i = HostedServices.Count - 1; i >= 0; i--)
         {
+            var item = HostedServices[i];
             try
             {
                 await item.StopAsync(cancellationToken).ConfigureAwait(false);
@@ -228,11 +256,15 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
         await StartAsync(source.Token).ConfigureAwait(false);
         XTrace.WriteLine("Application started. Press Ctrl+C to shut down.");
 
-        // 等待生命周期结束
+        // 等待生命周期结束：非阻塞等待方式
         if (MaxTime >= 0)
-            _life.Task.Wait(TimeSpan.FromMilliseconds(MaxTime));
+        {
+            await Task.WhenAny(_life.Task, Task.Delay(MaxTime)).ConfigureAwait(false);
+        }
         else
+        {
             await _life.Task.ConfigureAwait(false);
+        }
 
         XTrace.WriteLine("Application is shutting down...");
 
