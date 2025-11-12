@@ -44,7 +44,7 @@ public class DeferredQueue : DisposeBase
     /// <summary>是否异步处理。默认true表示异步处理，共用DQ定时调度；false表示同步处理，独立线程</summary>
     public Boolean Async { get; set; } = true;
 
-    private Int32 _Times;
+    private volatile Int32 _Times;
     /// <summary>合并保存的总次数</summary>
     public Int32 Times => _Times;
 
@@ -53,6 +53,16 @@ public class DeferredQueue : DisposeBase
 
     /// <summary>批次处理失败时</summary>
     public Action<IList<Object>, Exception>? Error;
+
+    /// <summary>队列溢出通知。参数为当前缓存个数</summary>
+    public Action<Int32>? Overflow;
+
+    /// <summary>当前缓存个数</summary>
+    private volatile Int32 _count;
+    /// <summary>当前缓存个数</summary>
+    public Int32 Count => _count;
+
+    private TimerX? _Timer;
     #endregion
 
     #region 构造
@@ -65,7 +75,17 @@ public class DeferredQueue : DisposeBase
     {
         base.Dispose(disposing);
 
-        _Timer?.Dispose();
+        try
+        {
+            // 停止调度器，尽量同步清空缓存，避免销毁时丢数据
+            _Timer?.Dispose();
+            Flush();
+        }
+        catch (Exception ex)
+        {
+            XTrace.WriteException(ex);
+        }
+
         _Entities?.Clear();
     }
 
@@ -91,11 +111,7 @@ public class DeferredQueue : DisposeBase
 
         var name = Async ? "DQ" : Name;
 
-        var timer = new TimerX(Work, null, p, Period, name)
-        {
-            Async = Async,
-            //CanExecute = () => _Entities.Any()
-        };
+        var timer = new TimerX(Work, null, p, Period, name) { Async = Async };
 
         // 独立调度时加大最大耗时告警
         if (!Async) timer.Scheduler.MaxCost = 30_000;
@@ -165,11 +181,44 @@ public class DeferredQueue : DisposeBase
         return entity as T;
     }
 
+    /// <summary>尝试移除一个键</summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public virtual Boolean TryRemove(String key)
+    {
+        if (_Entities.TryRemove(key, out _))
+        {
+            Interlocked.Decrement(ref _count);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>立即触发一次处理</summary>
+    public void Trigger()
+    {
+        Init();
+        _Timer?.SetNext(0);
+    }
+
+    /// <summary>同步清空并处理当前缓存</summary>
+    public void Flush()
+    {
+        // 由于 Work 会交换 _Entities，因此循环直到为空
+        while (!_Entities.IsEmpty)
+        {
+            Work(null);
+        }
+    }
+
     private void CheckMax()
     {
         if (_count < MaxEntity) return;
 
         using var span = DefaultTracer.Instance?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
+
+        // 通知外部发生溢出
+        try { Overflow?.Invoke(_count); } catch { /* 忽略业务侧异常 */ }
 
         // 超过最大值时，堵塞一段时间，等待消费完成
         var t = WaitForBusy * 5;
@@ -181,7 +230,7 @@ public class DeferredQueue : DisposeBase
             t -= 100;
         }
 
-        throw new InvalidOperationException($"The existing data amount [{_count: n0}] exceeds the maximum data amount [{MaxEntity: n0}]");
+        throw new InvalidOperationException($"The existing data amount [{_count:n0}] exceeds the maximum data amount [{MaxEntity:n0}]");
     }
 
     /// <summary>等待确认修改的借出对象数</summary>
@@ -195,14 +244,10 @@ public class DeferredQueue : DisposeBase
         if (_busy > 0) Interlocked.Decrement(ref _busy);
     }
 
-    /// <summary>当前缓存个数</summary>
-    private Int32 _count;
-    private TimerX? _Timer;
-
     private void Work(Object? state)
     {
         var es = _Entities;
-        if (!es.Any()) return;
+        if (es.IsEmpty) return;
 
         _Entities = new ConcurrentDictionary<String, Object>();
         var times = _Times;
@@ -222,11 +267,7 @@ public class DeferredQueue : DisposeBase
         // 先取出来
         var list = es.Values.ToList();
 
-        //if (list.Count > TraceCount)
-        //{
-        //    var cost = Speed == 0 ? 0 : list.Count * 1000 / Speed;
-        //    XTrace.WriteLine($"延迟队列[{Name}]\t保存 {list.Count:n0}\t预测 {cost:n0}ms\t次数 {times:n0}");
-        //}
+        if (list.Count == 0) return;
 
         var sw = Stopwatch.StartNew();
         var total = ProcessAll(list);
@@ -246,10 +287,13 @@ public class DeferredQueue : DisposeBase
     protected virtual Int32 ProcessAll(ICollection<Object> list)
     {
         var total = 0;
-        // 分批
-        for (var i = 0; i < list.Count;)
+
+        // 使用 List.GetRange 降低分配
+        var data = list as List<Object> ?? list.ToList();
+        for (var i = 0; i < data.Count;)
         {
-            var batch = list.Skip(i).Take(BatchSize).ToList();
+            var count = Math.Min(BatchSize, data.Count - i);
+            var batch = data.GetRange(i, count);
 
             try
             {
@@ -262,7 +306,7 @@ public class DeferredQueue : DisposeBase
                 OnError(batch, ex);
             }
 
-            i += batch.Count;
+            i += count;
         }
 
         return total;
