@@ -11,7 +11,7 @@ namespace NewLife.Net;
 /// 核心设计理念：事件驱动，接口统一，简单易用！
 /// 异常处理理念：确保主流程简单易用，特殊情况的异常通过事件处理！
 /// </remarks>
-public interface ISocket : IDisposable2
+public interface ISocket : IDisposable2, ILogFeature, ITracerFeature
 {
     #region 属性
     /// <summary>名称。主要用于日志输出</summary>
@@ -33,8 +33,8 @@ public interface ISocket : IDisposable2
     /// </remarks>
     IPipeline? Pipeline { get; set; }
 
-    /// <summary>日志提供者</summary>
-    ILog Log { get; set; }
+    ///// <summary>日志提供者</summary>
+    //ILog Log { get; set; }
 
     /// <summary>是否输出发送日志。默认false</summary>
     Boolean LogSend { get; set; }
@@ -42,8 +42,8 @@ public interface ISocket : IDisposable2
     /// <summary>是否输出接收日志。默认false</summary>
     Boolean LogReceive { get; set; }
 
-    /// <summary>APM性能追踪器</summary>
-    ITracer? Tracer { get; set; }
+    ///// <summary>APM性能追踪器</summary>
+    //ITracer? Tracer { get; set; }
     #endregion
 
     #region 方法

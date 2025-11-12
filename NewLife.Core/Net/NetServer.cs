@@ -309,9 +309,10 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
         if (Servers.Count == 0) throw new Exception($"Failed to listen to all ports! Port=[{Port}]");
 
-        WriteLog("准备开始监听{0}个服务器", Servers.Count);
+        var snapshot = Servers.ToArray();
+        WriteLog("准备开始监听{0}个服务器", snapshot.Length);
 
-        foreach (var item in Servers)
+        foreach (var item in snapshot)
         {
             item.Start();
 
@@ -506,6 +507,11 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
             {
                 if (s is INetSession ns) _Sessions.Remove(ns.ID);
             };
+        }
+        else
+        {
+            // 并发或重复添加时仅记录日志，避免抛异常打断连接流程
+            if (Log.Enable) Log.Warn("会话已存在，忽略重复添加。ID={0}", session.ID);
         }
     }
 

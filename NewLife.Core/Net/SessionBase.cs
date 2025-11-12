@@ -35,8 +35,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <summary>超时。默认3000ms</summary>
     public Int32 Timeout { get; set; } = 3_000;
 
+    private volatile Boolean _active;
     /// <summary>是否活动</summary>
-    public Boolean Active { get; set; }
+    public Boolean Active { get => _active; set => _active = value; }
 
     /// <summary>底层Socket</summary>
     public Socket? Client { get; protected set; }
@@ -156,10 +157,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 ReturnContext(ctx);
             }
 
-            ReceiveAsync();
-
-            // 触发打开完成的事件
+            // 触发打开完成的事件（状态已变更，管道已打开）
             Opened?.Invoke(this, EventArgs.Empty);
+
+            // 最后开始接收，避免事件处理阻塞接收初始化
+            ReceiveAsync();
         }
         catch (Exception ex)
         {
@@ -220,10 +222,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             _RecvCount = 0;
 
+            // 根据结果更新状态，然后再触发关闭事件，确保事件观察到最终状态
+            Active = !rs;
+
             // 触发关闭完成的事件
             Closed?.Invoke(this, EventArgs.Empty);
-
-            Active = !rs;
 
             return rs;
         }
@@ -748,7 +751,11 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="context">上下文</param>
     protected internal virtual void ReturnContext(IHandlerContext? context)
     {
-        if (context is NetHandlerContext nhc) NetHandlerContext.Return(nhc);
+        if (context is NetHandlerContext nhc)
+        {
+            nhc.Reset();
+            NetHandlerContext.Return(nhc);
+        }
     }
 
     /// <summary>通过管道发送消息，不等待响应</summary>
