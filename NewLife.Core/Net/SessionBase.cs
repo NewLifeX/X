@@ -148,8 +148,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 }
             }
 
-            // 初始化管道
-            Pipeline?.Open(CreateContext(this));
+            if (Pipeline != null)
+            {
+                // 使用上下文池调用Open
+                var ctx = CreateContext(this);
+                Pipeline.Open(ctx);
+                ReturnContext(ctx);
+            }
 
             ReceiveAsync();
 
@@ -203,8 +208,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             CloseReason = reason;
 
-            // 管道
-            Pipeline?.Close(CreateContext(this), reason);
+            if (Pipeline != null)
+            {
+                // 使用上下文池调用Close
+                var ctx = CreateContext(this);
+                Pipeline.Close(ctx, reason);
+                ReturnContext(ctx);
+            }
 
             var rs = await OnCloseAsync(reason ?? (GetType().Name + "Close"), cancellationToken).ConfigureAwait(false);
 
@@ -239,22 +249,32 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         var sock = Client;
         if (sock == null || !sock.Connected) return "Disconnected";
 
-        if (sock.Poll(10, SelectMode.SelectRead))
+        try
         {
-            try
+            if (sock.Poll(10, SelectMode.SelectRead))
             {
-                var buffer = new Byte[1];
-                if (sock.Receive(buffer, SocketFlags.Peek) == 0)
+                try
                 {
-                    // 收到FIN标记
-                    return "Finish";
+                    var buffer = new Byte[1];
+                    if (sock.Receive(buffer, SocketFlags.Peek) == 0)
+                    {
+                        // 收到FIN标记
+                        return "Finish";
+                    }
+                }
+                catch (SocketException ex)
+                {
+                    return ex.SocketErrorCode.ToString();
                 }
             }
-            catch (SocketException ex)
-            when (ex.SocketErrorCode == SocketError.ConnectionReset)
-            {
-                return "ConnectionReset";
-            }
+        }
+        catch (SocketException ex)
+        {
+            return ex.SocketErrorCode.ToString();
+        }
+        catch
+        {
+            // 其它异常不视为关闭
         }
 
         return null;
@@ -374,7 +394,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             var pk = new OwnerPacket(BufferSize);
             var size = Client.Receive(pk.Buffer, SocketFlags.None);
-            if (span != null) span.Value = size;
+            span?.Value = size;
 
             return pk.Resize(size);
         }
@@ -405,7 +425,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 #else
             var size = await Client.ReceiveAsync(pk.GetMemory(), SocketFlags.None, cancellationToken).ConfigureAwait(false);
 #endif
-            if (span != null) span.Value = size;
+            span?.Value = size;
 
             return pk.Resize(size);
         }
@@ -656,6 +676,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
                 // 进入管道处理，如果有一个或多个结果通过Finish来处理
                 pp.Read(ctx, pk);
+
+                // 同步调用完成后归还上下文
+                ReturnContext(ctx);
             }
         }
         catch (Exception ex)
@@ -712,14 +735,20 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <returns></returns>
     protected internal virtual NetHandlerContext CreateContext(ISocketRemote session)
     {
-        var context = new NetHandlerContext
-        {
-            Pipeline = Pipeline,
-            Session = session,
-            Owner = session,
-        };
+        // 从池中借用上下文
+        var context = NetHandlerContext.Rent();
+        context.Pipeline = Pipeline;
+        context.Session = session;
+        context.Owner = session;
 
         return context;
+    }
+
+    /// <summary>归还上下文到对象池</summary>
+    /// <param name="context">上下文</param>
+    protected internal virtual void ReturnContext(IHandlerContext? context)
+    {
+        if (context is NetHandlerContext nhc) NetHandlerContext.Return(nhc);
     }
 
     /// <summary>通过管道发送消息，不等待响应</summary>
@@ -733,7 +762,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         try
         {
             var ctx = CreateContext(this);
-            return (Int32)(Pipeline.Write(ctx, message) ?? 0);
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
+
+            // 写入完成后归还上下文
+            ReturnContext(ctx);
+
+            return rs;
         }
         catch (Exception ex)
         {
@@ -842,7 +876,12 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="ex">异常</param>
     protected internal virtual void OnError(String action, Exception ex)
     {
-        Pipeline?.Error(CreateContext(this), ex);
+        if (Pipeline != null)
+        {
+            var ctx = CreateContext(this);
+            Pipeline.Error(ctx, ex);
+            ReturnContext(ctx);
+        }
 
         Log?.Error("{0}{1}Error {2} {3}", LogPrefix, action, this, ex.Message);
         Error?.Invoke(this, new ExceptionEventArgs(action, ex));

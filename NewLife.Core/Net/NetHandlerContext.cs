@@ -4,12 +4,32 @@ using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
+using NewLife.Collections;
 
 namespace NewLife.Net;
 
 /// <summary>网络处理器上下文</summary>
 public class NetHandlerContext : HandlerContext
 {
+    #region 池
+    private static readonly Pool<NetHandlerContext> _pool = new();
+
+    /// <summary>从池中借出上下文</summary>
+    public static NetHandlerContext Rent()
+    {
+        var ctx = _pool.Get();
+        return ctx;
+    }
+
+    /// <summary>归还上下文到池</summary>
+    public static void Return(NetHandlerContext ctx)
+    {
+        if (ctx == null) return;
+        ctx.Reset();
+        _pool.Return(ctx);
+    }
+    #endregion
+
     #region 属性
     /// <summary>远程连接</summary>
     public ISocketRemote? Session { get; set; }
@@ -23,6 +43,20 @@ public class NetHandlerContext : HandlerContext
     /// <summary>Socket事件参数</summary>
     public SocketAsyncEventArgs? EventArgs { get; set; }
 
+    /// <summary>重置上下文，清理状态以便对象池复用</summary>
+    public void Reset()
+    {
+        Session = null;
+        Data = null;
+        Remote = null;
+        EventArgs = null;
+        Owner = null;
+        Pipeline = null;
+        Items.Clear();
+    }
+    #endregion
+
+    #region 读取/写入
     /// <summary>读取管道过滤后最终处理消息</summary>
     /// <param name="message"></param>
     public override void FireRead(Object message)

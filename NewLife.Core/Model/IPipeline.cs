@@ -112,8 +112,8 @@ public class Pipeline : IPipeline
             var prev = handler.Prev;
             var next = handler.Next;
 
-            if (prev != null) prev.Next = next;
-            if (next != null) next.Prev = prev;
+            prev?.Next = next;
+            next?.Prev = prev;
 
             if (_head == handler) _head = next;
             if (_tail == handler) _tail = prev;
