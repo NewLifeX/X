@@ -86,6 +86,12 @@ public class WebSocket
         using var message = new WebSocketMessage();
         if (!message.Read(pk)) return;
 
+        Process(message);
+    }
+
+    /// <summary>处理WebSocket消息</summary>
+    public void Process(WebSocketMessage message)
+    {
         ActiveTime = DateTime.Now;
 
         Handler?.Invoke(this, message);
