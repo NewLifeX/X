@@ -10,7 +10,15 @@ public interface IPipeline
     /// <summary>添加处理器到末尾</summary>
     /// <param name="handler">处理器</param>
     /// <returns></returns>
-    void Add(IHandler handler);
+    void Add(IPipelineHandler handler);
+
+    /// <summary>移除处理器</summary>
+    /// <param name="handler">处理器</param>
+    /// <returns>是否成功</returns>
+    Boolean Remove(IPipelineHandler handler);
+
+    /// <summary>清空所有处理器</summary>
+    void Clear();
     #endregion
 
     #region 执行逻辑
@@ -43,9 +51,21 @@ public interface IPipeline
 /// <summary>管道。进站顺序，出站逆序</summary>
 public class Pipeline : IPipeline
 {
+    #region 字段
+    private readonly Object _syncRoot = new();
+    private IPipelineHandler? _head;
+    private IPipelineHandler? _tail;
+    #endregion
+
     #region 属性
     /// <summary>处理器集合</summary>
-    public IList<IHandler> Handlers { get; } = [];
+    public IList<IPipelineHandler> Handlers { get; } = [];
+
+    /// <summary>头部处理器</summary>
+    public IPipelineHandler? Head => _head;
+
+    /// <summary>尾部处理器</summary>
+    public IPipelineHandler? Tail => _tail;
     #endregion
 
     #region 构造
@@ -55,19 +75,72 @@ public class Pipeline : IPipeline
     /// <summary>添加处理器到末尾</summary>
     /// <param name="handler">处理器</param>
     /// <returns></returns>
-    public virtual void Add(IHandler handler)
+    public virtual void Add(IPipelineHandler handler)
     {
-        handler.Next = null;
-        handler.Prev = null;
+        if (handler == null) return;
 
-        var hs = Handlers;
-        if (hs.Count > 0)
+        lock (_syncRoot)
         {
-            var last = hs[hs.Count - 1];
-            last.Next = handler;
-            handler.Prev = last;
+            handler.Next = null;
+            handler.Prev = null;
+
+            var last = _tail;
+            if (last != null)
+            {
+                last.Next = handler;
+                handler.Prev = last;
+            }
+
+            Handlers.Add(handler);
+
+            if (_head == null) _head = handler;
+            _tail = handler;
         }
-        Handlers.Add(handler);
+    }
+
+    /// <summary>移除处理器</summary>
+    /// <param name="handler">处理器</param>
+    /// <returns>是否成功</returns>
+    public virtual Boolean Remove(IPipelineHandler handler)
+    {
+        if (handler == null) return false;
+
+        lock (_syncRoot)
+        {
+            if (!Handlers.Remove(handler)) return false;
+
+            var prev = handler.Prev;
+            var next = handler.Next;
+
+            if (prev != null) prev.Next = next;
+            if (next != null) next.Prev = prev;
+
+            if (_head == handler) _head = next;
+            if (_tail == handler) _tail = prev;
+
+            handler.Prev = null;
+            handler.Next = null;
+
+            return true;
+        }
+    }
+
+    /// <summary>清空所有处理器</summary>
+    public virtual void Clear()
+    {
+        lock (_syncRoot)
+        {
+            // 断开链表，避免悬挂引用
+            foreach (var h in Handlers)
+            {
+                h.Prev = null;
+                h.Next = null;
+            }
+
+            Handlers.Clear();
+            _head = null;
+            _tail = null;
+        }
     }
     #endregion
 
@@ -80,25 +153,62 @@ public class Pipeline : IPipeline
     /// </remarks>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    public virtual Object? Read(IHandlerContext context, Object message) => Handlers.FirstOrDefault()?.Read(context, message);
+    public virtual Object? Read(IHandlerContext context, Object message)
+    {
+        var head = _head;
+        if (head == null)
+        {
+            // 空管道：直接触发最终处理并返回原消息
+            context?.FireRead(message);
+            return message;
+        }
+
+        return head.Read(context, message);
+    }
 
     /// <summary>写入数据，逆序过滤消息，返回结果作为下一个处理器消息</summary>
     /// <param name="context">上下文</param>
     /// <param name="message">消息</param>
-    public virtual Object? Write(IHandlerContext context, Object message) => Handlers.LastOrDefault()?.Write(context, message);
+    public virtual Object? Write(IHandlerContext context, Object message)
+    {
+        var tail = _tail;
+        if (tail == null)
+        {
+            // 空管道：直接写出
+            return context != null ? context.FireWrite(message) : message;
+        }
 
-    /// <summary>打开连接</summary>
+        return tail.Write(context, message);
+    }
+
+    /// <summary>打开连接（正序）</summary>
     /// <param name="context">上下文</param>
-    public virtual Boolean Open(IHandlerContext context) => Handlers.FirstOrDefault()?.Open(context) ?? true;
+    public virtual Boolean Open(IHandlerContext context)
+    {
+        var head = _head;
+        if (head == null) return true;
 
-    /// <summary>关闭连接</summary>
+        return head.Open(context);
+    }
+
+    /// <summary>关闭连接（逆序）</summary>
     /// <param name="context">上下文</param>
     /// <param name="reason">原因</param>
-    public virtual Boolean Close(IHandlerContext context, String reason) => Handlers.FirstOrDefault()?.Close(context, reason) ?? true;
+    public virtual Boolean Close(IHandlerContext context, String reason)
+    {
+        var tail = _tail;
+        if (tail == null) return true;
+
+        return tail.Close(context, reason);
+    }
 
     /// <summary>发生错误</summary>
     /// <param name="context">上下文</param>
     /// <param name="exception">异常</param>
-    public virtual Boolean Error(IHandlerContext context, Exception exception) => Handlers.FirstOrDefault()?.Error(context, exception) ?? true;
+    public virtual Boolean Error(IHandlerContext context, Exception exception)
+    {
+        var head = _head;
+        return head?.Error(context, exception) ?? true;
+    }
     #endregion
 }

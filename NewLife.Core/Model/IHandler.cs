@@ -1,13 +1,17 @@
 ﻿namespace NewLife.Model;
 
-/// <summary>处理器</summary>
-public interface IHandler
+/// <summary>管道处理器。兼容旧版本</summary>
+[Obsolete("=>IPipelineHandler")]
+public interface IHandler : IPipelineHandler { }
+
+/// <summary>管道处理器</summary>
+public interface IPipelineHandler
 {
     /// <summary>上一个处理器</summary>
-    IHandler? Prev { get; set; }
+    IPipelineHandler? Prev { get; set; }
 
     /// <summary>下一个处理器</summary>
-    IHandler? Next { get; set; }
+    IPipelineHandler? Next { get; set; }
 
     /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
     /// <remarks>
@@ -40,13 +44,13 @@ public interface IHandler
 }
 
 /// <summary>处理器</summary>
-public abstract class Handler : IHandler
+public abstract class Handler : IPipelineHandler
 {
     /// <summary>上一个处理器</summary>
-    public IHandler? Prev { get; set; }
+    public IPipelineHandler? Prev { get; set; }
 
     /// <summary>下一个处理器</summary>
-    public IHandler? Next { get; set; }
+    public IPipelineHandler? Next { get; set; }
 
     /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
     /// <remarks>
@@ -83,10 +87,10 @@ public abstract class Handler : IHandler
     /// <param name="context">上下文</param>
     public virtual Boolean Open(IHandlerContext context) => Next == null || Next.Open(context);
 
-    /// <summary>关闭连接</summary>
+    /// <summary>关闭连接（逆序）</summary>
     /// <param name="context">上下文</param>
     /// <param name="reason">原因</param>
-    public virtual Boolean Close(IHandlerContext context, String reason) => Next == null || Next.Close(context, reason);
+    public virtual Boolean Close(IHandlerContext context, String reason) => Prev == null || Prev.Close(context, reason);
 
     /// <summary>发生错误</summary>
     /// <param name="context">上下文</param>

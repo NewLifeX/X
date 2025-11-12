@@ -208,12 +208,20 @@ public static class SocketRemoteHelper
     /// <typeparam name="THandler">处理器类型</typeparam>
     /// <param name="session">Socket会话</param>
     /// <remarks>处理器必须有无参构造函数</remarks>
-    public static void Add<THandler>(this ISocket session) where THandler : IHandler, new() => GetPipeline(session).Add(new THandler());
+    public static void Add<THandler>(this ISocket session) where THandler : IPipelineHandler, new() => GetPipeline(session).Add(new THandler());
 
     /// <summary>添加处理器实例</summary>
     /// <param name="session">Socket会话</param>
     /// <param name="handler">处理器实例</param>
+    public static void Add(this ISocket session, IPipelineHandler handler) => GetPipeline(session).Add(handler);
+
+#pragma warning disable CS0618 // 类型或成员已过时
+    /// <summary>添加处理器实例</summary>
+    /// <param name="session">Socket会话</param>
+    /// <param name="handler">处理器实例</param>
+    [Obsolete("=>IPipelineHandler")]
     public static void Add(this ISocket session, IHandler handler) => GetPipeline(session).Add(handler);
+#pragma warning restore CS0618 // 类型或成员已过时
 
     /// <summary>获取或创建消息管道</summary>
     private static IPipeline GetPipeline(ISocket session) => session.Pipeline ??= new Pipeline();

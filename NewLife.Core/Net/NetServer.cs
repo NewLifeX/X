@@ -273,11 +273,11 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
 
     /// <summary>添加处理器</summary>
     /// <typeparam name="THandler"></typeparam>
-    public void Add<THandler>() where THandler : IHandler, new() => GetPipe().Add(new THandler());
+    public void Add<THandler>() where THandler : IPipelineHandler, new() => GetPipe().Add(new THandler());
 
     /// <summary>添加处理器</summary>
     /// <param name="handler">处理器</param>
-    public void Add(IHandler handler) => GetPipe().Add(handler);
+    public void Add(IPipelineHandler handler) => GetPipe().Add(handler);
 
     private IPipeline GetPipe() => Pipeline ??= new Pipeline();
     #endregion
