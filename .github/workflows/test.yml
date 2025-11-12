@@ -21,6 +21,7 @@ jobs:
           7.x
           8.x
           9.x
+          10.x
     - name: Build
       run: |
         dotnet build -c Release
@@ -28,3 +29,4 @@ jobs:
       run: |
         dotnet test -f net8.0
         dotnet test -f net9.0
+        dotnet test -f net10.0

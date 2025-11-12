@@ -503,7 +503,7 @@ public static class PathHelper
         var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
         foreach (var item in di.GetAllFiles(exts, allSub))
         {
-            var name = item.FullName.TrimStart(root);
+            var name = item.FullName.TrimStart(root).ToString();
             var dst = destDirName.CombinePath(name);
             callback?.Invoke(name);
             item.CopyTo(dst.EnsureDirectory(true), true);
@@ -533,7 +533,7 @@ public static class PathHelper
         // 遍历目标目录，拷贝同名文件
         foreach (var item in dest.GetAllFiles(exts, allSub))
         {
-            var name = item.FullName.TrimStart(root);
+            var name = item.FullName.TrimStart(root).ToString();
             var fi = di.FullName.CombinePath(name).AsFile();
             //fi.CopyToIfNewer(item.FullName);
             if (fi.Exists && item.Exists && fi.LastWriteTime > item.LastWriteTime)

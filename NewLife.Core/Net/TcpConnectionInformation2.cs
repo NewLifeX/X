@@ -197,7 +197,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
             var list2 = new List<TcpConnectionInformation2>();
             foreach (var item in list)
             {
-                if (nodes.Contains(item.Node))
+                if (item.Node != null && nodes.Contains(item.Node))
                 {
                     item.ProcessId = processId;
                     list2.Add(item);
@@ -232,9 +232,9 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
         if (text.IsNullOrEmpty()) return list;
 
         // 逐行读取TCP连接信息
-        foreach (var line in text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var line in text.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries))
         {
-            var parts = line.Split(new Char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = line.Split([' '], StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length < 4 || parts[1].IndexOf(':') < 0) continue;
 
             //// 提取连接信息
@@ -283,7 +283,7 @@ public class TcpConnectionInformation2 : TcpConnectionInformation
     private static String[] GetNodes(Int32 processId)
     {
         var path = $"/proc/{processId}/fd".AsDirectory();
-        if (!path.Exists) return new String[0];
+        if (!path.Exists) return [];
 
         var files = new List<String>();
         foreach (var fi in path.GetFiles())

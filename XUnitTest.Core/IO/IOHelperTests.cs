@@ -25,7 +25,7 @@ public class IOHelperTests
         Assert.Equal(-1, p);
     }
 
-    private static readonly Byte[] NewLine2 = new[] { (Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n' };
+    private static readonly Byte[] NewLine2 = "\r\n\r\n"u8.ToArray();
     [Fact]
     public void IndexOf2()
     {
@@ -209,7 +209,8 @@ public class IOHelperTests
         v = -1.2345f;
         buf = BitConverter.GetBytes(v);
 
-        buf = buf.Reverse().ToArray();
+        //buf = buf.Reverse().ToArray();
+        buf=Enumerable.Reverse(buf).ToArray();
         value = buf.ToSingle(0, false);
         Assert.Equal(v, value);
 
@@ -236,7 +237,8 @@ public class IOHelperTests
         v = -1.2345d;
         buf = BitConverter.GetBytes(v);
 
-        buf = buf.Reverse().ToArray();
+        //buf = buf.Reverse().ToArray();
+        buf = Enumerable.Reverse(buf).ToArray();
         value = buf.ToDouble(0, false);
         Assert.Equal(v, value);
 
@@ -266,7 +268,7 @@ public class IOHelperTests
     [Fact(DisplayName = "ReadAtLeast-EOF抛异常")]
     public void ReadAtLeast_ThrowOnEOF()
     {
-        var src = new Byte[] {1,2,3};
+        var src = new Byte[] { 1, 2, 3 };
         using var ms = new MemoryStream(src);
         var buf = new Byte[10];
         Assert.Throws<EndOfStreamException>(() => IOHelper.ReadAtLeast(ms, buf, 0, 10, 5, true));
@@ -275,7 +277,7 @@ public class IOHelperTests
     [Fact(DisplayName = "ReadAtLeast-EOF不抛异常")]
     public void ReadAtLeast_NoThrowEOF()
     {
-        var src = new Byte[] {1,2,3};
+        var src = new Byte[] { 1, 2, 3 };
         using var ms = new MemoryStream(src);
         var buf = new Byte[10];
         var n = IOHelper.ReadAtLeast(ms, buf, 0, 10, 5, false);
@@ -285,7 +287,7 @@ public class IOHelperTests
     [Fact(DisplayName = "ReadAtLeast-minimum为0快速返回")]
     public void ReadAtLeast_MinZero()
     {
-        var src = new Byte[] {1,2,3};
+        var src = new Byte[] { 1, 2, 3 };
         using var ms = new MemoryStream(src);
         var buf = new Byte[3];
         var n = IOHelper.ReadAtLeast(ms, buf, 0, 3, 0, true);
@@ -296,7 +298,7 @@ public class IOHelperTests
     [Fact(DisplayName = "ReadAtLeast-count为0快速返回")]
     public void ReadAtLeast_CountZero()
     {
-        var src = new Byte[] {1,2,3};
+        var src = new Byte[] { 1, 2, 3 };
         using var ms = new MemoryStream(src);
         var buf = new Byte[3];
         var n = IOHelper.ReadAtLeast(ms, buf, 0, 0, 0, true);
@@ -307,7 +309,7 @@ public class IOHelperTests
     [Fact(DisplayName = "ReadAtLeast-参数异常验证")]
     public void ReadAtLeast_ParamErrors()
     {
-        using var ms = new MemoryStream(new Byte[] {1});
+        using var ms = new MemoryStream(new Byte[] { 1 });
         var buf = new Byte[5];
         Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, -1, 1, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeast(ms, buf, 0, -1, 1));
