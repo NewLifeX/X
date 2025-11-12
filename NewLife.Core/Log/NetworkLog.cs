@@ -122,7 +122,7 @@ public class NetworkLog : Logger, IDisposable
     /// <param name="args"></param>
     protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
-        if (_logCount > 100) return;
+        if (_logCount > 1024) return;
 
         var e = WriteLogEventArgs.Current.Set(level);
         // 特殊处理异常对象

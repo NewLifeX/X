@@ -296,7 +296,7 @@ public class TextFileLog : Logger, IDisposable
     protected override void OnWrite(LogLevel level, String format, params Object?[] args)
     {
         // 据@夏玉龙反馈，如果不给Log目录写入权限，日志队列积压将会导致内存暴增
-        if (_logCount > 100) return;
+        if (_logCount > 1024) return;
 
         var e = WriteLogEventArgs.Current.Set(level);
         // 特殊处理异常对象

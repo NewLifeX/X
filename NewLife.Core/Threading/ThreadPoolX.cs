@@ -11,10 +11,14 @@ public class ThreadPoolX : DisposeBase
     {
         // 在这个同步异步大量混合使用的时代，需要更多的初始线程来屏蔽各种对TPL的不合理使用
         ThreadPool.GetMinThreads(out var wt, out var io);
-        if (wt < 32 || io < 32)
+
+        // 目标最小线程数：min(64, 4 * 核数)。避免过高导致切换开销，同时覆盖启动期大批并发初始化
+        var cores = Environment.ProcessorCount;
+        var target = Math.Min(64, cores * 4);
+        if (wt < target || io < target)
         {
-            if (wt < 32) wt = 32;
-            if (io < 32) io = 32;
+            if (wt < target) wt = target;
+            if (io < target) io = target;
             ThreadPool.SetMinThreads(wt, io);
         }
 
