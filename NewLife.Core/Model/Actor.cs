@@ -57,19 +57,16 @@ public abstract class Actor : DisposeBase, IActor
     /// <summary>存放消息的邮箱。默认FIFO实现，外部可覆盖</summary>
     protected BlockingCollection<ActorContext>? MailBox { get; set; }
 
-    /// <summary>
-    /// 性能追踪器
-    /// </summary>
+    /// <summary>性能追踪器</summary>
     public ITracer? Tracer { get; set; }
 
-    /// <summary>
-    /// 父级性能追踪器。用于把内外调用链关联起来
-    /// </summary>
+    /// <summary>父级性能追踪器。用于把内外调用链关联起来</summary>
     public ISpan? TracerParent { get; set; }
 
     private Task? _task;
     private Exception? _error;
     private CancellationTokenSource? _source;
+    private Int32 _queueLength;
     #endregion
 
     #region 构造
@@ -103,15 +100,11 @@ public abstract class Actor : DisposeBase, IActor
 
     #region 方法
     /// <summary>通知开始处理</summary>
-    /// <remarks>
-    /// 添加消息时自动触发
-    /// </remarks>
+    /// <remarks>添加消息时自动触发</remarks>
     public virtual Task? Start() => Start(default);
 
     /// <summary>通知开始处理</summary>
-    /// <remarks>
-    /// 添加消息时自动触发
-    /// </remarks>
+    /// <remarks>添加消息时自动触发</remarks>
     /// <param name="cancellationToken">取消令牌。可用于通知内部取消工作</param>
     /// <returns></returns>
     public virtual Task? Start(CancellationToken cancellationToken = default)
@@ -148,7 +141,8 @@ public abstract class Actor : DisposeBase, IActor
     protected virtual Task OnStart(CancellationToken cancellationToken)
     {
         var creationOptions = LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None;
-        var scheduler = TaskScheduler.Current ?? TaskScheduler.Default;
+        // 使用默认调度器，避免影响UI调度器
+        var scheduler = TaskScheduler.Default;
         return Task.Factory.StartNew(DoActorWork, cancellationToken, creationOptions, scheduler);
     }
 
@@ -196,7 +190,7 @@ public abstract class Actor : DisposeBase, IActor
         var box = MailBox ?? throw new ArgumentNullException(nameof(MailBox));
         box.Add(new ActorContext { Sender = sender, Message = message });
 
-        return box.Count;
+        return Interlocked.Increment(ref _queueLength);
     }
 
     /// <summary>循环消费消息</summary>
@@ -239,6 +233,7 @@ public abstract class Actor : DisposeBase, IActor
                 task?.Wait(token);
 
                 if (span != null) span.Value++;
+                Interlocked.Decrement(ref _queueLength);
             }
             else
             {
@@ -259,6 +254,8 @@ public abstract class Actor : DisposeBase, IActor
 
                 var task = ReceiveAsync(list.ToArray(), token);
                 task?.Wait(token);
+
+                Interlocked.Add(ref _queueLength, -list.Count);
             }
         }
     }

@@ -38,7 +38,7 @@ public class DefaultMessage : Message
     /// <summary>标记位。可用于标识消息数据类型DataKinds（非强制），内置0标识字符串，默认1标识二进制</summary>
     public Byte Flag { get; set; } = (Byte)DataKinds.Packet;
 
-    /// <summary>序列号，匹配请求和响应</summary>
+    /// <summary>序列号。匹配请求和响应，仅低8位有效</summary>
     public Int32 Sequence { get; set; }
 
     /// <summary>解析数据时的原始报文</summary>
@@ -77,6 +77,11 @@ public class DefaultMessage : Message
         var size = 4;
         var header = pk.GetSpan()[..size];
 
+        // 清理状态位
+        Reply = false;
+        Error = false;
+        OneWay = false;
+
         // 前2位作为标识位
         Flag = (Byte)(header[0] & 0b0011_1111);
         var mode = header[0] >> 6;
@@ -93,7 +98,7 @@ public class DefaultMessage : Message
         // 1个字节的序列号
         Sequence = header[1];
 
-        // 负载长度
+        // 负载长度。2字节小端
         var len = (header[3] << 8) | header[2];
         if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
 
@@ -103,6 +108,7 @@ public class DefaultMessage : Message
             size += 4;
             if (count < size) throw new ArgumentOutOfRangeException(nameof(pk), "The length of the packet header is less than 8 bytes");
 
+            // 4字节小端
             len = pk.GetSpan().Slice(size - 4, 4).ToArray().ToInt();
             if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
         }
