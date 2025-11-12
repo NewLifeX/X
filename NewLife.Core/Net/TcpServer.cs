@@ -242,7 +242,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
             if (io)
                 ProcessAccept(se);
             else
-                Task.Factory.StartNew(() => ProcessAccept(se));
+                Task.Factory.StartNew(() => ProcessAccept(se), TaskCreationOptions.LongRunning);
         }
 
         return true;

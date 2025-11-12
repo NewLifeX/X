@@ -82,7 +82,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
             {
                 Init();
                 // 将固定的 source 传入，避免闭包捕获 _source 产生竞争
-                var t = Task.Run(() => ConsumeMessage(source));
+                var t = Task.Factory.StartNew(() => ConsumeMessage(source), source.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
                 Interlocked.Exchange(ref _consumerTask, t);
             }
             else

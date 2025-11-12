@@ -198,7 +198,7 @@ public class MachineInfo : IExtend
             }
 
             return mi;
-        });
+        }, TaskCreationOptions.LongRunning);
     }
 
     /// <summary>获取当前信息，如果未设置则等待异步注册结果</summary>

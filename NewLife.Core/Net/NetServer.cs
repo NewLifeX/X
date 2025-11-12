@@ -542,20 +542,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <summary>异步群发数据给所有客户端</summary>
     /// <param name="data"></param>
     /// <returns>已群发客户端总数</returns>
-    public virtual async Task<Int32> SendAllAsync(IPacket data)
-    {
-        if (!UseSession) throw new ArgumentOutOfRangeException(nameof(UseSession), true, "Mass posting requires the use of session collections");
-
-        var ts = new List<Task>();
-        foreach (var item in Sessions)
-        {
-            ts.Add(Task.Run(() => item.Value.Send(data)));
-        }
-
-        await Task.WhenAll(ts).ConfigureAwait(false);
-
-        return Sessions.Count;
-    }
+    public virtual Task<Int32> SendAllAsync(IPacket data) => SendAllAsync(data, null);
 
     /// <summary>异步群发数据给所有客户端</summary>
     /// <param name="data"></param>

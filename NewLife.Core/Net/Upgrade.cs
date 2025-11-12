@@ -156,7 +156,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            Task.Run(() => web.DownloadFileAsync(url, file)).Wait(30_000);
+            Task.Factory.StartNew(() => web.DownloadFileAsync(url, file), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);

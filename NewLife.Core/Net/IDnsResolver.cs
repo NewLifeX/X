@@ -23,25 +23,38 @@ public class DnsResolver : IDnsResolver
     public TimeSpan Expire { set; get; } = TimeSpan.FromMinutes(5);
 
     private readonly ConcurrentDictionary<String, DnsItem> _cache = new();
+    private readonly ConcurrentDictionary<String, Byte> _refreshing = new(); // 刷新去重
 
     /// <summary>解析域名</summary>
     /// <param name="host"></param>
     /// <returns></returns>
     public IPAddress[]? Resolve(String host)
     {
+        if (host.IsNullOrEmpty()) return null;
+
         if (_cache.TryGetValue(host, out var item))
         {
             // 超时数据，异步更新，不影响当前请求
             if (item.UpdateTime.Add(Expire) <= DateTime.Now)
-                _ = Task.Run(() => ResolveCore(host, item, false));
+            {
+                if (_refreshing.TryAdd(host, 0)) _ = ResolveCoreAsync(host, item, false);
+            }
         }
         else
-            item = ResolveCore(host, item, true);
+        {
+            // 首次解析同步等待（保持现有同步接口语义）
+            item = ResolveCoreAsync(host, null, true).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
 
         return item?.Addresses;
     }
 
-    DnsItem? ResolveCore(String host, DnsItem? item, Boolean throwError)
+    /// <summary>异步解析/刷新核心</summary>
+    /// <param name="host"></param>
+    /// <param name="item"></param>
+    /// <param name="throwError"></param>
+    /// <returns></returns>
+    async Task<DnsItem?> ResolveCoreAsync(String host, DnsItem? item, Boolean throwError)
     {
         using var span = DefaultTracer.Instance?.NewSpan($"dns:{host}");
         try
@@ -49,8 +62,7 @@ public class DnsResolver : IDnsResolver
             // 执行DNS解析
 #if NET6_0_OR_GREATER
             using var source = new CancellationTokenSource(5000);
-            var task = Dns.GetHostAddressesAsync(host, source.Token);
-            var addrs = task.ConfigureAwait(false).GetAwaiter().GetResult();
+            var addrs = await Dns.GetHostAddressesAsync(host, source.Token).ConfigureAwait(false);
 #else
             var task = Dns.GetHostAddressesAsync(host);
             if (!task.Wait(5000)) throw new TaskCanceledException();
@@ -83,11 +95,16 @@ public class DnsResolver : IDnsResolver
         }
         catch (Exception ex)
         {
-            if (item != null) return item;
+            if (item != null) return item; // 保留旧值
 
             span?.SetError(ex, null);
 
             if (throwError) throw;
+        }
+        finally
+        {
+            // 结束刷新标记
+            _refreshing.TryRemove(host, out _);
         }
 
         return item;
