@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <AssemblyTitle>客户端桌面应用</AssemblyTitle>
     <Description>CS架构的客户端桌面应用，给用户提供便捷操作，可对接硬件</Description>
     <Company>新生命开发团队</Company>
@@ -26,9 +26,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Remoting" Version="3.3.2025.601" />
-    <PackageReference Include="NewLife.Stardust" Version="3.4.2025.601" />
-    <PackageReference Include="System.Speech" Version="9.0.6" />
+    <PackageReference Include="NewLife.Remoting" Version="3.5.2025.1001" />
+    <PackageReference Include="NewLife.Stardust" Version="3.4.2025.1001" />
+    <PackageReference Include="System.Speech" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>

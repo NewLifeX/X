@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyTitle>回声服务器</AssemblyTitle>
     <Description>网络回声服务端，把收到的数据原样发回去，用于网络性能压测</Description>
     <Company>新生命开发团队</Company>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Stardust" Version="3.4.2025.601" />
+    <PackageReference Include="NewLife.Stardust" Version="3.4.2025.1001" />
   </ItemGroup>
 
   <ItemGroup>

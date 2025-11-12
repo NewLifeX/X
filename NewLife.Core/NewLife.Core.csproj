@@ -7,7 +7,7 @@
     <Description>Core basic components: log (file / network), configuration (XML / JSON / HTTP), cache, network (TCP / UDP / HTTP /WebSocket), serialization (binary / XML / JSON), APM performance tracking. 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存、网络（Tcp/Udp/Http/WebSocket）、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2025 NewLife</Copyright>
-    <VersionPrefix>11.8</VersionPrefix>
+    <VersionPrefix>11.9</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
