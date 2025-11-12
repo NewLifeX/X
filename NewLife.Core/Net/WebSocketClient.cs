@@ -212,7 +212,7 @@ public class WebSocketClient : TcpSession
         SendMessage(msg);
 
         var p = (Int32)KeepAlive.TotalMilliseconds;
-        if (_timer != null) _timer.Period = p;
+        _timer?.Period = p;
     }
     #endregion
 

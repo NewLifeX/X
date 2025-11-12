@@ -145,7 +145,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         set
         {
             var section = Find(key, true);
-            if (section != null) section.Value = value;
+            section?.Value = value;
         }
     }
 

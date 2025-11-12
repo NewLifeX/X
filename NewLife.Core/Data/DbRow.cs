@@ -32,7 +32,7 @@ public readonly struct DbRow(DbTable table, Int32 index) : IModel
         set
         {
             var rows = Table.Rows;
-            if (rows != null) rows[Index][column] = value;
+            rows?[Index][column] = value;
         }
     }
 

@@ -370,7 +370,7 @@ public static class TracerExtension
     public static ISpan NewSpan(this ITracer tracer, String name, Object? tag, Int64 value)
     {
         var span = tracer.NewSpan(name, tag);
-        if (span != null) span.Value = value;
+        span?.Value = value;
 
         return span!;
     }

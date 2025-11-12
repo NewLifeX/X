@@ -31,14 +31,14 @@ public class JsonCodec : Handler
             message = str.GetBytes();
 
             // 通知标准网络封包使用的Flag
-            if (ext != null) ext["Flag"] = DataKinds.String;
+            ext?["Flag"] = DataKinds.String;
         }
         else if (message is not IPacket and not IMessage)
         {
             message = JsonHost.Write(message).GetBytes();
 
             // 通知标准网络封包使用的Flag
-            if (ext != null) ext["Flag"] = DataKinds.Json;
+            ext?["Flag"] = DataKinds.Json;
         }
 
         if (message is Byte[] buf)

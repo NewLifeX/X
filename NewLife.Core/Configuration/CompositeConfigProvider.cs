@@ -91,7 +91,7 @@ public class CompositeConfigProvider : IConfigProvider
             {
                 //cfg[key] = value;
                 var section = cfg.GetSection(key);
-                if (section != null) section.Value = value;
+                section?.Value = value;
             }
         }
     }

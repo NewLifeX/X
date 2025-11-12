@@ -726,7 +726,7 @@ public class MemoryCache : Cache
     private void RemoveNotAlive(Object? state)
     {
         var tx = _clearTimer;
-        if (tx != null /*&& tx.Period == 60_000*/) tx.Period = Period * 1000;
+        tx?.Period = Period * 1000;
 
         var dic = _cache;
         if (_count == 0 && !dic.Any()) return;

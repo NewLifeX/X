@@ -296,7 +296,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var ep = Remote.EndPoint as EndPoint;
             var pk = new OwnerPacket(Server.BufferSize);
             var size = Server.Client.ReceiveFrom(pk.Buffer, ref ep);
-            if (span != null) span.Value = size;
+            span?.Value = size;
 
             return pk.Resize(size);
         }
@@ -332,7 +332,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var result = await socket.ReceiveFromAsync(pk.Buffer, SocketFlags.None, ep).ConfigureAwait(false);
             var size = result.ReceivedBytes;
 #endif
-            if (span != null) span.Value = size;
+            span?.Value = size;
 
             return pk.Resize(size);
         }

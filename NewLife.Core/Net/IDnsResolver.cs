@@ -71,7 +71,7 @@ public class DnsResolver : IDnsResolver
             span?.AppendTag($"addrs={addrs.Join(",")}");
             if (addrs != null && addrs.Length > 0)
             {
-                if (span != null) span.Value = addrs.Length;
+                span?.Value = addrs.Length;
 
                 // 更新缓存数据
                 if (item == null)

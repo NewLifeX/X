@@ -15,7 +15,7 @@ public class WebSocketHandler : IHttpHandler
     public virtual void ProcessRequest(IHttpContext context)
     {
         var ws = context.WebSocket;
-        if (ws != null) ws.Handler = ProcessMessage;
+        ws?.Handler = ProcessMessage;
 
         WriteLog("WebSocket连接 {0}", context.Connection?.Remote);
     }

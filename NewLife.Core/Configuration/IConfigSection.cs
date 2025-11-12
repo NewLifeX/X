@@ -48,7 +48,7 @@ public class ConfigSection : IConfigSection
         set
         {
             var section = this.Find(key, true);
-            if (section != null) section.Value = value;
+            section?.Value = value;
         }
     }
 
