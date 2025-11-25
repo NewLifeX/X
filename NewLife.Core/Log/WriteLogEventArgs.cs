@@ -125,7 +125,7 @@ public class WriteLogEventArgs : EventArgs
         if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
         if (name.EqualIgnoreCase("Threadpool worker", ".NET ThreadPool Worker", ".NET TP Worker", "Thread Pool Worker")) name = TaskID >= 0 ? TaskID + "" : "TP";
         if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
-        if (name.EqualIgnoreCase(".NET Long Running Task")) name = "LongTask";
+        if (name.EqualIgnoreCase(".NET Long Running Task")) name = "LT";
         //if (name.EqualIgnoreCase(".NET TP Worker")) name = "TP";
 
         //return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
