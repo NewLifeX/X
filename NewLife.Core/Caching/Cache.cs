@@ -302,6 +302,73 @@ public abstract class Cache : DisposeBase, ICache
         }
     }
 
+    /// <summary>累加并获取过期时间，原子操作</summary>
+    /// <remarks>
+    /// 适用于需要同时获取累加结果和剩余过期时间的场景，如限流计数器。
+    /// 远端实现（如 Redis）可重写此方法使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为累加后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    public virtual (Int64 Value, Int32 Ttl) IncrementWithTtl(String key, Int64 value = 1)
+    {
+        var result = Increment(key, value);
+        var expire = GetExpire(key);
+
+        // 转换过期时间：TimeSpan.Zero 表示永不过期（-1），负值表示不存在（-2）
+        var ttl = expire < TimeSpan.Zero ? -2 : (expire == TimeSpan.Zero ? -1 : (Int32)expire.TotalSeconds);
+
+        return (result, ttl);
+    }
+
+    /// <summary>累加并获取过期时间，原子操作（浮点）</summary>
+    /// <remarks>
+    /// 适用于需要同时获取累加结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可重写此方法使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为累加后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    public virtual (Double Value, Int32 Ttl) IncrementWithTtl(String key, Double value)
+    {
+        var result = Increment(key, value);
+        var expire = GetExpire(key);
+
+        // 转换过期时间：TimeSpan.Zero 表示永不过期（-1），负值表示不存在（-2）
+        var ttl = expire < TimeSpan.Zero ? -2 : (expire == TimeSpan.Zero ? -1 : (Int32)expire.TotalSeconds);
+
+        return (result, ttl);
+    }
+
+    /// <summary>递减并获取过期时间，原子操作</summary>
+    /// <remarks>
+    /// 适用于需要同时获取递减结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可重写此方法使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为递减后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    public virtual (Int64 Value, Int32 Ttl) DecrementWithTtl(String key, Int64 value = 1)
+    {
+        var result = Decrement(key, value);
+        var expire = GetExpire(key);
+
+        // 转换过期时间：TimeSpan.Zero 表示永不过期（-1），负值表示不存在（-2）
+        var ttl = expire < TimeSpan.Zero ? -2 : (expire == TimeSpan.Zero ? -1 : (Int32)expire.TotalSeconds);
+
+        return (result, ttl);
+    }
+
+    /// <summary>递减并获取过期时间，原子操作（浮点）</summary>
+    /// <remarks>
+    /// 适用于需要同时获取递减结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可重写此方法使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为递减后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    public virtual (Double Value, Int32 Ttl) DecrementWithTtl(String key, Double value) => IncrementWithTtl(key, -value);
+
     /// <summary>搜索键</summary>
     /// <param name="pattern">匹配字符串。一般支持 *，远端实现可支持 ?</param>
     /// <param name="offset">开始行（分页偏移）</param>

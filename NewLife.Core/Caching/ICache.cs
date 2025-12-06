@@ -199,6 +199,46 @@ public interface ICache
     /// <returns>更新后的值</returns>
     Double Decrement(String key, Double value);
 
+    /// <summary>累加并获取过期时间，原子操作</summary>
+    /// <remarks>
+    /// 适用于需要同时获取累加结果和剩余过期时间的场景，如限流计数器。
+    /// 远端实现（如 Redis）可使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为累加后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    (Int64 Value, Int32 Ttl) IncrementWithTtl(String key, Int64 value = 1);
+
+    /// <summary>累加并获取过期时间，原子操作（浮点）</summary>
+    /// <remarks>
+    /// 适用于需要同时获取累加结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为累加后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    (Double Value, Int32 Ttl) IncrementWithTtl(String key, Double value);
+
+    /// <summary>递减并获取过期时间，原子操作</summary>
+    /// <remarks>
+    /// 适用于需要同时获取递减结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为递减后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    (Int64 Value, Int32 Ttl) DecrementWithTtl(String key, Int64 value = 1);
+
+    /// <summary>递减并获取过期时间，原子操作（浮点）</summary>
+    /// <remarks>
+    /// 适用于需要同时获取递减结果和剩余过期时间的场景。
+    /// 远端实现（如 Redis）可使用 Pipeline 实现单次往返。
+    /// </remarks>
+    /// <param name="key">键</param>
+    /// <param name="value">变化量</param>
+    /// <returns>元组，Item1为递减后的值，Item2为剩余过期时间（秒），-1表示永不过期，-2表示键不存在</returns>
+    (Double Value, Int32 Ttl) DecrementWithTtl(String key, Double value);
+
     /// <summary>搜索匹配的键</summary>
     /// <param name="pattern">匹配字符串。一般支持 *，Redis 还支持 ?；在远端实现上请优先分页扫描</param>
     /// <param name="offset">开始偏移量。默认从0开始，Redis 对海量 key 搜索时需要分批</param>
