@@ -181,11 +181,42 @@ public class WebClientX : DisposeBase
         address = CheckAuth(address);
 
         var rs = await SendAsync(address, null, cancellationToken).ConfigureAwait(false);
-        fileName.EnsureDirectory(true);
-        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        await rs.CopyToAsync(fs).ConfigureAwait(false);
-        fs.SetLength(fs.Position);
-        await fs.FlushAsync().ConfigureAwait(false);
+
+        // 使用系统临时目录生成随机临时文件名，跨平台可用
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
+            using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            {
+#if NET5_0_OR_GREATER
+                await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+#else
+                await rs.CopyToAsync(fs).ConfigureAwait(false);
+#endif
+                fs.SetLength(fs.Position);
+                await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // 下载成功后再移动到目标目录
+            fileName = fileName.GetFullPath();
+            fileName.EnsureDirectory(true);
+
+            // 兼容旧框架：不使用带 overwrite 的 Move 重载
+            if (File.Exists(fileName)) File.Delete(fileName);
+
+            File.Move(tempFile, fileName);
+        }
+        finally
+        {
+            // 清理临时文件（移动成功后该文件不存在，失败时尽量删除）
+            try
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+            catch { }
+        }
     }
     #endregion
 

@@ -1,10 +1,11 @@
 ﻿using System.Net;
+using System.Net.Http; // 补充：旧框架目标下无隐式全局 using，需要显式引用
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
-using System.Net.Http; // 补充：旧框架目标下无隐式全局 using，需要显式引用
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
@@ -441,7 +442,7 @@ public static class HttpHelper
             foreach (var item in headers)
             {
                 request.Headers.Add(item.Key, item.Value);
-        }
+            }
         }
 
         // 设置接受 mediaType
@@ -507,12 +508,39 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName)
     {
         fileName = fileName.GetFullPath();
-        fileName.EnsureDirectory(true);
-        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
-        await rs.CopyToAsync(fs).ConfigureAwait(false);
-        await fs.FlushAsync().ConfigureAwait(false);
-        fs.SetLength(fs.Position);
+
+        // 使用系统临时目录生成随机临时文件名，跨平台可用
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
+            using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            {
+                await rs.CopyToAsync(fs).ConfigureAwait(false);
+                fs.SetLength(fs.Position);
+                await fs.FlushAsync().ConfigureAwait(false);
+            }
+
+            // 下载成功后再移动到目标目录
+            fileName.EnsureDirectory(true);
+
+            // 兼容旧框架：不使用带 overwrite 的 Move 重载
+            if (File.Exists(fileName)) File.Delete(fileName);
+
+            File.Move(tempFile, fileName);
+        }
+        finally
+        {
+            // 清理临时文件（移动成功后该文件不存在，失败时尽量删除）
+            try
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+            catch { }
+        }
     }
 
     /// <summary>下载文件到本地（可取消）</summary>
@@ -523,22 +551,47 @@ public static class HttpHelper
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
         fileName = fileName.GetFullPath();
-        fileName.EnsureDirectory(true);
-        using var fs = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+
 #if NET5_0_OR_GREATER
         var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
-        await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
-        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
-#elif NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
-        await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
-        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #else
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
-        await rs.CopyToAsync(fs, 81920, cancellationToken).ConfigureAwait(false);
-        await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
 #endif
-        fs.SetLength(fs.Position);
+
+        // 使用系统临时目录生成随机临时文件名，跨平台可用
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
+            using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
+            {
+#if NET5_0_OR_GREATER
+                await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
+#else
+                await rs.CopyToAsync(fs).ConfigureAwait(false);
+#endif
+                fs.SetLength(fs.Position);
+                await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // 下载成功后再移动到目标目录
+            fileName.EnsureDirectory(true);
+
+            // 兼容旧框架：不使用带 overwrite 的 Move 重载
+            if (File.Exists(fileName)) File.Delete(fileName);
+
+            File.Move(tempFile, fileName);
+        }
+        finally
+        {
+            // 清理临时文件（移动成功后该文件不存在，失败时尽量删除）
+            try
+            {
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+            catch { }
+        }
     }
 
     /// <summary>上传文件以及表单数据</summary>
