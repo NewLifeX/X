@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-using NewLife;
+﻿using NewLife;
 using NewLife.Model;
 using NewLife.Serialization;
 using Xunit;
@@ -30,6 +28,36 @@ public class MachineInfoTests
         //Assert.True(mi.CpuRate > 0.001);
         Assert.Equal(0UL, mi.UplinkSpeed);
         Assert.Equal(0UL, mi.DownlinkSpeed);
+    }
+
+    [Fact]
+    public void ParseDisk()
+    {
+        var disks = new List<String>
+        {
+            "2025-08-14-18-36-42-00",
+            "5e47603e-428b-4ec6-9d59-c93f2b260763",
+            "C16A-A5F4",
+        };
+        if (disks.Count > 0)
+        {
+            // 去掉时间id例如 2025-08-14-18-36-42-00，因为它随着时间在改变
+            disks = disks.Where(e => !e.IsNullOrEmpty() && (e.Length < 10 || e[4] != '-' || e[..10].ToDateTime().Year < 2000)).ToList();
+            Assert.NotEmpty(disks);
+            Assert.Equal("5e47603e-428b-4ec6-9d59-c93f2b260763", disks[0]);
+            Assert.Equal("C16A-A5F4", disks[1]);
+        }
+
+        disks =
+        [
+            "virtio-uf6ag3b49w6v4e9ldgcj",
+        ];
+        if (disks.Count > 0)
+        {
+            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimStart("virtio-")).ToList();
+            Assert.NotEmpty(disks);
+            Assert.Equal("uf6ag3b49w6v4e9ldgcj", disks[0]);
+        }
     }
 
     [Fact]

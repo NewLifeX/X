@@ -531,8 +531,22 @@ public class MachineInfo : IExtend
             if (TryRead(file, out value)) Board = value;
         }
 
-        var disks = GetFiles("/dev/disk/by-id", true);
-        if (disks.Count == 0) disks = GetFiles("/dev/disk/by-uuid", false);
+        // 在虚拟机中，uuid可能出现一个时间id和一个guid。
+        var disks = GetFiles("/dev/disk/by-uuid", false);
+        if (disks.Count > 0)
+        {
+            // 去掉时间id例如 2025-08-14-18-36-42-00，因为它随着时间在改变
+            disks = disks.Where(e => !e.IsNullOrEmpty() && (e.Length < 10 || e[4] != '-' || e[..10].ToDateTime().Year < 2000)).ToList();
+        }
+
+        if (disks.Count == 0)
+        {
+            // id中需要剔除QEMU，去掉virtio-前缀，例如 virtio-uf6ag3b49w6v4e9ldgcj
+            disks = GetFiles("/dev/disk/by-id", true);
+            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimStart("virtio-")).ToList();
+        }
+
+        if (disks.Count == 0) disks = GetFiles("/dev/disk/by-partuuid", true);
         if (disks.Count > 0) DiskID = disks.Where(e => !e.IsNullOrEmpty()).Join(",");
 
         // 从*-release文件读取产品信息，具有更高优先级
@@ -1147,6 +1161,7 @@ public class MachineInfo : IExtend
             var line = item?.Trim();
             if (!line.IsNullOrEmpty())
             {
+                // 前面出现 virtio-uf6fv7fzp6fm1b91fli8 ，后面出现 virtio-uf6fv7fzp6fm1b91fli8-part1
                 if (trimSuffix)
                 {
                     if (!list2.Any(e => e != line && line.StartsWith(e))) list.Add(line);
