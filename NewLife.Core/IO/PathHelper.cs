@@ -1,6 +1,9 @@
 ﻿using System.IO.Compression;
 using NewLife;
 using NewLife.Compression;
+using NewLife.Security;
+using System.Security.Cryptography;
+
 #if NET7_0_OR_GREATER
 using System.Formats.Tar;
 #endif
@@ -621,6 +624,102 @@ public static class PathHelper
             else
                 throw new NotSupportedException();
         }
+    }
+    #endregion
+
+    #region 文件哈希
+    /// <summary>验证文件哈希是否匹配预期值</summary>
+    /// <remarks>
+    /// 支持前缀算法标识（例如：md5$123..、sha1$ABC..、sha256$xxx、sha512$xxx、crc32$12345678），
+    /// 也支持无前缀自动识别：长度 8 为 CRC32，16/32 为 MD5，40 为 SHA1，64 为 SHA256，128 为 SHA512。
+    /// MD5 支持 16 位（前 8 字节）与 32 位两种表示形式。
+    /// </remarks>
+    /// <param name="file">要验证的文件</param>
+    /// <param name="hash">预期哈希值，允许带算法前缀，前后空白将被忽略</param>
+    /// <returns>返回哈希是否匹配</returns>
+    public static Boolean VerifyHash(this FileInfo file, String hash)
+    {
+        if (file == null || !file.Exists) return false;
+        if (String.IsNullOrWhiteSpace(hash)) return false;
+
+        hash = hash.Trim();
+
+        // 解析算法前缀，例如 md5$xxxx
+        var alg = default(String);
+        var value = hash;
+        var p = hash.IndexOf('$');
+        if (p > 0)
+        {
+            alg = hash[..p];
+            value = hash[(p + 1)..];
+        }
+
+        if (String.IsNullOrWhiteSpace(value)) return false;
+
+        value = value.Trim();
+
+        // 无前缀时，根据长度推断算法
+        if (alg.IsNullOrEmpty())
+        {
+            alg = value.Length switch
+            {
+                8 => "crc32",
+                16 => "md5-16",
+                32 => "md5",
+                40 => "sha1",
+                64 => "sha256",
+                128 => "sha512",
+                _ => null,
+            };
+            if (alg.IsNullOrEmpty()) throw new NotSupportedException("Please specify a hash algorithm prefix.");
+        }
+
+        // 根据算法名称计算文件哈希并比较，哈希值比较不区分大小写
+        if (alg.EqualIgnoreCase("md5"))
+        {
+            var md5 = file.MD5().ToHex();
+
+            // 16 位 MD5：取前 8 字节（16 个十六进制字符）
+            if (value.Length == 16)
+                return md5[..16].EqualIgnoreCase(value);
+
+            return md5.EqualIgnoreCase(value);
+        }
+
+        if (alg.EqualIgnoreCase("crc32", "crc"))
+        {
+            using var fs = file.OpenRead();
+            var actual = Crc32.Compute(fs).ToString("X8");
+            return actual.EqualIgnoreCase(value);
+        }
+
+        if (alg.EqualIgnoreCase("sha1"))
+        {
+            using var sha1 = SHA1.Create();
+            using var fs = file.OpenRead();
+            var actual = sha1.ComputeHash(fs).ToHex();
+            return actual.EqualIgnoreCase(value);
+        }
+
+        if (alg.EqualIgnoreCase("sha256"))
+        {
+            using var sha256 = SHA256.Create();
+            using var fs = file.OpenRead();
+            var actual = sha256.ComputeHash(fs).ToHex();
+            return actual.EqualIgnoreCase(value);
+        }
+
+        if (alg.EqualIgnoreCase("sha512"))
+        {
+            using var sha512 = SHA512.Create();
+            using var fs = file.OpenRead();
+            var actual = sha512.ComputeHash(fs).ToHex();
+            return actual.EqualIgnoreCase(value);
+        }
+
+        // 未能识别算法，认为验证失败
+        //return false;
+        throw new NotSupportedException("Only hash algorithms md5/crc/sha1/sha256/sha512 are supported.");
     }
     #endregion
 }
