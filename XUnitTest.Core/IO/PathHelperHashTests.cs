@@ -19,8 +19,8 @@ public class PathHelperHashTests
         Assert.True(file.VerifyHash(md5));
         Assert.True(file.VerifyHash("md5$" + md5));
 
-        // MD5 16 位（中间 16 个字符）
-        var md516 = md5.Substring(8, 16);
+        // MD5 16 位（前 16 个字符）
+        var md516 = md5.Substring(0, 16);
         Assert.True(file.VerifyHash(md516));
         Assert.True(file.VerifyHash("md5$" + md516));
 

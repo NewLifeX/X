@@ -664,7 +664,7 @@ public static class PathHelper
             alg = value.Length switch
             {
                 8 => "crc32",
-                16 => "md5-16",
+                16 => "md5",
                 32 => "md5",
                 40 => "sha1",
                 64 => "sha256",

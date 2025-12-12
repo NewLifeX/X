@@ -94,10 +94,20 @@ public class MachineInfo : IExtend
     public UInt64 Memory { get; set; }
 
     /// <summary>可用内存。单位Byte</summary>
+    /// <remarks>
+    /// Linux：优先使用 /proc/meminfo 中的 MemAvailable，表示在不触发大量换页或 OOM 的前提下，
+    /// 内核评估仍可安全分配的内存，适合作为应用自我保护（限流/拒绝新任务）以及监控告警阈值的主要依据。
+    /// Windows：对应 GlobalMemoryStatusEx.ullAvailPhys，表示当前可用的物理内存。
+    /// </remarks>
     [DisplayName("可用内存")]
     public UInt64 AvailableMemory { get; set; }
 
-    /// <summary>空闲内存。在Linux上空闲内存不一定可用，单位Byte</summary>
+    /// <summary>空闲内存。单位Byte</summary>
+    /// <remarks>
+    /// Linux：采用 free 命令的宽松口径计算：MemFree + Buffers + Cached + SReclaimable - Shmem，
+    /// 表示当前看起来空闲或可快速回收的内存，适合用于监控展示和人工分析整体内存使用情况。
+    /// Windows：与 AvailableMemory 保持一致，均使用物理可用内存；进行安全可用性判断时应优先参考 AvailableMemory。
+    /// </remarks>
     [DisplayName("空闲内存")]
     public UInt64 FreeMemory { get; set; }
 
@@ -722,16 +732,25 @@ public class MachineInfo : IExtend
 
             // MemAvailable是系统内核预测的可用内存，过低则认为不能安全分配给新进程，可能过于悲观；
             // MemFree是完全空闲的内存，未被使用的物理内存页，但内核不敢用；
-            var ma = (UInt64)(dic["MemAvailable"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
-            var mf = (UInt64)(dic["MemFree"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
-            var mc = (UInt64)(dic["Cached"]?.TrimEnd(" kB").ToInt() ?? 0) * 1024;
+            static UInt64 GetMem(IDictionary<String, String?> mem, String key)
+            {
+                return mem.TryGetValue(key, out var v) && !v.IsNullOrEmpty() ? (UInt64)v.TrimEnd(" kB").ToInt() * 1024 : 0;
+            }
 
-            // 空闲内存 100% 可用，缓存内存 40% 可快速回收（保守估计）
-            mf += (UInt64)(mc * 0.4);
-            //if (mf > 5ul * 1024 * 1024 * 1024) mf = 5ul * 1024 * 1024 * 1024;
+            var ma = GetMem(dic, "MemAvailable");
+            var mf = GetMem(dic, "MemFree");
+            var buffers = GetMem(dic, "Buffers");
+            var cached = GetMem(dic, "Cached");
+            var srecl = GetMem(dic, "SReclaimable");
+            var shmem = GetMem(dic, "Shmem");
 
             AvailableMemory = ma;
-            FreeMemory = mf;
+
+            // FreeMemory采用 free 命令的宽松口径：free + buffers + cache + SReclaimable - Shmem
+            var cache = cached + srecl;
+            if (cache > shmem) cache -= shmem;
+
+            FreeMemory = mf + buffers + cache;
         }
 
         // A2/A4温度获取，Buildroot，CPU温度和主板温度
