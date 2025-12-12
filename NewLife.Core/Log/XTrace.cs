@@ -421,16 +421,26 @@ public static class XTrace
         if (asmx != null)
         {
             var ver = "";
-            var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
-            if (tar != null)
+            try
             {
-                ver = tar.FrameworkDisplayName;
-                if (ver.IsNullOrEmpty()) ver = tar.FrameworkName;
+                var tar = asm.GetCustomAttribute<TargetFrameworkAttribute>();
+                if (tar != null)
+                {
+                    ver = tar.FrameworkDisplayName;
+                    if (ver.IsNullOrEmpty()) ver = tar.FrameworkName;
+                }
             }
+            catch { }
+            var copyright = "";
+            try
+            {
+                var att = asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
+                copyright = att?.Copyright;
+            }
+            catch { }
 
             WriteLine("{0} v{1} Build {2:yyyy-MM-dd HH:mm:ss} {3}", asmx.Name, asmx.FileVersion, asmx.Compile, ver);
-            var att = asmx.Asm.GetCustomAttribute<AssemblyCopyrightAttribute>();
-            WriteLine("{0} {1}", asmx.Title, att?.Copyright);
+            WriteLine("{0} {1}", asmx.Title, copyright);
         }
     }
 
