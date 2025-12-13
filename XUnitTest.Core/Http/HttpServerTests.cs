@@ -1,19 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
-using NewLife.Remoting;
 using NewLife.Net;
+using NewLife.Remoting;
 using Xunit;
 
 namespace XUnitTest.Http;
@@ -40,6 +35,11 @@ public class HttpServerTests
     public async Task MapDelegate()
     {
         _server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString() + "</br><img src=\"logos/leaf.png\" />");
+        _server.Map("/async", async () =>
+        {
+            await Task.Delay(100);
+            return "Now is " + DateTime.Now.ToFullString();
+        });
 
         var client = new HttpClient { BaseAddress = _baseUri };
         var html = await client.GetStringAsync("/");
@@ -47,6 +47,11 @@ public class HttpServerTests
         Assert.NotEmpty(html);
         Assert.StartsWith("<h1>Hello NewLife!</h1></br>", html);
         Assert.Contains("logos/leaf.png", html);
+
+        html = await client.GetStringAsync("/async");
+
+        Assert.NotEmpty(html);
+        Assert.StartsWith("Now is ", html);
     }
 
     [Fact]

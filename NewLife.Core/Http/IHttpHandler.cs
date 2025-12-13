@@ -1,4 +1,5 @@
-﻿using NewLife.Reflection;
+﻿using System.Reflection;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Http;
@@ -33,6 +34,7 @@ public class DelegateHandler : IHttpHandler
         else if (handler != null)
         {
             var result = OnInvoke(handler, context);
+            if (result is Task task) result = GetTaskResult(task);
             if (result != null) context.Response.SetResult(result);
         }
     }
@@ -63,5 +65,16 @@ public class DelegateHandler : IHttpHandler
         }
 
         return handler.DynamicInvoke(args);
+    }
+
+    private static Object? GetTaskResult(Task task)
+    {
+        task.GetAwaiter().GetResult();
+
+        var taskType = task.GetType();
+        if (!taskType.IsGenericType) return null;
+
+        var resultProperty = taskType.GetProperty("Result", BindingFlags.Public | BindingFlags.Instance);
+        return resultProperty?.GetValue(task);
     }
 }
