@@ -730,6 +730,12 @@ public static class HttpHelper
             catch (ThreadAbortException) { break; }
             catch (ThreadInterruptedException) { break; }
             catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (WebSocketException ex)
+            {
+                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+                break;
+            }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
@@ -783,6 +789,12 @@ public static class HttpHelper
             catch (ThreadAbortException) { break; }
             catch (ThreadInterruptedException) { break; }
             catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (WebSocketException ex)
+            {
+                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+                break;
+            }
             catch (Exception ex)
             {
                 XTrace.WriteException(ex);
@@ -832,6 +844,11 @@ public static class HttpHelper
             catch (WebSocketException ex)
             {
                 XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+                break;
+            }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
             }
         }
 
