@@ -409,6 +409,12 @@ public static class SpanExtension
     {
         if (span == null || args == null || args is IPacket || args is Byte[] || args is IAccessor) return args;
 
+        if (args is ITraceMessage tm)
+        {
+            tm.TraceId = span.ToString();
+            return args;
+        }
+
         var type = args.GetType();
         if (type.IsArray || type.IsValueType || type == typeof(String)) return args;
         if (type.IsBaseType()) return args;

@@ -812,10 +812,10 @@ public static class HttpHelper
     /// <returns></returns>
     public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String?>? onReceive, CancellationTokenSource source)
     {
-        try
+        var buf = new Byte[4 * 1024];
+        while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
         {
-            var buf = new Byte[4 * 1024];
-            while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
+            try
             {
                 var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token).ConfigureAwait(false);
                 if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
@@ -825,22 +825,25 @@ public static class HttpHelper
                     if (!str.IsNullOrEmpty()) onReceive?.Invoke(str);
                 }
             }
+            catch (ThreadAbortException) { break; }
+            catch (ThreadInterruptedException) { break; }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (WebSocketException ex)
+            {
+                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+            }
+        }
 
+        // 通知取消
+        try
+        {
             if (!source.IsCancellationRequested) source.Cancel();
+        }
+        catch (ObjectDisposedException) { }
 
-            if (socket.State == WebSocketState.Open)
-                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default).ConfigureAwait(false);
-        }
-        catch (TaskCanceledException) { }
-        catch (OperationCanceledException) { }
-        catch (WebSocketException ex)
-        {
-            XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
-        }
-        finally
-        {
-            source.Cancel();
-        }
+        if (socket.State == WebSocketState.Open)
+            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "finish", default).ConfigureAwait(false);
     }
     #endregion
 
