@@ -733,11 +733,15 @@ public static class HttpHelper
             catch (OperationCanceledException) { }
             catch (WebSocketException ex)
             {
+                if (token.IsCancellationRequested) break;
+
                 XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
                 break;
             }
             catch (Exception ex)
             {
+                if (token.IsCancellationRequested) break;
+
                 XTrace.WriteException(ex);
             }
         }
@@ -792,11 +796,15 @@ public static class HttpHelper
             catch (OperationCanceledException) { }
             catch (WebSocketException ex)
             {
+                if (token.IsCancellationRequested) break;
+
                 XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
                 break;
             }
             catch (Exception ex)
             {
+                if (token.IsCancellationRequested) break;
+
                 XTrace.WriteException(ex);
             }
         }
