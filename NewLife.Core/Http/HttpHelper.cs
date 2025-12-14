@@ -711,9 +711,10 @@ public static class HttpHelper
     {
         DefaultSpan.Current = null;
         var token = source.Token;
-        try
+        while (!token.IsCancellationRequested && socket.Connected)
         {
-            while (!token.IsCancellationRequested && socket.Connected)
+            // try-catch 放在循环内，避免单次异常退出循环
+            try
             {
                 var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
                 if (msg != null)
@@ -726,16 +727,21 @@ public static class HttpHelper
                     await Task.Delay(100, token).ConfigureAwait(false);
                 }
             }
+            catch (ThreadAbortException) { break; }
+            catch (ThreadInterruptedException) { break; }
+            catch (TaskCanceledException) { }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
-        catch (TaskCanceledException) { }
-        catch (Exception ex)
+
+        // 通知取消
+        try
         {
-            XTrace.WriteException(ex);
+            if (!source.IsCancellationRequested) source.Cancel();
         }
-        finally
-        {
-            source.Cancel();
-        }
+        catch (ObjectDisposedException) { }
     }
 
     /// <summary>从队列消费消息并推送到WebSocket客户端</summary>
@@ -756,9 +762,10 @@ public static class HttpHelper
     {
         DefaultSpan.Current = null;
         var token = source.Token;
-        try
+        while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
         {
-            while (!token.IsCancellationRequested && socket.State == System.Net.WebSockets.WebSocketState.Open)
+            // try-catch 放在循环内，避免单次异常退出循环
+            try
             {
                 var msg = await queue.TakeOneAsync(30, token).ConfigureAwait(false);
                 if (msg != null)
@@ -773,16 +780,21 @@ public static class HttpHelper
                     await Task.Delay(100, token).ConfigureAwait(false);
                 }
             }
+            catch (ThreadAbortException) { break; }
+            catch (ThreadInterruptedException) { break; }
+            catch (TaskCanceledException) { }
+            catch (Exception ex)
+            {
+                XTrace.WriteException(ex);
+            }
         }
-        catch (TaskCanceledException) { }
-        catch (Exception ex)
+
+        // 通知取消
+        try
         {
-            XTrace.WriteException(ex);
+            if (!source.IsCancellationRequested) source.Cancel();
         }
-        finally
-        {
-            source.Cancel();
-        }
+        catch (ObjectDisposedException) { }
     }
 
     /// <summary>从队列消费消息并推送到System.Net.WebSockets客户端</summary>
