@@ -10,11 +10,16 @@ namespace NewLife.Caching;
 /// - 订阅时启动后台消费循环，将队列消息分发给本地订阅者；
 /// - 支持取消令牌优雅停止后台循环。
 /// </remarks>
-public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent>
+public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent>, ITracerFeature
 {
+    #region 属性
+    /// <summary>链路追踪</summary>
+    public ITracer? Tracer { get; set; }
+
     private IProducerConsumer<TEvent>? _queue;
     private CancellationTokenSource? _source;
     private Task? _consumerTask;
+    #endregion
 
     /// <summary>销毁。先取消后台任务，再释放资源</summary>
     /// <param name="disposing">是否由 <see cref="DisposeBase.Dispose()"/> 调用</param>
@@ -45,7 +50,11 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
 
     /// <summary>初始化：按需创建队列实例</summary>
     [MemberNotNull(nameof(_queue))]
-    protected virtual void Init() => _queue ??= cache.GetQueue<TEvent>(topic);
+    protected virtual void Init()
+    {
+        Tracer ??= (cache as ITracerFeature)?.Tracer;
+        _queue ??= cache.GetQueue<TEvent>(topic);
+    }
 
     /// <summary>发布消息到消息队列</summary>
     /// <param name="event">事件</param>
@@ -101,13 +110,17 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     {
         DefaultSpan.Current = null;
         var cancellationToken = source.Token;
-        try
+        while (!cancellationToken.IsCancellationRequested)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            ISpan? span = null;
+            try
             {
                 var msg = await _queue!.TakeOneAsync(15, cancellationToken).ConfigureAwait(false);
                 if (msg != null)
                 {
+                    span = Tracer?.NewSpan($"event:{topic}", msg);
+                    if (span != null && msg is ITraceMessage tm) span.Detach(tm.TraceId);
+
                     // 发布到事件总线
                     await DispatchAsync(msg, null, cancellationToken).ConfigureAwait(false);
                 }
@@ -116,16 +129,18 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
                     await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
                 }
             }
-        }
-        catch (TaskCanceledException) { }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            XTrace.WriteException(ex);
-        }
-        finally
-        {
-            // 不在此处二次取消，生命周期由外部（Dispose/取消订阅）管理
+            catch (ThreadAbortException) { break; }
+            catch (ThreadInterruptedException) { break; }
+            catch (Exception ex)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                span?.SetError(ex);
+            }
+            finally
+            {
+                span?.Dispose();
+            }
         }
     }
 }

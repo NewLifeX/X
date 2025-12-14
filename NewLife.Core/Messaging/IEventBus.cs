@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Log;
 #if !NET45
 using TaskEx = System.Threading.Tasks.Task;
 #endif
@@ -67,7 +68,13 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public virtual Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default) => DispatchAsync(@event, context, cancellationToken);
+    public virtual Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default)
+    {
+        // 待发布消息增加追踪标识
+        if (@event is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = DefaultSpan.Current?.ToString();
+
+        return DispatchAsync(@event, context, cancellationToken);
+    }
 
     /// <summary>分发事件给各个处理器。进程内分发</summary>
     /// <param name="event"></param>

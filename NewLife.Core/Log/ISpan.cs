@@ -500,7 +500,7 @@ public static class SpanExtension
     /// <summary>从数据流traceId中释放片段信息</summary>
     /// <param name="span">片段</param>
     /// <param name="traceId">W3C标准TraceId，可以是traceparent</param>
-    public static void Detach(this ISpan span, String traceId)
+    public static void Detach(this ISpan span, String? traceId)
     {
         if (span == null || traceId.IsNullOrEmpty()) return;
 
