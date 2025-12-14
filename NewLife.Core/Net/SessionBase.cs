@@ -768,6 +768,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
         try
         {
+            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+
             var ctx = CreateContext(this);
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
 
@@ -793,6 +795,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
+            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+
             var ctx = CreateContext(this);
 #if NET45
             var source = new TaskCompletionSource<Object>();
@@ -828,6 +832,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         try
         {
+            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+
             var ctx = CreateContext(this);
 #if NET45
             var source = new TaskCompletionSource<Object>();
@@ -868,6 +874,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="data">数据帧</param>
     void ISocketRemote.Process(IData data)
     {
+        // 合并调用链。把当前接收处理消息调用链和消息发送方调用链合并
+        var span = DefaultSpan.Current;
+        if (span != null && data != null && data.Message is ITraceMessage tm) span.Detach(tm.TraceId);
+
         if (data is ReceivedEventArgs e) OnReceive(e);
     }
 

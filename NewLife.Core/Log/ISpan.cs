@@ -411,7 +411,7 @@ public static class SpanExtension
 
         if (args is ITraceMessage tm)
         {
-            tm.TraceId = span.ToString();
+            if (!tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
             return args;
         }
 
