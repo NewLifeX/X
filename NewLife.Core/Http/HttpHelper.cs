@@ -566,11 +566,8 @@ public static class HttpHelper
             // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
             using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
-#if NET5_0_OR_GREATER
-                await rs.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
-#else
-                await rs.CopyToAsync(fs).ConfigureAwait(false);
-#endif
+                var bufferSize = (Int32)Math.Min(81920, fs.Length);
+                await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
                 fs.SetLength(fs.Position);
                 await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -591,6 +588,82 @@ public static class HttpHelper
                 if (File.Exists(tempFile)) File.Delete(tempFile);
             }
             catch { }
+        }
+    }
+
+    /// <summary>下载文件到本地并校验哈希（可取消）</summary>
+    /// <remarks>
+    /// 本方法增加了对下载文件完整性的验证。传入的 <paramref name="expectedHash"/> 支持带算法前缀（例如 "md5$..."、"sha256$..."）
+    /// 或者不带前缀的哈希字符串，方法会依据长度推断算法，具体规则与 `PathHelper.VerifyHash` 保持一致。
+    /// 
+    /// 关于临时文件策略的两种常见实现：
+    /// 1) 下载到系统临时目录（当前实现）：先保存到 `Path.GetTempFileName()` 生成的临时文件，再在校验通过后移动到目标目录。
+    ///    优点：避免在目标目录产生临时文件，下载过程中不会打扰目标目录；对磁盘空间分配更灵活（可使用不同磁盘）。
+    ///    缺点：跨卷移动（不同磁盘分区）时 Move 操作会变为复制，性能受影响；若目标目录在更严格的权限下，移动可能失败。
+    /// 2) 在目标目录直接保存为带 `.tmp` 后缀的临时文件（例如 `aa.zip.tmp`）：下载完成并校验通过后再重命名为最终文件名。
+    ///    优点：移动/重命名通常是原子操作（同一分区），速度快且更可靠；对跨卷问题天然避免。
+    ///    缺点：在下载期间目标目录会出现临时文件，可能影响监控程序或其它进程对该目录的扫描；需要确保临时文件名不会与现有文件冲突。
+    /// 
+    /// 在多数场景下，推荐使用方案 2（在目标目录写入 `.tmp` 后缀）以获得更好的原子性与性能。如果存在需要将临时文件放到不同分区的需求，可以保留或扩展为可配置策略。
+    /// 
+    /// 本实现采用方案 2：在目标目录中创建以 `.tmp` 后缀的临时文件，完成下载并校验通过后重命名为最终文件名。
+    /// </remarks>
+    /// <param name="client">Http客户端</param>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="expectedHash">预期哈希字符串，支持带算法前缀或自动识别</param>
+    /// <param name="cancellationToken">取消通知</param>
+    public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+    {
+        if (expectedHash.IsNullOrEmpty())
+        {
+            // 委托给不带哈希的实现
+            await client.DownloadFileAsync(requestUri, fileName, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        fileName = fileName.GetFullPath();
+
+        // 在目标目录创建 .tmp 后缀临时文件，避免跨卷移动导致的额外复制开销
+        var tmp = fileName + ".tmp";
+
+#if NET5_0_OR_GREATER
+        var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
+#else
+        var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
+#endif
+
+        try
+        {
+            // 确保目录存在
+            tmp.EnsureDirectory(true);
+
+            // 打开目标目录下的临时文件进行写入，这样重命名更接近原子操作
+            using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                var bufferSize = (Int32)Math.Min(81920, fs.Length);
+                await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
+                await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // 校验哈希
+            var fi = tmp.AsFile();
+            if (!fi.VerifyHash(expectedHash))
+            {
+                // 校验失败，删除临时文件并抛出异常
+                try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+                throw new IOException("Downloaded file hash verification failed.");
+            }
+
+            // 校验通过，移动到最终目标位置
+            fileName.EnsureDirectory(true);
+            if (File.Exists(fileName)) File.Delete(fileName);
+            File.Move(tmp, fileName);
+        }
+        finally
+        {
+            // 清理残留临时文件
+            try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
         }
     }
 

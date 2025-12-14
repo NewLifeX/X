@@ -136,7 +136,11 @@ public class Upgrade
         var link = Link ?? throw new Exception("No new version available!");
         if (link.Url.IsNullOrEmpty()) throw new Exception("The upgrade package address is invalid!");
 
-        Download(link.Url, link.FullName);
+        //Download(link.Url, link.FullName);
+
+        var file = !link.FullName.IsNullOrEmpty() ? UpdatePath.CombinePath(link.FullName).GetBasePath() : Path.GetTempFileName();
+
+        Task.Factory.StartNew(() => DownloadAsync(link.Url, file, link.Hash, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
     }
 
     /// <summary>开始更新</summary>
@@ -156,7 +160,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            Task.Factory.StartNew(() => web.DownloadFileAsync(url, file), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
+            Task.Factory.StartNew(() => web.DownloadFileAsync(url, file, default), TaskCreationOptions.LongRunning).Unwrap().Wait(30_000);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
@@ -168,11 +172,14 @@ public class Upgrade
     /// <summary>开始更新</summary>
     /// <param name="url">下载源</param>
     /// <param name="fileName">文件名</param>
+    /// <param name="expectedHash">预期哈希字符串，支持带算法前缀或自动识别</param>
     /// <param name="cancellationToken">取消通知</param>
-    public async Task DownloadAsync(String url, String fileName, CancellationToken cancellationToken)
+    public async Task DownloadAsync(String url, String fileName, String? expectedHash, CancellationToken cancellationToken)
     {
         // 如果更新包不存在，则下载
-        var file = UpdatePath.CombinePath(fileName).GetBasePath();
+        var file = !fileName.IsNullOrEmpty() ?
+            UpdatePath.CombinePath(fileName).GetBasePath() :
+            Path.GetTempFileName();
         if (!CacheFile && File.Exists(file)) File.Delete(file); ;
         if (!File.Exists(file))
         {
@@ -181,7 +188,7 @@ public class Upgrade
             var sw = Stopwatch.StartNew();
 
             var web = CreateClient();
-            await web.DownloadFileAsync(url, file, cancellationToken).ConfigureAwait(false);
+            await web.DownloadFileAsync(url, file, expectedHash, cancellationToken).ConfigureAwait(false);
 
             sw.Stop();
             WriteLog("下载完成！大小{0:n0}字节，耗时{1:n0}ms", file.AsFile().Length, sw.ElapsedMilliseconds);
