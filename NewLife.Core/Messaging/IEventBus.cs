@@ -55,6 +55,11 @@ public interface IEventHandler<TEvent>
 /// <summary>默认事件总线。即时分发消息，不存储</summary>
 /// <remarks>
 /// 即时分发消息，意味着不在线的订阅者将无法收到消息。
+/// 
+/// 异常处理策略：
+/// 事件总线采用"尽力而为"的分发语义，默认情况下单个订阅者的异常不会影响其他订阅者接收消息。
+/// 这种设计保证了订阅者之间的独立性和系统的健壮性。
+/// 如果需要严格的事务性保证，可以设置 ThrowOnHandlerError = true，此时任何订阅者异常都会立即中断分发。
 /// </remarks>
 public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
 {
@@ -63,6 +68,12 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
     public IDictionary<String, IEventHandler<TEvent>> Handlers => _handlers;
 
     private readonly Pool<EventContext<TEvent>> _pool = new();
+
+    /// <summary>处理器异常时是否抛出。默认 false，采用"尽力而为"策略，单个处理器异常不影响其他处理器</summary>
+    public Boolean ThrowOnHandlerError { get; set; }
+
+    /// <summary>日志</summary>
+    public ILog? Log { get; set; }
 
     /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
@@ -94,12 +105,22 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
             ctx.EventBus = this;
             context = ctx;
         }
-        //context ??= new EventContext<TEvent>(this);
         foreach (var item in _handlers)
         {
             var handler = item.Value;
-            await handler.HandleAsync(@event, context, cancellationToken).ConfigureAwait(false);
-            rs++;
+            try
+            {
+                await handler.HandleAsync(@event, context, cancellationToken).ConfigureAwait(false);
+                rs++;
+            }
+            catch (Exception ex)
+            {
+                // 记录异常日志
+                Log?.Error("事件处理器 [{0}] 处理事件时发生异常: {1}", item.Key, ex.Message);
+
+                // 根据策略决定是否抛出异常
+                if (ThrowOnHandlerError) throw;
+            }
         }
 
         if (ctx != null)
