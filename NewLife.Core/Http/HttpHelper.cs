@@ -566,7 +566,8 @@ public static class HttpHelper
             // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
             using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
-                var bufferSize = (Int32)Math.Min(81920, fs.Length);
+                var bufferSize = SocketSetting.Current.BufferSize;
+                if (bufferSize < 1024) bufferSize = 1024;
                 await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
                 fs.SetLength(fs.Position);
                 await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -641,7 +642,8 @@ public static class HttpHelper
             // 打开目标目录下的临时文件进行写入，这样重命名更接近原子操作
             using (var fs = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                var bufferSize = (Int32)Math.Min(81920, fs.Length);
+                var bufferSize = SocketSetting.Current.BufferSize;
+                if (bufferSize < 1024) bufferSize = 1024;
                 await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
                 await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
