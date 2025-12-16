@@ -550,46 +550,13 @@ public static class HttpHelper
     /// <param name="cancellationToken">取消通知</param>
     public static async Task DownloadFileAsync(this HttpClient client, String requestUri, String fileName, CancellationToken cancellationToken)
     {
-        fileName = fileName.GetFullPath();
-
 #if NET5_0_OR_GREATER
         var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
 
-        // 使用系统临时目录生成随机临时文件名，跨平台可用
-        var tempFile = Path.GetTempFileName();
-
-        try
-        {
-            // 先下载文件到临时目录，再移动到目标目录，避免文件下载了半截
-            using (var fs = new FileStream(tempFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-            {
-                var bufferSize = SocketSetting.Current.BufferSize;
-                if (bufferSize < 1024) bufferSize = 1024;
-                await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
-                fs.SetLength(fs.Position);
-                await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            // 下载成功后再移动到目标目录
-            fileName.EnsureDirectory(true);
-
-            // 兼容旧框架：不使用带 overwrite 的 Move 重载
-            if (File.Exists(fileName)) File.Delete(fileName);
-
-            File.Move(tempFile, fileName);
-        }
-        finally
-        {
-            // 清理临时文件（移动成功后该文件不存在，失败时尽量删除）
-            try
-            {
-                if (File.Exists(tempFile)) File.Delete(tempFile);
-            }
-            catch { }
-        }
+        await SaveFileAsync(rs, fileName, null, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>下载文件到本地并校验哈希（可取消）</summary>
@@ -623,16 +590,21 @@ public static class HttpHelper
             return;
         }
 
-        fileName = fileName.GetFullPath();
-
-        // 在目标目录创建 .tmp 后缀临时文件，避免跨卷移动导致的额外复制开销
-        var tmp = fileName + ".tmp";
-
 #if NET5_0_OR_GREATER
         var rs = await client.GetStreamAsync(requestUri, cancellationToken).ConfigureAwait(false);
 #else
         var rs = await client.GetStreamAsync(requestUri).ConfigureAwait(false);
 #endif
+
+        await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task SaveFileAsync(Stream stream, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+    {
+        fileName = fileName.GetFullPath();
+
+        // 在目标目录创建 .tmp 后缀临时文件，避免跨卷移动导致的额外复制开销
+        var tmp = fileName + ".tmp";
 
         try
         {
@@ -644,17 +616,20 @@ public static class HttpHelper
             {
                 var bufferSize = SocketSetting.Current.BufferSize;
                 if (bufferSize < 1024) bufferSize = 1024;
-                await rs.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
+                await stream.CopyToAsync(fs, bufferSize, cancellationToken).ConfigureAwait(false);
                 await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // 校验哈希
-            var fi = tmp.AsFile();
-            if (!fi.VerifyHash(expectedHash))
+            if (!expectedHash.IsNullOrEmpty())
             {
-                // 校验失败，删除临时文件并抛出异常
-                try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
-                throw new IOException("Downloaded file hash verification failed.");
+                var fi = tmp.AsFile();
+                if (!fi.VerifyHash(expectedHash))
+                {
+                    // 校验失败，删除临时文件并抛出异常
+                    try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+                    throw new IOException("Downloaded file hash verification failed.");
+                }
             }
 
             // 校验通过，移动到最终目标位置

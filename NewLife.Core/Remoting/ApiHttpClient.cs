@@ -12,7 +12,7 @@ using NewLife.Serialization;
 namespace NewLife.Remoting;
 
 /// <summary>Http应用接口客户端</summary>
-public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature
+public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature, ITracerFeature
 {
     #region 属性
     /// <summary>令牌。每次请求携带</summary>
@@ -95,11 +95,12 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public ApiHttpClient(String urls) : this() => SetServer(urls);
 
     /// <summary>按照配置服务实例化，用于NETCore依赖注入</summary>
-    /// <param name="provider">服务提供者，将要解析IConfigProvider</param>
+    /// <param name="serviceProvider">服务提供者，将要解析IConfigProvider</param>
     /// <param name="name">缓存名称，也是配置中心key</param>
-    public ApiHttpClient(IServiceProvider provider, String name) : this()
+    public ApiHttpClient(IServiceProvider serviceProvider, String name) : this()
     {
-        var configProvider = provider.GetRequiredService<IConfigProvider>();
+        ServiceProvider = serviceProvider;
+        var configProvider = serviceProvider.GetRequiredService<IConfigProvider>();
         configProvider.Bind(this, true, name);
     }
     #endregion
@@ -273,7 +274,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 {
                     if (_currentService != null)
                     {
-                        if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+                        if (client != null && filter != null)
+                            await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
                         ex.Source = _currentService.Address + "/" + action;
                     }
@@ -283,7 +285,8 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 }
                 else if (ex is HttpRequestException or TaskCanceledException)
                 {
-                    if (client != null && filter != null) await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+                    if (client != null && filter != null)
+                        await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
                     if (++i >= svrs.Count)
                     {
                         span?.SetError(ex, null);
@@ -308,8 +311,13 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public Task<TResult?> InvokeAsync<TResult>(String action, Object? args, CancellationToken cancellationToken)
     {
         var method = HttpMethod.Post;
-        if (args == null || args.GetType().IsBaseType() || action.StartsWithIgnoreCase("Get") || action.ToLower().Contains("/get"))
+#if NETCOREAPP || NETSTANDARD2_1
+        if (args == null || args.GetType().IsBaseType() || action.StartsWithIgnoreCase("Get") || action.Contains("/get", StringComparison.OrdinalIgnoreCase))
             method = HttpMethod.Get;
+#else
+        if (args == null || args.GetType().IsBaseType() || action.StartsWithIgnoreCase("Get") || action.IndexOf("/get", StringComparison.OrdinalIgnoreCase) >= 0)
+            method = HttpMethod.Get;
+#endif
 
         return InvokeAsync<TResult>(method, action, args, null, cancellationToken);
     }
@@ -319,6 +327,68 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args">参数</param>
     /// <returns></returns>
     public TResult? Invoke<TResult>(String action, Object? args) => InvokeAsync<TResult>(action, args, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    /// <summary>下载文件到本地并校验哈希（可取消）</summary>
+    /// <param name="requestUri">请求资源地址</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="expectedHash">预期哈希字符串，支持带算法前缀或自动识别</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    public virtual async Task DownloadFileAsync(String requestUri, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+    {
+        var svrs = Services;
+
+        // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
+        var action = requestUri;
+        if (requestUri.StartsWithIgnoreCase("http://", "https://"))
+            action = new Uri(requestUri).AbsolutePath.TrimStart('/');
+        using var span = Tracer?.NewSpan(action, expectedHash);
+
+        var i = 0;
+        do
+        {
+            // 建立请求
+            var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
+
+            var filter = Filter;
+            try
+            {
+                var rs = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                rs.EnsureSuccessStatusCode();
+
+#if NET5_0_OR_GREATER
+                var stream = await rs.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
+                var stream = await rs.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+
+                await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                span?.AppendTag(ex.Message);
+
+                while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
+
+                var client = _currentService?.Client;
+                if (ex is HttpRequestException or TaskCanceledException)
+                {
+                    if (client != null && filter != null)
+                        await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+                    if (++i >= svrs.Count)
+                    {
+                        span?.SetError(ex, null);
+                        throw;
+                    }
+                }
+                else
+                {
+                    span?.SetError(ex, null);
+                    throw;
+                }
+            }
+        } while (true);
+    }
     #endregion
 
     #region 构造请求
@@ -328,16 +398,25 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     /// <param name="args"></param>
     /// <param name="returnType"></param>
     /// <returns></returns>
-    protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args, Type returnType)
+    protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args, Type? returnType)
     {
-        var jsonHost = JsonHost ?? ServiceProvider?.GetService<IJsonHost>() ?? JsonHelper.Default;
-        var request = ApiHelper.BuildRequest(method, action, args, jsonHost);
-
-        // 指定返回类型
-        if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+        HttpRequestMessage request;
+        if (args == null)
+            request = new HttpRequestMessage(method, action);
         else
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        {
+            var jsonHost = JsonHost ?? ServiceProvider?.GetService<IJsonHost>() ?? JsonHelper.Default;
+            request = ApiHelper.BuildRequest(method, action, args, jsonHost);
+        }
+
+        if (returnType != null)
+        {
+            // 指定返回类型
+            if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+            else
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
 
         //// 压缩
         //if (Compressed) request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
@@ -393,7 +472,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 
             var rs = await SendOnServiceAsync(request, service, client, cancellationToken).ConfigureAwait(false);
 
-            // 调用成果，当前服务点可用
+            // 调用成功，当前服务点可用
             Current = service;
 
             return rs;
