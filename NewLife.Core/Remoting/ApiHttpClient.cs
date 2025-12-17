@@ -112,11 +112,11 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
     public void Add(String name, String address) => ParseAndAdd(Services, name, address);
 
     /// <summary>添加服务地址</summary>
-    /// <param name="name"></param>
-    /// <param name="address"></param>
-    public void Add(String name, Uri address) => Services.Add(new Service { Name = name, Address = address });
+    /// <param name="name">名称</param>
+    /// <param name="uri">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
+    public void Add(String name, Uri uri) => Services.Add(new Service { Name = name, Address = uri });
 
-    private static void ParseAndAdd(IList<Service> services, String name, String address)
+    private static void ParseAndAdd(IList<Service> services, String name, String address, Int32 weight = 0)
     {
         var url = address;
         var svc = new Service
@@ -154,12 +154,14 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         }
 
         svc.Address = new Uri(url);
+        if (svc.Weight <= 1 && weight > 0) svc.Weight = weight;
+
         services.Add(svc);
     }
 
     private String? _lastUrls;
     /// <summary>设置服务端地址。如果新地址跟旧地址不同，将会替换旧地址构造的Services</summary>
-    /// <param name="urls"></param>
+    /// <param name="urls">地址集。多个地址逗号隔开</param>
     public void SetServer(String urls)
     {
         if (!urls.IsNullOrEmpty() && urls != _lastUrls)
@@ -172,6 +174,27 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             }
             Services = services;
             _lastUrls = urls;
+        }
+    }
+
+    /// <summary>添加服务端地址</summary>
+    /// <param name="prefix">名称前缀</param>
+    /// <param name="urls">地址集。多个地址逗号隔开</param>
+    /// <param name="weight">权重</param>
+    public void AddServer(String prefix, String urls, Int32 weight = 0)
+    {
+        if (prefix.IsNullOrEmpty()) prefix = "service";
+
+        var idx = 0;
+        var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var addr in ss)
+        {
+            if (addr.IsNullOrEmpty()) continue;
+
+            var name = "";
+            while (name.IsNullOrEmpty() || Services.Any(e => e.Name == name)) name = prefix + ++idx;
+
+            ParseAndAdd(Services, name, addr, weight);
         }
     }
 
