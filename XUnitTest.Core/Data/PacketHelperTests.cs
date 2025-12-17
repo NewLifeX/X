@@ -47,8 +47,8 @@ public class PacketHelperTests
     [Fact]
     public void ToStr_SinglePacket_Empty()
     {
-        IPacket pk = new ArrayPacket(Array.Empty<byte>());
-        Assert.Equal(string.Empty, pk.ToStr());
+        IPacket pk = new ArrayPacket(Array.Empty<Byte>());
+        Assert.Equal(String.Empty, pk.ToStr());
     }
     #endregion
 
@@ -113,7 +113,7 @@ public class PacketHelperTests
     public void ToHex_SinglePacket_DefaultLimit()
     {
         // 40 字节 > 默认 32
-        var data = Enumerable.Range(0, 40).Select(i => (byte)i).ToArray();
+        var data = Enumerable.Range(0, 40).Select(i => (Byte)i).ToArray();
         IPacket pk = new ArrayPacket(data);
 
         var hex = pk.ToHex(); // 默认 maxLength=32
@@ -125,7 +125,7 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_SinglePacket_MaxLengthAll()
     {
-        var data = Enumerable.Range(0, 20).Select(i => (byte)(i + 1)).ToArray();
+        var data = Enumerable.Range(0, 20).Select(i => (Byte)(i + 1)).ToArray();
         IPacket pk = new ArrayPacket(data);
 
         var hex = pk.ToHex(-1); // 全部
@@ -135,7 +135,7 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_SinglePacket_SeparatorEveryByte()
     {
-        var data = new byte[] { 0x01, 0xAB, 0x10, 0xFF };
+        var data = new Byte[] { 0x01, 0xAB, 0x10, 0xFF };
         IPacket pk = new ArrayPacket(data);
 
         var hex = pk.ToHex( -1, "-", 0); // groupSize=0 => 每字节
@@ -146,12 +146,12 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_SinglePacket_GroupSize()
     {
-        var data = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+        var data = new Byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
         IPacket pk = new ArrayPacket(data);
 
         var hex = pk.ToHex(-1, "-", 4); // groupSize=4 插入一次
         // 手工构造：前4字节无分隔开头，之后加一次分隔再跟随后2字节
-        var expected = string.Join(null, new[]
+        var expected = String.Join(null, new[]
         {
             data[0..4].ToHex(),
             "-",
@@ -163,16 +163,16 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_SinglePacket_MaxLengthZero()
     {
-        var data = new byte[] { 1, 2, 3 };
+        var data = new Byte[] { 1, 2, 3 };
         IPacket pk = new ArrayPacket(data);
-        Assert.Equal(string.Empty, pk.ToHex(0));
+        Assert.Equal(String.Empty, pk.ToHex(0));
     }
 
     [Fact]
     public void ToHex_SinglePacket_Empty()
     {
-        IPacket pk = new ArrayPacket(Array.Empty<byte>());
-        Assert.Equal(string.Empty, pk.ToHex());
+        IPacket pk = new ArrayPacket(Array.Empty<Byte>());
+        Assert.Equal(String.Empty, pk.ToHex());
     }
     #endregion
 
@@ -180,8 +180,8 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_MultiChain_CrossSegmentsMaxLength()
     {
-        var seg1 = Enumerable.Range(0, 10).Select(i => (byte)i).ToArray();
-        var seg2 = Enumerable.Range(10, 10).Select(i => (byte)i).ToArray();
+        var seg1 = Enumerable.Range(0, 10).Select(i => (Byte)i).ToArray();
+        var seg2 = Enumerable.Range(10, 10).Select(i => (Byte)i).ToArray();
         IPacket pk = new ArrayPacket(seg1).Append(seg2);
 
         var hex = pk.ToHex(15); // 只取前15字节
@@ -192,8 +192,8 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_MultiChain_SeparatorAndGroup()
     {
-        var seg1 = new byte[] { 0x01, 0x02, 0x03 };
-        var seg2 = new byte[] { 0x04, 0x05, 0x06, 0x07 };
+        var seg1 = new Byte[] { 0x01, 0x02, 0x03 };
+        var seg2 = new Byte[] { 0x04, 0x05, 0x06, 0x07 };
         IPacket pk = new ArrayPacket(seg1).Append(seg2);
 
         // groupSize=2 ，应在第2、4、6...字节后边界前插入分隔（实现里在满足 i%groupSize==0 的位置插入到下一个字节前）
@@ -210,7 +210,7 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_FirstSegmentEmpty_UsesFollowingSegments()
     {
-        IPacket pk = new ArrayPacket(Array.Empty<byte>()); // 首段空
+        IPacket pk = new ArrayPacket(Array.Empty<Byte>()); // 首段空
         pk = pk.Append("ABC".GetBytes());
         var hex = pk.ToHex(-1);
         Assert.Equal("414243", hex); // ABC
@@ -219,8 +219,8 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_FirstSegmentEmpty_WithMaxLength()
     {
-        IPacket pk = new ArrayPacket(Array.Empty<byte>())
-            .Append(new byte[] { 0x01, 0x02, 0x03 });
+        IPacket pk = new ArrayPacket(Array.Empty<Byte>())
+            .Append(new Byte[] { 0x01, 0x02, 0x03 });
         var hex = pk.ToHex(2); // 仅前2字节
         Assert.Equal("0102", hex);
     }
@@ -228,8 +228,8 @@ public class PacketHelperTests
     [Fact]
     public void ToHex_NegativeGroupSize_TreatedAsEveryByte()
     {
-        var data = new byte[] { 0xAA, 0xBB };
-        IPacket pk = new ArrayPacket(Array.Empty<byte>()).Append(data);
+        var data = new Byte[] { 0xAA, 0xBB };
+        IPacket pk = new ArrayPacket(Array.Empty<Byte>()).Append(data);
         var hex = pk.ToHex(-1, "-", -5); // groupSize<0 等价每字节
         Assert.Equal("AA-BB", hex);
     }
@@ -247,7 +247,7 @@ public class PacketHelperTests
     {
         IPacket pk = new ArrayPacket("Hello".GetBytes()).Append("World".GetBytes()); // 10
         var rs = pk.ToStr(null, 50, 5);
-        Assert.Equal(string.Empty, rs);
+        Assert.Equal(String.Empty, rs);
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public class PacketHelperTests
     {
         IPacket pk = new ArrayPacket("Data".GetBytes());
         var rs = pk.ToStr(null, 1, 0);
-        Assert.Equal(string.Empty, rs);
+        Assert.Equal(String.Empty, rs);
     }
 
     [Fact]

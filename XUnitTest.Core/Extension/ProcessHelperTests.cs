@@ -25,7 +25,7 @@ public class ProcessHelperTests
         if (args != null && args.Length > 0)
         {
             // 第 0 个通常是可执行文件或解释器
-            Assert.False(string.IsNullOrEmpty(args[0]));
+            Assert.False(String.IsNullOrEmpty(args[0]));
         }
     }
 

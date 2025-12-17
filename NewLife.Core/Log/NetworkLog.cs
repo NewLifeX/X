@@ -67,14 +67,15 @@ public class NetworkLog : Logger, IDisposable
         if (AppId.IsNullOrEmpty()) AppId = AssemblyX.Entry?.Name;
         if (ClientId.IsNullOrEmpty())
         {
-            try
-            {
-                ClientId = NetHelper.MyIP() + "@" + Process.GetCurrentProcess().Id;
-            }
-            catch
-            {
-                ClientId = Rand.NextString(8);
-            }
+            //try
+            //{
+            //    ClientId = NetHelper.MyIP() + "@" + Process.GetCurrentProcess().Id;
+            //}
+            //catch
+            //{
+            //    ClientId = Rand.NextString(8);
+            //}
+            ClientId = Runtime.ClientId;
         }
 
         if (!Server.IsNullOrEmpty())

@@ -167,6 +167,31 @@ public static class Runtime
     /// <returns></returns>
     public static DateTimeOffset UtcNow => TimerScheduler.GlobalTimeProvider.GetUtcNow();
 
+    private static String? _ClientId;
+    /// <summary>客户端标识。格式为 ip@pid；在未获取到本地IPv4时返回 @pid（不缓存）</summary>
+    public static String ClientId
+    {
+        get
+        {
+            if (_ClientId != null) return _ClientId;
+
+            try
+            {
+                var ip = NetHelper.MyIP();
+                var cid = $"{ip}@{ProcessId}";
+
+                // 仅在拿到IPv4地址后缓存，避免早期网络未就绪时缓存无IP的结果
+                if (ip != null) _ClientId = cid;
+
+                return cid;
+            }
+            catch
+            {
+                return String.Empty;
+            }
+        }
+    }
+
     private static Int32 _ProcessId;
 #if NET5_0_OR_GREATER
     /// <summary>当前进程Id</summary>

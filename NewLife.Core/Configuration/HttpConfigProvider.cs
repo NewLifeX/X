@@ -25,8 +25,8 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>应用密钥</summary>
     public String? Secret { get; set; }
 
-    /// <summary>实例。应用可能多实例部署，ip@proccessid</summary>
-    public String? ClientId { get; set; }
+    ///// <summary>实例。应用可能多实例部署，ip@proccessid</summary>
+    //public String? ClientId { get; set; }
 
     /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
     public String? Scope { get; set; }
@@ -60,21 +60,21 @@ public class HttpConfigProvider : ConfigProvider
             var asm = AssemblyX.Entry ?? executing;
             if (asm != null) AppId = asm.Name;
 
-            ValidClientId();
+            //ValidClientId();
         }
         catch { }
     }
 
-    private void ValidClientId()
-    {
-        try
-        {
-            // 刚启动时可能还没有拿到本地IP
-            if (ClientId.IsNullOrEmpty() || ClientId[0] == '@')
-                ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
-        }
-        catch { }
-    }
+    //private void ValidClientId()
+    //{
+    //    try
+    //    {
+    //        // 刚启动时可能还没有拿到本地IP
+    //        if (ClientId.IsNullOrEmpty() || ClientId[0] == '@')
+    //            ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+    //    }
+    //    catch { }
+    //}
 
     /// <summary>销毁</summary>
     /// <param name="disposing"></param>
@@ -114,7 +114,7 @@ public class HttpConfigProvider : ConfigProvider
     {
         var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
 
-        ValidClientId();
+        //ValidClientId();
 
         try
         {
@@ -122,7 +122,7 @@ public class HttpConfigProvider : ConfigProvider
             {
                 appId = AppId,
                 secret = Secret,
-                clientId = ClientId,
+                clientId = Runtime.ClientId,
                 scope = Scope,
                 version = _version,
                 usedKeys = UsedKeys.Join(),
@@ -154,14 +154,14 @@ public class HttpConfigProvider : ConfigProvider
     /// <returns></returns>
     protected virtual Int32 SetAll(IDictionary<String, Object?> configs)
     {
-        ValidClientId();
+        //ValidClientId();
 
         var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
         return client.Invoke<Int32>("Config/SetAll", new
         {
             appId = AppId,
             secret = Secret,
-            clientId = ClientId,
+            clientId = Runtime.ClientId,
             configs,
         });
     }

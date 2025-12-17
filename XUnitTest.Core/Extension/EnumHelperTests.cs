@@ -249,7 +249,7 @@ public class EnumHelperTests
     [Fact(DisplayName = "GetDescriptions类型参数方法_非枚举类型测试")]
     public void GetDescriptions_Type_NonEnumType_Test()
     {
-        var descriptions = EnumHelper.GetDescriptions(typeof(string));
+        var descriptions = EnumHelper.GetDescriptions(typeof(String));
 
         Assert.NotNull(descriptions);
         Assert.Empty(descriptions); // 非枚举类型返回空字典

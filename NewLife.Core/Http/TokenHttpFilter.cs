@@ -21,8 +21,8 @@ public class TokenHttpFilter : IHttpFilter
     /// <summary>密钥</summary>
     public String? Password { get; set; }
 
-    /// <summary>客户端唯一标识。一般是IP@进程</summary>
-    public String? ClientId { get; set; }
+    ///// <summary>客户端唯一标识。一般是IP@进程</summary>
+    //public String? ClientId { get; set; }
 
     /// <summary>安全密钥。keyName$keyValue</summary>
     /// <remarks>
@@ -46,20 +46,20 @@ public class TokenHttpFilter : IHttpFilter
     public IList<Int32> ErrorCodes { get; set; } = new List<Int32> { ApiCode.Unauthorized, ApiCode.Forbidden };
     #endregion
 
-    /// <summary>实例化令牌过滤器</summary>
-    public TokenHttpFilter() => ValidClientId();
+    ///// <summary>实例化令牌过滤器</summary>
+    //public TokenHttpFilter() => ValidClientId();
 
-    private void ValidClientId()
-    {
-        try
-        {
-            // 刚启动时可能还没有拿到本地IP
-            var id = ClientId;
-            if (id.IsNullOrEmpty() || id != null && id.Length > 0 && id[0] == '@')
-                ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
-        }
-        catch { }
-    }
+    //private void ValidClientId()
+    //{
+    //    try
+    //    {
+    //        // 刚启动时可能还没有拿到本地IP
+    //        var id = ClientId;
+    //        if (id.IsNullOrEmpty() || id != null && id.Length > 0 && id[0] == '@')
+    //            ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
+    //    }
+    //    catch { }
+    //}
 
     /// <summary>请求前</summary>
     /// <param name="client">客户端</param>
@@ -131,7 +131,7 @@ public class TokenHttpFilter : IHttpFilter
         if (UserName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(UserName));
         //if (Password.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Password));
 
-        ValidClientId();
+        //ValidClientId();
 
         var pass = EncodePassword(UserName, Password);
         return await client.PostAsync<TokenModel>(Action, new
@@ -139,7 +139,7 @@ public class TokenHttpFilter : IHttpFilter
             grant_type = "password",
             username = UserName,
             password = pass,
-            clientId = ClientId,
+            clientId = Runtime.ClientId,
         }, cancellationToken).ConfigureAwait(false);
     }
 
@@ -149,7 +149,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <returns></returns>
     protected virtual async Task<TokenModel?> SendRefresh(HttpClient client, CancellationToken cancellationToken)
     {
-        ValidClientId();
+        //ValidClientId();
 
         if (Token == null) throw new ArgumentNullException(nameof(Token));
 
@@ -157,7 +157,7 @@ public class TokenHttpFilter : IHttpFilter
         {
             grant_type = "refresh_token",
             refresh_token = Token.RefreshToken,
-            clientId = ClientId,
+            clientId = Runtime.ClientId,
         }, cancellationToken).ConfigureAwait(false);
     }
 

@@ -465,8 +465,8 @@ public class UtilityTests
     public void Decimal_From_Bytes_16()
     {
         var expected = 12345.6789m;
-        var bits = decimal.GetBits(expected); // lo, mid, hi, flags
-        var buf = new byte[16];
+        var bits = Decimal.GetBits(expected); // lo, mid, hi, flags
+        var buf = new Byte[16];
         System.Buffer.BlockCopy(BitConverter.GetBytes(bits[0]), 0, buf, 0, 4);
         System.Buffer.BlockCopy(BitConverter.GetBytes(bits[1]), 0, buf, 4, 4);
         System.Buffer.BlockCopy(BitConverter.GetBytes(bits[2]), 0, buf, 8, 4);
