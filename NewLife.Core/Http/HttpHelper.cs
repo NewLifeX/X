@@ -599,7 +599,14 @@ public static class HttpHelper
         await SaveFileAsync(rs, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task SaveFileAsync(Stream stream, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
+    /// <summary>保存流到本地文件并校验哈希。常用于文件下载</summary>
+    /// <param name="stream">数据流</param>
+    /// <param name="fileName">目标文件名</param>
+    /// <param name="expectedHash">预期哈希字符串，支持带算法前缀或自动识别</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    /// <exception cref="IOException"></exception>
+    public static async Task SaveFileAsync(this Stream stream, String fileName, String? expectedHash, CancellationToken cancellationToken = default)
     {
         fileName = fileName.GetFullPath();
 
@@ -628,7 +635,7 @@ public static class HttpHelper
                 {
                     // 校验失败，删除临时文件并抛出异常
                     try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
-                    throw new IOException("Downloaded file hash verification failed.");
+                    throw new IOException("Save file hash verification failed.");
                 }
             }
 

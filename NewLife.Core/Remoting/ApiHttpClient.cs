@@ -363,6 +363,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
 #endif
 
                 await HttpHelper.SaveFileAsync(stream, fileName, expectedHash, cancellationToken).ConfigureAwait(false);
+                return;
             }
             catch (Exception ex)
             {
