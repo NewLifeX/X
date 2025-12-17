@@ -248,8 +248,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         // Api调用埋点，记录整体调用。内部Http调用可能首次失败，下一次成功，整体Api调用算作成功
         using var span = Tracer?.NewSpan(action, args);
 
-        var i = 0;
-        do
+        for (var i = 0; i < svrs.Count; i++)
         {
             // 建立请求
             var request = BuildRequest(method, action, args, returnType);
@@ -268,38 +267,22 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
+                ex.Source = _currentService?.Address + "/" + action;
 
                 var client = _currentService?.Client;
-                if (ex is ApiException)
-                {
-                    if (_currentService != null)
-                    {
-                        if (client != null && filter != null)
-                            await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+                if (client != null && filter != null)
+                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
 
-                        ex.Source = _currentService.Address + "/" + action;
-                    }
+                // 网络异常时，自动切换到其它节点
+                if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
 
-                    span?.SetError(ex, null);
-                    throw;
-                }
-                else if (ex is HttpRequestException or TaskCanceledException)
-                {
-                    if (client != null && filter != null)
-                        await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
-                    if (++i >= svrs.Count)
-                    {
-                        span?.SetError(ex, null);
-                        throw;
-                    }
-                }
-                else
-                {
-                    span?.SetError(ex, null);
-                    throw;
-                }
+                span?.SetError(ex, null);
+                throw;
             }
-        } while (true);
+        }
+
+        // 无法到达这里
+        throw new InvalidOperationException();
     }
 
     /// <summary>异步调用，等待返回结果</summary>
@@ -344,8 +327,7 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
             action = new Uri(requestUri).AbsolutePath.TrimStart('/');
         using var span = Tracer?.NewSpan(action, expectedHash);
 
-        var i = 0;
-        do
+        for (var i = 0; i < svrs.Count; i++)
         {
             // 建立请求
             var request = BuildRequest(HttpMethod.Get, requestUri, null, null);
@@ -370,25 +352,19 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
                 span?.AppendTag(ex.Message);
 
                 while (ex is AggregateException age && age.InnerException != null) ex = age.InnerException;
+                ex.Source = _currentService?.Address + "/" + action;
 
                 var client = _currentService?.Client;
-                if (ex is HttpRequestException or TaskCanceledException)
-                {
-                    if (client != null && filter != null)
-                        await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
-                    if (++i >= svrs.Count)
-                    {
-                        span?.SetError(ex, null);
-                        throw;
-                    }
-                }
-                else
-                {
-                    span?.SetError(ex, null);
-                    throw;
-                }
+                if (client != null && filter != null)
+                    await filter.OnError(client, ex, this, cancellationToken).ConfigureAwait(false);
+
+                // 网络异常时，自动切换到其它节点
+                if (ex is HttpRequestException or TaskCanceledException && i + 1 < svrs.Count) continue;
+
+                span?.SetError(ex, null);
+                throw;
             }
-        } while (true);
+        }
     }
     #endregion
 
