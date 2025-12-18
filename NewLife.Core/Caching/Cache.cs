@@ -17,7 +17,7 @@ namespace NewLife.Caching;
 /// <item><description>远端 / 分布式实现中，<see cref="Keys"/>、<see cref="Count"/>、<see cref="Search(String, Int32, Int32)"/> 可能是高复杂度操作，应仅用于诊断。</description></item>
 /// </list>
 /// </remarks>
-public abstract class Cache : DisposeBase, ICache
+public abstract class Cache : DisposeBase, ICache, IEventBusFactory
 {
     #region 静态默认实现
     /// <summary>默认缓存</summary>
@@ -172,7 +172,15 @@ public abstract class Cache : DisposeBase, ICache
     /// <param name="clientId">客户标识/消息分组</param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
+    [Obsolete("=>CreateEventBus")]
     public virtual IEventBus<T> GetEventBus<T>(String topic, String clientId = "") => throw new NotSupportedException();
+
+    /// <summary>创建事件总线，可发布消息或订阅消息</summary>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="topic">事件主题</param>
+    /// <param name="clientId">客户标识/消息分组</param>
+    /// <returns></returns>
+    public virtual IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "") => throw new NotSupportedException();
     #endregion
 
     #region 高级操作

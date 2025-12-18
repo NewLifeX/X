@@ -21,7 +21,7 @@ namespace NewLife.Messaging;
 /// 2，基于普通接口的实现，发布和订阅时指定主题Topic。
 /// 这里采取第一种设计，不同业务领域可以实例化自己的事件总线，互不干扰。
 /// </remarks>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventBus<TEvent>
 {
     /// <summary>发布事件</summary>
@@ -41,7 +41,7 @@ public interface IEventBus<TEvent>
 }
 
 /// <summary>事件分发器（抽象分发接口）。供路由器按主题转发到具体总线</summary>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventDispatcher<TEvent>
 {
     /// <summary>分发事件给各个处理器。进程内分发</summary>
@@ -52,7 +52,7 @@ public interface IEventDispatcher<TEvent>
 }
 
 /// <summary>事件处理器</summary>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventHandler<TEvent>
 {
     /// <summary>处理事件</summary>
@@ -61,6 +61,17 @@ public interface IEventHandler<TEvent>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
     Task HandleAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken);
+}
+
+/// <summary>事件总线工厂</summary>
+public interface IEventBusFactory
+{
+    /// <summary>创建事件总线，可发布消息或订阅消息</summary>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="topic">事件主题</param>
+    /// <param name="clientId">客户标识/消息分组</param>
+    /// <returns></returns>
+    IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "");
 }
 
 /// <summary>默认事件总线。即时分发消息，不存储</summary>
@@ -164,28 +175,28 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher
 public static class EventBusExtensions
 {
     /// <summary>订阅事件</summary>
-    /// <typeparam name="TEvent"></typeparam>
+    /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="bus">事件总线</param>
     /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
-    /// <typeparam name="TEvent"></typeparam>
+    /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="bus">事件总线</param>
     /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Action<TEvent, IEventContext<TEvent>> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
-    /// <typeparam name="TEvent"></typeparam>
+    /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="bus">事件总线</param>
     /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
 
     /// <summary>订阅事件</summary>
-    /// <typeparam name="TEvent"></typeparam>
+    /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="bus">事件总线</param>
     /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
@@ -193,7 +204,7 @@ public static class EventBusExtensions
 }
 
 /// <summary>事件上下文接口</summary>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventContext<TEvent>
 {
     /// <summary>事件总线</summary>
@@ -201,7 +212,7 @@ public interface IEventContext<TEvent>
 }
 
 /// <summary>事件上下文</summary>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public class EventContext<TEvent> : IEventContext<TEvent>, IExtend
 {
     /// <summary>事件总线</summary>
@@ -225,7 +236,7 @@ public class EventContext<TEvent> : IEventContext<TEvent>, IExtend
 }
 
 /// <summary>Action事件处理器</summary>
-/// <typeparam name="TEvent"></typeparam>
+/// <typeparam name="TEvent">事件类型</typeparam>
 /// <param name="method"></param>
 public class DelegateEventHandler<TEvent>(Delegate method) : IEventHandler<TEvent>
 {
