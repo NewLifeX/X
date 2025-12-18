@@ -40,6 +40,17 @@ public interface IEventBus<TEvent>
     Boolean Unsubscribe(String clientId = "");
 }
 
+/// <summary>事件分发器（抽象分发接口）。供路由器按主题转发到具体总线</summary>
+/// <typeparam name="TEvent"></typeparam>
+public interface IEventDispatcher<TEvent>
+{
+    /// <summary>分发事件给各个处理器。进程内分发</summary>
+    /// <param name="event">事件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成功处理的处理器数量</returns>
+    Task<Int32> DispatchAsync(TEvent @event, CancellationToken cancellationToken);
+}
+
 /// <summary>事件处理器</summary>
 /// <typeparam name="TEvent"></typeparam>
 public interface IEventHandler<TEvent>
@@ -61,7 +72,7 @@ public interface IEventHandler<TEvent>
 /// 这种设计保证了订阅者之间的独立性和系统的健壮性。
 /// 如果需要严格的事务性保证，可以设置 ThrowOnHandlerError = true，此时任何订阅者异常都会立即中断分发。
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
+public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher<TEvent>
 {
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
     /// <summary>已订阅的事件处理器集合</summary>
@@ -131,6 +142,8 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>
 
         return rs;
     }
+
+    Task<Int32> IEventDispatcher<TEvent>.DispatchAsync(TEvent @event, CancellationToken cancellationToken) => DispatchAsync(@event, null, cancellationToken);
 
     /// <summary>订阅消息</summary>
     /// <param name="handler">处理器</param>
