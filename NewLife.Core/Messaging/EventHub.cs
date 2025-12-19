@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Web.Caching;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Data;
