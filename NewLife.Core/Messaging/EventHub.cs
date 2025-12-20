@@ -135,47 +135,53 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     public virtual Task<Int32> DispatchAsync(String data, CancellationToken cancellationToken = default)
     {
         // 处理事件消息。event#topic#clientid#message
-        if (data.StartsWith("event#"))
+        if (!data.StartsWith("event#")) return Task.FromResult(0);
+
+        var p = data.IndexOf('#');
+        var p2 = data.IndexOf('#', p + 1);
+        if (p2 <= 0) return Task.FromResult(0);
+
+        var topic = data.Substring(p + 1, p2 - p - 1);
+        var p3 = data.IndexOf('#', p2 + 1);
+        if (p3 <= 0) return Task.FromResult(0);
+
+        var clientid = data.Substring(p2 + 1, p3 - p2 - 1);
+        var msg = data[(p3 + 1)..];
+        if (msg[0] != '{')
         {
-            var p = data.IndexOf('#');
-            var p2 = data.IndexOf('#', p + 1);
-            if (p2 > 0)
+            // 订阅和取消订阅动作。event#topic#clientid#subscribe
+            switch (msg)
             {
-                var topic = data.Substring(p + 1, p2 - p - 1);
-                var p3 = data.IndexOf('#', p2 + 1);
-                if (p3 > 0)
-                {
-                    var clientid = data.Substring(p2 + 1, p3 - p2 - 1);
-                    var msg = data[(p3 + 1)..];
-                    if (msg[0] != '{')
+                case "subscribe":
                     {
-                        // 订阅和取消订阅动作。event#topic#clientid#subscribe
-                        switch (msg)
+                        var bus = GetEventBus(topic);
+                        bus.Subscribe(this, clientid);
+                    }
+                    break;
+                case "unsubscribe":
+                    {
+                        var bus = GetEventBus(topic);
+                        bus.Unsubscribe(clientid);
+
+                        // 如果没有订阅者，移除总线
+                        if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
                         {
-                            case "subscribe":
-                                var bus = GetEventBus(topic);
-                                bus.Subscribe(this, clientid);
-                                break;
-                            case "unsubscribe":
-                                break;
-                            default:
-                                break;
+                            _eventBuses.TryRemove(topic, out _);
+                            _dispatchers.TryRemove(topic, out _);
                         }
                     }
-                    if (msg is TEvent @event)
-                    {
-                        return DispatchAsync(topic, clientid, @event, cancellationToken);
-                    }
-                    else
-                    {
-                        var message = msg.ToJsonEntity<TEvent>()!;
-                        return DispatchAsync(topic, clientid, message, cancellationToken);
-                    }
-                }
+                    break;
             }
         }
-
-        return Task.FromResult(0);
+        if (msg is TEvent @event)
+        {
+            return DispatchAsync(topic, clientid, @event, cancellationToken);
+        }
+        else
+        {
+            @event = msg.ToJsonEntity<TEvent>()!;
+            return DispatchAsync(topic, clientid, @event, cancellationToken);
+        }
     }
 
     /// <summary>分发事件给各个处理器。进程内分发</summary>
@@ -190,11 +196,10 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
         if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
 
         var rs = 0;
-        if (_dispatchers.TryGetValue(topic, out var action))
-            rs += await action(@event, cancellationToken).ConfigureAwait(false);
-
         if (_eventBuses.TryGetValue(topic, out var bus))
             rs += await bus.PublishAsync(@event, null, cancellationToken).ConfigureAwait(false);
+        else if (_dispatchers.TryGetValue(topic, out var action))
+            rs += await action(@event, cancellationToken).ConfigureAwait(false);
 
         return rs;
     }

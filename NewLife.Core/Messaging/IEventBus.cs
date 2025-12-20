@@ -83,7 +83,7 @@ public interface IEventBusFactory
 /// 这种设计保证了订阅者之间的独立性和系统的健壮性。
 /// 如果需要严格的事务性保证，可以设置 ThrowOnHandlerError = true，此时任何订阅者异常都会立即中断分发。
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher<TEvent>
+public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher<TEvent>, ILogFeature
 {
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
     /// <summary>已订阅的事件处理器集合</summary>
@@ -95,7 +95,7 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher
     public Boolean ThrowOnHandlerError { get; set; }
 
     /// <summary>日志</summary>
-    public ILog? Log { get; set; }
+    public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
