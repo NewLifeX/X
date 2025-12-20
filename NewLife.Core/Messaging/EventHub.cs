@@ -4,6 +4,7 @@ using System.Text;
 using NewLife;
 using NewLife.Caching;
 using NewLife.Data;
+using NewLife.Log;
 using NewLife.Serialization;
 #if !NET45
 using TaskEx = System.Threading.Tasks.Task;
@@ -70,6 +71,7 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
 
         if (Factory == null) throw new ArgumentNullException(nameof(Factory));
 
+        WriteLog("注册主题：{0}，客户端：{1}", topic, clientId);
         bus = Factory.CreateEventBus<TEvent>(topic, clientId);
 
         //_eventBuses[topic] = bus;
@@ -154,13 +156,18 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
             {
                 case "subscribe":
                     {
-                        var bus = GetEventBus(topic);
+                        var bus = GetEventBus(topic, clientid);
+
+                        WriteLog("订阅主题：{0}，客户端：{1}", topic, clientid);
                         bus.Subscribe(this, clientid);
                     }
-                    break;
+                    return Task.FromResult(1);
                 case "unsubscribe":
                     {
-                        var bus = GetEventBus(topic);
+                        WriteLog("取消订阅主题：{0}，客户端：{1}", topic, clientid);
+
+                        if (!TryGetBus<TEvent>(topic, out var bus)) return Task.FromResult(0);
+
                         bus.Unsubscribe(clientid);
 
                         // 如果没有订阅者，移除总线
@@ -168,9 +175,11 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
                         {
                             _eventBuses.TryRemove(topic, out _);
                             _dispatchers.TryRemove(topic, out _);
+
+                            WriteLog("注销主题：{0}，因订阅为空", topic);
                         }
                     }
-                    break;
+                    return Task.FromResult(1);
             }
         }
         if (msg is TEvent @event)
@@ -205,5 +214,21 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     }
 
     Task IEventHandler<TEvent>.HandleAsync(TEvent @event, IEventContext<TEvent>? context, CancellationToken cancellationToken) => throw new NotImplementedException();
+    #endregion
+
+    #region 日志
+    /// <summary>日志</summary>
+    public ILog Log { get; set; } = Logger.Null;
+
+    /// <summary>写日志。同步到当前埋点</summary>
+    /// <param name="format"></param>
+    /// <param name="args"></param>
+    public void WriteLog(String format, params Object[] args)
+    {
+        var span = DefaultSpan.Current;
+        span?.AppendTag(String.Format(format, args));
+
+        Log?.Info(format, args);
+    }
     #endregion
 }

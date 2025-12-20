@@ -85,18 +85,18 @@ public interface IEventBusFactory
 /// </remarks>
 public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher<TEvent>, ILogFeature
 {
+    #region 属性
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
     /// <summary>已订阅的事件处理器集合</summary>
     public IDictionary<String, IEventHandler<TEvent>> Handlers => _handlers;
 
-    private readonly Pool<EventContext<TEvent>> _pool = new();
-
     /// <summary>处理器异常时是否抛出。默认 false，采用"尽力而为"策略，单个处理器异常不影响其他处理器</summary>
     public Boolean ThrowOnHandlerError { get; set; }
 
-    /// <summary>日志</summary>
-    public ILog Log { get; set; } = Logger.Null;
+    private readonly Pool<EventContext<TEvent>> _pool = new();
+    #endregion
 
+    #region 方法
     /// <summary>发布事件</summary>
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
@@ -169,6 +169,23 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher
     /// <summary>取消订阅</summary>
     /// <param name="clientId">客户标识。订阅时使用的标识</param>
     public virtual Boolean Unsubscribe(String clientId = "") => _handlers.TryRemove(clientId, out _);
+    #endregion
+
+    #region 日志
+    /// <summary>日志</summary>
+    public ILog Log { get; set; } = Logger.Null;
+
+    /// <summary>写日志。同步到当前埋点</summary>
+    /// <param name="format"></param>
+    /// <param name="args"></param>
+    public void WriteLog(String format, params Object[] args)
+    {
+        var span = DefaultSpan.Current;
+        span?.AppendTag(String.Format(format, args));
+
+        Log?.Info(format, args);
+    }
+    #endregion
 }
 
 /// <summary>事件总线扩展</summary>
