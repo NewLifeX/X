@@ -444,7 +444,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new List<T>());
         return item.Visit<IList<T>>() ??
-         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IList<T>)}");
+         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IList<T>).FullName}");
     }
 
     /// <summary>获取哈希</summary>
@@ -455,7 +455,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new ConcurrentDictionary<String, T>());
         return item.Visit<IDictionary<String, T>>() ??
-         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IDictionary<String, T>)}");
+         throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IDictionary<String, T>).FullName}");
     }
 
     /// <summary>获取队列</summary>
@@ -466,7 +466,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>());
         return item.Visit<IProducerConsumer<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>).FullName}");
     }
 
     /// <summary>获取栈</summary>
@@ -477,7 +477,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new MemoryQueue<T>(new ConcurrentStack<T>()));
         return item.Visit<IProducerConsumer<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(IProducerConsumer<T>).FullName}");
     }
 
     /// <summary>获取Set</summary>
@@ -489,7 +489,7 @@ public class MemoryCache : Cache
     {
         var item = GetOrAddItem(key, k => new HashSet<T>());
         return item.Visit<ICollection<T>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(ICollection<T>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{key}] from {item.TypeCode} to {typeof(ICollection<T>).FullName}");
     }
 
     /// <summary>获取事件总线，可发布消息或订阅消息</summary>
@@ -502,7 +502,7 @@ public class MemoryCache : Cache
         var key = $"eventbus:{topic}";
         var item = GetOrAddItem(key, k => new QueueEventBus<TEvent>(this, topic));
         return item.Visit<IEventBus<TEvent>>() ??
-            throw new InvalidCastException($"Unable to convert the value of [{topic}] from {item.TypeCode} to {typeof(IEventBus<TEvent>)}");
+            throw new InvalidCastException($"Unable to convert the value of [{topic}] from {item.TypeCode} to {typeof(IEventBus<TEvent>).FullName}");
     }
 
     /// <summary>获取 或 添加 缓存项</summary>
