@@ -168,8 +168,12 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher
             ctx.EventBus = this;
             context = ctx;
         }
+        var clientId = (context as EventContext<TEvent>)?.ClientId;
         foreach (var item in _handlers)
         {
+            // 不要分发给自己
+            if (clientId != null && clientId == item.Key) continue;
+
             var handler = item.Value;
             try
             {
@@ -286,6 +290,9 @@ public class EventContext<TEvent> : IEventContext<TEvent>, IExtend
     /// <summary>事件总线</summary>
     /// <remarks>上下文由总线创建时会填充该属性；放回对象池前会重置。</remarks>
     public IEventBus<TEvent> EventBus { get; set; } = null!;
+
+    /// <summary>客户端标识</summary>
+    public String? ClientId { get; set; }
 
     /// <summary>数据项</summary>
     public IDictionary<String, Object?> Items { get; } = new NullableDictionary<String, Object?>();
