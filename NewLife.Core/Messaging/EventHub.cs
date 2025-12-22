@@ -19,23 +19,35 @@ namespace NewLife.Messaging;
 /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
 public delegate Task<Int32> DispatchCallback<TEvent>(TEvent @event, CancellationToken cancellationToken);
 
-/// <summary>事件枢纽。把从网络收到的数据包分发给不同的事件总线</summary>
+/// <summary>事件枢纽。按主题把网络消息分发到事件总线或回调</summary>
 /// <typeparam name="TEvent">事件类型</typeparam>
 /// <remarks>
-/// <para>进程内按主题路由并分发事件。通过 <see cref="Add(String, DispatchCallback{TEvent})"/> 或 <see cref="Add(String, IEventDispatcher{TEvent})"/> 注册处理器，
-/// 同一主题仅保留最后一次注册的处理器。</para>
-/// <para>实现了 <see cref="IEventDispatcher{T}"/>（<see cref="IPacket"/> 与 <see cref="String"/> 两种输入），当收到以 <c>event#</c> 开头的消息时，
-/// 按 <c>event#topic#clientId#message</c> 解析并路由，其中 <c>message</c> 为 <typeparamref name="TEvent"/> 的 JSON 表示。</para>
-/// <para>线程安全：内部使用 <see cref="ConcurrentDictionary{TKey, TValue}"/> 保存订阅。</para>
-/// <para>返回值语义：未匹配到订阅、解析失败或非事件消息返回 <c>0</c>；成功分发时返回处理器的结果。</para>
+/// <para>核心职责：收取网络数据（<see cref="IPacket"/> 或 <see cref="String"/>），解析主题标识，并将消息分发给该主题对应的事件总线（<see cref="IEventBus{TEvent}"/>）或回调（<see cref="DispatchCallback{TEvent}"/>）。</para>
+/// <para>主题注册：通过 <see cref="Add(String, DispatchCallback{TEvent})"/> 或 <see cref="Add(String, IEventDispatcher{TEvent})"/> 注册；同一主题仅保留最后一次注册的处理器。也可通过 <see cref="GetEventBus(String, String)"/> 延迟创建并缓存事件总线。</para>
+/// <para>消息格式：仅处理以 <c>event#</c> 开头的消息，格式为 <c>event#topic#clientId#message</c>，其中 <c>message</c> 通常为 <typeparamref name="TEvent"/> 的 JSON。</para>
+/// <para>客户端场景：按主题注册（<c>Add</c>/<c>GetEventBus</c>）事件总线；当收到服务端下发数据包时，解析主题并分发到对应事件总线/回调。</para>
+/// <para>服务端场景：通常单例使用；多个网络客户端订阅同一主题时，会在枢纽内共享同一个事件总线对象，但每个客户端拥有各自的事件处理器。任一客户端发布事件后，其它订阅该主题的客户端会收到，等价于简化版消息队列。</para>
+/// <para>订阅控制：当 <c>message</c> 为 <c>subscribe</c> 或 <c>unsubscribe</c> 时执行订阅/取消订阅；若取消订阅后主题无任何订阅者，将注销并移除该主题的事件总线与分发器，避免占用内存。</para>
+/// <para>线程安全：内部使用 <see cref="ConcurrentDictionary{TKey, TValue}"/> 保存主题与处理器映射。返回值语义：未匹配、解析失败或非事件消息返回 <c>0</c>；成功分发时返回处理器结果。</para>
 /// </remarks>
 public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<String>, IEventHandler<TEvent>
 {
     #region 属性
-    /// <summary>事件总线工厂。用于创建事件总线</summary>
+    /// <summary>事件总线工厂</summary>
+    /// <remarks>用于按主题创建事件总线。默认使用 <see cref="MemoryCache"/> 作为工厂实现。</remarks>
     public IEventBusFactory Factory { get; set; } = MemoryCache.Instance;
 
+    /// <summary>已创建的主题事件总线</summary>
+    /// <remarks>
+    /// <para>服务端单例场景下：同一主题通常会被多个网络客户端共享订阅，因此这里按 topic 缓存总线实例。</para>
+    /// </remarks>
     private readonly ConcurrentDictionary<String, IEventBus<TEvent>> _eventBuses = new();
+
+    /// <summary>主题分发器</summary>
+    /// <remarks>
+    /// <para>存放按 topic 路由后的最终执行入口：可能是事件总线（其 <c>DispatchAsync</c>），也可能是用户直接注册的回调。</para>
+    /// <para>同一主题仅保留最后一次注册的处理器。</para>
+    /// </remarks>
     private readonly ConcurrentDictionary<String, DispatchCallback<TEvent>> _dispatchers = new();
     #endregion
 
@@ -45,10 +57,11 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     /// <param name="action">处理该主题事件的回调</param>
     public void Add(String topic, DispatchCallback<TEvent> action)
     {
+        // 仅建立 topic -> 回调 的映射；该主题不一定具备事件总线。
         _dispatchers[topic] = action;
     }
 
-    /// <summary>按主题注册事件总线。路由至分发器的 <c>DispatchAsync</c></summary>
+    /// <summary>按主题注册事件分发器</summary>
     /// <param name="topic">主题名称</param>
     /// <param name="dispatcher">事件分发器，将通过其 <c>DispatchAsync</c> 处理事件</param>
     public void Add(String topic, IEventDispatcher<TEvent> dispatcher)
@@ -56,27 +69,32 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
         // 将分发器封装为统一委托，消息体按 TEvent 传递
         _dispatchers[topic] = dispatcher.DispatchAsync;
 
+        // 若该分发器本身就是事件总线，则同时缓存总线对象，后续发布走总线语义。
         if (dispatcher is IEventBus<TEvent> bus)
             _eventBuses[topic] = bus;
     }
 
-    /// <summary>获取指定主题的事件总线，不存在时创建</summary>
+    /// <summary>获取指定主题的事件总线</summary>
+    /// <remarks>
+    /// <para>说明：不存在时将通过 <see cref="Factory"/> 创建并缓存；并发下可能多次创建，但最终仅保留一份实例。</para>
+    /// </remarks>
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentNullException">当 <see cref="Factory"/> 为空时抛出</exception>
     public IEventBus<TEvent> GetEventBus(String topic, String clientId = "")
     {
         if (_eventBuses.TryGetValue(topic, out var bus)) return bus;
 
         if (Factory == null) throw new ArgumentNullException(nameof(Factory));
 
+        // 并发场景下允许多线程同时走到 CreateEventBus，但最终仅有一个实例会进入字典，其它实例会被丢弃。
         WriteLog("注册主题：{0}，客户端：{1}", topic, clientId);
         bus = Factory.CreateEventBus<TEvent>(topic, clientId);
 
         //_eventBuses[topic] = bus;
         bus = _eventBuses.GetOrAdd(topic, bus);
 
+        // 若事件总线同时提供事件分发能力，则这里将其注册到分发器表，供 DispatchAsync(topic, ...) 路由使用。
         if (bus is IEventDispatcher<TEvent> dispatcher)
             _dispatchers[topic] = dispatcher.DispatchAsync;
 
@@ -85,22 +103,22 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
 
     /// <summary>尝试获取分发器</summary>
     /// <param name="topic">主题名称</param>
-    /// <param name="action">处理委托</param>
-    /// <returns></returns>
+    /// <param name="action">输出的分发委托</param>
     public Boolean TryGetValue(String topic, [MaybeNullWhen(false)] out DispatchCallback<TEvent> action) => _dispatchers.TryGetValue(topic, out action);
 
     /// <summary>尝试获取事件总线</summary>
     /// <param name="topic">主题名称</param>
-    /// <param name="eventBus">事件总线</param>
-    /// <returns></returns>
+    /// <param name="eventBus">输出的事件总线实例</param>
     public Boolean TryGetBus<T>(String topic, [MaybeNullWhen(false)] out IEventBus<T> eventBus)
     {
+        // 优先从已创建的事件总线字典中获取。
         if (_eventBuses.TryGetValue(topic, out var bus) && bus is IEventBus<T> bus2)
         {
             eventBus = bus2;
             return true;
         }
 
+        // 兼容：若调用方只通过 Add(topic, dispatcher) 注册过分发器，这里尝试从委托 Target 回溯总线对象。
         if (_dispatchers.TryGetValue(topic, out var action))
         {
             eventBus = action.Target as IEventBus<T>;
@@ -113,13 +131,15 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
 
     private static readonly Byte[] _eventPrefix = Encoding.ASCII.GetBytes("event#");
     /// <summary>处理接收到的消息</summary>
-    /// <remarks>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</remarks>
+    /// <remarks>
+    /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
+    /// </remarks>
     /// <param name="data">消息数据包</param>
     /// <param name="cancellationToken">取消通知标记</param>
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
     public virtual Task<Int32> DispatchAsync(IPacket data, CancellationToken cancellationToken = default)
     {
-        // 处理事件消息。event#topic#clientid#message
+        // 先用 Span 前缀判断，尽量避免非事件消息的字符串分配。
         if (data.GetSpan().StartsWith(_eventPrefix))
         {
             var str = data.ToStr();
@@ -130,24 +150,32 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     }
 
     /// <summary>处理接收到的消息</summary>
-    /// <remarks>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</remarks>
+    /// <remarks>
+    /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
+    /// </remarks>
     /// <param name="data">消息字符串</param>
     /// <param name="cancellationToken">取消通知标记</param>
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
     public virtual Task<Int32> DispatchAsync(String data, CancellationToken cancellationToken = default)
     {
         // 处理事件消息。event#topic#clientid#message
+        // 返回 0 表示未消费该消息（可能是其它业务协议数据）。
         if (!data.StartsWith("event#")) return Task.FromResult(0);
 
+        // 解析 topic
         var p = data.IndexOf('#');
         var p2 = data.IndexOf('#', p + 1);
         if (p2 <= 0) return Task.FromResult(0);
 
         var topic = data.Substring(p + 1, p2 - p - 1);
+
+        // 解析 clientId（发送方标识/订阅分组）
         var p3 = data.IndexOf('#', p2 + 1);
         if (p3 <= 0) return Task.FromResult(0);
 
         var clientid = data.Substring(p2 + 1, p3 - p2 - 1);
+
+        // 解析 message：可能是 JSON 事件体，也可能是 subscribe/unsubscribe 控制指令。
         var msg = data[(p3 + 1)..];
         if (msg[0] != '{')
         {
@@ -156,6 +184,8 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
             {
                 case "subscribe":
                     {
+                        // 服务端：为该 topic 创建/获取事件总线，并将当前 handler 绑定到 clientid。
+                        // clientid 用于区分网络客户端订阅者，便于取消订阅或按连接分组投递。
                         var bus = GetEventBus(topic, clientid);
 
                         WriteLog("订阅主题：{0}，客户端：{1}", topic, clientid);
@@ -170,7 +200,7 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
 
                         bus.Unsubscribe(clientid);
 
-                        // 如果没有订阅者，移除总线
+                        // 服务端：如果没有订阅者则注销该 topic 的总线与分发器，避免主题长期占用内存。
                         if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
                         {
                             _eventBuses.TryRemove(topic, out _);
@@ -182,6 +212,8 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
                     return Task.FromResult(1);
             }
         }
+
+        // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
         if (msg is TEvent @event)
         {
             return DispatchAsync(topic, clientid, @event, cancellationToken);
@@ -193,7 +225,10 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
         }
     }
 
-    /// <summary>分发事件给各个处理器。进程内分发</summary>
+    /// <summary>分发事件给各个处理器</summary>
+    /// <remarks>
+    /// <para>进程内分发：按 <c>topic</c> 路由到事件总线或回调。</para>
+    /// </remarks>
     /// <param name="topic">主题名称</param>
     /// <param name="clientId">发送方客户端标识</param>
     /// <param name="event">事件实例</param>
@@ -204,6 +239,7 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     {
         if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
 
+        // 进程内分发：优先路由到事件总线（支持多订阅者发布/投递），否则路由到直接注册的回调。
         var rs = 0;
         if (_eventBuses.TryGetValue(topic, out var bus))
             rs += await bus.PublishAsync(@event, null, cancellationToken).ConfigureAwait(false);
