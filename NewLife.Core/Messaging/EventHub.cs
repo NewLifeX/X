@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using NewLife;
@@ -130,6 +131,7 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     }
 
     private static readonly Byte[] _eventPrefix = Encoding.ASCII.GetBytes("event#");
+    private static readonly Char[] _eventPrefix2 = "event#".ToCharArray();
     /// <summary>处理接收到的消息</summary>
     /// <remarks>
     /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
@@ -137,16 +139,46 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     /// <param name="data">消息数据包</param>
     /// <param name="cancellationToken">取消通知标记</param>
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    public virtual Task<Int32> DispatchAsync(IPacket data, CancellationToken cancellationToken = default)
+    public virtual async Task<Int32> DispatchAsync(IPacket data, CancellationToken cancellationToken = default)
     {
+        // 处理事件消息。event#topic#clientid#message
         // 先用 Span 前缀判断，尽量避免非事件消息的字符串分配。
-        if (data.GetSpan().StartsWith(_eventPrefix))
+        var header = data.GetSpan();
+        if (!header.StartsWith(_eventPrefix)) return 0;
+
+        // 解析 topic
+        var p = header.IndexOf((Byte)'#');
+        var header2 = header[(p + 1)..];
+        var p2 = header2.IndexOf((Byte)'#');
+        if (p2 <= 0) return 0;
+
+        var topic = header2[..p2].ToStr();
+
+        // 解析 clientId（发送方标识/订阅分组）
+        var header3 = header2[(p2 + 1)..];
+        var p3 = header3.IndexOf((Byte)'#');
+        if (p3 <= 0) return 0;
+
+        var clientid = header3[..p3].ToStr();
+
+        var msg = data.Slice(p + 1 + p2 + 1 + p3 + 1);
+        if (msg.Length == 0) return 0;
+
+        if (msg[0] != '{' && msg.Total < 16)
         {
-            var str = data.ToStr();
-            return DispatchAsync(str, cancellationToken);
+            if (await DispatchActionAsync(topic, clientid, msg.ToStr()).ConfigureAwait(false)) return 1;
         }
 
-        return Task.FromResult(0);
+        // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
+        if (msg is TEvent @event)
+        {
+            return await DispatchAsync(topic, clientid, @event, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            @event = msg.ToStr().ToJsonEntity<TEvent>()!;
+            return await DispatchAsync(topic, clientid, @event, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>处理接收到的消息</summary>
@@ -156,73 +188,92 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     /// <param name="data">消息字符串</param>
     /// <param name="cancellationToken">取消通知标记</param>
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    public virtual Task<Int32> DispatchAsync(String data, CancellationToken cancellationToken = default)
+    public virtual async Task<Int32> DispatchAsync(String data, CancellationToken cancellationToken = default)
     {
         // 处理事件消息。event#topic#clientid#message
         // 返回 0 表示未消费该消息（可能是其它业务协议数据）。
-        if (!data.StartsWith("event#")) return Task.FromResult(0);
+        var header = data.AsSpan();
+        if (!header.StartsWith(_eventPrefix2)) return 0;
 
         // 解析 topic
-        var p = data.IndexOf('#');
-        var p2 = data.IndexOf('#', p + 1);
-        if (p2 <= 0) return Task.FromResult(0);
+        var p = header.IndexOf('#');
+        var header2 = header[(p + 1)..];
+        var p2 = header2.IndexOf('#');
+        if (p2 <= 0) return 0;
 
-        var topic = data.Substring(p + 1, p2 - p - 1);
+        var topic = header2[..p2].ToString();
 
         // 解析 clientId（发送方标识/订阅分组）
-        var p3 = data.IndexOf('#', p2 + 1);
-        if (p3 <= 0) return Task.FromResult(0);
+        var header3 = header2[(p2 + 1)..];
+        var p3 = header3.IndexOf('#');
+        if (p3 <= 0) return 0;
 
-        var clientid = data.Substring(p2 + 1, p3 - p2 - 1);
+        var clientid = header3[..p3].ToString();
 
         // 解析 message：可能是 JSON 事件体，也可能是 subscribe/unsubscribe 控制指令。
-        var msg = data[(p3 + 1)..];
-        if (msg[0] != '{')
+        var msg = data[(p + 1 + p2 + 1 + p3 + 1)..];
+        if (msg.Length == 0) return 0;
+
+        if (msg[0] != '{' && msg.Length < 16)
         {
-            // 订阅和取消订阅动作。event#topic#clientid#subscribe
-            switch (msg)
-            {
-                case "subscribe":
-                    {
-                        // 服务端：为该 topic 创建/获取事件总线，并将当前 handler 绑定到 clientid。
-                        // clientid 用于区分网络客户端订阅者，便于取消订阅或按连接分组投递。
-                        var bus = GetEventBus(topic, clientid);
-
-                        WriteLog("订阅主题：{0}，客户端：{1}", topic, clientid);
-                        bus.Subscribe(this, clientid);
-                    }
-                    return Task.FromResult(1);
-                case "unsubscribe":
-                    {
-                        WriteLog("取消订阅主题：{0}，客户端：{1}", topic, clientid);
-
-                        if (!TryGetBus<TEvent>(topic, out var bus)) return Task.FromResult(0);
-
-                        bus.Unsubscribe(clientid);
-
-                        // 服务端：如果没有订阅者则注销该 topic 的总线与分发器，避免主题长期占用内存。
-                        if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
-                        {
-                            _eventBuses.TryRemove(topic, out _);
-                            _dispatchers.TryRemove(topic, out _);
-
-                            WriteLog("注销主题：{0}，因订阅为空", topic);
-                        }
-                    }
-                    return Task.FromResult(1);
-            }
+            if (await DispatchActionAsync(topic, clientid, msg).ConfigureAwait(false)) return 1;
         }
 
         // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
         if (msg is TEvent @event)
         {
-            return DispatchAsync(topic, clientid, @event, cancellationToken);
+            return await DispatchAsync(topic, clientid, @event, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             @event = msg.ToJsonEntity<TEvent>()!;
-            return DispatchAsync(topic, clientid, @event, cancellationToken);
+            return await DispatchAsync(topic, clientid, @event, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>处理动作</summary>
+    /// <param name="topic"></param>
+    /// <param name="clientid"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    public virtual Task<Boolean> DispatchActionAsync(String topic, String clientid, String action)
+    {
+        if (action[0] == '{') return Task.FromResult(false);
+
+        // 订阅和取消订阅动作。event#topic#clientid#subscribe
+        switch (action)
+        {
+            case "subscribe":
+                {
+                    // 服务端：为该 topic 创建/获取事件总线，并将当前 handler 绑定到 clientid。
+                    // clientid 用于区分网络客户端订阅者，便于取消订阅或按连接分组投递。
+                    var bus = GetEventBus(topic, clientid);
+
+                    WriteLog("订阅主题：{0}，客户端：{1}", topic, clientid);
+                    bus.Subscribe(this, clientid);
+                }
+                return Task.FromResult(true);
+            case "unsubscribe":
+                {
+                    WriteLog("取消订阅主题：{0}，客户端：{1}", topic, clientid);
+
+                    if (!TryGetBus<TEvent>(topic, out var bus)) return Task.FromResult(false);
+
+                    bus.Unsubscribe(clientid);
+
+                    // 服务端：如果没有订阅者则注销该 topic 的总线与分发器，避免主题长期占用内存。
+                    if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
+                    {
+                        _eventBuses.TryRemove(topic, out _);
+                        _dispatchers.TryRemove(topic, out _);
+
+                        WriteLog("注销主题：{0}，因订阅为空", topic);
+                    }
+                }
+                return Task.FromResult(true);
+        }
+
+        return Task.FromResult(false);
     }
 
     /// <summary>分发事件给各个处理器</summary>
