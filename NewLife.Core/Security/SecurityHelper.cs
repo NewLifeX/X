@@ -83,25 +83,25 @@ public static class SecurityHelper
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA1(this Byte[] data, Byte[] key) => new HMACSHA1(key).ComputeHash(data);
+    public static Byte[] SHA1(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA1.Create().ComputeHash(data) : new HMACSHA1(key).ComputeHash(data);
 
     /// <summary>SHA256</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA256(this Byte[] data, Byte[] key) => new HMACSHA256(key).ComputeHash(data);
+    public static Byte[] SHA256(this Byte[] data, Byte[]? key = null) => key == null ? System.Security.Cryptography.SHA256.Create().ComputeHash(data) : new HMACSHA256(key).ComputeHash(data);
 
     /// <summary>SHA384</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA384(this Byte[] data, Byte[] key) => new HMACSHA384(key).ComputeHash(data);
+    public static Byte[] SHA384(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA384.Create().ComputeHash(data) : new HMACSHA384(key).ComputeHash(data);
 
     /// <summary>SHA512</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
     /// <returns></returns>
-    public static Byte[] SHA512(this Byte[] data, Byte[] key) => new HMACSHA512(key).ComputeHash(data);
+    public static Byte[] SHA512(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA512.Create().ComputeHash(data) : new HMACSHA512(key).ComputeHash(data);
 
     /// <summary>Murmur128哈希</summary>
     /// <param name="data"></param>

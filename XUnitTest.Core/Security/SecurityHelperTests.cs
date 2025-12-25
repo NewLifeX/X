@@ -64,6 +64,70 @@ public class SecurityHelperTests
     }
 
     [Fact]
+    public void SHA1_Test()
+    {
+        var data = "NewLife".GetBytes();
+
+        var rs1 = data.SHA1(null);
+        var expected1 = System.Security.Cryptography.SHA1.HashData(data);
+        Assert.Equal(expected1, rs1);
+
+        var key = "key".GetBytes();
+        var rs2 = data.SHA1(key);
+        using var hmac = new HMACSHA1(key);
+        var expected2 = hmac.ComputeHash(data);
+        Assert.Equal(expected2, rs2);
+    }
+
+    [Fact]
+    public void SHA256_Test()
+    {
+        var data = "NewLife".GetBytes();
+
+        var rs1 = data.SHA256();
+        var expected1 = System.Security.Cryptography.SHA256.HashData(data);
+        Assert.Equal(expected1, rs1);
+
+        var key = "key".GetBytes();
+        var rs2 = data.SHA256(key);
+        using var hmac = new HMACSHA256(key);
+        var expected2 = hmac.ComputeHash(data);
+        Assert.Equal(expected2, rs2);
+    }
+
+    [Fact]
+    public void SHA384_Test()
+    {
+        var data = "NewLife".GetBytes();
+
+        var rs1 = data.SHA384(null);
+        var expected1 = System.Security.Cryptography.SHA384.HashData(data);
+        Assert.Equal(expected1, rs1);
+
+        var key = "key".GetBytes();
+        var rs2 = data.SHA384(key);
+        using var hmac = new HMACSHA384(key);
+        var expected2 = hmac.ComputeHash(data);
+        Assert.Equal(expected2, rs2);
+    }
+
+    [Fact]
+    public void SHA512_Test()
+    {
+        var data = "NewLife".GetBytes();
+
+        var rs1 = data.SHA512(null);
+        var expected1 = System.Security.Cryptography.SHA512.HashData(data);
+        Assert.Equal(expected1, rs1);
+
+        var key = "key".GetBytes();
+        var rs2 = data.SHA512(key);
+        using var hmac = new HMACSHA512(key);
+        var expected2 = hmac.ComputeHash(data);
+        Assert.Equal(expected2, rs2);
+    }
+
+    [Fact]
     public void AES_CBC_Test2()
     {
         var buf = "123456".ToHex();
