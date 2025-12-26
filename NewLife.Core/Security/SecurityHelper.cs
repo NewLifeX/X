@@ -79,6 +79,31 @@ public static class SecurityHelper
     /// <returns></returns>
     public static UInt16 Crc16(this Byte[] data) => new Crc16().Update(data).Value;
 
+#if NET6_0_OR_GREATER
+    /// <summary>SHA128</summary>
+    /// <param name="data"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static Byte[] SHA1(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA1.HashData(data) : HMACSHA1.HashData(key, data);
+
+    /// <summary>SHA256</summary>
+    /// <param name="data"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static Byte[] SHA256(this Byte[] data, Byte[]? key = null) => key == null ? System.Security.Cryptography.SHA256.HashData(data) : HMACSHA256.HashData(key, data);
+
+    /// <summary>SHA384</summary>
+    /// <param name="data"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static Byte[] SHA384(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA384.HashData(data) : HMACSHA384.HashData(key, data);
+
+    /// <summary>SHA512</summary>
+    /// <param name="data"></param>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    public static Byte[] SHA512(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA512.HashData(data) : HMACSHA512.HashData(key, data);
+#else
     /// <summary>SHA128</summary>
     /// <param name="data"></param>
     /// <param name="key"></param>
@@ -102,6 +127,7 @@ public static class SecurityHelper
     /// <param name="key"></param>
     /// <returns></returns>
     public static Byte[] SHA512(this Byte[] data, Byte[]? key) => key == null ? System.Security.Cryptography.SHA512.Create().ComputeHash(data) : new HMACSHA512(key).ComputeHash(data);
+#endif
 
     /// <summary>Murmur128哈希</summary>
     /// <param name="data"></param>
