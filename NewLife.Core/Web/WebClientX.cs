@@ -7,6 +7,7 @@ using System.Web;
 using NewLife.Http;
 using NewLife.Log;
 using NewLife.Security;
+using NewLife.Serialization;
 
 namespace NewLife.Web;
 
@@ -22,6 +23,9 @@ public class WebClientX : DisposeBase
 
     ///// <summary>验证有效时间。默认1800秒</summary>
     //public TimeSpan AuthExpire { get; set; } = TimeSpan.FromSeconds(1800);
+
+    /// <summary>要求的最低版本。不匹配低于该版本的链接</summary>
+    public Version? MinVersion { get; set; }
 
     /// <summary>最后使用的连接名</summary>
     public Link? LastLink { get; set; }
@@ -270,7 +274,7 @@ public class WebClientX : DisposeBase
     /// <returns>返回已下载的文件，无效时返回空</returns>
     public String DownloadLink(String urls, String name, String destdir)
     {
-        Log.Info("下载链接 {0}，目标 {1}", urls, name);
+        Log.Info("下载链接：{0}，目标：{1}", urls, name);
 
         var names = name.Split(",", ";");
 
@@ -296,9 +300,13 @@ public class WebClientX : DisposeBase
                 //    if (link != null) break;
                 //}
                 ls = ls.Where(e => e.Name.EqualIgnoreCase(names) || e.FullName.EqualIgnoreCase(names)).ToArray();
+                Log.Info("在页面[{0}]个链接中找到[{1}]个：{2}", total, ls.Length, ls.Join(",", e => e.FullName));
+
+                if (MinVersion != null)
+                    ls = ls.Where(e => e.Version >= MinVersion).ToArray();
                 link = ls.OrderByDescending(e => e.Version).ThenByDescending(e => e.Time).FirstOrDefault();
 
-                Log.Info("在页面[{0}]个链接中找到[{1}]个，选择：{2}", total, ls.Length, link);
+                if (link != null) Log.Info("选择：{0}", link);
             }
             //catch (WebException ex)
             //{
