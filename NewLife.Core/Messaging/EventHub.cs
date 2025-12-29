@@ -36,7 +36,7 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     #region 属性
     /// <summary>事件总线工厂</summary>
     /// <remarks>用于按主题创建事件总线。默认使用 <see cref="MemoryCache"/> 作为工厂实现。</remarks>
-    public IEventBusFactory Factory { get; set; } = MemoryCache.Instance;
+    public IEventBusFactory? Factory { get; set; } //= MemoryCache.Instance;
 
     /// <summary>已创建的主题事件总线</summary>
     /// <remarks>
@@ -86,11 +86,11 @@ public class EventHub<TEvent> : IEventDispatcher<IPacket>, IEventDispatcher<Stri
     {
         if (_eventBuses.TryGetValue(topic, out var bus)) return bus;
 
-        if (Factory == null) throw new ArgumentNullException(nameof(Factory));
+        //if (Factory == null) throw new ArgumentNullException(nameof(Factory));
 
         // 并发场景下允许多线程同时走到 CreateEventBus，但最终仅有一个实例会进入字典，其它实例会被丢弃。
         WriteLog("注册主题：{0}，客户端：{1}", topic, clientId);
-        bus = Factory.CreateEventBus<TEvent>(topic, clientId);
+        bus = Factory?.CreateEventBus<TEvent>(topic, clientId) ?? new EventBus<TEvent>();
 
         //_eventBuses[topic] = bus;
         bus = _eventBuses.GetOrAdd(topic, bus);
