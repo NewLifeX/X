@@ -173,15 +173,17 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
         if (msg is TEvent @event)
-        {
             return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            var msg2 = msg.ToStr();
-            span?.AppendTag(msg2);
-            return await OnDispatchAsync(topic, clientId, msg2, context, cancellationToken).ConfigureAwait(false);
-        }
+
+        var msg2 = msg.ToStr();
+        span?.AppendTag(msg2);
+
+        // 字符串事件
+        if (msg2 is TEvent @event2)
+            return await DispatchAsync(topic, clientId, @event2, context, cancellationToken).ConfigureAwait(false);
+
+        // 走序列化
+        return await OnDispatchAsync(topic, clientId, msg2, context, cancellationToken).ConfigureAwait(false);
     }
 
     Task IEventHandler<IPacket>.HandleAsync(IPacket @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
@@ -235,13 +237,10 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
         span?.AppendTag(msg);
         if (msg is TEvent @event)
-        {
             return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            return await OnDispatchAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
-        }
+
+        // 走序列化
+        return await OnDispatchAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
     }
 
     Task IEventHandler<String>.HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
