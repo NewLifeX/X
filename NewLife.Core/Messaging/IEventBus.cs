@@ -132,21 +132,6 @@ public interface IEventContext
     IEventBus EventBus { get; }
 }
 
-///// <summary>事件分发器（抽象分发接口）。供路由器按主题转发到具体总线</summary>
-///// <typeparam name="TEvent">事件类型</typeparam>
-//public interface IEventDispatcher<TEvent>
-//{
-//    /// <summary>分发事件给各个处理器。进程内分发</summary>
-//    /// <remarks>
-//    /// 该接口用于“抽象分发”，常见于路由器/Hub 按主题将事件转发到不同总线的场景。
-//    /// 只负责进程内分发，不涉及持久化、重试或跨进程投递。
-//    /// </remarks>
-//    /// <param name="event">事件</param>
-//    /// <param name="cancellationToken">取消令牌</param>
-//    /// <returns>成功处理的处理器数量</returns>
-//    Task<Int32> DispatchAsync(TEvent @event, CancellationToken cancellationToken);
-//}
-
 /// <summary>事件处理器</summary>
 /// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventHandler<TEvent>
@@ -186,7 +171,7 @@ public interface IEventBusFactory
 /// 这种设计保证了订阅者之间的独立性和系统的健壮性。
 /// 如果需要严格的事务性保证，可以设置 ThrowOnHandlerError = true，此时任何订阅者异常都会立即中断分发。
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, IAsyncEventBus<TEvent>, /*IEventDispatcher<TEvent>,*/ ILogFeature
+public class EventBus<TEvent> : DisposeBase, IEventBus, IEventBus<TEvent>, IAsyncEventBus<TEvent>, ILogFeature
 {
     #region 属性
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
