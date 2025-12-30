@@ -20,6 +20,13 @@ namespace NewLife.Messaging;
 /// 1，基于泛型接口的事件总线，通过接口约定事件总线的行为，具体实现可以是内存、消息队列、数据库等。
 /// 2，基于普通接口的实现，发布和订阅时指定主题Topic。
 /// 这里采取第一种设计，不同业务领域可以实例化自己的事件总线，互不干扰。
+/// 
+/// 关于同步/异步设计：
+/// <list type="bullet">
+/// <item><description><see cref="PublishAsync"/> 和 <see cref="IEventHandler{TEvent}.HandleAsync"/> 采用异步，因为消息分发和处理通常涉及 I/O 操作。</description></item>
+/// <item><description><see cref="Subscribe"/> 和 <see cref="Unsubscribe"/> 采用同步，适用于内存事件总线和点对点网络场景，保持 API 简洁。</description></item>
+/// <item><description>大型分布式场景（订阅需网络往返）请使用 <see cref="IAsyncEventBus{TEvent}"/> 接口。</description></item>
+/// </list>
 /// </remarks>
 /// <typeparam name="TEvent">事件类型</typeparam>
 public interface IEventBus<TEvent>
@@ -30,7 +37,7 @@ public interface IEventBus<TEvent>
     /// 若传入 <paramref name="context"/> 则沿用该上下文；若为 <see langword="null"/> 则由总线创建（可能来自对象池）。
     /// </remarks>
     /// <param name="event">事件</param>
-    /// <param name="context">上下文</param>
+    /// <param name="context">上下文。可用于传递由发布者订阅者协调的其它数据</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>成功处理该事件的处理器数量</returns>
     Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default);
@@ -50,6 +57,48 @@ public interface IEventBus<TEvent>
     /// <param name="clientId">客户标识。订阅时使用的标识</param>
     /// <returns>是否成功取消订阅</returns>
     Boolean Unsubscribe(String clientId = "");
+}
+
+/// <summary>支持异步订阅的事件总线</summary>
+/// <remarks>
+/// 扩展自 <see cref="IEventBus{TEvent}"/>，为大型分布式场景提供异步订阅和取消订阅的能力。
+/// 
+/// 适用场景：
+/// <list type="bullet">
+/// <item><description>客户端-服务端两级架构：订阅动作需通过网络发送到服务端，存在网络延迟。</description></item>
+/// <item><description>基于消息队列的实现：订阅可能涉及队列声明、绑定等异步操作。</description></item>
+/// <item><description>需要确认订阅结果的场景：服务端可能拒绝订阅或返回额外信息。</description></item>
+/// </list>
+/// 
+/// 实现建议：
+/// <list type="bullet">
+/// <item><description>同步方法 <see cref="IEventBus{TEvent}.Subscribe"/> 可委托给 <see cref="SubscribeAsync"/>，内部阻塞等待。</description></item>
+/// <item><description>或者同步方法仅做本地注册，异步方法负责网络通信。</description></item>
+/// </list>
+/// </remarks>
+/// <typeparam name="TEvent">事件类型</typeparam>
+public interface IAsyncEventBus<TEvent> : IEventBus<TEvent>
+{
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>
+    /// 适用于订阅动作需要网络往返或其他异步操作的场景。
+    /// 实现应保证订阅的幂等性：相同 <paramref name="clientId"/> 重复订阅时覆盖前一次订阅。
+    /// </remarks>
+    /// <param name="handler">事件处理器</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    Task<Boolean> SubscribeAsync(IEventHandler<TEvent> handler, String clientId = "", CancellationToken cancellationToken = default);
+
+    /// <summary>异步取消订阅</summary>
+    /// <remarks>
+    /// 适用于取消订阅需要网络往返或其他异步操作的场景。
+    /// 若未指定 <paramref name="clientId"/>，实现可约定取消默认/匿名订阅。
+    /// </remarks>
+    /// <param name="clientId">客户标识。订阅时使用的标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否成功取消订阅</returns>
+    Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default);
 }
 
 /// <summary>事件分发器（抽象分发接口）。供路由器按主题转发到具体总线</summary>
@@ -106,7 +155,7 @@ public interface IEventBusFactory
 /// 这种设计保证了订阅者之间的独立性和系统的健壮性。
 /// 如果需要严格的事务性保证，可以设置 ThrowOnHandlerError = true，此时任何订阅者异常都会立即中断分发。
 /// </remarks>
-public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher<TEvent>, ILogFeature
+public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IAsyncEventBus<TEvent>, IEventDispatcher<TEvent>, ILogFeature
 {
     #region 属性
     private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _handlers = [];
@@ -219,6 +268,27 @@ public class EventBus<TEvent> : DisposeBase, IEventBus<TEvent>, IEventDispatcher
     /// <param name="clientId">客户标识。订阅时使用的标识</param>
     /// <returns>是否成功取消订阅</returns>
     public virtual Boolean Unsubscribe(String clientId = "") => _handlers.TryRemove(clientId, out _);
+
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>
+    /// 适用于订阅动作需要网络往返或其他异步操作的场景。
+    /// 实现应保证订阅的幂等性：相同 <paramref name="clientId"/> 重复订阅时覆盖前一次订阅。
+    /// </remarks>
+    /// <param name="handler">事件处理器</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public virtual Task<Boolean> SubscribeAsync(IEventHandler<TEvent> handler, String clientId = "", CancellationToken cancellationToken = default) => Task.FromResult(Subscribe(handler, clientId));
+
+    /// <summary>异步取消订阅</summary>
+    /// <remarks>
+    /// 适用于取消订阅需要网络往返或其他异步操作的场景。
+    /// 若未指定 <paramref name="clientId"/>，实现可约定取消默认/匿名订阅。
+    /// </remarks>
+    /// <param name="clientId">客户标识。订阅时使用的标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否成功取消订阅</returns>
+    public virtual Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default) => Task.FromResult(Unsubscribe(clientId));
     #endregion
 
     #region 日志
@@ -272,6 +342,46 @@ public static class EventBusExtensions
     /// <param name="action">事件处理方法</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
     public static void Subscribe<TEvent>(this IEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, CancellationToken, Task> action, String clientId = "") => bus.Subscribe(new DelegateEventHandler<TEvent>(action), clientId);
+
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>适用于同步处理且不依赖上下文的简单订阅。</remarks>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">异步事件总线</param>
+    /// <param name="action">事件处理方法</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public static Task<Boolean> SubscribeAsync<TEvent>(this IAsyncEventBus<TEvent> bus, Action<TEvent> action, String clientId = "", CancellationToken cancellationToken = default) => bus.SubscribeAsync(new DelegateEventHandler<TEvent>(action), clientId, cancellationToken);
+
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>适用于需要读取/写入上下文数据的订阅。</remarks>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">异步事件总线</param>
+    /// <param name="action">事件处理方法</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public static Task<Boolean> SubscribeAsync<TEvent>(this IAsyncEventBus<TEvent> bus, Action<TEvent, IEventContext<TEvent>> action, String clientId = "", CancellationToken cancellationToken = default) => bus.SubscribeAsync(new DelegateEventHandler<TEvent>(action), clientId, cancellationToken);
+
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>适用于异步处理且不依赖上下文的订阅。</remarks>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">异步事件总线</param>
+    /// <param name="action">事件处理方法</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public static Task<Boolean> SubscribeAsync<TEvent>(this IAsyncEventBus<TEvent> bus, Func<TEvent, Task> action, String clientId = "", CancellationToken cancellationToken = default) => bus.SubscribeAsync(new DelegateEventHandler<TEvent>(action), clientId, cancellationToken);
+
+    /// <summary>异步订阅事件</summary>
+    /// <remarks>适用于异步处理，且需要上下文与取消的订阅。</remarks>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">异 AsyncEventBus</param>
+    /// <param name="action">事件处理方法</param>
+    /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public static Task<Boolean> SubscribeAsync<TEvent>(this IAsyncEventBus<TEvent> bus, Func<TEvent, IEventContext<TEvent>, CancellationToken, Task> action, String clientId = "", CancellationToken cancellationToken = default) => bus.SubscribeAsync(new DelegateEventHandler<TEvent>(action), clientId, cancellationToken);
 }
 
 /// <summary>事件上下文接口</summary>
