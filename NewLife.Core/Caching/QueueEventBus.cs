@@ -60,7 +60,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     /// <param name="event">事件</param>
     /// <param name="context">上下文</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public override Task<Int32> PublishAsync(TEvent @event, IEventContext<TEvent>? context = null, CancellationToken cancellationToken = default)
+    public override Task<Int32> PublishAsync(TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {

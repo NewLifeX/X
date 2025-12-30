@@ -8,7 +8,7 @@ public class QueueEventBusTests
 {
     private sealed class StringHandler(Action<String> onHandle) : IEventHandler<String>
     {
-        public Task HandleAsync(String @event, IEventContext<String> context, CancellationToken cancellationToken)
+        public Task HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken)
         {
             onHandle(@event);
             return Task.CompletedTask;

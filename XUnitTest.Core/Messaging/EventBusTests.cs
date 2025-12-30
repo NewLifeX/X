@@ -11,7 +11,7 @@ public class EventBusTests
     {
         public String HandledMessage { get; private set; } = String.Empty;
 
-        public Task HandleAsync(TestEvent @event, IEventContext<TestEvent> context, CancellationToken cancellationToken)
+        public Task HandleAsync(TestEvent @event, IEventContext? context, CancellationToken cancellationToken)
         {
             HandledMessage = @event.Message;
             return Task.CompletedTask;

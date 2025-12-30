@@ -10,25 +10,36 @@ public class EventHubTests
         public String Message { get; set; } = String.Empty;
     }
 
+    private sealed class TestEventHandler : IEventHandler<TestEvent>
+    {
+        public String HandledMessage { get; private set; } = String.Empty;
+
+        public Task HandleAsync(TestEvent @event, IEventContext? context, CancellationToken cancellationToken)
+        {
+            HandledMessage = @event.Message;
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class TestEventBus : EventBus<TestEvent>
     {
         public Int32 SubscribeCount { get; private set; }
         public Int32 UnsubscribeCount { get; private set; }
         public Int32 PublishCount { get; private set; }
 
-        public override Boolean Subscribe(IEventHandler<TestEvent> handler, String? clientId = null)
+        public override Boolean Subscribe(IEventHandler<TestEvent> handler, String clientId = "")
         {
             SubscribeCount++;
-            return base.Subscribe(handler, clientId ?? String.Empty);
+            return base.Subscribe(handler, clientId);
         }
 
-        public override Boolean Unsubscribe(String? clientId = null)
+        public override Boolean Unsubscribe(String clientId = "")
         {
             UnsubscribeCount++;
-            return base.Unsubscribe(clientId ?? String.Empty);
+            return base.Unsubscribe(clientId);
         }
 
-        public override Task<Int32> PublishAsync(TestEvent @event, IEventContext<TestEvent>? context = null, CancellationToken cancellationToken = default)
+        public override Task<Int32> PublishAsync(TestEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
         {
             PublishCount++;
             return base.PublishAsync(@event, context, cancellationToken);
@@ -58,33 +69,37 @@ public class EventHubTests
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldReturn0_WhenPrefixNotMatched()
+    public async Task HandleAsync_String_ShouldReturn0_WhenPrefixNotMatched()
     {
         var hub = new EventHub<TestEvent>();
 
-        var rs = await hub.DispatchAsync("not-event#topic#client#{\"Message\":\"a\"}");
+        var rs = await hub.HandleAsync("not-event#topic#client#{\"Message\":\"a\"}", null);
 
         Assert.Equal(0, rs);
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldReturn0_WhenHeaderInvalid()
+    public async Task HandleAsync_String_ShouldReturn0_WhenHeaderInvalid()
     {
         var hub = new EventHub<TestEvent>();
 
-        Assert.Equal(0, await hub.DispatchAsync("event#"));
-        Assert.Equal(0, await hub.DispatchAsync("event#topic#"));
-        Assert.Equal(0, await hub.DispatchAsync("event#topic#client"));
-        Assert.Equal(0, await hub.DispatchAsync("event#topic#client#"));
+        Assert.Equal(0, await hub.HandleAsync("event#", null));
+        Assert.Equal(0, await hub.HandleAsync("event#topic#", null));
+        Assert.Equal(0, await hub.HandleAsync("event#topic#client", null));
+        Assert.Equal(0, await hub.HandleAsync("event#topic#client#", null));
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldRouteSubscribeAction()
+    public async Task HandleAsync_String_ShouldRouteSubscribeAction()
     {
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
 
-        var rs = await hub.DispatchAsync("event#test#c1#subscribe");
+        // subscribe 需要在上下文中提供 Handler
+        var ctx = new EventContext();
+        ctx["Handler"] = new TestEventHandler();
+
+        var rs = await hub.HandleAsync("event#test#c1#subscribe", ctx);
 
         Assert.Equal(1, rs);
         Assert.Equal("test", factory.LastTopic);
@@ -95,7 +110,7 @@ public class EventHubTests
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldRouteUnsubscribeAction_AndRemoveBusWhenEmpty()
+    public async Task HandleAsync_String_ShouldRouteUnsubscribeAction_AndRemoveBusWhenEmpty()
     {
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
@@ -104,23 +119,25 @@ public class EventHubTests
         _ = hub.GetEventBus("test", "seed");
 
         // subscribe first, ensures bus exists and handler is attached under c1.
-        Assert.Equal(1, await hub.DispatchAsync("event#test#c1#subscribe"));
+        var ctx = new EventContext();
+        ctx["Handler"] = new TestEventHandler();
+        Assert.Equal(1, await hub.HandleAsync("event#test#c1#subscribe", ctx));
         var bus = factory.LastBus!;
 
         // unsubscribe should remove handler and then remove bus+dispatcher from hub when empty.
-        Assert.Equal(1, await hub.DispatchAsync("event#test#c1#unsubscribe"));
+        Assert.Equal(1, await hub.HandleAsync("event#test#c1#unsubscribe", null));
         Assert.Equal(1, bus.UnsubscribeCount);
 
         // After removal, publishing a normal event with same topic should not hit previous bus.
         Assert.Equal(0, bus.PublishCount);
 
-        var rs = await hub.DispatchAsync("event#test#any#{\"Message\":\"hello\"}");
+        var rs = await hub.HandleAsync("event#test#any#{\"Message\":\"hello\"}", null);
         Assert.Equal(0, rs);
         Assert.Equal(0, bus.PublishCount);
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldPublishJsonEventToBus()
+    public async Task DispatchAsync_ShouldPublishJsonEventToBus()
     {
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
@@ -129,31 +146,30 @@ public class EventHubTests
         var bus = (TestEventBus)hub.GetEventBus("test", "seed");
 
         // subscribe 会创建/注册总线并绑定 handler。
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe"));
+        var ctx = new EventContext();
+        ctx["Handler"] = new TestEventHandler();
+        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe", ctx));
 
-        var rs = await hub.DispatchAsync("test", "sender", new TestEvent { Message = "hi" });
+        var rs = await hub.DispatchAsync("test", "sender", new TestEvent { Message = "hi" }, null);
 
         Assert.True(rs >= 0);
         Assert.Equal(1, bus.PublishCount);
     }
 
     [Fact]
-    public async Task DispatchAsync_String_ShouldRouteToRegisteredCallback_WhenNoBus()
+    public async Task HandleAsync_String_ShouldRouteToRegisteredDispatcher_WhenNoBus()
     {
         var hub = new EventHub<TestEvent>();
 
         var called = 0;
-        hub.Add("test", (@event, _) =>
-        {
-            called++;
-            Assert.Equal("hi", @event.Message);
-            return Task.FromResult(2);
-        });
+        var handler = new TestEventHandler();
+        hub.Add("test", handler);
 
-        var rs = await hub.DispatchAsync("event#test#sender#{\"Message\":\"hi\"}");
+        var rs = await hub.HandleAsync("event#test#sender#{\"Message\":\"hi\"}", null);
 
-        Assert.Equal(2, rs);
-        Assert.Equal(1, called);
+        // 分发器命中后返回 1
+        Assert.Equal(1, rs);
+        Assert.Equal("hi", handler.HandledMessage);
     }
 
     [Fact]
@@ -161,7 +177,7 @@ public class EventHubTests
     {
         var hub = new EventHub<TestEvent>();
 
-        var rs = await hub.DispatchActionAsync("test", "c1", "{\"Message\":\"hi\"}");
+        var rs = await hub.DispatchActionAsync("test", "c1", "{\"Message\":\"hi\"}", null);
 
         Assert.False(rs);
     }
@@ -171,7 +187,7 @@ public class EventHubTests
     {
         var hub = new EventHub<TestEvent>();
 
-        var rs = await hub.DispatchActionAsync("test", "c1", "unknown");
+        var rs = await hub.DispatchActionAsync("test", "c1", "unknown", null);
 
         Assert.False(rs);
     }
@@ -182,7 +198,10 @@ public class EventHubTests
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
 
-        var rs = await hub.DispatchActionAsync("test", "c1", "subscribe");
+        var ctx = new EventContext();
+        ctx["Handler"] = new TestEventHandler();
+
+        var rs = await hub.DispatchActionAsync("test", "c1", "subscribe", ctx);
 
         Assert.True(rs);
         Assert.NotNull(factory.LastBus);
@@ -195,13 +214,16 @@ public class EventHubTests
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
 
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe"));
+        var ctx = new EventContext();
+        ctx["Handler"] = new TestEventHandler();
+
+        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe", ctx));
         var bus = factory.LastBus!;
 
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "unsubscribe"));
+        Assert.True(await hub.DispatchActionAsync("test", "c1", "unsubscribe", null));
         Assert.Equal(1, bus.UnsubscribeCount);
 
         // Now bus should be removed from hub, so another unsubscribe should be false.
-        Assert.False(await hub.DispatchActionAsync("test", "c1", "unsubscribe"));
+        Assert.False(await hub.DispatchActionAsync("test", "c1", "unsubscribe", null));
     }
 }
