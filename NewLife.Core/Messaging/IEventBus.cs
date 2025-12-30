@@ -411,7 +411,10 @@ public class EventContext : IEventContext, IExtend
     /// <remarks>上下文由总线创建时会填充该属性；放回对象池前会重置。</remarks>
     public IEventBus EventBus { get; set; } = null!;
 
-    /// <summary>客户端标识</summary>
+    /// <summary>消息主题。多层次事件架构（如EventHub）中使用</summary>
+    public String? Topic { get; set; }
+
+    /// <summary>客户端标识。用于事件总线在分发时排除发送方自身</summary>
     public String? ClientId { get; set; }
 
     /// <summary>数据项</summary>
@@ -427,6 +430,7 @@ public class EventContext : IEventContext, IExtend
     {
         // 清空上下文数据
         EventBus = null!;
+        Topic = null;
         ClientId = null;
         Items.Clear();
     }

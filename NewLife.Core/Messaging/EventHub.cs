@@ -129,6 +129,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <summary>处理接收到的消息</summary>
     /// <remarks>
     /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
+    /// <para>解析后会将原始数据包保存到 <c>context["Raw"]</c>，便于订阅者直接转发原始报文实现零拷贝。</para>
     /// </remarks>
     /// <param name="data">消息数据包</param>
     /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
@@ -162,6 +163,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         var msg = data.Slice(headerCount);
         if (msg.Length == 0) return 0;
 
+        // 保存原始数据包到上下文，便于订阅者直接转发原始报文（零拷贝）
+        if (context is IExtend ext) ext["Raw"] = data;
+
         if (msg[0] != '{' && msg.Total < 32)
         {
             if (await DispatchActionAsync(topic, clientId, msg.ToStr(), context, cancellationToken).ConfigureAwait(false)) return 1;
@@ -185,6 +189,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <summary>处理接收到的消息</summary>
     /// <remarks>
     /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
+    /// <para>解析后会将原始消息字符串保存到 <c>context["Raw"]</c>，便于订阅者直接转发原始报文。</para>
     /// </remarks>
     /// <param name="data">消息字符串</param>
     /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
@@ -218,6 +223,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         // 解析 message：可能是 JSON 事件体，也可能是 subscribe/unsubscribe 控制指令。
         var msg = data[headerCount..];
         if (msg.Length == 0) return 0;
+
+        // 保存原始消息字符串到上下文，便于订阅者直接转发原始报文
+        if (context is IExtend ext) ext["Raw"] = data;
 
         if (msg[0] != '{' && msg.Length < 32)
         {
@@ -332,8 +340,16 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
 
         // 设置上下文的 ClientId，用于事件总线在分发时排除发送方自身
-        if (context is EventContext ctx && ctx.ClientId.IsNullOrEmpty())
+        if (context is EventContext ctx)
+        {
+            ctx.Topic = topic;
             ctx.ClientId = clientId;
+        }
+        else if (context is IExtend ext)
+        {
+            ext["Topic"] = topic;
+            ext["ClientId"] = clientId;
+        }
 
         // 进程内分发：优先路由到事件总线（支持多订阅者发布/投递），否则路由到直接注册的回调。
         if (_eventBuses.TryGetValue(topic, out var bus))
