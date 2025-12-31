@@ -1,4 +1,6 @@
-﻿namespace NewLife.Caching;
+﻿using NewLife.Messaging;
+
+namespace NewLife.Caching;
 
 /// <summary>分布式缓存架构服务。提供基础缓存及队列服务</summary>
 /// <remarks>
@@ -88,4 +90,24 @@ public interface ICacheProvider
     /// </remarks>
     IDisposable? AcquireLock(String lockKey, Int32 msTimeout);
     #endregion
+}
+
+/// <summary>缓存提供者助手</summary>
+public static class CacheProviderHelper
+{
+    /// <summary>创建事件总线</summary>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="provider">缓存提供者</param>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">应用标识。作为消费组</param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    public static IEventBus<TEvent>? CreateEventBus<TEvent>(this ICacheProvider provider, String topic, String? clientId = null)
+    {
+        if (provider.Cache is not Cache cache)
+            //throw new NotSupportedException($"[{provider.Cache.GetType().FullName}]缓存不支持创建事件总线！");
+            return null;
+
+        return cache.CreateEventBus<TEvent>(topic, clientId ?? String.Empty);
+    }
 }

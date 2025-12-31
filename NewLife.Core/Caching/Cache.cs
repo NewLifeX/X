@@ -180,7 +180,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     /// <param name="topic">事件主题</param>
     /// <param name="clientId">客户标识/消息分组</param>
     /// <returns></returns>
-    public virtual IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "") => throw new NotSupportedException();
+    public virtual IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "") => new EventBus<TEvent>();
     #endregion
 
     #region 高级操作

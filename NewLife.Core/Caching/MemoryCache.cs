@@ -499,8 +499,10 @@ public class MemoryCache : Cache
     /// <returns></returns>
     public override IEventBus<TEvent> CreateEventBus<TEvent>(String topic, String clientId = "")
     {
-        var key = $"eventbus:{topic}";
-        var item = GetOrAddItem(key, k => new QueueEventBus<TEvent>(this, topic));
+        var key = $"event:{topic}";
+        var item = clientId.IsNullOrEmpty() ?
+            GetOrAddItem(key, k => new EventBus<TEvent>()) :
+            GetOrAddItem(key, k => new QueueEventBus<TEvent>(this, topic));
         return item.Visit<IEventBus<TEvent>>() ??
             throw new InvalidCastException($"Unable to convert the value of [{topic}] from {item.TypeCode} to {typeof(IEventBus<TEvent>).FullName}");
     }
