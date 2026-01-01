@@ -13,7 +13,7 @@
     <IsTestProject>true</IsTestProject>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
-    <NoWarn>1701;1702;CA1416</NoWarn>
+    <NoWarn>1701;1702;CA1416;CS8632</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Applications\**" />
