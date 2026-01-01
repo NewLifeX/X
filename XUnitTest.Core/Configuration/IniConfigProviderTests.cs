@@ -10,7 +10,7 @@ public class InIConfigProviderTests
 {
     readonly IConfigProvider _provider;
 
-    public InIConfigProviderTests() => _provider = new InIConfigProvider { FileName = "Config/core1.ini" };
+    public InIConfigProviderTests() => _provider = new IniConfigProvider { FileName = "Config/core1.ini" };
 
     [Fact]
     public void TestLoadAndSave()
@@ -53,7 +53,7 @@ public class InIConfigProviderTests
         Assert.Equal(sys.DisplayName, prv["Sys:DisplayName"]);
         Assert.Equal(sys.Company, prv["Sys:Company"]);
 
-        var prv2 = new InIConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
+        var prv2 = new IniConfigProvider { FileName = (_provider as FileConfigProvider).FileName };
         var set2 = prv2.Load<ConfigModel>();
 
         Assert.NotNull(set2);
@@ -99,7 +99,7 @@ Enable = True
 InstallTime = 2019-12-30 18:26:18
 ";
 
-        var prv = new InIConfigProvider { FileName = "Config/core2.ini" };
+        var prv = new IniConfigProvider { FileName = "Config/core2.ini" };
         var file = prv.FileName.GetFullPath();
         File.WriteAllText(file, json);
         prv.LoadAll();

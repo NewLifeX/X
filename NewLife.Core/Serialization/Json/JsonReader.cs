@@ -265,12 +265,14 @@ public class JsonReader
 
             return new ArrayPacket(Convert.FromBase64String(value + ""));
         }
+#pragma warning disable CS0618 // 类型或成员已过时
         if (type == typeof(Packet))
         {
             if (value is Packet v) return v;
 
             return new Packet(Convert.FromBase64String(value + ""));
         }
+#pragma warning restore CS0618 // 类型或成员已过时
 
         if (type == typeof(TimeSpan)) return TimeSpan.Parse(value + "");
 

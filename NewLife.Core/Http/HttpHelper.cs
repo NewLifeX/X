@@ -236,6 +236,7 @@ public static class HttpHelper
         return rs;
     }
 
+#pragma warning disable CS0618 // 类型或成员已过时
     private static readonly Byte[] NewLine = [(Byte)'\r', (Byte)'\n', (Byte)'\r', (Byte)'\n'];
     /// <summary>分析头部（修改原 <see cref="Packet"/>，截去首段头部）</summary>
     /// <param name="pk"></param>
@@ -282,6 +283,7 @@ public static class HttpHelper
 
         return headers;
     }
+#pragma warning restore CS0618 // 类型或成员已过时
     #endregion
 
     #region 高级功能扩展

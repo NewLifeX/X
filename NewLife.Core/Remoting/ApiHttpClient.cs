@@ -412,10 +412,12 @@ public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeatur
         if (returnType != null)
         {
             // 指定返回类型
+#pragma warning disable CS0618 // 类型或成员已过时
             if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
             else
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+#pragma warning restore CS0618 // 类型或成员已过时
         }
 
         //// 压缩
