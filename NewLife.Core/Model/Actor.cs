@@ -16,8 +16,8 @@ namespace NewLife.Model;
 public interface IActor
 {
     /// <summary>添加消息，驱动内部处理</summary>
-    /// <param name="message">消息</param>
-    /// <param name="sender">发送者</param>
+    /// <param name="message">消息对象</param>
+    /// <param name="sender">发送者Actor</param>
     /// <returns>返回待处理消息数</returns>
     Int32 Tell(Object message, IActor? sender = null);
 }
@@ -25,10 +25,10 @@ public interface IActor
 /// <summary>Actor上下文</summary>
 public class ActorContext
 {
-    /// <summary>发送者</summary>
+    /// <summary>发送者。发送消息的Actor对象</summary>
     public IActor? Sender { get; set; }
 
-    /// <summary>消息</summary>
+    /// <summary>消息。待处理的消息对象</summary>
     public Object? Message { get; set; }
 }
 
@@ -39,10 +39,10 @@ public class ActorContext
 public abstract class Actor : DisposeBase, IActor
 {
     #region 属性
-    /// <summary>名称</summary>
+    /// <summary>名称。用于日志和追踪</summary>
     public String Name { get; set; }
 
-    /// <summary>是否启用</summary>
+    /// <summary>是否启用。表示Actor是否正在运行</summary>
     public Boolean Active { get; private set; }
 
     /// <summary>受限容量。最大可堆积的消息数，默认Int32.MaxValue</summary>
@@ -67,14 +67,15 @@ public abstract class Actor : DisposeBase, IActor
     private Exception? _error;
     private CancellationTokenSource? _source;
     private Int32 _queueLength;
+    private Int32 _starting;
     #endregion
 
     #region 构造
-    /// <summary>实例化</summary>
+    /// <summary>实例化Actor</summary>
     public Actor() => Name = GetType().Name.TrimEnd("Actor");
 
-    /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <summary>销毁资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
@@ -94,23 +95,33 @@ public abstract class Actor : DisposeBase, IActor
     }
 
     /// <summary>已重载。显示名称</summary>
-    /// <returns></returns>
+    /// <returns>Actor名称</returns>
     public override String ToString() => Name;
     #endregion
 
     #region 方法
     /// <summary>通知开始处理</summary>
     /// <remarks>添加消息时自动触发</remarks>
+    /// <returns>执行任务</returns>
     public virtual Task? Start() => Start(default);
 
     /// <summary>通知开始处理</summary>
     /// <remarks>添加消息时自动触发</remarks>
     /// <param name="cancellationToken">取消令牌。可用于通知内部取消工作</param>
-    /// <returns></returns>
+    /// <returns>执行任务</returns>
     public virtual Task? Start(CancellationToken cancellationToken = default)
     {
         if (Active) return _task;
-        lock (this)
+
+        // 使用原子操作防止并发启动
+        if (Interlocked.CompareExchange(ref _starting, 1, 0) != 0)
+        {
+            // 等待启动完成
+            SpinWait.SpinUntil(() => Active || _starting == 0, 1000);
+            return _task;
+        }
+
+        try
         {
             if (Active) return _task;
 
@@ -121,23 +132,22 @@ public abstract class Actor : DisposeBase, IActor
             _source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             MailBox ??= new BlockingCollection<ActorContext>(BoundedCapacity);
 
-            // 启动异步
-            if (_task == null)
-            {
-                lock (this)
-                {
-                    _task ??= OnStart(_source.Token);
-                }
-            }
+            // 启动异步任务
+            _task ??= OnStart(_source.Token);
 
             Active = true;
 
             return _task;
         }
+        finally
+        {
+            Interlocked.Exchange(ref _starting, 0);
+        }
     }
 
     /// <summary>开始时，返回执行线程包装任务</summary>
-    /// <returns></returns>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>执行任务</returns>
     protected virtual Task OnStart(CancellationToken cancellationToken)
     {
         var creationOptions = LongRunning ? TaskCreationOptions.LongRunning : TaskCreationOptions.None;
@@ -148,6 +158,7 @@ public abstract class Actor : DisposeBase, IActor
 
     /// <summary>通知停止添加消息，并等待处理完成</summary>
     /// <param name="msTimeout">等待的毫秒数。0表示不等待，-1表示无限等待</param>
+    /// <returns>是否在超时前完成处理</returns>
     public virtual Boolean Stop(Int32 msTimeout = 0)
     {
         using var span = Tracer?.NewSpan("actor:Stop", $"{Name} msTimeout={msTimeout}");
@@ -171,8 +182,8 @@ public abstract class Actor : DisposeBase, IActor
     }
 
     /// <summary>添加消息，驱动内部处理</summary>
-    /// <param name="message">消息</param>
-    /// <param name="sender">发送者</param>
+    /// <param name="message">消息对象</param>
+    /// <param name="sender">发送者Actor</param>
     /// <returns>返回待处理消息数</returns>
     public virtual Int32 Tell(Object message, IActor? sender = null)
     {
@@ -261,13 +272,15 @@ public abstract class Actor : DisposeBase, IActor
     }
 
     /// <summary>处理消息。批大小为1时使用该方法</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="cancellationToken">取消通知</param>
+    /// <param name="context">消息上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>异步任务</returns>
     protected virtual Task ReceiveAsync(ActorContext context, CancellationToken cancellationToken) => TaskEx.CompletedTask;
 
     /// <summary>批量处理消息。批大小大于1时使用该方法</summary>
-    /// <param name="contexts">上下文集合</param>
-    /// <param name="cancellationToken">取消通知</param>
+    /// <param name="contexts">消息上下文集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>异步任务</returns>
     protected virtual Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken) => TaskEx.CompletedTask;
     #endregion
 }
