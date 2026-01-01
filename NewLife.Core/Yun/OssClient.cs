@@ -37,6 +37,9 @@ public class OssClient : IObjectStorage
     /// <summary>是否支持搜索</summary>
     public Boolean CanSearch => true;
 
+    /// <summary>是否支持复制</summary>
+    public Boolean CanCopy => true;
+
     private String? _bucketName;
     private String? _baseAddress;
     private HttpClient? _Client;
@@ -84,10 +87,10 @@ public class OssClient : IObjectStorage
     }
 
     /// <summary>异步调用命令</summary>
-    /// <param name="method"></param>
-    /// <param name="action"></param>
-    /// <param name="args"></param>
-    /// <returns></returns>
+    /// <param name="method">HTTP方法</param>
+    /// <param name="action">操作路径</param>
+    /// <param name="args">参数</param>
+    /// <returns>响应结果</returns>
     protected async Task<TResult?> InvokeAsync<TResult>(HttpMethod method, String action, Object? args = null)
     {
         var request = ApiHelper.BuildRequest(method, action, args);
@@ -111,17 +114,17 @@ public class OssClient : IObjectStorage
         return await ApiHelper.ProcessResponse<TResult>(rs).ConfigureAwait(false);
     }
 
-    private Task<IDictionary<String, Object?>?> GetAsync(String action, Object? args = null) => InvokeAsync<IDictionary<String, Object?>>(HttpMethod.Get, action, args);
+    private Task<IDictionary<String, Object?>?> GetDictAsync(String action, Object? args = null) => InvokeAsync<IDictionary<String, Object?>>(HttpMethod.Get, action, args);
     #endregion
 
     #region Bucket操作
     /// <summary>列出所有存储空间名称</summary>
-    /// <returns></returns>
+    /// <returns>存储空间名称数组</returns>
     public async Task<String[]?> ListBuckets()
     {
         SetBucket(null);
 
-        var rs = await GetAsync("/").ConfigureAwait(false);
+        var rs = await GetDictAsync("/").ConfigureAwait(false);
 
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"];
@@ -133,15 +136,15 @@ public class OssClient : IObjectStorage
     }
 
     /// <summary>列出所有存储空间明细，支持过滤</summary>
-    /// <param name="prefix"></param>
-    /// <param name="marker"></param>
-    /// <param name="maxKeys"></param>
-    /// <returns></returns>
+    /// <param name="prefix">前缀</param>
+    /// <param name="marker">标记</param>
+    /// <param name="maxKeys">最大返回数</param>
+    /// <returns>存储空间信息列表</returns>
     public async Task<IList<ObjectInfo>?> ListBuckets(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(null);
 
-        var rs = await GetAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
+        var rs = await GetDictAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
 
         var bs = rs?["Buckets"] as IDictionary<String, Object>;
         var bk = bs?["Bucket"] as IList<Object>;
@@ -159,12 +162,12 @@ public class OssClient : IObjectStorage
 
     #region Object操作
     /// <summary>列出所有文件名称</summary>
-    /// <returns></returns>
+    /// <returns>文件名称数组</returns>
     public async Task<String[]?> ListObjects()
     {
         SetBucket(BucketName);
 
-        var rs = await GetAsync("/").ConfigureAwait(false);
+        var rs = await GetDictAsync("/").ConfigureAwait(false);
 
         var contents = rs?["Contents"];
         if (contents is IList<Object> list) return list?.Select(e => (e as IDictionary<String, Object?>)!["Key"] + "").ToArray();
@@ -174,15 +177,15 @@ public class OssClient : IObjectStorage
     }
 
     /// <summary>列出所有文件明细，支持过滤</summary>
-    /// <param name="prefix"></param>
-    /// <param name="marker"></param>
-    /// <param name="maxKeys"></param>
-    /// <returns></returns>
+    /// <param name="prefix">前缀</param>
+    /// <param name="marker">标记</param>
+    /// <param name="maxKeys">最大返回数</param>
+    /// <returns>文件对象信息列表</returns>
     public async Task<IList<ObjectInfo>?> ListObjects(String prefix, String marker, Int32 maxKeys = 100)
     {
         SetBucket(BucketName);
 
-        var rs = await GetAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
+        var rs = await GetDictAsync("/", new { prefix, marker, maxKeys }).ConfigureAwait(false);
 
         var contents = rs?["Contents"];
         if (contents is not IList<Object> list) return null;
@@ -199,8 +202,8 @@ public class OssClient : IObjectStorage
     /// <summary>上传文件</summary>
     /// <param name="objectName">对象文件名</param>
     /// <param name="data">数据内容</param>
-    /// <returns></returns>
-    public async Task<IObjectInfo?> Put(String objectName, IPacket data)
+    /// <returns>文件对象信息</returns>
+    public async Task<IObjectInfo?> PutAsync(String objectName, IPacket data)
     {
         SetBucket(BucketName);
 
@@ -209,30 +212,48 @@ public class OssClient : IObjectStorage
             new ByteArrayContent(data.ReadBytes());
         var rs = await InvokeAsync<IPacket>(HttpMethod.Put, "/" + objectName, content).ConfigureAwait(false);
 
-        return new ObjectInfo { Name = objectName, Data = rs };
+        return new ObjectInfo { Name = objectName, Data = rs, Length = data.Length };
     }
 
     /// <summary>获取文件</summary>
-    /// <param name="objectName"></param>
-    /// <returns></returns>
-    public async Task<IObjectInfo?> Get(String objectName)
+    /// <param name="objectName">对象文件名</param>
+    /// <returns>文件对象信息</returns>
+    public async Task<IObjectInfo?> GetAsync(String objectName)
     {
         SetBucket(BucketName);
 
         var rs = await InvokeAsync<IPacket>(HttpMethod.Get, "/" + objectName).ConfigureAwait(false);
 
-        return new ObjectInfo { Name = objectName, Data = rs };
+        return new ObjectInfo { Name = objectName, Data = rs, Length = rs?.Length ?? 0 };
     }
 
     /// <summary>获取文件直接访问Url</summary>
     /// <param name="id">对象文件名</param>
-    /// <returns></returns>
-    public Task<String?> GetUrl(String id) => throw new NotImplementedException();
+    /// <returns>可直接访问的Url地址</returns>
+    public Task<String?> GetUrlAsync(String id) => throw new NotSupportedException();
+
+    /// <summary>检查文件是否存在</summary>
+    /// <param name="id">对象文件名</param>
+    /// <returns>存在返回true，不存在返回false</returns>
+    public async Task<Boolean> ExistsAsync(String id)
+    {
+        SetBucket(BucketName);
+
+        try
+        {
+            var rs = await InvokeAsync<Object>(HttpMethod.Head, "/" + id).ConfigureAwait(false);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     /// <summary>删除文件</summary>
-    /// <param name="objectName"></param>
-    /// <returns></returns>
-    public async Task<Int32> Delete(String objectName)
+    /// <param name="objectName">对象文件名</param>
+    /// <returns>删除成功的数量</returns>
+    public async Task<Int32> DeleteAsync(String objectName)
     {
         SetBucket(BucketName);
 
@@ -241,12 +262,94 @@ public class OssClient : IObjectStorage
         return rs != null ? 1 : 0;
     }
 
+    /// <summary>批量删除文件对象</summary>
+    /// <param name="ids">对象文件名列表</param>
+    /// <returns>删除成功的数量</returns>
+    public async Task<Int32> DeleteAsync(String[] ids)
+    {
+        if (ids == null || ids.Length == 0) throw new ArgumentNullException(nameof(ids));
+
+        var count = 0;
+        foreach (var id in ids)
+        {
+            count += await DeleteAsync(id).ConfigureAwait(false);
+        }
+        return count;
+    }
+
+    /// <summary>复制文件对象</summary>
+    /// <param name="sourceId">源对象文件名</param>
+    /// <param name="destId">目标对象文件名</param>
+    /// <returns>复制后的文件对象信息</returns>
+    public async Task<IObjectInfo?> CopyAsync(String sourceId, String destId)
+    {
+        SetBucket(BucketName);
+
+        // OSS 复制需要在请求头中指定 x-oss-copy-source
+        var request = new HttpRequestMessage(HttpMethod.Put, "/" + destId);
+        request.Headers.Add("x-oss-copy-source", $"/{BucketName}/{sourceId}");
+
+        // 资源路径
+        var resourcePath = "/" + destId;
+        if (!_bucketName.IsNullOrEmpty()) resourcePath = "/" + _bucketName + resourcePath;
+
+        // 时间
+        request.Headers.Date = DateTimeOffset.UtcNow;
+
+        // 签名
+        var canonicalString = BuildCanonicalString(HttpMethod.Put.Method, resourcePath, request);
+        var signature = canonicalString.GetBytes().SHA1(Secret.GetBytes()).ToBase64();
+        request.Headers.Authorization = new AuthenticationHeaderValue("OSS", AppId + ":" + signature);
+
+        var http = GetClient();
+        var rs = await http.SendAsync(request).ConfigureAwait(false);
+
+        if (!rs.IsSuccessStatusCode) return null;
+
+        return new ObjectInfo { Name = destId };
+    }
+
     /// <summary>搜索文件</summary>
     /// <param name="pattern">匹配模式。如/202304/*.jpg</param>
     /// <param name="start">开始序号。0开始</param>
     /// <param name="count">最大个数</param>
-    /// <returns></returns>
-    public Task<IList<IObjectInfo>?> Search(String? pattern, Int32 start, Int32 count) => throw new NotImplementedException();
+    /// <returns>文件对象信息列表</returns>
+    public Task<IList<IObjectInfo>?> SearchAsync(String? pattern, Int32 start, Int32 count) => throw new NotSupportedException();
+    #endregion
+
+    #region 兼容旧版
+    /// <summary>上传文件</summary>
+    /// <param name="objectName">对象文件名</param>
+    /// <param name="data">数据内容</param>
+    /// <returns>文件对象信息</returns>
+    [Obsolete("请使用 PutAsync")]
+    public Task<IObjectInfo?> Put(String objectName, IPacket data) => PutAsync(objectName, data);
+
+    /// <summary>获取文件</summary>
+    /// <param name="objectName">对象文件名</param>
+    /// <returns>文件对象信息</returns>
+    [Obsolete("请使用 GetAsync")]
+    public Task<IObjectInfo?> Get(String objectName) => GetAsync(objectName);
+
+    /// <summary>获取文件直接访问Url</summary>
+    /// <param name="id">对象文件名</param>
+    /// <returns>可直接访问的Url地址</returns>
+    [Obsolete("请使用 GetUrlAsync")]
+    public Task<String?> GetUrl(String id) => GetUrlAsync(id);
+
+    /// <summary>删除文件</summary>
+    /// <param name="objectName">对象文件名</param>
+    /// <returns>删除成功的数量</returns>
+    [Obsolete("请使用 DeleteAsync")]
+    public Task<Int32> Delete(String objectName) => DeleteAsync(objectName);
+
+    /// <summary>搜索文件</summary>
+    /// <param name="pattern">匹配模式。如/202304/*.jpg</param>
+    /// <param name="start">开始序号。0开始</param>
+    /// <param name="count">最大个数</param>
+    /// <returns>文件对象信息列表</returns>
+    [Obsolete("请使用 SearchAsync")]
+    public Task<IList<IObjectInfo>?> Search(String? pattern, Int32 start, Int32 count) => SearchAsync(pattern, start, count);
     #endregion
 
     #region 辅助

@@ -8,6 +8,8 @@ namespace NewLife.Model;
 
 /// <summary>延迟队列。缓冲合并对象，批量处理</summary>
 /// <remarks>
+/// 文档 https://newlifex.com/core/deferred_queue
+/// 
 /// 借助实体字典，缓冲实体对象，定期给字典换新，实现批量处理。
 /// 
 /// 有可能外部拿到对象后，正在修改，内部恰巧执行批量处理，导致外部的部分修改未能得到处理。
@@ -16,29 +18,29 @@ namespace NewLife.Model;
 public class DeferredQueue : DisposeBase
 {
     #region 属性
-    /// <summary>名称</summary>
+    /// <summary>名称。用于日志和调试</summary>
     public String Name { get; set; }
 
     private volatile ConcurrentDictionary<String, Object> _Entities = new();
-    /// <summary>实体字典</summary>
+    /// <summary>实体字典。存储待处理的对象</summary>
     public ConcurrentDictionary<String, Object> Entities => _Entities;
 
     /// <summary>跟踪数。达到该值时输出跟踪日志，默认1000</summary>
     public Int32 TraceCount { get; set; } = 1000;
 
-    /// <summary>周期。默认10_000毫秒</summary>
+    /// <summary>周期。定时处理间隔，默认10_000毫秒</summary>
     public Int32 Period { get; set; } = 10_000;
 
     /// <summary>最大个数。超过该个数时，进入队列将产生堵塞。默认10_000_000</summary>
     public Int32 MaxEntity { get; set; } = 10_000_000;
 
-    /// <summary>批大小。默认5_000</summary>
+    /// <summary>批大小。每批处理的最大对象数，默认5_000</summary>
     public Int32 BatchSize { get; set; } = 5_000;
 
-    /// <summary>等待借出对象确认修改的时间，默认3000ms</summary>
+    /// <summary>等待借出对象确认修改的时间。默认3000ms</summary>
     public Int32 WaitForBusy { get; set; } = 3_000;
 
-    /// <summary>保存速度，每秒保存多少个实体</summary>
+    /// <summary>保存速度。每秒保存多少个实体</summary>
     public Int32 Speed { get; private set; }
 
     /// <summary>是否异步处理。默认true表示异步处理，共用DQ定时调度；false表示同步处理，独立线程</summary>
@@ -48,29 +50,31 @@ public class DeferredQueue : DisposeBase
     /// <summary>合并保存的总次数</summary>
     public Int32 Times => _Times;
 
-    /// <summary>批次处理成功时</summary>
+    /// <summary>批次处理成功时的回调</summary>
     public Action<IList<Object>>? Finish;
 
-    /// <summary>批次处理失败时</summary>
+    /// <summary>批次处理失败时的回调</summary>
     public Action<IList<Object>, Exception>? Error;
 
     /// <summary>队列溢出通知。参数为当前缓存个数</summary>
     public Action<Int32>? Overflow;
 
-    /// <summary>当前缓存个数</summary>
     private volatile Int32 _count;
     /// <summary>当前缓存个数</summary>
     public Int32 Count => _count;
+
+    /// <summary>等待确认修改的借出对象数</summary>
+    private volatile Int32 _busy;
 
     private TimerX? _Timer;
     #endregion
 
     #region 构造
-    /// <summary>实例化</summary>
+    /// <summary>实例化延迟队列</summary>
     public DeferredQueue() => Name = GetType().Name.TrimEnd("Queue", "Actor", "Cache");
 
-    /// <summary>销毁。统计队列销毁时保存数据</summary>
-    /// <param name="disposing"></param>
+    /// <summary>销毁资源。统计队列销毁时保存数据</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
@@ -89,7 +93,7 @@ public class DeferredQueue : DisposeBase
         _Entities?.Clear();
     }
 
-    /// <summary>初始化</summary>
+    /// <summary>初始化定时器</summary>
     public void Init()
     {
         // 首次使用时初始化定时器
@@ -102,7 +106,8 @@ public class DeferredQueue : DisposeBase
         }
     }
 
-    /// <summary>初始化</summary>
+    /// <summary>初始化定时器</summary>
+    /// <returns>定时器实例</returns>
     protected virtual TimerX OnInit()
     {
         // 为了避免多队列并发，首次执行时间随机错开
@@ -121,10 +126,10 @@ public class DeferredQueue : DisposeBase
     #endregion
 
     #region 方法
-    /// <summary>尝试添加</summary>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
+    /// <summary>尝试添加对象到队列</summary>
+    /// <param name="key">对象键</param>
+    /// <param name="value">对象值</param>
+    /// <returns>是否添加成功</returns>
     public virtual Boolean TryAdd(String key, Object value)
     {
         Interlocked.Increment(ref _Times);
@@ -141,14 +146,15 @@ public class DeferredQueue : DisposeBase
         return true;
     }
 
-    /// <summary>获取 或 添加 实体对象，在外部修改对象值</summary>
+    /// <summary>获取或添加实体对象，在外部修改对象值</summary>
     /// <remarks>
-    /// 外部正在修改对象时，内部不允许执行批量处理
+    /// 外部正在修改对象时，内部不允许执行批量处理。
+    /// 使用完毕后需调用 <see cref="Commit"/> 方法提交修改。
     /// </remarks>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="key"></param>
-    /// <param name="valueFactory"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">对象类型</typeparam>
+    /// <param name="key">对象键</param>
+    /// <param name="valueFactory">对象工厂，用于创建新对象</param>
+    /// <returns>获取或创建的对象实例</returns>
     public virtual T? GetOrAdd<T>(String key, Func<String, T>? valueFactory = null) where T : class, new()
     {
         Interlocked.Increment(ref _Times);
@@ -182,8 +188,8 @@ public class DeferredQueue : DisposeBase
     }
 
     /// <summary>尝试移除一个键</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <param name="key">对象键</param>
+    /// <returns>是否移除成功</returns>
     public virtual Boolean TryRemove(String key)
     {
         if (_Entities.TryRemove(key, out _))
@@ -215,7 +221,7 @@ public class DeferredQueue : DisposeBase
     {
         if (_count < MaxEntity) return;
 
-        using var span = DefaultTracer.Instance?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
+        using var span = Tracer?.NewError("MaxQueueOverflow", $"延迟队列[{Name}]超过上限{MaxEntity:n0}");
 
         // 通知外部发生溢出
         try { Overflow?.Invoke(_count); } catch { /* 忽略业务侧异常 */ }
@@ -233,11 +239,8 @@ public class DeferredQueue : DisposeBase
         throw new InvalidOperationException($"The existing data amount [{_count:n0}] exceeds the maximum data amount [{MaxEntity:n0}]");
     }
 
-    /// <summary>等待确认修改的借出对象数</summary>
-    private volatile Int32 _busy;
-
     /// <summary>提交对象的修改，外部不再使用该对象</summary>
-    /// <param name="key"></param>
+    /// <param name="key">对象键</param>
     public virtual void Commit(String key)
     {
         // 减少繁忙数
@@ -269,6 +272,7 @@ public class DeferredQueue : DisposeBase
 
         if (list.Count == 0) return;
 
+        using var span = Tracer?.NewSpan($"mq:{Name}:Process", null, list.Count);
         var sw = Stopwatch.StartNew();
         var total = ProcessAll(list);
         sw.Stop();
@@ -278,12 +282,13 @@ public class DeferredQueue : DisposeBase
         if (list.Count >= TraceCount)
         {
             var sp = ms == 0 ? 0 : (Int32)(times * 1000 / ms);
-            XTrace.WriteLine($"延迟队列[{Name}]\t保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {Speed:n0}tps\t次数 {times:n0}\t速度 {sp:n0}tps\t成功 {total:n0}");
+            WriteLog($"保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {Speed:n0}tps\t次数 {times:n0}\t速度 {sp:n0}tps\t成功 {total:n0}");
         }
     }
 
     /// <summary>定时处理全部数据</summary>
-    /// <param name="list"></param>
+    /// <param name="list">待处理对象集合</param>
+    /// <returns>成功处理的对象数</returns>
     protected virtual Int32 ProcessAll(ICollection<Object> list)
     {
         var total = 0;
@@ -312,13 +317,14 @@ public class DeferredQueue : DisposeBase
         return total;
     }
 
-    /// <summary>处理一批</summary>
-    /// <param name="list"></param>
+    /// <summary>处理一批对象</summary>
+    /// <param name="list">待处理对象列表</param>
+    /// <returns>成功处理的对象数</returns>
     public virtual Int32 Process(IList<Object> list) => 0;
 
-    /// <summary>发生错误</summary>
-    /// <param name="list"></param>
-    /// <param name="ex"></param>
+    /// <summary>发生错误时的处理</summary>
+    /// <param name="list">处理失败的对象列表</param>
+    /// <param name="ex">异常信息</param>
     protected virtual void OnError(IList<Object> list, Exception ex)
     {
         if (Error != null)
@@ -326,5 +332,18 @@ public class DeferredQueue : DisposeBase
         else
             XTrace.WriteException(ex);
     }
+    #endregion
+
+    #region 辅助
+    /// <summary>日志</summary>
+    public ILog Log { get; set; } = Logger.Null;
+
+    /// <summary>链路追踪</summary>
+    public ITracer? Tracer { get; set; }
+
+    /// <summary>写日志</summary>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">参数</param>
+    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"延迟队列[{Name}]\t{format}", args);
     #endregion
 }

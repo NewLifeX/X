@@ -8,13 +8,12 @@ public interface IPipeline
 
     #region 基础方法
     /// <summary>添加处理器到末尾</summary>
-    /// <param name="handler">处理器</param>
-    /// <returns></returns>
+    /// <param name="handler">管道处理器</param>
     void Add(IPipelineHandler handler);
 
     /// <summary>移除处理器</summary>
-    /// <param name="handler">处理器</param>
-    /// <returns>是否成功</returns>
+    /// <param name="handler">要移除的处理器</param>
+    /// <returns>是否成功移除</returns>
     Boolean Remove(IPipelineHandler handler);
 
     /// <summary>清空所有处理器</summary>
@@ -23,27 +22,32 @@ public interface IPipeline
 
     #region 执行逻辑
     /// <summary>读取数据，返回结果作为下一个处理器消息</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="message">消息</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">输入消息</param>
+    /// <returns>处理后的消息</returns>
     Object? Read(IHandlerContext context, Object message);
 
     /// <summary>写入数据，返回结果作为下一个处理器消息</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="message">消息</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">输出消息</param>
+    /// <returns>处理后的消息</returns>
     Object? Write(IHandlerContext context, Object message);
 
     /// <summary>打开连接</summary>
-    /// <param name="context">上下文</param>
+    /// <param name="context">处理器上下文</param>
+    /// <returns>是否成功打开</returns>
     Boolean Open(IHandlerContext context);
 
     /// <summary>关闭连接</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="reason">原因</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="reason">关闭原因</param>
+    /// <returns>是否成功关闭</returns>
     Boolean Close(IHandlerContext context, String reason);
 
     /// <summary>发生错误</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="exception">异常</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="exception">异常对象</param>
+    /// <returns>是否已处理错误</returns>
     Boolean Error(IHandlerContext context, Exception exception);
     #endregion
 }
@@ -151,8 +155,9 @@ public class Pipeline : IPipeline
     /// 处理得到单个消息时，调用一次下一级处理器，返回下级结果给上一级；
     /// 处理得到多个消息时，调用多次下一级处理器，返回null给上一级；
     /// </remarks>
-    /// <param name="context">上下文</param>
-    /// <param name="message">消息</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">输入消息</param>
+    /// <returns>处理后的消息</returns>
     public virtual Object? Read(IHandlerContext context, Object message)
     {
         var head = _head;
@@ -167,8 +172,9 @@ public class Pipeline : IPipeline
     }
 
     /// <summary>写入数据，逆序过滤消息，返回结果作为下一个处理器消息</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="message">消息</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">输出消息</param>
+    /// <returns>处理后的消息</returns>
     public virtual Object? Write(IHandlerContext context, Object message)
     {
         var tail = _tail;
@@ -182,7 +188,8 @@ public class Pipeline : IPipeline
     }
 
     /// <summary>打开连接（正序）</summary>
-    /// <param name="context">上下文</param>
+    /// <param name="context">处理器上下文</param>
+    /// <returns>是否成功打开</returns>
     public virtual Boolean Open(IHandlerContext context)
     {
         var head = _head;
@@ -192,8 +199,9 @@ public class Pipeline : IPipeline
     }
 
     /// <summary>关闭连接（逆序）</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="reason">原因</param>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="reason">关闭原因</param>
+    /// <returns>是否成功关闭</returns>
     public virtual Boolean Close(IHandlerContext context, String reason)
     {
         var tail = _tail;
@@ -202,9 +210,10 @@ public class Pipeline : IPipeline
         return tail.Close(context, reason);
     }
 
-    /// <summary>发生错误</summary>
-    /// <param name="context">上下文</param>
-    /// <param name="exception">异常</param>
+    /// <summary>发生错误（正序）</summary>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="exception">异常对象</param>
+    /// <returns>是否已处理错误</returns>
     public virtual Boolean Error(IHandlerContext context, Exception exception)
     {
         var head = _head;

@@ -19,7 +19,7 @@ namespace NewLife.Threading;
 public class TimerX : ITimer, IDisposable
 {
     #region 属性
-    /// <summary>编号</summary>
+    /// <summary>编号。定时器唯一标识</summary>
     public Int32 Id { get; internal set; }
 
     /// <summary>所属调度器</summary>
@@ -31,10 +31,11 @@ public class TimerX : ITimer, IDisposable
     /// <summary>委托方法</summary>
     internal readonly MethodInfo Method;
 
+    /// <summary>是否异步任务方法</summary>
     internal readonly Boolean IsAsyncTask;
 
     private WeakReference? _state;
-    /// <summary>获取/设置 用户数据</summary>
+    /// <summary>用户数据。弱引用存储</summary>
     public Object? State
     {
         get => _state != null && _state.IsAlive ? _state.Target : null;
@@ -54,22 +55,22 @@ public class TimerX : ITimer, IDisposable
     /// <summary>下一次执行时间。开机以来嘀嗒数，无惧时间回拨问题</summary>
     public Int64 NextTick => _nextTick;
 
-    /// <summary>获取/设置 下一次调用时间</summary>
+    /// <summary>下一次调用时间</summary>
     public DateTime NextTime => _baseTime.AddMilliseconds(_nextTick);
 
-    /// <summary>获取/设置 调用次数</summary>
+    /// <summary>调用次数</summary>
     public Int32 Timers { get; internal set; }
 
-    /// <summary>获取/设置 间隔周期。毫秒，设为0或-1则只调用一次</summary>
+    /// <summary>间隔周期。毫秒，设为0或-1则只调用一次</summary>
     public Int32 Period { get; set; }
 
-    /// <summary>获取/设置 异步执行任务。默认false</summary>
+    /// <summary>异步执行任务。默认false</summary>
     public Boolean Async { get; set; }
 
-    /// <summary>获取/设置 绝对精确时间执行。默认false</summary>
+    /// <summary>绝对精确时间执行。默认false</summary>
     public Boolean Absolutely { get; set; }
 
-    /// <summary>调用中</summary>
+    /// <summary>调用中。表示回调正在执行</summary>
     public Boolean Calling { get; internal set; }
 
     /// <summary>平均耗时。毫秒</summary>
@@ -79,14 +80,14 @@ public class TimerX : ITimer, IDisposable
     [Obsolete("该委托容易造成内存泄漏，故取消", true)]
     public Func<Boolean>? CanExecute { get; set; }
 
-    /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
+    /// <summary>Cron表达式集合。实现复杂的定时逻辑</summary>
     public Cron[]? Crons => _crons;
 
-    /// <summary>Cron表达式，实现复杂的定时逻辑</summary>
+    /// <summary>Cron表达式。实现复杂的定时逻辑</summary>
     [Obsolete("=>Crons")]
     public Cron? Cron => _crons?.FirstOrDefault();
 
-    /// <summary>链路追踪。追踪每一次定时事件</summary>
+    /// <summary>链路追踪器。追踪每一次定时事件</summary>
     public ITracer? Tracer { get; set; }
 
     /// <summary>链路追踪名称。默认使用方法名</summary>
@@ -102,7 +103,7 @@ public class TimerX : ITimer, IDisposable
 #else
     private static readonly AsyncLocal<TimerX?> _Current = new();
 #endif
-    /// <summary>当前定时器</summary>
+    /// <summary>当前定时器。在回调执行期间可获取当前定时器实例</summary>
     public static TimerX? Current { get => _Current.Value; set => _Current.Value = value; }
     #endregion
 
@@ -132,11 +133,11 @@ public class TimerX : ITimer, IDisposable
     }
 
     /// <summary>实例化一个不可重入的定时器</summary>
-    /// <param name="callback">委托</param>
+    /// <param name="callback">回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="dueTime">多久之后开始。毫秒</param>
     /// <param name="period">间隔周期。毫秒</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(TimerCallback callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -147,12 +148,12 @@ public class TimerX : ITimer, IDisposable
         Init(dueTime);
     }
 
-    /// <summary>实例化一个不可重入的定时器</summary>
-    /// <param name="callback">委托</param>
+    /// <summary>实例化一个不可重入的异步定时器</summary>
+    /// <param name="callback">异步回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="dueTime">多久之后开始。毫秒</param>
     /// <param name="period">间隔周期。毫秒</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(Func<Object, Task> callback, Object? state, Int32 dueTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -166,11 +167,11 @@ public class TimerX : ITimer, IDisposable
     }
 
     /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
-    /// <param name="callback">委托</param>
+    /// <param name="callback">回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(TimerCallback callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -190,12 +191,12 @@ public class TimerX : ITimer, IDisposable
         Init(ms);
     }
 
-    /// <summary>实例化一个绝对定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
-    /// <param name="callback">委托</param>
+    /// <summary>实例化一个绝对异步定时器，指定时刻执行，跟当前时间和SetNext无关</summary>
+    /// <param name="callback">异步回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="startTime">绝对开始时间</param>
     /// <param name="period">间隔周期。毫秒</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(Func<Object, Task> callback, Object? state, DateTime startTime, Int32 period, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -218,10 +219,10 @@ public class TimerX : ITimer, IDisposable
     }
 
     /// <summary>实例化一个Cron定时器</summary>
-    /// <param name="callback">委托</param>
+    /// <param name="callback">回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式。支持多个表达式，分号分隔</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(TimerCallback callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -248,11 +249,11 @@ public class TimerX : ITimer, IDisposable
         //Init(_AbsolutelyNext = _cron.GetNext(DateTime.Now));
     }
 
-    /// <summary>实例化一个Cron定时器</summary>
-    /// <param name="callback">委托</param>
+    /// <summary>实例化一个Cron异步定时器</summary>
+    /// <param name="callback">异步回调委托</param>
     /// <param name="state">用户数据</param>
     /// <param name="cronExpression">Cron表达式。支持多个表达式，分号分隔</param>
-    /// <param name="scheduler">调度器</param>
+    /// <param name="scheduler">调度器名称</param>
     public TimerX(Func<Object, Task> callback, Object? state, String cronExpression, String? scheduler = null) : this(callback.Target, callback.Method, state, scheduler)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -290,8 +291,8 @@ public class TimerX : ITimer, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <summary>销毁资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected virtual void Dispose(Boolean disposing)
     {
         if (disposing)
@@ -305,7 +306,7 @@ public class TimerX : ITimer, IDisposable
 
 #if NET5_0_OR_GREATER
     /// <summary>异步销毁</summary>
-    /// <returns></returns>
+    /// <returns>异步任务</returns>
     public ValueTask DisposeAsync()
     {
         Dispose();
@@ -327,7 +328,7 @@ public class TimerX : ITimer, IDisposable
     }
 
     /// <summary>设置下一次运行时间</summary>
-    /// <param name="ms">小于等于0表示马上调度</param>
+    /// <param name="ms">延迟毫秒数。小于等于0表示马上调度</param>
     public void SetNext(Int32 ms)
     {
         //NextTime = DateTime.Now.AddMilliseconds(ms);
@@ -389,10 +390,10 @@ public class TimerX : ITimer, IDisposable
         }
     }
 
-    /// <summary>更改计时器的启动时间和方法调用之间的时间间隔，使用 TimeSpan 值度量时间间隔。</summary>
-    /// <param name="dueTime">一个 TimeSpan，表示在调用构造 ITimer 时指定的回调方法之前的延迟时间量。 指定 InfiniteTimeSpan 可防止重新启动计时器。 指定 Zero 可立即重新启动计时器。</param>
-    /// <param name="period">构造 Timer 时指定的回调方法调用之间的时间间隔。 指定 InfiniteTimeSpan 可以禁用定期终止。</param>
-    /// <returns></returns>
+    /// <summary>更改计时器的启动时间和方法调用之间的时间间隔</summary>
+    /// <param name="dueTime">延迟时间。指定 InfiniteTimeSpan 可防止重新启动计时器，指定 Zero 可立即重新启动计时器</param>
+    /// <param name="period">间隔周期。指定 InfiniteTimeSpan 可以禁用定期终止</param>
+    /// <returns>是否成功更改</returns>
     public Boolean Change(TimeSpan dueTime, TimeSpan period)
     {
         if (Absolutely) return false;
@@ -414,13 +415,14 @@ public class TimerX : ITimer, IDisposable
 
     #region 静态方法
     /// <summary>延迟执行一个委托。特别要小心，很可能委托还没被执行，对象就被gc回收了</summary>
-    /// <param name="callback"></param>
-    /// <param name="ms"></param>
-    /// <returns></returns>
+    /// <param name="callback">回调委托</param>
+    /// <param name="ms">延迟毫秒数</param>
+    /// <returns>定时器实例</returns>
     public static TimerX Delay(TimerCallback callback, Int32 ms) => new(callback, null, ms, 0) { Async = true };
 
     private static TimerX? _NowTimer;
     private static DateTime _Now;
+
     /// <summary>当前时间。定时读取系统时间，避免频繁读取系统时间造成性能瓶颈</summary>
     public static DateTime Now
     {
@@ -448,8 +450,8 @@ public class TimerX : ITimer, IDisposable
     #endregion
 
     #region 辅助
-    /// <summary>已重载</summary>
-    /// <returns></returns>
+    /// <summary>已重载。显示定时器信息</summary>
+    /// <returns>定时器描述</returns>
     public override String ToString() => $"[{Id}]{Method.DeclaringType?.Name}.{Method.Name} ({(_crons != null ? _crons.Join(";") : (Period + "ms"))})";
     #endregion
 }

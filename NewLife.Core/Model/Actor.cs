@@ -68,6 +68,9 @@ public abstract class Actor : DisposeBase, IActor
     private CancellationTokenSource? _source;
     private Int32 _queueLength;
     private Int32 _starting;
+
+    /// <summary>当前队列长度。待处理消息数</summary>
+    public Int32 QueueLength => _queueLength;
     #endregion
 
     #region 构造
@@ -137,6 +140,8 @@ public abstract class Actor : DisposeBase, IActor
 
             Active = true;
 
+            WriteLog("Actor启动 BoundedCapacity={0} BatchSize={1} LongRunning={2}", BoundedCapacity, BatchSize, LongRunning);
+
             return _task;
         }
         finally
@@ -164,6 +169,8 @@ public abstract class Actor : DisposeBase, IActor
         using var span = Tracer?.NewSpan("actor:Stop", $"{Name} msTimeout={msTimeout}");
         try
         {
+            WriteLog("Actor停止 QueueLength={0} msTimeout={1}", _queueLength, msTimeout);
+
             MailBox?.CompleteAdding();
 
             if (msTimeout > 0 && _source != null && !_source.IsCancellationRequested)
@@ -221,6 +228,7 @@ public abstract class Actor : DisposeBase, IActor
             span?.SetError(ex, null);
 
             _error = ex;
+            WriteLog("Actor异常 {0}", ex.Message);
             XTrace.WriteException(ex);
         }
 
@@ -282,5 +290,15 @@ public abstract class Actor : DisposeBase, IActor
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>异步任务</returns>
     protected virtual Task ReceiveAsync(ActorContext[] contexts, CancellationToken cancellationToken) => TaskEx.CompletedTask;
+    #endregion
+
+    #region 辅助
+    /// <summary>日志</summary>
+    public ILog Log { get; set; } = Logger.Null;
+
+    /// <summary>写日志</summary>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">参数</param>
+    protected void WriteLog(String format, params Object?[] args) => Log?.Info($"[{Name}]{format}", args);
     #endregion
 }

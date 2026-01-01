@@ -330,7 +330,7 @@ Content-Type: image/jpeg
         var client = new HttpClient { BaseAddress = _baseUri };
 
         // 清理缓存（内部 _maps 私有）。
-        var mapsField = typeof(HttpServer).GetField("_maps", BindingFlags.Instance | BindingFlags.NonPublic);
+        var mapsField = typeof(HttpServer).GetField("_pathCache", BindingFlags.Instance | BindingFlags.NonPublic);
         var maps = mapsField.GetValue(_server) as System.Collections.IDictionary;
         maps.Clear();
 
