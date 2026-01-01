@@ -391,5 +391,54 @@ public ref struct SpanWriter(Span<Byte> buffer)
         _index += count;
         return count;
     }
+
+    /// <summary>填充指定字节值</summary>
+    /// <param name="value">要填充的字节值</param>
+    /// <param name="count">填充次数</param>
+    /// <returns>写入的字节数</returns>
+    public Int32 Fill(Byte value, Int32 count)
+    {
+        if (count <= 0) return 0;
+
+        EnsureSpace(count);
+        _span.Slice(_index, count).Fill(value);
+        _index += count;
+
+        return count;
+    }
+
+    /// <summary>填充零字节</summary>
+    /// <param name="count">填充次数</param>
+    /// <returns>写入的字节数</returns>
+    public Int32 FillZero(Int32 count)
+    {
+        if (count <= 0) return 0;
+
+        EnsureSpace(count);
+        _span.Slice(_index, count).Clear();
+        _index += count;
+
+        return count;
+    }
+
+    /// <summary>重复写入数据片段</summary>
+    /// <param name="data">要重复写入的数据</param>
+    /// <param name="repeat">重复次数</param>
+    /// <returns>写入的总字节数</returns>
+    public Int32 WriteRepeat(ReadOnlySpan<Byte> data, Int32 repeat)
+    {
+        if (repeat <= 0 || data.IsEmpty) return 0;
+
+        var total = data.Length * repeat;
+        EnsureSpace(total);
+
+        for (var i = 0; i < repeat; i++)
+        {
+            data.CopyTo(_span.Slice(_index));
+            _index += data.Length;
+        }
+
+        return total;
+    }
     #endregion
 }
