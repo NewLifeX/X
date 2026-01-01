@@ -4,37 +4,39 @@ using NewLife.Threading;
 namespace NewLife.Configuration;
 
 /// <summary>文件配置提供者</summary>
-/// <remarks>
-/// 每个提供者实例对应一个配置文件，支持热更新
-/// </remarks>
+/// <remarks>每个提供者实例对应一个配置文件，支持热更新</remarks>
 public abstract class FileConfigProvider : ConfigProvider
 {
     #region 属性
     /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
     public String? FileName { get; set; }
 
-    /// <summary>更新周期。默认5秒</summary>
+    /// <summary>更新周期。默认5秒，检查文件变更的时间间隔</summary>
     public Int32 Period { get; set; } = 5;
+
+    private TimerX? _timer;
+    private Boolean _reading;
+    private DateTime _lastTime;
     #endregion
 
     #region 构造
     /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
 
-        _timer?.Dispose();
+        _timer.TryDispose();
     }
 
     /// <summary>已重载。输出友好信息</summary>
-    /// <returns></returns>
+    /// <returns>包含文件名的字符串表示</returns>
     public override String ToString() => $"{GetType().Name} FileName={FileName}";
     #endregion
 
     #region 方法
     /// <summary>初始化</summary>
-    /// <param name="value"></param>
+    /// <param name="value">配置文件名</param>
     public override void Init(String value)
     {
         base.Init(value);
@@ -51,6 +53,7 @@ public abstract class FileConfigProvider : ConfigProvider
     }
 
     /// <summary>加载配置</summary>
+    /// <returns>是否加载成功</returns>
     public override Boolean LoadAll()
     {
         // 准备文件名
@@ -61,7 +64,6 @@ public abstract class FileConfigProvider : ConfigProvider
 
         IsNew = true;
 
-        //if (!File.Exists(fileName)) throw new FileNotFoundException("找不到文件", fileName);
         if (!File.Exists(fileName)) return false;
 
         // 读取文件，换个对象，避免数组元素在多次加载后重叠
@@ -81,6 +83,7 @@ public abstract class FileConfigProvider : ConfigProvider
     protected abstract void OnRead(String fileName, IConfigSection section);
 
     /// <summary>保存配置树到数据源</summary>
+    /// <returns>是否保存成功</returns>
     public override Boolean SaveAll()
     {
         // 准备文件名
@@ -101,9 +104,10 @@ public abstract class FileConfigProvider : ConfigProvider
     }
 
     /// <summary>保存模型实例</summary>
-    /// <typeparam name="T">模型</typeparam>
+    /// <typeparam name="T">模型类型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
+    /// <returns>是否保存成功</returns>
     public override Boolean Save<T>(T model, String? path = null)
     {
         if (model == null) return false;
@@ -131,7 +135,9 @@ public abstract class FileConfigProvider : ConfigProvider
         if (str != null && str != old)
         {
             if (old.IsNullOrEmpty())
+            {
                 XTrace.WriteLine("新建配置：{0}", fileName);
+            }
             else
             {
                 // 如果文件内容有变化，输出差异
@@ -153,13 +159,13 @@ public abstract class FileConfigProvider : ConfigProvider
 
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
-    /// <returns></returns>
+    /// <returns>配置的字符串表示；默认返回 null</returns>
     public virtual String? GetString(IConfigSection? section = null) => null;
     #endregion
 
     #region 绑定
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型</typeparam>
+    /// <typeparam name="T">模型类型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
@@ -170,7 +176,7 @@ public abstract class FileConfigProvider : ConfigProvider
         if (autoReload) InitTimer();
     }
 
-    private TimerX? _timer;
+    /// <summary>初始化定时器</summary>
     private void InitTimer()
     {
         if (_timer != null) return;
@@ -184,8 +190,8 @@ public abstract class FileConfigProvider : ConfigProvider
         }
     }
 
-    private Boolean _reading;
-    private DateTime _lastTime;
+    /// <summary>定时刷新配置</summary>
+    /// <param name="state">状态对象</param>
     private void DoRefresh(Object? state)
     {
         if (_reading) return;

@@ -2,21 +2,21 @@
 
 namespace NewLife.Configuration;
 
-/// <summary>复合配置提供者。常用于本地配置与网络配置的混合</summary>
+/// <summary>复合配置提供者</summary>
+/// <remarks>常用于本地配置与网络配置的混合，按优先级依次查找配置</remarks>
 public class CompositeConfigProvider : IConfigProvider
 {
     #region 属性
-    /// <summary>日志提供者集合</summary>
-    /// <remarks>为了线程安全，使用数组</remarks>
-    public IConfigProvider[] Configs { get; set; } //= new IConfigProvider[0];
+    /// <summary>配置提供者集合。为了线程安全，使用数组</summary>
+    public IConfigProvider[] Configs { get; set; } = null!;
 
     /// <summary>名称</summary>
     public String Name { get; set; }
 
-    /// <summary>根元素</summary>
-    public IConfigSection Root { get => Configs[0].Root; set => throw new NotImplementedException(); }
+    /// <summary>根元素。返回第一个提供者的根元素</summary>
+    public IConfigSection Root { get => Configs[0].Root; set => throw new NotSupportedException(); }
 
-    /// <summary>所有键</summary>
+    /// <summary>所有键。合并所有提供者的键，去重</summary>
     public ICollection<String> Keys
     {
         get
@@ -45,12 +45,9 @@ public class CompositeConfigProvider : IConfigProvider
     #endregion
 
     #region 构造
-    ///// <summary>实例化</summary>
-    //public CompositeConfigProvider() => Name = GetType().Name.TrimEnd("ConfigProvider");
-
-    /// <summary>实例化</summary>
-    /// <param name="configProvider1"></param>
-    /// <param name="configProvider2"></param>
+    /// <summary>实例化复合配置提供者</summary>
+    /// <param name="configProvider1">主配置提供者</param>
+    /// <param name="configProvider2">备用配置提供者</param>
     public CompositeConfigProvider(IConfigProvider configProvider1, IConfigProvider configProvider2)
     {
         Name = GetType().Name.TrimEnd("ConfigProvider");
@@ -58,8 +55,8 @@ public class CompositeConfigProvider : IConfigProvider
         Configs = [configProvider1, configProvider2];
     }
 
-    /// <summary>添加</summary>
-    /// <param name="configProviders"></param>
+    /// <summary>添加配置提供者</summary>
+    /// <param name="configProviders">要添加的配置提供者</param>
     public void Add(params IConfigProvider[] configProviders)
     {
         var list = new List<IConfigProvider>(Configs);
@@ -70,9 +67,9 @@ public class CompositeConfigProvider : IConfigProvider
     #endregion
 
     #region 取值
-    /// <summary>获取 或 设置 配置值</summary>
-    /// <param name="key">键</param>
-    /// <returns></returns>
+    /// <summary>获取或设置配置值</summary>
+    /// <param name="key">键名</param>
+    /// <returns>对应的配置值；未找到时返回 null</returns>
     public String? this[String key]
     {
         get
@@ -89,16 +86,15 @@ public class CompositeConfigProvider : IConfigProvider
         {
             foreach (var cfg in Configs)
             {
-                //cfg[key] = value;
                 var section = cfg.GetSection(key);
                 section?.Value = value;
             }
         }
     }
 
-    /// <summary>查找配置项。可得到子级和配置</summary>
+    /// <summary>查找配置项</summary>
     /// <param name="key">配置名</param>
-    /// <returns></returns>
+    /// <returns>匹配的配置节；未找到时返回 null</returns>
     public IConfigSection? GetSection(String key)
     {
         foreach (var cfg in Configs)
@@ -111,8 +107,9 @@ public class CompositeConfigProvider : IConfigProvider
     }
     #endregion
 
-    #region 方法
+    #region 加载/保存
     /// <summary>从数据源加载数据到配置树</summary>
+    /// <returns>任一提供者加载成功则返回 true</returns>
     public Boolean LoadAll()
     {
         var rs = false;
@@ -125,6 +122,7 @@ public class CompositeConfigProvider : IConfigProvider
     }
 
     /// <summary>保存配置树到数据源</summary>
+    /// <returns>任一提供者保存成功则返回 true</returns>
     public Boolean SaveAll()
     {
         var rs = false;
@@ -137,9 +135,9 @@ public class CompositeConfigProvider : IConfigProvider
     }
 
     /// <summary>加载配置到模型</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
-    /// <returns></returns>
+    /// <returns>模型实例；未找到时返回 default</returns>
     public T? Load<T>(String? path = null) where T : new()
     {
         foreach (var cfg in Configs)
@@ -152,9 +150,10 @@ public class CompositeConfigProvider : IConfigProvider
     }
 
     /// <summary>保存模型实例</summary>
-    /// <typeparam name="T">模型</typeparam>
+    /// <typeparam name="T">模型类型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">路径。配置树位置</param>
+    /// <returns>任一提供者保存成功则返回 true</returns>
     public Boolean Save<T>(T model, String? path = null)
     {
         foreach (var cfg in Configs)
@@ -170,8 +169,9 @@ public class CompositeConfigProvider : IConfigProvider
     #region 绑定
     private readonly ConcurrentDictionary<Object, String> _models = [];
     private readonly ConcurrentDictionary<Object, ModelWrap> _models2 = [];
+
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
@@ -199,7 +199,7 @@ public class CompositeConfigProvider : IConfigProvider
     }
 
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
+    /// <typeparam name="T">模型类型。可通过实现IConfigMapping接口来自定义映射配置到模型实例</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="path">命名空间。配置树位置，配置中心等多对象混合使用时</param>
     /// <param name="onChange">配置改变时执行的委托</param>
@@ -245,7 +245,6 @@ public class CompositeConfigProvider : IConfigProvider
         }
         foreach (var item in _models2)
         {
-            var model = item.Key;
             var source = GetSection(item.Value.Path);
             if (source != null) item.Value.OnChange(source);
         }
@@ -257,8 +256,8 @@ public class CompositeConfigProvider : IConfigProvider
 
     #region 配置变化
     private Int32 _count;
-
     private event EventHandler? _Changed;
+
     /// <summary>配置改变事件。执行了某些动作，可能导致配置数据发生改变时触发</summary>
     public event EventHandler? Changed
     {

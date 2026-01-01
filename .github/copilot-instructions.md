@@ -202,11 +202,20 @@ public MyService(Config config, ILog log) { }
 | 规则 | 说明 |
 |------|------|
 | `<summary>` | **必须同一行闭合**，简短描述方法用途 |
-| `<param>` | **必须**，每个参数都要有注释 |
+| `<param>` | **必须为每个参数添加**，无论方法可见性如何 |
 | `<returns>` | 有返回值时必须添加 |
 | `<remarks>` | 复杂方法可增加详细说明（可多行） |
-| 覆盖范围 | `public`/`protected` 成员必须注释，包括构造函数 |
+| 覆盖范围 | `public`/`protected` 成员必须注释，包括构造函数；`private`/`internal` 方法建议添加 |
 | `[Obsolete]` | 必须包含迁移建议 |
+
+### 6.1 注释完整性检查清单
+
+生成或修改方法注释时，**必须逐项检查**：
+
+1. ✅ `<summary>` 是否单行闭合？
+2. ✅ 是否为**每个参数**都添加了 `<param>`？
+3. ✅ 有返回值时是否添加了 `<returns>`？
+4. ✅ 泛型方法是否添加了 `<typeparam>`？
 
 **正确示例**：
 ```csharp
@@ -225,6 +234,11 @@ public TcpClient Create(String host, Int32 port) { }
 /// 建议在应用启动时调用一次。
 /// </remarks>
 public void Start() { }
+
+/// <summary>映射配置到对象</summary>
+/// <param name="reader">Xml读取器</param>
+/// <param name="section">目标配置节</param>
+private void ReadNode(XmlReader reader, IConfigSection section) { }
 ```
 
 **错误示例**（禁止）：
@@ -235,9 +249,13 @@ public void Start() { }
 /// </summary>
 public String Name { get; set; }
 
-// ❌ 缺少参数注释
+// ❌ 缺少参数注释（即使是私有方法也不允许）
 /// <summary>创建客户端连接</summary>
 public TcpClient Create(String host, Int32 port) { }
+
+// ❌ 有参数但没有 param 标签
+/// <summary>递归读取节点</summary>
+private void ReadNode(XmlReader reader, IConfigSection section) { }
 ```
 
 ---
