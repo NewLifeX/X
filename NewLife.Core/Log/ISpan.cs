@@ -20,37 +20,37 @@ public interface ISpan : IDisposable
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
     String Id { get; set; }
 
-    /// <summary>埋点名</summary>
+    /// <summary>埋点名。用于标识不同类型的操作</summary>
     String Name { get; set; }
 
-    /// <summary>父级片段标识</summary>
+    /// <summary>父级片段标识。用于构建调用链</summary>
     String? ParentId { get; set; }
 
     /// <summary>跟踪标识。可用于关联多个片段，建立依赖关系，随线程上下文、Http、Rpc传递</summary>
     String TraceId { get; set; }
 
-    /// <summary>开始时间。Unix毫秒</summary>
+    /// <summary>开始时间。Unix毫秒时间戳</summary>
     Int64 StartTime { get; set; }
 
-    /// <summary>结束时间。Unix毫秒</summary>
+    /// <summary>结束时间。Unix毫秒时间戳</summary>
     Int64 EndTime { get; set; }
 
     /// <summary>用户数值。记录数字型标量，如每次数据库操作行数，星尘平台汇总统计</summary>
     Int64 Value { get; set; }
 
-    /// <summary>数据标签。记录一些附加数据</summary>
+    /// <summary>数据标签。记录一些附加数据，如请求参数、响应结果等</summary>
     String? Tag { get; set; }
 
-    /// <summary>错误信息</summary>
+    /// <summary>错误信息。记录异常消息</summary>
     String? Error { get; set; }
 
     /// <summary>设置错误信息，ApiException除外</summary>
-    /// <param name="ex">异常</param>
-    /// <param name="tag">标签</param>
+    /// <param name="ex">异常对象</param>
+    /// <param name="tag">附加数据标签</param>
     void SetError(Exception ex, Object? tag = null);
 
-    /// <summary>设置数据标签。内部根据长度截断</summary>
-    /// <param name="tag">标签</param>
+    /// <summary>设置数据标签。内部根据最大长度截断</summary>
+    /// <param name="tag">标签数据，可以是字符串、对象等</param>
     void SetTag(Object tag);
 
     /// <summary>抛弃埋点，不计入采集</summary>
@@ -68,11 +68,6 @@ public class DefaultSpan : ISpan
     /// <summary>跟踪器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
     public ITracer? Tracer { get; set; }
-
-    /// <summary>构建器</summary>
-    [Obsolete]
-    [XmlIgnore, ScriptIgnore, IgnoreDataMember]
-    public ISpanBuilder? Builder { get; set; }
 
     /// <summary>唯一标识。随线程上下文、Http、Rpc传递，作为内部片段的父级</summary>
     public String Id { get; set; } = null!;
@@ -98,9 +93,6 @@ public class DefaultSpan : ISpan
 
     /// <summary>数据标签。记录一些附加数据</summary>
     public String? Tag { get; set; }
-
-    ///// <summary>版本</summary>
-    //public Byte Version { get; set; }
 
     /// <summary>跟踪标识。强制采样，确保链路采样完整，上下文传递</summary>
     public Byte TraceFlag { get; set; }
@@ -231,15 +223,9 @@ public class DefaultSpan : ISpan
         if (!name.IsNullOrEmpty())
         {
             //!!! Builder这一批可能已经上传，重新取一次，以防万一。如果在星尘平台没见到埋点数据，大概率是这里的问题
-            var builder = tracer?.BuildSpan(name);
+            var builder = tracer.BuildSpan(name);
             builder?.Finish(this);
         }
-
-        // 打断对Builder的引用，当前Span可能还被放在AsyncLocal字典中
-        // 也有可能原来的Builder已经上传，现在加入了新的builder集合
-#pragma warning disable CS0612 // 类型或成员已过时
-        Builder = null;
-#pragma warning restore CS0612 // 类型或成员已过时
     }
 
     /// <summary>抛弃埋点，不计入采集</summary>
@@ -285,6 +271,15 @@ public class DefaultSpan : ISpan
     {
         if (tag == null) return;
 
+        // 优先使用 DefaultTracer 的 BuildTag 方法
+        if (Tracer is DefaultTracer defaultTracer)
+        {
+            // SetTag 总是需要处理所有类型的标签
+            defaultTracer.BuildTag(this, tag, true);
+            return;
+        }
+
+        // 降级处理：没有 DefaultTracer 时使用简单逻辑
         var len = Tracer?.MaxTagLength ?? 1024;
         if (len <= 0) return;
 
@@ -303,8 +298,8 @@ public class DefaultSpan : ISpan
 
             if (Value == 0) Value = total;
         }
-        else if (Tracer is DefaultTracer defaultTracer)
-            Tag = tag.ToJson(defaultTracer.JsonOptions).Cut(len);
+        else if (Tracer is DefaultTracer defaultTracer2)
+            Tag = tag.ToJson(defaultTracer2.JsonOptions).Cut(len);
         else
             Tag = tag.ToJson().Cut(len);
     }
@@ -313,9 +308,6 @@ public class DefaultSpan : ISpan
     public void Clear()
     {
         Tracer = null;
-#pragma warning disable CS0612 // 类型或成员已过时
-        Builder = null;
-#pragma warning restore CS0612 // 类型或成员已过时
         Id = null!;
         Name = null!;
         ParentId = null;

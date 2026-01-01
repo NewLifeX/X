@@ -15,7 +15,7 @@ namespace NewLife.Log;
 public interface ITracer
 {
     #region 属性
-    /// <summary>采样周期</summary>
+    /// <summary>采样周期。单位秒</summary>
     Int32 Period { get; set; }
 
     /// <summary>最大正常采样数。采样周期内，最多只记录指定数量的正常事件，用于绘制依赖关系</summary>
@@ -24,7 +24,7 @@ public interface ITracer
     /// <summary>最大异常采样数。采样周期内，最多只记录指定数量的异常事件，默认10</summary>
     Int32 MaxErrors { get; set; }
 
-    /// <summary>超时时间。超过该时间时强制采样，毫秒</summary>
+    /// <summary>超时时间。超过该时间时强制采样，单位毫秒</summary>
     Int32 Timeout { get; set; }
 
     /// <summary>最大标签长度。超过该长度时将截断，默认1024字符</summary>
@@ -38,23 +38,23 @@ public interface ITracer
     #endregion
 
     /// <summary>建立Span构建器</summary>
-    /// <param name="name"></param>
-    /// <returns></returns>
+    /// <param name="name">操作名称，用于标识不同的埋点类型</param>
+    /// <returns>Span构建器实例</returns>
     ISpanBuilder BuildSpan(String name);
 
     /// <summary>开始一个Span</summary>
-    /// <param name="name">操作名</param>
-    /// <returns></returns>
+    /// <param name="name">操作名称，用于标识不同的埋点类型</param>
+    /// <returns>Span实例，使用完毕需要Dispose</returns>
     ISpan NewSpan(String name);
 
     /// <summary>开始一个Span，指定数据标签</summary>
-    /// <param name="name">操作名</param>
-    /// <param name="tag">数据</param>
-    /// <returns></returns>
+    /// <param name="name">操作名称，用于标识不同的埋点类型</param>
+    /// <param name="tag">数据标签，记录关键参数信息</param>
+    /// <returns>Span实例，使用完毕需要Dispose</returns>
     ISpan NewSpan(String name, Object? tag);
 
     /// <summary>截断所有Span构建器数据，重置集合</summary>
-    /// <returns></returns>
+    /// <returns>当前周期内所有Span构建器数组</returns>
     ISpanBuilder[] TakeAll();
 }
 
@@ -163,10 +163,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             {
                 if (item is DefaultSpanBuilder builder)
                 {
-                    builder.Return(builder.Samples);
-                    builder.Return(builder.ErrorSamples);
-                    builder.Clear();
-                    BuilderPool.Return(item);
+                    builder.ReturnToPool(BuilderPool);
                 }
             }
         }
@@ -246,8 +243,26 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     {
         var span = BuildSpan(name).Start();
 
+        if (tag != null)
+        {
+            // 仅当需要采样时才处理复杂标签
+            var needSample = span is DefaultSpan ds && ds.TraceFlag > 0;
+            BuildTag(span, tag, needSample);
+        }
+
+        return span;
+    }
+
+    /// <summary>构建数据标签</summary>
+    /// <param name="span">跟踪片段</param>
+    /// <param name="tag">标签数据</param>
+    /// <param name="needSample">是否需要采样，决定是否处理复杂对象</param>
+    public virtual void BuildTag(ISpan span, Object? tag, Boolean needSample)
+    {
+        if (tag == null) return;
+
         var len = MaxTagLength;
-        if (len <= 0 || tag == null) return span;
+        if (len <= 0) return;
 
         if (tag is String str)
         {
@@ -259,7 +274,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             span.Tag = builder.Length <= len ? builder.ToString() : builder.ToString(0, len);
             span.Value = builder.Length;
         }
-        else if (tag != null && span is DefaultSpan ds && ds.TraceFlag > 0)
+        else if (needSample)
         {
             if (tag is IPacket pk)
             {
@@ -275,9 +290,13 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
             //else if (tag is IMessage msg)
             //    span.Tag = msg.ToPacket().ToHex(len / 2);
             else if (tag is EndPoint ep)
+            {
                 span.Tag = ep.ToString();
+            }
             else if (tag is IPAddress addr)
+            {
                 span.Tag = addr.ToString();
+            }
             else
             {
                 // 避免数据标签的序列化抛出异常影响业务层
@@ -291,8 +310,6 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
                 }
             }
         }
-
-        return span;
     }
 
     /// <summary>截断所有Span构建器数据，重置集合</summary>

@@ -36,7 +36,7 @@ public class WriteLogEventArgs : EventArgs
 
     #region 构造
     /// <summary>实例化一个日志事件参数</summary>
-    internal WriteLogEventArgs() { }
+    public WriteLogEventArgs() { }
     #endregion
 
     #region 线程专有实例
@@ -122,11 +122,14 @@ public class WriteLogEventArgs : EventArgs
         if (Exception != null) Message += Exception.GetMessage();
 
         var name = ThreadName;
-        if (name.IsNullOrEmpty()) name = TaskID >= 0 ? TaskID + "" : "-";
-        if (name.EqualIgnoreCase("Threadpool worker", ".NET ThreadPool Worker", ".NET TP Worker", "Thread Pool Worker")) name = TaskID >= 0 ? TaskID + "" : "TP";
-        if (name.EqualIgnoreCase("IO Threadpool worker")) name = "IO";
-        if (name.EqualIgnoreCase(".NET Long Running Task")) name = "LT";
-        //if (name.EqualIgnoreCase(".NET TP Worker")) name = "TP";
+        if (name.IsNullOrEmpty())
+            name = TaskID >= 0 ? TaskID + "" : "-";
+        else if (name.StartsWithIgnoreCase("Threadpool", ".NET ThreadPool", ".NET TP", "Thread Pool"))
+            name = TaskID >= 0 ? TaskID + "" : "TP";
+        else if (name.EqualIgnoreCase("IO Threadpool worker"))
+            name = "IO";
+        else if (name.EqualIgnoreCase(".NET Long Running Task"))
+            name = "LT";
 
         //return $"{Time:HH:mm:ss.fff} {ThreadID,2} {(IsPool ? (IsWeb ? 'W' : 'Y') : 'N')} {name} {Message}";
 
