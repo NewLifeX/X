@@ -26,7 +26,8 @@ public class HttpServer : NetServer, IHttpHost
     public IDictionary<String, IHttpHandler> Routes { get; set; } = new Dictionary<String, IHttpHandler>(StringComparer.OrdinalIgnoreCase);
     #endregion
 
-    /// <summary>实例化</summary>
+    #region 构造
+    /// <summary>实例化Http服务器</summary>
     public HttpServer()
     {
         Name = "Http";
@@ -36,15 +37,11 @@ public class HttpServer : NetServer, IHttpHost
         var ver = GetType().Assembly.GetName().Version ?? new Version();
         ServerName = $"NewLife-HttpServer/{ver.Major}.{ver.Minor}";
     }
-
-    ///// <summary>创建会话</summary>
-    ///// <param name="session"></param>
-    ///// <returns></returns>
-    //protected override INetSession CreateSession(ISocketSession session) => new HttpSession();
+    #endregion
 
     /// <summary>为会话创建网络数据处理器。可作为业务处理实现，也可以作为前置协议解析</summary>
-    /// <param name="session"></param> 
-    /// <returns></returns>
+    /// <param name="session">网络会话</param> 
+    /// <returns>Http会话处理器</returns>
     public override INetHandler? CreateHandler(INetSession session) => new HttpSession();
 
     #region 路由注册
@@ -54,21 +51,48 @@ public class HttpServer : NetServer, IHttpHost
     public void Map(String path, IHttpHandler handler) => SetRoute(path, handler);
 
     /// <summary>映射路由处理器（委托）</summary>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map(String path, HttpProcessDelegate handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
-    /// <summary>映射路由处理器（委托返回值）</summary>
+    /// <summary>映射路由处理器（无参委托）</summary>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map<TResult>(String path, Func<TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
-    /// <summary>映射路由处理器（带模型）</summary>
+    /// <summary>映射路由处理器（单参数委托）</summary>
+    /// <typeparam name="TModel">参数类型</typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map<TModel, TResult>(String path, Func<TModel, TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
-    /// <summary>映射路由处理器（2 参数）</summary>
+    /// <summary>映射路由处理器（2参数委托）</summary>
+    /// <typeparam name="T1">参数1类型</typeparam>
+    /// <typeparam name="T2">参数2类型</typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map<T1, T2, TResult>(String path, Func<T1, T2, TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
-    /// <summary>映射路由处理器（3 参数）</summary>
+    /// <summary>映射路由处理器（3参数委托）</summary>
+    /// <typeparam name="T1">参数1类型</typeparam>
+    /// <typeparam name="T2">参数2类型</typeparam>
+    /// <typeparam name="T3">参数3类型</typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map<T1, T2, T3, TResult>(String path, Func<T1, T2, T3, TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
-    /// <summary>映射路由处理器（4 参数）</summary>
+    /// <summary>映射路由处理器（4参数委托）</summary>
+    /// <typeparam name="T1">参数1类型</typeparam>
+    /// <typeparam name="T2">参数2类型</typeparam>
+    /// <typeparam name="T3">参数3类型</typeparam>
+    /// <typeparam name="T4">参数4类型</typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理委托</param>
     public void Map<T1, T2, T3, T4, TResult>(String path, Func<T1, T2, T3, T4, TResult> handler) => SetRoute(path, new DelegateHandler { Callback = handler });
 
     /// <summary>映射控制器</summary>
@@ -101,21 +125,26 @@ public class HttpServer : NetServer, IHttpHost
         SetRoute(path2, new StaticFilesHandler { Path = path.EnsureEnd("/"), ContentPath = contentPath });
     }
 
-    /// <summary>统一设置路由（内部）。自动处理前导 /。</summary>
+    /// <summary>统一设置路由。自动处理前导斜杠</summary>
+    /// <param name="path">路径</param>
+    /// <param name="handler">处理器</param>
     private void SetRoute(String path, IHttpHandler handler)
     {
         if (path.IsNullOrEmpty()) throw new ArgumentNullException(nameof(path));
         if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-        // 统一路径格式：必须以 /
+        // 统一路径格式：必须以 / 开头
         path = path.EnsureStart("/");
         Routes[path] = handler; // 保持原语义：后注册覆盖
     }
     #endregion
 
-    private readonly IDictionary<String, String> _maps = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+    #region 路由匹配
+    /// <summary>路径匹配缓存。Key 为请求路径，Value 为匹配到的路由键</summary>
+    private readonly IDictionary<String, String> _pathCache = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>匹配处理器</summary>
-    /// <param name="path">已规范化后的请求路径（不含查询）</param>
+    /// <param name="path">已规范化后的请求路径（不含查询字符串）</param>
     /// <param name="request">Http请求对象（可用于深度匹配）</param>
     /// <returns>匹配到的处理器；找不到时返回 null</returns>
     public IHttpHandler? MatchHandler(String path, HttpRequest? request)
@@ -126,7 +155,7 @@ public class HttpServer : NetServer, IHttpHost
         if (Routes.TryGetValue(path, out var handler)) return handler;
 
         // 缓存匹配
-        if (_maps.TryGetValue(path, out var p) && Routes.TryGetValue(p, out handler)) return handler;
+        if (_pathCache.TryGetValue(path, out var p) && Routes.TryGetValue(p, out handler)) return handler;
 
         // 模糊匹配（使用快照避免运行期新增导致枚举异常）
         foreach (var item in Routes)
@@ -138,11 +167,12 @@ public class HttpServer : NetServer, IHttpHost
             if (Routes.TryGetValue(key, out handler))
             {
                 // 大于3段的路径不做缓存，避免动态Url引起缓存膨胀（保持原逻辑）
-                if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _maps[path] = key;
+                if (handler is StaticFilesHandler || path.Split('/').Length <= 3) _pathCache[path] = key;
                 return handler;
             }
         }
 
         return null;
     }
+    #endregion
 }

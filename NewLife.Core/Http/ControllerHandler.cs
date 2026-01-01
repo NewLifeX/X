@@ -8,17 +8,21 @@ using NewLife.Remoting;
 namespace NewLife.Http;
 
 /// <summary>控制器处理器</summary>
+/// <remarks>
+/// 将请求路由到控制器类型的指定方法，支持依赖注入创建控制器实例。
+/// 路径格式：/{ControllerName}/{MethodName}
+/// </remarks>
 public class ControllerHandler : IHttpHandler
 {
     #region 属性
     /// <summary>控制器类型</summary>
     public Type? ControllerType { get; set; }
 
-    private ConcurrentDictionary<String, MethodInfo?> _Methods = new();
+    private readonly ConcurrentDictionary<String, MethodInfo?> _methods = new();
     #endregion
 
     /// <summary>处理请求</summary>
-    /// <param name="context"></param>
+    /// <param name="context">Http上下文</param>
     public virtual void ProcessRequest(IHttpContext context)
     {
         var type = ControllerType;
@@ -33,27 +37,16 @@ public class ControllerHandler : IHttpHandler
 
         // 查找方法，增加缓存
         MethodInfo? method = null;
-        if (methodName != null && !_Methods.TryGetValue(methodName, out method))
+        if (methodName != null && !_methods.TryGetValue(methodName, out method))
         {
             method = type.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.IgnoreCase);
-            _Methods[methodName] = method;
+            _methods[methodName] = method;
         }
         if (method == null) throw new ApiException(ApiCode.NotFound, $"Cannot find operation [{methodName}] within controller [{type.FullName}]");
 
         var result = controller.InvokeWithParams(method, context.Parameters as IDictionary);
-        if (result is Task task) result = GetTaskResult(task);
+        if (result is Task task) result = TaskHelper.GetTaskResult(task);
         if (result != null)
             context.Response.SetResult(result);
-    }
-
-    private static Object? GetTaskResult(Task task)
-    {
-        task.GetAwaiter().GetResult();
-
-        var taskType = task.GetType();
-        if (!taskType.IsGenericType) return null;
-
-        var resultProperty = taskType.GetProperty("Result", BindingFlags.Public | BindingFlags.Instance);
-        return resultProperty?.GetValue(task);
     }
 }
