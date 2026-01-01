@@ -6,31 +6,46 @@ using NewLife.Log;
 namespace NewLife.Messaging;
 
 /// <summary>获取长度的委托</summary>
-/// <param name="span"></param>
-/// <returns></returns>
+/// <param name="span">数据片段</param>
+/// <returns>完整消息长度，返回0或负数表示数据不足</returns>
 public delegate Int32 GetLengthDelegate(ReadOnlySpan<Byte> span);
 
-/// <summary>数据包编码器</summary>
+/// <summary>数据包编码器。用于网络粘包处理</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/packet_codec
-/// 编码器的设计目标是作为网络粘包处理的基础实现。
+/// 
+/// <para><b>设计目标</b>：作为网络粘包处理的基础实现，支持：</para>
+/// <list type="bullet">
+/// <item><description>快速路径：无缓存时直接解析完整帧，零拷贝</description></item>
+/// <item><description>慢速路径：有缓存时合并数据后解析，自动管理缓存生命周期</description></item>
+/// <item><description>超大包：支持超过64k的数据包</description></item>
+/// </list>
+/// 
+/// <para><b>使用方式</b>：</para>
+/// <code>
+/// var codec = new PacketCodec { GetLength2 = DefaultMessage.GetLength };
+/// foreach (var pk in codec.Parse(receivedData))
+/// {
+///     // 处理完整的数据包
+/// }
+/// </code>
+/// 
+/// <para><b>线程安全</b>：单个实例不是线程安全的，每个连接应使用独立的编码器实例。</para>
 /// </remarks>
-public class PacketCodec
+public class PacketCodec : IDisposable
 {
     #region 属性
-    /// <summary>缓存流</summary>
+    /// <summary>缓存流。用于存储不完整的数据包</summary>
     public MemoryStream? Stream { get; set; }
 
     /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
+    [Obsolete("请使用 GetLength2，性能更优")]
     public Func<IPacket, Int32>? GetLength { get; set; }
 
     /// <summary>获取长度的委托。本包所应该拥有的总长度，满足该长度后解除一个封包</summary>
     public GetLengthDelegate? GetLength2 { get; set; }
 
-    ///// <summary>长度的偏移量，截取数据包时加上，否则将会漏掉长度之间的数据包，如MQTT</summary>
-    //public Int32 Offset { get; set; }
-
-    /// <summary>最后一次解包成功，而不是最后一次接收</summary>
+    /// <summary>最后一次解包成功时间，而不是最后一次接收时间</summary>
     public DateTime Last { get; set; } = DateTime.Now;
 
     /// <summary>缓存有效期。超过该时间后仍未匹配数据包的缓存数据将被抛弃，默认5000ms</summary>
@@ -43,17 +58,40 @@ public class PacketCodec
     public ITracer? Tracer { get; set; }
     #endregion
 
+    #region 构造
+    /// <summary>释放资源</summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>释放资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
+    protected virtual void Dispose(Boolean disposing)
+    {
+        if (disposing)
+        {
+            Stream?.Dispose();
+            Stream = null;
+        }
+    }
+    #endregion
+
+    #region 方法
     /// <summary>数据包加入缓存数据末尾，分析数据流，得到一帧或多帧数据</summary>
     /// <param name="pk">待分析数据包</param>
-    /// <returns></returns>
+    /// <returns>解析出的完整数据包列表</returns>
     public virtual IList<IPacket> Parse(IPacket pk)
     {
         var ms = Stream;
         var nodata = ms == null || ms.Position < 0 || ms.Position >= ms.Length;
 
+#pragma warning disable CS0618 // 类型或成员已过时
         var func = GetLength;
+#pragma warning restore CS0618 // 类型或成员已过时
         var func2 = GetLength2;
-        if (func == null && func2 == null) throw new ArgumentNullException(nameof(GetLength));
+        if (func == null && func2 == null) throw new ArgumentNullException(nameof(GetLength2));
 
         var list = new List<IPacket>();
         // 内部缓存没有数据，直接判断输入数据流是否刚好一帧数据，快速处理，绝大多数是这种场景
@@ -144,7 +182,7 @@ public class PacketCodec
         }
     }
 
-    /// <summary>检查缓存</summary>
+    /// <summary>检查缓存，超时或超大时清空</summary>
     [MemberNotNull(nameof(Stream))]
     protected virtual void CheckCache()
     {
@@ -178,4 +216,16 @@ public class PacketCodec
         }
         Last = now;
     }
+
+    /// <summary>清空缓存</summary>
+    public virtual void Clear()
+    {
+        var ms = Stream;
+        if (ms != null)
+        {
+            ms.SetLength(0);
+            ms.Position = 0;
+        }
+    }
+    #endregion
 }
