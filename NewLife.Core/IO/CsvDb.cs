@@ -17,7 +17,7 @@ namespace NewLife.IO;
 /// 
 /// 本设计不支持线程安全，务必确保单线程操作。
 /// </remarks>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">实体类型</typeparam>
 public class CsvDb<T> : DisposeBase where T : new()
 {
     #region 静态缓存（反射开销优化）
@@ -25,16 +25,28 @@ public class CsvDb<T> : DisposeBase where T : new()
     private static readonly PropertyInfo[] _properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
     // 统一使用序列化名（可能来自特性），修复原先头部写入使用属性名导致与读取不一致的缺陷
     private static readonly String[] _propertyNames = _properties.Select(SerialHelper.GetName).ToArray();
+    // 属性名到索引的映射，用于快速查找
+    private static readonly Dictionary<String, Int32> _propertyIndexes = BuildPropertyIndexes();
+
+    private static Dictionary<String, Int32> BuildPropertyIndexes()
+    {
+        var dic = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < _propertyNames.Length; i++)
+        {
+            dic[_propertyNames[i]] = i;
+        }
+        return dic;
+    }
     #endregion
 
     #region 属性
-    /// <summary>文件名</summary>
+    /// <summary>文件名。Csv数据文件路径</summary>
     public String? FileName { get; set; }
 
-    /// <summary>文件编码，默认utf8</summary>
+    /// <summary>文件编码。默认UTF8</summary>
     public Encoding Encoding { get; set; } = Encoding.UTF8;
 
-    /// <summary>实体比较器</summary>
+    /// <summary>实体比较器。用于判断两个实体是否相等</summary>
     public IEqualityComparer<T> Comparer { get; set; }
     #endregion
 
@@ -42,7 +54,7 @@ public class CsvDb<T> : DisposeBase where T : new()
     /// <summary>实例化Csv文件数据库</summary>
     public CsvDb() => Comparer = EqualityComparer<T>.Default;
 
-    /// <summary>实例化Csv文件数据库</summary>
+    /// <summary>使用自定义比较器实例化Csv文件数据库</summary>
     /// <param name="comparer">自定义比较器委托，用于判断两实体是否相等</param>
     public CsvDb(Func<T?, T?, Boolean> comparer) => Comparer = new MyComparer(comparer);
 
@@ -278,7 +290,11 @@ public class CsvDb<T> : DisposeBase where T : new()
         {
             using var csv = new CsvFile(file, false) { Encoding = Encoding };
 
+            // 文件列名到索引的映射
             var headers = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
+            // 文件列索引到属性索引的映射，避免每行都查字典
+            var columnToProperty = (Int32[]?)null;
+
             while (true)
             {
                 var ss = csv.ReadLine();
@@ -294,6 +310,13 @@ public class CsvDb<T> : DisposeBase where T : new()
                     }
                     // 无法识别所有字段
                     if (headers.Count == 0) break;
+
+                    // 建立文件列到属性的映射
+                    columnToProperty = new Int32[ss.Length];
+                    for (var i = 0; i < ss.Length; i++)
+                    {
+                        columnToProperty[i] = _propertyIndexes.TryGetValue(ss[i], out var idx) ? idx : -1;
+                    }
                 }
                 else
                 {
@@ -303,42 +326,44 @@ public class CsvDb<T> : DisposeBase where T : new()
                     {
                         // 反射构建对象
                         var success = 0;
-                        foreach (var pi in _properties)
+                        for (var i = 0; i < ss.Length && i < columnToProperty!.Length; i++)
                         {
-                            var name = SerialHelper.GetName(pi);
-                            if (pi.CanWrite && headers.TryGetValue(name, out var idx) && idx < ss.Length)
+                            var propIdx = columnToProperty[i];
+                            if (propIdx < 0) continue;
+
+                            var pi = _properties[propIdx];
+                            if (!pi.CanWrite) continue;
+
+                            var raw = ss[i];
+                            if (raw == null) continue;
+
+                            // 部分基础类型判断数据有效性
+                            if (pi.PropertyType.IsInt() && !Int64.TryParse(raw, out _)) continue;
+                            var code = pi.PropertyType.GetTypeCode();
+                            switch (code)
                             {
-                                var raw = ss[idx];
-                                if (raw == null) continue;
-
-                                // 部分基础类型判断数据有效性
-                                if (pi.PropertyType.IsInt() && !Int64.TryParse(raw, out _)) continue;
-                                var code = pi.PropertyType.GetTypeCode();
-                                switch (code)
-                                {
-                                    case TypeCode.Single:
-                                    case TypeCode.Double:
-                                        if (!Double.TryParse(raw, out _)) continue;
-                                        break;
-                                    case TypeCode.Decimal:
-                                        if (!Decimal.TryParse(raw, out _)) continue;
-                                        break;
-                                    case TypeCode.DateTime:
-                                        if (!DateTime.TryParse(raw, out _)) continue;
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                var value = raw.ChangeType(pi.PropertyType);
-
-                                if (model is IModel dst)
-                                    dst[pi.Name] = value;
-                                else
-                                    model.SetValue(pi, value);
-
-                                success++;
+                                case TypeCode.Single:
+                                case TypeCode.Double:
+                                    if (!Double.TryParse(raw, out _)) continue;
+                                    break;
+                                case TypeCode.Decimal:
+                                    if (!Decimal.TryParse(raw, out _)) continue;
+                                    break;
+                                case TypeCode.DateTime:
+                                    if (!DateTime.TryParse(raw, out _)) continue;
+                                    break;
+                                default:
+                                    break;
                             }
+
+                            var value = raw.ChangeType(pi.PropertyType);
+
+                            if (model is IModel dst)
+                                dst[pi.Name] = value;
+                            else
+                                model.SetValue(pi, value);
+
+                            success++;
                         }
 
                         // 没有任何字段成功匹配，视为损坏行
@@ -389,6 +414,141 @@ public class CsvDb<T> : DisposeBase where T : new()
         }
     }
     #endregion
+
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    #region 异步方法
+    /// <summary>异步获取满足条件的数据行</summary>
+    /// <param name="predicate">过滤条件</param>
+    /// <param name="count">最多返回行数。默认 -1 表示不限制</param>
+    /// <returns></returns>
+    public async IAsyncEnumerable<T> QueryAsync(Func<T, Boolean>? predicate, Int32 count = -1)
+    {
+        // 开启事务时，直接返回缓存数据
+        if (_cache != null)
+        {
+            foreach (var item in _cache)
+            {
+                if (predicate == null || predicate(item))
+                {
+                    yield return item;
+
+                    if (--count == 0) break;
+                }
+            }
+            yield break;
+        }
+
+        var file = GetFile();
+        if (!File.Exists(file)) yield break;
+
+        var csv = new CsvFile(file, false) { Encoding = Encoding };
+        await using (csv.ConfigureAwait(false))
+        {
+            // 文件列名到索引的映射
+            var headers = new Dictionary<String, Int32>(StringComparer.OrdinalIgnoreCase);
+            // 文件列索引到属性索引的映射
+            var columnToProperty = (Int32[]?)null;
+
+            await foreach (var ss in csv.ReadAllAsync().ConfigureAwait(false))
+            {
+                // 头部，名称与序号对应
+                if (headers.Count == 0)
+                {
+                    for (var i = 0; i < ss.Length; i++)
+                    {
+                        if (!headers.ContainsKey(ss[i])) headers[ss[i]] = i;
+                    }
+                    if (headers.Count == 0) break;
+
+                    columnToProperty = new Int32[ss.Length];
+                    for (var i = 0; i < ss.Length; i++)
+                    {
+                        columnToProperty[i] = _propertyIndexes.TryGetValue(ss[i], out var idx) ? idx : -1;
+                    }
+                    continue;
+                }
+
+                var flag = false;
+                var model = new T();
+                try
+                {
+                    var success = 0;
+                    for (var i = 0; i < ss.Length && i < columnToProperty!.Length; i++)
+                    {
+                        var propIdx = columnToProperty[i];
+                        if (propIdx < 0) continue;
+
+                        var pi = _properties[propIdx];
+                        if (!pi.CanWrite) continue;
+
+                        var raw = ss[i];
+                        if (raw == null) continue;
+
+                        if (pi.PropertyType.IsInt() && !Int64.TryParse(raw, out _)) continue;
+                        var code = pi.PropertyType.GetTypeCode();
+                        switch (code)
+                        {
+                            case TypeCode.Single:
+                            case TypeCode.Double:
+                                if (!Double.TryParse(raw, out _)) continue;
+                                break;
+                            case TypeCode.Decimal:
+                                if (!Decimal.TryParse(raw, out _)) continue;
+                                break;
+                            case TypeCode.DateTime:
+                                if (!DateTime.TryParse(raw, out _)) continue;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        var value = raw.ChangeType(pi.PropertyType);
+
+                        if (model is IModel dst)
+                            dst[pi.Name] = value;
+                        else
+                            model.SetValue(pi, value);
+
+                        success++;
+                    }
+
+                    if (success == 0) continue;
+
+                    if (predicate == null || predicate(model))
+                    {
+                        flag = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
+                    continue;
+                }
+
+                if (!flag) continue;
+
+                yield return model;
+
+                if (--count == 0) break;
+            }
+        }
+    }
+
+    /// <summary>异步获取所有数据行</summary>
+    /// <returns></returns>
+    public async Task<IList<T>> FindAllAsync()
+    {
+        if (_cache != null) return _cache.ToList();
+
+        var list = new List<T>();
+        await foreach (var item in QueryAsync(null).ConfigureAwait(false))
+        {
+            list.Add(item);
+        }
+        return list;
+    }
+    #endregion
+#endif
 
     #region 辅助
     private String GetFile()
