@@ -4,17 +4,19 @@ using System.Reflection;
 
 namespace NewLife.Model;
 
-/// <summary>轻量级对象容器，支持注入</summary>
+/// <summary>轻量级对象容器，支持依赖注入</summary>
 /// <remarks>
 /// 文档 https://newlifex.com/core/object_container
+/// 
+/// 提供简单的 IoC 容器功能，支持单例、瞬态和作用域生命周期。
 /// </remarks>
 public class ObjectContainer : IObjectContainer
 {
     #region 静态
-    /// <summary>当前容器</summary>
+    /// <summary>当前容器。全局默认容器实例</summary>
     public static IObjectContainer Current { get; set; }
 
-    /// <summary>当前容器提供者</summary>
+    /// <summary>当前容器提供者。全局默认服务提供者</summary>
     public static IServiceProvider Provider { get; set; }
 
     static ObjectContainer()
@@ -26,31 +28,23 @@ public class ObjectContainer : IObjectContainer
     #endregion
 
     #region 属性
-    private readonly IList<IObject> _list = [];
-    /// <summary>服务集合</summary>
+    /// <summary>服务集合。已注册的服务描述符列表</summary>
     public IList<IObject> Services => _list;
 
     /// <summary>注册项个数</summary>
     public Int32 Count => _list.Count;
+
+    private readonly IList<IObject> _list = [];
+    private static Dictionary<TypeCode, Object?>? _defs;
     #endregion
 
-    #region 方法
-    /// <summary>添加，允许重复添加同一个服务</summary>
-    /// <param name="item"></param>
+    #region 注册
+    /// <summary>添加服务，允许重复添加同一个服务类型</summary>
+    /// <param name="item">服务描述符</param>
     public void Add(IObject item)
     {
         lock (_list)
         {
-            //for (var i = 0; i < _list.Count; i++)
-            //{
-            //    // 覆盖重复项
-            //    if (_list[i].ServiceType == item.ServiceType)
-            //    {
-            //        _list[i] = item;
-            //        return;
-            //    }
-            //}
-
             if (item.ImplementationType == null && item is ServiceDescriptor sd)
                 sd.ImplementationType = sd.Instance?.GetType();
 
@@ -58,12 +52,12 @@ public class ObjectContainer : IObjectContainer
         }
     }
 
-    /// <summary>尝试添加，不允许重复添加同一个服务</summary>
-    /// <param name="item"></param>
+    /// <summary>尝试添加服务，不允许重复添加同一个服务类型</summary>
+    /// <param name="item">服务描述符</param>
+    /// <returns>是否添加成功</returns>
     public Boolean TryAdd(IObject item)
     {
         // 对象集合仅在应用启动早期用到几十次，后续不再使用，不需要优化性能。lock之间的判断，可能抛出集合修改异常
-        //if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
         lock (_list)
         {
             if (_list.Any(e => e.ServiceType == item.ServiceType)) return false;
@@ -76,14 +70,12 @@ public class ObjectContainer : IObjectContainer
             return true;
         }
     }
-    #endregion
 
-    #region 注册
-    /// <summary>注册</summary>
-    /// <param name="serviceType">接口类型</param>
+    /// <summary>注册服务</summary>
+    /// <param name="serviceType">服务类型</param>
     /// <param name="implementationType">实现类型</param>
-    /// <param name="instance">实例</param>
-    /// <returns></returns>
+    /// <param name="instance">服务实例</param>
+    /// <returns>当前容器</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public virtual IObjectContainer Register(Type serviceType, Type? implementationType, Object? instance)
     {
@@ -100,43 +92,41 @@ public class ObjectContainer : IObjectContainer
     #endregion
 
     #region 解析
-    /// <summary>在指定容器中解析类型的实例</summary>
-    /// <param name="serviceType">接口类型</param>
-    /// <returns></returns>
+    /// <summary>获取服务实例</summary>
+    /// <param name="serviceType">服务类型</param>
+    /// <returns>服务实例，未找到时返回null</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public virtual Object? GetService(Type serviceType)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
         // 优先查找最后一个，避免重复注册
-        //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
         var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         if (item == null) return null;
 
         return Resolve(item, null);
     }
 
-    /// <summary>在指定容器中解析类型的实例</summary>
-    /// <param name="serviceType">接口类型</param>
-    /// <param name="serviceProvider">容器</param>
-    /// <returns></returns>
+    /// <summary>解析服务实例</summary>
+    /// <param name="serviceType">服务类型</param>
+    /// <param name="serviceProvider">服务提供者</param>
+    /// <returns>服务实例，未找到时返回null</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public virtual Object? Resolve(Type serviceType, IServiceProvider? serviceProvider = null)
     {
         if (serviceType == null) throw new ArgumentNullException(nameof(serviceType));
 
         // 优先查找最后一个，避免重复注册
-        //var item = _list.FirstOrDefault(e => e.ServiceType == serviceType);
         var item = _list.LastOrDefault(e => e.ServiceType == serviceType);
         if (item == null) return null;
 
         return Resolve(item, serviceProvider);
     }
 
-    /// <summary>在指定容器中解析类型的实例</summary>
-    /// <param name="item"></param>
-    /// <param name="serviceProvider"></param>
-    /// <returns></returns>
+    /// <summary>解析服务实例</summary>
+    /// <param name="item">服务描述符</param>
+    /// <param name="serviceProvider">服务提供者</param>
+    /// <returns>服务实例</returns>
     public virtual Object Resolve(IObject item, IServiceProvider? serviceProvider)
     {
         var map = item as ServiceDescriptor;
@@ -162,12 +152,17 @@ public class ObjectContainer : IObjectContainer
         }
     }
 
-    private static Dictionary<TypeCode, Object?>? _defs;
+    /// <summary>创建类型实例</summary>
+    /// <param name="type">目标类型</param>
+    /// <param name="provider">服务提供者</param>
+    /// <param name="factory">工厂方法</param>
+    /// <param name="throwOnError">失败时是否抛出异常</param>
+    /// <returns>类型实例</returns>
     internal static Object? CreateInstance(Type type, IServiceProvider provider, Func<IServiceProvider, Object>? factory, Boolean throwOnError)
     {
         if (factory != null) return factory(provider);
 
-        // 初始化
+        // 初始化默认值字典
         if (_defs == null)
         {
             var dic = new Dictionary<TypeCode, Object?>
@@ -219,7 +214,6 @@ public class ObjectContainer : IObjectContainer
                         if (service == null)
                         {
                             errorParameter2 = ps[i];
-
                             break;
                         }
                         else
@@ -242,51 +236,54 @@ public class ObjectContainer : IObjectContainer
     #endregion
 
     #region 辅助
-    /// <summary>已重载。</summary>
-    /// <returns></returns>
+    /// <summary>已重载。显示容器信息</summary>
+    /// <returns>容器描述</returns>
     public override String ToString() => $"{GetType().Name}[Count={Count}]";
     #endregion
 }
 
-/// <summary>对象映射</summary>
+/// <summary>服务描述符</summary>
+/// <remarks>
+/// 描述服务的类型、实现、生命周期等信息。
+/// </remarks>
 [DebuggerDisplay("Lifetime = {Lifetime}, ServiceType = {ServiceType}, ImplementationType = {ImplementationType}")]
 public class ServiceDescriptor : IObject
 {
     #region 属性
-    /// <summary>服务类型</summary>
+    /// <summary>服务类型。通常是接口或抽象类</summary>
     public Type ServiceType { get; set; }
 
-    /// <summary>实现类型</summary>
+    /// <summary>实现类型。具体的实现类</summary>
     public Type? ImplementationType { get; set; }
 
-    /// <summary>生命周期</summary>
+    /// <summary>生命周期。单例、瞬态或作用域</summary>
     public ObjectLifetime Lifetime { get; set; }
 
-    /// <summary>实例</summary>
+    /// <summary>服务实例。仅单例模式有效</summary>
     public Object? Instance { get; set; }
 
-    /// <summary>对象工厂</summary>
+    /// <summary>对象工厂。用于创建服务实例的委托</summary>
     public Func<IServiceProvider, Object>? Factory { get; set; }
     #endregion
 
     #region 构造
-    /// <summary>实例化</summary>
-    /// <param name="serviceType"></param>
+    /// <summary>实例化服务描述符</summary>
+    /// <param name="serviceType">服务类型</param>
     public ServiceDescriptor(Type serviceType) => ServiceType = serviceType;
 
-    /// <summary>实例化</summary>
-    /// <param name="serviceType"></param>
-    /// <param name="implementationType"></param>
+    /// <summary>实例化服务描述符</summary>
+    /// <param name="serviceType">服务类型</param>
+    /// <param name="implementationType">实现类型</param>
     public ServiceDescriptor(Type serviceType, Type? implementationType)
     {
         ServiceType = serviceType;
         ImplementationType = implementationType;
     }
 
-    /// <summary>实例化</summary>
-    /// <param name="serviceType"></param>
-    /// <param name="implementationType"></param>
-    /// <param name="instance"></param>
+    /// <summary>实例化服务描述符</summary>
+    /// <param name="serviceType">服务类型</param>
+    /// <param name="implementationType">实现类型</param>
+    /// <param name="instance">服务实例</param>
     public ServiceDescriptor(Type serviceType, Type? implementationType, Object? instance)
     {
         ServiceType = serviceType;
@@ -297,21 +294,33 @@ public class ServiceDescriptor : IObject
     }
     #endregion
 
-    #region 方法
+    #region 辅助
     /// <summary>显示友好名称</summary>
-    /// <returns></returns>
+    /// <returns>服务描述</returns>
     public override String ToString() => $"[{ServiceType?.Name},{ImplementationType?.Name}]";
     #endregion
 }
 
+/// <summary>服务提供者</summary>
+/// <remarks>
+/// 包装对象容器，实现 <see cref="IServiceProvider"/> 接口。
+/// </remarks>
 internal class ServiceProvider(IObjectContainer container, IServiceProvider? innerServiceProvider) : IServiceProvider
 {
-    private readonly IObjectContainer _container = container;
+    #region 属性
     /// <summary>容器</summary>
     public IObjectContainer Container => _container;
 
+    /// <summary>内部服务提供者。用于链式查找</summary>
     public IServiceProvider? InnerServiceProvider { get; set; } = innerServiceProvider;
 
+    private readonly IObjectContainer _container = container;
+    #endregion
+
+    #region 方法
+    /// <summary>获取服务实例</summary>
+    /// <param name="serviceType">服务类型</param>
+    /// <returns>服务实例</returns>
     public Object? GetService(Type serviceType)
     {
         if (serviceType == typeof(IObjectContainer)) return _container;
@@ -321,7 +330,6 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
         var ioc = _container as ObjectContainer;
         if (ioc != null && !ioc.Services.Any(e => e.ServiceType == typeof(IServiceScopeFactory)))
         {
-            //oc.AddSingleton<IServiceScopeFactory>(new MyServiceScopeFactory { ServiceProvider = this });
             ioc.TryAdd(new ServiceDescriptor(typeof(IServiceScopeFactory))
             {
                 Instance = new MyServiceScopeFactory { ServiceProvider = this },
@@ -334,4 +342,5 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
 
         return InnerServiceProvider?.GetService(serviceType);
     }
+    #endregion
 }

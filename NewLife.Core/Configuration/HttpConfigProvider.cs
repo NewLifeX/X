@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Security.Cryptography;
 using NewLife.Log;
 using NewLife.Reflection;
@@ -10,13 +9,14 @@ using NewLife.Threading;
 namespace NewLife.Configuration;
 
 /// <summary>配置中心提供者</summary>
+/// <remarks>对接星尘配置中心、阿波罗配置中心等远程配置服务，支持本地缓存和自动刷新</remarks>
 public class HttpConfigProvider : ConfigProvider
 {
     #region 属性
-    /// <summary>服务器</summary>
+    /// <summary>服务器地址</summary>
     public String Server { get; set; } = null!;
 
-    /// <summary>服务操作 默认:Config/GetAll</summary>
+    /// <summary>服务操作。获取配置的API路径，默认Config/GetAll</summary>
     public String Action { get; set; } = "Config/GetAll";
 
     /// <summary>应用标识</summary>
@@ -25,13 +25,10 @@ public class HttpConfigProvider : ConfigProvider
     /// <summary>应用密钥</summary>
     public String? Secret { get; set; }
 
-    ///// <summary>实例。应用可能多实例部署，ip@proccessid</summary>
-    //public String? ClientId { get; set; }
-
-    /// <summary>作用域。获取指定作用域下的配置值，生产、开发、测试 等</summary>
+    /// <summary>作用域。获取指定作用域下的配置值，如：生产、开发、测试等</summary>
     public String? Scope { get; set; }
 
-    /// <summary>本地缓存配置数据。即使网络断开，仍然能够加载使用本地数据，默认Encrypted</summary>
+    /// <summary>本地缓存等级。即使网络断开仍能加载本地数据，默认Encrypted</summary>
     public ConfigCacheLevel CacheLevel { get; set; } = ConfigCacheLevel.Encrypted;
 
     /// <summary>更新周期。默认60秒，0秒表示不做自动更新</summary>
@@ -51,7 +48,7 @@ public class HttpConfigProvider : ConfigProvider
     #endregion
 
     #region 构造
-    /// <summary>实例化Http配置提供者，对接星尘和阿波罗等配置中心</summary>
+    /// <summary>实例化Http配置提供者</summary>
     public HttpConfigProvider()
     {
         try
@@ -59,41 +56,28 @@ public class HttpConfigProvider : ConfigProvider
             var executing = AssemblyX.Create(Assembly.GetExecutingAssembly());
             var asm = AssemblyX.Entry ?? executing;
             if (asm != null) AppId = asm.Name;
-
-            //ValidClientId();
         }
         catch { }
     }
 
-    //private void ValidClientId()
-    //{
-    //    try
-    //    {
-    //        // 刚启动时可能还没有拿到本地IP
-    //        if (ClientId.IsNullOrEmpty() || ClientId[0] == '@')
-    //            ClientId = $"{NetHelper.MyIP()}@{Process.GetCurrentProcess().Id}";
-    //    }
-    //    catch { }
-    //}
-
     /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
 
-        _timer?.Dispose();
+        _timer.TryDispose();
         Client.TryDispose();
     }
 
     /// <summary>已重载。输出友好信息</summary>
-    /// <returns></returns>
+    /// <returns>包含AppId和Server的字符串表示</returns>
     public override String ToString() => $"{GetType().Name} AppId={AppId} Server={Server}";
     #endregion
 
     #region 方法
-    /// <summary>获取客户端</summary>
-    /// <returns></returns>
+    /// <summary>获取Api客户端</summary>
+    /// <returns>Api客户端实例</returns>
     protected virtual IApiClient? GetClient()
     {
         if (Client != null) return Client;
@@ -108,13 +92,11 @@ public class HttpConfigProvider : ConfigProvider
         return Client;
     }
 
-    /// <summary>获取所有配置</summary>
-    /// <returns></returns>
+    /// <summary>从配置中心获取所有配置</summary>
+    /// <returns>配置字典；失败时返回 null</returns>
     protected virtual IDictionary<String, Object?>? GetAll()
     {
         var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
-
-        //ValidClientId();
 
         try
         {
@@ -150,12 +132,10 @@ public class HttpConfigProvider : ConfigProvider
     }
 
     /// <summary>设置配置项，保存到服务端</summary>
-    /// <param name="configs"></param>
-    /// <returns></returns>
+    /// <param name="configs">配置字典</param>
+    /// <returns>影响的配置数</returns>
     protected virtual Int32 SetAll(IDictionary<String, Object?> configs)
     {
-        //ValidClientId();
-
         var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
         return client.Invoke<Int32>("Config/SetAll", new
         {
@@ -166,8 +146,9 @@ public class HttpConfigProvider : ConfigProvider
         });
     }
 
-    /// <summary>初始化提供者，如有必要，此时加载缓存文件</summary>
-    /// <param name="value"></param>
+    /// <summary>初始化提供者</summary>
+    /// <remarks>如有必要，此时加载本地缓存文件</remarks>
+    /// <param name="value">配置名</param>
     public override void Init(String? value)
     {
         // 本地缓存
@@ -185,8 +166,8 @@ public class HttpConfigProvider : ConfigProvider
     }
 
     /// <summary>加载配置字典为配置树</summary>
-    /// <param name="configs"></param>
-    /// <returns></returns>
+    /// <param name="configs">配置字典</param>
+    /// <returns>配置树根节点</returns>
     public virtual IConfigSection Build(IDictionary<String, Object?> configs)
     {
         // 换个对象，避免数组元素在多次加载后重叠
@@ -203,7 +184,6 @@ public class HttpConfigProvider : ConfigProvider
             }
             if (section != null)
             {
-                //var section = root.GetOrAddChild(key);
                 if (item.Value is IDictionary<String, Object?> dic)
                     section.Childs = Build(dic).Childs;
                 else
@@ -212,9 +192,13 @@ public class HttpConfigProvider : ConfigProvider
         }
         return root;
     }
+    #endregion
 
+    #region 加载/保存
     private Int32 _inited;
+
     /// <summary>加载配置</summary>
+    /// <returns>是否加载成功</returns>
     public override Boolean LoadAll()
     {
         try
@@ -253,6 +237,7 @@ public class HttpConfigProvider : ConfigProvider
         }
     }
 
+    /// <summary>保存配置到本地缓存文件</summary>
     private void SaveCache(IDictionary<String, Object?> configs)
     {
         // 缓存
@@ -275,6 +260,7 @@ public class HttpConfigProvider : ConfigProvider
     }
 
     /// <summary>保存配置树到数据源</summary>
+    /// <returns>是否保存成功</returns>
     public override Boolean SaveAll()
     {
         if (Root.Childs == null) return false;
@@ -323,7 +309,7 @@ public class HttpConfigProvider : ConfigProvider
 
     #region 绑定
     /// <summary>绑定模型，使能热更新，配置存储数据改变时同步修改模型属性</summary>
-    /// <typeparam name="T">模型</typeparam>
+    /// <typeparam name="T">模型类型</typeparam>
     /// <param name="model">模型实例</param>
     /// <param name="autoReload">是否自动更新。默认true</param>
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
@@ -335,9 +321,10 @@ public class HttpConfigProvider : ConfigProvider
     }
     #endregion
 
-    #region 定时
+    #region 定时刷新
     /// <summary>定时器</summary>
     protected TimerX? _timer;
+
     private void InitTimer()
     {
         if (_timer != null) return;
@@ -352,12 +339,32 @@ public class HttpConfigProvider : ConfigProvider
     }
 
     /// <summary>定时刷新配置</summary>
-    /// <param name="state"></param>
+    /// <param name="state">状态对象</param>
     protected void DoRefresh(Object? state)
     {
         var dic = GetAll();
         if (dic == null) return;
 
+        var changed = DetectChanges(dic);
+
+        if (changed.Count > 0)
+        {
+            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, changed.ToJson());
+
+            Root = Build(dic);
+
+            // 缓存
+            SaveCache(dic);
+
+            NotifyChange();
+        }
+    }
+
+    /// <summary>检测配置变更</summary>
+    /// <param name="dic">新配置字典</param>
+    /// <returns>变更的配置项</returns>
+    private Dictionary<String, Object?> DetectChanges(IDictionary<String, Object?> dic)
+    {
         var changed = new Dictionary<String, Object?>();
         if (_cache != null)
         {
@@ -387,18 +394,7 @@ public class HttpConfigProvider : ConfigProvider
                 }
             }
         }
-
-        if (changed.Count > 0)
-        {
-            XTrace.WriteLine("[{0}]配置改变，重新加载如下键：{1}", AppId, changed.ToJson());
-
-            Root = Build(dic);
-
-            // 缓存
-            SaveCache(dic);
-
-            NotifyChange();
-        }
+        return changed;
     }
     #endregion
 }

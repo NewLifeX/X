@@ -6,8 +6,8 @@
     <AssemblyTitle>NewLife组件核心库</AssemblyTitle>
     <Description>Core basic components: log (file / network), configuration (XML / JSON / HTTP), cache, network (TCP / UDP / HTTP /WebSocket), serialization (binary / XML / JSON), APM performance tracking. 核心基础组件，日志（文件/网络）、配置（XML/Json/Http）、缓存、网络（Tcp/Udp/Http/WebSocket）、序列化（Binary/XML/Json）、APM性能追踪。</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2025 NewLife</Copyright>
-    <VersionPrefix>11.9</VersionPrefix>
+    <Copyright>©2002-2026 NewLife</Copyright>
+    <VersionPrefix>11.10</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -19,7 +19,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Doc\newlife.snk</AssemblyOriginatorKeyFile>
-    <NoWarn>1701;1702;NU5104;NU1505;NETSDK1138;CS7035</NoWarn>
+    <NoWarn>1701;1702;NU5104;NU1505;NU1900;NETSDK1138;CS7035</NoWarn>
     <AnalysisLevel>latest</AnalysisLevel>
     <WarningsAsErrors>CA2007</WarningsAsErrors>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>AI重构核心代码；增加ExcelWriter用于导出Excel文件</PackageReleaseNotes>
+    <PackageReleaseNotes>重构IEventBus，支持EventHub；ApiHttpClient支持文件下载</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

@@ -11,7 +11,10 @@ namespace NewLife.Data;
 /// 文档 https://newlifex.com/core/packet
 /// 设计于.NET2.0时代，功能上类似于NETCore的Span/Memory。
 /// Packet的设计目标就是网络库零拷贝，所以Slice切片是其最重要功能。
+/// 
+/// 该类已过时，请使用 <see cref="ArrayPacket"/> 或 <see cref="OwnerPacket"/> 替代。
 /// </remarks>
+[Obsolete("请使用 ArrayPacket 或 OwnerPacket 替代")]
 public class Packet : IPacket
 {
     #region 属性

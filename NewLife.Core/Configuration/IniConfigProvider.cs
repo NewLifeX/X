@@ -3,13 +3,11 @@
 namespace NewLife.Configuration;
 
 /// <summary>Ini文件配置提供者</summary>
-/// <remarks>
-/// 支持从不同配置文件加载到不同配置模型
-/// </remarks>
-public class InIConfigProvider : FileConfigProvider
+/// <remarks>支持从不同配置文件加载到不同配置模型，支持分段和注释</remarks>
+public class IniConfigProvider : FileConfigProvider
 {
     /// <summary>初始化</summary>
-    /// <param name="value"></param>
+    /// <param name="value">配置文件名</param>
     public override void Init(String value)
     {
         // 加上默认后缀
@@ -26,7 +24,7 @@ public class InIConfigProvider : FileConfigProvider
         var lines = File.ReadAllLines(fileName);
 
         var currentSection = section;
-        var remark = "";
+        var remark = (String?)null;
         foreach (var item in lines)
         {
             var str = item.Trim();
@@ -65,7 +63,7 @@ public class InIConfigProvider : FileConfigProvider
 
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
-    /// <returns></returns>
+    /// <returns>Ini格式的配置字符串</returns>
     public override String GetString(IConfigSection? section = null)
     {
         section ??= Root;
@@ -104,3 +102,7 @@ public class InIConfigProvider : FileConfigProvider
         return sb.ToString();
     }
 }
+
+/// <summary>Ini文件配置提供者</summary>
+[Obsolete("请使用 IniConfigProvider")]
+public class InIConfigProvider : IniConfigProvider { }

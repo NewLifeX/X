@@ -8,10 +8,16 @@ using NewLife.Serialization;
 namespace NewLife.Http;
 
 /// <summary>Http会话</summary>
+/// <remarks>
+/// 负责处理单个Http连接的请求和响应，支持：
+/// 1. 请求解析和主体分片接收；
+/// 2. WebSocket 握手和消息处理；
+/// 3. 链路追踪和日志记录。
+/// </remarks>
 public class HttpSession : INetHandler
 {
     #region 属性
-    /// <summary>请求</summary>
+    /// <summary>当前请求</summary>
     public HttpRequest? Request { get; set; }
 
     /// <summary>Http服务主机。不一定是HttpServer</summary>
@@ -20,7 +26,7 @@ public class HttpSession : INetHandler
     /// <summary>最大请求长度。单位字节，默认1G</summary>
     public Int32 MaxRequestLength { get; set; } = 1 * 1024 * 1024 * 1024;
 
-    /// <summary>忽略的头部</summary>
+    /// <summary>忽略的头部。在链路追踪中不记录这些头部</summary>
     public static String[] ExcludeHeaders { get; set; } = [
         "traceparent", "Authorization", "Cookie"
     ];
@@ -32,12 +38,12 @@ public class HttpSession : INetHandler
 
     private INetSession _session = null!;
     private WebSocket? _websocket;
-    private MemoryStream? _cache; // 仅用于累积尚未接收完整的请求主体
+    private MemoryStream? _cache;
     #endregion
 
     #region 收发数据
     /// <summary>建立连接时初始化会话</summary>
-    /// <param name="session">会话</param>
+    /// <param name="session">网络会话</param>
     public void Init(INetSession session)
     {
         _session = session;
@@ -93,7 +99,7 @@ public class HttpSession : INetHandler
             {
                 // 预分配缓存流，用于持续接收后续主体分片
                 var len = req.ContentLength;
-                if (len <= 0) len = 0; // 非法长度保护
+                if (len <= 0) len = 0;
                 _cache = new MemoryStream(len > 0 ? len : 0);
 
                 if (req.Body != null && req.Body.Length > 0)
@@ -107,12 +113,12 @@ public class HttpSession : INetHandler
         }
         else if (req != null)
         {
-            // 已有正在接收的请求，继续拼接主体。
+            // 已有正在接收的请求，继续拼接主体
             if (_cache != null)
             {
                 pk.CopyTo(_cache);
 
-                // 防御：若收到数据超过声明长度，立即截断并视为完成。
+                // 防御：若收到数据超过声明长度，立即截断并视为完成
                 if (_cache.Length >= req.ContentLength)
                 {
                     _cache.Position = 0;
@@ -192,33 +198,11 @@ public class HttpSession : INetHandler
 
             if (span is DefaultSpan ds && ds.TraceFlag > 0)
             {
-                var includeBody = false;
-                var bodyLength = request.Body?.Length ?? 0;
-                if (request.BodyLength > 0 && request.Body != null && bodyLength > 0 && bodyLength < 8 * 1024 && request.ContentType.EqualIgnoreCase(TagTypes))
-                {
-                    var body = request.Body.GetSpan();
-                    if (body.Length > 1024) body = body[..1024];
-                    span.AppendTag("\r\n<=\r\n" + body.ToStr(null));
-                    includeBody = true;
-                }
-
-                if (span.Tag.Length < 500)
-                {
-                    if (!includeBody) span.AppendTag("\r\n<=");
-                    var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
-                    span.AppendTag("\r\n" + vs.Join(Environment.NewLine, e => $"{e.Key}:{e.Value}"));
-                }
-                else if (!includeBody)
-                {
-                    span.AppendTag("\r\n<=\r\n");
-                    span.AppendTag($"ContentLength: {request.ContentLength}\r\n");
-                    span.AppendTag($"ContentType: {request.ContentType}");
-                }
+                AppendSpanTag(span, request);
             }
         }
 
         var handler = Host?.MatchHandler(path, request);
-        //if (handler == null) return new HttpResponse { StatusCode = HttpStatusCode.NotFound };
 
         var context = new DefaultHttpContext(_session, request, path, handler)
         {
@@ -256,7 +240,38 @@ public class HttpSession : INetHandler
         return context.Response;
     }
 
+    /// <summary>向链路追踪Span追加标签信息</summary>
+    /// <param name="span">追踪Span</param>
+    /// <param name="request">Http请求</param>
+    private void AppendSpanTag(ISpan span, HttpRequest request)
+    {
+        var includeBody = false;
+        var bodyLength = request.Body?.Length ?? 0;
+        if (request.BodyLength > 0 && request.Body != null && bodyLength > 0 && bodyLength < 8 * 1024 && request.ContentType.EqualIgnoreCase(TagTypes))
+        {
+            var body = request.Body.GetSpan();
+            if (body.Length > 1024) body = body[..1024];
+            span.AppendTag("\r\n<=\r\n" + body.ToStr(null));
+            includeBody = true;
+        }
+
+        if (span.Tag == null || span.Tag.Length < 500)
+        {
+            if (!includeBody) span.AppendTag("\r\n<=");
+            var vs = request.Headers.Where(e => !e.Key.EqualIgnoreCase(ExcludeHeaders)).ToDictionary(e => e.Key, e => e.Value + "");
+            span.AppendTag("\r\n" + vs.Join(Environment.NewLine, e => $"{e.Key}:{e.Value}"));
+        }
+        else if (!includeBody)
+        {
+            span.AppendTag("\r\n<=\r\n");
+            span.AppendTag($"ContentLength: {request.ContentLength}\r\n");
+            span.AppendTag($"ContentType: {request.ContentType}");
+        }
+    }
+
     /// <summary>简单路径安全检查，防止目录穿越</summary>
+    /// <param name="path">请求路径</param>
+    /// <returns>路径是否安全</returns>
     private static Boolean IsPathSafe(String path) => path.IndexOf("..", StringComparison.Ordinal) < 0;
 
     /// <summary>准备请求参数</summary>
@@ -266,10 +281,7 @@ public class HttpSession : INetHandler
         var req = context.Request;
         var ps = context.Parameters;
 
-        //// 头部参数
-        //ps.Merge(req.Headers);
-
-        // 地址参数
+        // 解析地址参数
         var uri = req.RequestUri;
         if (uri == null) return;
 
@@ -285,25 +297,33 @@ public class HttpSession : INetHandler
         // POST 提交参数：Url编码、表单、Json
         if (req.Method == "POST" && req.BodyLength > 0 && req.Body != null)
         {
-            var body = req.Body.GetSpan();
-            if (req.ContentType.StartsWithIgnoreCase("application/x-www-form-urlencoded", "application/x-www-urlencoded"))
-            {
-                var qs = body.ToStr().SplitAsDictionary("=", "&")
-                    .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
-                ps.Merge(qs);
-            }
-            else if (req.ContentType.StartsWithIgnoreCase("multipart/form-data;"))
-            {
-                var dic = req.ParseFormData();
-                var fs = dic.Values.Where(e => e is FormFile).Cast<FormFile>().ToArray();
-                if (fs.Length > 0) req.Files = fs;
-                ps.Merge(dic);
-            }
-            else if (body.Length >= 2 && body[0] == (Byte)'{' && body[^1] == (Byte)'}')
-            {
-                var js = body.ToStr().DecodeJson();
-                if (js != null) ps.Merge(js);
-            }
+            ParsePostBody(req, ps);
+        }
+    }
+
+    /// <summary>解析POST请求体参数</summary>
+    /// <param name="req">Http请求</param>
+    /// <param name="ps">参数字典</param>
+    private void ParsePostBody(HttpRequest req, IDictionary<String, Object?> ps)
+    {
+        var body = req.Body!.GetSpan();
+        if (req.ContentType.StartsWithIgnoreCase("application/x-www-form-urlencoded", "application/x-www-urlencoded"))
+        {
+            var qs = body.ToStr().SplitAsDictionary("=", "&")
+                .ToDictionary(e => HttpUtility.UrlDecode(e.Key), e => HttpUtility.UrlDecode(e.Value));
+            ps.Merge(qs);
+        }
+        else if (req.ContentType.StartsWithIgnoreCase("multipart/form-data;"))
+        {
+            var dic = req.ParseFormData();
+            var fs = dic.Values.Where(e => e is FormFile).Cast<FormFile>().ToArray();
+            if (fs.Length > 0) req.Files = fs;
+            ps.Merge(dic);
+        }
+        else if (body.Length >= 2 && body[0] == (Byte)'{' && body[^1] == (Byte)'}')
+        {
+            var js = body.ToStr().DecodeJson();
+            if (js != null) ps.Merge(js);
         }
     }
     #endregion

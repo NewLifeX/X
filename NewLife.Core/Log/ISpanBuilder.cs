@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Collections;
 
 namespace NewLife.Log;
 
@@ -141,9 +142,6 @@ public class DefaultSpanBuilder : ISpanBuilder
             {
                 span.Tracer = tracer2;
                 span.Name = Name;
-#pragma warning disable CS0612 // 类型或成员已过时
-                span.Builder = this;
-#pragma warning restore CS0612 // 类型或成员已过时
             }
         }
 
@@ -235,6 +233,19 @@ public class DefaultSpanBuilder : ISpanBuilder
                 tracer.SpanPool.Return(ds);
             }
         }
+    }
+
+    /// <summary>归还到对象池。清理所有采样数据并归还Builder</summary>
+    /// <param name="builderPool">Builder对象池</param>
+    internal void ReturnToPool(IPool<ISpanBuilder> builderPool)
+    {
+        // 归还采样的Span到对象池
+        Return(Samples);
+        Return(ErrorSamples);
+
+        // 清理并归还Builder自身
+        Clear();
+        builderPool.Return(this);
     }
 
     /// <summary>清空已有数据</summary>

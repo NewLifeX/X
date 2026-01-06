@@ -3,15 +3,13 @@
 namespace NewLife.Configuration;
 
 /// <summary>Json文件配置提供者</summary>
-/// <remarks>
-/// 支持从不同配置文件加载到不同配置模型
-/// </remarks>
+/// <remarks>支持从不同配置文件加载到不同配置模型，支持多级嵌套和数组</remarks>
 public class JsonConfigProvider : FileConfigProvider
 {
     #region 静态
     /// <summary>加载本地配置文件得到配置提供者</summary>
     /// <param name="fileName">配置文件名，默认appsettings.json</param>
-    /// <returns></returns>
+    /// <returns>Json配置提供者实例</returns>
     public static JsonConfigProvider LoadAppSettings(String? fileName = null)
     {
         if (fileName.IsNullOrEmpty()) fileName = "appsettings.json";
@@ -23,8 +21,9 @@ public class JsonConfigProvider : FileConfigProvider
     }
     #endregion
 
+    #region 方法
     /// <summary>初始化</summary>
-    /// <param name="value"></param>
+    /// <param name="value">配置文件名</param>
     public override void Init(String value)
     {
         // 加上默认后缀
@@ -49,7 +48,7 @@ public class JsonConfigProvider : FileConfigProvider
 
     /// <summary>获取字符串形式</summary>
     /// <param name="section">配置段</param>
-    /// <returns></returns>
+    /// <returns>Json格式的配置字符串</returns>
     public override String GetString(IConfigSection? section = null)
     {
         section ??= Root;
@@ -70,17 +69,13 @@ public class JsonConfigProvider : FileConfigProvider
         jw.Write(rs);
 
         return jw.GetString();
-
-        //var js = new Json();
-        //js.Write(rs);
-
-        //return js.GetBytes().ToStr();
     }
+    #endregion
 
     #region 辅助
     /// <summary>字典映射到配置树</summary>
-    /// <param name="src"></param>
-    /// <param name="section"></param>
+    /// <param name="src">源字典</param>
+    /// <param name="section">目标配置节</param>
     protected virtual void Map(IDictionary<String, Object?> src, IConfigSection section)
     {
         foreach (var item in src)
@@ -94,43 +89,55 @@ public class JsonConfigProvider : FileConfigProvider
 
             // 支持字典
             if (item.Value is IDictionary<String, Object?> dic)
+            {
                 Map(dic, cfg);
+            }
             else if (item.Value is IList<Object> list)
             {
-                cfg.Childs = new List<IConfigSection>();
-                foreach (var elm in list)
-                {
-                    // 复杂对象
-                    if (elm is IDictionary<String, Object?> dic2)
-                    {
-                        var cfg2 = new ConfigSection();
-                        Map(dic2, cfg2);
-                        cfg.Childs.Add(cfg2);
-                    }
-                    // 简单基元类型
-                    else
-                    {
-                        var key = elm?.GetType()?.Name;
-                        if (!key.IsNullOrEmpty())
-                        {
-                            var cfg2 = new ConfigSection
-                            {
-                                Key = key,
-                                Value = elm + "",
-                            };
-                            cfg.Childs.Add(cfg2);
-                        }
-                    }
-                }
+                MapList(list, cfg);
             }
             else
+            {
                 cfg.SetValue(item.Value);
+            }
+        }
+    }
+
+    /// <summary>映射列表到配置节</summary>
+    /// <param name="list">源列表</param>
+    /// <param name="cfg">目标配置节</param>
+    private void MapList(IList<Object> list, IConfigSection cfg)
+    {
+        cfg.Childs = [];
+        foreach (var elm in list)
+        {
+            // 复杂对象
+            if (elm is IDictionary<String, Object?> dic2)
+            {
+                var cfg2 = new ConfigSection();
+                Map(dic2, cfg2);
+                cfg.Childs.Add(cfg2);
+            }
+            // 简单基元类型
+            else
+            {
+                var key = elm?.GetType()?.Name;
+                if (!key.IsNullOrEmpty())
+                {
+                    var cfg2 = new ConfigSection
+                    {
+                        Key = key,
+                        Value = elm + "",
+                    };
+                    cfg.Childs.Add(cfg2);
+                }
+            }
         }
     }
 
     /// <summary>配置树映射到字典</summary>
-    /// <param name="section"></param>
-    /// <param name="dst"></param>
+    /// <param name="section">源配置节</param>
+    /// <param name="dst">目标字典</param>
     protected virtual void Map(IConfigSection section, IDictionary<String, Object?> dst)
     {
         if (section.Childs == null) return;
@@ -147,26 +154,7 @@ public class JsonConfigProvider : FileConfigProvider
                 // 数组
                 if (cs.Count == 0 || cs.Count > 0 && cs[0].Key == null || cs.Count >= 2 && cs[0].Key == cs[1].Key)
                 {
-                    Object? val = null;
-
-                    // 普通基元类型数组
-                    if (cs.Count > 0)
-                    {
-                        var childs = cs[0].Childs;
-                        if (childs == null || childs.Count == 0) val = cs.Select(e => e.Value).ToArray();
-                    }
-                    if (val == null)
-                    {
-                        var list = new List<Object>();
-                        foreach (var elm in cs)
-                        {
-                            var rs = new Dictionary<String, Object?>();
-                            Map(elm, rs);
-                            list.Add(rs);
-                        }
-                        val = list;
-                    }
-                    dst[key] = val;
+                    dst[key] = MapChildsToArray(cs);
                 }
                 else
                 {
@@ -183,16 +171,37 @@ public class JsonConfigProvider : FileConfigProvider
         }
     }
 
-    /// <summary>
-    /// 清理json字符串中的注释，避免json解析错误
-    /// </summary>
-    /// <param name="text"></param>
-    /// <returns></returns>
+    /// <summary>将子节点映射为数组</summary>
+    /// <param name="cs">子节点集合</param>
+    /// <returns>数组或列表对象</returns>
+    private Object? MapChildsToArray(IList<IConfigSection> cs)
+    {
+        // 普通基元类型数组
+        if (cs.Count > 0)
+        {
+            var childs = cs[0].Childs;
+            if (childs == null || childs.Count == 0) return cs.Select(e => e.Value).ToArray();
+        }
+
+        var list = new List<Object>();
+        foreach (var elm in cs)
+        {
+            var rs = new Dictionary<String, Object?>();
+            Map(elm, rs);
+            list.Add(rs);
+        }
+        return list;
+    }
+
+    /// <summary>清理json字符串中的注释</summary>
+    /// <remarks>避免json解析错误，支持多行注释和单行注释</remarks>
+    /// <param name="text">原始json文本</param>
+    /// <returns>清理后的json文本</returns>
     public static String TrimComment(String text)
     {
         while (true)
         {
-            // 以下处理多行注释 “/**/” 放在一行的情况
+            // 以下处理多行注释 "/**/" 放在一行的情况
             var p = text.IndexOf("/*");
             if (p < 0) break;
 
@@ -202,7 +211,7 @@ public class JsonConfigProvider : FileConfigProvider
             text = text[..p] + text[(p2 + 2)..];
         }
 
-        // 增加 \r以及\n的处理， 处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
+        // 增加 \r以及\n的处理，处理类似如下json转换时的错误：==>{"key":"http://*:5000" \n /*注释*/}<==
         var lines = text.Split("\r\n", "\n", "\r");
         text = lines
             .Where(e => !e.IsNullOrEmpty() && !e.TrimStart().StartsWith("//"))

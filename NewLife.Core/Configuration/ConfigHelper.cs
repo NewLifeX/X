@@ -7,10 +7,11 @@ using NewLife.Serialization;
 namespace NewLife.Configuration;
 
 /// <summary>配置助手</summary>
+/// <remarks>提供配置树的查找、添加和映射等扩展方法</remarks>
 public static class ConfigHelper
 {
     #region 扩展
-    /// <summary>查找配置项。可得到子级和配置</summary>
+    /// <summary>查找配置项</summary>
     /// <param name="section">起始配置节</param>
     /// <param name="key">键路径，冒号分隔</param>
     /// <param name="createOnMiss">当不存在时是否自动创建</param>
@@ -77,7 +78,8 @@ public static class ConfigHelper
         return cfg;
     }
 
-    /// <summary>设置节点值。格式化友好字符串</summary>
+    /// <summary>设置节点值</summary>
+    /// <remarks>格式化友好字符串，DateTime、Boolean、Enum 等特殊处理</remarks>
     /// <param name="section">目标配置节</param>
     /// <param name="value">待设置的值</param>
     internal static void SetValue(this IConfigSection section, Object? value)
@@ -106,14 +108,7 @@ public static class ConfigHelper
         // 支持字典
         if (model is IDictionary<String, Object?> dic)
         {
-            foreach (var cfg in childs)
-            {
-                if (cfg.Key.IsNullOrEmpty()) continue;
-
-                // 如有子级，则优先返回子级集合，否则返回值
-                dic[cfg.Key] = (cfg.Childs != null && cfg.Childs.Count > 0) ? cfg.Childs : cfg.Value;
-            }
-
+            MapToDictionary(childs, dic);
             return;
         }
 
@@ -123,9 +118,6 @@ public static class ConfigHelper
         foreach (var pi in model.GetType().GetProperties(true))
         {
             if (!pi.CanRead || !pi.CanWrite) continue;
-            //if (pi.GetIndexParameters().Length > 0) continue;
-            //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-            //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
             var name = SerialHelper.GetName(pi);
             if (name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
@@ -143,6 +135,25 @@ public static class ConfigHelper
         }
     }
 
+    /// <summary>映射配置子节点到字典</summary>
+    /// <param name="childs">子节点数组</param>
+    /// <param name="dic">目标字典</param>
+    private static void MapToDictionary(IConfigSection[] childs, IDictionary<String, Object?> dic)
+    {
+        foreach (var cfg in childs)
+        {
+            if (cfg.Key.IsNullOrEmpty()) continue;
+
+            // 如有子级，则优先返回子级集合，否则返回值
+            dic[cfg.Key] = (cfg.Childs != null && cfg.Childs.Count > 0) ? cfg.Childs : cfg.Value;
+        }
+    }
+
+    /// <summary>映射配置节到对象属性</summary>
+    /// <param name="cfg">源配置节</param>
+    /// <param name="model">目标模型</param>
+    /// <param name="pi">属性信息</param>
+    /// <param name="provider">配置提供者</param>
     private static void MapToObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         // 分别处理基本类型、数组类型、复杂类型
@@ -161,25 +172,39 @@ public static class ConfigHelper
             }
             else
             {
-                // 复杂类型需要递归处理
-                var val = model.GetValue(pi);
-                if (val == null)
-                {
-                    // 如果有无参构造函数，则实例化一个
-                    var ctor = pi.PropertyType.GetConstructor(Type.EmptyTypes);
-                    if (ctor != null)
-                    {
-                        val = ctor.Invoke(null);
-                        model.SetValue(pi, val);
-                    }
-                }
-
-                // 递归映射
-                if (val != null) MapTo(cfg, val, provider);
+                MapToComplexObject(cfg, model, pi, provider);
             }
         }
     }
 
+    /// <summary>映射配置节到复杂对象属性</summary>
+    /// <param name="cfg">源配置节</param>
+    /// <param name="model">目标模型</param>
+    /// <param name="pi">属性信息</param>
+    /// <param name="provider">配置提供者</param>
+    private static void MapToComplexObject(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
+    {
+        var val = model.GetValue(pi);
+        if (val == null)
+        {
+            // 如果有无参构造函数，则实例化一个
+            var ctor = pi.PropertyType.GetConstructor(Type.EmptyTypes);
+            if (ctor != null)
+            {
+                val = ctor.Invoke(null);
+                model.SetValue(pi, val);
+            }
+        }
+
+        // 递归映射
+        if (val != null) MapTo(cfg, val, provider);
+    }
+
+    /// <summary>映射配置节到数组属性</summary>
+    /// <param name="section">源配置节</param>
+    /// <param name="model">目标模型</param>
+    /// <param name="pi">属性信息</param>
+    /// <param name="provider">配置提供者</param>
     private static void MapToArray(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         if (section.Childs == null) return;
@@ -216,6 +241,11 @@ public static class ConfigHelper
         }
     }
 
+    /// <summary>映射配置节到列表属性</summary>
+    /// <param name="section">源配置节</param>
+    /// <param name="model">目标模型</param>
+    /// <param name="pi">属性信息</param>
+    /// <param name="provider">配置提供者</param>
     private static void MapToList(IConfigSection section, Object model, PropertyInfo pi, IConfigProvider provider)
     {
         var elementType = pi.PropertyType.GetElementTypeEx();
@@ -258,7 +288,6 @@ public static class ConfigHelper
             {
                 val = elementType.CreateInstance();
                 if (val != null) MapTo(childs[i], val, provider);
-                //list[i] = val;
             }
             list.Add(val);
         }
@@ -274,15 +303,7 @@ public static class ConfigHelper
         // 支持字典
         if (model is IDictionary<String, Object?> dic)
         {
-            foreach (var item in dic)
-            {
-                var cfg = section.GetOrAddChild(item.Key);
-                var value = item.Value;
-
-                // 分别处理基本类型、数组类型、复杂类型
-                if (value != null) MapObject(section, cfg, value, value.GetType());
-            }
-
+            MapFromDictionary(section, dic);
             return;
         }
 
@@ -290,9 +311,6 @@ public static class ConfigHelper
         foreach (var pi in model.GetType().GetProperties(true))
         {
             if (!pi.CanRead || !pi.CanWrite) continue;
-            //if (pi.GetIndexParameters().Length > 0) continue;
-            //if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>(false) != null) continue;
-            //if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
             var name = SerialHelper.GetName(pi);
             if (name.EqualIgnoreCase("ConfigFile", "IsNew")) continue;
@@ -302,22 +320,36 @@ public static class ConfigHelper
 
             // 反射获取属性值
             var value = model.GetValue(pi);
-            var att = pi.GetCustomAttribute<DescriptionAttribute>();
-            cfg.Comment = att?.Description;
+            cfg.Comment = pi.GetCustomAttribute<DescriptionAttribute>()?.Description;
             if (cfg.Comment.IsNullOrEmpty())
-            {
-                var att2 = pi.GetCustomAttribute<DisplayNameAttribute>();
-                cfg.Comment = att2?.DisplayName;
-            }
+                cfg.Comment = pi.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 
-            //!! 即使模型字段值为空，也必须拷贝，否则修改设置时，无法清空某字段
-            //if (val == null) continue;
-
+            // 即使模型字段值为空，也必须拷贝，否则修改设置时，无法清空某字段
             // 分别处理基本类型、数组类型、复杂类型
             MapObject(section, cfg, value, pi.PropertyType);
         }
     }
 
+    /// <summary>从字典映射到配置节</summary>
+    /// <param name="section">目标配置节</param>
+    /// <param name="dic">源字典</param>
+    private static void MapFromDictionary(IConfigSection section, IDictionary<String, Object?> dic)
+    {
+        foreach (var item in dic)
+        {
+            var cfg = section.GetOrAddChild(item.Key);
+            var value = item.Value;
+
+            // 分别处理基本类型、数组类型、复杂类型
+            if (value != null) MapObject(section, cfg, value, value.GetType());
+        }
+    }
+
+    /// <summary>映射单个对象到配置节</summary>
+    /// <param name="section">父配置节</param>
+    /// <param name="cfg">目标配置节</param>
+    /// <param name="val">源值</param>
+    /// <param name="type">值类型</param>
     private static void MapObject(IConfigSection section, IConfigSection cfg, Object? val, Type type)
     {
         // 分别处理基本类型、数组类型、复杂类型
@@ -340,6 +372,10 @@ public static class ConfigHelper
         }
     }
 
+    /// <summary>映射列表到配置节</summary>
+    /// <param name="cfg">目标配置节</param>
+    /// <param name="list">源列表</param>
+    /// <param name="elementType">元素类型</param>
     private static void MapArray(IConfigSection cfg, IList list, Type elementType)
     {
         // 直接重用并清空当前配置节的子节点，避免顺序漂移并保留注释

@@ -74,17 +74,14 @@ public class ConsoleLog : Logger
                     if (Monitor.TryEnter(_lock, 5_000))
                     {
                         hasLock = true;
-                        var cc = Console.ForegroundColor;
-                        cc = e.Level switch
+                        var cc = e.Level switch
                         {
                             LogLevel.Warn => ConsoleColor.Yellow,
                             LogLevel.Error or LogLevel.Fatal => ConsoleColor.Red,
                             _ => GetColor(e.ThreadID),
                         };
-                        //var old = Console.ForegroundColor;
                         Console.ForegroundColor = cc;
                         Console.WriteLine(e.GetAndReset());
-                        //Console.ForegroundColor = old;
                         Console.ResetColor();
                     }
                 }

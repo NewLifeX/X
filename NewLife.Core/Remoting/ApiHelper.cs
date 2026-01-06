@@ -91,10 +91,12 @@ public static class ApiHelper
         var request = BuildRequest(method, action, args);
 
         // 指定返回类型
+#pragma warning disable CS0618 // 类型或成员已过时
         if (returnType == typeof(Byte[]) || returnType == typeof(IPacket) || returnType == typeof(Packet))
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
         else
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+#pragma warning restore CS0618 // 类型或成员已过时
 
         // 可能附加头部
         onRequest?.Invoke(request);
@@ -274,7 +276,9 @@ public static class ApiHelper
         // 原始数据
         if (rtype == typeof(Byte[])) return (TResult)(Object)buf;
         if (rtype == typeof(IPacket)) return (TResult)(Object)new ArrayPacket(buf);
+#pragma warning disable CS0618 // 类型或成员已过时
         if (rtype == typeof(Packet)) return (TResult)(Object)new Packet(buf);
+#pragma warning restore CS0618 // 类型或成员已过时
 
         var str = buf.ToStr().Trim();
         return ProcessResponse<TResult>(str, codeName, dataName ?? "data", jsonHost);

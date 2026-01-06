@@ -4,26 +4,28 @@ using NewLife.Serialization;
 
 namespace NewLife.Http;
 
-/// <summary>Http处理器</summary>
+/// <summary>Http处理器接口</summary>
+/// <remarks>实现该接口以处理匹配到的Http请求</remarks>
 public interface IHttpHandler
 {
     /// <summary>处理请求</summary>
-    /// <param name="context"></param>
+    /// <param name="context">Http上下文，包含请求、响应和参数等信息</param>
     void ProcessRequest(IHttpContext context);
 }
 
 /// <summary>Http请求处理委托</summary>
-/// <param name="context"></param>
+/// <param name="context">Http上下文</param>
 public delegate void HttpProcessDelegate(IHttpContext context);
 
 /// <summary>委托Http处理器</summary>
+/// <remarks>将委托包装为 IHttpHandler，支持多种委托签名</remarks>
 public class DelegateHandler : IHttpHandler
 {
-    /// <summary>委托</summary>
+    /// <summary>委托回调</summary>
     public Delegate? Callback { get; set; }
 
     /// <summary>处理请求</summary>
-    /// <param name="context"></param>
+    /// <param name="context">Http上下文</param>
     public virtual void ProcessRequest(IHttpContext context)
     {
         var handler = Callback;
@@ -34,15 +36,15 @@ public class DelegateHandler : IHttpHandler
         else if (handler != null)
         {
             var result = OnInvoke(handler, context);
-            if (result is Task task) result = GetTaskResult(task);
+            if (result is Task task) result = TaskHelper.GetTaskResult(task);
             if (result != null) context.Response.SetResult(result);
         }
     }
 
-    /// <summary>复杂调用</summary>
-    /// <param name="handler"></param>
-    /// <param name="context"></param>
-    /// <returns></returns>
+    /// <summary>执行复杂委托调用</summary>
+    /// <param name="handler">委托</param>
+    /// <param name="context">Http上下文</param>
+    /// <returns>调用结果</returns>
     protected virtual Object? OnInvoke(Delegate handler, IHttpContext context)
     {
         var mi = handler.Method;
@@ -66,8 +68,15 @@ public class DelegateHandler : IHttpHandler
 
         return handler.DynamicInvoke(args);
     }
+}
 
-    private static Object? GetTaskResult(Task task)
+/// <summary>Task结果提取辅助类</summary>
+internal static class TaskHelper
+{
+    /// <summary>同步获取Task的结果。仅用于简单Http处理场景</summary>
+    /// <param name="task">要获取结果的Task</param>
+    /// <returns>Task的Result属性值；若Task无返回值则返回null</returns>
+    public static Object? GetTaskResult(Task task)
     {
         task.GetAwaiter().GetResult();
 

@@ -6,7 +6,7 @@
     <AssemblyTitle>客户端桌面应用</AssemblyTitle>
     <Description>CS架构的客户端桌面应用，给用户提供便捷操作，可对接硬件</Description>
     <Company>新生命开发团队</Company>
-    <Copyright>©2002-2025 NewLife</Copyright>
+    <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>1.0</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>

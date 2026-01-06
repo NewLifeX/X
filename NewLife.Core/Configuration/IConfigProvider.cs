@@ -359,7 +359,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
         if (str.IsNullOrEmpty()) str = NewLife.Runtime.GetEnvironmentVariable("DefaultConfig");
         if (!str.IsNullOrEmpty()) DefaultProvider = str;
 
-        Register<InIConfigProvider>("ini");
+        Register<IniConfigProvider>("ini");
         Register<XmlConfigProvider>("xml");
         Register<JsonConfigProvider>("json");
         Register<HttpConfigProvider>("http");

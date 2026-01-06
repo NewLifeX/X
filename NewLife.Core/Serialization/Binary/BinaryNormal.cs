@@ -144,6 +144,7 @@ public class BinaryNormal : BinaryHandlerBase
             value = new ArrayPacket(buf);
             return true;
         }
+#pragma warning disable CS0618 // 类型或成员已过时
         else if (type == typeof(Packet))
         {
             if (!TryReadArray(-1, out var buf)) return false;
@@ -151,6 +152,7 @@ public class BinaryNormal : BinaryHandlerBase
             value = new Packet(buf);
             return true;
         }
+#pragma warning restore CS0618 // 类型或成员已过时
         else if (type == typeof(Char[]))
         {
             //value = ReadChars(-1);

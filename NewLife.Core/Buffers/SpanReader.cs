@@ -414,4 +414,56 @@ public ref struct SpanReader
         return (Int32)rs;
     }
     #endregion
+
+    #region 预览方法
+    /// <summary>预览单个字节，不移动位置</summary>
+    /// <returns>当前位置的字节值</returns>
+    /// <exception cref="InvalidOperationException">无数据可预览时</exception>
+    public readonly Byte PeekByte()
+    {
+        if (_index >= _span.Length)
+            throw new InvalidOperationException("No data available to peek.");
+        return _span[_index];
+    }
+
+    /// <summary>尝试预览单个字节，不移动位置</summary>
+    /// <param name="value">输出的字节值</param>
+    /// <returns>是否成功预览</returns>
+    public readonly Boolean TryPeekByte(out Byte value)
+    {
+        if (_index >= _span.Length)
+        {
+            value = 0;
+            return false;
+        }
+        value = _span[_index];
+        return true;
+    }
+
+    /// <summary>预览指定长度的字节，不移动位置</summary>
+    /// <param name="length">要预览的字节数</param>
+    /// <returns>只读字节片段</returns>
+    /// <exception cref="InvalidOperationException">剩余数据不足时</exception>
+    public readonly ReadOnlySpan<Byte> Peek(Int32 length)
+    {
+        if (_index + length > _span.Length)
+            throw new InvalidOperationException($"Not enough data to peek. Required: {length}, Available: {Available}");
+        return _span.Slice(_index, length);
+    }
+
+    /// <summary>尝试预览指定长度的字节，不移动位置</summary>
+    /// <param name="length">要预览的字节数</param>
+    /// <param name="data">输出的字节片段</param>
+    /// <returns>是否成功预览</returns>
+    public readonly Boolean TryPeek(Int32 length, out ReadOnlySpan<Byte> data)
+    {
+        if (_index + length > _span.Length)
+        {
+            data = default;
+            return false;
+        }
+        data = _span.Slice(_index, length);
+        return true;
+    }
+    #endregion
 }

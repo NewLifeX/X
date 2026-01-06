@@ -21,16 +21,19 @@ public enum DataKinds : Byte
 /// <remarks>
 /// 标准协议最大优势是短小，头部定长，没有序列化成本，适用于专业级RPC以及嵌入式通信。
 /// 缺点是可读性差，不能适用于字符串通信场景。
-/// 标准网络封包协议：1 Flag + 1 Sequence + 2 Length + N Payload
-/// 1个字节标识位，标识请求、响应、错误等；
-/// 1个字节序列号，用于请求响应包配对；
-/// 2个字节数据长度N，小端，指示后续负载数据长度（不包含头部4个字节），解决粘包问题；
-/// N个字节负载数据，数据内容完全由业务决定，最大长度65535=64k。
-/// 如：
-/// Open => OK
-/// 01-01-04-00-"Open" => 81-01-02-00-"OK"
 /// 
-/// Length为0xFFFF时，后续4字节为正式长度，以支持超过64k的扩展包
+/// <para><b>协议格式</b>：1 Flag + 1 Sequence + 2 Length + N Payload</para>
+/// <list type="bullet">
+/// <item><description>1字节标识位：高2位为消息模式（00请求/01单向/10响应/11响应+错误），低6位为数据类型Flag</description></item>
+/// <item><description>1字节序列号：用于请求响应包配对</description></item>
+/// <item><description>2字节数据长度N：小端字节序，指示后续负载数据长度（不包含头部4字节）</description></item>
+/// <item><description>N字节负载数据：数据内容完全由业务决定，最大长度65535=64k</description></item>
+/// </list>
+/// 
+/// <para><b>示例</b>：Open => OK</para>
+/// <code>01-01-04-00-"Open" => 81-01-02-00-"OK"</code>
+/// 
+/// <para><b>超大包支持</b>：Length为0xFFFF时，后续4字节为正式长度，以支持超过64k的扩展包</para>
 /// </remarks>
 public class DefaultMessage : Message
 {
@@ -45,17 +48,25 @@ public class DefaultMessage : Message
     private IPacket? _raw;
     #endregion
 
+    #region 构造
+    /// <summary>释放资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
+    protected override void Dispose(Boolean disposing)
+    {
+        base.Dispose(disposing);
+
+        if (disposing) _raw = null;
+    }
+    #endregion
+
     #region 方法
     /// <summary>根据请求创建配对的响应消息</summary>
-    /// <returns></returns>
+    /// <returns>响应消息实例</returns>
     public override IMessage CreateReply()
     {
-        if (Reply) throw new Exception("Cannot create response message based on response message");
+        if (Reply) throw new InvalidOperationException("Cannot create response message based on response message");
 
-        var type = GetType();
-        var msg = type == typeof(DefaultMessage) ? new DefaultMessage() : type.CreateInstance() as DefaultMessage;
-        if (msg == null) throw new InvalidDataException($"Cannot create an instance of type [{type.FullName}]");
-
+        var msg = CreateInstance() as DefaultMessage ?? new DefaultMessage();
         msg.Flag = Flag;
         msg.Reply = true;
         msg.Sequence = Sequence;
@@ -63,9 +74,19 @@ public class DefaultMessage : Message
         return msg;
     }
 
+    /// <summary>创建当前类型的新实例</summary>
+    /// <returns>新的消息实例</returns>
+    protected override Message CreateInstance()
+    {
+        var type = GetType();
+        if (type == typeof(DefaultMessage)) return new DefaultMessage();
+
+        return base.CreateInstance();
+    }
+
     /// <summary>从数据包中读取消息</summary>
-    /// <param name="pk"></param>
-    /// <returns>是否成功</returns>
+    /// <param name="pk">原始数据包</param>
+    /// <returns>是否成功解析</returns>
     public override Boolean Read(IPacket pk)
     {
         _raw = pk;
@@ -119,8 +140,29 @@ public class DefaultMessage : Message
         return true;
     }
 
+    /// <summary>尝试从数据包中读取消息（安全版本）</summary>
+    /// <param name="pk">原始数据包</param>
+    /// <param name="message">成功时返回解析后的消息</param>
+    /// <returns>是否成功解析</returns>
+    public static Boolean TryRead(IPacket pk, out DefaultMessage? message)
+    {
+        message = null;
+        if (pk == null || pk.Total < 4) return false;
+
+        try
+        {
+            message = new DefaultMessage();
+            return message.Read(pk);
+        }
+        catch
+        {
+            message = null;
+            return false;
+        }
+    }
+
     /// <summary>把消息转为封包</summary>
-    /// <returns></returns>
+    /// <returns>序列化后的数据包</returns>
     public override IPacket ToPacket()
     {
         var body = Payload;
@@ -163,17 +205,27 @@ public class DefaultMessage : Message
 
         return pk;
     }
+
+    /// <summary>重置消息状态，用于对象池复用</summary>
+    public override void Reset()
+    {
+        base.Reset();
+
+        Flag = (Byte)DataKinds.Packet;
+        Sequence = 0;
+        _raw = null;
+    }
     #endregion
 
     #region 辅助
     /// <summary>获取数据包长度</summary>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <param name="pk">数据包</param>
+    /// <returns>完整消息长度（包含头部），返回0表示数据不足</returns>
     public static Int32 GetLength(IPacket pk) => GetLength(pk.GetSpan());
 
     /// <summary>获取数据包长度</summary>
-    /// <param name="span"></param>
-    /// <returns></returns>
+    /// <param name="span">数据片段</param>
+    /// <returns>完整消息长度（包含头部），返回0表示数据不足</returns>
     public static Int32 GetLength(ReadOnlySpan<Byte> span)
     {
         if (span.Length < 4) return 0;
@@ -192,11 +244,11 @@ public class DefaultMessage : Message
     }
 
     /// <summary>获取解析数据时的原始报文</summary>
-    /// <returns></returns>
+    /// <returns>原始数据包</returns>
     public IPacket? GetRaw() => _raw;
 
     /// <summary>消息摘要</summary>
-    /// <returns></returns>
+    /// <returns>消息的字符串表示</returns>
     public override String ToString() => $"{Flag:X2} Seq={Sequence:X2} {Payload}";
     #endregion
 }
