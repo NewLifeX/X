@@ -201,8 +201,8 @@ public class ApiHttpClientRaceTests
         Assert.Equal("test", result.Name);
     }
 
-    [Fact(DisplayName = "竞速调用_屏蔽服务后重置")]
-    public async Task InvokeRaceAsync_ShieldedServiceReset()
+    [Fact(DisplayName = "竞速调用_屏蔽服务后抛出异常")]
+    public async Task InvokeRaceAsync_ShieldedServiceThrows()
     {
         var client = new ApiHttpClient
         {
@@ -219,22 +219,8 @@ public class ApiHttpClientRaceTests
         client.Services[1].Client = new HttpClient(new MockJsonHandler(30, """{"code":0,"data":"service2"}"""));
         client.Services[1].NextTime = DateTime.Now.AddSeconds(60);
 
-        // 全部被屏蔽时，应重置并启用所有服务
-        var result = await client.InvokeRaceAsync<String>("/api/test");
-
-        Assert.NotNull(result);
-    }
-
-    [Fact(DisplayName = "竞速调用_无服务抛出异常")]
-    public async Task InvokeRaceAsync_NoServices()
-    {
-        var client = new ApiHttpClient
-        {
-            UseProxy = false,
-            Timeout = 5000
-        };
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => client.InvokeRaceAsync<String>("/api/test"));
+        // 全部被屏蔽时，应抛出异常
+        await Assert.ThrowsAsync<XException>(() => client.InvokeRaceAsync<String>("/api/test"));
     }
 
     class TestModel
@@ -452,8 +438,7 @@ public class ApiHttpClientRaceTests
         var fullPath = file.GetFullPath();
         if (File.Exists(fullPath)) File.Delete(fullPath);
 
-        // 目前行为：当全部被屏蔽，默认启用所有服务，所以应当能下载
-        await client.DownloadFileRaceAsync("/test.txt", file, null, false);
-        Assert.True(File.Exists(fullPath));
+        // 全部被屏蔽时，应抛出异常
+        await Assert.ThrowsAsync<XException>(() => client.DownloadFileRaceAsync("/test.txt", file, null, false));
     }
 }

@@ -280,7 +280,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var filter = Filter;
             try
             {
-                var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                using var msg = await SendAsync(request, cancellationToken).ConfigureAwait(false);
 
                 var jsonHost = JsonHost ?? ServiceProvider?.GetService<IJsonHost>() ?? JsonHelper.Default;
                 return await ApiHelper.ProcessResponse<TResult>(msg, CodeName, DataName, jsonHost).ConfigureAwait(false);
@@ -358,7 +358,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var filter = Filter;
             try
             {
-                var rs = await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                using var rs = await SendAsync(request, cancellationToken).ConfigureAwait(false);
                 rs.EnsureSuccessStatusCode();
 
 #if NET5_0_OR_GREATER
@@ -457,20 +457,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         Exception? error = null;
         try
         {
-            var client = service.Client;
-            if (client == null)
-            {
-                if (service.CreateTime.Year < 2000) Log?.Debug("使用[{0}]：{1}", service.Name, service.Address);
+            var client = EnsureClient(service);
 
-                client = CreateClient();
-                client.BaseAddress = service.Address;
-                if (!service.Token.IsNullOrEmpty()) Token = service.Token;
-
-                service.Client = client;
-                service.CreateTime = DateTime.Now;
-            }
-
-            var rs = await SendOnServiceAsync(request, service, client, cancellationToken).ConfigureAwait(false);
+            var rs = await SendOnServiceAsync(request, service, client, false, cancellationToken).ConfigureAwait(false);
 
             // 调用成功，当前服务点可用
             Current = service;
@@ -588,14 +577,16 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="request">请求消息</param>
     /// <param name="service">服务名</param>
     /// <param name="client">客户端</param>
+    /// <param name="onlyHeader">仅头部响应</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client, CancellationToken cancellationToken)
+    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
     {
         var filter = Filter;
         if (filter != null) await filter.OnRequest(client, request, this, cancellationToken).ConfigureAwait(false);
 
-        var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var completionOption = onlyHeader ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead;
+        var response = await client.SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
 
         if (filter != null) await filter.OnResponse(client, response, this, cancellationToken).ConfigureAwait(false);
 
@@ -603,6 +594,28 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         //response.EnsureSuccessStatusCode();
 
         return response;
+    }
+
+    /// <summary>确保服务有可用的 HttpClient</summary>
+    private HttpClient EnsureClient(Service service)
+    {
+        var client = service.Client;
+        if (client == null)
+        {
+            if (service.CreateTime.Year < 2000) Log?.Debug("使用[{0}]：{1}", service.Name, service.Address);
+
+            client = CreateClient();
+            client.BaseAddress = service.Address;
+            if (!service.Token.IsNullOrEmpty()) Token = service.Token;
+
+            service.Client = client;
+            service.CreateTime = DateTime.Now;
+        }
+
+        // 正常使用不会满足这个条件，仅用于单元测试
+        if (client.BaseAddress == null) client.BaseAddress = service.Address;
+
+        return client;
     }
 
     /// <summary>创建客户端</summary>
