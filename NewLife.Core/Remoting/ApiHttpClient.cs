@@ -12,7 +12,7 @@ using NewLife.Serialization;
 namespace NewLife.Remoting;
 
 /// <summary>Http应用接口客户端</summary>
-public class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature, ITracerFeature
+public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature, ITracerFeature
 {
     #region 属性
     /// <summary>令牌。每次请求携带</summary>

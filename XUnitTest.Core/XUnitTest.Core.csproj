@@ -52,6 +52,7 @@
     <None Remove="IO\excel.xlsx" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
     <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>
   <ItemGroup>

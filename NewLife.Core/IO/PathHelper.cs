@@ -664,8 +664,7 @@ public static class PathHelper
             alg = value.Length switch
             {
                 8 => "crc32",
-                16 => "md5",
-                32 => "md5",
+                16 or 32 => "md5",
                 40 => "sha1",
                 64 => "sha256",
                 128 => "sha512",
@@ -693,7 +692,7 @@ public static class PathHelper
             return actual.EqualIgnoreCase(value);
         }
 
-        if (alg.EqualIgnoreCase("sha1"))
+        if (alg.EqualIgnoreCase("sha1", "sha-1"))
         {
             using var sha1 = SHA1.Create();
             using var fs = file.OpenRead();
@@ -701,7 +700,7 @@ public static class PathHelper
             return actual.EqualIgnoreCase(value);
         }
 
-        if (alg.EqualIgnoreCase("sha256"))
+        if (alg.EqualIgnoreCase("sha256", "sha-256"))
         {
             using var sha256 = SHA256.Create();
             using var fs = file.OpenRead();
@@ -709,7 +708,7 @@ public static class PathHelper
             return actual.EqualIgnoreCase(value);
         }
 
-        if (alg.EqualIgnoreCase("sha512"))
+        if (alg.EqualIgnoreCase("sha512", "sha-512"))
         {
             using var sha512 = SHA512.Create();
             using var fs = file.OpenRead();
