@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using NewLife;
 using NewLife.Log;
 using NewLife.Remoting;
@@ -64,6 +65,184 @@ public class ApiHttpClientRaceTests
                 rs.Headers.Add("X-Content-MD5", hash);
         }
     }
+
+    class MockJsonHandler : HttpMessageHandler
+    {
+        private readonly Int32 _delayMs;
+        private readonly String _json;
+        private readonly HttpStatusCode _statusCode;
+
+        public MockJsonHandler(Int32 delayMs = 0, String? json = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+        {
+            _delayMs = delayMs;
+            _json = json ?? """{"code":0,"data":"ok"}""";
+            _statusCode = statusCode;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (_delayMs > 0)
+                await Task.Delay(_delayMs, cancellationToken);
+
+            var rs = new HttpResponseMessage(_statusCode)
+            {
+                Content = new StringContent(_json, Encoding.UTF8, "application/json")
+            };
+
+            return rs;
+        }
+    }
+
+    #region InvokeRaceAsync 测试
+    [Fact(DisplayName = "竞速调用_选择最快响应")]
+    public async Task InvokeRaceAsync_Fastest()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data"
+        };
+
+        // 添加三个服务，第二个响应最快
+        client.Add("slow1", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(200, """{"code":0,"data":"slow1"}"""));
+
+        client.Add("fast", "http://service2.test");
+        client.Services[1].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"fast"}"""));
+
+        client.Add("slow2", "http://service3.test");
+        client.Services[2].Client = new HttpClient(new MockJsonHandler(300, """{"code":0,"data":"slow2"}"""));
+
+        var result = await client.InvokeRaceAsync<String>("/api/test");
+
+        Assert.Equal("fast", result);
+        Assert.Equal("fast", client.Current?.Name);
+    }
+
+    [Fact(DisplayName = "竞速调用_单服务降级为普通调用")]
+    public async Task InvokeRaceAsync_SingleService()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data"
+        };
+
+        client.Add("single", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"single"}"""));
+
+        var result = await client.InvokeRaceAsync<String>("/api/test");
+
+        Assert.Equal("single", result);
+        Assert.Equal("single", client.Current?.Name);
+    }
+
+    [Fact(DisplayName = "竞速调用_跳过失败服务")]
+    public async Task InvokeRaceAsync_SkipFailedService()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data"
+        };
+
+        // 第一个服务快但失败
+        client.Add("fast_fail", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(10, null, HttpStatusCode.InternalServerError));
+
+        // 第二个服务慢但成功
+        client.Add("slow_ok", "http://service2.test");
+        client.Services[1].Client = new HttpClient(new MockJsonHandler(100, """{"code":0,"data":"slow_ok"}"""));
+
+        var result = await client.InvokeRaceAsync<String>("/api/test");
+
+        Assert.Equal("slow_ok", result);
+        Assert.Equal("slow_ok", client.Current?.Name);
+    }
+
+    [Fact(DisplayName = "竞速调用_全部失败抛出异常")]
+    public async Task InvokeRaceAsync_AllFailed()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000
+        };
+
+        client.Add("fail1", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(10, null, HttpStatusCode.InternalServerError));
+
+        client.Add("fail2", "http://service2.test");
+        client.Services[1].Client = new HttpClient(new MockJsonHandler(20, null, HttpStatusCode.BadGateway));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.InvokeRaceAsync<String>("/api/test"));
+    }
+
+    [Fact(DisplayName = "竞速调用_带参数POST")]
+    public async Task InvokeRaceAsync_PostWithArgs()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data"
+        };
+
+        client.Add("service1", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":{"id":123,"name":"test"}}"""));
+
+        var result = await client.InvokeRaceAsync<TestModel>(HttpMethod.Post, "/api/create", new { name = "test" });
+
+        Assert.NotNull(result);
+        Assert.Equal(123, result.Id);
+        Assert.Equal("test", result.Name);
+    }
+
+    [Fact(DisplayName = "竞速调用_屏蔽服务后重置")]
+    public async Task InvokeRaceAsync_ShieldedServiceReset()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data"
+        };
+
+        client.Add("service1", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"service1"}"""));
+        client.Services[0].NextTime = DateTime.Now.AddSeconds(60);
+
+        client.Add("service2", "http://service2.test");
+        client.Services[1].Client = new HttpClient(new MockJsonHandler(30, """{"code":0,"data":"service2"}"""));
+        client.Services[1].NextTime = DateTime.Now.AddSeconds(60);
+
+        // 全部被屏蔽时，应重置并启用所有服务
+        var result = await client.InvokeRaceAsync<String>("/api/test");
+
+        Assert.NotNull(result);
+    }
+
+    [Fact(DisplayName = "竞速调用_无服务抛出异常")]
+    public async Task InvokeRaceAsync_NoServices()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000
+        };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => client.InvokeRaceAsync<String>("/api/test"));
+    }
+
+    class TestModel
+    {
+        public Int32 Id { get; set; }
+        public String? Name { get; set; }
+    }
+    #endregion
 
     [Fact(DisplayName = "竞速下载_选择最快响应")]
     public async Task DownloadFileRaceAsync_Fastest()
