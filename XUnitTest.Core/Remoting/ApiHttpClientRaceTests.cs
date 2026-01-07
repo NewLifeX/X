@@ -93,6 +93,11 @@ public class ApiHttpClientRaceTests
         }
     }
 
+    class ThrowHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => throw new HttpRequestException("mock fail");
+    }
+
     #region InvokeRaceAsync 测试
     [Fact(DisplayName = "竞速调用_选择最快响应")]
     public async Task InvokeRaceAsync_Fastest()
@@ -467,5 +472,57 @@ public class ApiHttpClientRaceTests
 
         Assert.Equal("fast", result);
         Assert.Equal(0, slowHandler.Calls);
+    }
+
+    //[Fact(DisplayName = "竞速下载_无哈希头回退首个成功响应")]
+    //public async Task DownloadFileRaceAsync_FallbackWhenNoHashHeaders()
+    //{
+    //    var expectedHash = $"md5${TestMd5}";
+    //    var client = new ApiHttpClient
+    //    {
+    //        UseProxy = false,
+    //        Timeout = 5000
+    //    };
+
+    //    client.Add("nohash_fast", "http://service1.test");
+    //    client.Services[0].Client = new HttpClient(new MockHandler(20));
+
+    //    client.Add("nohash_slow", "http://service2.test");
+    //    client.Services[1].Client = new HttpClient(new MockHandler(200));
+
+    //    var file = "race_nohash.txt";
+    //    var fullPath = file.GetFullPath();
+    //    if (File.Exists(fullPath)) File.Delete(fullPath);
+
+    //    await client.DownloadFileRaceAsync("/test.txt", file, expectedHash, useHeadCheck: false);
+
+    //    Assert.True(File.Exists(fullPath));
+    //    Assert.Equal("nohash_fast", client.Current?.Name);
+    //    Assert.Equal(TestContent, File.ReadAllText(fullPath));
+    //}
+
+    [Fact(DisplayName = "竞速调用_异常节点被屏蔽")]
+    public async Task InvokeRaceAsync_ShieldFailedNode()
+    {
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data",
+            ShieldingTime = 3
+        };
+
+        client.Add("fail", "http://service1.test");
+        client.Services[0].Client = new HttpClient(new ThrowHandler());
+
+        client.Add("ok", "http://service2.test");
+        client.Services[1].Client = new HttpClient(new MockJsonHandler(50, """{"code":0,"data":"ok"}"""));
+
+        var result = await client.InvokeRaceAsync<String>("/");
+
+        Assert.Equal("ok", result);
+        Assert.Equal("ok", client.Current?.Name);
+        Assert.Equal(1, client.Services[0].Errors);
+        Assert.True(client.Services[0].NextTime >= DateTime.Now.AddSeconds(1));
     }
 }

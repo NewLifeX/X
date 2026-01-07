@@ -142,7 +142,16 @@ public partial class ApiHttpClient
         }
         catch (Exception ex)
         {
-            EndpointSelector?.MarkFailure(service.Name, ex);
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                EndpointSelector?.MarkFailure(service.Name, ex);
+
+                service.Errors++;
+                service.Client = null;
+                service.CreateTime = DateTime.MinValue;
+                service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
+            }
+
             return (service, null, ex);
         }
     }
