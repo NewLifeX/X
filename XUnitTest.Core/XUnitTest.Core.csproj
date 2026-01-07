@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
+    <Compile Include="Remoting\PeerEndpointSelectorTests.cs" />
     <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>
   <ItemGroup>
