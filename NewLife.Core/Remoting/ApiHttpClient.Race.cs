@@ -1,4 +1,5 @@
-﻿using NewLife.Http;
+﻿using System.Diagnostics;
+using NewLife.Http;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -25,7 +26,7 @@ public partial class ApiHttpClient
     public virtual async Task DownloadFileRaceAsync(String requestUri, String fileName, String? expectedHash, Boolean useHeadCheck = false, CancellationToken cancellationToken = default)
     {
         // 获取可用服务列表
-        var available = Services.Where(e => e.NextTime < DateTime.Now).ToList();
+        var available = await GetRaceServicesAsync(cancellationToken).ConfigureAwait(false);
         if (available.Count == 0) throw new XException("No available service nodes!");
 
         // 单节点直接下载
@@ -43,7 +44,7 @@ public partial class ApiHttpClient
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var method = useHeadCheck ? HttpMethod.Head : HttpMethod.Get;
-        var tasks = available.Select(svc => SendRaceRequestAsync(svc, method, requestUri, null, null, raceCts.Token)).ToList();
+        var tasks = available.Select(e => SendRaceRequestAsync(e.Service, e.Delay, method, requestUri, null, null, raceCts.Token)).ToList();
 
         Service? selectedService = null;
         HttpResponseMessage? selectedResponse = null;
@@ -124,18 +125,24 @@ public partial class ApiHttpClient
     }
 
     /// <summary>发送竞速请求并返回响应</summary>
-    private async Task<(Service Service, HttpResponseMessage? Response, Exception? Error)> SendRaceRequestAsync(Service service, HttpMethod method, String action, Object? args, Type? returnType, CancellationToken cancellationToken)
+    private async Task<(Service Service, HttpResponseMessage? Response, Exception? Error)> SendRaceRequestAsync(Service service, Int32 delay, HttpMethod method, String action, Object? args, Type? returnType, CancellationToken cancellationToken)
     {
+        if (delay > 0) await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+
+        var sw = Stopwatch.StartNew();
         try
         {
             var client = EnsureClient(service);
             using var request = BuildRequest(method, action, args, returnType);
 
             var response = await SendOnServiceAsync(request, service, client, true, cancellationToken).ConfigureAwait(false);
+            EndpointSelector?.MarkSuccess(service.Name, sw.Elapsed);
+
             return (service, response, null);
         }
         catch (Exception ex)
         {
+            EndpointSelector?.MarkFailure(service.Name, ex);
             return (service, null, ex);
         }
     }
@@ -254,7 +261,7 @@ public partial class ApiHttpClient
     public virtual async Task<TResult?> InvokeRaceAsync<TResult>(HttpMethod method, String action, Object? args = null, CancellationToken cancellationToken = default)
     {
         // 获取可用服务列表
-        var available = Services.Where(e => e.NextTime < DateTime.Now).ToList();
+        var available = await GetRaceServicesAsync(cancellationToken).ConfigureAwait(false);
         if (available.Count == 0) throw new XException("No available service nodes!");
 
         // 单节点直接调用
@@ -266,7 +273,7 @@ public partial class ApiHttpClient
         using var span = Tracer?.NewSpan(action, args);
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var tasks = available.Select(svc => SendRaceRequestAsync(svc, method, action, args, returnType, raceCts.Token)).ToList();
+        var tasks = available.Select(e => SendRaceRequestAsync(e.Service, e.Delay, method, action, args, returnType, raceCts.Token)).ToList();
 
         Service? selectedService = null;
         HttpResponseMessage? selectedResponse = null;
@@ -337,5 +344,35 @@ public partial class ApiHttpClient
 #endif
 
         return InvokeRaceAsync<TResult>(method, action, args, cancellationToken);
+    }
+
+    private async Task<List<(Service Service, Int32 Delay)>> GetRaceServicesAsync(CancellationToken cancellationToken)
+    {
+        var available = Services.Where(e => e.NextTime <= DateTime.Now).ToList();
+
+        // 自动创建选择器，动态适应变化，不会频繁修改
+        var selector = EndpointSelector;
+        if (selector == null || selector.Endpoints.Length != available.Count)
+        {
+            selector ??= new PeerEndpointSelector();
+            if (selector.Endpoints.Length > 0) selector.Endpoints = [];
+            AddToSelector(selector, available);
+            EndpointSelector = selector;
+        }
+
+        var endpoints = await selector.GetOrderedEndpointsAsync(false, cancellationToken).ConfigureAwait(false);
+        return endpoints.Select(e => ((e.State as Service)!, e.Score)).ToList();
+    }
+
+    private void AddToSelector(PeerEndpointSelector? selector, IList<Service> services)
+    {
+        if (selector == null || services == null || services.Count == 0) return;
+
+        foreach (var svc in services)
+        {
+            var internalAddress = !svc.Name.IsNullOrEmpty() && (svc.Name.Contains("内网") || svc.Name.Contains("Internal", StringComparison.OrdinalIgnoreCase));
+            var state = selector.AddAddress(svc.Address, internalAddress);
+            state.State = svc;
+        }
     }
 }

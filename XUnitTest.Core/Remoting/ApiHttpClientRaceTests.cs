@@ -18,34 +18,25 @@ public class ApiHttpClientRaceTests
     private static readonly String TestMd5 = TestContent.MD5();
     private static readonly String TestSha256 = TestData.SHA256().ToHex();
 
-    class MockHandler : HttpMessageHandler
+    class MockHandler(Int32 delayMs = 0, String? headerHash = null, Byte[]? data = null) : HttpMessageHandler
     {
-        private readonly Int32 _delayMs;
-        private readonly String? _headerHash;
-        private readonly Byte[] _data;
-
-        public MockHandler(Int32 delayMs = 0, String? headerHash = null, Byte[]? data = null)
-        {
-            _delayMs = delayMs;
-            _headerHash = headerHash;
-            _data = data ?? TestData;
-        }
+        private readonly Byte[] _data = data ?? TestData;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (_delayMs > 0)
-                await Task.Delay(_delayMs, cancellationToken);
+            if (delayMs > 0)
+                await Task.Delay(delayMs, cancellationToken);
 
             var rs = new HttpResponseMessage(HttpStatusCode.OK);
 
             if (request.Method == HttpMethod.Head)
             {
-                AppendHashHeaders(rs, _headerHash);
+                AppendHashHeaders(rs, headerHash);
             }
             else
             {
                 rs.Content = new ByteArrayContent(_data);
-                AppendHashHeaders(rs, _headerHash);
+                AppendHashHeaders(rs, headerHash);
             }
 
             return rs;
@@ -66,30 +57,39 @@ public class ApiHttpClientRaceTests
         }
     }
 
-    class MockJsonHandler : HttpMessageHandler
+    class MockJsonHandler(Int32 delayMs = 0, String? json = null, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
-        private readonly Int32 _delayMs;
-        private readonly String _json;
-        private readonly HttpStatusCode _statusCode;
-
-        public MockJsonHandler(Int32 delayMs = 0, String? json = null, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            _delayMs = delayMs;
-            _json = json ?? """{"code":0,"data":"ok"}""";
-            _statusCode = statusCode;
-        }
+        private readonly String _json = json ?? """{"code":0,"data":"ok"}""";
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (_delayMs > 0)
-                await Task.Delay(_delayMs, cancellationToken);
+            if (delayMs > 0)
+                await Task.Delay(delayMs, cancellationToken);
 
-            var rs = new HttpResponseMessage(_statusCode)
+            var rs = new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(_json, Encoding.UTF8, "application/json")
             };
 
             return rs;
+        }
+    }
+
+    class CountingHandler(Int32 delayMs = 0, String? json = null, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
+    {
+        private readonly String _json = json ?? """{""code"":0,""data"":""count""}""";
+        public Int32 Calls;
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref Calls);
+            if (delayMs > 0)
+                await Task.Delay(delayMs, cancellationToken);
+
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(_json, Encoding.UTF8, "application/json")
+            };
         }
     }
 
@@ -440,5 +440,32 @@ public class ApiHttpClientRaceTests
 
         // 全部被屏蔽时，应抛出异常
         await Assert.ThrowsAsync<XException>(() => client.DownloadFileRaceAsync("/test.txt", file, null, false));
+    }
+
+    [Fact(DisplayName = "竞速调用_分数延迟避免多余请求")]
+    public async Task InvokeRaceAsync_DelayScore_AvoidsExtraRequests()
+    {
+        var selector = new PeerEndpointSelector();
+        selector.SetAddresses("http://10.0.0.2:6680", "http://slow.test");
+
+        var client = new ApiHttpClient
+        {
+            UseProxy = false,
+            Timeout = 5000,
+            DataName = "data",
+            EndpointSelector = selector
+        };
+
+        client.Add("fast", "http://10.0.0.2:6680");
+        client.Services[0].Client = new HttpClient(new MockJsonHandler(20, """{"code":0,"data":"fast"}"""));
+
+        var slowHandler = new CountingHandler(0, """{"code":0,"data":"slow"}""");
+        client.Add("slow", "http://slow.test");
+        client.Services[1].Client = new HttpClient(slowHandler);
+
+        var result = await client.InvokeRaceAsync<String>("/api/test");
+
+        Assert.Equal("fast", result);
+        Assert.Equal(0, slowHandler.Calls);
     }
 }

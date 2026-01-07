@@ -72,6 +72,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
 
         if (ss["Codec"] is not PacketCodec pc)
         {
+#pragma warning disable CS0618 // 类型或成员已过时
             ss["Codec"] = pc = new PacketCodec
             {
                 Expire = Expire,
@@ -81,6 +82,7 @@ public class LengthFieldCodec : MessageCodec<IPacket>
                 MaxCache = MaxCache,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
+#pragma warning restore CS0618 // 类型或成员已过时
         }
 
         var pks = pc.Parse(pk);

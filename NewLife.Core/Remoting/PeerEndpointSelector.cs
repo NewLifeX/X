@@ -9,7 +9,7 @@ public class PeerEndpointSelector
 {
     #region 属性
     /// <summary>地址状态集合</summary>
-    public IList<EndpointState> Endpoints { get; } = [];
+    public EndpointState[] Endpoints { get; set; } = [];
 
     /// <summary>失败屏蔽时间，秒。默认600秒</summary>
     public Int32 ShieldingSeconds { get; set; } = 600;
@@ -17,8 +17,8 @@ public class PeerEndpointSelector
     /// <summary>探测结果缓存刷新间隔，秒。默认600秒</summary>
     public Int32 RefreshSeconds { get; set; } = 600;
 
-    /// <summary>探测超时时间，毫秒。默认1000ms</summary>
-    public Int32 ProbeTimeout { get; set; } = 1000;
+    /// <summary>探测超时时间，毫秒。默认3000ms</summary>
+    public Int32 ProbeTimeout { get; set; } = 3000;
 
     /// <summary>并行探测最大并发。默认8</summary>
     public Int32 MaxProbeConcurrency { get; set; } = 8;
@@ -53,9 +53,30 @@ public class PeerEndpointSelector
     {
         lock (_lock)
         {
-            Endpoints.Clear();
-            AddAddresses(internalAddresses, true);
-            AddAddresses(externalAddresses, false);
+            var endpoints = new List<EndpointState>();
+            AddAddresses(endpoints, internalAddresses, true);
+            AddAddresses(endpoints, externalAddresses, false);
+            Endpoints = [.. endpoints];
+        }
+    }
+
+    /// <summary>添加地址</summary>
+    /// <param name="address">地址</param>
+    /// <param name="internalAddress">是否内网地址</param>
+    public EndpointState AddAddress(Uri address, Boolean internalAddress)
+    {
+        var name = address.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+        var state = Endpoints.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+        if (state != null) return state;
+
+        lock (_lock)
+        {
+            var endpoints = new List<EndpointState>(Endpoints);
+            state = CreateEndpoint(address, internalAddress);
+            endpoints.Add(state);
+            Endpoints = [.. endpoints];
+
+            return state;
         }
     }
 
@@ -65,34 +86,35 @@ public class PeerEndpointSelector
     /// <returns>按优先级和RTT排序的地址状态列表</returns>
     public async Task<IReadOnlyList<EndpointState>> GetOrderedEndpointsAsync(Boolean forceProbe = false, CancellationToken cancellationToken = default)
     {
-        List<EndpointState> snapshot;
-        lock (_lock)
-        {
-            snapshot = Endpoints.ToList();
-        }
-
-        var now = DateTime.Now;
+        var snapshot = Endpoints;
         var hasUsable = snapshot.Any(e => e.IsUp);
         var hasStale = snapshot.Any(ShouldProbe);
 
         if (forceProbe || (!hasUsable && hasStale))
         {
             await ProbeEndpointsAsync(snapshot, forceProbe, cancellationToken).ConfigureAwait(false);
-            lock (_lock) snapshot = Endpoints.ToList();
+            snapshot = Endpoints;
         }
         else if (hasStale)
         {
-            _ = Task.Run(() => ProbeEndpointsAsync(snapshot, false, CancellationToken.None));
+            _ = Task.Run(() => ProbeEndpointsAsync(snapshot, false, CancellationToken.None), cancellationToken);
         }
 
-        snapshot = snapshot
-           .OrderBy(e => GetPriority(e.Category))
+        // 按分类优先级和RTT排序
+        var available = snapshot.Where(e => e.IsUp)
+           .OrderBy(e => e.Priority)
            .ThenBy(e => e.Rtt ?? TimeSpan.MaxValue)
            .ThenBy(e => e.Failures)
            .ThenBy(e => e.Address.AbsoluteUri)
            .ToList();
 
-        return snapshot.Any(e => e.IsUp) ? snapshot.Where(e => e.IsUp).ToList() : snapshot;
+        //var available = snapshot2.Any(e => e.IsUp) ? snapshot2.Where(e => e.IsUp).ToList() : snapshot2;
+        for (var i = 0; i < available.Count; i++)
+        {
+            available[i].Score = i * 100;
+        }
+
+        return available;
     }
 
     /// <summary>获取已排序的地址列表</summary>
@@ -120,11 +142,13 @@ public class PeerEndpointSelector
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var rtt = await ExecuteProbeAsync(state, cancellationToken).ConfigureAwait(false);
+            var uri = new Uri(state.Address, ProbePath + "");
+            var func = ProbeAsync ?? ExecuteProbeAsync;
+            var rtt = await func(uri, cancellationToken).ConfigureAwait(false);
             if (rtt != null)
-                MarkSuccess(state.Address, rtt.Value);
+                MarkSuccess(state.Name, rtt.Value);
             else
-                MarkFailure(state.Address, null);
+                MarkFailure(state.Name, null);
         }
         finally
         {
@@ -132,11 +156,8 @@ public class PeerEndpointSelector
         }
     }
 
-    private async Task<TimeSpan?> ExecuteProbeAsync(EndpointState state, CancellationToken cancellationToken)
+    private async Task<TimeSpan?> ExecuteProbeAsync(Uri uri, CancellationToken cancellationToken)
     {
-        if (ProbeAsync != null) return await ProbeAsync(state.Address, cancellationToken).ConfigureAwait(false);
-
-        var uri = new Uri(state.Address, ProbePath + "");
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(ProbeTimeout > 0 ? ProbeTimeout : 1000);
 
@@ -156,11 +177,15 @@ public class PeerEndpointSelector
     }
 
     /// <summary>标记成功，更新RTT和可用性</summary>
-    /// <param name="address">地址</param>
+    /// <param name="name">端点名称（规范化地址）</param>
     /// <param name="rtt">往返耗时</param>
-    public void MarkSuccess(Uri address, TimeSpan rtt)
+    public void MarkSuccess(String name, TimeSpan rtt)
     {
-        var state = FindOrCreate(address);
+        if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
+
+        var state = Endpoints.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+        if (state == null) return;
+
         lock (_lock)
         {
             state.IsUp = true;
@@ -172,11 +197,15 @@ public class PeerEndpointSelector
     }
 
     /// <summary>标记失败，屏蔽一段时间</summary>
-    /// <param name="address">地址</param>
+    /// <param name="name">端点名称（规范化地址）</param>
     /// <param name="error">异常信息</param>
-    public void MarkFailure(Uri address, Exception? error)
+    public void MarkFailure(String name, Exception? error)
     {
-        var state = FindOrCreate(address);
+        if (name.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(name));
+
+        var state = Endpoints.FirstOrDefault(e => e.Name.EqualIgnoreCase(name));
+        if (state == null) return;
+
         lock (_lock)
         {
             state.IsUp = false;
@@ -190,7 +219,7 @@ public class PeerEndpointSelector
     #endregion
 
     #region 辅助
-    private void AddAddresses(String? addresses, Boolean internalAddress)
+    private static void AddAddresses(List<EndpointState> endpoints, String? addresses, Boolean internalAddress)
     {
         if (addresses.IsNullOrWhiteSpace()) return;
 
@@ -203,58 +232,33 @@ public class PeerEndpointSelector
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) continue;
 
             var state = CreateEndpoint(uri, internalAddress);
-            Endpoints.Add(state);
-        }
-    }
-
-    private EndpointState FindOrCreate(Uri address)
-    {
-        lock (_lock)
-        {
-            var state = Endpoints.FirstOrDefault(e => Uri.Compare(e.Address, address, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase) == 0);
-            if (state != null) return state;
-
-            state = CreateEndpoint(address, false);
-            Endpoints.Add(state);
-            return state;
+            endpoints.Add(state);
         }
     }
 
     private static EndpointState CreateEndpoint(Uri uri, Boolean internalAddress)
     {
-        var category = DetectCategory(uri, internalAddress);
+        var category = EndpointCategory.ExternalDomain;
+        if (IPAddress.TryParse(uri.Host, out var ip))
+        {
+#if NETCOREAPP || NETSTANDARD2_1
+            if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
+#endif
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+                category = internalAddress ? EndpointCategory.InternalIPv4 : EndpointCategory.ExternalIPv4;
+            else if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+                category = internalAddress ? EndpointCategory.InternalIPv6 : EndpointCategory.ExternalIPv6;
+        }
+
         return new EndpointState
         {
+            Name = uri.GetLeftPart(UriPartial.Authority).TrimEnd('/'),
             Address = uri,
             Category = category,
             IsUp = true,
             NextProbe = DateTime.MinValue
         };
     }
-
-    private static EndpointCategory DetectCategory(Uri uri, Boolean internalAddress)
-    {
-        if (IPAddress.TryParse(uri.Host, out var ip))
-        {
-#if NETCOREAPP || NETSTANDARD2_1
-            if (ip.IsIPv4MappedToIPv6) ip = ip.MapToIPv4();
-#endif
-            if (ip.AddressFamily == AddressFamily.InterNetwork) return internalAddress ? EndpointCategory.InternalIPv4 : EndpointCategory.ExternalIPv4;
-            if (ip.AddressFamily == AddressFamily.InterNetworkV6) return internalAddress ? EndpointCategory.InternalIPv6 : EndpointCategory.ExternalIPv6;
-        }
-
-        return EndpointCategory.ExternalDomain;
-    }
-
-    private static Int32 GetPriority(EndpointCategory category) => category switch
-    {
-        EndpointCategory.InternalIPv4 => 0,
-        EndpointCategory.InternalIPv6 => 1,
-        EndpointCategory.ExternalIPv4 => 2,
-        EndpointCategory.ExternalDomain => 3,
-        EndpointCategory.ExternalIPv6 => 4,
-        _ => 10
-    };
 
     private static Boolean ShouldProbe(EndpointState state) => !state.IsUp || state.NextProbe <= DateTime.Now;
     #endregion
@@ -278,11 +282,17 @@ public class PeerEndpointSelector
     /// <summary>端点状态</summary>
     public class EndpointState
     {
+        /// <summary>名称</summary>
+        public String Name { get; set; } = null!;
+
         /// <summary>地址</summary>
         public Uri Address { get; set; } = null!;
 
         /// <summary>类别</summary>
         public EndpointCategory Category { get; set; }
+
+        /// <summary>优先级</summary>
+        public Int32 Priority => (Int32)Category;
 
         /// <summary>是否可用</summary>
         public Boolean IsUp { get; set; }
@@ -304,6 +314,12 @@ public class PeerEndpointSelector
 
         /// <summary>最后错误</summary>
         public String? LastError { get; set; }
+
+        /// <summary>延迟分数。用于竞速时的延时（毫秒）</summary>
+        public Int32 Score { get; set; }
+
+        /// <summary>状态对象，可存放自定义数据</summary>
+        public Object? State { get; set; }
     }
     #endregion
 }

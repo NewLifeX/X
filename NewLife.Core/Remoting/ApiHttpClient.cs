@@ -34,6 +34,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
     public Int32 ShieldingTime { get; set; } = 60;
 
+    /// <summary>地址选择器，用于竞速下载和调用时的多地址优先选择</summary>
+    public PeerEndpointSelector? EndpointSelector { get; set; }
+
     /// <summary>身份验证</summary>
     public AuthenticationHeaderValue? Authentication { get; set; }
 
@@ -109,12 +112,23 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-    public void Add(String name, String address) => ParseAndAdd(Services, name, address);
+    public void Add(String name, String address)
+    {
+        ParseAndAdd(Services, name, address);
+
+        AddToSelector(EndpointSelector!, Services);
+    }
 
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="uri">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-    public void Add(String name, Uri uri) => Services.Add(new Service { Name = name, Address = uri });
+    public void Add(String name, Uri uri)
+    {
+        var svc = new Service { Name = name };
+        svc.SetAddress(uri);
+
+        Services.Add(svc);
+    }
 
     private static void ParseAndAdd(IList<Service> services, String name, String address, Int32 weight = 0)
     {
@@ -153,7 +167,8 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             url = url[..p];
         }
 
-        svc.Address = new Uri(url);
+        //svc.Address = new Uri(url);
+        svc.SetAddress(new Uri(url));
         if (svc.Weight <= 1 && weight > 0) svc.Weight = weight;
 
         services.Add(svc);
@@ -174,6 +189,8 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             }
             Services = services;
             _lastUrls = urls;
+
+            AddToSelector(EndpointSelector, services);
         }
     }
 
@@ -187,15 +204,18 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
 
         var idx = 0;
         var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var services = Services;
         foreach (var addr in ss)
         {
             if (addr.IsNullOrEmpty()) continue;
 
             var name = "";
-            while (name.IsNullOrEmpty() || Services.Any(e => e.Name == name)) name = prefix + ++idx;
+            while (name.IsNullOrEmpty() || services.Any(e => e.Name == name)) name = prefix + ++idx;
 
-            ParseAndAdd(Services, name, addr, weight);
+            ParseAndAdd(services, name, addr, weight);
         }
+
+        AddToSelector(EndpointSelector, services);
     }
 
     void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
@@ -652,6 +672,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         /// <summary>名称</summary>
         public String Name { get; set; } = null!;
 
+        /// <summary>URI名称</summary>
+        public String UriName { get; set; } = null!;
+
         /// <summary>名称</summary>
         public Uri Address { get; set; } = null!;
 
@@ -681,6 +704,17 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         /// <summary>客户端</summary>
         [XmlIgnore, IgnoreDataMember]
         public HttpClient? Client { get; set; }
+
+        /// <summary>设置地址。同时生成UriName</summary>
+        /// <param name="uri"></param>
+        public void SetAddress(Uri uri)
+        {
+            if (uri == null) return;
+
+            Address = uri;
+            UriName = uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+            if (Name.IsNullOrEmpty()) Name = UriName;
+        }
 
         /// <summary>已重载。友好显示</summary>
         /// <returns></returns>

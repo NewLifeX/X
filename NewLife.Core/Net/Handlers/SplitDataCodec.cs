@@ -73,6 +73,7 @@ public class SplitDataCodec : Handler
 
         if (ss["Codec"] is not PacketCodec pc)
         {
+#pragma warning disable CS0618 // 类型或成员已过时
             ss["Codec"] = pc = new PacketCodec
             {
                 MaxCache = MaxCacheDataLength,
@@ -80,6 +81,7 @@ public class SplitDataCodec : Handler
                 GetLength2 = GetLineLength,
                 Tracer = (context.Owner as ISocket)?.Tracer
             };
+#pragma warning restore CS0618 // 类型或成员已过时
         }
 
         return pc.Parse(pk);
