@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using NewLife.Http;
+using NewLife.Log;
 using NewLife.Model;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -40,7 +41,8 @@ public partial class ApiHttpClient
         if (expectedHash.IsNullOrEmpty()) useHeadCheck = false;
 
         // 埋点
-        using var span = Tracer?.NewSpan(requestUri, expectedHash);
+        using var span = Tracer?.NewSpan($"race:{requestUri}", new { fileName, expectedHash, useHeadCheck });
+        span?.AppendTag(available.Join(",", e => $"{e.Score}*{e.UriName}"));
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var method = useHeadCheck ? HttpMethod.Head : HttpMethod.Get;
@@ -304,7 +306,8 @@ public partial class ApiHttpClient
         var returnType = typeof(TResult);
 
         // 埋点
-        using var span = Tracer?.NewSpan(action, args);
+        using var span = Tracer?.NewSpan($"race:{action}", args);
+        span?.AppendTag(available.Join(",", e => $"{e.Score}*{e.UriName}"));
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var tasks = available.Select(e => SendRaceRequestAsync(e, e.Score, method, action, args, returnType, raceCts.Token)).ToList();

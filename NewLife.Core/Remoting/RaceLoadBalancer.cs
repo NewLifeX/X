@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using NewLife.Log;
 
 namespace NewLife.Remoting;
 
@@ -36,6 +37,9 @@ public class RaceLoadBalancer : LoadBalancerBase
 
     /// <summary>自定义探测委托，返回RTT；返回null视为失败</summary>
     public Func<Uri, CancellationToken, Task<TimeSpan?>>? ProbeAsync { get; set; }
+
+    /// <summary>链路追踪</summary>
+    public ITracer? Tracer { get; set; }
 
     private readonly Object _lock = new();
     #endregion
@@ -152,8 +156,10 @@ public class RaceLoadBalancer : LoadBalancerBase
     #region 探测
     private static Boolean ShouldProbe(ServiceEndpoint service) => service.NextProbe <= DateTime.Now;
 
-    private async Task ProbeEndpointsAsync(IEnumerable<ServiceEndpoint> services, Boolean forceProbe, CancellationToken cancellationToken)
+    private async Task ProbeEndpointsAsync(IList<ServiceEndpoint> services, Boolean forceProbe, CancellationToken cancellationToken)
     {
+        using var span = Tracer?.NewSpan("race:ProbeEndpoints", null, services.Count);
+
         var tasks = new List<Task>();
         using var semaphore = new SemaphoreSlim(MaxProbeConcurrency > 0 ? MaxProbeConcurrency : 1);
 
