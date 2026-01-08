@@ -166,20 +166,22 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-    public void Add(String name, String address) => ParseAndAdd(Services, name, address);
+    public ServiceEndpoint Add(String name, String address) => ParseAndAdd(Services, name, address);
 
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="uri">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-    public void Add(String name, Uri uri)
+    public ServiceEndpoint Add(String name, Uri uri)
     {
         var svc = new ServiceEndpoint { Name = name };
         svc.SetAddress(uri);
 
         Services.Add(svc);
+
+        return svc;
     }
 
-    private static void ParseAndAdd(IList<ServiceEndpoint> services, String name, String address, Int32 weight = 0)
+    private static ServiceEndpoint ParseAndAdd(IList<ServiceEndpoint> services, String name, String address, Int32 weight = 0)
     {
         var url = address;
         var svc = new ServiceEndpoint
@@ -221,6 +223,8 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         if (svc.Weight <= 1 && weight > 0) svc.Weight = weight;
 
         services.Add(svc);
+
+        return svc;
     }
 
     private String? _lastUrls;
@@ -245,7 +249,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="prefix">名称前缀</param>
     /// <param name="urls">地址集。多个地址逗号隔开</param>
     /// <param name="weight">权重</param>
-    public void AddServer(String prefix, String urls, Int32 weight = 0)
+    public IEnumerable<ServiceEndpoint> AddServer(String prefix, String urls, Int32 weight = 0)
     {
         if (prefix.IsNullOrEmpty()) prefix = "service";
 
@@ -259,7 +263,8 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             var name = "";
             while (name.IsNullOrEmpty() || services.Any(e => e.Name == name)) name = prefix + ++idx;
 
-            ParseAndAdd(services, name, addr, weight);
+            var svc = ParseAndAdd(services, name, addr, weight);
+            if (svc != null) yield return svc;
         }
     }
 
