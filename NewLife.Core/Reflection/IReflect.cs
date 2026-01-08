@@ -411,6 +411,23 @@ public class DefaultReflect : IReflect
 
         if (!baseFirst) list.AddRange(GetProperties(type.BaseType).Where(e => !set.Contains(e.Name)));
 
+        // 如果有属性定义了 DataObjectFieldAttribute ，则让它们排在前面，避免XCode实体类中的扩展属性排在前面
+        if (list.Any(e => e.GetCustomAttribute<DataObjectFieldAttribute>() != null))
+        {
+            var list2 = new List<PropertyInfo>();
+            var list3 = new List<PropertyInfo>();
+            foreach (var pi in list)
+            {
+                if (pi.GetCustomAttribute<DataObjectFieldAttribute>() != null)
+                    list2.Add(pi);
+                else
+                    list3.Add(pi);
+            }
+            list2.AddRange(list3);
+
+            list = list2;
+        }
+
         return list;
     }
     #endregion
