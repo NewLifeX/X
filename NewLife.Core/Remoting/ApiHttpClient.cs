@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Xml.Serialization;
 using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
@@ -12,6 +10,17 @@ using NewLife.Serialization;
 namespace NewLife.Remoting;
 
 /// <summary>Http应用接口客户端</summary>
+/// <remarks>
+/// ApiHttpClient 是对多个服务地址的包装，底层管理多个 HttpClient，
+/// 提供统一的负载均衡和故障转移能力。
+/// 
+/// 支持三种负载均衡模式：
+/// <list type="bullet">
+/// <item><description>故障转移（Failover）：优先使用主节点，失败时自动切换到备用节点，过一段时间自动切回</description></item>
+/// <item><description>加权轮询（RoundRobin）：按权重分配请求到多个节点，自动屏蔽不可用节点</description></item>
+/// <item><description>竞速调用（Race）：并行请求多个节点，取最快响应</description></item>
+/// </list>
+/// </remarks>
 public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, ILogFeature, ITracerFeature
 {
     #region 属性
@@ -24,18 +33,38 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <summary>是否使用系统代理设置。默认false不检查系统代理设置，在某些系统上可以大大改善初始化速度</summary>
     public Boolean UseProxy { get; set; }
 
-    ///// <summary>是否使用压缩。默认true</summary>
-    ///// <remarks>将来可能取消该设置项，默认启用压缩</remarks>
-    //public Boolean Compressed { get; set; } = true;
+    /// <summary>负载均衡器</summary>
+    public ILoadBalancer LoadBalancer { get; private set; }
+
+    /// <summary>负载均衡模式。默认Failover故障转移</summary>
+    public LoadBalanceMode LoadBalanceMode
+    {
+        get => LoadBalancer.Mode;
+        set
+        {
+            if (LoadBalancer.Mode != value) LoadBalancer = CreateLoadBalancer(value);
+        }
+    }
 
     /// <summary>加权轮询负载均衡。默认false只使用故障转移</summary>
-    public Boolean RoundRobin { get; set; }
+    [Obsolete("请使用 LoadBalanceMode 属性")]
+    public Boolean RoundRobin
+    {
+        get => LoadBalanceMode == LoadBalanceMode.RoundRobin;
+        set => LoadBalanceMode = value ? LoadBalanceMode.RoundRobin : LoadBalanceMode.Failover;
+    }
 
     /// <summary>不可用节点的屏蔽时间。默认60秒</summary>
-    public Int32 ShieldingTime { get; set; } = 60;
-
-    /// <summary>地址选择器，用于竞速下载和调用时的多地址优先选择</summary>
-    public PeerEndpointSelector? EndpointSelector { get; set; }
+    public Int32 ShieldingTime
+    {
+        get => LoadBalancer.ShieldingTime;
+        set
+        {
+            LoadBalancer.ShieldingTime = value;
+            _shieldingTime = value;
+        }
+    }
+    private Int32 _shieldingTime = 60;
 
     /// <summary>身份验证</summary>
     public AuthenticationHeaderValue? Authentication { get; set; }
@@ -80,18 +109,21 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     public ITracer? Tracer { get; set; }
 
     /// <summary>服务列表。用于负载均衡和故障转移</summary>
-    public IList<Service> Services { get; set; } = [];
+    public IList<ServiceEndpoint> Services { get; set; } = [];
 
     /// <summary>当前服务</summary>
-    protected Service? _currentService;
+    protected ServiceEndpoint? _currentService;
 
     /// <summary>正在使用的服务点。最后一次调用成功的服务点，可获取其地址以及状态信息</summary>
-    public Service? Current { get; private set; }
+    public ServiceEndpoint? Current { get; private set; }
     #endregion
 
     #region 构造
     /// <summary>实例化</summary>
-    public ApiHttpClient() { }
+    public ApiHttpClient()
+    {
+        LoadBalancer = CreateLoadBalancer(LoadBalanceMode.Failover);
+    }
 
     /// <summary>实例化</summary>
     /// <param name="urls">地址集合。多地址逗号分隔，支持权重，test1=3*http://127.0.0.1:1234,test2=7*http://127.0.0.1:3344</param>
@@ -106,34 +138,51 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         var configProvider = serviceProvider.GetRequiredService<IConfigProvider>();
         configProvider.Bind(this, true, name);
     }
+
+    /// <summary>创建负载均衡器</summary>
+    /// <remarks>使用者可以继承并扩展其它负载均衡模式</remarks>
+    /// <param name="mode">负载均衡模式</param>
+    /// <returns></returns>
+    protected virtual ILoadBalancer CreateLoadBalancer(LoadBalanceMode mode)
+    {
+        var lb = mode switch
+        {
+            LoadBalanceMode.RoundRobin => (ILoadBalancer)new WeightedRoundRobinLoadBalancer(),
+            LoadBalanceMode.Race => new RaceLoadBalancer(),
+            _ => new FailoverLoadBalancer(),
+        };
+
+        if (lb is LoadBalancerBase lbb)
+        {
+            lbb.ShieldingTime = _shieldingTime;
+            lbb.Log = Log;
+        }
+
+        return lb;
+    }
     #endregion
 
     #region 方法
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="address">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
-    public void Add(String name, String address)
-    {
-        ParseAndAdd(Services, name, address);
-
-        AddToSelector(EndpointSelector!, Services);
-    }
+    public void Add(String name, String address) => ParseAndAdd(Services, name, address);
 
     /// <summary>添加服务地址</summary>
     /// <param name="name">名称</param>
     /// <param name="uri">地址，支持名称和权重，test1=3*http://127.0.0.1:1234</param>
     public void Add(String name, Uri uri)
     {
-        var svc = new Service { Name = name };
+        var svc = new ServiceEndpoint { Name = name };
         svc.SetAddress(uri);
 
         Services.Add(svc);
     }
 
-    private static void ParseAndAdd(IList<Service> services, String name, String address, Int32 weight = 0)
+    private static void ParseAndAdd(IList<ServiceEndpoint> services, String name, String address, Int32 weight = 0)
     {
         var url = address;
-        var svc = new Service
+        var svc = new ServiceEndpoint
         {
             Name = name
         };
@@ -181,7 +230,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     {
         if (!urls.IsNullOrEmpty() && urls != _lastUrls)
         {
-            var services = new List<Service>();
+            var services = new List<ServiceEndpoint>();
             var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
             for (var i = 0; i < ss.Length; i++)
             {
@@ -189,8 +238,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             }
             Services = services;
             _lastUrls = urls;
-
-            AddToSelector(EndpointSelector, services);
         }
     }
 
@@ -214,8 +261,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
 
             ParseAndAdd(services, name, addr, weight);
         }
-
-        AddToSelector(EndpointSelector, services);
     }
 
     void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)
@@ -276,7 +321,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     public Task<TResult?> DeleteAsync<TResult>(String action, Object? args = null) => InvokeAsync<TResult>(HttpMethod.Delete, action, args);
 
     /// <summary>异步调用，等待返回结果</summary>
-    /// <typeparam name="TResult"></typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
     /// <param name="method">请求方法</param>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
@@ -329,7 +374,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     }
 
     /// <summary>异步调用，等待返回结果</summary>
-    /// <typeparam name="TResult"></typeparam>
+    /// <typeparam name="TResult">返回类型</typeparam>
     /// <param name="action">服务操作</param>
     /// <param name="args">参数</param>
     /// <param name="cancellationToken">取消通知</param>
@@ -414,9 +459,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     #region 构造请求
     /// <summary>建立请求</summary>
     /// <param name="method">请求方法</param>
-    /// <param name="action"></param>
-    /// <param name="args"></param>
-    /// <param name="returnType"></param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <param name="returnType">返回类型</param>
     /// <returns></returns>
     protected virtual HttpRequestMessage BuildRequest(HttpMethod method, String action, Object? args, Type? returnType)
     {
@@ -455,9 +500,6 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     #endregion
 
     #region 调度池
-    /// <summary>调度索引，当前使用该索引处的服务</summary>
-    private volatile Int32 _idxServer;
-
     /// <summary>异步发送</summary>
     /// <param name="request">请求</param>
     /// <param name="cancellationToken">取消通知</param>
@@ -466,8 +508,8 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     {
         if (Services.Count == 0) throw new InvalidOperationException("Service address not added!");
 
-        // 获取一个处理当前请求的服务，此处实现负载均衡LoadBalance和故障转移Failover
-        var service = GetService();
+        // 获取一个处理当前请求的服务，使用负载均衡器
+        var service = LoadBalancer.GetService(Services) ?? throw new InvalidOperationException("No available service nodes!");
         Source = service.Name;
         _currentService = service;
 
@@ -503,95 +545,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             }
 
             // 归还服务
-            PutService(service, error);
-        }
-    }
-
-    /// <summary>获取一个服务用于处理请求，此处可实现负载均衡LoadBalance。默认取当前可用服务</summary>
-    /// <remarks>
-    /// 如需实现负载均衡，每次取值后都累加索引，让其下一次记获取时拿到下一个服务。
-    /// </remarks>
-    /// <returns></returns>
-    protected virtual Service GetService()
-    {
-        // 在可用服务节点中选择，如果全部节点不可用，则启用全部节点，避免网络恢复后无法及时通信
-        var svrs = Services;
-        //if (!svrs.Any(e => e.NextTime < DateTime.Now)) throw new XException("没有可用服务节点！");
-        if (!svrs.Any(e => e.NextTime < DateTime.Now))
-        {
-            foreach (var item in svrs)
-            {
-                item.NextTime = DateTime.MinValue;
-            }
-        }
-
-        if (RoundRobin)
-        {
-            // 判断当前节点是否有效
-            Service? svc = null;
-            for (var i = 0; i < svrs.Count; i++)
-            {
-                svc = svrs[_idxServer % svrs.Count];
-
-                // 权重足够，又没有错误，就是它了
-                if ((svc.Weight <= 0 || svc.Index < svc.Weight || svrs.Count == 1) && svc.NextTime < DateTime.Now) break;
-
-                // 这个就算了，再下一个
-                svc.Index = 0;
-                svc = null;
-                _idxServer++;
-            }
-            // 如果都没有可用节点，默认选第一个
-            if (svc == null && svrs.Count > 0) svc = svrs[0];
-            if (svc == null) throw new XException("No available service nodes!");
-
-            svc.Times++;
-
-            // 计算下一次节点
-            svc.Index++;
-            if (svc.Index >= svc.Weight)
-            {
-                svc.Index = 0;
-                _idxServer++;
-            }
-            if (_idxServer >= svrs.Count) _idxServer = 0;
-
-            return svc;
-        }
-        else
-        {
-            // 一定时间后，切换回来主节点
-            var idx = _idxServer;
-            if (idx > 0 && svrs[0].NextTime < DateTime.Now) idx = _idxServer = 0;
-
-            var svc = svrs[idx % svrs.Count];
-            svc.Times++;
-
-            return svc;
-        }
-    }
-
-    /// <summary>归还服务，此处实现故障转移Failover，服务的客户端被清空，说明当前服务不可用</summary>
-    /// <param name="service"></param>
-    /// <param name="error"></param>
-    protected virtual void PutService(Service service, Exception? error)
-    {
-        if (service.CreateTime.AddMinutes(10) < DateTime.Now) service.Client = null;
-
-        var ex = error;
-        while (ex is AggregateException age) ex = age.InnerException;
-
-        if (ex is HttpRequestException or TaskCanceledException)
-        {
-            // 网络异常时，自动切换到其它节点
-            _idxServer++;
-        }
-        if (error != null)
-        {
-            service.Errors++;
-            service.Client = null;
-            service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
-            service.CreateTime = DateTime.MinValue;
+            LoadBalancer.PutService(Services, service, error);
         }
     }
 
@@ -602,7 +556,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="onlyHeader">仅头部响应</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, Service service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
+    protected virtual async Task<HttpResponseMessage> SendOnServiceAsync(HttpRequestMessage request, ServiceEndpoint service, HttpClient client, Boolean onlyHeader, CancellationToken cancellationToken)
     {
         var filter = Filter;
         if (filter != null) await filter.OnRequest(client, request, this, cancellationToken).ConfigureAwait(false);
@@ -619,7 +573,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     }
 
     /// <summary>确保服务有可用的 HttpClient</summary>
-    private HttpClient EnsureClient(Service service)
+    /// <param name="service">服务</param>
+    /// <returns></returns>
+    internal HttpClient EnsureClient(ServiceEndpoint service)
     {
         var client = service.Client;
         if (client == null)
@@ -665,70 +621,13 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     }
     #endregion
 
-    #region 内嵌
-    /// <summary>服务项</summary>
-    public class Service
-    {
-        /// <summary>名称</summary>
-        public String Name { get; set; } = null!;
-
-        /// <summary>URI名称</summary>
-        public String UriName { get; set; } = null!;
-
-        /// <summary>名称</summary>
-        public Uri Address { get; set; } = null!;
-
-        /// <summary>权重。用于负载均衡，默认1</summary>
-        public Int32 Weight { get; set; } = 1;
-
-        /// <summary>访问令牌</summary>
-        public String? Token { get; set; }
-
-        /// <summary>轮询均衡时，本项第几次使用</summary>
-        internal Int32 Index;
-
-        /// <summary>总次数</summary>
-        public Int32 Times { get; set; }
-
-        /// <summary>错误数</summary>
-        public Int32 Errors { get; set; }
-
-        /// <summary>创建时间。每过一段时间，就清空一次客户端，让它重建连接，更新域名缓存</summary>
-        [XmlIgnore, IgnoreDataMember]
-        public DateTime CreateTime { get; set; }
-
-        /// <summary>下一次时间。服务项出错时，将禁用一段时间</summary>
-        [XmlIgnore, IgnoreDataMember]
-        public DateTime NextTime { get; set; }
-
-        /// <summary>客户端</summary>
-        [XmlIgnore, IgnoreDataMember]
-        public HttpClient? Client { get; set; }
-
-        /// <summary>设置地址。同时生成UriName</summary>
-        /// <param name="uri"></param>
-        public void SetAddress(Uri uri)
-        {
-            if (uri == null) return;
-
-            Address = uri;
-            UriName = uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
-            if (Name.IsNullOrEmpty()) Name = UriName;
-        }
-
-        /// <summary>已重载。友好显示</summary>
-        /// <returns></returns>
-        public override String ToString() => $"{Name} {Address}";
-    }
-    #endregion
-
     #region 日志
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
     /// <summary>写日志</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
+    /// <param name="format">格式化字符串</param>
+    /// <param name="args">参数</param>
     public void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
     #endregion
 }

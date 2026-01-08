@@ -450,15 +450,12 @@ public class ApiHttpClientRaceTests
     [Fact(DisplayName = "竞速调用_分数延迟避免多余请求")]
     public async Task InvokeRaceAsync_DelayScore_AvoidsExtraRequests()
     {
-        var selector = new PeerEndpointSelector();
-        selector.SetAddresses("http://10.0.0.2:6680", "http://slow.test");
-
         var client = new ApiHttpClient
         {
             UseProxy = false,
             Timeout = 5000,
             DataName = "data",
-            EndpointSelector = selector
+            LoadBalanceMode = LoadBalanceMode.Race
         };
 
         client.Add("fast", "http://10.0.0.2:6680");
@@ -473,33 +470,6 @@ public class ApiHttpClientRaceTests
         Assert.Equal("fast", result);
         Assert.Equal(0, slowHandler.Calls);
     }
-
-    //[Fact(DisplayName = "竞速下载_无哈希头回退首个成功响应")]
-    //public async Task DownloadFileRaceAsync_FallbackWhenNoHashHeaders()
-    //{
-    //    var expectedHash = $"md5${TestMd5}";
-    //    var client = new ApiHttpClient
-    //    {
-    //        UseProxy = false,
-    //        Timeout = 5000
-    //    };
-
-    //    client.Add("nohash_fast", "http://service1.test");
-    //    client.Services[0].Client = new HttpClient(new MockHandler(20));
-
-    //    client.Add("nohash_slow", "http://service2.test");
-    //    client.Services[1].Client = new HttpClient(new MockHandler(200));
-
-    //    var file = "race_nohash.txt";
-    //    var fullPath = file.GetFullPath();
-    //    if (File.Exists(fullPath)) File.Delete(fullPath);
-
-    //    await client.DownloadFileRaceAsync("/test.txt", file, expectedHash, useHeadCheck: false);
-
-    //    Assert.True(File.Exists(fullPath));
-    //    Assert.Equal("nohash_fast", client.Current?.Name);
-    //    Assert.Equal(TestContent, File.ReadAllText(fullPath));
-    //}
 
     [Fact(DisplayName = "竞速调用_异常节点被屏蔽")]
     public async Task InvokeRaceAsync_ShieldFailedNode()

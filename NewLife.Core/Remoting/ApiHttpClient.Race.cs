@@ -10,7 +10,7 @@ public partial class ApiHttpClient
 {
     /// <summary>竞速下载文件到本地并校验哈希（可取消）</summary>
     /// <remarks>
-    /// 并行请求所有可用服务地址（<see cref="Service.NextTime"/> 小于当前时间）。
+    /// 并行请求所有可用服务地址（<see cref="ServiceEndpoint.NextTime"/> 小于当前时间）。
     /// - expectedHash 非空：
     ///   - useHeadCheck=true：并行发起 HEAD 请求竞速，谁先通过哈希校验谁被选中继续下载，同时取消其它任务；
     ///   - useHeadCheck=false：直接并行 GET 获取响应头，按响应头哈希与 expectedHash 是否匹配选择服务；
@@ -44,9 +44,9 @@ public partial class ApiHttpClient
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var method = useHeadCheck ? HttpMethod.Head : HttpMethod.Get;
-        var tasks = available.Select(e => SendRaceRequestAsync(e.Service, e.Delay, method, requestUri, null, null, raceCts.Token)).ToList();
+        var tasks = available.Select(e => SendRaceRequestAsync(e, e.Score, method, requestUri, null, null, raceCts.Token)).ToList();
 
-        Service? selectedService = null;
+        ServiceEndpoint? selectedService = null;
         HttpResponseMessage? selectedResponse = null;
 
         try
@@ -125,9 +125,18 @@ public partial class ApiHttpClient
     }
 
     /// <summary>发送竞速请求并返回响应</summary>
-    private async Task<(Service Service, HttpResponseMessage? Response, Exception? Error)> SendRaceRequestAsync(Service service, Int32 delay, HttpMethod method, String action, Object? args, Type? returnType, CancellationToken cancellationToken)
+    /// <param name="service">服务节点</param>
+    /// <param name="delay">启动延迟（毫秒）</param>
+    /// <param name="method">请求方法</param>
+    /// <param name="action">服务操作</param>
+    /// <param name="args">参数</param>
+    /// <param name="returnType">返回类型</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns></returns>
+    private async Task<(ServiceEndpoint Service, HttpResponseMessage? Response, Exception? Error)> SendRaceRequestAsync(ServiceEndpoint service, Int32 delay, HttpMethod method, String action, Object? args, Type? returnType, CancellationToken cancellationToken)
     {
         if (delay > 0) await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+        if (cancellationToken.IsCancellationRequested) return (service, null, new OperationCanceledException());
 
         var sw = Stopwatch.StartNew();
         try
@@ -136,7 +145,10 @@ public partial class ApiHttpClient
             using var request = BuildRequest(method, action, args, returnType);
 
             var response = await SendOnServiceAsync(request, service, client, true, cancellationToken).ConfigureAwait(false);
-            EndpointSelector?.MarkSuccess(service.Name, sw.Elapsed);
+
+            // 标记成功
+            if (LoadBalancer is RaceLoadBalancer rlb)
+                rlb.MarkSuccess(service, sw.Elapsed);
 
             return (service, response, null);
         }
@@ -144,12 +156,11 @@ public partial class ApiHttpClient
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                EndpointSelector?.MarkFailure(service.Name, ex);
+                // 标记失败
+                if (LoadBalancer is RaceLoadBalancer rlb)
+                    rlb.MarkFailure(service, ex);
 
-                service.Errors++;
-                service.Client = null;
-                service.CreateTime = DateTime.MinValue;
-                service.NextTime = DateTime.Now.AddSeconds(ShieldingTime);
+                service.MarkFailure(ShieldingTime);
             }
 
             return (service, null, ex);
@@ -157,7 +168,8 @@ public partial class ApiHttpClient
     }
 
     /// <summary>异步清理任务列表中的响应</summary>
-    private static async Task CleanupTasksAsync(IList<Task<(Service Service, HttpResponseMessage? Response, Exception? Error)>> tasks)
+    /// <param name="tasks">任务列表</param>
+    private static async Task CleanupTasksAsync(IList<Task<(ServiceEndpoint Service, HttpResponseMessage? Response, Exception? Error)>> tasks)
     {
         foreach (var task in tasks)
         {
@@ -166,6 +178,9 @@ public partial class ApiHttpClient
     }
 
     /// <summary>从响应头提取哈希并与预期哈希匹配</summary>
+    /// <param name="response">响应</param>
+    /// <param name="expectedHash">预期哈希</param>
+    /// <returns></returns>
     private static Boolean MatchHashFromHeaders(HttpResponseMessage response, String expectedHash)
     {
         if (expectedHash.IsNullOrEmpty()) return false;
@@ -216,6 +231,8 @@ public partial class ApiHttpClient
     }
 
     /// <summary>解析哈希字符串为算法和哈希值</summary>
+    /// <param name="hash">哈希字符串</param>
+    /// <returns></returns>
     private static (String Algorithm, String Hash) ParseHash(String hash)
     {
         if (hash.IsNullOrEmpty()) return ("", "");
@@ -228,6 +245,12 @@ public partial class ApiHttpClient
     }
 
     /// <summary>尝试匹配哈希值</summary>
+    /// <param name="value">实际值</param>
+    /// <param name="separator">分隔符</param>
+    /// <param name="expAlg">预期算法</param>
+    /// <param name="expHash">预期哈希</param>
+    /// <param name="defaultAlg">默认算法</param>
+    /// <returns></returns>
     private static Boolean TryMatchHash(String? value, Char separator, String expAlg, String expHash, String? defaultAlg)
     {
         if (value.IsNullOrEmpty()) return false;
@@ -241,6 +264,8 @@ public partial class ApiHttpClient
     }
 
     /// <summary>根据哈希长度推断算法</summary>
+    /// <param name="hash">哈希值</param>
+    /// <returns></returns>
     private static String InferAlgorithm(String hash)
     {
         var len = hash?.Trim().Trim('"').Length ?? 0;
@@ -257,7 +282,7 @@ public partial class ApiHttpClient
 
     /// <summary>竞速调用，并行请求所有可用服务地址，选取最快成功返回的结果</summary>
     /// <remarks>
-    /// 并行请求所有可用服务地址（<see cref="Service.NextTime"/> 小于当前时间）。
+    /// 并行请求所有可用服务地址（<see cref="ServiceEndpoint.NextTime"/> 小于当前时间）。
     /// 若全部服务地址被屏蔽（NextTime 大于当前时间），则抛出异常。
     /// 选取最快成功返回响应且状态码正常的任务，读取并解析结果，同时取消其它任务。
     /// </remarks>
@@ -282,9 +307,9 @@ public partial class ApiHttpClient
         using var span = Tracer?.NewSpan(action, args);
 
         using var raceCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var tasks = available.Select(e => SendRaceRequestAsync(e.Service, e.Delay, method, action, args, returnType, raceCts.Token)).ToList();
+        var tasks = available.Select(e => SendRaceRequestAsync(e, e.Score, method, action, args, returnType, raceCts.Token)).ToList();
 
-        Service? selectedService = null;
+        ServiceEndpoint? selectedService = null;
         HttpResponseMessage? selectedResponse = null;
 
         try
@@ -355,33 +380,20 @@ public partial class ApiHttpClient
         return InvokeRaceAsync<TResult>(method, action, args, cancellationToken);
     }
 
-    private async Task<List<(Service Service, Int32 Delay)>> GetRaceServicesAsync(CancellationToken cancellationToken)
+    /// <summary>获取所有可用服务列表用于竞速调用</summary>
+    /// <returns></returns>
+    private async Task<IList<ServiceEndpoint>> GetRaceServicesAsync(CancellationToken cancellationToken)
     {
-        var available = Services.Where(e => e.NextTime <= DateTime.Now).ToList();
+        // 如果当前使用竞速负载均衡器，直接使用
+        if (LoadBalancer is RaceLoadBalancer rlb)
+            return await rlb.GetAllServicesAsync(Services, false, cancellationToken).ConfigureAwait(false);
 
-        // 自动创建选择器，动态适应变化，不会频繁修改
-        var selector = EndpointSelector;
-        if (selector == null || selector.Endpoints.Length != available.Count)
+        // 兜底：返回所有可用服务，按顺序设置延迟
+        var available = Services.Where(e => e.IsAvailable()).ToList();
+        for (var i = 0; i < available.Count; i++)
         {
-            selector ??= new PeerEndpointSelector();
-            if (selector.Endpoints.Length > 0) selector.Endpoints = [];
-            AddToSelector(selector, available);
-            EndpointSelector = selector;
+            available[i].Score = i * 100;
         }
-
-        var endpoints = await selector.GetOrderedEndpointsAsync(false, cancellationToken).ConfigureAwait(false);
-        return endpoints.Select(e => ((e.State as Service)!, e.Score)).ToList();
-    }
-
-    private void AddToSelector(PeerEndpointSelector? selector, IList<Service> services)
-    {
-        if (selector == null || services == null || services.Count == 0) return;
-
-        foreach (var svc in services)
-        {
-            var internalAddress = !svc.Name.IsNullOrEmpty() && (svc.Name.Contains("内网") || svc.Name.Contains("Internal", StringComparison.OrdinalIgnoreCase));
-            var state = selector.AddAddress(svc.Address, internalAddress);
-            state.State = svc;
-        }
+        return available;
     }
 }
