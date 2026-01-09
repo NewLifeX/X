@@ -35,6 +35,22 @@ public class RaceLoadBalancer : LoadBalancerBase
     /// <summary>是否仅获取响应头进行探测。默认 false 使用完整 GET</summary>
     public Boolean ProbeHeadersOnly { get; set; }
 
+    /// <summary>竞速启动延迟步长，毫秒。默认100ms</summary>
+    /// <remarks>
+    /// <para>
+    /// 竞速模式下，会按优先级/RTT等策略对节点排序，并为每个节点计算其启动延迟：
+    /// <c>delay = index * StartDelayStep</c>（单位毫秒），写入 <see cref="ServiceEndpoint.Score"/>。
+    /// </para>
+    /// <para>
+    /// 该值用于“错峰”发起并行请求：排在前面的节点先启动，后面的节点按步长依次延后，
+    /// 以减少对所有节点同时施压，同时仍能在前序节点变慢/失败时快速启用后续节点。
+    /// </para>
+    /// <para>
+    /// 设置为 0 表示不做启动延迟（所有节点同时发起）。
+    /// </para>
+    /// </remarks>
+    public Int32 StartDelayStep { get; set; } = 100;
+
     /// <summary>自定义探测委托，返回RTT；返回null视为失败</summary>
     public Func<Uri, CancellationToken, Task<TimeSpan?>>? ProbeAsync { get; set; }
 
@@ -76,7 +92,7 @@ public class RaceLoadBalancer : LoadBalancerBase
     /// <param name="services">服务列表</param>
     /// <param name="forceProbe">是否强制探测全部地址</param>
     /// <param name="cancellationToken">取消通知</param>
-    /// <returns>已排序的可用服务列表，Score字段表示启动延迟（毫秒）</returns>
+    /// <returns>已排序的可用服务列表，<see cref="ServiceEndpoint.Score"/> 字段表示启动延迟（毫秒）</returns>
     public async Task<IList<ServiceEndpoint>> GetAllServicesAsync(IList<ServiceEndpoint> services, Boolean forceProbe, CancellationToken cancellationToken)
     {
         EnsureAvailable(services);
@@ -110,7 +126,7 @@ public class RaceLoadBalancer : LoadBalancerBase
         // 计算延迟分数
         for (var i = 0; i < sorted.Count; i++)
         {
-            sorted[i].Score = i * 100;
+            sorted[i].Score = i * StartDelayStep;
         }
 
         return sorted;
