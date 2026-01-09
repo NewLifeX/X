@@ -337,5 +337,39 @@ public static class SpanHelper
         }
         return num - start + 1;
     }
+
+    /// <summary>去掉前后空白字符</summary>
+    /// <param name="span">目标切片</param>
+    /// <returns></returns>
+    public static ReadOnlySpan<Byte> Trim(this ReadOnlySpan<Byte> span)
+    {
+        Int32 i;
+        for (i = 0; i < span.Length && Char.IsWhiteSpace((Char)span[i]); i++)
+        {
+        }
+        var num = span.Length - 1;
+        while (num > i && Char.IsWhiteSpace((Char)span[num]))
+        {
+            num--;
+        }
+        return span.Slice(i, num - i + 1);
+    }
+
+    /// <summary>去掉前后空白字符</summary>
+    /// <param name="span">目标切片</param>
+    /// <returns></returns>
+    public static Span<Byte> Trim(this Span<Byte> span)
+    {
+        Int32 i;
+        for (i = 0; i < span.Length && Char.IsWhiteSpace((Char)span[i]); i++)
+        {
+        }
+        var num = span.Length - 1;
+        while (num > i && Char.IsWhiteSpace((Char)span[num]))
+        {
+            num--;
+        }
+        return span.Slice(i, num - i + 1);
+    }
     #endregion
 }

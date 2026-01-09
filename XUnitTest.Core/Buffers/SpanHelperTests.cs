@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using NewLife;
 using Xunit;
 
@@ -60,5 +56,54 @@ public class SpanHelperTests
 
         ReadOnlySpan<Byte> span2 = span;
         Assert.Equal(buf.ToHex(), span2.ToHex());
+    }
+
+    [Theory]
+    [InlineData("Hello", "Hello")]
+    [InlineData(" Hello", "Hello")]
+    [InlineData("Hello ", "Hello")]
+    [InlineData(" Hello ", "Hello")]
+    [InlineData("\tHello\r\n", "Hello")]
+    [InlineData("  H e l l o  ", "H e l l o")]
+    public void Trim_CharSpan(String input, String expected)
+    {
+        var span = input.GetBytes().AsSpan();
+        var rs = SpanHelper.Trim(span);
+
+        Assert.Equal(expected, rs.ToStr());
+    }
+
+    [Fact]
+    public void Trim_CharSpan_AllWhitespace()
+    {
+        var buf = "  \t\r\n ".GetBytes();
+        var span = new Span<Byte>(buf);
+
+        var rs = SpanHelper.Trim(span);
+
+        Assert.Equal(String.Empty, rs.ToStr());
+        Assert.Equal(0, rs.Length);
+    }
+
+    //[Fact]
+    //public void Trim_CharSpan_Empty()
+    //{
+    //    Span<Char> span = [];
+
+    //    var rs = SpanHelper.Trim(span);
+
+    //    Assert.True(rs.IsEmpty);
+    //    Assert.Equal(0, rs.Length);
+    //}
+
+    [Fact]
+    public void Trim_ByteSpan_Empty()
+    {
+        ReadOnlySpan<Byte> span = [];
+
+        var rs = span.Trim();
+
+        Assert.True(rs.IsEmpty);
+        Assert.Equal(0, rs.Length);
     }
 }
