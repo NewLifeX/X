@@ -170,10 +170,66 @@ public static class ConfigHelper
                 else
                     MapToList(cfg, model, pi, provider);
             }
+            else if (pi.PropertyType.As<IDictionary>() || pi.PropertyType.As(typeof(IDictionary<,>)))
+            {
+                MapToDictionaryProperty(cfg, model, pi, provider);
+            }
             else
             {
                 MapToComplexObject(cfg, model, pi, provider);
             }
+        }
+    }
+
+    private static void MapToDictionaryProperty(IConfigSection cfg, Object model, PropertyInfo pi, IConfigProvider provider)
+    {
+        if (cfg.Childs == null) return;
+
+        var dict = model.GetValue(pi) as IDictionary;
+        if (dict == null)
+        {
+            var obj = !pi.PropertyType.IsInterface ? pi.PropertyType.CreateInstance() : typeof(Dictionary<,>).MakeGenericType(pi.PropertyType.GetGenericArguments()).CreateInstance();
+            dict = obj as IDictionary;
+            if (dict == null) return;
+
+            model.SetValue(pi, dict);
+        }
+
+        // 映射前清空原有数据
+        dict.Clear();
+
+        var keyType = typeof(String);
+        var valType = typeof(String);
+        if (pi.PropertyType.IsGenericType)
+        {
+            var args = pi.PropertyType.GetGenericArguments();
+            if (args.Length >= 2)
+            {
+                keyType = args[0];
+                valType = args[1];
+            }
+        }
+
+        // 约定：<Settings><token>xxx</token><mode>yyy</mode></Settings>
+        foreach (var item in cfg.Childs.ToArray())
+        {
+            if (item.Key.IsNullOrEmpty()) continue;
+
+            var k = item.Key.ChangeType(keyType);
+            Object? v;
+            if (item.Childs != null)
+            {
+                // 复杂对象值：递归映射
+                v = valType.CreateInstance();
+                if (v != null)
+                    MapTo(item, v, provider);
+            }
+            else
+            {
+                v = item.Value?.ChangeType(valType);
+            }
+
+            if (k != null) dict[k] = v;
         }
     }
 
@@ -365,10 +421,62 @@ public static class ConfigHelper
                 if (elementType != null) MapArray(cfg, list, elementType);
             }
         }
+        else if (type.As<IDictionary>() || type.As(typeof(IDictionary<,>)))
+        {
+            if (val is IDictionary dic)
+                MapDictionary(cfg, dic, type);
+            else
+                cfg.Childs = null;
+        }
         else if (val != null)
         {
             // 递归映射
             MapFrom(cfg, val);
+        }
+        else
+        {
+            cfg.Childs = null;
+        }
+    }
+
+    private static void MapDictionary(IConfigSection cfg, IDictionary dic, Type dictType)
+    {
+        cfg.Childs ??= [];
+        if (cfg.Childs.Count > 0) cfg.Childs.Clear();
+
+        var keyType = typeof(String);
+        var valType = typeof(String);
+        if (dictType.IsGenericType)
+        {
+            var args = dictType.GetGenericArguments();
+            if (args.Length >= 2)
+            {
+                keyType = args[0];
+                valType = args[1];
+            }
+        }
+
+        foreach (DictionaryEntry item in dic)
+        {
+            if (item.Key == null) continue;
+
+            var key = item.Key.ChangeType<String>();
+            if (key.IsNullOrEmpty()) continue;
+
+            var cfg2 = cfg.AddChild(key);
+
+            if (item.Value == null)
+            {
+                cfg2.Childs = null;
+                cfg2.Value = null;
+                continue;
+            }
+
+            // 复杂对象值：递归映射；简单值：写 Value
+            if (valType.IsBaseType() || item.Value.GetType().IsBaseType())
+                cfg2.SetValue(item.Value);
+            else
+                MapFrom(cfg2, item.Value);
         }
     }
 
@@ -396,5 +504,6 @@ public static class ConfigHelper
                 MapFrom(cfg2, item);
         }
     }
+
     #endregion
 }
