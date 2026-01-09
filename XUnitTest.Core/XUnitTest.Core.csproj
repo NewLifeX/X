@@ -53,6 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
+    <Compile Include="Remoting\ApiHttpClientTests.cs" />
+    <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
     <Compile Include="Remoting\LoadBalancerTests.cs" />
     <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>
@@ -68,6 +70,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NewLife.Modbus" Version="2.0.2025.701" />
+    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.102" />
     <PackageReference Include="NewLife.UnitTest" Version="1.0.2025.101" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
