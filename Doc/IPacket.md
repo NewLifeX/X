@@ -1,242 +1,409 @@
-# IPacket 数据包设计文档
+# IPacket 数据包帮助手册
 
-## 概述
+本文档基于源码 `NewLife.Core/Data/IPacket.cs`，用于说明 `IPacket` 接口及其实现类型（`ArrayPacket` / `OwnerPacket` / `MemoryPacket` / `ReadOnlyPacket`）的设计、用法与注意事项。
 
-IPacket 是 NewLife.Core 中的核心数据包接口，用于高性能网络编程和协议解析。它采用内存共享理念，通过对象池和链式结构实现零拷贝数据处理，显著降低内存分配和 GC 压力。
+> 关键词：零/少拷贝切片、链式包（`Next`）、所有权（Owner）转移、Span/Memory 短生命周期。
 
-## 设计理念
+---
 
-### 核心原则
-1. **性能优先**：零拷贝设计，减少内存分配
-2. **内存友好**：使用对象池复用内存，降低 GC 压力  
-3. **链式结构**：支持多段数据包链接，避免大块内存拷贝
-4. **所有权管理**：明确内存管理职责，防止内存泄漏
+## 1. 设计目标与适用场景
 
-### 设计目标
-- 网络库零拷贝数据传输
-- 协议解析中的高效数据切片
-- 减少网络编程中的内存开销
-- 提供类似 .NET Core Span/Memory 的功能（兼容 .NET Framework）
+`IPacket` 是 NewLife.Core 的通用数据包抽象，面向网络收发、协议解析、二进制拼装等高频场景。
 
-## 接口定义
+核心目标：
+
+- **减少分配**：尽量复用缓存（`ArrayPool<T>`）或复用现有数组/内存。
+- **减少拷贝**：切片（`Slice`）优先共享底层缓冲区。
+- **支持链式**：通过 `Next` 串接多段数据，避免为了“大包”而聚合复制。
+- **明确释放责任**：通过 `IOwnerPacket` 与 `transferOwner` 描述“谁负责归还池化内存”。
+
+典型使用：
+
+- Socket 接收缓冲区 → 包装为 `OwnerPacket` / `ArrayPacket` → 协议头/体切片。
+- 组包：多个字段/段拼接 → `Append` 形成链式包 → 发送或落盘。
+- 调试展示：`ToHex()` 打印预览，`ToStr()` 按编码读取。
+
+---
+
+## 2. `IPacket` 接口说明
+
+源码签名（摘要）：
+
+- `Int32 Length { get; }`
+  - 当前包段长度，仅当前段（不含 `Next`）。
+
+- `IPacket? Next { get; set; }`
+  - 链式后续包。**仅表示逻辑拼接，不意味着底层内存连续**。
+
+- `Int32 Total { get; }`
+  - 当前段 + `Next` 链的总长度。
+
+- `Byte this[Int32 index] { get; set; }`
+  - **全局索引**访问（从 0 开始，跨越链式包）。
+  - 写入是否支持，取决于实现（例如 `ReadOnlyPacket` 禁止写入）。
+
+- `Span<Byte> GetSpan()`
+  - 获取当前段的 `Span` 视图。
+  - **只能在当前所有权生命周期内短暂使用，禁止缓存到异步/长期结构中。**
+
+- `Memory<Byte> GetMemory()`
+  - 获取当前段的 `Memory`。
+  - 同样遵循短生命周期原则。
+
+- `IPacket Slice(Int32 offset, Int32 count = -1)`
+  - “共享底层”切片得到新包。默认 `count=-1` 表示直到末尾。
+
+- `IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner)`
+  - 切片并可选择**转移内存管理权**。
+  - 不同实现对 `transferOwner` 支持程度不同（见后文）。
+
+- `Boolean TryGetArray(out ArraySegment<Byte> segment)`
+  - 尝试将“当前段”以 `ArraySegment<Byte>` 形式暴露。
+  - **不包含 `Next`**。
+
+---
+
+## 3. 所有权（Owner）模型
+
+### 3.1 谁来释放？
+
+`IPacket` 本身不要求可释放；只有实现了 `IOwnerPacket` 的包才具备“归还池化内存”的责任。
+
+- `IOwnerPacket : IPacket, IDisposable`
+  - 用完后需要 `Dispose()`（或 `using`），以归还 `ArrayPool<T>` 缓冲区。
+
+文档层面建议遵循源码备注中的规则：
+
+- **获得包的一方负责最终释放**（所有权在调用栈向上传递）。
+- `Span<T>`/`Memory<T>` 是“借用视图”，只能在包有效期间短暂使用。
+
+### 3.2 `transferOwner` 的真实含义
+
+`Slice(offset, count, transferOwner)` 允许切片时把“归还缓冲区”的责任转移给新包：
+
+- `transferOwner = true`：新包负责释放底层资源（若实现支持）。
+- `transferOwner = false`：新包仅共享视图，不负责释放。
+
+**重要约束**：所有权转移通常只能发生一次；对同一来源反复切片时，不要多次转移。
+
+> `OwnerPacket` 在源码实现中会通过 `_hasOwner` 控制“谁有权 Return 到池”，并在切片转移时让原实例失权。
+
+---
+
+## 4. 实现类型详解
+
+本节覆盖 `IPacket.cs` 中出现的全部实现。
+
+### 4.1 `ArrayPacket`（`record struct`）
+
+特性：
+
+- 基于 `Byte[]` + `Offset` + `Length` 的轻量封装。
+- 值类型，适合高频创建和传递。
+- `TryGetArray` 恒为 `true`（仅针对当前段）。
+- 支持链式：`Next` 可挂接任意 `IPacket`。
+
+切片行为：
+
+- `Slice` 返回新的 `ArrayPacket`（共享原数组，不分配）。
+- 当 `Next` 不为空时，切片可跨段，但源码对“当前段用完后取下一段”存在 **强转 `ArrayPacket`** 的分支：
+  - `remain <= 0` 时使用 `(ArrayPacket)next.Slice(...)`。
+  - 这意味着：如果 `Next` 不是 `ArrayPacket`，该分支可能抛出异常。
+
+建议：
+
+- `ArrayPacket` 链式拼接时，尽量让 `Next` 也是 `ArrayPacket`（或避免触发跨段强转分支）。
+- 更通用的跨段切片需求，优先使用 `OwnerPacket` 链或在上层聚合为连续缓冲区。
+
+创建示例：
 
 ```csharp
-public interface IPacket
-{
-    Int32 Length { get; }                    // 当前段长度
-    IPacket? Next { get; set; }              // 链式后续包
-    Int32 Total { get; }                     // 总长度（含链式）
-    Byte this[Int32 index] { get; set; }     // 跨链索引访问
-    
-    Span<Byte> GetSpan();                    // 获取内存视图
-    Memory<Byte> GetMemory();                // 获取内存块
-    IPacket Slice(Int32 offset, Int32 count = -1);
-    IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner);
-    Boolean TryGetArray(out ArraySegment<Byte> segment);
-}
+var pk = new ArrayPacket(buffer, offset: 0, count: buffer.Length);
+var header = ((IPacket)pk).Slice(0, 4);
+var payload = ((IPacket)pk).Slice(4);
 ```
 
-## 实现类型
+> 说明：`ArrayPacket` 显式接口实现了 `IPacket.Slice`，当以 `ArrayPacket` 变量调用时会优先走其自身的 `Slice` 重载；为了避免调用路径混淆，示例中用显式转换。
 
-### 1. ArrayPacket（结构体）
-- **用途**：基于字节数组的数据包，无内存管理开销
-- **特性**：值类型，无 GC 分配，适合频繁创建
-- **场景**：已有数组的数据切片，协议解析
+---
+
+### 4.2 `OwnerPacket`（`class`，`MemoryManager<Byte>`）
+
+`OwnerPacket` 是“带所有权”的高性能实现，适合接收/发送缓冲区以及需要从池里申请新内存的场景。
+
+关键特性：
+
+- 使用 `ArrayPool<Byte>.Shared.Rent()` 申请缓冲区。
+- 实现 `IOwnerPacket`，必须 `Dispose()` 归还缓冲区。
+- 支持 `Next` 链式结构。
+- 支持切片时转移所有权（`transferOwner`）。
+
+构造方式：
+
+- `OwnerPacket(Int32 length)`：从共享池租用缓冲区。
+- `OwnerPacket(Byte[] buffer, Int32 offset, Int32 length, Boolean hasOwner)`：包装已有数组，可指定是否拥有释放权。
+- `OwnerPacket(OwnerPacket owner, Int32 expandSize)`：用于头部扩展，转移所有权（见 `PacketHelper.ExpandHeader`）。
+
+释放与链释放：
+
+- `Dispose()` 会将自身 `_buffer` Return 给池，并尝试释放 `Next`（`Next.TryDispose()`）。
+- `Free()` 会清空引用并放弃所有权（**不会**归还池化内存，存在泄漏风险，仅用于特殊场景）。
+
+切片的语义（重点）：
+
+- `Slice(offset, count)` **默认 `transferOwner: true`**。
+  - 这意味着：对 `OwnerPacket` 切片后，**新包成为所有者**，原包将失去 `_hasOwner`。
+- 跨链切片：当 `Next != null` 时，切片可能返回带 `Next` 的新链（或递归切到后续段）。
+
+建议：
+
+- 若你只想得到“视图切片”，而不希望改变释放责任，请显式调用 `Slice(offset, count, transferOwner: false)`。
+- 若一次接收包需要切出多个字段（多次切片），一般不要对每个切片都转移所有权：
+  - 做法 1：只让最终要返回/持有的那一个切片转移；其它切片 `transferOwner:false`。
+  - 做法 2：不转移所有权，仍由原 `OwnerPacket` 统一释放。
+
+示例：
 
 ```csharp
-var packet = new ArrayPacket(buffer, offset, length);
-var slice = packet.Slice(10, 20);  // 零分配切片
+using var pk = new OwnerPacket(1024);
+
+// 仅借视图，不转移释放责任
+var header = pk.Slice(0, 4, transferOwner: false);
+
+// 真正要对外返回的片段转移所有权（仅一次）
+var payload = pk.Slice(4, 512, transferOwner: true);
+// 此后 pk 不再拥有缓冲区，payload.Dispose() 才会归还
 ```
 
-### 2. OwnerPacket（类）
-- **用途**：具有所有权管理的数据包，使用 ArrayPool
-- **特性**：支持内存池，自动释放，可转移所有权  
-- **场景**：需要申请新缓冲区的场景
+---
+
+### 4.3 `MemoryPacket`（`struct`）
+
+特性：
+
+- 基于 `Memory<Byte>` 的轻量封装（无内置所有权/释放语义）。
+- `TryGetArray` 通过 `MemoryMarshal.TryGetArray()` 尝试暴露数组段。
+- 允许 `Next` 链，但 **一旦存在 `Next`，`Slice` 直接抛出 `NotSupportedException`**（源码：`Slice with Next`）。
+
+适用场景：
+
+- 与外部组件以 `Memory<Byte>` 交互时的桥接类型。
+- 单段内存的视图截取。
+
+注意：
+
+- 由于无所有权管理，`MemoryPacket` 的底层内存可能来自池或其他临时来源，**不要长期持有**。
+
+---
+
+### 4.4 `ReadOnlyPacket`（`readonly record struct`）
+
+特性：
+
+- 基于 `Byte[]` 的只读包。
+- 不支持链式：`IPacket.Next` 显式实现始终为 `null`。
+- 索引器 `set` 抛出 `NotSupportedException`。
+- `Slice` 返回新的 `ReadOnlyPacket`，共享底层数组。
+
+适用场景：
+
+- 多线程共享的模板数据、配置缓存、只读协议常量块。
+- 需要明确禁止修改数据内容时。
+
+构造：
+
+- `ReadOnlyPacket(Byte[] buffer, Int32 offset = 0, Int32 count = -1)`
+- `ReadOnlyPacket(IPacket packet)`：会复制 `packet.ToArray()`，生成独立只读副本。
+
+---
+
+## 5. `PacketHelper` 扩展方法速查
+
+> `PacketHelper` 是核心操作集合：链式、转换、流、片段、读取、头部扩展。
+
+### 5.1 链式拼接
+
+- `Append(this IPacket pk, IPacket next)`：追加包到链尾。
+  - 内置简单环检测：避免 `pk` 自引用。
+  - 时间复杂度 O(n)。链条很长时要考虑性能。
+
+- `Append(this IPacket pk, Byte[] data)`：追加数组（包装为 `ArrayPacket`）。
+
+示例：
 
 ```csharp
-using var packet = new OwnerPacket(1024);  // 从池中申请
-var slice = packet.Slice(0, 512, transferOwner: true);  // 转移所有权
+IPacket message = head
+    .Append(body)
+    .Append(tailBytes);
 ```
 
-### 3. MemoryPacket（结构体）
-- **用途**：基于 Memory&lt;Byte&gt; 的数据包
-- **特性**：可能来自内存池，无内存管理责任
-- **场景**：与现有 Memory 系统集成
+### 5.2 字符串转换
 
-## 扩展方法 (PacketHelper)
+- `ToStr(Encoding? encoding = null, Int32 offset = 0, Int32 count = -1)`
+  - 单包走快速路径：`Span` 切片 + 编码。
+  - 多包链走拼接路径：`Pool.StringBuilder` 分段追加。
 
-### 链式操作
+注意：
+
+- `offset` 为全局偏移（跨链）。`count=-1` 表示到末尾。
+- `pk == null` 返回 `null`（为了兼容扩展调用）。
+
+### 5.3 十六进制转换
+
+- `ToHex(Int32 maxLength = 32, String? separator = null, Int32 groupSize = 0)`
+  - 支持跨链连续分组，`maxLength=-1` 表示全部。
+
+### 5.4 流操作
+
+- `CopyTo(Stream stream)` / `CopyToAsync(Stream stream, CancellationToken cancellationToken = default)`
+  - 优先使用 `TryGetArray` 写入，失败再走 `GetMemory()`。
+
+- `GetStream(Boolean writable = true)`
+  - 单包且 `TryGetArray` 成功：直接返回 `MemoryStream` 包装底层数组段（零拷贝）。
+  - 否则：聚合复制到新 `MemoryStream`。
+
+### 5.5 片段与数组
+
+- `ToSegment()`
+  - 单包：尽量直接返回底层 `ArraySegment<Byte>`。
+  - 多包：复制聚合为新数组段。
+
+- `ToSegments()`
+  - 返回每个链节点的 `ArraySegment<Byte>` 列表，保持分段结构。
+  - 对无法 `TryGetArray` 的实现，会调用 `GetSpan().ToArray()`（产生复制）。
+
+- `ToArray()`
+  - 总是返回新数组副本（单包：`Span.ToArray()`；多包：通过池化 `MemoryStream` 聚合）。
+
+### 5.6 读取与克隆
+
+- `ReadBytes(Int32 offset = 0, Int32 count = -1)`
+  - 单包在满足条件时可能直接返回底层数组（性能优化）。
+
+- `Clone()`
+  - 深度克隆：总会复制数据内容，返回 `ArrayPacket`。
+
+### 5.7 内存视图
+
+- `TryGetSpan(out Span<Byte> span)`
+  - 仅当无 `Next` 时返回 `true`。
+
+### 5.8 头部扩展
+
+- `TryExpandHeader(...)`（已过时）：仅当原包有足够“前置空间”时返回新包。
+- `ExpandHeader(this IPacket? pk, Int32 size)`（推荐）：
+  - `ArrayPacket/OwnerPacket` 有前置空间时复用并向前扩展。
+  - 否则创建新的 `OwnerPacket(size)` 作为头节点，原包挂到 `Next`。
+
+典型用法（协议头预留）：
+
 ```csharp
-IPacket chain = packet1
-    .Append(packet2)
-    .Append(dataBytes);
+var body = new ArrayPacket(payload);
+var msg = body.ExpandHeader(4);
+
+// 此时 msg 的前 4 字节可填充头部，后续链为 body
 ```
 
-### 数据转换
+---
+
+## 6. 链式包的行为约定
+
+### 6.1 `Length` vs `Total`
+
+- `Length`：当前段长度。
+- `Total`：当前段 + `Next.Total`。
+
+在判断“包是否为空”时，优先看 `Total`。
+
+### 6.2 跨链索引器
+
+- `this[index]` 的 `index` 是全局位置。
+- 性能上，跨链访问需要遍历到对应段；若频繁随机访问，建议先 `ToArray()` 聚合为连续缓冲区再处理。
+
+---
+
+## 7. 使用建议与常见坑
+
+### 7.1 Span/Memory 生命周期
+
+`GetSpan()` / `GetMemory()` 返回的是视图：
+
+- 只能在当前包的有效生命周期内使用。
+- **禁止**把 `Span`/`Memory` 缓存到字段、闭包、异步回调、队列等生命周期更长的结构中。
+
+### 7.2 `OwnerPacket.Slice` 默认转移所有权
+
+`OwnerPacket.Slice(offset, count)` 默认 `transferOwner: true`，会让原实例失去释放权。
+
+若你只是做协议解析切片（多次切片），通常更安全的模式是：
+
+- 解析切片：`transferOwner:false`
+- 最终返回/保存的那一段：视需求决定是否转移
+
+### 7.3 `MemoryPacket` 的 `Next` 限制
+
+`MemoryPacket` 一旦挂了 `Next`，对其调用 `Slice` 会抛 `NotSupportedException`。
+
+### 7.4 `ArrayPacket` 跨段切片的类型假设
+
+当 `ArrayPacket.Next` 不为空且切片跨越当前段时，部分逻辑会强制将结果转为 `ArrayPacket`。
+
+- 若你构建了混合链（例如 `ArrayPacket.Next = OwnerPacket`），跨段切片（尤其是 offset 超过当前段）可能引发类型转换异常。
+
+建议：
+
+- 构建链时尽量保持同类链接，或改用 `OwnerPacket` 链。
+
+---
+
+## 8. 快速示例
+
+### 8.1 协议解析：头 + 体
+
 ```csharp
-// 字符串转换（支持多包链）
-string text = packet.ToStr(Encoding.UTF8, offset: 10, count: 100);
+IPacket pk = new ArrayPacket(buffer);
 
-// 十六进制显示（调试友好）
-string hex = packet.ToHex(maxLength: 32, separator: " ", groupSize: 4);
+var header = pk.Slice(0, 4);
+var body = pk.Slice(4);
+
+var cmd = header[0];
 ```
 
-### 流操作
+### 8.2 组包：多段拼接
+
 ```csharp
-// 同步复制
-packet.CopyTo(stream);
+IPacket msg = new ArrayPacket(head)
+    .Append(body)
+    .Append(tail);
 
-// 异步复制  
-await packet.CopyToAsync(stream, cancellationToken);
-
-// 获取独立流
-using var stream = packet.GetStream();
+var bytes = msg.ToArray();
 ```
 
-### 数据读取
+### 8.3 输出调试预览
+
 ```csharp
-// 读取字节数组
-byte[] data = packet.ReadBytes(offset: 10, count: 20);
-
-// 深度克隆
-IPacket clone = packet.Clone();
-
-// 转换为数组段
-ArraySegment<byte> segment = packet.ToSegment();
-IList<ArraySegment<byte>> segments = packet.ToSegments();
+var hex = pk.ToHex(maxLength: 64, separator: " ", groupSize: 2);
+var text = pk.ToStr(Encoding.UTF8, offset: 0, count: 128);
 ```
 
-### 头部扩展
+### 8.4 发送到流
+
 ```csharp
-// 协议头填充（优先复用现有缓冲区）
-IPacket withHeader = packet.ExpandHeader(headerSize: 4);
+pk.CopyTo(stream);
+await pk.CopyToAsync(stream, cancellationToken);
 ```
 
-## 内存管理模式
+---
 
-### 所有权转移规则
-1. **接收方负责释放**：获得数据包的一方负责最终释放
-2. **单次转移**：所有权只能转移一次，避免重复释放
-3. **链式继承**：转移所有权时，Next 链一同转移
+## 9. 兼容性说明
 
-### 生命周期管理
-```csharp
-// 申请与自动释放
-using var packet = new OwnerPacket(size);
+- 本组件多目标框架（从 `net45` 到更高版本）。
+- 文档中的 API 以 `IPacket.cs` 当前实现为准；对特定目标框架的差异由条件编译控制（如 `MemoryStream.TryGetBuffer` 在 `NET45` 下不可用）。
 
-// 手动释放
-if (packet is IOwnerPacket owner)
-    owner.Dispose();
+---
 
-// 扩展方法释放
-packet.TryDispose();
-```
+## 10. 变更记录
 
-## 性能优化策略
-
-### 单包快速路径
-- 单段数据直接操作，避免链表遍历
-- Span 零拷贝视图访问
-- 直接内存编码转换
-
-### 多包链式处理  
-- StringBuilder 池化拼接
-- 全局偏移量计算
-- 延迟内存分配
-
-### 防护机制
-- 环路检测避免死循环
-- 边界校验防止越界
-- 参数规范化处理异常输入
-
-## 使用场景
-
-### 网络编程
-```csharp
-// 接收数据
-var packet = await socket.ReceivePacketAsync();
-
-// 协议解析
-var header = packet.Slice(0, 4);
-var payload = packet.Slice(4);
-
-// 响应数据
-var response = headerPacket.Append(bodyPacket);
-await socket.SendPacketAsync(response);
-```
-
-### 协议实现
-```csharp
-// HTTP 协议解析
-var lines = packet.ToStr().Split('\n');
-var bodyStart = packet.IndexOf("\r\n\r\n".GetBytes()) + 4;
-var body = packet.Slice(bodyStart);
-```
-
-### 数据处理管道
-```csharp
-// 链式处理
-var result = inputPacket
-    .Decrypt()           // 解密
-    .Decompress()        // 解压
-    .ParseProtocol()     // 协议解析
-    .Process();          // 业务处理
-```
-
-## 注意事项
-
-### 安全使用
-1. **短期持有**：Span/Memory 仅在所有权生命周期内使用
-2. **禁止缓存**：不要将 Span/Memory 存储到异步结构中
-3. **及时释放**：OwnerPacket 使用后及时释放或使用 using
-
-### 性能考虑
-1. **避免长链**：过长的包链会影响遍历性能
-2. **合理切片**：频繁切片会增加对象创建开销
-3. **复用缓冲区**：优先使用 ExpandHeader 复用现有缓冲区
-
-### 兼容性
-- 支持 .NET Framework 4.5+ 到 .NET 9
-- 旧版 Packet 类实现相同接口，便于渐进式升级
-- 与现有 Stream/ArraySegment API 良好集成
-
-## 最佳实践
-
-### 创建数据包
-```csharp
-// 推荐：使用结构体避免分配
-IPacket packet = new ArrayPacket(buffer, offset, length);
-
-// 需要所有权管理时
-using var packet = new OwnerPacket(size);
-```
-
-### 链式操作
-```csharp
-// 构建复合数据包
-var message = headerPacket
-    .Append(bodyBytes)
-    .Append(footerPacket);
-```
-
-### 错误处理
-```csharp
-try
-{
-    var data = packet.ReadBytes(offset, count);
-}
-catch (IndexOutOfRangeException)
-{
-    // 处理越界访问
-}
-finally
-{
-    packet.TryDispose();  // 安全释放
-}
-```
-
-## 总结
-
-IPacket 接口提供了高性能、内存友好的数据包处理能力，特别适合网络编程和协议解析场景。通过链式结构和零拷贝设计，它能够显著降低内存开销和 GC 压力，是构建高性能网络应用的重要基础设施。
-
-合理使用 IPacket 的各种实现类型和扩展方法，能够在保证性能的同时，提供清晰的内存管理语义和良好的开发体验。
+- 本文档根据 `IPacket.cs` 现状重写，用于替换旧版 `Doc/IPacket.md`。
+- 覆盖新增实现：`ReadOnlyPacket`。
+- 强调 `OwnerPacket.Slice` 默认转移所有权等关键语义。
