@@ -249,11 +249,12 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     /// <param name="prefix">名称前缀</param>
     /// <param name="urls">地址集。多个地址逗号隔开</param>
     /// <param name="weight">权重</param>
-    public IEnumerable<ServiceEndpoint> AddServer(String prefix, String urls, Int32 weight = 0)
+    public IList<ServiceEndpoint> AddServer(String prefix, String urls, Int32 weight = 0)
     {
         if (prefix.IsNullOrEmpty()) prefix = "service";
 
         var idx = 0;
+        var rs = new List<ServiceEndpoint>();
         var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
         var services = Services;
         foreach (var addr in ss)
@@ -264,8 +265,10 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             while (name.IsNullOrEmpty() || services.Any(e => e.Name == name)) name = prefix + ++idx;
 
             var svc = ParseAndAdd(services, name, addr, weight);
-            if (svc != null) yield return svc;
+            if (svc != null) rs.Add(svc);
         }
+
+        return rs;
     }
 
     void IConfigMapping.MapConfig(IConfigProvider provider, IConfigSection section)

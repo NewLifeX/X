@@ -135,7 +135,7 @@ public class ServiceEndpoint
         if (uri == null) return;
 
         Address = uri;
-        UriName = uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+        UriName = GetUriName(uri);
         if (Name.IsNullOrEmpty()) Name = UriName;
 
         // 设置端点类别
@@ -189,6 +189,15 @@ public class ServiceEndpoint
     #endregion
 
     #region 辅助
+    /// <summary>获取服务基地址名称</summary>
+    /// <remarks>
+    /// 返回URI的权威部分（scheme + host + port），并去除末尾“/”。
+    /// 常用于生成可用于比较/分组的规范化地址，如："http://127.0.0.1:8080"。
+    /// </remarks>
+    /// <param name="uri">服务地址</param>
+    /// <returns>规范化后的服务基地址名称</returns>
+    public static String GetUriName(Uri uri) => uri.GetLeftPart(UriPartial.Authority).TrimEnd('/');
+
     /// <summary>已重载。友好显示</summary>
     /// <returns></returns>
     public override String ToString() => $"{Name} {Address}";
