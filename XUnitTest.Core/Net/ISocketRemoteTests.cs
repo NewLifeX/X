@@ -119,8 +119,10 @@ public class ISocketRemoteTests
     public void SendFile2()
     {
         var src = Path.GetTempFileName().GetFullPath();
-        File.WriteAllBytes(src, Rand.NextBytes(37 * 1024 * 1024));
+        var buf = Rand.NextBytes(37 * 1024 * 1024);
+        File.WriteAllBytes(src, buf);
 
+        XTrace.WriteLine("SendFile2: {0:n0}", buf.Length);
         try
         {
             using var svr = new FileServer { Port = 0, Log = XTrace.Log };
@@ -215,6 +217,7 @@ public class ISocketRemoteTests
         {
             // 标准编码器不要返回内部数据包，而是直接返回消息对象，此时e.Message就是DefaultMessage
             Add(new StandardCodec { UserPacket = false });
+            //Add<StandardCodec>();
 
             base.OnStart();
         }

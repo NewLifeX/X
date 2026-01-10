@@ -37,6 +37,16 @@ public class MessageCodec<T> : Handler
     /// <remarks>一般用于上层还有其它编码器时，实现编码器级联</remarks>
     public Boolean UserPacket { get; set; } = true;
 
+    /// <summary>打开链接</summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public override Boolean Open(IHandlerContext context)
+    {
+        if (context.Owner is ISocketClient client) Timeout = client.Timeout;
+
+        return base.Open(context);
+    }
+
     /// <summary>发送消息时，写入数据，编码并加入队列</summary>
     /// <remarks>
     /// 遇到消息T时，调用Encode编码并加入队列。
@@ -135,7 +145,10 @@ public class MessageCodec<T> : Handler
 
             Object? rs = null;
             if (UserPacket && msg is IMessage msg2)
+            {
+                if (context is IExtend ext) ext["_raw_message"] = msg2;
                 rs = msg2.Payload;
+            }
             else
                 rs = msg;
 
@@ -163,6 +176,16 @@ public class MessageCodec<T> : Handler
             // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
             base.Read(context, rs ?? msg);
         }
+
+        return null;
+    }
+
+    /// <summary>从上下文中获取原始请求</summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    protected IMessage? GetRequest(IHandlerContext context)
+    {
+        if (context is IExtend ext) return ext["_raw_message"] as IMessage;
 
         return null;
     }

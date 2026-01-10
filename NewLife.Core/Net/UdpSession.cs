@@ -88,6 +88,8 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <summary>开始数据交换</summary>
     public void Start()
     {
+        if (Disposed || Server == null) return;
+
         Pipeline = Server.Pipeline;
 
         //Server.ReceiveAsync();

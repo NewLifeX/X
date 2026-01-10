@@ -114,10 +114,9 @@ public class Message : IMessage
         var type = GetType();
         if (type == typeof(Message)) return new Message();
 
-        var msg = type.CreateInstance() as Message;
-        if (msg == null) throw new InvalidOperationException($"Cannot create an instance of type [{type.FullName}]");
+        if (type.CreateInstance() is Message msg) return msg;
 
-        return msg;
+        throw new InvalidOperationException($"Cannot create an instance of type [{type.FullName}]");
     }
 
     /// <summary>从数据包中读取消息</summary>

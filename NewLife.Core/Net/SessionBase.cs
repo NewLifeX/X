@@ -758,6 +758,34 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
+    /// <summary>通过管道发送消息，不等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
+    /// <param name="message">消息</param>
+    /// <param name="context">处理器上下文。用于在收包处理链路中复用解码上下文携带的数据</param>
+    /// <returns></returns>
+    public virtual Int32 SendMessage(Object message, IHandlerContext? context)
+    {
+        if (context == null) return SendMessage(message);
+
+        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+
+        using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+        try
+        {
+            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+
+            // 复用外部上下文。该上下文通常来自接收链路（池化对象），仅建议在当前同步调用栈内使用。
+            // 不覆盖 Owner，避免把接收链路上下文错误绑定到其它会话。
+            context.Pipeline ??= Pipeline;
+
+            return (Int32)(Pipeline.Write(context, message) ?? 0);
+        }
+        catch (Exception ex)
+        {
+            span?.SetError(ex, message);
+            throw;
+        }
+    }
+
     /// <summary>通过管道发送消息，不等待响应</summary>
     /// <param name="message"></param>
     /// <returns></returns>

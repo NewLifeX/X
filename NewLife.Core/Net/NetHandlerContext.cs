@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Model;
 using NewLife.Serialization;
-using NewLife.Collections;
 
 namespace NewLife.Net;
 
@@ -108,6 +108,10 @@ public class NetHandlerContext : HandlerContext
         //{
         var data = Data ?? new ReceivedEventArgs();
         data.Message = message;
+
+        // 把上下文带到上层
+        if (data is ReceivedEventArgs e && e.Context == null)
+            e.Context = this;
 
         // 因为ProxyProtocol协议存在，haproxy/nginx等代理会返回原始客户端IP端口
         // 这里修改Remote以后，NetSession层将会使用新的Remote地址

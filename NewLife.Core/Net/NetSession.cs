@@ -300,6 +300,12 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <returns></returns>
     public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
 
+    /// <summary>通过管道发送消息，不等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
+    /// <param name="message">消息</param>
+    /// <param name="eventArgs">事件参数。接收到请求的事件参数</param>
+    /// <returns></returns>
+    public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs) => (Session as SessionBase)!.SendMessage(message, eventArgs.Context);
+
     /// <summary>异步发送消息并等待响应。管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</summary>
     /// <param name="message">消息</param>
     /// <returns></returns>

@@ -23,10 +23,13 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <returns></returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
+        DataKinds? kind = null;
+
         // 基础类型优先编码
         if (message.GetType().IsBaseType())
         {
-            message = new DefaultMessage { Flag = (Byte)DataKinds.String, Payload = (ArrayPacket)(message + "").GetBytes() };
+            kind = DataKinds.String;
+            message = (ArrayPacket)(message + "").GetBytes();
         }
         else if (message is Byte[] buf)
         {
@@ -39,12 +42,20 @@ public class StandardCodec : MessageCodec<IMessage>
 
         if (message is IPacket pk)
         {
-            var dm = new DefaultMessage { Flag = (Byte)DataKinds.Packet, Payload = pk };
-            message = dm;
+            DefaultMessage? response = null;
+            var request = GetRequest(context);
+            if (request != null && !request.Reply)
+            {
+                response = request.CreateReply() as DefaultMessage;
+            }
+            response ??= new DefaultMessage();
+            response.Flag = (Byte)(kind ?? DataKinds.Packet);
+            response.Payload = pk;
+            message = response;
 
             // 从上下文中获取标记位
             if (context is IExtend ext && ext["Flag"] is DataKinds dk)
-                dm.Flag = (Byte)dk;
+                response.Flag = (Byte)dk;
         }
 
         if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
