@@ -99,6 +99,9 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
             sock.Bind(Local.EndPoint);
 
+            if (Local.Port == 0 && sock.LocalEndPoint is IPEndPoint ep)
+                Local.Port = ep.Port;
+
             WriteLog("Open {0}", this);
         }
 
