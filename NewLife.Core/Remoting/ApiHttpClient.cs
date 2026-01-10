@@ -158,6 +158,9 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
             lbb.Log = Log;
         }
 
+        if (lb is ITracerFeature tf) tf.Tracer = Tracer;
+        if (lb is ILogFeature lf) lf.Log = Log;
+
         return lb;
     }
     #endregion

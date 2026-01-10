@@ -14,7 +14,7 @@ namespace NewLife.Remoting;
 /// </list>
 /// 适用场景：对响应时间要求极高的场景，或部分节点可能有延迟的情况
 /// </remarks>
-public class RaceLoadBalancer : LoadBalancerBase
+public class RaceLoadBalancer : LoadBalancerBase, ITracerFeature
 {
     #region 属性
     /// <summary>负载均衡模式</summary>
