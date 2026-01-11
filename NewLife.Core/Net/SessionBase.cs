@@ -13,55 +13,79 @@ using TaskEx = System.Threading.Tasks.Task;
 namespace NewLife.Net;
 
 /// <summary>会话基类</summary>
+/// <remarks>
+/// <para>封装了Socket客户端和服务端会话的基础功能，包括连接管理、数据收发、消息处理等。</para>
+/// <para>设计理念：</para>
+/// <list type="bullet">
+/// <item>异步优先 - 所有IO操作优先使用异步方式</item>
+/// <item>事件驱动 - 数据接收通过事件通知</item>
+/// <item>管道处理 - 支持灵活的消息编解码管道</item>
+/// <item>对象池化 - 上下文对象池化减少GC压力</item>
+/// </list>
+/// </remarks>
 public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILogFeature
 {
     #region 属性
 
-    /// <summary>标识</summary>
+    /// <summary>会话标识</summary>
+    /// <remarks>用于在多会话环境中唯一标识当前会话</remarks>
     public Int32 ID { get; internal set; }
 
     /// <summary>名称</summary>
+    /// <remarks>主要用于日志输出，默认为类名</remarks>
     public String Name { get; set; }
 
     /// <summary>本地绑定信息</summary>
+    /// <remarks>指定Socket绑定的本地网络地址</remarks>
     public NetUri Local { get; set; } = new NetUri();
 
     /// <summary>端口</summary>
-    public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
+    /// <remarks>本地监听或绑定的端口号</remarks>
+    public Int32 Port { get => Local.Port; set => Local.Port = value; }
 
     /// <summary>远程结点地址</summary>
+    /// <remarks>发送数据的目标地址</remarks>
     public NetUri Remote { get; set; } = new NetUri();
 
-    /// <summary>超时。默认3000ms</summary>
+    /// <summary>超时时间（毫秒）</summary>
+    /// <remarks>连接、发送、接收操作的超时时间，默认3000ms</remarks>
     public Int32 Timeout { get; set; } = 3_000;
 
     private volatile Boolean _active;
     /// <summary>是否活动</summary>
+    /// <remarks>表示当前会话是否处于活动状态</remarks>
     public Boolean Active { get => _active; set => _active = value; }
 
     /// <summary>底层Socket</summary>
+    /// <remarks>底层的Socket实例，可用于高级操作</remarks>
     public Socket? Client { get; protected set; }
 
-    /// <summary>最后一次通信时间，主要表示活跃时间，包括收发</summary>
+    /// <summary>最后一次通信时间</summary>
+    /// <remarks>主要表示活跃时间，包括收发操作</remarks>
     public DateTime LastTime { get; internal protected set; } = DateTime.Now;
 
-    /// <summary>最大并行接收数。Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</summary>
+    /// <summary>最大并行接收数</summary>
+    /// <remarks>Tcp默认1，Udp默认CPU*1.6，0关闭异步接收使用同步接收</remarks>
     public Int32 MaxAsync { get; set; } = 1;
 
-    /// <summary>缓冲区大小。默认8k</summary>
+    /// <summary>缓冲区大小</summary>
+    /// <remarks>接收缓冲区大小，默认使用全局配置</remarks>
     public Int32 BufferSize { get; set; }
 
     /// <summary>连接关闭原因</summary>
+    /// <remarks>记录连接关闭的原因，便于日志分析</remarks>
     public String? CloseReason { get; set; }
 
     /// <summary>APM性能追踪器</summary>
+    /// <remarks>用于记录关键操作的性能追踪</remarks>
     public ITracer? Tracer { get; set; }
 
     #endregion 属性
 
     #region 构造
 
-    /// <summary>构造函数，初始化默认名称</summary>
+    /// <summary>实例化会话基类</summary>
+    /// <remarks>初始化默认名称、缓冲区大小和日志数据长度</remarks>
     public SessionBase()
     {
         Name = GetType().Name;
@@ -70,8 +94,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         LogDataLength = SocketSetting.Current.LogDataLength;
     }
 
-    /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <summary>销毁资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
@@ -88,8 +112,8 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 
-    /// <summary>已重载。</summary>
-    /// <returns></returns>
+    /// <summary>已重载。返回本地地址字符串</summary>
+    /// <returns>本地地址字符串</returns>
     public override String ToString() => Local + "";
 
     #endregion 构造

@@ -5,7 +5,11 @@ using NewLife.Threading;
 
 namespace NewLife.Net;
 
-/// <summary>会话集合。带有自动清理不活动会话的功能</summary>
+/// <summary>会话集合</summary>
+/// <remarks>
+/// <para>带有自动清理不活动会话的功能。</para>
+/// <para>使用远程地址端口作为标识，自动管理会话生命周期。</para>
+/// </remarks>
 internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSession>
 {
     #region 属性
@@ -14,7 +18,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     /// <summary>服务端</summary>
     public ISocketServer Server { get; private set; }
 
-    /// <summary>清理周期。单位毫秒，默认10秒。</summary>
+    /// <summary>清理周期（秒）</summary>
+    /// <remarks>默认10秒检查一次不活动会话</remarks>
     public Int32 ClearPeriod { get; set; } = 10;
 
     /// <summary>清理会话计时器</summary>
@@ -22,13 +27,18 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     #endregion
 
     #region 构造
+    /// <summary>实例化会话集合</summary>
+    /// <param name="server">所属服务端</param>
     public SessionCollection(ISocketServer server) => Server = server;
 
+    /// <summary>释放资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
 
-        _clearTimer?.Dispose();
+        _clearTimer.TryDispose();
+        _clearTimer = null;
 
         var reason = GetType().Name + (disposing ? "Dispose" : "GC");
         try
@@ -40,27 +50,30 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     #endregion
 
     #region 主要方法
-    /// <summary>添加新会话，并设置会话编号</summary>
-    /// <param name="session"></param>
+    /// <summary>添加新会话</summary>
+    /// <param name="session">会话实例</param>
     /// <returns>返回添加新会话是否成功</returns>
     public Boolean Add(ISocketSession session)
     {
         var key = session.Remote.EndPoint + "";
-        //if (_dic.ContainsKey(key)) return false;
 
         if (!_dic.TryAdd(key, session)) return false;
 
         var p = ClearPeriod * 1000;
         _clearTimer ??= new TimerX(RemoveNotAlive, null, p, p) { Async = true, };
 
-        session.OnDisposed += (s, e) => { _dic.Remove((s as ISocketSession)?.Remote.EndPoint + ""); };
+        session.OnDisposed += (s, e) =>
+        {
+            if (s is ISocketSession ss)
+                _dic.TryRemove(ss.Remote.EndPoint + "", out _);
+        };
 
         return true;
     }
 
-    /// <summary>获取会话，加锁</summary>
-    /// <param name="key"></param>
-    /// <returns></returns>
+    /// <summary>获取会话</summary>
+    /// <param name="key">远程地址端口标识</param>
+    /// <returns>会话实例</returns>
     public ISocketSession? Get(String key)
     {
         if (!_dic.TryGetValue(key, out var session)) return null;
@@ -68,7 +81,8 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         return session;
     }
 
-    /// <summary>关闭所有</summary>
+    /// <summary>关闭所有会话</summary>
+    /// <param name="reason">关闭原因</param>
     public void CloseAll(String reason)
     {
         if (!_dic.Any()) return;
@@ -85,6 +99,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     }
 
     /// <summary>移除不活动的会话</summary>
+    /// <param name="state">定时器状态</param>
     private void RemoveNotAlive(Object? state)
     {
         if (!_dic.Any()) return;
@@ -107,7 +122,7 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
         // 从会话集合里删除这些键值，并行字典操作安全
         foreach (var item in keys)
         {
-            _dic.Remove(item);
+            _dic.TryRemove(item, out _);
         }
 
         // 已经离开了锁，慢慢释放各个会话
@@ -116,7 +131,6 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
             item.WriteLog("超过{0}秒不活跃销毁 {1}", timeout, item);
 
             if (item is ISocketClient ss) ss.Close(nameof(RemoveNotAlive));
-            //item.Dispose();
             item.TryDispose();
         }
     }
@@ -125,12 +139,17 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
     #endregion
 
     #region 成员
+    /// <summary>清空会话集合</summary>
     public void Clear() => _dic.Clear();
 
+    /// <summary>会话数量</summary>
     public Int32 Count => _dic.Count;
 
+    /// <summary>是否只读</summary>
     public Boolean IsReadOnly => (_dic as IDictionary<Int32, ISocketSession>)?.IsReadOnly ?? false;
 
+    /// <summary>获取枚举器</summary>
+    /// <returns>会话枚举器</returns>
     public IEnumerator<ISocketSession> GetEnumerator() => _dic.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _dic.GetEnumerator();
@@ -146,13 +165,12 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     Boolean IDictionary<String, ISocketSession>.Remove(String key)
     {
-        if (!_dic.TryGetValue(key, out var session)) return false;
+        if (!_dic.TryRemove(key, out var session)) return false;
 
         if (session is INetSession ss) ss.Close("Remove");
-        //session.Close();
         session.Dispose();
 
-        return _dic.Remove(key);
+        return true;
     }
 
 #if NETFRAMEWORK || NETSTANDARD
@@ -171,15 +189,16 @@ internal class SessionCollection : DisposeBase, IDictionary<String, ISocketSessi
 
     void ICollection<KeyValuePair<String, ISocketSession>>.Add(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请使用Add(ISocketSession session)方法！");
 
-    Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) => throw new NotImplementedException();
+    Boolean ICollection<KeyValuePair<String, ISocketSession>>.Contains(KeyValuePair<String, ISocketSession> item) => _dic.ContainsKey(item.Key);
 
-    void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) => throw new NotImplementedException();
+    void ICollection<KeyValuePair<String, ISocketSession>>.CopyTo(KeyValuePair<String, ISocketSession>[] array, Int32 arrayIndex) =>
+        ((ICollection<KeyValuePair<String, ISocketSession>>)_dic).CopyTo(array, arrayIndex);
 
     Boolean ICollection<KeyValuePair<String, ISocketSession>>.Remove(KeyValuePair<String, ISocketSession> item) => throw new XException("不支持！请直接销毁会话对象！");
 
     #endregion
 
     #region IEnumerable<KeyValuePair<String,ISocketSession>> 成员
-    IEnumerator<KeyValuePair<String, ISocketSession>> IEnumerable<KeyValuePair<String, ISocketSession>>.GetEnumerator() => throw new NotImplementedException();
+    IEnumerator<KeyValuePair<String, ISocketSession>> IEnumerable<KeyValuePair<String, ISocketSession>>.GetEnumerator() => _dic.GetEnumerator();
     #endregion
 }

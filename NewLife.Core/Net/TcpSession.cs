@@ -10,11 +10,23 @@ using NewLife.Log;
 namespace NewLife.Net;
 
 /// <summary>增强TCP客户端</summary>
+/// <remarks>
+/// <para>封装了TCP客户端和服务端会话的功能，支持SSL/TLS安全连接。</para>
+/// <para>功能特性：</para>
+/// <list type="bullet">
+/// <item>支持同步和异步连接</item>
+/// <item>支持SSL/TLS加密传输</item>
+/// <item>支持客户端证书验证</item>
+/// <item>支持TCP KeepAlive</item>
+/// <item>线程安全的数据发送</item>
+/// </list>
+/// </remarks>
 public class TcpSession : SessionBase, ISocketSession
 {
     #region 属性
 
-    /// <summary>实际使用的远程地址。Remote配置域名时，可能有多个IP地址</summary>
+    /// <summary>实际使用的远程地址</summary>
+    /// <remarks>Remote配置域名时，可能有多个IP地址，此属性记录实际连接的地址</remarks>
     public IPAddress? RemoteAddress { get; private set; }
 
     ///// <summary>收到空数据时抛出异常并断开连接。默认true</summary>
@@ -22,25 +34,27 @@ public class TcpSession : SessionBase, ISocketSession
 
     internal ISocketServer? _Server;
 
-    /// <summary>Socket服务器。当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</summary>
+    /// <summary>Socket服务器</summary>
+    /// <remarks>当前通讯所在的Socket服务器，其实是TcpServer/UdpServer。该属性决定本会话是客户端会话还是服务的会话</remarks>
     ISocketServer ISocketSession.Server => _Server!;
 
-    ///// <summary>自动重连次数，默认3。发生异常断开连接时，自动重连服务端。</summary>
-    //public Int32 AutoReconnect { get; set; } = 3;
-
-    /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
+    /// <summary>不延迟直接发送</summary>
+    /// <remarks>Tcp为了合并小包而设计，客户端默认false，服务端默认true</remarks>
     public Boolean NoDelay { get; set; }
 
-    /// <summary>KeepAlive间隔。默认0秒不启用</summary>
+    /// <summary>KeepAlive间隔（秒）</summary>
+    /// <remarks>默认0秒不启用。启用后可及时检测连接断开</remarks>
     public Int32 KeepAliveInterval { get; set; }
 
-    /// <summary>SSL协议。默认None，服务端Default，客户端不启用</summary>
+    /// <summary>SSL协议版本</summary>
+    /// <remarks>默认None不启用SSL，服务端使用Default，客户端不启用</remarks>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
-    /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
+    /// <summary>X509证书</summary>
     /// <remarks>
-    /// 可以使用pfx证书文件，也可以使用pem证书文件。
-    /// 服务端必须指定证书，客户端可以不指定，除非服务端请求客户端证书。
+    /// <para>用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书。</para>
+    /// <para>可以使用pfx证书文件，也可以使用pem证书文件。</para>
+    /// <para>服务端必须指定证书，客户端可以不指定，除非服务端请求客户端证书。</para>
     /// </remarks>
     /// <example>
     /// var cert = new X509Certificate2("file", "pass");
@@ -53,7 +67,7 @@ public class TcpSession : SessionBase, ISocketSession
 
     #region 构造
 
-    /// <summary>实例化增强TCP</summary>
+    /// <summary>实例化增强TCP客户端</summary>
     public TcpSession()
     {
         Name = GetType().Name;
@@ -61,20 +75,20 @@ public class TcpSession : SessionBase, ISocketSession
         Remote.Type = NetType.Tcp;
     }
 
-    /// <summary>使用监听口初始化</summary>
-    /// <param name="listenPort"></param>
+    /// <summary>使用监听端口初始化</summary>
+    /// <param name="listenPort">监听端口</param>
     public TcpSession(Int32 listenPort) : this() => Port = listenPort;
 
     /// <summary>用TCP客户端初始化</summary>
-    /// <param name="client"></param>
+    /// <param name="client">已连接的Socket</param>
     public TcpSession(Socket client) : this()
     {
         if (client == null) return;
 
         Client = client;
         var socket = client;
-        if (socket.LocalEndPoint != null) Local.EndPoint = (IPEndPoint)socket.LocalEndPoint;
-        if (socket.RemoteEndPoint != null) Remote.EndPoint = (IPEndPoint)socket.RemoteEndPoint;
+        if (socket.LocalEndPoint is IPEndPoint localEp) Local.EndPoint = localEp;
+        if (socket.RemoteEndPoint is IPEndPoint remoteEp) Remote.EndPoint = remoteEp;
     }
 
     internal TcpSession(ISocketServer server, Socket client)
@@ -270,6 +284,7 @@ public class TcpSession : SessionBase, ISocketSession
     /// <summary>关闭</summary>
     /// <param name="reason">关闭原因。便于日志分析</param>
     /// <param name="cancellationToken">取消通知</param>
+    /// <returns>是否成功关闭</returns>
     protected override Task<Boolean> OnCloseAsync(String reason, CancellationToken cancellationToken)
     {
         var client = Client;
@@ -281,6 +296,19 @@ public class TcpSession : SessionBase, ISocketSession
             Active = false;
             try
             {
+                // 先关闭SSL流
+                var stream = _Stream;
+                if (stream != null)
+                {
+                    _Stream = null;
+                    try
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    }
+                    catch { }
+                }
+
                 // 温和一点关闭连接
                 client.Shutdown();
                 client.Close();

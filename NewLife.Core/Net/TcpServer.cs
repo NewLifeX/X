@@ -9,69 +9,90 @@ namespace NewLife.Net;
 
 /// <summary>TCP服务器</summary>
 /// <remarks>
-/// 核心工作：启动服务<see cref="Start"/>时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作<see cref="StartAccept"/>。
-/// 
-/// 服务器完全处于异步工作状态，任何操作都不可能被阻塞。
-/// 
-/// 注意：服务器接受连接请求后，不会开始处理数据，而是由<see cref="NewSession"/>事件订阅者决定何时开始处理数据。
+/// <para>核心工作：启动服务 <see cref="Start"/> 时，监听端口，并启用多个（逻辑处理器数的10倍）异步接受操作 <see cref="StartAccept"/>。</para>
+/// <para>功能特性：</para>
+/// <list type="bullet">
+/// <item>完全异步工作模式，任何操作都不会被阻塞</item>
+/// <item>支持SSL/TLS加密传输</item>
+/// <item>支持TCP KeepAlive</item>
+/// <item>支持地址重用（快速重启）</item>
+/// <item>自动管理客户端会话</item>
+/// </list>
+/// <para>注意：服务器接受连接请求后，不会开始处理数据，而是由 <see cref="NewSession"/> 事件订阅者决定何时开始处理数据。</para>
 /// </remarks>
 public class TcpServer : DisposeBase, ISocketServer, ILogFeature
 {
     #region 属性
     /// <summary>名称</summary>
+    /// <remarks>主要用于日志输出，默认为类名</remarks>
     public String Name { get; set; }
 
     /// <summary>本地绑定信息</summary>
+    /// <remarks>指定服务器监听的网络地址</remarks>
     public NetUri Local { get; set; }
 
     /// <summary>端口</summary>
-    public Int32 Port { get { return Local.Port; } set { Local.Port = value; } }
+    /// <remarks>本地监听端口，0表示由系统自动分配</remarks>
+    public Int32 Port { get => Local.Port; set => Local.Port = value; }
 
-    /// <summary>会话超时时间</summary>
+    /// <summary>会话超时时间（秒）</summary>
     /// <remarks>
     /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
     /// </remarks>
     public Int32 SessionTimeout { get; set; }
 
     /// <summary>底层Socket</summary>
+    /// <remarks>监听Socket实例</remarks>
     public Socket? Client { get; private set; }
 
     /// <summary>是否活动</summary>
+    /// <remarks>表示服务器是否正在运行</remarks>
     public Boolean Active { get; set; }
 
-    /// <summary>最大并行接收连接数。默认CPU*1.6</summary>
+    /// <summary>最大并行接收连接数</summary>
+    /// <remarks>默认CPU*1.6，控制同时等待Accept的数量</remarks>
     public Int32 MaxAsync { get; set; }
 
-    /// <summary>不延迟直接发送。Tcp为了合并小包而设计，客户端默认false，服务端默认true</summary>
+    /// <summary>不延迟直接发送</summary>
+    /// <remarks>Tcp为了合并小包而设计，客户端默认false，服务端默认true</remarks>
     public Boolean NoDelay { get; set; } = true;
 
-    /// <summary>地址重用，主要应用于网络服务器重启交替。默认false</summary>
+    /// <summary>地址重用</summary>
     /// <remarks>
-    /// 一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。
-    /// SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket(TCP连接中, 先调用close() 的一方会进入TIME_WAIT状态)，才可以重复绑定使用。
+    /// <para>主要应用于网络服务器重启交替。默认false。</para>
+    /// <para>一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。</para>
+    /// <para>SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket，才可以重复绑定使用。</para>
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
 
-    /// <summary>KeepAlive间隔。默认0秒不启用</summary>
+    /// <summary>KeepAlive间隔（秒）</summary>
+    /// <remarks>默认0秒不启用。启用后可及时检测连接断开</remarks>
     public Int32 KeepAliveInterval { get; set; }
 
-    /// <summary>启用Http，数据处理时截去请求响应头，默认false</summary>
+    /// <summary>启用Http</summary>
+    /// <remarks>数据处理时截去请求响应头，默认false</remarks>
     public Boolean EnableHttp { get; set; }
 
-    /// <summary>消息管道。收发消息都经过管道处理器，进行协议编码解码</summary>
+    /// <summary>消息管道</summary>
     /// <remarks>
-    /// 1，接收数据解码时，从前向后通过管道处理器；
-    /// 2，发送数据编码时，从后向前通过管道处理器；
+    /// <para>收发消息都经过管道处理器，进行协议编码解码。</para>
+    /// <para>处理顺序：</para>
+    /// <list type="number">
+    /// <item>接收数据解码时，从前向后通过管道处理器</item>
+    /// <item>发送数据编码时，从后向前通过管道处理器</item>
+    /// </list>
     /// </remarks>
     public IPipeline? Pipeline { get; set; }
 
-    /// <summary>SSL协议。默认None</summary>
+    /// <summary>SSL协议版本</summary>
+    /// <remarks>默认None不启用SSL</remarks>
     public SslProtocols SslProtocol { get; set; } = SslProtocols.None;
 
-    /// <summary>X509证书。用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书</summary>
+    /// <summary>X509证书</summary>
     /// <remarks>
-    /// 可以使用pfx证书文件，也可以使用pem证书文件。
-    /// 服务端必须指定证书。
+    /// <para>用于SSL连接时验证证书指纹，可以直接加载pem证书文件，未指定时不验证证书。</para>
+    /// <para>可以使用pfx证书文件，也可以使用pem证书文件。</para>
+    /// <para>服务端必须指定证书。</para>
     /// </remarks>
     /// <example>
     /// var cert = new X509Certificate2("file", "pass");
@@ -79,11 +100,12 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
     public X509Certificate? Certificate { get; set; }
 
     /// <summary>APM性能追踪器</summary>
+    /// <remarks>用于记录关键操作的性能追踪</remarks>
     public ITracer? Tracer { get; set; }
     #endregion
 
     #region 构造
-    /// <summary>构造TCP服务器对象</summary>
+    /// <summary>实例化TCP服务器</summary>
     public TcpServer()
     {
         Name = GetType().Name;
@@ -96,12 +118,12 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
-    /// <summary>构造TCP服务器对象</summary>
-    /// <param name="port"></param>
+    /// <summary>使用端口实例化TCP服务器</summary>
+    /// <param name="port">监听端口</param>
     public TcpServer(Int32 port) : this() => Port = port;
 
-    /// <summary>已重载。释放会话集合等资源</summary>
-    /// <param name="disposing"></param>
+    /// <summary>释放会话集合等资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);

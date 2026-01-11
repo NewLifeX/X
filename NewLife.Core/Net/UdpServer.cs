@@ -8,32 +8,42 @@ using NewLife.Model;
 
 namespace NewLife.Net;
 
-/// <summary>增强的UDP</summary>
+/// <summary>增强的UDP服务器</summary>
 /// <remarks>
-/// 如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。
+/// <para>封装了UDP服务器功能，支持同时作为服务端和客户端使用。</para>
+/// <para>功能特性：</para>
+/// <list type="bullet">
+/// <item>支持UDP广播和组播</item>
+/// <item>自动管理UDP会话</item>
+/// <item>支持地址重用（快速重启）</item>
+/// <item>支持环回数据过滤</item>
+/// </list>
+/// <para>如果已经打开异步接收，还要使用同步接收，则同步Receive内部不再调用底层Socket，而是等待截走异步数据。</para>
 /// </remarks>
 public class UdpServer : SessionBase, ISocketServer, ILogFeature
 {
     #region 属性
-    /// <summary>会话超时时间</summary>
+    /// <summary>会话超时时间（秒）</summary>
     /// <remarks>
     /// 对于每一个会话连接，如果超过该时间仍然没有收到任何数据，则断开会话连接。
     /// </remarks>
     public Int32 SessionTimeout { get; set; }
 
-    /// <summary>是否接收来自自己广播的环回数据。默认false</summary>
+    /// <summary>是否接收来自自己广播的环回数据</summary>
+    /// <remarks>默认false，不接收自己发出的广播数据</remarks>
     public Boolean Loopback { get; set; }
 
-    /// <summary>地址重用，主要应用于网络服务器重启交替。默认false</summary>
+    /// <summary>地址重用</summary>
     /// <remarks>
-    /// 一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。
-    /// SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket(TCP连接中, 先调用close() 的一方会进入TIME_WAIT状态)，才可以重复绑定使用。
+    /// <para>主要应用于网络服务器重启交替。默认false。</para>
+    /// <para>一个端口释放后会等待两分钟之后才能再被使用，SO_REUSEADDR是让端口释放后立即就可以被再次使用。</para>
+    /// <para>SO_REUSEADDR用于对TCP套接字处于TIME_WAIT状态下的socket，才可以重复绑定使用。</para>
     /// </remarks>
     public Boolean ReuseAddress { get; set; }
     #endregion
 
     #region 构造
-    /// <summary>实例化增强UDP</summary>
+    /// <summary>实例化增强UDP服务器</summary>
     public UdpServer()
     {
         Local.Type = NetType.Udp;
@@ -48,12 +58,12 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }
 
-    /// <summary>使用监听口初始化</summary>
-    /// <param name="listenPort"></param>
+    /// <summary>使用监听端口初始化</summary>
+    /// <param name="listenPort">监听端口</param>
     public UdpServer(Int32 listenPort) : this() => Port = listenPort;
 
-    /// <summary>销毁</summary>
-    /// <param name="disposing"></param>
+    /// <summary>销毁资源</summary>
+    /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
