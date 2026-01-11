@@ -50,6 +50,7 @@
 | 语言版本 | `<LangVersion>latest</LangVersion>`，所有目标框架均使用最新 C# 语法 |
 | 命名空间 | file-scoped namespace |
 | 类型名 | **必须**使用 .NET 正式名 `String`/`Int32`/`Boolean` 等，避免 `string`/`int`/`bool` |
+| 兼容性 | 代码需兼容 .NET 4.5+；**禁止**使用 `ArgumentNullException.ThrowIfNull`，改用 `if (value == null) throw new ArgumentNullException(nameof(value));` |
 | 单文件 | 每文件一个主要公共类型；较大平台差异使用 `partial` |
 
 ### 4.2 命名规范
@@ -152,7 +153,6 @@ var result = code switch
 
 // 目标类型 new
 using var ms = new MemoryStream();
-List<String> list = [];  // C# 12，仅 net8.0+ 运行时可用
 
 // record（DTO 场景）
 public record UserInfo(String Name, Int32 Age);
@@ -160,6 +160,81 @@ public record UserInfo(String Name, Int32 Age);
 // 模式匹配
 if (obj is String { Length: > 0 } str) { }
 ```
+
+### 4.6 集合表达式
+
+优先使用集合表达式 `[]` 初始化集合，代码更简洁：
+
+```csharp
+// ✅ 属性定义：使用集合表达式
+public List<String> Tags { get; set; } = [];
+public Dictionary<String, Object> Data { get; set; } = [];
+public Int32[] Numbers { get; set; } = [];
+
+// ❌ 避免冗长的初始化方式
+public List<String> Tags { get; set; } = new List<String>();
+public List<String> Tags { get; set; } = new();
+
+// ✅ 方法内局部变量
+List<String> list = [];
+var items = new List<Item>();  // 需要立即 Add 时可用 new
+
+// ✅ 带初始值的集合
+List<Int32> nums = [1, 2, 3];
+String[] names = ["Alice", "Bob"];
+Dictionary<String, Int32> scores = new() { ["Math"] = 90, ["English"] = 85 };
+
+// ✅ 集合展开（spread）
+List<Int32> combined = [..first, ..second, 100];
+
+// ✅ 返回空集合
+public IList<String> GetItems() => [];
+```
+
+### 4.7 Null 条件运算符
+
+优先使用 `?.`（null 条件运算符）简化空值检查，提升代码简洁性与可读性：
+
+```csharp
+// ✅ 方法调用：使用 null 条件运算符
+span?.AppendTag("test");
+handler?.Invoke(this, args);
+list?.Clear();
+
+// ❌ 避免冗余的 if 判断
+if (span != null) span.AppendTag("test");
+if (handler != null) handler.Invoke(this, args);
+
+// ✅ 属性赋值：使用 null 条件赋值（C# 14 新特性）
+customer?.Order = GetCurrentOrder();
+span?.Value = 1234;
+config?.Name = "test";
+
+// ❌ 避免冗余的 if 判断
+if (customer != null) customer.Order = GetCurrentOrder();
+if (span != null) span.Value = 1234;
+
+// ✅ 复合赋值运算符也支持
+counter?.Count += 1;
+list?.Capacity *= 2;
+
+// ✅ 链式调用：安全访问嵌套属性
+var name = user?.Profile?.Name;
+var count = order?.Items?.Count ?? 0;
+
+// ✅ 结合 null 合并运算符提供默认值
+var length = str?.Length ?? 0;
+var display = item?.ToString() ?? "N/A";
+
+// ✅ 索引器访问
+var first = list?[0];
+var value = dict?["key"];
+
+// ✅ 委托调用（推荐写法）
+PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+```
+
+**注意**：null 条件赋值时，右侧表达式仅在左侧非 null 时才会求值；不支持自增/自减运算符（`++`/`--`）。
 
 ---
 

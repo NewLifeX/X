@@ -42,7 +42,7 @@ public class NetSession<TServer> : NetSession where TServer : NetServer
 /// <item>TCP连接建立或UDP首包到达时，服务器调用 CreateSession 创建会话</item>
 /// <item>调用 <see cref="Start"/> 启动会话，初始化网络处理器，触发 <see cref="OnConnected"/></item>
 /// <item>数据到达时触发 <see cref="OnReceive"/>，可通过 Send 系列方法发送响应</item>
-/// <item>连接断开时触发 <see cref="OnDisconnected"/>，会话被释放</item>
+/// <item>连接断开时触发 <see cref="OnDisconnected(String)"/>，会话被释放</item>
 /// </list>
 /// <para>典型用法：</para>
 /// <code>

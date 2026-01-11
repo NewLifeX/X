@@ -45,8 +45,8 @@ NewLife.Net ¿Í»§¶Ë×é¼şÊÇĞÂÉúÃüÍÅ¶Ó¿ª·¢µÄ¸ßĞÔÄÜÍøÂçÍ¨ĞÅ¿â£¬Ìá¹© TCP/UDP ¿Í»§¶Ë¹¦Ä
 ```
 ©°©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©´
 ©¦                         Ó¦ÓÃ²ã                                       ©¦
-©¦  TcpSession / UdpServer (¿Í»§¶ËÄ£Ê½)                                  ©¦
-©¦  ©À©¤©¤ ISocketClient (¿Í»§¶Ë½Ó¿Ú)                                       ©¦
+©¦  ISocketClient (¿Í»§¶Ë½Ó¿Ú)                                          ©¦
+©¦  ©À©¤©¤ uri.CreateRemote() (ÍÆ¼ö´´½¨·½Ê½)                               ©¦
 ©¦  ©À©¤©¤ ISocketRemote (Ô¶³ÌÍ¨ĞÅ½Ó¿Ú)                                     ©¦
 ©¦  ©¸©¤©¤ Pipeline (ÏûÏ¢¹ÜµÀ)                                             ©¦
 ©À©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©È
@@ -94,58 +94,114 @@ Socket½ÓÊÕ ¡ú ProcessEvent ¡ú OnPreReceive ¡ú Pipeline.Read ¡ú OnReceive ¡ú Rece
 
 ## ¿ìËÙ¿ªÊ¼
 
-### ×î¼òµ¥µÄ TCP ¿Í»§¶Ë
+### ×î¼òµ¥µÄ TCP ¿Í»§¶Ë£¨ÍÆ¼ö·½Ê½£©
 
 ```csharp
+using NewLife;
+using NewLife.Log;
 using NewLife.Net;
 
-// ´´½¨TCP¿Í»§¶Ë
-var client = new TcpSession
-{
-    Remote = new NetUri("tcp://127.0.0.1:12345"),
-    Timeout = 5000,  // ³¬Ê±Ê±¼ä5Ãë
-};
+// ´´½¨TCP¿Í»§¶Ë£¨ÍÆ¼ö·½Ê½£©
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+client.Log = XTrace.Log;
 
 // ´ò¿ªÁ¬½Ó
 client.Open();
 
 // ·¢ËÍÊı¾İ
-client.Send("Hello Server"u8.ToArray());
+client.Send("Hello Server");
 
 // Í¬²½½ÓÊÕÊı¾İ
-var pk = client.Receive();
-Console.WriteLine($"ÊÕµ½£º{pk.ToStr()}");
+using var pk = client.Receive();
+client.WriteLog("ÊÕµ½£º{0}", pk?.ToStr());
 
 // ¹Ø±ÕÁ¬½Ó
-client.Close("Done");
+client.Close("²âÊÔÍê³É");
+```
+
+### ×î¼òµ¥µÄ UDP ¿Í»§¶Ë£¨ÍÆ¼ö·½Ê½£©
+
+```csharp
+using NewLife;
+using NewLife.Log;
+using NewLife.Net;
+
+// ´´½¨UDP¿Í»§¶Ë£¨ÍÆ¼ö·½Ê½£©
+var uri = new NetUri("udp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+client.Log = XTrace.Log;
+
+// ·¢ËÍÊı¾İ£¨UDPÎŞĞèÏÔÊ½Open£¬·¢ËÍÊ±×Ô¶¯´ò¿ª£©
+client.Send("Hello UDP");
+
+// ½ÓÊÕÊı¾İ
+using var pk = await client.ReceiveAsync(default);
+client.WriteLog("ÊÕµ½£º{0}", pk?.ToStr());
+
+// ¹Ø±ÕÁ¬½Ó
+client.Close("²âÊÔÍê³É");
+```
+
+### Ê¹ÓÃÒì²½½ÓÊÕÄ£Ê½
+
+```csharp
+using NewLife;
+using NewLife.Log;
+using NewLife.Net;
+
+// ´´½¨¿Í»§¶Ë
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+client.Name = "Ğ¡tcp¿Í»§";
+client.Log = XTrace.Log;
+
+// ¹Ø±ÕÄ¬ÈÏµÄÒì²½Ä£Ê½£¬Ê¹ÓÃÊÖ¶¯½ÓÊÕ
+if (client is TcpSession tcp) tcp.MaxAsync = 0;
+
+// ½ÓÊÕ·şÎñ¶ËÎÕÊÖ£¨ÄÚ²¿×Ô¶¯½¨Á¢Á¬½Ó£©
+using var rs = await client.ReceiveAsync(default);
+client.WriteLog("ÊÕµ½£º{0}", rs?.ToStr());
+
+// ·¢ËÍÊı¾İ
+client.WriteLog("·¢ËÍ£ºHello NewLife");
+client.Send("Hello NewLife");
+
+// ½ÓÊÕÏìÓ¦
+using var rs2 = await client.ReceiveAsync(default);
+client.WriteLog("ÊÕµ½£º{0}", rs2?.ToStr());
+
+// ¹Ø±ÕÁ¬½Ó
+client.Close("²âÊÔÍê³É");
 ```
 
 ### Ê¹ÓÃÊÂ¼şÇı¶¯Ä£Ê½
 
 ```csharp
+using NewLife;
+using NewLife.Log;
 using NewLife.Net;
 
-var client = new TcpSession
-{
-    Remote = new NetUri("tcp://127.0.0.1:12345"),
-};
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+client.Log = XTrace.Log;
 
 // Á¬½Ó´ò¿ªÊÂ¼ş
-client.Opened += (s, e) => Console.WriteLine("ÒÑÁ¬½Ó");
+client.Opened += (s, e) => XTrace.WriteLine("ÒÑÁ¬½Ó");
 
 // Á¬½Ó¹Ø±ÕÊÂ¼ş
-client.Closed += (s, e) => Console.WriteLine("ÒÑ¶Ï¿ª");
+client.Closed += (s, e) => XTrace.WriteLine("ÒÑ¶Ï¿ª");
 
 // Êı¾İ½ÓÊÕÊÂ¼ş
 client.Received += (s, e) =>
 {
-    Console.WriteLine($"ÊÕµ½ [{e.Packet.Length}]: {e.Packet.ToStr()}");
+    XTrace.WriteLine("ÊÕµ½ [{0}]: {1}", e.Packet?.Length, e.Packet?.ToStr());
 };
 
 // ´íÎóÊÂ¼ş
 client.Error += (s, e) =>
 {
-    Console.WriteLine($"´íÎó [{e.Action}]: {e.Exception.Message}");
+    XTrace.WriteLine("´íÎó [{0}]: {1}", e.Action, e.Exception.Message);
 };
 
 // ´ò¿ªÁ¬½Ó£¨»á×Ô¶¯¿ªÊ¼Òì²½½ÓÊÕ£©
@@ -160,125 +216,140 @@ Console.ReadLine();
 client.Close("Exit");
 ```
 
-### Òì²½·½Ê½
-
-```csharp
-using NewLife.Net;
-
-var client = new TcpSession
-{
-    Remote = new NetUri("tcp://127.0.0.1:12345"),
-};
-
-// Òì²½´ò¿ªÁ¬½Ó
-await client.OpenAsync();
-
-// ·¢ËÍÊı¾İ
-client.Send("Hello");
-
-// Òì²½½ÓÊÕÊı¾İ
-var pk = await client.ReceiveAsync();
-Console.WriteLine($"ÊÕµ½£º{pk?.ToStr()}");
-
-// Òì²½¹Ø±Õ
-await client.CloseAsync("Done");
-```
-
-### Ê¹ÓÃ UDP Ğ­Òé
-
-```csharp
-using NewLife.Net;
-
-// UDP Ê¹ÓÃ UdpServer ×÷Îª¿Í»§¶Ë
-var client = new UdpServer
-{
-    Remote = new NetUri("udp://127.0.0.1:12345"),
-};
-
-// Êı¾İ½ÓÊÕÊÂ¼ş
-client.Received += (s, e) =>
-{
-    Console.WriteLine($"ÊÕµ½À´×Ô {e.Remote}: {e.Packet.ToStr()}");
-};
-
-// ´ò¿ª£¨°ó¶¨±¾µØ¶Ë¿Ú£©
-client.Open();
-
-// ·¢ËÍÊı¾İµ½Ô¶³ÌµØÖ·
-client.Send("Hello UDP");
-
-Console.ReadLine();
-client.Close("Exit");
-```
-
 ---
 
 ## ºËĞÄ×é¼ş
+
+### NetUri - ÍøÂçµØÖ·
+
+NetUri ÓÃÓÚÃèÊöÍøÂçµØÖ·£¬Ö§³ÖĞ­Òé¡¢Ö÷»ú¡¢¶Ë¿Ú£¬ÊÇ´´½¨¿Í»§¶ËµÄÈë¿Ú¡£
+
+```csharp
+// ´Ó×Ö·û´®½âÎö£¨ÍÆ¼ö£©
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var uri = new NetUri("udp://192.168.1.100:8080");
+var uri = new NetUri("tcp://example.com:443");
+
+// Ö±½Ó¹¹Ôì
+var uri = new NetUri(NetType.Tcp, IPAddress.Loopback, 12345);
+var uri = new NetUri(NetType.Udp, "192.168.1.100", 8080);
+
+// »ñÈ¡ÊôĞÔ
+var type = uri.Type;           // Ğ­ÒéÀàĞÍ
+var host = uri.Host;           // Ö÷»úÃû
+var address = uri.Address;     // IPµØÖ·
+var port = uri.Port;           // ¶Ë¿Ú
+var endpoint = uri.EndPoint;   // IPEndPoint
+
+// ÓòÃû½âÎö
+var addresses = uri.GetAddresses();    // »ñÈ¡ËùÓĞIP
+var endpoints = uri.GetEndPoints();    // »ñÈ¡ËùÓĞÖÕ½áµã
+
+// ´´½¨¿Í»§¶Ë£¨ÍÆ¼ö·½Ê½£©
+var client = uri.CreateRemote();
+```
+
+### CreateRemote - ´´½¨¿Í»§¶Ë
+
+`CreateRemote()` ÊÇ NetUri µÄÀ©Õ¹·½·¨£¬¸ù¾İĞ­ÒéÀàĞÍ×Ô¶¯´´½¨¶ÔÓ¦µÄ¿Í»§¶ËÊµÀı¡£
+
+```csharp
+// TCP¿Í»§¶Ë
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();  // ·µ»Ø TcpSession
+
+// UDP¿Í»§¶Ë
+var uri = new NetUri("udp://127.0.0.1:12345");
+var client = uri.CreateRemote();  // ·µ»Ø UdpServer
+
+// HTTP/HTTPS£¨×Ô¶¯ÆôÓÃSSL£©
+var uri = new NetUri("http://example.com:443");
+var client = uri.CreateRemote();  // ·µ»Ø TcpSession with SSL
+
+// WebSocket
+var uri = new NetUri("ws://127.0.0.1:8080");
+var client = uri.CreateRemote();  // ·µ»Ø WebSocketClient
+```
+
+### ISocketClient - ¿Í»§¶Ë½Ó¿Ú
+
+ËùÓĞ¿Í»§¶Ë¶¼ÊµÏÖ `ISocketClient` ½Ó¿Ú£¬Ìá¹©Í³Ò»µÄ²Ù×÷·½Ê½¡£
+
+```csharp
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+
+// »ù±¾ÊôĞÔ
+client.Name = "MyClient";           // ¿Í»§¶ËÃû³Æ£¬ÓÃÓÚÈÕÖ¾
+client.Timeout = 5000;              // ³¬Ê±Ê±¼ä£¨ºÁÃë£©
+client.Log = XTrace.Log;            // ÈÕÖ¾¶ÔÏó
+
+// Á¬½Ó¹ÜÀí
+client.Open();                      // Í¬²½´ò¿ª
+await client.OpenAsync();           // Òì²½´ò¿ª
+client.Close("reason");             // Í¬²½¹Ø±Õ
+await client.CloseAsync("reason");  // Òì²½¹Ø±Õ
+var active = client.Active;         // Á¬½Ó×´Ì¬
+
+// Êı¾İ·¢ËÍ
+client.Send(data);                  // ·¢ËÍ×Ö½ÚÊı×é
+client.Send("Hello");               // ·¢ËÍ×Ö·û´®£¨À©Õ¹·½·¨£©
+client.Send(packet);                // ·¢ËÍÊı¾İ°ü
+
+// Êı¾İ½ÓÊÕ
+using var pk = client.Receive();           // Í¬²½½ÓÊÕ
+using var pk = await client.ReceiveAsync();// Òì²½½ÓÊÕ
+
+// ÊÂ¼ş
+client.Opened += (s, e) => { };     // ´ò¿ªÊÂ¼ş
+client.Closed += (s, e) => { };     // ¹Ø±ÕÊÂ¼ş
+client.Received += (s, e) => { };   // ½ÓÊÕÊÂ¼ş
+client.Error += (s, e) => { };      // ´íÎóÊÂ¼ş
+```
 
 ### TcpSession - TCP¿Í»§¶Ë
 
 TcpSession ÊÇÔöÇ¿µÄTCP¿Í»§¶Ë£¬Ö§³ÖSSL/TLS°²È«Á¬½Ó¡£
 
-#### »ù±¾ÊôĞÔ
+#### »ù±¾ÊôĞÔÅäÖÃ
 
 ```csharp
-var client = new TcpSession
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+
+// ×ª»»Îª¾ßÌåÀàĞÍÒÔ·ÃÎÊ¸ü¶àÊôĞÔ
+if (client is TcpSession tcp)
 {
-    // Á¬½ÓÅäÖÃ
-    Name = "MyClient",                      // ¿Í»§¶ËÃû³Æ£¬ÓÃÓÚÈÕÖ¾
-    Remote = new NetUri("tcp://host:port"), // Ô¶³ÌµØÖ·
-    Timeout = 5000,                         // ³¬Ê±Ê±¼ä£¨ºÁÃë£©
-    
     // TCPÑ¡Ïî
-    NoDelay = true,                         // ½ûÓÃNagleËã·¨£¨µÍÑÓ³Ù£©
-    KeepAliveInterval = 30,                 // KeepAlive¼ä¸ô£¨Ãë£©
+    tcp.NoDelay = true;                 // ½ûÓÃNagleËã·¨£¨µÍÑÓ³Ù£©
+    tcp.KeepAliveInterval = 30;         // KeepAlive¼ä¸ô£¨Ãë£©
     
     // SSLÅäÖÃ
-    SslProtocol = SslProtocols.Tls12,       // SSLĞ­Òé°æ±¾
-    Certificate = cert,                      // ¿Í»§¶ËÖ¤Êé£¨¿ÉÑ¡£©
+    tcp.SslProtocol = SslProtocols.Tls12;  // SSLĞ­Òé°æ±¾
+    tcp.Certificate = cert;                 // ¿Í»§¶ËÖ¤Êé£¨¿ÉÑ¡£©
     
     // ½ÓÊÕÅäÖÃ
-    MaxAsync = 1,                           // ×î´ó²¢ĞĞ½ÓÊÕÊı£¬TCPÄ¬ÈÏ1
-    BufferSize = 8192,                      // ½ÓÊÕ»º³åÇø´óĞ¡
+    tcp.MaxAsync = 1;                   // ×î´ó²¢ĞĞ½ÓÊÕÊı£¬TCPÄ¬ÈÏ1
+    tcp.BufferSize = 8192;              // ½ÓÊÕ»º³åÇø´óĞ¡
     
     // ÈÕÖ¾ÅäÖÃ
-    Log = XTrace.Log,                       // ÈÕÖ¾¶ÔÏó
-    LogSend = true,                         // ¼ÇÂ¼·¢ËÍÈÕÖ¾
-    LogReceive = true,                      // ¼ÇÂ¼½ÓÊÕÈÕÖ¾
-    LogDataLength = 64,                     // ÈÕÖ¾Êı¾İ³¤¶È
+    tcp.LogSend = true;                 // ¼ÇÂ¼·¢ËÍÈÕÖ¾
+    tcp.LogReceive = true;              // ¼ÇÂ¼½ÓÊÕÈÕÖ¾
+    tcp.LogDataLength = 64;             // ÈÕÖ¾Êı¾İ³¤¶È
     
     // ×·×ÙÅäÖÃ
-    Tracer = tracer,                        // APM×·×ÙÆ÷
-};
-```
-
-#### Á¬½Ó¹ÜÀí
-
-```csharp
-// Í¬²½Á¬½Ó
-var success = client.Open();
-
-// Òì²½Á¬½Ó
-var success = await client.OpenAsync();
-
-// ´øÈ¡ÏûÁîÅÆµÄÒì²½Á¬½Ó
-using var cts = new CancellationTokenSource(5000);
-var success = await client.OpenAsync(cts.Token);
-
-// ¹Ø±ÕÁ¬½Ó
-client.Close("Reason");
-await client.CloseAsync("Reason");
-
-// ¼ì²éÁ¬½Ó×´Ì¬
-if (client.Active)
-{
-    // Á¬½Ó»îÔ¾
+    tcp.Tracer = tracer;                // APM×·×ÙÆ÷
 }
+
+client.Open();
 ```
 
 #### Êı¾İ·¢ËÍ
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+client.Open();
+
 // ·¢ËÍ×Ö½ÚÊı×é
 var sent = client.Send(new Byte[] { 0x01, 0x02, 0x03 });
 var sent = client.Send(data, offset, count);
@@ -306,6 +377,14 @@ var sent = client.Send(stream);
 #### Êı¾İ½ÓÊÕ
 
 ```csharp
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+
+// ¹Ø±ÕÒì²½½ÓÊÕ£¬Ê¹ÓÃÊÖ¶¯½ÓÊÕÄ£Ê½
+if (client is TcpSession tcp) tcp.MaxAsync = 0;
+
+client.Open();
+
 // Í¬²½½ÓÊÕ£¨×èÈû£©
 using var pk = client.Receive();
 if (pk != null)
@@ -324,7 +403,7 @@ using var pk = await client.ReceiveAsync(cts.Token);
 // À©Õ¹·½·¨£º½ÓÊÕ×Ö·û´®
 var str = client.ReceiveString();
 
-// ÊÂ¼şÇı¶¯½ÓÊÕ£¨ÍÆ¼ö£©
+// ÊÂ¼şÇı¶¯½ÓÊÕ£¨ÍÆ¼ö£¬ĞèÒª±£³Ö MaxAsync >= 1£©
 client.Received += (s, e) =>
 {
     var pk = e.Packet;      // Ô­Ê¼Êı¾İ°ü
@@ -341,53 +420,49 @@ UdpServer ¼È¿ÉÒÔ×÷Îª·şÎñ¶ËÒ²¿ÉÒÔ×÷Îª¿Í»§¶ËÊ¹ÓÃ¡£
 #### ×÷Îª¿Í»§¶ËÊ¹ÓÃ
 
 ```csharp
-var client = new UdpServer
-{
-    // Ô¶³ÌµØÖ·£¨×÷Îª¿Í»§¶ËÊ±Ö¸¶¨£©
-    Remote = new NetUri("udp://127.0.0.1:12345"),
-    
-    // ±¾µØÅäÖÃ
-    Port = 0,                               // ±¾µØ¶Ë¿Ú£¬0±íÊ¾×Ô¶¯·ÖÅä
-    ReuseAddress = true,                    // µØÖ·ÖØÓÃ
-    Loopback = false,                       // ÊÇ·ñ½ÓÊÕ»·»ØÊı¾İ
-    
-    // »á»°ÅäÖÃ
-    SessionTimeout = 20 * 60,               // »á»°³¬Ê±Ê±¼ä£¨Ãë£©
-    
-    // ½ÓÊÕÅäÖÃ
-    MaxAsync = Environment.ProcessorCount * 16 / 10, // UDPÄ¬ÈÏCPU*1.6
-    BufferSize = 8192,
-};
+// ´´½¨UDP¿Í»§¶Ë
+var uri = new NetUri("udp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+client.Log = XTrace.Log;
 
-// ´ò¿ª
-client.Open();
+// ¹Ø±ÕÒì²½½ÓÊÕ£¬Ê¹ÓÃÊÖ¶¯½ÓÊÕÄ£Ê½
+if (client is UdpServer udp) udp.MaxAsync = 0;
 
-// ·¢ËÍµ½RemoteÖ¸¶¨µÄµØÖ·
-client.Send("Hello");
+// ·¢ËÍÊı¾İ£¨UDPÎŞĞèÏÔÊ½Open£¬·¢ËÍÊ±×Ô¶¯´ò¿ª£©
+client.Send("Hello UDP");
 
-// ¹Ø±Õ
-client.Close("Done");
+// ½ÓÊÕÊı¾İ
+using var pk = await client.ReceiveAsync(default);
+client.WriteLog("ÊÕµ½£º{0}", pk?.ToStr());
+
+// ¹Ø±ÕÁ¬½Ó
+client.Close("²âÊÔÍê³É");
 ```
 
-#### UDP»á»°£¨UdpSession£©
-
-µ±×÷Îª·şÎñ¶ËÊ¹ÓÃÊ±£¬Ã¿¸öÔ¶³ÌµØÖ·¶ÔÓ¦Ò»¸öUdpSession¡£
+#### UDP·şÎñ¶ËÅäÖÃ
 
 ```csharp
-var server = new UdpServer { Port = 12345 };
+var uri = new NetUri("udp://0.0.0.0:12345");
+var server = uri.CreateRemote() as UdpServer;
+
+// ·şÎñ¶ËÅäÖÃ
+server.Port = 12345;                    // ±¾µØ¶Ë¿Ú
+server.ReuseAddress = true;             // µØÖ·ÖØÓÃ
+server.Loopback = false;                // ÊÇ·ñ½ÓÊÕ»·»ØÊı¾İ
+server.SessionTimeout = 20 * 60;        // »á»°³¬Ê±Ê±¼ä£¨Ãë£©
+server.MaxAsync = Environment.ProcessorCount * 16 / 10; // UDPÄ¬ÈÏCPU*1.6
+server.BufferSize = 8192;
 
 // ĞÂ»á»°ÊÂ¼ş
 server.NewSession += (s, e) =>
 {
     var session = e.Session as UdpSession;
-    Console.WriteLine($"ĞÂ»á»°£º{session.Remote}");
+    XTrace.WriteLine("ĞÂ»á»°£º{0}", session.Remote);
     
     // »á»°Êı¾İ½ÓÊÕ
     session.Received += (ss, ee) =>
     {
-        Console.WriteLine($"»á»° {session.ID} ÊÕµ½£º{ee.Packet.ToStr()}");
-        
-        // »Ø¸´
+        XTrace.WriteLine("»á»° {0} ÊÕµ½£º{1}", session.ID, ee.Packet?.ToStr());
         session.Send("Reply");
     };
 };
@@ -404,7 +479,8 @@ server.Open();
 ```csharp
 using NewLife.Net.Handlers;
 
-var client = new TcpSession { Remote = uri };
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
 
 // Ê¹ÓÃÀ©Õ¹·½·¨Ìí¼Ó´¦ÀíÆ÷
 client.Add<StandardCodec>();    // ±ê×¼±à½âÂëÆ÷£¨4×Ö½ÚÍ·²¿+Êı¾İ£©
@@ -414,6 +490,8 @@ client.Add<JsonCodec>();        // JSON±à½âÂëÆ÷
 client.Pipeline = new Pipeline();
 client.Pipeline.Add(new StandardCodec());
 client.Pipeline.Add(new JsonCodec());
+
+client.Open();
 ```
 
 #### ±ê×¼±à½âÂëÆ÷
@@ -421,7 +499,9 @@ client.Pipeline.Add(new JsonCodec());
 StandardCodec Ê¹ÓÃ 4 ×Ö½ÚÍ·²¿±êÊ¶Êı¾İ³¤¶È£¬×Ô¶¯´¦ÀíÕ³°ü/²ğ°ü¡£
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Add<StandardCodec>();
+client.Open();
 
 // ·¢ËÍÏûÏ¢£¨×Ô¶¯Ìí¼ÓÍ·²¿£©
 client.SendMessage(new ArrayPacket(data));
@@ -466,33 +546,8 @@ public class MyCodec : Handler
 }
 
 // Ê¹ÓÃ×Ô¶¨Òå´¦ÀíÆ÷
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Add(new MyCodec());
-```
-
-### NetUri - ÍøÂçµØÖ·
-
-NetUri ÓÃÓÚÃèÊöÍøÂçµØÖ·£¬Ö§³ÖĞ­Òé¡¢Ö÷»ú¡¢¶Ë¿Ú¡£
-
-```csharp
-// ´Ó×Ö·û´®½âÎö
-var uri = new NetUri("tcp://127.0.0.1:12345");
-var uri = new NetUri("udp://192.168.1.100:8080");
-var uri = new NetUri("tcp://example.com:443");
-
-// Ö±½Ó¹¹Ôì
-var uri = new NetUri(NetType.Tcp, IPAddress.Loopback, 12345);
-var uri = new NetUri(NetType.Udp, "192.168.1.100", 8080);
-
-// »ñÈ¡ÊôĞÔ
-var type = uri.Type;           // Ğ­ÒéÀàĞÍ
-var host = uri.Host;           // Ö÷»úÃû
-var address = uri.Address;     // IPµØÖ·
-var port = uri.Port;           // ¶Ë¿Ú
-var endpoint = uri.EndPoint;   // IPEndPoint
-
-// ÓòÃû½âÎö
-var addresses = uri.GetAddresses();    // »ñÈ¡ËùÓĞIP
-var endpoints = uri.GetEndPoints();    // »ñÈ¡ËùÓĞÖÕ½áµã
 ```
 
 ---
@@ -503,28 +558,30 @@ var endpoints = uri.GetEndPoints();    // »ñÈ¡ËùÓĞÖÕ½áµã
 
 ```csharp
 // ¿Í»§¶ËSSL£¨²»ÑéÖ¤·şÎñ¶ËÖ¤Êé£©
-var client = new TcpSession
+var uri = new NetUri("tcp://127.0.0.1:443");
+var client = uri.CreateRemote();
+if (client is TcpSession tcp)
 {
-    Remote = new NetUri("tcp://127.0.0.1:443"),
-    SslProtocol = SslProtocols.Tls12 | SslProtocols.Tls13,
-};
+    tcp.SslProtocol = SslProtocols.Tls12 | SslProtocols.Tls13;
+}
+client.Open();
 
 // ¿Í»§¶ËSSL£¨Ê¹ÓÃ¿Í»§¶ËÖ¤Êé£©
 var clientCert = new X509Certificate2("client.pfx", "password");
-var client = new TcpSession
+var uri = new NetUri("tcp://127.0.0.1:443");
+var client = uri.CreateRemote();
+if (client is TcpSession tcp)
 {
-    Remote = new NetUri("tcp://127.0.0.1:443"),
-    SslProtocol = SslProtocols.Tls12,
-    Certificate = clientCert,  // ¿Í»§¶ËÖ¤Êé
-};
-
+    tcp.SslProtocol = SslProtocols.Tls12;
+    tcp.Certificate = clientCert;  // ¿Í»§¶ËÖ¤Êé
+}
 client.Open();
 ```
 
 ### ÏûÏ¢ÇëÇóÏìÓ¦Ä£Ê½
 
 ```csharp
-var client = new TcpSession { Remote = uri };
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Add<StandardCodec>();
 client.Open();
 
@@ -542,6 +599,8 @@ var sent = client.SendMessage(message);
 ### À©Õ¹Êı¾İ´æ´¢
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+
 // Ê¹ÓÃË÷ÒıÆ÷´æ´¢Êı¾İ
 client["userId"] = 12345;
 client["loginTime"] = DateTime.Now;
@@ -558,11 +617,8 @@ var userData = client.Items["userData"] as UserData;
 ### APM ĞÔÄÜ×·×Ù
 
 ```csharp
-var client = new TcpSession
-{
-    Remote = uri,
-    Tracer = tracer,  // APM×·×ÙÆ÷
-};
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+client.Tracer = tracer;  // APM×·×ÙÆ÷
 
 // ×·×ÙµÄ²Ù×÷°üÀ¨£º
 // - net:{Name}:Open       ´ò¿ªÁ¬½Ó
@@ -581,13 +637,14 @@ var client = new TcpSession
 
 ```csharp
 // Ê¹ÓÃusingÈ·±£×ÊÔ´ÊÍ·Å
-using var client = new TcpSession { Remote = uri };
+var uri = new NetUri("tcp://127.0.0.1:12345");
+using var client = uri.CreateRemote();
 client.Open();
 // ... Ê¹ÓÃ¿Í»§¶Ë
 // ×Ô¶¯µ÷ÓÃDispose
 
 // »òÕßÊÖ¶¯¹ÜÀí
-var client = new TcpSession { Remote = uri };
+var client = uri.CreateRemote();
 try
 {
     client.Open();
@@ -603,31 +660,34 @@ finally
 ### 2. Òì³£´¦Àí
 
 ```csharp
-var client = new TcpSession { Remote = uri };
+var client = new NetUri("tcp://192.0.2.1:12345").CreateRemote();
 
 // ×¢²á´íÎóÊÂ¼ş
 client.Error += (s, e) =>
 {
-    Console.WriteLine($"´íÎó [{e.Action}]: {e.Exception.Message}");
+    XTrace.WriteLine("´íÎó [{0}]: {1}", e.Action, e.Exception.Message);
 };
 
 try
 {
+    client.Timeout = 5000;
     client.Open();
 }
 catch (TimeoutException ex)
 {
-    Console.WriteLine($"Á¬½Ó³¬Ê±£º{ex.Message}");
+    XTrace.WriteLine("Á¬½Ó³¬Ê±£º{0}", ex.Message);
 }
 catch (SocketException ex)
 {
-    Console.WriteLine($"Socket´íÎó£º{ex.SocketErrorCode}");
+    XTrace.WriteLine("Socket´íÎó£º{0}", ex.SocketErrorCode);
 }
 ```
 
 ### 3. Á¬½Ó×´Ì¬¼ì²é
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+
 // ·¢ËÍÇ°¼ì²éÁ¬½Ó×´Ì¬
 if (!client.Active)
 {
@@ -643,33 +703,29 @@ client.Send(data);
 
 ```csharp
 // Éú²ú»·¾³
-var client = new TcpSession
-{
-    Remote = uri,
-    Log = XTrace.Log,
-    LogSend = false,         // ¹Ø±Õ·¢ËÍÈÕÖ¾
-    LogReceive = false,      // ¹Ø±Õ½ÓÊÕÈÕÖ¾
-};
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+client.Log = XTrace.Log;
+client.LogSend = false;         // ¹Ø±Õ·¢ËÍÈÕÖ¾
+client.LogReceive = false;      // ¹Ø±Õ½ÓÊÕÈÕÖ¾
 
 // µ÷ÊÔ»·¾³
-var client = new TcpSession
-{
-    Remote = uri,
-    Log = XTrace.Log,
-    LogSend = true,          // ¿ªÆô·¢ËÍÈÕÖ¾
-    LogReceive = true,       // ¿ªÆô½ÓÊÕÈÕÖ¾
-    LogDataLength = 256,     // ÈÕÖ¾Êı¾İ³¤¶È
-};
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+client.Log = XTrace.Log;
+client.LogSend = true;          // ¿ªÆô·¢ËÍÈÕÖ¾
+client.LogReceive = true;       // ¿ªÆô½ÓÊÕÈÕÖ¾
+if (client is SessionBase sb) sb.LogDataLength = 256;  // ÈÕÖ¾Êı¾İ³¤¶È
 ```
 
 ### 5. ĞÄÌø±£»î
 
 ```csharp
-var client = new TcpSession
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
+if (client is TcpSession tcp)
 {
-    Remote = uri,
-    KeepAliveInterval = 60,  // ÏµÍ³¼¶KeepAlive£¬60Ãë
-};
+    tcp.KeepAliveInterval = 60;  // ÏµÍ³¼¶KeepAlive£¬60Ãë
+}
+client.Open();
 
 // Ó¦ÓÃ¼¶ĞÄÌø
 var timer = new TimerX(async state =>
@@ -684,11 +740,12 @@ var timer = new TimerX(async state =>
 ### 6. ¶ÏÏßÖØÁ¬
 
 ```csharp
-var client = new TcpSession { Remote = uri };
+var uri = new NetUri("tcp://127.0.0.1:12345");
+var client = uri.CreateRemote();
 
 client.Closed += async (s, e) =>
 {
-    Console.WriteLine("Á¬½Ó¶Ï¿ª£¬³¢ÊÔÖØÁ¬...");
+    XTrace.WriteLine("Á¬½Ó¶Ï¿ª£¬³¢ÊÔÖØÁ¬...");
     
     // ÑÓ³ÙÖØÁ¬
     await Task.Delay(3000);
@@ -699,19 +756,19 @@ client.Closed += async (s, e) =>
         {
             if (client.Open())
             {
-                Console.WriteLine("ÖØÁ¬³É¹¦");
+                XTrace.WriteLine("ÖØÁ¬³É¹¦");
                 return;
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ÖØÁ¬Ê§°Ü£º{ex.Message}");
+            XTrace.WriteLine("ÖØÁ¬Ê§°Ü£º{0}", ex.Message);
         }
         
         await Task.Delay(3000 * (i + 1));  // µİÔöÑÓ³Ù
     }
     
-    Console.WriteLine("ÖØÁ¬Ê§°Ü£¬ÒÑ·ÅÆú");
+    XTrace.WriteLine("ÖØÁ¬Ê§°Ü£¬ÒÑ·ÅÆú");
 };
 ```
 
@@ -732,22 +789,22 @@ client.Send(data);
 
 ```csharp
 // ¸ù¾İÊµ¼ÊÊı¾İ´óĞ¡µ÷Õû»º³åÇø
-var client = new TcpSession
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+if (client is SessionBase sb)
 {
-    Remote = uri,
-    BufferSize = 64 * 1024,  // 64KB£¬ÊÊºÏ´óÊı¾İ´«Êä
-};
+    sb.BufferSize = 64 * 1024;  // 64KB£¬ÊÊºÏ´óÊı¾İ´«Êä
+}
 ```
 
 ### 3. ½ûÓÃNagleËã·¨
 
 ```csharp
 // ¶ÔÓÚÊµÊ±ĞÔÒªÇó¸ßµÄ³¡¾°
-var client = new TcpSession
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+if (client is TcpSession tcp)
 {
-    Remote = uri,
-    NoDelay = true,  // ½ûÓÃNagleËã·¨£¬¼õÉÙÑÓ³Ù
-};
+    tcp.NoDelay = true;  // ½ûÓÃNagleËã·¨£¬¼õÉÙÑÓ³Ù
+}
 ```
 
 ### 4. ÅúÁ¿·¢ËÍ
@@ -765,6 +822,7 @@ client.Send(pk1);  // Ò»´ÎÏµÍ³µ÷ÓÃ·¢ËÍÈ«²¿
 
 ```csharp
 // Ê¹ÓÃÊÂ¼şÇı¶¯Ä£Ê½£¬±ÜÃâ×èÈû
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Received += (s, e) =>
 {
     // ÔÚIOÏß³ÌÖ±½Ó´¦Àí£¬¸ßĞ§
@@ -783,6 +841,7 @@ client.Open();  // Openºó×Ô¶¯¿ªÊ¼Òì²½½ÓÊÕ
 A: Ê¹ÓÃ StandardCodec »ò×Ô¶¨ÒåĞ­Òé´¦ÀíÆ÷¡£
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Add<StandardCodec>();  // 4×Ö½ÚÍ·²¿+Êı¾İ
 ```
 
@@ -791,11 +850,8 @@ client.Add<StandardCodec>();  // 4×Ö½ÚÍ·²¿+Êı¾İ
 A: ÉèÖÃ Timeout ÊôĞÔ£¬²¢²¶»ñ TimeoutException¡£
 
 ```csharp
-var client = new TcpSession
-{
-    Remote = new NetUri("tcp://192.0.2.1:12345"),
-    Timeout = 5000,  // 5Ãë³¬Ê±
-};
+var client = new NetUri("tcp://192.0.2.1:12345").CreateRemote();
+client.Timeout = 5000;  // 5Ãë³¬Ê±
 
 try
 {
@@ -803,7 +859,7 @@ try
 }
 catch (TimeoutException)
 {
-    Console.WriteLine("Á¬½Ó³¬Ê±");
+    XTrace.WriteLine("Á¬½Ó³¬Ê±");
 }
 ```
 
@@ -812,9 +868,10 @@ catch (TimeoutException)
 A: Í¨¹ı Local ÊôĞÔ»ñÈ¡¡£
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 client.Open();
-Console.WriteLine($"±¾µØµØÖ·£º{client.Local}");
-Console.WriteLine($"±¾µØ¶Ë¿Ú£º{client.Port}");
+XTrace.WriteLine("±¾µØµØÖ·£º{0}", client.Local);
+XTrace.WriteLine("±¾µØ¶Ë¿Ú£º{0}", client.Port);
 ```
 
 ### Q: UDPÈçºÎÖ¸¶¨±¾µØ¶Ë¿Ú£¿
@@ -822,11 +879,8 @@ Console.WriteLine($"±¾µØ¶Ë¿Ú£º{client.Port}");
 A: ÉèÖÃ Port ÊôĞÔ¡£
 
 ```csharp
-var client = new UdpServer
-{
-    Port = 8888,  // °ó¶¨±¾µØ8888¶Ë¿Ú
-    Remote = new NetUri("udp://127.0.0.1:12345"),
-};
+var client = new NetUri("udp://127.0.0.1:12345").CreateRemote();
+client.Port = 8888;  // °ó¶¨±¾µØ8888¶Ë¿Ú
 ```
 
 ### Q: ÈçºÎ·¢ËÍÎÄ¼ş£¿
@@ -834,6 +888,9 @@ var client = new UdpServer
 A: Ê¹ÓÃÀ©Õ¹·½·¨¡£
 
 ```csharp
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
+client.Open();
+
 // Á÷Ê½·¢ËÍ
 using var stream = File.OpenRead("data.bin");
 client.Send(stream);
@@ -845,15 +902,15 @@ client.SendFile("data.bin");
 
 ### Q: ÈçºÎ´¦ÀíÓòÃû¶àIP£¿
 
-A: NetUri ×Ô¶¯´¦ÀíÓòÃû½âÎö¡£
+A: NetUri ×Ô¶¯´¦ÀíÓòÃû½âÎö£¬CreateRemote() ´´½¨µÄ¿Í»§¶Ë»á×Ô¶¯³¢ÊÔËùÓĞIP¡£
 
 ```csharp
 var uri = new NetUri("tcp://example.com:80");
 var addresses = uri.GetAddresses();  // »ñÈ¡ËùÓĞIP
 
-// TcpSession»á×Ô¶¯³¢ÊÔËùÓĞIPÖ±µ½Á¬½Ó³É¹¦
-var client = new TcpSession { Remote = uri };
-client.Open();  // ×Ô¶¯¹ÊÕÏ×ªÒÆ
+// ¿Í»§¶Ë»á×Ô¶¯¹ÊÕÏ×ªÒÆ
+var client = uri.CreateRemote();
+client.Open();  // ×Ô¶¯³¢ÊÔËùÓĞIPÖ±µ½Á¬½Ó³É¹¦
 ```
 
 ### Q: ÎªÊ²Ã´ÊÕ²»µ½Êı¾İ£¿
@@ -861,19 +918,25 @@ client.Open();  // ×Ô¶¯¹ÊÕÏ×ªÒÆ
 A: ¼ì²éÒÔÏÂ¼¸µã£º
 
 1. È·±£µ÷ÓÃÁË `Open()` ·½·¨
-2. È·±£×¢²áÁË `Received` ÊÂ¼ş
-3. ¼ì²é·À»ğÇ½ÉèÖÃ
-4. ¼ì²é·şÎñ¶ËÊÇ·ñÕıÈ··¢ËÍÊı¾İ
+2. Èç¹ûÊ¹ÓÃÊÂ¼şÇı¶¯£¬È·±£ `MaxAsync >= 1`
+3. Èç¹ûÊ¹ÓÃÊÖ¶¯½ÓÊÕ£¬ÉèÖÃ `MaxAsync = 0`
+4. ¼ì²é·À»ğÇ½ÉèÖÃ
+5. ¼ì²é·şÎñ¶ËÊÇ·ñÕıÈ··¢ËÍÊı¾İ
 
 ```csharp
-var client = new TcpSession { Remote = uri };
+var client = new NetUri("tcp://127.0.0.1:12345").CreateRemote();
 
+// ÊÂ¼şÇı¶¯Ä£Ê½£¨Ä¬ÈÏ£©
 client.Received += (s, e) =>
 {
-    Console.WriteLine($"ÊÕµ½Êı¾İ£º{e.Packet.Length}×Ö½Ú");
+    XTrace.WriteLine("ÊÕµ½Êı¾İ£º{0}×Ö½Ú", e.Packet?.Length);
 };
-
 client.Open();  // ±ØĞëµ÷ÓÃOpen
+
+// »òÕßÊÖ¶¯½ÓÊÕÄ£Ê½
+if (client is TcpSession tcp) tcp.MaxAsync = 0;
+client.Open();
+using var pk = await client.ReceiveAsync(default);
 ```
 
 ### Q: ÈçºÎÊµÏÖ¹ã²¥£¿
@@ -881,10 +944,7 @@ client.Open();  // ±ØĞëµ÷ÓÃOpen
 A: Ê¹ÓÃUDP¹ã²¥µØÖ·¡£
 
 ```csharp
-var client = new UdpServer
-{
-    Remote = new NetUri("udp://255.255.255.255:12345"),
-};
+var client = new NetUri("udp://255.255.255.255:12345").CreateRemote();
 client.Open();
 client.Send("Broadcast message");
 ```
@@ -897,11 +957,12 @@ client.Send("Broadcast message");
 
 | ÀàĞÍ | ËµÃ÷ |
 |------|------|
+| `NetUri` | ÍøÂçµØÖ·£¬Ö§³ÖĞ­Òé/Ö÷»ú/¶Ë¿Ú |
+| `CreateRemote()` | NetUriÀ©Õ¹·½·¨£¬´´½¨¿Í»§¶Ë |
 | `TcpSession` | TCP¿Í»§¶Ë£¬Ö§³ÖSSL/TLS |
 | `UdpServer` | UDP¿Í»§¶Ë/·şÎñ¶Ë |
 | `UdpSession` | UDP»á»°£¨·şÎñ¶ËÊ¹ÓÃ£© |
 | `SessionBase` | »á»°»ùÀà£¬·â×°Í¨ÓÃ¹¦ÄÜ |
-| `NetUri` | ÍøÂçµØÖ·£¬Ö§³ÖĞ­Òé/Ö÷»ú/¶Ë¿Ú |
 | `ISocketClient` | ¿Í»§¶Ë½Ó¿Ú |
 | `ISocketRemote` | Ô¶³ÌÍ¨ĞÅ½Ó¿Ú |
 | `IPipeline` | ÏûÏ¢¹ÜµÀ½Ó¿Ú |
