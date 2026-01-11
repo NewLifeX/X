@@ -937,4 +937,433 @@ public class NetServerTests
         Assert.Contains(server.Port.ToString(), str2);
     }
     #endregion
+
+    #region 构造函数测试
+    /// <summary>测试无参构造函数</summary>
+    [Fact]
+    public void ConstructorDefault()
+    {
+        using var server = new NetServer();
+
+        Assert.Equal("Net", server.Name);
+        Assert.Equal(0, server.Port);
+        Assert.Equal(NetType.Unknown, server.ProtocolType);
+        Assert.Equal(AddressFamily.Unspecified, server.AddressFamily);
+        Assert.True(server.UseSession);
+        Assert.False(server.ReuseAddress);
+        Assert.Equal(600, server.StatPeriod);
+    }
+
+    /// <summary>测试端口构造函数</summary>
+    [Fact]
+    public void ConstructorWithPort()
+    {
+        using var server = new NetServer(8080);
+
+        Assert.Equal(8080, server.Port);
+        Assert.Equal(IPAddress.Any, server.Local.Address);
+    }
+
+    /// <summary>测试地址端口构造函数</summary>
+    [Fact]
+    public void ConstructorWithAddressPort()
+    {
+        using var server = new NetServer(IPAddress.Loopback, 9090);
+
+        Assert.Equal(9090, server.Port);
+        Assert.Equal(IPAddress.Loopback, server.Local.Address);
+    }
+
+    /// <summary>测试完整构造函数</summary>
+    [Fact]
+    public void ConstructorWithProtocol()
+    {
+        using var server = new NetServer(IPAddress.Any, 7070, NetType.Tcp);
+
+        Assert.Equal(7070, server.Port);
+        Assert.Equal(NetType.Tcp, server.ProtocolType);
+    }
+    #endregion
+
+    #region Local属性测试
+    /// <summary>测试Local属性自动推断地址族</summary>
+    [Fact]
+    public void LocalPropertyAddressFamilyInference()
+    {
+        using var server = new NetServer();
+
+        // 设置IPv4地址
+        server.Local = new NetUri("tcp://192.168.1.1:8080");
+        Assert.Equal(AddressFamily.InterNetwork, server.AddressFamily);
+
+        // 设置通配符地址不改变地址族
+        using var server2 = new NetServer();
+        server2.Local = new NetUri("tcp://*:8080");
+        Assert.Equal(AddressFamily.Unspecified, server2.AddressFamily);
+    }
+    #endregion
+
+    #region Server属性测试
+    /// <summary>测试Server属性自动创建</summary>
+    [Fact]
+    public void ServerPropertyAutoCreate()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+
+        // 访问Server属性会自动创建
+        var socketServer = server.Server;
+
+        Assert.NotNull(socketServer);
+        Assert.Single(server.Servers);
+    }
+
+    /// <summary>测试Server属性设置为null清空集合</summary>
+    [Fact]
+    public void ServerPropertySetNull()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+
+        // 先触发自动创建
+        var _ = server.Server;
+        Assert.NotEmpty(server.Servers);
+
+        // 设置为null清空集合
+        server.Server = null;
+        Assert.Empty(server.Servers);
+    }
+    #endregion
+
+    #region AddServer方法测试
+    /// <summary>测试AddServer方法</summary>
+    [Fact]
+    public void AddServerMethod()
+    {
+        using var server = new NetServer
+        {
+            Log = XTrace.Log,
+        };
+
+        var count = server.AddServer(IPAddress.Any, 0, NetType.Tcp, AddressFamily.InterNetwork);
+
+        Assert.Equal(1, count);
+        Assert.Single(server.Servers);
+    }
+
+    /// <summary>测试AddServer添加多种协议</summary>
+    [Fact]
+    public void AddServerMultipleProtocols()
+    {
+        using var server = new NetServer
+        {
+            Log = XTrace.Log,
+        };
+
+        var count = server.AddServer(IPAddress.Any, 0, NetType.Unknown, AddressFamily.InterNetwork);
+
+        // Unknown协议会同时添加TCP和UDP
+        Assert.Equal(2, count);
+        Assert.Equal(2, server.Servers.Count);
+    }
+    #endregion
+
+    #region AttachServer方法测试
+    /// <summary>测试AttachServer防止重复添加</summary>
+    [Fact]
+    public void AttachServerPreventDuplicate()
+    {
+        using var server = new NetServer
+        {
+            Log = XTrace.Log,
+        };
+
+        var tcpServer = new TcpServer { Port = 0 };
+
+        var result1 = server.AttachServer(tcpServer);
+        var result2 = server.AttachServer(tcpServer);
+
+        Assert.True(result1);
+        Assert.False(result2);
+        Assert.Single(server.Servers);
+    }
+    #endregion
+
+    #region MaxSessionCount测试
+    /// <summary>测试最高会话数记录</summary>
+    [Fact]
+    public void MaxSessionCountTracking()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            UseSession = true,
+            Log = XTrace.Log,
+        };
+
+        server.Start();
+
+        // 创建多个客户端
+        var clients = new List<TcpClient>();
+        for (var i = 0; i < 5; i++)
+        {
+            var client = new TcpClient();
+            client.Connect(IPAddress.Loopback, server.Port);
+            clients.Add(client);
+        }
+
+        Thread.Sleep(500);
+
+        // 记录最高会话数
+        var maxCount = server.MaxSessionCount;
+        Assert.True(maxCount >= 5);
+
+        // 关闭部分客户端
+        clients[0].Dispose();
+        clients[1].Dispose();
+        Thread.Sleep(500);
+
+        // MaxSessionCount不应减少
+        Assert.True(server.MaxSessionCount >= maxCount);
+
+        // 清理
+        foreach (var client in clients)
+            client.Dispose();
+    }
+    #endregion
+
+    #region SendAllMessage测试
+    /// <summary>测试SendAllMessage群发</summary>
+    [Fact]
+    public void SendAllMessageTest()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            UseSession = true,
+            Log = XTrace.Log,
+        };
+
+        server.Add<StandardCodec>();
+        server.Start();
+
+        // 创建客户端
+        var clients = new List<TcpClient>();
+        for (var i = 0; i < 3; i++)
+        {
+            var client = new TcpClient();
+            client.Connect(IPAddress.Loopback, server.Port);
+            clients.Add(client);
+        }
+
+        Thread.Sleep(500);
+
+        // 群发消息
+        var count = server.SendAllMessage(new ArrayPacket("Broadcast"u8.ToArray()));
+
+        Assert.True(count >= 0);
+
+        // 清理
+        foreach (var client in clients)
+            client.Dispose();
+    }
+
+    /// <summary>测试UseSession为false时群发抛异常</summary>
+    [Fact]
+    public async Task SendAllAsyncThrowsWhenUseSessionFalse()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            UseSession = false,
+            Log = XTrace.Log,
+        };
+
+        server.Start();
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
+        {
+            await server.SendAllAsync(new ArrayPacket("Test"u8.ToArray()));
+        });
+    }
+    #endregion
+
+    #region CreateHandler测试
+    /// <summary>测试CreateHandler默认返回null</summary>
+    [Fact]
+    public void CreateHandlerReturnsNull()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+
+        var sessionCreated = new ManualResetEventSlim(false);
+        INetSession? createdSession = null;
+
+        server.NewSession += (s, e) =>
+        {
+            createdSession = e.Session;
+            sessionCreated.Set();
+        };
+
+        server.Start();
+
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+
+        Assert.True(sessionCreated.Wait(3000));
+        Assert.NotNull(createdSession);
+
+        if (createdSession is NetSession ns)
+        {
+            // 默认Handler为null
+            Assert.Null(ns.Handler);
+        }
+    }
+
+    /// <summary>测试自定义CreateHandler</summary>
+    [Fact]
+    public void CustomCreateHandler()
+    {
+        var sessionCreated = new ManualResetEventSlim(false);
+        INetSession? createdSession = null;
+
+        using var server = new HandlerServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+
+        server.NewSession += (s, e) =>
+        {
+            createdSession = e.Session;
+            sessionCreated.Set();
+        };
+
+        server.Start();
+
+        using var client = new TcpClient();
+        client.Connect(IPAddress.Loopback, server.Port);
+
+        Assert.True(sessionCreated.Wait(3000));
+        Assert.NotNull(createdSession);
+
+        if (createdSession is NetSession ns)
+        {
+            Assert.NotNull(ns.Handler);
+            Assert.IsType<CustomHandler>(ns.Handler);
+        }
+    }
+
+    class HandlerServer : NetServer
+    {
+        public override INetHandler? CreateHandler(INetSession session) => new CustomHandler();
+    }
+
+    class CustomHandler : INetHandler
+    {
+        public void Init(INetSession session) { }
+        public void Process(IData data) { }
+    }
+    #endregion
+
+    #region Tracer测试
+    /// <summary>测试Tracer属性配置</summary>
+    [Fact]
+    public void TracerConfiguration()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            Log = XTrace.Log,
+        };
+
+        // 默认为null
+        Assert.Null(server.Tracer);
+        Assert.Null(server.SocketTracer);
+
+        // 可以设置不同的Tracer
+        var tracer1 = new DefaultTracer();
+        var tracer2 = new DefaultTracer();
+
+        server.Tracer = tracer1;
+        server.SocketTracer = tracer2;
+
+        Assert.Same(tracer1, server.Tracer);
+        Assert.Same(tracer2, server.SocketTracer);
+    }
+    #endregion
+
+    #region 日志属性测试
+    /// <summary>测试日志属性</summary>
+    [Fact]
+    public void LogProperties()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+        };
+
+        // 设置不同的日志
+        server.Log = XTrace.Log;
+        server.SocketLog = XTrace.Log;
+        server.SessionLog = XTrace.Log;
+
+        Assert.Same(XTrace.Log, server.Log);
+        Assert.Same(XTrace.Log, server.SocketLog);
+        Assert.Same(XTrace.Log, server.SessionLog);
+    }
+
+    /// <summary>测试LogPrefix属性</summary>
+    [Fact]
+    public void LogPrefixProperty()
+    {
+        using var server = new NetServer
+        {
+            Name = "TestServer",
+        };
+
+        Assert.Equal("TestServer", server.LogPrefix);
+
+        server.LogPrefix = "CustomPrefix";
+        Assert.Equal("CustomPrefix", server.LogPrefix);
+    }
+
+    /// <summary>测试LogSend和LogReceive属性</summary>
+    [Fact]
+    public void LogSendReceiveProperties()
+    {
+        using var server = new NetServer();
+
+        Assert.False(server.LogSend);
+        Assert.False(server.LogReceive);
+
+        server.LogSend = true;
+        server.LogReceive = true;
+
+        Assert.True(server.LogSend);
+        Assert.True(server.LogReceive);
+    }
+    #endregion
 }

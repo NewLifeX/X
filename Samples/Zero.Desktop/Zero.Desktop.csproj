@@ -26,8 +26,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NewLife.Remoting" Version="3.6.2025.1112" />
-    <PackageReference Include="NewLife.Stardust" Version="3.5.2025.1113" />
+    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.110-beta1630" />
+    <PackageReference Include="NewLife.Stardust" Version="3.6.2026.108-beta1810" />
     <PackageReference Include="System.Speech" Version="10.0.0" />
   </ItemGroup>
 

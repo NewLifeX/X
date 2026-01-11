@@ -70,8 +70,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NewLife.Modbus" Version="2.0.2025.701" />
-    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.102" />
-    <PackageReference Include="NewLife.UnitTest" Version="1.0.2025.101" />
+    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.110-beta1630" />
+    <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.102" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -82,7 +82,7 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net9.0'">
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
