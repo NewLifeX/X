@@ -38,8 +38,8 @@ public class MessageCodec<T> : Handler
     public Boolean UserPacket { get; set; } = true;
 
     /// <summary>打开链接</summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <returns>是否成功打开</returns>
     public override Boolean Open(IHandlerContext context)
     {
         if (context.Owner is ISocketClient client) Timeout = client.Timeout;
@@ -52,9 +52,9 @@ public class MessageCodec<T> : Handler
     /// 遇到消息T时，调用Encode编码并加入队列。
     /// Encode返回空时，跳出调用链。
     /// </remarks>
-    /// <param name="context"></param>
-    /// <param name="message"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">消息</param>
+    /// <returns>处理后的消息</returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
         // 谁申请，谁归还
@@ -88,9 +88,9 @@ public class MessageCodec<T> : Handler
     }
 
     /// <summary>编码消息，一般是编码为Packet后传给下一个处理器</summary>
-    /// <param name="context"></param>
-    /// <param name="msg"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="msg">消息</param>
+    /// <returns>编码后的数据包</returns>
     protected virtual Object? Encode(IHandlerContext context, T msg)
     {
         if (msg is IMessage msg2) return msg2.ToPacket();
@@ -99,9 +99,8 @@ public class MessageCodec<T> : Handler
     }
 
     /// <summary>把请求加入队列，等待响应到来时建立请求响应匹配</summary>
-    /// <param name="context"></param>
-    /// <param name="msg"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="msg">消息</param>
     protected virtual void AddToQueue(IHandlerContext context, T msg)
     {
         if (msg != null && context is IExtend ext && ext["TaskSource"] is TaskCompletionSource<Object> source)
@@ -113,9 +112,9 @@ public class MessageCodec<T> : Handler
     }
 
     /// <summary>连接关闭时，清空粘包编码器</summary>
-    /// <param name="context"></param>
-    /// <param name="reason"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="reason">关闭原因</param>
+    /// <returns>是否成功关闭</returns>
     public override Boolean Close(IHandlerContext context, String reason)
     {
         Queue?.Clear();
@@ -128,9 +127,9 @@ public class MessageCodec<T> : Handler
     /// Decode可以返回多个消息，每个消息调用一次下一级处理器。
     /// Decode返回空时，跳出调用链。
     /// </remarks>
-    /// <param name="context"></param>
-    /// <param name="message"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">消息</param>
+    /// <returns>处理后的消息</returns>
     public override Object? Read(IHandlerContext context, Object message)
     {
         if (message is not IPacket pk) return base.Read(context, message);
@@ -139,40 +138,45 @@ public class MessageCodec<T> : Handler
         var list = Decode(context, pk);
         if (list == null) return null;
 
+        var queue = Queue;
+        var userPacket = UserPacket;
+
         foreach (var msg in list)
         {
             if (msg == null) continue;
 
             Object? rs = null;
-            if (UserPacket && msg is IMessage msg2)
+            IMessage? rawMsg = null;
+
+            // 提取消息负载
+            if (userPacket && msg is IMessage msg2)
             {
+                rawMsg = msg2;
                 if (context is IExtend ext) ext["_raw_message"] = msg2;
                 rs = msg2.Payload;
             }
             else
-                rs = msg;
-
-            //var rs = message;
-            if (msg is IMessage msg3)
             {
-                // 匹配请求队列
-                if (msg3.Reply)
-                {
-                    //!!! 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
-                    // Match里面TrySetResult时，必然唤醒原来阻塞的Task，如果不是当前io线程执行后续代码，必然导致两个线程共用了数据区，因此需要拷贝
-                    if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == msg3.Payload)
-                        msg4.Payload = msg4.Payload.Clone();
-
-                    Queue?.Match(context.Owner, msg, rs ?? msg, IsMatch);
-                }
+                rs = msg;
             }
-            else if (rs != null)
+
+            // 匹配请求队列（仅响应消息）
+            if (rawMsg != null && rawMsg.Reply && queue != null)
+            {
+                // 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
+                // Match里面TrySetResult时，必然唤醒原来阻塞的Task，可能导致两个线程共用了数据区
+                if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == rawMsg.Payload)
+                    msg4.Payload = msg4.Payload.Clone();
+
+                queue.Match(context.Owner, msg, rs ?? msg, IsMatch);
+            }
+            else if (rs != null && queue != null && msg is not IMessage)
             {
                 // 其它消息不考虑响应
-                Queue?.Match(context.Owner, msg, rs, IsMatch);
+                queue.Match(context.Owner, msg, rs, IsMatch);
             }
 
-            // 匹配输入回调，让上层事件收到分包信息。
+            // 匹配输入回调，让上层事件收到分包信息
             // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
             base.Read(context, rs ?? msg);
         }
@@ -181,8 +185,8 @@ public class MessageCodec<T> : Handler
     }
 
     /// <summary>从上下文中获取原始请求</summary>
-    /// <param name="context"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <returns>原始消息</returns>
     protected IMessage? GetRequest(IHandlerContext context)
     {
         if (context is IExtend ext) return ext["_raw_message"] as IMessage;
@@ -191,15 +195,15 @@ public class MessageCodec<T> : Handler
     }
 
     /// <summary>解码</summary>
-    /// <param name="context"></param>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="pk">数据包</param>
+    /// <returns>解码后的消息列表</returns>
     protected virtual IList<T>? Decode(IHandlerContext context, IPacket pk) => null;
 
     /// <summary>是否匹配响应</summary>
-    /// <param name="request"></param>
-    /// <param name="response"></param>
-    /// <returns></returns>
+    /// <param name="request">请求消息</param>
+    /// <param name="response">响应消息</param>
+    /// <returns>是否匹配</returns>
     protected virtual Boolean IsMatch(Object? request, Object? response) => true;
 
     #region 粘包处理

@@ -12,15 +12,12 @@ namespace NewLife.Net.Handlers;
 /// </remarks>
 public class StandardCodec : MessageCodec<IMessage>
 {
-    ///// <summary>编码器。用于编码非消息对象</summary>
-    //public IPacketEncoder? Encoder { get; set; }
-
     private Int32 _gid;
 
     /// <summary>写入数据</summary>
-    /// <param name="context"></param>
-    /// <param name="message"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">消息</param>
+    /// <returns>处理后的消息</returns>
     public override Object? Write(IHandlerContext context, Object message)
     {
         DataKinds? kind = null;
@@ -42,13 +39,12 @@ public class StandardCodec : MessageCodec<IMessage>
 
         if (message is IPacket pk)
         {
-            DefaultMessage? response = null;
+            // 优先复用请求消息创建响应
             var request = GetRequest(context);
-            if (request != null && !request.Reply)
-            {
-                response = request.CreateReply() as DefaultMessage;
-            }
-            response ??= new DefaultMessage();
+            var response = (request != null && !request.Reply)
+                ? request.CreateReply() as DefaultMessage ?? new DefaultMessage()
+                : new DefaultMessage();
+
             response.Flag = (Byte)(kind ?? DataKinds.Packet);
             response.Payload = pk;
             message = response;
@@ -58,6 +54,7 @@ public class StandardCodec : MessageCodec<IMessage>
                 response.Flag = (Byte)dk;
         }
 
+        // 为请求消息分配序列号
         if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
             msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
 
@@ -65,18 +62,18 @@ public class StandardCodec : MessageCodec<IMessage>
     }
 
     /// <summary>加入队列</summary>
-    /// <param name="context"></param>
-    /// <param name="msg"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="msg">消息</param>
     protected override void AddToQueue(IHandlerContext context, IMessage msg)
     {
+        // 只有请求消息才加入队列等待响应
         if (!msg.Reply) base.AddToQueue(context, msg);
     }
 
     /// <summary>解码</summary>
-    /// <param name="context"></param>
-    /// <param name="pk"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="pk">数据包</param>
+    /// <returns>解码后的消息列表</returns>
     protected override IList<IMessage>? Decode(IHandlerContext context, IPacket pk)
     {
         if (context.Owner is not IExtend ss) return null;
@@ -95,7 +92,7 @@ public class StandardCodec : MessageCodec<IMessage>
         }
 
         var pks = pc.Parse(pk);
-        var list = new List<IMessage>();
+        var list = new List<IMessage>(pks.Count);
         foreach (var item in pks)
         {
             var msg = new DefaultMessage();
@@ -106,20 +103,18 @@ public class StandardCodec : MessageCodec<IMessage>
     }
 
     /// <summary>是否匹配响应</summary>
-    /// <param name="request"></param>
-    /// <param name="response"></param>
-    /// <returns></returns>
-    protected override Boolean IsMatch(Object? request, Object? response)
-    {
-        return request is DefaultMessage req &&
-            response is DefaultMessage res &&
-            req.Sequence == res.Sequence;
-    }
+    /// <param name="request">请求消息</param>
+    /// <param name="response">响应消息</param>
+    /// <returns>是否匹配</returns>
+    protected override Boolean IsMatch(Object? request, Object? response) =>
+        request is DefaultMessage req &&
+        response is DefaultMessage res &&
+        req.Sequence == res.Sequence;
 
     /// <summary>连接关闭时，清空粘包编码器</summary>
-    /// <param name="context"></param>
-    /// <param name="reason"></param>
-    /// <returns></returns>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="reason">关闭原因</param>
+    /// <returns>是否成功关闭</returns>
     public override Boolean Close(IHandlerContext context, String reason)
     {
         if (context.Owner is IExtend ss) ss["Codec"] = null;

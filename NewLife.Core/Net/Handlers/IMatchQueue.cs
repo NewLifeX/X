@@ -52,7 +52,7 @@ public class DefaultMatchQueue : IMatchQueue
     private Int32 _cursor;
 
     /// <summary>按指定大小来初始化队列</summary>
-    /// <param name="size"></param>
+    /// <param name="size">队列大小</param>
     public DefaultMatchQueue(Int32 size = 256) => Items = new ItemWrap[size];
 
     /// <summary>加入请求队列</summary>
@@ -77,74 +77,58 @@ public class DefaultMatchQueue : IMatchQueue
             Span = ext?["Span"] as ISpan,
         };
 
-        // 若计数已接近容量，先做一次快速清理以回收过期项，避免“看似满”的误判
         var items = Items;
-        if (Volatile.Read(ref _Count) >= items.Length)
-        {
-            Check(null);
-        }
+        var len = items.Length;
+
+        // 若计数已接近容量，先做一次快速清理以回收过期项，避免"看似满"的误判
+        if (Volatile.Read(ref _Count) >= len) Check(null);
 
         // 加入队列（从游标位置开始扫描，避免总是从0导致争用）
-        var len = items.Length;
-        var start = _cursor;
+        var start = Volatile.Read(ref _cursor);
         for (var offset = 0; offset < len; ++offset)
         {
-            var i = start + offset;
-            if (i >= len) i -= len;
-
+            var i = (start + offset) % len;
             if (Interlocked.CompareExchange(ref items[i].Value, qi, null) == null)
             {
                 Interlocked.Increment(ref _Count);
 
-                // 推进游标
-                if (++i >= len) i = 0;
-                _cursor = i;
+                // 推进游标到下一个位置
+                Volatile.Write(ref _cursor, (i + 1) % len);
 
-                if (_Timer == null)
-                {
-                    lock (this)
-                    {
-                        _Timer ??= new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
-                    }
-                }
-
+                StartTimer();
                 return source.Task;
             }
         }
 
-        // 第一次扫描失败后，再进行一次同步清理并重试，最后才认为真的满
+        // 第一次扫描失败后，再进行一次同步清理并重试
         Check(null);
 
         // 重试一次
-        items = Items; // 允许未来可能的扩容，这里重新读取引用
-        len = items.Length;
-        start = _cursor;
+        start = Volatile.Read(ref _cursor);
         for (var offset = 0; offset < len; ++offset)
         {
-            var i = start + offset;
-            if (i >= len) i -= len;
-
+            var i = (start + offset) % len;
             if (Interlocked.CompareExchange(ref items[i].Value, qi, null) == null)
             {
                 Interlocked.Increment(ref _Count);
+                Volatile.Write(ref _cursor, (i + 1) % len);
 
-                if (++i >= len) i = 0;
-                _cursor = i;
-
-                if (_Timer == null)
-                {
-                    lock (this)
-                    {
-                        _Timer ??= new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
-                    }
-                }
-
+                StartTimer();
                 return source.Task;
             }
         }
 
         DefaultTracer.Instance?.NewError("net:MatchQueue:IsFull", new { items.Length });
         throw new XException("The matching queue is full [{0}]", items.Length);
+    }
+
+    private void StartTimer()
+    {
+        if (_Timer != null) return;
+        lock (this)
+        {
+            _Timer ??= new TimerX(Check, null, 1000, 1000, "Match") { Async = true };
+        }
     }
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>
@@ -157,21 +141,26 @@ public class DefaultMatchQueue : IMatchQueue
     {
         if (Volatile.Read(ref _Count) <= 0) return false;
 
-        // 直接遍历，队列不会很长
-        var qs = Items;
-        for (var i = 0; i < qs.Length; i++)
+        // 从游标位置向前搜索，响应通常与最近的请求匹配
+        var items = Items;
+        var len = items.Length;
+        var start = Volatile.Read(ref _cursor);
+
+        // 先从游标往前搜索（最近添加的请求更可能匹配）
+        for (var offset = 1; offset <= len; ++offset)
         {
-            var qi = Volatile.Read(ref qs[i].Value);
+            var i = (start - offset + len) % len;
+            var qi = Volatile.Read(ref items[i].Value);
             if (qi == null) continue;
 
             if (qi.Owner == owner && callback(qi.Request, response))
             {
-                // CAS 置空，确保仅一次成功清理，避免并发重复清理造成 _Count 错乱
-                if (Interlocked.CompareExchange(ref qs[i].Value, null, qi) != qi) continue;
+                // CAS 置空，确保仅一次成功清理
+                if (Interlocked.CompareExchange(ref items[i].Value, null, qi) != qi) continue;
 
                 Interlocked.Decrement(ref _Count);
 
-                // 异步设置完成结果，否则可能会在当前线程恢复上层await，导致堵塞当前任务
+                // 设置完成结果，TaskCreationOptions.RunContinuationsAsynchronously确保不会阻塞当前线程
                 var src = qi.Source;
                 if (src != null && !src.Task.IsCompleted)
                 {
@@ -188,33 +177,34 @@ public class DefaultMatchQueue : IMatchQueue
         }
 
         if (SocketSetting.Current.Debug)
-            XTrace.WriteLine("MatchQueue.Check 失败 [{0}] result={1} Items={2}", response, result, _Count);
+            XTrace.WriteLine("MatchQueue.Match 失败 [{0}] result={1} Items={2}", response, result, _Count);
 
         return false;
     }
 
-    /// <summary>定时检查发送队列，超时未收到响应则重发</summary>
-    /// <param name="state"></param>
+    /// <summary>定时检查发送队列，超时未收到响应则取消</summary>
+    /// <param name="state">状态参数</param>
     void Check(Object? state)
     {
         if (Volatile.Read(ref _Count) <= 0) return;
 
-        // 直接遍历，队列不会很长
         var now = Runtime.TickCount64;
-        var qs = Items;
-        for (var i = 0; i < qs.Length; i++)
+        var items = Items;
+
+        // 遍历清理过期项
+        for (var i = 0; i < items.Length; i++)
         {
-            var qi = Volatile.Read(ref qs[i].Value);
+            var qi = Volatile.Read(ref items[i].Value);
             if (qi == null) continue;
 
             // 过期取消
             if (qi.EndTime <= now)
             {
-                if (Interlocked.CompareExchange(ref qs[i].Value, null, qi) != qi) continue;
+                if (Interlocked.CompareExchange(ref items[i].Value, null, qi) != qi) continue;
 
                 Interlocked.Decrement(ref _Count);
 
-                // 异步取消任务，避免在当前线程执行上层await的延续任务
+                // 异步取消任务
                 var src = qi.Source;
                 if (src != null && !src.Task.IsCompleted)
                 {
@@ -233,15 +223,15 @@ public class DefaultMatchQueue : IMatchQueue
     /// <summary>清空队列</summary>
     public virtual void Clear()
     {
-        var qs = Items;
-        for (var i = 0; i < qs.Length; ++i)
+        var items = Items;
+        for (var i = 0; i < items.Length; ++i)
         {
-            var qi = Interlocked.Exchange(ref qs[i].Value, null);
+            var qi = Interlocked.Exchange(ref items[i].Value, null);
             if (qi == null) continue;
 
             Interlocked.Decrement(ref _Count);
 
-            // 异步取消任务，避免在当前线程执行上层await的延续任务
+            // 异步取消任务
             var src = qi.Source;
             if (src != null && !src.Task.IsCompleted)
             {

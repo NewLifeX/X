@@ -811,45 +811,51 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     }
 
     /// <summary>通过管道发送消息，不等待响应</summary>
-    /// <param name="message"></param>
-    /// <returns></returns>
+    /// <param name="message">消息</param>
+    /// <returns>发送字节数</returns>
     public virtual Int32 SendMessage(Object message)
     {
         if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
 
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessage", message);
+        var ctx = CreateContext(this);
         try
         {
             if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
 
-            var ctx = CreateContext(this);
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
-
-            // 写入完成后归还上下文
-            ReturnContext(ctx);
-
-            return rs;
+            return (Int32)(Pipeline.Write(ctx, message) ?? 0);
         }
         catch (Exception ex)
         {
             span?.SetError(ex, message);
             throw;
         }
+        finally
+        {
+            // 写入完成后归还上下文
+            ReturnContext(ctx);
+        }
     }
 
     /// <summary>通过管道发送消息并等待响应</summary>
-    /// <param name="message"></param>
-    /// <returns></returns>
-    public virtual async Task<Object> SendMessageAsync(Object message)
+    /// <param name="message">消息</param>
+    /// <returns>响应消息</returns>
+    public virtual Task<Object> SendMessageAsync(Object message) => SendMessageAsync(message, default);
+
+    /// <summary>通过管道发送消息并等待响应</summary>
+    /// <param name="message">消息</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
         if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
 
         using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+        var ctx = CreateContext(this);
         try
         {
             if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
 
-            var ctx = CreateContext(this);
 #if NET45
             var source = new TaskCompletionSource<Object>();
 #else
@@ -860,6 +866,21 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
             if (rs < 0) return TaskEx.CompletedTask;
+
+            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
+            ReturnContext(ctx);
+            ctx = null;
+
+            // 注册取消时的处理，如果没有收到响应，取消发送等待
+            // Register返回值需要Dispose，否则会导致内存泄漏
+            // https://stackoverflow.com/questions/14627226/why-is-my-async-await-with-cancellationtokensource-leaking-memory
+            if (cancellationToken.CanBeCanceled)
+            {
+                using (cancellationToken.Register(TrySetCanceled, source))
+                {
+                    return await source.Task.ConfigureAwait(false);
+                }
+            }
 
             return await source.Task.ConfigureAwait(false);
         }
@@ -868,51 +889,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (ex is TaskCanceledException)
                 span?.AppendTag(ex.Message);
             else
-                span?.SetError(ex, message);
-            throw;
-        }
-    }
-
-    /// <summary>通过管道发送消息并等待响应</summary>
-    /// <param name="message">消息</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <returns></returns>
-    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
-    {
-        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
-
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
-        try
-        {
-            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
-
-            var ctx = CreateContext(this);
-#if NET45
-            var source = new TaskCompletionSource<Object>();
-#else
-            var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
-#endif
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
-            if (rs < 0) return TaskEx.CompletedTask;
-
-            // 注册取消时的处理，如果没有收到响应，取消发送等待
-            // Register返回值需要Dispose，否则会导致内存泄漏
-            // https://stackoverflow.com/questions/14627226/why-is-my-async-await-with-cancellationtokensource-leaking-memory
-            using (cancellationToken.Register(TrySetCanceled, source))
-            {
-                return await source.Task.ConfigureAwait(false);
-            }
-        }
-        catch (Exception ex)
-        {
-            if (ex is TaskCanceledException)
-                span?.AppendTag(ex.Message);
-            else
                 span?.SetError(ex, null);
             throw;
+        }
+        finally
+        {
+            // 异常时归还上下文（正常路径已在上面归还并置null）
+            if (ctx != null) ReturnContext(ctx);
         }
     }
 
