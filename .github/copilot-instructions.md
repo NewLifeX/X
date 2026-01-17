@@ -2,6 +2,8 @@
 
 本说明适用于新生命团队（NewLife）及其全部开源/衍生项目，规范 Copilot 及类似智能助手在 C#/.NET 项目中的协作行为。
 
+> 目标：把"每次请求必须携带的通用规则"控制在可接受体积；组件/业务专项流程放在 `.github/instructions/`，按需读取。
+
 ---
 
 ## 1. 核心原则
@@ -24,7 +26,24 @@
 
 ---
 
-## 3. 工作流
+## 3. 组件专用指令索引（按需加载）
+
+以下专用指令**仅在相关任务时**才需要读取，避免每次请求都携带大段流程/示例。
+
+### 3.1 XCode / Cube（数据库 & Web 快速开发）
+
+当任务涉及以下任一信号时，请**先检查当前仓库** `.github/instructions/xcode.instructions.md` **是否存在**，若存在则读取并遵循：
+
+- 需求包含：XCode/Cube/魔方/实体生成/模型 XML/数据类库/数据库 CRUD/Controller 生成/`xcodetool`/`xcode` 命令
+- 解决方案/项目中出现：`NewLife.XCode` 包引用
+- 存在：`Model.xml`、`*.xcode.xml`、`*.Data.csproj`（或项目名以 `.Data` 结尾）
+- 代码出现命名空间/类型：`XCode.*`、`Entity`（XCode 实体基类）、XCode 相关特性/接口
+
+未满足以上条件时，**不要**引入 XCode/Cube 初始化流程，避免干扰其它仓库的常规开发。
+
+---
+
+## 4. 工作流
 
 ```
 需求分类 → 检索 → 评估 → 设计 → 实施 → 验证 → 说明
@@ -44,7 +63,7 @@
    - 仅文档变更（未修改任何代码文件）：可跳过编译与单元测试
 7. **说明**：变更摘要/影响范围/风险点
 
-### 3.1 主动优化原则
+### 4.1 主动优化原则
 
 当用户请求分析或优化代码时，**应主动**：
 
@@ -73,7 +92,7 @@
 - 性能关键路径 → 需有依据或说明推理
 - 大范围重构 → 需先与用户确认范围
 
-### 3.2 防御性注释规则
+### 4.2 防御性注释规则
 
 在旧有代码中，经常可以看到**被注释掉的代码**，这些注释代码前面通常带有说明文字。
 
@@ -102,9 +121,9 @@
 
 ---
 
-## 4. 编码规范
+## 5. 编码规范
 
-### 4.1 基础规范
+### 5.1 基础规范
 
 | 项目 | 规范 |
 |------|------|
@@ -114,7 +133,7 @@
 | 兼容性 | 代码需兼容 .NET 4.5+；**禁止**使用 `ArgumentNullException.ThrowIfNull`，改用 `if (value == null) throw new ArgumentNullException(nameof(value));` |
 | 单文件 | 每文件一个主要公共类型；较大平台差异使用 `partial` |
 
-### 4.2 命名规范
+### 5.2 命名规范
 
 | 成员类型 | 命名规则 | 示例 |
 |---------|---------|------|
@@ -124,7 +143,7 @@
 | 属性/方法（实例/静态） | PascalCase | `Name`、`Default`、`Create()` |
 | 扩展方法类 | `xxxHelper` 或 `xxxExtensions` | `StringHelper`、`CollectionExtensions` |
 
-### 4.3 代码风格
+### 5.3 代码风格
 
 ```csharp
 // ✅ 单行 if：单语句且整行不过长时同行
@@ -148,56 +167,9 @@ foreach (var item in list)
 }
 ```
 
-### 4.4 Region 组织结构
+### 5.4 Region 组织结构
 
-较长的类使用 `#region` 分段组织，遵循以下顺序：
-
-```csharp
-public class MyService : DisposeBase
-{
-    #region 属性
-    /// <summary>名称</summary>
-    public String Name { get; set; }
-
-    /// <summary>是否启用</summary>
-    public Boolean Enabled { get; set; }
-
-    // 私有字段放在属性段末尾
-    private ConcurrentDictionary<String, Object> _cache = new();
-    private TimerX? _timer;
-    #endregion
-
-    #region 构造
-    /// <summary>实例化</summary>
-    public MyService() { }
-
-    /// <summary>销毁资源</summary>
-    /// <param name="disposing">是否释放托管资源</param>
-    protected override void Dispose(Boolean disposing)
-    {
-        base.Dispose(disposing);
-        _timer.TryDispose();
-    }
-    #endregion
-
-    #region 方法
-    /// <summary>启动服务</summary>
-    public void Start() { }
-    #endregion
-
-    #region 日志
-    /// <summary>日志</summary>
-    public ILog Log { get; set; } = Logger.Null;
-
-    /// <summary>写日志</summary>
-    /// <param name="format">格式化字符串</param>
-    /// <param name="args">参数</param>
-    protected void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
-    #endregion
-}
-```
-
-**Region 顺序**：`属性` → `静态`（如有）→ `构造` → `方法` → `辅助`（如有）→ `日志`
+较长的类使用 `#region` 分段组织，顺序为：`属性` → `静态`（如有）→ `构造` → `方法` → `辅助`（如有）→ `日志`。
 
 **日志 Region 规则**：
 - 类代码中如果带有 `ILog Log { get; set; }` 和 `WriteLog` 方法
@@ -205,143 +177,29 @@ public class MyService : DisposeBase
 - **必须用名为"日志"的 region 包裹**
 - 不要放在"辅助" region 中，应单独作为"日志" region
 
-### 4.5 现代 C# 语法
+### 5.5 现代 C# 语法
 
-优先使用最新语法，即使目标框架是 net45（Visual Studio 支持）：
+优先使用最新语法（switch 表达式、模式匹配、目标类型 `new`、record 等），即使目标框架是 net45。
 
-```csharp
-// switch 表达式
-var result = code switch
-{
-    200 => "OK",
-    >= 400 and < 500 => "ClientError",
-    _ => "Other"
-};
+### 5.6 集合表达式
 
-// 目标类型 new
-using var ms = new MemoryStream();
+优先使用集合表达式 `[]` 初始化集合：`List<String> Tags { get; set; } = [];`
 
-// record（DTO 场景）
-public record UserInfo(String Name, Int32 Age);
+### 5.7 Null 条件运算符
 
-// 模式匹配
-if (obj is String { Length: > 0 } str) { }
-```
-
-### 4.6 集合表达式
-
-优先使用集合表达式 `[]` 初始化集合，代码更简洁：
-
-```csharp
-// ✅ 属性定义：使用集合表达式
-public List<String> Tags { get; set; } = [];
-public Dictionary<String, Object> Data { get; set; } = [];
-public Int32[] Numbers { get; set; } = [];
-
-// ❌ 避免冗长的初始化方式
-public List<String> Tags { get; set; } = new List<String>();
-public List<String> Tags { get; set; } = new();
-
-// ✅ 方法内局部变量
-List<String> list = [];
-var items = new List<Item>();  // 需要立即 Add 时可用 new
-
-// ✅ 带初始值的集合
-List<Int32> nums = [1, 2, 3];
-String[] names = ["Alice", "Bob"];
-Dictionary<String, Int32> scores = new() { ["Math"] = 90, ["English"] = 85 };
-
-// ✅ 集合展开（spread）
-List<Int32> combined = [..first, ..second, 100];
-
-// ✅ 返回空集合
-public IList<String> GetItems() => [];
-```
-
-### 4.7 Null 条件运算符
-
-优先使用 `?.`（null 条件运算符）简化空值检查，提升代码简洁性与可读性：
-
-```csharp
-// ✅ 方法调用：使用 null 条件运算符
-span?.AppendTag("test");
-handler?.Invoke(this, args);
-list?.Clear();
-
-// ❌ 避免冗余的 if 判断
-if (span != null) span.AppendTag("test");
-if (handler != null) handler.Invoke(this, args);
-
-// ✅ 属性赋值：使用 null 条件赋值（C# 14 新特性）
-customer?.Order = GetCurrentOrder();
-span?.Value = 1234;
-config?.Name = "test";
-
-// ❌ 避免冗余的 if 判断
-if (customer != null) customer.Order = GetCurrentOrder();
-if (span != null) span.Value = 1234;
-
-// ✅ 复合赋值运算符也支持
-counter?.Count += 1;
-list?.Capacity *= 2;
-
-// ✅ 链式调用：安全访问嵌套属性
-var name = user?.Profile?.Name;
-var count = order?.Items?.Count ?? 0;
-
-// ✅ 结合 null 合并运算符提供默认值
-var length = str?.Length ?? 0;
-var display = item?.ToString() ?? "N/A";
-
-// ✅ 索引器访问
-var first = list?[0];
-var value = dict?["key"];
-
-// ✅ 委托调用（推荐写法）
-PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-```
-
-**注意**：null 条件赋值时，右侧表达式仅在左侧非 null 时才会求值；不支持自增/自减运算符（`++`/`--`）。
+优先使用 `?.` / `??` 简化空值检查：`span?.AppendTag("test");` `var name = user?.Profile?.Name ?? "";`
 
 ---
 
-## 5. 多目标框架
+## 6. 多目标框架
 
-NewLife 支持 `net45` 到 `net10`，使用条件编译处理 API 差异：
+NewLife 支持 `net45` 到 `net10`，常用条件符号：`NETFRAMEWORK`、`NETSTANDARD2_0`、`NETCOREAPP`、`NET5_0_OR_GREATER`、`NET6_0_OR_GREATER`、`NET8_0_OR_GREATER`。
 
-```csharp
-// 常用条件符号
-#if NETFRAMEWORK          // net45/net461/net462
-#if NETSTANDARD2_0        // netstandard2.0
-#if NETCOREAPP            // netcoreapp3.1+
-#if NET5_0_OR_GREATER     // net5.0+
-#if NET6_0_OR_GREATER     // net6.0+
-#if NET8_0_OR_GREATER     // net8.0+
-
-```
-
-**注意**：新增 API 时需评估各框架兼容性，必要时提供降级实现。
+新增 API 时需评估各框架兼容性，必要时提供降级实现。
 
 ---
 
-## 6. 文档注释
-
-```csharp
-/// <summary>执行指定操作</summary>
-/// <param name="action">操作委托</param>
-/// <param name="timeout">超时时间，单位毫秒</param>
-/// <returns>执行是否成功</returns>
-public Boolean Execute(Action action, Int32 timeout) { }
-
-/// <summary>初始化服务</summary>
-/// <remarks>
-/// 复杂方法可增加详细说明。
-/// 中文优先，必要时补精简英文。
-/// </remarks>
-/// <param name="config">配置对象</param>
-/// <param name="log">日志接口</param>
-public MyService(Config config, ILog log) { }
-```
+## 7. 文档注释
 
 | 规则 | 说明 |
 |------|------|
@@ -349,62 +207,16 @@ public MyService(Config config, ILog log) { }
 | `<param>` | **必须为每个参数添加**，无论方法可见性如何 |
 | `<returns>` | 有返回值时必须添加 |
 | `<remarks>` | 复杂方法可增加详细说明（可多行） |
-| 覆盖范围 | `public`/`protected` 成员必须注释，包括构造函数；`private`/`internal` 方法建议添加 |
+| 覆盖范围 | `public`/`protected` 成员必须注释；`private`/`internal` 建议添加 |
 | `[Obsolete]` | 必须包含迁移建议 |
 
-### 6.1 注释完整性检查清单
+**正确示例**：`/// <summary>获取名称</summary>` `/// <param name="id">编号</param>`
 
-生成或修改方法注释时，**必须逐项检查**：
-
-1. ✅ `<summary>` 是否单行闭合？
-2. ✅ 是否为**每个参数**都添加了 `<param>`？
-3. ✅ 有返回值时是否添加了 `<returns>`？
-4. ✅ 泛型方法是否添加了 `<typeparam>`？
-
-**正确示例**：
-```csharp
-/// <summary>获取或设置名称</summary>
-public String Name { get; set; }
-
-/// <summary>创建客户端连接</summary>
-/// <param name="host">服务器地址</param>
-/// <param name="port">端口号</param>
-/// <returns>客户端实例</returns>
-public TcpClient Create(String host, Int32 port) { }
-
-/// <summary>启动服务</summary>
-/// <remarks>
-/// 启动后将开始监听端口，支持多次调用（幂等）。
-/// 建议在应用启动时调用一次。
-/// </remarks>
-public void Start() { }
-
-/// <summary>映射配置到对象</summary>
-/// <param name="reader">Xml读取器</param>
-/// <param name="section">目标配置节</param>
-private void ReadNode(XmlReader reader, IConfigSection section) { }
-```
-
-**错误示例**（禁止）：
-```csharp
-// ❌ summary 拆成多行
-/// <summary>
-/// 获取或设置名称
-/// </summary>
-public String Name { get; set; }
-
-// ❌ 缺少参数注释（即使是私有方法也不允许）
-/// <summary>创建客户端连接</summary>
-public TcpClient Create(String host, Int32 port) { }
-
-// ❌ 有参数但没有 param 标签
-/// <summary>递归读取节点</summary>
-private void ReadNode(XmlReader reader, IConfigSection section) { }
-```
+**禁止**：`<summary>` 拆成多行；缺少 `<param>`；有参数但无 param 标签。
 
 ---
 
-## 7. 异步与性能
+## 8. 异步与性能
 
 | 规范 | 说明 |
 |------|------|
@@ -414,60 +226,17 @@ private void ReadNode(XmlReader reader, IConfigSection section) { }
 | 反射/Linq | 仅用于非热点路径；热点使用手写循环/缓存 |
 | 池化资源 | 明确获取/归还；异常分支不遗失归还 |
 
-### 内置工具优先
-
-```csharp
-// ✅ 使用 Pool.StringBuilder 避免频繁分配
-var sb = Pool.StringBuilder.Get();
-sb.Append("Hello");
-return sb.Return(true);
-
-// ✅ 使用 Runtime.TickCount64 避免时间回拨
-var tick = Runtime.TickCount64;
-
-// ✅ 使用扩展方法进行类型转换
-var num = str.ToInt();
-var flag = str.ToBoolean();
-```
+**内置工具优先**：`Pool.StringBuilder`、`Runtime.TickCount64`、`ToInt()`/`ToBoolean()` 等扩展方法。
 
 ---
 
-## 8. 日志与追踪
+## 9. 日志与追踪
 
-```csharp
-#region 日志
-/// <summary>日志</summary>
-public ILog Log { get; set; } = Logger.Null;
-
-/// <summary>链路追踪</summary>
-public ITracer? Tracer { get; set; }
-
-/// <summary>写日志</summary>
-/// <param name="format">格式化字符串</param>
-/// <param name="args">参数</param>
-protected void WriteLog(String format, params Object?[] args) => Log?.Info(format, args);
-#endregion
-
-// ✅ 关键过程埋点（简易版，不关注异常）
-using var span = Tracer?.NewSpan("ProcessData");
-// 业务逻辑
-
-// ✅ 关键过程埋点（标准版，需要捕获异常）
-using var span = Tracer?.NewSpan("ProcessData");
-try
-{
-    // 业务逻辑
-}
-catch (Exception ex)
-{
-    span?.SetError(ex, null);
-    throw;
-}
-```
+规则：若类包含 `ILog Log` 与 `WriteLog`，必须放在类末尾，并用名为"日志"的 `#region` 包裹；关键过程可使用 `Tracer?.NewSpan()` 埋点。
 
 ---
 
-## 9. 错误处理
+## 10. 错误处理
 
 - **精准异常类型**：`ArgumentNullException`/`InvalidOperationException` 等
 - **参数校验**：空/越界/格式
@@ -477,7 +246,7 @@ catch (Exception ex)
 
 ---
 
-## 10. 测试规范
+## 11. 测试规范
 
 | 项目 | 规范 |
 |------|------|
@@ -495,7 +264,7 @@ catch (Exception ex)
 
 ---
 
-## 11. NuGet 发布规范
+## 12. NuGet 发布规范
 
 | 类型 | 命名规则 | 示例 |
 |------|---------|------|
@@ -507,33 +276,19 @@ catch (Exception ex)
 
 ---
 
-## 12. Markdown 文档规范
-
-当用户要求分析代码模块并生成 Markdown 文档时，遵循以下规范：
+## 13. Markdown 文档规范
 
 | 项目 | 规范 |
 |------|------|
-| 文件编码 | **必须**使用 `UTF-8` 编码，**禁止**使用 GB2312/GBK/UTF-8 BOM 等编码 |
-| 默认存放位置 | 代码库（或解决方案所在目录）根目录下的 `Doc` 目录 |
-| 文件命名 | 优先使用**中文文件名**，简洁明了地描述文档内容 |
+| 文件编码 | **必须** UTF-8，**禁止** GB2312/GBK/UTF-8 BOM |
+| 默认存放 | 代码库根目录下的 `Doc` 目录 |
+| 文件命名 | 优先**中文文件名**，简洁描述内容 |
 
-**示例**：
-```
-Doc/
-├── 网络通信模块架构.md
-├── 配置系统使用指南.md
-├── 日志组件设计文档.md
-└── API接口说明.md
-```
-
-**注意事项**：
-- 如果 `Doc` 目录不存在，需先创建
-- 用户明确指定存放位置时，以用户指定为准
-- **已有文件处理**：若目标路径已存在文件，**必须先读取原文件内容**，结合新的分析对原文件进行增量修改或补充，保留用户之前手动编辑的信息，**禁止直接覆盖**
+**注意**：已有文件**必须先读取**再增量修改，**禁止直接覆盖**。
 
 ---
 
-## 13. Copilot 行为守则
+## 14. Copilot 行为守则
 
 ### 必须
 
@@ -571,7 +326,7 @@ Doc/
 
 ---
 
-## 14. 变更说明模板
+## 15. 变更说明模板
 
 提交或答复需包含：
 
@@ -595,7 +350,7 @@ Doc/
 
 ---
 
-## 15. 术语说明
+## 16. 术语说明
 
 | 术语 | 定义 |
 |------|------|
@@ -606,7 +361,7 @@ Doc/
 
 ---
 
-## 16. 代码优化检查清单
+## 17. 代码优化检查清单
 
 当进行代码优化时，按以下清单逐项检查：
 
