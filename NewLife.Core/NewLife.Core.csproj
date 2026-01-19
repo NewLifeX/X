@@ -226,5 +226,18 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\.github\copilot-instructions.md">
+      <Pack>True</Pack>
+      <PackagePath>contentFiles\any\any\.github\</PackagePath>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+
+    <None Include="build\NewLife.Core.targets">
+      <Pack>True</Pack>
+      <PackagePath>buildTransitive\NewLife.Core.targets</PackagePath>
+    </None>
+  </ItemGroup>
+
 
 </Project>

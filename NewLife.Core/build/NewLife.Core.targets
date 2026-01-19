@@ -1,0 +1,37 @@
+<Project>
+  <Target Name="NewLifeCore_InstallCopilotInstructions" BeforeTargets="BeforeCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\contentFiles\any\any\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
+
+      <!-- 优先查找 Git 仓库根目录（向上查找 .git 目录） -->
+      <_NewLifeCore_CopilotInstructions_GitRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', '.git'))</_NewLifeCore_CopilotInstructions_GitRoot>
+      <!-- 其次使用解决方案目录（从解决方案构建时 SolutionDir 会被设置） -->
+      <_NewLifeCore_CopilotInstructions_SlnRoot Condition="'$(_NewLifeCore_CopilotInstructions_GitRoot)' == '' and '$(SolutionDir)' != '' and '$(SolutionDir)' != '*Undefined*'">$(SolutionDir.TrimEnd('\'))</_NewLifeCore_CopilotInstructions_SlnRoot>
+      <!-- 最终确定目标根目录：Git根目录 > 解决方案目录 > 项目目录 -->
+      <_NewLifeCore_CopilotInstructions_Root Condition="'$(_NewLifeCore_CopilotInstructions_GitRoot)' != ''">$(_NewLifeCore_CopilotInstructions_GitRoot)</_NewLifeCore_CopilotInstructions_Root>
+      <_NewLifeCore_CopilotInstructions_Root Condition="'$(_NewLifeCore_CopilotInstructions_Root)' == '' and '$(_NewLifeCore_CopilotInstructions_SlnRoot)' != ''">$(_NewLifeCore_CopilotInstructions_SlnRoot)</_NewLifeCore_CopilotInstructions_Root>
+      <_NewLifeCore_CopilotInstructions_Root Condition="'$(_NewLifeCore_CopilotInstructions_Root)' == ''">$(MSBuildProjectDirectory)</_NewLifeCore_CopilotInstructions_Root>
+
+      <_NewLifeCore_CopilotInstructions_DestDir>$(_NewLifeCore_CopilotInstructions_Root)\.github\</_NewLifeCore_CopilotInstructions_DestDir>
+      <_NewLifeCore_CopilotInstructions_DestFile>$(_NewLifeCore_CopilotInstructions_DestDir)copilot-instructions.md</_NewLifeCore_CopilotInstructions_DestFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_NewLifeCore_CopilotInstructions_SourceFile Include="$(_NewLifeCore_CopilotInstructions_Source)" Condition="Exists('$(_NewLifeCore_CopilotInstructions_Source)')" />
+    </ItemGroup>
+
+    <ReadLinesFromFile File="$(_NewLifeCore_CopilotInstructions_DestFile)" Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">
+      <Output TaskParameter="Lines" ItemName="_NewLifeCore_CopilotInstructions_ExistingLines" />
+    </ReadLinesFromFile>
+
+    <PropertyGroup>
+      <_NewLifeCore_CopilotInstructions_ExistingText>@(_NewLifeCore_CopilotInstructions_ExistingLines, '
+')</_NewLifeCore_CopilotInstructions_ExistingText>
+      <_NewLifeCore_CopilotInstructions_ShouldCopy Condition="!Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">true</_NewLifeCore_CopilotInstructions_ShouldCopy>
+      <_NewLifeCore_CopilotInstructions_ShouldCopy Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)') and $([System.String]::Copy('$(_NewLifeCore_CopilotInstructions_ExistingText)').Contains('新生命团队'))">true</_NewLifeCore_CopilotInstructions_ShouldCopy>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(_NewLifeCore_CopilotInstructions_DestDir)" Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and !Exists('$(_NewLifeCore_CopilotInstructions_DestDir)')" />
+    <Copy SourceFiles="@(_NewLifeCore_CopilotInstructions_SourceFile)" DestinationFiles="$(_NewLifeCore_CopilotInstructions_DestFile)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and Exists('$(_NewLifeCore_CopilotInstructions_Source)')" />
+  </Target>
+</Project>
