@@ -32,12 +32,15 @@
 
 ### 3.1 XCode / Cube（数据库 & Web 快速开发）
 
-当任务涉及以下任一信号时，请**先检查当前仓库** `.github/instructions/xcode.instructions.md` **是否存在**，若存在则读取并遵循：
+当任务涉及以下任一信号时，请**先搜索并检查当前仓库** `.github/instructions/xcode.instructions.md` **是否存在**，若存在则读取并遵循：
 
 - 需求包含：XCode/Cube/魔方/实体生成/模型 XML/数据类库/数据库 CRUD/Controller 生成/`xcodetool`/`xcode` 命令
 - 解决方案/项目中出现：`NewLife.XCode` 包引用
 - 存在：`Model.xml`、`*.xcode.xml`、`*.Data.csproj`（或项目名以 `.Data` 结尾）
 - 代码出现命名空间/类型：`XCode.*`、`Entity`（XCode 实体基类）、XCode 相关特性/接口
+- **用户提到修改任意 `.xml` 文件**（如 `member.xml`、`area.xml` 等配置文件），应**主动搜索** `xcode.instructions.md` 判断是否需要引入
+
+**主动检测策略**：当用户提及 XML 文件修改时，即使未明确提到 XCode 关键字，也应先用 `file_search` 搜索 `xcode.instructions.md`，若存在则读取，以确定该 XML 文件是否属于 XCode/Cube 体系。
 
 未满足以上条件时，**不要**引入 XCode/Cube 初始化流程，避免干扰其它仓库的常规开发。
 
