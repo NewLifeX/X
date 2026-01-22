@@ -145,26 +145,15 @@ public class MessageCodec<T> : Handler
         {
             if (msg == null) continue;
 
-            Object? rs = null;
+            Object? rs = msg;
             IMessage? rawMsg = null;
 
             // 提取消息负载
-            if (userPacket && msg is IMessage msg2)
+            if (msg is IMessage imsg)
             {
-                rawMsg = msg2;
-                if (context is IExtend ext) ext["_raw_message"] = msg2;
-                rs = msg2.Payload;
-            }
-            else if (msg is IMessage msg3)
-            {
-                // UserPacket=false 时，msg 本身就是 IMessage，需要正确设置 rawMsg 以便匹配响应
-                rawMsg = msg3;
-                if (context is IExtend ext) ext["_raw_message"] = msg3;
-                rs = msg;
-            }
-            else
-            {
-                rs = msg;
+                rawMsg = imsg;
+                if (context is IExtend ext) ext["_raw_message"] = imsg;
+                if (userPacket) rs = imsg.Payload;
             }
 
             // 匹配请求队列（仅响应消息）
