@@ -155,6 +155,13 @@ public class MessageCodec<T> : Handler
                 if (context is IExtend ext) ext["_raw_message"] = msg2;
                 rs = msg2.Payload;
             }
+            else if (msg is IMessage msg3)
+            {
+                // UserPacket=false 时，msg 本身就是 IMessage，需要正确设置 rawMsg 以便匹配响应
+                rawMsg = msg3;
+                if (context is IExtend ext) ext["_raw_message"] = msg3;
+                rs = msg;
+            }
             else
             {
                 rs = msg;
