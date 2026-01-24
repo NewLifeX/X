@@ -20,4 +20,8 @@ public class TokenModel
     /// <summary>刷新令牌</summary>
     [DataMember(Name = "refresh_token")]
     public String? RefreshToken { get; set; }
+
+    /// <summary>作用域</summary>
+    [DataMember(Name = "scope")]
+    public String? Scope { get; set; }
 }
