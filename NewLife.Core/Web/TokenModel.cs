@@ -3,7 +3,7 @@
 namespace NewLife.Web;
 
 /// <summary>访问令牌模型</summary>
-public class TokenModel
+public partial class TokenModel
 {
     /// <summary>访问令牌</summary>
     [DataMember(Name = "access_token")]
@@ -20,4 +20,8 @@ public class TokenModel
     /// <summary>刷新令牌</summary>
     [DataMember(Name = "refresh_token")]
     public String? RefreshToken { get; set; }
+
+    /// <summary>作用域</summary>
+    [DataMember(Name = "scope")]
+    public String? Scope { get; set; }
 }
