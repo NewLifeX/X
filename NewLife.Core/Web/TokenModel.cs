@@ -3,7 +3,7 @@
 namespace NewLife.Web;
 
 /// <summary>访问令牌模型</summary>
-public partial class TokenModel
+public class TokenModel
 {
     /// <summary>访问令牌</summary>
     [DataMember(Name = "access_token")]
