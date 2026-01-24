@@ -92,7 +92,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
     public String Name { get; set; }
 
     /// <summary>根元素</summary>
-    public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = new List<IConfigSection>() };
+    public virtual IConfigSection Root { get; set; } = new ConfigSection { Childs = [] };
 
     /// <summary>所有键</summary>
     public virtual ICollection<String> Keys
@@ -103,7 +103,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
             EnsureLoad();
 
             var childs = Root?.Childs;
-            if (childs == null || childs.Count == 0) return new List<String>();
+            if (childs == null || childs.Count == 0) return [];
 
             var list = new List<String>(childs.Count);
             foreach (var item in childs)

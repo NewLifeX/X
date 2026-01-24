@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using NewLife.Log;
 using NewLife.Remoting;
 using NewLife.Security;
@@ -35,7 +34,7 @@ public class TokenHttpFilter : IHttpFilter
     public String Action { get; set; } = "OAuth/Token";
 
     /// <summary>令牌信息</summary>
-    public TokenModel? Token { get; set; }
+    public IToken? Token { get; set; }
 
     /// <summary>令牌有效期</summary>
     public DateTime Expire { get; set; }
@@ -43,7 +42,7 @@ public class TokenHttpFilter : IHttpFilter
     private DateTime _refresh;
 
     /// <summary>清空令牌的错误码。默认401和403</summary>
-    public IList<Int32> ErrorCodes { get; set; } = new List<Int32> { ApiCode.Unauthorized, ApiCode.Forbidden };
+    public IList<Int32> ErrorCodes { get; set; } = [ApiCode.Unauthorized, ApiCode.Forbidden];
     #endregion
 
     ///// <summary>实例化令牌过滤器</summary>
@@ -116,7 +115,7 @@ public class TokenHttpFilter : IHttpFilter
         // 使用令牌。要求已有令牌，且未过期
         if (token != null && Expire > now)
         {
-            var type = token.TokenType;
+            var type = (token as TokenModel)?.TokenType;
             if (type.IsNullOrEmpty() || type.EqualIgnoreCase("Token", "JWT")) type = "Bearer";
             request.Headers.Authorization = new AuthenticationHeaderValue(type, token.AccessToken);
         }
@@ -126,7 +125,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="client"></param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<TokenModel?> SendAuth(HttpClient client, CancellationToken cancellationToken)
+    protected virtual async Task<IToken?> SendAuth(HttpClient client, CancellationToken cancellationToken)
     {
         if (UserName.IsNullOrEmpty()) throw new ArgumentNullException(nameof(UserName));
         //if (Password.IsNullOrEmpty()) throw new ArgumentNullException(nameof(Password));
@@ -147,7 +146,7 @@ public class TokenHttpFilter : IHttpFilter
     /// <param name="client"></param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    protected virtual async Task<TokenModel?> SendRefresh(HttpClient client, CancellationToken cancellationToken)
+    protected virtual async Task<IToken?> SendRefresh(HttpClient client, CancellationToken cancellationToken)
     {
         //ValidClientId();
 

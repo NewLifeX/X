@@ -161,8 +161,8 @@ public class JsonReader
         return target;
     }
 
-    private readonly Dictionary<Object, Int32> _circobj = new();
-    private readonly Dictionary<Int32, Object> _cirrev = new();
+    private readonly Dictionary<Object, Int32> _circobj = [];
+    private readonly Dictionary<Int32, Object> _cirrev = [];
     /// <summary>字典转复杂对象，反射属性赋值</summary>
     /// <param name="dic"></param>
     /// <param name="type"></param>

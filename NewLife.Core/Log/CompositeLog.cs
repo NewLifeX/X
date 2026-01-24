@@ -6,7 +6,7 @@ namespace NewLife.Log;
 public class CompositeLog : Logger
 {
     /// <summary>日志提供者集合</summary>
-    public List<ILog> Logs { get; set; } = new List<ILog>();
+    public List<ILog> Logs { get; set; } = [];
 
     /// <summary>日志等级，只输出大于等于该级别的日志，默认Info，打开NewLife.Debug时默认为最低的Debug</summary>
     public override LogLevel Level

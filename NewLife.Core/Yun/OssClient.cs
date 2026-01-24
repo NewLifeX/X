@@ -355,7 +355,7 @@ public class OssClient : IObjectStorage
     #region 辅助
     private const Char NewLineMarker = '\n';
 
-    private static readonly IList<String> ParamtersToSign = new List<String> {
+    private static readonly IList<String> ParamtersToSign = [
         "acl", "uploadId", "partNumber", "uploads", "cors", "logging",
         "website", "delete", "referer", "lifecycle", "security-token","append",
         "position", "x-oss-process", "restore", "bucketInfo", "stat", "symlink",
@@ -371,7 +371,7 @@ public class OssClient : IObjectStorage
         "response-content-language",
         "response-content-type",
         "response-expires"
-    };
+    ];
 
     private static String BuildCanonicalString(String method, String resourcePath, HttpRequestMessage request)
     {

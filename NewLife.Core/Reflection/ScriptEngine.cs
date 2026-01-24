@@ -75,17 +75,17 @@ public class ScriptEngine
     public MethodInfo? Method { get; private set; }
 
     /// <summary>命名空间集合</summary>
-    public StringCollection NameSpaces { get; set; } = new StringCollection{
+    public StringCollection NameSpaces { get; set; } = [
         "System",
         "System.Collections",
         "System.Diagnostics",
         "System.Reflection",
         "System.Text",
         "System.Linq",
-        "System.IO"};
+        "System.IO"];
 
     /// <summary>引用程序集集合</summary>
-    public StringCollection ReferencedAssemblies { get; set; } = new StringCollection();
+    public StringCollection ReferencedAssemblies { get; set; } = [];
 
     /// <summary>日志</summary>
     public ILog? Log { get; set; }

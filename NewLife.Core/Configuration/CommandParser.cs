@@ -18,7 +18,7 @@ public class CommandParser
 
         var dic = IgnoreCase ?
             new Dictionary<String, String?>(StringComparer.OrdinalIgnoreCase) :
-            new Dictionary<String, String?>();
+            [];
         for (var i = 0; i < args.Length; i++)
         {
             var key = args[i];
