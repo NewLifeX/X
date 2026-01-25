@@ -17,7 +17,8 @@ public class ApiHttpClientTests : DisposeBase
 
     public ApiHttpClientTests()
     {
-        _Server = new ApiServer(12347)
+        // 使用动态端口避免冲突
+        _Server = new ApiServer(0)
         {
             //Log = XTrace.Log,
             //EncoderLog = XTrace.Log,
@@ -25,7 +26,7 @@ public class ApiHttpClientTests : DisposeBase
         _Server.Handler = new TokenApiHandler { Host = _Server };
         _Server.Start();
 
-        _Address = "http://127.0.0.1:12347";
+        _Address = $"http://127.0.0.1:{_Server.Port}";
 
         //_Client = new ApiHttpClient();
         //_Client.Add("addr1", new Uri("http://127.0.0.1:12347"));
@@ -189,7 +190,7 @@ public class ApiHttpClientTests : DisposeBase
         var svc = client.Add("test", _Address + "#token=node_token_123");
 
         Assert.Equal("node_token_123", svc.Token);
-        Assert.Equal("http://127.0.0.1:12347/", svc.Address + "");
+        Assert.Equal(_Address + "/", svc.Address + "");
     }
     #endregion
 
@@ -207,7 +208,7 @@ public class ApiHttpClientTests : DisposeBase
         Assert.NotNull(infs);
     }
 
-    [Fact]
+    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
     public async Task SlaveAsyncTest()
     {
         var filter = new TokenHttpFilter
@@ -563,7 +564,7 @@ public class ApiHttpClientTests : DisposeBase
     #endregion
 
     #region Filter测试
-    [Fact]
+    [Fact(Skip = "依赖外部网络服务 star.newlifex.com")]
     public async Task FilterTest()
     {
         var filter = new TokenHttpFilter

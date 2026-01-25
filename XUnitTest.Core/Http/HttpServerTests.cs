@@ -13,22 +13,27 @@ using Xunit;
 
 namespace XUnitTest.Http;
 
-public class HttpServerTests
+public class HttpServerTests : IDisposable
 {
-    private static HttpServer _server;
-    private static Uri _baseUri;
-    static HttpServerTests()
+    private readonly HttpServer _server;
+    private readonly Uri _baseUri;
+    public HttpServerTests()
     {
         var server = new HttpServer
         {
-            Port = 18080,
+            Port = 0, // 使用动态端口避免冲突
             Log = XTrace.Log,
             SessionLog = XTrace.Log
         };
         server.Start();
 
         _server = server;
-        _baseUri = new Uri("http://127.0.0.1:18080");
+        _baseUri = new Uri($"http://127.0.0.1:{server.Port}");
+    }
+
+    public void Dispose()
+    {
+        _server?.Dispose();
     }
 
     [Fact]
@@ -354,7 +359,7 @@ Content-Type: image/jpeg
         _server.Map("/keepalive", () => "alive");
 
         using var tcp = new TcpClient();
-        await tcp.ConnectAsync(IPAddress.Loopback, 18080);
+        await tcp.ConnectAsync(IPAddress.Loopback, _server.Port);
         using var ns = tcp.GetStream();
         var bytes = Encoding.ASCII.GetBytes(req);
         await ns.WriteAsync(bytes, 0, bytes.Length);
@@ -378,11 +383,11 @@ Content-Type: image/jpeg
     [Fact]
     public async Task MaxRequestLengthExceeded()
     {
-        using var server = new SmallLimitHttpServer { Port = 18082, Limit = 16, Log = XTrace.Log, SessionLog = XTrace.Log };
+        using var server = new SmallLimitHttpServer { Port = 0, Limit = 16, Log = XTrace.Log, SessionLog = XTrace.Log };
         server.Map("/small", () => "ok");
         server.Start();
 
-        var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:18082") };
+        var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{server.Port}") };
         var content = new ByteArrayContent(new Byte[32]);
         var rsp = await client.PostAsync("/small", content);
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, rsp.StatusCode);

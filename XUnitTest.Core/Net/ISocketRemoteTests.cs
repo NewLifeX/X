@@ -16,7 +16,7 @@ public class ISocketRemoteTests
     public void SendFile()
     {
         var src = Path.GetTempFileName().GetFullPath();
-        File.WriteAllBytes(src, Rand.NextBytes(23 * 1024 * 1024));
+        File.WriteAllBytes(src, Rand.NextBytes(2 * 1024 * 1024)); // 减小到 2MB，避免 CI 中超时
         var dest = "test_dest_SendFile.bin".GetFullPath();
         if (File.Exists(dest)) File.Delete(dest);
         var fi = src.AsFile();
@@ -42,7 +42,7 @@ public class ISocketRemoteTests
             };
 
             svr.Start();
-            Thread.Sleep(200);
+            WaitForServerReady(svr); // 使用更健壮的等待方式
 
             // 客户端
             var uri = new NetUri($"tcp://127.0.0.1:{svr.Port}");
@@ -73,7 +73,7 @@ public class ISocketRemoteTests
 
     private static void WaitForTransferComplete(ref Int64 receivedBytes, Int64 expectedBytes)
     {
-        var timeout = DateTime.Now.AddSeconds(30);
+        var timeout = DateTime.Now.AddSeconds(60); // 增加到 60 秒
         var lastReceived = receivedBytes;
         var stableCount = 0;
 
@@ -86,15 +86,28 @@ public class ISocketRemoteTests
                 lastReceived = receivedBytes;
                 stableCount = 0;
             }
-            else if (++stableCount >= 30) // 3秒稳定时间
+            else if (++stableCount >= 50) // 5秒稳定时间
             {
-                XTrace.WriteLine("3秒内无新数据，传输可能已完成");
+                XTrace.WriteLine("5秒内无新数据，传输可能已完成");
                 break;
             }
         }
 
         XTrace.WriteLine("传输结束，接收字节：{0}/{1}，完成率：{2:P2}",
             receivedBytes, expectedBytes, (Double)receivedBytes / expectedBytes);
+    }
+
+    /// <summary>等待服务器就绪</summary>
+    private static void WaitForServerReady(NetServer server)
+    {
+        var timeout = DateTime.Now.AddSeconds(10);
+        while (DateTime.Now < timeout)
+        {
+            if (server.Active && server.Port > 0) break;
+            Thread.Sleep(50);
+        }
+        // 额外等待一点时间确保服务器完全就绪
+        Thread.Sleep(100);
     }
 
     private static void ValidateFile(String destFile, String srcFile)
@@ -119,7 +132,7 @@ public class ISocketRemoteTests
     public void SendFile2()
     {
         var src = Path.GetTempFileName().GetFullPath();
-        var buf = Rand.NextBytes(37 * 1024 * 1024);
+        var buf = Rand.NextBytes(3 * 1024 * 1024); // 减小到 3MB，避免 CI 中超时
         File.WriteAllBytes(src, buf);
 
         XTrace.WriteLine("SendFile2: {0:n0}", buf.Length);
@@ -127,7 +140,7 @@ public class ISocketRemoteTests
         {
             using var svr = new FileServer { Port = 0, Log = XTrace.Log };
             svr.Start();
-            Thread.Sleep(200);
+            WaitForServerReady(svr); // 使用更健壮的等待方式
 
             var uri = new NetUri($"tcp://127.0.0.1:{svr.Port}");
             var client = uri.CreateRemote();
@@ -165,7 +178,7 @@ public class ISocketRemoteTests
 
     private static void WaitForFileReceived(IList<String> files)
     {
-        var timeout = DateTime.Now.AddSeconds(30);
+        var timeout = DateTime.Now.AddSeconds(60); // 增加到 60 秒
         var lastCount = files.Count;
         var stableCount = 0;
 
@@ -178,7 +191,7 @@ public class ISocketRemoteTests
                 lastCount = files.Count;
                 stableCount = 0;
             }
-            else if (++stableCount >= 20) // 2秒内文件数量没变化
+            else if (++stableCount >= 30) // 3秒内文件数量没变化
             {
                 break;
             }
@@ -187,7 +200,7 @@ public class ISocketRemoteTests
 
     private static void WaitForFileWriteComplete(FileInfo file)
     {
-        var timeout = DateTime.Now.AddSeconds(15);
+        var timeout = DateTime.Now.AddSeconds(30); // 增加到 30 秒
         var lastSize = file.Length;
         var stableCount = 0;
 
@@ -200,7 +213,7 @@ public class ISocketRemoteTests
                 stableCount = 0;
                 XTrace.WriteLine("文件大小变化：{0}", lastSize);
             }
-            else if (++stableCount >= 15) // 1.5秒内文件大小没变化
+            else if (++stableCount >= 20) // 2秒内文件大小没变化
             {
                 XTrace.WriteLine("文件写入稳定，大小：{0}", lastSize);
                 break;

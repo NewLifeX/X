@@ -21,7 +21,7 @@ public class NetworkLogTests
         netLog.Write(LogLevel.Info, "I am {0}", Environment.UserName);
     }
 
-    [Fact]
+    [Fact(Skip = "依赖外部网络服务")]
     public void HttpLog()
     {
         using var netLog = new NetworkLog("http://baidu.com/log");
