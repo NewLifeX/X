@@ -1,7 +1,8 @@
 <Project>
-  <Target Name="NewLifeCore_InstallCopilotInstructions" BeforeTargets="BeforeCompile" Condition="'$(DesignTimeBuild)' != 'true'">
-    <PropertyGroup>
-      <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\contentFiles\any\any\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
+<Target Name="NewLifeCore_InstallCopilotInstructions" BeforeTargets="BeforeCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+  <PropertyGroup>
+    <!-- 源文件位于 NuGet 包的 content 目录 -->
+    <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\content\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
 
       <!-- 优先查找 Git 仓库根目录（向上查找 .git 目录） -->
       <_NewLifeCore_CopilotInstructions_GitRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', '.git'))</_NewLifeCore_CopilotInstructions_GitRoot>

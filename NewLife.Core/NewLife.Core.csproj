@@ -227,12 +227,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\.github\copilot-instructions.md">
+    <!-- 打包 copilot-instructions.md 到 content 目录，由 targets 文件负责复制，不使用 contentFiles 避免自动添加链接 -->
+    <None Include="..\.github\copilot-instructions.md">
       <Pack>True</Pack>
-      <PackagePath>contentFiles\any\any\.github\</PackagePath>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
+      <PackagePath>content\.github\</PackagePath>
+    </None>
 
+    <None Include="build\NewLife.Core.targets">
+      <Pack>True</Pack>
+      <PackagePath>build\NewLife.Core.targets</PackagePath>
+    </None>
     <None Include="build\NewLife.Core.targets">
       <Pack>True</Pack>
       <PackagePath>buildTransitive\NewLife.Core.targets</PackagePath>
