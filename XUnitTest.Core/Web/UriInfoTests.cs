@@ -524,5 +524,131 @@ public class UriInfoTests
         Assert.Equal(expectedHost, uri.Host);
         Assert.Equal(expectedPort, uri.Port);
     }
+
+    [Theory]
+    [InlineData("http://localhost:8080/cube/info", "http://localhost:8080/cube/info")]
+    [InlineData("https://example.com/api/v1", "https://example.com/api/v1")]
+    [InlineData("http://localhost/path", "http://localhost/path")]
+    [InlineData("https://example.com:8443/api", "https://example.com:8443/api")]
+    [InlineData("http://192.168.1.1:8080/path", "http://192.168.1.1:8080/path")]
+    [InlineData("http://[::1]:8080/path", "http://[::1]:8080/path")]
+    [InlineData("https://[2001:db8::1]/api", "https://[2001:db8::1]/api")]
+    [InlineData("http://localhost:8080/path?query=1", "http://localhost:8080/path?query=1")]
+    [InlineData("https://example.com/path?a=1&b=2", "https://example.com/path?a=1&b=2")]
+    public void ToUri_Success(String url, String expected)
+    {
+        var uriInfo = new UriInfo(url);
+        var uri = uriInfo.ToUri();
+
+        Assert.NotNull(uri);
+        Assert.Equal(expected, uri.ToString());
+        Assert.Equal(uriInfo.Scheme, uri.Scheme);
+        // 注意：标准 Uri 的 Host 属性对 IPv6 会保留方括号，而 UriInfo 去掉了方括号
+        if (uriInfo.Host.Contains(':'))
+        {
+            // IPv6 地址：标准 Uri 的 Host 包含方括号
+            Assert.Equal($"[{uriInfo.Host}]", uri.Host);
+        }
+        else
+        {
+            Assert.Equal(uriInfo.Host, uri.Host);
+        }
+        Assert.Equal(uriInfo.Port == 0 ? (uriInfo.Scheme.EqualIgnoreCase("http", "ws") ? 80 : 443) : uriInfo.Port, uri.Port);
+        Assert.Equal(uriInfo.AbsolutePath, uri.AbsolutePath);
+    }
+
+    [Theory]
+    [InlineData("/path/to/resource")]
+    [InlineData("localhost:8080/path")]
+    [InlineData("localhost/path")]
+    public void ToUri_NoScheme_ReturnsNull(String url)
+    {
+        var uriInfo = new UriInfo(url);
+        var uri = uriInfo.ToUri();
+
+        Assert.Null(uri);
+    }
+
+    [Fact]
+    public void ToUri_NoHost_ReturnsNull()
+    {
+        var uriInfo = new UriInfo
+        {
+            Scheme = "http",
+            AbsolutePath = "/path"
+        };
+        var uri = uriInfo.ToUri();
+
+        Assert.Null(uri);
+    }
+
+    [Fact]
+    public void ToUri_WithQueryParameters()
+    {
+        var uriInfo = new UriInfo("http://localhost/api");
+        uriInfo.Append("page", 1)
+               .Append("size", 20)
+               .Append("name", "test");
+
+        var uri = uriInfo.ToUri();
+        
+        Assert.NotNull(uri);
+        Assert.Equal("http://localhost/api?page=1&size=20&name=test", uri.ToString());
+        Assert.Equal("?page=1&size=20&name=test", uri.Query);
+    }
+
+    [Theory]
+    [InlineData("http://localhost:80/path", "http://localhost/path")]
+    [InlineData("https://localhost:443/path", "https://localhost/path")]
+    [InlineData("http://localhost:8080/path", "http://localhost:8080/path")]
+    public void ToUri_DefaultPort(String url, String expected)
+    {
+        var uriInfo = new UriInfo(url);
+        var uri = uriInfo.ToUri();
+
+        Assert.NotNull(uri);
+        Assert.Equal(expected, uri.ToString());
+    }
+
+    [Fact]
+    public void ToUri_IPv6Address()
+    {
+        var uriInfo = new UriInfo("http://[::1]:8080/api");
+        var uri = uriInfo.ToUri();
+
+        Assert.NotNull(uri);
+        Assert.Equal("http://[::1]:8080/api", uri.ToString());
+        // 标准 Uri 的 Host 属性对 IPv6 保留方括号
+        Assert.Equal("[::1]", uri.Host);
+        Assert.Equal(8080, uri.Port);
+    }
+
+    [Fact]
+    public void ToUri_ConsistentWithSystemUri()
+    {
+        var testUrls = new[]
+        {
+            "http://localhost:8080/path",
+            "https://example.com/api/v1",
+            "http://192.168.1.1:3000/test",
+            "https://[::1]:8443/ws",
+            "http://example.com/path?query=value&id=123"
+        };
+
+        foreach (var url in testUrls)
+        {
+            var uriInfo = new UriInfo(url);
+            var uriFromInfo = uriInfo.ToUri();
+            var systemUri = new Uri(url);
+
+            Assert.NotNull(uriFromInfo);
+            Assert.Equal(systemUri.ToString(), uriFromInfo.ToString());
+            Assert.Equal(systemUri.Scheme, uriFromInfo.Scheme);
+            Assert.Equal(systemUri.Host, uriFromInfo.Host);
+            Assert.Equal(systemUri.Port, uriFromInfo.Port);
+            Assert.Equal(systemUri.AbsolutePath, uriFromInfo.AbsolutePath);
+            Assert.Equal(systemUri.PathAndQuery, uriFromInfo.PathAndQuery);
+        }
+    }
 }
 

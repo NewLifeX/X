@@ -217,6 +217,22 @@ public class UriInfo
         return this;
     }
 
+    /// <summary>转换为 Uri 对象</summary>
+    /// <returns>Uri 对象。如果无法构造有效的 Uri，则返回 null</returns>
+    public Uri? ToUri()
+    {
+        // 必须有协议才能构造 Uri
+        if (Scheme.IsNullOrEmpty()) return null;
+
+        // 必须有主机才能构造绝对 Uri
+        if (Host.IsNullOrEmpty()) return null;
+
+        var url = ToString();
+        if (url.IsNullOrEmpty()) return null;
+
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri : null;
+    }
+
     /// <summary>已重载。</summary>
     /// <returns></returns>
     public override String? ToString()
