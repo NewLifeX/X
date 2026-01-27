@@ -161,7 +161,7 @@ public class HttpServerTests : IDisposable
         var content = "Hello NewLife".GetBytes();
 
         var client = new ClientWebSocket();
-        await client.ConnectAsync(new Uri("ws://127.0.0.1:18080/ws"), default);
+        await client.ConnectAsync(new Uri($"ws://127.0.0.1:{_server.Port}/ws"), default);
         await client.SendAsync(new ArraySegment<Byte>(content), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
         var buf = new Byte[1024];

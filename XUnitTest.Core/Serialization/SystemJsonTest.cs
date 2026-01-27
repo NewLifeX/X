@@ -219,7 +219,10 @@ public class SystemJsonTest : JsonTestBase
         var js = new SystemJson();
         var info = js.Read<NodeInfo>(json);
         XTrace.WriteLine(info.Compile.ToFullString());
-        Assert.Equal("2025-05-23 13:10:22".ToDateTime(), info.Compile);
+
+        // Unix 时间戳 1747977022000 毫秒，转换为本地时间后比较
+        var expected = 1747977022000L.ToDateTime().ToLocalTime();
+        Assert.Equal(expected, info.Compile);
     }
 
     class NodeInfo
