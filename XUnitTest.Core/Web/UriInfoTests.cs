@@ -250,4 +250,279 @@ public class UriInfoTests
         uri.AppendNotEmpty("age", null);
         Assert.Equal("/cube/info?name=newlife", uri.ToString());
     }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    [InlineData("http://localhost", true)]
+    [InlineData("/path", true)]
+    [InlineData("host", true)]
+    public void TryParse(String? url, Boolean expected)
+    {
+        var result = UriInfo.TryParse(url, out var uri);
+        Assert.Equal(expected, result);
+
+        if (expected)
+            Assert.NotNull(uri);
+        else
+            Assert.Null(uri);
+    }
+
+    [Theory]
+    [InlineData("http://localhost:80/path", "localhost")]
+    [InlineData("https://localhost:443/path", "localhost")]
+    [InlineData("http://localhost:8080/path", "localhost:8080")]
+    [InlineData("https://localhost:8443/path", "localhost:8443")]
+    [InlineData("ws://localhost:80/path", "localhost")]
+    [InlineData("wss://localhost:443/path", "localhost")]
+    [InlineData("ws://localhost:8080/path", "localhost:8080")]
+    [InlineData("wss://localhost:8443/path", "localhost:8443")]
+    [InlineData("ftp://localhost:21/path", "localhost:21")]
+    public void Authority(String url, String expected)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expected, uri.Authority);
+    }
+
+    [Theory]
+    [InlineData("http://localhost/path?query=1", "/path?query=1")]
+    [InlineData("http://localhost/path?query=1&name=test", "/path?query=1&name=test")]
+    [InlineData("http://localhost/path", "/path")]
+    [InlineData("http://localhost", "/")]
+    [InlineData("http://localhost?query=1", "/?query=1")]
+    public void PathAndQuery(String url, String expected)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expected, uri.PathAndQuery);
+    }
+
+    [Theory]
+    [InlineData("http://192.168.1.1:8080/path", "192.168.1.1", 8080)]
+    [InlineData("https://10.0.0.1/path", "10.0.0.1", 0)]
+    [InlineData("http://127.0.0.1:3000/api", "127.0.0.1", 3000)]
+    public void ParseIPAddress(String url, String expectedHost, Int32 expectedPort)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+        Assert.Equal(expectedPort, uri.Port);
+    }
+
+    [Theory]
+    [InlineData("http://[::1]:8080/path", "::1", 8080)]
+    [InlineData("http://[2001:db8::1]/path", "2001:db8::1", 0)]
+    [InlineData("https://[fe80::1]:443/api", "fe80::1", 443)]
+    [InlineData("http://[::ffff:192.0.2.1]:9000/api", "::ffff:192.0.2.1", 9000)]
+    [InlineData("http://[2001:0db8:0000:0000:0000:ff00:0042:8329]/path", "2001:0db8:0000:0000:0000:ff00:0042:8329", 0)]
+    [InlineData("ws://[::]:8080/socket", "::", 8080)]
+    [InlineData("wss://[fe80::1%eth0]:443/ws", "fe80::1%eth0", 443)]
+    public void ParseIPv6Address(String url, String expectedHost, Int32 expectedPort)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+        Assert.Equal(expectedPort, uri.Port);
+    }
+
+    [Theory]
+    [InlineData("http://example.com/path%20with%20spaces", "/path%20with%20spaces")]
+    [InlineData("http://example.com/path?query=%E4%B8%AD%E6%96%87", "?query=%E4%B8%AD%E6%96%87")]
+    [InlineData("http://example.com/path?a=1&b=2&c=3", "?a=1&b=2&c=3")]
+    public void ParseSpecialCharacters(String url, String expectedPathAndQuery)
+    {
+        var uri = new UriInfo(url);
+        Assert.EndsWith(expectedPathAndQuery, uri.PathAndQuery);
+    }
+
+    [Fact]
+    public void ParseEmptyPathWithQuery()
+    {
+        var uri = new UriInfo("http://localhost?query=value");
+        Assert.Equal("http", uri.Scheme);
+        Assert.Equal("localhost", uri.Host);
+        Assert.Equal(0, uri.Port);
+        Assert.Equal("/", uri.AbsolutePath);
+        Assert.Equal("?query=value", uri.Query);
+        Assert.Equal("/?query=value", uri.PathAndQuery);
+    }
+
+    [Fact]
+    public void ParseComplexUrl()
+    {
+        var url = "https://user:pass@example.com:8443/api/v1/users?filter=active&sort=name#section";
+        var uri = new UriInfo(url);
+
+        // UriInfo 不处理认证信息和片段，但应正确解析其他部分
+        Assert.Equal("https", uri.Scheme);
+        Assert.True(uri.Host?.Contains("example.com") ?? false);
+    }
+
+    [Theory]
+    [InlineData("ftp://ftp.example.com:21/files", "ftp", "ftp.example.com", 21)]
+    public void ParseNonHttpSchemes(String url, String scheme, String host, Int32 port)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(scheme, uri.Scheme);
+        Assert.Equal(host, uri.Host);
+        Assert.Equal(port, uri.Port);
+    }
+
+    [Fact]
+    public void AppendMultipleParameters()
+    {
+        var uri = new UriInfo("http://localhost/api");
+        uri.Append("page", 1)
+           .Append("size", 20)
+           .Append("sort", "name");
+
+        Assert.Equal("http://localhost/api?page=1&size=20&sort=name", uri.ToString());
+    }
+
+    [Fact]
+    public void AppendNotEmptyMultipleParameters()
+    {
+        var uri = new UriInfo("http://localhost/api");
+        uri.AppendNotEmpty("page", 1)
+           .AppendNotEmpty("size", null)
+           .AppendNotEmpty("sort", "")
+           .AppendNotEmpty("filter", "active");
+
+        Assert.Equal("http://localhost/api?page=1&filter=active", uri.ToString());
+    }
+
+    [Theory]
+    [InlineData("http://EXAMPLE.COM/Path", "http", "EXAMPLE.COM")]
+    [InlineData("HTTP://example.com/path", "HTTP", "example.com")]
+    [InlineData("HtTp://ExAmPlE.CoM/path", "HtTp", "ExAmPlE.CoM")]
+    public void ParsePreserveCase(String url, String scheme, String host)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(scheme, uri.Scheme);
+        Assert.Equal(host, uri.Host);
+    }
+
+    [Fact]
+    public void ToStringWithoutScheme()
+    {
+        var uri = new UriInfo
+        {
+            Host = "localhost",
+            Port = 8080,
+            AbsolutePath = "/api",
+            Query = "?test=1"
+        };
+
+        Assert.Equal("localhost:8080/api?test=1", uri.ToString());
+    }
+
+    [Fact]
+    public void ToStringOnlyPath()
+    {
+        var uri = new UriInfo
+        {
+            AbsolutePath = "/api/users",
+            Query = "?filter=active"
+        };
+
+        Assert.Equal("/api/users?filter=active", uri.ToString());
+    }
+
+    [Theory]
+    [InlineData("localhost:0/path", 0)]
+    [InlineData("localhost:65535/path", 65535)]
+    [InlineData("localhost:abc/path", 0)]
+    public void ParsePortEdgeCases(String url, Int32 expectedPort)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedPort, uri.Port);
+    }
+
+    [Theory]
+    [InlineData("http://[::1]/path", "::1", 0, "/path")]
+    [InlineData("http://[::1]:8080/api", "::1", 8080, "/api")]
+    [InlineData("http://[::1]:8080/", "::1", 8080, "/")]
+    [InlineData("http://[2001:db8::1]:443/api/v1", "2001:db8::1", 443, "/api/v1")]
+    [InlineData("https://[fe80::1]/", "fe80::1", 0, "/")]
+    public void ParseIPv6WithPath(String url, String expectedHost, Int32 expectedPort, String expectedPath)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+        Assert.Equal(expectedPort, uri.Port);
+        Assert.Equal(expectedPath, uri.AbsolutePath);
+    }
+
+    [Theory]
+    [InlineData("http://[::1]?query=value", "::1", "?query=value")]
+    [InlineData("http://[::1]:8080?a=1&b=2", "::1", "?a=1&b=2")]
+    [InlineData("http://[2001:db8::1]/path?name=test", "2001:db8::1", "?name=test")]
+    public void ParseIPv6WithQuery(String url, String expectedHost, String expectedQuery)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+        Assert.Equal(expectedQuery, uri.Query);
+    }
+
+    [Theory]
+    [InlineData("http://[::1]:80/path", "[::1]")]
+    [InlineData("https://[::1]:443/path", "[::1]")]
+    [InlineData("http://[::1]:8080/path", "[::1]:8080")]
+    [InlineData("https://[fe80::1]:8443/path", "[fe80::1]:8443")]
+    [InlineData("ws://[::1]:80/ws", "[::1]")]
+    [InlineData("wss://[::1]:443/ws", "[::1]")]
+    public void IPv6Authority(String url, String expectedAuthority)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedAuthority, uri.Authority);
+    }
+
+    [Theory]
+    [InlineData("http://[::1]/path", "http://[::1]/path")]
+    [InlineData("http://[::1]:8080/path", "http://[::1]:8080/path")]
+    [InlineData("https://[2001:db8::1]:443/api", "https://[2001:db8::1]/api")]
+    [InlineData("http://[fe80::1]:80/", "http://[fe80::1]/")]
+    public void IPv6ToString(String url, String expected)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expected, uri.ToString());
+    }
+
+    [Theory]
+    [InlineData("http://[/path", "")]
+    [InlineData("http://[::1/path", "::1")]
+    [InlineData("http://[:8080/path", ":8080")]
+    public void ParseMalformedIPv6(String url, String expectedHost)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+    }
+
+    [Fact]
+    public void ParseIPv6WithoutBrackets()
+    {
+        // 没有方括号的IPv6会被当作普通主机名，最后一个冒号后面会被当作端口
+        var uri = new UriInfo("http://2001:db8::1:8080/path");
+        Assert.Equal("2001:db8::1", uri.Host);
+        Assert.Equal(8080, uri.Port);
+    }
+
+    [Fact]
+    public void AppendToIPv6Url()
+    {
+        var uri = new UriInfo("http://[::1]:8080/api");
+        uri.Append("key", "value")
+           .Append("id", 123);
+        
+        Assert.Equal("http://[::1]:8080/api?key=value&id=123", uri.ToString());
+    }
+
+    [Theory]
+    [InlineData("[::1]:8080/path", "::1", 8080)]
+    [InlineData("[2001:db8::1]/path", "2001:db8::1", 0)]
+    [InlineData("[::1]", "::1", 0)]
+    public void ParseIPv6WithoutScheme(String url, String expectedHost, Int32 expectedPort)
+    {
+        var uri = new UriInfo(url);
+        Assert.Equal(expectedHost, uri.Host);
+        Assert.Equal(expectedPort, uri.Port);
+    }
 }
+

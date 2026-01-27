@@ -1,4 +1,6 @@
-﻿namespace NewLife.Web;
+﻿using System.Web;
+
+namespace NewLife.Web;
 
 /// <summary>资源定位。无限制解析Url地址</summary>
 public class UriInfo
@@ -37,15 +39,21 @@ public class UriInfo
     {
         get
         {
-            if (Port == 0) return Host;
             if (Host.IsNullOrEmpty()) return Host;
 
-            if (Scheme.EqualIgnoreCase("http", "ws"))
-                return Port == 80 ? Host : $"{Host}:{Port}";
-            else if (Scheme.EqualIgnoreCase("https", "wss"))
-                return Port == 443 ? Host : $"{Host}:{Port}";
+            // 检测是否是IPv6地址（包含冒号且不是端口分隔符）
+            var isIPv6 = Host.Contains(':');
+            var hostPart = isIPv6 ? $"[{Host}]" : Host;
 
-            return $"{Host}:{Port}";
+            if (Port == 0) return hostPart;
+
+            // 检查是否为默认端口
+            if (Scheme.EqualIgnoreCase("http", "ws"))
+                return Port == 80 ? hostPart : $"{hostPart}:{Port}";
+            else if (Scheme.EqualIgnoreCase("https", "wss"))
+                return Port == 443 ? hostPart : $"{hostPart}:{Port}";
+
+            return $"{hostPart}:{Port}";
         }
     }
     #endregion
@@ -76,34 +84,37 @@ public class UriInfo
     {
         if (value.IsNullOrWhiteSpace()) return false;
 
+        var span = value.AsSpan();
+        var p = 0;
+
         // 先处理头尾，再处理中间的主机和端口
-        var p = value.IndexOf("://");
-        if (p >= 0)
+        var schemeIndex = span.IndexOf("://".AsSpan());
+        if (schemeIndex >= 0)
         {
-            Scheme = value[..p];
-            p += 3;
+            Scheme = span[..schemeIndex].ToString();
+            p = schemeIndex + 3;
         }
-        else
-            p = 0;
 
         // 第二步找到/，它左边是主机和端口，右边是路径和查询。如果没有/，则整个字符串都是主机和端口
-        var p2 = value.IndexOf('/', p);
-        if (p2 >= 0)
+        var slashIndex = span[p..].IndexOf('/');
+        if (slashIndex >= 0)
         {
-            ParseHost(value[p..p2]);
-            ParsePath(value, p2);
+            slashIndex += p;
+            ParseHost(span[p..slashIndex]);
+            ParsePath(span, slashIndex);
         }
         else
         {
-            p2 = value.IndexOf('?', p);
-            if (p2 >= 0)
+            var queryIndex = span[p..].IndexOf('?');
+            if (queryIndex >= 0)
             {
-                ParseHost(value[p..p2]);
-                Query = value[p2..];
+                queryIndex += p;
+                ParseHost(span[p..queryIndex]);
+                Query = span[queryIndex..].ToString();
             }
             else
             {
-                Host = value[p..];
+                ParseHost(span[p..]);
             }
         }
 
@@ -116,33 +127,61 @@ public class UriInfo
         return true;
     }
 
-    private void ParsePath(String value, Int32 p)
+    private void ParsePath(ReadOnlySpan<Char> span, Int32 p)
     {
-        // 第二步找到/，它左边是主机和端口，右边是路径和查询。如果没有/，则整个字符串都是主机和端口
-        var p2 = value.IndexOf('?', p);
-        if (p2 >= 0)
+        // 路径后面可能跟着查询参数
+        var queryIndex = span[p..].IndexOf('?');
+        if (queryIndex >= 0)
         {
-            AbsolutePath = value[p..p2];
-            Query = value[p2..];
+            queryIndex += p;
+            AbsolutePath = span[p..queryIndex].ToString();
+            Query = span[queryIndex..].ToString();
         }
         else
         {
-            AbsolutePath = value[p..];
+            AbsolutePath = span[p..].ToString();
         }
     }
 
-    private void ParseHost(String value)
+    private void ParseHost(ReadOnlySpan<Char> span)
     {
-        // 拆分主机和端口，注意IPv6地址
-        var p2 = value.LastIndexOf(':');
-        if (p2 > 0)
+        // 拆分主机和端口，注意IPv6地址用方括号包裹
+        if (span.Length <= 0) return;
+
+        // 检查是否是 IPv6 地址（以 [ 开头）
+        if (span[0] == '[')
         {
-            Host = value[..p2];
-            Port = value[(p2 + 1)..].ToInt();
+            var closeBracketIndex = span.IndexOf(']');
+            if (closeBracketIndex > 0)
+            {
+                // IPv6 地址：[host]:port 或 [host]，去掉方括号保存
+                Host = span[1..closeBracketIndex].ToString();
+
+                // 检查是否有端口
+                if (closeBracketIndex + 1 < span.Length && span[closeBracketIndex + 1] == ':')
+                {
+                    Port = span[(closeBracketIndex + 2)..].ToString().ToInt();
+                }
+            }
+            else
+            {
+                // 格式错误的 IPv6，只有左方括号没有右方括号，去掉左方括号后当作主机
+                Host = span[1..].ToString();
+            }
         }
-        else if (!value.IsNullOrEmpty())
+        else
         {
-            Host = value;
+            // 普通主机名或 IPv4：host:port
+            var colonIndex = span.LastIndexOf(':');
+            if (colonIndex > 0)
+            {
+                Host = span[..colonIndex].ToString();
+                Port = span[(colonIndex + 1)..].ToString().ToInt();
+            }
+            else
+            {
+                Host = span.ToString();
+            }
         }
     }
 
@@ -152,8 +191,10 @@ public class UriInfo
     /// <returns></returns>
     public UriInfo Append(String name, Object? value)
     {
+        var str = HttpUtility.UrlEncode(value + "");
+
         var q = Query;
-        Query = q.IsNullOrEmpty() ? $"{name}={value}" : $"{q}&{name}={value}";
+        Query = q.IsNullOrEmpty() ? $"{name}={str}" : $"{q}&{name}={str}";
 
         return this;
     }
@@ -164,10 +205,14 @@ public class UriInfo
     /// <returns></returns>
     public UriInfo AppendNotEmpty(String name, Object? value)
     {
-        if (value == null || value.ToString().IsNullOrEmpty()) return this;
+        if (value == null) return this;
+
+        var str = value + "";
+        if (str.IsNullOrEmpty()) return this;
+        str = HttpUtility.UrlEncode(str);
 
         var q = Query;
-        Query = q.IsNullOrEmpty() ? $"{name}={value}" : $"{q}&{name}={value}";
+        Query = q.IsNullOrEmpty() ? $"{name}={str}" : $"{q}&{name}={str}";
 
         return this;
     }
