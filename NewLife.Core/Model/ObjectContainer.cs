@@ -25,6 +25,22 @@ public class ObjectContainer : IObjectContainer
         Current = ioc;
         Provider = ioc.BuildServiceProvider();
     }
+
+    /// <summary>设置内部服务提供者。用于在 UseXxx 阶段更新为真正的 IServiceProvider，替换临时提供者</summary>
+    /// <param name="innerServiceProvider">真正的服务提供者，通常是 app.ApplicationServices</param>
+    public static void SetInnerProvider(IServiceProvider innerServiceProvider)
+    {
+        if (Provider is ServiceProvider sp)
+            sp.InnerServiceProvider = innerServiceProvider;
+    }
+
+    /// <summary>设置内部服务提供者工厂。用于在 AddXxx 阶段延迟绑定，允许在需要时创建临时提供者</summary>
+    /// <param name="innerServiceProviderFactory">服务提供者工厂，延迟获取 IServiceProvider</param>
+    public static void SetInnerProvider(Func<IServiceProvider> innerServiceProviderFactory)
+    {
+        if (Provider is ServiceProvider sp)
+            sp.InnerServiceProviderFactory = innerServiceProviderFactory;
+    }
     #endregion
 
     #region 属性
@@ -314,7 +330,11 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
     /// <summary>内部服务提供者。用于链式查找</summary>
     public IServiceProvider? InnerServiceProvider { get; set; } = innerServiceProvider;
 
+    /// <summary>内部服务提供者工厂。延迟获取真实的 IServiceProvider</summary>
+    public Func<IServiceProvider>? InnerServiceProviderFactory { get; set; }
+
     private readonly IObjectContainer _container = container;
+    private readonly Object _lock = new();
     #endregion
 
     #region 方法
@@ -340,7 +360,18 @@ internal class ServiceProvider(IObjectContainer container, IServiceProvider? inn
         var service = ioc?.Resolve(serviceType, this);
         if (service != null) return service;
 
+        // 使用工厂延迟解析，调用后直接赋值给 InnerServiceProvider
+        if (InnerServiceProviderFactory != null)
+        {
+            lock (_lock)
+            {
+                if (InnerServiceProvider == null && InnerServiceProviderFactory != null)
+                    InnerServiceProvider = InnerServiceProviderFactory();
+            }
+        }
+
         return InnerServiceProvider?.GetService(serviceType);
     }
+
     #endregion
 }
