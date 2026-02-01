@@ -3,6 +3,7 @@ using NewLife;
 using NewLife.Compression;
 using NewLife.Security;
 using System.Security.Cryptography;
+using NewLife.Log;
 
 #if NET7_0_OR_GREATER
 using System.Formats.Tar;
@@ -673,10 +674,14 @@ public static class PathHelper
             if (alg.IsNullOrEmpty()) throw new NotSupportedException("Please specify a hash algorithm prefix.");
         }
 
+        var span = DefaultSpan.Current;
+        span?.AppendTag($"alg={alg} hash={value}");
+
         // 根据算法名称计算文件哈希并比较，哈希值比较不区分大小写
         if (alg.EqualIgnoreCase("md5"))
         {
             var md5 = file.MD5().ToHex();
+            span?.AppendTag($"md5={md5}");
 
             // 16 位 MD5：取前 8 字节（16 个十六进制字符）
             if (value.Length == 16)
@@ -689,6 +694,7 @@ public static class PathHelper
         {
             using var fs = file.OpenRead();
             var actual = Crc32.Compute(fs).ToString("X8");
+            span?.AppendTag($"crc32={actual}");
             return actual.EqualIgnoreCase(value);
         }
 
@@ -697,6 +703,7 @@ public static class PathHelper
             using var sha1 = SHA1.Create();
             using var fs = file.OpenRead();
             var actual = sha1.ComputeHash(fs).ToHex();
+            span?.AppendTag($"sha1={actual}");
             return actual.EqualIgnoreCase(value);
         }
 
@@ -705,6 +712,7 @@ public static class PathHelper
             using var sha256 = SHA256.Create();
             using var fs = file.OpenRead();
             var actual = sha256.ComputeHash(fs).ToHex();
+            span?.AppendTag($"sha256={actual}");
             return actual.EqualIgnoreCase(value);
         }
 
@@ -713,6 +721,7 @@ public static class PathHelper
             using var sha512 = SHA512.Create();
             using var fs = file.OpenRead();
             var actual = sha512.ComputeHash(fs).ToHex();
+            span?.AppendTag($"sha512={actual}");
             return actual.EqualIgnoreCase(value);
         }
 

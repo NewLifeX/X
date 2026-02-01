@@ -1,11 +1,9 @@
 ﻿using System.Net;
-using System.Net.Http; // 补充：旧框架目标下无隐式全局 using，需要显式引用
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Data;
@@ -636,20 +634,39 @@ public static class HttpHelper
                 if (!fi.VerifyHash(expectedHash))
                 {
                     // 校验失败，删除临时文件并抛出异常
-                    try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+                    try
+                    {
+                        if (File.Exists(tmp)) File.Delete(tmp);
+                    }
+                    catch { }
                     throw new IOException("Save file hash verification failed.");
                 }
             }
 
             // 校验通过，移动到最终目标位置
             fileName.EnsureDirectory(true);
-            if (File.Exists(fileName)) File.Delete(fileName);
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch
+                {
+                    // 既然删不掉，就换个临时文件名吧
+                    File.Move(fileName, $"{fileName}.tmp.{DateTime.Now:yyMMddHHmmss}");
+                }
+            }
             File.Move(tmp, fileName);
         }
         finally
         {
             // 清理残留临时文件
-            try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+            try
+            {
+                if (File.Exists(tmp)) File.Delete(tmp);
+            }
+            catch { }
         }
     }
 
