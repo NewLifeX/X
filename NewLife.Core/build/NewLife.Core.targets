@@ -1,8 +1,12 @@
 <Project>
-<Target Name="NewLifeCore_InstallCopilotInstructions" BeforeTargets="BeforeCompile" Condition="'$(DesignTimeBuild)' != 'true'">
-  <PropertyGroup>
-    <!-- 源文件位于 NuGet 包的 content 目录 -->
-    <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\content\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
+  <!-- 在 NuGet 包还原后立即安装/更新 Copilot 指令文件 -->
+  <!-- 监听 Restore 和 ResolvePackageAssets 目标，确保添加/更新包时立即执行 -->
+  <Target Name="NewLifeCore_InstallCopilotInstructions" 
+          AfterTargets="Restore;ResolvePackageAssets" 
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <!-- 源文件位于 NuGet 包的 content 目录 -->
+      <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\content\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
 
       <!-- 优先查找 Git 仓库根目录（向上查找 .git 目录） -->
       <_NewLifeCore_CopilotInstructions_GitRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', '.git'))</_NewLifeCore_CopilotInstructions_GitRoot>
@@ -21,18 +25,44 @@
       <_NewLifeCore_CopilotInstructions_SourceFile Include="$(_NewLifeCore_CopilotInstructions_Source)" Condition="Exists('$(_NewLifeCore_CopilotInstructions_Source)')" />
     </ItemGroup>
 
-    <ReadLinesFromFile File="$(_NewLifeCore_CopilotInstructions_DestFile)" Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">
+    <!-- 使用 ContinueOnError 避免文件被占用时阻塞构建 -->
+    <ReadLinesFromFile File="$(_NewLifeCore_CopilotInstructions_DestFile)" 
+                       Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')"
+                       ContinueOnError="true">
       <Output TaskParameter="Lines" ItemName="_NewLifeCore_CopilotInstructions_ExistingLines" />
     </ReadLinesFromFile>
 
     <PropertyGroup>
-      <_NewLifeCore_CopilotInstructions_ExistingText>@(_NewLifeCore_CopilotInstructions_ExistingLines, '
-')</_NewLifeCore_CopilotInstructions_ExistingText>
+      <_NewLifeCore_CopilotInstructions_ExistingText>@(_NewLifeCore_CopilotInstructions_ExistingLines, '&#xD;&#xA;')</_NewLifeCore_CopilotInstructions_ExistingText>
+      
+      <!-- 先获取源文件和目标文件的最后修改时间 -->
+      <_NewLifeCore_CopilotInstructions_SourceTime Condition="Exists('$(_NewLifeCore_CopilotInstructions_Source)')">$([System.IO.File]::GetLastWriteTime('$(_NewLifeCore_CopilotInstructions_Source)').Ticks)</_NewLifeCore_CopilotInstructions_SourceTime>
+      <_NewLifeCore_CopilotInstructions_DestTime Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">$([System.IO.File]::GetLastWriteTime('$(_NewLifeCore_CopilotInstructions_DestFile)').Ticks)</_NewLifeCore_CopilotInstructions_DestTime>
+      
+      <!-- 判断是否需要复制：
+           1. 目标文件不存在
+           2. 目标文件存在且包含"新生命团队"（表示是从包安装的）且源文件比目标文件新
+      -->
       <_NewLifeCore_CopilotInstructions_ShouldCopy Condition="!Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">true</_NewLifeCore_CopilotInstructions_ShouldCopy>
-      <_NewLifeCore_CopilotInstructions_ShouldCopy Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)') and $([System.String]::Copy('$(_NewLifeCore_CopilotInstructions_ExistingText)').Contains('新生命团队'))">true</_NewLifeCore_CopilotInstructions_ShouldCopy>
+      <_NewLifeCore_CopilotInstructions_ShouldCopy Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)') and $([System.String]::Copy('$(_NewLifeCore_CopilotInstructions_ExistingText)').Contains('新生命团队')) and '$(_NewLifeCore_CopilotInstructions_SourceTime)' &gt; '$(_NewLifeCore_CopilotInstructions_DestTime)'">true</_NewLifeCore_CopilotInstructions_ShouldCopy>
     </PropertyGroup>
 
-    <MakeDir Directories="$(_NewLifeCore_CopilotInstructions_DestDir)" Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and !Exists('$(_NewLifeCore_CopilotInstructions_DestDir)')" />
-    <Copy SourceFiles="@(_NewLifeCore_CopilotInstructions_SourceFile)" DestinationFiles="$(_NewLifeCore_CopilotInstructions_DestFile)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and Exists('$(_NewLifeCore_CopilotInstructions_Source)')" />
+    <MakeDir Directories="$(_NewLifeCore_CopilotInstructions_DestDir)" 
+             Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and !Exists('$(_NewLifeCore_CopilotInstructions_DestDir)')" />
+    
+    <!-- 使用 ContinueOnError 避免文件被占用时阻塞构建 -->
+    <Copy SourceFiles="@(_NewLifeCore_CopilotInstructions_SourceFile)" 
+          DestinationFiles="$(_NewLifeCore_CopilotInstructions_DestFile)" 
+          OverwriteReadOnlyFiles="true" 
+          SkipUnchangedFiles="false"
+          Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and Exists('$(_NewLifeCore_CopilotInstructions_Source)')"
+          ContinueOnError="true">
+      <Output TaskParameter="DestinationFiles" ItemName="_NewLifeCore_CopilotInstructions_CopiedFiles" />
+    </Copy>
+
+    <!-- 输出提示信息 -->
+    <Message Text="NewLife.Core: Copilot 指令文件已安装到 $(_NewLifeCore_CopilotInstructions_DestFile)" 
+             Condition="'@(_NewLifeCore_CopilotInstructions_CopiedFiles)' != ''" 
+             Importance="high" />
   </Target>
 </Project>
