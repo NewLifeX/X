@@ -106,14 +106,17 @@
 
 **识别特征**：
 ```csharp
-// 曾经尝试过 xxx 方案，但会导致 yyy 问题
-// var result = DoSomethingWrong();
+// 曾经尝试过同步等待，但会导致线程池饥饿和死锁
+// var result = task.Result;
 
-// 不要使用 xxx，否则会造成 yyy
+// 不要使用 SendAsync 的无超时重载，否则会造成连接泄漏
 // await client.SendAsync(data);
 
-// 这里不能用 xxx，因为 yyy
+// 这里不能用 Flush，因为底层 SSL 流会抛出 ObjectDisposedException
 // stream.Flush();
+
+// 不要改成 ConfigureAwait(true)，会导致 UI 线程死锁
+// await Task.Delay(100).ConfigureAwait(true);
 ```
 
 **处理原则**：
@@ -168,6 +171,25 @@ foreach (var item in list)
 {
     Process(item);
 }
+
+// ✅ using 语句：优先使用 using declaration（无花括号）
+using var stream = File.OpenRead("file.txt");
+using var reader = new StreamReader(stream);
+return reader.ReadToEnd();
+
+// ✅ using 弃元：仅用于需要资源生命周期但不需要引用的场景
+// 例如：分布式锁、性能追踪 Span、临时文件锁等
+using var _ = _lock.AcquireLock();
+DoSomething();
+// 方法结束时自动释放锁
+
+// ⚠️ using 语句：仅在需要提前结束作用域时使用花括号
+using (var connection = CreateConnection())
+{
+    connection.Open();
+    // ... 执行操作
+}
+// 这里 connection 已释放，可以继续执行其他操作
 ```
 
 ### 5.4 Region 组织结构
