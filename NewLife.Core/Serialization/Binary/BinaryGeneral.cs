@@ -631,6 +631,9 @@ public class BinaryGeneral : BinaryHandlerBase
         if (!Host.TryReadSize(out var n)) return false;
         if (n <= 0) return true;
 
+        var max = IOHelper.MaxSafeArraySize;
+        if (n > max) throw new XException("Security required, reading large variable length arrays is not allowed {0:n0}>{1:n0}", n, max);
+
 #if NETCOREAPP || NETSTANDARD2_1
         // 栈分配阈值：避免大字符串导致栈溢出
         const Int32 STACK_ALLOC_THRESHOLD = 512;
