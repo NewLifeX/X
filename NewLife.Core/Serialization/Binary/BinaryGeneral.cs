@@ -632,12 +632,35 @@ public class BinaryGeneral : BinaryHandlerBase
         if (n <= 0) return true;
 
 #if NETCOREAPP || NETSTANDARD2_1
-        Span<Byte> buffer = stackalloc Byte[n];
-        if (Host.ReadBytes(buffer) == 0) return false;
+        // 栈分配阈值：避免大字符串导致栈溢出
+        const Int32 STACK_ALLOC_THRESHOLD = 512;
+
+        Byte[]? rentedBuffer = null;
+        var buffer = n <= STACK_ALLOC_THRESHOLD
+            ? stackalloc Byte[n]
+            : (rentedBuffer = Pool.Shared.Rent(n)).AsSpan(0, n);
+
+        try
+        {
+            if (Host.ReadBytes(buffer) == 0) return false;
+
+            var enc = Host.Encoding ?? Encoding.UTF8;
+
+            var str = enc.GetString(buffer);
+            if (Host is Binary bn && bn.TrimZero && str != null) str = str.Trim('\0');
+
+            value = str ?? String.Empty;
+
+            return true;
+        }
+        finally
+        {
+            if (rentedBuffer != null)
+                Pool.Shared.Return(rentedBuffer);
+        }
 #else
         var buffer = Pool.Shared.Rent(n);
         if (Host.ReadBytes(buffer, 0, n) == 0) return false;
-#endif
 
         var enc = Host.Encoding ?? Encoding.UTF8;
 
@@ -646,12 +669,10 @@ public class BinaryGeneral : BinaryHandlerBase
 
         value = str ?? String.Empty;
 
-#if NETCOREAPP || NETSTANDARD2_1
-#else
         Pool.Shared.Return(buffer);
-#endif
 
         return true;
+#endif
     }
     #endregion
     #endregion
