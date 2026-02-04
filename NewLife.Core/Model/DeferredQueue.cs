@@ -284,6 +284,9 @@ public class DeferredQueue : DisposeBase
             var sp = ms == 0 ? 0 : (Int32)(times * 1000 / ms);
             WriteLog($"保存 {list.Count:n0}\t耗时 {ms:n0}ms\t速度 {Speed:n0}tps\t次数 {times:n0}\t速度 {sp:n0}tps\t成功 {total:n0}");
         }
+
+        // 更新定时器周期
+        if (Period > 0 && _Timer != null) _Timer.Period = Period;
     }
 
     /// <summary>定时处理全部数据</summary>
