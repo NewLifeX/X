@@ -1,5 +1,6 @@
-﻿using NewLife.Log;
-using NewLife.Threading;
+﻿using System.IO;
+using System.Threading;
+using NewLife.Log;
 
 namespace NewLife.Configuration;
 
@@ -11,12 +12,9 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
     public String? FileName { get; set; }
 
-    /// <summary>更新周期。默认5秒，检查文件变更的时间间隔</summary>
-    public Int32 Period { get; set; } = 5;
-
-    private TimerX? _timer;
+    private FileSystemWatcher? _watcher;
     private Boolean _reading;
-    private DateTime _lastTime;
+    private DateTime _lastRefreshTime;
     #endregion
 
     #region 构造
@@ -26,7 +24,13 @@ public abstract class FileConfigProvider : ConfigProvider
     {
         base.Dispose(disposing);
 
-        _timer.TryDispose();
+        if (_watcher != null)
+        {
+            _watcher.EnableRaisingEvents = false;
+            _watcher.Changed -= OnFileChanged;
+            _watcher.TryDispose();
+            _watcher = null;
+        }
     }
 
     /// <summary>已重载。输出友好信息</summary>
@@ -72,8 +76,6 @@ public abstract class FileConfigProvider : ConfigProvider
         Root = section;
 
         IsNew = false;
-        _lastTime = fileName.AsFile().LastWriteTime;
-
         return true;
     }
 
@@ -95,7 +97,6 @@ public abstract class FileConfigProvider : ConfigProvider
 
         // 写入文件
         OnWrite(fileName, Root);
-        _lastTime = fileName.AsFile().LastWriteTime;
 
         // 通知绑定对象，配置数据有改变
         NotifyChange();
@@ -176,34 +177,59 @@ public abstract class FileConfigProvider : ConfigProvider
         if (autoReload) InitTimer();
     }
 
-    /// <summary>初始化定时器</summary>
+    /// <summary>初始化文件监控</summary>
     private void InitTimer()
     {
-        if (_timer != null) return;
+        if (_watcher != null) return;
         lock (this)
         {
-            if (_timer != null) return;
+            if (_watcher != null) return;
 
-            var p = Period;
-            if (p <= 0) p = 60;
-            _timer = new TimerX(DoRefresh, null, p * 1000, p * 1000) { Async = true };
+            var fileName = FileName?.GetBasePath();
+            if (fileName.IsNullOrEmpty()) return;
+
+            var directory = Path.GetDirectoryName(fileName);
+            var filter = Path.GetFileName(fileName);
+
+            if (directory.IsNullOrEmpty() || filter.IsNullOrEmpty()) return;
+
+            _watcher = new FileSystemWatcher(directory, filter)
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+                EnableRaisingEvents = true
+            };
+
+            // 订阅文件变更事件
+            _watcher.Changed += OnFileChanged;
         }
     }
 
-    /// <summary>定时刷新配置</summary>
-    /// <param name="state">状态对象</param>
-    private void DoRefresh(Object? state)
+    /// <summary>文件变更事件处理</summary>
+    private void OnFileChanged(Object? sender, FileSystemEventArgs e)
+    {
+        var now = DateTime.UtcNow;
+
+        // 防抖动：500ms 内只处理一次变更
+        if ((now - _lastRefreshTime).TotalMilliseconds < 500) return;
+
+        _lastRefreshTime = now;
+
+        // 延迟 200ms 执行，等待文件写入完成
+        ThreadPool.UnsafeQueueUserWorkItem(_ =>
+        {
+            Thread.Sleep(200);
+            DoRefresh();
+        }, null);
+    }
+
+    /// <summary>刷新配置</summary>
+    private void DoRefresh()
     {
         if (_reading) return;
         if (FileName.IsNullOrEmpty()) return;
 
         var fileName = FileName.GetBasePath();
-        var fi = FileName.AsFile();
-        if (!fi.Exists) return;
-
-        fi.Refresh();
-        if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
-        _lastTime = fi.LastWriteTime;
+        if (!File.Exists(fileName)) return;
 
         XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
 
