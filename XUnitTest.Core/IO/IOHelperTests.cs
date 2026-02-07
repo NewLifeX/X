@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -384,6 +385,304 @@ public class IOHelperTests
         Assert.Equal(0, n);
         Assert.Equal(0, ms.Position);
         Assert.True(buf.All(b => b == 0));
+    }
+    #endregion
+
+    #region ReadExactly(Stream, Int64) Tests
+    [Fact(DisplayName = "ReadExactly_Int64-正常读取返回正确数组")]
+    public void ReadExactly_Int64_Normal()
+    {
+        var src = Enumerable.Range(0, 16).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var result = IOHelper.ReadExactly(ms, 16L);
+        Assert.Equal(16, result.Length);
+        Assert.Equal(src, result);
+    }
+
+    [Fact(DisplayName = "ReadExactly_Int64-count为0返回空数组")]
+    public void ReadExactly_Int64_CountZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var result = IOHelper.ReadExactly(ms, 0L);
+        Assert.Empty(result);
+        Assert.Equal(0, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadExactly_Int64-数据不足抛出异常")]
+    public void ReadExactly_Int64_EOF_Throws()
+    {
+        var src = new Byte[] { 10, 11, 12 };
+        using var ms = new MemoryStream(src);
+        Assert.Throws<EndOfStreamException>(() => IOHelper.ReadExactly(ms, 5L));
+    }
+
+    [Fact(DisplayName = "ReadExactly_Int64-底层分段多次循环")]
+    public void ReadExactly_Int64_MultiLoop()
+    {
+        var src = Enumerable.Range(1, 8).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadStream(src);
+        var result = IOHelper.ReadExactly(ms, 8L);
+        Assert.Equal(8, result.Length);
+        Assert.Equal(src, result);
+    }
+
+    [Fact(DisplayName = "ReadExactly_Int64-部分读取正确数量")]
+    public void ReadExactly_Int64_PartialRead()
+    {
+        var src = Enumerable.Range(0, 20).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var result = IOHelper.ReadExactly(ms, 10L);
+        Assert.Equal(10, result.Length);
+        Assert.Equal(src.Take(10).ToArray(), result);
+        Assert.Equal(10, ms.Position);
+    }
+    #endregion
+
+    #region ReadAtLeastAsync Tests
+    // 模拟底层流每次只返回 1 字节（同时覆盖 ReadAsync），触发多轮异步循环
+    private sealed class SlowReadAsyncStream : MemoryStream
+    {
+        public SlowReadAsyncStream(Byte[] data) : base(data) { }
+        public override Int32 Read(Byte[] buffer, Int32 offset, Int32 count) => base.Read(buffer, offset, Math.Min(1, count));
+        public override Task<Int32> ReadAsync(Byte[] buffer, Int32 offset, Int32 count, CancellationToken cancellationToken) => base.ReadAsync(buffer, offset, Math.Min(1, count), cancellationToken);
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-正常读取达到最小值")]
+    public async Task ReadAtLeastAsync_Normal()
+    {
+        var src = Enumerable.Range(1, 10).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 0, 10, 6, true);
+        Assert.True(n >= 6);
+        Assert.Equal(src.AsSpan(0, n).ToArray(), buf.AsSpan(0, n).ToArray());
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-EOF抛异常")]
+    public async Task ReadAtLeastAsync_ThrowOnEOF()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        await Assert.ThrowsAsync<EndOfStreamException>(() => IOHelper.ReadAtLeastAsync(ms, buf, 0, 10, 5, true));
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-EOF不抛异常返回部分数据")]
+    public async Task ReadAtLeastAsync_NoThrowEOF()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[10];
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 0, 10, 5, false);
+        Assert.Equal(3, n);
+        Assert.Equal(src, buf.Take(3).ToArray());
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-minimumBytes为0快速返回")]
+    public async Task ReadAtLeastAsync_MinZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 0, 3, 0, true);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-count为0快速返回")]
+    public async Task ReadAtLeastAsync_CountZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 0, 0, 0, true);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-minimumBytes为负数抛异常")]
+    public async Task ReadAtLeastAsync_NegativeMinimum()
+    {
+        using var ms = new MemoryStream(new Byte[] { 1 });
+        var buf = new Byte[5];
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeastAsync(ms, buf, 0, 5, -1));
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-minimumBytes超过count抛异常")]
+    public async Task ReadAtLeastAsync_MinExceedsCount()
+    {
+        using var ms = new MemoryStream(new Byte[] { 1 });
+        var buf = new Byte[5];
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => IOHelper.ReadAtLeastAsync(ms, buf, 0, 5, 6));
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-底层分段多次循环")]
+    public async Task ReadAtLeastAsync_MultiLoop()
+    {
+        var src = Enumerable.Range(1, 8).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        var buf = new Byte[8];
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 0, 8, 8, true);
+        Assert.Equal(8, n);
+        Assert.Equal(src, buf);
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-取消令牌触发取消异常")]
+    public async Task ReadAtLeastAsync_Cancellation()
+    {
+        var src = Enumerable.Range(0, 100).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        var buf = new Byte[100];
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAsync<TaskCanceledException>(() => IOHelper.ReadAtLeastAsync(ms, buf, 0, 100, 100, true, cts.Token));
+    }
+
+    [Fact(DisplayName = "ReadAtLeastAsync-带偏移写入正确")]
+    public async Task ReadAtLeastAsync_WithOffset()
+    {
+        var src = new Byte[] { 1, 2, 3, 4 };
+        using var ms = new MemoryStream(src);
+        var buf = Enumerable.Repeat((Byte)0xCC, 10).ToArray();
+        var n = await IOHelper.ReadAtLeastAsync(ms, buf, 3, 4, 4, true);
+        Assert.Equal(4, n);
+        // 前缀保持
+        Assert.True(buf[0] == 0xCC && buf[1] == 0xCC && buf[2] == 0xCC);
+        // 数据写入
+        Assert.Equal(src, buf.Skip(3).Take(4).ToArray());
+        // 尾部保持
+        Assert.True(buf.Skip(7).All(b => b == 0xCC));
+    }
+    #endregion
+
+    #region ReadExactlyAsync(Stream, Byte[], Int32, Int32) Tests
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-正常完整读取")]
+    public async Task ReadExactlyAsync_Buffer_Normal()
+    {
+        var src = Enumerable.Range(0, 16).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[16];
+        var n = await IOHelper.ReadExactlyAsync(ms, buf, 0, 16);
+        Assert.Equal(16, n);
+        Assert.Equal(src, buf);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-底层分段多次循环")]
+    public async Task ReadExactlyAsync_Buffer_MultiLoop()
+    {
+        var src = Enumerable.Range(1, 8).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        var buf = new Byte[8];
+        var n = await IOHelper.ReadExactlyAsync(ms, buf, 0, 8);
+        Assert.Equal(8, n);
+        Assert.Equal(src, buf);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-数据不足抛出异常")]
+    public async Task ReadExactlyAsync_Buffer_EOF_Throws()
+    {
+        var src = new Byte[] { 10, 11, 12 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[5];
+        await Assert.ThrowsAsync<EndOfStreamException>(() => IOHelper.ReadExactlyAsync(ms, buf, 0, 5));
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-count为0快速返回")]
+    public async Task ReadExactlyAsync_Buffer_CountZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var buf = new Byte[3];
+        var n = await IOHelper.ReadExactlyAsync(ms, buf, 0, 0);
+        Assert.Equal(0, n);
+        Assert.Equal(0, ms.Position);
+        Assert.True(buf.All(b => b == 0));
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-偏移写入正确不破坏前缀")]
+    public async Task ReadExactlyAsync_Buffer_WithOffset()
+    {
+        var src = new Byte[] { 1, 2, 3, 4 };
+        using var ms = new MemoryStream(src);
+        var buf = Enumerable.Repeat((Byte)0xCC, 10).ToArray();
+        var n = await IOHelper.ReadExactlyAsync(ms, buf, 2, 4);
+        Assert.Equal(4, n);
+        Assert.True(buf[0] == 0xCC && buf[1] == 0xCC);
+        Assert.Equal(src, buf.Skip(2).Take(4).ToArray());
+        Assert.True(buf.Skip(6).All(b => b == 0xCC));
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Buffer-取消令牌触发取消异常")]
+    public async Task ReadExactlyAsync_Buffer_Cancellation()
+    {
+        var src = Enumerable.Range(0, 100).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        var buf = new Byte[100];
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAsync<TaskCanceledException>(() => IOHelper.ReadExactlyAsync(ms, buf, 0, 100, cts.Token));
+    }
+    #endregion
+
+    #region ReadExactlyAsync(Stream, Int64) Tests
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-正常读取返回正确数组")]
+    public async Task ReadExactlyAsync_Int64_Normal()
+    {
+        var src = Enumerable.Range(0, 16).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var result = await IOHelper.ReadExactlyAsync(ms, 16L);
+        Assert.Equal(16, result.Length);
+        Assert.Equal(src, result);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-count为0返回空数组")]
+    public async Task ReadExactlyAsync_Int64_CountZero()
+    {
+        var src = new Byte[] { 1, 2, 3 };
+        using var ms = new MemoryStream(src);
+        var result = await IOHelper.ReadExactlyAsync(ms, 0L);
+        Assert.Empty(result);
+        Assert.Equal(0, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-数据不足抛出异常")]
+    public async Task ReadExactlyAsync_Int64_EOF_Throws()
+    {
+        var src = new Byte[] { 10, 11, 12 };
+        using var ms = new MemoryStream(src);
+        await Assert.ThrowsAsync<EndOfStreamException>(() => IOHelper.ReadExactlyAsync(ms, 5L));
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-底层分段多次循环")]
+    public async Task ReadExactlyAsync_Int64_MultiLoop()
+    {
+        var src = Enumerable.Range(1, 8).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        var result = await IOHelper.ReadExactlyAsync(ms, 8L);
+        Assert.Equal(8, result.Length);
+        Assert.Equal(src, result);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-部分读取正确数量")]
+    public async Task ReadExactlyAsync_Int64_PartialRead()
+    {
+        var src = Enumerable.Range(0, 20).Select(i => (Byte)i).ToArray();
+        using var ms = new MemoryStream(src);
+        var result = await IOHelper.ReadExactlyAsync(ms, 10L);
+        Assert.Equal(10, result.Length);
+        Assert.Equal(src.Take(10).ToArray(), result);
+        Assert.Equal(10, ms.Position);
+    }
+
+    [Fact(DisplayName = "ReadExactlyAsync_Int64-取消令牌触发取消异常")]
+    public async Task ReadExactlyAsync_Int64_Cancellation()
+    {
+        var src = Enumerable.Range(0, 100).Select(i => (Byte)i).ToArray();
+        using var ms = new SlowReadAsyncStream(src);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAsync<TaskCanceledException>(() => IOHelper.ReadExactlyAsync(ms, 100L, cts.Token));
     }
     #endregion
 }

@@ -374,6 +374,65 @@ public static class IOHelper
         return totalRead;
     }
 
+    /// <summary>异步从流中完全读取数据，精确填充指定字节数</summary>
+    /// <param name="stream">源数据流，必须可读。</param>
+    /// <param name="buffer">目标缓冲区，必须有足够空间容纳 <paramref name="offset"/> + <paramref name="count"/>。</param>
+    /// <param name="offset">写入起始偏移。</param>
+    /// <param name="count">期望读取且必须精确填充的字节数 (>=0)。</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成功时返回读取的总字节数（恒等于 <paramref name="count"/>；当 <paramref name="count"/> == 0 返回 0）。</returns>
+    public static Task<Int32> ReadExactlyAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count, CancellationToken cancellationToken = default) => ReadAtLeastAsync(stream, buffer, offset, count, count, true, cancellationToken);
+
+    /// <summary>异步读取指定数量字节数据（精确填充）。</summary>
+    /// <param name="stream">源数据流，必须可读。</param>
+    /// <param name="count">期望读取的精确字节数，需 >= 0。</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>长度恰为 <paramref name="count"/> 的新字节数组。</returns>
+    public static async Task<Byte[]> ReadExactlyAsync(this Stream stream, Int64 count, CancellationToken cancellationToken = default)
+    {
+        var buf = new Byte[count];
+        await ReadAtLeastAsync(stream, buf, 0, buf.Length, (Int32)count, true, cancellationToken).ConfigureAwait(false);
+        return buf;
+    }
+
+    /// <summary>异步从流中读取数据到缓冲区，至少读取指定字节数</summary>
+    /// <remarks>
+    /// 与同步版 <see cref="ReadAtLeast"/> 语义一致，内部使用 <see cref="Stream.ReadAsync(Byte[], Int32, Int32, CancellationToken)"/> 实现异步读取，适用于网络流等异步场景。
+    /// </remarks>
+    /// <param name="stream">源数据流</param>
+    /// <param name="buffer">目标缓冲区</param>
+    /// <param name="offset">写入起始偏移</param>
+    /// <param name="count">最多尝试读取的字节数（上限）</param>
+    /// <param name="minimumBytes">期望至少读取的字节数（下限）</param>
+    /// <param name="throwOnEndOfStream">到达流末尾且未满足最小字节数时是否抛异常</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>实际读取的字节数，范围 [0, count]</returns>
+    /// <exception cref="EndOfStreamException">实际可用数据不足 <paramref name="minimumBytes"/>。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="minimumBytes"/> 为负值或超过 <paramref name="count"/>。</exception>
+    public static async Task<Int32> ReadAtLeastAsync(this Stream stream, Byte[] buffer, Int32 offset, Int32 count, Int32 minimumBytes, Boolean throwOnEndOfStream = true, CancellationToken cancellationToken = default)
+    {
+        if (minimumBytes < 0) throw new ArgumentOutOfRangeException(nameof(minimumBytes));
+        if (minimumBytes > count) throw new ArgumentOutOfRangeException(nameof(minimumBytes));
+
+        // 快速返回：无需最小读取或没有读取空间。
+        if (minimumBytes == 0 || count == 0) return 0;
+
+        var totalRead = 0;
+        while (totalRead < minimumBytes)
+        {
+            var bytesRead = await stream.ReadAsync(buffer, offset + totalRead, count - totalRead, cancellationToken).ConfigureAwait(false);
+            if (bytesRead == 0)
+            {
+                // 到达 EOF，若未满足 minimumBytes 并要求抛异常，则抛出（与 .NET ReadAtLeast 一致）。
+                if (throwOnEndOfStream) throw new EndOfStreamException($"Unable to read the required minimum number of bytes. Expected {minimumBytes}, actual {totalRead}.");
+                break;
+            }
+            totalRead += bytesRead;
+        }
+
+        return totalRead;
+    }
+
     /// <summary>数据流转为字节数组</summary>
     /// <remarks>
     /// 针对MemoryStream进行优化。内存流的Read实现是一个个字节复制，而ToArray是调用内部内存复制方法
