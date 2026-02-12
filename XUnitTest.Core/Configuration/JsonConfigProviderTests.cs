@@ -255,4 +255,21 @@ public class JsonConfigProviderTests
 
     //    Assert.NotNull(json);
     //}
+
+    [Fact]
+    public void TestPeriodProperty()
+    {
+        var prv = new JsonConfigProvider { FileName = "Config/period_test.json" };
+
+        // 默认值应为5
+        Assert.Equal(5, prv.Period);
+
+        // 可以设置
+        prv.Period = 10;
+        Assert.Equal(10, prv.Period);
+
+        // 设置为0表示不做自动更新
+        prv.Period = 0;
+        Assert.Equal(0, prv.Period);
+    }
 }

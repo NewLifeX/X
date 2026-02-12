@@ -1,20 +1,29 @@
 ﻿using System.IO;
 using System.Threading;
 using NewLife.Log;
+using NewLife.Threading;
 
 namespace NewLife.Configuration;
 
 /// <summary>文件配置提供者</summary>
-/// <remarks>每个提供者实例对应一个配置文件，支持热更新</remarks>
+/// <remarks>
+/// 每个提供者实例对应一个配置文件，支持热更新。
+/// 优先使用 FileSystemWatcher 事件驱动感知文件变更，当 watcher 不可用时自动降级为定时轮询。
+/// </remarks>
 public abstract class FileConfigProvider : ConfigProvider
 {
     #region 属性
     /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
     public String? FileName { get; set; }
 
+    /// <summary>更新周期。默认5秒，0秒表示不做自动更新，仅在FileSystemWatcher不可用时作为轮询兜底</summary>
+    public Int32 Period { get; set; } = 5;
+
     private FileSystemWatcher? _watcher;
+    private TimerX? _timer;
     private Boolean _reading;
     private DateTime _lastRefreshTime;
+    private DateTime _lastTime;
     #endregion
 
     #region 构造
@@ -23,6 +32,8 @@ public abstract class FileConfigProvider : ConfigProvider
     protected override void Dispose(Boolean disposing)
     {
         base.Dispose(disposing);
+
+        _timer.TryDispose();
 
         if (_watcher != null)
         {
@@ -177,31 +188,57 @@ public abstract class FileConfigProvider : ConfigProvider
         if (autoReload) InitTimer();
     }
 
-    /// <summary>初始化文件监控</summary>
+    /// <summary>初始化文件监控。优先使用 FileSystemWatcher 事件驱动，失败时降级为定时轮询</summary>
     private void InitTimer()
     {
-        if (_watcher != null) return;
+        if (_watcher != null || _timer != null) return;
         lock (this)
         {
-            if (_watcher != null) return;
+            if (_watcher != null || _timer != null) return;
 
             var fileName = FileName?.GetBasePath();
             if (fileName.IsNullOrEmpty()) return;
 
-            var directory = Path.GetDirectoryName(fileName);
-            var filter = Path.GetFileName(fileName);
-
-            if (directory.IsNullOrEmpty() || filter.IsNullOrEmpty()) return;
-
-            _watcher = new FileSystemWatcher(directory, filter)
+            // 尝试使用 FileSystemWatcher 事件驱动
+            try
             {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
-                EnableRaisingEvents = true
-            };
+                var directory = Path.GetDirectoryName(fileName);
+                var filter = Path.GetFileName(fileName);
 
-            // 订阅文件变更事件
-            _watcher.Changed += OnFileChanged;
+                if (!directory.IsNullOrEmpty() && !filter.IsNullOrEmpty())
+                {
+                    var watcher = new FileSystemWatcher(directory, filter)
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+                        EnableRaisingEvents = true
+                    };
+
+                    // 订阅文件变更事件
+                    watcher.Changed += OnFileChanged;
+                    _watcher = watcher;
+
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                // FileSystemWatcher 在某些 Linux/Android 系统上可能不支持或不可靠，降级为定时轮询
+                XTrace.WriteLine("FileSystemWatcher 创建失败，降级为定时轮询：{0}", ex.Message);
+            }
+
+            // 降级为定时轮询
+            StartTimer();
         }
+    }
+
+    /// <summary>启动定时轮询</summary>
+    private void StartTimer()
+    {
+        if (_timer != null) return;
+
+        var p = Period;
+        if (p <= 0) p = 5;
+        _timer = new TimerX(DoTimerRefresh, null, p * 1000, p * 1000) { Async = true };
     }
 
     /// <summary>文件变更事件处理</summary>
@@ -220,6 +257,24 @@ public abstract class FileConfigProvider : ConfigProvider
             Thread.Sleep(200);
             DoRefresh();
         }, null);
+    }
+
+    /// <summary>定时刷新配置</summary>
+    /// <param name="state">状态对象</param>
+    private void DoTimerRefresh(Object? state)
+    {
+        if (_reading) return;
+        if (FileName.IsNullOrEmpty()) return;
+
+        var fileName = FileName.GetBasePath();
+        var fi = fileName.AsFile();
+        if (!fi.Exists) return;
+
+        fi.Refresh();
+        if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
+        _lastTime = fi.LastWriteTime;
+
+        DoRefresh();
     }
 
     /// <summary>刷新配置</summary>
