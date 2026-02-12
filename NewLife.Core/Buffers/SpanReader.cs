@@ -68,6 +68,12 @@ public ref struct SpanReader
             _total = data.Total;
         }
     }
+
+    /// <summary>实例化读取器，从字节数组创建</summary>
+    /// <param name="buffer">字节数组</param>
+    /// <param name="offset">起始偏移量</param>
+    /// <param name="count">长度，-1表示从offset到数组末尾</param>
+    public SpanReader(Byte[] buffer, Int32 offset = 0, Int32 count = -1) : this(new ReadOnlySpan<Byte>(buffer, offset, count < 0 ? buffer.Length - offset : count)) { }
     #endregion
 
     #region 扩容增强

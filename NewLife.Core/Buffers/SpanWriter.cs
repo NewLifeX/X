@@ -43,6 +43,12 @@ public ref struct SpanWriter(Span<Byte> buffer)
     #region 构造
     /// <summary>实例化Span写入器</summary>
     public SpanWriter(IPacket data) : this(data.GetSpan()) { }
+
+    /// <summary>实例化Span写入器，从字节数组创建</summary>
+    /// <param name="buffer">字节数组</param>
+    /// <param name="offset">起始偏移量</param>
+    /// <param name="count">长度，-1表示从offset到数组末尾</param>
+    public SpanWriter(Byte[] buffer, Int32 offset = 0, Int32 count = -1) : this(new Span<Byte>(buffer, offset, count < 0 ? buffer.Length - offset : count)) { }
     #endregion
 
     #region 基础方法
