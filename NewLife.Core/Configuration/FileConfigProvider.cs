@@ -8,7 +8,8 @@ namespace NewLife.Configuration;
 /// <summary>文件配置提供者</summary>
 /// <remarks>
 /// 每个提供者实例对应一个配置文件，支持热更新。
-/// 优先使用 FileSystemWatcher 事件驱动感知文件变更，当 watcher 不可用时自动降级为定时轮询。
+/// 同时使用 FileSystemWatcher 事件驱动和定时器轮询双重机制感知文件变更，
+/// 当事件驱动可用时定时器周期自动拉长作为兜底，不可用时定时器周期较短以保证及时感知。
 /// </remarks>
 public abstract class FileConfigProvider : ConfigProvider
 {
@@ -16,7 +17,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <summary>文件名。最高优先级，优先于模型特性指定的文件名</summary>
     public String? FileName { get; set; }
 
-    /// <summary>更新周期。默认5秒，0秒表示不做自动更新，仅在FileSystemWatcher不可用时作为轮询兜底</summary>
+    /// <summary>更新周期。默认5秒，0秒表示不做自动更新。事件驱动可用时自动拉长为60秒兜底轮询</summary>
     public Int32 Period { get; set; } = 5;
 
     private FileSystemWatcher? _watcher;
@@ -188,7 +189,7 @@ public abstract class FileConfigProvider : ConfigProvider
         if (autoReload) InitTimer();
     }
 
-    /// <summary>初始化文件监控。优先使用 FileSystemWatcher 事件驱动，失败时降级为定时轮询</summary>
+    /// <summary>初始化文件监控。同时启用事件驱动和定时器轮询，事件驱动可用时定时器周期较长</summary>
     private void InitTimer()
     {
         if (_watcher != null || _timer != null) return;
@@ -198,6 +199,8 @@ public abstract class FileConfigProvider : ConfigProvider
 
             var fileName = FileName?.GetBasePath();
             if (fileName.IsNullOrEmpty()) return;
+
+            var hasWatcher = false;
 
             // 尝试使用 FileSystemWatcher 事件驱动
             try
@@ -216,28 +219,32 @@ public abstract class FileConfigProvider : ConfigProvider
                     // 订阅文件变更事件
                     watcher.Changed += OnFileChanged;
                     _watcher = watcher;
-
-                    return;
+                    hasWatcher = true;
                 }
             }
             catch (Exception ex)
             {
-                // FileSystemWatcher 在某些 Linux/Android 系统上可能不支持或不可靠，降级为定时轮询
-                XTrace.WriteLine("FileSystemWatcher 创建失败，降级为定时轮询：{0}", ex.Message);
+                // FileSystemWatcher 在某些 Linux/Android 系统上可能不支持或不可靠
+                XTrace.WriteLine("FileSystemWatcher 创建失败：{0}", ex.Message);
             }
 
-            // 降级为定时轮询
-            StartTimer();
+            // 同时启动定时器轮询，事件驱动可用时周期较长作为兜底
+            StartTimer(hasWatcher);
         }
     }
 
     /// <summary>启动定时轮询</summary>
-    private void StartTimer()
+    /// <param name="hasWatcher">事件驱动是否可用。可用时定时器周期拉长为60秒</param>
+    private void StartTimer(Boolean hasWatcher)
     {
         if (_timer != null) return;
 
         var p = Period;
         if (p <= 0) p = 5;
+
+        // 事件驱动可用时，定时器作为兜底，周期拉长为60秒
+        if (hasWatcher && p < 60) p = 60;
+
         _timer = new TimerX(DoTimerRefresh, null, p * 1000, p * 1000) { Async = true };
     }
 
