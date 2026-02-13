@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Threading;
-using NewLife.Log;
+﻿using NewLife.Log;
 using NewLife.Threading;
 
 namespace NewLife.Configuration;
@@ -88,6 +86,8 @@ public abstract class FileConfigProvider : ConfigProvider
         Root = section;
 
         IsNew = false;
+        _lastTime = fileName.AsFile().LastWriteTime;
+
         return true;
     }
 
@@ -109,6 +109,7 @@ public abstract class FileConfigProvider : ConfigProvider
 
         // 写入文件
         OnWrite(fileName, Root);
+        _lastTime = fileName.AsFile().LastWriteTime;
 
         // 通知绑定对象，配置数据有改变
         NotifyChange();
@@ -159,9 +160,9 @@ public abstract class FileConfigProvider : ConfigProvider
 
                 var s = i > 16 ? i - 16 : 0;
                 var e = i + 32 < old.Length ? i + 32 : old.Length;
-                var ori = old.Substring(s, e - s).Replace("\r", "\\r").Replace("\n", "\\n");
+                var ori = old[s..e].Replace("\r", "\\r").Replace("\n", "\\n");
                 var e2 = i + 32 < str.Length ? i + 32 : str.Length;
-                var diff = str.Substring(s, e2 - s).Replace("\r", "\\r").Replace("\n", "\\n");
+                var diff = str[s..e2].Replace("\r", "\\r").Replace("\n", "\\n");
 
                 XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
             }
@@ -186,11 +187,11 @@ public abstract class FileConfigProvider : ConfigProvider
     {
         base.Bind<T>(model, autoReload, path);
 
-        if (autoReload) InitTimer();
+        if (autoReload) InitWatcher();
     }
 
     /// <summary>初始化文件监控。同时启用事件驱动和定时器轮询，事件驱动可用时定时器周期较长</summary>
-    private void InitTimer()
+    private void InitWatcher()
     {
         if (_watcher != null || _timer != null) return;
         lock (this)
@@ -229,23 +230,17 @@ public abstract class FileConfigProvider : ConfigProvider
             }
 
             // 同时启动定时器轮询，事件驱动可用时周期较长作为兜底
-            StartTimer(hasWatcher);
+            if (_timer == null)
+            {
+                var p = Period;
+                if (p <= 0) p = 5;
+
+                // 事件驱动可用时，定时器作为兜底，周期拉长为60秒
+                if (hasWatcher && p < 60) p = 60;
+
+                _timer = new TimerX(DoRefresh, null, p * 1000, p * 1000) { Async = true };
+            }
         }
-    }
-
-    /// <summary>启动定时轮询</summary>
-    /// <param name="hasWatcher">事件驱动是否可用。可用时定时器周期拉长为60秒</param>
-    private void StartTimer(Boolean hasWatcher)
-    {
-        if (_timer != null) return;
-
-        var p = Period;
-        if (p <= 0) p = 5;
-
-        // 事件驱动可用时，定时器作为兜底，周期拉长为60秒
-        if (hasWatcher && p < 60) p = 60;
-
-        _timer = new TimerX(DoTimerRefresh, null, p * 1000, p * 1000) { Async = true };
     }
 
     /// <summary>文件变更事件处理</summary>
@@ -262,13 +257,13 @@ public abstract class FileConfigProvider : ConfigProvider
         ThreadPool.UnsafeQueueUserWorkItem(_ =>
         {
             Thread.Sleep(200);
-            DoRefresh();
+            DoRefresh(null);
         }, null);
     }
 
     /// <summary>定时刷新配置</summary>
     /// <param name="state">状态对象</param>
-    private void DoTimerRefresh(Object? state)
+    private void DoRefresh(Object? state)
     {
         if (_reading) return;
         if (FileName.IsNullOrEmpty()) return;
@@ -280,18 +275,6 @@ public abstract class FileConfigProvider : ConfigProvider
         fi.Refresh();
         if (_lastTime.Year > 2000 && fi.LastWriteTime <= _lastTime) return;
         _lastTime = fi.LastWriteTime;
-
-        DoRefresh();
-    }
-
-    /// <summary>刷新配置</summary>
-    private void DoRefresh()
-    {
-        if (_reading) return;
-        if (FileName.IsNullOrEmpty()) return;
-
-        var fileName = FileName.GetBasePath();
-        if (!File.Exists(fileName)) return;
 
         XTrace.WriteLine("配置文件改变，重新加载 {0}", fileName);
 
