@@ -115,6 +115,12 @@
 - `ArrayPacket` 链式拼接时，尽量让 `Next` 也是 `ArrayPacket`（或避免触发跨段强转分支）。
 - 更通用的跨段切片需求，优先使用 `OwnerPacket` 链或在上层聚合为连续缓冲区。
 
+性能注意事项：
+
+- `GetSpan`/`GetMemory`/`TryGetArray` 已标记 `AggressiveInlining`，JIT 可在热路径内联这些方法。
+- `IPacket.Slice(offset, count)` 的显式接口实现已优化，避免 struct 到 IPacket 的装箱分配。
+- 公开的 `Slice` 方法返回 `ArrayPacket`（值类型），不产生堆分配；但链式包 `Next` 为非 `ArrayPacket` 类型时会抛出 `InvalidCastException`。
+
 创建示例：
 
 ```csharp

@@ -202,4 +202,94 @@ public class ArrayPacketTests
         //Assert.NotEqual(pk.Length, pk3.Count);
         //Assert.Null(pk3.Next);
     }
+
+    [Fact(DisplayName = "IPacket.Slice接口调用不应装箱")]
+    public void IPacketSlice_ShouldNotBox()
+    {
+        var buf = "HelloWorld".GetBytes();
+        IPacket pk = new ArrayPacket(buf);
+
+        // 通过接口调用 Slice(int,int)，验证修复装箱后行为正确
+        var pk2 = pk.Slice(5, 5);
+        Assert.Equal("World", pk2.ToStr());
+
+        // Slice(int,int) 默认 transferOwner=true，对 ArrayPacket 无影响
+        var pk3 = pk.Slice(0, 5);
+        Assert.Equal("Hello", pk3.ToStr());
+    }
+
+    [Fact(DisplayName = "IPacket.Slice链式跨段切片")]
+    public void IPacketSlice_ChainedPackets_ShouldCrossSegments()
+    {
+        IPacket pk = new ArrayPacket("Hello".GetBytes());
+        pk = pk.Append("World".GetBytes());
+        Assert.Equal(10, pk.Total);
+
+        // 跨段切片：从 offset=3 取 4 字节 → "loWo"
+        var pk2 = pk.Slice(3, 4);
+        Assert.Equal("loWo", pk2.ToStr());
+
+        // 完全在第二段：从 offset=5 取 5 字节 → "World"
+        var pk3 = pk.Slice(5, 5);
+        Assert.Equal("World", pk3.ToStr());
+
+        // 切到末尾
+        var pk4 = pk.Slice(7);
+        Assert.Equal("rld", pk4.ToStr());
+    }
+
+    [Fact(DisplayName = "Slice空包")]
+    public void Slice_ZeroCount_ShouldReturnEmpty()
+    {
+        IPacket pk = new ArrayPacket("Hello".GetBytes());
+        var pk2 = pk.Slice(0, 0);
+        Assert.Equal(0, pk2.Length);
+    }
+
+    [Fact(DisplayName = "Slice负count表示到末尾")]
+    public void Slice_NegativeCount_ShouldSliceToEnd()
+    {
+        var pk = new ArrayPacket("HelloWorld".GetBytes());
+        var pk2 = pk.Slice(5);
+        Assert.Equal("World", pk2.ToStr());
+        Assert.Equal(5, pk2.Length);
+    }
+
+    [Fact(DisplayName = "共享缓冲区验证")]
+    public void Slice_ShouldShareBuffer()
+    {
+        var buf = "HelloWorld".GetBytes();
+        var pk = new ArrayPacket(buf);
+        var pk2 = pk.Slice(2, 5);
+
+        Assert.Same(buf, pk2.Buffer);
+        Assert.Equal(2, pk2.Offset);
+        Assert.Equal(5, pk2.Length);
+    }
+
+    [Fact(DisplayName = "TryGetArray应返回正确数组段")]
+    public void TryGetArray_ShouldReturnCorrectSegment()
+    {
+        var buf = "HelloWorld".GetBytes();
+        var pk = new ArrayPacket(buf, 3, 5);
+
+        var rs = ((IPacket)pk).TryGetArray(out var segment);
+        Assert.True(rs);
+        Assert.Same(buf, segment.Array);
+        Assert.Equal(3, segment.Offset);
+        Assert.Equal(5, segment.Count);
+    }
+
+    [Fact(DisplayName = "隐式转换")]
+    public void ImplicitConversions_ShouldWork()
+    {
+        ArrayPacket pk1 = "Hello".GetBytes();
+        Assert.Equal(5, pk1.Length);
+
+        ArrayPacket pk2 = "Hello";
+        Assert.Equal("Hello", pk2.ToStr());
+
+        ArrayPacket pk3 = new ArraySegment<Byte>("World".GetBytes(), 1, 3);
+        Assert.Equal("orl", pk3.ToStr());
+    }
 }

@@ -888,10 +888,12 @@ public struct MemoryPacket : IPacket
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Span<Byte> GetSpan() => _memory.Span[.._length];
 
     /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Memory<Byte> GetMemory() => _memory[.._length];
 
     /// <summary>切片得到新数据包，共用内存块</summary>
@@ -920,6 +922,7 @@ public struct MemoryPacket : IPacket
     /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Boolean TryGetArray(out ArraySegment<Byte> segment) => MemoryMarshal.TryGetArray(GetMemory(), out segment);
 
     /// <summary>已重载</summary>
@@ -1049,16 +1052,28 @@ public record struct ArrayPacket : IPacket
 
     /// <summary>获取分片包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Span<Byte> GetSpan() => new(_buffer, _offset, _length);
 
     /// <summary>获取内存包。在管理权生命周期内短暂使用</summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
     /// <summary>切片得到新数据包，共用缓冲区</summary>
     /// <param name="offset">偏移</param>
     /// <param name="count">个数。默认-1表示到末尾</param>
-    IPacket IPacket.Slice(Int32 offset, Int32 count) => (this as IPacket).Slice(offset, count, true);
+    IPacket IPacket.Slice(Int32 offset, Int32 count)
+    {
+        // 内联逻辑，避免 struct 通过 (this as IPacket) 装箱
+        if (count == 0) return Empty;
+
+        var remain = _length - offset;
+        var next = Next;
+        if (next != null && remain <= 0) return next.Slice(offset - _length, count, true);
+
+        return Slice(offset, count, true);
+    }
 
     /// <summary>切片得到新数据包，共用缓冲区</summary>
     /// <param name="offset">偏移</param>
@@ -1113,6 +1128,7 @@ public record struct ArrayPacket : IPacket
     /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Boolean TryGetArray(out ArraySegment<Byte> segment)
     {
         segment = new ArraySegment<Byte>(_buffer, _offset, _length);
