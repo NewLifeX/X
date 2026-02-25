@@ -50,7 +50,11 @@ public class WebSocketCodec : Handler
             if (msg.Read(pk))
             {
                 if (UserPacket)
+                {
+                    // 提取 Payload 向上传递，断开 msg 对 Payload 的引用以防止意外释放
                     message = msg.Payload!;
+                    msg.Payload = null;
+                }
                 else
                     message = msg;
             }

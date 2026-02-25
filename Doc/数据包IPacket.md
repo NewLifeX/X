@@ -1,4 +1,4 @@
-# IPacket 数据包帮助手册
+﻿# IPacket 数据包帮助手册
 
 本文档基于源码 `NewLife.Core/Data/IPacket.cs`，用于说明 `IPacket` 接口及其实现类型（`ArrayPacket` / `OwnerPacket` / `MemoryPacket` / `ReadOnlyPacket`）的设计、用法与注意事项。
 
@@ -127,9 +127,15 @@ var payload = ((IPacket)pk).Slice(4);
 
 ---
 
-### 4.2 `OwnerPacket`（`class`，`MemoryManager<Byte>`）
+### 4.2 `OwnerPacket`（`sealed class`）
 
 `OwnerPacket` 是“带所有权”的高性能实现，适合接收/发送缓冲区以及需要从池里申请新内存的场景。
+
+设计决策：
+
+- **必须为 class**：所有权语义依赖引用同一性。struct 赋值产生值拷贝会导致 double-free（Slice 转移所有权时修改的是副本而非原始实例），且 IDisposable + struct 在装箱场景下无法正确释放资源。
+- **sealed 密封**：无派生需求，JIT 可对 GetSpan/GetMemory 等热路径方法去虚拟化并内联，显著提升协议解析性能。
+- **不继承 MemoryManager&lt;T&gt;**：仅需 IPacket + IDisposable，MemoryManager 的 Pin/Unpin/IMemoryOwner.Memory 均未使用，移除后消除死代码和多余 vtable 开销。
 
 关键特性：
 
@@ -402,8 +408,56 @@ await pk.CopyToAsync(stream, cancellationToken);
 
 ---
 
-## 10. 变更记录
+## 10. 与 IMessage 的联动释放设计
+
+在 RPC / 网络通信架构中，底层接收到原始数据后，通常使用 `OwnerPacket` 从 `ArrayPool` 租用缓冲区以减少 GC 压力。解析协议后，负载数据（`Payload`）通过切片共享底层缓冲区，并随 `IMessage` 向上层传递。
+
+**设计要点**：`IMessage` 继承 `IDisposable`，在 `Dispose` 时通过 `TryDispose` 扩展方法自动释放内部的 `Payload`。如果 `Payload` 是 `IOwnerPacket`（或任何实现了 `IDisposable` 的 `IPacket`），其池化缓冲区将被归还。
+
+典型调用链：
+
+```
+IMessage.Dispose()
+  → Message.Dispose(disposing: true)
+    → Payload.TryDispose()
+      → OwnerPacket.Dispose()
+        → ArrayPool<Byte>.Shared.Return(buffer)
+        → Next.TryDispose()  // 递归释放链式节点
+```
+
+**巧妙之处**：
+
+1. **零感知释放**：上层代码只需 `using var msg = ...` 或手动 `msg.Dispose()`，无需关心 `Payload` 的具体类型是否需要释放。`TryDispose` 安全地处理了 `ArrayPacket`（非 `IDisposable`）和 `OwnerPacket`（`IDisposable`）的差异。
+
+2. **所有权链条清晰**：`OwnerPacket.Slice(offset, count, transferOwner: true)` 在 `DefaultMessage.Read` 中将切片所有权从原始缓冲区转移给 `Payload`，原始包失去释放权。最终谁持有 `IMessage`，谁就负责释放整条链路。
+
+3. **链式递归**：`OwnerPacket.Dispose` 会递归释放 `Next` 链，即使协议解析产生了多段链式负载，一次 `Dispose` 即可全部归还。
+
+4. **与现有基础设施无缝集成**：`TryDispose` 是 `NewLife` 体系的通用扩展方法，不需要 `IPacket` 接口本身继承 `IDisposable`，保持了值类型实现（`ArrayPacket`、`MemoryPacket`）的轻量性。
+
+使用示例：
+
+```csharp
+// RPC 接收侧
+var raw = new OwnerPacket(bufferSize);  // 从池中租用
+var count = await socket.ReceiveAsync(raw.GetMemory());
+raw.Resize(count);
+
+// 解析消息（Read 内部 Slice 转移所有权）
+var msg = new DefaultMessage();
+msg.Read(raw);
+
+// 上层处理完毕后释放，自动归还池化内存
+msg.Dispose();
+```
+
+> 更多 IMessage 设计细节，请参阅 [消息IMessage.md](消息IMessage.md)。
+
+---
+
+## 11. 变更记录
 
 - 本文档根据 `IPacket.cs` 现状重写，用于替换旧版 `Doc/IPacket.md`。
 - 覆盖新增实现：`ReadOnlyPacket`。
 - 强调 `OwnerPacket.Slice` 默认转移所有权等关键语义。
+- 增加与 `IMessage` 联动释放设计的说明（第 10 节）。

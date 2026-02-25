@@ -59,7 +59,11 @@ public class WebSocketMessage : IDisposable
 
     #region 构造
     /// <summary>销毁。回收数据包到内存池</summary>
-    public void Dispose() => Payload.TryDispose();
+    public void Dispose()
+    {
+        Payload.TryDispose();
+        Payload = null;
+    }
     #endregion
 
     #region 方法
