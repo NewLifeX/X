@@ -74,6 +74,28 @@ public interface IOwnerPacket : IPacket, IDisposable;
 /// </remarks>
 public static class PacketHelper
 {
+    #region 快捷转换
+    /// <summary>将字节数组包装为数据包</summary>
+    /// <param name="data">字节数组</param>
+    /// <returns>包装后的数据包</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ArrayPacket AsPacket(this Byte[] data) => new(data);
+
+    /// <summary>将字节数组的指定区域包装为数据包</summary>
+    /// <param name="data">字节数组</param>
+    /// <param name="offset">起始偏移</param>
+    /// <param name="count">数据长度，-1 表示到末尾</param>
+    /// <returns>包装后的数据包</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ArrayPacket AsPacket(this Byte[] data, Int32 offset, Int32 count = -1) => new(data, offset, count);
+
+    /// <summary>将数组段包装为数据包</summary>
+    /// <param name="segment">数组段</param>
+    /// <returns>包装后的数据包</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ArrayPacket AsPacket(this ArraySegment<Byte> segment) => new(segment);
+    #endregion
+
     #region 链式操作
     /// <summary>将数据包追加到当前包链末尾</summary>
     /// <param name="pk">当前包链头节点</param>

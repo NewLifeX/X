@@ -292,4 +292,56 @@ public class ArrayPacketTests
         ArrayPacket pk3 = new ArraySegment<Byte>("World".GetBytes(), 1, 3);
         Assert.Equal("orl", pk3.ToStr());
     }
+
+    [Fact(DisplayName = "AsPacket：字节数组快捷转换")]
+    public void AsPacket_ByteArray_ShouldWrapCorrectly()
+    {
+        var data = "Hello".GetBytes();
+
+        // 以前写法：Read((ArrayPacket)data)
+        // 现在写法：Read(data.AsPacket())
+        var pk = data.AsPacket();
+        Assert.Same(data, pk.Buffer);
+        Assert.Equal(0, pk.Offset);
+        Assert.Equal(5, pk.Length);
+        Assert.Equal("Hello", pk.ToStr());
+    }
+
+    [Fact(DisplayName = "AsPacket：指定偏移和长度")]
+    public void AsPacket_WithOffsetCount_ShouldSlice()
+    {
+        var data = "HelloWorld".GetBytes();
+
+        var pk = data.AsPacket(5, 5);
+        Assert.Same(data, pk.Buffer);
+        Assert.Equal(5, pk.Offset);
+        Assert.Equal(5, pk.Length);
+        Assert.Equal("World", pk.ToStr());
+    }
+
+    [Fact(DisplayName = "AsPacket：数组段快捷转换")]
+    public void AsPacket_ArraySegment_ShouldWrapCorrectly()
+    {
+        var data = "HelloWorld".GetBytes();
+        var segment = new ArraySegment<Byte>(data, 2, 6);
+
+        var pk = segment.AsPacket();
+        Assert.Same(data, pk.Buffer);
+        Assert.Equal(2, pk.Offset);
+        Assert.Equal(6, pk.Length);
+        Assert.Equal("lloWor", pk.ToStr());
+    }
+
+    [Fact(DisplayName = "AsPacket：作为IPacket参数传递")]
+    public void AsPacket_PassAsIPacket_ShouldWork()
+    {
+        var data = "TestData".GetBytes();
+
+        // 模拟 Read(IPacket pk) 调用
+        static String ReadFromPacket(IPacket pk) => pk.ToStr();
+
+        // 简洁调用
+        var result = ReadFromPacket(data.AsPacket());
+        Assert.Equal("TestData", result);
+    }
 }
