@@ -1,321 +1,233 @@
-# IPacket 性能测试报告
+# IPacket 数据包性能测试报告
 
-## 1. 概述
-
-本报告针对 `NewLife.Data` 命名空间中 `IPacket` 接口的四个主要实现者以及 `PacketHelper` 扩展方法进行全面的性能基准测试。
-
-### 1.1 测试对象
-
-| 类型 | 说明 | 内存管理 |
-|------|------|----------|
-| **OwnerPacket** | 基于 `ArrayPool<Byte>.Shared` 的池化内存包 | 需手动 Dispose 归还 |
-| **MemoryPacket** | 基于 `Memory<Byte>` 的内存包（struct） | 无所有权，不管理内存生命周期 |
-| **ArrayPacket** | 基于 `Byte[]` 的数组包（record struct） | 无池化，依赖 GC |
-| **ReadOnlyPacket** | 只读数组包（readonly record struct） | 无池化，不可变，线程安全 |
-| **PacketHelper** | 扩展方法集：链式操作、数据转换、流操作、数组操作等 | — |
-
-### 1.2 测试框架与环境
-
-- **测试框架**：BenchmarkDotNet v0.15.8
-- **运行时**：.NET 8.0 / .NET 9.0
-- **诊断器**：MemoryDiagnoser（测量 GC 分配与回收）
-- **数据大小**：64B / 1KB / 64KB（覆盖小包、中包、大包场景）
-- **并发线程**：1 / 4 / 16 / 32 线程
-
-## 2. 测试项目结构
+## 测试环境
 
 ```
-Benchmark/
-├── Benchmark.csproj                              # 项目文件
-├── Program.cs                                     # 入口，配置 MemoryDiagnoser
-└── PacketBenchmarks/
-    ├── OwnerPacketBenchmark.cs                    # OwnerPacket 独立测试
-    ├── MemoryPacketBenchmark.cs                   # MemoryPacket 独立测试
-    ├── ArrayPacketBenchmark.cs                    # ArrayPacket 独立测试
-    ├── ReadOnlyPacketBenchmark.cs                 # ReadOnlyPacket 独立测试
-    ├── PacketHelperBenchmark.cs                   # PacketHelper 扩展方法测试
-    ├── PacketComparisonBenchmark.cs               # 四种实现横向对比
-    └── PacketConcurrencyBenchmark.cs              # 多线程并发测试
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.3 LTS (Noble Numbat)
+AMD EPYC 7763 2.45GHz, 1 CPU, 4 logical核心, 2 物理核心
+.NET SDK 10.0.102
+Runtime: .NET 10.0.2 (10.0.2, 10.0.225.61305), X64 RyuJIT x86-64-v3
+目标框架: net10.0
 ```
 
-## 3. 运行方式
+## 一、OwnerPacket 单线程性能
 
-### 3.1 运行全部基准测试
+| 方法 | Size | 平均耗时 | Error | StdDev | Gen0 | 内存分配 |
+|------|------|---------|-------|--------|------|---------|
+| 构造+释放 | 64 | 11.758 ns | 0.0130 ns | 0.0139 ns | - | - |
+| GetSpan | 64 | 14.702 ns | 0.0173 ns | 0.0192 ns | - | - |
+| GetMemory | 64 | 14.594 ns | 0.0205 ns | 0.0228 ns | - | - |
+| TryGetArray | 64 | 13.207 ns | 0.0234 ns | 0.0250 ns | - | - |
+| Slice | 64 | 14.102 ns | 0.1476 ns | 0.1640 ns | 0.0029 | 48 B |
+| Resize | 64 | 11.952 ns | 0.0788 ns | 0.0876 ns | 0.0029 | 48 B |
+| Indexer读 | 64 | 1.578 ns | 0.0017 ns | 0.0016 ns | - | - |
+| Indexer写 | 64 | 1.797 ns | 0.0035 ns | 0.0037 ns | - | - |
+| 构造+释放 | 1024 | 11.311 ns | 0.0312 ns | 0.0347 ns | - | - |
+| GetSpan | 1024 | 13.850 ns | 0.0161 ns | 0.0186 ns | - | - |
+| GetMemory | 1024 | 13.730 ns | 0.0310 ns | 0.0318 ns | - | - |
+| TryGetArray | 1024 | 13.269 ns | 0.0907 ns | 0.0931 ns | - | - |
+| Slice | 1024 | 10.671 ns | 0.1299 ns | 0.1443 ns | 0.0029 | 48 B |
+| Resize | 1024 | 10.031 ns | 0.3990 ns | 0.4595 ns | 0.0029 | 48 B |
+| Indexer读 | 1024 | 1.597 ns | 0.0069 ns | 0.0080 ns | - | - |
+| Indexer写 | 1024 | 1.794 ns | 0.0039 ns | 0.0040 ns | - | - |
+| 构造+释放 | 8192 | 11.265 ns | 0.0060 ns | 0.0062 ns | - | - |
+| GetSpan | 8192 | 13.828 ns | 0.0122 ns | 0.0125 ns | - | - |
+| GetMemory | 8192 | 13.702 ns | 0.0097 ns | 0.0095 ns | - | - |
+| TryGetArray | 8192 | 13.345 ns | 0.0212 ns | 0.0227 ns | - | - |
+| Slice | 8192 | 9.749 ns | 0.1496 ns | 0.1723 ns | 0.0029 | 48 B |
+| Resize | 8192 | 9.701 ns | 0.1536 ns | 0.1768 ns | 0.0029 | 48 B |
+| Indexer读 | 8192 | 1.577 ns | 0.0014 ns | 0.0014 ns | - | - |
+| Indexer写 | 8192 | 1.793 ns | 0.0009 ns | 0.0009 ns | - | - |
 
-```bash
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*"
-```
+### OwnerPacket 单线程分析
 
-### 3.2 运行单个测试类
+- **构造+释放** 约 11 ns，得益于 `ArrayPool<Byte>.Shared` 的高效池化，不随 Size 增长变化。**零内存分配**。
+- **GetSpan / GetMemory / TryGetArray** 约 13-15 ns，均为零分配的内联操作。
+- **Slice / Resize** 约 10-14 ns，每次分配 48 B（一个新 OwnerPacket 对象）。
+- **Indexer** 读约 1.6 ns，写约 1.8 ns，极其高效。
 
-```bash
-# OwnerPacket 测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*OwnerPacketBenchmark*"
+## 二、OwnerPacket 多线程性能
 
-# MemoryPacket 测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*MemoryPacketBenchmark*"
+| 方法 | ThreadCount | 平均耗时 | Error | StdDev | Gen0 | Gen1 | 内存分配 |
+|------|------------|---------|-------|--------|------|------|---------|
+| 多线程构造+释放 | 1 | 30.41 us | 0.677 us | 0.779 us | 2.9297 | - | 48.58 KB |
+| 多线程GetSpan | 1 | 38.69 us | 1.340 us | 1.544 us | 2.9297 | - | 48.58 KB |
+| 多线程Slice | 1 | 26.81 us | 0.643 us | 0.741 us | 5.8289 | 0.0305 | 95.46 KB |
+| 多线程构造+释放 | 4 | 48.07 us | 1.050 us | 1.209 us | 11.6577 | 0.0610 | 189.64 KB |
+| 多线程GetSpan | 4 | 52.53 us | 1.449 us | 1.668 us | 11.6577 | 0.0610 | 189.63 KB |
+| 多线程Slice | 4 | 48.37 us | 1.195 us | 1.328 us | 23.1934 | 0.1221 | 377.13 KB |
+| 多线程构造+释放 | 16 | 176.47 us | 3.394 us | 3.632 us | 46.1426 | 0.2441 | 752.17 KB |
+| 多线程GetSpan | 16 | 205.48 us | 5.893 us | 6.786 us | 46.1426 | 0.2441 | 752.17 KB |
+| 多线程Slice | 16 | 177.86 us | 4.245 us | 4.718 us | 92.2852 | 0.7324 | 1502.18 KB |
+| 多线程构造+释放 | 32 | 355.93 us | 7.999 us | 9.212 us | 92.2852 | 0.4883 | 1502.2 KB |
+| 多线程GetSpan | 32 | 390.30 us | 6.726 us | 7.746 us | 92.2852 | 0.4883 | 1502.2 KB |
+| 多线程Slice | 32 | 348.79 us | 6.854 us | 7.893 us | 184.5703 | 1.4648 | 3002.22 KB |
 
-# ArrayPacket 测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*ArrayPacketBenchmark*"
+### OwnerPacket 多线程分析
 
-# ReadOnlyPacket 测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*ReadOnlyPacketBenchmark*"
+- 1→4 线程：耗时增长约 1.6 倍（48 us / 30 us），接近线性扩展，说明 ArrayPool 在低并发下竞争较小。
+- 4→16 线程：耗时增长约 3.7 倍（176 us / 48 us），出现明显的 ArrayPool 锁竞争。
+- 16→32 线程：耗时增长约 2 倍（356 us / 176 us），线程数超过物理核心（2核），性能受 CPU 调度瓶颈限制。
+- **Slice 操作**在多线程下内存分配翻倍，因为每次 Slice 创建新 OwnerPacket 对象（48 B/次）。
 
-# PacketHelper 测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*PacketHelperBenchmark*"
+## 三、MemoryPacket 单线程性能
 
-# 横向对比测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*PacketComparisonBenchmark*"
+| 方法 | Size | 平均耗时 | Error | StdDev | Gen0 | 内存分配 |
+|------|------|---------|-------|--------|------|---------|
+| 构造 | 64 | 0.8605 ns | 0.0047 ns | 0.0054 ns | - | - |
+| GetSpan | 64 | 1.7900 ns | 0.0047 ns | 0.0050 ns | - | - |
+| GetMemory | 64 | 0.5627 ns | 0.0030 ns | 0.0035 ns | - | - |
+| TryGetArray | 64 | 1.5971 ns | 0.0046 ns | 0.0049 ns | - | - |
+| Slice | 64 | 8.8880 ns | 0.0919 ns | 0.1021 ns | 0.0029 | 48 B |
+| Indexer读 | 64 | 2.2118 ns | 0.0015 ns | 0.0018 ns | - | - |
+| Indexer写 | 64 | 2.1636 ns | 0.0026 ns | 0.0027 ns | - | - |
+| 构造 | 1024 | 0.8591 ns | 0.0020 ns | 0.0022 ns | - | - |
+| GetSpan | 1024 | 1.7897 ns | 0.0023 ns | 0.0025 ns | - | - |
+| GetMemory | 1024 | 0.5644 ns | 0.0030 ns | 0.0034 ns | - | - |
+| TryGetArray | 1024 | 1.5647 ns | 0.0013 ns | 0.0013 ns | - | - |
+| Slice | 1024 | 8.8094 ns | 0.0809 ns | 0.0932 ns | 0.0029 | 48 B |
+| Indexer读 | 1024 | 2.2125 ns | 0.0025 ns | 0.0026 ns | - | - |
+| Indexer写 | 1024 | 2.1615 ns | 0.0026 ns | 0.0029 ns | - | - |
+| 构造 | 8192 | 0.8584 ns | 0.0015 ns | 0.0017 ns | - | - |
+| GetSpan | 8192 | 1.7886 ns | 0.0011 ns | 0.0011 ns | - | - |
+| GetMemory | 8192 | 0.5622 ns | 0.0032 ns | 0.0035 ns | - | - |
+| TryGetArray | 8192 | 1.5606 ns | 0.0017 ns | 0.0018 ns | - | - |
+| Slice | 8192 | 8.8244 ns | 0.0432 ns | 0.0480 ns | 0.0029 | 48 B |
+| Indexer读 | 8192 | 2.1939 ns | 0.0017 ns | 0.0019 ns | - | - |
+| Indexer写 | 8192 | 2.1618 ns | 0.0022 ns | 0.0022 ns | - | - |
 
-# 并发测试
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --filter "*PacketConcurrencyBenchmark*"
-```
+### MemoryPacket 单线程分析
 
-### 3.3 列出所有可用基准
+- **构造** 不到 1 ns，struct 无堆分配。
+- **GetMemory** 0.56 ns，最快的内存访问方式。
+- **GetSpan** 1.79 ns，需要从 Memory 取 Span。
+- **TryGetArray** 约 1.6 ns，通过 `MemoryMarshal.TryGetArray` 获取。
+- **Slice** 约 8.9 ns，需要装箱为 IPacket 返回（48 B 分配），是主要开销来源。
+- 所有操作均**与 Size 无关**，体现了零拷贝设计。
 
-```bash
-dotnet run --project Benchmark/Benchmark.csproj -f net8.0 -c Release -- --list flat
-```
+## 四、MemoryPacket 多线程性能
 
-### 3.4 导出结果
+| 方法 | ThreadCount | 平均耗时 | Error | StdDev | Gen0 | Gen1 | 内存分配 |
+|------|------------|---------|-------|--------|------|------|---------|
+| 多线程构造 | 1 | 1.763 us | 0.0112 us | 0.0115 us | 0.1011 | - | 1.68 KB |
+| 多线程GetSpan | 1 | 3.012 us | 0.0208 us | 0.0239 us | 0.1030 | - | 1.69 KB |
+| 多线程Slice | 1 | 14.893 us | 0.2337 us | 0.2691 us | 2.9755 | 0.0153 | 48.57 KB |
+| 多线程构造 | 4 | 3.324 us | 0.0609 us | 0.0701 us | 0.1221 | - | 2.01 KB |
+| 多线程GetSpan | 4 | 7.678 us | 0.1013 us | 0.1084 us | 0.1221 | - | 2.11 KB |
+| 多线程Slice | 4 | 27.424 us | 0.7207 us | 0.7401 us | 11.6577 | 0.0610 | 189.62 KB |
+| 多线程构造 | 16 | 6.656 us | 0.1271 us | 0.1413 us | 0.1221 | - | 2.11 KB |
+| 多线程GetSpan | 16 | 21.782 us | 0.2646 us | 0.2831 us | 0.1221 | - | 2.11 KB |
+| 多线程Slice | 16 | 96.679 us | 2.5368 us | 2.8196 us | 46.2646 | 0.3662 | 752.15 KB |
+| 多线程构造 | 32 | 10.097 us | 0.1457 us | 0.1619 us | 0.1221 | - | 2.12 KB |
+| 多线程GetSpan | 32 | 38.552 us | 0.4853 us | 0.5394 us | 0.1221 | - | 2.14 KB |
+| 多线程Slice | 32 | 192.920 us | 4.6997 us | 5.2237 us | 92.2852 | 0.7324 | 1502.17 KB |
 
-BenchmarkDotNet 默认会在项目根目录生成 `BenchmarkDotNet.Artifacts/` 文件夹，包含：
-- Markdown 格式的结果表格
-- CSV 格式的原始数据
-- 日志文件
+### MemoryPacket 多线程分析
 
-## 4. 测试用例详解
+- MemoryPacket 作为 struct，**构造和 GetSpan 在多线程下几乎无竞争**（仅有线程调度开销）。
+- Slice 操作因装箱为 IPacket 导致大量堆分配，32 线程时 1502 KB/操作。
+- 与 OwnerPacket 相比，MemoryPacket 多线程构造快约 35 倍（无 ArrayPool 锁竞争）。
 
-### 4.1 OwnerPacket 基准测试（11 项 × 3 数据大小）
+## 五、实现类型横向对比（单线程，Size=1024）
 
-| 测试方法 | 说明 | 关注指标 |
-|---------|------|---------|
-| 构造_从池租用 | `new OwnerPacket(size)` + `Dispose()` | 池化租借/归还耗时 |
-| 构造_包装数组 | `new OwnerPacket(buf, 0, len, false)` | 零拷贝包装开销 |
-| GetSpan | 获取 Span 视图 | 内存访问延迟 |
-| GetMemory | 获取 Memory 视图 | 内存访问延迟 |
-| TryGetArray | 获取 ArraySegment | 数组段提取开销 |
-| Slice_不转移所有权 | 切片，共享缓冲区 | 零拷贝切片 |
-| Slice_转移所有权 | 切片，转移管理权 | 所有权转移开销 |
-| 索引器读取 | `pk[index]` 读取 | 随机读性能 |
-| 索引器写入 | `pk[index] = value` 写入 | 随机写性能 |
-| Resize | 调整有效长度 | 大小调整开销 |
-| Dispose归还池 | `using` 释放 | 池归还延迟 |
+| 操作 | OwnerPacket | MemoryPacket | ArrayPacket* | ReadOnlyPacket* |
+|------|-------------|-------------|-------------|-----------------|
+| 构造 | 11.3 ns | 0.86 ns | <1 ns | <1 ns |
+| GetSpan | 13.9 ns | 1.79 ns | <1 ns | <1 ns |
+| GetMemory | 13.7 ns | 0.56 ns | <1 ns | <1 ns |
+| TryGetArray | 13.3 ns | 1.56 ns | <1 ns | <1 ns |
+| Slice | 10.7 ns (48B) | 8.9 ns (48B) | ~9 ns (48B) | ~9 ns (48B) |
+| Indexer读 | 1.6 ns | 2.2 ns | <1 ns | <1 ns |
+| Indexer写 | 1.8 ns | 2.2 ns | <1 ns | 不支持 |
+| 内存分配 | 仅 Slice/Resize 48B | 仅 Slice 48B | 仅 Slice(IPacket) 48B | 仅 Slice 48B |
 
-### 4.2 MemoryPacket 基准测试（8 项 × 3 数据大小）
+> *注：ArrayPacket 和 ReadOnlyPacket 为 record struct，构造和内存访问操作极快（亚纳秒级），BenchmarkDotNet 报告为 ZeroMeasurement，这里以 <1 ns 标记。完整数据需更长时间运行获取。
 
-| 测试方法 | 说明 | 关注指标 |
-|---------|------|---------|
-| 构造 | `new MemoryPacket(memory, len)` | 构造开销 |
-| GetSpan | 获取 Span 视图 | Span 切片延迟 |
-| GetMemory | 获取 Memory 视图 | Memory 切片延迟 |
-| TryGetArray | 获取 ArraySegment | Marshal 提取开销 |
-| Slice | 切片操作 | 零拷贝切片 |
-| 索引器读取 | 字节读取 | Memory.Span 访问 |
-| 索引器写入 | 字节写入 | Memory.Span 访问 |
-| Total属性 | 计算总长度 | 链式遍历开销 |
+## 六、性能瓶颈分析
 
-### 4.3 ArrayPacket 基准测试（12 项 × 3 数据大小）
+### 1. OwnerPacket 构造开销（~11 ns）
 
-| 测试方法 | 说明 | 关注指标 |
-|---------|------|---------|
-| 构造_字节数组 | `new ArrayPacket(buf)` | 最轻量构造 |
-| 构造_ArraySegment | `new ArrayPacket(segment)` | 段构造开销 |
-| 构造_偏移 | `new ArrayPacket(buf, off, cnt)` | 带偏移构造 |
-| GetSpan | 获取 Span 视图 | 直接数组切片 |
-| GetMemory | 获取 Memory 视图 | Memory 构造 |
-| TryGetArray | 获取 ArraySegment | ArraySegment 构造 |
-| Slice | 切片操作 | record struct 复制 |
-| 索引器读取/写入 | 字节访问 | 数组直接访问 |
-| Total属性 | 计算总长度 | 属性访问 |
-| 隐式转换_字节数组 | `byte[]` → `ArrayPacket` | 隐式转换开销 |
-| 隐式转换_字符串 | `string` → `ArrayPacket` | 含 GetBytes 分配 |
+OwnerPacket 构造包含 `ArrayPool<Byte>.Shared.Rent()` 和释放包含 `Return()`。虽然 11 ns 已经非常高效，但在高频创建/释放场景下（如每个网络包都创建），这是最大的固定开销。
 
-### 4.4 ReadOnlyPacket 基准测试（12 项 × 3 数据大小）
+**瓶颈根源**：ArrayPool.Shared 内部使用分桶 + TLS 缓存机制，在单线程下接近零竞争，但多线程高并发时出现锁竞争（16 线程构造+释放从 30 us 增长到 176 us）。
 
-| 测试方法 | 说明 | 关注指标 |
-|---------|------|---------|
-| 构造_字节数组 | 零拷贝包装 | 构造开销 |
-| 构造_ArraySegment | 段构造 | 构造开销 |
-| 构造_偏移 | 带偏移构造 | 参数校验开销 |
-| 构造_从IPacket深拷贝 | `new ReadOnlyPacket(IPacket)` | 深拷贝分配 |
-| GetSpan | Span 视图 | 只读视图 |
-| GetMemory | Memory 视图 | 只读视图 |
-| TryGetArray | ArraySegment | 直接返回 |
-| Slice | 切片 | readonly struct 复制 |
-| 索引器读取 | 含边界检查 | 安全读取 |
-| Total属性 | 直接返回 Length | 无链式遍历 |
-| ToArray | 字节数组副本 | 可能零拷贝 |
-| 隐式转换 | `byte[]` → `ReadOnlyPacket` | 转换开销 |
+### 2. Slice 操作的 48B 堆分配
 
-### 4.5 PacketHelper 扩展方法基准测试（21 项 × 3 数据大小）
+所有 Slice 操作均产生 48B 堆分配：
+- OwnerPacket.Slice → 新建 OwnerPacket 对象（class，必须堆分配）
+- MemoryPacket.Slice → 返回 IPacket 接口导致 struct 装箱
+- ArrayPacket.Slice(IPacket) → 返回 IPacket 接口导致 struct 装箱
 
-| 分类 | 测试方法 | 说明 |
-|------|---------|------|
-| **链式操作** | Append_IPacket | 追加 IPacket 到链尾 |
-| | Append_ByteArray | 追加字节数组到链尾 |
-| **数据转换** | ToStr_单包 | 单包 UTF-8 转字符串 |
-| | ToStr_链式包 | 链式包转字符串（StringBuilder 池化） |
-| | ToHex_单包 | 转十六进制（32 字节） |
-| | ToHex_带分隔符 | 转十六进制（含分隔符） |
-| | ToHex_链式包 | 链式包转十六进制 |
-| **流操作** | CopyTo | 复制到 MemoryStream |
-| | GetStream_单包 | 获取 MemoryStream 视图 |
-| | GetStream_链式包 | 链式包获取流 |
-| **数据段** | ToSegment_单包 | 单包获取 ArraySegment |
-| | ToSegment_链式包 | 链式包聚合到新数组 |
-| | ToSegments | 获取分段列表 |
-| | ToArray_单包 | 转字节数组 |
-| | ToArray_链式包 | 链式包聚合转数组 |
-| **数据读取** | ReadBytes_全部 | 读取全部字节 |
-| | ReadBytes_切片 | 读取部分字节 |
-| | Clone | 深拷贝 |
-| | Clone_链式包 | 链式包深拷贝 |
-| **内存访问** | TryGetSpan_单包 | 尝试获取 Span（成功） |
-| | TryGetSpan_链式包 | 尝试获取 Span（失败） |
-| **头部扩展** | ExpandHeader_ArrayPacket有空间 | 原地扩展 |
-| | ExpandHeader_创建新包 | 创建新 OwnerPacket |
-| | ExpandHeader_OwnerPacket有空间 | 原地扩展 |
+**瓶颈根源**：IPacket 接口返回值要求装箱。OwnerPacket 因设计为 class 无法避免。
 
-### 4.6 横向对比基准测试（24 项 × 3 数据大小）
+### 3. OwnerPacket 内存访问额外开销
 
-将四种实现在**相同操作**下进行横向对比，覆盖：
-- **构造**：OwnerPacket（含池化）vs MemoryPacket vs ArrayPacket vs ReadOnlyPacket
-- **GetSpan**：各实现的 Span 获取性能
-- **GetMemory**：各实现的 Memory 获取性能
-- **Slice**：各实现的切片性能
-- **TryGetArray**：各实现的数组段获取性能
-- **Indexer**：各实现的索引器访问性能
+OwnerPacket 的 GetSpan/GetMemory/TryGetArray（~13-14 ns）比 struct 实现（MemoryPacket ~0.5-1.8 ns，ArrayPacket/ReadOnlyPacket <1 ns）慢约 10 倍。
 
-### 4.7 多线程并发基准测试（20 项 × 4 线程数）
+**瓶颈根源**：OwnerPacket 是 sealed class，即使标记了 `AggressiveInlining`，benchmark 中包含了构造+释放的完整生命周期开销。纯方法调用本身已被 JIT 内联优化。
 
-每个测试在 1/4/16/32 个线程下运行，每线程执行 1000 次操作。覆盖：
+### 4. 多线程 Slice 内存压力
 
-| 分类 | 测试项目 | 并发关注点 |
-|------|---------|-----------|
-| OwnerPacket | 构造与释放 | ArrayPool 线程安全性能 |
-| | GetSpan | 并发读性能 |
-| | Slice | 并发切片性能 |
-| ArrayPacket | 构造 | struct 构造无竞争 |
-| | GetSpan | 并发 Span 创建 |
-| | Slice | 并发切片 |
-| | ToArray | 并发数组拷贝与 GC 压力 |
-| MemoryPacket | 构造 | struct 构造 |
-| | GetSpan | 并发 Span 创建 |
-| | Slice | 并发切片 |
-| ReadOnlyPacket | 构造 | readonly struct 构造 |
-| | GetSpan | 并发只读 Span |
-| | Slice | 并发只读切片 |
-| PacketHelper | ToStr | 并发字符串转换与 StringBuilder 池竞争 |
-| | ToHex | 并发十六进制转换 |
-| | Clone | 并发深拷贝与 GC 压力 |
-| | ReadBytes | 并发字节读取 |
-| | ToSegment | 并发段获取 |
+32 线程 Slice 操作内存分配达到 MB 级别（OwnerPacket 3002 KB，MemoryPacket 1502 KB），触发 Gen1 GC。
 
-## 5. 预期性能特征分析
+**瓶颈根源**：每次 Slice 创建新对象，高并发下 GC 压力显著。
 
-### 5.1 构造性能
+### 5. MemoryPacket Indexer 略慢于 ArrayPacket
 
-| 实现 | 预期开销 | 原因 |
-|------|---------|------|
-| **ArrayPacket** | ⭐ 最快 | record struct，仅赋值字段 |
-| **ReadOnlyPacket** | ⭐ 最快 | readonly record struct，含参数校验 |
-| **MemoryPacket** | ⭐ 接近最快 | struct，含参数校验 |
-| **OwnerPacket** | ⚡ 较慢 | 需要从 ArrayPool 租借缓冲区 |
+MemoryPacket Indexer（~2.2 ns）比 ArrayPacket/OwnerPacket Indexer（~1.6 ns）慢约 37%。
 
-### 5.2 内存分配
+**瓶颈根源**：MemoryPacket 需要通过 `_memory.Span[index]` 间接访问，多一层 Span 获取开销。
 
-| 实现 | GC 分配 | 原因 |
-|------|--------|------|
-| **ArrayPacket** | 零分配 | struct，共享原数组 |
-| **ReadOnlyPacket** | 零分配 | struct，共享原数组 |
-| **MemoryPacket** | 零分配 | struct，共享 Memory |
-| **OwnerPacket** | 有分配 | class 实例 + ArrayPool.Rent |
+## 七、优化建议
 
-### 5.3 GetSpan / GetMemory
+### 高优先级
 
-所有实现均为 O(1) 操作，预期差异极小：
-- **ArrayPacket / ReadOnlyPacket**：直接构造 `new Span<Byte>(buf, off, len)`
-- **MemoryPacket**：通过 `Memory.Span` 切片
-- **OwnerPacket**：同 ArrayPacket
+1. **减少 Slice 装箱分配**
+   - 为 MemoryPacket 和 ArrayPacket 提供返回自身类型的 Slice 重载（已有 ArrayPacket.Slice 返回 ArrayPacket 的版本）。
+   - 在调用方已知具体类型时，优先调用 struct 版本的 Slice 避免装箱。
+   - 考虑为 ReadOnlyPacket 也添加返回 `ReadOnlyPacket` 的 Slice 重载。
 
-### 5.4 Slice 切片
+2. **OwnerPacket 多线程池化优化**
+   - 在超高并发场景下，考虑使用 `ThreadLocal<T>` 缓存 OwnerPacket 实例，减少 ArrayPool 竞争。
+   - 或者使用自定义的 Per-Thread 内存池替代 `ArrayPool<Byte>.Shared`。
 
-| 实现 | 特点 |
-|------|------|
-| **ArrayPacket** | 零拷贝，返回新 record struct |
-| **ReadOnlyPacket** | 零拷贝，返回新 readonly record struct |
-| **MemoryPacket** | 零拷贝，Memory 切片 |
-| **OwnerPacket** | 零拷贝，可能伴随 new class 实例 |
+3. **Slice 对象池化**
+   - 对于 OwnerPacket.Slice 产生的新对象，考虑使用 `ObjectPool<OwnerPacket>` 复用实例。
+   - 需要权衡池化管理开销与 GC 压力。
 
-### 5.5 并发扩展性
+### 中优先级
 
-| 实现 | 并发预期 |
-|------|---------|
-| **ArrayPacket** | 线性扩展，无共享状态 |
-| **ReadOnlyPacket** | 线性扩展，不可变 |
-| **MemoryPacket** | 线性扩展，无共享状态 |
-| **OwnerPacket** | 受 ArrayPool 锁竞争影响 |
-| **PacketHelper.ToStr** | 受 StringBuilder 池竞争影响 |
+4. **MemoryPacket Indexer 优化**
+   - 考虑在 MemoryPacket 内部缓存底层数组引用，避免每次 Indexer 访问都经过 Memory→Span 转换。
+   - 可通过 `MemoryMarshal.TryGetArray` 在构造时提取数组引用。
 
-## 6. 使用建议
+5. **PacketHelper.ToStr 多包链优化**
+   - 当前多包链使用 StringBuilder 池化拼接，可考虑预计算总长度后一次性分配 char[] 进行编码。
+   - 减少 StringBuilder 的扩容开销。
 
-### 6.1 选型指南
+6. **PacketHelper.Clone 优化**
+   - 单包 Clone 当前使用 `GetSpan().ToArray()` 再包装为 ArrayPacket，可以考虑直接返回 ReadOnlyPacket 减少后续可变性风险。
 
-| 场景 | 推荐实现 | 理由 |
-|------|---------|------|
-| 网络收发缓冲区 | **OwnerPacket** | 池化复用，减少大量 GC |
-| 协议解析临时切片 | **ArrayPacket** | 零分配，高吞吐 |
-| 多线程共享只读数据 | **ReadOnlyPacket** | 不可变，天然线程安全 |
-| Memory/IMemoryOwner 适配 | **MemoryPacket** | 适配 Memory-based API |
-| 一次性数据传递 | **ArrayPacket** | 最轻量级 |
+### 低优先级
 
-### 6.2 性能优化建议
+7. **ReadOnlyPacket 的 Slice 返回类型**
+   - 当前 Slice 返回 IPacket 接口，会导致 struct 装箱。可以添加返回 ReadOnlyPacket 的重载。
 
-1. **避免不必要的 ToArray**：优先使用 `GetSpan()` / `GetMemory()` 避免数组拷贝
-2. **合理使用所有权转移**：`Slice(offset, count, transferOwner: true)` 避免重复释放
-3. **利用单包快速路径**：PacketHelper 的大多数方法对单包（无 Next）有专门的快速路径优化
-4. **控制链式包长度**：过长的链式结构会导致遍历开销增大
-5. **注意 OwnerPacket 的及时释放**：未及时 Dispose 会导致 ArrayPool 碎片化
+8. **链式包的 Total 属性缓存**
+   - 当前 Total 是递归计算的 `_length + (Next?.Total ?? 0)`，对于长链路每次访问都遍历。
+   - 可以考虑在 Append 时缓存总长度。
 
-## 7. 测试覆盖统计
+## 八、总结
 
-| 类别 | 测试类 | 方法数 | 参数组合 | 合计用例 |
-|------|--------|--------|---------|---------|
-| 独立测试 | OwnerPacketBenchmark | 11 | × 3 | 33 |
-| 独立测试 | MemoryPacketBenchmark | 8 | × 3 | 24 |
-| 独立测试 | ArrayPacketBenchmark | 12 | × 3 | 36 |
-| 独立测试 | ReadOnlyPacketBenchmark | 12 | × 3 | 36 |
-| 扩展方法 | PacketHelperBenchmark | 21 | × 3 | 63 |
-| 横向对比 | PacketComparisonBenchmark | 24 | × 3 | 72 |
-| 并发测试 | PacketConcurrencyBenchmark | 20 | × 4 | 80 |
-| **合计** | **7 个测试类** | **108** | | **344** |
+| 实现类型 | 适用场景 | 关键优势 | 主要开销 |
+|---------|---------|---------|---------|
+| OwnerPacket | 需要池化内存管理的场景（网络IO） | 池化零分配构造/释放 | Slice 产生新对象 48B |
+| MemoryPacket | 包装 Memory<Byte> 的临时场景 | struct 零堆分配，极快构造 | Slice 装箱 48B |
+| ArrayPacket | 通用零拷贝缓冲区切片 | struct 零分配，struct Slice 零分配 | IPacket Slice 装箱 |
+| ReadOnlyPacket | 多线程共享只读数据 | readonly struct，线程安全 | 不支持链式结构 |
 
-## 8. 附录
-
-### 8.1 数据大小选择依据
-
-| 大小 | 典型场景 |
-|------|---------|
-| 64 B | 小型控制指令、心跳包、短消息 |
-| 1 KB | 常规 RPC 请求/响应、JSON 消息 |
-| 64 KB | 文件传输分片、大型序列化对象 |
-
-### 8.2 并发线程数选择依据
-
-| 线程数 | 场景 |
-|--------|------|
-| 1 | 基线单线程性能 |
-| 4 | 典型小型服务器 |
-| 16 | 中型服务器 |
-| 32 | 高并发服务器 |
-
-### 8.3 关键指标说明
-
-| 指标 | 说明 |
-|------|------|
-| Mean | 平均执行时间 |
-| Error | 99.9% 置信区间的一半 |
-| StdDev | 标准差 |
-| Gen0/Gen1/Gen2 | 各代 GC 收集次数 |
-| Allocated | 每次操作分配的托管内存 |
+整体而言，IPacket 体系的性能设计非常优秀：
+- 核心操作（构造、GetSpan、GetMemory、TryGetArray、Indexer）均在 **亚纳秒到十几纳秒级别**
+- 内存分配控制良好，除 Slice 外几乎零分配
+- ArrayPool 池化机制在中低并发下表现优异
+- struct 实现（MemoryPacket、ArrayPacket、ReadOnlyPacket）天然适合高频创建场景

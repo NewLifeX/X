@@ -1,35 +1,30 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using NewLife.Data;
 
 namespace Benchmark.PacketBenchmarks;
 
-/// <summary>ArrayPacket 性能基准测试</summary>
+/// <summary>ArrayPacket 性能测试</summary>
 [MemoryDiagnoser]
-[SimpleJob]
+[SimpleJob(iterationCount: 20)]
 public class ArrayPacketBenchmark
 {
     private Byte[] _data = null!;
-    private ArraySegment<Byte> _segment;
 
-    [Params(64, 1024, 65536)]
-    public Int32 DataSize;
+    [Params(64, 1024, 8192)]
+    public Int32 Size { get; set; }
 
     [GlobalSetup]
     public void Setup()
     {
-        _data = new Byte[DataSize];
+        _data = new Byte[Size];
         Random.Shared.NextBytes(_data);
-        _segment = new ArraySegment<Byte>(_data, 0, DataSize);
     }
 
-    [Benchmark(Description = "构造_字节数组")]
-    public ArrayPacket Create_ByteArray() => new(_data);
+    [Benchmark(Description = "构造(byte[])")]
+    public ArrayPacket CreateFromArray() => new(_data);
 
-    [Benchmark(Description = "构造_ArraySegment")]
-    public ArrayPacket Create_Segment() => new(_segment);
-
-    [Benchmark(Description = "构造_偏移")]
-    public ArrayPacket Create_WithOffset() => new(_data, DataSize / 4, DataSize / 2);
+    [Benchmark(Description = "构造(ArraySegment)")]
+    public ArrayPacket CreateFromSegment() => new(new ArraySegment<Byte>(_data, 0, Size));
 
     [Benchmark(Description = "GetSpan")]
     public Span<Byte> GetSpan()
@@ -46,52 +41,102 @@ public class ArrayPacketBenchmark
     }
 
     [Benchmark(Description = "TryGetArray")]
-    public ArraySegment<Byte> TryGetArray()
+    public Boolean TryGetArray()
     {
         var pk = new ArrayPacket(_data);
-        pk.TryGetArray(out var seg);
-        return seg;
+        return pk.TryGetArray(out _);
     }
 
-    [Benchmark(Description = "Slice")]
-    public ArrayPacket Slice()
+    [Benchmark(Description = "Slice(struct)")]
+    public ArrayPacket SliceStruct()
     {
         var pk = new ArrayPacket(_data);
-        return pk.Slice(DataSize / 4, DataSize / 2);
+        return pk.Slice(10, Size / 2);
     }
 
-    [Benchmark(Description = "索引器读取")]
-    public Byte Indexer_Read()
+    [Benchmark(Description = "Slice(IPacket)")]
+    public IPacket SliceInterface()
+    {
+        IPacket pk = new ArrayPacket(_data);
+        return pk.Slice(10, Size / 2);
+    }
+
+    [Benchmark(Description = "Indexer读")]
+    public Byte IndexerRead()
     {
         var pk = new ArrayPacket(_data);
-        return pk[DataSize / 2];
+        return pk[Size / 2];
     }
 
-    [Benchmark(Description = "索引器写入")]
-    public void Indexer_Write()
+    [Benchmark(Description = "Indexer写")]
+    public void IndexerWrite()
     {
         var pk = new ArrayPacket(_data);
-        pk[DataSize / 2] = 0xFF;
+        pk[Size / 2] = 0xFF;
     }
 
-    [Benchmark(Description = "Total属性")]
-    public Int32 Total()
+    [Benchmark(Description = "隐式转换byte[]")]
+    public ArrayPacket ImplicitFromByteArray() => _data;
+
+    [Benchmark(Description = "隐式转换string")]
+    public ArrayPacket ImplicitFromString() => "Hello, World!";
+}
+
+/// <summary>ArrayPacket 多线程性能测试</summary>
+[MemoryDiagnoser]
+[SimpleJob(iterationCount: 20)]
+public class ArrayPacketConcurrencyBenchmark
+{
+    private Byte[] _data = null!;
+
+    [Params(1024)]
+    public Int32 Size { get; set; }
+
+    [Params(1, 4, 16, 32)]
+    public Int32 ThreadCount { get; set; }
+
+    [GlobalSetup]
+    public void Setup()
     {
-        var pk = new ArrayPacket(_data);
-        return pk.Total;
+        _data = new Byte[Size];
+        Random.Shared.NextBytes(_data);
     }
 
-    [Benchmark(Description = "隐式转换_字节数组")]
-    public ArrayPacket ImplicitConvert_ByteArray()
+    [Benchmark(Description = "多线程构造")]
+    public void ConcurrentCreate()
     {
-        ArrayPacket pk = _data;
-        return pk;
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                _ = new ArrayPacket(_data);
+            }
+        });
     }
 
-    [Benchmark(Description = "隐式转换_字符串")]
-    public ArrayPacket ImplicitConvert_String()
+    [Benchmark(Description = "多线程GetSpan")]
+    public void ConcurrentGetSpan()
     {
-        ArrayPacket pk = "Hello, World!";
-        return pk;
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                var pk = new ArrayPacket(_data);
+                _ = pk.GetSpan();
+            }
+        });
+    }
+
+    [Benchmark(Description = "多线程Slice")]
+    public void ConcurrentSlice()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                var pk = new ArrayPacket(_data);
+                _ = pk.Slice(10, Size / 2);
+            }
+        });
     }
 }

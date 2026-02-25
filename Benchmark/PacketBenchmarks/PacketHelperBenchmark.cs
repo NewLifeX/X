@@ -1,224 +1,256 @@
-﻿using System.Text;
 using BenchmarkDotNet.Attributes;
 using NewLife.Data;
 
 namespace Benchmark.PacketBenchmarks;
 
-/// <summary>PacketHelper 扩展方法性能基准测试</summary>
+/// <summary>PacketHelper 扩展方法性能测试</summary>
 [MemoryDiagnoser]
-[SimpleJob]
+[SimpleJob(iterationCount: 20)]
 public class PacketHelperBenchmark
 {
     private Byte[] _data = null!;
-    private Byte[] _appendData = null!;
+    private ArrayPacket _arrayPacket;
+    private ReadOnlyPacket _readOnlyPacket;
 
-    [Params(64, 1024, 65536)]
-    public Int32 DataSize;
+    [Params(64, 1024, 8192)]
+    public Int32 Size { get; set; }
 
     [GlobalSetup]
     public void Setup()
     {
-        _data = new Byte[DataSize];
-        _appendData = new Byte[64];
+        _data = new Byte[Size];
         Random.Shared.NextBytes(_data);
-        Random.Shared.NextBytes(_appendData);
+        _arrayPacket = new ArrayPacket(_data);
+        _readOnlyPacket = new ReadOnlyPacket(_data);
     }
 
     #region 链式操作
-    [Benchmark(Description = "Append_IPacket")]
-    public IPacket Append_IPacket()
+    [Benchmark(Description = "Append(IPacket)")]
+    public IPacket AppendPacket()
     {
-        var pk = new ArrayPacket(_data);
-        var next = new ArrayPacket(_appendData);
-        return pk.Append(next);
+        var pk1 = new ArrayPacket(_data);
+        var pk2 = new ArrayPacket(_data);
+        return pk1.Append(pk2);
     }
 
-    [Benchmark(Description = "Append_ByteArray")]
-    public IPacket Append_ByteArray()
+    [Benchmark(Description = "Append(byte[])")]
+    public IPacket AppendBytes()
     {
         var pk = new ArrayPacket(_data);
-        return pk.Append(_appendData);
+        return pk.Append(_data);
     }
     #endregion
 
     #region 数据转换
-    [Benchmark(Description = "ToStr_单包")]
-    public String ToStr_Single()
+    [Benchmark(Description = "ToStr(单包)")]
+    public String ToStrSingle()
     {
-        var pk = new ArrayPacket(_data);
-        return pk.ToStr(Encoding.UTF8);
+        IPacket pk = _arrayPacket;
+        return pk.ToStr();
     }
 
-    [Benchmark(Description = "ToStr_链式包")]
-    public String ToStr_Chained()
+    [Benchmark(Description = "ToStr(链式包)")]
+    public String ToStrChained()
     {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
-        return pk.ToStr(Encoding.UTF8);
+        var pk1 = new ArrayPacket(_data);
+        var pk2 = new ArrayPacket(_data);
+        pk1.Next = pk2;
+        IPacket pk = pk1;
+        return pk.ToStr();
     }
 
-    [Benchmark(Description = "ToHex_单包")]
-    public String ToHex_Single()
+    [Benchmark(Description = "ToHex(单包)")]
+    public String ToHexSingle()
     {
-        var pk = new ArrayPacket(_data, 0, Math.Min(DataSize, 32));
+        IPacket pk = _arrayPacket;
         return pk.ToHex();
     }
 
-    [Benchmark(Description = "ToHex_带分隔符")]
-    public String ToHex_WithSeparator()
+    [Benchmark(Description = "ToHex(链式包)")]
+    public String ToHexChained()
     {
-        var pk = new ArrayPacket(_data, 0, Math.Min(DataSize, 32));
-        return pk.ToHex(32, "-");
-    }
-
-    [Benchmark(Description = "ToHex_链式包")]
-    public String ToHex_Chained()
-    {
-        var pk = new ArrayPacket(_data, 0, Math.Min(DataSize, 16));
-        pk.Next = new ArrayPacket(_appendData, 0, 16);
-        return pk.ToHex(32);
+        var pk1 = new ArrayPacket(_data);
+        var pk2 = new ArrayPacket(_data);
+        pk1.Next = pk2;
+        IPacket pk = pk1;
+        return pk.ToHex();
     }
     #endregion
 
     #region 流操作
     [Benchmark(Description = "CopyTo")]
-    public void CopyTo()
+    public void CopyToStream()
     {
-        var pk = new ArrayPacket(_data);
-        using var ms = new MemoryStream(DataSize);
+        IPacket pk = _arrayPacket;
+        using var ms = new MemoryStream();
         pk.CopyTo(ms);
     }
 
-    [Benchmark(Description = "GetStream_单包")]
-    public Stream GetStream_Single()
+    [Benchmark(Description = "GetStream")]
+    public Stream GetStreamTest()
     {
-        var pk = new ArrayPacket(_data);
-        var stream = pk.GetStream();
-        stream.Dispose();
-        return stream;
-    }
-
-    [Benchmark(Description = "GetStream_链式包")]
-    public Stream GetStream_Chained()
-    {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
-        var stream = pk.GetStream();
-        stream.Dispose();
-        return stream;
+        IPacket pk = _arrayPacket;
+        return pk.GetStream();
     }
     #endregion
 
     #region 数据段操作
-    [Benchmark(Description = "ToSegment_单包")]
-    public ArraySegment<Byte> ToSegment_Single()
+    [Benchmark(Description = "ToSegment(单包)")]
+    public ArraySegment<Byte> ToSegmentSingle()
     {
-        var pk = new ArrayPacket(_data);
+        IPacket pk = _arrayPacket;
         return pk.ToSegment();
     }
 
-    [Benchmark(Description = "ToSegment_链式包")]
-    public ArraySegment<Byte> ToSegment_Chained()
+    [Benchmark(Description = "ToSegment(链式包)")]
+    public ArraySegment<Byte> ToSegmentChained()
     {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
+        var pk1 = new ArrayPacket(_data);
+        var pk2 = new ArrayPacket(_data);
+        pk1.Next = pk2;
+        IPacket pk = pk1;
         return pk.ToSegment();
     }
 
     [Benchmark(Description = "ToSegments")]
-    public IList<ArraySegment<Byte>> ToSegments()
+    public IList<ArraySegment<Byte>> ToSegmentsTest()
     {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
+        IPacket pk = _arrayPacket;
         return pk.ToSegments();
     }
 
-    [Benchmark(Description = "ToArray_单包")]
-    public Byte[] ToArray_Single()
+    [Benchmark(Description = "ToArray")]
+    public Byte[] ToArrayTest()
     {
-        var pk = new ArrayPacket(_data);
-        return pk.ToArray();
-    }
-
-    [Benchmark(Description = "ToArray_链式包")]
-    public Byte[] ToArray_Chained()
-    {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
+        IPacket pk = _arrayPacket;
         return pk.ToArray();
     }
     #endregion
 
     #region 数据读取
-    [Benchmark(Description = "ReadBytes_全部")]
-    public Byte[] ReadBytes_All()
+    [Benchmark(Description = "ReadBytes")]
+    public Byte[] ReadBytesTest()
     {
-        var pk = new ArrayPacket(_data);
-        return pk.ReadBytes();
-    }
-
-    [Benchmark(Description = "ReadBytes_切片")]
-    public Byte[] ReadBytes_Slice()
-    {
-        var pk = new ArrayPacket(_data);
-        return pk.ReadBytes(DataSize / 4, DataSize / 2);
+        IPacket pk = _arrayPacket;
+        return pk.ReadBytes(0, Size / 2);
     }
 
     [Benchmark(Description = "Clone")]
-    public IPacket Clone()
+    public IPacket CloneTest()
     {
-        var pk = new ArrayPacket(_data);
-        return pk.Clone();
-    }
-
-    [Benchmark(Description = "Clone_链式包")]
-    public IPacket Clone_Chained()
-    {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
+        IPacket pk = _arrayPacket;
         return pk.Clone();
     }
     #endregion
 
     #region 内存访问
-    [Benchmark(Description = "TryGetSpan_单包")]
-    public Boolean TryGetSpan_Single()
+    [Benchmark(Description = "TryGetSpan")]
+    public Boolean TryGetSpanTest()
     {
-        var pk = new ArrayPacket(_data);
-        return ((IPacket)pk).TryGetSpan(out _);
-    }
-
-    [Benchmark(Description = "TryGetSpan_链式包")]
-    public Boolean TryGetSpan_Chained()
-    {
-        var pk = new ArrayPacket(_data);
-        pk.Next = new ArrayPacket(_appendData);
-        return ((IPacket)pk).TryGetSpan(out _);
+        IPacket pk = _arrayPacket;
+        return pk.TryGetSpan(out _);
     }
     #endregion
 
     #region 头部扩展
-    [Benchmark(Description = "ExpandHeader_ArrayPacket有空间")]
-    public IPacket ExpandHeader_ArrayPacketHasSpace()
+    [Benchmark(Description = "ExpandHeader(ArrayPacket)")]
+    public IPacket ExpandHeaderArrayPacket()
     {
-        var pk = new ArrayPacket(_data, 16, DataSize - 16);
+        var pk = new ArrayPacket(_data, 16, Size - 16);
         return pk.ExpandHeader(8);
     }
 
-    [Benchmark(Description = "ExpandHeader_创建新包")]
-    public IPacket ExpandHeader_NewPacket()
+    [Benchmark(Description = "ExpandHeader(新建)")]
+    public IPacket ExpandHeaderNew()
     {
-        var pk = new ArrayPacket(_data);
-        var result = pk.ExpandHeader(8);
-        (result as IDisposable)?.Dispose();
-        return result;
-    }
-
-    [Benchmark(Description = "ExpandHeader_OwnerPacket有空间")]
-    public IPacket ExpandHeader_OwnerPacketHasSpace()
-    {
-        using var pk = new OwnerPacket(_data, 16, DataSize - 16, false);
+        IPacket pk = _arrayPacket;
         return pk.ExpandHeader(8);
     }
     #endregion
+}
+
+/// <summary>PacketHelper 多线程性能测试</summary>
+[MemoryDiagnoser]
+[SimpleJob(iterationCount: 20)]
+public class PacketHelperConcurrencyBenchmark
+{
+    private Byte[] _data = null!;
+
+    [Params(1024)]
+    public Int32 Size { get; set; }
+
+    [Params(1, 4, 16, 32)]
+    public Int32 ThreadCount { get; set; }
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        _data = new Byte[Size];
+        Random.Shared.NextBytes(_data);
+    }
+
+    [Benchmark(Description = "多线程ToStr")]
+    public void ConcurrentToStr()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                IPacket pk = new ArrayPacket(_data);
+                _ = pk.ToStr();
+            }
+        });
+    }
+
+    [Benchmark(Description = "多线程ToArray")]
+    public void ConcurrentToArray()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                IPacket pk = new ArrayPacket(_data);
+                _ = pk.ToArray();
+            }
+        });
+    }
+
+    [Benchmark(Description = "多线程Clone")]
+    public void ConcurrentClone()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                IPacket pk = new ArrayPacket(_data);
+                _ = pk.Clone();
+            }
+        });
+    }
+
+    [Benchmark(Description = "多线程ReadBytes")]
+    public void ConcurrentReadBytes()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                IPacket pk = new ArrayPacket(_data);
+                _ = pk.ReadBytes(0, Size / 2);
+            }
+        });
+    }
+
+    [Benchmark(Description = "多线程ExpandHeader")]
+    public void ConcurrentExpandHeader()
+    {
+        Parallel.For(0, ThreadCount, t =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                IPacket pk = new ArrayPacket(_data);
+                _ = pk.ExpandHeader(8);
+            }
+        });
+    }
 }
