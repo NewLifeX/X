@@ -182,7 +182,13 @@ public class MemoryCache : Cache
             return RemoveInternal(keys);
         }
 
-        return RemoveInternal([key]);
+        // 性能优化：直接移除，避免分配临时数组和枚举器
+        if (_cache.TryRemove(key, out _))
+        {
+            Interlocked.Decrement(ref _count);
+            return 1;
+        }
+        return 0;
     }
 
     /// <summary>批量移除缓存项。支持 * 模式匹配</summary>
