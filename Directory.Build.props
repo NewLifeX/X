@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- 允许在非 Windows 系统上编译 Windows 专属目标框架 -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>
