@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
@@ -493,8 +494,16 @@ public static class PacketHelper
 /// <item>零拷贝切片：共享底层缓冲区，避免不必要的内存分配</item>
 /// </list>
 /// <para><b>生命周期管理</b>：必须调用 <see cref="Dispose"/> 归还池化内存，或通过所有权转移由新实例负责释放。</para>
+/// <para><b>设计决策</b>：</para>
+/// <list type="bullet">
+/// <item><b>必须为 class</b>：所有权语义依赖引用同一性。struct 赋值产生值拷贝会导致 double-free（Slice 转移所有权时修改的是副本而非原始实例），
+/// 且 IDisposable + struct 在装箱场景下无法正确释放资源。</item>
+/// <item><b>sealed 密封</b>：无派生需求，JIT 可对 GetSpan/GetMemory 等热路径方法去虚拟化并内联，显著提升协议解析性能。</item>
+/// <item><b>不继承 MemoryManager&lt;T&gt;</b>：仅需 IPacket + IDisposable，MemoryManager 的 Pin/Unpin/IMemoryOwner.Memory 均未使用，
+/// 移除后消除死代码和多余 vtable 开销。</item>
+/// </list>
 /// </remarks>
-public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
+public sealed class OwnerPacket : IPacket, IOwnerPacket
 {
     #region 字段与属性
     private Byte[]? _buffer;
@@ -504,20 +513,36 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 
     /// <summary>缓冲区数组</summary>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
-    public Byte[] Buffer => _buffer ?? throw new ObjectDisposedException(nameof(OwnerPacket));
+    public Byte[] Buffer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _buffer ?? throw new ObjectDisposedException(nameof(OwnerPacket));
+    }
 
     /// <summary>数据在缓冲区中的起始偏移量</summary>
-    public Int32 Offset => _offset;
+    public Int32 Offset
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _offset;
+    }
 
     /// <summary>当前数据包的有效数据长度</summary>
-    public Int32 Length => _length;
+    public Int32 Length
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _length;
+    }
 
     /// <summary>下一个链式数据包节点</summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public IPacket? Next { get; set; }
 
     /// <summary>包含链式结构的总数据长度</summary>
-    public Int32 Total => Length + (Next?.Total ?? 0);
+    public Int32 Total
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _length + (Next?.Total ?? 0);
+    }
 
     /// <summary>获取或设置指定位置的字节值，支持跨链式包访问</summary>
     /// <param name="index">从当前包起始的相对索引位置</param>
@@ -526,6 +551,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     public Byte this[Int32 index]
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => index switch
         {
             < 0 => throw new IndexOutOfRangeException($"Index cannot be negative: {index}"),
@@ -621,8 +647,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
 
     #region 内存管理
     /// <summary>释放资源，归还池化缓冲区并清理链式结构</summary>
-    /// <param name="disposing">是否由 Dispose 调用</param>
-    protected override void Dispose(Boolean disposing)
+    public void Dispose()
     {
         if (!_hasOwner) return;
 
@@ -655,27 +680,25 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <summary>获取当前数据包的内存片段视图</summary>
     /// <returns>只读内存片段，仅在实例生命周期内有效</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
-    public override Span<Byte> GetSpan() => new(Buffer, _offset, _length);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<Byte> GetSpan() => new(Buffer, _offset, _length);
 
     /// <summary>获取当前数据包的内存块</summary>
     /// <returns>内存块，仅在实例生命周期内有效</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Memory<Byte> GetMemory() => new(Buffer, _offset, _length);
 
     /// <summary>尝试获取当前片段的数组段表示</summary>
     /// <param name="segment">输出的数组段</param>
     /// <returns>始终返回 true</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
-    protected override Boolean TryGetArray(out ArraySegment<Byte> segment)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Boolean TryGetArray(out ArraySegment<Byte> segment)
     {
         segment = new ArraySegment<Byte>(Buffer, _offset, _length);
         return true;
     }
-
-    /// <summary>尝试获取当前片段的数组段表示（显式接口实现）</summary>
-    /// <param name="segment">输出的数组段</param>
-    /// <returns>始终返回 true</returns>
-    Boolean IPacket.TryGetArray(out ArraySegment<Byte> segment) => TryGetArray(out segment);
     #endregion
 
     #region 大小调整
@@ -718,6 +741,7 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
     /// <param name="offset">相对当前包的起始偏移</param>
     /// <param name="count">切片长度，-1 表示到末尾</param>
     /// <returns>新的数据包实例</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IPacket Slice(Int32 offset, Int32 count = -1) => Slice(offset, count, transferOwner: true);
 
     /// <summary>切片生成新数据包，可选择是否转移所有权</summary>
@@ -785,18 +809,6 @@ public class OwnerPacket : MemoryManager<Byte>, IPacket, IOwnerPacket
             Next = Next.Slice(0, count - remainInCurrent, transferOwner)
         };
     }
-    #endregion
-
-    #region 不支持的 MemoryManager 操作
-    /// <summary>不支持内存钉住操作</summary>
-    /// <exception cref="NotSupportedException">该操作不被支持</exception>
-    public override MemoryHandle Pin(Int32 elementIndex = 0) =>
-        throw new NotSupportedException("Memory pinning is not supported by OwnerPacket");
-
-    /// <summary>不支持取消内存钉住操作</summary>
-    /// <exception cref="NotSupportedException">该操作不被支持</exception>
-    public override void Unpin() =>
-        throw new NotSupportedException("Memory unpinning is not supported by OwnerPacket");
     #endregion
 
     #region 字符串表示

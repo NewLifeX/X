@@ -330,6 +330,84 @@ public class OwnerPacketTests
         Assert.Null(packet.Next);
     }
 
+    [Fact(DisplayName = "Dispose：应归还缓冲区")]
+    public void Dispose_ShouldReturnBufferToPool()
+    {
+        var packet = new OwnerPacket(100);
+        Assert.True((Boolean)packet.GetValue("_hasOwner"));
+
+        packet.Dispose();
+
+        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+        Assert.Null(packet.GetValue("_buffer"));
+        Assert.Null(packet.Next);
+    }
+
+    [Fact(DisplayName = "Dispose：多次调用应幂等")]
+    public void Dispose_MultipleCalls_ShouldBeIdempotent()
+    {
+        var packet = new OwnerPacket(100);
+
+        // 多次 Dispose 不应抛异常
+        packet.Dispose();
+        packet.Dispose();
+        packet.Dispose();
+
+        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+    }
+
+    [Fact(DisplayName = "Dispose：无所有权时不归还缓冲区")]
+    public void Dispose_WithoutOwnership_ShouldNotReturnBuffer()
+    {
+        var buffer = new Byte[200];
+        var packet = new OwnerPacket(buffer, 10, 50, false);
+
+        // 无所有权的 Dispose 不应报错
+        packet.Dispose();
+
+        Assert.False((Boolean)packet.GetValue("_hasOwner"));
+    }
+
+    [Fact(DisplayName = "Dispose：应释放链式后续节点")]
+    public void Dispose_ShouldDisposeChainedNextPackets()
+    {
+        var packet1 = new OwnerPacket(50);
+        var packet2 = new OwnerPacket(50);
+        packet1.Next = packet2;
+
+        packet1.Dispose();
+
+        Assert.Null(packet1.Next);
+        Assert.False((Boolean)packet2.GetValue("_hasOwner"));
+    }
+
+    [Fact(DisplayName = "释放后访问：GetSpan 应抛异常")]
+    public void AfterDispose_GetSpan_ShouldThrow()
+    {
+        var packet = new OwnerPacket(100);
+        packet.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => packet.GetSpan());
+    }
+
+    [Fact(DisplayName = "释放后访问：GetMemory 应抛异常")]
+    public void AfterDispose_GetMemory_ShouldThrow()
+    {
+        var packet = new OwnerPacket(100);
+        packet.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => packet.GetMemory());
+    }
+
+    [Fact(DisplayName = "释放后访问：索引器应抛异常")]
+    public void AfterDispose_Indexer_ShouldThrow()
+    {
+        var packet = new OwnerPacket(100);
+        packet.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => packet[0]);
+    }
+
     [Fact(DisplayName = "内存管理：ArrayPool复用验证")]
     public void MemoryManagement_ArrayPoolReuse_ShouldReuseBuffers()
     {
