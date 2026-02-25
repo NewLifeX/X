@@ -14,13 +14,16 @@ public class NetEchoBenchmark : IDisposable
 
     private readonly ManualResetEventSlim _completed = new(false);
     private EchoNetServer? _server;
-    private ISocketClient? _client;
+    private ISocketClient[] _clients = null!;
     private Byte[] _payload = null!;
     private Int64 _receivedBytes;
     private Int64 _expectedBytes;
 
     [Params(32)]
     public Int32 PacketSize { get; set; }
+
+    [Params(1, 1_000, 10_000)]
+    public Int32 Concurrency { get; set; }
 
     [GlobalSetup]
     public void Setup()
@@ -31,9 +34,14 @@ public class NetEchoBenchmark : IDisposable
         _server = new EchoNetServer { Port = Port };
         _server.Start();
 
-        _client = new NetUri($"tcp://127.0.0.1:{Port}").CreateRemote();
-        _client.Received += OnReceived;
-        _client.Open();
+        _clients = new ISocketClient[Concurrency];
+        for (var i = 0; i < _clients.Length; i++)
+        {
+            var client = new NetUri($"tcp://127.0.0.1:{Port}").CreateRemote();
+            client.Received += OnReceived;
+            client.Open();
+            _clients[i] = client;
+        }
     }
 
     [IterationSetup]
@@ -47,14 +55,28 @@ public class NetEchoBenchmark : IDisposable
     [Benchmark(Description = "TCP回环收发", OperationsPerInvoke = PacketCount)]
     public Int64 EchoRoundTrip()
     {
-        var client = _client ?? throw new InvalidOperationException("未初始化客户端");
+        if (_clients == null || _clients.Length == 0)
+            throw new InvalidOperationException("未初始化客户端");
 
-        for (var i = 0; i < PacketCount; i++)
+        var batch = PacketCount / Concurrency;
+        var remain = PacketCount % Concurrency;
+        var tasks = new Task[Concurrency];
+        for (var i = 0; i < Concurrency; i++)
         {
-            _ = client.Send(_payload);
+            var index = i;
+            tasks[i] = Task.Run(() =>
+            {
+                var count = batch + (index < remain ? 1 : 0);
+                var client = _clients[index];
+                for (var n = 0; n < count; n++)
+                {
+                    _ = client.Send(_payload);
+                }
+            });
         }
+        Task.WaitAll(tasks);
 
-        if (!_completed.Wait(10_000))
+        if (!_completed.Wait(30_000))
             throw new TimeoutException("等待回环数据超时");
 
         return Interlocked.Read(ref _receivedBytes);
@@ -63,11 +85,17 @@ public class NetEchoBenchmark : IDisposable
     [GlobalCleanup]
     public void Cleanup()
     {
-        if (_client != null)
+        if (_clients != null)
         {
-            _client.Received -= OnReceived;
-            _client.Dispose();
-            _client = null;
+            foreach (var client in _clients)
+            {
+                if (client == null) continue;
+
+                client.Received -= OnReceived;
+                client.Dispose();
+            }
+
+            _clients = null!;
         }
 
         if (_server != null)
