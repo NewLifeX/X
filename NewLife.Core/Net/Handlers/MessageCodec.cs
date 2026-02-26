@@ -103,11 +103,15 @@ public class MessageCodec<T> : Handler
     /// <param name="msg">消息</param>
     protected virtual void AddToQueue(IHandlerContext context, T msg)
     {
-        if (msg != null && context is IExtend ext && ext["TaskSource"] is TaskCompletionSource<Object> source)
+        if (msg != null && context is IExtend ext)
         {
-            Queue ??= new DefaultMatchQueue(QueueSize);
+            var source = ext["TaskSource"];
+            if (source != null)
+            {
+                Queue ??= new DefaultMatchQueue(QueueSize);
 
-            Queue.Add(context.Owner, msg, Timeout, source);
+                Queue.Add(context.Owner, msg, Timeout, source);
+            }
         }
     }
 
@@ -175,6 +179,9 @@ public class MessageCodec<T> : Handler
             // 匹配输入回调，让上层事件收到分包信息
             // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
             base.Read(context, rs ?? msg);
+
+            // 归还池化的 DefaultMessage（SendReply 在 base.Read 内同步完成，此时已无引用）
+            if (msg is DefaultMessage dm) DefaultMessage.Return(dm);
         }
 
         return null;
@@ -194,7 +201,7 @@ public class MessageCodec<T> : Handler
     /// <param name="context">处理器上下文</param>
     /// <param name="pk">数据包</param>
     /// <returns>解码后的消息列表</returns>
-    protected virtual IList<T>? Decode(IHandlerContext context, IPacket pk) => null;
+    protected virtual IEnumerable<T>? Decode(IHandlerContext context, IPacket pk) => null;
 
     /// <summary>是否匹配响应</summary>
     /// <param name="request">请求消息</param>

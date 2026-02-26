@@ -11,8 +11,8 @@ public interface IMatchQueue
     /// <param name="owner">拥有者</param>
     /// <param name="request">请求消息</param>
     /// <param name="msTimeout">超时取消时间</param>
-    /// <param name="source">任务源</param>
-    Task<Object> Add(Object? owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source);
+    /// <param name="source">任务源。TaskCompletionSource 或 PooledValueTaskSource</param>
+    void Add(Object? owner, Object request, Int32 msTimeout, Object source);
 
     /// <summary>检查请求队列是否有匹配该响应的请求</summary>
     /// <param name="owner">拥有者</param>
@@ -39,7 +39,7 @@ public class DefaultMatchQueue : IMatchQueue
         public Object? Owner { get; set; }
         public Object? Request { get; set; }
         public Int64 EndTime { get; set; }
-        public TaskCompletionSource<Object>? Source { get; set; }
+        public Object? Source { get; set; }
         public ISpan? Span { get; set; }
     }
 
@@ -59,8 +59,8 @@ public class DefaultMatchQueue : IMatchQueue
     /// <param name="owner">拥有者</param>
     /// <param name="request">请求的数据</param>
     /// <param name="msTimeout">超时取消时间</param>
-    /// <param name="source">任务源</param>
-    public virtual Task<Object> Add(Object? owner, Object request, Int32 msTimeout, TaskCompletionSource<Object> source)
+    /// <param name="source">任务源。TaskCompletionSource 或 PooledValueTaskSource</param>
+    public virtual void Add(Object? owner, Object request, Int32 msTimeout, Object source)
     {
         var now = Runtime.TickCount64;
 
@@ -96,7 +96,7 @@ public class DefaultMatchQueue : IMatchQueue
                 Volatile.Write(ref _cursor, (i + 1) % len);
 
                 StartTimer();
-                return source.Task;
+                return;
             }
         }
 
@@ -114,7 +114,7 @@ public class DefaultMatchQueue : IMatchQueue
                 Volatile.Write(ref _cursor, (i + 1) % len);
 
                 StartTimer();
-                return source.Task;
+                return;
             }
         }
 
@@ -162,15 +162,7 @@ public class DefaultMatchQueue : IMatchQueue
 
                 // 设置完成结果，TaskCreationOptions.RunContinuationsAsynchronously确保不会阻塞当前线程
                 var src = qi.Source;
-                if (src != null && !src.Task.IsCompleted)
-                {
-                    qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.SetResult(Matched)");
-#if NET45
-                    Task.Factory.StartNew(() => src.TrySetResult(result));
-#else
-                    src.TrySetResult(result);
-#endif
-                }
+                if (src != null) SetResult(src, result);
 
                 return true;
             }
@@ -204,18 +196,8 @@ public class DefaultMatchQueue : IMatchQueue
 
                 Interlocked.Decrement(ref _Count);
 
-                // 异步取消任务
                 var src = qi.Source;
-                if (src != null && !src.Task.IsCompleted)
-                {
-                    qi.Span?.AppendTag($"{Runtime.TickCount64} MatchQueue.Expired({qi.EndTime}<={now})");
-
-#if NET45
-                    Task.Factory.StartNew(() => src.TrySetCanceled());
-#else
-                    src.TrySetCanceled();
-#endif
-                }
+                if (src != null) SetCanceled(src);
             }
         }
     }
@@ -231,19 +213,49 @@ public class DefaultMatchQueue : IMatchQueue
 
             Interlocked.Decrement(ref _Count);
 
-            // 异步取消任务
             var src = qi.Source;
-            if (src != null && !src.Task.IsCompleted)
-            {
-                qi.Span?.AppendTag("MatchQueue.Clear()");
-
-#if NET45
-                Task.Factory.StartNew(() => src.TrySetCanceled());
-#else
-                src.TrySetCanceled();
-#endif
-            }
+            if (src != null) SetCanceled(src);
         }
         _Count = 0;
+    }
+
+    /// <summary>设置完成结果（兼容 TCS 和 PooledValueTaskSource）</summary>
+    private static void SetResult(Object source, Object result)
+    {
+#if NET5_0_OR_GREATER
+        if (source is PooledValueTaskSource pvts)
+        {
+            pvts.TrySetResult(result);
+            return;
+        }
+#endif
+        if (source is TaskCompletionSource<Object> tcs && !tcs.Task.IsCompleted)
+        {
+#if NET45
+            Task.Factory.StartNew(() => tcs.TrySetResult(result));
+#else
+            tcs.TrySetResult(result);
+#endif
+        }
+    }
+
+    /// <summary>设置取消（兼容 TCS 和 PooledValueTaskSource）</summary>
+    private static void SetCanceled(Object source)
+    {
+#if NET5_0_OR_GREATER
+        if (source is PooledValueTaskSource pvts)
+        {
+            pvts.TrySetCanceled();
+            return;
+        }
+#endif
+        if (source is TaskCompletionSource<Object> tcs && !tcs.Task.IsCompleted)
+        {
+#if NET45
+            Task.Factory.StartNew(() => tcs.TrySetCanceled());
+#else
+            tcs.TrySetCanceled();
+#endif
+        }
     }
 }

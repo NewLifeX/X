@@ -66,9 +66,9 @@ public class LengthFieldCodec : MessageCodec<IPacket>
     /// <param name="context"></param>
     /// <param name="pk"></param>
     /// <returns></returns>
-    protected override IList<IPacket>? Decode(IHandlerContext context, IPacket pk)
+    protected override IEnumerable<IPacket>? Decode(IHandlerContext context, IPacket pk)
     {
-        if (context.Owner is not IExtend ss) return null;
+        if (context.Owner is not IExtend ss) yield break;
 
         if (ss["Codec"] is not PacketCodec pc)
         {
@@ -91,10 +91,10 @@ public class LengthFieldCodec : MessageCodec<IPacket>
         var len = Offset + Math.Abs(Size);
         for (var i = 0; i < pks.Count; i++)
         {
-            pks[i] = pks[i].Slice(len, -1, true);
+            yield return pks[i].Slice(len, -1, true);
         }
 
-        return pks;
+        //return pks;
     }
 
     /// <summary>连接关闭时，清空粘包编码器</summary>

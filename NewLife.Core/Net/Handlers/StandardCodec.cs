@@ -42,8 +42,8 @@ public class StandardCodec : MessageCodec<IMessage>
             // 优先复用请求消息创建响应
             var request = GetRequest(context);
             var response = (request != null && !request.Reply)
-                ? request.CreateReply() as DefaultMessage ?? new DefaultMessage()
-                : new DefaultMessage();
+                ? request.CreateReply() as DefaultMessage ?? DefaultMessage.Rent()
+                : DefaultMessage.Rent();
 
             response.Flag = (Byte)(kind ?? DataKinds.Packet);
             response.Payload = pk;
@@ -74,9 +74,9 @@ public class StandardCodec : MessageCodec<IMessage>
     /// <param name="context">处理器上下文</param>
     /// <param name="pk">数据包</param>
     /// <returns>解码后的消息列表</returns>
-    protected override IList<IMessage>? Decode(IHandlerContext context, IPacket pk)
+    protected override IEnumerable<IMessage>? Decode(IHandlerContext context, IPacket pk)
     {
-        if (context.Owner is not IExtend ss) return null;
+        if (context.Owner is not IExtend ss) yield break;
 
         if (ss["Codec"] is not PacketCodec pc)
         {
@@ -92,14 +92,15 @@ public class StandardCodec : MessageCodec<IMessage>
         }
 
         var pks = pc.Parse(pk);
-        var list = new List<IMessage>(pks.Count);
+        //var list = new List<IMessage>(pks.Count);
         foreach (var item in pks)
         {
-            var msg = new DefaultMessage();
-            if (msg.Read(item)) list.Add(msg);
+            var msg = DefaultMessage.Rent();
+            //if (msg.Read(item)) list.Add(msg);
+            if (msg.Read(item)) yield return msg;
         }
 
-        return list;
+        //return list;
     }
 
     /// <summary>是否匹配响应</summary>

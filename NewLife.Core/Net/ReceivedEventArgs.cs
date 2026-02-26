@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
 
@@ -7,6 +8,26 @@ namespace NewLife.Net;
 /// <summary>收到数据时的事件参数</summary>
 public class ReceivedEventArgs : EventArgs, IData
 {
+    #region 池
+    private static readonly Pool<ReceivedEventArgs> _pool = new();
+
+    /// <summary>从池中借出事件参数</summary>
+    public static ReceivedEventArgs Rent()
+    {
+        var e = _pool.Get();
+        return e;
+    }
+
+    /// <summary>归还事件参数到池</summary>
+    /// <param name="e">事件参数实例</param>
+    public static void Return(ReceivedEventArgs e)
+    {
+        if (e == null) return;
+        e.Reset();
+        _pool.Return(e);
+    }
+    #endregion
+
     #region 属性
     /// <summary>编码处理器上下文</summary>
     /// <remarks>类似 HttpContext，用于在一次接收处理中携带请求/响应信息。</remarks>
@@ -35,4 +56,15 @@ public class ReceivedEventArgs : EventArgs, IData
     /// <summary>获取当前事件的原始数据。避免用户错误使用Packet.Data</summary>
     /// <returns></returns>
     public Byte[]? GetBytes() => Packet?.ToArray();
+
+    /// <summary>重置状态，清理所有引用以便对象池复用</summary>
+    public void Reset()
+    {
+        Context = null;
+        Local = null;
+        Remote = null;
+        Packet = null;
+        Message = null;
+        UserState = null;
+    }
 }

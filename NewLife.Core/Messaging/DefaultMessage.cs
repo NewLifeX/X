@@ -1,6 +1,6 @@
 ﻿using NewLife.Buffers;
+using NewLife.Collections;
 using NewLife.Data;
-using NewLife.Reflection;
 
 namespace NewLife.Messaging;
 
@@ -49,6 +49,24 @@ public class DefaultMessage : Message
     #endregion
 
     #region 构造
+    private static readonly Pool<DefaultMessage> _pool = new();
+
+    /// <summary>从池中借出消息实例</summary>
+    public static DefaultMessage Rent()
+    {
+        var msg = _pool.Get();
+        return msg;
+    }
+
+    /// <summary>归还消息实例到池</summary>
+    /// <param name="msg">消息实例</param>
+    public static void Return(DefaultMessage? msg)
+    {
+        if (msg == null) return;
+        msg.Reset();
+        _pool.Return(msg);
+    }
+
     /// <summary>释放资源</summary>
     /// <param name="disposing">是否释放托管资源</param>
     protected override void Dispose(Boolean disposing)
@@ -79,7 +97,7 @@ public class DefaultMessage : Message
     protected override Message CreateInstance()
     {
         var type = GetType();
-        if (type == typeof(DefaultMessage)) return new DefaultMessage();
+        if (type == typeof(DefaultMessage)) return Rent();
 
         return base.CreateInstance();
     }

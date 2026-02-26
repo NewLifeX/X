@@ -689,7 +689,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
             if (Local.IsTcp) remote = Remote.EndPoint;
 
-            var e = new ReceivedEventArgs { Packet = pk, Local = local, Remote = remote };
+            var e = ReceivedEventArgs.Rent();
+            e.Packet = pk;
+            e.Local = local;
+            e.Remote = remote;
 
             // 不管Tcp/Udp，都在这使用管道
             var pp = Pipeline;
@@ -707,6 +710,9 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
                 // 同步调用完成后归还上下文
                 ReturnContext(ctx);
             }
+
+            // 同步调用链结束，归还事件参数
+            ReceivedEventArgs.Return(e);
         }
         catch (Exception ex)
         {
@@ -856,6 +862,29 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
 
+#if NET5_0_OR_GREATER
+            var source = PooledValueTaskSource.Rent();
+            ctx["TaskSource"] = source;
+            ctx["Span"] = span;
+
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
+            if (rs < 0) return TaskEx.CompletedTask;
+
+            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
+            ReturnContext(ctx);
+            ctx = null;
+
+            // 注册取消时的处理，如果没有收到响应，取消发送等待
+            if (cancellationToken.CanBeCanceled)
+            {
+                using (cancellationToken.Register(static s => ((PooledValueTaskSource)s!).TrySetCanceled(), source))
+                {
+                    return await source.ValueTask.ConfigureAwait(false);
+                }
+            }
+
+            return await source.ValueTask.ConfigureAwait(false);
+#else
 #if NET45
             var source = new TaskCompletionSource<Object>();
 #else
@@ -883,6 +912,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             }
 
             return await source.Task.ConfigureAwait(false);
+#endif
         }
         catch (Exception ex)
         {
@@ -901,6 +931,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     private void TrySetCanceled(Object? state)
     {
+#if NET5_0_OR_GREATER
+        if (state is PooledValueTaskSource pvts)
+        {
+            pvts.TrySetCanceled();
+            return;
+        }
+#endif
         if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
             source.TrySetCanceled();
     }
