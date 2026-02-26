@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using NewLife.Caching;
 
 namespace Benchmark.CacheBenchmarks;
@@ -77,7 +77,19 @@ public class MemoryCacheConcurrencyBenchmark
     private MemoryCache _cache = null!;
     private String[] _keys = null!;
 
-    [Params(1, 4, 8, 32)]
+    /// <summary>动态线程数：固定 1/4/8/32，若本机逻辑核心数不在其中则额外加入</summary>
+    public static IEnumerable<Int32> ThreadCounts
+    {
+        get
+        {
+            var cores = Environment.ProcessorCount;
+            var set = new SortedSet<Int32> { 1, 4, 8, 32 };
+            set.Add(cores);
+            return set;
+        }
+    }
+
+    [ParamsSource(nameof(ThreadCounts))]
     public Int32 ThreadCount { get; set; }
 
     [Params(10_000)]
