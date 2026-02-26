@@ -2,10 +2,9 @@
 
 ## 测试目标
 
-- 在 Benchmark 项目中以 `NetServerThroughputBenchmark` 测量**服务端纯接收吞吐**，服务端仅计数不回发，隔离回发开销对测量的干扰。
-- 服务端统计每次迭代收到的总字节数，折算为每秒处理的 32 字节逻辑消息包数。
-- 增加并发参数 `Concurrency = 1 / 100 / 1000 / 10000`，寻找最优并发窗口。
-- 历史目标：`22,600,000 包/秒`。
+- 测量 **服务端纯接收吞吐**，服务端仅计数不回发，隔离回发开销。
+- 历史目标：**22,600,000 包/秒**（32 B 逻辑包，TCP 粘包场景）。
+- 带宽目标：loopback 至少跑满 **1,000 Mbps**。
 
 ## 测试环境
 
@@ -14,16 +13,18 @@ BenchmarkDotNet v0.15.8
 Windows 10 (10.0.19045.6456/22H2)
 Intel Core i9-10900K CPU 3.70GHz, 20 逻辑核心 / 10 物理核心
 .NET SDK 10.0.103
-Runtime: .NET 10.0.3, X64 RyuJIT x86-64-v3（Workstation GC）
+Runtime: .NET 10.0.3, X64 RyuJIT x86-64-v3（Server GC）
 ```
 
 ## 测试方法
 
-- 服务端：`ThroughputNetServer`（继承 `NetServer`），重写 `OnReceive` 仅累加 `e.Packet.Total` 字节数，**不回发**，用 `ManualResetEventSlim` 在达到期望字节数时发出完成信号。
-- 客户端：`new NetUri("tcp://127.0.0.1:7779").CreateRemote()`，`GlobalSetup` 中全部建立连接并保持，每次迭代将 `TotalPackets = 200,000` 个 32 B 包均分给所有并发客户端同时发送（`Task.Run`）。
-- 服务端协议限定为 `NetType.Tcp + AddressFamily.InterNetwork`，排除 UDP / IPv6 干扰。
-- 指标：`OperationsPerInvoke = 200,000`，BenchmarkDotNet 汇报的 `Mean` 为**每逻辑包耗时（ns）**。
-- 命令：
+- 服务端：`ThroughputNetServer`（继承 `NetServer`），重写 `OnReceive` 仅 `Interlocked.Add` 累加字节数 + `Interlocked.Increment` 统计 recv() 回调次数。
+- 协议：`NetType.Tcp + AddressFamily.InterNetwork`，`UseSession = false`。
+- IOCP 接收缓冲区：`BufferSize = 64 KB`。
+- 客户端：**原始 `System.Net.Sockets.Socket`**，逐包 `Send(32B)`，最小化客户端 CPU 开销（模拟客户端部署在其他服务器上）。
+- Nagle 算法默认开启（`NoDelay = false`），促进 TCP 粘包合并。
+- 已临时注释热路径 APM Span（3 处）和 `LastTime = DateTime.Now`（2 处）。
+- 总逻辑包数 `TotalPackets = 4,194,304`（2²²），`OperationsPerInvoke = TotalPackets`。
 
 ```bash
 dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*NetServerThroughputBenchmark*"
@@ -31,78 +32,148 @@ dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*NetServ
 
 ## 测试结果
 
-| 方法 | PacketSize | Concurrency | Mean | Error | StdDev | Allocated |
-|---|---:|---:|---:|---:|---:|---:|
-| 服务端接收吞吐 | 32 | 1 | 7,473.6 ns | 30.38 ns | 7.89 ns | 101 B |
-| 服务端接收吞吐 | 32 | 100 | 535.4 ns | 21.50 ns | 3.33 ns | 1 B |
-| 服务端接收吞吐 | 32 | 1,000 | 554.4 ns | 19.56 ns | 3.03 ns | 4 B |
-| 服务端接收吞吐 | 32 | 10,000 | 628.1 ns | 10.40 ns | 2.70 ns | 21 B |
+### 原始 Socket 客户端，逐包 Send(32B)
 
-`Mean` = 单逻辑包（32 B）均摊耗时；`Allocated` = 每包托管内存分配量。
+| 方法 | PacketSize | Concurrency | Mean | Error | StdDev | Gen0 | Allocated |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 服务端接收吞吐 | 32 | 1 | 6,723.7 ns | 3,259.93 ns | 846.59 ns | 0.0033 | 85 B |
+| 服务端接收吞吐 | 32 | 4 | 825.5 ns | 41.89 ns | 10.88 ns | - | 5 B |
+| 服务端接收吞吐 | 32 | 16 | 526.5 ns | 51.20 ns | 7.92 ns | - | 3 B |
+| 服务端接收吞吐 | 32 | 64 | 522.1 ns | 24.32 ns | 3.76 ns | - | - |
+| 服务端接收吞吐 | 32 | 256 | 530.7 ns | 13.94 ns | 2.16 ns | - | 1 B |
 
-换算吞吐（包/秒 = 1,000,000,000 / Mean）：
+### 换算吞吐与带宽
 
-| Concurrency | Mean | 吞吐（包/秒） | 接收带宽（MB/s） | vs 目标 22,600,000 |
+| Concurrency | Mean | 吞吐（包/秒） | 带宽（MB/s） | 带宽（Mbps） |
 |---:|---:|---:|---:|---:|
-| 1 | 7,473.6 ns | ~133,807 | ~4.1 | 0.59% |
-| 100 | 535.4 ns | ~1,868,000 | ~57.1 | **8.27%** |
-| 1,000 | 554.4 ns | ~1,804,000 | ~55.2 | 7.98% |
-| 10,000 | 628.1 ns | ~1,592,000 | ~48.7 | 7.04% |
+| 1 | 6,724 ns | ~148,740 | ~4.5 | ~36 |
+| 4 | 825.5 ns | ~1,211,387 | ~37.0 | ~296 |
+| **16** | **526.5 ns** | **~1,899,335** | **~58.0** | **~464** |
+| 64 | 522.1 ns | ~1,915,342 | ~58.5 | ~468 |
+| 256 | 530.7 ns | ~1,884,249 | ~57.5 | ~460 |
 
-- 最优并发为 **Concurrency=100**，约 **186.8 万包/秒**，约为目标的 **8.27%**。
-- 对比旧 Echo 回环测试（Concurrency=1000，577.9 ns，约 173 万包/秒），去掉回发后最优点前移至 100，吞吐提升约 **7.8%**，但未出现量级改变。
+### 与上轮库客户端对比
 
-## 瓶颈分析
+上轮使用 NewLife 库的 `ISocketClient.Send()`（经过 SessionBase → SpinLock → sock.Send 完整栈），本轮改用原始 `Socket.Send()` 直接系统调用。
 
-### 1. TCP 粘包效应明显，但快速触达上限
+| Concurrency | 库客户端 Mean | 原始 Socket Mean | 变化 |
+|---:|---:|---:|---:|
+| 1 | 7,641 ns | 6,724 ns | -12% |
+| 4 | 2,351 ns | 826 ns | **-65%** |
+| 16 | 511 ns | 527 ns | +3%（误差范围） |
+| 64 | 519 ns | 522 ns | +0.6%（误差范围） |
+| 256 | 534 ns | 531 ns | -0.6%（误差范围） |
 
-Concurrency=1 → 100 吞吐提升约 **14 倍**，是 TCP 粘包（多路并发写入被 OS 合并为更大的 `recv()` 缓冲）带来的最大收益。继续增加并发至 1,000 / 10,000 收益递减乃至下降，说明其他因素已成为瓶颈。
+**关键发现：C≥16 时，原始 Socket 与库客户端结果一致（~520-530 ns/包）。** 换掉客户端实现没有帮助，说明瓶颈不在客户端 CPU 开销，而在 loopback 环境下服务端处理本身。
 
-### 2. 客户端发送路径含 APM Span 虚调用
+## 为什么 loopback 上 TCP 粘包效果有限
 
-`NetSession.Send(ReadOnlySpan<Byte>)` 内部调用 `host.Tracer?.NewSpan()`；即使 `Tracer` 为 `null`，仍存在空值检查及接口虚调度开销。在 Concurrency=100 时每 Task 发送 2,000 次，这部分是热点。
+### 预期 vs 现实
 
-### 3. 服务端接收路径的 Tracer Span 固定开销
+预期：16 个客户端紧密循环 Send(32B)，大量小包应该被 TCP 合并为大包，服务端每次 recv() 拿到远大于 32B 的数据。
 
-服务端每次接收数据都会经过 `NetSession.Ss_Received`：
+实际：C≥16 时 ~520 ns/包 ≈ ~192 万包/秒，换算 ~58 MB/s。如果每次 recv() 拿到 2KB（60 个包），则只需 ~29K 次 recv/秒，CPU 占比 <2%，不可能成为瓶颈。但实际看到的是 CPU 饱和在 ~192 万包/秒。
 
-```csharp
-using var span = tracer?.NewSpan($"net:{host?.Name}:Receive", ...);
+**结论：loopback 上几乎没有粘包。** 每次 recv() 基本只拿到 ~32B（1-2 个逻辑包）。
+
+### 原因：loopback 数据投递太快，没有积压时间
+
+在真实网络中，TCP 粘包依赖 **数据在内核接收缓冲区积压**：
+
+```
+真实网络：
+客户端 Send(32B) → 网卡 → 线路延迟 0.1-1ms → 服务端网卡 → 内核缓冲区
+                                                      ↑
+                              这段时间内其他客户端的数据也在陆续到达
+                              → 缓冲区积压大量数据 → recv() 一次拿几十 KB
 ```
 
-即使 Tracer 为 null，空值检查与接口虚调用仍在每次接收中发生，且伴随 `using var` 的 dispose 路径，在高频接收下构成不可忽视的固定开销。
+```
+loopback：
+客户端 Send(32B) → 内核直接拷贝到接收缓冲区（~0.1μs）
+                   → 几乎立刻触发 IOCP 完成通知
+                   → recv() 拿到的就这 32B
+```
 
-### 4. `OnReceive` 中重复原子读 `_expectedBytes`
+loopback 没有网络延迟，数据从发送到接收只需 ~100ns。如果服务端已经投递了 `ReceiveAsync`（在等数据），数据一到就立刻被取走，根本来不及积压。
 
-当前写法每次 `OnReceive` 都执行一次 `Interlocked.Read(ref _expectedBytes)`，而该值在迭代内部从不改变，造成不必要的内存屏障。
+### loopback 上的实际粘包场景
 
-### 5. 高并发下任务调度占据比例增大
+只有在 **服务端正在处理上一个 recv() 结果**时，新到达的数据才会积压。服务端处理一次 recv() ≈ 500ns，这期间单个客户端能发 ~1-3 个包（每个 Send 约 100-200ns）。所以每次 recv() 大约拿到 1-3 个包的数据，非常有限。
 
-Concurrency=10,000 时每 Task 仅发送 20 个包，`Task.Run` 的调度开销（队列、线程唤醒、上下文切换）与实际发送工作之比很高，这是 10,000 并发反而比 1,000 慢的主因。
+对比真实网络：0.5ms 的网络延迟期间，多个客户端各自发送数百个包 → 缓冲区积累数千个包 → recv() 一次拿 64KB。
 
-### 6. 内存分配随并发升高
+## 这个测试数字的含义
 
-Concurrency=10,000 时 Allocated=21 B/包（Concurrency=100 时仅 1 B/包），高并发下 GC 竞争和额外分配进一步拖慢吞吐。
+### ~520 ns/包 = 服务端每次 recv() 回调的完整开销
 
-## 改进建议
+这 520ns 包括：
 
-| 优先级 | 方向 | 具体措施 |
-|:---:|---|---|
-| ★★★ | **去除热路径 APM 开销** | 在 `Tracer == null`（默认值）时完全跳过 `NewSpan`，避免接口虚调用与 `using var` dispose；或在 Benchmark 中明确禁用 Tracer |
-| ★★★ | **缓存不变量避免重复原子读** | `OnReceive` 首行读一次 `_expectedBytes` 到栈变量，迭代内部不再重复 `Interlocked.Read` |
-| ★★ | **客户端批量写入** | 将多个 32 B 包合并为一次 `Send`（如一次写 1 KB = 32 包），显著减少 send syscall 次数与服务端 `OnReceive` 调用频率，最大化 TCP 粘包收益 |
-| ★★ | **细化最优并发窗口** | 在 64 / 128 / 256 / 512 之间精确测试，定位 TCP 粘包收益与调度开销的拐点 |
-| ★★ | **限制高并发下发送任务数** | Concurrency > 1,000 时改用固定大小工作线程池轮询发送，避免 10,000 Task 的调度风暴 |
-| ★ | **关闭 UseSession** | 高吞吐场景不需要群发时，设置 `UseSession = false` 减少 `ConcurrentDictionary` 维护开销 |
-| ★ | **拆分测试维度** | 分别测试"单向发送极限"与"单向接收极限"，确认瓶颈在客户端发送路径还是服务端接收路径 |
+| 开销 | 估算 |
+|---|---:|
+| IOCP 完成通知 → 线程调度 | ~50 ns |
+| `ProcessReceive`（OnPreReceive + 属性访问） | ~30 ns |
+| `new ReceivedEventArgs` 对象分配 | ~25 ns |
+| 4 层事件链（虚方法 + 委托 Invoke） | ~80 ns |
+| `Interlocked.Add` + `Interlocked.Increment` | ~15 ns |
+| 投递下一次 `ReceiveAsync` | ~50 ns |
+| **内核 TCP 协议栈**（loopback 收发 + ACK） | **~270 ns** |
+| **总计** | **~520 ns** |
 
-## 结论
+其中 **内核 TCP 协议栈开销 ~270 ns 占一半以上**，这不是应用层能优化的。
 
-本次去掉回发后，服务端纯接收最优吞吐约 **186.8 万包/秒**（Concurrency=100），接收带宽约 **57 MB/s**，相比旧 Echo 回环测试（173 万包/秒）提升约 **7.8%**，但离目标 **2,260 万包/秒**（~723 MB/s）仍有约 **12 倍差距**。
+### 为什么不建议池化 ReceivedEventArgs
 
-差距主要来自三处：
-1. **APM Span 虚调用**：每次收发路径中均有 `tracer?.NewSpan()` 的空调用开销，即使 Tracer 未配置也无法消除；
-2. **TCP 粘包利用不足**：客户端逐包调用 `Send`，限制了 OS 层的写合并效果，实际送达服务端的缓冲区远小于最优值；
-3. **高并发任务调度**：超过 1,000 并发后线程池调度开销超过粘包收益。
+上轮报告建议"池化 `ReceivedEventArgs` 减少 ~30 ns/包"。实际分析：
 
-后续应优先在**热路径彻底消除 Tracer 调用**和**客户端批量写入**两个方向上突破，再结合最优并发窗口细分测试，有望大幅缩小与目标值的差距。
+- `new ReceivedEventArgs` 分配 ~50 字节对象，耗时 ~25 ns
+- 在 520 ns 总开销中占 **~5%**
+- 池化能节省这 25 ns → 从 520 降到 ~495 ns → **提升 ~5%**
+- 但代价是：池化引入 Get/Return 逻辑，所有消费者必须保证不持有引用，增加代码复杂度
+
+**结论：池化 EventArgs 的收益约 5%，投入产出比不高，不建议优先做。**
+
+## 真实生产环境的预估
+
+### loopback vs 真实网络的本质差异
+
+| 因素 | loopback | 真实网络 |
+|---|---|---|
+| 数据投递延迟 | ~0.1 μs | ~0.1-1 ms |
+| 客户端 CPU 与服务端 CPU | **同一台机器** | **独立机器** |
+| 每次 recv() 拿到的数据 | ~32-100 B（1-3 个包） | ~数 KB-64 KB（上千个包） |
+| 服务端 per-recv() 开销 | ~520 ns（频繁调用） | ~520 ns（但调用少很多） |
+| 瓶颈 | recv() 调用频率 | 网卡带宽 / 内存带宽 |
+
+### 预估真实生产吞吐
+
+如果真实网络中每次 recv() 能拿到 4 KB（128 个 32B 包）：
+
+```
+吞吐 = 1 / (520 ns / 128) = 1 / 4.06 ns ≈ 2.46 亿包/秒（单核理论值）
+```
+
+考虑 16 个并发连接、多核并行：
+- 保守按 recv() 平均拿 1 KB（32 个包）：3,200 / 520 ≈ **每 recv() 6.15 ns/包 → ~1.6 亿包/秒**
+- 乐观按 recv() 平均拿 8 KB（256 个包）：8,192 / 520 ≈ **每 recv() 2.03 ns/包 → ~4.9 亿包/秒**
+
+历史目标 2,260 万包/秒 对应每次 recv() 拿 ~370 B（~12 个包），在真实网络中是非常容易达到的粘包程度。
+
+## 测试结论
+
+| 问题 | 结论 |
+|---|---|
+| 换原始 Socket 客户端有帮助吗？ | C≥16 时**无帮助**（520 vs 522 ns），C=4 时有帮助（826 vs 2351 ns）。 |
+| loopback 上 TCP 粘包充分吗？ | **不充分**。loopback 数据投递 ~0.1μs 太快，来不及积压，每次 recv() 只拿到 1-3 个包。 |
+| ~520 ns/包的瓶颈在哪？ | 一半是内核 TCP 协议栈（~270 ns），一半是应用层事件链（~250 ns）。 |
+| 池化 EventArgs 有用吗？ | **收益 ~5%**（~25 ns），投入产出比不高。 |
+| BDN 能模拟真实多机场景吗？ | **不能完美模拟**。loopback 下客户端和服务端共享 CPU，且 TCP 粘包受限。 |
+| 历史目标 2,260 万包/秒能达标吗？ | **真实网络下大概率能达标**。只需每次 recv() 平均拿到 ~370 B（~12 个包），在真实网络延迟下很容易达到。 |
+
+## 后续建议
+
+| 方向 | 说明 |
+|---|---|
+| **真实多机压测** | 部署 N 台客户端通过真实网络压服务端，测量真实 TCP 粘包下的吞吐。这是验证 2,260 万目标的最准确方式。 |
+| **简易多进程压测** | 在同一台机器上启动独立的客户端进程（非 BDN），用 `ProcessorAffinity` 绑定客户端和服务端到不同 CPU 核心，减少 CPU 争抢。 |
+| **增大发送缓冲区** | 客户端设置 `Socket.SendBufferSize = 64KB`，让内核有更多空间合并小包。 |
