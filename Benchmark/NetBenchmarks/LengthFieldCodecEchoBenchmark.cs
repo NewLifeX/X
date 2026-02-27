@@ -13,9 +13,9 @@ namespace Benchmark.NetBenchmarks;
 /// 测量请求-响应回路的完整开销。
 /// 包含两个场景：
 /// 1. 逐包Echo：每个客户端串行发送一个请求并等待响应，测量单次RTT
-/// 2. 批量Echo：每个客户端并发发送多个请求后统一等待响应，测量批量吞吐
+/// 2. 滑动窗口Echo：每个客户端始终保持256个在途请求，任一完成立即补发下一个，
+///    保持匹配队列接近满载，充分利用 TCP 流水线和 Nagle 合包。
 ///    LengthFieldCodec 无序列号，响应按 FIFO 匹配请求。
-///    由于 TCP 保序且 Echo 返回顺序与请求一致，FIFO 匹配完全正确。
 /// 命令：dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter "*LengthFieldCodecEchoBenchmark*"
 /// </remarks>
 [MemoryDiagnoser]
@@ -35,15 +35,11 @@ public class LengthFieldCodecEchoBenchmark : IDisposable
     /// <summary>逐包Echo逻辑包总数（2^17 = 131072），需被所有并发数整除</summary>
     private const Int32 SingleTotal = 131_072;
 
-    /// <summary>批量Echo逻辑包总数（128×2048 = 262144），需被BatchSize和所有并发数整除</summary>
-    private const Int32 BatchTotal = 128 * 2048; // 262,144
+    /// <summary>批量Echo逻辑包总数（256×1024 = 262144），需被所有并发数整除</summary>
+    private const Int32 BatchTotal = 256 * 1024; // 262,144
 
-    /// <summary>每轮批量并发数。LengthFieldCodec无序列号，FIFO匹配，适度并发即可</summary>
-    /// <remarks>
-    /// MessageCodec 匹配队列默认256容量，使用128保留余量。
-    /// TCP保序 + Echo顺序回复 → FIFO匹配完全正确。
-    /// </remarks>
-    private const Int32 BatchSize = 128;
+    /// <summary>滑动窗口大小。DefaultMatchQueue默认256坑位，窗口填满256保持队列满载</summary>
+    private const Int32 WindowSize = 256;
 
     private const Int32 Port = 7781;
 
@@ -123,18 +119,15 @@ public class LengthFieldCodecEchoBenchmark : IDisposable
         Task.WaitAll(tasks);
     }
 
-    /// <summary>批量Echo：每个客户端并发发送128请求后统一等待响应，利用TCP粘包提升吞吐</summary>
+    /// <summary>滑动窗口Echo：始终保持WindowSize个请求在途，任一完成立即补发下一个</summary>
     /// <remarks>
-    /// 每轮循环中，128个 SendMessageAsync 在同一线程内依次调用（Pipeline.Write 同步完成），
-    /// 快速连续的 Send 调用配合 Nagle 算法使 TCP 内核自然合并小包。
-    /// 服务端 PacketCodec 拆包后逐一回复，客户端通过 FIFO 匹配响应。
-    /// 由于 TCP 保序且服务端按收到顺序回复，FIFO 匹配完全正确。
+    /// 滑动窗口模式保持匹配队列始终接近满载（256），避免批量等待全部完成后再发的锯齿效应。
+    /// TCP 连接保序，响应按 FIFO 顺序返回，循环 await 最旧请求后立即补发新请求。
     /// </remarks>
-    [Benchmark(Description = "批量Echo(LengthFieldCodec)", OperationsPerInvoke = BatchTotal)]
-    public void BatchEcho()
+    [Benchmark(Description = "滑动窗口Echo(LengthFieldCodec)", OperationsPerInvoke = BatchTotal)]
+    public void SlidingWindowEcho()
     {
         var perClient = BatchTotal / Concurrency;
-        var rounds = perClient / BatchSize;
         var tasks = new Task[Concurrency];
         for (var c = 0; c < Concurrency; c++)
         {
@@ -142,17 +135,30 @@ public class LengthFieldCodecEchoBenchmark : IDisposable
             tasks[c] = Task.Run(async () =>
             {
                 var client = _clients[idx];
-                for (var r = 0; r < rounds; r++)
+                var fill = Math.Min(WindowSize, perClient);
+                var window = new ValueTask<Object>[fill];
+                var sent = 0;
+
+                // 填满初始窗口
+                for (var i = 0; i < fill; i++)
                 {
-                    var batch = new ValueTask<Object>[BatchSize];
-                    for (var i = 0; i < BatchSize; i++)
-                    {
-                        var payload = CreatePayload();
-                        batch[i] = client.SendMessageAsync(payload, default);
-                    }
-                    for (var i = 0; i < BatchSize; i++)
-                        await batch[i].ConfigureAwait(false);
+                    window[i] = client.SendMessageAsync(CreatePayload(), default);
+                    sent++;
                 }
+
+                // 滑动：await 最旧的请求，立即补发新请求
+                var slot = 0;
+                while (sent < perClient)
+                {
+                    await window[slot].ConfigureAwait(false);
+                    window[slot] = client.SendMessageAsync(CreatePayload(), default);
+                    sent++;
+                    slot = (slot + 1) % fill;
+                }
+
+                // 排空剩余窗口
+                for (var i = 0; i < fill; i++)
+                    await window[(slot + i) % fill].ConfigureAwait(false);
             });
         }
 
