@@ -359,14 +359,13 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
 
     /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
     /// <param name="message">消息</param>
-    /// <returns></returns>
-    public override Task<Object> SendMessageAsync(Object message) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message);
-
-    /// <summary>发送消息并等待响应。必须调用会话的发送，否则配对会失败</summary>
-    /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    public override ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
+#else
+    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
+#endif
     #endregion
 
     #region 接收

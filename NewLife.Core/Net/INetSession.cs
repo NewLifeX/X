@@ -147,21 +147,16 @@ public interface INetSession : IDisposable2
     /// <summary>异步发送消息并等待响应</summary>
     /// <remarks>
     /// <para>管道内对消息进行报文封装处理，最终得到二进制数据进入网卡。</para>
-    /// <para>适用于请求-响应模式，会阻塞等待对方响应。</para>
-    /// </remarks>
-    /// <param name="message">请求消息对象</param>
-    /// <returns>响应消息对象</returns>
-    Task<Object> SendMessageAsync(Object message);
-
-    /// <summary>异步发送消息并等待响应</summary>
-    /// <remarks>
-    /// <para>管道内对消息进行报文封装处理，最终得到二进制数据进入网卡。</para>
     /// <para>适用于请求-响应模式，支持超时取消。</para>
     /// </remarks>
     /// <param name="message">请求消息对象</param>
     /// <param name="cancellationToken">取消令牌，用于超时控制</param>
     /// <returns>响应消息对象</returns>
-    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken);
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
+#else
+    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
+#endif
     #endregion
 }
 

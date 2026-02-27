@@ -222,7 +222,7 @@ public class DefaultMatchQueue : IMatchQueue
     /// <summary>设置完成结果（兼容 TCS 和 PooledValueTaskSource）</summary>
     private static void SetResult(Object source, Object result)
     {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         if (source is PooledValueTaskSource pvts)
         {
             pvts.TrySetResult(result);
@@ -242,7 +242,7 @@ public class DefaultMatchQueue : IMatchQueue
     /// <summary>设置取消（兼容 TCS 和 PooledValueTaskSource）</summary>
     private static void SetCanceled(Object source)
     {
-#if NET5_0_OR_GREATER
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
         if (source is PooledValueTaskSource pvts)
         {
             pvts.TrySetCanceled();

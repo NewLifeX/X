@@ -1,4 +1,4 @@
-﻿#if NET5_0_OR_GREATER
+﻿#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
 using System.Threading.Tasks.Sources;
 using NewLife.Collections;
 using NewLife.Log;
@@ -9,7 +9,7 @@ namespace NewLife.Net;
 /// <remarks>
 /// 生命周期：Rent → AttachSpan/RegisterCancellation → 设置到匹配队列 → SetResult/SetCanceled → 消费者 await 完成 → GetResult 内自动释放资源并归还到池。
 /// 线程安全：通过 CAS 保证 SetResult/SetCanceled 只成功一次。
-/// 非异步模式：SendMessageAsync 无需 async/await，直接返回 AsTask()，消除状态机分配。
+/// 非异步模式：SendMessageAsync 无需 async/await，直接返回 ValueTask，消除状态机分配。
 /// </remarks>
 sealed class PooledValueTaskSource : IValueTaskSource<Object>
 {
@@ -25,7 +25,13 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
     private static readonly Pool<PooledValueTaskSource> _pool = new();
 
     /// <summary>从池中借出</summary>
-    public static PooledValueTaskSource Rent() => _pool.Get();
+    public static PooledValueTaskSource Rent()
+    {
+        var source = _pool.Get();
+        // 在借出时重置完成标志，而非 GetResult 中重置，避免匹配队列残留引用对已回收源重复操作
+        source._completed = 0;
+        return source;
+    }
 
     /// <summary>当前版本号</summary>
     public Int16 Version => _core.Version;
@@ -35,9 +41,6 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
 
     /// <summary>获取可等待的 ValueTask</summary>
     public ValueTask<Object> ValueTask => new(this, _core.Version);
-
-    /// <summary>获取 Task 包装（用于保持 Task&lt;Object&gt; 返回类型兼容）</summary>
-    public Task<Object> AsTask() => new ValueTask<Object>(this, _core.Version).AsTask();
 
     /// <summary>关联性能追踪 Span，将在 GetResult 中自动 Dispose</summary>
     /// <param name="span">追踪 Span</param>
@@ -103,9 +106,9 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
             _span?.Dispose();
 
             // 重置状态并归还到池
+            // 不重置 _completed，保留为 1，防止匹配队列残留引用对已回收源重复调用 TrySetCanceled
             _span = null;
             _registration = default;
-            _completed = 0;
             _core.Reset();
             _pool.Return(this);
         }

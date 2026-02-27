@@ -1,18 +1,19 @@
-using NewLife;
+﻿using NewLife;
 using NewLife.Net;
 using Xunit;
 
 namespace XUnitTest.Net;
 
+[Collection("Net")]
 public class EchoNetServerTests
 {
     [Fact]
     public void Echo32Bytes()
     {
-        using var server = new EchoNetServer { Port = 7777 };
+        using var server = new EchoNetServer { Port = 0 };
         server.Start();
 
-        using var client = new NetUri("tcp://127.0.0.1:7777").CreateRemote();
+        using var client = new NetUri($"tcp://127.0.0.1:{server.Port}").CreateRemote();
         var payload = new Byte[32];
         Random.Shared.NextBytes(payload);
 

@@ -404,17 +404,15 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs) => (Session as SessionBase)!.SendMessage(message, eventArgs.Context);
 
     /// <summary>异步发送消息并等待响应</summary>
-    /// <remarks>管道内对消息进行报文封装处理，最终得到二进制数据进入网卡</remarks>
-    /// <param name="message">请求消息对象</param>
-    /// <returns>响应消息对象</returns>
-    public virtual Task<Object> SendMessageAsync(Object message) => Session.SendMessageAsync(message);
-
-    /// <summary>异步发送消息并等待响应</summary>
     /// <remarks>管道内对消息进行报文封装处理，支持超时取消</remarks>
     /// <param name="message">请求消息对象</param>
     /// <param name="cancellationToken">取消令牌，用于超时控制</param>
     /// <returns>响应消息对象</returns>
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken) => Session.SendMessageAsync(message, cancellationToken);
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => Session.SendMessageAsync(message, cancellationToken);
+#else
+    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => Session.SendMessageAsync(message, cancellationToken);
+#endif
     #endregion
 
     #region 日志

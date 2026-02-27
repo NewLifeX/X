@@ -41,8 +41,9 @@ public class ReceivedEventArgs : EventArgs, IData
 
     /// <summary>原始数据包</summary>
     /// <remarks>
-    /// Packet内部直接引用网络缓冲区，以实现零拷贝，并非全部数据都属于当前消息。
-    /// 需要注意所有权，当前数据事件结束时回收，不应被外部引用。
+    /// <para>Packet内部直接引用网络缓冲区，以实现零拷贝，并非全部数据都属于当前消息。</para>
+    /// <para>需要注意所有权，当前数据事件结束时回收，不应被外部引用。</para>
+    /// <para>Received事件处理器必须同步完成数据读取。若需异步处理，请先通过 <see cref="GetBytes"/> 或 Packet.ToArray() 拷贝数据。</para>
     /// </remarks>
     public IPacket? Packet { get; set; }
 

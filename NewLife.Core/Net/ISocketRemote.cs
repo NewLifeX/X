@@ -93,22 +93,17 @@ public interface ISocketRemote : ISocket, IExtend
     #region 消息处理
     /// <summary>异步发送消息并等待响应</summary>
     /// <param name="message">要发送的消息对象</param>
-    /// <returns>响应消息对象</returns>
-    /// <remarks>
-    /// <para>高级消息通信API，支持请求-响应模式。</para>
-    /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
-    /// </remarks>
-    Task<Object> SendMessageAsync(Object message);
-
-    /// <summary>异步发送消息并等待响应</summary>
-    /// <param name="message">要发送的消息对象</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>响应消息对象</returns>
     /// <remarks>
     /// <para>高级消息通信API，支持请求-响应模式和超时控制。</para>
     /// <para>消息将经过 <see cref="ISocket.Pipeline"/> 编码后发送，响应经解码后返回。</para>
     /// </remarks>
-    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken);
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
+#else
+    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
+#endif
 
     /// <summary>发送消息，不等待响应</summary>
     /// <param name="message">要发送的消息对象</param>

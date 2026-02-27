@@ -845,19 +845,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
 
     /// <summary>通过管道发送消息并等待响应</summary>
     /// <param name="message">消息</param>
-    /// <returns>响应消息</returns>
-    public virtual Task<Object> SendMessageAsync(Object message) => SendMessageAsync(message, default);
-
-    /// <summary>通过管道发送消息并等待响应</summary>
-    /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>响应消息</returns>
-#if NET5_0_OR_GREATER
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
         if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
 
-        // 非异步实现：消除 async 状态机分配（~300B），Span 和 CancellationTokenRegistration 由 PooledValueTaskSource.GetResult 自动释放
+        // 非异步实现：消除 async 状态机分配，Span 和 CancellationTokenRegistration 由 PooledValueTaskSource.GetResult 自动释放
         var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
         var ctx = CreateContext(this);
         try
@@ -878,14 +873,14 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (rs < 0)
             {
                 source.TrySetResult(TaskEx.CompletedTask);
-                return source.AsTask();
+                return source.ValueTask;
             }
 
             // 注册取消令牌，GetResult 中自动释放注册
             source.RegisterCancellation(cancellationToken);
 
-            // 返回 Task 包装，无 async 状态机开销
-            return source.AsTask();
+            // 直接返回 ValueTask，零额外分配
+            return source.ValueTask;
         }
         catch (Exception ex)
         {
@@ -900,7 +895,7 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         }
     }
 #else
-    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
         if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
 
@@ -952,13 +947,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (ctx != null) ReturnContext(ctx);
         }
     }
-#endif
 
     private void TrySetCanceled(Object? state)
     {
         if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
             source.TrySetCanceled();
     }
+#endif
 
     /// <summary>处理数据帧</summary>
     /// <param name="data">数据帧</param>

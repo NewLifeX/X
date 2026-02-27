@@ -139,13 +139,14 @@ public class StandardCodecEchoBenchmark : IDisposable
                 var client = _clients[idx];
                 for (var r = 0; r < rounds; r++)
                 {
-                    var batch = new Task<Object>[BatchSize];
+                    var batch = new ValueTask<Object>[BatchSize];
                     for (var i = 0; i < BatchSize; i++)
                     {
                         var payload = CreatePayload();
-                        batch[i] = client.SendMessageAsync(payload);
+                        batch[i] = client.SendMessageAsync(payload, default);
                     }
-                    await Task.WhenAll(batch).ConfigureAwait(false);
+                    for (var i = 0; i < BatchSize; i++)
+                        await batch[i].ConfigureAwait(false);
                 }
             });
         }

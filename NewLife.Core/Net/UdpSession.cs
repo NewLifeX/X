@@ -228,17 +228,11 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     /// <summary>发送消息并等待响应</summary>
     /// <param name="message">消息对象</param>
-    /// <returns>响应消息</returns>
-    /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
-#if NET5_0_OR_GREATER
-    public virtual Task<Object> SendMessageAsync(Object message) => SendMessageAsync(message, default);
-
-    /// <summary>发送消息并等待响应</summary>
-    /// <param name="message">消息对象</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>响应消息</returns>
     /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
+    public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
         if (Server == null) throw new InvalidOperationException(nameof(Server));
         if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
@@ -257,12 +251,12 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             if (rs < 0)
             {
                 source.TrySetResult(TaskEx.CompletedTask);
-                return source.AsTask();
+                return source.ValueTask;
             }
 
             source.RegisterCancellation(cancellationToken);
 
-            return source.AsTask();
+            return source.ValueTask;
         }
         catch (Exception ex)
         {
@@ -275,7 +269,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         }
     }
 #else
-    public virtual async Task<Object> SendMessageAsync(Object message)
+    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
         if (Server == null) throw new InvalidOperationException(nameof(Server));
         if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
@@ -294,49 +288,17 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
             if (rs < 0) return TaskEx.CompletedTask;
+
+            // Register返回值需要Dispose，否则会导致内存泄漏
+            if (cancellationToken.CanBeCanceled)
+            {
+                using (cancellationToken.Register(TrySetCanceled, source))
+                {
+                    return await source.Task.ConfigureAwait(false);
+                }
+            }
 
             return await source.Task.ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            if (ex is TaskCanceledException)
-                span?.AppendTag(ex.Message);
-            else
-                span?.SetError(ex, message);
-            throw;
-        }
-    }
-
-    /// <summary>发送消息并等待响应</summary>
-    /// <param name="message">消息对象</param>
-    /// <param name="cancellationToken">取消通知</param>
-    /// <returns>响应消息</returns>
-    /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
-    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
-    {
-        if (Server == null) throw new InvalidOperationException(nameof(Server));
-        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
-        try
-        {
-            var ctx = Server.CreateContext(this);
-#if NET45
-            var source = new TaskCompletionSource<Object>();
-#else
-            var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
-#endif
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-            if (rs < 0) return TaskEx.CompletedTask;
-
-            // 注册取消时的处理，如果没有收到响应，取消发送等待
-            using (cancellationToken.Register(TrySetCanceled, source))
-            {
-                return await source.Task.ConfigureAwait(false);
-            }
         }
         catch (Exception ex)
         {

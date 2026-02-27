@@ -310,7 +310,7 @@ public class NetAsyncTests
             var idx = i;
             var msg = $"Concurrent {idx}";
             var sendData = new ArrayPacket(Encoding.UTF8.GetBytes(msg));
-            tasks.Add(client.SendMessageAsync(sendData));
+            tasks.Add(client.SendMessageAsync(sendData).AsTask());
         }
 
         var rs = await Task.WhenAll(tasks);
@@ -441,9 +441,13 @@ public class NetAsyncTests
         {
             if (s is INetSession session && e.Packet != null)
             {
+                // Received事件在同步调用链中执行，事件返回后 e.Packet 缓冲区会被复用
+                // 若需异步处理，必须在await前自行拷贝数据
+                var data = e.Packet.ToStr();
+
                 // 模拟异步处理
                 await Task.Delay(100);
-                processedData = e.Packet.ToStr();
+                processedData = data;
 
                 // 异步处理后回复
                 session.Send($"Processed: {processedData}");
