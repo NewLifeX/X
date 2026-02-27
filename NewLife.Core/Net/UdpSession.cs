@@ -230,6 +230,51 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="message">消息对象</param>
     /// <returns>响应消息</returns>
     /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
+#if NET5_0_OR_GREATER
+    public virtual Task<Object> SendMessageAsync(Object message) => SendMessageAsync(message, default);
+
+    /// <summary>发送消息并等待响应</summary>
+    /// <param name="message">消息对象</param>
+    /// <param name="cancellationToken">取消通知</param>
+    /// <returns>响应消息</returns>
+    /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
+    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    {
+        if (Server == null) throw new InvalidOperationException(nameof(Server));
+        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
+
+        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+        try
+        {
+            var ctx = Server.CreateContext(this);
+            var source = PooledValueTaskSource.Rent();
+            source.AttachSpan(span);
+            ctx["TaskSource"] = source;
+            ctx["Span"] = span;
+
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
+
+            if (rs < 0)
+            {
+                source.TrySetResult(TaskEx.CompletedTask);
+                return source.AsTask();
+            }
+
+            source.RegisterCancellation(cancellationToken);
+
+            return source.AsTask();
+        }
+        catch (Exception ex)
+        {
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, message);
+            span?.Dispose();
+            throw;
+        }
+    }
+#else
     public virtual async Task<Object> SendMessageAsync(Object message)
     {
         if (Server == null) throw new InvalidOperationException(nameof(Server));
@@ -239,9 +284,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ctx = Server.CreateContext(this);
-#if NET5_0_OR_GREATER
-            var source = PooledValueTaskSource.Rent();
-#elif NET45
+#if NET45
             var source = new TaskCompletionSource<Object>();
 #else
             var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -252,11 +295,7 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
             if (rs < 0) return TaskEx.CompletedTask;
 
-#if NET5_0_OR_GREATER
-            return await source.ValueTask.ConfigureAwait(false);
-#else
             return await source.Task.ConfigureAwait(false);
-#endif
         }
         catch (Exception ex)
         {
@@ -282,19 +321,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
         try
         {
             var ctx = Server.CreateContext(this);
-#if NET5_0_OR_GREATER
-            var source = PooledValueTaskSource.Rent();
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-            if (rs < 0) return TaskEx.CompletedTask;
-
-            using (cancellationToken.Register(static s => ((PooledValueTaskSource)s!).TrySetCanceled(), source))
-            {
-                return await source.ValueTask.ConfigureAwait(false);
-            }
-#else
 #if NET45
             var source = new TaskCompletionSource<Object>();
 #else
@@ -311,7 +337,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             {
                 return await source.Task.ConfigureAwait(false);
             }
-#endif
         }
         catch (Exception ex)
         {
@@ -325,16 +350,10 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
 
     private void TrySetCanceled(Object? state)
     {
-#if NET5_0_OR_GREATER
-        if (state is PooledValueTaskSource pvts)
-        {
-            pvts.TrySetCanceled();
-            return;
-        }
-#endif
         if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
             source.TrySetCanceled();
     }
+#endif
     #endregion
 
     #region 接收

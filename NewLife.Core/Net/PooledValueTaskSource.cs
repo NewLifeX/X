@@ -1,18 +1,26 @@
 ﻿#if NET5_0_OR_GREATER
 using System.Threading.Tasks.Sources;
 using NewLife.Collections;
+using NewLife.Log;
 
 namespace NewLife.Net;
 
 /// <summary>池化的异步完成源。基于 ManualResetValueTaskSourceCore 实现，避免每次 SendMessageAsync 分配 TaskCompletionSource</summary>
 /// <remarks>
-/// 生命周期：Rent → 设置到匹配队列 → SetResult/SetCanceled → 消费者 await 完成 → GetResult 内自动归还到池。
+/// 生命周期：Rent → AttachSpan/RegisterCancellation → 设置到匹配队列 → SetResult/SetCanceled → 消费者 await 完成 → GetResult 内自动释放资源并归还到池。
 /// 线程安全：通过 CAS 保证 SetResult/SetCanceled 只成功一次。
+/// 非异步模式：SendMessageAsync 无需 async/await，直接返回 AsTask()，消除状态机分配。
 /// </remarks>
 sealed class PooledValueTaskSource : IValueTaskSource<Object>
 {
     private ManualResetValueTaskSourceCore<Object> _core;
     private volatile Int32 _completed;
+
+    /// <summary>关联的性能追踪 Span，在 GetResult 中自动释放</summary>
+    private ISpan? _span;
+
+    /// <summary>取消令牌注册，在 GetResult 中自动释放</summary>
+    private CancellationTokenRegistration _registration;
 
     private static readonly Pool<PooledValueTaskSource> _pool = new();
 
@@ -27,6 +35,21 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
 
     /// <summary>获取可等待的 ValueTask</summary>
     public ValueTask<Object> ValueTask => new(this, _core.Version);
+
+    /// <summary>获取 Task 包装（用于保持 Task&lt;Object&gt; 返回类型兼容）</summary>
+    public Task<Object> AsTask() => new ValueTask<Object>(this, _core.Version).AsTask();
+
+    /// <summary>关联性能追踪 Span，将在 GetResult 中自动 Dispose</summary>
+    /// <param name="span">追踪 Span</param>
+    public void AttachSpan(ISpan? span) => _span = span;
+
+    /// <summary>注册取消令牌，将在 GetResult 中自动 Dispose 注册</summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    public void RegisterCancellation(CancellationToken cancellationToken)
+    {
+        if (cancellationToken.CanBeCanceled)
+            _registration = cancellationToken.Register(static s => ((PooledValueTaskSource)s!).TrySetCanceled(), this);
+    }
 
     /// <summary>尝试设置成功结果（仅首次调用生效）</summary>
     /// <param name="result">结果值</param>
@@ -63,9 +86,25 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
         {
             return _core.GetResult(token);
         }
+        catch (TaskCanceledException ex)
+        {
+            _span?.AppendTag(ex.Message);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _span?.SetError(ex, null);
+            throw;
+        }
         finally
         {
-            // 消费者读取结果后，自动归还到池
+            // 释放关联资源
+            _registration.Dispose();
+            _span?.Dispose();
+
+            // 重置状态并归还到池
+            _span = null;
+            _registration = default;
             _completed = 0;
             _core.Reset();
             _pool.Return(this);

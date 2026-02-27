@@ -852,6 +852,54 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>响应消息</returns>
+#if NET5_0_OR_GREATER
+    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
+    {
+        if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
+
+        // 非异步实现：消除 async 状态机分配（~300B），Span 和 CancellationTokenRegistration 由 PooledValueTaskSource.GetResult 自动释放
+        var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
+        var ctx = CreateContext(this);
+        try
+        {
+            if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
+
+            var source = PooledValueTaskSource.Rent();
+            source.AttachSpan(span);
+            ctx["TaskSource"] = source;
+            ctx["Span"] = span;
+
+            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
+
+            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
+            ReturnContext(ctx);
+            ctx = null;
+
+            if (rs < 0)
+            {
+                source.TrySetResult(TaskEx.CompletedTask);
+                return source.AsTask();
+            }
+
+            // 注册取消令牌，GetResult 中自动释放注册
+            source.RegisterCancellation(cancellationToken);
+
+            // 返回 Task 包装，无 async 状态机开销
+            return source.AsTask();
+        }
+        catch (Exception ex)
+        {
+            if (ex is TaskCanceledException)
+                span?.AppendTag(ex.Message);
+            else
+                span?.SetError(ex, null);
+            span?.Dispose();
+
+            if (ctx != null) ReturnContext(ctx);
+            throw;
+        }
+    }
+#else
     public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken)
     {
         if (Pipeline == null) throw new ArgumentNullException(nameof(Pipeline), "No pipes are set");
@@ -862,29 +910,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
         {
             if (span != null && message is ITraceMessage tm && tm.TraceId.IsNullOrEmpty()) tm.TraceId = span.ToString();
 
-#if NET5_0_OR_GREATER
-            var source = PooledValueTaskSource.Rent();
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? 0);
-            if (rs < 0) return TaskEx.CompletedTask;
-
-            // 写入完成后立即归还上下文，source已加入匹配队列，不再需要上下文
-            ReturnContext(ctx);
-            ctx = null;
-
-            // 注册取消时的处理，如果没有收到响应，取消发送等待
-            if (cancellationToken.CanBeCanceled)
-            {
-                using (cancellationToken.Register(static s => ((PooledValueTaskSource)s!).TrySetCanceled(), source))
-                {
-                    return await source.ValueTask.ConfigureAwait(false);
-                }
-            }
-
-            return await source.ValueTask.ConfigureAwait(false);
-#else
 #if NET45
             var source = new TaskCompletionSource<Object>();
 #else
@@ -912,7 +937,6 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             }
 
             return await source.Task.ConfigureAwait(false);
-#endif
         }
         catch (Exception ex)
         {
@@ -928,16 +952,10 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             if (ctx != null) ReturnContext(ctx);
         }
     }
+#endif
 
     private void TrySetCanceled(Object? state)
     {
-#if NET5_0_OR_GREATER
-        if (state is PooledValueTaskSource pvts)
-        {
-            pvts.TrySetCanceled();
-            return;
-        }
-#endif
         if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
             source.TrySetCanceled();
     }
