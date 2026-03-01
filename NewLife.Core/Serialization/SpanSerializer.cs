@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using System.Reflection;
 using NewLife.Buffers;
 using NewLife.Data;
@@ -43,13 +44,42 @@ public static class SpanSerializer
             var enumType = isEnum ? actualType : null;
             if (isEnum) actualType = actualType.GetEnumUnderlyingType();
 
-            schemas[i] = new PropertySchema(p, pType, actualType, Type.GetTypeCode(actualType), isNullable, isEnum, enumType);
+            // 编译属性访问委托，替代反射GetValue/SetValue
+            var getter = BuildGetter(type, p);
+            var setter = BuildSetter(type, p);
+
+            schemas[i] = new PropertySchema(p, pType, actualType, Type.GetTypeCode(actualType), isNullable, isEnum, enumType, getter, setter);
         }
         return schemas;
     }
 
+    /// <summary>编译属性取值委托：(Object target) => (Object)((T)target).Prop</summary>
+    private static Func<Object, Object?> BuildGetter(Type type, PropertyInfo property)
+    {
+        var target = Expression.Parameter(typeof(Object), "target");
+        Expression body = Expression.Property(Expression.Convert(target, type), property);
+        if (property.PropertyType.IsValueType)
+            body = Expression.Convert(body, typeof(Object));
+        return Expression.Lambda<Func<Object, Object?>>(body, target).Compile();
+    }
+
+    /// <summary>编译属性赋值委托：(Object target, Object value) => ((T)target).Prop = (TProp)value</summary>
+    private static Action<Object, Object?> BuildSetter(Type type, PropertyInfo property)
+    {
+        var target = Expression.Parameter(typeof(Object), "target");
+        var value = Expression.Parameter(typeof(Object), "value");
+        // 值类型用Unbox获取可写引用，引用类型用Convert
+        var instance = type.IsValueType
+            ? Expression.Unbox(target, type)
+            : (Expression)Expression.Convert(target, type);
+        var assign = Expression.Assign(
+            Expression.Property(instance, property),
+            Expression.Convert(value, property.PropertyType));
+        return Expression.Lambda<Action<Object, Object?>>(assign, target, value).Compile();
+    }
+
     /// <summary>属性元数据缓存结构</summary>
-    internal readonly struct PropertySchema(PropertyInfo property, Type propertyType, Type actualType, TypeCode code, Boolean isNullable, Boolean isEnum, Type? enumType)
+    internal readonly struct PropertySchema(PropertyInfo property, Type propertyType, Type actualType, TypeCode code, Boolean isNullable, Boolean isEnum, Type? enumType, Func<Object, Object?> getter, Action<Object, Object?> setter)
     {
         /// <summary>属性信息</summary>
         public readonly PropertyInfo Property = property;
@@ -71,6 +101,12 @@ public static class SpanSerializer
 
         /// <summary>枚举类型（用于Enum.ToObject）</summary>
         public readonly Type? EnumType = enumType;
+
+        /// <summary>编译属性取值委托，替代反射</summary>
+        public readonly Func<Object, Object?> Getter = getter;
+
+        /// <summary>编译属性赋值委托，替代反射</summary>
+        public readonly Action<Object, Object?> Setter = setter;
     }
     #endregion
 
@@ -166,7 +202,7 @@ public static class SpanSerializer
         var schemas = GetSchema(type);
         for (var i = 0; i < schemas.Length; i++)
         {
-            var val = value.GetValue(schemas[i].Property);
+            var val = schemas[i].Getter(value);
             WriteValue(ref writer, val, in schemas[i]);
         }
     }
@@ -314,7 +350,7 @@ public static class SpanSerializer
             if (reader.Available <= 0) break;
 
             var val = ReadValue(ref reader, in schemas[i]);
-            obj.SetValue(schemas[i].Property, val);
+            schemas[i].Setter(obj, val);
         }
 
         return obj;
