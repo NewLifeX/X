@@ -149,42 +149,58 @@ public class MessageCodec<T> : Handler
         {
             if (msg == null) continue;
 
-            Object? rs = msg;
-            IMessage? rawMsg = null;
-
-            // 提取消息负载
+            // 区分 IMessage 协议消息与普通消息，分别处理负载提取和响应匹配
+            Object? rs;
             if (msg is IMessage imsg)
             {
-                rawMsg = imsg;
+                // 保存原始消息到上下文，供上层 Write 构造响应时使用
                 if (context is IExtend ext) ext["_raw_message"] = imsg;
-                if (userPacket) rs = imsg.Payload;
-            }
 
-            // 匹配请求队列（仅响应消息）
-            if (rawMsg != null && rawMsg.Reply && queue != null)
+                // 提取负载或保留整个消息
+                rs = userPacket ? imsg.Payload! : msg;
+
+                // 响应消息匹配请求队列（客户端收到服务端回复）
+                if (queue != null && imsg.Reply)
+                    MatchResponse(queue, context.Owner, imsg, userPacket);
+            }
+            else
             {
-                // 处理结果的Packet需要拷贝一份，否则交给另一个线程使用会有冲突
-                // Match里面TrySetResult时，必然唤醒原来阻塞的Task，可能导致两个线程共用了数据区
-                if (rs is IMessage msg4 && msg4.Payload != null && msg4.Payload == rawMsg.Payload)
-                    msg4.Payload = msg4.Payload.Clone();
+                rs = msg;
 
-                queue.Match(context.Owner, msg, rs ?? msg, IsMatch);
-            }
-            else if (rs != null && queue != null && msg is not IMessage)
-            {
-                // 其它消息不考虑响应
-                queue.Match(context.Owner, msg, rs, IsMatch);
+                // 非协议消息直接匹配
+                queue?.Match(context.Owner, msg, rs, IsMatch);
             }
 
-            // 匹配输入回调，让上层事件收到分包信息
-            // 这里很可能处于网络IO线程，阻塞了下一个Tcp包的接收
-            base.Read(context, rs ?? msg);
+            // 向上层传递分包消息，注意这里可能处于网络IO线程
+            base.Read(context, rs);
 
-            // 归还池化的 DefaultMessage（SendReply 在 base.Read 内同步完成，此时已无引用）
-            if (msg is DefaultMessage dm) DefaultMessage.Return(dm);
+            // 归还池化的 DefaultMessage
+            // userPacket==true: msg 仅作解码容器，上层拿到的是独立的 Payload，msg 可安全归还到池
+            // userPacket==false: msg 本身就是上层消费的数据，可能被异步使用（如Remoting），不能归还
+            if (msg is DefaultMessage dm && userPacket) DefaultMessage.Return(dm);
         }
 
         return null;
+    }
+
+    /// <summary>匹配响应消息到请求队列，克隆共享缓冲区数据后传给等待线程</summary>
+    private void MatchResponse(IMatchQueue queue, Object? owner, IMessage msg, Boolean userPacket)
+    {
+        // 网络缓冲区数据必须克隆后才能安全传给等待线程
+        // userPacket: 克隆 Payload 作为结果，msg 仍可归还到池
+        // 非 userPacket: 克隆 Payload 使 msg 脱离共享缓冲区，msg 整体作为结果传给等待线程
+        Object result;
+        if (userPacket)
+        {
+            result = msg.Payload!.Clone();
+        }
+        else
+        {
+            if (msg.Payload != null) msg.Payload = msg.Payload.Clone();
+            result = msg;
+        }
+
+        queue.Match(owner, msg, result, IsMatch);
     }
 
     /// <summary>从上下文中获取原始请求</summary>
