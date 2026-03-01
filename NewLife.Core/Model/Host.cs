@@ -304,7 +304,12 @@ public class Host(IServiceProvider serviceProvider) : DisposeBase, IHost
         _life?.TrySetResult(0);
 
         // 需要阻塞，等待StopAsync执行完成。调用者可能是外部SIGINT信号，需要阻塞它，给Stop留出执行时间
-        _life2?.Task.Wait(15_000);
+        var lifeTask = _life2?.Task;
+        if (lifeTask != null && !lifeTask.IsCompleted)
+        {
+            try { lifeTask.Wait(15_000); }
+            catch (AggregateException) { }
+        }
 
         // 再阻塞一会，让host.RunAsync后面的清理代码有机会执行
         if (reason == "SIGINT") Thread.Sleep(500);

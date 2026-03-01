@@ -178,8 +178,10 @@ public abstract class Actor : DisposeBase, IActor
 
             if (_error != null) throw _error;
             if (msTimeout == 0 || _task == null) return true;
+            if (_task.IsCompleted) return true;
 
-            return _task.Wait(msTimeout);
+            try { return _task.Wait(msTimeout); }
+            catch (AggregateException) { return false; }
         }
         catch (Exception ex)
         {

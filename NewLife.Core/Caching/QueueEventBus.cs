@@ -39,7 +39,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
         }
 
         var task = Interlocked.Exchange(ref _consumerTask, null);
-        if (task != null)
+        if (task != null && !task.IsCompleted)
         {
             try { task.Wait(3_000); }
             catch (AggregateException) { }
