@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using NewLife;
 using NewLife.Data;
 
 namespace Benchmark.PacketBenchmarks;
@@ -236,7 +237,7 @@ public class PacketConcurrencyBenchmark
             for (var i = 0; i < OperationsPerThread; i++)
             {
                 var pk = new ArrayPacket(_data);
-                _ = pk.Clone();
+                pk.Clone().TryDispose();
             }
         });
     }

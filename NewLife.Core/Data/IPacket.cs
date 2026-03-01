@@ -422,16 +422,20 @@ public static class PacketHelper
 
     /// <summary>深度克隆数据包，完全复制数据内容</summary>
     /// <param name="pk">源数据包</param>
-    /// <returns>独立的数据包副本</returns>
+    /// <returns>独立的数据包副本，内存来自池，实际类型为 <see cref="IOwnerPacket"/>，调用方负责 Dispose</returns>
     public static IPacket Clone(this IPacket pk)
     {
-        if (pk.Next == null)
-            return new ArrayPacket(pk.GetSpan().ToArray());
-
-        var ms = new MemoryStream();
-        pk.CopyTo(ms);
-        ms.Position = 0;
-        return new ArrayPacket(ms);
+        var total = pk.Total;
+        var owner = new OwnerPacket(total);
+        var dest = owner.GetSpan();
+        var pos = 0;
+        for (var current = pk; current != null; current = current.Next)
+        {
+            var span = current.GetSpan();
+            span.CopyTo(dest[pos..]);
+            pos += span.Length;
+        }
+        return owner;
     }
     #endregion
 

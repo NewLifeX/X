@@ -1,4 +1,5 @@
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
+using NewLife;
 using NewLife.Data;
 
 namespace Benchmark.PacketBenchmarks;
@@ -139,7 +140,9 @@ public class PacketHelperBenchmark
     public IPacket CloneTest()
     {
         IPacket pk = _arrayPacket;
-        return pk.Clone();
+        var rs = pk.Clone();
+        rs.TryDispose();
+        return rs;
     }
     #endregion
 
@@ -223,7 +226,7 @@ public class PacketHelperConcurrencyBenchmark
             for (var i = 0; i < 1000; i++)
             {
                 IPacket pk = new ArrayPacket(_data);
-                _ = pk.Clone();
+                pk.Clone().TryDispose();
             }
         });
     }
