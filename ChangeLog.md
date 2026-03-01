@@ -1,5 +1,48 @@
 # NewLife.Core 版本更新记录
 
+## v11.12.2026.0301 (2026-03-01)
+
+### 序列化增强
+- **SpanSerializer**：新增高性能 Span 二进制序列化器，支持零分配读写，性能全面优于传统方式
+- **SpanReader/SpanWriter**：新增对 `byte[]` 的直接构造支持
+- **字符串读取优化**：优化字符串读取时的内存分配策略，减少堆分配
+
+### IPacket 重构与性能优化
+- **OwnerPacket**：重构为 `sealed` 类，优化内存管理与生命周期
+- **切片性能**：优化 IPacket 切片逻辑，减少装箱，完善测试
+- **PacketHelper.AsPacket**：新增快捷转换方法，简化 Packet 操作
+- **释放机制**：完善 IPacket 与 IMessage 的释放文档与测试
+
+### 网络层性能优化
+- **SendMessageAsync**：重构为非异步路径，降低 Task 分配开销
+- **PooledValueTaskSource**：增强池化 ValueTask 源，提升并发吞吐
+- **编解码器池化**：对编解码器与事件参数进行池化，Echo 场景性能大幅提升
+- **NetServer 实测**：压测跑出 23.4 Gbps 带宽、1.4 亿 pkt/s 吞吐
+
+### 配置系统热加载重构
+- **事件驱动**：FileConfigProvider 从低效轮询改为 FileSystemWatcher 事件驱动热更新
+- **双重保险**：Watcher 可用时定时器周期延长为 60 秒作为兜底，保持 Period 属性向后兼容
+
+### IO 工具增强
+- **IOHelper**：新增异步精确读取（`ReadExactlyAsync`）与最少读取（`ReadAtLeastAsync`）方法及测试
+- **MaxSafeArraySize**：新增安全最大数组尺寸常量
+
+### 其他优化
+- **DeferredQueue**：支持运行时动态修改处理周期
+- **MemoryCache**：`Remove` 单键路径实现零分配优化
+- **文件操作**：增强异常处理与哈希校验链路追踪
+
+### 性能基准测试
+- 新增 Benchmark 基准测试项目（net10.0），覆盖 IPacket、MemoryCache、TCP Echo、NetServer 等核心场景
+- 发布 IPacket、NetServer、MemoryCache 等性能测试报告
+
+### 文档与 Copilot 指令
+- 新增 NewLife.Net 开发规范文档与 Copilot 协作指令
+- 新增 AI 开发流程指令及自治批处理规范
+- 优化 Copilot 指令文档结构与基准测试规范
+
+---
+
 ## v11.11.2026.0201 (2026-02-01)
 
 ### 核心功能
