@@ -7,6 +7,7 @@
     <PropertyGroup>
       <!-- 源文件位于 NuGet 包的 content 目录 -->
       <_NewLifeCore_CopilotInstructions_Source>$(MSBuildThisFileDirectory)..\content\.github\copilot-instructions.md</_NewLifeCore_CopilotInstructions_Source>
+      <_NewLifeCore_CopilotInstructions_InstructionsDir>$(MSBuildThisFileDirectory)..\content\.github\instructions\</_NewLifeCore_CopilotInstructions_InstructionsDir>
 
       <!-- 优先查找 Git 仓库根目录（向上查找 .git 目录） -->
       <_NewLifeCore_CopilotInstructions_GitRoot>$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', '.git'))</_NewLifeCore_CopilotInstructions_GitRoot>
@@ -33,11 +34,11 @@
 
     <PropertyGroup>
       <_NewLifeCore_CopilotInstructions_ExistingText>@(_NewLifeCore_CopilotInstructions_ExistingLines, '&#xD;&#xA;')</_NewLifeCore_CopilotInstructions_ExistingText>
-      
+
       <!-- 先获取源文件和目标文件的最后修改时间 -->
       <_NewLifeCore_CopilotInstructions_SourceTime Condition="Exists('$(_NewLifeCore_CopilotInstructions_Source)')">$([System.IO.File]::GetLastWriteTime('$(_NewLifeCore_CopilotInstructions_Source)').Ticks)</_NewLifeCore_CopilotInstructions_SourceTime>
       <_NewLifeCore_CopilotInstructions_DestTime Condition="Exists('$(_NewLifeCore_CopilotInstructions_DestFile)')">$([System.IO.File]::GetLastWriteTime('$(_NewLifeCore_CopilotInstructions_DestFile)').Ticks)</_NewLifeCore_CopilotInstructions_DestTime>
-      
+
       <!-- 判断是否需要复制：
            1. 目标文件不存在
            2. 目标文件存在且包含"新生命团队"（表示是从包安装的）且源文件比目标文件新
@@ -48,7 +49,7 @@
 
     <MakeDir Directories="$(_NewLifeCore_CopilotInstructions_DestDir)" 
              Condition="'$(_NewLifeCore_CopilotInstructions_ShouldCopy)'=='true' and !Exists('$(_NewLifeCore_CopilotInstructions_DestDir)')" />
-    
+
     <!-- 使用 ContinueOnError 避免文件被占用时阻塞构建 -->
     <Copy SourceFiles="@(_NewLifeCore_CopilotInstructions_SourceFile)" 
           DestinationFiles="$(_NewLifeCore_CopilotInstructions_DestFile)" 
@@ -66,5 +67,33 @@
     <Message Text="NewLife.Core: 未找到 Git 根目录或解决方案目录，跳过 Copilot 指令文件安装" 
              Condition="'$(_NewLifeCore_CopilotInstructions_Root)' == ''" 
              Importance="normal" />
+
+    <!-- ==================== 专有指令文件（.github/instructions/）==================== -->
+    <!-- 发现 NuGet 包中 content\.github\instructions\ 下的所有文件 -->
+    <ItemGroup>
+      <_NewLifeCore_InstructionSourceFiles Include="$(_NewLifeCore_CopilotInstructions_InstructionsDir)*.*" 
+                                           Condition="'$(_NewLifeCore_CopilotInstructions_Root)' != '' and Exists('$(_NewLifeCore_CopilotInstructions_InstructionsDir)')" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_NewLifeCore_InstructionsDestDir Condition="'$(_NewLifeCore_CopilotInstructions_Root)' != ''">$(_NewLifeCore_CopilotInstructions_Root)\.github\instructions\</_NewLifeCore_InstructionsDestDir>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(_NewLifeCore_InstructionsDestDir)" 
+             Condition="'@(_NewLifeCore_InstructionSourceFiles)' != '' and !Exists('$(_NewLifeCore_InstructionsDestDir)')" />
+
+    <!-- 专有指令文件：源文件比目标文件新就覆盖，使用 SkipUnchangedFiles 按时间戳判断 -->
+    <Copy SourceFiles="@(_NewLifeCore_InstructionSourceFiles)" 
+          DestinationFolder="$(_NewLifeCore_InstructionsDestDir)" 
+          OverwriteReadOnlyFiles="true" 
+          SkipUnchangedFiles="true"
+          Condition="'@(_NewLifeCore_InstructionSourceFiles)' != ''"
+          ContinueOnError="true">
+      <Output TaskParameter="CopiedFiles" ItemName="_NewLifeCore_InstructionCopiedFiles" />
+    </Copy>
+
+    <Message Text="NewLife.Core: 专有指令文件已安装到 $(_NewLifeCore_InstructionsDestDir) [%(Filename)%(Extension)]" 
+             Condition="'@(_NewLifeCore_InstructionCopiedFiles)' != ''" 
+             Importance="high" />
   </Target>
 </Project>

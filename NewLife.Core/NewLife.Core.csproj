@@ -227,10 +227,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 打包 copilot-instructions.md 到 content 目录，由 targets 文件负责复制，不使用 contentFiles 避免自动添加链接 -->
+    <!-- 打包 copilot-instructions.md 和专有指令到 content 目录，由 targets 文件负责复制，不使用 contentFiles 避免自动添加链接 -->
     <None Include="..\.github\copilot-instructions.md">
       <Pack>True</Pack>
       <PackagePath>content\.github\</PackagePath>
+    </None>
+    <None Include="..\.github\instructions\*.*">
+      <Pack>True</Pack>
+      <PackagePath>content\.github\instructions\</PackagePath>
     </None>
 
     <None Include="build\NewLife.Core.targets">
