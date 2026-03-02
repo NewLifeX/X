@@ -21,7 +21,7 @@ public class NetworkLog : Logger, IDisposable
     /// <summary>客户端标识</summary>
     public String? ClientId { get; set; }
 
-    private ISocketRemote? _client;
+    private NetClient? _client;
     private HttpClient? _http;
     private readonly ConcurrentQueue<String> _Logs = new();
     private volatile Int32 _logCount;
@@ -87,7 +87,7 @@ public class NetworkLog : Logger, IDisposable
                     break;
                 case NetType.Tcp:
                 case NetType.Udp:
-                    _client = uri.CreateRemote();
+                    _client = new NetClient(uri);
                     break;
                 case NetType.Http:
                 case NetType.Https:
