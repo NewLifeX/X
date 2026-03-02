@@ -840,8 +840,7 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #region 字符串表示
     /// <summary>返回数据包的字符串表示形式</summary>
     /// <returns>包含缓冲区大小、偏移量、长度和总长度的格式化字符串</returns>
-    public override String ToString() =>
-        $"[{_buffer?.Length ?? 0}]({_offset}, {_length})<{Total}>";
+    public override String ToString() => $"OwnerPacket[{_buffer?.Length ?? 0}]({_offset}, {_length})<{Total}>";
     #endregion
 }
 
@@ -953,7 +952,7 @@ public struct MemoryPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override readonly String ToString() => $"[{_memory.Length}](0, {_length})<{Total}>";
+    public override readonly String ToString() => $"MemoryPacket[{_memory.Length}](0, {_length})<{Total}>";
 }
 
 /// <summary>字节数组包</summary>
@@ -1179,7 +1178,7 @@ public record struct ArrayPacket : IPacket
 
     /// <summary>已重载</summary>
     /// <returns></returns>
-    public override readonly String ToString() => $"[{_buffer.Length}]({_offset}, {_length})<{Total}>";
+    public override readonly String ToString() => $"ArrayPacket[{_buffer.Length}]({_offset}, {_length})<{Total}>";
     #endregion
 }
 
@@ -1322,6 +1321,6 @@ public readonly record struct ReadOnlyPacket : IPacket
     public static implicit operator ReadOnlyPacket(ArraySegment<Byte> segment) => new(segment);
 
     /// <summary>已重载</summary>
-    public override String ToString() => $"ReadOnly[{_buffer.Length}]({_offset}, {_length})";
+    public override String ToString() => $"ReadOnlyPacket[{_buffer.Length}]({_offset}, {_length})";
     #endregion
 }
