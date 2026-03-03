@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,12 +10,12 @@ namespace NewLife.Buffers;
 /// <summary>Span写入器</summary>
 /// <remarks>
 /// 引用结构，面向高性能无 GC 写入。支持写入基础类型、结构体以及 7 位压缩整数、长度前缀字符串等。
+/// 支持后备 <see cref="Stream"/>，当缓冲区不足时自动 Flush 到流中，适用于序列化未知大小的数据。
 /// </remarks>
-/// <param name="buffer">目标缓冲区</param>
-public ref struct SpanWriter(Span<Byte> buffer)
+public ref struct SpanWriter
 {
     #region 属性
-    private readonly Span<Byte> _span = buffer;
+    private Span<Byte> _span;
     /// <summary>数据片段</summary>
     public readonly Span<Byte> Span => _span;
 
@@ -42,6 +41,11 @@ public ref struct SpanWriter(Span<Byte> buffer)
 
     #region 构造
     /// <summary>实例化Span写入器</summary>
+    /// <param name="buffer">目标缓冲区</param>
+    public SpanWriter(Span<Byte> buffer) => _span = buffer;
+
+    /// <summary>实例化Span写入器</summary>
+    /// <param name="data">数据包</param>
     public SpanWriter(IPacket data) : this(data.GetSpan()) { }
 
     /// <summary>实例化Span写入器，从字节数组创建</summary>
@@ -49,6 +53,51 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <param name="offset">起始偏移量</param>
     /// <param name="count">长度，-1表示从offset到数组末尾</param>
     public SpanWriter(Byte[] buffer, Int32 offset = 0, Int32 count = -1) : this(new Span<Byte>(buffer, offset, count < 0 ? buffer.Length - offset : count)) { }
+    #endregion
+
+    #region 流模式
+    private Stream? _stream;
+    private Int32 _total;
+
+    /// <summary>已写入的总字节数（含已 Flush 到流中的数据）。非流模式下等同于 <see cref="WrittenCount"/></summary>
+    public readonly Int32 TotalWritten => _total + _index;
+
+    /// <summary>实例化Span写入器，支持自动 Flush 到流</summary>
+    /// <remarks>
+    /// 调用方提供缓冲区和后备数据流。写入数据时先写入缓冲区，缓冲区满时自动 Flush 到流并重置写入位置。
+    /// 若 <see cref="TotalWritten"/> 不超过缓冲区容量，说明数据全在缓冲区中，流中无数据。
+    /// 缓冲区和流的生命周期均由调用方管理。
+    /// </remarks>
+    /// <param name="span">写入缓冲区</param>
+    /// <param name="stream">后备数据流，缓冲区满时数据刷入此流</param>
+    public SpanWriter(Span<Byte> span, Stream stream)
+    {
+        if (stream == null) throw new ArgumentNullException(nameof(stream));
+
+        _span = span;
+        _stream = stream;
+    }
+
+    /// <summary>将缓冲区中已写入的数据刷入底层流，并重置写入位置。非流模式下无操作</summary>
+    public void Flush()
+    {
+        if (_stream == null || _index <= 0) return;
+
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+        _stream.Write(_span[.._index]);
+#else
+        _stream.Write(_span[.._index].ToArray(), 0, _index);
+#endif
+        _total += _index;
+        _index = 0;
+    }
+
+    /// <summary>释放资源。Flush 剩余数据到流</summary>
+    public void Dispose()
+    {
+        Flush();
+        _stream = null;
+    }
     #endregion
 
     #region 基础方法
@@ -66,27 +115,42 @@ public ref struct SpanWriter(Span<Byte> buffer)
     }
 
     /// <summary>返回要写入到的 Span，其大小按 <paramref name="sizeHint"/> 指定至少为所请求的大小</summary>
-    /// <param name="sizeHint">期望的最小大小提示。如果剩余空间小于该值则抛出异常</param>
+    /// <param name="sizeHint">期望的最小大小提示。流模式下不足时自动 Flush；非流模式不足时抛异常</param>
     /// <returns>当前位置到末尾的可写字节片段</returns>
-    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="sizeHint"/> 大于剩余可写字节数时</exception>
-    public readonly Span<Byte> GetSpan(Int32 sizeHint = 0)
+    /// <exception cref="InvalidOperationException">非流模式下剩余空间不足时</exception>
+    public Span<Byte> GetSpan(Int32 sizeHint = 0)
     {
-        if (sizeHint > FreeCapacity)
-            throw new ArgumentOutOfRangeException(nameof(sizeHint), "Size hint exceeds free capacity.");
+        if (sizeHint > 0) EnsureSpace(sizeHint);
 
         return _span[_index..];
     }
     #endregion
 
     #region 写入方法
-    /// <summary>确保缓冲区中有足够的空间</summary>
+    /// <summary>确保缓冲区中有足够的空间。流模式下空间不足时自动 Flush 并可能扩容</summary>
     /// <param name="size">需要的字节数</param>
-    /// <exception cref="InvalidOperationException">空间不足时</exception>
+    /// <exception cref="InvalidOperationException">空间不足且无法扩容时</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void EnsureSpace(Int32 size)
+    private void EnsureSpace(Int32 size)
     {
         if (_index + size > _span.Length)
+            FlushAndGrow(size);
+    }
+
+    /// <summary>Flush 当前数据到流</summary>
+    /// <param name="size">本次写入需要的字节数</param>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void FlushAndGrow(Int32 size)
+    {
+        if (_stream == null)
             throw new InvalidOperationException($"Not enough space to write {size} bytes. Available: {FreeCapacity}");
+
+        // 先把已写入数据刷入流
+        Flush();
+
+        // Flush 后 _index=0，若单次写入仍超过缓冲区则抛异常
+        if (size > _span.Length)
+            throw new InvalidOperationException($"Single write of {size} bytes exceeds buffer capacity {_span.Length}. Use Write(ReadOnlySpan<Byte>) for large data.");
     }
 
     /// <summary>写入字节</summary>
@@ -330,18 +394,29 @@ public ref struct SpanWriter(Span<Byte> buffer)
         if (value == null)
             throw new ArgumentNullException(nameof(value));
 
-        EnsureSpace(value.Length);
-        value.CopyTo(_span[_index..]);
-        _index += value.Length;
-
-        return value.Length;
+        return Write((ReadOnlySpan<Byte>)value);
     }
 
-    /// <summary>写入Span</summary>
+    /// <summary>写入Span。流模式下支持超过缓冲区的大数据分块写入</summary>
     /// <param name="span">要写入的数据</param>
     /// <returns>写入的字节数</returns>
     public Int32 Write(ReadOnlySpan<Byte> span)
     {
+        // 流模式下，大数据分块通过缓冲区写入
+        if (_stream != null && span.Length > FreeCapacity)
+        {
+            var remaining = span;
+            while (remaining.Length > 0)
+            {
+                if (FreeCapacity <= 0) Flush();
+                var n = Math.Min(remaining.Length, FreeCapacity);
+                remaining[..n].CopyTo(_span[_index..]);
+                _index += n;
+                remaining = remaining[n..];
+            }
+            return span.Length;
+        }
+
         EnsureSpace(span.Length);
         span.CopyTo(_span[_index..]);
         _index += span.Length;
@@ -383,6 +458,8 @@ public ref struct SpanWriter(Span<Byte> buffer)
     /// <returns>实际写入字节数</returns>
     public Int32 WriteEncodedInt(Int32 value)
     {
+        // 7 位压缩编码最多 5 字节
+        EnsureSpace(5);
         var span = _span[_index..];
         var count = 0;
         var num = (UInt32)value; // 与 BinaryWriter.Write7BitEncodedInt 一致，允许负数（将占 5 字节）

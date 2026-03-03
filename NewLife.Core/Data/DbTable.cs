@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Buffers;
+using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -574,18 +575,26 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
     /// <returns></returns>
     public IPacket ToPacket()
     {
-        // 不确定所需大小，只能使用内存流，再包装为数据包。
-        // 头部预留8个字节，方便网络传输时添加协议头。
-        var ms = new MemoryStream
+        // 池化缓冲区和流，两个都从池里借
+        var pk = new OwnerPacket(8192);
+        var ms = Pool.MemoryStream.Get();
+        ms.Position = 32;
+        var writer = new SpanWriter(pk.GetSpan()[32..], ms);
+
+        Write(ref writer);
+
+        // 小数据：数据全在缓冲区中，流中无数据
+        if (writer.TotalWritten == writer.WrittenCount)
         {
-            Position = 8
-        };
+            var count = writer.WrittenCount;
+            Pool.MemoryStream.Return(ms);
+            return pk.Slice(32, count);
+        }
 
-        Write(ms);
-
-        ms.Position = 8;
-
-        // 包装为数据包，直接窃取内存流内部的缓冲区
+        // 大数据：Flush 剩余到流后包装，这个数据流不归还啦
+        writer.Flush();
+        pk.Dispose();
+        ms.Position = 32;
         return new ArrayPacket(ms);
     }
 
