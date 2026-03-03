@@ -49,7 +49,7 @@ public class SpanReaderTests
         writer.Write(u16);
         Assert.Equal(u16, reader.ReadUInt16());
 
-        var n32 = (Int32)Rand.Next();
+        var n32 = Rand.Next();
         writer.Write(n32);
         Assert.Equal(n32, reader.ReadInt32());
 
@@ -65,11 +65,11 @@ public class SpanReaderTests
         writer.Write(u64);
         Assert.Equal(u64, reader.ReadUInt64());
 
-        var s = (Single)Rand.Next() / 333f;
+        var s = Rand.Next() / 333f;
         writer.Write(s);
         Assert.Equal(s, reader.ReadSingle());
 
-        var d = (Double)Rand.Next() / 777d;
+        var d = Rand.Next() / 777d;
         writer.Write(d);
         Assert.Equal(d, reader.ReadDouble());
 
@@ -237,7 +237,7 @@ public class SpanReaderTests
         ArrayPacket payload = new(Encoding.UTF8.GetBytes("Hello"));
         head.Next = payload;
 
-        var reader = new SpanReader((IPacket)head);
+        var reader = new SpanReader(head);
         var frameHead = reader.ReadPacket(2);
         Assert.Equal(2, frameHead.Length);
         var body = reader.ReadPacket(5);

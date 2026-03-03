@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using NewLife.Buffers;
 using NewLife.Serialization;
 
 namespace NewLife.Security
 {
     /// <summary>椭圆曲线密钥</summary>
-    public class ECKey : IAccessor
+    public class ECKey : IAccessor, ISpanSerializable
     {
         #region 属性
         private AlgorithmKeyBlob _Algorithm;
@@ -102,6 +103,37 @@ namespace NewLife.Security
                 },
                 Curve = ECCurve.CreateFromFriendlyName(Algorithm.Replace("_PRIVATE_", "_").Replace("_PUBLIC_", "_")),
             };
+        }
+
+        /// <summary>写入到Span写入器</summary>
+        /// <param name="writer">Span写入器</param>
+        public void Write(ref SpanWriter writer)
+        {
+            // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
+            writer.Write((Int32)_Algorithm);
+            writer.Write(X.Length);
+            writer.Write(X);
+            writer.Write(Y);
+            if (D != null && D.Length > 0)
+            {
+                writer.Write(D);
+            }
+        }
+
+        /// <summary>从Span读取器读取</summary>
+        /// <param name="reader">Span读取器</param>
+        public void Read(ref SpanReader reader)
+        {
+            // 幻数(4) + 长度len(4) + X(len) + Y(len) + D(len)
+            _Algorithm = (AlgorithmKeyBlob)reader.ReadInt32();
+
+            var len = reader.ReadInt32();
+            X = reader.ReadBytes(len).ToArray();
+            Y = reader.ReadBytes(len).ToArray();
+            if (reader.Available > 0)
+            {
+                D = reader.ReadBytes(len).ToArray();
+            }
         }
         #endregion
     }

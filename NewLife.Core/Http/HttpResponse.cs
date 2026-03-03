@@ -108,6 +108,21 @@ public class HttpResponse : HttpBase
 
             StatusDescription = ex.Message;
         }
+        else if (result is ISpanSerializable)
+        {
+            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
+
+            Body = SpanSerializer.Serialize(result, 8192);
+        }
+        else if (result is IAccessor accessor)
+        {
+            if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
+
+            var ms = new MemoryStream();
+            accessor.Write(ms, null);
+            ms.Position = 0;
+            Body = new ArrayPacket(ms);
+        }
         else if (result is IPacket pk)
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";

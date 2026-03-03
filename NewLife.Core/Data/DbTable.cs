@@ -573,30 +573,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
     /// <summary>转数据包</summary>
     /// <returns></returns>
-    public IPacket ToPacket()
-    {
-        // 池化缓冲区和流，两个都从池里借
-        var pk = new OwnerPacket(8192);
-        var ms = Pool.MemoryStream.Get();
-        ms.Position = 32;
-        var writer = new SpanWriter(pk.GetSpan()[32..], ms);
-
-        Write(ref writer);
-
-        // 小数据：数据全在缓冲区中，流中无数据
-        if (writer.TotalWritten == writer.WrittenCount)
-        {
-            var count = writer.WrittenCount;
-            Pool.MemoryStream.Return(ms);
-            return pk.Slice(32, count);
-        }
-
-        // 大数据：Flush 剩余到流后包装，这个数据流不归还啦
-        writer.Flush();
-        pk.Dispose();
-        ms.Position = 32;
-        return new ArrayPacket(ms);
-    }
+    public IPacket ToPacket() => SpanSerializer.ToPacket(this);
 
     /// <summary>保存到文件</summary>
     /// <param name="file"></param>

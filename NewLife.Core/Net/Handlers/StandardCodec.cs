@@ -21,6 +21,7 @@ public class StandardCodec : MessageCodec<IMessage>
     public override Object? Write(IHandlerContext context, Object message)
     {
         DataKinds? kind = null;
+        var origin = message;
 
         // 基础类型优先编码
         if (message.GetType().IsBaseType())
@@ -31,6 +32,10 @@ public class StandardCodec : MessageCodec<IMessage>
         else if (message is Byte[] buf)
         {
             message = new ArrayPacket(buf);
+        }
+        else if (message is ISpanSerializable span)
+        {
+            message = span.ToPacket();
         }
         else if (message is IAccessor accessor)
         {
@@ -58,7 +63,16 @@ public class StandardCodec : MessageCodec<IMessage>
         if (message is DefaultMessage msg && !msg.Reply && msg.Sequence == 0)
             msg.Sequence = (Byte)Interlocked.Increment(ref _gid);
 
-        return base.Write(context, message);
+        try
+        {
+            return base.Write(context, message);
+        }
+        finally
+        {
+            // message 已被替换为新对象且支持释放时，兜底释放
+            if (!ReferenceEquals(message, origin))
+                message.TryDispose();
+        }
     }
 
     /// <summary>加入队列</summary>

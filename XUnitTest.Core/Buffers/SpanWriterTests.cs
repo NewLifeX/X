@@ -252,7 +252,7 @@ public class SpanWriterTests
         Assert.Equal(0, ms.Length);
 
         // 再写 8 字节，超出缓冲区 → 触发自动 Flush + 继续写入
-        writer.Write((Int64)0x5566778899AABBCC);
+        writer.Write(0x5566778899AABBCC);
         Assert.True(ms.Length > 0);
 
         writer.Flush();

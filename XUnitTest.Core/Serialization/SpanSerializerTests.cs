@@ -588,7 +588,7 @@ public class SpanSerializerTests
         Assert.Equal("SmallMsg", msg2.Action);
         Assert.Equal(time, msg2.Timestamp);
 
-        (pk as IOwnerPacket)?.Dispose();
+        pk?.Dispose();
     }
 
     [Fact]
@@ -615,7 +615,7 @@ public class SpanSerializerTests
         Assert.Equal("Overflow", msg2.Action);
         Assert.Equal(time, msg2.Timestamp);
 
-        (pk as IOwnerPacket)?.Dispose();
+        pk?.Dispose();
     }
 
     [Fact]

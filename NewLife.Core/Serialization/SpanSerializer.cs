@@ -224,6 +224,39 @@ public static class SpanSerializer
         return ReadObject(ref reader, type);
     }
 
+    /// <summary>从数据包反序列化为指定类型的对象</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
+    /// <returns>反序列化的对象实例</returns>
+    public static T Deserialize<T>(IPacket data)
+    {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+
+        if (data.Next == null)
+        {
+            var reader = new SpanReader(data.GetSpan());
+            return (T)ReadObject(ref reader, typeof(T));
+        }
+        return Deserialize<T>(data.ReadBytes());
+    }
+
+    /// <summary>从数据包反序列化为对象</summary>
+    /// <param name="type">目标类型</param>
+    /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
+    /// <returns>反序列化的对象实例</returns>
+    public static Object Deserialize(Type type, IPacket data)
+    {
+        if (type == null) throw new ArgumentNullException(nameof(type));
+        if (data == null) throw new ArgumentNullException(nameof(data));
+
+        if (data.Next == null)
+        {
+            var reader = new SpanReader(data.GetSpan());
+            return ReadObject(ref reader, type);
+        }
+        return Deserialize(type, (ReadOnlySpan<Byte>)data.ReadBytes());
+    }
+
     /// <summary>写入单个值到SpanWriter（用于序列化数据行的字段值）</summary>
     /// <param name="writer">Span写入器</param>
     /// <param name="value">值，可为null</param>

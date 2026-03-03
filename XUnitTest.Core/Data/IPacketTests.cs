@@ -42,7 +42,7 @@ public class IPacketTests
         Assert.False((Boolean)pk2.GetValue("_hasOwner"));
         Assert.True((Boolean)pk.GetValue("_hasOwner"));
 
-        var rs = (pk2 as IPacket).TryGetArray(out var segment);
+        var rs = pk2.TryGetArray(out var segment);
         Assert.True(rs);
         Assert.Equal(pk.Buffer, segment.Array);
         Assert.Equal(7, segment.Offset);
@@ -123,7 +123,7 @@ public class IPacketTests
         Assert.Equal(123, memory.Length);
         Assert.Equal('A', (Char)memory.Span[77]);
 
-        var pk2 = (ArrayPacket)pk.Slice(7, 70, false);
+        var pk2 = pk.Slice(7, 70, false);
         Assert.Equal(70, pk2.Length);
         Assert.Equal(2 + 7, pk2.Offset);
 

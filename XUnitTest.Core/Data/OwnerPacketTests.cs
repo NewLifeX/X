@@ -263,7 +263,7 @@ public class OwnerPacketTests
     {
         using var packet = new OwnerPacket(100);
 
-        var success = ((IPacket)packet).TryGetArray(out var segment);
+        var success = packet.TryGetArray(out var segment);
 
         Assert.True(success);
         Assert.Same(packet.Buffer, segment.Array);

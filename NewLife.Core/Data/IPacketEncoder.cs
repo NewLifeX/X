@@ -76,6 +76,9 @@ public class DefaultPacketEncoder : IPacketEncoder
         // 字节数组，包装为数据包
         if (value is Byte[] buffer) return new ArrayPacket(buffer);
 
+        // ISpanSerializable 类型，调用专用转换方法
+        if (value is ISpanSerializable span) return span.ToPacket();
+
         // 访问器类型，调用专用转换方法
         if (value is IAccessor accessor) return accessor.ToPacket();
 
@@ -150,6 +153,9 @@ public class DefaultPacketEncoder : IPacketEncoder
 
         // 目标是字节数组
         if (type == typeof(Byte[])) return data.ReadBytes();
+
+        // ISpanSerializable 类型，使用零反射快速路径
+        if (type.As<ISpanSerializable>()) return SpanSerializer.Deserialize(type, data);
 
         // 目标是访问器类型
         if (type.As<IAccessor>()) return type.AccessorRead(data);

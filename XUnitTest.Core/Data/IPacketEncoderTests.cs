@@ -175,11 +175,11 @@ public class IPacketEncoderTests
             { (Byte)255, typeof(Byte) },
             { (Int16)32767, typeof(Int16) },
             { (UInt16)65535, typeof(UInt16) },
-            { (UInt32)4294967295, typeof(UInt32) },
-            { (Int64)9223372036854775807, typeof(Int64) },
-            { (Single)3.14f, typeof(Single) },
-            { (Double)3.14159, typeof(Double) },
-            { (Decimal)123.456m, typeof(Decimal) }
+            { 4294967295, typeof(UInt32) },
+            { 9223372036854775807, typeof(Int64) },
+            { 3.14f, typeof(Single) },
+            { 3.14159, typeof(Double) },
+            { 123.456m, typeof(Decimal) }
         };
 
         foreach (var (value, type) in testCases)
