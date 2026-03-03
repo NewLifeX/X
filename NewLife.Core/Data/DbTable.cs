@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.IO.Compression;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
+using NewLife.Buffers;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -16,7 +18,7 @@ namespace NewLife.Data;
 /// <remarks>
 /// 文档 https://newlifex.com/core/dbtable
 /// </remarks>
-public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
+public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializable
 {
     #region 属性
     /// <summary>数据列</summary>
@@ -741,6 +743,105 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor
 
         await writer.WriteEndElementAsync().ConfigureAwait(false);
         await writer.WriteEndDocumentAsync().ConfigureAwait(false);
+    }
+    #endregion
+
+    #region Span序列化
+    /// <summary>写入到Span写入器</summary>
+    /// <param name="writer">Span写入器</param>
+    public void Write(ref SpanWriter writer)
+    {
+        var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
+        var ts = Types ?? throw new ArgumentNullException(nameof(Types));
+        var rs = Rows;
+        if (Total == 0 && rs != null) Total = rs.Count;
+
+        // 头部，幻数、版本和标记
+        writer.Write(MAGIC.GetBytes());
+        writer.Write(_Ver);
+        writer.Write((Byte)0);
+
+        // 写入列数
+        var count = cs.Length;
+        writer.WriteEncodedInt(count);
+        // 写入列名和类型
+        for (var i = 0; i < count; i++)
+        {
+            writer.Write(cs[i], 0);
+
+            // 复杂类型写入类型字符串
+            var code = ts[i].GetTypeCode();
+            writer.Write((Byte)code);
+            if (code == TypeCode.Object)
+                writer.Write(ts[i].FullName, 0);
+        }
+
+        // 数据行数
+        writer.Write(Total);
+
+        // 写入数据
+        if (rs != null)
+        {
+            foreach (var row in rs)
+            {
+                for (var i = 0; i < row.Length; i++)
+                {
+                    SpanSerializer.WriteValue(ref writer, row[i], ts[i]);
+                }
+            }
+        }
+    }
+
+    /// <summary>从Span读取器读取</summary>
+    /// <param name="reader">Span读取器</param>
+    public void Read(ref SpanReader reader)
+    {
+        // 头部，幻数、版本和标记
+        var magicBytes = reader.ReadBytes(MAGIC.Length);
+        if (!magicBytes.SequenceEqual(MAGIC.GetBytes()))
+            throw new InvalidDataException();
+
+        var ver = reader.ReadByte();
+        _ = reader.ReadByte();
+
+        // 版本兼容
+        if (ver > _Ver) throw new InvalidDataException($"DbTable[ver={_Ver}] Unable to support newer versions [{ver}]");
+
+        // 读取列数
+        var count = reader.ReadEncodedInt();
+        var cs = new String[count];
+        var ts = new Type[count];
+
+        // 读取列名和类型
+        for (var i = 0; i < count; i++)
+        {
+            cs[i] = reader.ReadString() ?? "";
+
+            // 复杂类型写入类型字符串
+            var tc = (TypeCode)reader.ReadByte();
+            if (tc != TypeCode.Object)
+                ts[i] = Type.GetType("System." + tc) ?? typeof(Object);
+            else if (ver >= 2)
+                ts[i] = Type.GetType(reader.ReadString() ?? "") ?? typeof(Object);
+        }
+        Columns = cs;
+        Types = ts;
+
+        // 读取行数
+        Total = reader.ReadInt32();
+
+        // 读取数据
+        var rs = new List<Object?[]>();
+        for (var k = 0; k < Total; k++)
+        {
+            var row = new Object?[count];
+            for (var i = 0; i < count; i++)
+            {
+                row[i] = SpanSerializer.ReadValue(ref reader, ts[i]);
+            }
+            rs.Add(row);
+        }
+        Rows = rs;
     }
     #endregion
 
