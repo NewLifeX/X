@@ -669,6 +669,48 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
         _hasOwner = owner._hasOwner;
         owner._hasOwner = false;
     }
+
+    /// <summary>从数据流创建内存包，优先窃取MemoryStream内部缓冲区，否则从池借用并拷贝数据</summary>
+    /// <remarks>
+    /// 窃取成功时不拥有缓冲区，Dispose不归还；窃取失败时从池借用，Dispose自动归还。
+    /// 若指定预留空间，数据从 offset = reserve 位置开始存放，有效长度为 reserve + data_size。
+    /// 构造完成后数据流位置不变。
+    /// </remarks>
+    /// <param name="stream">数据流</param>
+    /// <param name="reserve">前置预留字节数，默认0</param>
+    public OwnerPacket(Stream stream, Int32 reserve = 0)
+    {
+        if (stream == null) throw new ArgumentNullException(nameof(stream));
+        if (reserve < 0) throw new ArgumentOutOfRangeException(nameof(reserve), "Reserve must be non-negative.");
+
+        if (stream is MemoryStream ms)
+        {
+#if !NET45
+            // 尝试窃取内部存储区，需要.Net 4.6支持
+            if (ms.TryGetBuffer(out var seg))
+            {
+                if (seg.Array == null) throw new InvalidDataException();
+
+                _buffer = seg.Array;
+                _offset = seg.Offset + (Int32)ms.Position;
+                _length = seg.Count - (Int32)ms.Position;
+                _hasOwner = false;
+                return;
+            }
+#endif
+        }
+
+        // 从池里借字节数组，存放数据流拷贝出来的数据
+        var size = (Int32)(stream.Length - stream.Position);
+        _buffer = ArrayPool<Byte>.Shared.Rent(reserve + size);
+        var count = stream.Read(_buffer, reserve, size);
+        _offset = 0;
+        _length = count;
+        _hasOwner = true;
+
+        // 确保数据流位置不变
+        if (count > 0) stream.Seek(-count, SeekOrigin.Current);
+    }
     #endregion
 
     #region 内存管理

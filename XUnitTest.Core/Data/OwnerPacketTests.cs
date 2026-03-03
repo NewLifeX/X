@@ -65,7 +65,7 @@ public class OwnerPacketTests
         try
         {
             var expandedPacket = new OwnerPacket(originalPacket, expandSize);
-            
+
             try
             {
                 Assert.Same(originalPacket.Buffer, expandedPacket.Buffer);
@@ -85,6 +85,121 @@ public class OwnerPacketTests
         {
             originalPacket.Free();
         }
+    }
+
+    [Fact(DisplayName = "构造函数：Stream窃取MemoryStream内部缓冲区")]
+    public void Constructor_WithExposableMemoryStream_ShouldStealBuffer()
+    {
+        var originalData = new Byte[] { 0x01, 0x02, 0x03, 0x04, 0x05 };
+        var ms = new MemoryStream();
+        ms.Write(originalData, 0, originalData.Length);
+        ms.Position = 0;
+
+        Assert.True(ms.TryGetBuffer(out var seg));
+
+        var packet = new OwnerPacket(ms);
+
+        Assert.Same(seg.Array, packet.Buffer);
+        Assert.Equal(seg.Offset, packet.Offset);
+        Assert.Equal(seg.Count, packet.Length);
+
+        var span = packet.GetSpan();
+        for (var i = 0; i < originalData.Length; i++)
+        {
+            Assert.Equal(originalData[i], span[i]);
+        }
+
+        Assert.Equal(0, ms.Position);
+
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "构造函数：Stream窃取时Position参与偏移计算")]
+    public void Constructor_WithExposableMemoryStreamAndPosition_ShouldUsePosition()
+    {
+        var ms = new MemoryStream();
+        for (var i = 0; i < 10; i++) ms.WriteByte((Byte)(0xA0 + i));
+        ms.Position = 3;
+
+        Assert.True(ms.TryGetBuffer(out var seg));
+
+        var packet = new OwnerPacket(ms);
+
+        Assert.Same(seg.Array, packet.Buffer);
+        Assert.Equal(seg.Offset + 3, packet.Offset);
+        Assert.Equal(7, packet.Length);
+
+        var span = packet.GetSpan();
+        for (var i = 0; i < 7; i++)
+        {
+            Assert.Equal((Byte)(0xA3 + i), span[i]);
+        }
+
+        Assert.Equal(3, ms.Position);
+
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "构造函数：Stream在不可窃取时走池拷贝")]
+    public void Constructor_WithNonExposableMemoryStream_ShouldCopyFromPool()
+    {
+        var originalData = new Byte[] { 0x01, 0x02, 0x03, 0x04, 0x05 };
+        var ms = new MemoryStream(originalData);
+        ms.Position = 0;
+
+        Assert.False(ms.TryGetBuffer(out _));
+
+        var packet = new OwnerPacket(ms);
+
+        Assert.NotSame(originalData, packet.Buffer);
+        Assert.Equal(5, packet.Length);
+
+        var span = packet.GetSpan();
+        for (var i = 0; i < 5; i++)
+        {
+            Assert.Equal(originalData[i], span[i]);
+        }
+
+        Assert.Equal(0, ms.Position);
+
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "构造函数：Stream大数据池拷贝完整性")]
+    public void Constructor_WithLargeNonExposableMemoryStream_ShouldCopyIntegrity()
+    {
+        var largeData = new Byte[2000];
+        for (var i = 0; i < largeData.Length; i++) largeData[i] = (Byte)(i % 256);
+
+        var ms = new MemoryStream(largeData);
+
+        var packet = new OwnerPacket(ms);
+        Assert.Equal(2000, packet.Length);
+        Assert.NotSame(largeData, packet.Buffer);
+
+        var span = packet.GetSpan();
+        for (var i = 0; i < 2000; i++)
+        {
+            Assert.Equal(largeData[i], span[i]);
+        }
+
+        Assert.Equal(0, ms.Position);
+        packet.Dispose();
+    }
+
+    [Fact(DisplayName = "构造函数：从空流创建")]
+    public void Constructor_WithEmptyStream_ShouldCreateEmptyPacket()
+    {
+        var ms1 = new MemoryStream(Array.Empty<Byte>());
+        var packet1 = new OwnerPacket(ms1);
+        Assert.Equal(0, packet1.Length);
+        packet1.Dispose();
+
+        var ms2 = new MemoryStream();
+        Assert.True(ms2.TryGetBuffer(out _));
+        var packet2 = new OwnerPacket(ms2);
+        Assert.Equal(0, packet2.Length);
+        packet2.Dispose();
     }
 
     #endregion

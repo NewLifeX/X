@@ -1,8 +1,8 @@
-﻿using System.Buffers;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using NewLife.Buffers;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
 
@@ -116,24 +116,79 @@ public static class SpanSerializer
     public static Int32 HeaderReserve { get; set; } = 32;
 
     #region 快捷方法
-    /// <summary>序列化对象到池化数据包，全程零分配。调用方负责 Dispose 归还内存</summary>
+    /// <summary>序列化对象到数据包，支持大对象自动溢出到流</summary>
     /// <remarks>
     /// 缓冲区前方预留 <see cref="HeaderReserve"/> 字节空间，方便协议层通过 <c>new OwnerPacket(owner, expandSize)</c> 向前扩展头部。
-    /// 返回的数据包有效区域仅包含对象数据，不含预留空间。
+    /// 小数据直接使用池化缓冲区零拷贝返回；大数据自动 Flush 到 MemoryStream 后包装为 ArrayPacket。
     /// </remarks>
     /// <param name="value">目标对象</param>
-    /// <param name="bufferSize">初始缓冲区大小，默认4096（含预留空间）</param>
-    /// <returns>拥有管理权的数据包，使用完毕后需 Dispose</returns>
+    /// <param name="bufferSize">初始缓冲区大小，默认4096</param>
+    /// <returns>数据包，调用方负责 Dispose</returns>
     public static IOwnerPacket Serialize(Object value, Int32 bufferSize = 4096)
     {
         if (value == null) throw new ArgumentNullException(nameof(value));
 
         var reserve = HeaderReserve;
-        var buf = ArrayPool<Byte>.Shared.Rent(bufferSize);
-        var writer = new SpanWriter(buf, reserve);
+
+        // 池化缓冲区和流，两个都从池里借
+        var pk = new OwnerPacket(bufferSize);
+        var ms = Pool.MemoryStream.Get();
+        ms.Position = reserve;
+        var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
+
         WriteObject(ref writer, value, value.GetType());
 
-        return new OwnerPacket(buf, reserve, writer.WrittenCount, true);
+        // 小数据：数据全在缓冲区中，流中无数据
+        if (writer.TotalWritten == writer.WrittenCount)
+        {
+            var count = writer.WrittenCount;
+            Pool.MemoryStream.Return(ms);
+            return (pk.Slice(reserve, count) as IOwnerPacket)!;
+        }
+
+        // 大数据：Flush 剩余到流后包装
+        writer.Flush();
+        pk.Dispose();
+
+        ms.Position = reserve;
+        return new OwnerPacket(ms);
+    }
+
+    /// <summary>将ISpanSerializable对象序列化为数据包，支持大对象自动溢出到流</summary>
+    /// <remarks>
+    /// 池化缓冲区 + 池化流双路径设计：小数据零拷贝返回，大数据自动 Flush 到 MemoryStream。
+    /// 缓冲区前方预留 <paramref name="reserve"/> 字节，方便协议层向前扩展头部。
+    /// </remarks>
+    /// <param name="value">实现 <see cref="ISpanSerializable"/> 的对象</param>
+    /// <param name="bufferSize">初始缓冲区大小，默认8192</param>
+    /// <param name="reserve">头部预留空间，默认32</param>
+    /// <returns>数据包，调用方负责释放</returns>
+    public static IOwnerPacket ToPacket(this ISpanSerializable value, Int32 bufferSize = 8192, Int32 reserve = 32)
+    {
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        // 池化缓冲区和流，两个都从池里借
+        var pk = new OwnerPacket(bufferSize);
+        var ms = Pool.MemoryStream.Get();
+        ms.Position = reserve;
+        var writer = new SpanWriter(pk.GetSpan()[reserve..], ms);
+
+        value.Write(ref writer);
+
+        // 小数据：数据全在缓冲区中，流中无数据
+        if (writer.TotalWritten == writer.WrittenCount)
+        {
+            var count = writer.WrittenCount;
+            Pool.MemoryStream.Return(ms);
+            return (pk.Slice(reserve, count) as IOwnerPacket)!;
+        }
+
+        // 大数据：Flush 剩余到流后包装
+        writer.Flush();
+        pk.Dispose();
+
+        ms.Position = reserve;
+        return new OwnerPacket(ms);
     }
 
     /// <summary>序列化对象到指定Span，返回实际写入字节数</summary>
@@ -167,6 +222,143 @@ public static class SpanSerializer
     {
         var reader = new SpanReader(data);
         return ReadObject(ref reader, type);
+    }
+
+    /// <summary>写入单个值到SpanWriter（用于序列化数据行的字段值）</summary>
+    /// <param name="writer">Span写入器</param>
+    /// <param name="value">值，可为null</param>
+    /// <param name="type">值的类型</param>
+    public static void WriteValue(ref SpanWriter writer, Object? value, Type type)
+    {
+        if (value == null || value == DBNull.Value)
+        {
+            writer.Write((Byte)0);
+            return;
+        }
+
+        writer.Write((Byte)1);
+
+        var code = type.GetTypeCode();
+        switch (code)
+        {
+            case TypeCode.Boolean:
+                writer.Write((Byte)(value is Boolean bv && bv ? 1 : 0));
+                break;
+            case TypeCode.SByte:
+                writer.Write(unchecked((Byte)(value is SByte sbv ? sbv : Convert.ToSByte(value))));
+                break;
+            case TypeCode.Byte:
+                writer.Write(value is Byte byv ? byv : Convert.ToByte(value));
+                break;
+            case TypeCode.Char:
+                writer.Write(Convert.ToByte(value));
+                break;
+            case TypeCode.Int16:
+                writer.Write(value is Int16 i16 ? i16 : Convert.ToInt16(value));
+                break;
+            case TypeCode.UInt16:
+                writer.Write(value is UInt16 u16 ? u16 : Convert.ToUInt16(value));
+                break;
+            case TypeCode.Int32:
+                writer.Write(value is Int32 i32 ? i32 : Convert.ToInt32(value));
+                break;
+            case TypeCode.UInt32:
+                writer.Write(value is UInt32 u32 ? u32 : Convert.ToUInt32(value));
+                break;
+            case TypeCode.Int64:
+                writer.Write(value is Int64 i64 ? i64 : Convert.ToInt64(value));
+                break;
+            case TypeCode.UInt64:
+                writer.Write(value is UInt64 u64 ? u64 : Convert.ToUInt64(value));
+                break;
+            case TypeCode.Single:
+                writer.Write(value is Single fv ? fv : Convert.ToSingle(value));
+                break;
+            case TypeCode.Double:
+                writer.Write(value is Double dv ? dv : Convert.ToDouble(value));
+                break;
+            case TypeCode.Decimal:
+                var d = (Decimal)(value is Decimal dcv ? dcv : Convert.ToDecimal(value));
+                writer.Write(d.ToString());
+                break;
+            case TypeCode.DateTime:
+                writer.Write(((DateTime)value).Ticks);
+                break;
+            case TypeCode.String:
+                writer.Write((String?)value, 0);
+                break;
+            case TypeCode.Object:
+                if (value is Byte[] ba)
+                {
+                    writer.Write(ba.Length);
+                    writer.Write(ba);
+                }
+                else if (value is Guid guid)
+                {
+                    writer.Write(guid.ToByteArray());
+                }
+                else
+                {
+                    writer.Write(0);
+                }
+                break;
+            default:
+                writer.Write(0);
+                break;
+        }
+    }
+
+    /// <summary>从SpanReader读取单个值（用于反序列化数据行的字段值）</summary>
+    /// <param name="reader">Span读取器</param>
+    /// <param name="type">值的类型</param>
+    /// <returns>反序列化的值，可能为null</returns>
+    public static Object? ReadValue(ref SpanReader reader, Type type)
+    {
+        var flag = reader.ReadByte();
+        if (flag == 0) return null;
+
+        var code = type.GetTypeCode();
+        return code switch
+        {
+            TypeCode.Boolean => reader.ReadByte() != 0,
+            TypeCode.Byte => reader.ReadByte(),
+            TypeCode.SByte => (SByte)reader.ReadByte(),
+            TypeCode.Char => (Char)reader.ReadUInt16(),
+            TypeCode.Int16 => reader.ReadInt16(),
+            TypeCode.UInt16 => reader.ReadUInt16(),
+            TypeCode.Int32 => reader.ReadInt32(),
+            TypeCode.UInt32 => reader.ReadUInt32(),
+            TypeCode.Int64 => reader.ReadInt64(),
+            TypeCode.UInt64 => reader.ReadUInt64(),
+            TypeCode.Single => reader.ReadSingle(),
+            TypeCode.Double => reader.ReadDouble(),
+            TypeCode.Decimal => Decimal.Parse(reader.ReadString() ?? "0"),
+            TypeCode.DateTime => new DateTime(reader.ReadInt64()),
+            TypeCode.String => reader.ReadString(),
+            TypeCode.Object => ReadObjectValue(ref reader, type),
+            _ => null,
+        };
+    }
+
+    /// <summary>读取对象类型的值</summary>
+    /// <param name="reader">Span读取器</param>
+    /// <param name="type">类型</param>
+    /// <returns>值</returns>
+    private static Object? ReadObjectValue(ref SpanReader reader, Type type)
+    {
+        if (type == typeof(Byte[]))
+        {
+            var len = reader.ReadInt32();
+            return len > 0 ? reader.ReadBytes(len).ToArray() : new Byte[0];
+        }
+
+        if (type == typeof(Guid))
+        {
+            var buf = reader.ReadBytes(16).ToArray();
+            return new Guid(buf);
+        }
+
+        return null;
     }
     #endregion
 

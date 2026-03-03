@@ -462,6 +462,192 @@ public class SpanSerializerTests
     }
     #endregion
 
+    #region ToPacket/Serialize 双路径
+    [Fact]
+    [DisplayName("Serialize小数据走缓冲区路径")]
+    public void SerializeSmallDataPath()
+    {
+        var model = new CompatModel
+        {
+            Code = 1234,
+            Name = "SmallTest",
+            Flag = true,
+            Score = 3.14f,
+            Count = 999999L,
+            Level = 10,
+            Time = new DateTime(2025, 7, 1, 8, 0, 0, DateTimeKind.Utc),
+            Tag = 'Z',
+            Amount = 12.34m,
+        };
+
+        // 默认4096缓冲区，数据远小于缓冲区 → 小数据路径
+        using var pk = SpanSerializer.Serialize(model);
+        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+
+        // 小数据路径通过 Slice 返回，Offset 精确等于 HeaderReserve
+        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
+        Assert.True(ownerPk.Length > 0);
+
+        // 完整反序列化验证
+        var model2 = SpanSerializer.Deserialize<CompatModel>(pk.GetSpan());
+        Assert.Equal(model.Code, model2.Code);
+        Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(model.Flag, model2.Flag);
+        Assert.Equal(model.Score, model2.Score);
+        Assert.Equal(model.Count, model2.Count);
+        Assert.Equal(model.Level, model2.Level);
+        Assert.Equal(model.Time.Date, model2.Time.Date);
+        Assert.Equal(model.Tag, model2.Tag);
+        Assert.Equal(model.Amount, model2.Amount);
+    }
+
+    [Fact]
+    [DisplayName("Serialize大数据溢出到流路径")]
+    public void SerializeLargeDataPath()
+    {
+        var model = new CompatModel
+        {
+            Code = 5678,
+            Name = "LargeDataOverflow",
+            Flag = true,
+            Score = 2.718f,
+            Count = 88888888L,
+            Level = 30,
+            Time = new DateTime(2025, 7, 1, 8, 0, 0, DateTimeKind.Utc),
+            Tag = 'W',
+            Amount = 99.99m,
+        };
+
+        // 用极小缓冲区：50 - HeaderReserve(32) = 18字节可用，总数据约69字节 → 必定溢出到流
+        using var pk = SpanSerializer.Serialize(model, 50);
+        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+        Assert.True(ownerPk.Length > 0);
+
+        // 大数据路径窃取池化 MemoryStream 缓冲区，Offset 等于 HeaderReserve
+        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
+
+        // 完整反序列化验证所有字段
+        var model2 = SpanSerializer.Deserialize<CompatModel>(pk.GetSpan());
+        Assert.Equal(model.Code, model2.Code);
+        Assert.Equal(model.Name, model2.Name);
+        Assert.Equal(model.Flag, model2.Flag);
+        Assert.Equal(model.Score, model2.Score);
+        Assert.Equal(model.Count, model2.Count);
+        Assert.Equal(model.Level, model2.Level);
+        Assert.Equal(model.Time.Date, model2.Time.Date);
+        Assert.Equal(model.Tag, model2.Tag);
+        Assert.Equal(model.Amount, model2.Amount);
+    }
+
+    [Fact]
+    [DisplayName("Serialize小数据与大数据路径结果二进制一致")]
+    public void SerializeSmallAndLargePathIdentical()
+    {
+        var model = new CompatModel
+        {
+            Code = 42,
+            Name = "Identity",
+            Flag = true,
+            Score = 1.5f,
+            Count = 100L,
+            Level = 5,
+            Time = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+            Tag = 'A',
+            Amount = 50.0m,
+        };
+
+        // 小数据路径（默认4096缓冲区）
+        using var pkSmall = SpanSerializer.Serialize(model);
+        // 大数据路径（50字节缓冲区强制溢出到流）
+        using var pkLarge = SpanSerializer.Serialize(model, 50);
+
+        // 两条路径产出完全相同的字节序列
+        Assert.Equal(pkSmall.GetSpan().ToHex(), pkLarge.GetSpan().ToHex());
+    }
+
+    [Fact]
+    [DisplayName("ToPacket小数据走缓冲区路径")]
+    public void ToPacketSmallDataPath()
+    {
+        var time = new DateTime(2025, 1, 1, 12, 0, 0);
+        var msg = new FastMessage { Id = 99, Action = "SmallMsg", Timestamp = time };
+
+        // 默认8192缓冲区 → 小数据路径
+        var pk = msg.ToPacket();
+        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+
+        // 小数据路径通过 Slice 返回，Offset 等于 reserve(32)
+        Assert.Equal(32, ownerPk.Offset);
+
+        // 完整反序列化验证
+        var reader = new SpanReader(pk.GetSpan());
+        var msg2 = new FastMessage();
+        msg2.Read(ref reader);
+
+        Assert.Equal(99, msg2.Id);
+        Assert.Equal("SmallMsg", msg2.Action);
+        Assert.Equal(time, msg2.Timestamp);
+
+        (pk as IOwnerPacket)?.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("ToPacket大数据溢出到流路径")]
+    public void ToPacketLargeDataPath()
+    {
+        var time = new DateTime(2025, 7, 1, 15, 30, 0);
+        var msg = new FastMessage { Id = 42, Action = "Overflow", Timestamp = time };
+
+        // 用极小缓冲区：42 - reserve(32) = 10字节可用，总数据约20字节 → 必定溢出到流
+        var pk = msg.ToPacket(bufferSize: 42);
+        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+        Assert.True(ownerPk.Length > 0);
+
+        // 大数据路径窃取池化 MemoryStream 缓冲区，Offset 等于 reserve(32)
+        Assert.Equal(32, ownerPk.Offset);
+
+        // 完整反序列化验证所有字段
+        var reader = new SpanReader(pk.GetSpan());
+        var msg2 = new FastMessage();
+        msg2.Read(ref reader);
+
+        Assert.Equal(42, msg2.Id);
+        Assert.Equal("Overflow", msg2.Action);
+        Assert.Equal(time, msg2.Timestamp);
+
+        (pk as IOwnerPacket)?.Dispose();
+    }
+
+    [Fact]
+    [DisplayName("Serialize头部预留空间可向前扩展")]
+    public void SerializeHeaderReserveExpandable()
+    {
+        var model = new BasicModel { Int32Val = 42, Name = "Reserve" };
+
+        using var pk = SpanSerializer.Serialize(model);
+        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+
+        // Offset 精确等于 HeaderReserve，可向前扩展全部预留空间
+        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
+
+        var expanded = new OwnerPacket(ownerPk, SpanSerializer.HeaderReserve);
+        Assert.Equal(pk.Length + SpanSerializer.HeaderReserve, expanded.Length);
+
+        // 扩展区域可写入协议头
+        var span = expanded.GetSpan();
+        span[0] = 0xDE;
+        span[1] = 0xAD;
+        Assert.Equal(0xDE, expanded.Buffer[expanded.Offset]);
+        Assert.Equal(0xAD, expanded.Buffer[expanded.Offset + 1]);
+
+        // 原有数据仍可正确反序列化
+        var dataSpan = span.Slice(SpanSerializer.HeaderReserve, pk.Length);
+        var model2 = SpanSerializer.Deserialize<BasicModel>(dataSpan);
+        Assert.Equal(42, model2.Int32Val);
+        Assert.Equal("Reserve", model2.Name);
+    }
+    #endregion
+
     #region Binary兼容性
     /// <remarks>
     /// SpanSerializer与Binary在所有基础类型上二进制格式完全一致（字节序匹配时）：
