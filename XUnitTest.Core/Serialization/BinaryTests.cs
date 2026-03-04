@@ -1,5 +1,8 @@
 ﻿using NewLife;
+using NewLife.Buffers;
 using NewLife.Data;
+using NewLife.Http;
+using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Serialization.Interface;
 using Xunit;
@@ -569,5 +572,135 @@ public class BinaryTests
 
         dt = DateTime.MaxValue;
         WriteFullTimeByKind(dt);
+    }
+
+    /// <summary>测试 ISpanSerializable 序列化</summary>
+    [Fact]
+    public void SpanSerializable()
+    {
+        // 测试 DbTable 实现 ISpanSerializable
+        var dt = new DbTable
+        {
+            Columns = new[] { "Id", "Name", "Age" },
+            Types = new[] { typeof(Int32), typeof(String), typeof(Int32) },
+            Rows = new List<Object?[]>
+            {
+                new Object?[] { 1, "Alice", 25 },
+                new Object?[] { 2, "Bob", 30 },
+            }
+        };
+
+        // 使用 Binary 序列化
+        var bn = new Binary();
+        bn.Write(dt);
+        var pk = bn.GetPacket();
+
+        // 反序列化
+        bn = new Binary { Stream = pk.GetStream(false) };
+        var dt2 = bn.Read<DbTable>();
+        Assert.NotNull(dt2);
+        Assert.Equal(dt.Columns.Length, dt2.Columns.Length);
+        Assert.Equal(2, dt2.Total);
+        Assert.Equal(2, dt2.Rows.Count);
+    }
+
+    /// <summary>测试 ISpanSerializable 性能优势</summary>
+    [Fact]
+    public void SpanSerializablePerformance()
+    {
+        var dt = new DbTable
+        {
+            Columns = new[] { "Id", "Name" },
+            Types = new[] { typeof(Int32), typeof(String) },
+            Rows = new List<Object?[]>
+            {
+                new Object?[] { 1, "Test1" },
+                new Object?[] { 2, "Test2" },
+            }
+        };
+
+        // 验证可以直接调用 ISpanSerializable 接口
+        var buffer = new Byte[8192];
+        var writer = new SpanWriter(buffer);
+        ((ISpanSerializable)dt).Write(ref writer);
+        Assert.True(writer.WrittenCount > 0);
+
+        // 反序列化
+        var reader = new SpanReader(writer.WrittenSpan);
+        var dt2 = new DbTable();
+        ((ISpanSerializable)dt2).Read(ref reader);
+        Assert.Equal(2, dt2.Total);
+    }
+
+    /// <summary>测试 ECKey 的 ISpanSerializable</summary>
+    [Fact]
+    public void ECKeySpanSerializable()
+    {
+        var key = new ECKey
+        {
+            X = new Byte[] { 1, 2, 3, 4 },
+            Y = new Byte[] { 5, 6, 7, 8 },
+            D = new Byte[] { 9, 10, 11, 12 }
+        };
+
+        // Direct Span 序列化
+        var buffer = new Byte[1024];
+        var writer = new SpanWriter(buffer);
+        ((ISpanSerializable)key).Write(ref writer);
+        Assert.True(writer.WrittenCount > 0);
+
+        // 反序列化
+        var reader = new SpanReader(writer.WrittenSpan);
+        var key2 = new ECKey();
+        ((ISpanSerializable)key2).Read(ref reader);
+        Assert.Equal(key.X, key2.X);
+        Assert.Equal(key.Y, key2.Y);
+        Assert.Equal(key.D, key2.D);
+    }
+
+    /// <summary>测试 HttpResponse.SetResult 对 ISpanSerializable 的支持</summary>
+    [Fact]
+    public void HttpResponseSetResultSpanSerializable()
+    {
+        var response = new HttpResponse();
+
+        // 设置 DbTable 作为结果
+        var dt = new DbTable
+        {
+            Columns = new[] { "Id", "Name" },
+            Types = new[] { typeof(Int32), typeof(String) },
+            Rows = new List<Object?[]>
+            {
+                new Object?[] { 1, "Alice" },
+            }
+        };
+
+        response.SetResult(dt);
+        Assert.NotNull(response.Body);
+        Assert.Equal("application/octet-stream", response.ContentType);
+    }
+
+    /// <summary>测试编码器对 ISpanSerializable 的支持</summary>
+    [Fact]
+    public void PacketEncoderSpanSerializable()
+    {
+        var encoder = new DefaultPacketEncoder();
+        
+        // 测试 Encode
+        var dt = new DbTable
+        {
+            Columns = new[] { "Id" },
+            Types = new[] { typeof(Int32) },
+            Rows = new List<Object?[]> { new Object?[] { 1 } }
+        };
+
+        var pk = encoder.Encode(dt);
+        Assert.NotNull(pk);
+        Assert.True(pk.Length > 0);
+
+        // 测试 Decode
+        var dt2 = encoder.Decode(pk, typeof(DbTable)) as DbTable;
+        Assert.NotNull(dt2);
+        Assert.Equal(1, dt2.Total);
     }
 }

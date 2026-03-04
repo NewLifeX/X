@@ -141,6 +141,11 @@ public class NetHandlerContext : HandlerContext
         if (message is Byte[] buf) return session.Send(buf);
         if (message is IPacket ip) return session.Send(ip);
         if (message is String str) return session.Send(str.GetBytes());
+        if (message is ISpanSerializable spanSerial)
+        {
+            using var pk = spanSerial.ToPacket();
+            return session.Send(pk);
+        }
         if (message is IAccessor acc) return session.Send(acc.ToPacket());
 
         // 发送一批数据包

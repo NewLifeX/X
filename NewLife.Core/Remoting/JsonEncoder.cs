@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using NewLife.Buffers;
 using NewLife.Data;
 using NewLife.Messaging;
 using NewLife.Serialization;
@@ -81,8 +82,12 @@ namespace NewLife.Remoting
         {
             // 二进制优先
             var str = "";
-            if (args is Packet pk)
+            if (args is IPacket pk)
             {
+            }
+            else if (args is ISpanSerializable spanSerial)
+            {
+                pk = spanSerial.ToPacket();
             }
             else if (args is IAccessor acc)
                 pk = acc.ToPacket();
@@ -117,8 +122,12 @@ namespace NewLife.Remoting
         {
             // 编码响应数据包，二进制优先
             var str = "";
-            if (value is Packet pk)
+            if (value is IPacket pk)
             {
+            }
+            else if (value is ISpanSerializable spanSerial)
+            {
+                pk = spanSerial.ToPacket();
             }
             else if (value is IAccessor acc)
                 pk = acc.ToPacket();

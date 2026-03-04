@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Messaging;
@@ -24,11 +25,15 @@ public class HttpEncoder : EncoderBase, IEncoder
     /// <param name="code"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public virtual Packet Encode(String action, Int32 code, Object value)
+    public virtual IPacket Encode(String action, Int32 code, Object value)
     {
         //if (value == null) return null;
 
         if (value is Packet pk) return pk;
+        if (value is ISpanSerializable spanSerial)
+        {
+            return spanSerial.ToPacket();
+        }
         if (value is IAccessor acc) return acc.ToPacket();
 
         // 不支持序列化异常
@@ -124,8 +129,13 @@ public class HttpEncoder : EncoderBase, IEncoder
         sb.Append(action);
 
         // 准备参数，二进制优先
-        if (args is Packet pk)
+        if (args is IPacket pk)
         {
+        }
+        // 支持ISpanSerializable
+        else if (args is ISpanSerializable spanSerial)
+        {
+            pk = spanSerial.ToPacket();
         }
         // 支持IAccessor
         else if (args is IAccessor acc)

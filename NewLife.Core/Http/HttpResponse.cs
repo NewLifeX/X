@@ -108,11 +108,11 @@ public class HttpResponse : HttpBase
 
             StatusDescription = ex.Message;
         }
-        else if (result is ISpanSerializable)
+        else if (result is ISpanSerializable span)
         {
             if (contentType.IsNullOrEmpty()) contentType = "application/octet-stream";
 
-            Body = SpanSerializer.Serialize(result, 8192);
+            Body = span.ToPacket();
         }
         else if (result is IAccessor accessor)
         {

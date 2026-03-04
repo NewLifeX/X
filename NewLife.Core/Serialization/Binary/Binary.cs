@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using NewLife.Buffers;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
@@ -137,6 +138,21 @@ public class Binary : FormatterBase, IBinary
             if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryWrite {0} {1}", type.Name, value);
         }
 
+        // 优先 ISpanSerializable 接口（高性能Span序列化）
+        if (value is ISpanSerializable spanW)
+        {
+            using var pk = new OwnerPacket(4096);
+            var writer = new SpanWriter(pk.GetSpan(), Stream)
+            {
+                IsLittleEndian = IsLittleEndian
+            };
+            spanW.Write(ref writer);
+            writer.Dispose();
+            Total += writer.TotalWritten;
+
+            return true;
+        }
+
         // 优先 IAccessor 接口
         if (value is IAccessor acc)
         {
@@ -264,6 +280,22 @@ public class Binary : FormatterBase, IBinary
         if (Hosts.Count == 0 && Log != null && Log.Enable) WriteLog("BinaryRead {0} {1}", type.Name, value);
 
         if (EndOfStream) return false;
+
+        // 优先 ISpanSerializable 接口（高性能Span序列化）
+        if (value is ISpanSerializable spanR)
+        {
+            ReadSpanSerializable(spanR);
+            return true;
+        }
+        if (value == null && type.As<ISpanSerializable>())
+        {
+            value = type.CreateInstance();
+            if (value is ISpanSerializable spanR2)
+            {
+                ReadSpanSerializable(spanR2);
+                return true;
+            }
+        }
 
         // 优先 IAccessor 接口
         if (value is IAccessor acc)
@@ -879,6 +911,32 @@ public class Binary : FormatterBase, IBinary
     /// <param name="size"></param>
     /// <returns></returns>
     public Boolean CheckRemain(Int32 size) => Stream.Position + size <= Stream.Length;
+
+    /// <summary>通过SpanReader读取ISpanSerializable对象，并同步流位置</summary>
+    /// <param name="target">目标对象</param>
+    private void ReadSpanSerializable(ISpanSerializable target)
+    {
+        if (!Stream.CanSeek)
+        {
+            // 不支持Seek的流直接使用流模式。
+            // 注意：SpanReader可能批量预读多余字节导致流位置超前，仅适用于整帧全部交由ISpanSerializable处理的场景
+            var reader0 = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
+            target.Read(ref reader0);
+            // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
+            // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值
+            Total += reader0.Position;
+            return;
+        }
+
+        var startPos = Stream.Position;
+        var reader = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
+        target.Read(ref reader);
+
+        // SpanReader流模式可能预读了多余字节，需要回退未消费部分
+        var available = reader.Available;
+        if (available > 0) Stream.Seek(-available, SeekOrigin.Current);
+        Total += (Int32)(Stream.Position - startPos);
+    }
     #endregion
 
     #region 快捷方法
