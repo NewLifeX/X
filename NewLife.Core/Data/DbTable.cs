@@ -75,7 +75,10 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         var cs = Columns ?? throw new ArgumentNullException(nameof(Columns));
         var ts = Types ?? throw new ArgumentNullException(nameof(Types));
 
-        fields ??= Enumerable.Range(0, cs.Length).ToArray();
+        // 在SqlServer中，fields可能是空数组
+        //fields ??= Enumerable.Range(0, cs.Length).ToArray();
+        if (fields == null || fields.Length == 0)
+            fields = Enumerable.Range(0, cs.Length).ToArray();
 
         // 数据
         var rs = new List<Object?[]>();
