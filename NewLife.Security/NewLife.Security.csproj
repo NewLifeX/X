@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-    <AssemblyTitle>NewLife加密库</AssemblyTitle>
-    <Description>扩展加密算法</Description>
+    <AssemblyTitle>NewLife加密扩展库</AssemblyTitle>
+    <Description>Extended cryptographic algorithms for NewLife framework. Provides advanced encryption capabilities including ECC (Elliptic Curve Cryptography), ECDSA digital signature, and more. 扩展加密算法库，提供椭圆曲线加密（ECC）、ECDSA数字签名等高级加密能力。基于.NET CNG平台的安全扩展组件。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
     <VersionPrefix>11.11</VersionPrefix>
