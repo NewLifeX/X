@@ -434,8 +434,8 @@ public class NetEdgeCaseTests
                 // 测试各种发送方式
                 session.Send(e.Packet);
                 session.Send("Echo: " + e.Packet.ToStr());
-                session.Send(e.Packet.ToArray());
-                receivedData.Add(e.Packet.ToArray());
+                session.Send(e.GetBytes());
+                receivedData.Add(e.GetBytes());
                 receivedEvent.Set();
             }
         };
@@ -484,7 +484,7 @@ public class NetEdgeCaseTests
                 var userId = ns.Session["UserId"];
                 var userName = ns.Session["UserName"];
 
-                if (userId is Int32 id && id == 12345 && 
+                if (userId is Int32 id && id == 12345 &&
                     userName is String name && name == "TestUser")
                 {
                     verified.Set();
@@ -661,7 +661,7 @@ public class NetEdgeCaseTests
         {
             if (s is INetSession session && e.Packet != null)
             {
-                serverData = e.Packet.ToArray();
+                serverData = e.GetBytes();
                 serverReceived.Set();
 
                 // 回复不同的数据

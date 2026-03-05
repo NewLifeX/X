@@ -138,7 +138,7 @@ public class NetServerTests
         {
             if (e.Packet != null)
             {
-                receivedData.Add(e.Packet.ToArray());
+                receivedData.Add(e.GetBytes());
                 receivedEvent.Set();
 
                 // Echo回复
@@ -189,7 +189,7 @@ public class NetServerTests
         {
             if (e.Packet != null)
             {
-                receivedData.Add(e.Packet.ToArray());
+                receivedData.Add(e.GetBytes());
                 receivedEvent.Set();
 
                 // Echo回复

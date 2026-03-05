@@ -34,7 +34,7 @@ public class NetAsyncTests
             {
                 lock (receivedData)
                 {
-                    receivedData.Add(e.Packet.ToArray());
+                    receivedData.Add(e.GetBytes());
                 }
                 // Echo
                 session.Send(e.Packet);

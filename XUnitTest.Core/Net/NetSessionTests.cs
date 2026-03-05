@@ -423,7 +423,7 @@ public class NetSessionTests
         {
             if (e.Packet != null)
             {
-                receivedData.Add(e.Packet.ToArray());
+                receivedData.Add(e.GetBytes());
                 dataReceived.Set();
             }
         };

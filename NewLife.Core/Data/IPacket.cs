@@ -36,10 +36,10 @@ public interface IPacket
     /// <param name="index">0 基起始的全局位置</param>
     Byte this[Int32 index] { get; set; }
 
-    /// <summary>获取分片视图。在管理权生命周期内短暂使用，禁止长期保存</summary>
+    /// <summary>获取分片视图（仅当前数据包，不包括 <see cref="Next"/> 链）。在管理权生命周期内短暂使用，禁止长期保存</summary>
     Span<Byte> GetSpan();
 
-    /// <summary>获取内存块。在管理权生命周期内短暂使用，禁止长期保存</summary>
+    /// <summary>获取内存块（仅当前数据包，不包括 <see cref="Next"/> 链）。在管理权生命周期内短暂使用，禁止长期保存</summary>
     Memory<Byte> GetMemory();
 
     /// <summary>切片得到新数据包，共享底层内存以减少分配</summary>
@@ -745,19 +745,19 @@ public sealed class OwnerPacket : IPacket, IOwnerPacket
     #endregion
 
     #region 内存访问
-    /// <summary>获取当前数据包的内存片段视图</summary>
+    /// <summary>获取当前数据包的内存片段视图（仅本段，不含 Next）</summary>
     /// <returns>只读内存片段，仅在实例生命周期内有效</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<Byte> GetSpan() => new(Buffer, _offset, _length);
 
-    /// <summary>获取当前数据包的内存块</summary>
+    /// <summary>获取当前数据包的内存块（仅本段，不含 Next）</summary>
     /// <returns>内存块，仅在实例生命周期内有效</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Memory<Byte> GetMemory() => new(Buffer, _offset, _length);
 
-    /// <summary>尝试获取当前片段的数组段表示</summary>
+    /// <summary>尝试获取当前片段的数组段表示（仅本段，不含 Next）</summary>
     /// <param name="segment">输出的数组段</param>
     /// <returns>始终返回 true</returns>
     /// <exception cref="ObjectDisposedException">实例已释放</exception>
@@ -986,7 +986,7 @@ public struct MemoryPacket : IPacket
             : new MemoryPacket(_memory[offset..], count);
     }
 
-    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
+    /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1192,7 +1192,7 @@ public record struct ArrayPacket : IPacket
         return new ArrayPacket(_buffer, start, remain) { Next = next.Slice(0, count - remain, transferOwner) };
     }
 
-    /// <summary>尝试获取缓冲区。仅本片段，不包括Next</summary>
+    /// <summary>尝试获取缓冲区（仅本段，不含 Next）</summary>
     /// <param name="segment"></param>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1304,11 +1304,11 @@ public readonly record struct ReadOnlyPacket : IPacket
     #endregion
 
     #region 方法
-    /// <summary>获取分片视图（只读）</summary>
+    /// <summary>获取分片视图（仅本段，只读包不支持 Next）</summary>
     /// <returns>只读字节片段</returns>
     public Span<Byte> GetSpan() => new(_buffer, _offset, _length);
 
-    /// <summary>获取内存块（只读）</summary>
+    /// <summary>获取内存块（仅本段，只读包不支持 Next）</summary>
     /// <returns>只读内存块</returns>
     public Memory<Byte> GetMemory() => new(_buffer, _offset, _length);
 
@@ -1335,7 +1335,7 @@ public readonly record struct ReadOnlyPacket : IPacket
     /// <returns>新的只读数据包</returns>
     public IPacket Slice(Int32 offset, Int32 count, Boolean transferOwner) => Slice(offset, count);
 
-    /// <summary>尝试获取数组段</summary>
+    /// <summary>尝试获取数组段（仅本段，只读包不支持 Next）</summary>
     /// <param name="segment">输出的数组段</param>
     /// <returns>始终返回 true</returns>
     public Boolean TryGetArray(out ArraySegment<Byte> segment)

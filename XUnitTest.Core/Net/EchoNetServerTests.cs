@@ -21,10 +21,7 @@ public class EchoNetServerTests
         Byte[]? received = null;
         client.Received += (s, e) =>
         {
-            var packet = e.Packet;
-            if (packet == null) return;
-
-            received = packet.GetSpan().ToArray();
+            received = e.GetBytes();
             wait.Set();
         };
 

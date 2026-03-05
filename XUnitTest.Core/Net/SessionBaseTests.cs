@@ -75,11 +75,8 @@ public class SessionBaseTests
             {
                 session.Received += (sender, args) =>
                 {
-                    if (args.Packet != null)
-                    {
-                        receivedData.Add(args.Packet.ToArray());
-                        receivedEvent.Set();
-                    }
+                    receivedData.Add(args.GetBytes());
+                    receivedEvent.Set();
                 };
             }
         };
@@ -114,7 +111,7 @@ public class SessionBaseTests
             {
                 session.Received += (sender, args) =>
                 {
-                    received = args.Packet?.ToArray();
+                    received = args.GetBytes();
                     receivedEvent.Set();
                 };
             }
@@ -183,7 +180,7 @@ public class SessionBaseTests
 
         // 连接不可达地址可能抛出 TimeoutException、SocketException 或 OperationCanceledException
         var ex = Assert.ThrowsAny<Exception>(() => client.Open());
-        Assert.True(ex is TimeoutException || ex is SocketException || ex is OperationCanceledException, 
+        Assert.True(ex is TimeoutException || ex is SocketException || ex is OperationCanceledException,
             $"Expected TimeoutException, SocketException or OperationCanceledException, but got {ex.GetType().Name}");
 
         client.Dispose();
@@ -214,7 +211,7 @@ public class SessionBaseTests
         {
             Remote = new NetUri($"tcp://127.0.0.1:{server.Port}"),
         };
-        
+
         // 记录打开前的时间，允许一些误差
         var beforeOpen = DateTime.Now.AddMilliseconds(-100);
         client.Open();
@@ -227,7 +224,7 @@ public class SessionBaseTests
         Thread.Sleep(50);
         var beforeSend = client.LastTime;
         client.Send("Test"u8.ToArray());
-        
+
         // 发送后LastTime应该更新或保持不变（取决于实现）
         var afterSend = client.LastTime;
         Assert.True(afterSend >= beforeSend, $"afterSend ({afterSend:HH:mm:ss.fff}) should >= beforeSend ({beforeSend:HH:mm:ss.fff})");
@@ -321,7 +318,7 @@ public class SessionBaseTests
         using var server = new UdpServer { Port = 0 };
         server.Received += (s, e) =>
         {
-            received = e.Packet?.ToArray();
+            received = e.GetBytes();
             receivedEvent.Set();
         };
         server.Open();

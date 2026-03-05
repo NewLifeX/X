@@ -32,7 +32,7 @@ public class SpanSerializerTests
         using var pk = SpanSerializer.Serialize(model);
         Assert.True(pk.Length > 0);
 
-        var model2 = SpanSerializer.Deserialize<BasicModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<BasicModel>(pk);
         Assert.Equal(model.Flag, model2.Flag);
         Assert.Equal(model.ByteVal, model2.ByteVal);
         Assert.Equal(model.Int16Val, model2.Int16Val);
@@ -114,7 +114,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<OrderModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<OrderModel>(pk);
 
         Assert.Equal(model.OrderId, model2.OrderId);
         Assert.Equal(model.Customer, model2.Customer);
@@ -136,7 +136,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<OrderModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<OrderModel>(pk);
 
         Assert.Equal(model.OrderId, model2.OrderId);
         Assert.Equal(model.Customer, model2.Customer);
@@ -158,7 +158,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<FastMessage>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<FastMessage>(pk);
 
         Assert.Equal(model.Id, model2.Id);
         Assert.Equal(model.Action, model2.Action);
@@ -181,7 +181,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk);
 
         Assert.Equal(model.Name, model2.Name);
         Assert.NotNull(model2.Message);
@@ -237,7 +237,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<EnumModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<EnumModel>(pk);
 
         Assert.Equal(MyStatus.Running, model2.Status);
         Assert.Equal(5, model2.Level);
@@ -253,11 +253,11 @@ public class SpanSerializerTests
         {
             Id = guid,
             CreatedAt = now,
-            Data = new Byte[] { 0x01, 0x02, 0x03, 0x04 },
+            Data = [0x01, 0x02, 0x03, 0x04],
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk);
 
         Assert.Equal(guid, model2.Id);
         // DateTime以UInt32秒存储（与Binary兼容），精度为秒级
@@ -275,19 +275,19 @@ public class SpanSerializerTests
         // null
         var model = new SpecialModel { Id = Guid.Empty, CreatedAt = DateTime.MinValue, Data = null };
         using var pk1 = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk1.GetSpan());
+        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk1);
         Assert.Empty(model2.Data!);
 
         // empty
         model.Data = [];
         using var pk2 = SpanSerializer.Serialize(model);
-        model2 = SpanSerializer.Deserialize<SpecialModel>(pk2.GetSpan());
+        model2 = SpanSerializer.Deserialize<SpecialModel>(pk2);
         Assert.Empty(model2.Data!);
 
         // has data
         model.Data = [0xFF, 0xFE];
         using var pk3 = SpanSerializer.Serialize(model);
-        model2 = SpanSerializer.Deserialize<SpecialModel>(pk3.GetSpan());
+        model2 = SpanSerializer.Deserialize<SpecialModel>(pk3);
         Assert.Equal(new Byte[] { 0xFF, 0xFE }, model2.Data);
     }
 
@@ -304,7 +304,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<NullableModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<NullableModel>(pk);
 
         Assert.Equal(99, model2.Score);
         Assert.Null(model2.Count);
@@ -326,7 +326,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<ExtendedModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<ExtendedModel>(pk);
 
         Assert.Equal(model.SByteVal, model2.SByteVal);
         Assert.Equal(model.CharVal, model2.CharVal);
@@ -344,7 +344,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<StructHostModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<StructHostModel>(pk);
 
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Point.X, model2.Point.X);
@@ -362,7 +362,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<NullableEnumModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<NullableEnumModel>(pk);
 
         Assert.Equal(MyStatus.Paused, model2.Status);
         Assert.Null(model2.Kind);
@@ -370,7 +370,7 @@ public class SpanSerializerTests
         // 非null Nullable枚举
         model.Kind = MyStatus.Running;
         using var pk2 = SpanSerializer.Serialize(model);
-        var model3 = SpanSerializer.Deserialize<NullableEnumModel>(pk2.GetSpan());
+        var model3 = SpanSerializer.Deserialize<NullableEnumModel>(pk2);
         Assert.Equal(MyStatus.Running, model3.Kind);
     }
 
@@ -381,7 +381,7 @@ public class SpanSerializerTests
         var model = new BasicModel { Flag = false, Name = null };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<BasicModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<BasicModel>(pk);
 
         // null字符串反序列化后为空串（与Binary一致）
         Assert.Equal(String.Empty, model2.Name);
@@ -398,7 +398,7 @@ public class SpanSerializerTests
         };
 
         using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk);
 
         Assert.Equal("NoMessage", model2.Name);
         // 与Binary一致，null嵌套对象不写入数据，数据流不足时跳过后续属性
@@ -414,7 +414,7 @@ public class SpanSerializerTests
         var model = new BasicModel { Int32Val = 42, Name = "TypeTest" };
 
         using var pk = SpanSerializer.Serialize(model);
-        var obj = SpanSerializer.Deserialize(typeof(BasicModel), pk.GetSpan());
+        var obj = SpanSerializer.Deserialize(typeof(BasicModel), pk);
 
         Assert.IsType<BasicModel>(obj);
         var model2 = (BasicModel)obj;
@@ -489,7 +489,7 @@ public class SpanSerializerTests
         Assert.True(ownerPk.Length > 0);
 
         // 完整反序列化验证
-        var model2 = SpanSerializer.Deserialize<CompatModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<CompatModel>(pk);
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Flag, model2.Flag);
@@ -527,7 +527,7 @@ public class SpanSerializerTests
         Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
 
         // 完整反序列化验证所有字段
-        var model2 = SpanSerializer.Deserialize<CompatModel>(pk.GetSpan());
+        var model2 = SpanSerializer.Deserialize<CompatModel>(pk);
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Flag, model2.Flag);
@@ -562,7 +562,7 @@ public class SpanSerializerTests
         using var pkLarge = SpanSerializer.Serialize(model, 50);
 
         // 两条路径产出完全相同的字节序列
-        Assert.Equal(pkSmall.GetSpan().ToHex(), pkLarge.GetSpan().ToHex());
+        Assert.Equal(pkSmall.ToHex(), pkLarge.ToHex());
     }
 
     [Fact]

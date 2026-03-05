@@ -302,7 +302,7 @@ public class NetClientTests
 
         var wait = new ManualResetEventSlim();
         Byte[]? received = null;
-        client.Received += (s, e) => { received = e.Packet?.GetSpan().ToArray(); wait.Set(); };
+        client.Received += (s, e) => { received = e.GetBytes(); wait.Set(); };
 
         client.Open();
 
@@ -321,7 +321,7 @@ public class NetClientTests
 
         var wait = new ManualResetEventSlim();
         Byte[]? received = null;
-        client.Received += (s, e) => { received = e.Packet?.GetSpan().ToArray(); wait.Set(); };
+        client.Received += (s, e) => { received = e.GetBytes(); wait.Set(); };
 
         client.Open();
 
@@ -340,7 +340,7 @@ public class NetClientTests
 
         var wait = new ManualResetEventSlim();
         Byte[]? received = null;
-        client.Received += (s, e) => { received = e.Packet?.GetSpan().ToArray(); wait.Set(); };
+        client.Received += (s, e) => { received = e.GetBytes(); wait.Set(); };
 
         client.Open();
 
@@ -358,7 +358,7 @@ public class NetClientTests
         using var client = CreateTcpClient(server.Port);
 
         var tcs = new TaskCompletionSource<Byte[]?>();
-        client.Received += (s, e) => tcs.TrySetResult(e.Packet?.GetSpan().ToArray());
+        client.Received += (s, e) => tcs.TrySetResult(e.GetBytes());
 
         client.Open();
 
@@ -382,7 +382,7 @@ public class NetClientTests
 
         client.Received += (s, e) =>
         {
-            received = e.Packet?.GetSpan().ToArray();
+            received = e.GetBytes();
             wait.Set();
         };
 
