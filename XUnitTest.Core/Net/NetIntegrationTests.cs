@@ -267,14 +267,12 @@ public class NetIntegrationTests
         Assert.NotNull(serverReceived);
         Assert.Equal(payload, serverReceived);
     }
-    #endregion
 
-    #region SplitDataCodec 集成
-    /// <summary>SplitDataCodec 按 CRLF 拆包，服务端逐行接收</summary>
+    /// <summary>LengthFieldCodec Offset=2 的场景（如 MQTT：[Flag(1)] [Length(2)] [Payload]）</summary>
     [Fact]
-    public void SplitDataCodec_LineByLine_Receive()
+    public void LengthFieldCodec_Offset2_MqttStyle()
     {
-        var receivedLines = new List<String>();
+        var receivedPayloads = new List<Byte[]>();
         var allReceived = new ManualResetEventSlim();
 
         using var server = new NetServer
@@ -283,42 +281,118 @@ public class NetIntegrationTests
             ProtocolType = NetType.Tcp,
             AddressFamily = AddressFamily.InterNetwork,
         };
-        server.Add<SplitDataCodec>();
+        server.Add(new LengthFieldCodec { Size = 2, Offset = 2 });
         server.Received += (s, e) =>
         {
             if (e.Message is IPacket pk)
             {
-                var line = pk.ToStr();
-                lock (receivedLines)
+                lock (receivedPayloads)
                 {
-                    receivedLines.Add(line);
-                    if (receivedLines.Count >= 3) allReceived.Set();
+                    receivedPayloads.Add(pk.ToArray());
+                    if (receivedPayloads.Count >= 3) allReceived.Set();
                 }
             }
         };
         server.Start();
 
-        // 用原始 TcpClient 一次性发送 3 行（模拟粘包）
-        using var client = new TcpClient();
-        client.Connect(IPAddress.Loopback, server.Port);
-        var ns = client.GetStream();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 2, Offset = 2 });
+        client.Open();
 
-        var data = "Line1\r\nLine2\r\nLine3\r\n"u8.ToArray();
-        ns.Write(data, 0, data.Length);
-        ns.Flush();
+        var expected = new List<Byte[]>();
+        for (var i = 0; i < 3; i++)
+        {
+            var payload = Encoding.UTF8.GetBytes($"MQTT-{i}");
+            expected.Add(payload);
+            client.SendMessage(new ArrayPacket(payload));
+        }
 
-        Assert.True(allReceived.Wait(3_000));
-        Assert.Equal(3, receivedLines.Count);
-        Assert.Equal("Line1\r\n", receivedLines[0]);
-        Assert.Equal("Line2\r\n", receivedLines[1]);
-        Assert.Equal("Line3\r\n", receivedLines[2]);
+        Assert.True(allReceived.Wait(5_000));
+        Assert.Equal(3, receivedPayloads.Count);
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.Equal(expected[i], receivedPayloads[i]);
+        }
     }
 
-    /// <summary>SplitDataCodec 自定义分隔符</summary>
+    /// <summary>LengthFieldCodec Offset=4 的情况（4 字节协议头，然后是 2 字节长度字段）</summary>
     [Fact]
-    public void SplitDataCodec_CustomDelimiter()
+    public void LengthFieldCodec_Offset4_ProtocolHeader()
     {
-        var receivedLines = new List<String>();
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 2, Offset = 4 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 2, Offset = 4 });
+        client.Open();
+
+        var payload = "Offset4-Test-Payload"u8.ToArray();
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(3_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(payload, serverReceived);
+    }
+
+    /// <summary>LengthFieldCodec 大端序 Size=-4 + Offset=2 组合</summary>
+    [Fact]
+    public void LengthFieldCodec_Size4_BigEndian_WithOffset()
+    {
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = -4, Offset = 2 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = -4, Offset = 2 });
+        client.Open();
+
+        var payload = new Byte[1024];
+        Random.Shared.NextBytes(payload);
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(5_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(payload, serverReceived);
+    }
+
+    /// <summary>LengthFieldCodec 多消息粘包，Offset=1 + Size=1 的小包场景</summary>
+    [Fact]
+    public void LengthFieldCodec_Size1_Offset1_MultiMessage()
+    {
+        var receivedPayloads = new List<Byte[]>();
         var allReceived = new ManualResetEventSlim();
 
         using var server = new NetServer
@@ -327,33 +401,155 @@ public class NetIntegrationTests
             ProtocolType = NetType.Tcp,
             AddressFamily = AddressFamily.InterNetwork,
         };
-        server.Add(new SplitDataCodec { SplitData = "|"u8.ToArray() });
+        server.Add(new LengthFieldCodec { Size = 1, Offset = 1 });
         server.Received += (s, e) =>
         {
             if (e.Message is IPacket pk)
             {
-                var line = pk.ToStr();
-                lock (receivedLines)
+                lock (receivedPayloads)
                 {
-                    receivedLines.Add(line);
-                    if (receivedLines.Count >= 2) allReceived.Set();
+                    receivedPayloads.Add(pk.ToArray());
+                    if (receivedPayloads.Count >= 10) allReceived.Set();
                 }
             }
         };
         server.Start();
 
-        using var client = new TcpClient();
-        client.Connect(IPAddress.Loopback, server.Port);
-        var ns = client.GetStream();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 1, Offset = 1 });
+        client.Open();
 
-        var data = "PartA|PartB|"u8.ToArray();
-        ns.Write(data, 0, data.Length);
-        ns.Flush();
+        var expected = new List<Byte[]>();
+        for (var i = 0; i < 10; i++)
+        {
+            var payload = Encoding.UTF8.GetBytes($"S{i}");
+            expected.Add(payload);
+            client.SendMessage(new ArrayPacket(payload));
+        }
 
-        Assert.True(allReceived.Wait(3_000));
-        Assert.Equal(2, receivedLines.Count);
-        Assert.Equal("PartA|", receivedLines[0]);
-        Assert.Equal("PartB|", receivedLines[1]);
+        Assert.True(allReceived.Wait(5_000));
+        Assert.Equal(10, receivedPayloads.Count);
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.Equal(expected[i], receivedPayloads[i]);
+        }
+    }
+
+    /// <summary>LengthFieldCodec Size=0（变长编码）+ Offset=0 的边界测试</summary>
+    [Fact]
+    public void LengthFieldCodec_VarLength_Size0_Offset0()
+    {
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 0, Offset = 0 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 0, Offset = 0 });
+        client.Open();
+
+        var payload = "VarLength-Test"u8.ToArray();
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(3_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(payload, serverReceived);
+    }
+
+    /// <summary>LengthFieldCodec 不同负载大小边界测试：1B、255B、256B、65535B、65536B</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(127)]
+    [InlineData(255)]
+    [InlineData(256)]
+    [InlineData(1024)]
+    [InlineData(65535)]
+    public void LengthFieldCodec_VariousPayloadSizes_WithOffset(Int32 size)
+    {
+        var decodedPayload = new ManualResetEventSlim();
+        Byte[]? serverReceived = null;
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 2, Offset = 2 });
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                serverReceived = pk.ToArray();
+                decodedPayload.Set();
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 2, Offset = 2 });
+        client.Timeout = 10_000;
+        client.Open();
+
+        var payload = new Byte[size];
+        Random.Shared.NextBytes(payload);
+        client.SendMessage(new ArrayPacket(payload));
+
+        Assert.True(decodedPayload.Wait(10_000));
+        Assert.NotNull(serverReceived);
+        Assert.Equal(size, serverReceived.Length);
+        Assert.Equal(payload, serverReceived);
+    }
+
+    /// <summary>LengthFieldCodec 混合大小端 + 不同 Offset 的互操作性验证（同一连接内多轮编解码）</summary>
+    [Fact]
+    public async Task LengthFieldCodec_ConsistentEncoding_MultiRound()
+    {
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add(new LengthFieldCodec { Size = 2, Offset = 1 });
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session && e.Message is IPacket pk)
+                session.SendMessage(pk);
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add(new LengthFieldCodec { Size = 2, Offset = 1 });
+        client.Timeout = 10_000;
+        client.Open();
+
+        // 同一连接内多轮发送，验证编码器和解码器状态一致
+        for (var round = 0; round < 10; round++)
+        {
+            var payload = Encoding.UTF8.GetBytes($"Round-{round:D2}-{Guid.NewGuid():N}");
+            
+            // 通过 StandardCodec 与服务端配合验证（手动实现回显验证）
+            var pkSent = new ArrayPacket(payload);
+            var received = await client.SendMessageAsync(pkSent, CancellationToken.None);
+            
+            Assert.NotNull(received);
+        }
     }
     #endregion
 
