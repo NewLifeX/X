@@ -350,7 +350,7 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     public Int32 Send(String data) => EnsureClient().Send(data.GetBytes());
 
     /// <summary>发送消息，经过管道编码后发送，不等待响应</summary>
-    /// <param name="message">消息对象</param>
+    /// <param name="message">消息对象，可为 Byte[]、IPacket、String 或其他业务对象。
     /// <returns>实际发送字节数，失败返回负数</returns>
     public Int32 SendMessage(Object message) => EnsureClient().SendMessage(message);
 

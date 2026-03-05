@@ -29,9 +29,9 @@ public class NetIntegrationTests
     #endregion
 
     #region TCP Echo 数据完整性
-    /// <summary>TCP Echo 通过 CreateRemote 客户端收发，验证数据逐字节一致</summary>
+    /// <summary>TCP Echo 通过 NetClient 客户端收发，验证数据逐字节一致</summary>
     [Fact]
-    public void TcpEcho_CreateRemote_DataIntegrity()
+    public void TcpEcho_NetClient_DataIntegrity()
     {
         using var server = new NetServer
         {
@@ -46,7 +46,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        using var client = new NetUri($"tcp://127.0.0.1:{server.Port}").CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         var payload = new Byte[256];
         Random.Shared.NextBytes(payload);
 
@@ -54,11 +54,8 @@ public class NetIntegrationTests
         Byte[]? received = null;
         client.Received += (s, e) =>
         {
-            if (e.Packet != null)
-            {
-                received = e.Packet.GetSpan().ToArray();
-                wait.Set();
-            }
+            received = e.GetBytes();
+            wait.Set();
         };
         client.Open();
         client.Send(payload);
@@ -138,13 +135,12 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add(new LengthFieldCodec { Size = 2, Offset = 0 });
         client.Open();
 
         var payload = "LengthField-Test-Payload"u8.ToArray();
-        client.SendMessage(new ArrayPacket(payload));
+        client.SendMessage(payload.AsPacket());
 
         Assert.True(decodedPayload.Wait(3_000));
         Assert.NotNull(serverReceived);
@@ -179,8 +175,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add(new LengthFieldCodec { Size = 2, Offset = 0 });
         client.Open();
 
@@ -224,8 +219,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add(new LengthFieldCodec { Size = 4, Offset = 0 });
         client.Open();
 
@@ -262,8 +256,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add(new LengthFieldCodec { Size = -2, Offset = 0 });
         client.Open();
 
@@ -383,8 +376,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Timeout = 5_000;
         client.Open();
@@ -428,8 +420,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Open();
 
@@ -474,8 +465,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Timeout = 10_000;
         client.Open();
@@ -487,6 +477,50 @@ public class NetIntegrationTests
         Assert.NotNull(resp);
         var data = ExtractPayload(resp);
         Assert.True(data.Length > 0);
+    }
+
+    /// <summary>StandardCodec 直接发送 Byte[]，无需转换为 IPacket</summary>
+    [Fact]
+    public void StandardCodec_SendMessage_ByteArray_Direct()
+    {
+        var decodedPayloads = new List<Byte[]>();
+        var allReceived = new ManualResetEventSlim();
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+        };
+        server.Add<StandardCodec>();
+        server.Received += (s, e) =>
+        {
+            if (e.Message is IPacket pk)
+            {
+                lock (decodedPayloads)
+                {
+                    decodedPayloads.Add(pk.ToArray());
+                    if (decodedPayloads.Count >= 2) allReceived.Set();
+                }
+            }
+        };
+        server.Start();
+
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
+        client.Add<StandardCodec>();
+        client.Open();
+
+        // 直接发送 Byte[]，不转换为 IPacket
+        var payload1 = Encoding.UTF8.GetBytes("Direct-ByteArray-1");
+        client.SendMessage(payload1);
+
+        var payload2 = Encoding.UTF8.GetBytes("Direct-ByteArray-2");
+        client.SendMessage(payload2);
+
+        Assert.True(allReceived.Wait(5_000));
+        Assert.Equal(2, decodedPayloads.Count);
+        Assert.Equal(payload1, decodedPayloads[0]);
+        Assert.Equal(payload2, decodedPayloads[1]);
     }
     #endregion
 
@@ -511,11 +545,11 @@ public class NetIntegrationTests
         server.Start();
 
         const Int32 clientCount = 5;
-        var clients = new List<ISocketRemote>();
+        var clients = new List<NetClient>();
 
         for (var i = 0; i < clientCount; i++)
         {
-            var c = new NetUri($"tcp://127.0.0.1:{server.Port}").CreateRemote();
+            var c = new NetClient($"tcp://127.0.0.1:{server.Port}");
             c.Add<StandardCodec>();
             c.Timeout = 10_000;
             c.Open();
@@ -541,7 +575,7 @@ public class NetIntegrationTests
         await Task.WhenAll(tasks);
 
         foreach (var c in clients)
-            (c as IDisposable)?.Dispose();
+            c.Dispose();
     }
     #endregion
 
@@ -708,9 +742,9 @@ public class NetIntegrationTests
     #endregion
 
     #region UDP Echo 数据完整性
-    /// <summary>UDP Echo 通过 CreateRemote 客户端收发，验证数据一致</summary>
+    /// <summary>UDP Echo 通过 NetClient 客户端收发，验证数据一致</summary>
     [Fact]
-    public void UdpEcho_CreateRemote_DataIntegrity()
+    public void UdpEcho_NetClient_DataIntegrity()
     {
         using var server = new NetServer
         {
@@ -728,15 +762,11 @@ public class NetIntegrationTests
         var wait = new ManualResetEventSlim();
         Byte[]? received = null;
 
-        var uri = new NetUri($"udp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"udp://127.0.0.1:{server.Port}");
         client.Received += (s, e) =>
         {
-            if (e.Packet != null)
-            {
-                received = e.Packet.GetSpan().ToArray();
-                wait.Set();
-            }
+            received = e.GetBytes();
+            wait.Set();
         };
         client.Open();
 
@@ -772,8 +802,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Timeout = 10_000;
         client.Open();
@@ -801,8 +830,7 @@ public class NetIntegrationTests
         server.Add<StandardCodec>();
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Open();
 
@@ -936,8 +964,7 @@ public class NetIntegrationTests
         };
         server.Start();
 
-        var uri = new NetUri($"tcp://127.0.0.1:{server.Port}");
-        using var client = uri.CreateRemote();
+        using var client = new NetClient($"tcp://127.0.0.1:{server.Port}");
         client.Add<StandardCodec>();
         client.Open();
 
