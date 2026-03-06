@@ -382,7 +382,7 @@ public static class SpanSerializer
         if (type == typeof(Byte[]))
         {
             var len = reader.ReadInt32();
-            return len > 0 ? reader.ReadBytes(len).ToArray() : new Byte[0];
+            return len > 0 ? reader.ReadBytes(len).ToArray() : [];
         }
 
         if (type == typeof(Guid))

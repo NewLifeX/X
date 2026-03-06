@@ -50,8 +50,8 @@ class SpeakProvider
         {
             try
             {
-                synth = _type.CreateInstance(new Object[0]);
-                synth?.Invoke("SetOutputToDefaultAudioDevice", new Object[0]);
+                synth = _type.CreateInstance([]);
+                synth?.Invoke("SetOutputToDefaultAudioDevice", []);
             }
             catch (Exception ex)
             {

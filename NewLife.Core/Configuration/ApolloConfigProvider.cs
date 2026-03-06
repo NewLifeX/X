@@ -63,7 +63,7 @@ public class ApolloConfigProvider : HttpConfigProvider
         {
             var client = GetClient() ?? throw new ArgumentNullException(nameof(Client));
 
-            var ns = NameSpace.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Distinct();
+            var ns = NameSpace.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries).Distinct();
             var dic = new Dictionary<String, Object?>();
             foreach (var item in ns)
             {

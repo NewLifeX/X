@@ -149,7 +149,7 @@ public class Cron
         }
 
         var rs = new List<Int32>();
-        vs = new Int32[0];
+        vs = [];
 
         // 递归处理混合值
         if (value.Contains(','))

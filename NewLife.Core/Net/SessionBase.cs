@@ -282,12 +282,13 @@ public abstract class SessionBase : DisposeBase, ISocketClient, ITransport, ILog
             {
                 try
                 {
+                    // 收到FIN标记
+#if NETFRAMEWORK || NETSTANDARD2_0
                     var buffer = new Byte[1];
-                    if (sock.Receive(buffer, SocketFlags.Peek) == 0)
-                    {
-                        // 收到FIN标记
-                        return "Finish";
-                    }
+#else
+                    Span<Byte> buffer = stackalloc Byte[1];
+#endif
+                    if (sock.Receive(buffer, SocketFlags.Peek) == 0) return "Finish";
                 }
                 catch (SocketException ex)
                 {

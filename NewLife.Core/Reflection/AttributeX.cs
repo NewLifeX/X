@@ -17,14 +17,14 @@ public static class AttributeX
     /// <returns></returns>
     public static TAttribute[] GetCustomAttributes<TAttribute>(this Assembly assembly)
     {
-        if (assembly == null) return new TAttribute[0];
+        if (assembly == null) return [];
 
         var key = $"{assembly.FullName}_{typeof(TAttribute).FullName}";
 
         return (TAttribute[])_asmCache.GetOrAdd(key, k =>
         {
             var atts = assembly.GetCustomAttributes(typeof(TAttribute), true) as TAttribute[];
-            return atts ?? (new TAttribute[0]);
+            return atts ?? ([]);
         });
     }
 

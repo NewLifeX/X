@@ -835,32 +835,39 @@ public static class HttpHelper
     /// <returns></returns>
     public static async Task WaitForClose(this System.Net.WebSockets.WebSocket socket, Action<String?>? onReceive, CancellationTokenSource source)
     {
-        var buf = new Byte[4 * 1024];
-        while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
+        var buf = Pool.Shared.Rent(4096);
+        try
         {
-            try
+            while (!source.IsCancellationRequested && socket.State == WebSocketState.Open)
             {
-                var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token).ConfigureAwait(false);
-                if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
-                if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
+                try
                 {
-                    var str = buf.ToStr(null, 0, data.Count);
-                    if (!str.IsNullOrEmpty()) onReceive?.Invoke(str);
+                    var data = await socket.ReceiveAsync(new ArraySegment<Byte>(buf), source.Token).ConfigureAwait(false);
+                    if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Close) break;
+                    if (data.MessageType == System.Net.WebSockets.WebSocketMessageType.Text)
+                    {
+                        var str = buf.ToStr(null, 0, data.Count);
+                        if (!str.IsNullOrEmpty()) onReceive?.Invoke(str);
+                    }
+                }
+                catch (ThreadAbortException) { break; }
+                catch (ThreadInterruptedException) { break; }
+                catch (TaskCanceledException) { }
+                catch (OperationCanceledException) { }
+                catch (WebSocketException ex)
+                {
+                    XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    XTrace.WriteException(ex);
                 }
             }
-            catch (ThreadAbortException) { break; }
-            catch (ThreadInterruptedException) { break; }
-            catch (TaskCanceledException) { }
-            catch (OperationCanceledException) { }
-            catch (WebSocketException ex)
-            {
-                XTrace.WriteLine("WebSocket异常 {0}", ex.Message);
-                break;
-            }
-            catch (Exception ex)
-            {
-                XTrace.WriteException(ex);
-            }
+        }
+        finally
+        {
+            Pool.Shared.Return(buf);
         }
 
         // 通知取消

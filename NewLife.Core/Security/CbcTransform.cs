@@ -48,7 +48,7 @@ public sealed class CbcTransform : ICryptoTransform
 
         if (iv == null || iv.Length != transform.InputBlockSize) throw new CryptographicException("IV length mismatch");
 
-        Array.Copy(iv, _lastBlock, transform.InputBlockSize);
+        iv.AsSpan(0, transform.InputBlockSize).CopyTo(_lastBlock);
         _iv = (Byte[])_lastBlock.Clone();
     }
 
@@ -84,28 +84,42 @@ public sealed class CbcTransform : ICryptoTransform
 
     private void TransformOneBlock(Byte[] inputBuffer, Int32 inputOffset, Byte[] outputBuffer, Int32 outputOffset, Boolean signalFinalBlock)
     {
-        var imm = new Byte[InputBlockSize];
-        Array.Copy(inputBuffer, inputOffset, imm, 0, InputBlockSize);
-        if (_encryptMode)
-            for (var i = 0; i < InputBlockSize; i++)
-                imm[i] ^= _lastBlock[i];
-
-        if (signalFinalBlock)
+        var imm = Pool.Shared.Rent(InputBlockSize);
+        try
         {
-            var lastBlock = _transform.TransformFinalBlock(imm, 0, InputBlockSize);
-            Array.Copy(lastBlock, 0, outputBuffer, outputOffset, InputBlockSize);
-        }
-        else
-            _transform.TransformBlock(imm, 0, InputBlockSize, outputBuffer, outputOffset);
+            var immSpan = imm.AsSpan(0, InputBlockSize);
+            inputBuffer.AsSpan(inputOffset, InputBlockSize).CopyTo(immSpan);
 
-        if (!_encryptMode)
-        {
-            for (var i = 0; i < InputBlockSize; i++)
-                outputBuffer[outputOffset + i] ^= _lastBlock[i];
-            Array.Copy(imm, 0, _lastBlock, 0, InputBlockSize);
+            if (_encryptMode)
+            {
+                var lastSpan = _lastBlock.AsSpan();
+                for (var i = 0; i < InputBlockSize; i++)
+                    immSpan[i] ^= lastSpan[i];
+            }
+
+            if (signalFinalBlock)
+            {
+                var lastBlock = _transform.TransformFinalBlock(imm, 0, InputBlockSize);
+                lastBlock.AsSpan(0, InputBlockSize).CopyTo(outputBuffer.AsSpan(outputOffset));
+            }
+            else
+                _transform.TransformBlock(imm, 0, InputBlockSize, outputBuffer, outputOffset);
+
+            if (!_encryptMode)
+            {
+                var outSpan = outputBuffer.AsSpan(outputOffset, InputBlockSize);
+                var lastSpan = _lastBlock.AsSpan();
+                for (var i = 0; i < InputBlockSize; i++)
+                    outSpan[i] ^= lastSpan[i];
+                immSpan.CopyTo(lastSpan);
+            }
+            else
+                outputBuffer.AsSpan(outputOffset, InputBlockSize).CopyTo(_lastBlock.AsSpan());
         }
-        else
-            Array.Copy(outputBuffer, outputOffset, _lastBlock, 0, InputBlockSize);
+        finally
+        {
+            Pool.Shared.Return(imm);
+        }
     }
 
     /// <summary>转换指定字节数组的指定区域。</summary>
@@ -128,7 +142,7 @@ public sealed class CbcTransform : ICryptoTransform
         else
             output = _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);
 
-        Array.Copy(_iv, _lastBlock, InputBlockSize);
+        _iv.AsSpan().CopyTo(_lastBlock);
         return output;
     }
 }

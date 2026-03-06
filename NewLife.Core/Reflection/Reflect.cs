@@ -69,7 +69,7 @@ public static class Reflect
     /// <returns></returns>
     public static MethodInfo[] GetMethodsEx(this Type type, String name, Int32 paramCount = -1)
     {
-        if (name.IsNullOrEmpty()) return new MethodInfo[0];
+        if (name.IsNullOrEmpty()) return [];
 
         return Provider.GetMethods(type, name, paramCount);
     }

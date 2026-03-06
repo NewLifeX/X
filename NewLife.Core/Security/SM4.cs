@@ -21,8 +21,8 @@ public class SM4 : SymmetricAlgorithm
         KeySizeValue = 128;
         BlockSizeValue = 128;
         FeedbackSizeValue = BlockSizeValue;
-        LegalBlockSizesValue = new[] { new KeySizes(128, 128, 0) };
-        LegalKeySizesValue = new[] { new KeySizes(128, 128, 0) };
+        LegalBlockSizesValue = [new KeySizes(128, 128, 0)];
+        LegalKeySizesValue = [new KeySizes(128, 128, 0)];
 
         Mode = CipherMode.ECB;
         Padding = PaddingMode.PKCS7;

@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using NewLife.Collections;
 
 namespace NewLife.Security;
 
@@ -90,11 +91,18 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
 
         if (_hasWithheldBlock)
         {
-            var lastBlock = new Byte[OutputBlockSize];
-            Array.Copy(outputBuffer, outputOffset + count - OutputBlockSize, lastBlock, 0, OutputBlockSize);
-            Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + OutputBlockSize, count - OutputBlockSize);
-            Array.Copy(_lastBlock, 0, outputBuffer, outputOffset, OutputBlockSize);
-            Array.Copy(lastBlock, 0, _lastBlock, 0, OutputBlockSize);
+            var lastBlock = Pool.Shared.Rent(OutputBlockSize);
+            try
+            {
+                outputBuffer.AsSpan(outputOffset + count - OutputBlockSize, OutputBlockSize).CopyTo(lastBlock);
+                Array.Copy(outputBuffer, outputOffset, outputBuffer, outputOffset + OutputBlockSize, count - OutputBlockSize);
+                _lastBlock.AsSpan().CopyTo(outputBuffer.AsSpan(outputOffset, OutputBlockSize));
+                lastBlock.AsSpan(0, OutputBlockSize).CopyTo(_lastBlock);
+            }
+            finally
+            {
+                Pool.Shared.Return(lastBlock);
+            }
         }
         else
         {
@@ -125,62 +133,88 @@ public sealed class PKCS7PaddingTransform : ICryptoTransform
                 PaddingMode.PKCS7 => paddingLength,
                 _ => throw new Exception()
             };
-            var cipherBlock = new Byte[inputCount + paddingLength];
-            Array.Copy(inputBuffer, inputOffset, cipherBlock, 0, inputCount);
-            for (var i = InputBlockSize; i >= 1; i--)
+            var cipherBlockLength = inputCount + paddingLength;
+            var cipherBlock = Pool.Shared.Rent(cipherBlockLength);
+            try
             {
-                var posMask = ~(paddingLength - i) >> 31;
-                cipherBlock[cipherBlock.Length - i] &= (Byte)~posMask;
-                cipherBlock[cipherBlock.Length - i] |= (Byte)(paddingValue & posMask);
+                inputBuffer.AsSpan(inputOffset, inputCount).CopyTo(cipherBlock);
+                for (var i = InputBlockSize; i >= 1; i--)
+                {
+                    var posMask = ~(paddingLength - i) >> 31;
+                    cipherBlock[cipherBlockLength - i] &= (Byte)~posMask;
+                    cipherBlock[cipherBlockLength - i] |= (Byte)(paddingValue & posMask);
+                }
+
+                if (cipherBlockLength <= InputBlockSize || CanTransformMultipleBlocks)
+                    return _transform.TransformFinalBlock(cipherBlock, 0, cipherBlockLength);
+
+                var remainingBlocks = cipherBlockLength / InputBlockSize;
+                var returnData = new Byte[(remainingBlocks - 1) * OutputBlockSize];
+                for (var i = 0; i < remainingBlocks - 1; i++)
+                    _transform.TransformBlock(cipherBlock, i * InputBlockSize, InputBlockSize, returnData, i * OutputBlockSize);
+
+                var lastBlock = _transform.TransformFinalBlock(cipherBlock, cipherBlockLength - InputBlockSize, InputBlockSize);
+                Array.Resize(ref returnData, returnData.Length + lastBlock.Length);
+                Array.Copy(lastBlock, 0, returnData, OutputBlockSize, lastBlock.Length);
+                return returnData;
             }
-
-            if (cipherBlock.Length <= InputBlockSize || CanTransformMultipleBlocks)
-                return _transform.TransformFinalBlock(cipherBlock, 0, cipherBlock.Length);
-
-            var remainingBlocks = cipherBlock.Length / InputBlockSize;
-            var returnData = new Byte[(remainingBlocks - 1) * OutputBlockSize];
-            for (var i = 0; i < remainingBlocks - 1; i++)
-                _transform.TransformBlock(cipherBlock, i * InputBlockSize, InputBlockSize, returnData, i * OutputBlockSize);
-
-            var lastBlock = _transform.TransformFinalBlock(cipherBlock, cipherBlock.Length - InputBlockSize, InputBlockSize);
-            Array.Resize(ref returnData, returnData.Length + lastBlock.Length);
-            Array.Copy(lastBlock, 0, returnData, OutputBlockSize, lastBlock.Length);
-            return returnData;
+            finally
+            {
+                Pool.Shared.Return(cipherBlock);
+            }
         }
         else
         {
             if (inputCount == 0 && !_hasWithheldBlock) return [];
 
             var data = _transform.TransformFinalBlock(inputBuffer, inputOffset, inputCount);
+            Byte[]? rented = null;
+            Byte[] work;
+            Int32 workLen;
             if (_hasWithheldBlock)
             {
-                Array.Resize(ref data, data.Length + OutputBlockSize);
-                Array.Copy(data, 0, data, OutputBlockSize, data.Length - OutputBlockSize);
-                Array.Copy(_lastBlock, 0, data, 0, OutputBlockSize);
+                workLen = OutputBlockSize + data.Length;
+                rented = Pool.Shared.Rent(workLen);
+                _lastBlock.AsSpan().CopyTo(rented);
+                data.AsSpan().CopyTo(rented.AsSpan(OutputBlockSize));
+                work = rented;
             }
-
-            if (data.Length < 1)
-                throw new CryptographicException("Invalid padding");
-
-            var paddingLength = data[data.Length - 1];
-            var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
-            var paddingError = 0;
-            if (_mode != PaddingMode.ISO10126)
+            else
             {
-                for (var i = OutputBlockSize; i >= 1; i--)
-                {
-                    // if i > paddingLength ignore;
-                    // if paddingLength != data[data.Length - i] error;
-                    var posMask = ~(paddingLength - i) >> 31;
-                    paddingError |= (paddingValue ^ data[data.Length - i]) & posMask;
-                }
+                work = data;
+                workLen = data.Length;
             }
 
-            if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
-                throw new CryptographicException("Invalid padding");
+            try
+            {
+                if (workLen < 1)
+                    throw new CryptographicException("Invalid padding");
 
-            Array.Resize(ref data, data.Length - paddingLength);
-            return data;
+                var paddingLength = work[workLen - 1];
+                var paddingValue = _mode == PaddingMode.ANSIX923 ? 0 : paddingLength;
+                var paddingError = 0;
+                if (_mode != PaddingMode.ISO10126)
+                {
+                    for (var i = OutputBlockSize; i >= 1; i--)
+                    {
+                        // if i > paddingLength ignore;
+                        // if paddingLength != work[workLen - i] error;
+                        var posMask = ~(paddingLength - i) >> 31;
+                        paddingError |= (paddingValue ^ work[workLen - i]) & posMask;
+                    }
+                }
+
+                if (paddingError != 0 || paddingLength == 0 || paddingLength > OutputBlockSize)
+                    throw new CryptographicException("Invalid padding");
+
+                var result = new Byte[workLen - paddingLength];
+                work.AsSpan(0, result.Length).CopyTo(result);
+                return result;
+            }
+            finally
+            {
+                if (rented != null) Pool.Shared.Return(rented);
+            }
         }
     }
 }

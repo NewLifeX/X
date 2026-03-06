@@ -10,7 +10,7 @@ namespace NewLife.Common;
 public class PinYin
 {
     #region 数组信息
-    private static readonly Int32[] pyValue = new[] {
+    private static readonly Int32[] pyValue = [
         -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242,
         -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982,
         -19976, -19805, -19784, -19775, -19774, -19763, -19756, -19751, -19746,
@@ -55,9 +55,9 @@ public class PinYin
         -11014, -10838, -10832, -10815, -10800, -10790, -10780, -10764, -10587,
         -10544, -10533, -10519, -10331, -10329, -10328, -10322, -10315, -10309,
         -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254
-    };
+    ];
 
-    private static readonly String[] pyName = new[] {
+    private static readonly String[] pyName = [
          "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei",
          "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu",
          "Ba", "Cai", "Can", "Cang", "Cao", "Ce", "Ceng", "Cha", "Chai", "Chan",
@@ -98,12 +98,12 @@ public class PinYin
          "Zheng", "Zhi", "Zhong", "Zhou", "Zhu", "Zhua", "Zhuai", "Zhuan",
          "Zhuang", "Zhui", "Zhun", "Zhuo", "Zi", "Zong", "Zou", "Zu", "Zuan",
          "Zui", "Zun", "Zuo"
-    };
+    ];
     #endregion
 
     #region 二级汉字
     /// <summary>二级汉字数组</summary>
-    private static readonly Char[] _py2 = new[] {
+    private static readonly Char[] _py2 = [
             '亍','丌','兀','丐','廿','卅','丕','亘','丞','鬲','孬','噩','丨','禺','丿'
             ,'匕','乇','夭','爻','卮','氐','囟','胤','馗','毓','睾','鼗','丶','亟','鼐','乜'
             ,'乩','亓','芈','孛','啬','嘏','仄','厍','厝','厣','厥','厮','靥','赝','匚','叵'
@@ -296,10 +296,10 @@ public class PinYin
             ,'餍','餮','饕','饔','髟','髡','髦','髯','髫','髻','髭','髹','鬈','鬏','鬓','鬟'
             ,'鬣','麽','麾','縻','麂','麇','麈','麋','麒','鏖','麝','麟','黛','黜','黝','黠'
             ,'黟','黢','黩','黧','黥','黪','黯','鼢','鼬','鼯','鼹','鼷','鼽','鼾','齄'
-    };
+    ];
 
     /// <summary>二级汉字对应拼音数组</summary>
-    private static readonly String[] _pyValue2 = new[] {
+    private static readonly String[] _pyValue2 = [
             "chu","ji","wu","gai","nian","sa","pi","gen","cheng","ge","nao","e","shu","yu","pie"
             ,"bi","tuo","yao","yao","zhi","di","xin","yin","kui","yu","gao","tao","dian","ji","nai","nie"
             ,"ji","qi","mi","bei","se","gu","ze","she","cuo","yan","jue","si","ye","yan","fang","po"
@@ -492,18 +492,18 @@ public class PinYin
             ,"yan","tie","tao","yong","biao","kun","mao","ran","tiao","ji","zi","xiu","quan","jiu","bin","huan"
             ,"lie","me","hui","mi","ji","jun","zhu","mi","qi","ao","she","lin","dai","chu","you","xia"
             ,"yi","qu","du","li","qing","can","an","fen","you","wu","yan","xi","qiu","han","zha"
-    };
+    ];
     #endregion
 
     #region 三级汉字
-    private static readonly Char[] _py3 = new[] {
+    private static readonly Char[] _py3 = [
         '沚', '埇', '瀍', '浉', '猇', '鄠', '崁', '埗', '漷', '甪',
         '滘', '垱'
-    };
-    private static readonly String[] _pyValue3 = new[] {
+    ];
+    private static readonly String[] _pyValue3 = [
         "Zhi", "Yong", "Chan", "Shi", "Xiao", "Hu", "Kan", "Bu", "Huo", "Lu",
         "Jiao", "Dang"
-    };
+    ];
     #endregion
 
     #region 变量定义
