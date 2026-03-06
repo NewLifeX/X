@@ -1,8 +1,10 @@
-﻿using System.IO.Compression;
+﻿using System.Buffers;
+using System.IO.Compression;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+using NewLife.Buffers;
 
 namespace NewLife.Compression;
 
@@ -69,6 +71,8 @@ public enum TarEntryType : Byte
 /// </summary>
 public class TarFile : DisposeBase
 {
+    private static readonly Byte[] _endMarker = new Byte[1024];
+
     #region 属性
     private List<TarEntry> _entries = [];
     /// <summary>文件列表</summary>
@@ -171,7 +175,7 @@ public class TarFile : DisposeBase
         }
 
         // 写入结束标志（两个空块）
-        stream.Write(new Byte[1024], 0, 1024);
+        WriteEndMarker(stream);
         stream.Flush();
 
         // 修改文件时，截断超长部分
@@ -226,7 +230,7 @@ public class TarFile : DisposeBase
         foreach (var fi in di.GetAllFiles(null, true))
         {
             // 计算相对路径作为文件名
-            var relativePath = fi.FullName.Substring(sourceDirectoryName.Length + 1).Replace('\\', '/');
+            var relativePath = fi.FullName[(sourceDirectoryName.Length + 1)..].Replace('\\', '/');
 
             var entry = CreateEntryFromFile(fi.FullName, relativePath);
         }
@@ -289,6 +293,29 @@ public class TarFile : DisposeBase
         using var tar = new TarFile(sourceArchiveFileName, false);
         tar.ExtractToDirectory(destinationDirectoryName, overwriteFiles);
     }
+
+    private static void WriteEndMarker(Stream stream)
+    {
+        if (stream.CanSeek)
+        {
+            stream.Seek(_endMarker.Length, SeekOrigin.Current);
+
+            try
+            {
+                var position = stream.Position;
+                if (position > stream.Length)
+                    stream.SetLength(position);
+            }
+            catch
+            {
+                stream.Write(_endMarker, 0, _endMarker.Length);
+            }
+
+            return;
+        }
+
+        stream.Write(_endMarker, 0, _endMarker.Length);
+    }
     #endregion
 }
 
@@ -298,6 +325,8 @@ public class TarFile : DisposeBase
 /// </summary>
 public class TarEntry
 {
+    private static readonly Byte[] _paddingBlock = new Byte[512];
+
     #region 属性
     /// <summary>归档器</summary>
     [XmlIgnore, ScriptIgnore, IgnoreDataMember]
@@ -364,7 +393,8 @@ public class TarEntry
         var type = TypeFlag;
         var entry2 = this;
         Int64? origSize = null;
-        if (name.Length > 100)
+        var writeLongPathMeta = name.Length > 100 && type != TarEntryType.LongPath && type != TarEntryType.LongLink;
+        if (writeLongPathMeta)
         {
             // 克隆条目用于实际文件头，当前条目将写入长路径元数据条目
             entry2 = (MemberwiseClone() as TarEntry)!;
@@ -374,49 +404,72 @@ public class TarEntry
 
             // 暂存原始大小，将当前条目的大小设置为长路径字节长度（ASCII）
             origSize = FileSize;
-            var longNameBytesLen = Encoding.ASCII.GetBytes(FileName).Length;
+            var longNameBytesLen = Encoding.ASCII.GetByteCount(FileName);
             FileSize = longNameBytesLen;
         }
 
-        var header = new Byte[512];
-        WriteString(header, 0, name, 100);
-        WriteString(header, 100, Mode, 8);
-        WriteString(header, 108, OwnerId, 8);
-        WriteString(header, 116, GroupId, 8);
-        WriteString(header, 124, Convert.ToString(FileSize, 8).PadLeft(11, '0') + "\0", 12);
-        WriteString(header, 136, Convert.ToString(LastModified.ToInt(), 8).PadLeft(11, '0') + "\0", 12);
-        WriteString(header, 148, "000000\0 ", 8);
-        header[156] = (Byte)type;
-        WriteString(header, 157, LinkName, 100);
-        WriteString(header, 257, Magic, 6);
-        WriteString(header, 263, Version.ToString("00"), 2);
-        WriteString(header, 265, OwnerName, 32);
-        WriteString(header, 297, GroupName, 32);
-        WriteString(header, 329, DeviceMajor, 8);
-        WriteString(header, 337, DeviceMinor, 8);
-        WriteString(header, 345, Prefix, 155);
-
-        // 计算校验和
-        Int64 checksum = 0;
-        for (var i = 0; i < 512; i++)
+        var rented = ArrayPool<Byte>.Shared.Rent(512);
+        try
         {
-            if (i is >= 148 and < 156)
-                checksum += ' '; // 校验和区域按空格计算
-            else
-                checksum += header[i];
-        }
-        WriteString(header, 148, Convert.ToString(checksum, 8).PadLeft(6, '0') + "\0 ", 8);
+            var header = rented.AsSpan(0, 512);
+            header.Clear();
 
-        stream.Write(header, 0, 512);
+            var writer = new SpanWriter(header);
+            writer.Write(name, 100, Encoding.ASCII);
+            writer.Write(Mode, 8, Encoding.ASCII);
+            writer.Write(OwnerId, 8, Encoding.ASCII);
+            writer.Write(GroupId, 8, Encoding.ASCII);
+            WriteOctal(ref writer, (UInt64)FileSize, 12, false);
+            WriteOctal(ref writer, (UInt64)LastModified.ToInt(), 12, false);
+            writer.Write("000000\0 ", 8, Encoding.ASCII);
+            writer.Write((Byte)type);
+            writer.Write(LinkName, 100, Encoding.ASCII);
+            writer.Write(Magic, 6, Encoding.ASCII);
+            writer.Write(Version.ToString("00"), 2, Encoding.ASCII);
+            writer.Write(OwnerName, 32, Encoding.ASCII);
+            writer.Write(GroupName, 32, Encoding.ASCII);
+            writer.Write(DeviceMajor, 8, Encoding.ASCII);
+            writer.Write(DeviceMinor, 8, Encoding.ASCII);
+            writer.Write(Prefix, 155, Encoding.ASCII);
+
+            // 计算校验和
+            Int64 checksum = 0;
+            for (var i = 0; i < 512; i++)
+            {
+                if (i is >= 148 and < 156)
+                    checksum += ' '; // 校验和区域按空格计算
+                else
+                    checksum += header[i];
+            }
+
+            writer.Position = 148;
+            WriteOctal(ref writer, (UInt64)checksum, 8, true);
+
+            stream.Write(rented, 0, 512);
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(rented);
+        }
 
         // 超长文件名
-        if (type == TarEntryType.LongPath)
+        if (writeLongPathMeta)
         {
-            var longName = Encoding.ASCII.GetBytes(FileName);
-            stream.Write(longName, 0, longName.Length);
+            var longNameLen = Encoding.ASCII.GetByteCount(FileName);
+            var longName = ArrayPool<Byte>.Shared.Rent(longNameLen);
+            try
+            {
+                var written = Encoding.ASCII.GetBytes(FileName, 0, FileName.Length, longName, 0);
+                stream.Write(longName, 0, written);
 
-            var padding = 512 - longName.Length % 512;
-            if (padding > 0) stream.Write(new Byte[padding], 0, padding);
+                var padding = 512 - written % 512;
+                if (padding > 0)
+                    WritePadding(stream, padding);
+            }
+            finally
+            {
+                ArrayPool<Byte>.Shared.Return(longName);
+            }
 
             // 写入真实文件头（已在克隆对象中保留原始 FileSize）
             entry2.FileName = "@PathCut";
@@ -431,59 +484,78 @@ public class TarEntry
     /// <param name="stream">包含 Tar 数据的输入流</param>
     public static TarEntry? Read(Stream stream)
     {
-        var header = new Byte[512];
-        var read = stream.Read(header, 0, 512);
-        if (read < 512 || header.All(e => e == 0)) return null;
+        var rented = ArrayPool<Byte>.Shared.Rent(512);
+        try
+        {
+            if (!ReadExactly(stream, rented, 512)) return null;
 
-        var entry = new TarEntry
-        {
-            FileName = ReadString(header, 0, 100),
-            Mode = ReadString(header, 100, 8),
-            OwnerId = ReadString(header, 108, 8),
-            GroupId = ReadString(header, 116, 8),
-            FileSize = Convert.ToInt64(ReadString(header, 124, 12).Trim(), 8),
-            LastModified = ReadString(header, 136, 12).Trim('\0').TrimStart('0').ToInt().ToDateTime(),
-            Checksum = (UInt64)ReadString(header, 148, 8).ToLong(),
-            TypeFlag = (TarEntryType)header[156],
-            LinkName = ReadString(header, 157, 100),
-            Magic = ReadString(header, 257, 6),
-            Version = (UInt16)ReadString(header, 263, 2).ToInt(),
-            OwnerName = ReadString(header, 265, 32),
-            GroupName = ReadString(header, 297, 32),
-            DeviceMajor = ReadString(header, 329, 8),
-            DeviceMinor = ReadString(header, 337, 8),
-            Prefix = ReadString(header, 345, 155),
-        };
+            var header = rented.AsSpan(0, 512);
+            if (IsAllZero(header)) return null;
 
-        if (entry.TypeFlag is TarEntryType.ExtendedAttributes)
-        {
-        }
-        // 处理长文件名
-        else if (entry.TypeFlag is TarEntryType.LongLink or TarEntryType.LongPath)
-        {
-            read = stream.Read(header, 0, 512);
-            if (read > 0)
+            var reader = new SpanReader(header);
+
+            var entry = new TarEntry
             {
-                var str = Encoding.ASCII.GetString(header, 0, Math.Min(read, (Int32)entry.FileSize)).Trim('\0');
-                if (entry.TypeFlag == TarEntryType.LongLink)
-                    entry.LinkName = str;
-                else
-                    entry.FileName = str;
+                FileName = ReadField(ref reader, 100),
+                Mode = ReadField(ref reader, 8),
+                OwnerId = ReadField(ref reader, 8),
+                GroupId = ReadField(ref reader, 8),
+                FileSize = (Int64)ReadOctal(ref reader, 12),
+                LastModified = ((Int32)ReadOctal(ref reader, 12)).ToDateTime(),
+                Checksum = ReadOctal(ref reader, 8),
+                TypeFlag = (TarEntryType)reader.ReadByte(),
+                LinkName = ReadField(ref reader, 100),
+                Magic = ReadField(ref reader, 6),
+                Version = (UInt16)ReadOctal(ref reader, 2),
+                OwnerName = ReadField(ref reader, 32),
+                GroupName = ReadField(ref reader, 32),
+                DeviceMajor = ReadField(ref reader, 8),
+                DeviceMinor = ReadField(ref reader, 8),
+                Prefix = ReadField(ref reader, 155),
+            };
+
+            if (entry.TypeFlag is TarEntryType.ExtendedAttributes)
+            {
+            }
+            // 处理长文件名
+            else if (entry.TypeFlag is TarEntryType.LongLink or TarEntryType.LongPath)
+            {
+                var size = (Int32)entry.FileSize;
+                if (size > 0)
+                {
+                    var nameBuffer = ArrayPool<Byte>.Shared.Rent(size);
+                    try
+                    {
+                        if (ReadExactly(stream, nameBuffer, size))
+                        {
+                            var str = Encoding.ASCII.GetString(nameBuffer, 0, size).Trim('\0');
+                            if (entry.TypeFlag == TarEntryType.LongLink)
+                                entry.LinkName = str;
+                            else
+                                entry.FileName = str;
+                        }
+                    }
+                    finally
+                    {
+                        ArrayPool<Byte>.Shared.Return(nameBuffer);
+                    }
+                }
 
                 entry.TypeFlag = TarEntryType.RegularFile;
 
-                // 对齐512字节，如果刚好是512倍数，也要空出来512字节
-                var padding = (512 - read % 512);
-                if (padding > 0)
-                {
-                    //read = stream.Read(header, 0, padding);
-                    var entry2 = Read(stream);
-                    if (entry2 != null) entry.FileSize = entry2.FileSize;
-                }
-            }
-        }
+                var padding = (512 - size % 512) % 512;
+                SkipPadding(stream, padding);
 
-        return entry;
+                var entry2 = Read(stream);
+                if (entry2 != null) entry.FileSize = entry2.FileSize;
+            }
+
+            return entry;
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(rented);
+        }
     }
 
     /// <summary>读取内容。返回是否读取成功</summary>
@@ -509,12 +581,7 @@ public class TarEntry
             // 跳过补齐字节
             var padding = (512 - FileSize % 512) % 512;
             if (padding > 0)
-            {
-                var buffer = new Byte[padding];
-#pragma warning disable CA2022 // 避免使用 "Stream.Read" 进行不准确读取
-                stream.Read(buffer, 0, buffer.Length);
-#pragma warning restore CA2022 // 避免使用 "Stream.Read" 进行不准确读取
-            }
+                SkipPadding(stream, (Int32)padding);
         }
 
         return true;
@@ -530,10 +597,7 @@ public class TarEntry
         // 按 512 字节对齐，显式写入填充零，不使用 Seek 以避免未真正写入
         var padding = (512 - FileSize % 512) % 512;
         if (padding > 0)
-        {
-            var zeros = new Byte[padding];
-            stream.Write(zeros, 0, zeros.Length);
-        }
+            WritePadding(stream, (Int32)padding);
     }
 
     /// <summary>设置文件</summary>
@@ -563,17 +627,129 @@ public class TarEntry
         return stream;
     }
 
-    private static void WriteString(Byte[] buffer, Int32 offset, String? value, Int32 length)
+    private static void WriteOctal(ref SpanWriter writer, UInt64 value, Int32 totalLength, Boolean trailingSpace)
     {
-        var bytes = Encoding.ASCII.GetBytes(value ?? String.Empty);
-        Array.Copy(bytes, 0, buffer, offset, Math.Min(bytes.Length, length));
+        var span = writer.GetSpan(totalLength);
+        var target = span[..totalLength];
+
+        target.Clear();
+        var digitLength = trailingSpace ? totalLength - 2 : totalLength - 1;
+        target[..digitLength].Fill((Byte)'0');
+
+        var p = digitLength - 1;
+        while (p >= 0 && value > 0)
+        {
+            target[p--] = (Byte)('0' + (value & 0x07));
+            value >>= 3;
+        }
+
+        if (trailingSpace)
+            target[totalLength - 1] = (Byte)' ';
+
+        writer.Advance(totalLength);
     }
 
-    private static String ReadString(Byte[] buffer, Int32 offset, Int32 length)
+    private static UInt64 ReadOctal(ref SpanReader reader, Int32 length)
     {
-        var end = offset;
-        while (end < offset + length && buffer[end] != 0) end++;
-        return Encoding.ASCII.GetString(buffer, offset, end - offset);
+        var data = reader.ReadBytes(length);
+
+        UInt64 value = 0;
+        foreach (var item in data)
+        {
+            if (item == 0 || item == ' ') break;
+            if (item < '0' || item > '7') continue;
+
+            value = (value << 3) + (UInt64)(item - '0');
+        }
+
+        return value;
+    }
+
+    private static String ReadField(ref SpanReader reader, Int32 length)
+    {
+        var data = reader.ReadBytes(length);
+
+        var end = 0;
+        while (end < data.Length && data[end] != 0) end++;
+
+        return end <= 0 ? String.Empty : Encoding.ASCII.GetString(data[..end]);
+    }
+
+    private static Boolean IsAllZero(ReadOnlySpan<Byte> span)
+    {
+        foreach (var item in span)
+        {
+            if (item != 0) return false;
+        }
+
+        return true;
+    }
+
+    private static Boolean ReadExactly(Stream stream, Byte[] buffer, Int32 count)
+    {
+        var offset = 0;
+        while (offset < count)
+        {
+#pragma warning disable CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+            var read = stream.Read(buffer, offset, count - offset);
+#pragma warning restore CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+            if (read <= 0) return false;
+            offset += read;
+        }
+
+        return true;
+    }
+
+    private static void SkipPadding(Stream stream, Int32 padding)
+    {
+        if (padding <= 0) return;
+
+        if (stream.CanSeek)
+        {
+            stream.Seek(padding, SeekOrigin.Current);
+            return;
+        }
+
+        var left = padding;
+        var buffer = ArrayPool<Byte>.Shared.Rent(Math.Min(left, 512));
+        try
+        {
+            while (left > 0)
+            {
+                var count = Math.Min(left, buffer.Length);
+#pragma warning disable CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+                var read = stream.Read(buffer, 0, count);
+#pragma warning restore CA2022 // 避免使用 "Stream.Read" 进行不准确读取
+                if (read <= 0) break;
+
+                left -= read;
+            }
+        }
+        finally
+        {
+            ArrayPool<Byte>.Shared.Return(buffer);
+        }
+    }
+
+    private static void WritePadding(Stream stream, Int32 padding)
+    {
+        if (padding <= 0) return;
+
+        // 可定位流优先移动指针，避免多余写入；对不可定位流仍需写入真实零字节。
+        if (stream.CanSeek)
+        {
+            stream.Seek(padding, SeekOrigin.Current);
+
+            return;
+        }
+
+        var left = padding;
+        while (left > 0)
+        {
+            var count = Math.Min(left, _paddingBlock.Length);
+            stream.Write(_paddingBlock, 0, count);
+            left -= count;
+        }
     }
 
     /// <summary>已重载。</summary>
