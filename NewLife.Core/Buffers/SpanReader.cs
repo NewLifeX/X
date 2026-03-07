@@ -429,6 +429,53 @@ public ref struct SpanReader
         }
         return (Int32)rs;
     }
+
+    /// <summary>读取长度前缀（1/2/4字节或7位编码）</summary>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数</param>
+    /// <returns>数据长度</returns>
+    private Int32 ReadLength(Int32 sizeOf) => sizeOf switch
+    {
+        0 => ReadEncodedInt(),
+        1 => ReadByte(),
+        2 => ReadUInt16(),
+        4 => ReadInt32(),
+        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), $"Unsupported length size: {sizeOf}. Use 0/1/2/4.")
+    };
+
+    /// <summary>读取长度前缀的二进制数据</summary>
+    /// <remarks>
+    /// 协议消息反序列化常用方法。先读取 <paramref name="sizeOf"/> 字节的长度前缀，再读取对应长度的数据。
+    /// <para>示例：<c>var data = reader.ReadArray(2)</c> 等效于 <c>var len = reader.ReadUInt16(); var data = reader.ReadBytes(len);</c></para>
+    /// </remarks>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数，默认2</param>
+    /// <returns>读取的只读字节片段</returns>
+    public ReadOnlySpan<Byte> ReadArray(Int32 sizeOf = 2)
+    {
+        var length = ReadLength(sizeOf);
+        if (length <= 0) return [];
+        return ReadBytes(length);
+    }
+
+    /// <summary>读取长度前缀的字符串</summary>
+    /// <remarks>
+    /// 协议消息反序列化常用方法。先读取 <paramref name="sizeOf"/> 字节的长度前缀，再按编码解码对应长度的字符串。
+    /// <para>示例：<c>var str = reader.ReadLengthString(2)</c> 读取 2 字节长度 + UTF8 内容。</para>
+    /// </remarks>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数，默认2</param>
+    /// <param name="encoding">编码，默认UTF8</param>
+    /// <returns>解码的字符串</returns>
+    public String ReadLengthString(Int32 sizeOf = 2, Encoding? encoding = null)
+    {
+        var length = ReadLength(sizeOf);
+        if (length <= 0) return String.Empty;
+
+        EnsureSpace(length);
+
+        encoding ??= Encoding.UTF8;
+        var result = encoding.GetString(_span.Slice(_index, length));
+        _index += length;
+        return result;
+    }
     #endregion
 
     #region 预览方法

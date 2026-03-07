@@ -540,5 +540,59 @@ public ref struct SpanWriter
 
         return total;
     }
+
+    /// <summary>写入长度前缀（1/2/4字节或7位编码）</summary>
+    /// <param name="length">数据长度</param>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数</param>
+    /// <returns>写入的字节数</returns>
+    private Int32 WriteLength(Int32 length, Int32 sizeOf) => sizeOf switch
+    {
+        0 => WriteEncodedInt(length),
+        1 => Write((Byte)length),
+        2 => Write((UInt16)length),
+        4 => Write(length),
+        _ => throw new ArgumentOutOfRangeException(nameof(sizeOf), $"Unsupported length size: {sizeOf}. Use 0/1/2/4.")
+    };
+
+    /// <summary>写入长度前缀的二进制数据</summary>
+    /// <remarks>
+    /// 协议消息序列化常用方法。先写入 <paramref name="sizeOf"/> 字节的长度前缀，再写入数据内容。
+    /// <para>示例：<c>writer.WriteArray(data, 2)</c> 等效于 <c>writer.Write((UInt16)data.Length); writer.Write(data);</c></para>
+    /// </remarks>
+    /// <param name="value">要写入的数据</param>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数，默认2</param>
+    /// <returns>写入的总字节数（含长度前缀）</returns>
+    public Int32 WriteArray(ReadOnlySpan<Byte> value, Int32 sizeOf = 2)
+    {
+        var n = WriteLength(value.Length, sizeOf);
+        if (value.Length > 0) n += Write(value);
+        return n;
+    }
+
+    /// <summary>写入长度前缀的字符串</summary>
+    /// <remarks>
+    /// 协议消息序列化常用方法。先计算字符串编码后的字节长度，写入 <paramref name="sizeOf"/> 字节的长度前缀，再写入编码后的内容。
+    /// <para>示例：<c>writer.WriteLengthString("hello", 2)</c> 写入 2 字节长度 + UTF8 内容。</para>
+    /// </remarks>
+    /// <param name="value">要写入的字符串，null 视为空串</param>
+    /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数，默认2</param>
+    /// <param name="encoding">编码，默认UTF8</param>
+    /// <returns>写入的总字节数（含长度前缀）</returns>
+    public Int32 WriteLengthString(String? value, Int32 sizeOf = 2, Encoding? encoding = null)
+    {
+        encoding ??= Encoding.UTF8;
+
+        if (value.IsNullOrEmpty())
+            return WriteLength(0, sizeOf);
+
+        var byteCount = encoding.GetByteCount(value);
+        var n = WriteLength(byteCount, sizeOf);
+        EnsureSpace(byteCount);
+
+        var count = encoding.GetBytes(value.AsSpan(), _span[_index..]);
+        _index += count;
+
+        return n + count;
+    }
     #endregion
 }
