@@ -191,6 +191,59 @@ public static class SpanSerializer
         return new OwnerPacket(ms);
     }
 
+    /// <summary>序列化为带帧头的数据包，自动预留并扩展头部区域</summary>
+    /// <remarks>
+    /// 在 <see cref="ToPacket"/> 基础上调用 <c>new OwnerPacket(owner, headerSize)</c> 向前扩展头部。
+    /// 返回的数据包 <c>GetSpan()[..headerSize]</c> 为帧头区域（未填充），由调用方写入协议帧头。
+    /// 消息正文长度 = <c>Length - headerSize</c>。
+    /// </remarks>
+    /// <param name="value">实现 <see cref="ISpanSerializable"/> 的对象</param>
+    /// <param name="headerSize">帧头字节数，必须大于0</param>
+    /// <param name="bufferSize">初始缓冲区大小，默认8192</param>
+    /// <returns>包含帧头区域和消息正文的数据包，调用方负责释放</returns>
+    public static IOwnerPacket ToFrame(this ISpanSerializable value, Int32 headerSize, Int32 bufferSize = 8192)
+    {
+        if (headerSize <= 0) throw new ArgumentOutOfRangeException(nameof(headerSize));
+
+        var body = value.ToPacket(bufferSize, headerSize);
+        return new OwnerPacket((OwnerPacket)body, headerSize);
+    }
+
+    /// <summary>从二进制数据反序列化填充ISpanSerializable对象</summary>
+    /// <remarks>
+    /// 与 <see cref="ToPacket"/> 对称的反序列化扩展，直接在已有实例上填充成员。
+    /// 适用于对象池复用场景，避免反复创建新实例。
+    /// </remarks>
+    /// <param name="value">实现 <see cref="ISpanSerializable"/> 的目标对象</param>
+    /// <param name="data">二进制数据</param>
+    /// <returns>实际消费的字节数</returns>
+    public static Int32 FromSpan(this ISpanSerializable value, ReadOnlySpan<Byte> data)
+    {
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        var reader = new SpanReader(data);
+        value.Read(ref reader);
+        return reader.Position;
+    }
+
+    /// <summary>从数据包反序列化填充ISpanSerializable对象</summary>
+    /// <remarks>
+    /// 与 <see cref="ToPacket"/> 对称的反序列化扩展。
+    /// 单包直接取Span零拷贝读取，链式包通过SpanReader内部流模式处理。
+    /// </remarks>
+    /// <param name="value">实现 <see cref="ISpanSerializable"/> 的目标对象</param>
+    /// <param name="data">数据包</param>
+    /// <returns>实际消费的字节数</returns>
+    public static Int32 FromPacket(this ISpanSerializable value, IPacket data)
+    {
+        if (value == null) throw new ArgumentNullException(nameof(value));
+        if (data == null) throw new ArgumentNullException(nameof(data));
+
+        var reader = new SpanReader(data);
+        value.Read(ref reader);
+        return reader.Position;
+    }
+
     /// <summary>序列化对象到指定Span，返回实际写入字节数</summary>
     /// <param name="value">目标对象</param>
     /// <param name="buffer">目标缓冲区</param>

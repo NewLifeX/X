@@ -360,13 +360,14 @@ public ref struct SpanReader
         return length;
     }
 
-    /// <summary>读取数据包（底层切片，不复制）。不触发流扩容。</summary>
+    /// <summary>读取数据包。有底层 <see cref="IPacket"/> 时直接切片（零拷贝）；否则申请 <see cref="OwnerPacket"/> 并拷贝数据。</summary>
     /// <remarks>
-    /// 本方法直接在底层 <see cref="IPacket"/> 上进行切片并返回新数据包，避免任何数据拷贝；
+    /// 当 SpanReader 由 <see cref="IPacket"/> 或 <see cref="Stream"/> 构造时，直接在底层数据包上切片，不复制；
+    /// 若底层实现为 <see cref="OwnerPacket"/>，这里调用的是默认 <c>Slice(offset, count)</c>，会把该切片的释放责任转移给返回值，原始包后续 Dispose 仅为无所有权释放；
+    /// 当由 <see cref="ReadOnlySpan{T}"/>/<see cref="Span{T}"/>/字节数组构造时，降级为申请新内存并拷贝。
     /// </remarks>
     /// <param name="length">要读取的字节数</param>
     /// <returns>数据包切片</returns>
-    /// <exception cref="InvalidOperationException">无数据流时</exception>
     /// <exception cref="ArgumentOutOfRangeException">长度为负数时</exception>
     public IPacket ReadPacket(Int32 length)
     {
@@ -374,12 +375,21 @@ public ref struct SpanReader
             throw new ArgumentOutOfRangeException(nameof(length), "Length cannot be negative.");
 
         EnsureSpace(length);
-        if (_data == null)
-            throw new InvalidOperationException("No data packet available for reading.");
 
-        var result = _data.Slice(_index, length);
+        if (_data != null)
+        {
+            // 默认调用 Slice(offset, count)。若底层是 OwnerPacket，则切片接管该段缓冲区所有权。
+            var result = _data.Slice(_index, length);
+            _index += length;
+            return result;
+        }
+
+        // 无底层数据包（直接从 Span 构造），申请新内存并拷贝
+        var pk = new OwnerPacket(length);
+        _span.Slice(_index, length).CopyTo(pk.Buffer);
+        pk.Resize(length);
         _index += length;
-        return result;
+        return pk;
     }
 
     /// <summary>读取结构体（按内存布局直接反序列化）</summary>

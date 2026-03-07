@@ -429,6 +429,23 @@ public ref struct SpanWriter
     /// <returns>写入的字节数</returns>
     public Int32 Write(Span<Byte> span) => Write((ReadOnlySpan<Byte>)span);
 
+    /// <summary>写入数据包。遍历链式包，逐段写入</summary>
+    /// <param name="value">要写入的数据包</param>
+    /// <returns>写入的字节数</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="value"/> 为 null 时</exception>
+    public Int32 Write(IPacket value)
+    {
+        if (value == null) throw new ArgumentNullException(nameof(value));
+
+        var total = 0;
+        for (var p = value; p != null; p = p.Next)
+        {
+            total += Write(p.GetSpan());
+        }
+
+        return total;
+    }
+
     /// <summary>写入结构体</summary>
     /// <typeparam name="T">结构体类型</typeparam>
     /// <param name="value">要写入的值</param>

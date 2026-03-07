@@ -152,7 +152,7 @@ public class DefaultMessage : Message
             if (size + len > count) throw new ArgumentOutOfRangeException(nameof(pk), $"The packet length {count} is less than {size + len} bytes");
         }
 
-        // 负载数据
+        // 负载数据。OwnerPacket 默认在 Slice 时把该段缓冲区所有权转给 Payload，原始 pk 后续 Dispose 不会重复归还。
         Payload = pk.Slice(size, len, true);
 
         return true;
