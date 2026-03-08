@@ -159,32 +159,83 @@
 
 ## 性能瓶颈定位
 
-### SpanSerializer 反射路径
+### 核心瓶颈点总览
 
-- **主要开销**：`GetSchema` → `Getter/Setter` 委托调用（已缓存编译，无热点反射）
-- **次要开销**：装箱（`Object?` 传递值类型）——序列化每属性一次 box/unbox
-- 反序列化比序列化慢约 **1.9×**，因为还需 `CreateInstance` 和 `Setter` 写回
+| 优先级 | 瓶颈 | 优化收益占比 | 当前开销 | 优化后预估 | 内存节省 |
+|--------|------|------------|---------|-----------|---------|
+| P0 | Binary MemoryStream 每次重建 | ~35% | 800 ns / 2,016 B（Simple 序列化） | 迁移至 SpanSerializer：59 ns / 96 B | **95.2%（1,920 B/op）** |
+| P0 | Binary 处理器链逐 handler 匹配 | ~25% | 每字段 2-3 handler 遍历，~400 ns 处理器开销 | 迁移至 SpanSerializer 消除 | **100%** |
+| P1 | SpanSerializer 反射路径值类型装箱 | ~20% | 每属性 1 次 box/unbox，反序列化 112 ns（vs ISpanSerializable 76 ns） | 泛型重写消除装箱：~80-90 ns | **30-40%** |
+| P1 | SpanSerializer CreateInstance 反射 | ~10% | 反序列化 112 ns（含构造），比序列化 59 ns 慢 1.9x | 缓存构造函数委托：~90-100 ns | **10-20%** |
+| P2 | Binary 高并发 GC 压力放大 | ~5% | 32T 序列化 78.91 KB/op（SpanSerializer 仅 6.40 KB） | 迁移至 SpanSerializer | **91.9%** |
+| P3 | SpanSerializer 反序列化 String 分配 | ~5% | 反序列化 184 B/op（含 String 堆分配） | 使用 Span<Char> 零拷贝：88 B/op | **52.2%** |
 
-### Binary
+### 关键内存优化方向
 
-- **主要开销**：每次操作创建 `MemoryStream`（`new MemoryStream(256)` ≈ 200 ns 分配）
-- **次要开销**：处理器链逐 handler 匹配（`foreach Handlers`），每字段至少走 2～3 个 handler
-- 高并发下 GC Gen0 压力是 SpanSerializer 的 10～12 倍
+| 优先级 | 优化方向 | 当前分配 | 优化后预估 | 节省比例 | 实施方案 |
+|--------|---------|---------|-----------|---------|---------|
+| P0 | Binary → SpanSerializer 迁移 | 2,016 B/op（序列化） | 96 B/op | **95.2%** | 频繁序列化的数据结构改用 SpanSerializer |
+| P0 | Binary → ISpanSerializable 迁移 | 2,016 B/op（序列化） | 0 B/op | **100%** | 核心数据结构实现 `ISpanSerializable` 接口 |
+| P1 | 反射路径值类型装箱消除 | 96 B/op → 含装箱开销 | ~60 B/op | **~37%** | 泛型重写 `WriteValue`/`ReadValue` |
+| P2 | Binary 并发场景 MemoryStream 复用 | 78.91 KB/op（32T） | ~10 KB/op | **87%** | `ArrayPool` + 重置 Position |
 
-### ISpanSerializable 路径
+### 瓶颈 1（P0）：Binary 序列化器 MemoryStream 重建
 
-- 零反射，无装箱（直接 `writer.Write(Id)` 写值类型）
-- 序列化仅 **23.49 ns**，无任何堆分配，适用于极低延迟场景
-- 代价是需要手写 `Write`/`Read` 方法，维护成本较高
+- **现象**：Binary SimpleModel 序列化 800.83 ns / 2,016 B，是 SpanSerializer（59.03 ns / 96 B）的 **13.6x 慢、21x 内存**
+- **根源**：每次 `Binary.Write` 创建 `new MemoryStream(256)`，初始分配 256 字节数组 + MemoryStream 对象（~200 ns）
+- **影响**：高并发 32 线程下内存达 78.91 KB/op，GC Gen0 压力是 SpanSerializer 的 12.3 倍
+
+| 开销来源 | 占比估算 | 耗时估算 | 说明 |
+|---------|---------|---------|------|
+| MemoryStream 构造 + 数组分配 | ~25% | ~200 ns | `new MemoryStream(256)` 堆分配 |
+| 处理器链遍历 | ~50% | ~400 ns | `foreach Handlers` 逐 handler 匹配字段 |
+| 缓冲区扩容 + 数据写入 | ~25% | ~200 ns | 字段数据写入 + 可能的数组扩容 |
+
+- **优化方案**：将频繁序列化的核心数据结构迁移至 SpanSerializer
+- **预期收益**：速度提升 **13.6x**，内存降低 **95.2%**
+
+### 瓶颈 2（P1）：SpanSerializer 反射路径值类型装箱
+
+- **现象**：反序列化 111.96 ns / 184 B，比 ISpanSerializable（75.72 ns / 88 B）慢 **1.5x**
+- **根源**：`Getter/Setter` 委托通过 `Object?` 传递值类型，每属性产生一次 box/unbox
+- **影响**：5 字段的 SimpleModel 序列化时产生 5 次装箱
+
+| 开销来源 | 占比估算 | 耗时估算 | 说明 |
+|---------|---------|---------|------|
+| 装箱（Object? 传递值类型） | ~30% | ~18 ns | 5 字段 × ~3.5 ns/次装箱 |
+| Getter 委托调用 | ~40% | ~24 ns | 5 字段 × 编译缓存委托调用 |
+| 类型判断 + Span 写入 | ~30% | ~17 ns | GetSchema 类型匹配 + writer.Write |
+
+- **优化方案**：泛型重写 `WriteValue<T>`/`ReadValue<T>`，消除值类型装箱
+- **预期收益**：反射路径再提速 **20-40%**
+
+### 瓶颈 3（P1）：SpanSerializer 反序列化 CreateInstance
+
+- **现象**：反序列化（111.96 ns）比序列化（59.03 ns）慢 **1.9x**
+- **根源**：需 `CreateInstance` 构造新对象 + `Setter` 写回字段，比序列化多一步对象创建
+- **影响**：每次反序列化额外 ~10-20 ns 用于对象构造
+
+- **优化方案**：缓存默认构造函数的委托（`Activator.CreateInstance` → 编译 `Expression.New`）
+- **预期收益**：反序列化提速 **10-20%**
+
+### SpanSerializer 反射路径 vs ISpanSerializable 对比
+
+| 维度 | 反射路径 | ISpanSerializable | 差距 |
+|------|---------|-------------------|------|
+| 序列化耗时 | 59.03 ns | 23.49 ns | 2.5x |
+| 反序列化耗时 | 111.96 ns | 75.72 ns | 1.5x |
+| 序列化分配 | 96 B | 0 B | ∞ |
+| 反序列化分配 | 184 B | 88 B | 2.1x |
+| 维护成本 | 零（自动） | 高（手写 Write/Read） | — |
 
 ---
 
 ## 优化建议
 
-| 优先级 | 建议 | 预期收益 |
-|--------|------|---------|
-| ★★★ | 频繁序列化的核心数据结构实现 `ISpanSerializable`，获得零反射+零分配 | 序列化再快 2.5×，内存降至 0 |
-| ★★☆ | SpanSerializer 内部用泛型重写 `WriteValue`/`ReadValue`，消除值类型装箱 | 反射路径再提速 20~40% |
-| ★★☆ | 反序列化路径缓存 `CreateInstance` 的默认构造函数委托，避免每次反射 | 反序列化提速 10~20% |
-| ★☆☆ | Binary 场景若仍需使用，复用 `MemoryStream`（改用 `ArrayPool` + 重置 Position）| 高并发内存降低 80% |
-| ★☆☆ | 考虑支持 `Span<T>` 列表/数组属性的自动序列化，减少 `ISpanSerializable` 手写量 | 扩大适用范围 |
+| 优先级 | 方向 | 预期收益 | 实施方案 |
+|--------|------|---------|---------|
+| P0 ★★★ | **核心数据结构实现 `ISpanSerializable`** | 序列化再快 **2.5x**，内存降至 **0 B** | 频繁序列化的 RPC 消息体实现接口，获得零反射+零分配路径 |
+| P1 ★★☆ | **泛型重写 `WriteValue`/`ReadValue`** | 反射路径再提速 **20-40%**，消除值类型装箱 | 用 `WriteValue<T>` 替代 `WriteValue(Object?)`，避免每属性 box/unbox |
+| P1 ★★☆ | **缓存 `CreateInstance` 构造函数委托** | 反序列化提速 **10-20%** | 编译 `Expression.New` 并缓存，避免每次反射构造 |
+| P2 ★☆☆ | **Binary 场景复用 MemoryStream** | 高并发内存降低 **80%** | `ArrayPool` + 重置 Position 替代每次 `new MemoryStream(256)` |
+| P3 ★☆☆ | **支持 `Span<T>` 属性自动序列化** | 扩大 ISpanSerializable 适用范围，减少手写量 | 列表/数组属性的自动 Span 序列化支持 |

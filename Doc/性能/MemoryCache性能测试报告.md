@@ -199,6 +199,26 @@ Runtime: .NET 10.0.3 (10.0.326.7603), X64 RyuJIT x86-64-v3
 
 ## 七、性能瓶颈定位
 
+### 核心瓶颈点总览
+
+| 优先级 | 瓶颈 | 优化收益占比 | 当前开销 | 优化后预估 | 内存节省 |
+|--------|------|------------|---------|-----------|---------|
+| P0 | Get 写 VisitTime 触发 MESI 缓存行争用 | ~40% | 4T→8T 扩展仅 1.3x（低于 Set 的 1.6x） | 4T→8T 扩展 ≥1.5x | — |
+| P1 | `Runtime.TickCount64` 系统计时器读取 | ~30% | 每次 Set/Get 耗时 ~6-8 ns（占 30-40%） | 窗口内跳过，减少至 ~2 ns 均摊 | — |
+| P2（快速路径已实现） | Remove 通配符检查固定开销 | ~15% | 非通配符键已直接 TryRemove，剩余 2 次 `String.Contains(Char)` ~4-6 ns | 专用 API 跳过检查 ~0 ns | — |
+| P2 | GetAll 批量构造 Dictionary 分配 | ~10% | ~100 B/项，100 项 10,240 B | ~50 B/项，100 项 ~5 KB | **50%** |
+| P3 | Remove 多线程写锁竞争 | ~5% | 8T→20T 反跌（237M→154M） | 分段锁已最优，属固有限制 | — |
+
+### 关键内存优化方向
+
+| 优先级 | 优化方向 | 当前分配 | 优化后预估 | 节省比例 | 实施方案 |
+|--------|---------|---------|-----------|---------|---------|
+| P2 | GetAll 批量构造 | ~100 B/项 | ~50 B/项 | **50%** | `ArrayPool` 或预分配数组替代每次 `new Dictionary` |
+| P2 | SetAll 字典遍历 | ~24 B/项 | ~12 B/项 | **50%** | 使用 `IReadOnlyCollection` 替代字典遍历 |
+| P3 | 并发 BDN 调度开销 | 1,728～6,518 B/call | — | — | 属 `Parallel.For` 固有开销，非优化目标 |
+
+> **注**：Set/Get/Remove/Inc 单次操作已实现**零内存分配**，内存优化空间主要在批量操作路径。
+
 ### 7.1 Set（19.53 ns，51M ops/s）
 
 Set 的执行路径：`ConcurrentDictionary.TryGetValue` → `CacheItem.Set` → 命中则原地更新；未命中则 `new CacheItem` + `TryAdd` + `Interlocked.Increment`。
@@ -257,9 +277,11 @@ Inc 的执行路径：`GetOrAddItem` → `ConcurrentDictionary.TryGetValue` → 
 
 | 优先级 | 方向 | 预期收益 | 实施方案 |
 |--------|------|---------|---------|
-| ★★★ | **`VisitTime` 更新策略优化** | Get 多线程扩展效率提升 20%～30% | 改为时间窗口内跳过更新（如 1 秒内不重复写），减少 MESI 缓存行争用 |
-| ★★☆ | **Remove 通配符检查延迟** | Remove 单线程提速 ~15% | 仅在 key 包含通配符时执行模式匹配分支，普通 key 直接走 `TryRemove` 快速路径（当前已实现） |
-| ★☆☆ | **批量操作减少分配** | GetAll 内存分配降低 ~50% | 使用 `ArrayPool` 或预分配数组替代每次构造新 Dictionary |
+| P0 ★★★ | **`VisitTime` 更新策略优化** | Get 多线程吞吐提升 20%～30%，4T→8T 扩展倍率从 1.3x 提升至 ≥1.5x | 改为时间窗口内跳过更新（如 1 秒内不重复写 `VisitTime`），消除 MESI 缓存行争用 |
+| P1 ★★☆ | **`TickCount64` 调用合并** | Set/Get 单次操作节省 ~3-4 ns（15-20%） | `Expired` 判断与 `Visit` 共用一次 `TickCount64` 读取，避免重复系统调用 |
+| P2 ★☆☆ | **Remove 通配符检查优化**（快速路径已实现） | 剩余 Contains 检查开销 ~4-6 ns | 快速路径已实现（非通配符键直接 TryRemove）；进一步优化可提供不检查通配符的专用 API |
+| P2 ★☆☆ | **GetAll 批量操作减少分配** | GetAll 内存分配降低 ~50%（100 B/项 → ~50 B/项） | 使用 `ArrayPool` 或预分配数组替代每次构造新 Dictionary |
+| P3 ★☆☆ | **SetAll 遍历优化** | SetAll 分配降低 ~50%（24 B/项 → ~12 B/项） | 使用 `IReadOnlyCollection` 替代字典遍历 |
 
 ---
 
