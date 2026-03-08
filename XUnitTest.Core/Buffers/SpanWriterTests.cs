@@ -764,6 +764,49 @@ public class SpanWriterTests
         var n = writer.WriteEncodedInt(-1);
         Assert.Equal(5, n);
     }
+
+    [Theory(DisplayName = "WriteEncodedInt在缓冲区刚好足够时不应抛异常")]
+    [InlineData(0, 1)]
+    [InlineData(1, 1)]
+    [InlineData(127, 1)]
+    [InlineData(128, 2)]
+    [InlineData(0x3FFF, 2)]
+    [InlineData(0x4000, 3)]
+    [InlineData(0x1F_FFFF, 3)]
+    [InlineData(0x20_0000, 4)]
+    [InlineData(0x0FFF_FFFF, 4)]
+    [InlineData(0x1000_0000, 5)]
+    [InlineData(-1, 5)]
+    public void WriteEncodedIntWithExactBuffer(Int32 value, Int32 expectedBytes)
+    {
+        // 缓冲区大小恰好等于实际编码所需字节数，不应因多余的空间要求而失败
+        var buffer = new Byte[expectedBytes];
+        var writer = new SpanWriter(buffer);
+
+        var n = writer.WriteEncodedInt(value);
+
+        Assert.Equal(expectedBytes, n);
+        Assert.Equal(expectedBytes, writer.Position);
+
+        // 验证写入结果可被正确读回
+        var reader = new SpanReader(buffer);
+        Assert.Equal(value, reader.ReadEncodedInt());
+    }
+
+    [Theory(DisplayName = "WriteEncodedInt缓冲区不足实际编码长度时应抛异常")]
+    [InlineData(128, 2)]
+    [InlineData(0x4000, 3)]
+    [InlineData(0x20_0000, 4)]
+    public void WriteEncodedIntInsufficientBufferThrows(Int32 value, Int32 requiredBytes)
+    {
+        // 缓冲区比实际所需少 1 字节，必须抛异常
+        var buffer = new Byte[requiredBytes - 1];
+        var writer = new SpanWriter(buffer);
+
+        var threw = false;
+        try { writer.WriteEncodedInt(value); } catch (InvalidOperationException) { threw = true; }
+        Assert.True(threw);
+    }
     #endregion
 
     #region WriteArray 测试

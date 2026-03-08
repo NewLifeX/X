@@ -475,11 +475,14 @@ public ref struct SpanWriter
     /// <returns>实际写入字节数</returns>
     public Int32 WriteEncodedInt(Int32 value)
     {
-        // 7 位压缩编码最多 5 字节
-        EnsureSpace(5);
+        var num = (UInt32)value; // 与 BinaryWriter.Write7BitEncodedInt 一致，允许负数（将占 5 字节）
+
+        // 根据实际数值计算所需字节数，避免小值也要求 5 字节空间
+        var size = num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 : 5;
+        EnsureSpace(size);
+
         var span = _span[_index..];
         var count = 0;
-        var num = (UInt32)value; // 与 BinaryWriter.Write7BitEncodedInt 一致，允许负数（将占 5 字节）
 
         while (num >= 0x80)
         {
