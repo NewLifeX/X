@@ -48,60 +48,70 @@ dotnet run
 | ---------------- | ---------------------------------------------------------------------------- | ------------------------------------------------ |
 | **基础扩展**     | [类型转换Utility](https://newlifex.com/core/utility)                         | 提供高效的类型转换，支持各种格式和异常处理。     |
 |                  | [字符串扩展StringHelper](https://newlifex.com/core/string_helper)            | 包含多种字符串操作，如截取、编码和格式化等。     |
-|                  | [进程扩展ProcessHelper](https://newlifex.com/core/process_helper)            | 简化进程操作，提供获取和管理进程信息的便捷方法。 |
 |                  | [路径扩展PathHelper](https://newlifex.com/core/path_helper)                  | 智能处理多种路径格式，实现代码跨平台兼容性。     |
 |                  | [数据扩展IOHelper](https://newlifex.com/core/io_helper)                      | 优化IO操作，提供高效的数据流与字节数组转换。     |
-|                  | [安全扩展SecurityHelper](https://newlifex.com/core/security_helper)          | 集成多种加解密算法，简化数据安全和校验操作。     |
+|                  | [进程扩展ProcessHelper](https://newlifex.com/core/process_helper)            | 简化进程操作，提供获取和管理进程信息的便捷方法。 |
+|                  | [运行时信息Runtime](https://newlifex.com/core/runtime)                       | 提供简单方法获取应用运行时信息，便于调试诊断。   |
 |                  | [可销毁DisposeBase](https://newlifex.com/core/disposebase)                   | 提供标准的资源释放模式，有效防止内存和资源泄漏。 |
 |                  | [反射扩展Reflect](https://newlifex.com/core/reflect)                         | 高性能反射工具，快速进行对象成员的读写操作。     |
-|                  | [运行时信息Runtime](https://newlifex.com/core/runtime)                       | 提供简单方法获取应用运行时信息，便于调试诊断。   |
-| **实用组件**     | [日志ILog](https://newlifex.com/core/log)                                    | 支持多种日志输出方式，提供强大的异步写入功能。   |
+|                  | [安全扩展SecurityHelper](https://newlifex.com/core/security_helper)          | 集成RSA/AES/DES/MD5等多种加解密，简化安全操作。  |
+| **日志与追踪**   | [日志ILog](https://newlifex.com/core/log)                                    | 支持多种日志输出方式，提供强大的异步写入功能。   |
 |                  | [链路追踪ITracer](https://newlifex.com/core/tracer)                          | 强大的APM性能追踪，支持与星尘平台集成。          |
-|                  | [高级定时器TimerX](https://newlifex.com/core/timerx)                         | 高精度定时器，支持Cron调度和异步周期执行。       |
+| **定时调度**     | [高级定时器TimerX](https://newlifex.com/core/timerx)                         | 高精度定时器，支持Cron调度和异步周期执行。       |
 |                  | [Cron表达式](https://newlifex.com/core/cron)                                 | 提供类似Linux Cron的定时任务，支持秒级匹配。     |
-|                  | [机器信息MachineInfo](https://newlifex.com/core/machine_info)                | 全面获取硬件信息，支持Windows和Linux系统。       |
-|                  | [拼音库PinYin](https://newlifex.com/core/pinyin)                             | 高效汉字转拼音库，支持全拼和简拼，性能优越。     |
-|                  | [对象容器ObjectContainer](https://newlifex.com/core/object_container)        | 轻量级依赖注入，支持多种生命周期和注入模式。     |
-|                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
-|                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
-|                  | [并行模型Actor](https://newlifex.com/core/actor)                             | 简化的并发编程模型，通过消息队列处理提升吞吐。   |
-|                  | [脚本引擎ScriptEngine](https://newlifex.com/core/script_engine)              | 支持C#动态编译运行，提供灵活的脚本扩展能力。     |
-|                  | [压缩解压缩](https://newlifex.com/core/compression)                          | 集成多种压缩算法，提供统一接口进行数据压缩。     |
-|                  | [弱引用委托WeakAction](https://newlifex.com/core/weak_action)                | 解决事件订阅内存泄漏问题，实现安全的事件处理。   |
-|                  | [分布式数字签名令牌TokenProvider](https://newlifex.com/core/token_provider)  | 用于生成和验证分布式令牌，保障多节点间安全。     |
-|                  | [Web通用令牌JwtBuilder](https://newlifex.com/core/jwt)                       | 提供JWT令牌的生成、解码和验证，简化Web验证。     |
-|                  | [百度地图接口BaiduMap](https://newlifex.com/core/baidu_map)                  | 封装百度地图API，提供IP定位和地址解析等功能。    |
-|                  | [高德地图接口AMap](https://newlifex.com/core/amap)                           | 封装高德地图API，提供地址解析等服务。            |
-|                  | [阿里云对象存储OssClient](https://newlifex.com/core/oss)                     | 简化阿里云OSS操作，提供文件上传下载管理功能。    |
-| **序列化与配置** | [Json序列化](https://newlifex.com/core/json)                                 | 高性能Json工具，支持多种复杂场景下的序列化。     |
+| **配置系统**     | [配置系统Config](https://newlifex.com/core/config)                           | 统一配置框架，支持多格式、多来源和热加载机制。   |
+|                  | [配置提供者IConfigProvider](/core/config_provider)                           | 统一配置接口，支持回调和配置节点模型。           |
+|                  | [核心配置Setting](https://newlifex.com/core/setting)                         | 管理组件核心配置，控制如日志、网络等基础行为。   |
+|                  | [系统配置SysConfig](https://newlifex.com/core/sysconfig)                     | 管理应用系统配置，支持本地、分布式及加密配置。   |
+| **序列化**       | [Json序列化](https://newlifex.com/core/json)                                 | 高性能Json工具，支持多种复杂场景下的序列化。     |
 |                  | [Xml序列化](https://newlifex.com/core/xml)                                   | 提供XML序列化和反序列化，支持对象与XML互转。     |
 |                  | [二进制序列化](https://newlifex.com/core/binary)                             | 高性能二进制序列化，支持复杂对象图和版本控制。   |
+|                  | [高级二进制序列化](/core/binary_advanced)                                    | 协议消息全程零分配编解码的进阶指南。             |
 |                  | [Csv解析CsvFile](https://newlifex.com/core/csv_file)                         | 快速读写CSV文件，支持自定义分隔符和数据绑定。    |
 |                  | [Csv数据库CsvDb](https://newlifex.com/core/csv_db)                           | 将CSV文件作为数据库使用，支持基本的增删改查。    |
 |                  | [轻量级Excel读取器ExcelReader](https://newlifex.com/core/excel_reader)       | 无需Office依赖，快速读取Excel，支持大数据量。    |
-|                  | [配置系统IConfigProvider](https://newlifex.com/core/config)                  | 提供统一配置框架，支持多种来源和热加载机制。     |
-|                  | [核心配置Setting](https://newlifex.com/core/setting)                         | 管理组件核心配置，控制如日志、网络等基础行为。   |
-|                  | [系统配置SysConfig](https://newlifex.com/core/sysconfig)                     | 管理应用系统配置，支持本地、分布式及加密配置。   |
-| **数据缓存**     | [统一缓存接口ICache](https://newlifex.com/core/icache)                       | 定义标准缓存操作，提供内存、Redis等多种实现。    |
+| **缓存**         | [统一缓存接口ICache](https://newlifex.com/core/icache)                       | 定义标准缓存操作，提供内存、Redis等多种实现。    |
 |                  | [缓存架构ICacheProvider](https://newlifex.com/core/icacheprovider)           | 用于管理和提供ICache实例，支持多缓存并存。       |
 |                  | [内存缓存MemoryCache](https://newlifex.com/core/memory_cache)                | 高性能的单机内存缓存，支持过期和容量策略。       |
-|                  | [分布式缓存NewLife.Redis](https://newlifex.com/core/redis)                   | 基于Redis的分布式缓存实现，支持多种数据结构。    |
 |                  | [字典缓存DictionaryCache](https://newlifex.com/core/dictionary_cache)        | 增强型字典，增加缓存有效期和上限等实用功能。     |
 |                  | [对象池ObjectPool](https://newlifex.com/core/object_pool)                    | 用于复用昂贵对象，提高性能并减少GC压力。         |
-|                  | [数据包IPacket](https://newlifex.com/core/packet)                            | 高性能数据包封装，优化大数据读写和网络传输。     |
-|                  | [分页参数PageParameter](https://newlifex.com/core/page_parameter)            | 封装分页逻辑，支持Web和API等多种场景分页。       |
+|                  | [对象池Pool](/core/pool)                                                     | 基于CAS的高性能通用对象池，降低GC压力。          |
+|                  | [分布式缓存NewLife.Redis](https://newlifex.com/core/redis)                   | 基于Redis的分布式缓存实现，支持多种数据结构。    |
+| **高性能缓冲区** | [数据包IPacket](https://newlifex.com/core/packet)                            | 零拷贝切片、链式包的核心数据包接口。             |
+|                  | [缓冲区Buffers](/core/buffers)                                               | 高性能缓冲区操作库，汇总Span和池化写入等组件。   |
+|                  | [池化写入器PooledByteBufferWriter](/core/pooled_buffer_writer)               | 基于ArrayPool的池化缓冲写入器，支持动态扩容。    |
+|                  | [Span读取器SpanReader](/core/span_reader)                                    | 零分配高性能二进制流解析器，支持大小端。         |
+|                  | [Span写入器SpanWriter](/core/span_writer)                                    | 零分配高性能二进制数据写入器，支持大小端。       |
+|                  | [Span辅助SpanHelper](/core/span_helper)                                      | Span/ReadOnlySpan扩展方法集，简化内存操作。      |
+| **应用框架**     | [对象容器ObjectContainer](https://newlifex.com/core/object_container)        | 轻量级依赖注入，支持多种生命周期和注入模式。     |
+|                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
+|                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
+|                  | [并行模型Actor](https://newlifex.com/core/actor)                             | 简化的并发编程模型，通过消息队列处理提升吞吐。   |
+|                  | [事件总线EventBus](/core/eventbus)                                           | 进程内事件分发，支持主题路由和队列式消息。       |
+|                  | [弱引用委托WeakAction](https://newlifex.com/core/weak_action)                | 解决事件订阅内存泄漏问题，实现安全的事件处理。   |
+|                  | [脚本引擎ScriptEngine](https://newlifex.com/core/script_engine)              | 支持C#动态编译运行，提供灵活的脚本扩展能力。     |
+|                  | [压缩解压缩](https://newlifex.com/core/compression)                          | 集成多种压缩算法，提供统一接口进行数据压缩。     |
+|                  | [机器信息MachineInfo](https://newlifex.com/core/machine_info)                | 全面获取硬件信息，支持Windows和Linux系统。       |
+|                  | [拼音库PinYin](https://newlifex.com/core/pinyin)                             | 高效汉字转拼音库，支持全拼和简拼，性能优越。     |
 |                  | [数据集DbTable](https://newlifex.com/core/dbtable)                           | 内存中的数据表，方便进行数据处理和分析。         |
+|                  | [分页参数PageParameter](https://newlifex.com/core/page_parameter)            | 封装分页逻辑，支持Web和API等多种场景分页。       |
 |                  | [雪花算法Snowflake](https://newlifex.com/core/snow_flake)                    | 分布式唯一ID生成算法，保证高并发下ID唯一性。     |
+| **安全与令牌**   | [分布式数字签名令牌TokenProvider](https://newlifex.com/core/token_provider)  | 用于生成和验证分布式令牌，保障多节点间安全。     |
+|                  | [Web通用令牌JwtBuilder](https://newlifex.com/core/jwt)                       | 提供JWT令牌的生成、解码和验证，简化Web验证。     |
+| **云服务**       | [百度地图接口BaiduMap](https://newlifex.com/core/baidu_map)                  | 封装百度地图API，提供IP定位和地址解析等功能。    |
+|                  | [高德地图接口AMap](https://newlifex.com/core/amap)                           | 封装高德地图API，提供地址解析等服务。            |
 |                  | [经纬度哈希GeoHash](https://newlifex.com/core/geo_hash)                      | 将经纬度编码为字符串，用于附近位置搜索。         |
-| **网络库**       | [网络服务器NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
-|                  | [网络客户端ISocketClient](https://newlifex.com/core/socket_client)           | 统一的TCP/UDP客户端接口，简化网络连接操作。      |
-|                  | [ApiHttpClient客户端](https://newlifex.com/core/api_http)                    | 基于HttpClient封装，简化Web API的调用和处理。    |
-|                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
+|                  | [阿里云对象存储OssClient](https://newlifex.com/core/oss)                     | 简化阿里云OSS操作，提供文件上传下载管理功能。    |
+| **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
+|                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
+|                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
 |                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
+|                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
 |                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | 快速构建RPC服务端，自动注册服务并提供接口。      |
 |                  | [RPC通信ApiClient](https://newlifex.com/core/api_client)                     | 快速创建RPC客户端，支持服务发现和故障转移。      |
+|                  | [HTTP客户端ApiHttpClient](https://newlifex.com/core/api_http)                | 基于HttpClient封装，简化Web API的调用和处理。    |
+|                  | [HTTP服务端HttpServer（嵌入式设备）](https://newlifex.com/core/httpserver)   | 轻量级Http服务器，适合嵌入式和物联网设备使用。  |
 |                  | [网络下载WebClientX](https://newlifex.com/core/webclient)                    | 增强版WebClient，支持多线程、断点续传下载。      |
-|                  | [Web服务器HttpServer（嵌入式设备）](https://newlifex.com/core/httpserver)    | 轻量级Http服务器，适合嵌入式和物联网设备使用。   |
 |                  | [WebSocket服务器（物联网下行通知神器）](https://newlifex.com/core/websocket) | 高性能WebSocket服务端，适用于物联网消息推送。    |
 
 
