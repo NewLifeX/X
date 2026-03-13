@@ -59,6 +59,7 @@ dotnet run
 |                  | [链路追踪ITracer](https://newlifex.com/core/tracer)                          | 强大的APM性能追踪，支持与星尘平台集成。          |
 | **定时调度**     | [高级定时器TimerX](https://newlifex.com/core/timerx)                         | 高精度定时器，支持Cron调度和异步周期执行。       |
 |                  | [Cron表达式](https://newlifex.com/core/cron)                                 | 提供类似Linux Cron的定时任务，支持秒级匹配。     |
+|                  | [时间提供者TimeProvider](/core/time_provider)                                | 统一时间抽象与高精度耗时计算，便于跨版本兼容。   |
 | **配置系统**     | [配置系统Config](https://newlifex.com/core/config)                           | 统一配置框架，支持多格式、多来源和热加载机制。   |
 |                  | [配置提供者IConfigProvider](/core/config_provider)                           | 统一配置接口，支持回调和配置节点模型。           |
 |                  | [核心配置Setting](https://newlifex.com/core/setting)                         | 管理组件核心配置，控制如日志、网络等基础行为。   |
@@ -87,10 +88,13 @@ dotnet run
 |                  | [轻量级应用主机Host](https://newlifex.com/core/host)                         | 简化应用托管，轻松构建长时间运行的后台服务。     |
 |                  | [插件框架IPlugin](https://newlifex.com/core/plugin)                          | 提供标准化的插件管理机制，实现应用模块化开发。   |
 |                  | [并行模型Actor](https://newlifex.com/core/actor)                             | 简化的并发编程模型，通过消息队列处理提升吞吐。   |
+|                  | [管道模型Pipeline](/core/pipeline)                                           | 双向处理链模型，统一Read/Write/Open/Close流程。  |
+|                  | [延迟队列DeferredQueue](/core/deferred_queue)                                | 聚合高频变更并批处理落地，降低写入放大。         |
 |                  | [事件总线EventBus](/core/eventbus)                                           | 进程内事件分发，支持主题路由和队列式消息。       |
 |                  | [弱引用委托WeakAction](https://newlifex.com/core/weak_action)                | 解决事件订阅内存泄漏问题，实现安全的事件处理。   |
 |                  | [脚本引擎ScriptEngine](https://newlifex.com/core/script_engine)              | 支持C#动态编译运行，提供灵活的脚本扩展能力。     |
 |                  | [压缩解压缩](https://newlifex.com/core/compression)                          | 集成多种压缩算法，提供统一接口进行数据压缩。     |
+|                  | [压缩归档Tar与7Zip](/core/tar_7zip)                                          | 覆盖Tar/Tar.Gz与7Zip进阶归档压缩用法。           |
 |                  | [机器信息MachineInfo](https://newlifex.com/core/machine_info)                | 全面获取硬件信息，支持Windows和Linux系统。       |
 |                  | [拼音库PinYin](https://newlifex.com/core/pinyin)                             | 高效汉字转拼音库，支持全拼和简拼，性能优越。     |
 |                  | [数据集DbTable](https://newlifex.com/core/dbtable)                           | 内存中的数据表，方便进行数据处理和分析。         |
@@ -105,14 +109,17 @@ dotnet run
 | **网络库**       | [网络服务端NetServer](https://newlifex.com/core/netserver)                   | 高性能TCP/UDP服务端，封装了会话和数据处理。      |
 |                  | [网络客户端NetClient](/core/netclient)                                       | 统一的TCP/UDP网络客户端，简化连接与收发。        |
 |                  | [消息IMessage](/core/message)                                                | 请求-响应消息接口，支持池化内存和释放链。        |
+|                  | [网络编解码器Handlers](/core/net_handlers)                                   | 粘包拆包、消息编解码与协议管道集成。             |
 |                  | [数据包编码器PacketCodec](https://newlifex.com/core/packet_codec)            | 用于网络粘包处理，支持多种消息分包解决方案。     |
 |                  | [简易远程消息交换协议SRMP](https://newlifex.com/core/srmp)                   | 轻量级RPC协议，支持二进制序列化和UDP传输。       |
+|                  | [负载均衡与故障转移LoadBalancer](/core/load_balancer)                        | 提供Failover/轮询/竞速三种多节点调度策略。       |
 |                  | [RPC通信ApiServer](https://newlifex.com/core/api_server)                     | 快速构建RPC服务端，自动注册服务并提供接口。      |
 |                  | [RPC通信ApiClient](https://newlifex.com/core/api_client)                     | 快速创建RPC客户端，支持服务发现和故障转移。      |
 |                  | [HTTP客户端ApiHttpClient](https://newlifex.com/core/api_http)                | 基于HttpClient封装，简化Web API的调用和处理。    |
 |                  | [HTTP服务端HttpServer（嵌入式设备）](https://newlifex.com/core/httpserver)   | 轻量级Http服务器，适合嵌入式和物联网设备使用。  |
 |                  | [网络下载WebClientX](https://newlifex.com/core/webclient)                    | 增强版WebClient，支持多线程、断点续传下载。      |
 |                  | [WebSocket服务器（物联网下行通知神器）](https://newlifex.com/core/websocket) | 高性能WebSocket服务端，适用于物联网消息推送。    |
+|                  | [WebSocket双向通信](/core/websocket_guide)                                   | 介绍握手、帧处理、心跳与连接关闭实践。           |
 
 
 
