@@ -11,10 +11,45 @@ namespace NewLife.Reflection;
 public static class Reflect
 {
     #region 静态
-    /// <summary>当前反射提供者</summary>
-    public static IReflect Provider { get; set; }
+    private static IReflect _provider;
+    // 缓存 Provider 的具体 DefaultReflect 引用，供扩展方法直接调用非虚核心方法，绕过接口分派
+    private static volatile DefaultReflect? _directProvider;
 
-    static Reflect() => Provider = new DefaultReflect();// 如果需要使用快速反射，启用下面这一行//Provider = new EmitReflect();
+    // 线程本地单态内联缓存：对同一成员的连续调用仅需指针比较（~0.3 ns），跳过字典查找（~3 ns）
+    // [ThreadStatic] 字段在每个线程上独立为 null，无需初始化，无需同步
+    [ThreadStatic] private static PropertyInfo? _tlPropGetInfo;
+    [ThreadStatic] private static Func<Object?, Object?>? _tlPropGetGetter;
+    [ThreadStatic] private static FieldInfo? _tlFieldGetInfo;
+    [ThreadStatic] private static Func<Object?, Object?>? _tlFieldGetGetter;
+    [ThreadStatic] private static PropertyInfo? _tlPropSetInfo;
+    [ThreadStatic] private static Action<Object?, Object?>? _tlPropSetter;
+    [ThreadStatic] private static FieldInfo? _tlFieldSetInfo;
+    [ThreadStatic] private static Action<Object?, Object?>? _tlFieldSetter;
+    [ThreadStatic] private static MethodInfo? _tlInvoke0Mi;
+    [ThreadStatic] private static Func<Object?, Object?>? _tlInvoker0;
+    [ThreadStatic] private static MethodInfo? _tlInvokeNMi;
+    [ThreadStatic] private static Func<Object?, Object?[]?, Object?>? _tlInvokerN;
+    [ThreadStatic] private static Type? _tlFactoryType;
+    [ThreadStatic] private static Func<Object>? _tlFactory;
+
+    /// <summary>当前反射提供者</summary>
+    public static IReflect Provider
+    {
+        get => _provider;
+        set
+        {
+            _provider = value;
+            // 仅当 Provider 是精确的 DefaultReflect 实例（非子类）时才走直达内部路径，避免绕过子类重写
+            _directProvider = value?.GetType() == typeof(DefaultReflect) ? (DefaultReflect)value : null;
+        }
+    }
+
+    static Reflect()
+    {
+        Provider = new DefaultReflect();
+        // 如果需要使用快速反射，启用下面这一行
+        //Provider = new EmitReflect();
+    }
     #endregion
 
     #region 反射获取
@@ -135,7 +170,22 @@ public static class Reflect
     {
         if (type == null) throw new ArgumentNullException(nameof(type));
 
-        return Provider.CreateInstance(type, parameters);
+        // P2：单态内联缓存，同一类型连续创建直接取委托，绕过字典查找 (~3 ns)
+        if (parameters == null || parameters.Length == 0)
+        {
+            if (_tlFactoryType == type)
+                return _tlFactory != null ? _tlFactory() : Activator.CreateInstance(type, true);
+
+            var dict = DefaultReflect._instanceFactoryDict;
+            if (dict.TryGetValue(type, out var factory))
+            {
+                _tlFactoryType = type;
+                _tlFactory = factory;
+                return factory != null ? factory() : Activator.CreateInstance(type, true);
+            }
+        }
+        var dp = _directProvider;
+        return dp != null ? dp.CreateInstanceCore(type, parameters) : Provider.CreateInstance(type, parameters);
     }
 
     /// <summary>反射调用指定对象的方法。target为类型时调用其静态方法</summary>
@@ -193,7 +243,46 @@ public static class Reflect
         if (method == null) throw new ArgumentNullException(nameof(method));
         if (!method.IsStatic && target == null) throw new ArgumentNullException(nameof(target));
 
-        return Provider.Invoke(target, method, parameters);
+        // P2：单态内联缓存，同一方法连续调用绕过字典查找 (~3 ns → ~0.3 ns)
+        if (method is MethodInfo mi)
+        {
+            if (parameters == null || parameters.Length == 0)
+            {
+                if (_tlInvoke0Mi == mi)
+                    return _tlInvoker0 != null ? _tlInvoker0(target) : method.Invoke(target, null);
+
+                Func<Object?, Object?>? inv0;
+                var dict0 = DefaultReflect._invoker0Dict;
+                if (!dict0.TryGetValue(mi, out inv0))
+                {
+                    var dp0 = _directProvider;
+                    if (dp0 == null) return Provider.Invoke(target, method, parameters);
+                    inv0 = dp0.AddInvoker0(mi);
+                }
+                _tlInvoke0Mi = mi;
+                _tlInvoker0 = inv0;
+                return inv0 != null ? inv0(target) : method.Invoke(target, null);
+            }
+            else
+            {
+                if (_tlInvokeNMi == mi)
+                    return _tlInvokerN != null ? _tlInvokerN(target, parameters) : method.Invoke(target, parameters);
+
+                Func<Object?, Object?[]?, Object?>? invN;
+                var dictN = DefaultReflect._invokerNDict;
+                if (!dictN.TryGetValue(mi, out invN))
+                {
+                    var dpN = _directProvider;
+                    if (dpN == null) return Provider.Invoke(target, method, parameters);
+                    invN = dpN.AddInvokerN(mi);
+                }
+                _tlInvokeNMi = mi;
+                _tlInvokerN = invN;
+                return invN != null ? invN(target, parameters) : method.Invoke(target, parameters);
+            }
+        }
+        var dpFallback = _directProvider;
+        return dpFallback != null ? dpFallback.InvokeCore(target, method, parameters) : Provider.Invoke(target, method, parameters);
     }
 
     /// <summary>反射调用指定对象的方法</summary>
@@ -267,12 +356,42 @@ public static class Reflect
 
         //if (target is IModel model && member is PropertyInfo) return model[member.Name];
 
+        // P2：单态内联缓存，同一成员连续访问绕过字典查找 (~3 ns → ~0.3 ns)
         if (member is PropertyInfo property)
-            return Provider.GetValue(target, property);
+        {
+            if (_tlPropGetInfo == property)
+                return _tlPropGetGetter != null ? _tlPropGetGetter(target) : property.GetValue(target, null);
+
+            Func<Object?, Object?>? getter;
+            var dict = DefaultReflect._propGetterDict;
+            if (!dict.TryGetValue(property, out getter))
+            {
+                var dp = _directProvider;
+                if (dp == null) return Provider.GetValue(target, property);
+                getter = dp.AddPropGetter(property);
+            }
+            _tlPropGetInfo = property;
+            _tlPropGetGetter = getter;
+            return getter != null ? getter(target) : property.GetValue(target, null);
+        }
         else if (member is FieldInfo field)
-            return Provider.GetValue(target, field);
-        else
-            throw new ArgumentOutOfRangeException(nameof(member));
+        {
+            if (_tlFieldGetInfo == field)
+                return _tlFieldGetGetter != null ? _tlFieldGetGetter(target) : field.GetValue(target);
+
+            Func<Object?, Object?>? getter;
+            var dict = DefaultReflect._fieldGetterDict;
+            if (!dict.TryGetValue(field, out getter))
+            {
+                var dp = _directProvider;
+                if (dp == null) return Provider.GetValue(target, field);
+                getter = dp.AddFieldGetter(field);
+            }
+            _tlFieldGetInfo = field;
+            _tlFieldGetGetter = getter;
+            return getter != null ? getter(target) : field.GetValue(target);
+        }
+        throw new ArgumentOutOfRangeException(nameof(member));
     }
 
     /// <summary>设置目标对象指定名称的属性/字段值，若不存在返回false</summary>
@@ -313,11 +432,62 @@ public static class Reflect
         //// 借助 IModel 优化取值赋值，有 IExtend 扩展属性的实体类过于复杂而不支持，例如IEntity就有脏数据问题
         //if (target is IModel model && target is not IExtend && member is PropertyInfo)
         //    model[member.Name] = value;
-        //else 
+        //else
+        // P2：单态内联缓存 + ChangeType 快路径，同一成员连续写绕过字典查找
         if (member is PropertyInfo pi)
-            Provider.SetValue(target, pi, value);
+        {
+            if (_tlPropSetInfo == pi)
+            {
+                var pt = pi.PropertyType;
+                var converted = value == null || value.GetType() == pt ? value : value.ChangeType(pt);
+                if (_tlPropSetter != null) _tlPropSetter(target, converted);
+                else pi.SetValue(target, converted, null);
+                return;
+            }
+            Action<Object?, Object?>? setter;
+            var dict = DefaultReflect._propSetterDict;
+            if (!dict.TryGetValue(pi, out setter))
+            {
+                var dp = _directProvider;
+                if (dp == null) { Provider.SetValue(target, pi, value); return; }
+                setter = dp.AddPropSetter(pi);
+            }
+            _tlPropSetInfo = pi;
+            _tlPropSetter = setter;
+            {
+                var pt = pi.PropertyType;
+                var converted = value == null || value.GetType() == pt ? value : value.ChangeType(pt);
+                if (setter != null) setter(target, converted);
+                else pi.SetValue(target, converted, null);
+            }
+        }
         else if (member is FieldInfo fi)
-            Provider.SetValue(target, fi, value);
+        {
+            if (_tlFieldSetInfo == fi)
+            {
+                var ft = fi.FieldType;
+                var converted = value == null || value.GetType() == ft ? value : value.ChangeType(ft);
+                if (_tlFieldSetter != null) _tlFieldSetter(target, converted);
+                else fi.SetValue(target, converted);
+                return;
+            }
+            Action<Object?, Object?>? setter;
+            var dict = DefaultReflect._fieldSetterDict;
+            if (!dict.TryGetValue(fi, out setter))
+            {
+                var dp = _directProvider;
+                if (dp == null) { Provider.SetValue(target, fi, value); return; }
+                setter = dp.AddFieldSetter(fi);
+            }
+            _tlFieldSetInfo = fi;
+            _tlFieldSetter = setter;
+            {
+                var ft = fi.FieldType;
+                var converted = value == null || value.GetType() == ft ? value : value.ChangeType(ft);
+                if (setter != null) setter(target, converted);
+                else fi.SetValue(target, converted);
+            }
+        }
         else
             throw new ArgumentOutOfRangeException(nameof(member));
     }

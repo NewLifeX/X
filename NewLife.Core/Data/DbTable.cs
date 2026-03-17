@@ -80,29 +80,66 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         if (fields == null || fields.Length == 0)
             fields = Enumerable.Range(0, cs.Length).ToArray();
 
+        // 检测读取器是否支持 TakeValues 快速读取（如 NewLife.MySql 等特殊读取器）
+        // 仅在顺序映射（fields[i]==i）时可直接窃取行数组，无需新建 Object?[] 也无需逐列索引
+        Func<Object?[]?>? takeValues = null;
+        if (fields.Length == ts.Length)
+        {
+            var tvMethod = dr.GetType().GetMethod("TakeValues", Type.EmptyTypes);
+            if (tvMethod != null)
+            {
+                var isIdentity = true;
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    if (fields[i] != i) { isIdentity = false; break; }
+                }
+                if (isIdentity)
+                    takeValues = tvMethod.As<Func<Object?[]?>>(dr);
+            }
+        }
+
         // 数据
         var rs = new List<Object?[]>();
-        while (dr.Read())
+        if (takeValues != null)
         {
-            var row = new Object?[fields.Length];
-            for (var i = 0; i < fields.Length; i++)
+            while (dr.Read())
             {
-                // MySql在读取0000时间数据时会报错
-                try
-                {
-                    var idx = fields[i];
-                    var val = dr[idx];
+                var row = takeValues();
+                if (row == null) continue;
 
-                    if (val == DBNull.Value)
-                    {
-                        // 按目标列 i 的类型填充默认值
-                        val = GetDefault(ts[i].GetTypeCode());
-                    }
-                    row[i] = val;
+                // 原地修复 DBNull，按目标列类型填充默认值
+                for (var i = 0; i < ts.Length && i < row.Length; i++)
+                {
+                    if (row[i] == DBNull.Value)
+                        row[i] = GetDefault(ts[i].GetTypeCode());
                 }
-                catch { }
+                rs.Add(row!);
             }
-            rs.Add(row);
+        }
+        else
+        {
+            while (dr.Read())
+            {
+                var row = new Object?[fields.Length];
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var idx = fields[i];
+                        var val = dr[idx];
+
+                        if (val == DBNull.Value)
+                        {
+                            // 按目标列 i 的类型填充默认值
+                            val = GetDefault(ts[i].GetTypeCode());
+                        }
+                        row[i] = val;
+                    }
+                    catch { }
+                }
+                rs.Add(row);
+            }
         }
         Rows = rs;
 
@@ -130,29 +167,64 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
         fields ??= Enumerable.Range(0, cs.Length).ToArray();
 
+        // 检测读取器是否支持 TakeValues 快速读取（如 NewLife.MySql 等特殊读取器）
+        Func<Object?[]?>? takeValues = null;
+        if (fields.Length == ts.Length)
+        {
+            var tvMethod = dr.GetType().GetMethod("TakeValues", Type.EmptyTypes);
+            if (tvMethod != null)
+            {
+                var isIdentity = true;
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    if (fields[i] != i) { isIdentity = false; break; }
+                }
+                if (isIdentity)
+                    takeValues = tvMethod.As<Func<Object?[]?>>(dr);
+            }
+        }
+
         // 数据
         var rs = new List<Object?[]>();
-        while (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
+        if (takeValues != null)
         {
-            var row = new Object?[fields.Length];
-            for (var i = 0; i < fields.Length; i++)
+            while (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                // MySql在读取0000时间数据时会报错
-                try
-                {
-                    var idx = fields[i];
-                    var val = dr[idx];
+                var row = takeValues();
+                if (row == null) continue;
 
-                    if (val == DBNull.Value)
-                    {
-                        // 按目标列 i 的类型填充默认值
-                        val = GetDefault(ts[i].GetTypeCode());
-                    }
-                    row[i] = val;
+                for (var i = 0; i < ts.Length && i < row.Length; i++)
+                {
+                    if (row[i] == DBNull.Value)
+                        row[i] = GetDefault(ts[i].GetTypeCode());
                 }
-                catch { }
+                rs.Add(row!);
             }
-            rs.Add(row);
+        }
+        else
+        {
+            while (await dr.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var row = new Object?[fields.Length];
+                for (var i = 0; i < fields.Length; i++)
+                {
+                    // MySql在读取0000时间数据时会报错
+                    try
+                    {
+                        var idx = fields[i];
+                        var val = dr[idx];
+
+                        if (val == DBNull.Value)
+                        {
+                            // 按目标列 i 的类型填充默认值
+                            val = GetDefault(ts[i].GetTypeCode());
+                        }
+                        row[i] = val;
+                    }
+                    catch { }
+                }
+                rs.Add(row);
+            }
         }
         Rows = rs;
 
@@ -926,8 +998,8 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
         var rows = Rows;
         if (rows == null) yield break;
 
-        // 可用属性
-        var pis = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        // 可用属性（通过 DefaultReflect 缓存，避免重复反射扫描）
+        var pis = type.GetProperties(true);
         var dic = pis.ToDictionary(e => SerialHelper.GetName(e), e => e, StringComparer.OrdinalIgnoreCase);
 
         foreach (var row in rows)

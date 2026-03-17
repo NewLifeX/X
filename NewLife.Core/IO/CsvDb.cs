@@ -22,7 +22,8 @@ public class CsvDb<T> : DisposeBase where T : new()
 {
     #region 静态缓存（反射开销优化）
     // 只反射一次，降低读写频率较高场景的成本
-    private static readonly PropertyInfo[] _properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+    // 使用 GetProperties(true) 走 DefaultReflect 缓存，同时过滤 XmlIgnore/IgnoreDataMember 等特性
+    private static readonly IList<PropertyInfo> _properties = typeof(T).GetProperties(true);
     // 统一使用序列化名（可能来自特性），修复原先头部写入使用属性名导致与读取不一致的缺陷
     private static readonly String[] _propertyNames = _properties.Select(SerialHelper.GetName).ToArray();
     // 属性名到索引的映射，用于快速查找

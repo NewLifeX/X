@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
@@ -433,70 +435,67 @@ public class DefaultReflect : IReflect
     #endregion
 
     #region 反射调用
+    // 写时复制字典（全部为静态）：热路径仅需一次静态 volatile 读 + Dictionary.TryGetValue，无锁无CAS；
+    // 静态字段使 Reflect.cs 扩展方法可直接访问，省去 _directProvider volatile 读 + 接口分派（约 2 ns）；
+    // 冷路径在 lock 内生成新快照后原子发布，首次编译后后续调用开销极低
+    internal static volatile Dictionary<PropertyInfo, Func<Object?, Object?>?> _propGetterDict = [];
+    internal static volatile Dictionary<PropertyInfo, Action<Object?, Object?>?> _propSetterDict = [];
+    internal static volatile Dictionary<FieldInfo, Func<Object?, Object?>?> _fieldGetterDict = [];
+    internal static volatile Dictionary<FieldInfo, Action<Object?, Object?>?> _fieldSetterDict = [];
+    // 0-param 专用缓存：Func<Object?,Object?> 省去 Object[] 参数数组开销
+    internal static volatile Dictionary<MethodInfo, Func<Object?, Object?>?> _invoker0Dict = [];
+    // N-param 通用缓存：Func<Object?,Object?[]?,Object?>
+    internal static volatile Dictionary<MethodInfo, Func<Object?, Object?[]?, Object?>?> _invokerNDict = [];
+    internal static volatile Dictionary<Type, Func<Object>?> _instanceFactoryDict = BuildPrimitiveFactories();
+    private static readonly Object _cacheLock = new();
+
+    // 预填充基元类型工厂委托，捕获缓存装箱对象避免每次 CreateInstance 重复分配
+    private static Dictionary<Type, Func<Object>?> BuildPrimitiveFactories()
+    {
+        Object boxFalse = false, boxChar0 = '\0', boxSByte0 = (SByte)0, boxByte0 = (Byte)0;
+        Object boxI160 = (Int16)0, boxU160 = (UInt16)0, boxI320 = 0, boxU320 = 0U;
+        Object boxI640 = 0L, boxU640 = 0UL, boxF0 = 0F, boxD0 = 0D, boxM0 = 0M;
+        Object boxDt = DateTime.MinValue;
+        return new()
+        {
+            [typeof(Boolean)] = () => boxFalse,
+            [typeof(Char)] = () => boxChar0,
+            [typeof(SByte)] = () => boxSByte0,
+            [typeof(Byte)] = () => boxByte0,
+            [typeof(Int16)] = () => boxI160,
+            [typeof(UInt16)] = () => boxU160,
+            [typeof(Int32)] = () => boxI320,
+            [typeof(UInt32)] = () => boxU320,
+            [typeof(Int64)] = () => boxI640,
+            [typeof(UInt64)] = () => boxU640,
+            [typeof(Single)] = () => boxF0,
+            [typeof(Double)] = () => boxD0,
+            [typeof(Decimal)] = () => boxM0,
+            [typeof(DateTime)] = () => boxDt,
+            [typeof(String)] = static () => String.Empty,
+        };
+    }
+
     /// <summary>反射创建指定类型的实例</summary>
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    public virtual Object? CreateInstance(Type type, params Object?[] parameters)
+    public virtual Object? CreateInstance(Type type, params Object?[] parameters) => CreateInstanceCore(type, parameters);
+
+    // 非虚核心实现，供 Reflect.cs 直接调用
+    internal Object? CreateInstanceCore(Type type, Object?[]? parameters)
     {
         try
         {
-            var code = type.GetTypeCode();
-
-            // 列表
-            if (code == TypeCode.Object && (type.As<IList>() || type.As(typeof(IList<>))))
-            {
-                var type2 = type;
-                if (type2.IsInterface)
-                {
-                    if (type2.IsGenericType)
-                        type2 = typeof(List<>).MakeGenericType(type2.GetGenericArguments());
-                    else if (type2 == typeof(IList))
-                        type2 = typeof(List<Object>);
-                }
-                return Activator.CreateInstance(type2);
-            }
-
-            // 字典
-            if (code == TypeCode.Object && (type.As<IDictionary>() || type.As(typeof(IDictionary<,>))))
-            {
-                var type2 = type;
-                if (type2.IsInterface)
-                {
-                    if (type2.IsGenericType)
-                        type2 = typeof(Dictionary<,>).MakeGenericType(type2.GetGenericArguments());
-                    else if (type2 == typeof(IDictionary))
-                        type2 = typeof(Dictionary<Object, Object>);
-                }
-                return Activator.CreateInstance(type2);
-            }
-
             if (parameters == null || parameters.Length == 0)
             {
-                // 基元类型
-                return code switch
-                {
-                    //TypeCode.Empty or TypeCode.DBNull => null,
-                    TypeCode.Boolean => false,
-                    TypeCode.Char => '\0',
-                    TypeCode.SByte => (SByte)0,
-                    TypeCode.Byte => (Byte)0,
-                    TypeCode.Int16 => (Int16)0,
-                    TypeCode.UInt16 => (UInt16)0,
-                    TypeCode.Int32 => 0,
-                    TypeCode.UInt32 => 0U,
-                    TypeCode.Int64 => 0L,
-                    TypeCode.UInt64 => 0UL,
-                    TypeCode.Single => 0F,
-                    TypeCode.Double => 0D,
-                    TypeCode.Decimal => 0M,
-                    TypeCode.DateTime => DateTime.MinValue,
-                    TypeCode.String => String.Empty,
-                    _ => Activator.CreateInstance(type, true),
-                };
+                // 热路径：已缓存的工厂委托，绕过所有 TypeCode/IList/IDictionary 预检
+                if (_instanceFactoryDict.TryGetValue(type, out var factory))
+                    return factory != null ? factory() : Activator.CreateInstance(type, true);
+
+                return RegisterAndCreate(type);
             }
-            else
-                return Activator.CreateInstance(type, parameters);
+            return Activator.CreateInstance(type, parameters);
         }
         catch (Exception ex)
         {
@@ -504,12 +503,188 @@ public class DefaultReflect : IReflect
         }
     }
 
+    // 冷路径：首次为该类型生成工厂并注册到缓存
+    private Object? RegisterAndCreate(Type type)
+    {
+        Func<Object>? factory;
+        var code = type.GetTypeCode();
+        if (code != TypeCode.Object)
+        {
+            // 枚举等 TypeCode 非 Object 类型（基元已在 BuildPrimitiveFactories 预填充，此处兜底）
+            factory = code switch
+            {
+                TypeCode.Boolean => static () => false,
+                TypeCode.Char => static () => '\0',
+                TypeCode.SByte => static () => (SByte)0,
+                TypeCode.Byte => static () => (Byte)0,
+                TypeCode.Int16 => static () => (Int16)0,
+                TypeCode.UInt16 => static () => (UInt16)0,
+                TypeCode.Int32 => static () => 0,
+                TypeCode.UInt32 => static () => 0U,
+                TypeCode.Int64 => static () => 0L,
+                TypeCode.UInt64 => static () => 0UL,
+                TypeCode.Single => static () => 0F,
+                TypeCode.Double => static () => 0D,
+                TypeCode.Decimal => static () => 0M,
+                TypeCode.DateTime => static () => DateTime.MinValue,
+                TypeCode.String => static () => String.Empty,
+                _ => null,
+            };
+        }
+        else
+        {
+            // IList / IDictionary 接口解析（冷路径，仅首次调用该接口类型）
+            var targetType = type;
+            if (type.IsInterface || type.IsAbstract)
+            {
+                if (type.As<IList>() || type.As(typeof(IList<>)))
+                {
+                    if (type.IsGenericType)
+                        targetType = typeof(List<>).MakeGenericType(type.GetGenericArguments());
+                    else if (type == typeof(IList))
+                        targetType = typeof(List<Object>);
+                }
+                else if (type.As<IDictionary>() || type.As(typeof(IDictionary<,>)))
+                {
+                    if (type.IsGenericType)
+                        targetType = typeof(Dictionary<,>).MakeGenericType(type.GetGenericArguments());
+                    else if (type == typeof(IDictionary))
+                        targetType = typeof(Dictionary<Object, Object>);
+                }
+            }
+
+            var ctor = targetType.GetConstructor(Type.EmptyTypes);
+            factory = ctor != null ? Expression.Lambda<Func<Object>>(Expression.New(ctor)).Compile() : null;
+        }
+
+        // 写时复制发布（lock 保证唯一写入，volatile 保证所有读者可见）
+        lock (_cacheLock)
+        {
+            if (!_instanceFactoryDict.ContainsKey(type))
+            {
+                var next = new Dictionary<Type, Func<Object>?>(_instanceFactoryDict) { [type] = factory };
+                _instanceFactoryDict = next;
+            }
+        }
+
+        return factory != null ? factory() : Activator.CreateInstance(type, true);
+    }
+
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
     /// <param name="method">方法</param>
     /// <param name="parameters">方法参数</param>
     /// <returns></returns>
-    public virtual Object? Invoke(Object? target, MethodBase method, Object?[]? parameters) => method.Invoke(target, parameters);
+    public virtual Object? Invoke(Object? target, MethodBase method, Object?[]? parameters) => InvokeCore(target, method, parameters);
+
+    // 非虚核心实现，供 Reflect.cs 直接调用绕过接口分派
+    internal Object? InvokeCore(Object? target, MethodBase method, Object?[]? parameters)
+    {
+        if (method is MethodInfo mi)
+        {
+            if (parameters == null || parameters.Length == 0)
+            {
+                // 0-param 专用路径：省去 Object[] 传递开销
+                var dict0 = _invoker0Dict;
+                if (!dict0.TryGetValue(mi, out var inv0))
+                    inv0 = AddInvoker0(mi);
+                if (inv0 != null)
+                    return inv0(target);
+            }
+            else
+            {
+                // N-param 通用路径
+                var dictN = _invokerNDict;
+                if (!dictN.TryGetValue(mi, out var invN))
+                    invN = AddInvokerN(mi);
+                if (invN != null)
+                    return invN(target, parameters);
+            }
+        }
+        return method.Invoke(target, parameters);
+    }
+
+    // 冷路径：为 0-param 方法编译 Func<Object?,Object?> 委托（省去 Object[] 参数开销）
+    internal Func<Object?, Object?>? AddInvoker0(MethodInfo method)
+    {
+        Func<Object?, Object?>? invoker = null;
+        try
+        {
+            if (!method.IsGenericMethod && method.DeclaringType != null && method.GetParameters().Length == 0)
+            {
+                var instanceParam = Expression.Parameter(typeof(Object), "instance");
+                Expression callExpr = method.IsStatic
+                    ? Expression.Call(method)
+                    : Expression.Call(Expression.Convert(instanceParam, method.DeclaringType), method);
+                var resultExpr = method.ReturnType == typeof(void)
+                    ? (Expression)Expression.Block(typeof(Object), callExpr, Expression.Constant(null, typeof(Object)))
+                    : Expression.Convert(callExpr, typeof(Object));
+                invoker = Expression.Lambda<Func<Object?, Object?>>(resultExpr, instanceParam).Compile();
+            }
+        }
+        catch { invoker = null; }
+
+        lock (_cacheLock)
+        {
+            if (!_invoker0Dict.ContainsKey(method))
+            {
+                var next = new Dictionary<MethodInfo, Func<Object?, Object?>?>(_invoker0Dict) { [method] = invoker };
+                _invoker0Dict = next;
+            }
+        }
+        return invoker;
+    }
+
+    // 冷路径：为 N-param 方法编译 Func<Object?,Object?[]?,Object?> 委托
+    internal Func<Object?, Object?[]?, Object?>? AddInvokerN(MethodInfo method)
+    {
+        Func<Object?, Object?[]?, Object?>? invoker;
+        try
+        {
+            if (method.IsGenericMethod || method.DeclaringType == null)
+            {
+                invoker = null;
+            }
+            else
+            {
+                var pis = method.GetParameters();
+                // 含 ref/out 参数时回退原始反射
+                if (Array.Exists(pis, static p => p.ParameterType.IsByRef))
+                {
+                    invoker = null;
+                }
+                else
+                {
+                    var instanceParam = Expression.Parameter(typeof(Object), "instance");
+                    var argsParam = Expression.Parameter(typeof(Object?[]), "args");
+                    var argExprs = new Expression[pis.Length];
+                    for (var i = 0; i < pis.Length; i++)
+                        argExprs[i] = Expression.Convert(Expression.ArrayIndex(argsParam, Expression.Constant(i)), pis[i].ParameterType);
+
+                    Expression callExpr = method.IsStatic
+                        ? Expression.Call(method, argExprs)
+                        : Expression.Call(Expression.Convert(instanceParam, method.DeclaringType), method, argExprs);
+
+                    var resultExpr = method.ReturnType == typeof(void)
+                        ? (Expression)Expression.Block(typeof(Object), callExpr, Expression.Constant(null, typeof(Object)))
+                        : Expression.Convert(callExpr, typeof(Object));
+
+                    invoker = Expression.Lambda<Func<Object?, Object?[]?, Object?>>(resultExpr, instanceParam, argsParam).Compile();
+                }
+            }
+        }
+        catch { invoker = null; }
+
+        lock (_cacheLock)
+        {
+            if (!_invokerNDict.ContainsKey(method))
+            {
+                var next = new Dictionary<MethodInfo, Func<Object?, Object?[]?, Object?>?>(_invokerNDict) { [method] = invoker };
+                _invokerNDict = next;
+            }
+        }
+        return invoker;
+    }
 
     /// <summary>反射调用指定对象的方法</summary>
     /// <param name="target">要调用其方法的对象，如果要调用静态方法，则target是类型</param>
@@ -531,32 +706,194 @@ public class DefaultReflect : IReflect
             ps[i] = v.ChangeType(pis[i].ParameterType);
         }
 
-        return method.Invoke(target, ps);
+        return Invoke(target, method, ps);
     }
 
     /// <summary>获取目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <returns></returns>
-    public virtual Object? GetValue(Object? target, PropertyInfo property) => property.GetValue(target, null);
+    public virtual Object? GetValue(Object? target, PropertyInfo property) => GetValueCore(target, property);
+
+    // 非虚核心实现，供 Reflect.cs 直接调用绕过接口分派
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Object? GetValueCore(Object? target, PropertyInfo property)
+    {
+        var dict = _propGetterDict;
+        if (!dict.TryGetValue(property, out var getter))
+            getter = AddPropGetter(property);
+        return getter != null ? getter(target) : property.GetValue(target, null);
+    }
+
+    // 冷路径：编译并缓存属性 getter
+    internal Func<Object?, Object?>? AddPropGetter(PropertyInfo pi)
+    {
+        Func<Object?, Object?>? getter;
+        if (pi.GetGetMethod(true)?.IsStatic == true)
+        {
+            getter = null;
+        }
+        else
+        {
+            var obj = Expression.Parameter(typeof(Object), "obj");
+            getter = Expression.Lambda<Func<Object?, Object?>>(
+                Expression.Convert(Expression.Property(Expression.Convert(obj, pi.DeclaringType!), pi), typeof(Object)), obj).Compile();
+        }
+
+        lock (_cacheLock)
+        {
+            if (!_propGetterDict.ContainsKey(pi))
+            {
+                var next = new Dictionary<PropertyInfo, Func<Object?, Object?>?>(_propGetterDict) { [pi] = getter };
+                _propGetterDict = next;
+            }
+        }
+        return getter;
+    }
 
     /// <summary>获取目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <returns></returns>
-    public virtual Object? GetValue(Object? target, FieldInfo field) => field.GetValue(target);
+    public virtual Object? GetValue(Object? target, FieldInfo field) => GetValueFieldCore(target, field);
+
+    // 非虚核心实现
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal Object? GetValueFieldCore(Object? target, FieldInfo field)
+    {
+        var dict = _fieldGetterDict;
+        if (!dict.TryGetValue(field, out var getter))
+            getter = AddFieldGetter(field);
+        return getter != null ? getter(target) : field.GetValue(target);
+    }
+
+    // 冷路径：编译并缓存字段 getter
+    internal Func<Object?, Object?>? AddFieldGetter(FieldInfo fi)
+    {
+        Func<Object?, Object?>? getter;
+        if (fi.IsStatic)
+        {
+            getter = null;
+        }
+        else
+        {
+            var obj = Expression.Parameter(typeof(Object), "obj");
+            getter = Expression.Lambda<Func<Object?, Object?>>(
+                Expression.Convert(Expression.Field(Expression.Convert(obj, fi.DeclaringType!), fi), typeof(Object)), obj).Compile();
+        }
+
+        lock (_cacheLock)
+        {
+            if (!_fieldGetterDict.ContainsKey(fi))
+            {
+                var next = new Dictionary<FieldInfo, Func<Object?, Object?>?>(_fieldGetterDict) { [fi] = getter };
+                _fieldGetterDict = next;
+            }
+        }
+        return getter;
+    }
 
     /// <summary>设置目标对象的属性值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="property">属性</param>
     /// <param name="value">数值</param>
-    public virtual void SetValue(Object target, PropertyInfo property, Object? value) => property.SetValue(target, value.ChangeType(property.PropertyType), null);
+    public virtual void SetValue(Object target, PropertyInfo property, Object? value) => SetValueCore(target, property, value);
+
+    // 非虚核心实现
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void SetValueCore(Object target, PropertyInfo property, Object? value)
+    {
+        var pt = property.PropertyType;
+        var converted = value == null || value.GetType() == pt ? value : value.ChangeType(pt);
+        var dict = _propSetterDict;
+        if (!dict.TryGetValue(property, out var setter))
+            setter = AddPropSetter(property);
+        if (setter != null)
+            setter(target, converted);
+        else
+            property.SetValue(target, converted, null);
+    }
+
+    // 冷路径：编译并缓存属性 setter
+    internal Action<Object?, Object?>? AddPropSetter(PropertyInfo pi)
+    {
+        Action<Object?, Object?>? setter;
+        if (!pi.CanWrite || pi.DeclaringType?.IsValueType == true || pi.GetSetMethod(true)?.IsStatic == true)
+        {
+            setter = null;
+        }
+        else
+        {
+            var obj = Expression.Parameter(typeof(Object), "obj");
+            var val = Expression.Parameter(typeof(Object), "val");
+            setter = Expression.Lambda<Action<Object?, Object?>>(
+                Expression.Assign(
+                    Expression.Property(Expression.Convert(obj, pi.DeclaringType!), pi),
+                    Expression.Convert(val, pi.PropertyType)),
+                obj, val).Compile();
+        }
+
+        lock (_cacheLock)
+        {
+            if (!_propSetterDict.ContainsKey(pi))
+            {
+                var next = new Dictionary<PropertyInfo, Action<Object?, Object?>?>(_propSetterDict) { [pi] = setter };
+                _propSetterDict = next;
+            }
+        }
+        return setter;
+    }
 
     /// <summary>设置目标对象的字段值</summary>
     /// <param name="target">目标对象</param>
     /// <param name="field">字段</param>
     /// <param name="value">数值</param>
-    public virtual void SetValue(Object target, FieldInfo field, Object? value) => field.SetValue(target, value.ChangeType(field.FieldType));
+    public virtual void SetValue(Object target, FieldInfo field, Object? value) => SetValueFieldCore(target, field, value);
+
+    // 非虚核心实现
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void SetValueFieldCore(Object target, FieldInfo field, Object? value)
+    {
+        var ft = field.FieldType;
+        var converted = value == null || value.GetType() == ft ? value : value.ChangeType(ft);
+        var dict = _fieldSetterDict;
+        if (!dict.TryGetValue(field, out var setter))
+            setter = AddFieldSetter(field);
+        if (setter != null)
+            setter(target, converted);
+        else
+            field.SetValue(target, converted);
+    }
+
+    // 冷路径：编译并缓存字段 setter
+    internal Action<Object?, Object?>? AddFieldSetter(FieldInfo fi)
+    {
+        Action<Object?, Object?>? setter;
+        if (fi.IsInitOnly || fi.IsLiteral || fi.DeclaringType?.IsValueType == true || fi.IsStatic)
+        {
+            setter = null;
+        }
+        else
+        {
+            var obj = Expression.Parameter(typeof(Object), "obj");
+            var val = Expression.Parameter(typeof(Object), "val");
+            setter = Expression.Lambda<Action<Object?, Object?>>(
+                Expression.Assign(
+                    Expression.Field(Expression.Convert(obj, fi.DeclaringType!), fi),
+                    Expression.Convert(val, fi.FieldType)),
+                obj, val).Compile();
+        }
+
+        lock (_cacheLock)
+        {
+            if (!_fieldSetterDict.ContainsKey(fi))
+            {
+                var next = new Dictionary<FieldInfo, Action<Object?, Object?>?>(_fieldSetterDict) { [fi] = setter };
+                _fieldSetterDict = next;
+            }
+        }
+        return setter;
+    }
     #endregion
 
     #region 对象拷贝
