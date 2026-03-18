@@ -26,6 +26,18 @@ public class SplitDataCodec : Handler
     /// </summary>
     public Int32 MaxCacheDataLength { get; set; } = 1024;
 
+    /// <summary>写入数据，发送时在末尾追加分割字节</summary>
+    /// <param name="context">处理器上下文</param>
+    /// <param name="message">待发送的消息或数据包</param>
+    /// <returns>追加分割字节后的数据包</returns>
+    public override Object? Write(IHandlerContext context, Object message)
+    {
+        if (message is IPacket pk)
+            message = pk.Append(SplitData);
+
+        return base.Write(context, message);
+    }
+
     /// <summary>读取数据</summary>
     /// <param name="context"></param>
     /// <param name="message"></param>
