@@ -55,6 +55,7 @@
     <Compile Include="Remoting\ApiHttpClientRaceTests.cs" />
     <Compile Include="Remoting\ApiHttpClientTests.cs" />
     <Compile Include="Remoting\ApiHttpClientUnitTests.cs" />
+    <Compile Include="Remoting\ConfigServiceResolverTests.cs" />
     <Compile Include="Remoting\LoadBalancerTests.cs" />
     <Compile Include="Yun\OssClientTests.cs" />
   </ItemGroup>

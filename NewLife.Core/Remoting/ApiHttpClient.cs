@@ -256,7 +256,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
     {
         if (prefix.IsNullOrEmpty()) prefix = "service";
 
-        var idx = 0;
+        var idx = 1;
         var rs = new List<ServiceEndpoint>();
         var ss = urls.Split(',', StringSplitOptions.RemoveEmptyEntries);
         var services = Services;
@@ -264,7 +264,7 @@ public partial class ApiHttpClient : DisposeBase, IApiClient, IConfigMapping, IL
         {
             if (addr.IsNullOrEmpty()) continue;
 
-            var name = "";
+            var name = prefix;
             while (name.IsNullOrEmpty() || services.Any(e => e.Name == name)) name = prefix + ++idx;
 
             var svc = ParseAndAdd(services, name, addr, weight);

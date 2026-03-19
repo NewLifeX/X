@@ -263,7 +263,7 @@ public class ApiHttpClientUnitTests
         var svcs = client.AddServer("api", "http://127.0.0.1:8080,http://127.0.0.1:8081", 5);
 
         Assert.Equal(2, svcs.Count);
-        Assert.Equal("api1", svcs[0].Name);
+        Assert.Equal("api", svcs[0].Name);
         Assert.Equal("api2", svcs[1].Name);
         Assert.Equal(5, svcs[0].Weight);
         Assert.Equal(5, svcs[1].Weight);

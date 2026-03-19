@@ -427,7 +427,7 @@ public class ApiHttpClientTests : DisposeBase
         Assert.Equal(5, svcs[0].Weight);
         Assert.Equal(5, svcs[1].Weight);
 
-        Assert.Equal("api1", svcs[0].Name);
+        Assert.Equal("api", svcs[0].Name);
         Assert.Equal("api2", svcs[1].Name);
     }
 
