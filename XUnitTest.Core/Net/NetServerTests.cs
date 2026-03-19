@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NewLife;
@@ -481,6 +482,55 @@ public class NetServerTests
         server.Add<StandardCodec>();
 
         Assert.NotNull(server.Pipeline);
+    }
+
+    /// <summary>测试SplitDataCodec发送数据时追加分割字节</summary>
+    [Fact]
+    public void SplitDataCodecSendAppendsSplitBytes()
+    {
+        var serverReceived = new ManualResetEventSlim(false);
+
+        using var server = new NetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Tcp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+        server.Add<SplitDataCodec>();
+        server.Received += (s, e) =>
+        {
+            if (s is INetSession session && e.Packet != null)
+            {
+                // 服务端收到消息后回送，SplitDataCodec.Write 会追加分割字节
+                session.SendMessage(e.Packet);
+                serverReceived.Set();
+            }
+        };
+        server.Start();
+
+        // 客户端直接接收原始字节
+        using var client = new TcpClient();
+        client.ReceiveTimeout = 3000;
+        client.Connect(IPAddress.Loopback, server.Port);
+        var stream = client.GetStream();
+
+        // 向服务端发送带分割字节的消息（SplitDataCodec 解码时需要分割字节）
+        var payload = "Hello"u8.ToArray();
+        var splitData = new Byte[] { 0x0D, 0x0A };
+        var toSend = payload.Concat(splitData).ToArray();
+        stream.Write(toSend, 0, toSend.Length);
+
+        // 等待服务端处理完成后再读取回送数据
+        Assert.True(serverReceived.Wait(3000));
+
+        var buf = new Byte[64];
+        var n = stream.Read(buf, 0, buf.Length);
+        var received = buf[..n];
+
+        // 服务端回送的数据末尾应包含分割字节
+        Assert.True(received.Length >= splitData.Length);
+        Assert.Equal(splitData, received[^splitData.Length..]);
     }
     #endregion
 
