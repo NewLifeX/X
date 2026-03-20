@@ -1,0 +1,72 @@
+# NewLife 开源组件
+
+> 新生命团队基础组件和中间件，20年+ 积累，支持 .NET Framework 4.5 到 .NET 10.0。
+> 源码：https://github.com/NewLifeX 官网：https://newlifex.com
+
+## 核心库 NewLife.Core
+
+- [缓存系统 ICache](https://newlifex.com/core/icache): 统一缓存接口，内存缓存 MemoryCache + Redis 客户端，支持分布式锁和队列
+- [网络服务端 NetServer](https://newlifex.com/core/netserver): 高性能 TCP/UDP 服务器，会话管理，编解码管道，实测单机 2266万tps
+- [网络客户端 NetClient](https://newlifex.com/core/netclient): 统一 TCP/UDP 客户端，自动重连，粘包拆包
+- [JSON 序列化](https://newlifex.com/core/json): 高性能 JSON 序列化/反序列化，支持 ToJson/ToJsonEntity 扩展方法
+- [二进制序列化 Binary](https://newlifex.com/core/binary): 二进制序列化，支持复杂对象图和自定义处理器
+- [日志 ILog](https://newlifex.com/core/log): 多输出日志框架，文件/控制台/网络/组合日志
+- [链路追踪 ITracer](https://newlifex.com/core/tracer): 分布式 APM 追踪，DefaultTracer 集成星尘平台
+- [配置系统 Config](https://newlifex.com/core/config): 泛型配置基类 Config<T>，支持 JSON/XML/INI 本地配置
+- [配置提供者 IConfigProvider](https://newlifex.com/core/config_provider): 统一配置接口，支持 HTTP 远程配置和 Apollo
+- [对象容器 ObjectContainer](https://newlifex.com/core/object_container): 轻量级 IoC/DI 容器，兼容 IServiceProvider
+- [应用主机 Host](https://newlifex.com/core/host): 轻量级后台服务托管，支持 Windows 服务和 Linux Systemd
+- [高级定时器 TimerX](https://newlifex.com/core/timerx): 高精度定时器，支持 Cron 表达式和异步回调
+- [Cron 表达式](https://newlifex.com/core/cron): 类 Linux 定时任务，支持秒级 7 域表达式
+- [HTTP 客户端 ApiHttpClient](https://newlifex.com/core/api_http): 基于 HttpClient 的多节点 API 客户端，内置负载均衡和故障转移
+- [负载均衡 LoadBalancer](https://newlifex.com/core/load_balancer): 故障转移/加权轮询/竞速三种策略
+- [安全扩展 SecurityHelper](https://newlifex.com/core/security_helper): RSA/AES/SM4/MD5/SHA/CRC 统一加解密扩展方法集
+- [JWT 令牌 JwtBuilder](https://newlifex.com/core/jwt): JWT 生成、解码、验证
+- [分布式令牌 TokenProvider](https://newlifex.com/core/token_provider): 分布式数字签名令牌，无需中心化验证
+- [类型转换 Utility](https://newlifex.com/core/utility): ToInt/ToBoolean/ToDateTime 等高效扩展方法
+- [字符串扩展 StringHelper](https://newlifex.com/core/string_helper): 字符串截取、编码、格式化工具
+- [反射扩展 Reflect](https://newlifex.com/core/reflect): 高性能反射封装，替代原生反射
+- [并行模型 Actor](https://newlifex.com/core/actor): Actor 并发模型，消息驱动，线程安全
+- [管道模型 Pipeline](https://newlifex.com/core/pipeline): 双向处理链，Read/Write/Open/Close/Error
+- [插件框架 IPlugin](https://newlifex.com/core/plugin): 标准化插件管理，模块化开发
+- [对象池 Pool](https://newlifex.com/core/pool): 基于 CAS 的高性能通用对象池
+- [数据包 IPacket](https://newlifex.com/core/packet): 零拷贝切片、链式包的核心数据包接口
+- [CSV 解析 CsvFile](https://newlifex.com/core/csv_file): CSV 文件快速读写
+- [Excel 读取 ExcelReader](https://newlifex.com/core/excel_reader): 无需 Office 的轻量级 Excel 读取
+- [雪花算法 Snowflake](https://newlifex.com/core/snow_flake): 分布式唯一 ID 生成器
+- [HTTP 服务端 HttpServer](https://newlifex.com/core/httpserver): 轻量级 HTTP 服务器，适合嵌入式/IoT
+- [机器信息 MachineInfo](https://newlifex.com/core/machine_info): 硬件信息采集（CPU/内存/磁盘/MAC）
+- [编解码器 Handlers](https://newlifex.com/core/net_handlers): StandardCodec/LengthFieldCodec 粘包拆包
+- [事件总线 EventBus](https://newlifex.com/core/eventbus): 进程内事件分发和队列消息
+
+## 数据中间件 NewLife.XCode
+
+- [XCode 文档](https://newlifex.com/xcode): ORM + 大数据中间件，单表百亿级，实体模型代码生成
+- [正向工程](https://newlifex.com/xcode/positive): 从代码到数据库，自动建表改表
+- [反向工程](https://newlifex.com/xcode/reverse): 从数据库到代码，生成实体类
+- [高级查询](https://newlifex.com/xcode/query): 复杂条件构建、分页、排序
+
+## Web 平台 NewLife.Cube
+
+- [Cube 魔方](https://newlifex.com/cube): Web 快速开发平台，自动 CRUD、权限管理、OAuth 集成
+
+## 分布式缓存 NewLife.Redis
+
+- [Redis 客户端](https://newlifex.com/core/redis): 高性能 Redis 客户端，支持集群，百亿级验证
+- [Redis 队列](https://newlifex.com/core/redisqueue): 基于 Redis List/Stream 的消息队列
+
+## 微服务平台 Stardust
+
+- [星尘平台](https://newlifex.com/stardust): 服务注册发现 + 配置中心 + 链路追踪 APM
+- [服务注册](https://newlifex.com/stardust/registry): 微服务自动注册与发现
+- [配置中心](https://newlifex.com/stardust/config): 多环境配置推送
+
+## Optional
+
+- [MQTT 物联网](https://newlifex.com/core/mqtt): MQTTv3/v5 客户端和服务端
+- [RocketMQ 客户端](https://newlifex.com/core/rocketmq): 纯托管 RocketMQ 客户端
+- [蚂蚁调度 AntJob](https://newlifex.com/antjob): 分布式大数据计算平台
+- [服务管理 Agent](https://newlifex.com/core/agent): Windows 服务 / Linux Systemd 守护
+- [IoT 标准库](https://github.com/NewLifeX/NewLife.IoT): IoT 设备接入标准接口
+- [Modbus 协议](https://github.com/NewLifeX/NewLife.Modbus): Modbus RTU/TCP 协议实现
+- [AI 网关](https://github.com/NewLifeX/NewLife.AI): 多模型 AI 网关与 Agent 平台

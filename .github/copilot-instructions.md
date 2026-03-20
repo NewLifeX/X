@@ -16,6 +16,13 @@
 | 性能测试/基准测试/压力测试/压测/BenchmarkDotNet/Benchmark/benchmark/吞吐量评估/性能分析/性能对比/性能报告/速度对比/速度测试/内存分配/perf/性能优化测试/做性能/跑分/测试报告 | `benchmark.instructions.md` |
 | NetServer/NetSession/网络服务器/网络客户端/Socket服务/TCP服务/UDP服务/`NewLife.Net` 引用/`NewLife.Net.*` 命名空间/ISocketClient/ISocketRemote/CreateRemote/StandardCodec/LengthFieldCodec/管道编解码/网络编程/Echo服务/网络会话/长连接/粘包拆包 | `net.instructions.md` |
 | 新建系统/新建项目/新增模块/需求整理/需求文档/需求分析/架构设计/技术方案/功能清单/功能拆分/任务分解/迭代开发/迭代计划/验收/PRD/用户故事/做一个系统/做一个平台/开发流程/全部搞完/批量开发/自治模式/一次性做完/继续处理/接着做 | `development.instructions.md` |
+| 缓存/ICache/MemoryCache/Redis缓存/ICacheProvider/缓存设计/`NewLife.Caching` 命名空间 | `caching.instructions.md` |
+| 序列化/JSON/Binary/JsonHelper/序列化设计/SpanSerializer/CSV导出/`NewLife.Serialization` 命名空间 | `serialization.instructions.md` |
+| 加密/安全/Hash/MD5/SHA/AES/SM4/RSA/JWT/SecurityHelper/TokenProvider/`NewLife.Security` 命名空间 | `security.instructions.md` |
+| 远程调用/ApiHttpClient/ApiClient/ApiServer/负载均衡/LoadBalancer/RPC/HTTP客户端/`NewLife.Remoting` 命名空间 | `remoting.instructions.md` |
+| 配置/Config/IConfigProvider/HttpConfigProvider/CommandParser/配置中心/`NewLife.Configuration` 命名空间 | `configuration.instructions.md` |
+
+**自动匹配指令**（无需触发，按 `applyTo` 路径自动生效）：`caching`、`serialization`、`security`、`remoting`、`configuration` 这 5 个指令文件同时配置了 `applyTo` 模式，编辑对应目录下的文件时 VS Code 会自动加载。
 
 ---
 
@@ -222,6 +229,37 @@ UTF-8 无 BOM；存放 `Doc/` 目录；文件名优先中文。**已有文件必
 ## 风险与后续
 潜在回归 / 是否补测试
 ```
+
+---
+
+## 12. Skills 技能文件
+
+`.github/skills/` 目录下的技能文件提供特定领域的详细使用指南和代码示例，用户可在 Copilot Chat 中通过 `#` 引用。
+
+| 技能文件 | 覆盖领域 |
+|---------|---------|
+| `caching.skill.md` | ICache/MemoryCache/Redis 统一缓存接口 |
+| `logging-tracing.skill.md` | ILog/XTrace 日志与 ITracer/DefaultTracer 链路追踪 |
+| `networking.skill.md` | NetServer/NetSession TCP/UDP/WebSocket 网络编程 |
+| `serialization.skill.md` | JSON/Binary/Span/CSV 序列化 |
+| `configuration.skill.md` | Config&lt;T&gt;/IConfigProvider/HttpConfigProvider 配置管理 |
+| `http-client.skill.md` | ApiHttpClient 多节点 HTTP 客户端与负载均衡 |
+| `dependency-injection.skill.md` | ObjectContainer/Host/Plugin/Actor 依赖注入与宿主 |
+| `timer-scheduling.skill.md` | TimerX/Cron 高级定时调度 |
+| `security.skill.md` | Hash/AES/SM4/RSA/JWT/TokenProvider 安全与加密 |
+| `type-conversion.skill.md` | ToInt/ToBoolean/StringHelper/Pool.StringBuilder 类型转换与工具 |
+
+---
+
+## 13. Agents 智能代理
+
+`.github/agents/` 目录下定义了专用 AI 代理角色，用户可在 Copilot Chat 中通过 `@` 调用。
+
+| 代理文件 | 用途 |
+|---------|------|
+| `newlife-expert.agent.md` | NewLife 组件专家：功能查询、组件推荐、编码指导 |
+| `code-review.agent.md` | 代码审查：按 NewLife 规范 8 维度检查代码 |
+| `project-init.agent.md` | 项目初始化：按模板创建新 NewLife 项目结构 |
 
 ---
 
