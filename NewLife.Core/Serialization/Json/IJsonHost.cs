@@ -296,19 +296,39 @@ public class SystemJson : IJsonHost
     {
         var opt = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            //Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
             PropertyNamingPolicy = new MyJsonNamingPolicy(),
         };
-        opt.Converters.Add(new LocalTimeConverter());
-        opt.Converters.Add(new TypeConverter());
+        Apply(opt, false);
+        return opt;
+    }
+
+    /// <summary>将NewLife默认序列化配置应用到指定选项，常用于Web框架中统一配置</summary>
+    /// <remarks>
+    /// 典型用法：services.Configure&lt;JsonOptions&gt;(options =&gt; SystemJson.Apply(options.JsonSerializerOptions, web: true));
+    /// </remarks>
+    /// <param name="options">目标序列化选项</param>
+    /// <param name="web">是否为Web场景。启用后额外注册Int64/UInt64超出JS安全整数范围（2^53-1）时转为字符串的转换器，避免前端精度丢失</param>
+    /// <returns>传入的选项实例，便于链式调用</returns>
+    public static JsonSerializerOptions Apply(JsonSerializerOptions options, Boolean web = false)
+    {
+        options.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
+        options.Converters.Add(new LocalTimeConverter());
+        options.Converters.Add(new TypeConverter());
 #if NET6_0_OR_GREATER
-        opt.Converters.Add(new ExtendableConverter());
+        options.Converters.Add(new ExtendableConverter());
+#endif
+#if NETCOREAPP
+        if (web)
+        {
+            options.Converters.Add(new SafeInt64Converter());
+            options.Converters.Add(new SafeUInt64Converter());
+        }
 #endif
 #if NET7_0_OR_GREATER
-        opt.TypeInfoResolver = DataMemberResolver.Default;
-        //opt.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { DataMemberResolver.Modifier } };
+        options.TypeInfoResolver = DataMemberResolver.Default;
 #endif
-        return opt;
+        return options;
     }
     #endregion
 
