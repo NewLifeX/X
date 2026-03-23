@@ -1,5 +1,5 @@
-﻿using System.Text;
-using System.Buffers;
+﻿using System.Buffers;
+using System.Text;
 
 namespace NewLife.Collections;
 
@@ -16,6 +16,11 @@ public interface IPool<T>
     /// <summary>获取</summary>
     /// <returns></returns>
     T Get();
+
+    /// <summary>异步获取</summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<T> GetAsync(CancellationToken cancellationToken = default);
 
     /// <summary>归还</summary>
     /// <param name="value"></param>

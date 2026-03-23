@@ -117,6 +117,11 @@ public class Pool<T> : IPool<T> where T : class
         return rs;
     }
 
+    /// <summary>异步获取一个实例；轻量池无 IO，直接同步包装</summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public virtual Task<T> GetAsync(CancellationToken cancellationToken = default) => Task.FromResult(Get());
+
     /// <summary>归还</summary>
     /// <param name="value">归还的对象实例</param>
     /// <returns>是否成功放入池中；池满返回 false</returns>
