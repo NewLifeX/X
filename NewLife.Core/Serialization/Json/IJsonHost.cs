@@ -305,10 +305,19 @@ public class SystemJson : IJsonHost
 
     /// <summary>将NewLife默认序列化配置应用到指定选项，常用于Web框架中统一配置</summary>
     /// <remarks>
+    /// 应用以下配置：
+    /// <list type="bullet">
+    /// <item><term>Encoder</term><description>设为 JavaScriptEncoder(UnicodeRanges.All)，全Unicode支持，中文等非ASCII字符不被转义为 \uXXXX</description></item>
+    /// <item><term>LocalTimeConverter</term><description>DateTime/DateTimeOffset 使用本地时间格式序列化</description></item>
+    /// <item><term>TypeConverter</term><description>支持 System.Type 类型的序列化与反序列化</description></item>
+    /// <item><term>ExtendableConverter（NET6+）</term><description>支持实现 IExtendable 接口对象的扩展属性序列化</description></item>
+    /// <item><term>SafeInt64Converter / SafeUInt64Converter（NETCOREAPP，web=true）</term><description>Int64/UInt64 超出 JS 安全整数范围（2^53-1）时自动转为字符串，避免前端精度丢失</description></item>
+    /// <item><term>DataMemberResolver（NET7+）</term><description>TypeInfoResolver 设为 DataMemberResolver.Default，支持 [DataMember] 特性控制序列化行为（如名称映射、顺序、忽略）</description></item>
+    /// </list>
     /// 典型用法：services.Configure&lt;JsonOptions&gt;(options =&gt; SystemJson.Apply(options.JsonSerializerOptions, web: true));
     /// </remarks>
     /// <param name="options">目标序列化选项</param>
-    /// <param name="web">是否为Web场景。启用后额外注册Int64/UInt64超出JS安全整数范围（2^53-1）时转为字符串的转换器，避免前端精度丢失</param>
+    /// <param name="web">是否为Web场景。启用后额外注册 SafeInt64Converter/SafeUInt64Converter，Int64/UInt64 超出 JS 安全整数范围时转为字符串</param>
     /// <returns>传入的选项实例，便于链式调用</returns>
     public static JsonSerializerOptions Apply(JsonSerializerOptions options, Boolean web = false)
     {
