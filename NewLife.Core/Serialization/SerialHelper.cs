@@ -111,6 +111,8 @@ public static class SerialHelper
         {
             if (prop.GetIndexParameters().Length > 0) continue;
             if (prop.Name == nameof(IExtend.Items)) continue;
+            if (prop.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
+            if (prop.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 #if NET6_0_OR_GREATER
             if (prop.GetCustomAttribute<JsonIgnoreAttribute>() is { Condition: JsonIgnoreCondition.Never or JsonIgnoreCondition.Always }) continue;
 #else
@@ -137,6 +139,8 @@ public static class SerialHelper
         {
             if (prop.GetIndexParameters().Length > 0) continue;
             if (prop.Name == nameof(IExtend.Items)) continue;
+            if (prop.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
+            if (prop.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
 
             var attrName = GetName(prop);
             map[attrName] = prop;
