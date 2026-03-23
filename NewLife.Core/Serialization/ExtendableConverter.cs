@@ -34,7 +34,7 @@ public class ExtendableConverter : JsonConverter<Object>
         var obj = Activator.CreateInstance(typeToConvert);
         if (obj is IExtend extendable)
         {
-            var propMap = BuildPropertyMap(typeToConvert, options);
+            var propMap = SerialHelper.GetJsonPropertyMap(typeToConvert, options);
             foreach (var jsonProp in jsonRoot.EnumerateObject())
             {
                 if (propMap.TryGetValue(jsonProp.Name, out var prop) && prop.CanWrite)
@@ -59,15 +59,12 @@ public class ExtendableConverter : JsonConverter<Object>
             return;
         }
 
-        var namingPolicy = options.PropertyNamingPolicy;
         writer.WriteStartObject();
 
-        foreach (var prop in value.GetType().GetProperties(true))
+        var propMap = SerialHelper.GetJsonPropertyMap(value.GetType(), options);
+        foreach (var (jsonName, prop) in propMap)
         {
-            if (!prop.CanRead || prop.GetIndexParameters().Length > 0) continue;
-            if (prop.Name == nameof(IExtend.Items)) continue;
-
-            var jsonName = namingPolicy?.ConvertName(prop.Name) ?? prop.Name;
+            if (!prop.CanRead) continue;
             writer.WritePropertyName(jsonName);
             JsonSerializer.Serialize(writer, prop.GetValue(value), prop.PropertyType, options);
         }
@@ -79,28 +76,6 @@ public class ExtendableConverter : JsonConverter<Object>
         }
 
         writer.WriteEndObject();
-    }
-
-    /// <summary>构建属性名到 PropertyInfo 的映射字典，用于反序列化时 O(1) 查找</summary>
-    /// <param name="type">目标类型</param>
-    /// <param name="options">序列化选项，用于获取命名策略和大小写配置</param>
-    /// <returns>属性映射字典</returns>
-    private static Dictionary<String, PropertyInfo> BuildPropertyMap(Type type, JsonSerializerOptions options)
-    {
-        var namingPolicy = options.PropertyNamingPolicy;
-        var comparer = options.PropertyNameCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-        var map = new Dictionary<String, PropertyInfo>(comparer);
-
-        foreach (var prop in type.GetProperties(true))
-        {
-            if (prop.GetIndexParameters().Length > 0) continue;
-            if (prop.Name == nameof(IExtend.Items)) continue;
-
-            var jsonName = namingPolicy?.ConvertName(prop.Name) ?? prop.Name;
-            map.TryAdd(jsonName, prop);
-        }
-
-        return map;
     }
 }
 #endif

@@ -47,11 +47,10 @@ public class DataMemberResolver : DefaultJsonTypeInfoResolver
                 propertyInfo.Get = null;
                 propertyInfo.Set = null;
             }
-            else
+            else if (provider is PropertyInfo pi)
             {
-                var attr = provider.GetCustomAttributes(typeof(DataMemberAttribute), false)?.FirstOrDefault() as DataMemberAttribute;
-                if (attr != null && !attr.Name.IsNullOrEmpty())
-                    propertyInfo.Name = attr.Name;
+                var name = SerialHelper.GetName(pi);
+                if (name != pi.Name) propertyInfo.Name = name;
             }
         }
     }

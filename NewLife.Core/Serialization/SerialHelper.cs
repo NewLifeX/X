@@ -3,6 +3,11 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml.Serialization;
+#if NETCOREAPP || NET5_0_OR_GREATER
+using System.Text.Json;
+using System.Text.Json.Serialization;
+#endif
+using NewLife.Data;
 using NewLife.Reflection;
 
 namespace NewLife.Serialization;
@@ -18,6 +23,13 @@ public static class SerialHelper
     {
         if (_cache.TryGetValue(pi, out var name)) return name;
 
+#if NET6_0_OR_GREATER
+        if (name.IsNullOrEmpty())
+        {
+            var att = pi.GetCustomAttribute<JsonPropertyNameAttribute>();
+            if (att != null && !att.Name.IsNullOrEmpty()) name = att.Name;
+        }
+#endif
         if (name.IsNullOrEmpty())
         {
             var att = pi.GetCustomAttribute<DataMemberAttribute>();
@@ -83,4 +95,54 @@ public static class SerialHelper
 
         sb.AppendLine($"{prefix}}}");
     }
+
+#if NETCOREAPP
+    /// <summary>获取类型的 JSON 属性名到 PropertyInfo 的映射字典，用于序列化/反序列化时 O(1) 查找</summary>
+    /// <param name="type">目标类型</param>
+    /// <param name="options">序列化选项，用于获取命名策略和大小写配置</param>
+    /// <returns>属性映射字典</returns>
+    public static Dictionary<String, PropertyInfo> GetJsonPropertyMap(Type type, JsonSerializerOptions? options = null)
+    {
+        var namingPolicy = options?.PropertyNamingPolicy;
+        var comparer = options != null && options.PropertyNameCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var map = new Dictionary<String, PropertyInfo>(comparer);
+
+        foreach (var prop in type.GetProperties(true))
+        {
+            if (prop.GetIndexParameters().Length > 0) continue;
+            if (prop.Name == nameof(IExtend.Items)) continue;
+#if NET6_0_OR_GREATER
+            if (prop.GetCustomAttribute<JsonIgnoreAttribute>() is { Condition: JsonIgnoreCondition.Never or JsonIgnoreCondition.Always }) continue;
+#else
+            if (prop.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
+#endif
+
+            var attrName = GetName(prop);
+            // 有特性名则直接使用，否则应用命名策略
+            var jsonName = attrName != prop.Name ? attrName : namingPolicy?.ConvertName(prop.Name) ?? prop.Name;
+            map.TryAdd(jsonName, prop);
+        }
+
+        return map;
+    }
+#else
+    /// <summary>获取类型的 JSON 属性名到 PropertyInfo 的映射字典，用于序列化/反序列化时 O(1) 查找</summary>
+    /// <param name="type">目标类型</param>
+    /// <returns>属性映射字典</returns>
+    public static Dictionary<String, PropertyInfo> GetJsonPropertyMap(Type type)
+    {
+        var map = new Dictionary<String, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var prop in type.GetProperties(true))
+        {
+            if (prop.GetIndexParameters().Length > 0) continue;
+            if (prop.Name == nameof(IExtend.Items)) continue;
+
+            var attrName = GetName(prop);
+            map[attrName] = prop;
+        }
+
+        return map;
+    }
+#endif
 }

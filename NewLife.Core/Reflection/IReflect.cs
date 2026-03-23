@@ -7,6 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
+#if NETCOREAPP
+using System.Text.Json.Serialization;
+#endif
 using NewLife.Data;
 
 namespace NewLife.Reflection;
@@ -389,6 +392,11 @@ public class DefaultReflect : IReflect
             if (pi.GetCustomAttribute<XmlIgnoreAttribute>() != null) continue;
             if (pi.GetCustomAttribute<ScriptIgnoreAttribute>() != null) continue;
             if (pi.GetCustomAttribute<IgnoreDataMemberAttribute>() != null) continue;
+#if NET6_0_OR_GREATER
+            if (pi.GetCustomAttribute<JsonIgnoreAttribute>() is { Condition: JsonIgnoreCondition.Never or JsonIgnoreCondition.Always }) continue;
+#elif NETCOREAPP
+            if (pi.GetCustomAttribute<JsonIgnoreAttribute>() != null) continue;
+#endif
 
             if (!set.Contains(pi.Name))
             {
