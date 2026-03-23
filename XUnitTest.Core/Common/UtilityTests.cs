@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Primitives;
 using NewLife;
 using NewLife.Log;
-using Xunit;
 using System.Globalization;
+using System.Text.Json;
+using Xunit;
 
 namespace XUnitTest.Common;
 
@@ -523,7 +524,7 @@ public class UtilityTests
         Assert.Equal(1.23e6, "1.23e6".ToDouble());
 
         // 全角数字与全角空格
-        var fullWidth = "１，２３４　５６"; // 1,234⎵56（全角）
+        var fullWidth = "１，２３４　５６"; // 1,234?56（全角）
         Assert.Equal(123456d, fullWidth.ToDouble());
 
         // 正/负号
@@ -537,5 +538,104 @@ public class UtilityTests
         // 使用逗号作为小数点（如法语），按当前转换策略将被视为清理后整数
         Assert.Equal(123456d, "1 234,56".ToDouble());
         Assert.Equal(123456m, "1 234,56".ToDecimal());
+    }
+
+    [Fact]    public void JsonElement_ToInt()
+    {
+        // 整数小数 -> 整数
+        Assert.Equal(42, JsonDocument.Parse("42").RootElement.ToInt());
+
+        // 浮点 JSON 数字经 IConvertible.ToInt32 四舍五入
+        Assert.Equal(4, JsonDocument.Parse("3.9").RootElement.ToInt());
+
+        // 字符串数字
+        Assert.Equal(-100, JsonDocument.Parse("\"-100\"").RootElement.ToInt());
+        Assert.Equal(100, JsonDocument.Parse("\"100\"").RootElement.ToInt());
+
+        // null -> 默认值
+        Assert.Equal(0, JsonDocument.Parse("null").RootElement.ToInt());
+        Assert.Equal(-1, JsonDocument.Parse("null").RootElement.ToInt(-1));
+
+        // 负数
+        Assert.Equal(-5, JsonDocument.Parse("-5").RootElement.ToInt());
+    }
+
+    [Fact]    public void JsonElement_ToLong()
+    {
+        Assert.Equal(9876543210L, JsonDocument.Parse("9876543210").RootElement.ToLong());
+        Assert.Equal(42L, JsonDocument.Parse("\"42\"").RootElement.ToLong());
+        Assert.Equal(0L, JsonDocument.Parse("null").RootElement.ToLong());
+        Assert.Equal(-99L, JsonDocument.Parse("-99").RootElement.ToLong());
+    }
+
+    [Fact]    public void JsonElement_ToDouble()
+    {
+        Assert.Equal(3.14, JsonDocument.Parse("3.14").RootElement.ToDouble());
+        Assert.Equal(100d, JsonDocument.Parse("100").RootElement.ToDouble());
+        Assert.Equal(1.5, JsonDocument.Parse("\"1.5\"").RootElement.ToDouble());
+        Assert.Equal(0d, JsonDocument.Parse("null").RootElement.ToDouble());
+        Assert.Equal(-2.5, JsonDocument.Parse("-2.5").RootElement.ToDouble());
+    }
+
+    [Fact]    public void JsonElement_ToDecimal()
+    {
+        Assert.Equal(12345.67m, JsonDocument.Parse("12345.67").RootElement.ToDecimal());
+        Assert.Equal(999m, JsonDocument.Parse("999").RootElement.ToDecimal());
+        Assert.Equal(0.5m, JsonDocument.Parse("\"0.5\"").RootElement.ToDecimal());
+        Assert.Equal(0m, JsonDocument.Parse("null").RootElement.ToDecimal());
+    }
+
+    [Fact]    public void JsonElement_ToBoolean()
+    {
+        // JSON true/false 小写关键字
+        Assert.True(JsonDocument.Parse("true").RootElement.ToBoolean());
+        Assert.False(JsonDocument.Parse("false").RootElement.ToBoolean());
+
+        // 数字 0/非0
+        Assert.False(JsonDocument.Parse("0").RootElement.ToBoolean());
+        Assert.True(JsonDocument.Parse("1").RootElement.ToBoolean());
+
+        // 字符串 true/false
+        Assert.True(JsonDocument.Parse("\"true\"").RootElement.ToBoolean());
+        Assert.False(JsonDocument.Parse("\"false\"").RootElement.ToBoolean());
+
+        // null -> 默认值
+        Assert.False(JsonDocument.Parse("null").RootElement.ToBoolean());
+        Assert.True(JsonDocument.Parse("null").RootElement.ToBoolean(true));
+    }
+
+    [Fact]    public void JsonElement_ToDateTime()
+    {
+        // 字符串日期
+        var expected = new DateTime(2024, 6, 15, 12, 30, 0);
+        Assert.Equal(expected, JsonDocument.Parse("\"2024-06-15 12:30:00\"").RootElement.ToDateTime());
+
+        // ISO 8601 格式字符串
+        var iso = JsonDocument.Parse("\"2024-06-15T12:30:00\"").RootElement.ToDateTime();
+        Assert.Equal(expected, iso);
+
+        // 整数 Unix 秒
+        var unixSec = (Int64)(expected - new DateTime(1970, 1, 1)).TotalSeconds;
+        Assert.Equal(expected, unixSec.ToDateTime());
+        Assert.Equal(expected, JsonDocument.Parse(unixSec.ToString()).RootElement.ToDateTime());
+
+        // null -> MinValue
+        Assert.Equal(DateTime.MinValue, JsonDocument.Parse("null").RootElement.ToDateTime());
+    }
+
+    [Fact]    public void JsonElement_ToDateTimeOffset()
+    {
+        // 带时区的字符串
+        var expected = new DateTimeOffset(2024, 6, 15, 12, 30, 0, TimeSpan.FromHours(8));
+        Assert.Equal(expected, JsonDocument.Parse("\"2024-06-15T12:30:00+08:00\"").RootElement.ToDateTimeOffset());
+
+        // 整数 Unix 秒转换
+        var dto1970 = new DateTimeOffset(new DateTime(1970, 1, 1), TimeSpan.Zero);
+        var unixSec = (Int32)(expected.ToUniversalTime() - dto1970).TotalSeconds;
+        var result = JsonDocument.Parse(unixSec.ToString()).RootElement.ToDateTimeOffset();
+        Assert.Equal(expected.ToUniversalTime(), result);
+
+        // null -> MinValue
+        Assert.Equal(DateTimeOffset.MinValue, JsonDocument.Parse("null").RootElement.ToDateTimeOffset());
     }
 }

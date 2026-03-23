@@ -196,6 +196,28 @@ public class DefaultConvert
         return value;
     }
 
+#if NET6_0_OR_GREATER
+    /// <summary>
+    /// 解包 JsonElement 为对应的 CLR 原生类型，方便后续类型转换逻辑复用。
+    /// Number → Int64 或 Double，String → String，True/False → Boolean，Null → null，其余 → ToString()。
+    /// </summary>
+    /// <param name="value">待检测对象</param>
+    /// <returns>解包后的 CLR 对象，非 JsonElement 则原样返回</returns>
+    private static Object? UnwrapJsonElement(Object? value)
+    {
+        if (value is not System.Text.Json.JsonElement je) return value;
+        return je.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.True => true,
+            System.Text.Json.JsonValueKind.False => false,
+            System.Text.Json.JsonValueKind.Null => null,
+            System.Text.Json.JsonValueKind.Number => je.TryGetInt64(out var l) ? (Object)l : je.GetDouble(),
+            System.Text.Json.JsonValueKind.String => je.GetString(),
+            _ => je.ToString(),
+        };
+    }
+#endif
+
     /// <summary>转为整数，转换失败时返回默认值。支持字符串、全角、字节数组（小端）、时间（Unix秒）</summary>
     /// <param name="value">待转换对象</param>
     /// <param name="defaultValue">默认值。待转换对象无效时使用</param>
@@ -204,6 +226,11 @@ public class DefaultConvert
     {
         if (value is Int32 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
+
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
 
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
@@ -286,6 +313,11 @@ public class DefaultConvert
         if (value is Int64 num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
+
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
         if (value == null) return defaultValue;
@@ -360,6 +392,11 @@ public class DefaultConvert
         if (value is Double num) return Double.IsNaN(num) ? defaultValue : num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
+
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
         if (value == null) return defaultValue;
@@ -422,6 +459,11 @@ public class DefaultConvert
     {
         if (value is Decimal num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
+
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
 
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
@@ -507,6 +549,11 @@ public class DefaultConvert
         if (value is Boolean num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
 
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
+
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
         if (value == null) return defaultValue;
@@ -556,6 +603,11 @@ public class DefaultConvert
     {
         if (value is DateTime num) return num;
         if (value == null || value == DBNull.Value) return defaultValue;
+
+#if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+#endif
 
         // 支持表单提交的StringValues
         value = UnwrapStringList(value);
@@ -631,6 +683,9 @@ public class DefaultConvert
         if (value == null || value == DBNull.Value) return defaultValue;
 
 #if NET6_0_OR_GREATER
+        value = UnwrapJsonElement(value);
+        if (value == null) return defaultValue;
+
         if (value is DateOnly date) value = date.ToDateTime(TimeOnly.MinValue);
 #endif
         if (value is DateTime dateTime) return dateTime;
