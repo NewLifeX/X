@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
@@ -41,11 +41,21 @@ public static class HttpHelper
         {
             var aname = asm.GetName();
             var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+            var name = aname.Name;
+            
+            // 检查 name 是否只包含 ASCII 字符（纯 UTF8 单字节），如果包含非 ASCII 则进行 URL 编码保留中文
+            var hasNonAscii = !name.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(name) != name.Length;
+            if (hasNonAscii)
+            {
+                // URL 编码非 ASCII 字符，如"测试" -> "%E6%B5%8B%E8%AF%95"
+                name = Uri.EscapeDataString(name);
+            }
+            
             // 仅当 OS 字符串为纯 UTF8 单字节（ASCII 子集）时附加，避免非 ASCII 引起的某些网关解析问题
             if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
-                DefaultUserAgent = $"{aname.Name}/{aname.Version} ({os})";
+                DefaultUserAgent = $"{name}/{aname.Version} ({os})";
             else
-                DefaultUserAgent = $"{aname.Name}/{aname.Version}";
+                DefaultUserAgent = $"{name}/{aname.Version}";
         }
     }
 
