@@ -888,4 +888,22 @@ public class Program
         csv.Dispose();
 
     }
+
+    /// <summary>测试深Copy</summary>
+    private static void Test18()
+    {
+        var testObjItem = new
+        {
+            Name = string.Empty,
+        };
+
+        var testObj = new
+        {
+            Id = 1,
+            Name = "Test1",
+            List = new List<string>() { "List1", "List2", "List3" },
+            Array = new[] { "Array1", "Array2", "Array3" },
+            Dic = new Dictionary<int, string> { }
+        };
+    }
 }
