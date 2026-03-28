@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -420,23 +421,6 @@ public class DefaultReflect : IReflect
         }
 
         if (!baseFirst) list.AddRange(GetProperties(type.BaseType).Where(e => !set.Contains(e.Name)));
-
-        // 如果有属性定义了 DataObjectFieldAttribute ，则让它们排在前面，避免XCode实体类中的扩展属性排在前面
-        if (list.Any(e => e.GetCustomAttribute<DataObjectFieldAttribute>() != null))
-        {
-            var list2 = new List<PropertyInfo>();
-            var list3 = new List<PropertyInfo>();
-            foreach (var pi in list)
-            {
-                if (pi.GetCustomAttribute<DataObjectFieldAttribute>() != null)
-                    list2.Add(pi);
-                else
-                    list3.Add(pi);
-            }
-            list2.AddRange(list3);
-
-            list = list2;
-        }
 
         return list;
     }
@@ -997,9 +981,227 @@ public class DefaultReflect : IReflect
                         v = pi.PropertyType.CreateInstance();
                         SetValue(target, pi, v);
                     }
-                    if (v != null && obj != null) Copy(v, obj, deep);
+
+                    if (pi.PropertyType.IsArray)
+                        ArrayCopy(v, obj, deep);
+                    else if (typeof(IDictionary).IsAssignableFrom(pi.PropertyType) ||
+                        (pi.PropertyType.IsGenericType &&
+                        pi.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+                        DictionaryCopy(v, obj, deep);
+                    else if (typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(string))
+                        IEnumerableCopy(v, obj, deep);
+                    else if (v != null && obj != null) Copy(v, obj, deep);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// 数组拷贝
+    /// </summary>
+    /// <param name="targetArray"></param>
+    /// <param name="sourceArray"></param>
+    /// <param name="deep"></param>
+    private void ArrayCopy(Object targetArray, Object? sourceArray, Boolean deep)
+    {
+        if (targetArray is Array tarArr && sourceArray is Array srcArr)
+        {
+            //清空目标数组
+            Array.Clear(tarArr, 0, tarArr.Length);
+
+            //遍历源数组
+            for (var i = 0; i < srcArr.Length; i++)
+            {
+                var srcValue = srcArr.GetValue(i);
+                if (!deep || srcValue == null || GetElementType(tarArr.GetType())!.IsBaseType())
+                    tarArr.SetValue(srcValue, i);
+                else
+                {
+                    var tarValue = tarArr.GetValue(i);
+                    if (tarValue == null)
+                    {
+                        tarValue = CreateInstance(GetElementType(tarArr.GetType()));
+                        tarArr.SetValue(tarValue, i);
+                    }
+                    Copy(tarValue!, srcValue!, deep);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 字典拷贝
+    /// </summary>
+    /// <param name="target"></param>
+    /// <param name="source"></param>
+    /// <param name="deep"></param>
+    public void DictionaryCopy(object target, object source, bool deep)
+    {
+        if (target == null || source == null)
+            return;
+
+        // 非泛型 IDictionary
+        if (target is IDictionary tarDic && source is IDictionary srcDic)
+        {
+            DictionaryCopy(tarDic, srcDic, deep);
+            return;
+        }
+
+        // 泛型 IDictionary<TKey,TValue>
+        var dictIface = source.GetType().GetInterfaces()
+            .FirstOrDefault(i =>
+                i.IsGenericType &&
+                i.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+
+        if (dictIface != null)
+        {
+            DictionaryCopy(target, source, dictIface, deep);
+        }
+    }
+
+    /// <summary>
+    /// 非泛型字典拷贝
+    /// </summary>
+    /// <param name="targetDic"></param>
+    /// <param name="sourceDic"></param>
+    /// <param name="deep"></param>
+    private void DictionaryCopy(IDictionary targetDic, IDictionary sourceDic, bool deep)
+    {
+        if (targetDic.IsReadOnly) return;
+
+        targetDic.Clear();
+
+        foreach (DictionaryEntry item in sourceDic)
+        {
+            var key = item.Key;
+            var value = item.Value;
+
+            if (!deep || value == null || value.GetType().IsBaseType())
+            {
+                targetDic[key] = value;
+            }
+            else
+            {
+                var dstValue = CreateInstance(value.GetType());
+                Copy(dstValue!, value, true);
+                targetDic[key] = dstValue;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 泛型字典拷贝
+    /// </summary>
+    /// <param name="targetDic"></param>
+    /// <param name="sourceDic"></param>
+    /// <param name="dictInterface"></param>
+    /// <param name="deep"></param>
+    private void DictionaryCopy(object targetDic, object sourceDic, Type dictInterface, bool deep)
+    {
+        var args = dictInterface.GetGenericArguments();
+        var keyType = args[0];
+        var valueType = args[1];
+
+        var clearMethod = targetDic.GetType().GetMethod("Clear");
+        clearMethod?.Invoke(targetDic, null);
+
+        var addMethod = targetDic.GetType().GetMethod("Add", args);
+        if (addMethod == null)
+            return;
+
+        var kvpType = typeof(KeyValuePair<,>).MakeGenericType(dictInterface.GetGenericArguments());
+
+        var keyProperties = kvpType.GetProperty("Key");
+        var valueProperties = kvpType.GetProperty("Value");
+
+        foreach (var kv in (IEnumerable)sourceDic)
+        {
+            var key = keyProperties!.GetValue(kv);
+            var value = valueProperties!.GetValue(kv);
+
+            object? valueToUse;
+
+            if (!deep || value == null || valueType.IsBaseType())
+            {
+                valueToUse = value;
+            }
+            else
+            {
+                var dstValue = CreateInstance(valueType);
+                Copy(dstValue, value, true);
+                valueToUse = dstValue;
+            }
+
+            addMethod.Invoke(targetDic, new[] { key, valueToUse });
+        }
+    }
+
+    /// <summary>
+    /// 集合拷贝（非数组、非字典）
+    /// </summary>
+    /// <param name="targetEnumerable">目标集合</param>
+    /// <param name="sourceEnumerable">源集合</param>
+    /// <param name="deep">是否深拷贝</param>
+    private void IEnumerableCopy(object targetEnumerable, object? sourceEnumerable, bool deep)
+    {
+        if (sourceEnumerable is not IEnumerable srcEnum) return;
+        if (targetEnumerable is IList tarList)
+        {
+            tarList.Clear();
+
+            var elemType = GetElementType(tarList.GetType()) ?? typeof(object);
+
+            foreach (var srcItem in srcEnum)
+            {
+                if (!deep || srcItem == null || elemType.IsBaseType())
+                {
+                    tarList.Add(srcItem);
+                }
+                else
+                {
+                    var dstItem = CreateInstance(elemType);
+                    if (dstItem != null)
+                        Copy(dstItem, srcItem, true);
+                    tarList.Add(dstItem ?? srcItem);
+                }
+            }
+            return;
+        }
+
+        // 非 IList，使用 Add(T) 方法
+        var tarType = targetEnumerable.GetType();
+        var addMethod = tarType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            .FirstOrDefault(m =>
+            {
+                if (m.Name != "Add") return false;
+                var ps = m.GetParameters();
+                return ps.Length == 1;
+            });
+
+        if (addMethod == null) return;
+
+        // 清空集合
+        tarType.GetMethod("Clear")?.Invoke(targetEnumerable, null);
+
+        var addParamType = addMethod.GetParameters()[0].ParameterType;
+
+        foreach (var srcItem in srcEnum)
+        {
+            object valueToAdd;
+
+            if (!deep || srcItem == null || addParamType.IsBaseType())
+            {
+                valueToAdd = srcItem.ChangeType(addParamType) ?? srcItem;
+            }
+            else
+            {
+                var dstItem = addParamType.CreateInstance();
+                if (dstItem != null)
+                    Copy(dstItem, srcItem, true);
+                valueToAdd = dstItem ?? srcItem;
+            }
+
+            addMethod.Invoke(targetEnumerable, new[] { valueToAdd });
         }
     }
     #endregion
