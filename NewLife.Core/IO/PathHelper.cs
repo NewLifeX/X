@@ -505,9 +505,12 @@ public static class PathHelper
 
         // 来源目录根，用于截断
         var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+        // 规范化根分隔符，确保和 FileInfo.FullName 使用相同分隔符
+        var normalizedRoot = Path.GetFullPath(root).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).EnsureEnd(Path.DirectorySeparatorChar.ToString());
         foreach (var item in di.GetAllFiles(exts, allSub))
         {
-            var name = item.FullName.TrimStart(root).ToString();
+            var full = Path.GetFullPath(item.FullName).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var name = full.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase) ? full[normalizedRoot.Length..] : full;
             var dst = destDirName.CombinePath(name);
             callback?.Invoke(name);
             item.CopyTo(dst.EnsureDirectory(true), true);
@@ -534,10 +537,12 @@ public static class PathHelper
 
         // 目标目录根，用于截断
         var root = dest.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+        var normalizedRoot = Path.GetFullPath(root).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).EnsureEnd(Path.DirectorySeparatorChar.ToString());
         // 遍历目标目录，拷贝同名文件
         foreach (var item in dest.GetAllFiles(exts, allSub))
         {
-            var name = item.FullName.TrimStart(root).ToString();
+            var full = Path.GetFullPath(item.FullName).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var name = full.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase) ? full[normalizedRoot.Length..] : full;
             var fi = di.FullName.CombinePath(name).AsFile();
             //fi.CopyToIfNewer(item.FullName);
             if (fi.Exists && item.Exists && fi.LastWriteTime > item.LastWriteTime)

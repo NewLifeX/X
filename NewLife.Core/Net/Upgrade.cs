@@ -321,9 +321,11 @@ public class Upgrade
 
         // 来源目录根，用于截断
         var root = di.FullName.EnsureEnd(Path.DirectorySeparatorChar.ToString());
+        var normalizedRoot = Path.GetFullPath(root).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).EnsureEnd(Path.DirectorySeparatorChar.ToString());
         foreach (var item in di.GetAllFiles(null, true))
         {
-            var name = item.FullName.TrimStart(root);
+            var full = Path.GetFullPath(item.FullName).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var name = full.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase) ? full[normalizedRoot.Length..] : full;
             var dst = dest.CombinePath(name).GetBasePath();
 
             // 如果是应用配置文件，不要更新

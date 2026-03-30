@@ -374,6 +374,7 @@ public static class StringHelper
     /// <param name="str">当前字符串</param>
     /// <param name="starts">前缀集合</param>
     /// <returns>移除后的字符串</returns>
+    [Obsolete("已过期：此方法易与 ReadOnlySpan<char>.TrimStart(ReadOnlySpan<char>) 混淆——传入字符集合可能被当作要移除的字符集合而非前缀。请避免使用此方法进行按前缀截断，改为使用显式的前缀判断或其它明确方法。")]
     public static String TrimStart(this String str, params String[] starts)
     {
         if (str.IsNullOrEmpty()) return str;

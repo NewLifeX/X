@@ -1,4 +1,7 @@
-﻿using NewLife;
+﻿using System;
+using System.IO;
+using System.Linq;
+using NewLife;
 using Xunit;
 
 namespace XUnitTest.IO;
@@ -16,6 +19,92 @@ public class PathHelperTests
             "../7z/7z.exe".GetFullPath(),
         };
         return paths.Any(File.Exists);
+    }
+
+    [Fact(DisplayName = "CopyTo 应该复制目录内所有文件并保持相对路径")]
+    public void CopyTo_CopiesFilesWithRelativePaths()
+    {
+        var tmp = Path.Combine(Path.GetTempPath(), "NewLife_Test_CopyTo_" + Guid.NewGuid().ToString("N"));
+        var src = Path.Combine(tmp, "src");
+        var dst = Path.Combine(tmp, "dst");
+
+        try
+        {
+            Directory.CreateDirectory(src);
+            Directory.CreateDirectory(dst);
+
+            // 创建文件和子目录
+            var f1 = Path.Combine(src, "a.txt");
+            File.WriteAllText(f1, "hello1");
+
+            var sub = Path.Combine(src, "sub");
+            Directory.CreateDirectory(sub);
+            var f2 = Path.Combine(sub, "b.txt");
+            File.WriteAllText(f2, "hello2");
+
+            var di = new DirectoryInfo(src);
+            var res = di.CopyTo(dst, null, true);
+
+            // 断言返回的目标路径存在且数量为2
+            Assert.NotNull(res);
+            Assert.Equal(2, res.Length);
+
+            foreach (var r in res)
+            {
+                Assert.True(File.Exists(r), $"目标文件不存在: {r}");
+                // 目标路径必须在 dst 根下
+                Assert.StartsWith(Path.GetFullPath(dst).TrimEnd(Path.DirectorySeparatorChar), Path.GetFullPath(r), StringComparison.OrdinalIgnoreCase);
+            }
+
+            // 内容验证
+            var dst1 = Path.Combine(dst, "a.txt");
+            var dst2 = Path.Combine(dst, "sub", "b.txt");
+            Assert.Equal("hello1", File.ReadAllText(dst1));
+            Assert.Equal("hello2", File.ReadAllText(dst2));
+        }
+        finally
+        {
+            try { Directory.Delete(tmp, true); } catch { }
+        }
+    }
+
+    [Fact(DisplayName = "CopyTo 不应被 TrimStart 风格的错误截断影响（示例 C:/proj）")]
+    public void CopyTo_DoesNotManglePath_WhenRootContainsChars()
+    {
+        // 演示如果使用 TrimStart(root.ToCharArray()) 对字符串做前缀移除，会把字符集当作集合，导致错误截断
+        var simRoot = "C:/proj";
+        var simFull = "C:/proj/projDir/1.txt";
+        var broken = simFull.TrimStart(simRoot.ToCharArray());
+        Assert.Equal("Dir/1.txt", broken);
+
+        // 真实文件系统测试，确保我们的 CopyTo 不会产生上述错误
+        var tmp = Path.Combine(Path.GetTempPath(), "NewLife_Test_CopyToPrefix2_" + Guid.NewGuid().ToString("N"));
+        var src = Path.Combine(tmp, "C_proj");
+        var dst = Path.Combine(tmp, "dst");
+
+        try
+        {
+            var nested = Path.Combine(src, "projDir");
+            Directory.CreateDirectory(nested);
+            Directory.CreateDirectory(dst);
+
+            var f = Path.Combine(nested, "1.txt");
+            File.WriteAllText(f, "ok");
+
+            var di = new DirectoryInfo(src);
+            var res = di.CopyTo(dst, null, true);
+
+            // 找到目标文件路径
+            var expectedRel = Path.Combine("projDir", "1.txt");
+            var found = res.FirstOrDefault(p => p.EndsWith(expectedRel, StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(found);
+            Assert.True(File.Exists(found));
+            Assert.Equal("ok", File.ReadAllText(found));
+        }
+        finally
+        {
+            try { Directory.Delete(tmp, true); } catch { }
+        }
     }
 
     [Fact]
