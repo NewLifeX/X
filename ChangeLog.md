@@ -1,5 +1,47 @@
 # NewLife.Core 版本更新记录
 
+## v11.14.2026.0402 (2026-04-02)
+
+### 序列化增强
+- **SpanWriter 流模式**：SpanWriter 支持 Stream 写入，OwnerPacket/SpanSerializer 支持 Stream 零拷贝双路径，优化大数据序列化
+- **ISpanSerializable 增强**：增强 `ISpanSerializable` 支持，编码器可直接处理 `ISpanSerializable` 接口对象，提升序列化性能
+- **DbTable Span 序列化**：支持 DbTable 的 Span 序列化与反序列化
+- **长度前缀读写**：支持长度前缀数据/字符串读写，优化 `WriteEncodedInt` 空间分配
+- **序列化配置重构**：重构序列化配置，新增 `Apply` 方法支持配置复用
+- **高级二进制序列化**：零拷贝能力增强
+
+### JSON 增强
+- **JsonElement 类型转换**：支持 `JsonElement` 的类型转换扩展
+- **ExtendableConverter 重构**：重构并增强 `ExtendableConverter`，提升兼容性
+- **属性名映射优化**：优化 JSON 属性名映射，支持多特性叠加与命名策略
+- **成员忽略特性**：剔除标记了 `IgnoreDataMember`/`XmlIgnore` 特性的属性，与 .NET 标准行为对齐
+
+### 网络层优化
+- **LengthFieldCodec 增强**：功能增强，测试覆盖完善
+- **IPacket 多包链**：优化 IPacket 多包链操作性能与接口规范
+- **SplitDataCodec 修复**：修复发送数据时未追加分割字节的 Bug
+
+### 对象池增强
+- **异步借出**：引入对象池 `GetAsync` 能力，支持高并发场景下的异步资源等待
+
+### 反射与性能
+- **Reflect 全面优化**：反射性能全面优化，缓存委托路径，热点路径零反射
+- **内存池优化**：数组初始化现代化，使用内存池减少 GC 压力
+- **TarFile 性能**：Span 化头部读写与补零复用，提升压缩处理性能
+
+### 配置与服务
+- **IServiceResolver**：新增服务解析器 `IServiceResolver` 接口及配置实现，支持多源服务发现
+
+### 工具类
+- **DefaultUserAgent**：支持对非 ASCII 字符进行 URL 编码，避免请求头异常
+- **深拷贝优化**：调整数组、字典的深拷贝逻辑
+- **StringHelper.TrimStart 标记过期**：标记 `TrimStart(String, String)` 为过时，迁移至标准 API；优化 `PathHelper` 路径分隔符处理
+
+### Bug 修复
+- **[fix]** 在 SqlServer 批量写入时，`fields` 可能为空数组导致异常
+
+---
+
 ## v11.12.2026.0301 (2026-03-01)
 
 ### 序列化增强

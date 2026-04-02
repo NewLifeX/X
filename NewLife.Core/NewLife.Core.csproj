@@ -7,7 +7,7 @@
     <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.13</VersionPrefix>
+    <VersionPrefix>11.14</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>新增高性能SpanSerializer零分配序列化；IPacket重构优化内存管理与切片性能；网络层SendMessageAsync去异步化与编解码器池化，NetServer实测23.4Gbps/1.4亿pkt/s；FileConfigProvider配置热加载重构为事件驱动+定时兜底；IOHelper新增异步精确/最少读取；DeferredQueue支持动态修改周期；MemoryCache单键Remove零分配</PackageReleaseNotes>
+    <PackageReleaseNotes>序列化：SpanWriter流模式+ISpanSerializable零拷贝增强+DbTable Span序列化+长度前缀读写+序列化配置Apply复用；JSON：JsonElement类型转换+ExtendableConverter重构+多特性属性名映射+IgnoreDataMember/XmlIgnore剔除；网络：LengthFieldCodec/IPacket多包链增强+SplitDataCodec修复；对象池新增GetAsync异步借出；Reflect热点路径全面优化；新增IServiceResolver服务解析器；DefaultUserAgent支持URL编码非ASCII字符</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
