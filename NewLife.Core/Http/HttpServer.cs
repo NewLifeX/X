@@ -107,7 +107,7 @@ public class HttpServer : NetServer, IHttpHost
     {
         if (controllerType == null) throw new ArgumentNullException(nameof(controllerType));
 
-        if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimEnd("Controller");
+        if (path.IsNullOrEmpty()) path = "/" + controllerType.Name.TrimSuffix("Controller");
 
         var path2 = path.EnsureStart("/").EnsureEnd("/*");
         SetRoute(path2, new ControllerHandler { ControllerType = controllerType });

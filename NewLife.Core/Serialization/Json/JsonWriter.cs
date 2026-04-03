@@ -133,7 +133,7 @@ public class JsonWriter
             WriteString(obj + "");
 
         else if (obj is Type type)
-            WriteString(type.FullName?.TrimStart("System.") + "");
+            WriteString(type.FullName?.TrimPrefix("System.") + "");
 
         else if (obj is Guid)
             WriteStringFast(obj + "");

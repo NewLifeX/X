@@ -34,7 +34,7 @@ public class LocalTimeConverter : JsonConverter<DateTime>
         var utc = false;
         if (!str.IsNullOrEmpty() && str.EndsWith("UTC"))
         {
-            str = str.TrimEnd("UTC").Trim();
+            str = str.TrimSuffix("UTC").Trim();
             utc = true;
         }
         if (!DateTime.TryParse(str, out var dt)) return DateTime.MinValue;

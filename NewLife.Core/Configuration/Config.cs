@@ -27,8 +27,8 @@ public class Config<TConfig> where TConfig : Config<TConfig>, new()
         if (value.IsNullOrEmpty())
         {
             value = typeof(TConfig).Name;
-            if (value.EndsWith("Config") && value != "Config") value = value.TrimEnd("Config");
-            if (value.EndsWith("Setting") && value != "Setting") value = value.TrimEnd("Setting");
+            if (value.EndsWith("Config") && value != "Config") value = value.TrimSuffix("Config");
+            if (value.EndsWith("Setting") && value != "Setting") value = value.TrimSuffix("Setting");
         }
         var prv = ConfigProvider.Create(att?.Provider);
         if (prv is HttpConfigProvider _prv && att is HttpConfigAttribute _att)

@@ -71,7 +71,7 @@ public class DeferredQueue : DisposeBase
 
     #region 构造
     /// <summary>实例化延迟队列</summary>
-    public DeferredQueue() => Name = GetType().Name.TrimEnd("Queue", "Actor", "Cache");
+    public DeferredQueue() => Name = GetType().Name.TrimSuffix("Queue", "Actor", "Cache");
 
     /// <summary>销毁资源。统计队列销毁时保存数据</summary>
     /// <param name="disposing">是否释放托管资源</param>

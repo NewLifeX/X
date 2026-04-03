@@ -219,7 +219,7 @@ public class NetServer : DisposeBase, IServer, IExtend, ILogFeature
     /// <summary>实例化一个网络服务器</summary>
     public NetServer()
     {
-        Name = GetType().Name.TrimEnd("Server");
+        Name = GetType().Name.TrimSuffix("Server");
 
         if (SocketSetting.Current.Debug) Log = XTrace.Log;
     }

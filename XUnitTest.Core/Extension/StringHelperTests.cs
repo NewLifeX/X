@@ -304,10 +304,10 @@ public class StringHelperTests
         Assert.Equal("file.txt", "file.txt".EnsureEnd(".txt"));
         Assert.Equal("", ((String)null).EnsureEnd(""));
 
-        Assert.Equal("path", "///path".TrimStart("/"));
-        Assert.Equal("///path///", "///path///".TrimEnd("/path")); // 末尾匹配 path
+        Assert.Equal("path", "///path".TrimPrefix("/"));
+        Assert.Equal("///path///", "///path///".TrimSuffix("/path")); // 末尾匹配 path
         Assert.Equal("data", "data".TrimStart(null));
-        Assert.Equal("data", "data".TrimEnd(""));
+        Assert.Equal("data", "data".TrimSuffix(""));
     }
 
     [Fact]

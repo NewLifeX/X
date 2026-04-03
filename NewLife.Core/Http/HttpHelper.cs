@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Net.WebSockets;
@@ -40,7 +40,7 @@ public static class HttpHelper
         if (asm != null)
         {
             var aname = asm.GetName();
-            var os = Environment.OSVersion?.ToString().TrimStart("Microsoft ");
+            var os = Environment.OSVersion?.ToString().TrimPrefix("Microsoft ");
             var name = aname.Name;
             
             // 检查 name 是否只包含 ASCII 字符（纯 UTF8 单字节），如果包含非 ASCII 则进行 URL 编码保留中文

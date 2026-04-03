@@ -50,7 +50,7 @@ public class CompositeConfigProvider : IConfigProvider
     /// <param name="configProvider2">备用配置提供者</param>
     public CompositeConfigProvider(IConfigProvider configProvider1, IConfigProvider configProvider2)
     {
-        Name = GetType().Name.TrimEnd("ConfigProvider");
+        Name = GetType().Name.TrimSuffix("ConfigProvider");
 
         Configs = [configProvider1, configProvider2];
     }

@@ -375,7 +375,13 @@ public static class StringHelper
     /// <param name="starts">前缀集合</param>
     /// <returns>移除后的字符串</returns>
     [Obsolete("已过期：此方法易与 ReadOnlySpan<char>.TrimStart(ReadOnlySpan<char>) 混淆——传入字符集合可能被当作要移除的字符集合而非前缀。请避免使用此方法进行按前缀截断，改为使用显式的前缀判断或其它明确方法。")]
-    public static String TrimStart(this String str, params String[] starts)
+    public static String TrimStart(this String str, params String[] starts) => TrimPrefix(str, starts);
+
+    /// <summary>从当前字符串开头移除另一字符串，不区分大小写，循环多次匹配前缀</summary>
+    /// <param name="str">当前字符串</param>
+    /// <param name="starts">前缀集合</param>
+    /// <returns>移除后的字符串</returns>
+    public static String TrimPrefix(this String str, params String[] starts)
     {
         if (str.IsNullOrEmpty()) return str;
         if (starts == null || starts.Length == 0 || starts[0].IsNullOrEmpty()) return str;
@@ -397,7 +403,14 @@ public static class StringHelper
     /// <param name="str">当前字符串</param>
     /// <param name="ends">后缀集合</param>
     /// <returns>移除后的字符串</returns>
-    public static String TrimEnd(this String str, params String[] ends)
+    [Obsolete("此方法易与 ReadOnlySpan<char>.TrimEnd(ReadOnlySpan<char>) ")]
+    public static String TrimEnd(this String str, params String[] ends) => TrimSuffix(str, ends);
+
+    /// <summary>从当前字符串结尾移除另一字符串，不区分大小写，循环多次匹配后缀</summary>
+    /// <param name="str">当前字符串</param>
+    /// <param name="ends">后缀集合</param>
+    /// <returns>移除后的字符串</returns>
+    public static String TrimSuffix(this String str, params String[] ends)
     {
         if (str.IsNullOrEmpty()) return str;
         if (ends == null || ends.Length == 0 || ends[0].IsNullOrEmpty()) return str;

@@ -151,7 +151,7 @@ public class TextFileLog : Logger, IDisposable
         // 找到今天第一个未达到最大上限的文件
         var max = MaxBytes * 1024L * 1024L;
         var ext = Path.GetExtension(logfile);
-        var name = logfile.TrimEnd(ext);
+        var name = logfile.TrimSuffix(ext);
         for (var i = 1; i < 1024; i++)
         {
             if (i > 1) logfile = $"{name}_{i}{ext}";

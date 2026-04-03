@@ -38,7 +38,7 @@ public class HttpRequest : HttpBase
         {
             Method = ss[0];
             RequestUri = new Uri(ss[1], UriKind.RelativeOrAbsolute);
-            Version = ss[2].TrimStart("HTTP/");
+            Version = ss[2].TrimPrefix("HTTP/");
         }
 
         Host = Headers["Host"];

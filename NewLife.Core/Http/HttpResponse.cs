@@ -30,7 +30,7 @@ public class HttpResponse : HttpBase
         //if (ss.Length < 3) throw new Exception("非法响应头 {0}".F(firstLine));
         if (ss.Length < 3) return false;
 
-        Version = ss[0].TrimStart("HTTP/");
+        Version = ss[0].TrimPrefix("HTTP/");
 
         // 分析响应码
         var code = ss[1].ToInt();

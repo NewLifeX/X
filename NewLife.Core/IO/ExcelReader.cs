@@ -401,8 +401,8 @@ public class ExcelReader : DisposeBase
         {
             if (item.FullName.StartsWithIgnoreCase("xl/worksheets/") && item.Name.EndsWithIgnoreCase(".xml"))
             {
-                var name = item.Name.TrimEnd(".xml");
-                if (dic.TryGetValue(name.TrimStart("sheet"), out var str)) name = str;
+                var name = item.Name.TrimSuffix(".xml");
+                if (dic.TryGetValue(name.TrimPrefix("sheet"), out var str)) name = str;
                 name ??= String.Empty;
 
                 dic2[name] = item;

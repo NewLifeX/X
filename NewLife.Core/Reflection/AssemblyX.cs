@@ -396,7 +396,7 @@ public class AssemblyX
                     // 如果是本目录的程序集，去掉目录前缀
                     var file = item.Asm.Location;
                     var root = AppDomain.CurrentDomain.BaseDirectory;
-                    if (!root.IsNullOrEmpty() && file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimStart("\\");
+                    if (!root.IsNullOrEmpty() && file.StartsWithIgnoreCase(root)) file = file.Substring(root.Length).TrimPrefix("\\");
                     XTrace.WriteLine("AssemblyX.FindAllPlugins(\"{0}\") => {1}", baseType.FullName, file);
                 }
                 var asm2 = Assembly.LoadFrom(item.Asm.Location);
@@ -693,7 +693,7 @@ public class AssemblyX
 
                 if (file.StartsWith("file:///"))
                 {
-                    file = file.TrimStart("file:///");
+                    file = file.TrimPrefix("file:///");
                     if (Path.DirectorySeparatorChar == '\\')
                         file = file.Replace('/', '\\');
                     else

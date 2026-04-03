@@ -47,7 +47,7 @@ public class MemoryCache : Cache
     /// <summary>实例化一个内存字典缓存</summary>
     public MemoryCache()
     {
-        Name = GetType().Name.TrimEnd("Cache");
+        Name = GetType().Name.TrimSuffix("Cache");
 
         Init(null);
     }

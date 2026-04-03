@@ -48,7 +48,7 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
 
     #region 构造
     /// <summary>构造函数</summary>
-    protected Cache() => Name = GetType().Name.TrimEnd("Cache");
+    protected Cache() => Name = GetType().Name.TrimSuffix("Cache");
 
     /// <summary>销毁。释放资源</summary>
     /// <param name="disposing"></param>

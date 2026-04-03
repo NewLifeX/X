@@ -133,7 +133,7 @@ public abstract class ConfigProvider : DisposeBase, IConfigProvider
 
     #region 构造
     /// <summary>构造函数</summary>
-    public ConfigProvider() => Name = GetType().Name.TrimEnd("ConfigProvider");
+    public ConfigProvider() => Name = GetType().Name.TrimSuffix("ConfigProvider");
     #endregion
 
     #region 方法

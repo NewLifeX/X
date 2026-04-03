@@ -75,7 +75,7 @@ public class Link
             // 过滤器
             if (filter != null && !filter(link)) continue;
 
-            link.Url = link.Url.TrimStart("#");
+            link.Url = link.Url.TrimPrefix("#");
             if (String.IsNullOrEmpty(link.Url)) continue;
 
             if (link.Url.StartsWithIgnoreCase("javascript:")) continue;

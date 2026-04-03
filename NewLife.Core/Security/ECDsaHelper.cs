@@ -174,10 +174,10 @@ namespace NewLife.Security
             content = content.Trim();
             if (content.StartsWithIgnoreCase("-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----"))
             {
-                var content2 = content.TrimStart("-----BEGIN RSA PRIVATE KEY-----")
-                     .TrimEnd("-----END RSA PRIVATE KEY-----")
-                     .TrimStart("-----BEGIN PRIVATE KEY-----")
-                     .TrimEnd("-----END PRIVATE KEY-----")
+                var content2 = content.TrimPrefix("-----BEGIN RSA PRIVATE KEY-----")
+                     .TrimSuffix("-----END RSA PRIVATE KEY-----")
+                     .TrimPrefix("-----BEGIN PRIVATE KEY-----")
+                     .TrimSuffix("-----END PRIVATE KEY-----")
                      .Replace("\n", null).Replace("\r", null);
 
                 var data = Convert.FromBase64String(content2);

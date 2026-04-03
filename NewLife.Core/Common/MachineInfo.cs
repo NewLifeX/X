@@ -226,7 +226,7 @@ public class MachineInfo : IExtend
     {
         var osv = Environment.OSVersion;
         if (OSVersion.IsNullOrEmpty()) OSVersion = osv.Version + "";
-        if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimStart("Microsoft").TrimEnd(OSVersion).Trim();
+        if (OSName.IsNullOrEmpty()) OSName = (osv + "").TrimPrefix("Microsoft").TrimSuffix(OSVersion).Trim();
         if (Guid.IsNullOrEmpty()) Guid = "";
 
         try
@@ -361,7 +361,7 @@ public class MachineInfo : IExtend
             var ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
 
             // 系统名取WMI可能出错
-            OSName = ci.OSFullName?.Replace("®", null).TrimStart("Microsoft").Trim();
+            OSName = ci.OSFullName?.Replace("®", null).TrimPrefix("Microsoft").Trim();
             OSVersion = ci.OSVersion;
         }
         catch
@@ -391,7 +391,7 @@ public class MachineInfo : IExtend
         }
         if (os is { Count: > 0 })
         {
-            if (os.TryGetValue("Caption", out str)) OSName = str.TrimStart("Microsoft").Trim();
+            if (os.TryGetValue("Caption", out str)) OSName = str.TrimPrefix("Microsoft").Trim();
             if (os.TryGetValue("Version", out str)) OSVersion = str;
         }
 #endif
@@ -437,7 +437,7 @@ public class MachineInfo : IExtend
 
 #if !NETFRAMEWORK
         if (OSName.IsNullOrEmpty())
-            OSName = RuntimeInformation.OSDescription.TrimStart("Microsoft").Trim();
+            OSName = RuntimeInformation.OSDescription.TrimPrefix("Microsoft").Trim();
         if (OSVersion.IsNullOrEmpty())
             OSVersion = Environment.OSVersion.Version.ToString();
 #endif
@@ -465,7 +465,7 @@ public class MachineInfo : IExtend
             if (dic.TryGetValue("Hardware", out str) ||
                 dic.TryGetValue("cpu model", out str) ||
                 dic.TryGetValue("model name", out str))
-                Processor = str?.TrimStart("vendor ");
+                Processor = str?.TrimPrefix("vendor ");
 
             if (device.TryGetValue("Product", out str))
                 Product = str;
@@ -553,7 +553,7 @@ public class MachineInfo : IExtend
         {
             // id中需要剔除QEMU，去掉virtio-前缀，例如 virtio-uf6ag3b49w6v4e9ldgcj
             disks = GetFiles("/dev/disk/by-id", true);
-            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimStart("virtio-")).ToList();
+            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimPrefix("virtio-")).ToList();
         }
 
         if (disks.Count == 0) disks = GetFiles("/dev/disk/by-partuuid", true);
@@ -590,7 +590,7 @@ public class MachineInfo : IExtend
             //if (dic2.TryGetValue("Model Name", out str)) Product = str;
             if (dic.TryGetValue("Model Identifier", out var str)) Product = str;
             if (dic.TryGetValue("Processor Name", out str)) Processor = str;
-            if (dic.TryGetValue("Memory", out str)) Memory = (UInt64)str.TrimEnd("GB").Trim().ToLong() * 1024 * 1024 * 1024;
+            if (dic.TryGetValue("Memory", out str)) Memory = (UInt64)str.TrimSuffix("GB").Trim().ToLong() * 1024 * 1024 * 1024;
             if (dic.TryGetValue("Serial Number (system)", out str)) Serial = str;
             if (dic.TryGetValue("Hardware UUID", out str)) UUID = str;
         }
@@ -728,13 +728,13 @@ public class MachineInfo : IExtend
         if (dic != null)
         {
             if (dic.TryGetValue("MemTotal", out var str) && !str.IsNullOrEmpty())
-                Memory = (UInt64)str.TrimEnd(" kB").ToInt() * 1024;
+                Memory = (UInt64)str.TrimSuffix(" kB").ToInt() * 1024;
 
             // MemAvailable是系统内核预测的可用内存，过低则认为不能安全分配给新进程，可能过于悲观；
             // MemFree是完全空闲的内存，未被使用的物理内存页，但内核不敢用；
             static UInt64 GetMem(IDictionary<String, String?> mem, String key)
             {
-                return mem.TryGetValue(key, out var v) && !v.IsNullOrEmpty() ? (UInt64)v.TrimEnd(" kB").ToInt() * 1024 : 0;
+                return mem.TryGetValue(key, out var v) && !v.IsNullOrEmpty() ? (UInt64)v.TrimSuffix(" kB").ToInt() * 1024 : 0;
             }
 
             var ma = GetMem(dic, "MemAvailable");
@@ -803,7 +803,7 @@ public class MachineInfo : IExtend
                 var line = reader.ReadLine();
                 if (!line.IsNullOrEmpty() && line.StartsWith("cpu"))
                 {
-                    var vs = line.TrimStart("cpu").Trim().Split(' ');
+                    var vs = line.TrimPrefix("cpu").Trim().Split(' ');
                     var current = new SystemTime
                     {
                         IdleTime = vs[3].ToLong(),

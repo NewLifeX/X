@@ -75,7 +75,7 @@ public abstract class Actor : DisposeBase, IActor
 
     #region 构造
     /// <summary>实例化Actor</summary>
-    public Actor() => Name = GetType().Name.TrimEnd("Actor");
+    public Actor() => Name = GetType().Name.TrimSuffix("Actor");
 
     /// <summary>销毁资源</summary>
     /// <param name="disposing">是否释放托管资源</param>

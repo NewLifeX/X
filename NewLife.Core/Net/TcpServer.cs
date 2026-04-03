@@ -410,7 +410,7 @@ public class TcpServer : DisposeBase, ISocketServer, ILogFeature
         {
             if (_LogPrefix == null)
             {
-                var name = Name == null ? "" : Name.TrimEnd("Server", "Session", "Client");
+                var name = Name == null ? "" : Name.TrimSuffix("Server", "Session", "Client");
                 _LogPrefix = $"{name}.";
             }
             return _LogPrefix;
