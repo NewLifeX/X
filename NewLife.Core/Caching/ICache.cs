@@ -10,7 +10,7 @@ namespace NewLife.Caching;
 /// <list type="bullet">
 /// <item><description><strong>过期时间：</strong>单位为秒（除非另有 TimeSpan 参数）。<c>expire &lt; 0</c> 表示采用 <see cref="Expire"/> 默认值，<c>expire == 0</c> 表示永不过期，<c>expire &gt; 0</c> 表示相对过期（从现在起）。</description></item>
 /// <item><description><strong>过期处理：</strong>已过期的键应视为不存在；实现可在访问时惰性清理。</description></item>
-/// <item><description><strong>性能注意：</strong>远端缓存（如 Redis）上 <see cref="Keys"/>、<see cref="Count"/>、<see cref="Search(string, int, int)"/> 可能是高耗时/高复杂度操作，仅用于诊断或小规模数据。</description></item>
+/// <item><description><strong>性能注意：</strong>远端缓存（如 Redis）上 <see cref="Keys"/>、<see cref="Count"/>、<see cref="Search(String, Int32, Int32)"/> 可能是高耗时/高复杂度操作，仅用于诊断或小规模数据。</description></item>
 /// </list>
 /// </remarks>
 public interface ICache
@@ -70,7 +70,7 @@ public interface ICache
     /// <param name="key">键</param>
     /// <returns>返回值；不存在或反序列化失败时返回默认值</returns>
     /// <remarks>
-    /// 若需区分"键不存在/反序列化失败/值恰好为默认值"的情况，请使用 <see cref="TryGetValue{T}(string, out T)"/>。
+    /// 若需区分"键不存在/反序列化失败/值恰好为默认值"的情况，请使用 <see cref="TryGetValue{T}(String, out T)"/>。
     /// </remarks>
     [return: MaybeNull]
     T Get<T>(String key);
@@ -117,7 +117,7 @@ public interface ICache
     /// <param name="key">键</param>
     /// <returns>剩余存活期（TTL）。建议语义：永不过期返回 <see cref="TimeSpan.Zero"/>；不存在或已过期返回负值（例如 <c>TimeSpan.FromSeconds(-1)</c>）</returns>
     /// <remarks>
-    /// 若需要无歧义区分不存在与永不过期，建议优先调用 <see cref="ContainsKey(string)"/> 或 <see cref="TryGetValue{T}(string, out T)"/>。
+    /// 若需要无歧义区分不存在与永不过期，建议优先调用 <see cref="ContainsKey(String)"/> 或 <see cref="TryGetValue{T}(String, out T)"/>。
     /// </remarks>
     TimeSpan GetExpire(String key);
     #endregion
@@ -151,7 +151,7 @@ public interface ICache
     /// <param name="value">新值</param>
     /// <returns>旧值（不存在时为默认值）</returns>
     /// <remarks>
-    /// 常用于累加到一定数后重置归零，配合 <see cref="Increment(string, long)"/> 使用，避免多线程冲突。
+    /// 常用于累加到一定数后重置归零，配合 <see cref="Increment(String, Int64)"/> 使用，避免多线程冲突。
     /// 若键不存在，返回默认值并设置新值。
     /// </remarks>
     [return: MaybeNull]

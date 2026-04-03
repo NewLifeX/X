@@ -124,6 +124,7 @@ public static class SpanSerializer
     /// <param name="value">目标对象</param>
     /// <param name="bufferSize">初始缓冲区大小，默认4096</param>
     /// <returns>数据包，调用方负责 Dispose</returns>
+    [Obsolete("请直接构造 SpanWriter 并调用 SpanSerializer.WriteObject，池化路径参考文档。此重载将在未来版本中移除。")]
     public static IOwnerPacket Serialize(Object value, Int32 bufferSize = 4096)
     {
         if (value == null) throw new ArgumentNullException(nameof(value));
@@ -248,6 +249,7 @@ public static class SpanSerializer
     /// <param name="value">目标对象</param>
     /// <param name="buffer">目标缓冲区</param>
     /// <returns>实际写入的字节数</returns>
+    [Obsolete("请直接构造 SpanWriter 并调用 SpanSerializer.WriteObject。此重载将在未来版本中移除。")]
     public static Int32 Serialize(Object value, Span<Byte> buffer)
     {
         if (value == null) throw new ArgumentNullException(nameof(value));
@@ -261,6 +263,7 @@ public static class SpanSerializer
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="data">字节数据</param>
     /// <returns>反序列化的对象实例</returns>
+    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
     public static T Deserialize<T>(ReadOnlySpan<Byte> data)
     {
         var reader = new SpanReader(data);
@@ -271,6 +274,7 @@ public static class SpanSerializer
     /// <param name="type">目标类型</param>
     /// <param name="data">字节数据</param>
     /// <returns>反序列化的对象实例</returns>
+    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
     public static Object Deserialize(Type type, ReadOnlySpan<Byte> data)
     {
         var reader = new SpanReader(data);
@@ -281,6 +285,7 @@ public static class SpanSerializer
     /// <typeparam name="T">目标类型</typeparam>
     /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
     /// <returns>反序列化的对象实例</returns>
+    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
     public static T Deserialize<T>(IPacket data)
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
@@ -297,6 +302,7 @@ public static class SpanSerializer
     /// <param name="type">目标类型</param>
     /// <param name="data">数据包，连续包直接取Span，分段包读取字节数组</param>
     /// <returns>反序列化的对象实例</returns>
+    [Obsolete("请直接构造 SpanReader 并调用 SpanSerializer.ReadObject。此重载将在未来版本中移除。")]
     public static Object Deserialize(Type type, IPacket data)
     {
         if (type == null) throw new ArgumentNullException(nameof(type));
@@ -314,138 +320,15 @@ public static class SpanSerializer
     /// <param name="writer">Span写入器</param>
     /// <param name="value">值，可为null</param>
     /// <param name="type">值的类型</param>
-    public static void WriteValue(ref SpanWriter writer, Object? value, Type type)
-    {
-        if (value == null || value == DBNull.Value)
-        {
-            writer.Write((Byte)0);
-            return;
-        }
-
-        writer.Write((Byte)1);
-
-        var code = type.GetTypeCode();
-        switch (code)
-        {
-            case TypeCode.Boolean:
-                writer.Write((Byte)(value is Boolean bv && bv ? 1 : 0));
-                break;
-            case TypeCode.SByte:
-                writer.Write(unchecked((Byte)(value is SByte sbv ? sbv : Convert.ToSByte(value))));
-                break;
-            case TypeCode.Byte:
-                writer.Write(value is Byte byv ? byv : Convert.ToByte(value));
-                break;
-            case TypeCode.Char:
-                writer.Write(Convert.ToByte(value));
-                break;
-            case TypeCode.Int16:
-                writer.Write(value is Int16 i16 ? i16 : Convert.ToInt16(value));
-                break;
-            case TypeCode.UInt16:
-                writer.Write(value is UInt16 u16 ? u16 : Convert.ToUInt16(value));
-                break;
-            case TypeCode.Int32:
-                writer.Write(value is Int32 i32 ? i32 : Convert.ToInt32(value));
-                break;
-            case TypeCode.UInt32:
-                writer.Write(value is UInt32 u32 ? u32 : Convert.ToUInt32(value));
-                break;
-            case TypeCode.Int64:
-                writer.Write(value is Int64 i64 ? i64 : Convert.ToInt64(value));
-                break;
-            case TypeCode.UInt64:
-                writer.Write(value is UInt64 u64 ? u64 : Convert.ToUInt64(value));
-                break;
-            case TypeCode.Single:
-                writer.Write(value is Single fv ? fv : Convert.ToSingle(value));
-                break;
-            case TypeCode.Double:
-                writer.Write(value is Double dv ? dv : Convert.ToDouble(value));
-                break;
-            case TypeCode.Decimal:
-                var d = (Decimal)(value is Decimal dcv ? dcv : Convert.ToDecimal(value));
-                writer.Write(d.ToString());
-                break;
-            case TypeCode.DateTime:
-                writer.Write(((DateTime)value).Ticks);
-                break;
-            case TypeCode.String:
-                writer.Write((String?)value, 0);
-                break;
-            case TypeCode.Object:
-                if (value is Byte[] ba)
-                {
-                    writer.Write(ba.Length);
-                    writer.Write(ba);
-                }
-                else if (value is Guid guid)
-                {
-                    writer.Write(guid.ToByteArray());
-                }
-                else
-                {
-                    writer.Write(0);
-                }
-                break;
-            default:
-                writer.Write(0);
-                break;
-        }
-    }
+    [Obsolete("请改用 writer.WriteValue(value, type) 实例方法。此重载将在未来版本中移除。")]
+    public static void WriteValue(ref SpanWriter writer, Object? value, Type type) => writer.WriteValue(value, type);
 
     /// <summary>从SpanReader读取单个值（用于反序列化数据行的字段值）</summary>
     /// <param name="reader">Span读取器</param>
     /// <param name="type">值的类型</param>
-    /// <returns>反序列化的值，可能为null</returns>
-    public static Object? ReadValue(ref SpanReader reader, Type type)
-    {
-        var flag = reader.ReadByte();
-        if (flag == 0) return null;
-
-        var code = type.GetTypeCode();
-        return code switch
-        {
-            TypeCode.Boolean => reader.ReadByte() != 0,
-            TypeCode.Byte => reader.ReadByte(),
-            TypeCode.SByte => (SByte)reader.ReadByte(),
-            TypeCode.Char => (Char)reader.ReadUInt16(),
-            TypeCode.Int16 => reader.ReadInt16(),
-            TypeCode.UInt16 => reader.ReadUInt16(),
-            TypeCode.Int32 => reader.ReadInt32(),
-            TypeCode.UInt32 => reader.ReadUInt32(),
-            TypeCode.Int64 => reader.ReadInt64(),
-            TypeCode.UInt64 => reader.ReadUInt64(),
-            TypeCode.Single => reader.ReadSingle(),
-            TypeCode.Double => reader.ReadDouble(),
-            TypeCode.Decimal => Decimal.Parse(reader.ReadString() ?? "0"),
-            TypeCode.DateTime => new DateTime(reader.ReadInt64()),
-            TypeCode.String => reader.ReadString(),
-            TypeCode.Object => ReadObjectValue(ref reader, type),
-            _ => null,
-        };
-    }
-
-    /// <summary>读取对象类型的值</summary>
-    /// <param name="reader">Span读取器</param>
-    /// <param name="type">类型</param>
-    /// <returns>值</returns>
-    private static Object? ReadObjectValue(ref SpanReader reader, Type type)
-    {
-        if (type == typeof(Byte[]))
-        {
-            var len = reader.ReadInt32();
-            return len > 0 ? reader.ReadBytes(len).ToArray() : [];
-        }
-
-        if (type == typeof(Guid))
-        {
-            var buf = reader.ReadBytes(16).ToArray();
-            return new Guid(buf);
-        }
-
-        return null;
-    }
+    /// <returns>反序列化的值，可空类型且为null时返回null</returns>
+    [Obsolete("请改用 reader.ReadValue(type) 实例方法。此重载将在未来版本中移除。")]
+    public static Object? ReadValue(ref SpanReader reader, Type type) => reader.ReadValue(type);
     #endregion
 
     #region 写入

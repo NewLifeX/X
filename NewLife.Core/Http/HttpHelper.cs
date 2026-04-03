@@ -20,7 +20,7 @@ namespace NewLife.Http;
 /// 1. 兼容多 TargetFramework（含 .NET Framework 4.5 起）
 /// 2. 内部提供常用 Post / Get / 表单 / 多段上传等扩展
 /// 3. 通过 <see cref="Tracer"/> 注入链路追踪；<see cref="Filter"/> 可拦截请求/响应/异常
-/// 4. <see cref="CreateHandler(bool, bool, bool)"/> 提供自定义 <c>SocketsHttpHandler</c> 以解决 DNS 变更缓存和自定义证书验证
+/// 4. <see cref="CreateHandler(Boolean, Boolean, Boolean)"/> 提供自定义 <c>SocketsHttpHandler</c> 以解决 DNS 变更缓存和自定义证书验证
 /// </remarks>
 public static class HttpHelper
 {
@@ -42,15 +42,15 @@ public static class HttpHelper
             var aname = asm.GetName();
             var os = Environment.OSVersion?.ToString().TrimPrefix("Microsoft ");
             var name = aname.Name;
-            
+
             // 检查 name 是否只包含 ASCII 字符（纯 UTF8 单字节），如果包含非 ASCII 则进行 URL 编码保留中文
             var hasNonAscii = !name.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(name) != name.Length;
-            if (hasNonAscii)
+            if (hasNonAscii && !name.IsNullOrEmpty())
             {
                 // URL 编码非 ASCII 字符，如"测试" -> "%E6%B5%8B%E8%AF%95"
                 name = Uri.EscapeDataString(name);
             }
-            
+
             // 仅当 OS 字符串为纯 UTF8 单字节（ASCII 子集）时附加，避免非 ASCII 引起的某些网关解析问题
             if (!os.IsNullOrEmpty() && Encoding.UTF8.GetByteCount(os) == os.Length)
                 DefaultUserAgent = $"{name}/{aname.Version} ({os})";

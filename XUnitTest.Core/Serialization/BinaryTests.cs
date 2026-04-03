@@ -604,7 +604,7 @@ public class BinaryTests
         Assert.Equal(2, dt2.Rows.Count);
     }
 
-    /// <summary>测试 ISpanSerializable 性能优势</summary>
+    /// <summary>测试 DbTable Span 路径序列化（EncodeInt+FullTime，与Binary格式兼容）</summary>
     [Fact]
     public void SpanSerializablePerformance()
     {
@@ -619,16 +619,16 @@ public class BinaryTests
             }
         };
 
-        // 验证可以直接调用 ISpanSerializable 接口
+        // DbTable 的 Span 路径不再通过 ISpanSerializable 接口，直接调用公共方法
         var buffer = new Byte[8192];
         var writer = new SpanWriter(buffer);
-        ((ISpanSerializable)dt).Write(ref writer);
+        dt.Write(ref writer);
         Assert.True(writer.WrittenCount > 0);
 
         // 反序列化
         var reader = new SpanReader(writer.WrittenSpan);
         var dt2 = new DbTable();
-        ((ISpanSerializable)dt2).Read(ref reader);
+        dt2.Read(ref reader);
         Assert.Equal(2, dt2.Total);
     }
 

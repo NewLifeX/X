@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace NewLife.Buffers;
 
@@ -37,6 +38,14 @@ public ref struct SpanWriter
 
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
+
+    /// <summary>使用7位压缩编码整数。默认false。启用后 Write(Int16/Int32/Int64) 及无符号变体使用变长编码，与 <see cref="NewLife.Serialization.Binary.EncodeInt"/> 行为一致</summary>
+    public Boolean EncodeInt { get; set; }
+
+    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.ToBinary"/> 8字节格式，与 <see cref="NewLife.Serialization.Binary.FullTime"/> 行为一致</summary>
+    public Boolean FullTime { get; set; }
+
+    private static readonly DateTime _dt1970 = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     #endregion
 
     #region 构造
@@ -170,11 +179,13 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入 16 位整数</summary>
+    /// <summary>写入 16 位整数。当 <see cref="EncodeInt"/> 为 true 时使用7位压缩编码</summary>
     /// <param name="value">要写入的整数值</param>
-    /// <returns>写入的字节数（固定为2）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(Int16 value)
     {
+        // 与 Binary.WriteEncoded(Int16) 一致：先转 UInt16 保留16位语义，再零扩展到 Int32
+        if (EncodeInt) return WriteEncodedInt((UInt16)value);
         const Int32 size = sizeof(Int16);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -185,11 +196,12 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 16 位整数</summary>
+    /// <summary>写入无符号 16 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
-    /// <returns>写入的字节数（固定为2）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(UInt16 value)
     {
+        if (EncodeInt) return WriteEncodedInt(value);
         const Int32 size = sizeof(UInt16);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -200,11 +212,12 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入 32 位整数</summary>
+    /// <summary>写入 32 位整数。当 <see cref="EncodeInt"/> 为 true 时使用7位压缩编码</summary>
     /// <param name="value">要写入的整数值</param>
-    /// <returns>写入的字节数（固定为4）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(Int32 value)
     {
+        if (EncodeInt) return WriteEncodedInt(value);
         const Int32 size = sizeof(Int32);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -215,11 +228,12 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 32 位整数</summary>
+    /// <summary>写入无符号 32 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
-    /// <returns>写入的字节数（固定为4）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(UInt32 value)
     {
+        if (EncodeInt) return WriteEncodedInt((Int32)value);
         const Int32 size = sizeof(UInt32);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -230,11 +244,12 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入 64 位整数</summary>
+    /// <summary>写入 64 位整数。当 <see cref="EncodeInt"/> 为 true 时使用7位压缩编码</summary>
     /// <param name="value">要写入的整数值</param>
-    /// <returns>写入的字节数（固定为8）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(Int64 value)
     {
+        if (EncodeInt) return WriteEncodedInt64(value);
         const Int32 size = sizeof(Int64);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -245,11 +260,12 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 64 位整数</summary>
+    /// <summary>写入无符号 64 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
-    /// <returns>写入的字节数（固定为8）</returns>
+    /// <returns>写入的字节数</returns>
     public Int32 Write(UInt64 value)
     {
+        if (EncodeInt) return WriteEncodedInt64((Int64)value);
         const Int32 size = sizeof(UInt64);
         EnsureSpace(size);
         if (IsLittleEndian)
@@ -260,28 +276,44 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入单精度浮点数</summary>
+    /// <summary>写入单精度浮点数（固定4字节，不受 <see cref="EncodeInt"/> 影响）</summary>
     /// <param name="value">要写入的浮点值</param>
     /// <returns>写入的字节数（固定为4）</returns>
     public unsafe Int32 Write(Single value)
     {
+        const Int32 size = sizeof(Single);
+        EnsureSpace(size);
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        return Write(BitConverter.SingleToInt32Bits(value));
+        var bits = BitConverter.SingleToInt32Bits(value);
 #else
-        return Write(*(Int32*)&value);
+        var bits = *(Int32*)&value;
 #endif
+        if (IsLittleEndian)
+            BinaryPrimitives.WriteInt32LittleEndian(_span[_index..], bits);
+        else
+            BinaryPrimitives.WriteInt32BigEndian(_span[_index..], bits);
+        _index += size;
+        return size;
     }
 
-    /// <summary>写入双精度浮点数</summary>
+    /// <summary>写入双精度浮点数（固定8字节，不受 <see cref="EncodeInt"/> 影响）</summary>
     /// <param name="value">要写入的浮点值</param>
     /// <returns>写入的字节数（固定为8）</returns>
     public unsafe Int32 Write(Double value)
     {
+        const Int32 size = sizeof(Double);
+        EnsureSpace(size);
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        return Write(BitConverter.DoubleToInt64Bits(value));
+        var bits = BitConverter.DoubleToInt64Bits(value);
 #else
-        return Write(*(Int64*)&value);
+        var bits = *(Int64*)&value;
 #endif
+        if (IsLittleEndian)
+            BinaryPrimitives.WriteInt64LittleEndian(_span[_index..], bits);
+        else
+            BinaryPrimitives.WriteInt64BigEndian(_span[_index..], bits);
+        _index += size;
+        return size;
     }
 
     /// <summary>写入字符串。支持定长、全部和长度前缀</summary>
@@ -495,6 +527,37 @@ public ref struct SpanWriter
         return count;
     }
 
+    /// <summary>写入 7 位压缩编码的 64 位整数</summary>
+    /// <remarks>
+    /// 以 7 位压缩格式写入 64 位整数，与 <see cref="SpanReader.ReadEncodedInt64"/> 对称。
+    /// 兼容 <see cref="NewLife.Serialization.Binary"/> 的 WriteEncoded(Int64) 格式。
+    /// </remarks>
+    /// <param name="value">数值（可为负数，内部按无符号位模式编码）</param>
+    /// <returns>实际写入字节数</returns>
+    public Int32 WriteEncodedInt64(Int64 value)
+    {
+        var num = (UInt64)value;
+
+        // 根据实际数值计算所需字节数
+        var size = num < 0x80 ? 1 : num < 0x4000 ? 2 : num < 0x20_0000 ? 3 : num < 0x1000_0000 ? 4 :
+                   num < 0x8_0000_0000L ? 5 : num < 0x400_0000_0000L ? 6 :
+                   num < 0x2_0000_0000_0000L ? 7 : num < 0x100_0000_0000_0000L ? 8 : 9;
+        EnsureSpace(size);
+
+        var span = _span[_index..];
+        var count = 0;
+
+        while (num >= 0x80)
+        {
+            span[count++] = (Byte)(num | 0x80);
+            num >>= 7;
+        }
+        span[count++] = (Byte)num;
+
+        _index += count;
+        return count;
+    }
+
     /// <summary>填充指定字节值</summary>
     /// <param name="value">要填充的字节值</param>
     /// <param name="count">填充次数</param>
@@ -596,6 +659,122 @@ public ref struct SpanWriter
         _index += count;
 
         return n + count;
+    }
+    #endregion
+
+    #region 值序列化
+    /// <summary>写入单个基元类型值</summary>
+    /// <remarks>
+    /// 与 <see cref="NewLife.Serialization.Binary"/> 格式完全兼容：
+    /// 非可空基础类型直接写入，null 写入类型默认值；
+    /// 可空类型（<see cref="System.Nullable{T}"/>）先写1字节标志（0=null，1=有值），null时写0后直接返回，否则写1后紧跟值。
+    /// DateTime 受 <see cref="FullTime"/> 控制：false（默认）写Unix秒数（UInt32，4字节），true 写ToBinary()（Int64，8字节）。
+    /// 整数类型受 <see cref="EncodeInt"/> 控制：true 时写7位压缩编码，与 Binary.EncodeInt=true 一致。
+    /// Decimal 使用 4×Int32 格式，Byte[] 使用7位压缩编码长度前缀，Guid 使用16字节原始内容。
+    /// </remarks>
+    /// <param name="value">值，可为null</param>
+    /// <param name="type">值的类型</param>
+    public void WriteValue(Object? value, Type type)
+    {
+        // DBNull 与 null 等价
+        if (value == DBNull.Value) value = null;
+
+        // 可空类型：与 Binary 一致，先写1字节标志（0=null，1=有值），null则直接返回
+        if (type.IsNullable())
+        {
+            if (value == null)
+            {
+                Write((Byte)0);
+                return;
+            }
+            Write((Byte)1);
+            // 继续写入实际值，type.GetTypeCode() 会自动解除 Nullable<T> 包装
+        }
+
+        var code = type.GetTypeCode();
+        switch (code)
+        {
+            case TypeCode.Boolean:
+                Write((Byte)(value is Boolean bv && bv ? 1 : 0));
+                break;
+            case TypeCode.SByte:
+                Write(value == null ? (Byte)0 : unchecked((Byte)(value is SByte sbv ? sbv : Convert.ToSByte(value))));
+                break;
+            case TypeCode.Byte:
+                Write(value == null ? (Byte)0 : (value is Byte byv ? byv : Convert.ToByte(value)));
+                break;
+            case TypeCode.Char:
+                // Char 与 Binary 一致，写入1字节
+                Write(value == null ? (Byte)0 : Convert.ToByte(value));
+                break;
+            case TypeCode.Int16:
+                Write(value == null ? (Int16)0 : (value is Int16 i16 ? i16 : Convert.ToInt16(value)));
+                break;
+            case TypeCode.UInt16:
+                Write(value == null ? (UInt16)0 : (value is UInt16 u16 ? u16 : Convert.ToUInt16(value)));
+                break;
+            case TypeCode.Int32:
+                Write(value == null ? 0 : (value is Int32 i32 ? i32 : Convert.ToInt32(value)));
+                break;
+            case TypeCode.UInt32:
+                Write(value == null ? (UInt32)0 : (value is UInt32 u32 ? u32 : Convert.ToUInt32(value)));
+                break;
+            case TypeCode.Int64:
+                Write(value == null ? 0L : (value is Int64 i64 ? i64 : Convert.ToInt64(value)));
+                break;
+            case TypeCode.UInt64:
+                Write(value == null ? (UInt64)0 : (value is UInt64 u64 ? u64 : Convert.ToUInt64(value)));
+                break;
+            case TypeCode.Single:
+                Write(value == null ? 0f : (value is Single fv ? fv : Convert.ToSingle(value)));
+                break;
+            case TypeCode.Double:
+                Write(value == null ? 0.0 : (value is Double dv ? dv : Convert.ToDouble(value)));
+                break;
+            case TypeCode.Decimal:
+                {
+                    // 与 Binary 一致，使用4×Int32 raw bits 格式
+                    var dec = value == null ? 0m : (value is Decimal dcv ? dcv : Convert.ToDecimal(value));
+                    var bits = Decimal.GetBits(dec);
+                    for (var j = 0; j < 4; j++) Write(bits[j]);
+                    break;
+                }
+            case TypeCode.DateTime:
+                {
+                    var dt = value == null ? DateTime.MinValue : (value is DateTime dtv ? dtv : Convert.ToDateTime(value));
+                    if (FullTime)
+                    {
+                        // 与 Binary.FullTime=true 一致：写入 ToBinary() Int64
+                        Write(dt.ToBinary());
+                    }
+                    else
+                    {
+                        // 与 Binary 默认(FullTime=false)一致：写入Unix秒数（UInt32，4字节）
+                        Write(dt > DateTime.MinValue ? (UInt32)(dt - _dt1970).TotalSeconds : (UInt32)0);
+                    }
+                    break;
+                }
+            case TypeCode.String:
+                Write(value as String, 0);
+                break;
+            case TypeCode.Object:
+                if (value is Byte[] ba)
+                {
+                    // 与 Binary 一致，使用7位压缩编码长度前缀
+                    WriteEncodedInt(ba.Length);
+                    if (ba.Length > 0) Write((ReadOnlySpan<Byte>)ba);
+                }
+                else if (value is Guid guid)
+                {
+                    // Guid 写入16字节原始内容
+                    Write((ReadOnlySpan<Byte>)guid.ToByteArray());
+                }
+                else
+                    throw new NotSupportedException($"WriteValue 不支持类型 {type.FullName}");
+                break;
+            default:
+                throw new NotSupportedException($"WriteValue 不支持 TypeCode.{code}");
+        }
     }
     #endregion
 }

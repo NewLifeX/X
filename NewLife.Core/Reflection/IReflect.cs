@@ -472,10 +472,10 @@ public class DefaultReflect : IReflect
     /// <param name="type">类型</param>
     /// <param name="parameters">参数数组</param>
     /// <returns></returns>
-    public virtual Object? CreateInstance(Type type, params Object?[] parameters) => CreateInstanceCore(type, parameters);
+    public virtual Object CreateInstance(Type type, params Object?[] parameters) => CreateInstanceCore(type, parameters);
 
     // 非虚核心实现，供 Reflect.cs 直接调用
-    internal Object? CreateInstanceCore(Type type, Object?[]? parameters)
+    internal Object CreateInstanceCore(Type type, Object?[]? parameters)
     {
         try
         {
@@ -483,11 +483,11 @@ public class DefaultReflect : IReflect
             {
                 // 热路径：已缓存的工厂委托，绕过所有 TypeCode/IList/IDictionary 预检
                 if (_instanceFactoryDict.TryGetValue(type, out var factory))
-                    return factory != null ? factory() : Activator.CreateInstance(type, true);
+                    return factory != null ? factory() : Activator.CreateInstance(type, true)!;
 
-                return RegisterAndCreate(type);
+                return RegisterAndCreate(type)!;
             }
-            return Activator.CreateInstance(type, parameters);
+            return Activator.CreateInstance(type, parameters)!;
         }
         catch (Exception ex)
         {
@@ -978,7 +978,7 @@ public class DefaultReflect : IReflect
                     // 如果目标对象该成员为空，需要创建再拷贝
                     if (v == null)
                     {
-                        v = pi.PropertyType.CreateInstance();
+                        v = pi.PropertyType.CreateInstance()!;
                         SetValue(target, pi, v);
                     }
 
@@ -988,7 +988,7 @@ public class DefaultReflect : IReflect
                         (pi.PropertyType.IsGenericType &&
                         pi.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                         DictionaryCopy(v, obj, deep);
-                    else if (typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(string))
+                    else if (typeof(IEnumerable).IsAssignableFrom(pi.PropertyType) && pi.PropertyType != typeof(String))
                         IEnumerableCopy(v, obj, deep);
                     else if (v != null && obj != null) Copy(v, obj, deep);
                 }
@@ -1006,21 +1006,22 @@ public class DefaultReflect : IReflect
     {
         if (targetArray is Array tarArr && sourceArray is Array srcArr)
         {
-            //清空目标数组
+            // 清空目标数组
             Array.Clear(tarArr, 0, tarArr.Length);
 
-            //遍历源数组
+            // 遍历源数组
+            var targetArrayType = GetElementType(tarArr.GetType())!;
             for (var i = 0; i < srcArr.Length; i++)
             {
                 var srcValue = srcArr.GetValue(i);
-                if (!deep || srcValue == null || GetElementType(tarArr.GetType())!.IsBaseType())
+                if (!deep || srcValue == null || targetArrayType.IsBaseType())
                     tarArr.SetValue(srcValue, i);
                 else
                 {
                     var tarValue = tarArr.GetValue(i);
                     if (tarValue == null)
                     {
-                        tarValue = CreateInstance(GetElementType(tarArr.GetType()));
+                        tarValue = CreateInstance(targetArrayType);
                         tarArr.SetValue(tarValue, i);
                     }
                     Copy(tarValue!, srcValue!, deep);
@@ -1029,13 +1030,11 @@ public class DefaultReflect : IReflect
         }
     }
 
-    /// <summary>
-    /// 字典拷贝
-    /// </summary>
+    /// <summary>字典拷贝</summary>
     /// <param name="target"></param>
     /// <param name="source"></param>
     /// <param name="deep"></param>
-    public void DictionaryCopy(object target, object source, bool deep)
+    public void DictionaryCopy(Object target, Object? source, Boolean deep)
     {
         if (target == null || source == null)
             return;
@@ -1065,7 +1064,7 @@ public class DefaultReflect : IReflect
     /// <param name="targetDic"></param>
     /// <param name="sourceDic"></param>
     /// <param name="deep"></param>
-    private void DictionaryCopy(IDictionary targetDic, IDictionary sourceDic, bool deep)
+    private void DictionaryCopy(IDictionary targetDic, IDictionary sourceDic, Boolean deep)
     {
         if (targetDic.IsReadOnly) return;
 
@@ -1096,7 +1095,7 @@ public class DefaultReflect : IReflect
     /// <param name="sourceDic"></param>
     /// <param name="dictInterface"></param>
     /// <param name="deep"></param>
-    private void DictionaryCopy(object targetDic, object sourceDic, Type dictInterface, bool deep)
+    private void DictionaryCopy(Object targetDic, Object sourceDic, Type dictInterface, Boolean deep)
     {
         var args = dictInterface.GetGenericArguments();
         var keyType = args[0];
@@ -1119,7 +1118,7 @@ public class DefaultReflect : IReflect
             var key = keyProperties!.GetValue(kv);
             var value = valueProperties!.GetValue(kv);
 
-            object? valueToUse;
+            Object? valueToUse;
 
             if (!deep || value == null || valueType.IsBaseType())
             {
@@ -1132,7 +1131,7 @@ public class DefaultReflect : IReflect
                 valueToUse = dstValue;
             }
 
-            addMethod.Invoke(targetDic, new[] { key, valueToUse });
+            addMethod.Invoke(targetDic, [key, valueToUse]);
         }
     }
 
@@ -1142,14 +1141,14 @@ public class DefaultReflect : IReflect
     /// <param name="targetEnumerable">目标集合</param>
     /// <param name="sourceEnumerable">源集合</param>
     /// <param name="deep">是否深拷贝</param>
-    private void IEnumerableCopy(object targetEnumerable, object? sourceEnumerable, bool deep)
+    private void IEnumerableCopy(Object targetEnumerable, Object? sourceEnumerable, Boolean deep)
     {
         if (sourceEnumerable is not IEnumerable srcEnum) return;
         if (targetEnumerable is IList tarList)
         {
             tarList.Clear();
 
-            var elemType = GetElementType(tarList.GetType()) ?? typeof(object);
+            var elemType = GetElementType(tarList.GetType()) ?? typeof(Object);
 
             foreach (var srcItem in srcEnum)
             {
@@ -1187,11 +1186,11 @@ public class DefaultReflect : IReflect
 
         foreach (var srcItem in srcEnum)
         {
-            object valueToAdd;
+            Object valueToAdd;
 
             if (!deep || srcItem == null || addParamType.IsBaseType())
             {
-                valueToAdd = srcItem.ChangeType(addParamType) ?? srcItem;
+                valueToAdd = (srcItem.ChangeType(addParamType) ?? srcItem)!;
             }
             else
             {
@@ -1201,7 +1200,7 @@ public class DefaultReflect : IReflect
                 valueToAdd = dstItem ?? srcItem;
             }
 
-            addMethod.Invoke(targetEnumerable, new[] { valueToAdd });
+            addMethod.Invoke(targetEnumerable, [valueToAdd]);
         }
     }
     #endregion

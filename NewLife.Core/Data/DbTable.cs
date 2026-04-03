@@ -8,7 +8,6 @@ using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using NewLife.Buffers;
-using NewLife.Collections;
 using NewLife.IO;
 using NewLife.Reflection;
 using NewLife.Serialization;
@@ -648,7 +647,16 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
 
     /// <summary>转数据包</summary>
     /// <returns></returns>
-    public IPacket ToPacket() => SpanSerializer.ToPacket(this);
+    public IPacket ToPacket()
+    {
+        var ms = new MemoryStream { Position = 8 };
+        Write(ms);
+
+        ms.Position = 8;
+
+        // 包装为数据包，直接窃取内存流内部的缓冲区
+        return new ArrayPacket(ms);
+    }
 
     /// <summary>保存到文件</summary>
     /// <param name="file"></param>
@@ -847,7 +855,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             {
                 for (var i = 0; i < row.Length; i++)
                 {
-                    SpanSerializer.WriteValue(ref writer, row[i], ts[i]);
+                    writer.WriteValue(row[i], ts[i]);
                 }
             }
         }
@@ -898,7 +906,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             var row = new Object?[count];
             for (var i = 0; i < count; i++)
             {
-                row[i] = SpanSerializer.ReadValue(ref reader, ts[i]);
+                row[i] = reader.ReadValue(ts[i]);
             }
             rs.Add(row);
         }

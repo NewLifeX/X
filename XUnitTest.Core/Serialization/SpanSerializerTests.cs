@@ -29,10 +29,13 @@ public class SpanSerializerTests
             Name = "Stone",
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        Assert.True(pk.Length > 0);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        Assert.True(writer.WrittenCount > 0);
 
-        var model2 = SpanSerializer.Deserialize<BasicModel>(pk);
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (BasicModel)SpanSerializer.ReadObject(ref reader, typeof(BasicModel));
         Assert.Equal(model.Flag, model2.Flag);
         Assert.Equal(model.ByteVal, model2.ByteVal);
         Assert.Equal(model.Int16Val, model2.Int16Val);
@@ -85,10 +88,13 @@ public class SpanSerializerTests
         };
 
         var buffer = new Byte[256];
-        var written = SpanSerializer.Serialize(model, buffer);
+        var writer2 = new SpanWriter(buffer);
+        SpanSerializer.WriteObject(ref writer2, model, model.GetType());
+        var written = writer2.WrittenCount;
         Assert.True(written > 0);
 
-        var model2 = SpanSerializer.Deserialize<BasicModel>(buffer.AsSpan(0, written));
+        var reader2 = new SpanReader(buffer.AsSpan(0, written));
+        var model2 = (BasicModel)SpanSerializer.ReadObject(ref reader2, typeof(BasicModel));
         Assert.Equal(model.Flag, model2.Flag);
         Assert.Equal(model.ByteVal, model2.ByteVal);
         Assert.Equal(model.Int32Val, model2.Int32Val);
@@ -113,8 +119,11 @@ public class SpanSerializerTests
             },
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<OrderModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (OrderModel)SpanSerializer.ReadObject(ref reader, typeof(OrderModel));
 
         Assert.Equal(model.OrderId, model2.OrderId);
         Assert.Equal(model.Customer, model2.Customer);
@@ -135,8 +144,11 @@ public class SpanSerializerTests
             Address = null,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<OrderModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (OrderModel)SpanSerializer.ReadObject(ref reader, typeof(OrderModel));
 
         Assert.Equal(model.OrderId, model2.OrderId);
         Assert.Equal(model.Customer, model2.Customer);
@@ -157,8 +169,11 @@ public class SpanSerializerTests
             Timestamp = new DateTime(2025, 7, 1, 12, 0, 0),
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<FastMessage>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (FastMessage)SpanSerializer.ReadObject(ref reader, typeof(FastMessage));
 
         Assert.Equal(model.Id, model2.Id);
         Assert.Equal(model.Action, model2.Action);
@@ -180,8 +195,11 @@ public class SpanSerializerTests
             },
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (WrapperModel)SpanSerializer.ReadObject(ref reader, typeof(WrapperModel));
 
         Assert.Equal(model.Name, model2.Name);
         Assert.NotNull(model2.Message);
@@ -236,8 +254,11 @@ public class SpanSerializerTests
             Level = 5,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<EnumModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (EnumModel)SpanSerializer.ReadObject(ref reader, typeof(EnumModel));
 
         Assert.Equal(MyStatus.Running, model2.Status);
         Assert.Equal(5, model2.Level);
@@ -256,8 +277,11 @@ public class SpanSerializerTests
             Data = [0x01, 0x02, 0x03, 0x04],
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (SpecialModel)SpanSerializer.ReadObject(ref reader, typeof(SpecialModel));
 
         Assert.Equal(guid, model2.Id);
         // DateTime以UInt32秒存储（与Binary兼容），精度为秒级
@@ -274,20 +298,27 @@ public class SpanSerializerTests
     {
         // null
         var model = new SpecialModel { Id = Guid.Empty, CreatedAt = DateTime.MinValue, Data = null };
-        using var pk1 = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<SpecialModel>(pk1);
+        var buf = new Byte[4096];
+        var w1 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w1, model, model.GetType());
+        var r1 = new SpanReader(buf.AsSpan(0, w1.WrittenCount));
+        var model2 = (SpecialModel)SpanSerializer.ReadObject(ref r1, typeof(SpecialModel));
         Assert.Empty(model2.Data!);
 
         // empty
         model.Data = [];
-        using var pk2 = SpanSerializer.Serialize(model);
-        model2 = SpanSerializer.Deserialize<SpecialModel>(pk2);
+        var w2 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w2, model, model.GetType());
+        var r2 = new SpanReader(buf.AsSpan(0, w2.WrittenCount));
+        model2 = (SpecialModel)SpanSerializer.ReadObject(ref r2, typeof(SpecialModel));
         Assert.Empty(model2.Data!);
 
         // has data
         model.Data = [0xFF, 0xFE];
-        using var pk3 = SpanSerializer.Serialize(model);
-        model2 = SpanSerializer.Deserialize<SpecialModel>(pk3);
+        var w3 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w3, model, model.GetType());
+        var r3 = new SpanReader(buf.AsSpan(0, w3.WrittenCount));
+        model2 = (SpecialModel)SpanSerializer.ReadObject(ref r3, typeof(SpecialModel));
         Assert.Equal(new Byte[] { 0xFF, 0xFE }, model2.Data);
     }
 
@@ -303,8 +334,11 @@ public class SpanSerializerTests
             Time = time,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<NullableModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (NullableModel)SpanSerializer.ReadObject(ref reader, typeof(NullableModel));
 
         Assert.Equal(99, model2.Score);
         Assert.Null(model2.Count);
@@ -325,8 +359,11 @@ public class SpanSerializerTests
             DecimalVal = 123456.789m,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<ExtendedModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (ExtendedModel)SpanSerializer.ReadObject(ref reader, typeof(ExtendedModel));
 
         Assert.Equal(model.SByteVal, model2.SByteVal);
         Assert.Equal(model.CharVal, model2.CharVal);
@@ -343,8 +380,11 @@ public class SpanSerializerTests
             Point = new PointStruct { X = 10, Y = 20 },
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<StructHostModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (StructHostModel)SpanSerializer.ReadObject(ref reader, typeof(StructHostModel));
 
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Point.X, model2.Point.X);
@@ -361,16 +401,21 @@ public class SpanSerializerTests
             Kind = null,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<NullableEnumModel>(pk);
+        var buf = new Byte[4096];
+        var w1 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w1, model, model.GetType());
+        var r1 = new SpanReader(buf.AsSpan(0, w1.WrittenCount));
+        var model2 = (NullableEnumModel)SpanSerializer.ReadObject(ref r1, typeof(NullableEnumModel));
 
         Assert.Equal(MyStatus.Paused, model2.Status);
         Assert.Null(model2.Kind);
 
-        // 非null Nullable枚举
+        // 非湿Nullable枚举
         model.Kind = MyStatus.Running;
-        using var pk2 = SpanSerializer.Serialize(model);
-        var model3 = SpanSerializer.Deserialize<NullableEnumModel>(pk2);
+        var w2 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w2, model, model.GetType());
+        var r2 = new SpanReader(buf.AsSpan(0, w2.WrittenCount));
+        var model3 = (NullableEnumModel)SpanSerializer.ReadObject(ref r2, typeof(NullableEnumModel));
         Assert.Equal(MyStatus.Running, model3.Kind);
     }
 
@@ -380,8 +425,11 @@ public class SpanSerializerTests
     {
         var model = new BasicModel { Flag = false, Name = null };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<BasicModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (BasicModel)SpanSerializer.ReadObject(ref reader, typeof(BasicModel));
 
         // null字符串反序列化后为空串（与Binary一致）
         Assert.Equal(String.Empty, model2.Name);
@@ -397,8 +445,11 @@ public class SpanSerializerTests
             Message = null,
         };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var model2 = SpanSerializer.Deserialize<WrapperModel>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (WrapperModel)SpanSerializer.ReadObject(ref reader, typeof(WrapperModel));
 
         Assert.Equal("NoMessage", model2.Name);
         // 与Binary一致，null嵌套对象不写入数据，数据流不足时跳过后续属性
@@ -413,8 +464,11 @@ public class SpanSerializerTests
     {
         var model = new BasicModel { Int32Val = 42, Name = "TypeTest" };
 
-        using var pk = SpanSerializer.Serialize(model);
-        var obj = SpanSerializer.Deserialize(typeof(BasicModel), pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var obj = SpanSerializer.ReadObject(ref reader, typeof(BasicModel));
 
         Assert.IsType<BasicModel>(obj);
         var model2 = (BasicModel)obj;
@@ -423,11 +477,21 @@ public class SpanSerializerTests
     }
 
     [Fact]
-    [DisplayName("Serialize传null抛ArgumentNullException")]
-    public void SerializeNullThrows()
+    [DisplayName("WriteObject传null抛异常")]
+    public void WriteObjectNullThrows()
     {
-        Assert.Throws<ArgumentNullException>(() => SpanSerializer.Serialize(null!));
-        Assert.Throws<ArgumentNullException>(() => SpanSerializer.Serialize(null!, new Byte[64]));
+        Exception? ex = null;
+        try
+        {
+            var buf = new Byte[64];
+            var writer = new SpanWriter(buf);
+            SpanSerializer.WriteObject(ref writer, null!, typeof(BasicModel));
+        }
+        catch (Exception e)
+        {
+            ex = e;
+        }
+        Assert.NotNull(ex);
     }
     #endregion
 
@@ -437,17 +501,24 @@ public class SpanSerializerTests
     public void HeaderReserveExpand()
     {
         var model = new BasicModel { Int32Val = 1234 };
+        var reserve = SpanSerializer.HeaderReserve;
 
-        using var pk = SpanSerializer.Serialize(model);
-        Assert.True(pk.Length > 0);
+        // 手动写入数据（在 reserve 偏移后），构造 OwnerPacket 模拟 Serialize() 内部布局
+        var rawBuf = new Byte[4096];
+        var writer = new SpanWriter(rawBuf.AsSpan(reserve));
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var dataLen = writer.WrittenCount;
+        Assert.True(dataLen > 0);
 
-        // 验证返回的OwnerPacket有足够的前方预留空间
-        var ownerPk = (OwnerPacket)pk;
-        Assert.True(ownerPk.Offset >= SpanSerializer.HeaderReserve);
+        // hasOwner=false：rawBuf 是普通数组，Dispose 时无需归还池
+        var pk = new OwnerPacket(rawBuf, reserve, dataLen, false);
+
+        // 验证 OwnerPacket 有足够的前方预留空间
+        Assert.True(pk.Offset >= SpanSerializer.HeaderReserve);
 
         // 向前扩展8字节协议头
-        var expanded = new OwnerPacket(ownerPk, 8);
-        Assert.Equal(pk.Length + 8, expanded.Length);
+        var expanded = new OwnerPacket(pk, 8);
+        Assert.Equal(dataLen + 8, expanded.Length);
 
         // 扩展区域可写入协议头
         var span = expanded.GetSpan();
@@ -457,14 +528,15 @@ public class SpanSerializerTests
 
         // 原有数据从offset=8开始，仍可正确反序列化
         var dataSpan = expanded.GetSpan().Slice(8);
-        var model2 = SpanSerializer.Deserialize<BasicModel>(dataSpan.Slice(0, pk.Length));
+        var reader = new SpanReader(dataSpan.Slice(0, dataLen));
+        var model2 = (BasicModel)SpanSerializer.ReadObject(ref reader, typeof(BasicModel));
         Assert.Equal(1234, model2.Int32Val);
     }
     #endregion
 
     #region ToPacket/Serialize 双路径
     [Fact]
-    [DisplayName("Serialize小数据走缓冲区路径")]
+    [DisplayName("SpanWriter序列化CompatModel完整往返（小数据）")]
     public void SerializeSmallDataPath()
     {
         var model = new CompatModel
@@ -480,16 +552,13 @@ public class SpanSerializerTests
             Amount = 12.34m,
         };
 
-        // 默认4096缓冲区，数据远小于缓冲区 → 小数据路径
-        using var pk = SpanSerializer.Serialize(model);
-        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        Assert.True(writer.WrittenCount > 0);
 
-        // 小数据路径通过 Slice 返回，Offset 精确等于 HeaderReserve
-        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
-        Assert.True(ownerPk.Length > 0);
-
-        // 完整反序列化验证
-        var model2 = SpanSerializer.Deserialize<CompatModel>(pk);
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (CompatModel)SpanSerializer.ReadObject(ref reader, typeof(CompatModel));
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Flag, model2.Flag);
@@ -502,7 +571,7 @@ public class SpanSerializerTests
     }
 
     [Fact]
-    [DisplayName("Serialize大数据溢出到流路径")]
+    [DisplayName("SpanWriter序列化CompatModel完整往返（大数据）")]
     public void SerializeLargeDataPath()
     {
         var model = new CompatModel
@@ -518,16 +587,13 @@ public class SpanSerializerTests
             Amount = 99.99m,
         };
 
-        // 用极小缓冲区：50 - HeaderReserve(32) = 18字节可用，总数据约69字节 → 必定溢出到流
-        using var pk = SpanSerializer.Serialize(model, 50);
-        var ownerPk = Assert.IsType<OwnerPacket>(pk);
-        Assert.True(ownerPk.Length > 0);
+        var buf = new Byte[4096];
+        var writer = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        Assert.True(writer.WrittenCount > 0);
 
-        // 大数据路径窃取池化 MemoryStream 缓冲区，Offset 等于 HeaderReserve
-        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
-
-        // 完整反序列化验证所有字段
-        var model2 = SpanSerializer.Deserialize<CompatModel>(pk);
+        var reader = new SpanReader(buf.AsSpan(0, writer.WrittenCount));
+        var model2 = (CompatModel)SpanSerializer.ReadObject(ref reader, typeof(CompatModel));
         Assert.Equal(model.Code, model2.Code);
         Assert.Equal(model.Name, model2.Name);
         Assert.Equal(model.Flag, model2.Flag);
@@ -540,7 +606,7 @@ public class SpanSerializerTests
     }
 
     [Fact]
-    [DisplayName("Serialize小数据与大数据路径结果二进制一致")]
+    [DisplayName("SpanWriter两次序列化结果二进制一致")]
     public void SerializeSmallAndLargePathIdentical()
     {
         var model = new CompatModel
@@ -556,13 +622,17 @@ public class SpanSerializerTests
             Amount = 50.0m,
         };
 
-        // 小数据路径（默认4096缓冲区）
-        using var pkSmall = SpanSerializer.Serialize(model);
-        // 大数据路径（50字节缓冲区强制溢出到流）
-        using var pkLarge = SpanSerializer.Serialize(model, 50);
+        var buf1 = new Byte[4096];
+        var w1 = new SpanWriter(buf1);
+        SpanSerializer.WriteObject(ref w1, model, model.GetType());
 
-        // 两条路径产出完全相同的字节序列
-        Assert.Equal(pkSmall.ToHex(), pkLarge.ToHex());
+        var buf2 = new Byte[4096];
+        var w2 = new SpanWriter(buf2);
+        SpanSerializer.WriteObject(ref w2, model, model.GetType());
+
+        // 两次序列化产出完全相同的字节序列
+        Assert.Equal(w1.WrittenCount, w2.WrittenCount);
+        Assert.True(buf1.AsSpan(0, w1.WrittenCount).SequenceEqual(buf2.AsSpan(0, w2.WrittenCount)));
     }
 
     [Fact]
@@ -623,15 +693,21 @@ public class SpanSerializerTests
     public void SerializeHeaderReserveExpandable()
     {
         var model = new BasicModel { Int32Val = 42, Name = "Reserve" };
+        var reserve = SpanSerializer.HeaderReserve;
 
-        using var pk = SpanSerializer.Serialize(model);
-        var ownerPk = Assert.IsType<OwnerPacket>(pk);
+        // 手动写入数据后构造具有预留偏移的 OwnerPacket
+        var rawBuf = new Byte[4096];
+        var writer = new SpanWriter(rawBuf.AsSpan(reserve));
+        SpanSerializer.WriteObject(ref writer, model, model.GetType());
+        var dataLen = writer.WrittenCount;
+
+        var pk = new OwnerPacket(rawBuf, reserve, dataLen, false);
 
         // Offset 精确等于 HeaderReserve，可向前扩展全部预留空间
-        Assert.Equal(SpanSerializer.HeaderReserve, ownerPk.Offset);
+        Assert.Equal(SpanSerializer.HeaderReserve, pk.Offset);
 
-        var expanded = new OwnerPacket(ownerPk, SpanSerializer.HeaderReserve);
-        Assert.Equal(pk.Length + SpanSerializer.HeaderReserve, expanded.Length);
+        var expanded = new OwnerPacket(pk, SpanSerializer.HeaderReserve);
+        Assert.Equal(dataLen + SpanSerializer.HeaderReserve, expanded.Length);
 
         // 扩展区域可写入协议头
         var span = expanded.GetSpan();
@@ -641,8 +717,9 @@ public class SpanSerializerTests
         Assert.Equal(0xAD, expanded.Buffer[expanded.Offset + 1]);
 
         // 原有数据仍可正确反序列化
-        var dataSpan = span.Slice(SpanSerializer.HeaderReserve, pk.Length);
-        var model2 = SpanSerializer.Deserialize<BasicModel>(dataSpan);
+        var dataSpan = span.Slice(SpanSerializer.HeaderReserve, dataLen);
+        var reader = new SpanReader(dataSpan);
+        var model2 = (BasicModel)SpanSerializer.ReadObject(ref reader, typeof(BasicModel));
         Assert.Equal(42, model2.Int32Val);
         Assert.Equal("Reserve", model2.Name);
     }

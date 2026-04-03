@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Data;
+using NewLife.Reflection;
 
 namespace NewLife.Buffers;
 
@@ -35,6 +36,14 @@ public ref struct SpanReader
 
     /// <summary>是否小端字节序。默认 true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
+
+    /// <summary>使用7位压缩编码整数。默认false。启用后 ReadInt16/Int32/Int64 及无符号变体使用变长编码，与 <see cref="NewLife.Serialization.Binary.EncodeInt"/> 行为一致</summary>
+    public Boolean EncodeInt { get; set; }
+
+    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.FromBinary"/> 8字节格式，与 <see cref="NewLife.Serialization.Binary.FullTime"/> 行为一致</summary>
+    public Boolean FullTime { get; set; }
+
+    private static readonly DateTime _dt1970 = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     #endregion
 
     #region 构造
@@ -206,10 +215,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取Int16整数</summary>
+    /// <summary>读取Int16整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的整数值</returns>
     public Int16 ReadInt16()
     {
+        if (EncodeInt) return (Int16)ReadEncodedInt();
         const Int32 size = sizeof(Int16);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -219,10 +229,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取UInt16整数</summary>
+    /// <summary>读取UInt16整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的无符号整数值</returns>
     public UInt16 ReadUInt16()
     {
+        if (EncodeInt) return (UInt16)ReadEncodedInt();
         const Int32 size = sizeof(UInt16);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -232,10 +243,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取Int32整数</summary>
+    /// <summary>读取Int32整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的整数值</returns>
     public Int32 ReadInt32()
     {
+        if (EncodeInt) return ReadEncodedInt();
         const Int32 size = sizeof(Int32);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -245,10 +257,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取UInt32整数</summary>
+    /// <summary>读取UInt32整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的无符号整数值</returns>
     public UInt32 ReadUInt32()
     {
+        if (EncodeInt) return (UInt32)ReadEncodedInt();
         const Int32 size = sizeof(UInt32);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -258,10 +271,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取Int64整数</summary>
+    /// <summary>读取Int64整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的长整数值</returns>
     public Int64 ReadInt64()
     {
+        if (EncodeInt) return ReadEncodedInt64();
         const Int32 size = sizeof(Int64);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -271,10 +285,11 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取UInt64整数</summary>
+    /// <summary>读取UInt64整数。当 <see cref="EncodeInt"/> 为 true 时读取7位压缩编码整数</summary>
     /// <returns>读取的无符号长整数值</returns>
     public UInt64 ReadUInt64()
     {
+        if (EncodeInt) return (UInt64)ReadEncodedInt64();
         const Int32 size = sizeof(UInt64);
         EnsureSpace(size);
         var result = IsLittleEndian
@@ -284,27 +299,37 @@ public ref struct SpanReader
         return result;
     }
 
-    /// <summary>读取单精度浮点数</summary>
+    /// <summary>读取单精度浮点数（固定4字节，不受 <see cref="EncodeInt"/> 影响）</summary>
     /// <returns>读取的浮点值</returns>
     public Single ReadSingle()
     {
+        const Int32 size = sizeof(Single);
+        EnsureSpace(size);
+        var bits = IsLittleEndian
+            ? BinaryPrimitives.ReadInt32LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadInt32BigEndian(_span.Slice(_index, size));
+        _index += size;
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        return BitConverter.Int32BitsToSingle(ReadInt32());
+        return BitConverter.Int32BitsToSingle(bits);
 #else
-        var result = ReadInt32();
-        return Unsafe.ReadUnaligned<Single>(ref Unsafe.As<Int32, Byte>(ref result));
+        return Unsafe.ReadUnaligned<Single>(ref Unsafe.As<Int32, Byte>(ref bits));
 #endif
     }
 
-    /// <summary>读取双精度浮点数</summary>
+    /// <summary>读取双精度浮点数（固定8字节，不受 <see cref="EncodeInt"/> 影响）</summary>
     /// <returns>读取的双精度浮点值</returns>
     public Double ReadDouble()
     {
+        const Int32 size = sizeof(Double);
+        EnsureSpace(size);
+        var bits = IsLittleEndian
+            ? BinaryPrimitives.ReadInt64LittleEndian(_span.Slice(_index, size))
+            : BinaryPrimitives.ReadInt64BigEndian(_span.Slice(_index, size));
+        _index += size;
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
-        return BitConverter.Int64BitsToDouble(ReadInt64());
+        return BitConverter.Int64BitsToDouble(bits);
 #else
-        var result = ReadInt64();
-        return Unsafe.ReadUnaligned<Double>(ref Unsafe.As<Int64, Byte>(ref result));
+        return Unsafe.ReadUnaligned<Double>(ref Unsafe.As<Int64, Byte>(ref bits));
 #endif
     }
 
@@ -430,6 +455,28 @@ public ref struct SpanReader
         return (Int32)rs;
     }
 
+    /// <summary>以 7 位压缩格式读取 64 位整数</summary>
+    /// <returns>解压后的长整数值</returns>
+    /// <exception cref="FormatException">压缩格式数值过大时</exception>
+    public Int64 ReadEncodedInt64()
+    {
+        UInt64 rs = 0;
+        Byte n = 0;
+
+        while (true)
+        {
+            var b = ReadByte();
+
+            rs |= (UInt64)((UInt64)(b & 0x7f) << n);
+            if ((b & 0x80) == 0) break;
+
+            n += 7;
+            if (n >= 64)
+                throw new FormatException("The number value is too large to read in compressed 64-bit format!");
+        }
+        return (Int64)rs;
+    }
+
     /// <summary>读取长度前缀（1/2/4字节或7位编码）</summary>
     /// <param name="sizeOf">长度字段字节数。0表示7位压缩编码，1/2/4表示固定字节数</param>
     /// <returns>数据长度</returns>
@@ -528,5 +575,88 @@ public ref struct SpanReader
         data = _span.Slice(_index, length);
         return true;
     }
+    #endregion
+
+    #region 值序列化
+    /// <summary>读取单个基元类型值</summary>
+    /// <remarks>
+    /// 与 <see cref="SpanWriter.WriteValue"/> 格式完全对称，与 <see cref="NewLife.Serialization.Binary"/> 完全兼容：
+    /// 可空类型先读1字节标志（0=null直接返回null，1=有值则继续读），非可空类型直接读值。
+    /// DateTime 受 <see cref="FullTime"/> 控制：false（默认）读Unix秒数（UInt32，4字节）还原，true读Int64经 DateTime.FromBinary 还原。
+    /// 整数类型受 <see cref="EncodeInt"/> 控制：true 时读7位压缩编码，与 Binary.EncodeInt=true 一致。
+    /// Decimal 使用4×Int32格式，Byte[] 使用7位压缩编码长度前缀，Char 读取1字节。
+    /// </remarks>
+    /// <param name="type">值的类型</param>
+    /// <returns>反序列化的值，可空类型且为null时返回null</returns>
+    public Object? ReadValue(Type type)
+    {
+        // 可空类型：与 Binary 一致，先读1字节标志（0=null，1=有值）
+        if (type.IsNullable())
+        {
+            var flag = ReadByte();
+            if (flag == 0) return null;
+            // flag==1，继续读取实际值，type.GetTypeCode() 自动解除 Nullable<T> 包装
+        }
+
+        var code = type.GetTypeCode();
+        switch (code)
+        {
+            case TypeCode.Boolean: return ReadByte() != 0;
+            case TypeCode.Byte: return ReadByte();
+            case TypeCode.SByte: return unchecked((SByte)ReadByte());
+            // Char 与 Binary 一致，读取1字节
+            case TypeCode.Char: return (Char)ReadByte();
+            case TypeCode.Int16: return ReadInt16();
+            case TypeCode.UInt16: return ReadUInt16();
+            case TypeCode.Int32: return ReadInt32();
+            case TypeCode.UInt32: return ReadUInt32();
+            case TypeCode.Int64: return ReadInt64();
+            case TypeCode.UInt64: return ReadUInt64();
+            case TypeCode.Single: return ReadSingle();
+            case TypeCode.Double: return ReadDouble();
+            case TypeCode.Decimal:
+                {
+                    // 与 Binary 一致，使用4×Int32 raw bits 格式
+                    var bits = new Int32[4];
+                    for (var i = 0; i < 4; i++) bits[i] = ReadInt32();
+                    return new Decimal(bits);
+                }
+            case TypeCode.DateTime:
+                {
+                    if (FullTime)
+                    {
+                        // 与 Binary.FullTime=true 一致：读取 Int64 后经 DateTime.FromBinary 还原
+                        var binary = ReadInt64();
+                        return DateTime.FromBinary(binary);
+                    }
+                    // 与 Binary 默认(FullTime=false)一致：读Unix秒数（UInt32，4字节）还原为Utc时间
+                    var n = ReadUInt32();
+                    return n == 0 ? DateTime.MinValue : _dt1970.AddSeconds(n);
+                }
+            case TypeCode.String: return ReadString();
+            case TypeCode.Object:
+                if (type == typeof(Byte[]))
+                {
+                    // 与 Binary 一致，使用7位压缩编码长度前缀
+                    var len = ReadEncodedInt();
+                    return len > 0 ? ReadBytes(len).ToArray() : [];
+                }
+
+                if (type == typeof(Guid))
+                {
+                    var buf = ReadBytes(16).ToArray();
+                    return new Guid(buf);
+                }
+
+                throw new NotSupportedException($"ReadValue 不支持类型 {type.FullName}");
+
+            default: throw new NotSupportedException($"ReadValue 不支持 TypeCode.{code}");
+        }
+    }
+
+    /// <summary>读取单个基元类型值</summary>
+    /// <typeparam name="T">类型</typeparam>
+    /// <returns>反序列化的值</returns>
+    public T? ReadValue<T>() => (T?)ReadValue(typeof(T));
     #endregion
 }

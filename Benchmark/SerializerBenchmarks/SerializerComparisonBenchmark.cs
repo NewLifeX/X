@@ -119,29 +119,43 @@ public class SerializerSerializeBenchmark
     // ── SpanSerializer(反射) ─────────────────────────────
 
     [Benchmark(Description = "Span_Simple序列化_到Span", Baseline = true)]
-    public Int32 Span_Serialize_Simple_ToSpan() =>
-        SpanSerializer.Serialize(_simple, _buffer);
+    public Int32 Span_Serialize_Simple_ToSpan()
+    {
+        var writer = new SpanWriter(_buffer);
+        SpanSerializer.WriteObject(ref writer, _simple, _simple.GetType());
+        return writer.WrittenCount;
+    }
 
-    [Benchmark(Description = "Span_Simple序列化_池化包")]
+    [Benchmark(Description = "Span_Simple序列化_写缓冲")]
     public void Span_Serialize_Simple_Pool()
     {
-        using var pk = SpanSerializer.Serialize(_simple);
+        var writer = new SpanWriter(_buffer);
+        SpanSerializer.WriteObject(ref writer, _simple, _simple.GetType());
     }
 
     [Benchmark(Description = "Span_Nested序列化_到Span")]
-    public Int32 Span_Serialize_Nested_ToSpan() =>
-        SpanSerializer.Serialize(_nested, _buffer);
+    public Int32 Span_Serialize_Nested_ToSpan()
+    {
+        var writer = new SpanWriter(_buffer);
+        SpanSerializer.WriteObject(ref writer, _nested, _nested.GetType());
+        return writer.WrittenCount;
+    }
 
     // ── SpanSerializer(ISpanSerializable) ───────────────
 
     [Benchmark(Description = "Span_Fast序列化_到Span")]
-    public Int32 Span_Serialize_Fast_ToSpan() =>
-        SpanSerializer.Serialize(_fast, _buffer);
+    public Int32 Span_Serialize_Fast_ToSpan()
+    {
+        var writer = new SpanWriter(_buffer);
+        SpanSerializer.WriteObject(ref writer, _fast, _fast.GetType());
+        return writer.WrittenCount;
+    }
 
-    [Benchmark(Description = "Span_Fast序列化_池化包")]
+    [Benchmark(Description = "Span_Fast序列化_写缓冲")]
     public void Span_Serialize_Fast_Pool()
     {
-        using var pk = SpanSerializer.Serialize(_fast);
+        var writer = new SpanWriter(_buffer);
+        SpanSerializer.WriteObject(ref writer, _fast, _fast.GetType());
     }
 
     // ── Binary ──────────────────────────────────────────
@@ -205,14 +219,17 @@ public class SerializerDeserializeBenchmark
 
         // SpanSerializer — 序列化为字节
         var buf = new Byte[512];
-        var n = SpanSerializer.Serialize(simple, buf);
-        _spanSimpleBytes = buf[..n];
+        var w1 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w1, simple, simple.GetType());
+        _spanSimpleBytes = buf[..w1.WrittenCount];
 
-        n = SpanSerializer.Serialize(fast, buf);
-        _spanFastBytes = buf[..n];
+        var w2 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w2, fast, fast.GetType());
+        _spanFastBytes = buf[..w2.WrittenCount];
 
-        n = SpanSerializer.Serialize(nested, buf);
-        _spanNestedBytes = buf[..n];
+        var w3 = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref w3, nested, nested.GetType());
+        _spanNestedBytes = buf[..w3.WrittenCount];
 
         // Binary — 序列化为字节
         using var ms1 = new MemoryStream();
@@ -227,18 +244,27 @@ public class SerializerDeserializeBenchmark
     // ── SpanSerializer(反射) ─────────────────────────────
 
     [Benchmark(Description = "Span_Simple反序列化", Baseline = true)]
-    public SimpleModel Span_Deserialize_Simple() =>
-        SpanSerializer.Deserialize<SimpleModel>(_spanSimpleBytes);
+    public SimpleModel Span_Deserialize_Simple()
+    {
+        var reader = new SpanReader(_spanSimpleBytes);
+        return (SimpleModel)SpanSerializer.ReadObject(ref reader, typeof(SimpleModel));
+    }
 
     [Benchmark(Description = "Span_Nested反序列化")]
-    public NestedModel Span_Deserialize_Nested() =>
-        SpanSerializer.Deserialize<NestedModel>(_spanNestedBytes);
+    public NestedModel Span_Deserialize_Nested()
+    {
+        var reader = new SpanReader(_spanNestedBytes);
+        return (NestedModel)SpanSerializer.ReadObject(ref reader, typeof(NestedModel));
+    }
 
     // ── SpanSerializer(ISpanSerializable) ───────────────
 
     [Benchmark(Description = "Span_Fast反序列化")]
-    public FastModel Span_Deserialize_Fast() =>
-        SpanSerializer.Deserialize<FastModel>(_spanFastBytes);
+    public FastModel Span_Deserialize_Fast()
+    {
+        var reader = new SpanReader(_spanFastBytes);
+        return (FastModel)SpanSerializer.ReadObject(ref reader, typeof(FastModel));
+    }
 
     // ── Binary ──────────────────────────────────────────
 
@@ -399,8 +425,9 @@ public class SerializerConcurrencyBenchmark
         };
 
         var buf = new Byte[256];
-        var n = SpanSerializer.Serialize(_model, buf);
-        _spanBytes = buf[..n];
+        var wc = new SpanWriter(buf);
+        SpanSerializer.WriteObject(ref wc, _model, _model.GetType());
+        _spanBytes = buf[..wc.WrittenCount];
 
         using var ms = new MemoryStream();
         Binary.FastWrite(_model, ms);
@@ -413,7 +440,8 @@ public class SerializerConcurrencyBenchmark
         Parallel.For(0, ThreadCount, _ =>
         {
             Span<Byte> buf = stackalloc Byte[256];
-            SpanSerializer.Serialize(_model, buf);
+            var writer = new SpanWriter(buf);
+            SpanSerializer.WriteObject(ref writer, _model, _model.GetType());
         });
     }
 
@@ -422,7 +450,8 @@ public class SerializerConcurrencyBenchmark
     {
         Parallel.For(0, ThreadCount, _ =>
         {
-            SpanSerializer.Deserialize<SimpleModel>(_spanBytes);
+            var reader = new SpanReader(_spanBytes);
+            SpanSerializer.ReadObject(ref reader, typeof(SimpleModel));
         });
     }
 

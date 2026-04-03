@@ -54,7 +54,7 @@ public class MachineInfoTests
         ];
         if (disks.Count > 0)
         {
-            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimStart("virtio-")).ToList();
+            disks = disks.Where(e => !e.IsNullOrEmpty() && !e.Contains("QEMU_")).Select(e => e.TrimPrefix("virtio-")).ToList();
             Assert.NotEmpty(disks);
             Assert.Equal("uf6ag3b49w6v4e9ldgcj", disks[0]);
         }

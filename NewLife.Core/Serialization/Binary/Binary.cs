@@ -144,7 +144,9 @@ public class Binary : FormatterBase, IBinary
             using var pk = new OwnerPacket(4096);
             var writer = new SpanWriter(pk.GetSpan(), Stream)
             {
-                IsLittleEndian = IsLittleEndian
+                IsLittleEndian = IsLittleEndian,
+                EncodeInt = EncodeInt,
+                FullTime = FullTime,
             };
             spanW.Write(ref writer);
             writer.Dispose();
@@ -920,7 +922,12 @@ public class Binary : FormatterBase, IBinary
         {
             // 不支持Seek的流直接使用流模式。
             // 注意：SpanReader可能批量预读多余字节导致流位置超前，仅适用于整帧全部交由ISpanSerializable处理的场景
-            var reader0 = new SpanReader(Stream) { IsLittleEndian = IsLittleEndian };
+            var reader0 = new SpanReader(Stream)
+            {
+                IsLittleEndian = IsLittleEndian,
+                EncodeInt = EncodeInt,
+                FullTime = FullTime,
+            };
             target.Read(ref reader0);
             // 总消费量 = 已缓入span的总字节数 - 未消费剩余量；_total为私有，用 Available 间接推算
             // reader0.Position 仅在未触发二次EnsureSpace时等于总消费量，此处以此为近似值

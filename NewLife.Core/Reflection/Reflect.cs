@@ -11,7 +11,7 @@ namespace NewLife.Reflection;
 public static class Reflect
 {
     #region 静态
-    private static IReflect _provider;
+    private static IReflect _provider = null!;
     // 缓存 Provider 的具体 DefaultReflect 引用，供扩展方法直接调用非虚核心方法，绕过接口分派
     private static volatile DefaultReflect? _directProvider;
 
@@ -185,7 +185,7 @@ public static class Reflect
             }
         }
         var dp = _directProvider;
-        return dp != null ? dp.CreateInstanceCore(type, parameters) : Provider.CreateInstance(type, parameters);
+        return dp != null ? dp.CreateInstanceCore(type, parameters) : Provider.CreateInstance(type, parameters!);
     }
 
     /// <summary>反射调用指定对象的方法。target为类型时调用其静态方法</summary>

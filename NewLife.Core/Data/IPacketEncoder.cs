@@ -1,4 +1,5 @@
-﻿using NewLife.Reflection;
+﻿using NewLife.Buffers;
+using NewLife.Reflection;
 using NewLife.Serialization;
 
 namespace NewLife.Data;
@@ -155,7 +156,16 @@ public class DefaultPacketEncoder : IPacketEncoder
         if (type == typeof(Byte[])) return data.ReadBytes();
 
         // ISpanSerializable 类型，使用零反射快速路径
-        if (type.As<ISpanSerializable>()) return SpanSerializer.Deserialize(type, data);
+        if (type.As<ISpanSerializable>())
+        {
+            if (type.CreateInstance() is ISpanSerializable ss)
+            {
+                var reader = new SpanReader(data);
+                ss.Read(ref reader);
+
+                return ss;
+            }
+        }
 
         // 目标是访问器类型
         if (type.As<IAccessor>()) return type.AccessorRead(data);

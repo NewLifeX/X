@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.ComponentModel;
+using System.Data;
 using NewLife;
 using NewLife.Data;
 using Xunit;
@@ -489,5 +490,100 @@ public class DbTableTests
         Assert.Contains("<ID>1</ID>", xml);
         Assert.Contains("<Name>管理员</Name>", xml);
         Assert.Contains("<Remark>业务管理人员，可以管理业务模块，可以分配授权用户等级</Remark>", xml);
+    }
+
+    [Fact]
+    [DisplayName("ToPacket与Write(Stream)二进制完全一致 — 基础场景")]
+    public void BinaryConsistencyTest_Basic()
+    {
+        var dt = new DbTable
+        {
+            Columns = ["id", "name"],
+            Types = [typeof(Int64), typeof(String)],
+            Rows = [[(Int64)1, "test"]],
+        };
+
+        // Write(Stream) 路径（Binary）
+        var ms1 = new MemoryStream();
+        dt.Write(ms1);
+        var bytes1 = ms1.ToArray();
+
+        // ToPacket() 路径
+        var pk = dt.ToPacket();
+        var bytes2 = pk.ReadBytes();
+
+        // 两路径产出完全相同的字节
+        Assert.Equal(bytes1.ToHex(), bytes2.ToHex());
+
+        // 两路径均可正确反序列化
+        var dt2 = new DbTable();
+        dt2.Read(new MemoryStream(bytes1));
+        Assert.Single(dt2.Rows);
+        Assert.Equal((Int64)1, dt2.Rows[0][0]);
+        Assert.Equal("test", dt2.Rows[0][1]);
+
+        var dt3 = new DbTable();
+        var pk2 = dt.ToPacket();
+        dt3.Read(pk2);
+        Assert.Single(dt3.Rows);
+        Assert.Equal((Int64)1, dt3.Rows[0][0]);
+        Assert.Equal("test", dt3.Rows[0][1]);
+    }
+
+    [Fact]
+    [DisplayName("ToPacket与Write(Stream)二进制完全一致 — 多类型含DateTime/Decimal")]
+    public void BinaryConsistencyTest_MultiTypes()
+    {
+        var dt = new DbTable
+        {
+            Columns = ["id", "name", "score", "amount", "active", "ts"],
+            Types = [typeof(Int64), typeof(String), typeof(Double), typeof(Decimal), typeof(Boolean), typeof(DateTime)],
+            Rows = [
+                [(Int64)1001, "张三", 3.14, 99.99m, true, new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)],
+                [(Int64)1002, "李四", 2.71, 0.01m, false, new DateTime(2025, 6, 15, 12, 0, 0, DateTimeKind.Utc)],
+            ],
+        };
+
+        var ms1 = new MemoryStream();
+        dt.Write(ms1);
+        var bytes1 = ms1.ToArray();
+
+        var pk = dt.ToPacket();
+        var bytes2 = pk.ReadBytes();
+
+        Assert.Equal(bytes1.ToHex(), bytes2.ToHex());
+
+        // 反序列化验证数据正确性
+        var dt2 = new DbTable();
+        dt2.Read(new MemoryStream(bytes1));
+        Assert.Equal(2, dt2.Rows.Count);
+        Assert.Equal((Int64)1001, dt2.Rows[0][0]);
+        Assert.Equal("李四", dt2.Rows[1][1]);
+        Assert.Equal(99.99m, dt2.Rows[0][3]);
+        Assert.Equal(true, dt2.Rows[0][4]);
+    }
+
+    [Fact]
+    [DisplayName("ToPacket与Write(Stream)二进制完全一致 — null值列")]
+    public void BinaryConsistencyTest_NullValues()
+    {
+        var dt = new DbTable
+        {
+            Columns = ["id", "name", "score"],
+            Types = [typeof(Int64), typeof(String), typeof(Double)],
+            Rows = [
+                [(Int64)1, null, (Double)0],
+                [(Int64)2, "has_name", 3.14],
+            ],
+        };
+
+        var ms1 = new MemoryStream();
+        dt.Write(ms1);
+        var bytes1 = ms1.ToArray();
+
+        var pk = dt.ToPacket();
+        var bytes2 = pk.ReadBytes();
+
+        Assert.Equal(bytes1.ToHex(), bytes2.ToHex());
     }
 }
