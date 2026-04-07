@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NewLife.Data;
 using NewLife.Serialization;
 using Xunit;
@@ -137,6 +138,70 @@ public class ExtendableConverterTests
         var json = JsonSerializer.Serialize(model, _options);
 
         Assert.Contains("\"Address\":null", json.Replace(" ", ""));
+    }
+
+    [Fact(DisplayName = "Write WhenWritingDefault 跳过 null 和默认值属性")]
+    public void Write_WhenWritingDefault_SkipsDefaultValues()
+    {
+        var opts = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            Converters = { new ExtendableConverter() }
+        };
+
+        // Name 为空字符串（非 null，不是默认值）、Age 为 0（默认值）、Address 为 null（默认值）
+        var model = new ComplexModel { Name = "Bob", Address = null };
+        model.Items["extra"] = "value";
+        model.Items["empty"] = null;
+
+        var json = JsonSerializer.Serialize(model, opts);
+
+        // Name 有值应保留
+        Assert.Contains("\"Name\"", json);
+        // Address 为 null（引用类型默认值）应跳过
+        Assert.DoesNotContain("\"Address\"", json);
+        // Items 中有值的保留
+        Assert.Contains("\"extra\"", json);
+        // Items 中 null 值应跳过
+        Assert.DoesNotContain("\"empty\"", json);
+    }
+
+    [Fact(DisplayName = "Write WhenWritingDefault 跳过值类型默认值")]
+    public void Write_WhenWritingDefault_SkipsValueTypeDefaults()
+    {
+        var opts = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            Converters = { new ExtendableConverter() }
+        };
+
+        var model = new SimpleModel { Name = "Alice", Age = 0 };
+
+        var json = JsonSerializer.Serialize(model, opts);
+
+        // Name 有值应保留
+        Assert.Contains("\"Name\"", json);
+        // Age 为 0（Int32 默认值）应跳过
+        Assert.DoesNotContain("\"Age\"", json);
+    }
+
+    [Fact(DisplayName = "Write WhenWritingNull 仅跳过 null 不跳过值类型默认值")]
+    public void Write_WhenWritingNull_SkipsOnlyNull()
+    {
+        var opts = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new ExtendableConverter() }
+        };
+
+        var model = new ComplexModel { Name = "Bob", Address = null };
+
+        var json = JsonSerializer.Serialize(model, opts);
+
+        // Name 有值应保留
+        Assert.Contains("\"Name\"", json);
+        // Address 为 null 应跳过
+        Assert.DoesNotContain("\"Address\"", json);
     }
 
     [Fact(DisplayName = "Write 遵循 PropertyNamingPolicy 命名策略")]
