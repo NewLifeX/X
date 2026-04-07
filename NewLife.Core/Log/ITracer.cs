@@ -100,7 +100,7 @@ public class DefaultTracer : DisposeBase, ITracer, ILogFeature
     /// <summary>Json序列化选项</summary>
     public JsonOptions JsonOptions { get; set; } = new JsonOptions
     {
-        CamelCase = false,
+        //CamelCase = false,
         IgnoreNullValues = false,
         IgnoreCycles = true,
         WriteIndented = false,

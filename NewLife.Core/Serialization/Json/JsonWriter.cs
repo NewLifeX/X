@@ -27,7 +27,7 @@ public class JsonWriter
 
     /// <summary>使用驼峰命名</summary>
     [Obsolete("=>Options")]
-    public Boolean CamelCase { get => Options.CamelCase; set => Options.CamelCase = value; }
+    public Boolean CamelCase { get => Options.PropertyNaming == PropertyNaming.CamelCase; set => Options.PropertyNaming = value ? PropertyNaming.CamelCase : PropertyNaming.None; }
 
     /// <summary>忽略空值。默认false</summary>
     [Obsolete("=>Options")]
@@ -89,8 +89,10 @@ public class JsonWriter
     {
         var jw = new JsonWriter();
         jw.Options.IgnoreNullValues = !nullValue;
-        jw.Options.CamelCase = camelCase;
+        //jw.Options.CamelCase = camelCase;
         jw.Options.WriteIndented = indented;
+
+        if (camelCase) jw.Options.PropertyNaming = PropertyNaming.CamelCase;
 
         jw.WriteValue(obj);
 
@@ -619,13 +621,79 @@ public class JsonWriter
         if (name.IsNullOrEmpty()) return name;
 
         if (LowerCase) return name.ToLower();
-        if (Options.CamelCase)
-        {
-            if (name == "ID") return "id";
-            return name[..1].ToLower() + name[1..];
-        }
 
-        return name;
+        return Options.PropertyNaming switch
+        {
+            PropertyNaming.CamelCase => ConvertCamelCase(name),
+            PropertyNaming.KebabCaseLower => ConvertKebabCaseLower(name),
+            PropertyNaming.KebabCaseUpper => ConvertKebabCaseUpper(name),
+            PropertyNaming.SnakeCaseLower => ConvertSnakeCaseLower(name),
+            PropertyNaming.SnakeCaseUpper => ConvertSnakeCaseUpper(name),
+            _ => name,
+        };
+    }
+
+    /// <summary>将属性名转换为驼峰命名</summary>
+    private static String ConvertCamelCase(String name)
+    {
+        if (name == "ID") return "id";
+        return name[..1].ToLower() + name[1..];
+    }
+
+    /// <summary>将属性名转换为小写 kebab 命名</summary>
+    private static String ConvertKebabCaseLower(String name)
+    {
+        var sb = Pool.StringBuilder.Get();
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (i > 0 && Char.IsUpper(c))
+                sb.Append('-');
+            sb.Append(Char.ToLower(c));
+        }
+        return sb.Return(true);
+    }
+
+    /// <summary>将属性名转换为大写 kebab 命名</summary>
+    private static String ConvertKebabCaseUpper(String name)
+    {
+        var sb = Pool.StringBuilder.Get();
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (i > 0 && Char.IsUpper(c))
+                sb.Append('-');
+            sb.Append(Char.ToUpper(c));
+        }
+        return sb.Return(true);
+    }
+
+    /// <summary>将属性名转换为小写 snake 命名</summary>
+    private static String ConvertSnakeCaseLower(String name)
+    {
+        var sb = Pool.StringBuilder.Get();
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (i > 0 && Char.IsUpper(c))
+                sb.Append('_');
+            sb.Append(Char.ToLower(c));
+        }
+        return sb.Return(true);
+    }
+
+    /// <summary>将属性名转换为大写 snake 命名</summary>
+    private static String ConvertSnakeCaseUpper(String name)
+    {
+        var sb = Pool.StringBuilder.Get();
+        for (var i = 0; i < name.Length; i++)
+        {
+            var c = name[i];
+            if (i > 0 && Char.IsUpper(c))
+                sb.Append('_');
+            sb.Append(Char.ToUpper(c));
+        }
+        return sb.Return(true);
     }
 
     private static IDictionary<TypeCode, Object>? _def;

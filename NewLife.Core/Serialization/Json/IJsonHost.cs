@@ -230,7 +230,7 @@ public class FastJson : IJsonHost
     /// <summary>配置项</summary>
     public JsonOptions Options { get; set; } = new JsonOptions
     {
-        CamelCase = false,
+        //CamelCase = false,
         IgnoreNullValues = false,
         WriteIndented = false
     };
@@ -284,7 +284,7 @@ public class SystemJson : IJsonHost
     /// <summary>配置项</summary>
     public JsonOptions Options { get; set; } = new JsonOptions
     {
-        CamelCase = false,
+        //CamelCase = false,
         IgnoreNullValues = false,
         WriteIndented = false
     };
@@ -297,7 +297,7 @@ public class SystemJson : IJsonHost
         var opt = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             //Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            PropertyNamingPolicy = new MyJsonNamingPolicy(),
+            PropertyNamingPolicy = null,
         };
         Apply(opt, false);
         return opt;
@@ -396,8 +396,32 @@ public class SystemJson : IJsonHost
         };
         if (jsonOptions.IgnoreNullValues)
             opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-        if (jsonOptions.CamelCase)
-            opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+        // 优先使用 PropertyNaming，向后兼容 CamelCase
+#if NET8_0_OR_GREATER
+        opt.PropertyNamingPolicy = jsonOptions.PropertyNaming switch
+        {
+            PropertyNaming.None => null,
+            PropertyNaming.CamelCase => JsonNamingPolicy.CamelCase,
+            PropertyNaming.KebabCaseLower => JsonNamingPolicy.KebabCaseLower,
+            PropertyNaming.KebabCaseUpper => JsonNamingPolicy.KebabCaseUpper,
+            PropertyNaming.SnakeCaseLower => JsonNamingPolicy.SnakeCaseLower,
+            PropertyNaming.SnakeCaseUpper => JsonNamingPolicy.SnakeCaseUpper,
+            _ => null,
+        };
+#else
+        opt.PropertyNamingPolicy = jsonOptions.PropertyNaming switch
+        {
+            PropertyNaming.None => null,
+            PropertyNaming.CamelCase => JsonNamingPolicy.CamelCase,
+            PropertyNaming.KebabCaseLower => new KebabCaseLowerNamingPolicy(),
+            PropertyNaming.KebabCaseUpper => new KebabCaseUpperNamingPolicy(),
+            PropertyNaming.SnakeCaseLower => new SnakeCaseLowerNamingPolicy(),
+            PropertyNaming.SnakeCaseUpper => new SnakeCaseUpperNamingPolicy(),
+            _ => null,
+        };
+#endif
+
         if (jsonOptions.EnumString)
             opt.Converters.Add(new JsonStringEnumConverter(null, true));
 #if NET6_0_OR_GREATER
@@ -412,6 +436,77 @@ public class SystemJson : IJsonHost
 
         return JsonSerializer.Serialize(value, opt);
     }
+
+#if NET8_0_OR_GREATER
+#else
+    /// <summary>小写 kebab 命名策略</summary>
+    private class KebabCaseLowerNamingPolicy : JsonNamingPolicy
+    {
+        public override String ConvertName(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+            for (var i = 0; i < name.Length; i++)
+            {
+                var c = name[i];
+                if (i > 0 && Char.IsUpper(c))
+                    sb.Append('-');
+                sb.Append(Char.ToLower(c));
+            }
+            return sb.Return(true);
+        }
+    }
+
+    /// <summary>大写 kebab 命名策略</summary>
+    private class KebabCaseUpperNamingPolicy : JsonNamingPolicy
+    {
+        public override String ConvertName(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+            for (var i = 0; i < name.Length; i++)
+            {
+                var c = name[i];
+                if (i > 0 && Char.IsUpper(c))
+                    sb.Append('-');
+                sb.Append(Char.ToUpper(c));
+            }
+            return sb.Return(true);
+        }
+    }
+
+    /// <summary>小写 snake 命名策略</summary>
+    private class SnakeCaseLowerNamingPolicy : JsonNamingPolicy
+    {
+        public override String ConvertName(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+            for (var i = 0; i < name.Length; i++)
+            {
+                var c = name[i];
+                if (i > 0 && Char.IsUpper(c))
+                    sb.Append('_');
+                sb.Append(Char.ToLower(c));
+            }
+            return sb.Return(true);
+        }
+    }
+
+    /// <summary>大写 snake 命名策略</summary>
+    private class SnakeCaseUpperNamingPolicy : JsonNamingPolicy
+    {
+        public override String ConvertName(String name)
+        {
+            var sb = Pool.StringBuilder.Get();
+            for (var i = 0; i < name.Length; i++)
+            {
+                var c = name[i];
+                if (i > 0 && Char.IsUpper(c))
+                    sb.Append('_');
+                sb.Append(Char.ToUpper(c));
+            }
+            return sb.Return(true);
+        }
+    }
+#endif
 
     /// <summary>从Json字符串中读取对象</summary>
     /// <param name="json"></param>
@@ -468,13 +563,6 @@ public class SystemJson : IJsonHost
     {
         var doc = JsonDocument.Parse(json);
         return doc.RootElement.ToDictionary();
-    }
-    #endregion
-
-    #region 辅助
-    class MyJsonNamingPolicy : JsonNamingPolicy
-    {
-        public override String ConvertName(String name) => name;
     }
     #endregion
 }
