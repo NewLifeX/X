@@ -12,6 +12,9 @@ public class JsonCodec : Handler
     #region 属性
     /// <summary>Json序列化主机</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
+
+    /// <summary>JSON序列化选项，影响复杂对象的编码和解码行为</summary>
+    public JsonOptions? JsonOptions { get; set; }
     #endregion
 
     /// <summary>发送消息时，写入数据，编码并加入队列</summary>
@@ -35,7 +38,7 @@ public class JsonCodec : Handler
         }
         else if (message is not IPacket and not IMessage)
         {
-            message = JsonHost.Write(message).GetBytes();
+            message = JsonHost.Write(message, JsonOptions).GetBytes();
 
             // 通知标准网络封包使用的Flag
             ext?["Flag"] = DataKinds.Json;

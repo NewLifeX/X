@@ -54,6 +54,9 @@ public class DefaultPacketEncoder : IPacketEncoder
     /// <remarks>可配置不同的JSON序列化器以满足特定需求</remarks>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
+    /// <summary>JSON序列化选项，影响复杂对象的编码和解码行为</summary>
+    public JsonOptions? JsonOptions { get; set; }
+
     /// <summary>解码出错时是否抛出异常</summary>
     /// <remarks>
     /// <para>默认false：出错时返回null，适用于容错性要求高的场景</para>
@@ -104,7 +107,7 @@ public class DefaultPacketEncoder : IPacketEncoder
         return typeCode switch
         {
             // 复杂对象使用JSON序列化
-            TypeCode.Object => JsonHost.Write(value),
+            TypeCode.Object => JsonHost.Write(value, JsonOptions),
 
             // 字符串直接返回
             TypeCode.String => value as String,
@@ -196,7 +199,7 @@ public class DefaultPacketEncoder : IPacketEncoder
         if (type.IsBaseType()) return value.ChangeType(type);
 
         // 复杂类型使用JSON反序列化
-        return JsonHost.Read(value, type);
+        return JsonHost.Read(value, type, JsonOptions);
     }
     #endregion
 }

@@ -315,7 +315,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 为空时抛出</exception>
     protected virtual Task<Int32> OnDispatchAsync(String topic, String clientId, String msg, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
-        var @event = JsonHost.Read<TEvent>(msg)!;
+        var @event = JsonHost.Read<TEvent>(msg, null)!;
         if (@event is ITraceMessage tm && DefaultSpan.Current is ISpan span)
             span.Detach(tm.TraceId);
 

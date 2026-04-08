@@ -41,6 +41,9 @@ public class TinyHttpClient : DisposeBase
     /// <summary>Json序列化</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
+    /// <summary>JSON序列化选项，影响复杂对象的编码和解码行为</summary>
+    public JsonOptions? JsonOptions { get; set; }
+
     /// <summary>性能追踪</summary>
     public ITracer? Tracer { get; set; } = HttpHelper.Tracer;
 
@@ -401,7 +404,7 @@ public class TinyHttpClient : DisposeBase
 
         var ps = args.ToDictionary();
         if (method.EqualIgnoreCase("Post"))
-            req.Body = (ArrayPacket)JsonHost.Write(ps).GetBytes();
+            req.Body = (ArrayPacket)JsonHost.Write(ps, JsonOptions).GetBytes();
         else
         {
             var sb = Pool.StringBuilder.Get();

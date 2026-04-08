@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Specialized;
+using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Model;
 using NewLife.Reflection;
@@ -13,6 +14,9 @@ namespace NewLife.Serialization;
 public class JsonReader
 {
     #region 属性
+    /// <summary>序列化选项。控制属性命名策略、枚举字符串等反序列化行为</summary>
+    public JsonOptions? Options { get; set; }
+
     /// <summary>是否使用UTC时间</summary>
     public Boolean UseUTCDateTime { get; set; }
 
@@ -197,8 +201,13 @@ public class JsonReader
 
             if (!props.TryGetValue(item.Key, out var pi))
             {
-                // 可能有小写
-                pi = props.Values.FirstOrDefault(e => e.Name.EqualIgnoreCase(item.Key));
+                // 根据命名策略将 Json 键名反转为 PascalCase 再匹配
+                var normalizedKey = NormalizeKeyToPascal(item.Key);
+                if (normalizedKey != null)
+                    props.TryGetValue(normalizedKey, out pi);
+
+                // 兜底：大小写不敏感匹配
+                pi ??= props.Values.FirstOrDefault(e => e.Name.EqualIgnoreCase(item.Key));
                 if (pi == null)
                 {
                     // 可能有扩展属性
@@ -230,6 +239,41 @@ public class JsonReader
     #endregion
 
     #region 辅助
+    /// <summary>根据命名策略将 Json 键名反转为 PascalCase 属性名，用于属性查找</summary>
+    /// <param name="key">Json 键名</param>
+    /// <returns>反转后的 PascalCase 名称。无需转换或无法转换时返回 null</returns>
+    private String? NormalizeKeyToPascal(String key)
+    {
+        var naming = Options?.PropertyNaming ?? PropertyNaming.None;
+        if (naming == PropertyNaming.None || key.Length == 0) return null;
+
+        // CamelCase: 首字母大写即可, userName → UserName
+        if (naming == PropertyNaming.CamelCase)
+        {
+            if (Char.IsUpper(key[0])) return null;
+            return Char.ToUpper(key[0]) + key[1..];
+        }
+
+        // SnakeCase / KebabCase: 按分隔符拆分后每段首字母大写拼接
+        var separator = naming is PropertyNaming.SnakeCaseLower or PropertyNaming.SnakeCaseUpper ? '_' : '-';
+        if (key.IndexOf(separator) < 0) return null;
+
+        var parts = key.Split(separator);
+        var sb = Pool.StringBuilder.Get();
+        foreach (var part in parts)
+        {
+            if (part.Length > 0)
+            {
+                sb.Append(Char.ToUpper(part[0]));
+                for (var i = 1; i < part.Length; i++)
+                {
+                    sb.Append(Char.ToLower(part[i]));
+                }
+            }
+        }
+        return sb.Return(true);
+    }
+
     private Object? ChangeType(Object value, Type type)
     {
         // 支持可空类型

@@ -20,43 +20,51 @@ public interface IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     IServiceProvider ServiceProvider { get; set; }
 
-    /// <summary>配置项</summary>
+    /// <summary>默认序列化选项。其他方法未显式传入 <see cref="JsonOptions"/> 时以此为基准</summary>
     JsonOptions Options { get; set; }
 
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
-    /// <param name="indented">是否缩进。默认false</param>
-    /// <param name="nullValue">是否写空值。默认true</param>
-    /// <param name="camelCase">是否驼峰命名。默认false</param>
-    /// <returns></returns>
+    /// <summary>写入对象，得到Json字符串。以 <see cref="Options"/> 为基准，再叠加指定参数</summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="indented">是否缩进。为 true 时强制开启缩进。默认false</param>
+    /// <param name="nullValue">是否写空值。为 false 时强制忽略空值。默认true</param>
+    /// <param name="camelCase">是否驼峰命名。为 true 时强制驼峰命名。默认false</param>
+    /// <returns>Json字符串</returns>
     String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false);
 
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
-    /// <param name="jsonOptions">序列化选项</param>
-    /// <returns></returns>
-    String Write(Object value, JsonOptions jsonOptions);
+    /// <summary>写入对象，得到Json字符串。未传入配置时使用 <see cref="Options"/></summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>Json字符串</returns>
+    String Write(Object value, JsonOptions? jsonOptions);
 
-    /// <summary>从Json字符串中读取对象</summary>
-    /// <param name="json"></param>
-    /// <param name="type"></param>
-    /// <returns></returns>
+    /// <summary>从Json字符串中读取对象。等同于 Read(json, type, null)</summary>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
+    [Obsolete("请使用 Read(json, type, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
     Object? Read(String json, Type type);
 
-    /// <summary>类型转换</summary>
-    /// <param name="obj"></param>
-    /// <param name="targetType"></param>
-    /// <returns></returns>
+    /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>反序列化后的对象</returns>
+    Object? Read(String json, Type type, JsonOptions? jsonOptions);
+
+    /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
+    /// <param name="obj">Json解析出的对象（字典或列表）</param>
+    /// <param name="targetType">目标类型</param>
+    /// <returns>转换后的对象</returns>
     Object? Convert(Object obj, Type targetType);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
+    /// <param name="json">Json字符串</param>
+    /// <returns>字典或列表</returns>
     Object? Parse(String json);
 
     /// <summary>分析Json字符串得到字典</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
+    /// <param name="json">Json字符串</param>
+    /// <returns>Key 为属性名的字典</returns>
     IDictionary<String, Object?>? Decode(String json);
 }
 
@@ -92,36 +100,70 @@ public static class JsonHelper
     /// <param name="value"></param>
     /// <param name="jsonOptions">序列化选项</param>
     /// <returns></returns>
-    public static String ToJson(this Object value, JsonOptions jsonOptions) => Default.Write(value, jsonOptions);
+    public static String ToJson(this Object value, JsonOptions? jsonOptions) => Default.Write(value, jsonOptions);
 
     /// <summary>从Json字符串中读取对象</summary>
-    /// <param name="json"></param>
-    /// <param name="type"></param>
-    /// <returns></returns>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
+    [Obsolete("请使用 ToJsonEntity(json, type, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
     public static Object? ToJsonEntity(this String json, Type type)
     {
         if (json.IsNullOrEmpty()) return null;
 
-        return Default.Read(json, type);
+        return Default.Read(json, type, null);
+    }
+
+    /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
+    /// <returns>反序列化后的对象</returns>
+    public static Object? ToJsonEntity(this String json, Type type, JsonOptions? jsonOptions)
+    {
+        if (json.IsNullOrEmpty()) return null;
+
+        return Default.Read(json, type, jsonOptions);
     }
 
     /// <summary>从Json字符串中读取对象</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="json"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="json">Json字符串</param>
+    /// <returns>反序列化后的对象</returns>
     public static T? ToJsonEntity<T>(this String json)
     {
         if (json.IsNullOrEmpty()) return default;
 
-        return (T?)Default.Read(json, typeof(T));
+        return (T?)Default.Read(json, typeof(T), null);
+    }
+
+    /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="json">Json字符串</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
+    /// <returns>反序列化后的对象</returns>
+    public static T? ToJsonEntity<T>(this String json, JsonOptions? jsonOptions)
+    {
+        if (json.IsNullOrEmpty()) return default;
+
+        return (T?)Default.Read(json, typeof(T), jsonOptions);
     }
 
     /// <summary>从Json字符串中反序列化对象</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="jsonHost"></param>
-    /// <param name="json"></param>
-    /// <returns></returns>
-    public static T? Read<T>(this IJsonHost jsonHost, String json) => (T?)jsonHost.Read(json, typeof(T));
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="jsonHost">Json序列化实现</param>
+    /// <param name="json">Json字符串</param>
+    /// <returns>反序列化后的对象</returns>
+    [Obsolete("请使用 Read(json, jsonOptions) 方法，传入 JsonOptions 以明确使用的配置，避免未来 Options 变更导致行为不确定")]
+    public static T? Read<T>(this IJsonHost jsonHost, String json) => (T?)jsonHost.Read(json, typeof(T), null);
+
+    /// <summary>从Json字符串中反序列化对象，使用指定序列化选项</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="jsonHost">Json序列化实现</param>
+    /// <param name="json">Json字符串</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用默认 Options</param>
+    /// <returns>反序列化后的对象</returns>
+    public static T? Read<T>(this IJsonHost jsonHost, String json, JsonOptions? jsonOptions = null) => (T?)jsonHost.Read(json, typeof(T), jsonOptions);
 
     /// <summary>格式化Json文本</summary>
     /// <param name="json"></param>
@@ -227,7 +269,7 @@ public class FastJson : IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
-    /// <summary>配置项</summary>
+    /// <summary>默认序列化选项</summary>
     public JsonOptions Options { get; set; } = new JsonOptions
     {
         //CamelCase = false,
@@ -236,40 +278,62 @@ public class FastJson : IJsonHost
     };
 
     #region IJsonHost 成员
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
-    /// <param name="indented">是否缩进。默认false</param>
-    /// <param name="nullValue">是否写空值。默认true</param>
-    /// <param name="camelCase">是否驼峰命名。默认false</param>
-    /// <returns></returns>
-    public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false) => JsonWriter.ToJson(value, indented, nullValue, camelCase);
+    /// <summary>写入对象，得到Json字符串。以 <see cref="Options"/> 为基准，再叠加指定参数</summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="indented">是否缩进。为 true 时强制开启缩进。默认false</param>
+    /// <param name="nullValue">是否写空值。为 false 时强制忽略空值。默认true</param>
+    /// <param name="camelCase">是否驼峰命名。为 true 时强制驼峰命名。默认false</param>
+    /// <returns>Json字符串</returns>
+    public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
+    {
+        var opt = Options;
+        // 入参不会改变 Options 已有配置时，直接使用 Options，避免复制开销
+        var needCopy = (indented && !opt.WriteIndented) ||
+                       (!nullValue && !opt.IgnoreNullValues) ||
+                       (camelCase && opt.PropertyNaming != PropertyNaming.CamelCase);
+        if (!needCopy)
+            return Write(value, jsonOptions: null);
 
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
-    /// <param name="jsonOptions">序列化选项</param>
-    /// <returns></returns>
-    public String Write(Object value, JsonOptions jsonOptions) => JsonWriter.ToJson(value, jsonOptions ?? Options);
+        var newOpt = new JsonOptions(opt);
+        if (indented) newOpt.WriteIndented = true;
+        if (!nullValue) newOpt.IgnoreNullValues = true;
+        if (camelCase) newOpt.PropertyNaming = PropertyNaming.CamelCase;
+        return Write(value, newOpt);
+    }
+
+    /// <summary>写入对象，得到Json字符串。未传入配置时使用 <see cref="Options"/></summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>Json字符串</returns>
+    public String Write(Object value, JsonOptions? jsonOptions) => JsonWriter.ToJson(value, jsonOptions ?? Options);
 
     /// <summary>从Json字符串中读取对象</summary>
-    /// <param name="json"></param>
-    /// <param name="type"></param>
-    /// <returns></returns>
-    public Object? Read(String json, Type type) => new JsonReader { Provider = ServiceProvider }.Read(json, type);
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
+    public Object? Read(String json, Type type) => Read(json, type, null);
 
-    /// <summary>类型转换</summary>
-    /// <param name="obj"></param>
-    /// <param name="targetType"></param>
-    /// <returns></returns>
-    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
+    /// <summary>从Json字符串中读取对象，使用指定序列化选项</summary>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>反序列化后的对象</returns>
+    public Object? Read(String json, Type type, JsonOptions? jsonOptions) => new JsonReader { Provider = ServiceProvider, Options = jsonOptions ?? Options }.Read(json, type);
+
+    /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
+    /// <param name="obj">Json解析出的对象（字典或列表）</param>
+    /// <param name="targetType">目标类型</param>
+    /// <returns>转换后的对象</returns>
+    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
+    /// <param name="json">Json字符串</param>
+    /// <returns>字典或列表</returns>
     public Object? Parse(String json) => new JsonParser(json).Decode();
 
     /// <summary>分析Json字符串得到字典</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
+    /// <param name="json">Json字符串</param>
+    /// <returns>Key 为属性名的字典</returns>
     public IDictionary<String, Object?>? Decode(String json) => JsonParser.Decode(json);
     #endregion
 }
@@ -281,13 +345,13 @@ public class SystemJson : IJsonHost
     /// <summary>服务提供者。用于反序列化时构造内部成员对象</summary>
     public IServiceProvider ServiceProvider { get; set; } = ObjectContainer.Provider;
 
-    /// <summary>配置项</summary>
-    public JsonOptions Options { get; set; } = new JsonOptions
+    private JsonOptions _options = new() { IgnoreNullValues = false, WriteIndented = false };
+    /// <summary>默认序列化选项。重新赋值时自动清除缓存的 <see cref="JsonSerializerOptions"/></summary>
+    public JsonOptions Options
     {
-        //CamelCase = false,
-        IgnoreNullValues = false,
-        WriteIndented = false
-    };
+        get => _options;
+        set { _options = value; _cachedSerializerOptions = null; }
+    }
 
     #region 静态
     /// <summary>获取序列化配置项</summary>
@@ -299,7 +363,7 @@ public class SystemJson : IJsonHost
             //Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
             PropertyNamingPolicy = null,
         };
-        Apply(opt, false);
+        Apply(opt, true);
         return opt;
     }
 
@@ -342,7 +406,7 @@ public class SystemJson : IJsonHost
     #endregion
 
     #region 属性
-    /// <summary>配置项</summary>
+    /// <summary>基础 System.Text.Json 配置项。包含 Encoder、Converter 等基础设置，由 <see cref="BuildSerializerOptions"/> 在此基础上叠加 <see cref="JsonOptions"/> 配置</summary>
     public JsonSerializerOptions SerializerOptions { get; set; }
     #endregion
 
@@ -364,36 +428,35 @@ public class SystemJson : IJsonHost
     }
     #endregion
 
-    #region IJsonHost 成员
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
-    /// <param name="indented">是否缩进。默认false</param>
-    /// <param name="nullValue">是否写空值。默认true</param>
-    /// <param name="camelCase">是否驼峰命名。默认false</param>
-    /// <returns></returns>
-    public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
-    {
-        var opt = new JsonSerializerOptions(SerializerOptions)
-        {
-            WriteIndented = indented
-        };
-        if (!nullValue) opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-        if (camelCase) opt.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    #region 选项构建
+    /// <summary>缓存默认 Options 对应的 JsonSerializerOptions，避免高频调用时重复构建</summary>
+    private volatile JsonSerializerOptions? _cachedSerializerOptions;
 
-        return JsonSerializer.Serialize(value, opt);
+    /// <summary>获取默认 <see cref="Options"/> 对应的 <see cref="JsonSerializerOptions"/>，使用缓存</summary>
+    /// <returns>可复用的 JsonSerializerOptions 实例</returns>
+    private JsonSerializerOptions GetDefaultSerializerOptions() => _cachedSerializerOptions ??= BuildSerializerOptions(Options);
+
+    /// <summary>根据 <see cref="JsonOptions"/> 获取对应的 <see cref="JsonSerializerOptions"/></summary>
+    /// <param name="jsonOptions">序列化选项。为 null 或与 <see cref="Options"/> 同引用时使用缓存</param>
+    /// <returns>JsonSerializerOptions 实例</returns>
+    private JsonSerializerOptions GetSerializerOptions(JsonOptions? jsonOptions)
+    {
+        if (jsonOptions == null || ReferenceEquals(jsonOptions, Options))
+            return GetDefaultSerializerOptions();
+
+        return BuildSerializerOptions(jsonOptions);
     }
 
-    /// <summary>写入对象，得到Json字符串</summary>
-    /// <param name="value"></param>
+    /// <summary>根据 <see cref="JsonOptions"/> 构建 <see cref="JsonSerializerOptions"/>。Write 和 Read 共享同一构建逻辑</summary>
     /// <param name="jsonOptions">序列化选项</param>
-    /// <returns></returns>
-    public String Write(Object value, JsonOptions jsonOptions)
+    /// <returns>新的 JsonSerializerOptions 实例</returns>
+    private JsonSerializerOptions BuildSerializerOptions(JsonOptions jsonOptions)
     {
-        jsonOptions ??= Options;
         var opt = new JsonSerializerOptions(SerializerOptions)
         {
             WriteIndented = jsonOptions.WriteIndented,
         };
+
         if (jsonOptions.IgnoreNullValues)
             opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
 
@@ -434,7 +497,7 @@ public class SystemJson : IJsonHost
         }
 #endif
 
-        return JsonSerializer.Serialize(value, opt);
+        return opt;
     }
 
 #if NET8_0_OR_GREATER
@@ -507,63 +570,72 @@ public class SystemJson : IJsonHost
         }
     }
 #endif
+    #endregion
 
-    /// <summary>从Json字符串中读取对象</summary>
-    /// <param name="json"></param>
-    /// <param name="type"></param>
-    /// <returns></returns>
-    public Object? Read(String json, Type type)
+    #region IJsonHost 成员
+    /// <summary>写入对象，得到Json字符串。以 <see cref="Options"/> 为基准，再叠加指定参数</summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="indented">是否缩进。为 true 时强制开启缩进。默认false</param>
+    /// <param name="nullValue">是否写空值。为 false 时强制忽略空值。默认true</param>
+    /// <param name="camelCase">是否驼峰命名。为 true 时强制驼峰命名。默认false</param>
+    /// <returns>Json字符串</returns>
+    public String Write(Object value, Boolean indented = false, Boolean nullValue = true, Boolean camelCase = false)
     {
-        var opt = SerializerOptions;
-#if NET7_0_OR_GREATER
-        //opt.TypeInfoResolver = new DataMemberResolver { Modifiers = { OnModifierType } };
-#endif
+        var opt = Options;
+        // 入参不会改变 Options 已有配置时，直接使用 Options 缓存路径，避免复制 JsonOptions 和重建 JsonSerializerOptions
+        var needCopy = (indented && !opt.WriteIndented) ||
+                       (!nullValue && !opt.IgnoreNullValues) ||
+                       (camelCase && opt.PropertyNaming != PropertyNaming.CamelCase);
+        if (!needCopy)
+            return Write(value, (JsonOptions?)null);
 
-        return JsonSerializer.Deserialize(json, type, opt);
+        var newOpt = new JsonOptions(opt);
+        if (indented) newOpt.WriteIndented = true;
+        if (!nullValue) newOpt.IgnoreNullValues = true;
+        if (camelCase) newOpt.PropertyNaming = PropertyNaming.CamelCase;
+        return Write(value, newOpt);
     }
 
+    /// <summary>写入对象，得到Json字符串。未传入配置时使用 <see cref="Options"/> 并走缓存路径</summary>
+    /// <param name="value">待序列化的对象</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>Json字符串</returns>
+    public String Write(Object value, JsonOptions? jsonOptions) => JsonSerializer.Serialize(value, GetSerializerOptions(jsonOptions));
+
     /// <summary>从Json字符串中读取对象</summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="json"></param>
-    /// <returns></returns>
-    public T? Read<T>(String json) where T : class => Read(json, typeof(T)) as T;
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
+    public Object? Read(String json, Type type) => Read(json, type, null);
 
-#if NET7_0_OR_GREATER
-    //static void OnModifierType(JsonTypeInfo typeInfo)
-    //{
-    //    if (typeInfo.Kind != JsonTypeInfoKind.Object) return;
+    /// <summary>从Json字符串中读取对象，使用指定序列化选项。未传入配置时使用 <see cref="Options"/> 并走缓存路径</summary>
+    /// <param name="json">Json字符串</param>
+    /// <param name="type">目标类型</param>
+    /// <param name="jsonOptions">序列化选项。为 null 时使用 <see cref="Options"/></param>
+    /// <returns>反序列化后的对象</returns>
+    public Object? Read(String json, Type type, JsonOptions? jsonOptions) => JsonSerializer.Deserialize(json, type, GetSerializerOptions(jsonOptions));
 
-    //    var type = typeInfo.Type;
-    //    if (type.IsInterface || type.IsAbstract)
-    //    {
-    //        var t = ObjectContainer.Current.Resolve(type);
-    //    }
-    //}
-#endif
+    /// <summary>从Json字符串中读取对象</summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="json">Json字符串</param>
+    /// <returns>反序列化后的对象</returns>
+    public T? Read<T>(String json) where T : class => Read(json, typeof(T), null) as T;
 
-    /// <summary>类型转换</summary>
-    /// <param name="obj"></param>
-    /// <param name="targetType"></param>
-    /// <returns></returns>
-    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider }.ToObject(obj, targetType, null);
+    /// <summary>类型转换。将 Json 解析出的字典/列表转换为目标类型</summary>
+    /// <param name="obj">Json解析出的对象（字典或列表）</param>
+    /// <param name="targetType">目标类型</param>
+    /// <returns>转换后的对象</returns>
+    public Object? Convert(Object obj, Type targetType) => new JsonReader { Provider = ServiceProvider, Options = Options }.ToObject(obj, targetType, null);
 
     /// <summary>分析Json字符串得到字典或列表</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
-    public Object? Parse(String json)
-    {
-        var doc = JsonDocument.Parse(json);
-        return doc.RootElement.ToArray();
-    }
+    /// <param name="json">Json字符串</param>
+    /// <returns>字典或列表</returns>
+    public Object? Parse(String json) => JsonDocument.Parse(json).RootElement.ToArray();
 
     /// <summary>分析Json字符串得到字典</summary>
-    /// <param name="json"></param>
-    /// <returns></returns>
-    public IDictionary<String, Object?> Decode(String json)
-    {
-        var doc = JsonDocument.Parse(json);
-        return doc.RootElement.ToDictionary();
-    }
+    /// <param name="json">Json字符串</param>
+    /// <returns>Key 为属性名的字典</returns>
+    public IDictionary<String, Object?> Decode(String json) => JsonDocument.Parse(json).RootElement.ToDictionary();
     #endregion
 }
 #endif

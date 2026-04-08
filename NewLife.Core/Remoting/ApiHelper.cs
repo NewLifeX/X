@@ -177,7 +177,7 @@ public static class ApiHelper
             else if (args != null)
             {
                 jsonHost ??= JsonHelper.Default;
-                content = new ByteArrayContent(jsonHost.Write(args).GetBytes());
+                content = new ByteArrayContent(jsonHost.Write(args, jsonOptions: null).GetBytes());
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 request.Content = content;
             }
@@ -257,7 +257,7 @@ public static class ApiHelper
                 {
                     var msg2 = "";
                     if (dic.TryGetValue("title", out var v)) msg2 = v + "";
-                    if (dic.TryGetValue("errors", out v) && v != null) msg2 += jsonHost.Write(v);
+                    if (dic.TryGetValue("errors", out v) && v != null) msg2 += jsonHost.Write(v, jsonOptions: null);
                     if (!msg2.IsNullOrEmpty()) msg = msg2.Trim();
                 }
             }

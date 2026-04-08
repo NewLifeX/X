@@ -171,4 +171,137 @@ public class FastJsonTest : JsonTestBase
         Assert.Equal(456, dic["bbb"]);
         Assert.Equal(789, dic["ccc"]);
     }
+
+    #region PropertyNaming 序列化与反序列化
+    class NamingModel
+    {
+        public Int32 UserId { get; set; }
+
+        public String UserName { get; set; }
+
+        public DateTime CreateTime { get; set; }
+    }
+
+    [Fact(DisplayName = "CamelCase序列化与反序列化")]
+    public void CamelCaseRoundTrip()
+    {
+        var model = new NamingModel { UserId = 42, UserName = "Stone", CreateTime = new DateTime(2025, 1, 1) };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.CamelCase };
+        var json = _json.Write(model, opt);
+
+        // 序列化后键名应为 camelCase
+        Assert.Contains("\"userId\"", json);
+        Assert.Contains("\"userName\"", json);
+
+        // 反序列化回来
+        var model2 = _json.Read(json, typeof(NamingModel), opt) as NamingModel;
+        Assert.NotNull(model2);
+        Assert.Equal(42, model2.UserId);
+        Assert.Equal("Stone", model2.UserName);
+        Assert.Equal(new DateTime(2025, 1, 1), model2.CreateTime);
+    }
+
+    [Fact(DisplayName = "SnakeCaseLower序列化与反序列化")]
+    public void SnakeCaseLowerRoundTrip()
+    {
+        var model = new NamingModel { UserId = 99, UserName = "Test", CreateTime = new DateTime(2024, 6, 15) };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.SnakeCaseLower };
+        var json = _json.Write(model, opt);
+
+        // 序列化后键名应为 snake_case
+        Assert.Contains("\"user_id\"", json);
+        Assert.Contains("\"user_name\"", json);
+        Assert.Contains("\"create_time\"", json);
+
+        // 反序列化回来
+        var model2 = _json.Read(json, typeof(NamingModel), opt) as NamingModel;
+        Assert.NotNull(model2);
+        Assert.Equal(99, model2.UserId);
+        Assert.Equal("Test", model2.UserName);
+        Assert.Equal(new DateTime(2024, 6, 15), model2.CreateTime);
+    }
+
+    [Fact(DisplayName = "KebabCaseLower序列化与反序列化")]
+    public void KebabCaseLowerRoundTrip()
+    {
+        var model = new NamingModel { UserId = 7, UserName = "Kebab", CreateTime = new DateTime(2023, 3, 20) };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.KebabCaseLower };
+        var json = _json.Write(model, opt);
+
+        // 序列化后键名应为 kebab-case
+        Assert.Contains("\"user-id\"", json);
+        Assert.Contains("\"user-name\"", json);
+
+        // 反序列化回来
+        var model2 = _json.Read(json, typeof(NamingModel), opt) as NamingModel;
+        Assert.NotNull(model2);
+        Assert.Equal(7, model2.UserId);
+        Assert.Equal("Kebab", model2.UserName);
+        Assert.Equal(new DateTime(2023, 3, 20), model2.CreateTime);
+    }
+
+    [Fact(DisplayName = "SnakeCaseUpper序列化与反序列化")]
+    public void SnakeCaseUpperRoundTrip()
+    {
+        var model = new NamingModel { UserId = 88, UserName = "Upper" };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.SnakeCaseUpper };
+        var json = _json.Write(model, opt);
+
+        Assert.Contains("\"USER_ID\"", json);
+        Assert.Contains("\"USER_NAME\"", json);
+
+        var model2 = _json.Read(json, typeof(NamingModel), opt) as NamingModel;
+        Assert.NotNull(model2);
+        Assert.Equal(88, model2.UserId);
+        Assert.Equal("Upper", model2.UserName);
+    }
+
+    [Fact(DisplayName = "KebabCaseUpper序列化与反序列化")]
+    public void KebabCaseUpperRoundTrip()
+    {
+        var model = new NamingModel { UserId = 66, UserName = "KebabUp" };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.KebabCaseUpper };
+        var json = _json.Write(model, opt);
+
+        Assert.Contains("\"USER-ID\"", json);
+        Assert.Contains("\"USER-NAME\"", json);
+
+        var model2 = _json.Read(json, typeof(NamingModel), opt) as NamingModel;
+        Assert.NotNull(model2);
+        Assert.Equal(66, model2.UserId);
+        Assert.Equal("KebabUp", model2.UserName);
+    }
+
+    [Fact(DisplayName = "无命名策略直接反序列化CamelCase")]
+    public void NoneNaming_CamelCase_Fallback()
+    {
+        // 即使没有指定命名策略，大小写不敏感兜底也应工作
+        var json = """{"userId":123,"userName":"Fallback"}""";
+        var model = _json.Read(json, typeof(NamingModel)) as NamingModel;
+        Assert.NotNull(model);
+        Assert.Equal(123, model.UserId);
+        Assert.Equal("Fallback", model.UserName);
+    }
+
+    [Fact(DisplayName = "JsonHelper扩展方法支持Options反序列化")]
+    public void ToJsonEntity_WithOptions()
+    {
+        var model = new NamingModel { UserId = 55, UserName = "Helper" };
+
+        var opt = new JsonOptions { PropertyNaming = PropertyNaming.SnakeCaseLower };
+        var json = model.ToJson(opt);
+
+        Assert.Contains("\"user_id\"", json);
+
+        var model2 = json.ToJsonEntity<NamingModel>(opt);
+        Assert.NotNull(model2);
+        Assert.Equal(55, model2.UserId);
+        Assert.Equal("Helper", model2.UserName);
+    }
+    #endregion
 }
