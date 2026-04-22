@@ -1,5 +1,6 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Collections;
@@ -138,8 +139,9 @@ public class AssemblyX
             // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
             if (Setting.Current.AssemblyResolve) return OnResolve(name);
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.WriteLine(ex);
             return null;
         }
         finally
