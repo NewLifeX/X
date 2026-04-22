@@ -497,13 +497,25 @@ public static class Reflect
     /// <param name="src">源对象</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
     /// <param name="excludes">要忽略的成员</param>
-    public static void Copy(this Object target, Object src, Boolean deep = false, params String[] excludes) => Provider.Copy(target, src, deep, excludes);
+    public static void Copy(this Object target, Object src, Boolean deep = false, params String[] excludes)
+    {
+        // 任一方为空或两者引用相同时直接返回，避免下游 NRE
+        if (target == null || src == null || ReferenceEquals(target, src)) return;
+
+        Provider.Copy(target, src, deep, excludes);
+    }
 
     /// <summary>从源字典拷贝数据到目标对象</summary>
     /// <param name="target">目标对象</param>
     /// <param name="dic">源字典</param>
     /// <param name="deep">递归深度拷贝，直接拷贝成员值而不是引用</param>
-    public static void Copy(this Object target, IDictionary<String, Object?> dic, Boolean deep = false) => Provider.Copy(target, dic, deep);
+    public static void Copy(this Object target, IDictionary<String, Object?> dic, Boolean deep = false)
+    {
+        // 任一方为空或源字典为空时直接返回，避免下游 NRE
+        if (target == null || dic == null || dic.Count == 0) return;
+
+        Provider.Copy(target, dic, deep);
+    }
     #endregion
 
     #region 类型辅助
