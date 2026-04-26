@@ -1,5 +1,6 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using NewLife.Collections;
@@ -110,36 +111,53 @@ public class AssemblyX
         AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
     }
 
+    [ThreadStatic]
+    private static Int32 _resolving;
+
     private static Assembly? OnAssemblyResolve(Object? sender, ResolveEventArgs args)
     {
-        var flag = XTrace.Log.Level <= LogLevel.Debug;
-        if (flag) XTrace.WriteLine("[{0}]请求加载[{1}]", args.RequestingAssembly?.FullName, args.Name);
-        //if (!flag) return null;
+        if (_resolving > 0) return null;
 
+        var name = args.Name;
+        if (name.IsNullOrEmpty() || IsSatelliteResourceAssembly(name)) return null;
+
+        _resolving++;
         try
         {
             // 尝试在请求者所在目录加载
             var file = args.RequestingAssembly?.Location;
-            if (!file.IsNullOrEmpty() && !args.Name.IsNullOrEmpty())
+            if (!file.IsNullOrEmpty())
             {
-                var name = args.Name;
-                var p = name.IndexOf(',');
-                if (p > 0) name = name[..p];
+                var assemblyName = name;
+                var p = assemblyName.IndexOf(',');
+                if (p > 0) assemblyName = assemblyName[..p];
 
-                file = Path.GetDirectoryName(file).CombinePath(name + ".dll");
+                file = Path.GetDirectoryName(file).CombinePath(assemblyName + ".dll");
                 if (File.Exists(file)) return Assembly.LoadFrom(file);
             }
 
             // 辅助解析程序集。程序集加载过程中，被依赖程序集未能解析时，是否协助解析，默认false
-            if (Setting.Current.AssemblyResolve && !args.Name.IsNullOrEmpty())
-                return OnResolve(args.Name);
+            if (Setting.Current.AssemblyResolve) return OnResolve(name);
         }
         catch (Exception ex)
         {
-            XTrace.WriteException(ex);
+            Trace.WriteLine(ex);
+            return null;
+        }
+        finally
+        {
+            _resolving--;
         }
 
         return null;
+    }
+
+    private static Boolean IsSatelliteResourceAssembly(String name)
+    {
+        var p = name.IndexOf(',');
+        if (p > 0) name = name[..p];
+
+        return name.EndsWith(".resources", StringComparison.OrdinalIgnoreCase);
     }
     #endregion
 
