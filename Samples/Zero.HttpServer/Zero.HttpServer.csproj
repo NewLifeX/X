@@ -20,12 +20,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\..\Doc\leaf.png" Link="images\leaf.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NewLife.Redis" Version="6.5.2026.403" />
     <PackageReference Include="NewLife.Stardust" Version="3.7.2026.403" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\NewLife.Core\NewLife.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="images\" />
   </ItemGroup>
 
 </Project>
