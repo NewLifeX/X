@@ -344,6 +344,44 @@ var count = User.FindCount(User._.Status == 1);
 var maxId = User.FindMax(User._.Id, null);
 ```
 
+### 5.2.1 字段表达式方法参考
+
+`FieldItem`（`Entity._.FieldName`）提供丰富的表达式方法，可直接用于 `WhereExpression` 或 `FindAll` 条件：
+
+| 方法 | 说明 | 生成 SQL 示例 |
+|------|------|------|
+| `_.Name == value` | 等于 | `Name = 'test'` |
+| `_.Name != value` | 不等于 | `Name <> 'test'` |
+| `_.Id > value` | 大于 | `Id > 10` |
+| `_.Id >= value` | 大于等于 | `Id >= 10` |
+| `_.Id < value` | 小于 | `Id < 100` |
+| `_.Id <= value` | 小于等于 | `Id <= 100` |
+| `_.Name.Contains("x")` | 包含 | `Name Like '%x%'` |
+| `_.Name.NotContains("x")` | 不包含 | `Name Not Like '%x%'` |
+| `_.Name.StartsWith("x")` | 开头 | `Name Like 'x%'` |
+| `_.Name.EndsWith("x")` | 结尾 | `Name Like '%x'` |
+| `_.Id.In(list)` | In 操作 | `Id In(1,2,3)` |
+| `_.Id.NotIn(list)` | Not In | `Id Not In(1,2,3)` |
+| `_.Name.IsNull()` | 是否 NULL | `Name Is Null` |
+| `_.Name.NotIsNull()` | 不为 NULL | `Name Is Not Null` |
+| `_.Name.IsNullOrEmpty()` | NULL 或空串（仅 String） | `(Name Is Null Or Name='')` |
+| **`_.Name.NotIsNullOrEmpty()`** | **不为 NULL 且不为空串**（仅 String） | `(Name Is Not Null And Name<>'')` |
+| `_.Flag.IsTrue(true)` | 布尔真值 | `Flag=True` |
+| `_.Flag.IsTrue(false)` | 布尔假值/NULL | `Flag<>True Or Flag Is Null` |
+| `_.Id.Asc()` | 升序排序 | `Id Asc` |
+| `_.Id.Desc()` | 降序排序 | `Id Desc` |
+
+**空值判断常见写法**：
+```csharp
+// ✅ 推荐：使用内置方法
+exp &= _.DevName.NotIsNullOrEmpty();  // 字段不为空且不为空串
+
+// ❌ 不推荐：手写两个条件
+exp &= _.DevName != "" & _.DevName != null;
+```
+
+**注意**：`IsNullOrEmpty()` / `NotIsNullOrEmpty()` 仅支持 `String` 类型字段，非字符串字段请使用 `IsNull()` / `NotIsNull()`。
+
 ### 5.3 批量操作
 
 ```csharp

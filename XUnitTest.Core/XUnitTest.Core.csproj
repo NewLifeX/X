@@ -68,10 +68,10 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NewLife.Modbus" Version="2.0.2025.701" />
-    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.125-beta1509" />
+    <PackageReference Include="NewLife.Remoting" Version="3.7.2026.402" />
     <PackageReference Include="NewLife.UnitTest" Version="1.1.2026.102" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
@@ -83,7 +83,7 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net9.0'">
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" />
