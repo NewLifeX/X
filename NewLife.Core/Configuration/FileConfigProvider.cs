@@ -107,9 +107,21 @@ public abstract class FileConfigProvider : ConfigProvider
         fileName = fileName.GetBasePath();
         fileName.EnsureDirectory(true);
 
-        // 写入文件
-        OnWrite(fileName, Root);
-        _lastTime = fileName.AsFile().LastWriteTime;
+        // 共享锁：与 Save<T> 互斥，避免并发写入交叉
+        lock (this)
+        {
+            // 抑制自身 watcher 引发的 reload 重入
+            _reading = true;
+            try
+            {
+                OnWrite(fileName, Root);
+                _lastTime = fileName.AsFile().LastWriteTime;
+            }
+            finally
+            {
+                _reading = false;
+            }
+        }
 
         // 通知绑定对象，配置数据有改变
         NotifyChange();
@@ -143,32 +155,43 @@ public abstract class FileConfigProvider : ConfigProvider
     protected virtual void OnWrite(String fileName, IConfigSection section)
     {
         var str = GetString(section);
+
+        // 空内容防御：序列化异常退化为空时，不修改目标文件
+        if (str.IsNullOrEmpty()) return;
+
         var old = "";
-        if (File.Exists(fileName)) old = File.ReadAllText(fileName)?.Trim() ?? "";
+        if (File.Exists(fileName)) old = File.ReadAllText(fileName) ?? "";
 
-        if (str != null && str != old)
+        // 双边 trim 比较，避免末尾换行差异导致的无谓重写
+        if (str.Trim() == old.Trim()) return;
+
+        if (old.IsNullOrEmpty())
         {
-            if (old.IsNullOrEmpty())
-            {
-                XTrace.WriteLine("新建配置：{0}", fileName);
-            }
-            else
-            {
-                // 如果文件内容有变化，输出差异
-                var i = 0;
-                while (i < str.Length && i < old.Length && str[i] == old[i]) i++;
-
-                var s = i > 16 ? i - 16 : 0;
-                var e = i + 32 < old.Length ? i + 32 : old.Length;
-                var ori = old[s..e].Replace("\r", "\\r").Replace("\n", "\\n");
-                var e2 = i + 32 < str.Length ? i + 32 : str.Length;
-                var diff = str[s..e2].Replace("\r", "\\r").Replace("\n", "\\n");
-
-                XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
-            }
-
-            File.WriteAllText(fileName, str);
+            XTrace.WriteLine("新建配置：{0}", fileName);
         }
+        else
+        {
+            // 如果文件内容有变化，输出差异
+            var i = 0;
+            while (i < str.Length && i < old.Length && str[i] == old[i]) i++;
+
+            var s = i > 16 ? i - 16 : 0;
+            var e = i + 32 < old.Length ? i + 32 : old.Length;
+            var ori = old[s..e].Replace("\r", "\\r").Replace("\n", "\\n");
+            var e2 = i + 32 < str.Length ? i + 32 : str.Length;
+            var diff = str[s..e2].Replace("\r", "\\r").Replace("\n", "\\n");
+
+            XTrace.WriteLine("更新配置：{0}，原：\"{1}\"，新：\"{2}\"", fileName, ori, diff);
+        }
+
+        // 原子写入：先写临时文件，再原子替换。任何中途崩溃都不会让目标文件出现空白或半截内容
+        var tmp = fileName + ".tmp";
+        File.WriteAllText(tmp, str);
+
+        if (File.Exists(fileName))
+            File.Replace(tmp, fileName, null, ignoreMetadataErrors: true);
+        else
+            File.Move(tmp, fileName);
     }
 
     /// <summary>获取字符串形式</summary>
