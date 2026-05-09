@@ -297,10 +297,23 @@ namespace NewLife.Json
                 var json1 = File.Exists(filename) ? File.ReadAllText(filename).Trim() : null;
                 var json2 = GetJson();
 
+                // 空内容防御：序列化异常退化为空时，不修改目标文件
+                if (json2.IsNullOrEmpty()) return;
+
+                // 双边 trim 比较：json1 已 trim，json2 在此处 trim 后比较，但写入时使用未 trim 的原始内容
+                if (json2.Trim() == json1) return;
+
                 //if (File.Exists(filename)) File.Delete(filename);
                 filename.EnsureDirectory(true);
 
-                if (json1 != json2) File.WriteAllText(filename, json2);
+                // 原子写入：先写临时文件，再原子替换。任何中途崩溃都不会让目标文件出现空白或半截内容
+                var tmp = filename + ".tmp";
+                File.WriteAllText(tmp, json2);
+
+                if (File.Exists(filename))
+                    File.Replace(tmp, filename, null, ignoreMetadataErrors: true);
+                else
+                    File.Move(tmp, filename);
             }
         }
 

@@ -313,7 +313,20 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
     /// <param name="newXml">新配置文件的内容</param>
     protected virtual void OnSaving(String filename, String? oldXml, String newXml)
     {
-        if (oldXml != newXml) File.WriteAllText(filename, newXml);
+        // 空内容防御：序列化异常退化为空时，不修改目标文件
+        if (newXml.IsNullOrEmpty()) return;
+
+        // 双边 trim 比较：oldXml 在 Save 中已 trim，newXml 在此处 trim 后比较，但写入时使用未 trim 的原始内容
+        if (newXml.Trim() == oldXml) return;
+
+        // 原子写入：先写临时文件，再原子替换。任何中途崩溃都不会让目标文件出现空白或半截内容
+        var tmp = filename + ".tmp";
+        File.WriteAllText(tmp, newXml);
+
+        if (File.Exists(filename))
+            File.Replace(tmp, filename, null, ignoreMetadataErrors: true);
+        else
+            File.Move(tmp, filename);
     }
 
     /// <summary>保存到配置文件中去</summary>
