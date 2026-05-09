@@ -15,6 +15,7 @@ using NewLife;
 using NewLife.Caching;
 using NewLife.Collections;
 using NewLife.Common;
+using NewLife.Configuration;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.IO;
@@ -77,7 +78,7 @@ public class Program
             try
             {
 #endif
-            Test1();
+            Test19();
 #if !DEBUG
             }
             catch (Exception ex)
@@ -905,5 +906,62 @@ public class Program
             Array = new[] { "Array1", "Array2", "Array3" },
             Dic = new Dictionary<int, string> { }
         };
+    }
+
+    private static void Test19()
+    {
+        // ===== 热更新自激环手工验证 =====
+        // 期望：连续 SaveAll 期间，日志中【不应】出现 "配置文件改变，重新加载 ..."
+        //      因为是 SaveAll 自身写入触发的 watcher，已被 _reading 抑制；
+        //      最后一段"外部修改"模拟，日志中【应该】出现 "配置文件改变，重新加载 ..."，
+        //      用于验证抑制只是临时的，watcher 仍然能感知真正的外部变更。
+
+        var fileName = "Config/HotReloadTest.json";
+        var fullPath = fileName.GetBasePath();
+
+        // 清理上次残留
+        if (File.Exists(fullPath)) File.Delete(fullPath);
+        if (File.Exists(fullPath + ".tmp")) File.Delete(fullPath + ".tmp");
+
+        var prv = new JsonConfigProvider { FileName = fileName, Period = 60 };
+
+        var model = new XYF { name = "init" };
+        prv.Save(model);
+        prv.Bind(model, autoReload: true);
+
+        XTrace.WriteLine("===== Phase 1: 连续 SaveAll × 100，期望日志中 NOT 出现 \"配置文件改变\" =====");
+        for (var i = 1; i <= 100; i++)
+        {
+            var saveIndex = i;
+            Task.Run(() =>
+            {
+                model.name = $"save-{saveIndex}";
+                prv.Save(model);
+
+                var fi = new FileInfo(fullPath);
+                XTrace.WriteLine("  第 {0} 次 SaveAll 完成，LastWriteTime={1:HH:mm:ss.fff}", saveIndex, fi.LastWriteTime);
+            });
+        }
+
+        // 等够 watcher 防抖 (500ms) + 延迟读 (200ms) + 富余
+        XTrace.WriteLine("等待 1.5 秒，确认抑制窗口期内 watcher 没有触发 reload ...");
+        Thread.Sleep(1500);
+
+        XTrace.WriteLine("===== Phase 2: 模拟外部修改，期望日志中【应该】出现 \"配置文件改变\" =====");
+        // 直接用 File.WriteAllText 模拟"另一个进程改了配置文件"
+        // 这绕过 prv 自身的 SaveAll，触发的 watcher 不会被 _reading 挡住
+        var externalContent = File.ReadAllText(fullPath).Replace("save", "external-edit");
+        File.WriteAllText(fullPath, externalContent);
+        XTrace.WriteLine("  外部修改已写入，等待 5 秒观察 watcher 是否触发 reload ...");
+
+        // watcher 有 200ms 延迟 + 防抖；定时器 60s（事件驱动可用时拉长），靠事件驱动
+        Thread.Sleep(5000);
+
+        XTrace.WriteLine("===== 验证结束 =====");
+        XTrace.WriteLine("  通过条件：");
+        XTrace.WriteLine("  1) Phase 1 期间，日志中 NOT 出现 \"配置文件改变，重新加载\"");
+        XTrace.WriteLine("  2) Phase 2 期间，日志中【出现一次】\"配置文件改变，重新加载 {0}\"", fullPath);
+
+        prv.TryDispose();
     }
 }
