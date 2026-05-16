@@ -354,21 +354,12 @@ public class NetClient : DisposeBase, ILogFeature, ITracerFeature
     /// <returns>实际发送字节数，失败返回负数</returns>
     public Int32 SendMessage(Object message) => EnsureClient().SendMessage(message);
 
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
     /// <summary>异步发送消息并等待响应（需要管道支持请求-响应匹配）</summary>
     /// <param name="message">消息对象</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>响应消息对象</returns>
     public ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
         => EnsureClient().SendMessageAsync(message, cancellationToken);
-#else
-    /// <summary>异步发送消息并等待响应（需要管道支持请求-响应匹配）</summary>
-    /// <param name="message">消息对象</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>响应消息对象</returns>
-    public Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
-        => EnsureClient().SendMessageAsync(message, cancellationToken);
-#endif
 
     private ISocketClient EnsureClient()
     {

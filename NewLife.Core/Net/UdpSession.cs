@@ -228,7 +228,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
     /// <param name="cancellationToken">取消通知</param>
     /// <returns>响应消息</returns>
     /// <exception cref="InvalidOperationException">服务器或管道未设置</exception>
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
     public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
     {
         if (Server == null) throw new InvalidOperationException(nameof(Server));
@@ -246,12 +245,9 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
 
             if (rs < 0)
-            {
                 source.TrySetResult(TaskEx.CompletedTask);
-                return source.ValueTask;
-            }
-
-            source.RegisterCancellation(cancellationToken);
+            else
+                source.RegisterCancellation(cancellationToken);
 
             return source.ValueTask;
         }
@@ -265,54 +261,6 @@ public class UdpSession : DisposeBase, ISocketSession, ITransport, ILogFeature
             throw;
         }
     }
-#else
-    public virtual async Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default)
-    {
-        if (Server == null) throw new InvalidOperationException(nameof(Server));
-        if (Pipeline == null) throw new InvalidOperationException(nameof(Pipeline));
-
-        using var span = Tracer?.NewSpan($"net:{Name}:SendMessageAsync", message);
-        try
-        {
-            var ctx = Server.CreateContext(this);
-#if NET45
-            var source = new TaskCompletionSource<Object>();
-#else
-            var source = new TaskCompletionSource<Object>(TaskCreationOptions.RunContinuationsAsynchronously);
-#endif
-            ctx["TaskSource"] = source;
-            ctx["Span"] = span;
-
-            var rs = (Int32)(Pipeline.Write(ctx, message) ?? -1);
-            if (rs < 0) return TaskEx.CompletedTask;
-
-            // Register返回值需要Dispose，否则会导致内存泄漏
-            if (cancellationToken.CanBeCanceled)
-            {
-                using (cancellationToken.Register(TrySetCanceled, source))
-                {
-                    return await source.Task.ConfigureAwait(false);
-                }
-            }
-
-            return await source.Task.ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            if (ex is TaskCanceledException)
-                span?.AppendTag(ex.Message);
-            else
-                span?.SetError(ex, message);
-            throw;
-        }
-    }
-
-    private void TrySetCanceled(Object? state)
-    {
-        if (state is TaskCompletionSource<Object> source && !source.Task.IsCompleted)
-            source.TrySetCanceled();
-    }
-#endif
     #endregion
 
     #region 接收

@@ -1,5 +1,4 @@
-﻿#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
-using System.Threading.Tasks.Sources;
+﻿using System.Threading.Tasks.Sources;
 using NewLife.Collections;
 using NewLife.Log;
 
@@ -30,6 +29,8 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
         var source = _pool.Get();
         // 在借出时重置完成标志，而非 GetResult 中重置，避免匹配队列残留引用对已回收源重复操作
         source._completed = 0;
+        // 对齐旧 TCS（TaskCreationOptions.RunContinuationsAsynchronously）行为，避免续体在接收线程同步执行
+        source._core.RunContinuationsAsynchronously = true;
         return source;
     }
 
@@ -119,4 +120,3 @@ sealed class PooledValueTaskSource : IValueTaskSource<Object>
     void IValueTaskSource<Object>.OnCompleted(Action<Object?> continuation, Object? state, Int16 token, ValueTaskSourceOnCompletedFlags flags) =>
         _core.OnCompleted(continuation, state, token, flags);
 }
-#endif

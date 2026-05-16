@@ -361,11 +361,7 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
     /// <param name="message">消息</param>
     /// <param name="cancellationToken">取消通知</param>
     /// <returns></returns>
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
     public override ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
-#else
-    public override Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => CreateSession(null, Remote.EndPoint).SendMessageAsync(message, cancellationToken);
-#endif
     #endregion
 
     #region 接收

@@ -408,11 +408,7 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     /// <param name="message">请求消息对象</param>
     /// <param name="cancellationToken">取消令牌，用于超时控制</param>
     /// <returns>响应消息对象</returns>
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
     public virtual ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => Session.SendMessageAsync(message, cancellationToken);
-#else
-    public virtual Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default) => Session.SendMessageAsync(message, cancellationToken);
-#endif
     #endregion
 
     #region 日志

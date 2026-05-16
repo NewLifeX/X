@@ -152,11 +152,7 @@ public interface INetSession : IDisposable2
     /// <param name="message">请求消息对象</param>
     /// <param name="cancellationToken">取消令牌，用于超时控制</param>
     /// <returns>响应消息对象</returns>
-#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
     ValueTask<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
-#else
-    Task<Object> SendMessageAsync(Object message, CancellationToken cancellationToken = default);
-#endif
     #endregion
 }
 
