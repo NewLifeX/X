@@ -314,7 +314,7 @@ public static class IOHelper
     /// 功能：在不超过 <paramref name="count"/> 的前提下，尽量读取不少于 <paramref name="minimumBytes"/> 个字节，并返回本次实际读取量。若底层流过早结束且未满足最小需求，根据 <paramref name="throwOnEndOfStream"/> 决定是否抛出 <see cref="EndOfStreamException"/>。
     /// <para>性能背景：.NET (7/8+) 运行库只提供基于 <c>Span&lt;Byte&gt;</c> 的 <c>Stream.ReadAtLeast(Span&lt;Byte&gt; buffer, int minimumBytes, bool throwOnEndOfStream)</c> 重载。对于仅覆写传统 <c>Read(byte[], int, int)</c> 的自定义流，基类 <c>Read(Span&lt;Byte&gt;)</c> 默认实现流程：</para>
     /// <list type="number">
-    /// <item><description>向 <see cref="System.Buffers.ArrayPool{T}"/> 租借临时字节数组。</description></item>
+    /// <item><description>向 <see cref="ArrayPool{T}"/> 租借临时字节数组。</description></item>
     /// <item><description>调用旧版 <c>Read(byte[], int, int)</c> 填充。</description></item>
     /// <item><description>将数据从临时数组拷贝回调用方 <c>Span</c>。</description></item>
     /// <item><description>归还租借数组。</description></item>

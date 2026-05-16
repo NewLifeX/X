@@ -5,6 +5,7 @@ using System.Text;
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Buffers;
 
@@ -39,10 +40,10 @@ public ref struct SpanWriter
     /// <summary>是否小端字节序。默认true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
 
-    /// <summary>使用7位压缩编码整数。默认false。启用后 Write(Int16/Int32/Int64) 及无符号变体使用变长编码，与 <see cref="NewLife.Serialization.Binary.EncodeInt"/> 行为一致</summary>
+    /// <summary>使用7位压缩编码整数。默认false。启用后 Write(Int16/Int32/Int64) 及无符号变体使用变长编码，与 <see cref="Binary.EncodeInt"/> 行为一致</summary>
     public Boolean EncodeInt { get; set; }
 
-    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.ToBinary"/> 8字节格式，与 <see cref="NewLife.Serialization.Binary.FullTime"/> 行为一致</summary>
+    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.ToBinary"/> 8字节格式，与 <see cref="Binary.FullTime"/> 行为一致</summary>
     public Boolean FullTime { get; set; }
 
     private static readonly DateTime _dt1970 = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -196,7 +197,7 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 16 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
+    /// <summary>写入无符号 16 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
     /// <returns>写入的字节数</returns>
     public Int32 Write(UInt16 value)
@@ -228,7 +229,7 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 32 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
+    /// <summary>写入无符号 32 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
     /// <returns>写入的字节数</returns>
     public Int32 Write(UInt32 value)
@@ -260,7 +261,7 @@ public ref struct SpanWriter
         return size;
     }
 
-    /// <summary>写入无符号 64 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="NewLife.Serialization.Binary"/> 行为一致</summary>
+    /// <summary>写入无符号 64 位整数。当 <see cref="EncodeInt"/> 为 true 时转为有符号后使用7位压缩编码，与 <see cref="Binary"/> 行为一致</summary>
     /// <param name="value">要写入的无符号整数值</param>
     /// <returns>写入的字节数</returns>
     public Int32 Write(UInt64 value)
@@ -530,7 +531,7 @@ public ref struct SpanWriter
     /// <summary>写入 7 位压缩编码的 64 位整数</summary>
     /// <remarks>
     /// 以 7 位压缩格式写入 64 位整数，与 <see cref="SpanReader.ReadEncodedInt64"/> 对称。
-    /// 兼容 <see cref="NewLife.Serialization.Binary"/> 的 WriteEncoded(Int64) 格式。
+    /// 兼容 <see cref="Binary"/> 的 WriteEncoded(Int64) 格式。
     /// </remarks>
     /// <param name="value">数值（可为负数，内部按无符号位模式编码）</param>
     /// <returns>实际写入字节数</returns>
@@ -665,9 +666,9 @@ public ref struct SpanWriter
     #region 值序列化
     /// <summary>写入单个基元类型值</summary>
     /// <remarks>
-    /// 与 <see cref="NewLife.Serialization.Binary"/> 格式完全兼容：
+    /// 与 <see cref="Binary"/> 格式完全兼容：
     /// 非可空基础类型直接写入，null 写入类型默认值；
-    /// 可空类型（<see cref="System.Nullable{T}"/>）先写1字节标志（0=null，1=有值），null时写0后直接返回，否则写1后紧跟值。
+    /// 可空类型（<see cref="Nullable{T}"/>）先写1字节标志（0=null，1=有值），null时写0后直接返回，否则写1后紧跟值。
     /// DateTime 受 <see cref="FullTime"/> 控制：false（默认）写Unix秒数（UInt32，4字节），true 写ToBinary()（Int64，8字节）。
     /// 整数类型受 <see cref="EncodeInt"/> 控制：true 时写7位压缩编码，与 Binary.EncodeInt=true 一致。
     /// Decimal 使用 4×Int32 格式，Byte[] 使用7位压缩编码长度前缀，Guid 使用16字节原始内容。

@@ -1,9 +1,9 @@
-#if NETFRAMEWORK || NETSTANDARD2_0
+﻿#if NETFRAMEWORK || NETSTANDARD2_0
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.CompilerServices;
 
-/// <summary>提供对 <see cref="System.IAsyncDisposable"/> 上等待行为的配置支持</summary>
+/// <summary>提供对 <see cref="IAsyncDisposable"/> 上等待行为的配置支持</summary>
 [StructLayout(LayoutKind.Auto)]
 public readonly struct ConfiguredAsyncDisposable
 {
@@ -42,18 +42,18 @@ public readonly struct ConfiguredCancelableAsyncEnumerable<T>
     /// <param name="continueOnCapturedContext">true 时捕获并切回当前上下文；false 则不捕获</param>
     /// <returns>已配置的可枚举对象</returns>
     public ConfiguredCancelableAsyncEnumerable<T> ConfigureAwait(Boolean continueOnCapturedContext) =>
-        new ConfiguredCancelableAsyncEnumerable<T>(_enumerable, continueOnCapturedContext, _cancellationToken);
+        new(_enumerable, continueOnCapturedContext, _cancellationToken);
 
-    /// <summary>设置传递给 <see cref="System.Collections.Generic.IAsyncEnumerable{T}.GetAsyncEnumerator"/> 的取消令牌</summary>
+    /// <summary>设置传递给 <see cref="IAsyncEnumerable{T}.GetAsyncEnumerator"/> 的取消令牌</summary>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>已配置的可枚举对象</returns>
     public ConfiguredCancelableAsyncEnumerable<T> WithCancellation(CancellationToken cancellationToken) =>
-        new ConfiguredCancelableAsyncEnumerable<T>(_enumerable, _continueOnCapturedContext, cancellationToken);
+        new(_enumerable, _continueOnCapturedContext, cancellationToken);
 
     /// <summary>返回可对集合进行异步迭代的枚举器</summary>
     /// <returns>可枚举对象的枚举器</returns>
     public Enumerator GetAsyncEnumerator() =>
-        new Enumerator(_enumerable.GetAsyncEnumerator(_cancellationToken), _continueOnCapturedContext);
+        new(_enumerable.GetAsyncEnumerator(_cancellationToken), _continueOnCapturedContext);
 
     /// <summary>提供可等待的异步枚举器，支持可取消迭代和自定义等待上下文</summary>
     [StructLayout(LayoutKind.Auto)]

@@ -955,7 +955,7 @@ public class DbTable : IEnumerable<DbRow>, ICloneable, IAccessor, ISpanSerializa
             Types = pis.Select(e => e.PropertyType).ToArray();
         }
 
-        Rows = Cast<T>(models).ToList();
+        Rows = Cast(models).ToList();
     }
 
     /// <summary>模型列表转为对象数组行。支持WriteRows/SaveRows实现一边处理一边写入</summary>

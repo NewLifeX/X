@@ -185,7 +185,7 @@ public abstract class FileConfigProvider : ConfigProvider
     /// <param name="path">路径。配置树位置，配置中心等多对象混合使用时</param>
     public override void Bind<T>(T model, Boolean autoReload = true, String? path = null)
     {
-        base.Bind<T>(model, autoReload, path);
+        base.Bind(model, autoReload, path);
 
         if (autoReload) InitWatcher();
     }

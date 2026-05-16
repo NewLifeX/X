@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using NewLife.Data;
 using NewLife.Reflection;
+using NewLife.Serialization;
 
 namespace NewLife.Buffers;
 
@@ -37,10 +38,10 @@ public ref struct SpanReader
     /// <summary>是否小端字节序。默认 true</summary>
     public Boolean IsLittleEndian { get; set; } = true;
 
-    /// <summary>使用7位压缩编码整数。默认false。启用后 ReadInt16/Int32/Int64 及无符号变体使用变长编码，与 <see cref="NewLife.Serialization.Binary.EncodeInt"/> 行为一致</summary>
+    /// <summary>使用7位压缩编码整数。默认false。启用后 ReadInt16/Int32/Int64 及无符号变体使用变长编码，与 <see cref="Binary.EncodeInt"/> 行为一致</summary>
     public Boolean EncodeInt { get; set; }
 
-    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.FromBinary"/> 8字节格式，与 <see cref="NewLife.Serialization.Binary.FullTime"/> 行为一致</summary>
+    /// <summary>使用完整时间格式。默认false使用4字节Unix秒数，true使用 <see cref="DateTime.FromBinary"/> 8字节格式，与 <see cref="Binary.FullTime"/> 行为一致</summary>
     public Boolean FullTime { get; set; }
 
     private static readonly DateTime _dt1970 = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -580,7 +581,7 @@ public ref struct SpanReader
     #region 值序列化
     /// <summary>读取单个基元类型值</summary>
     /// <remarks>
-    /// 与 <see cref="SpanWriter.WriteValue"/> 格式完全对称，与 <see cref="NewLife.Serialization.Binary"/> 完全兼容：
+    /// 与 <see cref="SpanWriter.WriteValue"/> 格式完全对称，与 <see cref="Binary"/> 完全兼容：
     /// 可空类型先读1字节标志（0=null直接返回null，1=有值则继续读），非可空类型直接读值。
     /// DateTime 受 <see cref="FullTime"/> 控制：false（默认）读Unix秒数（UInt32，4字节）还原，true读Int64经 DateTime.FromBinary 还原。
     /// 整数类型受 <see cref="EncodeInt"/> 控制：true 时读7位压缩编码，与 Binary.EncodeInt=true 一致。

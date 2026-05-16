@@ -1,18 +1,15 @@
-#if NETFRAMEWORK || NETSTANDARD2_0
+﻿#if NETFRAMEWORK || NETSTANDARD2_0
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.CompilerServices;
 
 /// <summary>标识方法为异步迭代器</summary>
+/// <remarks>初始化 <see cref="AsyncIteratorStateMachineAttribute"/> 实例</remarks>
+/// <param name="stateMachineType">底层状态机类型</param>
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
-{
-    /// <summary>初始化 <see cref="AsyncIteratorStateMachineAttribute"/> 实例</summary>
-    /// <param name="stateMachineType">底层状态机类型</param>
-    public AsyncIteratorStateMachineAttribute(Type stateMachineType) : base(stateMachineType) { }
-}
+public sealed class AsyncIteratorStateMachineAttribute(Type stateMachineType) : StateMachineAttribute(stateMachineType) { }
 
-/// <summary>标识参数应接收来自 <see cref="System.Collections.Generic.IAsyncEnumerable{T}.GetAsyncEnumerator"/> 的取消令牌</summary>
+/// <summary>标识参数应接收来自 <see cref="IAsyncEnumerable{T}.GetAsyncEnumerator"/> 的取消令牌</summary>
 [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
 public sealed class EnumeratorCancellationAttribute : Attribute { }
 
@@ -30,7 +27,7 @@ public struct AsyncIteratorMethodBuilder
     /// <summary>创建 <see cref="AsyncIteratorMethodBuilder"/> 实例</summary>
     /// <returns>已初始化的实例</returns>
     public static AsyncIteratorMethodBuilder Create() =>
-        new AsyncIteratorMethodBuilder() { _methodBuilder = AsyncTaskMethodBuilder.Create() };
+        new() { _methodBuilder = AsyncTaskMethodBuilder.Create() };
 
     /// <summary>在保护 <see cref="ExecutionContext"/> 的同时，调用状态机的 MoveNext</summary>
     /// <typeparam name="TStateMachine">状态机类型</typeparam>

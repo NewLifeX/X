@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Runtime.CompilerServices;
 using NewLife.Collections;
+using NewLife.Extension;
 
 namespace NewLife;
 
@@ -836,11 +837,11 @@ public static class StringHelper
     #endregion
 
     #region 文字转语音
-    private static NewLife.Extension.SpeakProvider? _provider; // 延迟初始化，避免未使用时加载语音组件
+    private static SpeakProvider? _provider; // 延迟初始化，避免未使用时加载语音组件
     [MemberNotNull(nameof(_provider))]
     static void Init()
     {
-        _provider ??= new NewLife.Extension.SpeakProvider();
+        _provider ??= new SpeakProvider();
     }
 
     /// <summary>调用语音引擎说出指定话</summary>
