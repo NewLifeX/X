@@ -14,11 +14,7 @@ namespace NewLife.IO;
 /// 4. 允许字段内出现换行（位于成对引号内）。
 /// 旧版本按行 ReadLine + Split 方式无法正确处理含分隔符/换行的被引号包裹字段，现已改为流式逐字符状态机解析。
 /// </remarks>
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 public class CsvFile : IDisposable, IAsyncDisposable
-#else
-public class CsvFile : IDisposable
-#endif
 {
     #region 属性
     /// <summary>文件编码。默认UTF8</summary>
@@ -85,7 +81,6 @@ public class CsvFile : IDisposable
         }
     }
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
     /// <summary>异步销毁</summary>
     /// <returns></returns>
     public virtual async ValueTask DisposeAsync()
@@ -100,14 +95,18 @@ public class CsvFile : IDisposable
         {
             _reader?.Dispose();
 
+#if NETCOREAPP || NETSTANDARD2_1_OR_GREATER
             if (_writer != null) await _writer.DisposeAsync().ConfigureAwait(false);
 
             await _stream.DisposeAsync().ConfigureAwait(false);
+#else
+            _writer?.Dispose();
+            _stream.Dispose();
+#endif
         }
 
         GC.SuppressFinalize(this);
     }
-#endif
     #endregion
 
     #region 读取
@@ -150,7 +149,6 @@ public class CsvFile : IDisposable
         }
     }
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
     /// <summary>异步读取一行（一个记录/Record）</summary>
     /// <returns>字段数组；EOF 返回 null</returns>
     public async ValueTask<String[]?> ReadLineAsync()
@@ -179,8 +177,6 @@ public class CsvFile : IDisposable
             yield return line;
         }
     }
-
-#endif
 
     /// <summary>核心逐字符解析。返回一条记录（字段集合）</summary>
     /// <returns></returns>
@@ -275,7 +271,10 @@ public class CsvFile : IDisposable
         return fields.ToArray();
     }
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    // ReadRecordAsync 跨调用共享的异步读取缓冲区；局部变量会丢失上次多读的字符
+    private Char[]? _asyncBuffer;
+    private Int32 _asyncBufferPos;
+    private Int32 _asyncBufferLen;
     /// <summary>异步核心逐字符解析。返回一条记录（字段集合）</summary>
     /// <returns></returns>
     private async ValueTask<String[]?> ReadRecordAsync()
@@ -289,19 +288,18 @@ public class CsvFile : IDisposable
         var firstCharInField = true; // 用于识别字段起始的引号
         var anyChar = false;    // 本记录是否读取过任何字符
 
-        // 异步读取使用缓冲区
-        var buffer = new Char[4096];
-        var bufferPos = 0;
-        var bufferLen = 0;
+        // 使用实例级缓冲区，避免跨调用丢失多读字符
+        _asyncBuffer ??= new Char[4096];
+        var buffer = _asyncBuffer;
 
         while (true)
         {
             // 缓冲区耗尽时异步填充
-            if (bufferPos >= bufferLen)
+            if (_asyncBufferPos >= _asyncBufferLen)
             {
-                bufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-                bufferPos = 0;
-                if (bufferLen == 0)
+                _asyncBufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                _asyncBufferPos = 0;
+                if (_asyncBufferLen == 0)
                 {
                     // EOF
                     if (!anyChar)
@@ -314,7 +312,7 @@ public class CsvFile : IDisposable
                 }
             }
 
-            var ch = buffer[bufferPos++];
+            var ch = buffer[_asyncBufferPos++];
             anyChar = true;
 
             if (inQuotes)
@@ -322,14 +320,14 @@ public class CsvFile : IDisposable
                 if (ch == '"')
                 {
                     // 可能的转义或结束，peek下一个字符
-                    if (bufferPos >= bufferLen)
+                    if (_asyncBufferPos >= _asyncBufferLen)
                     {
-                        bufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-                        bufferPos = 0;
+                        _asyncBufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                        _asyncBufferPos = 0;
                     }
-                    if (bufferLen > 0 && bufferPos < bufferLen && buffer[bufferPos] == '"')
+                    if (_asyncBufferLen > 0 && _asyncBufferPos < _asyncBufferLen && buffer[_asyncBufferPos] == '"')
                     {
-                        bufferPos++; // 消费第二个引号
+                        _asyncBufferPos++; // 消费第二个引号
                         sb.Append('"');
                     }
                     else
@@ -364,12 +362,12 @@ public class CsvFile : IDisposable
             if (ch == '\r')
             {
                 // 兼容 CRLF
-                if (bufferPos >= bufferLen)
+                if (_asyncBufferPos >= _asyncBufferLen)
                 {
-                    bufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
-                    bufferPos = 0;
+                    _asyncBufferLen = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                    _asyncBufferPos = 0;
                 }
-                if (bufferLen > 0 && bufferPos < bufferLen && buffer[bufferPos] == '\n') bufferPos++;
+                if (_asyncBufferLen > 0 && _asyncBufferPos < _asyncBufferLen && buffer[_asyncBufferPos] == '\n') _asyncBufferPos++;
                 fields.Add(sb.Return(true));
                 break;
             }
@@ -385,7 +383,6 @@ public class CsvFile : IDisposable
 
         return fields.ToArray();
     }
-#endif
 
     private void EnsureReader()
     {
