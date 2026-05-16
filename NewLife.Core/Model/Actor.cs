@@ -1,8 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using NewLife.Log;
-#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Model;
 

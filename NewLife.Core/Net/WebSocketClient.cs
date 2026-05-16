@@ -7,9 +7,6 @@ using NewLife.Log;
 using NewLife.Net.Handlers;
 using NewLife.Security;
 using NewLife.Threading;
-#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net;
 

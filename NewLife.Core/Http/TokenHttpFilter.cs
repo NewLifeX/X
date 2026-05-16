@@ -4,9 +4,6 @@ using NewLife.Remoting;
 using NewLife.Security;
 using NewLife.Serialization;
 using NewLife.Web;
-#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Http;
 

@@ -2,9 +2,6 @@
 using NewLife.Collections;
 using NewLife.Data;
 using NewLife.Log;
-#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Messaging;
 

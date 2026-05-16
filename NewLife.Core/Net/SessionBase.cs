@@ -6,9 +6,6 @@ using System.Net.Sockets;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Model;
-#if !NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
 
 namespace NewLife.Net;
 
