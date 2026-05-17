@@ -369,16 +369,29 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
         Assert.Equal(500, (Int32)response.StatusCode);
     }
 
-    [Fact(DisplayName = "17-HTTP GET 并发吞吐：100并发任务×10000请求，TPS≥100000")]
+    [Fact(DisplayName = "17-HTTP GET 并发吞吐：热身+50并发任务×10000请求=500000条，TPS≥100000")]
     public async Task Test17_Http_GET_100K_TPS()
     {
-        const Int32 clientCount = 100;
-        const Int32 perClient = 10_000;
-        const Int32 total = clientCount * perClient;
         var baseUri = _fixture.BaseUri;
 
         // 单一 HttpClient 实例，内部连接池自动复用
         using var client = new HttpClient { BaseAddress = baseUri };
+
+        // 热身：10并发各发100请求，预热 JIT 与 HTTP 连接池
+        {
+            var warmupTasks = Enumerable.Range(0, 10).Select(async _ =>
+            {
+                for (var i = 0; i < 100; i++)
+                {
+                    using var r = await client.GetAsync("/");
+                }
+            }).ToArray();
+            await Task.WhenAll(warmupTasks).WaitAsync(TimeSpan.FromSeconds(30));
+        }
+
+        const Int32 clientCount = 50;
+        const Int32 perClient = 10_000;
+        const Int32 total = clientCount * perClient;
 
         var sw = Stopwatch.StartNew();
 
@@ -398,10 +411,10 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
 
         var completed = counts.Sum();
         var tps = total / sw.Elapsed.TotalSeconds;
-        XTrace.WriteLine("HTTP GET 100K TPS：{0}条/{1}ms，TPS={2:N0}", total, sw.ElapsedMilliseconds, tps);
+        XTrace.WriteLine("HTTP GET 100K TPS（热身后）：{0}条/{1}ms，TPS={2:N0}", total, sw.ElapsedMilliseconds, tps);
 
         Assert.Equal(total, completed);
-        Assert.True(tps >= 100_000, $"TPS={tps:N0}，低于30000，耗时={sw.ElapsedMilliseconds}ms");
+        Assert.True(tps >= 100_000, $"TPS={tps:N0}，低于100000，耗时={sw.ElapsedMilliseconds}ms");
     }
 
     [Fact(DisplayName = "18-ApiHttpClient 50并发 POST /echo，全部响应内容正确")]

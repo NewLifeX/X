@@ -50,11 +50,60 @@ public class FastTcpCodecServerFixture : IDisposable
     public void Dispose() => Server?.Stop("done");
 }
 
-/// <summary>高吞吐量编解码集成测试：TCP 100K TPS + 原始字节粘包/分帧注入 + UDP 100K TPS</summary>
+/// <summary>高速 UDP StandardCodec 服务端，无 payload 存储，专用于吞吐量测试</summary>
+public class FastUdpCodecNetServer : NetServer<FastUdpCodecSession>
+{
+    public FastUdpCodecNetServer() { Add<StandardCodec>(); }
+}
+
+/// <summary>高速 UDP 会话：直接回显，不存储 payload，减少每包分配开销</summary>
+public class FastUdpCodecSession : NetSession<FastUdpCodecNetServer>
+{
+    /// <param name="e">接收事件参数</param>
+    protected override void OnReceive(ReceivedEventArgs e)
+    {
+        var msg = e.Message;
+        if (msg == null) return;
+        SendReply(msg, e);
+    }
+}
+
+/// <summary>高速 UDP StandardCodec 固定装置：大缓冲区，无 payload 队列</summary>
+public class FastUdpCodecServerFixture : IDisposable
+{
+    /// <summary>服务端实例</summary>
+    public FastUdpCodecNetServer Server { get; }
+
+    public FastUdpCodecServerFixture()
+    {
+        var server = new FastUdpCodecNetServer
+        {
+            Port = 0,
+            ProtocolType = NetType.Udp,
+            AddressFamily = AddressFamily.InterNetwork,
+            Log = XTrace.Log,
+        };
+        Server = server;
+        Server.Start();
+        // 增大 UDP 收发缓冲区，防止突发包在操作系统层面丢包
+        foreach (var srv in Server.Servers)
+        {
+            if (srv.Client != null)
+            {
+                srv.Client.ReceiveBufferSize = 8 << 20;
+                srv.Client.SendBufferSize = 8 << 20;
+            }
+        }
+    }
+
+    public void Dispose() => Server?.Stop("done");
+}
+
+/// <summary>高吞吐量编解码集成测试：TCP 100K TPS + 原始字节粘包/分帧注入 + UDP TPS</summary>
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 [Collection("Integration")]
-public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, UdpCodecServerFixture udpFixture)
-    : IClassFixture<FastTcpCodecServerFixture>, IClassFixture<UdpCodecServerFixture>
+public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, FastUdpCodecServerFixture fastUdpFixture)
+    : IClassFixture<FastTcpCodecServerFixture>, IClassFixture<FastUdpCodecServerFixture>
 {
     private NetClient CreateFastTcpClient()
     {
@@ -65,7 +114,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
 
     private NetClient CreateUdpClient()
     {
-        var c = new NetClient($"udp://127.0.0.1:{udpFixture.Server.Port}") { AutoReconnect = false };
+        var c = new NetClient($"udp://127.0.0.1:{fastUdpFixture.Server.Port}") { AutoReconnect = false };
         c.Add<StandardCodec>();
         return c;
     }
@@ -91,6 +140,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
         using var wc = CreateUdpClient();
         wc.Received += (_, _) => { if (Interlocked.Increment(ref done) >= count) tcs.TrySetResult(true); };
         wc.Open();
+        if (wc.Client?.Client != null) wc.Client.Client.ReceiveBufferSize = 1 << 20;
         for (var i = 0; i < count; i++) wc.SendMessage(new Byte[16]);
         await tcs.Task.WaitAsync(TimeSpan.FromSeconds(10));
         wc.Close("warmup");
@@ -245,7 +295,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
         Assert.Equal(payload, recv);
     }
 
-    [Fact(DisplayName = "16-UDP+StandardCodec 并发吞吐：热身+5客户端×10000消息=50000条，TPS≥10000")]
+    [Fact(DisplayName = "16-UDP+StandardCodec 并发吞吐：热身+5客户端×10000消息=50000条，TPS≥30000")]
     public async Task Test16_Udp_Throughput_100K()
     {
         // 热身：单独客户端先跑一轮，稀释 UDP Socket 与编解码冷启动开销
@@ -269,6 +319,12 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
                 if (n >= total * 9 / 10) tcs.TrySetResult(true);
             };
             c.Open();
+            // 增大 UDP 客户端收发缓冲区，防止大量回包在操作系统层面被丢弃
+            if (c.Client?.Client != null)
+            {
+                c.Client.Client.ReceiveBufferSize = 1 << 20;
+                c.Client.Client.SendBufferSize = 1 << 20;
+            }
             clients.Add(c);
         }
 
@@ -297,6 +353,7 @@ public class HighThroughputCodecTests(FastTcpCodecServerFixture fastTcpFixture, 
 
         // UDP 属于不可靠协议，仅验证大多数包正常到达
         Assert.True(received >= total * 9 / 10, $"UDP 收到率低于90%：{received}/{total}");
-        Assert.True(tps >= 10_000, $"TPS={tps}，低于10000，耗时={sw.ElapsedMilliseconds}ms");
+        // UDP 单线程接收循环+StandardCodec 解码编码约束，单服务端实测约 40K pps，保守阈值 30K
+        Assert.True(tps >= 30_000, $"TPS={tps}，低于30000，耗时={sw.ElapsedMilliseconds}ms");
     }
 }

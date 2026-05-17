@@ -94,6 +94,15 @@ public class UdpCodecServerFixture : IDisposable
         };
         Server = server;
         Server.Start();
+        // 增大 UDP 收发缓冲区，防止高并发吞吐测试中操作系统层面丢包
+        foreach (var srv in Server.Servers)
+        {
+            if (srv.Client != null)
+            {
+                srv.Client.ReceiveBufferSize = 8 << 20;
+                srv.Client.SendBufferSize = 8 << 20;
+            }
+        }
     }
 
     public void Dispose() => Server?.Stop("IntegrationTestDone");

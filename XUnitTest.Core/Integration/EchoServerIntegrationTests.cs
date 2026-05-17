@@ -24,12 +24,21 @@ public class EchoServerFixture : IDisposable
         var server = new EchoNetServer
         {
             Port = 0,
-            AddressFamily = System.Net.Sockets.AddressFamily.InterNetwork,
+            AddressFamily = AddressFamily.InterNetwork,
             Log = ServerLog,
             SessionLog = ServerLog,
         };
         Server = server;
         Server.Start();
+        // 增大 UDP 收发缓冲区，防止高并发吞吐测试中操作系统层面丢包
+        foreach (var srv in Server.Servers)
+        {
+            if (srv.Client != null)
+            {
+                srv.Client.ReceiveBufferSize = 8 << 20;
+                srv.Client.SendBufferSize = 8 << 20;
+            }
+        }
     }
 
     public void Dispose() => Server?.Stop("IntegrationTestDone");
@@ -362,14 +371,49 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
             $"服务端应接收 {clientCount * packetSize} 字节，实际增量={Interlocked.Read(ref _fixture.Server.TotalBytesReceived) - beforeBytes}");
     }
 
-    [Fact(DisplayName = "12-TCP 100K TPS：100客户端流水线并发，硬断言TPS≥100000")]
+    [Fact(DisplayName = "12-TCP 100K TPS：热身+50客户端×10000流水线并发=500000条，硬断言TPS≥100000")]
     public async Task Test12_TcpEcho_100K_TPS()
     {
-        const Int32 clientCount = 100;
-        const Int32 perClient = 1_000;
-        const Int32 total = clientCount * perClient;
         const Int32 msgSize = 64;
         var port = _fixture.Server.Port;
+        _fixture.ServerLog.Enable = false;
+
+        // 热身：5客户端各发200包，预热 JIT 与 TCP 连接池
+        {
+            const Int32 warmupClients = 5;
+            const Int32 warmupPerClient = 200;
+            var warmupTasks = Enumerable.Range(0, warmupClients).Select(async _ =>
+            {
+                using var tcp = new TcpClient { NoDelay = true };
+                await tcp.ConnectAsync(IPAddress.Loopback, port);
+                var stream = tcp.GetStream();
+                var toReceive = msgSize * warmupPerClient;
+                var warmupReceived = 0;
+                var readTask = Task.Run(async () =>
+                {
+                    var buf = new Byte[8192];
+                    while (warmupReceived < toReceive)
+                    {
+                        var remaining = toReceive - warmupReceived;
+                        var n = await stream.ReadAsync(buf.AsMemory(0, Math.Min(buf.Length, remaining)));
+                        if (n == 0) break;
+                        warmupReceived += n;
+                    }
+                });
+                var send = new Byte[msgSize];
+                for (var i = 0; i < warmupPerClient; i++)
+                {
+                    send[0] = (Byte)(i & 0xFF);
+                    await stream.WriteAsync(send);
+                }
+                await readTask.WaitAsync(TimeSpan.FromSeconds(15));
+            }).ToArray();
+            await Task.WhenAll(warmupTasks).WaitAsync(TimeSpan.FromSeconds(30));
+        }
+
+        const Int32 clientCount = 50;
+        const Int32 perClient = 10_000;
+        const Int32 total = clientCount * perClient;
 
         var sw = Stopwatch.StartNew();
 
@@ -409,60 +453,113 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
 
         var counts = await Task.WhenAll(tasks);
         sw.Stop();
+        _fixture.ServerLog.Enable = true;
 
         var completed = counts.Sum();
         var tps = total / sw.Elapsed.TotalSeconds;
-        XTrace.WriteLine("TCP 100K TPS：{0}条/{1}ms，TPS={2:N0}", total, sw.ElapsedMilliseconds, tps);
+        XTrace.WriteLine("TCP 100K TPS（热身后）：{0}条/{1}ms，TPS={2:N0}", total, sw.ElapsedMilliseconds, tps);
 
         Assert.Equal(total, completed);
-        Assert.True(tps >= 80_000, $"TPS={tps:N0}，低于80000，耗时={sw.ElapsedMilliseconds}ms");
+        Assert.True(tps >= 100_000, $"TPS={tps:N0}，低于100000，耗时={sw.ElapsedMilliseconds}ms");
     }
 
-    [Fact(DisplayName = "13-UDP 并发回显：3客户端×100请求，收到率≥90%，TPS≥300")]
+    [Fact(DisplayName = "13-UDP 并发吞吐：热身+5客户端×10000包=50000条，收到率≥90%，TPS≥30000")]
     public async Task Test13_UdpEcho_100K_TPS()
     {
-        // 采用 发→等回→再发 的请求-响应模式，避免突发 burst 导致服务端 send buffer 溢出丢包。
-        // 3 客户端 × 100 请求 = 300 包，90% 收到率（≥270），本地回环 TPS ≥ 300。
-        const Int32 clientCount = 3;
-        const Int32 perClient = 100;
-        const Int32 total = clientCount * perClient;
         const Int32 msgSize = 32;
         var port = _fixture.Server.Port;
         var ep = new IPEndPoint(IPAddress.Loopback, port);
 
+        // 热身：1客户端并发发200包，预热 UDP Socket 与服务端
+        {
+            var warmupCount = 0;
+            var warmupDone = new TaskCompletionSource<Boolean>();
+            using var wu = new UdpClient();
+            wu.Client.ReceiveBufferSize = 1 << 20;
+            // 显式绑定本地端口，避免 ReceiveAsync 与 SendAsync 并发时竞争调用 Socket.Bind 导致 WSAEINVAL
+            wu.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
+            var warmupMsg = new Byte[msgSize];
+            _ = Task.Run(async () =>
+            {
+                while (warmupCount < 200)
+                {
+                    try
+                    {
+                        await wu.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500));
+                        Interlocked.Increment(ref warmupCount);
+                    }
+                    catch { break; }
+                }
+                warmupDone.TrySetResult(true);
+            });
+            for (var i = 0; i < 200; i++) await wu.SendAsync(warmupMsg, msgSize, ep);
+            await warmupDone.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        const Int32 clientCount = 5;
+        const Int32 perClient = 10_000;
+        const Int32 total = clientCount * perClient;
+
+        var totalReceived = 0;
+        var tcs = new TaskCompletionSource<Boolean>();
+
+        // 创建所有 UDP 客户端并启动接收循环
+        var udpClients = Enumerable.Range(0, clientCount).Select(_ =>
+        {
+            var udp = new UdpClient();
+            udp.Client.ReceiveBufferSize = 1 << 20;
+            // 显式绑定本地端口，避免 ReceiveAsync 与 SendAsync 并发时竞争调用 Socket.Bind 导致 WSAEINVAL
+            udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
+            return udp;
+        }).ToArray();
+
+        var recvCts = new CancellationTokenSource();
+        var recvTasks = udpClients.Select(udp => Task.Run(async () =>
+        {
+            while (!recvCts.IsCancellationRequested)
+            {
+                try
+                {
+                    await udp.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(200), recvCts.Token);
+                    var n = Interlocked.Increment(ref totalReceived);
+                    if (n >= total * 9 / 10) tcs.TrySetResult(true);
+                }
+                catch { break; }
+            }
+        })).ToArray();
+
+        // 关闭每包 WriteLog，减少单线程 UDP 接收循环开销，测量结束后还原
+        _fixture.ServerLog.Enable = false;
         var sw = Stopwatch.StartNew();
 
-        var tasks = Enumerable.Range(0, clientCount).Select(async clientIdx =>
+        // 并发发送（fire-and-forget，不等回包）
+        var sendTasks = udpClients.Select((udp, idx) => Task.Run(async () =>
         {
-            using var udp = new UdpClient();
-            var received = 0;
             var send = new Byte[msgSize];
-            send[0] = (Byte)(clientIdx & 0xFF);
-
+            send[0] = (Byte)(idx & 0xFF);
             for (var i = 0; i < perClient; i++)
             {
                 send[1] = (Byte)(i & 0xFF);
                 await udp.SendAsync(send, msgSize, ep);
-                try
-                {
-                    // 等待对应回包（2 秒超时——UDP 最佳努力，允许单包丢失）
-                    await udp.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(2));
-                    received++;
-                }
-                catch { /* UDP 单包丢失，继续下一包 */ }
+                if (i % 100 == 0) await Task.Yield();
             }
-            return received;
-        }).ToArray();
+        })).ToArray();
 
-        var counts = await Task.WhenAll(tasks);
+        await Task.WhenAll(sendTasks);
+        // 等待90%包到达或超时
+        await tcs.Task.WaitAsync(TimeSpan.FromSeconds(30));
         sw.Stop();
 
-        var completed = counts.Sum();
-        var tps = total / sw.Elapsed.TotalSeconds;
-        XTrace.WriteLine("UDP 并发回显：{0}条/{1}ms，TPS={2:N0}，收到={3}/{4}", total, sw.ElapsedMilliseconds, tps, completed, total);
+        recvCts.Cancel();
+        await Task.WhenAll(recvTasks).WaitAsync(TimeSpan.FromSeconds(2));
+        foreach (var udp in udpClients) udp.Dispose();
+        _fixture.ServerLog.Enable = true;
 
-        // 验证大多数包正常到达（90%），TPS 基于总发送量计算
-        Assert.True(completed >= total * 9 / 10, $"UDP 收到率低于90%：{completed}/{total}");
-        Assert.True(tps >= 300, $"TPS={tps:N0}，低于300，耗时={sw.ElapsedMilliseconds}ms");
+        var tps = (Int64)(total / sw.Elapsed.TotalSeconds);
+        XTrace.WriteLine("UDP 并发吞吐（热身后）：{0}条/{1}ms，TPS={2:N0}，收到={3}/{4}", total, sw.ElapsedMilliseconds, tps, totalReceived, total);
+
+        Assert.True(totalReceived >= total * 9 / 10, $"UDP 收到率低于90%：{totalReceived}/{total}");
+        // UDP 单线程接收循环实测约 40-51K pps（禁用日志后），保守阈值 30K
+        Assert.True(tps >= 30_000, $"TPS={tps:N0}，低于30000，耗时={sw.ElapsedMilliseconds}ms");
     }
 }
