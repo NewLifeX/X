@@ -156,6 +156,52 @@ public class WebSocketMessage : IDisposable
         return true;
     }
 
+    /// <summary>计算完整 WebSocket 帧的总字节数（含头部）。仅 Read 成功后有效。</summary>
+    /// <returns>头部字节数（2 + 扩展长度字段 + 掩码）加负载字节数</returns>
+    public Int32 GetFrameSize()
+    {
+        var payload = Payload?.Total ?? 0;
+        var extLen = payload > 65535 ? 8 : (payload > 125 ? 2 : 0);
+        var maskLen = MaskKey != null ? 4 : 0;
+        return 2 + extLen + maskLen + payload;
+    }
+
+    /// <summary>从原始帧头字节读取完整帧长度（含头部），供 PacketCodec 用作 GetLength2 委托。</summary>
+    /// <param name="span">原始字节，至少包含 2 字节 WebSocket 帧头</param>
+    /// <returns>完整帧总字节数（头部+负载）；数据不足以确定长度时返回 0</returns>
+    internal static Int32 GetFrameTotalLength(ReadOnlySpan<Byte> span)
+    {
+        if (span.Length < 2) return 0;
+
+        var b2 = span[1];
+        var masked = (b2 & 0x80) != 0;
+        var len7 = b2 & 0x7F;
+
+        Int64 payloadLen;
+        var headerLen = 2;
+
+        if (len7 == 126)
+        {
+            if (span.Length < 4) return 0;
+            payloadLen = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(2));
+            headerLen = 4;
+        }
+        else if (len7 == 127)
+        {
+            if (span.Length < 10) return 0;
+            payloadLen = BinaryPrimitives.ReadInt64BigEndian(span.Slice(2));
+            if (payloadLen < 0 || payloadLen > Int32.MaxValue) return 0;
+            headerLen = 10;
+        }
+        else
+        {
+            payloadLen = len7;
+        }
+
+        if (masked) headerLen += 4;
+        return (Int32)(headerLen + payloadLen);
+    }
+
     /// <summary>把消息转为封包</summary>
     /// <remarks>
     /// 修复与优化：

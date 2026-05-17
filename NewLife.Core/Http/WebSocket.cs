@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Security.Cryptography;
 using NewLife.Data;
+using NewLife.Messaging;
 using NewLife.Net;
 
 namespace NewLife.Http;
@@ -31,6 +32,8 @@ public class WebSocket
 
     /// <summary>活跃时间</summary>
     public DateTime ActiveTime { get; set; }
+
+    private PacketCodec? _packetCodec;
     #endregion
 
     #region 方法
@@ -79,14 +82,18 @@ public class WebSocket
         return true;
     }
 
-    /// <summary>处理WebSocket数据包，不支持超大数据帧（默认8k）</summary>
-    /// <param name="pk"></param>
+    /// <summary>处理WebSocket数据包，通过 PacketCodec 缓冲不完整帧，支持跨 TCP 接收边界的粘包/分包场景。</summary>
+    /// <param name="pk">已到达的原始数据包，可能包含零个或多个完整 WebSocket 帧</param>
     public void Process(IPacket pk)
     {
-        using var message = new WebSocketMessage();
-        if (!message.Read(pk)) return;
-
-        Process(message);
+        _packetCodec ??= new PacketCodec { GetLength2 = WebSocketMessage.GetFrameTotalLength };
+        var frames = _packetCodec.Parse(pk);
+        foreach (var frame in frames)
+        {
+            using var message = new WebSocketMessage();
+            if (message.Read(frame)) Process(message);
+            frame.TryDispose();
+        }
     }
 
     /// <summary>处理WebSocket消息</summary>

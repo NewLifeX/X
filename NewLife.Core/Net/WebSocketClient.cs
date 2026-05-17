@@ -100,9 +100,24 @@ public class WebSocketClient : TcpSession
     }
 
     #region 消息收发
-    /// <summary>接收WebSocket消息</summary>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <summary>接收单条 WebSocket 消息。</summary>
+    /// <remarks>
+    /// 底层调用 <see cref="SessionBase.ReceiveAsync(CancellationToken)"/> 读取一次原始 TCP 数据，
+    /// 再用 <see cref="WebSocketMessage.Read"/> 解析其中第一个 WS 帧，剩余字节随即丢弃。
+    /// 因此本方法有以下约束：
+    /// <list type="bullet">
+    /// <item>必须将 <see cref="SessionBase.MaxAsync"/> 设为 0 以禁用后台接收循环，
+    ///   否则与后台循环竞争同一 TCP 流，导致帧乱序或丢失。</item>
+    /// <item>仅适用于<b>严格顺序请求-响应</b>场景（发一条→等回复→再发下一条）。
+    ///   若客户端流水线发送多条消息，多个 WS 帧可能合并到同一 TCP 段，
+    ///   本方法只处理首帧，其余帧永久丢失，接收循环将永久阻塞。</item>
+    /// <item>流水线/批量发送场景请改用 <see cref="SessionBase.MaxAsync"/> = 1（默认值）
+    ///   并通过 <see cref="SessionBase.Received"/> 事件接收；
+    ///   管道内的 WebSocketCodec 配合 PacketCodec 会正确完成粘包/拆包。</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>解析到的消息；连接已关闭或数据不完整时返回 null</returns>
     public virtual async Task<WebSocketMessage?> ReceiveMessageAsync(CancellationToken cancellationToken = default)
     {
         using var rs = await base.ReceiveAsync(cancellationToken).ConfigureAwait(false);

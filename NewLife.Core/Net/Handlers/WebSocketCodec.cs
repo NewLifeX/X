@@ -1,5 +1,6 @@
 ﻿using NewLife.Data;
 using NewLife.Http;
+using NewLife.Messaging;
 using NewLife.Model;
 
 namespace NewLife.Net.Handlers;
@@ -10,6 +11,8 @@ public class WebSocketCodec : Handler
     /// <summary>用户数据包。写入时数据包转消息，读取时消息自动解包返回数据负载</summary>
     /// <remarks>一般用于上层还有其它编码器时，实现编码器级联</remarks>
     public Boolean UserPacket { get; set; }
+
+    private PacketCodec? _packetCodec;
 
     /// <summary>打开连接</summary>
     /// <param name="context">上下文</param>
@@ -35,10 +38,13 @@ public class WebSocketCodec : Handler
     {
         if (context.Owner is IExtend ss) ss["Codec"] = null;
 
+        _packetCodec?.Dispose();
+        _packetCodec = null;
+
         return base.Close(context, reason);
     }
 
-    /// <summary>读取数据</summary>
+    /// <summary>读取数据，通过 PacketCodec 缓冲不完整帧，支持跨 TCP 接收边界的粘包/分包场景</summary>
     /// <param name="context"></param>
     /// <param name="message"></param>
     /// <returns></returns>
@@ -46,18 +52,27 @@ public class WebSocketCodec : Handler
     {
         if (message is IPacket pk)
         {
-            var msg = new WebSocketMessage();
-            if (msg.Read(pk))
+            _packetCodec ??= new PacketCodec { GetLength2 = WebSocketMessage.GetFrameTotalLength };
+            var frames = _packetCodec.Parse(pk);
+            foreach (var frame in frames)
             {
+                var msg = new WebSocketMessage();
+                if (!msg.Read(frame)) { msg.Dispose(); frame.TryDispose(); continue; }
+
                 if (UserPacket)
                 {
-                    // 提取 Payload 向上传递，断开 msg 对 Payload 的引用以防止意外释放
-                    message = msg.Payload!;
+                    var payload = msg.Payload;
                     msg.Payload = null;
+                    msg.Dispose();
+                    base.Read(context, payload!);
                 }
                 else
-                    message = msg;
+                {
+                    base.Read(context, msg);
+                }
+                frame.TryDispose();
             }
+            return null;
         }
 
         return base.Read(context, message);
