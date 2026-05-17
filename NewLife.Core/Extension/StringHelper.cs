@@ -375,6 +375,11 @@ public static class StringHelper
     /// <param name="str">当前字符串</param>
     /// <param name="starts">前缀集合</param>
     /// <returns>移除后的字符串</returns>
+    /// <remarks>
+    /// 注意：在 .NET 9+ 中，使用单个字符串参数时（如 str.TrimStart("prefix")），BCL 的 String.TrimStart(params ReadOnlySpan&lt;Char&gt;) 实例方法优先匹配，
+    /// 将参数视为字符集合逐个裁剪，而非整体前缀。若需精确前缀匹配，请改用 <see cref="TrimPrefix"/>。
+    /// 多字符串参数（如 str.TrimStart("a", "b")）不受此影响，扩展方法仍正确工作。
+    /// </remarks>
     [Obsolete("已过期：此方法易与 ReadOnlySpan<char>.TrimStart(ReadOnlySpan<char>) 混淆——传入字符集合可能被当作要移除的字符集合而非前缀。请避免使用此方法进行按前缀截断，改为使用显式的前缀判断或其它明确方法。")]
     public static String TrimStart(this String str, params String[] starts) => TrimPrefix(str, starts);
 
@@ -404,6 +409,11 @@ public static class StringHelper
     /// <param name="str">当前字符串</param>
     /// <param name="ends">后缀集合</param>
     /// <returns>移除后的字符串</returns>
+    /// <remarks>
+    /// 注意：在 .NET 9+ 中，使用单个字符串参数时（如 str.TrimEnd("suffix")），BCL 的 String.TrimEnd(params ReadOnlySpan&lt;Char&gt;) 实例方法优先匹配，
+    /// 将参数视为字符集合逐个裁剪，而非整体后缀。若需精确后缀匹配，请改用 <see cref="TrimSuffix"/>。
+    /// 多字符串参数（如 str.TrimEnd("a", "b")）不受此影响，扩展方法仍正确工作。
+    /// </remarks>
     [Obsolete("此方法易与 ReadOnlySpan<char>.TrimEnd(ReadOnlySpan<char>) ")]
     public static String TrimEnd(this String str, params String[] ends) => TrimSuffix(str, ends);
 

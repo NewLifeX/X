@@ -306,7 +306,7 @@ public class StringHelperTests
 
         Assert.Equal("path", "///path".TrimPrefix("/"));
         Assert.Equal("///path///", "///path///".TrimSuffix("/path")); // 末尾匹配 path
-        Assert.Equal("data", "data".TrimStart(null));
+        Assert.Equal("data", "data".TrimPrefix(null));
         Assert.Equal("data", "data".TrimSuffix(""));
     }
 
