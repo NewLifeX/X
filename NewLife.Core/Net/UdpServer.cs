@@ -190,7 +190,10 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         try
         {
             var rs = 0;
-            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
+            // 服务端关闭时 OnCloseAsync 先将 Client 置 null 再通知会话，存在短暂竞态窗口：
+            // 若此时仍有 IOCP 线程执行 OnReceive → Send，会触发 NullReferenceException 或 throw。
+            // 静默返回 -1 代替 throw，避免关闭期间产生无意义的错误日志。
+            if (Client is not { } sock) return -1;
             lock (sock)
             {
                 // Linux+Mono 的Connected总是true，需要特殊处理
@@ -274,7 +277,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         try
         {
             var rs = 0;
-            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
+            // 服务端关闭时 Client 先被置 null，静默返回 -1 代替 throw
+            if (Client is not { } sock) return -1;
             lock (sock)
             {
                 if (sock.Connected && !sock.EnableBroadcast)
@@ -316,7 +320,8 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
         try
         {
             var rs = 0;
-            var sock = Client ?? throw new InvalidOperationException(nameof(OnSend));
+            // 服务端关闭时 Client 先被置 null，静默返回 -1 代替 throw
+            if (Client is not { } sock) return -1;
             lock (sock)
             {
                 if (sock.Connected && !sock.EnableBroadcast)

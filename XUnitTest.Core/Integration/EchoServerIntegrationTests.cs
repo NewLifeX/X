@@ -474,10 +474,9 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         {
             var warmupCount = 0;
             var warmupDone = new TaskCompletionSource<Boolean>();
-            using var wu = new UdpClient();
+            // NetHelper.CreateUdpClient() 已完成显式 Bind，规避 SendAsync/ReceiveAsync 并发竞态（WSAEINVAL）
+            using var wu = NetHelper.CreateUdpClient();
             wu.Client.ReceiveBufferSize = 1 << 20;
-            // 显式绑定本地端口，避免 ReceiveAsync 与 SendAsync 并发时竞争调用 Socket.Bind 导致 WSAEINVAL
-            wu.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             var warmupMsg = new Byte[msgSize];
             _ = Task.Run(async () =>
             {
@@ -506,10 +505,9 @@ public class EchoServerIntegrationTests : IClassFixture<EchoServerFixture>
         // 创建所有 UDP 客户端并启动接收循环
         var udpClients = Enumerable.Range(0, clientCount).Select(_ =>
         {
-            var udp = new UdpClient();
+            // NetHelper.CreateUdpClient() 已完成显式 Bind，规避 SendAsync/ReceiveAsync 并发竞态（WSAEINVAL）
+            var udp = NetHelper.CreateUdpClient();
             udp.Client.ReceiveBufferSize = 1 << 20;
-            // 显式绑定本地端口，避免 ReceiveAsync 与 SendAsync 并发时竞争调用 Socket.Bind 导致 WSAEINVAL
-            udp.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
             return udp;
         }).ToArray();
 

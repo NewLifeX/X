@@ -724,5 +724,23 @@ public static class NetHelper
     internal static Socket CreateTcp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
 
     internal static Socket CreateUdp(Boolean ipv4 = true) => new(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+
+    /// <summary>创建已绑定本地随机端口的 UdpClient，可安全地在并发任务中同时执行 SendAsync 和 ReceiveAsync</summary>
+    /// <remarks>
+    /// <para>直接 new UdpClient() 不绑定本地端口。首次 SendAsync/WSASendTo 时操作系统在内核层隐式分配临时端口，
+    /// 但 .NET Socket 内部的 _isBound 字段不会更新（该字段仅由托管 Socket.Bind() 写入）。</para>
+    /// <para>若并发任务中 SendAsync 先于 ReceiveAsync 执行，ReceiveAsync 内部检测到 _isBound=false，
+    /// 随即尝试调用 Bind(0.0.0.0:0)，而内核已绑定该套接字，导致 SocketException WSAEINVAL(10022)，
+    /// 接收循环异常退出，后续数据无法收取。</para>
+    /// <para>本方法在构造后立即调用 Bind(Any:0)，使 _isBound=true，彻底规避上述竞态。</para>
+    /// </remarks>
+    /// <param name="ipv4">是否使用 IPv4，默认 true</param>
+    /// <returns>已绑定本地随机端口的 UdpClient</returns>
+    public static UdpClient CreateUdpClient(Boolean ipv4 = true)
+    {
+        var udp = new UdpClient(ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
+        udp.Client.Bind(new IPEndPoint(ipv4 ? IPAddress.Any : IPAddress.IPv6Any, 0));
+        return udp;
+    }
     #endregion
 }
