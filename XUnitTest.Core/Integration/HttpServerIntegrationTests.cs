@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Net;
+using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
@@ -39,6 +41,7 @@ public class HttpServerFixture : IDisposable
         server.Map("/upload", new UploadEchoHandler());
 
         server.MapController<ApiController>("/api");
+        server.Map("/status", new StatusCodeHandler());
         server.Map("/ws", new IntegrationWebSocketHandler());
 
         server.Start();
@@ -120,7 +123,19 @@ class IntegrationWebSocketHandler : WebSocketHandler
     }
 }
 
+/// <summary>状态码处理器：根据查询參数 code 返回指定 HTTP 状态码</summary>
+class StatusCodeHandler : IHttpHandler
+{
+    public void ProcessRequest(IHttpContext context)
+    {
+        var code = context.Parameters["code"].ToInt(200);
+        context.Response.StatusCode = (HttpStatusCode)code;
+        context.Response.SetResult($"status={code}");
+    }
+}
+
 /// <summary>HttpServer 集成测试，验证 HTTP/WebSocket 功能</summary>
+[Collection("Integration")]
 [TestCaseOrderer("NewLife.UnitTest.DefaultOrderer", "NewLife.UnitTest")]
 public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
 {
@@ -306,5 +321,104 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
 
         Assert.Equal($"echo:{text}", reply);
         await ws.CloseAsync(1000, "done");
+    }
+
+    [Fact(DisplayName = "14-NewLife.WebSocketClient 二进制帧回显 256 字节")]
+    public async Task Test14_NewLifeWebSocketClient_Binary()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{_fixture.Server.Port}/ws")
+        {
+            Log = XTrace.Log,
+        };
+
+        var opened = await ws.OpenAsync();
+        Assert.True(opened, "WebSocketClient 打开连接失败");
+
+        var data = new Byte[256];
+        Random.Shared.NextBytes(data);
+
+        var wait = new TaskCompletionSource<Byte[]>();
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Binary)
+                wait.TrySetResult(m.Payload?.ToArray() ?? []);
+        };
+
+        await ws.SendBinaryAsync(new ArrayPacket(data));
+        var reply = await wait.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await ws.CloseAsync(1000, "done");
+
+        Assert.Equal(data, reply);
+    }
+
+    [Fact(DisplayName = "15-GET /status?code=404 返回 404 Not Found")]
+    public async Task Test15_StatusCode_404()
+    {
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        using var response = await client.GetAsync("/status?code=404");
+
+        Assert.Equal(404, (Int32)response.StatusCode);
+    }
+
+    [Fact(DisplayName = "16-GET /status?code=500 返回 500 Internal Server Error")]
+    public async Task Test16_StatusCode_500()
+    {
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        using var response = await client.GetAsync("/status?code=500");
+
+        Assert.Equal(500, (Int32)response.StatusCode);
+    }
+
+    [Fact(DisplayName = "17-HTTP GET 并发吞吐：100并发任务×10000请求，TPS≥100000")]
+    public async Task Test17_Http_GET_100K_TPS()
+    {
+        const Int32 clientCount = 100;
+        const Int32 perClient = 10_000;
+        const Int32 total = clientCount * perClient;
+        var baseUri = _fixture.BaseUri;
+
+        // 单一 HttpClient 实例，内部连接池自动复用
+        using var client = new HttpClient { BaseAddress = baseUri };
+
+        var sw = Stopwatch.StartNew();
+
+        var tasks = Enumerable.Range(0, clientCount).Select(async _ =>
+        {
+            var count = 0;
+            for (var i = 0; i < perClient; i++)
+            {
+                using var response = await client.GetAsync("/");
+                if (response.IsSuccessStatusCode) count++;
+            }
+            return count;
+        }).ToArray();
+
+        var counts = await Task.WhenAll(tasks);
+        sw.Stop();
+
+        var completed = counts.Sum();
+        var tps = total / sw.Elapsed.TotalSeconds;
+        XTrace.WriteLine("HTTP GET 100K TPS：{0}条/{1}ms，TPS={2:N0}", total, sw.ElapsedMilliseconds, tps);
+
+        Assert.Equal(total, completed);
+        Assert.True(tps >= 100_000, $"TPS={tps:N0}，低于30000，耗时={sw.ElapsedMilliseconds}ms");
+    }
+
+    [Fact(DisplayName = "18-ApiHttpClient 50并发 POST /echo，全部响应内容正确")]
+    public async Task Test18_ApiHttpClient_ConcurrentPost()
+    {
+        const Int32 count = 50;
+        var http = new ApiHttpClient(_fixture.BaseUri.ToString());
+
+        var tasks = Enumerable.Range(0, count).Select(async i =>
+        {
+            var obj = new { name = "stone", age = i };
+            var rs = await http.PostAsync<Object>("/echo", obj);
+            var json = NewLife.Serialization.JsonHelper.ToJson(rs);
+            return json.Contains("stone");
+        }).ToArray();
+
+        var results = await Task.WhenAll(tasks);
+        Assert.All(results, Assert.True);
     }
 }

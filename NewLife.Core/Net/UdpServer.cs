@@ -515,6 +515,20 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
             };
 
             session = us;
+
+            //us.ID = g_ID++;
+            // 会话改为原子操作，避免多线程冲突
+            us.ID = Interlocked.Increment(ref g_ID);
+            us.Tracer = Tracer;
+
+            // 必须在加入会话集合前完成启动和事件订阅。
+            // sessions.Add 会将会话插入 ConcurrentDictionary，随后其他 IOCP 线程可在 lock 外通过 sessions.Get 找到该会话并立即调用 OnReceive。
+            // 若此时 us.Start() 尚未执行（Received 事件未订阅），则首批数据包会静默丢弃。
+            us.Start();
+
+            // 触发新会话事件（用户代码如 EchoSession 在此处通过 NewSession 订阅 Ss_Received）
+            NewSession?.Invoke(this, new SessionEventArgs(session));
+
             if (sessions.Add(session))
             {
                 // 广播地址，接受任何地址响应数据
@@ -530,15 +544,6 @@ public class UdpServer : SessionBase, ISocketServer, ILogFeature
                         }
                     };
                 }
-
-                //us.ID = g_ID++;
-                // 会话改为原子操作，避免多线程冲突
-                us.ID = Interlocked.Increment(ref g_ID);
-                us.Tracer = Tracer;
-                us.Start();
-
-                // 触发新会话事件
-                NewSession?.Invoke(this, new SessionEventArgs(session));
             }
         }
 
