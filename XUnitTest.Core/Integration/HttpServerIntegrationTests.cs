@@ -1,15 +1,16 @@
-using System.Net.WebSockets;
-using System.Text;
+﻿using System.Text;
 using NewLife;
 using NewLife.Data;
 using NewLife.Http;
 using NewLife.Log;
+using NewLife.Net;
 using NewLife.Remoting;
 using Xunit;
+using ClientWebSocket = System.Net.WebSockets.ClientWebSocket;
 
 namespace XUnitTest.Integration;
 
-/// <summary>HttpServer 集成测试固定装置，复现 Samples/Zero.HttpServer 的路由配置</summary>
+/// <summary>HttpServer 集成测试固定装置</summary>
 public class HttpServerFixture : IDisposable
 {
     /// <summary>HTTP 服务端实例</summary>
@@ -20,8 +21,6 @@ public class HttpServerFixture : IDisposable
 
     public HttpServerFixture()
     {
-        XTrace.UseConsole();
-
         var server = new HttpServer
         {
             Name = "集成测试Http服务器",
@@ -32,18 +31,15 @@ public class HttpServerFixture : IDisposable
 #endif
         };
 
-        // 简单路径，返回字符串
         server.Map("/", () => "<h1>Hello NewLife!</h1></br> " + DateTime.Now.ToFullString());
         server.Map("/user", (String act, Int32 uid) => new { code = 0, data = $"User.{act}({uid}) success!" });
-
-        // 自定义处理器，操作 Http 上下文
         server.Map("/my", new IntegrationHttpHandler());
+        server.Map("/echo", new EchoBodyHandler());
+        server.Map("/form", new FormEchoHandler());
+        server.Map("/upload", new UploadEchoHandler());
 
-        // 自定义控制器
         server.MapController<ApiController>("/api");
-
-        // WebSocket 处理器
-        server.Map("/ws", new WebSocketHandler());
+        server.Map("/ws", new IntegrationWebSocketHandler());
 
         server.Start();
 
@@ -54,16 +50,73 @@ public class HttpServerFixture : IDisposable
     public void Dispose() => Server?.Dispose();
 }
 
-/// <summary>内联 HttpHandler，对应 Samples/Zero.HttpServer/MyHttpHandler.cs 的核心逻辑</summary>
+/// <summary>自定义 HttpHandler</summary>
 class IntegrationHttpHandler : IHttpHandler
 {
-    /// <summary>处理请求</summary>
-    /// <param name="context">Http 上下文</param>
     public void ProcessRequest(IHttpContext context)
     {
         var name = context.Parameters["name"];
         var html = $"<h2>你好，<span color=\"red\">{name}</span></h2>";
         context.Response.SetResult(html);
+    }
+}
+
+/// <summary>回显请求体处理器</summary>
+class EchoBodyHandler : IHttpHandler
+{
+    public void ProcessRequest(IHttpContext context)
+    {
+        var body = context.Request.Body?.ToStr() ?? String.Empty;
+        context.Response.SetResult(body);
+    }
+}
+
+/// <summary>表单回显处理器</summary>
+class FormEchoHandler : IHttpHandler
+{
+    public void ProcessRequest(IHttpContext context)
+    {
+        var body = context.Request.Body?.ToStr() ?? String.Empty;
+        context.Response.SetResult(body);
+    }
+}
+
+/// <summary>上传回显处理器</summary>
+class UploadEchoHandler : IHttpHandler
+{
+    public void ProcessRequest(IHttpContext context)
+    {
+        var request = context.Request;
+        var dic = request.ParseFormData();
+        var fileList = dic.Values.OfType<FormFile>().ToArray();
+        var count = fileList.Length;
+        var name = count > 0 ? fileList[0].FileName : String.Empty;
+        var len = request.Body?.Total ?? 0;
+
+        context.Response.SetResult($"files={count};name={name};body={len}");
+    }
+}
+
+/// <summary>集成测试专用 WebSocket 处理器：文本回显，二进制原样回显</summary>
+class IntegrationWebSocketHandler : WebSocketHandler
+{
+    public override void ProcessMessage(NewLife.Http.WebSocket socket, WebSocketMessage message)
+    {
+        if (message.Type == WebSocketMessageType.Text)
+        {
+            var text = message.Payload?.ToStr() ?? String.Empty;
+            socket.Send($"echo:{text}");
+            return;
+        }
+
+        if (message.Type == WebSocketMessageType.Binary)
+        {
+            var data = message.Payload?.ToArray() ?? [];
+            socket.Send(data, WebSocketMessageType.Binary);
+            return;
+        }
+
+        base.ProcessMessage(socket, message);
     }
 }
 
@@ -80,86 +133,178 @@ public class HttpServerIntegrationTests : IClassFixture<HttpServerFixture>
     {
         Assert.True(_fixture.Server.Active, "服务端应处于运行状态");
         Assert.True(_fixture.Server.Port > 0, "端口应已分配");
-
-        XTrace.WriteLine("HttpServer 已在端口 {0} 上启动", _fixture.Server.Port);
     }
 
-    [Fact(DisplayName = "02-GET / 返回 Hello NewLife")]
-    public async Task Test02_HttpGetRoot()
+    [Fact(DisplayName = "02-HttpClient GET / 返回 Hello NewLife")]
+    public async Task Test02_HttpClient_GetRoot()
     {
         using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
         var html = await client.GetStringAsync("/");
 
         Assert.NotEmpty(html);
         Assert.Contains("Hello NewLife", html);
-
-        XTrace.WriteLine("GET / 响应：{0}", html);
     }
 
-    [Fact(DisplayName = "03-GET /user 返回正确的 API 结果")]
-    public async Task Test03_UserApiRequest()
+    [Fact(DisplayName = "03-HttpClient GET /user 参数绑定")]
+    public async Task Test03_HttpClient_GetUser()
     {
-        var http = new ApiHttpClient(_fixture.BaseUri.ToString())
-        {
-            Log = XTrace.Log,
-        };
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        var text = await client.GetStringAsync("/user?act=Delete&uid=1234");
 
+        Assert.Contains("User.Delete(1234) success!", text);
+    }
+
+    [Fact(DisplayName = "04-HttpClient POST /echo JSON 请求体回显")]
+    public async Task Test04_HttpClient_PostJson()
+    {
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        var json = "{\"name\":\"stone\",\"age\":18}";
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var response = await client.PostAsync("/echo", content);
+
+        response.EnsureSuccessStatusCode();
+        var rs = await response.Content.ReadAsStringAsync();
+        Assert.Equal(json, rs);
+    }
+
+    [Fact(DisplayName = "05-HttpClient POST /form 表单编码回显")]
+    public async Task Test05_HttpClient_PostForm()
+    {
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        using var content = new FormUrlEncodedContent(new Dictionary<String, String>
+        {
+            ["name"] = "stone",
+            ["age"] = "18",
+        });
+        using var response = await client.PostAsync("/form", content);
+
+        response.EnsureSuccessStatusCode();
+        var rs = await response.Content.ReadAsStringAsync();
+        Assert.Contains("name=stone", rs);
+        Assert.Contains("age=18", rs);
+    }
+
+    [Fact(DisplayName = "06-HttpClient POST /upload 文件上传")]
+    public async Task Test06_HttpClient_FileUpload()
+    {
+        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
+        using var data = new MultipartFormDataContent();
+        var bytes = Encoding.UTF8.GetBytes("HelloUpload");
+        var fileContent = new ByteArrayContent(bytes);
+        data.Add(fileContent, "file", "demo.txt");
+
+        using var response = await client.PostAsync("/upload", data);
+        response.EnsureSuccessStatusCode();
+        var rs = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("body=", rs);
+        var bodyLen = rs.Substring("body=", null).ToInt();
+        Assert.True(bodyLen > 0, $"上传请求体长度应大于0，实际：{bodyLen}；响应：{rs}");
+    }
+
+    [Fact(DisplayName = "07-ApiHttpClient GET /user")]
+    public async Task Test07_ApiHttpClient_GetUser()
+    {
+        var http = new ApiHttpClient(_fixture.BaseUri.ToString()) { Log = XTrace.Log };
         var rs = await http.GetAsync<String>("/user", new { act = "Delete", uid = 1234 });
 
         Assert.Equal("User.Delete(1234) success!", rs);
-
-        XTrace.WriteLine("GET /user 响应：{0}", rs);
     }
 
-    [Fact(DisplayName = "04-GET /my 自定义处理器返回正确响应")]
-    public async Task Test04_CustomHandler()
+    [Fact(DisplayName = "08-ApiHttpClient POST /echo")]
+    public async Task Test08_ApiHttpClient_PostEcho()
     {
-        using var client = new HttpClient { BaseAddress = _fixture.BaseUri };
-        var html = await client.GetStringAsync("/my?name=stone");
+        var http = new ApiHttpClient(_fixture.BaseUri.ToString()) { Log = XTrace.Log };
+        var obj = new { name = "stone", age = 18 };
+        var rs = await http.PostAsync<Object>("/echo", obj);
+        var json = NewLife.Serialization.JsonHelper.ToJson(rs);
 
-        Assert.Equal("<h2>你好，<span color=\"red\">stone</span></h2>", html);
-
-        XTrace.WriteLine("GET /my 响应：{0}", html);
+        Assert.Contains("stone", json);
+        Assert.Contains("18", json);
     }
 
-    [Fact(DisplayName = "05-GET /api/info 控制器返回机器信息")]
-    public async Task Test05_ApiInfoRequest()
+    [Fact(DisplayName = "09-ApiHttpClient GET /api/info 控制器")]
+    public async Task Test09_ApiInfoRequest()
     {
-        var http = new ApiHttpClient(_fixture.BaseUri.ToString())
-        {
-            Log = XTrace.Log,
-        };
-
+        var http = new ApiHttpClient(_fixture.BaseUri.ToString()) { Log = XTrace.Log };
         var rs = await http.GetAsync<Object>("/api/info", new { state = "test" });
 
         Assert.NotNull(rs);
-
         var json = NewLife.Serialization.JsonHelper.ToJson(rs);
         Assert.Contains("MachineName", json);
-
-        XTrace.WriteLine("GET /api/info 响应：{0}", json);
     }
 
-    [Fact(DisplayName = "06-WebSocket 连接收发消息")]
-    public async Task Test06_WebSocketConnect()
+    [Fact(DisplayName = "10-TinyHttpClient GET /")]
+    public async Task Test10_TinyHttpClient_Get()
+    {
+        using var client = new TinyHttpClient();
+        var rs = await client.GetStringAsync(_fixture.BaseUri.ToString().TrimEnd('/') + "/");
+
+        Assert.NotNull(rs);
+        Assert.Contains("Hello NewLife", rs);
+    }
+
+    [Fact(DisplayName = "11-TinyHttpClient InvokeAsync GET /user")]
+    public async Task Test11_TinyHttpClient_Invoke()
+    {
+        using var client = new TinyHttpClient(_fixture.BaseUri.ToString());
+        var rs = await client.InvokeAsync<String>("GET", "/user", new { act = "Delete", uid = 1234 });
+
+        Assert.NotNull(rs);
+        Assert.Contains("User.Delete(1234) success!", rs);
+    }
+
+    [Fact(DisplayName = "12-System.ClientWebSocket 连接 /ws 文本回显")]
+    public async Task Test12_SystemClientWebSocket()
     {
         var wsUri = new Uri($"ws://127.0.0.1:{_fixture.Server.Port}/ws");
         using var ws = new ClientWebSocket();
 
         await ws.ConnectAsync(wsUri, default);
-        Assert.Equal(WebSocketState.Open, ws.State);
+        Assert.Equal(System.Net.WebSockets.WebSocketState.Open, ws.State);
 
         var msg = "Hello NewLife";
         await ws.SendAsync(Encoding.UTF8.GetBytes(msg), System.Net.WebSockets.WebSocketMessageType.Text, true, default);
 
-        var buf = new Byte[1024];
+        var buf = new Byte[2048];
         var result = await ws.ReceiveAsync(buf, default);
         var reply = Encoding.UTF8.GetString(buf, 0, result.Count);
 
-        // WebSocketHandler.SendAll 会把消息广播回来，格式：[remote]说，msg
-        Assert.Contains(msg, reply);
-        XTrace.WriteLine("WebSocket 收到：{0}", reply);
+        Assert.Equal($"echo:{msg}", reply);
+        await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "测试完成", default);
+    }
 
-        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "测试完成", default);
+    [Fact(DisplayName = "13-NewLife.WebSocketClient 连接 /ws 文本回显")]
+    public async Task Test13_NewLifeWebSocketClient()
+    {
+        var ws = new WebSocketClient($"ws://127.0.0.1:{_fixture.Server.Port}/ws")
+        {
+            Log = XTrace.Log,
+        };
+
+        var opened = await ws.OpenAsync();
+        Assert.True(opened, "WebSocketClient 打开连接失败");
+
+        var text = "from-newlife-client";
+        var wait = new TaskCompletionSource<String>();
+        ws.Received += (s, e) =>
+        {
+            if (e.Message is WebSocketMessage m && m.Type == WebSocketMessageType.Text)
+            {
+                var str = m.Payload?.ToStr() ?? String.Empty;
+                wait.TrySetResult(str);
+            }
+            else
+            {
+                wait.TrySetResult(e.Packet?.ToStr() ?? String.Empty);
+            }
+        };
+
+        await ws.SendTextAsync(text);
+
+        var reply = await wait.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal($"echo:{text}", reply);
+        await ws.CloseAsync(1000, "done");
     }
 }

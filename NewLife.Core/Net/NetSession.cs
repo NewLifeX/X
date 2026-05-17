@@ -397,11 +397,32 @@ public class NetSession : DisposeBase, INetSession, IServiceProvider, IExtend
     public virtual Int32 SendMessage(Object message) => Session.SendMessage(message);
 
     /// <summary>通过管道发送响应消息</summary>
-    /// <remarks>管道内对消息进行报文封装处理，与请求关联</remarks>
+    /// <remarks>
+    /// 管道内对消息进行报文封装处理，复用接收链路上下文，使 StandardCodec 等编解码器能通过 GetRequest
+    /// 取到原始请求消息，从而自动构造 Reply=true 且 Sequence 匹配的响应帧。
+    /// </remarks>
     /// <param name="message">响应消息对象</param>
     /// <param name="eventArgs">接收到请求的事件参数，用于关联请求上下文</param>
     /// <returns>实际发送的字节数</returns>
-    public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs) => (Session as SessionBase)!.SendMessage(message, eventArgs.Context);
+    public virtual Int32 SendReply(Object message, ReceivedEventArgs eventArgs)
+    {
+        // TcpSession 继承 SessionBase，可直接复用上下文
+        if (Session is SessionBase sb) return sb.SendMessage(message, eventArgs.Context);
+
+        // UdpSession 不继承 SessionBase，直接复用接收链路上下文写管道，
+        // 与 SessionBase.SendMessage(message, context) 逻辑保持一致
+        if (eventArgs.Context is IHandlerContext ctx)
+        {
+            var pipeline = Session?.Pipeline;
+            if (pipeline != null)
+            {
+                ctx.Pipeline ??= pipeline;
+                return (Int32)(pipeline.Write(ctx, message) ?? -1);
+            }
+        }
+
+        return Session?.SendMessage(message) ?? -1;
+    }
 
     /// <summary>异步发送消息并等待响应</summary>
     /// <remarks>管道内对消息进行报文封装处理，支持超时取消</remarks>
