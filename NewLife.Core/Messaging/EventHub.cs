@@ -18,6 +18,7 @@ namespace NewLife.Messaging;
 /// <para>服务端场景：通常单例使用；多个网络客户端订阅同一主题时，会在枢纽内共享同一个事件总线对象，但每个客户端拥有各自的事件处理器。任一客户端发布事件后，其它订阅该主题的客户端会收到，等价于简化版消息队列。</para>
 /// <para>订阅控制：当 <c>message</c> 为 <c>subscribe</c> 或 <c>unsubscribe</c> 时执行订阅/取消订阅；若取消订阅后主题无任何订阅者，将注销并移除该主题的事件总线与分发器，避免占用内存。</para>
 /// <para>线程安全：内部使用 <see cref="ConcurrentDictionary{TKey, TValue}"/> 保存主题与处理器映射。返回值语义：未匹配、解析失败或非事件消息返回 <c>0</c>；成功分发时返回处理器结果。</para>
+/// <para>集群部署：通过 <see cref="Factory"/> 注入集群工厂，使每个主题的总线在 PublishAsync 时同时推送到外部通道（如 Redis Stream 或星尘 StarDust）。各集群节点后台消费任务收到外部消息后，调用本地 <see cref="GetEventBus(String, String)"/> 获取总线并发布，即可唤醒任意节点上通过 <see cref="ReceiveAsync(String, CancellationToken)"/> 等待的调用方。</para>
 /// </remarks>
 public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
 {
@@ -361,6 +362,61 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
         return 0;
     }
+
+    /// <summary>异步阻塞等待指定主题的一条事件消息</summary>
+    /// <remarks>
+    /// <para>接收完成（或超时/取消）后，若该主题已无订阅者，将自动从枢纽移除空闲总线。</para>
+    /// <para>典型用法（IoT 指令确认）：
+    /// <code>
+    /// // 下发指令
+    /// websocket.Send(cmdJson);
+    /// // 等待设备应答（30 秒超时）
+    /// var result = await hub.ReceiveAsync(nodeCode, TimeSpan.FromSeconds(30));
+    ///
+    /// // 设备上报 HTTP 接口内
+    /// await hub.PublishAsync(nodeCode, cmdResult);
+    /// </code>
+    /// </para>
+    /// </remarks>
+    /// <param name="topic">事件主题</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>等待到的第一条事件</returns>
+    public async Task<TEvent> ReceiveAsync(String topic, CancellationToken cancellationToken = default)
+    {
+        var bus = GetEventBus(topic);
+        try
+        {
+            return await bus.ReceiveAsync<TEvent>(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            // 自动清理：若该主题已无订阅者，从枢纽移除，避免长期积累空闲总线
+            if (bus is EventBus<TEvent> eb && eb.Handlers.Count == 0)
+                _eventBuses.TryRemove(topic, out _);
+        }
+    }
+
+    /// <summary>异步阻塞等待指定主题的一条事件消息，超时后抛出 <see cref="OperationCanceledException"/></summary>
+    /// <param name="topic">事件主题</param>
+    /// <param name="timeout">等待超时时间</param>
+    /// <returns>等待到的第一条事件</returns>
+    public async Task<TEvent> ReceiveAsync(String topic, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        return await ReceiveAsync(topic, cts.Token).ConfigureAwait(false);
+    }
+
+    /// <summary>向指定主题发布事件</summary>
+    /// <remarks>
+    /// <para>便捷方法，等价于 <c>GetEvent(topic).PublishAsync(@event)</c>，适用于服务端回调接口中直接发布。</para>
+    /// <para>若该主题无订阅者，返回 0 且不产生异常。</para>
+    /// </remarks>
+    /// <param name="topic">事件主题</param>
+    /// <param name="event">事件实例</param>
+    /// <param name="context">事件上下文，为 null 时由总线自动创建</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成功处理该事件的处理器数量</returns>
+    public Task<Int32> PublishAsync(String topic, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default) => DispatchAsync(topic, "", @event, context, cancellationToken);
     #endregion
 
     #region 日志

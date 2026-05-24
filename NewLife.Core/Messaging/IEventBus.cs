@@ -145,6 +145,15 @@ public interface IEventHandler<TEvent>
 }
 
 /// <summary>事件总线工厂</summary>
+/// <remarks>
+/// 通过实现本接口，可为每个主题创建自定义的事件总线实例：
+/// <list type="bullet">
+/// <item><description><b>进程内总线（默认）</b>：不设置工厂时，<see cref="EventHub{TEvent}.GetEventBus"/> 自动创建 <see cref="EventBus{TEvent}"/>。</description></item>
+/// <item><description><b>集群总线（扩展点）</b>：实现集群工厂，在 PublishAsync 时先向本地 <see cref="EventBus{TEvent}"/> 分发（唤醒同进程等待者），
+/// 再推送到外部消息通道（Redis Stream / 星尘 StarDust 等）。各集群节点后台消费任务收到外部消息后，
+/// 调用本地 <see cref="EventHub{TEvent}.GetEventBus"/> 发布，即可唤醒任意节点上通过 ReceiveAsync 等待的调用方。</description></item>
+/// </list>
+/// </remarks>
 public interface IEventBusFactory
 {
     /// <summary>创建事件总线，可发布消息或订阅消息</summary>
@@ -395,6 +404,66 @@ public static class EventBusExtensions
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>是否订阅成功</returns>
     public static Task<Boolean> SubscribeAsync<TEvent>(this IAsyncEventBus<TEvent> bus, Func<TEvent, IEventContext, CancellationToken, Task> action, String clientId = "", CancellationToken cancellationToken = default) => bus.SubscribeAsync(new DelegateEventHandler<TEvent>(action), clientId, cancellationToken);
+
+    private static Int32 _receiveCounter;
+
+    /// <summary>异步阻塞等待一条事件消息（一次性订阅）</summary>
+    /// <remarks>
+    /// 内部通过 <see cref="TaskCompletionSource{TResult}"/> 与唯一 clientId 实现：
+    /// 收到首条消息后立即完成并自动取消订阅。若同一总线有多个并发等待者，每个等待者都会收到该事件（广播语义）。
+    /// <code>
+    /// // 下发指令
+    /// websocket.Send(cmdJson);
+    /// // 等待设备上报（30 秒超时）
+    /// var result = await bus.ReceiveAsync(TimeSpan.FromSeconds(30));
+    /// </code>
+    /// </remarks>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">事件总线</param>
+    /// <param name="cancellationToken">取消令牌。可通过 <see cref="CancellationTokenSource"/> 实现超时</param>
+    /// <returns>等待到的第一条事件</returns>
+    public static Task<TEvent> ReceiveAsync<TEvent>(this IEventBus<TEvent> bus, CancellationToken cancellationToken = default)
+    {
+#if NET45
+        var tcs = new TaskCompletionSource<TEvent>();
+#else
+        var tcs = new TaskCompletionSource<TEvent>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+        var clientId = $"__recv_{Interlocked.Increment(ref _receiveCounter)}";
+
+        bus.Subscribe((TEvent evt) =>
+        {
+            // 先取消订阅，再触发结果，确保 finally 清理时 Handlers.Count 已归零
+            bus.Unsubscribe(clientId);
+            tcs.TrySetResult(evt);
+        }, clientId);
+
+        if (cancellationToken.CanBeCanceled)
+        {
+            cancellationToken.Register(() =>
+            {
+                bus.Unsubscribe(clientId);
+#if NET45
+                tcs.TrySetCanceled();
+#else
+                tcs.TrySetCanceled(cancellationToken);
+#endif
+            });
+        }
+
+        return tcs.Task;
+    }
+
+    /// <summary>异步阻塞等待一条事件消息，超时后抛出 <see cref="OperationCanceledException"/></summary>
+    /// <typeparam name="TEvent">事件类型</typeparam>
+    /// <param name="bus">事件总线</param>
+    /// <param name="timeout">等待超时时间</param>
+    /// <returns>等待到的第一条事件</returns>
+    public static async Task<TEvent> ReceiveAsync<TEvent>(this IEventBus<TEvent> bus, TimeSpan timeout)
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        return await ReceiveAsync(bus, cts.Token).ConfigureAwait(false);
+    }
 }
 
 /// <summary>事件上下文</summary>

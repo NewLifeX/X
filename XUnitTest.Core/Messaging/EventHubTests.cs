@@ -226,4 +226,45 @@ public class EventHubTests
         // Now bus should be removed from hub, so another unsubscribe should be false.
         Assert.False(await hub.DispatchActionAsync("test", "c1", "unsubscribe", null));
     }
+
+    [Fact(DisplayName = "Hub.ReceiveAsync 接收后应自动清理空闲总线")]
+    public async Task Hub_ReceiveAsync_ShouldAutoCleanupEmptyBus()
+    {
+        var hub = new EventHub<TestEvent>();
+
+        var receiveTask = hub.ReceiveAsync("device-001");
+        await hub.PublishAsync("device-001", new TestEvent { Message = "ok" });
+        await receiveTask;
+
+        Assert.False(hub.TryGetBus<TestEvent>("device-001", out _));
+    }
+
+    [Fact(DisplayName = "Hub.ReceiveAsync 有长期订阅者时不清理总线")]
+    public async Task Hub_ReceiveAsync_ShouldNotCleanup_WhenOtherSubscribersExist()
+    {
+        var hub = new EventHub<TestEvent>();
+
+        // 添加永久订阅者
+        var permanentBus = hub.GetEventBus("device-002");
+        permanentBus.Subscribe(new TestEventHandler(), "permanent");
+
+        var receiveTask = hub.ReceiveAsync("device-002");
+        await hub.PublishAsync("device-002", new TestEvent { Message = "ok" });
+        await receiveTask;
+
+        // permanent 订阅者仍在，总线不应被清理
+        Assert.True(hub.TryGetBus<TestEvent>("device-002", out _));
+    }
+
+    [Fact(DisplayName = "Hub.PublishAsync 应将事件分发给等待的 ReceiveAsync")]
+    public async Task Hub_PublishAsync_ShouldDispatchToWaiter()
+    {
+        var hub = new EventHub<TestEvent>();
+
+        var receiveTask = hub.ReceiveAsync("cmd-001");
+        await hub.PublishAsync("cmd-001", new TestEvent { Message = "done" });
+        var result = await receiveTask;
+
+        Assert.Equal("done", result.Message);
+    }
 }
