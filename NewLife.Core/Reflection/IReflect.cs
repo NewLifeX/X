@@ -694,8 +694,12 @@ public class DefaultReflect : IReflect
         {
             Object? v = null;
             var name = pis[i].Name;
-            if (parameters != null && !name.IsNullOrEmpty() && parameters.Contains(name)) v = parameters[name];
-            ps[i] = v.ChangeType(pis[i].ParameterType);
+            var found = parameters != null && !name.IsNullOrEmpty() && parameters.Contains(name);
+            if (found) v = parameters![name!];
+            if (!found && pis[i].HasDefaultValue)
+                ps[i] = pis[i].DefaultValue;
+            else
+                ps[i] = v.ChangeType(pis[i].ParameterType);
         }
 
         return Invoke(target, method, ps);

@@ -58,6 +58,8 @@ public class DelegateHandler : IHttpHandler
         {
             if (parameters.TryGetValue(pis[i].Name + "", out var v))
                 args[i] = v.ChangeType(pis[i].ParameterType);
+            else if (pis[i].HasDefaultValue)
+                args[i] = pis[i].DefaultValue;
         }
 
         // 如果只有一个参数，且参数为空，则需要尝试从字典来反序列化

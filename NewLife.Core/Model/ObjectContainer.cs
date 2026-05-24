@@ -223,14 +223,19 @@ public class ObjectContainer : IObjectContainer
 
                     var ptype = ps[i].ParameterType;
                     if (_defs.TryGetValue(Type.GetTypeCode(ptype), out var obj))
-                        pv[i] = obj;
+                        pv[i] = ps[i].HasDefaultValue ? ps[i].DefaultValue : obj;
                     else
                     {
                         var service = provider.GetService(ps[i].ParameterType);
                         if (service == null)
                         {
-                            errorParameter2 = ps[i];
-                            break;
+                            if (ps[i].HasDefaultValue)
+                                pv[i] = ps[i].DefaultValue;
+                            else
+                            {
+                                errorParameter2 = ps[i];
+                                break;
+                            }
                         }
                         else
                         {
