@@ -1,121 +1,252 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Serialization;
 
 namespace NewLife.Messaging;
 
-/// <summary>事件枢纽。按主题把网络消息分发到事件总线或回调</summary>
-/// <typeparam name="TEvent">事件类型</typeparam>
+/// <summary>事件分发枢纽。按主题路由网络消息或本地事件到各事件总线</summary>
 /// <remarks>
-/// <para>核心职责：收取网络数据（<see cref="IPacket"/> 或 <see cref="String"/>），解析主题标识，并将消息分发给该主题对应的事件总线（<see cref="IEventBus{TEvent}"/>）或回调（<see cref="IEventHandler{TEvent}"/>）。</para>
-/// <para>主题注册：通过 <see cref="Add(String, IEventHandler{TEvent})"/> 或 <see cref="Add(String, IEventBus{TEvent})"/> 注册；同一主题仅保留最后一次注册的处理器。也可通过 <see cref="GetEventBus(String, String)"/> 延迟创建并缓存事件总线。</para>
-/// <para>消息格式：仅处理以 <c>event#</c> 开头的消息，格式为 <c>event#topic#clientId#message</c>，其中 <c>message</c> 通常为 <typeparamref name="TEvent"/> 的 JSON。</para>
-/// <para>客户端场景：按主题注册（<c>Add</c>/<c>GetEventBus</c>）事件总线；当收到服务端下发数据包时，解析主题并分发到对应事件总线/回调。</para>
-/// <para>服务端场景：通常单例使用；多个网络客户端订阅同一主题时，会在枢纽内共享同一个事件总线对象，但每个客户端拥有各自的事件处理器。任一客户端发布事件后，其它订阅该主题的客户端会收到，等价于简化版消息队列。</para>
-/// <para>订阅控制：当 <c>message</c> 为 <c>subscribe</c> 或 <c>unsubscribe</c> 时执行订阅/取消订阅；若取消订阅后主题无任何订阅者，将注销并移除该主题的事件总线与分发器，避免占用内存。</para>
-/// <para>线程安全：内部使用 <see cref="ConcurrentDictionary{TKey, TValue}"/> 保存主题与处理器映射。返回值语义：未匹配、解析失败或非事件消息返回 <c>0</c>；成功分发时返回处理器结果。</para>
-/// <para>集群部署：通过 <see cref="Factory"/> 注入集群工厂，使每个主题的总线在 PublishAsync 时同时推送到外部通道（如 Redis Stream 或星尘 StarDust）。各集群节点后台消费任务收到外部消息后，调用本地 <see cref="GetEventBus(String, String)"/> 获取总线并发布，即可唤醒任意节点上通过 <see cref="ReceiveAsync(String, CancellationToken)"/> 等待的调用方。</para>
+/// <para><b>核心职责</b>：</para>
+/// <list type="number">
+/// <item><description><b>主题路由</b>：维护 <c>topic → IEventBus&lt;TEvent&gt;</c> 映射，提供 <see cref="GetEventBus"/>/<see cref="RegisterBus"/>。</description></item>
+/// <item><description><b>协议适配</b>：默认解析 <c>event#topic#clientId#message</c> 文本协议；
+/// 派生类可重写 <see cref="TryDecode(IPacket,out EventEnvelope)"/> / <see cref="TryDecode(String,out EventEnvelope)"/> 替换为二进制、MQTT 等协议。</description></item>
+/// <item><description><b>控制面 + 数据面</b>：解析后区分动作（订阅/取消订阅）与数据消息，分别走 <see cref="SubscribeAsync"/>/<see cref="UnsubscribeAsync"/> 或 <see cref="PublishAsync"/>。</description></item>
+/// </list>
+/// <para><b>典型应用</b>：作为 IoT 网关或 MQ Bridge，将网络层（如 WebSocket/TCP）收到的消息按 topic 投递到进程内订阅者。</para>
 /// </remarks>
+/// <typeparam name="TEvent">事件类型</typeparam>
 public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, ILogFeature, ITracerFeature
 {
+    #region 嵌套：事件信封
+    /// <summary>协议解码的中间结果，承载主题/客户端/动作或事件三种语义</summary>
+    protected readonly struct EventEnvelope
+    {
+        /// <summary>主题</summary>
+        public String Topic { get; }
+
+        /// <summary>客户端标识。发送方，路由分发时用于排除回环</summary>
+        public String ClientId { get; }
+
+        /// <summary>动作。订阅/取消订阅控制指令；为空表示数据消息</summary>
+        public String? Action { get; }
+
+        /// <summary>已解码的事件实例</summary>
+        public TEvent? Event { get; }
+
+        /// <summary>是否动作信封</summary>
+        public Boolean IsAction => !Action.IsNullOrEmpty();
+
+        /// <summary>构造动作信封</summary>
+        /// <param name="topic">主题</param>
+        /// <param name="clientId">客户端标识</param>
+        /// <param name="action">动作指令</param>
+        public static EventEnvelope ForAction(String topic, String clientId, String action) => new(topic, clientId, action, default);
+
+        /// <summary>构造事件信封</summary>
+        /// <param name="topic">主题</param>
+        /// <param name="clientId">客户端标识</param>
+        /// <param name="event">事件实例</param>
+        public static EventEnvelope ForEvent(String topic, String clientId, TEvent @event) => new(topic, clientId, null, @event);
+
+        private EventEnvelope(String topic, String clientId, String? action, TEvent? @event)
+        {
+            Topic = topic;
+            ClientId = clientId;
+            Action = action;
+            Event = @event;
+        }
+    }
+    #endregion
+
     #region 属性
-    /// <summary>事件总线工厂</summary>
-    /// <remarks>用于按主题创建事件总线</remarks>
+    /// <summary>事件总线工厂。用于按需创建各 topic 对应的事件总线</summary>
     public IEventBusFactory? Factory { get; set; }
 
-    /// <summary>Json主机</summary>
+    /// <summary>JSON 主机。用于编解码事件体</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
+
+    /// <summary>动作判定阈值。消息体短于该长度且不以 <c>{</c> 开头时视为控制动作指令</summary>
+    public Int32 ActionMaxLength { get; set; } = 32;
 
     /// <summary>链路追踪</summary>
     public ITracer? Tracer { get; set; }
 
-    /// <summary>已创建的主题事件总线</summary>
-    /// <remarks>
-    /// <para>服务端单例场景下：同一主题通常会被多个网络客户端共享订阅，因此这里按 topic 缓存总线实例。</para>
-    /// </remarks>
     private readonly ConcurrentDictionary<String, IEventBus<TEvent>> _eventBuses = new();
+    /// <summary>已注册的事件总线集合。Key 为 topic</summary>
+    public IDictionary<String, IEventBus<TEvent>> EventBuses => _eventBuses;
 
+    private static readonly Byte[] _prefixBytes = Encoding.ASCII.GetBytes("event#");
+    private static readonly Char[] _prefixChars = "event#".ToCharArray();
     #endregion
 
-    #region 注册
-    /// <summary>添加事件总线到指定主题</summary>
-    /// <param name="topic">主题名称</param>
-    /// <param name="bus">事件总线实例</param>
-    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 或 <paramref name="bus"/> 为 null 时抛出</exception>
-    public void Add(String topic, IEventBus<TEvent> bus)
-    {
-        if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
-        if (bus == null) throw new ArgumentNullException(nameof(bus));
-
-        _eventBuses[topic] = bus;
-    }
-
-    /// <summary>按主题注册事件处理器</summary>
-    /// <param name="topic">主题名称</param>
-    /// <param name="handler">事件处理器，将通过其 <c>HandleAsync</c> 处理事件</param>
-    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 或 <paramref name="handler"/> 为 null 时抛出</exception>
-    public void Add(String topic, IEventHandler<TEvent> handler)
-    {
-        if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
-        if (handler == null) throw new ArgumentNullException(nameof(handler));
-
-        // 委托给主题总线，以统一路由路径；clientId="" 保持"最后注册者生效"语义
-        GetEventBus(topic).Subscribe(handler, "");
-    }
-
-    /// <summary>获取指定主题的事件总线</summary>
-    /// <remarks>
-    /// <para>说明：不存在时将通过 <see cref="Factory"/> 创建并缓存；并发下可能多次创建，但最终仅保留一份实例。</para>
-    /// </remarks>
+    #region 注册与获取
+    /// <summary>注册主题对应的事件总线</summary>
     /// <param name="topic">事件主题</param>
-    /// <param name="clientId">客户标识/消息分组</param>
-    /// <exception cref="ArgumentNullException">当 <see cref="Factory"/> 为空时抛出</exception>
-    public IEventBus<TEvent> GetEventBus(String topic, String clientId = "")
+    /// <param name="eventBus">事件总线实例</param>
+    public void RegisterBus(String topic, IEventBus<TEvent> eventBus) => _eventBuses[topic] = eventBus;
+
+    /// <summary>尝试获取主题对应的事件总线（不会创建新的）</summary>
+    /// <param name="topic">事件主题</param>
+    /// <param name="eventBus">事件总线</param>
+    /// <returns>是否存在</returns>
+    public Boolean TryGetBus(String topic, out IEventBus<TEvent> eventBus) => _eventBuses.TryGetValue(topic, out eventBus!);
+
+    /// <summary>获取或创建主题对应的事件总线</summary>
+    /// <param name="topic">事件主题</param>
+    /// <param name="clientId">客户标识，仅在使用 <see cref="Factory"/> 创建时传递</param>
+    /// <returns>事件总线实例</returns>
+    public virtual IEventBus<TEvent> GetEventBus(String topic, String clientId = "")
     {
         if (_eventBuses.TryGetValue(topic, out var bus)) return bus;
-
-        //if (Factory == null) throw new ArgumentNullException(nameof(Factory));
-
-        using var span = Tracer?.NewSpan($"event:{topic}:Create", new { clientId });
-
-        // 并发场景下允许多线程同时走到 CreateEventBus，但最终仅有一个实例会进入字典，其它实例会被丢弃。
-        WriteLog("注册主题：{0}，客户端：{1}", topic, clientId);
         bus = Factory?.CreateEventBus<TEvent>(topic, clientId) ?? new EventBus<TEvent>();
+        return _eventBuses.GetOrAdd(topic, bus);
+    }
+    #endregion
 
-        bus = _eventBuses.GetOrAdd(topic, bus);
+    #region 发布与订阅
+    /// <summary>向指定主题发布事件</summary>
+    /// <remarks>
+    /// 发送方信息（用于排除回环）通过 <see cref="EventContext.ClientId"/> 传递。
+    /// 无需排除回环时可传入 <see langword="null"/>，由总线自动创建上下文。
+    /// </remarks>
+    /// <param name="topic">主题</param>
+    /// <param name="event">事件</param>
+    /// <param name="context">事件上下文；为空时由总线自行创建</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成功处理该事件的处理器数量</returns>
+    public virtual Task<Int32> PublishAsync(String topic, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
+    {
+        var bus = GetEventBus(topic);
 
-        return bus;
+        // 自动注入 Topic 到上下文，便于订阅者读取
+        if (context is EventContext ctx) ctx.Topic ??= topic;
+
+        return bus.PublishAsync(@event, context, cancellationToken);
     }
 
-    /// <summary>尝试获取事件总线</summary>
-    /// <param name="topic">主题名称</param>
-    /// <param name="eventBus">输出的事件总线实例</param>
-    public Boolean TryGetBus<T>(String topic, [MaybeNullWhen(false)] out IEventBus<T> eventBus)
+    /// <summary>向指定主题订阅事件</summary>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户标识</param>
+    /// <param name="handler">事件处理器</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否订阅成功</returns>
+    public virtual Task<Boolean> SubscribeAsync(String topic, String clientId, IEventHandler<TEvent> handler, CancellationToken cancellationToken = default) => GetEventBus(topic, clientId).SubscribeAsync(handler, clientId, cancellationToken);
+
+    /// <summary>取消指定主题/客户端的订阅</summary>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否成功取消订阅</returns>
+    public virtual async Task<Boolean> UnsubscribeAsync(String topic, String clientId, CancellationToken cancellationToken = default)
     {
-        if (_eventBuses.TryGetValue(topic, out var bus) && bus is IEventBus<T> bus2)
+        if (!_eventBuses.TryGetValue(topic, out var bus)) return false;
+
+        var ok = await bus.UnsubscribeAsync(clientId, cancellationToken).ConfigureAwait(false);
+
+        // 取消后若已无订阅者且为默认实现，移除总线避免泄漏
+        if (bus is EventBus<TEvent> eb && eb.Handlers.Count == 0) _eventBuses.TryRemove(topic, out _);
+
+        return ok;
+    }
+    #endregion
+
+    #region 协议解码（可重载）
+    /// <summary>尝试从二进制数据包解码事件信封。派生类可重写以替换协议实现</summary>
+    /// <param name="data">网络数据包</param>
+    /// <param name="envelope">解码出的事件信封</param>
+    /// <returns>是否解码成功</returns>
+    protected virtual Boolean TryDecode(IPacket data, out EventEnvelope envelope)
+    {
+        envelope = default;
+        if (data == null) return false;
+        if (!TryParseHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+        var msg = data.Slice(headerLen);
+        if (msg.Length == 0) return false;
+
+        // TEvent 本身是 IPacket，直接零拷贝构造事件信封
+        if (msg is TEvent evt) { envelope = EventEnvelope.ForEvent(topic, clientId, evt); return true; }
+
+        var msgStr = msg.ToStr();
+        return BuildEnvelopeFromString(topic, clientId, msgStr, out envelope);
+    }
+
+    /// <summary>尝试从字符串解码事件信封。派生类可重写以替换协议实现</summary>
+    /// <param name="data">字符串消息</param>
+    /// <param name="envelope">解码出的事件信封</param>
+    /// <returns>是否解码成功</returns>
+    protected virtual Boolean TryDecode(String data, out EventEnvelope envelope)
+    {
+        envelope = default;
+        if (data.IsNullOrEmpty()) return false;
+        if (!TryParseHeader(data.AsSpan(), out var topic, out var clientId, out var headerLen)) return false;
+
+        var msg = data[headerLen..];
+        if (msg.Length == 0) return false;
+
+        return BuildEnvelopeFromString(topic, clientId, msg, out envelope);
+    }
+
+    /// <summary>编码事件为字符串（便于通过文本协议发送）</summary>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户端标识</param>
+    /// <param name="event">事件实例</param>
+    /// <returns>编码后的字符串</returns>
+    protected virtual String EncodeEvent(String topic, String clientId, TEvent @event)
+    {
+        var body = @event is String s ? s : JsonHost.Write(@event!);
+        return $"event#{topic}#{clientId}#{body}";
+    }
+
+    /// <summary>编码控制动作为字符串（订阅/取消订阅等）</summary>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户端标识</param>
+    /// <param name="action">动作指令</param>
+    /// <returns>编码后的字符串</returns>
+    protected virtual String EncodeAction(String topic, String clientId, String action) => $"event#{topic}#{clientId}#{action}";
+
+    /// <summary>根据消息体字符串构造事件信封：动作 / 字符串事件 / JSON 解码</summary>
+    private Boolean BuildEnvelopeFromString(String topic, String clientId, String msg, out EventEnvelope envelope)
+    {
+        // TEvent = String，整条消息体始终视为事件，不识别动作（避免短消息被误判为控制指令）
+        if (msg is TEvent strEvt)
         {
-            eventBus = bus2;
+            envelope = EventEnvelope.ForEvent(topic, clientId, strEvt);
             return true;
         }
 
-        eventBus = null;
-        return false;
+        // 短字符串且不以 { 开头 → 视为动作指令
+        if (msg[0] != '{' && msg.Length < ActionMaxLength)
+        {
+            envelope = EventEnvelope.ForAction(topic, clientId, msg);
+            return true;
+        }
+
+        // JSON 反序列化
+        var evt = JsonHost.Read<TEvent>(msg, null);
+        if (evt == null)
+        {
+            envelope = default;
+            return false;
+        }
+        envelope = EventEnvelope.ForEvent(topic, clientId, evt);
+        return true;
     }
-    #endregion
 
-    #region 消息解析
-    private static readonly Byte[] _eventPrefixBytes = Encoding.ASCII.GetBytes("event#");
-    private static readonly Char[] _eventPrefixChars = "event#".ToCharArray();
-
-    private static Boolean TryParseEventHeader(ReadOnlySpan<Byte> data, out String topic, out String clientId, out Int32 headerLength)
+    /// <summary>解析 <c>event#topic#clientId#</c> 二进制头部</summary>
+    /// <param name="data">输入数据</param>
+    /// <param name="topic">输出主题</param>
+    /// <param name="clientId">输出客户端标识</param>
+    /// <param name="headerLength">头部字节数（含末尾 #）</param>
+    /// <returns>是否解析成功</returns>
+    public static Boolean TryParseHeader(ReadOnlySpan<Byte> data, out String topic, out String clientId, out Int32 headerLength)
     {
         topic = clientId = String.Empty;
         headerLength = 0;
-        if (!data.StartsWith(_eventPrefixBytes)) return false;
+        if (!data.StartsWith(_prefixBytes)) return false;
 
         var p = data.IndexOf((Byte)'#');
         var rest = data[(p + 1)..];
@@ -132,11 +263,17 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         return true;
     }
 
-    private static Boolean TryParseEventHeader(ReadOnlySpan<Char> data, out String topic, out String clientId, out Int32 headerLength)
+    /// <summary>解析 <c>event#topic#clientId#</c> 字符串头部</summary>
+    /// <param name="data">输入数据</param>
+    /// <param name="topic">输出主题</param>
+    /// <param name="clientId">输出客户端标识</param>
+    /// <param name="headerLength">头部字符数（含末尾 #）</param>
+    /// <returns>是否解析成功</returns>
+    public static Boolean TryParseHeader(ReadOnlySpan<Char> data, out String topic, out String clientId, out Int32 headerLength)
     {
         topic = clientId = String.Empty;
         headerLength = 0;
-        if (!data.StartsWith(_eventPrefixChars)) return false;
+        if (!data.StartsWith(_prefixChars)) return false;
 
         var p = data.IndexOf('#');
         var rest = data[(p + 1)..];
@@ -154,206 +291,85 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     }
     #endregion
 
-    #region 消息处理
-    /// <summary>处理接收到的消息</summary>
-    /// <remarks>
-    /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
-    /// <para>解析后会将原始数据包保存到 <c>context["Raw"]</c>，便于订阅者直接转发原始报文实现零拷贝。</para>
-    /// </remarks>
-    /// <param name="data">消息数据包</param>
-    /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
-    /// <param name="cancellationToken">取消通知标记</param>
-    /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    public virtual async Task<Int32> HandleAsync(IPacket data, IEventContext? context = null, CancellationToken cancellationToken = default)
+    #region 网络消息接收
+    /// <summary>接收网络字节流消息并按协议解码后路由</summary>
+    /// <param name="data">网络数据包</param>
+    /// <param name="context">事件上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>分发到本地订阅者的处理器数量</returns>
+    public virtual async Task<Int32> OnReceiveAsync(IPacket data, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
-        if (!TryParseEventHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return 0;
+        if (data == null) return 0;
+        if (!TryDecode(data, out var envelope)) return 0;
 
-        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Total - headerLen);
-        var msg = data.Slice(headerLen);
-        if (msg.Length == 0) return 0;
-
-        // 保存原始数据包到上下文，便于订阅者直接转发原始报文（零拷贝）
-        if (context is IExtend ext) ext["Raw"] = data;
-
-        // 若 TEvent 本身是 IPacket，无需字符串化，直接分发原始数据包
-        if (msg is TEvent @event)
-            return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
-
-        var msgStr = msg.ToStr();
-        span?.AppendTag(msgStr);
-        return await RouteMessageAsync(topic, clientId, msgStr, context, cancellationToken).ConfigureAwait(false);
+        return await DispatchEnvelopeAsync(envelope, data, context, cancellationToken).ConfigureAwait(false);
     }
 
-    Task IEventHandler<IPacket>.HandleAsync(IPacket @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
-
-    /// <summary>处理接收到的消息</summary>
-    /// <remarks>
-    /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
-    /// <para>解析后会将原始消息字符串保存到 <c>context["Raw"]</c>，便于订阅者直接转发原始报文。</para>
-    /// </remarks>
-    /// <param name="data">消息字符串</param>
-    /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
-    /// <param name="cancellationToken">取消通知标记</param>
-    /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    public virtual async Task<Int32> HandleAsync(String data, IEventContext? context = null, CancellationToken cancellationToken = default)
+    /// <summary>接收字符串消息并按协议解码后路由</summary>
+    /// <param name="data">字符串消息</param>
+    /// <param name="context">事件上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>分发到本地订阅者的处理器数量</returns>
+    public virtual async Task<Int32> OnReceiveAsync(String data, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
-        if (!TryParseEventHeader(data.AsSpan(), out var topic, out var clientId, out var headerLen)) return 0;
+        if (data.IsNullOrEmpty()) return 0;
+        if (!TryDecode(data, out var envelope)) return 0;
 
-        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Length - headerLen);
-        // 解析 message：可能是 JSON 事件体，也可能是 subscribe/unsubscribe 控制指令。
-        var msg = data[headerLen..];
-        if (msg.Length == 0) return 0;
-
-        // 保存原始消息字符串到上下文，便于订阅者直接转发原始报文
-        if (context is IExtend ext) ext["Raw"] = data;
-
-        span?.AppendTag(msg);
-        return await RouteMessageAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
+        return await DispatchEnvelopeAsync(envelope, data, context, cancellationToken).ConfigureAwait(false);
     }
 
-    Task IEventHandler<String>.HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
+    Task IEventHandler<IPacket>.HandleAsync(IPacket @event, IEventContext? context, CancellationToken cancellationToken) => OnReceiveAsync(@event, context, cancellationToken);
+    Task IEventHandler<String>.HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken) => OnReceiveAsync(@event, context, cancellationToken);
+
+    /// <summary>把解码后的事件信封路由到控制面或数据面</summary>
+    private async Task<Int32> DispatchEnvelopeAsync(EventEnvelope envelope, Object raw, IEventContext? context, CancellationToken cancellationToken)
+    {
+        // 把原始数据透传到扩展项，便于网络层做后续路由（如转发到其他客户端）
+        if (context is IExtend ext) ext["Raw"] = raw;
+
+        // 控制面：订阅/取消订阅
+        if (envelope.IsAction)
+        {
+            var action = envelope.Action!;
+            if (action.EqualIgnoreCase("subscribe"))
+            {
+                if ((context as IExtend)?["Handler"] is IEventHandler<TEvent> handler)
+                {
+                    await SubscribeAsync(envelope.Topic, envelope.ClientId, handler, cancellationToken).ConfigureAwait(false);
+                    return 1;
+                }
+                return 0;
+            }
+            if (action.EqualIgnoreCase("unsubscribe"))
+            {
+                await UnsubscribeAsync(envelope.Topic, envelope.ClientId, cancellationToken).ConfigureAwait(false);
+                return 1;
+            }
+            return 0;
+        }
+
+        // 数据面：发布事件
+        if (envelope.Event is null) return 0;
+
+        // 将发送方 ClientId 注入上下文，便于本地总线排除回环
+        if (context is EventContext ec)
+        {
+            ec.ClientId ??= envelope.ClientId;
+        }
+        else if (context == null && !envelope.ClientId.IsNullOrEmpty())
+        {
+            context = new EventContext { Topic = envelope.Topic, ClientId = envelope.ClientId };
+        }
+
+        return await PublishAsync(envelope.Topic, envelope.Event, context, cancellationToken).ConfigureAwait(false);
+    }
     #endregion
 
-    #region 消息分发
-    private async Task<Int32> RouteMessageAsync(String topic, String clientId, String msg, IEventContext? context, CancellationToken cancellationToken)
-    {
-        // 控制指令：subscribe / unsubscribe（短字符串且不以 { 开头）
-        if (msg[0] != '{' && msg.Length < 32)
-            if (await DispatchActionAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false)) return 1;
-
-        // 字符串事件（TEvent = String）
-        if (msg is TEvent @event)
-            return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
-
-        // JSON 反序列化后分发
-        return await OnDispatchAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>处理动作指令</summary>
-    /// <remarks>
-    /// 处理 subscribe/unsubscribe 等控制指令。
-    /// </remarks>
-    /// <param name="topic">主题名称</param>
-    /// <param name="clientId">客户端标识</param>
-    /// <param name="action">动作指令（subscribe/unsubscribe）</param>
-    /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
+    #region 等待接收
+    /// <summary>异步等待指定主题的第一条事件</summary>
+    /// <param name="topic">主题</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>是否成功处理该动作</returns>
-    public virtual Task<Boolean> DispatchActionAsync(String topic, String clientId, String action, IEventContext? context = null, CancellationToken cancellationToken = default)
-    {
-        if (action.IsNullOrEmpty() || action[0] == '{') return Task.FromResult(false);
-
-        using var span = Tracer?.NewSpan($"event:{topic}:{action}", new { clientId });
-
-        // 订阅和取消订阅动作。event#topic#clientId#subscribe
-        switch (action)
-        {
-            case "subscribe":
-                {
-                    // 订阅动作时，必须指定事件处理器
-                    if ((context as IExtend)?["Handler"] is not IEventHandler<TEvent> handler)
-                        throw new ArgumentNullException(nameof(context), "订阅动作时，必须在上下文中指定事件处理器");
-
-                    // 服务端：为该 topic 创建/获取事件总线，并将当前 handler 绑定到 clientId。
-                    // clientId 用于区分网络客户端订阅者，便于取消订阅或按连接分组投递。
-                    var bus = GetEventBus(topic, clientId);
-
-                    WriteLog("订阅主题：{0}，客户端：{1}", topic, clientId);
-                    bus.Subscribe(handler, clientId);
-                }
-                return Task.FromResult(true);
-            case "unsubscribe":
-                {
-                    WriteLog("取消订阅主题：{0}，客户端：{1}", topic, clientId);
-
-                    if (!TryGetBus<TEvent>(topic, out var bus)) return Task.FromResult(false);
-
-                    bus.Unsubscribe(clientId);
-
-                    // 服务端：如果没有订阅者则注销该 topic 的总线，避免主题长期占用内存。
-                    if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
-                    {
-                        _eventBuses.TryRemove(topic, out _);
-
-                        WriteLog("注销主题：{0}，因订阅为空", topic);
-                    }
-                }
-                return Task.FromResult(true);
-        }
-
-        return Task.FromResult(false);
-    }
-
-    /// <summary>分发字符串事件给各个处理器</summary>
-    /// <remarks>
-    /// <para>进程内分发：按 <c>topic</c> 路由到事件总线或回调。</para>
-    /// <para>优先级：先查找已缓存的事件总线，再查找直接注册的分发器。</para>
-    /// </remarks>
-    /// <param name="topic">主题名称</param>
-    /// <param name="clientId">发送方客户端标识</param>
-    /// <param name="msg">事件实例</param>
-    /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
-    /// <param name="cancellationToken">取消通知标记</param>
-    /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 为空时抛出</exception>
-    protected virtual Task<Int32> OnDispatchAsync(String topic, String clientId, String msg, IEventContext? context = null, CancellationToken cancellationToken = default)
-    {
-        var @event = JsonHost.Read<TEvent>(msg, null)!;
-        if (@event is ITraceMessage tm && DefaultSpan.Current is ISpan span)
-            span.Detach(tm.TraceId);
-
-        return DispatchAsync(topic, clientId, @event, context, cancellationToken);
-    }
-
-    /// <summary>分发事件给各个处理器</summary>
-    /// <remarks>按 <c>topic</c> 路由到对应的事件总线。</remarks>
-    /// <param name="topic">主题名称</param>
-    /// <param name="clientId">发送方客户端标识</param>
-    /// <param name="event">事件实例</param>
-    /// <param name="context">事件上下文。用于在发布者、订阅者及中间处理器之间传递协调数据，如 Handler、ClientId 等</param>
-    /// <param name="cancellationToken">取消通知标记</param>
-    /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 为空时抛出</exception>
-    public virtual async Task<Int32> DispatchAsync(String topic, String clientId, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
-    {
-        if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
-
-        // 设置上下文的 ClientId，用于事件总线在分发时排除发送方自身
-        if (context is EventContext ctx)
-        {
-            ctx.Topic = topic;
-            ctx.ClientId = clientId;
-        }
-        else if (context is IExtend ext)
-        {
-            ext["Topic"] = topic;
-            ext["ClientId"] = clientId;
-        }
-
-        if (_eventBuses.TryGetValue(topic, out var bus))
-            return await bus.PublishAsync(@event, context, cancellationToken).ConfigureAwait(false);
-
-        return 0;
-    }
-
-    /// <summary>异步阻塞等待指定主题的一条事件消息</summary>
-    /// <remarks>
-    /// <para>接收完成（或超时/取消）后，若该主题已无订阅者，将自动从枢纽移除空闲总线。</para>
-    /// <para>典型用法（IoT 指令确认）：
-    /// <code>
-    /// // 下发指令
-    /// websocket.Send(cmdJson);
-    /// // 等待设备应答（30 秒超时）
-    /// var result = await hub.ReceiveAsync(nodeCode, TimeSpan.FromSeconds(30));
-    ///
-    /// // 设备上报 HTTP 接口内
-    /// await hub.PublishAsync(nodeCode, cmdResult);
-    /// </code>
-    /// </para>
-    /// </remarks>
-    /// <param name="topic">事件主题</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>等待到的第一条事件</returns>
+    /// <returns>事件实例</returns>
     public async Task<TEvent> ReceiveAsync(String topic, CancellationToken cancellationToken = default)
     {
         var bus = GetEventBus(topic);
@@ -363,48 +379,141 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         }
         finally
         {
-            // 自动清理：若该主题已无订阅者，从枢纽移除，避免长期积累空闲总线
-            if (bus is EventBus<TEvent> eb && eb.Handlers.Count == 0)
-                _eventBuses.TryRemove(topic, out _);
+            // 等待完成后若无其他订阅者，移除总线避免泄漏
+            if (bus is EventBus<TEvent> eb && eb.Handlers.Count == 0) _eventBuses.TryRemove(topic, out _);
         }
     }
 
-    /// <summary>异步阻塞等待指定主题的一条事件消息，超时后抛出 <see cref="OperationCanceledException"/></summary>
-    /// <param name="topic">事件主题</param>
-    /// <param name="timeout">等待超时时间</param>
-    /// <returns>等待到的第一条事件</returns>
+    /// <summary>异步等待指定主题的第一条事件，超时后抛出 <see cref="OperationCanceledException"/></summary>
+    /// <param name="topic">主题</param>
+    /// <param name="timeout">超时时间</param>
+    /// <returns>事件实例</returns>
     public async Task<TEvent> ReceiveAsync(String topic, TimeSpan timeout)
     {
         using var cts = new CancellationTokenSource(timeout);
         return await ReceiveAsync(topic, cts.Token).ConfigureAwait(false);
     }
+    #endregion
 
-    /// <summary>向指定主题发布事件</summary>
-    /// <remarks>
-    /// <para>便捷方法，等价于 <c>GetEvent(topic).PublishAsync(@event)</c>，适用于服务端回调接口中直接发布。</para>
-    /// <para>若该主题无订阅者，返回 0 且不产生异常。</para>
-    /// </remarks>
-    /// <param name="topic">事件主题</param>
-    /// <param name="event">事件实例</param>
-    /// <param name="context">事件上下文，为 null 时由总线自动创建</param>
+    #region 兼容层（旧 API，已标记废弃）
+    /// <summary>接收网络数据包并路由（旧 API）</summary>
+    /// <remarks>请改用 <see cref="OnReceiveAsync(IPacket, IEventContext?, CancellationToken)"/></remarks>
+    /// <param name="data">数据包</param>
+    /// <param name="context">事件上下文</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>成功处理该事件的处理器数量</returns>
-    public Task<Int32> PublishAsync(String topic, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default) => DispatchAsync(topic, "", @event, context, cancellationToken);
+    /// <returns>处理数量</returns>
+    [Obsolete("请改用 OnReceiveAsync(IPacket,...)。将在后续版本移除")]
+    public Task<Int32> HandleAsync(IPacket data, IEventContext? context = null, CancellationToken cancellationToken = default) => OnReceiveAsync(data, context, cancellationToken);
+
+    /// <summary>接收字符串消息并路由（旧 API）</summary>
+    /// <remarks>请改用 <see cref="OnReceiveAsync(String, IEventContext?, CancellationToken)"/></remarks>
+    /// <param name="data">字符串消息</param>
+    /// <param name="context">事件上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>处理数量</returns>
+    [Obsolete("请改用 OnReceiveAsync(String,...)。将在后续版本移除")]
+    public Task<Int32> HandleAsync(String data, IEventContext? context = null, CancellationToken cancellationToken = default) => OnReceiveAsync(data, context, cancellationToken);
+
+    /// <summary>分发事件到指定主题与发送方（旧 API）</summary>
+    /// <remarks>请改用 <see cref="PublishAsync"/>，把 <c>clientId</c> 放入 <see cref="EventContext.ClientId"/></remarks>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">发送方客户端标识</param>
+    /// <param name="event">事件</param>
+    /// <param name="context">事件上下文；为 IExtend 时会写入 Topic/ClientId 数据项</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成功处理该事件的处理器数量；主题未注册时返回 0</returns>
+    [Obsolete("请改用 PublishAsync(topic,event,context,ct)，将 clientId 放入 EventContext.ClientId。将在后续版本移除")]
+    public Task<Int32> DispatchAsync(String topic, String clientId, TEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)
+    {
+        if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
+
+        // 上下文字段需要先于注册检查写入，保持旧版可观察行为
+        if (context is EventContext ec)
+        {
+            ec.Topic ??= topic;
+            ec.ClientId ??= clientId;
+        }
+        if (context is IExtend ext)
+        {
+            ext["Topic"] ??= topic;
+            ext["ClientId"] ??= clientId;
+        }
+
+        // 主题未注册时不创建总线，直接返回 0（保持旧语义）
+        if (!_eventBuses.TryGetValue(topic, out var bus)) return TaskEx.FromResult(0);
+
+        return bus.PublishAsync(@event, context, cancellationToken);
+    }
+
+    /// <summary>分发控制动作（subscribe/unsubscribe）（旧 API）</summary>
+    /// <remarks>请改用 <see cref="SubscribeAsync"/> / <see cref="UnsubscribeAsync"/></remarks>
+    /// <param name="topic">主题</param>
+    /// <param name="clientId">客户标识</param>
+    /// <param name="action">动作；非 subscribe/unsubscribe 返回 false</param>
+    /// <param name="context">事件上下文；subscribe 需要在其中提供 <c>Handler</c> 数据项</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>动作是否被识别并执行</returns>
+    [Obsolete("请改用 SubscribeAsync/UnsubscribeAsync。将在后续版本移除")]
+    public async Task<Boolean> DispatchActionAsync(String topic, String clientId, String action, IEventContext? context = null, CancellationToken cancellationToken = default)
+    {
+        if (action.IsNullOrEmpty() || action[0] == '{') return false;
+
+        if (action.EqualIgnoreCase("subscribe"))
+        {
+            var handler = (context as IExtend)?["Handler"] as IEventHandler<TEvent>
+                ?? throw new ArgumentNullException(nameof(context), "subscribe 动作需要在上下文中提供 Handler");
+            await SubscribeAsync(topic, clientId, handler, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        if (action.EqualIgnoreCase("unsubscribe"))
+        {
+            // 旧语义：总线不存在时返回 false
+            if (!_eventBuses.ContainsKey(topic)) return false;
+            return await UnsubscribeAsync(topic, clientId, cancellationToken).ConfigureAwait(false);
+        }
+        return false;
+    }
+
+    /// <summary>注册主题与事件总线的映射（旧 API）</summary>
+    /// <remarks>请改用 <see cref="RegisterBus"/></remarks>
+    /// <param name="topic">主题</param>
+    /// <param name="eventBus">事件总线</param>
+    [Obsolete("请改用 RegisterBus。将在后续版本移除")]
+    public void Add(String topic, IEventBus<TEvent> eventBus) => RegisterBus(topic, eventBus);
+
+    /// <summary>注册主题对应的事件处理器（旧 API）</summary>
+    /// <remarks>请改用 <see cref="SubscribeAsync"/></remarks>
+    /// <param name="topic">主题</param>
+    /// <param name="handler">事件处理器</param>
+    [Obsolete("请改用 SubscribeAsync(topic, clientId, handler)。将在后续版本移除")]
+    public void Add(String topic, IEventHandler<TEvent> handler) => SubscribeAsync(topic, "", handler).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    /// <summary>尝试获取指定泛型类型的事件总线（旧 API）</summary>
+    /// <remarks>请改用非泛型 <see cref="TryGetBus"/></remarks>
+    /// <typeparam name="T">事件类型；与 <typeparamref name="TEvent"/> 不一致时返回 false</typeparam>
+    /// <param name="topic">主题</param>
+    /// <param name="eventBus">事件总线</param>
+    /// <returns>是否找到</returns>
+    [Obsolete("请改用非泛型 TryGetBus(topic, out bus)。将在后续版本移除")]
+    public Boolean TryGetBus<T>(String topic, out IEventBus<T>? eventBus)
+    {
+        if (typeof(T) == typeof(TEvent) && _eventBuses.TryGetValue(topic, out var bus))
+        {
+            eventBus = (IEventBus<T>)bus;
+            return true;
+        }
+        eventBus = null;
+        return false;
+    }
     #endregion
 
     #region 日志
     /// <summary>日志</summary>
     public ILog Log { get; set; } = Logger.Null;
 
-    /// <summary>写日志。同步到当前埋点</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
-    public void WriteLog(String format, params Object[] args)
-    {
-        var span = DefaultSpan.Current;
-        span?.AppendTag(String.Format(format, args));
-
-        Log?.Info(format, args);
-    }
+    /// <summary>写日志</summary>
+    /// <param name="format">格式串</param>
+    /// <param name="args">参数</param>
+    public void WriteLog(String format, params Object[] args) => Log?.Info(format, args);
     #endregion
 }

@@ -29,16 +29,16 @@ public class EventHubTests
         public Int32 UnsubscribeCount { get; private set; }
         public Int32 PublishCount { get; private set; }
 
-        public override Boolean Subscribe(IEventHandler<TestEvent> handler, String clientId = "")
+        public override Task<Boolean> SubscribeAsync(IEventHandler<TestEvent> handler, String clientId = "", CancellationToken cancellationToken = default)
         {
             SubscribeCount++;
-            return base.Subscribe(handler, clientId);
+            return base.SubscribeAsync(handler, clientId, cancellationToken);
         }
 
-        public override Boolean Unsubscribe(String clientId = "")
+        public override Task<Boolean> UnsubscribeAsync(String clientId = "", CancellationToken cancellationToken = default)
         {
             UnsubscribeCount++;
-            return base.Unsubscribe(clientId);
+            return base.UnsubscribeAsync(clientId, cancellationToken);
         }
 
         public override Task<Int32> PublishAsync(TestEvent @event, IEventContext? context = null, CancellationToken cancellationToken = default)

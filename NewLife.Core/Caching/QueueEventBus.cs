@@ -82,7 +82,8 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
     /// <summary>订阅消息。启动后台循环，从消息队列订阅消息并分发到本地订阅者</summary>
     /// <param name="handler">处理器</param>
     /// <param name="clientId">客户标识。每个客户只能订阅一次，重复订阅将会挤掉前一次订阅</param>
-    public override Boolean Subscribe(IEventHandler<TEvent> handler, String clientId = "")
+    /// <param name="cancellationToken">取消令牌</param>
+    public override Task<Boolean> SubscribeAsync(IEventHandler<TEvent> handler, String clientId = "", CancellationToken cancellationToken = default)
     {
         if (_source == null)
         {
@@ -101,7 +102,7 @@ public class QueueEventBus<TEvent>(ICache cache, String topic) : EventBus<TEvent
             }
         }
 
-        return base.Subscribe(handler, clientId);
+        return base.SubscribeAsync(handler, clientId, cancellationToken);
     }
 
     /// <summary>从队列消费消息并通过事件总线分发给本地订阅者</summary>
