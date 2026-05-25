@@ -68,6 +68,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <summary>JSON 主机。用于编解码事件体</summary>
     public IJsonHost JsonHost { get; set; } = JsonHelper.Default;
 
+    /// <summary>JSON序列化选项，影响复杂对象的编码和解码行为</summary>
+    public JsonOptions? JsonOptions { get; set; }
+
     /// <summary>动作判定阈值。消息体短于该长度且不以 <c>{</c> 开头时视为控制动作指令</summary>
     public Int32 ActionMaxLength { get; set; } = 32;
 
@@ -197,7 +200,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <returns>编码后的字符串</returns>
     protected virtual String EncodeEvent(String topic, String clientId, TEvent @event)
     {
-        var body = @event is String s ? s : JsonHost.Write(@event!);
+        var body = @event is String s ? s : JsonHost.Write(@event!, JsonOptions);
         return $"event#{topic}#{clientId}#{body}";
     }
 
@@ -226,7 +229,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         }
 
         // JSON 反序列化
-        var evt = JsonHost.Read<TEvent>(msg, null);
+        var evt = JsonHost.Read<TEvent>(msg, JsonOptions);
         if (evt == null)
         {
             envelope = default;
