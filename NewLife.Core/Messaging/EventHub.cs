@@ -396,24 +396,6 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     #endregion
 
     #region 兼容层（旧 API，已标记废弃）
-    /// <summary>接收网络数据包并路由（旧 API）</summary>
-    /// <remarks>请改用 <see cref="OnReceiveAsync(IPacket, IEventContext?, CancellationToken)"/></remarks>
-    /// <param name="data">数据包</param>
-    /// <param name="context">事件上下文</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>处理数量</returns>
-    [Obsolete("请改用 OnReceiveAsync(IPacket,...)。将在后续版本移除")]
-    public Task<Int32> HandleAsync(IPacket data, IEventContext? context = null, CancellationToken cancellationToken = default) => OnReceiveAsync(data, context, cancellationToken);
-
-    /// <summary>接收字符串消息并路由（旧 API）</summary>
-    /// <remarks>请改用 <see cref="OnReceiveAsync(String, IEventContext?, CancellationToken)"/></remarks>
-    /// <param name="data">字符串消息</param>
-    /// <param name="context">事件上下文</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>处理数量</returns>
-    [Obsolete("请改用 OnReceiveAsync(String,...)。将在后续版本移除")]
-    public Task<Int32> HandleAsync(String data, IEventContext? context = null, CancellationToken cancellationToken = default) => OnReceiveAsync(data, context, cancellationToken);
-
     /// <summary>分发事件到指定主题与发送方（旧 API）</summary>
     /// <remarks>请改用 <see cref="PublishAsync"/>，把 <c>clientId</c> 放入 <see cref="EventContext.ClientId"/></remarks>
     /// <param name="topic">主题</param>

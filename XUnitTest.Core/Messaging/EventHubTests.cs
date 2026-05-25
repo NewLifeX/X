@@ -70,38 +70,42 @@ public class EventHubTests
         }
     }
 
-    [Fact]
-    public async Task HandleAsync_String_ShouldReturn0_WhenPrefixNotMatched()
+    // ----------- OnReceiveAsync(String) 协议解析 -----------
+
+    [Fact(DisplayName = "OnReceiveAsync_String 前缀不匹配时应返回 0")]
+    public async Task OnReceiveAsync_String_ShouldReturn0_WhenPrefixNotMatched()
     {
         var hub = new EventHub<TestEvent>();
-
-        var rs = await hub.HandleAsync("not-event#topic#client#{\"Message\":\"a\"}", null);
-
-        Assert.Equal(0, rs);
+        Assert.Equal(0, await hub.OnReceiveAsync("not-event#topic#client#{\"Message\":\"a\"}", null));
     }
 
-    [Fact]
-    public async Task HandleAsync_String_ShouldReturn0_WhenHeaderInvalid()
+    [Fact(DisplayName = "OnReceiveAsync_String 头部无效时应返回 0")]
+    public async Task OnReceiveAsync_String_ShouldReturn0_WhenHeaderInvalid()
     {
         var hub = new EventHub<TestEvent>();
-
-        Assert.Equal(0, await hub.HandleAsync("event#", null));
-        Assert.Equal(0, await hub.HandleAsync("event#topic#", null));
-        Assert.Equal(0, await hub.HandleAsync("event#topic#client", null));
-        Assert.Equal(0, await hub.HandleAsync("event#topic#client#", null));
+        Assert.Equal(0, await hub.OnReceiveAsync("event#", null));
+        Assert.Equal(0, await hub.OnReceiveAsync("event#topic#", null));
+        Assert.Equal(0, await hub.OnReceiveAsync("event#topic#client", null));
+        Assert.Equal(0, await hub.OnReceiveAsync("event#topic#client#", null));
     }
 
-    [Fact]
-    public async Task HandleAsync_String_ShouldRouteSubscribeAction()
+    [Fact(DisplayName = "OnReceiveAsync_String 消息体为空时应返回 0")]
+    public async Task OnReceiveAsync_String_EmptyBody_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.OnReceiveAsync("event#test#c1#"));
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_String subscribe 动作应路由到订阅")]
+    public async Task OnReceiveAsync_String_ShouldRouteSubscribeAction()
     {
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
 
-        // subscribe 需要在上下文中提供 Handler
         var ctx = new EventContext();
         ctx["Handler"] = new TestEventHandler();
 
-        var rs = await hub.HandleAsync("event#test#c1#subscribe", ctx);
+        var rs = await hub.OnReceiveAsync("event#test#c1#subscribe", ctx);
 
         Assert.Equal(1, rs);
         Assert.Equal("test", factory.LastTopic);
@@ -111,270 +115,203 @@ public class EventHubTests
         Assert.Equal(0, factory.LastBus!.PublishCount);
     }
 
-    [Fact]
-    public async Task HandleAsync_String_ShouldRouteUnsubscribeAction_AndRemoveBusWhenEmpty()
+    [Fact(DisplayName = "OnReceiveAsync_String unsubscribe 动作应取消订阅并清理空闲总线")]
+    public async Task OnReceiveAsync_String_ShouldRouteUnsubscribeAction_AndRemoveBusWhenEmpty()
     {
         var factory = new TestEventBusFactory();
         var hub = new EventHub<TestEvent> { Factory = factory };
 
-        // Pre-create bus and dispatcher mapping for this topic.
+        // 预先创建总线以便取得 LastBus 引用
         _ = hub.GetEventBus("test", "seed");
 
-        // subscribe first, ensures bus exists and handler is attached under c1.
         var ctx = new EventContext();
         ctx["Handler"] = new TestEventHandler();
-        Assert.Equal(1, await hub.HandleAsync("event#test#c1#subscribe", ctx));
+        Assert.Equal(1, await hub.OnReceiveAsync("event#test#c1#subscribe", ctx));
         var bus = factory.LastBus!;
 
-        // unsubscribe should remove handler and then remove bus+dispatcher from hub when empty.
-        Assert.Equal(1, await hub.HandleAsync("event#test#c1#unsubscribe", null));
+        Assert.Equal(1, await hub.OnReceiveAsync("event#test#c1#unsubscribe", null));
         Assert.Equal(1, bus.UnsubscribeCount);
-
-        // After removal, publishing a normal event with same topic should not hit previous bus.
         Assert.Equal(0, bus.PublishCount);
 
-        var rs = await hub.HandleAsync("event#test#any#{\"Message\":\"hello\"}", null);
+        // 总线被清理后，发布事件返回 0
+        var rs = await hub.OnReceiveAsync("event#test#any#{\"Message\":\"hello\"}", null);
         Assert.Equal(0, rs);
         Assert.Equal(0, bus.PublishCount);
     }
 
-    [Fact]
-    public async Task DispatchAsync_ShouldPublishJsonEventToBus()
-    {
-        var factory = new TestEventBusFactory();
-        var hub = new EventHub<TestEvent> { Factory = factory };
-
-        // 先显式注册该 topic 的事件总线，确保后续 DispatchAsync(topic,...) 能命中 _eventBuses。
-        var bus = (TestEventBus)hub.GetEventBus("test", "seed");
-
-        // subscribe 会创建/注册总线并绑定 handler。
-        var ctx = new EventContext();
-        ctx["Handler"] = new TestEventHandler();
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe", ctx));
-
-        var rs = await hub.DispatchAsync("test", "sender", new TestEvent { Message = "hi" }, null);
-
-        Assert.True(rs >= 0);
-        Assert.Equal(1, bus.PublishCount);
-    }
-
-    [Fact]
-    public async Task HandleAsync_String_ShouldRouteToRegisteredDispatcher_WhenNoBus()
+    [Fact(DisplayName = "OnReceiveAsync_String unknown 动作字符串应返回 0")]
+    public async Task OnReceiveAsync_String_UnknownAction_ReturnsZero()
     {
         var hub = new EventHub<TestEvent>();
-
-        var called = 0;
-        var handler = new TestEventHandler();
-        hub.Add("test", handler);
-
-        var rs = await hub.HandleAsync("event#test#sender#{\"Message\":\"hi\"}", null);
-
-        // 分发器命中后返回 1
-        Assert.Equal(1, rs);
-        Assert.Equal("hi", handler.HandledMessage);
+        var rs = await hub.OnReceiveAsync("event#test#c1#unknownAction", null);
+        Assert.Equal(0, rs);
     }
 
-    [Fact]
-    public async Task DispatchActionAsync_ShouldReturnFalse_WhenActionIsJson()
+    [Fact(DisplayName = "OnReceiveAsync_String JSON 消息体无处理器时应返回 0")]
+    public async Task OnReceiveAsync_String_JsonBody_NoHandler_ReturnsZero()
     {
         var hub = new EventHub<TestEvent>();
-
-        var rs = await hub.DispatchActionAsync("test", "c1", "{\"Message\":\"hi\"}", null);
-
-        Assert.False(rs);
+        var rs = await hub.OnReceiveAsync("event#test#c1#{\"Message\":\"hi\"}", null);
+        Assert.Equal(0, rs);
     }
 
-    [Fact]
-    public async Task DispatchActionAsync_ShouldReturnFalse_WhenActionUnknown()
+    [Fact(DisplayName = "OnReceiveAsync_String 应将原始消息写入 context Raw")]
+    public async Task OnReceiveAsync_String_PopulatesContextRaw()
     {
         var hub = new EventHub<TestEvent>();
-
-        var rs = await hub.DispatchActionAsync("test", "c1", "unknown", null);
-
-        Assert.False(rs);
-    }
-
-    [Fact]
-    public async Task DispatchActionAsync_ShouldSubscribeViaFactory()
-    {
-        var factory = new TestEventBusFactory();
-        var hub = new EventHub<TestEvent> { Factory = factory };
-
-        var ctx = new EventContext();
-        ctx["Handler"] = new TestEventHandler();
-
-        var rs = await hub.DispatchActionAsync("test", "c1", "subscribe", ctx);
-
-        Assert.True(rs);
-        Assert.NotNull(factory.LastBus);
-        Assert.Equal(1, factory.LastBus!.SubscribeCount);
-    }
-
-    [Fact]
-    public async Task DispatchActionAsync_ShouldUnsubscribeAndRemoveBusWhenEmpty()
-    {
-        var factory = new TestEventBusFactory();
-        var hub = new EventHub<TestEvent> { Factory = factory };
-
-        var ctx = new EventContext();
-        ctx["Handler"] = new TestEventHandler();
-
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "subscribe", ctx));
-        var bus = factory.LastBus!;
-
-        Assert.True(await hub.DispatchActionAsync("test", "c1", "unsubscribe", null));
-        Assert.Equal(1, bus.UnsubscribeCount);
-
-        // Now bus should be removed from hub, so another unsubscribe should be false.
-        Assert.False(await hub.DispatchActionAsync("test", "c1", "unsubscribe", null));
-    }
-
-    [Fact(DisplayName = "Hub.ReceiveAsync 接收后应自动清理空闲总线")]
-    public async Task Hub_ReceiveAsync_ShouldAutoCleanupEmptyBus()
-    {
-        var hub = new EventHub<TestEvent>();
-
-        var receiveTask = hub.ReceiveAsync("device-001");
-        await hub.PublishAsync("device-001", new TestEvent { Message = "ok" });
-        await receiveTask;
-
-        Assert.False(hub.TryGetBus<TestEvent>("device-001", out _));
-    }
-
-    [Fact(DisplayName = "Hub.ReceiveAsync 有长期订阅者时不清理总线")]
-    public async Task Hub_ReceiveAsync_ShouldNotCleanup_WhenOtherSubscribersExist()
-    {
-        var hub = new EventHub<TestEvent>();
-
-        // 添加永久订阅者
-        var permanentBus = hub.GetEventBus("device-002");
-        permanentBus.Subscribe(new TestEventHandler(), "permanent");
-
-        var receiveTask = hub.ReceiveAsync("device-002");
-        await hub.PublishAsync("device-002", new TestEvent { Message = "ok" });
-        await receiveTask;
-
-        // permanent 订阅者仍在，总线不应被清理
-        Assert.True(hub.TryGetBus<TestEvent>("device-002", out _));
-    }
-
-    [Fact(DisplayName = "Hub.PublishAsync 应将事件分发给等待的 ReceiveAsync")]
-    public async Task Hub_PublishAsync_ShouldDispatchToWaiter()
-    {
-        var hub = new EventHub<TestEvent>();
-
-        var receiveTask = hub.ReceiveAsync("cmd-001");
-        await hub.PublishAsync("cmd-001", new TestEvent { Message = "done" });
-        var result = await receiveTask;
-
-        Assert.Equal("done", result.Message);
-    }
-
-    private sealed class TestExtendContext : IEventContext, IExtend
-    {
-        public IEventBus EventBus { get; set; } = null!;
-        public IDictionary<String, Object?> Items { get; } = new Dictionary<String, Object?>();
-
-        public Object? this[String key]
-        {
-            get => Items.TryGetValue(key, out var v) ? v : null;
-            set => Items[key] = value;
-        }
-    }
-
-    private sealed class StringEventHandler : IEventHandler<String>
-    {
-        public String LastMessage { get; private set; } = String.Empty;
-
-        public Task HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken)
-        {
-            LastMessage = @event;
-            return Task.CompletedTask;
-        }
-    }
-
-    [Fact(DisplayName = "HandleAsync_IPacket 前缀不匹配时应返回 0")]
-    public async Task HandleAsync_Packet_PrefixNotMatched_ReturnsZero()
-    {
-        var hub = new EventHub<TestEvent>();
-        var packet = new ArrayPacket("not-event#test#c1#{\"Message\":\"x\"}".GetBytes());
-        Assert.Equal(0, await hub.HandleAsync(packet));
-    }
-
-    [Fact(DisplayName = "HandleAsync_IPacket 头部无效时应返回 0")]
-    public async Task HandleAsync_Packet_InvalidHeader_ReturnsZero()
-    {
-        var hub = new EventHub<TestEvent>();
-        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#".GetBytes())));
-        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#".GetBytes())));
-        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#c1".GetBytes())));
-    }
-
-    [Fact(DisplayName = "HandleAsync_IPacket 消息体为空时应返回 0")]
-    public async Task HandleAsync_Packet_EmptyBody_ReturnsZero()
-    {
-        var hub = new EventHub<TestEvent>();
-        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#c1#".GetBytes())));
-    }
-
-    [Fact(DisplayName = "HandleAsync_IPacket 有效 JSON 消息应路由到处理器")]
-    public async Task HandleAsync_Packet_ValidJson_RoutesToHandler()
-    {
-        var hub = new EventHub<TestEvent>();
-        var handler = new TestEventHandler();
-        hub.Add("test", handler);
-
-        var packet = new ArrayPacket("event#test#c1#{\"Message\":\"packet-hi\"}".GetBytes());
-        var rs = await hub.HandleAsync(packet);
-
-        Assert.Equal(1, rs);
-        Assert.Equal("packet-hi", handler.HandledMessage);
-    }
-
-    [Fact(DisplayName = "HandleAsync_String 消息体为空时应返回 0")]
-    public async Task HandleAsync_String_EmptyBody_ReturnsZero()
-    {
-        var hub = new EventHub<TestEvent>();
-        Assert.Equal(0, await hub.HandleAsync("event#test#c1#"));
-    }
-
-    [Fact(DisplayName = "HandleAsync_String 应将原始消息写入 context Raw")]
-    public async Task HandleAsync_String_PopulatesContextRaw()
-    {
-        var hub = new EventHub<TestEvent>();
-        hub.Add("test", new TestEventHandler());
+        hub.GetEventBus("test").Subscribe(new TestEventHandler());
 
         var ctx = new EventContext();
         var raw = "event#test#c1#{\"Message\":\"raw-test\"}";
-        await hub.HandleAsync(raw, ctx);
+        await hub.OnReceiveAsync(raw, ctx);
 
         Assert.Equal(raw, ctx["Raw"] as String);
     }
 
-    [Fact(DisplayName = "HandleAsync_String TEvent=String 时直接路由不经 JSON 反序列化")]
-    public async Task HandleAsync_String_WhenTEventIsString_RoutesDirectly()
+    [Fact(DisplayName = "OnReceiveAsync_String 应路由到已注册的处理器")]
+    public async Task OnReceiveAsync_String_ShouldRouteToRegisteredHandler()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.GetEventBus("test").Subscribe(handler);
+
+        var rs = await hub.OnReceiveAsync("event#test#sender#{\"Message\":\"hi\"}", null);
+
+        Assert.Equal(1, rs);
+        Assert.Equal("hi", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_String TEvent=String 时直接路由不经 JSON 反序列化")]
+    public async Task OnReceiveAsync_String_WhenTEventIsString_RoutesDirectly()
     {
         var hub = new EventHub<String>();
         var handler = new StringEventHandler();
-        hub.Add("test", handler);
+        hub.GetEventBus("test").Subscribe(handler);
 
-        var rs = await hub.HandleAsync("event#test#sender#hello");
+        var rs = await hub.OnReceiveAsync("event#test#sender#hello");
 
         Assert.Equal(1, rs);
         Assert.Equal("hello", handler.LastMessage);
     }
 
-    [Fact(DisplayName = "Add(topic,bus) 注册总线后 DispatchAsync 可路由到该总线")]
-    public async Task Add_Bus_RegistersAndDispatchesToBus()
+    [Fact(DisplayName = "OnReceiveAsync_String subscribe 时上下文无 Handler 应返回 0 而非抛出")]
+    public async Task OnReceiveAsync_String_Subscribe_WithoutHandler_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        var rs = await hub.OnReceiveAsync("event#test#c1#subscribe", null);
+        Assert.Equal(0, rs);
+    }
+
+    // ----------- OnReceiveAsync(IPacket) 协议解析 -----------
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 前缀不匹配时应返回 0")]
+    public async Task OnReceiveAsync_Packet_PrefixNotMatched_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        var packet = new ArrayPacket("not-event#test#c1#{\"Message\":\"x\"}".GetBytes());
+        Assert.Equal(0, await hub.OnReceiveAsync(packet));
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 头部无效时应返回 0")]
+    public async Task OnReceiveAsync_Packet_InvalidHeader_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.OnReceiveAsync(new ArrayPacket("event#".GetBytes())));
+        Assert.Equal(0, await hub.OnReceiveAsync(new ArrayPacket("event#test#".GetBytes())));
+        Assert.Equal(0, await hub.OnReceiveAsync(new ArrayPacket("event#test#c1".GetBytes())));
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 消息体为空时应返回 0")]
+    public async Task OnReceiveAsync_Packet_EmptyBody_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.OnReceiveAsync(new ArrayPacket("event#test#c1#".GetBytes())));
+    }
+
+    [Fact(DisplayName = "OnReceiveAsync_IPacket 有效 JSON 消息应路由到处理器")]
+    public async Task OnReceiveAsync_Packet_ValidJson_RoutesToHandler()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.GetEventBus("test").Subscribe(handler);
+
+        var packet = new ArrayPacket("event#test#c1#{\"Message\":\"packet-hi\"}".GetBytes());
+        var rs = await hub.OnReceiveAsync(packet);
+
+        Assert.Equal(1, rs);
+        Assert.Equal("packet-hi", handler.HandledMessage);
+    }
+
+    // ----------- PublishAsync / SubscribeAsync / UnsubscribeAsync -----------
+
+    [Fact(DisplayName = "SubscribeAsync 后 PublishAsync 应将事件路由到总线")]
+    public async Task SubscribeAsync_ThenPublishAsync_RoutesToBus()
+    {
+        var factory = new TestEventBusFactory();
+        var hub = new EventHub<TestEvent> { Factory = factory };
+
+        var handler = new TestEventHandler();
+        await hub.SubscribeAsync("test", "c1", handler);
+        var bus = factory.LastBus!;
+
+        var rs = await hub.PublishAsync("test", new TestEvent { Message = "hi" });
+
+        Assert.Equal(1, rs);
+        Assert.Equal("hi", handler.HandledMessage);
+        Assert.Equal(1, bus.PublishCount);
+    }
+
+    [Fact(DisplayName = "PublishAsync 无订阅者时应返回 0")]
+    public async Task PublishAsync_NoSubscribers_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        var rs = await hub.PublishAsync("nonexistent", new TestEvent { Message = "x" });
+        Assert.Equal(0, rs);
+    }
+
+    [Fact(DisplayName = "SubscribeAsync 通过工厂创建总线并完成订阅")]
+    public async Task SubscribeAsync_WithFactory_CreatesAndSubscribes()
+    {
+        var factory = new TestEventBusFactory();
+        var hub = new EventHub<TestEvent> { Factory = factory };
+
+        var handler = new TestEventHandler();
+        await hub.SubscribeAsync("test", "c1", handler);
+
+        Assert.NotNull(factory.LastBus);
+        Assert.Equal(1, factory.LastBus!.SubscribeCount);
+    }
+
+    [Fact(DisplayName = "UnsubscribeAsync 应取消订阅并在空时清理总线")]
+    public async Task UnsubscribeAsync_ShouldUnsubscribeAndRemoveBusWhenEmpty()
+    {
+        var factory = new TestEventBusFactory();
+        var hub = new EventHub<TestEvent> { Factory = factory };
+
+        var handler = new TestEventHandler();
+        await hub.SubscribeAsync("test", "c1", handler);
+        var bus = factory.LastBus!;
+
+        Assert.True(await hub.UnsubscribeAsync("test", "c1"));
+        Assert.Equal(1, bus.UnsubscribeCount);
+
+        // 总线已被清理，再次取消订阅返回 false
+        Assert.False(await hub.UnsubscribeAsync("test", "c1"));
+    }
+
+    // ----------- RegisterBus / GetEventBus / TryGetBus -----------
+
+    [Fact(DisplayName = "RegisterBus 后 PublishAsync 应路由到注册的总线")]
+    public async Task RegisterBus_ThenPublishAsync_RoutesToBus()
     {
         var bus = new EventBus<TestEvent>();
         var handler = new TestEventHandler();
         bus.Subscribe(handler, "h1");
 
         var hub = new EventHub<TestEvent>();
-        hub.Add("test", bus);
+        hub.RegisterBus("test", bus);
 
-        var rs = await hub.DispatchAsync("test", "sender", new TestEvent { Message = "direct-bus" });
+        var rs = await hub.PublishAsync("test", new TestEvent { Message = "direct-bus" });
 
         Assert.Equal(1, rs);
         Assert.Equal("direct-bus", handler.HandledMessage);
@@ -409,7 +346,7 @@ public class EventHubTests
         var hub = new EventHub<TestEvent>();
         hub.GetEventBus("test");
 
-        var found = hub.TryGetBus<TestEvent>("test", out var bus);
+        var found = hub.TryGetBus("test", out var bus);
 
         Assert.True(found);
         Assert.NotNull(bus);
@@ -419,56 +356,49 @@ public class EventHubTests
     public void TryGetBus_WhenNotFound_ReturnsFalse()
     {
         var hub = new EventHub<TestEvent>();
-        Assert.False(hub.TryGetBus<TestEvent>("nonexistent", out var bus));
+        Assert.False(hub.TryGetBus("nonexistent", out var bus));
         Assert.Null(bus);
     }
 
-    [Fact(DisplayName = "TryGetBus 类型不匹配时应返回 false")]
-    public void TryGetBus_WhenTypeMismatch_ReturnsFalse()
+    // ----------- ReceiveAsync -----------
+
+    [Fact(DisplayName = "Hub.ReceiveAsync 接收后应自动清理空闲总线")]
+    public async Task Hub_ReceiveAsync_ShouldAutoCleanupEmptyBus()
     {
         var hub = new EventHub<TestEvent>();
-        hub.GetEventBus("test");
-        // 查询不同的泛型参数，应匹配失败
-        Assert.False(hub.TryGetBus<String>("test", out var bus));
-        Assert.Null(bus);
+
+        var receiveTask = hub.ReceiveAsync("device-001");
+        await hub.PublishAsync("device-001", new TestEvent { Message = "ok" });
+        await receiveTask;
+
+        Assert.False(hub.TryGetBus("device-001", out _));
     }
 
-    [Fact(DisplayName = "DispatchAsync topic 为空时应抛出 ArgumentNullException")]
-    public async Task DispatchAsync_EmptyTopic_ThrowsArgumentNullException()
+    [Fact(DisplayName = "Hub.ReceiveAsync 有长期订阅者时不清理总线")]
+    public async Task Hub_ReceiveAsync_ShouldNotCleanup_WhenOtherSubscribersExist()
     {
         var hub = new EventHub<TestEvent>();
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            hub.DispatchAsync(String.Empty, "c1", new TestEvent()));
+
+        var permanentBus = hub.GetEventBus("device-002");
+        permanentBus.Subscribe(new TestEventHandler(), "permanent");
+
+        var receiveTask = hub.ReceiveAsync("device-002");
+        await hub.PublishAsync("device-002", new TestEvent { Message = "ok" });
+        await receiveTask;
+
+        Assert.True(hub.TryGetBus("device-002", out _));
     }
 
-    [Fact(DisplayName = "DispatchAsync 应将 topic 和 clientId 写入 EventContext")]
-    public async Task DispatchAsync_SetsEventContextTopicAndClientId()
+    [Fact(DisplayName = "Hub.PublishAsync 应将事件分发给等待的 ReceiveAsync")]
+    public async Task Hub_PublishAsync_ShouldDispatchToWaiter()
     {
         var hub = new EventHub<TestEvent>();
-        var ctx = new EventContext();
-        await hub.DispatchAsync("test", "sender", new TestEvent { Message = "x" }, ctx);
 
-        Assert.Equal("test", ctx.Topic);
-        Assert.Equal("sender", ctx.ClientId);
-    }
+        var receiveTask = hub.ReceiveAsync("cmd-001");
+        await hub.PublishAsync("cmd-001", new TestEvent { Message = "done" });
+        var result = await receiveTask;
 
-    [Fact(DisplayName = "DispatchAsync 应将 topic 和 clientId 写入 IExtend 上下文")]
-    public async Task DispatchAsync_SetsIExtendTopicAndClientId()
-    {
-        var hub = new EventHub<TestEvent>();
-        var ctx = new TestExtendContext();
-        await hub.DispatchAsync("test", "sender", new TestEvent { Message = "x" }, ctx);
-
-        Assert.Equal("test", ctx["Topic"] as String);
-        Assert.Equal("sender", ctx["ClientId"] as String);
-    }
-
-    [Fact(DisplayName = "DispatchAsync 未注册 topic 时应返回 0")]
-    public async Task DispatchAsync_NoRegisteredBus_ReturnsZero()
-    {
-        var hub = new EventHub<TestEvent>();
-        var rs = await hub.DispatchAsync("nonexistent", "c1", new TestEvent { Message = "x" });
-        Assert.Equal(0, rs);
+        Assert.Equal("done", result.Message);
     }
 
     [Fact(DisplayName = "Hub.ReceiveAsync 超时应抛出 OperationCanceledException")]
@@ -490,20 +420,14 @@ public class EventHubTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => receiveTask);
     }
 
-    [Fact(DisplayName = "DispatchActionAsync subscribe 时上下文无 Handler 应抛出 ArgumentNullException")]
-    public async Task DispatchActionAsync_Subscribe_WithoutHandler_Throws()
-    {
-        var hub = new EventHub<TestEvent>();
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            hub.DispatchActionAsync("test", "c1", "subscribe", null));
-    }
+    // ----------- 显式接口实现 -----------
 
-    [Fact(DisplayName = "显式接口 IEventHandler<IPacket> 应委托到公共 HandleAsync")]
-    public async Task ExplicitInterface_IPacketHandler_DelegatesToPublicMethod()
+    [Fact(DisplayName = "显式接口 IEventHandler<IPacket> 应委托到 OnReceiveAsync")]
+    public async Task ExplicitInterface_IPacketHandler_DelegatesToOnReceiveAsync()
     {
         var hub = new EventHub<TestEvent>();
         var handler = new TestEventHandler();
-        hub.Add("test", handler);
+        hub.GetEventBus("test").Subscribe(handler);
 
         IEventHandler<IPacket> iface = hub;
         var packet = new ArrayPacket("event#test#c1#{\"Message\":\"via-iface\"}".GetBytes());
@@ -512,16 +436,29 @@ public class EventHubTests
         Assert.Equal("via-iface", handler.HandledMessage);
     }
 
-    [Fact(DisplayName = "显式接口 IEventHandler<String> 应委托到公共 HandleAsync")]
-    public async Task ExplicitInterface_StringHandler_DelegatesToPublicMethod()
+    [Fact(DisplayName = "显式接口 IEventHandler<String> 应委托到 OnReceiveAsync")]
+    public async Task ExplicitInterface_StringHandler_DelegatesToOnReceiveAsync()
     {
         var hub = new EventHub<TestEvent>();
         var handler = new TestEventHandler();
-        hub.Add("test", handler);
+        hub.GetEventBus("test").Subscribe(handler);
 
         IEventHandler<String> iface = hub;
         await iface.HandleAsync("event#test#c1#{\"Message\":\"via-str-iface\"}", null, default);
 
         Assert.Equal("via-str-iface", handler.HandledMessage);
+    }
+
+    // ----------- Helper types -----------
+
+    private sealed class StringEventHandler : IEventHandler<String>
+    {
+        public String LastMessage { get; private set; } = String.Empty;
+
+        public Task HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken)
+        {
+            LastMessage = @event;
+            return Task.CompletedTask;
+        }
     }
 }
