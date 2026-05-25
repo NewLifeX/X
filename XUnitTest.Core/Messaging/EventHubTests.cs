@@ -1,4 +1,6 @@
-﻿using NewLife.Messaging;
+﻿using NewLife;
+using NewLife.Data;
+using NewLife.Messaging;
 using Xunit;
 
 namespace XUnitTest.Messaging;
@@ -266,5 +268,260 @@ public class EventHubTests
         var result = await receiveTask;
 
         Assert.Equal("done", result.Message);
+    }
+
+    private sealed class TestExtendContext : IEventContext, IExtend
+    {
+        public IEventBus EventBus { get; set; } = null!;
+        public IDictionary<String, Object?> Items { get; } = new Dictionary<String, Object?>();
+
+        public Object? this[String key]
+        {
+            get => Items.TryGetValue(key, out var v) ? v : null;
+            set => Items[key] = value;
+        }
+    }
+
+    private sealed class StringEventHandler : IEventHandler<String>
+    {
+        public String LastMessage { get; private set; } = String.Empty;
+
+        public Task HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken)
+        {
+            LastMessage = @event;
+            return Task.CompletedTask;
+        }
+    }
+
+    [Fact(DisplayName = "HandleAsync_IPacket 前缀不匹配时应返回 0")]
+    public async Task HandleAsync_Packet_PrefixNotMatched_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        var packet = new ArrayPacket("not-event#test#c1#{\"Message\":\"x\"}".GetBytes());
+        Assert.Equal(0, await hub.HandleAsync(packet));
+    }
+
+    [Fact(DisplayName = "HandleAsync_IPacket 头部无效时应返回 0")]
+    public async Task HandleAsync_Packet_InvalidHeader_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#".GetBytes())));
+        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#".GetBytes())));
+        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#c1".GetBytes())));
+    }
+
+    [Fact(DisplayName = "HandleAsync_IPacket 消息体为空时应返回 0")]
+    public async Task HandleAsync_Packet_EmptyBody_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.HandleAsync(new ArrayPacket("event#test#c1#".GetBytes())));
+    }
+
+    [Fact(DisplayName = "HandleAsync_IPacket 有效 JSON 消息应路由到处理器")]
+    public async Task HandleAsync_Packet_ValidJson_RoutesToHandler()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.Add("test", handler);
+
+        var packet = new ArrayPacket("event#test#c1#{\"Message\":\"packet-hi\"}".GetBytes());
+        var rs = await hub.HandleAsync(packet);
+
+        Assert.Equal(1, rs);
+        Assert.Equal("packet-hi", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "HandleAsync_String 消息体为空时应返回 0")]
+    public async Task HandleAsync_String_EmptyBody_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.Equal(0, await hub.HandleAsync("event#test#c1#"));
+    }
+
+    [Fact(DisplayName = "HandleAsync_String 应将原始消息写入 context Raw")]
+    public async Task HandleAsync_String_PopulatesContextRaw()
+    {
+        var hub = new EventHub<TestEvent>();
+        hub.Add("test", new TestEventHandler());
+
+        var ctx = new EventContext();
+        var raw = "event#test#c1#{\"Message\":\"raw-test\"}";
+        await hub.HandleAsync(raw, ctx);
+
+        Assert.Equal(raw, ctx["Raw"] as String);
+    }
+
+    [Fact(DisplayName = "HandleAsync_String TEvent=String 时直接路由不经 JSON 反序列化")]
+    public async Task HandleAsync_String_WhenTEventIsString_RoutesDirectly()
+    {
+        var hub = new EventHub<String>();
+        var handler = new StringEventHandler();
+        hub.Add("test", handler);
+
+        var rs = await hub.HandleAsync("event#test#sender#hello");
+
+        Assert.Equal(1, rs);
+        Assert.Equal("hello", handler.LastMessage);
+    }
+
+    [Fact(DisplayName = "Add(topic,bus) 注册总线后 DispatchAsync 可路由到该总线")]
+    public async Task Add_Bus_RegistersAndDispatchesToBus()
+    {
+        var bus = new EventBus<TestEvent>();
+        var handler = new TestEventHandler();
+        bus.Subscribe(handler, "h1");
+
+        var hub = new EventHub<TestEvent>();
+        hub.Add("test", bus);
+
+        var rs = await hub.DispatchAsync("test", "sender", new TestEvent { Message = "direct-bus" });
+
+        Assert.Equal(1, rs);
+        Assert.Equal("direct-bus", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "GetEventBus 两次调用应返回同一实例")]
+    public void GetEventBus_TwoCalls_ReturnsSameInstance()
+    {
+        var hub = new EventHub<TestEvent>();
+        var bus1 = hub.GetEventBus("test");
+        var bus2 = hub.GetEventBus("test");
+        Assert.Same(bus1, bus2);
+    }
+
+    [Fact(DisplayName = "GetEventBus 有工厂时应使用工厂创建实例")]
+    public void GetEventBus_WithFactory_UsesFactory()
+    {
+        var factory = new TestEventBusFactory();
+        var hub = new EventHub<TestEvent> { Factory = factory };
+
+        var bus = hub.GetEventBus("t", "client1");
+
+        Assert.Equal("t", factory.LastTopic);
+        Assert.Equal("client1", factory.LastClientId);
+        Assert.NotNull(factory.LastBus);
+        Assert.Same(factory.LastBus, bus);
+    }
+
+    [Fact(DisplayName = "TryGetBus 找到时应返回 true 并输出总线")]
+    public void TryGetBus_WhenFound_ReturnsTrueAndBus()
+    {
+        var hub = new EventHub<TestEvent>();
+        hub.GetEventBus("test");
+
+        var found = hub.TryGetBus<TestEvent>("test", out var bus);
+
+        Assert.True(found);
+        Assert.NotNull(bus);
+    }
+
+    [Fact(DisplayName = "TryGetBus 未找到时应返回 false")]
+    public void TryGetBus_WhenNotFound_ReturnsFalse()
+    {
+        var hub = new EventHub<TestEvent>();
+        Assert.False(hub.TryGetBus<TestEvent>("nonexistent", out var bus));
+        Assert.Null(bus);
+    }
+
+    [Fact(DisplayName = "TryGetBus 类型不匹配时应返回 false")]
+    public void TryGetBus_WhenTypeMismatch_ReturnsFalse()
+    {
+        var hub = new EventHub<TestEvent>();
+        hub.GetEventBus("test");
+        // 查询不同的泛型参数，应匹配失败
+        Assert.False(hub.TryGetBus<String>("test", out var bus));
+        Assert.Null(bus);
+    }
+
+    [Fact(DisplayName = "DispatchAsync topic 为空时应抛出 ArgumentNullException")]
+    public async Task DispatchAsync_EmptyTopic_ThrowsArgumentNullException()
+    {
+        var hub = new EventHub<TestEvent>();
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            hub.DispatchAsync(String.Empty, "c1", new TestEvent()));
+    }
+
+    [Fact(DisplayName = "DispatchAsync 应将 topic 和 clientId 写入 EventContext")]
+    public async Task DispatchAsync_SetsEventContextTopicAndClientId()
+    {
+        var hub = new EventHub<TestEvent>();
+        var ctx = new EventContext();
+        await hub.DispatchAsync("test", "sender", new TestEvent { Message = "x" }, ctx);
+
+        Assert.Equal("test", ctx.Topic);
+        Assert.Equal("sender", ctx.ClientId);
+    }
+
+    [Fact(DisplayName = "DispatchAsync 应将 topic 和 clientId 写入 IExtend 上下文")]
+    public async Task DispatchAsync_SetsIExtendTopicAndClientId()
+    {
+        var hub = new EventHub<TestEvent>();
+        var ctx = new TestExtendContext();
+        await hub.DispatchAsync("test", "sender", new TestEvent { Message = "x" }, ctx);
+
+        Assert.Equal("test", ctx["Topic"] as String);
+        Assert.Equal("sender", ctx["ClientId"] as String);
+    }
+
+    [Fact(DisplayName = "DispatchAsync 未注册 topic 时应返回 0")]
+    public async Task DispatchAsync_NoRegisteredBus_ReturnsZero()
+    {
+        var hub = new EventHub<TestEvent>();
+        var rs = await hub.DispatchAsync("nonexistent", "c1", new TestEvent { Message = "x" });
+        Assert.Equal(0, rs);
+    }
+
+    [Fact(DisplayName = "Hub.ReceiveAsync 超时应抛出 OperationCanceledException")]
+    public async Task Hub_ReceiveAsync_WithTimeout_ThrowsOnTimeout()
+    {
+        var hub = new EventHub<TestEvent>();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            hub.ReceiveAsync("timeout-topic", TimeSpan.FromMilliseconds(50)));
+    }
+
+    [Fact(DisplayName = "Hub.ReceiveAsync 取消令牌触发时应抛出 OperationCanceledException")]
+    public async Task Hub_ReceiveAsync_WithCancellation_ThrowsOnCancel()
+    {
+        var hub = new EventHub<TestEvent>();
+        using var cts = new CancellationTokenSource();
+        var receiveTask = hub.ReceiveAsync("cancel-topic", cts.Token);
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => receiveTask);
+    }
+
+    [Fact(DisplayName = "DispatchActionAsync subscribe 时上下文无 Handler 应抛出 ArgumentNullException")]
+    public async Task DispatchActionAsync_Subscribe_WithoutHandler_Throws()
+    {
+        var hub = new EventHub<TestEvent>();
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            hub.DispatchActionAsync("test", "c1", "subscribe", null));
+    }
+
+    [Fact(DisplayName = "显式接口 IEventHandler<IPacket> 应委托到公共 HandleAsync")]
+    public async Task ExplicitInterface_IPacketHandler_DelegatesToPublicMethod()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.Add("test", handler);
+
+        IEventHandler<IPacket> iface = hub;
+        var packet = new ArrayPacket("event#test#c1#{\"Message\":\"via-iface\"}".GetBytes());
+        await iface.HandleAsync(packet, null, default);
+
+        Assert.Equal("via-iface", handler.HandledMessage);
+    }
+
+    [Fact(DisplayName = "显式接口 IEventHandler<String> 应委托到公共 HandleAsync")]
+    public async Task ExplicitInterface_StringHandler_DelegatesToPublicMethod()
+    {
+        var hub = new EventHub<TestEvent>();
+        var handler = new TestEventHandler();
+        hub.Add("test", handler);
+
+        IEventHandler<String> iface = hub;
+        await iface.HandleAsync("event#test#c1#{\"Message\":\"via-str-iface\"}", null, default);
+
+        Assert.Equal("via-str-iface", handler.HandledMessage);
     }
 }

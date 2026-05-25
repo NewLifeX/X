@@ -39,15 +39,9 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// </remarks>
     private readonly ConcurrentDictionary<String, IEventBus<TEvent>> _eventBuses = new();
 
-    /// <summary>主题分发器</summary>
-    /// <remarks>
-    /// <para>存放按 topic 路由后的最终执行入口：可能是事件总线（其 <c>DispatchAsync</c>），也可能是用户直接注册的回调。</para>
-    /// <para>同一主题仅保留最后一次注册的处理器。</para>
-    /// </remarks>
-    private readonly ConcurrentDictionary<String, IEventHandler<TEvent>> _dispatchers = new();
     #endregion
 
-    #region 方法
+    #region 注册
     /// <summary>添加事件总线到指定主题</summary>
     /// <param name="topic">主题名称</param>
     /// <param name="bus">事件总线实例</param>
@@ -60,17 +54,17 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         _eventBuses[topic] = bus;
     }
 
-    /// <summary>按主题注册事件分发器</summary>
+    /// <summary>按主题注册事件处理器</summary>
     /// <param name="topic">主题名称</param>
-    /// <param name="dispatcher">事件分发器，将通过其 <c>HandleAsync</c> 处理事件</param>
-    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 或 <paramref name="dispatcher"/> 为 null 时抛出</exception>
-    public void Add(String topic, IEventHandler<TEvent> dispatcher)
+    /// <param name="handler">事件处理器，将通过其 <c>HandleAsync</c> 处理事件</param>
+    /// <exception cref="ArgumentNullException">当 <paramref name="topic"/> 或 <paramref name="handler"/> 为 null 时抛出</exception>
+    public void Add(String topic, IEventHandler<TEvent> handler)
     {
         if (topic.IsNullOrEmpty()) throw new ArgumentNullException(nameof(topic));
-        if (dispatcher == null) throw new ArgumentNullException(nameof(dispatcher));
+        if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-        // 将分发器封装为统一委托，消息体按 TEvent 传递
-        _dispatchers[topic] = dispatcher;
+        // 委托给主题总线，以统一路由路径；clientId="" 保持"最后注册者生效"语义
+        GetEventBus(topic).Subscribe(handler, "");
     }
 
     /// <summary>获取指定主题的事件总线</summary>
@@ -97,36 +91,70 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         return bus;
     }
 
-    /// <summary>尝试获取分发器</summary>
-    /// <param name="topic">主题名称</param>
-    /// <param name="action">输出的分发委托</param>
-    public Boolean TryGetValue(String topic, [MaybeNullWhen(false)] out IEventHandler<TEvent> action) => _dispatchers.TryGetValue(topic, out action);
-
     /// <summary>尝试获取事件总线</summary>
     /// <param name="topic">主题名称</param>
     /// <param name="eventBus">输出的事件总线实例</param>
     public Boolean TryGetBus<T>(String topic, [MaybeNullWhen(false)] out IEventBus<T> eventBus)
     {
-        // 优先从已创建的事件总线字典中获取。
         if (_eventBuses.TryGetValue(topic, out var bus) && bus is IEventBus<T> bus2)
         {
             eventBus = bus2;
             return true;
         }
 
-        // 兼容：若调用方只通过 Add(topic, dispatcher) 注册过分发器，这里尝试从委托 Target 回溯总线对象。
-        if (_dispatchers.TryGetValue(topic, out var action))
-        {
-            eventBus = action as IEventBus<T>;
-            if (eventBus != null) return true;
-        }
-
         eventBus = null;
         return false;
     }
+    #endregion
 
-    private static readonly Byte[] _eventPrefix = Encoding.ASCII.GetBytes("event#");
-    private static readonly Char[] _eventPrefix2 = "event#".ToCharArray();
+    #region 消息解析
+    private static readonly Byte[] _eventPrefixBytes = Encoding.ASCII.GetBytes("event#");
+    private static readonly Char[] _eventPrefixChars = "event#".ToCharArray();
+
+    private static Boolean TryParseEventHeader(ReadOnlySpan<Byte> data, out String topic, out String clientId, out Int32 headerLength)
+    {
+        topic = clientId = String.Empty;
+        headerLength = 0;
+        if (!data.StartsWith(_eventPrefixBytes)) return false;
+
+        var p = data.IndexOf((Byte)'#');
+        var rest = data[(p + 1)..];
+        var p2 = rest.IndexOf((Byte)'#');
+        if (p2 <= 0) return false;
+        topic = rest[..p2].ToStr();
+
+        var rest2 = rest[(p2 + 1)..];
+        var p3 = rest2.IndexOf((Byte)'#');
+        if (p3 <= 0) return false;
+        clientId = rest2[..p3].ToStr();
+
+        headerLength = p + 1 + p2 + 1 + p3 + 1;
+        return true;
+    }
+
+    private static Boolean TryParseEventHeader(ReadOnlySpan<Char> data, out String topic, out String clientId, out Int32 headerLength)
+    {
+        topic = clientId = String.Empty;
+        headerLength = 0;
+        if (!data.StartsWith(_eventPrefixChars)) return false;
+
+        var p = data.IndexOf('#');
+        var rest = data[(p + 1)..];
+        var p2 = rest.IndexOf('#');
+        if (p2 <= 0) return false;
+        topic = rest[..p2].ToString();
+
+        var rest2 = rest[(p2 + 1)..];
+        var p3 = rest2.IndexOf('#');
+        if (p3 <= 0) return false;
+        clientId = rest2[..p3].ToString();
+
+        headerLength = p + 1 + p2 + 1 + p3 + 1;
+        return true;
+    }
+    #endregion
+
+    #region 消息处理
     /// <summary>处理接收到的消息</summary>
     /// <remarks>
     /// <para>消息格式：<c>event#topic#clientId#message</c>。当匹配前缀 <c>event#</c> 时解析并路由。</para>
@@ -138,53 +166,22 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
     public virtual async Task<Int32> HandleAsync(IPacket data, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
-        // 处理事件消息。event#topic#clientId#message
-        // 先用 Span 前缀判断，尽量避免非事件消息的字符串分配。
-        var header = data.GetSpan();
-        if (!header.StartsWith(_eventPrefix)) return 0;
+        if (!TryParseEventHeader(data.GetSpan(), out var topic, out var clientId, out var headerLen)) return 0;
 
-        // 解析 topic
-        var p = header.IndexOf((Byte)'#');
-        var header2 = header[(p + 1)..];
-        var p2 = header2.IndexOf((Byte)'#');
-        if (p2 <= 0) return 0;
-
-        var topic = header2[..p2].ToStr();
-
-        // 解析 clientId（发送方标识/订阅分组）
-        var header3 = header2[(p2 + 1)..];
-        var p3 = header3.IndexOf((Byte)'#');
-        if (p3 <= 0) return 0;
-
-        var clientId = header3[..p3].ToStr();
-
-        var headerCount = p + 1 + p2 + 1 + p3 + 1;
-        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Total - headerCount);
-
-        var msg = data.Slice(headerCount);
+        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Total - headerLen);
+        var msg = data.Slice(headerLen);
         if (msg.Length == 0) return 0;
 
         // 保存原始数据包到上下文，便于订阅者直接转发原始报文（零拷贝）
         if (context is IExtend ext) ext["Raw"] = data;
 
-        if (msg[0] != '{' && msg.Total < 32)
-        {
-            if (await DispatchActionAsync(topic, clientId, msg.ToStr(), context, cancellationToken).ConfigureAwait(false)) return 1;
-        }
-
-        // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
+        // 若 TEvent 本身是 IPacket，无需字符串化，直接分发原始数据包
         if (msg is TEvent @event)
             return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
 
-        var msg2 = msg.ToStr();
-        span?.AppendTag(msg2);
-
-        // 字符串事件
-        if (msg2 is TEvent @event2)
-            return await DispatchAsync(topic, clientId, @event2, context, cancellationToken).ConfigureAwait(false);
-
-        // 走序列化
-        return await OnDispatchAsync(topic, clientId, msg2, context, cancellationToken).ConfigureAwait(false);
+        var msgStr = msg.ToStr();
+        span?.AppendTag(msgStr);
+        return await RouteMessageAsync(topic, clientId, msgStr, context, cancellationToken).ConfigureAwait(false);
     }
 
     Task IEventHandler<IPacket>.HandleAsync(IPacket @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
@@ -200,51 +197,37 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     /// <returns>异步任务，结果为已处理事件数量（0 表示未处理）</returns>
     public virtual async Task<Int32> HandleAsync(String data, IEventContext? context = null, CancellationToken cancellationToken = default)
     {
-        // 处理事件消息。event#topic#clientId#message
-        // 返回 0 表示未消费该消息（可能是其它业务协议数据）。
-        var header = data.AsSpan();
-        if (!header.StartsWith(_eventPrefix2)) return 0;
+        if (!TryParseEventHeader(data.AsSpan(), out var topic, out var clientId, out var headerLen)) return 0;
 
-        // 解析 topic
-        var p = header.IndexOf('#');
-        var header2 = header[(p + 1)..];
-        var p2 = header2.IndexOf('#');
-        if (p2 <= 0) return 0;
-
-        var topic = header2[..p2].ToString();
-
-        // 解析 clientId（发送方标识/订阅分组）
-        var header3 = header2[(p2 + 1)..];
-        var p3 = header3.IndexOf('#');
-        if (p3 <= 0) return 0;
-
-        var clientId = header3[..p3].ToString();
-
-        var headerCount = p + 1 + p2 + 1 + p3 + 1;
-        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Length - headerCount);
-
+        using var span = Tracer?.NewSpan($"event:{topic}:Dispatch", new { clientId }, data.Length - headerLen);
         // 解析 message：可能是 JSON 事件体，也可能是 subscribe/unsubscribe 控制指令。
-        var msg = data[headerCount..];
+        var msg = data[headerLen..];
         if (msg.Length == 0) return 0;
 
         // 保存原始消息字符串到上下文，便于订阅者直接转发原始报文
         if (context is IExtend ext) ext["Raw"] = data;
 
-        if (msg[0] != '{' && msg.Length < 32)
-        {
-            if (await DispatchActionAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false)) return 1;
-        }
-
-        // 普通事件：优先尝试直接转换（消息本身可能已是 TEvent），否则按 JSON 解析。
         span?.AppendTag(msg);
-        if (msg is TEvent @event)
-            return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
-
-        // 走序列化
-        return await OnDispatchAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
+        return await RouteMessageAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
     }
 
     Task IEventHandler<String>.HandleAsync(String @event, IEventContext? context, CancellationToken cancellationToken) => HandleAsync(@event, context, cancellationToken);
+    #endregion
+
+    #region 消息分发
+    private async Task<Int32> RouteMessageAsync(String topic, String clientId, String msg, IEventContext? context, CancellationToken cancellationToken)
+    {
+        // 控制指令：subscribe / unsubscribe（短字符串且不以 { 开头）
+        if (msg[0] != '{' && msg.Length < 32)
+            if (await DispatchActionAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false)) return 1;
+
+        // 字符串事件（TEvent = String）
+        if (msg is TEvent @event)
+            return await DispatchAsync(topic, clientId, @event, context, cancellationToken).ConfigureAwait(false);
+
+        // JSON 反序列化后分发
+        return await OnDispatchAsync(topic, clientId, msg, context, cancellationToken).ConfigureAwait(false);
+    }
 
     /// <summary>处理动作指令</summary>
     /// <remarks>
@@ -287,11 +270,10 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
 
                     bus.Unsubscribe(clientId);
 
-                    // 服务端：如果没有订阅者则注销该 topic 的总线与分发器，避免主题长期占用内存。
+                    // 服务端：如果没有订阅者则注销该 topic 的总线，避免主题长期占用内存。
                     if (bus is EventBus<TEvent> mbus && mbus.Handlers.Count == 0)
                     {
                         _eventBuses.TryRemove(topic, out _);
-                        _dispatchers.TryRemove(topic, out _);
 
                         WriteLog("注销主题：{0}，因订阅为空", topic);
                     }
@@ -324,10 +306,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
     }
 
     /// <summary>分发事件给各个处理器</summary>
-    /// <remarks>
-    /// <para>进程内分发：按 <c>topic</c> 路由到事件总线或回调。</para>
-    /// <para>优先级：先查找已缓存的事件总线，再查找直接注册的分发器。</para>
-    /// </remarks>
+    /// <remarks>按 <c>topic</c> 路由到对应的事件总线。</remarks>
     /// <param name="topic">主题名称</param>
     /// <param name="clientId">发送方客户端标识</param>
     /// <param name="event">事件实例</param>
@@ -351,14 +330,8 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
             ext["ClientId"] = clientId;
         }
 
-        // 进程内分发：优先路由到事件总线（支持多订阅者发布/投递），否则路由到直接注册的回调。
         if (_eventBuses.TryGetValue(topic, out var bus))
             return await bus.PublishAsync(@event, context, cancellationToken).ConfigureAwait(false);
-        else if (_dispatchers.TryGetValue(topic, out var action))
-        {
-            await action.HandleAsync(@event, context, cancellationToken).ConfigureAwait(false);
-            return 1;
-        }
 
         return 0;
     }
@@ -386,7 +359,7 @@ public class EventHub<TEvent> : IEventHandler<IPacket>, IEventHandler<String>, I
         var bus = GetEventBus(topic);
         try
         {
-            return await bus.ReceiveAsync<TEvent>(cancellationToken).ConfigureAwait(false);
+            return await bus.ReceiveAsync(cancellationToken).ConfigureAwait(false);
         }
         finally
         {
