@@ -324,7 +324,7 @@ public class XmlConfig<TConfig> : DisposeBase where TConfig : XmlConfig<TConfig>
         File.WriteAllText(tmp, newXml);
 
         if (File.Exists(filename))
-            File.Replace(tmp, filename, null);
+            File.Replace(tmp, filename, null, true);
         else
             File.Move(tmp, filename);
     }

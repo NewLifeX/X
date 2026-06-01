@@ -20,7 +20,7 @@ public abstract class FileConfigProvider : ConfigProvider
 
     private FileSystemWatcher? _watcher;
     private TimerX? _timer;
-    private Boolean _reading;
+    private volatile Boolean _reading;
     private DateTime _lastRefreshTime;
     private DateTime _lastTime;
     #endregion
@@ -189,7 +189,7 @@ public abstract class FileConfigProvider : ConfigProvider
         File.WriteAllText(tmp, str);
 
         if (File.Exists(fileName))
-            File.Replace(tmp, fileName, null);
+            File.Replace(tmp, fileName, null, true);
         else
             File.Move(tmp, fileName);
     }
