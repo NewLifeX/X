@@ -7,7 +7,7 @@
     <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.15</VersionPrefix>
+    <VersionPrefix>11.16</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>JSON新增PropertyNaming统一命名策略，支持驼峰/下划线等多种风格；SpanWriter/SpanReader新增WriteValue/ReadValue通用方法覆盖全基础类型；ExtendableConverter增强属性忽略条件支持；修复AssemblyResolve递归触发配置初始化导致栈溢出；修复Copy时string?字段null空指针异常；优化ApiHttpClient参数传递</PackageReleaseNotes>
+    <PackageReleaseNotes>EventHub/EventBus全面异步化重构，统一入口为OnReceiveAsync；支持自定义JSON序列化选项；WebSocket支持粘包分包处理；统一ValueTask异步接口移除多余条件编译；兼容旧版.NET的IAsyncEnumerable/IAsyncDisposable；修复UdpClient并发绑定竞态问题</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
