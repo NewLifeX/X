@@ -930,20 +930,23 @@ public class Program
         prv.Bind(model, autoReload: true);
 
         XTrace.WriteLine("===== Phase 1: 连续 SaveAll × 100，期望日志中 NOT 出现 \"配置文件改变\" =====");
+        var saveTasks = new List<Task>();
         for (var i = 1; i <= 100; i++)
         {
             var saveIndex = i;
-            Task.Run(() =>
+            saveTasks.Add(Task.Run(() =>
             {
                 model.name = $"save-{saveIndex}";
                 prv.Save(model);
 
                 var fi = new FileInfo(fullPath);
                 XTrace.WriteLine("  第 {0} 次 SaveAll 完成，LastWriteTime={1:HH:mm:ss.fff}", saveIndex, fi.LastWriteTime);
-            });
+            }));
         }
 
-        // 等够 watcher 防抖 (500ms) + 延迟读 (200ms) + 富余
+        Task.WaitAll(saveTasks.ToArray());
+
+        // 所有 Save 完成后，再等够 watcher 防抖 (500ms) + 延迟读 (200ms) + 富余
         XTrace.WriteLine("等待 1.5 秒，确认抑制窗口期内 watcher 没有触发 reload ...");
         Thread.Sleep(1500);
 

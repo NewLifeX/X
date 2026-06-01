@@ -91,8 +91,9 @@ public class FileConfigProviderAtomicWriteTests
         var fullPath = fileName.GetBasePath();
         var oldLastWrite = File.GetLastWriteTimeUtc(fullPath);
 
-        // 等待 mtime 分辨率，避免误判（Windows FAT/NTFS 至少 1ms，留 50ms 余量）
-        Thread.Sleep(50);
+        // 使用保守延迟，尽量跨过不同文件系统上可能较粗的 mtime 粒度，
+        // 避免“实际发生写入但时间戳未明显变化”导致的误判。
+        Thread.Sleep(2500);
 
         // 用同一份模型再保存一次。GetString 输出与磁盘内容仅在末尾换行可能不同，
         // 双边 trim 后应判定为"无变化"，不触发实际写入
