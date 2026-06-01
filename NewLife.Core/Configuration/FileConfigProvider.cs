@@ -189,7 +189,7 @@ public abstract class FileConfigProvider : ConfigProvider
         File.WriteAllText(tmp, str);
 
         if (File.Exists(fileName))
-            File.Replace(tmp, fileName, null, ignoreMetadataErrors: true);
+            File.Replace(tmp, fileName, null);
         else
             File.Move(tmp, fileName);
     }
