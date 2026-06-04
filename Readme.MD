@@ -1,10 +1,10 @@
 # NewLife.Core - 核心库
 
-![GitHub top language](https://img.shields.io/github/languages/top/newlifex/x?logo=github)
 ![GitHub License](https://img.shields.io/github/license/newlifex/x?logo=github)
 ![Nuget Downloads](https://img.shields.io/nuget/dt/newlife.core?logo=nuget)
 ![Nuget](https://img.shields.io/nuget/v/newlife.core?logo=nuget)
 ![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/newlife.core?label=dev%20nuget&logo=nuget)
+[![AtomGit Stars](https://atomgit.com/NewLifeX/X/star/badge.svg)](https://atomgit.com/NewLifeX/X)
 
 ​	NewLife框架是一个全面的 .NET 组件生态系统，它为构建可扩展的应用程序提供了高性能的基础设施。它提供日志、网络、序列化、缓存和多线程等基本功能，作为从 Web 服务到 IoT 设备的一系列应用程序的基础。  
 
