@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 
 namespace NewLife.Log;
 
@@ -71,6 +72,76 @@ public class DefaultTracerResolver : ITracerResolver
     /// <returns></returns>
     public virtual String? ResolveName(String name, Object? userState) => name;
 
+    #region 辅助
+
+    /// <summary>读取Http内容的前缀字符串，用于埋点标签</summary>
+    /// <param name="content">Http内容</param>
+    /// <param name="maxLength">最大字符数</param>
+    /// <returns>前缀字符串，失败时返回null</returns>
+    private static String? ReadContentPrefix(ByteArrayContent content, Int32 maxLength)
+    {
+        if (content == null) return null;
+
+        try
+        {
+            using var stream = content.ReadAsStreamAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (stream == null) return null;
+
+            // 从ContentType获取编码，回退到UTF-8
+            var encoding = Encoding.UTF8;
+            var charset = content.Headers.ContentType?.CharSet;
+            if (!charset.IsNullOrEmpty())
+            {
+                try
+                {
+                    encoding = Encoding.GetEncoding(charset);
+                }
+                catch
+                {
+                }
+            }
+
+            using var reader = new StreamReader(stream, encoding);
+            var chars = new Char[maxLength];
+            var read = reader.Read(chars, 0, maxLength);
+            if (read > 0) return new String(chars, 0, read);
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>从多部分内容中查找第一个文本子内容</summary>
+    /// <remarks>
+    /// 遍历 MultipartContent 的子部分，返回第一个既是 ByteArrayContent 且 ContentType 匹配 TagTypes 的子内容。
+    /// StringContent 和 FormUrlEncodedContent 均继承自 ByteArrayContent，因此可被正确处理。
+    /// StreamContent 不是 ByteArrayContent，自动跳过，不会消耗文件流。
+    /// </remarks>
+    /// <param name="content">可能是多部分的内容</param>
+    /// <returns>第一个文本子内容，未找到时返回null</returns>
+    private ByteArrayContent? FindFirstTextContent(HttpContent? content)
+    {
+        if (content is not IEnumerable<HttpContent> parts) return null;
+
+        foreach (var sub in parts)
+        {
+            if (sub is ByteArrayContent bac &&
+                (bac.Headers.ContentType == null ||
+                 bac.Headers.ContentType.MediaType == null ||
+                 bac.Headers.ContentType.MediaType.StartsWithIgnoreCase(TagTypes)))
+            {
+                return bac;
+            }
+        }
+
+        return null;
+    }
+
+    #endregion
+
     /// <summary>创建Http请求埋点</summary>
     public virtual ISpan? CreateSpan(ITracer tracer, Uri uri, Object? userState)
     {
@@ -87,15 +158,23 @@ public class DefaultTracerResolver : ITracerResolver
             span is DefaultSpan ds && ds.TraceFlag > 0 && request != null)
         {
             var maxLength = ds.Tracer?.MaxTagLength ?? 1024;
-            if (request.Content is ByteArrayContent content &&
-                content.Headers.ContentLength != null &&
-                content.Headers.ContentLength < 1024 * 8 &&
-                content.Headers.ContentType != null &&
-                content.Headers.ContentType.MediaType.StartsWithIgnoreCase(TagTypes))
+            // 读取请求体前缀作为埋点标签。优先直接读取，否则尝试 multipart 子部分
+            if (request.Content is ByteArrayContent bc &&
+                (bc.Headers.ContentType == null ||
+                 bc.Headers.ContentType.MediaType == null ||
+                 bc.Headers.ContentType.MediaType.StartsWithIgnoreCase(TagTypes)))
             {
-                // 既然都读出来了，不管多长，都要前面1024字符
-                var str = request.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-                if (!str.IsNullOrEmpty()) tag += "\r\n" + (str.Length > maxLength ? str[..maxLength] : str);
+                var prefix = ReadContentPrefix(bc, maxLength);
+                if (!prefix.IsNullOrEmpty()) tag += "\r\n" + prefix;
+            }
+            else
+            {
+                var child = FindFirstTextContent(request.Content);
+                if (child != null)
+                {
+                    var prefix = ReadContentPrefix(child, maxLength);
+                    if (!prefix.IsNullOrEmpty()) tag += "\r\n" + prefix;
+                }
             }
 
             if (tag.Length < 500)
