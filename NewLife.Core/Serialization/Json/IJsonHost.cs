@@ -388,6 +388,7 @@ public class SystemJson : IJsonHost
         options.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
         options.Converters.Add(new LocalTimeConverter());
         options.Converters.Add(new TypeConverter());
+        options.Converters.Add(new IDictionarySourceConverter());
 #if NET6_0_OR_GREATER
         options.Converters.Add(new ExtendableConverter());
 #endif
@@ -458,7 +459,7 @@ public class SystemJson : IJsonHost
         };
 
         if (jsonOptions.IgnoreNullValues)
-            opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+            opt.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 
         // 优先使用 PropertyNaming，向后兼容 CamelCase
 #if NET8_0_OR_GREATER
@@ -487,6 +488,21 @@ public class SystemJson : IJsonHost
 
         if (jsonOptions.EnumString)
             opt.Converters.Add(new JsonStringEnumConverter(null, true));
+
+        // FullTime：为 true 时替换 LocalTimeConverter 为完整时间格式（O 格式）
+        if (jsonOptions.FullTime)
+        {
+            for (var i = opt.Converters.Count - 1; i >= 0; i--)
+            {
+                if (opt.Converters[i] is LocalTimeConverter)
+                {
+                    opt.Converters.RemoveAt(i);
+                    break;
+                }
+            }
+            opt.Converters.Add(new LocalTimeConverter { FullTime = true });
+        }
+
 #if NET6_0_OR_GREATER
         if (jsonOptions.IgnoreCycles)
             opt.ReferenceHandler = ReferenceHandler.IgnoreCycles;

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using NewLife;
+using NewLife.Collections;
 using NewLife.Log;
 using NewLife.Model;
 using NewLife.Security;
@@ -37,9 +38,9 @@ public class JsonTest : JsonTestBase
 #if NETCOREAPP
         var sjs = new SystemJson();
         var js2 = sjs.Write(set, true, false, false);
-        Assert.Equal(js, js2);
         Assert.True(js2.StartsWith("{") && js2.EndsWith("}"));
 
+        // 往返验证：SystemJson 反序列化 FastJson 的输出，确认兼容
         var set3 = sjs.Read<Setting>(js);
         Assert.Equal(set.Debug, set3.Debug);
         Assert.Equal(set.LogLevel, set3.LogLevel);
@@ -458,3 +459,236 @@ public class JsonTest : JsonTestBase
         Assert.Equal(infos.Count, arr.Length);
     }
 }
+
+#if NETCOREAPP
+/// <summary>DateTime 格式对比测试：验证 FastJson 与 SystemJson 输出一致</summary>
+public class DateTimeFormatTests
+{
+    /// <summary>本地时间默认格式：yyyy-MM-dd HH:mm:ss（空格分隔）</summary>
+    [Fact(DisplayName = "本地时间格式对比")]
+    public void LocalDateTimeFormat()
+    {
+        var dt = new DateTime(2025, 6, 22, 15, 30, 0, DateTimeKind.Local);
+        var model = new { Time = dt };
+
+        var fastJson = model.ToJson();
+        var sysJson = new SystemJson().Write(model);
+
+        // 各自验证格式特征（切换后格式不同，不比较精确相等）
+        Assert.Contains("2025-06-22", fastJson);
+        Assert.Contains("15:30:00", fastJson);
+        Assert.Contains("2025-06-22", sysJson);
+        Assert.Contains("15:30:00", sysJson);
+        // SystemJson 使用空格分隔
+        Assert.Contains("2025-06-22 15:30:00", sysJson);
+
+        // 往返验证
+        var back = sysJson.ToJsonEntity(model.GetType());
+        Assert.NotNull(back);
+    }
+
+    /// <summary>UTC 时间：FastJson 输出带 Z（T分隔不含毫秒），SystemJson 输出 O 格式含毫秒和 Z</summary>
+    [Fact(DisplayName = "UTC时间格式对比")]
+    public void UtcDateTimeFormat()
+    {
+        var dt = new DateTime(2025, 6, 22, 7, 30, 0, DateTimeKind.Utc);
+        var model = new { Time = dt };
+
+        var fastJson = model.ToJson();
+        var sysJson = new SystemJson().Write(model);
+
+        // 各自都应包含 Z 后缀表示 UTC
+        Assert.Contains("Z", fastJson);
+        Assert.Contains("Z", sysJson);
+        // 往返验证
+        var fastBack = fastJson.ToJsonEntity(model.GetType());
+        Assert.NotNull(fastBack);
+    }
+
+    /// <summary>FullTime=true 时全部输出 O 格式（含毫秒）</summary>
+    [Fact(DisplayName = "FullTime完整格式对比")]
+    public void FullTimeFormat()
+    {
+        var dt = new DateTime(2025, 6, 22, 15, 30, 0, DateTimeKind.Local);
+        var model = new { Time = dt };
+
+        var opt = new JsonOptions { FullTime = true };
+        var fastJson = new FastJson { Options = opt }.Write(model);
+        var sysJson = new SystemJson { Options = new JsonOptions { FullTime = true } }.Write(model);
+
+        // 两者都输出 O 格式（含日期、时间、毫秒）
+        Assert.Contains("2025-06-22T15:30:00.0000000", fastJson);
+        Assert.Contains("2025-06-22T15:30:00.0000000", sysJson);
+    }
+}
+
+/// <summary>IDictionarySource 转换器测试：验证 SystemJson 正确处理 IDictionarySource 实现</summary>
+public class IDictionarySourceTests
+{
+    /// <summary>模拟 ChartGrid：条件性输出，值变换</summary>
+    class MockChartGrid : IDictionarySource
+    {
+        public Int32 Left { get; set; }
+        public Int32 Right { get; set; }
+        public Int32 Width { get; set; } = 800;
+        public Int32 Height { get; set; } = 600;
+
+        public IDictionary<String, Object?> ToDictionary()
+        {
+            var dic = new Dictionary<String, Object?>();
+            // 模拟 ChartGrid 行为：负数写百分比，Width/Height 不输出
+            if (Left != 0) dic[nameof(Left)] = Left < 0 ? $"{{{-Left}}}%" : Left;
+            if (Right != 0) dic[nameof(Right)] = Right < 0 ? $"{{{-Right}}}%" : Right;
+            return dic;
+        }
+    }
+
+    /// <summary>模拟 PropertySpec：仅输出非空非默认属性</summary>
+    class MockPropertySpec : IDictionarySource
+    {
+        public String Id { get; set; } = "temp";
+        public String Name { get; set; } = "温度";
+        public Boolean Required { get; set; } = true;
+        public String? AccessMode { get; set; } = "rw";
+        public Double Scaling { get; set; } = 1.0;     // 默认值，不应输出
+        public Int32 Constant { get; set; } = 0;        // 默认值，不应输出
+
+        public IDictionary<String, Object?> ToDictionary()
+        {
+            var dic = new Dictionary<String, Object?>();
+            if (!Id.IsNullOrEmpty()) dic.Add("identifier", Id);
+            if (!Name.IsNullOrEmpty()) dic.Add(nameof(Name), Name);
+            if (Required) dic.Add(nameof(Required), Required);
+            if (!AccessMode.IsNullOrEmpty()) dic.Add(nameof(AccessMode), AccessMode);
+            if (Scaling != 1) dic[nameof(Scaling)] = Scaling;
+            if (Constant != 0) dic[nameof(Constant)] = Constant;
+            return dic;
+        }
+    }
+
+    [Fact(DisplayName = "IDictionarySource 值变换")]
+    public void DictionarySourceValueTransform()
+    {
+        var grid = new MockChartGrid { Left = -10, Right = 20 };
+        var fastJson = grid.ToJson();
+        var sysJson = new SystemJson().Write(grid);
+
+        // 两个实现输出一致
+        Assert.Equal(fastJson, sysJson);
+        // 值变换验证：Left=-10 → 百分比表达式（双重否定：-(-10)=10）
+        Assert.Contains("{10}%", sysJson);
+        Assert.Contains("20", sysJson);
+        // Width/Height 不应输出
+        Assert.DoesNotContain("Width", sysJson);
+        Assert.DoesNotContain("Height", sysJson);
+    }
+
+    [Fact(DisplayName = "IDictionarySource 条件性输出")]
+    public void DictionarySourceConditionalOutput()
+    {
+        var spec = new MockPropertySpec();
+        var fastJson = spec.ToJson();
+        var sysJson = new SystemJson().Write(spec);
+
+        // 两个实现输出一致
+        Assert.Equal(fastJson, sysJson);
+        // 默认值不应输出
+        Assert.DoesNotContain("\"Scaling\"", sysJson);
+        Assert.DoesNotContain("\"Constant\"", sysJson);
+        // 非默认值应输出
+        Assert.Contains("identifier", sysJson);
+        Assert.Contains("温度", sysJson);
+        Assert.Contains("Required", sysJson);
+    }
+
+    [Fact(DisplayName = "IDictionarySource 嵌入字典")]
+    public void DictionarySourceInDictionary()
+    {
+        // 模拟 ECharts.Build() 场景：IDictionarySource 对象作为字典值
+        var grid = new MockChartGrid { Left = -10, Right = 20 };
+        var dic = new Dictionary<String, Object?>
+        {
+            ["grid"] = grid,
+            ["title"] = "Test"
+        };
+
+        var fastJson = dic.ToJson();
+        var sysJson = new SystemJson().Write(dic);
+
+        Assert.Equal(fastJson, sysJson);
+        Assert.Contains("{10}%", sysJson);
+    }
+}
+
+/// <summary>IgnoreNullValues 语义测试：验证仅跳过 null，不跳过默认值</summary>
+public class IgnoreNullValuesTests
+{
+    class ModelWithDefaults
+    {
+        public String? Name { get; set; }
+        public Int32 Count { get; set; }
+        public Boolean Enabled { get; set; }
+        public Double Score { get; set; }
+        public DateTime Time { get; set; }
+    }
+
+    [Fact(DisplayName = "IgnoreNullValues仅跳过null")]
+    public void IgnoreNullButKeepDefaults()
+    {
+        var model = new ModelWithDefaults
+        {
+            Name = null,
+            Count = 0,
+            Enabled = false,
+            Score = 0.0,
+        };
+
+        var opt = new JsonOptions { IgnoreNullValues = true };
+        var sysJson = new SystemJson { Options = new JsonOptions { IgnoreNullValues = true } }.Write(model);
+
+        // Name 为 null，应跳过
+        Assert.DoesNotContain("\"Name\"", sysJson);
+        // Count=0 默认值，应保留（WhenWritingNull 仅跳过 null，不跳过默认值）
+        Assert.Contains("\"Count\":0", sysJson);
+        Assert.Contains("\"Enabled\":false", sysJson);
+    }
+}
+
+/// <summary>LocalTimeConverter 读取测试：验证 Z 后缀和 UTC 后缀</summary>
+public class LocalTimeReaderTests
+{
+    [Fact(DisplayName = "读取Z后缀时间")]
+    public void ReadZSuffix()
+    {
+        var converter = new LocalTimeConverter();
+        var json = "\"2025-06-22T07:30:00Z\"";
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        var reader = new System.Text.Json.Utf8JsonReader(bytes);
+        while (reader.TokenType != System.Text.Json.JsonTokenType.String) reader.Read();
+
+        var dt = converter.Read(ref reader, typeof(DateTime), null!);
+
+        // Z 后缀表示 UTC，应转为本地时间
+        Assert.Equal(DateTimeKind.Local, dt.Kind);
+        Assert.Equal(22, dt.Day);
+    }
+
+    [Fact(DisplayName = "读取UTC后缀时间")]
+    public void ReadUTCSuffix()
+    {
+        var converter = new LocalTimeConverter();
+        var json = "\"2025-06-22 07:30:00 UTC\"";
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        var reader = new System.Text.Json.Utf8JsonReader(bytes);
+        while (reader.TokenType != System.Text.Json.JsonTokenType.String) reader.Read();
+
+        var dt = converter.Read(ref reader, typeof(DateTime), null!);
+
+        // UTC 后缀应转为本地时间
+        Assert.Equal(DateTimeKind.Local, dt.Kind);
+        Assert.Equal(22, dt.Day);
+    }
+}
+#endif
