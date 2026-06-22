@@ -630,7 +630,13 @@ public class SystemJson : IJsonHost
     /// <summary>分析Json字符串得到字典或列表</summary>
     /// <param name="json">Json字符串</param>
     /// <returns>字典或列表</returns>
-    public Object? Parse(String json) => JsonDocument.Parse(json).RootElement.ToArray();
+    public Object? Parse(String json)
+    {
+        var root = JsonDocument.Parse(json).RootElement;
+        return root.ValueKind == JsonValueKind.Array
+            ? root.ToArray()
+            : root.ToDictionary();
+    }
 
     /// <summary>分析Json字符串得到字典</summary>
     /// <param name="json">Json字符串</param>
