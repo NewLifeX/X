@@ -1,4 +1,5 @@
-﻿using NewLife;
+﻿using System.ComponentModel;
+using NewLife;
 using NewLife.Data;
 using NewLife.Log;
 using NewLife.Serialization;
@@ -262,6 +263,37 @@ public class JsonWriterTests
 
         var str = JsonWriter.ToJson(dt);
         Assert.Equal("{\"Columns\":[\"id1\",\"id1\",\"id1\",\"id1\"],\"Rows\":[[12,34,56,78],[87,65,43,32]],\"Total\":1234}", str);
+    }
+
+    [Fact]
+    [DisplayName("数组 null 元素必须保留（JSON 标准）")]
+    public void Array_NullElements_Preserved()
+    {
+        var arr = new Object?[] { 1, null, 3 };
+        var str = JsonWriter.ToJson(arr, new JsonOptions { IgnoreNullValues = true });
+        // JSON 标准：null 是合法 JSON 值，数组中的 null 必须保留
+        Assert.Equal("[1,null,3]", str);
+    }
+
+    [Fact]
+    [DisplayName("数组 null 元素保留（缩进模式）")]
+    public void Array_NullElements_Indented()
+    {
+        var arr = new Object?[] { 1, null, 3 };
+        var str = JsonWriter.ToJson(arr, new JsonOptions { IgnoreNullValues = true, WriteIndented = true });
+        // 缩进模式下 null 也能正常输出
+        Assert.Contains("null", str);
+        Assert.Contains("1", str);
+        Assert.Contains("3", str);
+    }
+
+    [Fact]
+    [DisplayName("数组 null 元素保留（IgnoreNullValues=false 保持原行为）")]
+    public void Array_NullElements_IgnoreOff()
+    {
+        var arr = new Object?[] { 1, null, 3 };
+        var str = JsonWriter.ToJson(arr, new JsonOptions { IgnoreNullValues = false });
+        Assert.Equal("[1,null,3]", str);
     }
 
     [Fact]

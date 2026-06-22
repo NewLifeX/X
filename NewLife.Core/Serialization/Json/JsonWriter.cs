@@ -439,8 +439,7 @@ public class JsonWriter
         var first = true;
         foreach (var obj in arr)
         {
-            if (obj == null) continue;
-
+            // JSON 标准要求数组保留 null 元素（null 是合法 JSON 值），IgnoreNullValues 仅适用于对象属性
             if (first)
                 WriteLeftIndent();
             else
