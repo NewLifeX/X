@@ -280,7 +280,7 @@ public class JsonWriter
         var dt = dateTime;
         if (UseUTCDateTime) dt = dateTime.ToUniversalTime();
 
-        // 纯日期缩短长度
+        // 纯日期缩短长度，使用 ISO 8601 格式
         var str = "";
         if (Options.FullTime)
             str = dt.ToString("O");
@@ -291,10 +291,10 @@ public class JsonWriter
             //    str = dt.ToString("yyyy-MM-dd");
             //}
             //else
-            str = dt.ToFullString();
+            str = dt.ToString("yyyy-MM-ddTHH:mm:ss");
 
             // 处理UTC
-            if (dt.Kind == DateTimeKind.Utc) str += " UTC";
+            if (dt.Kind == DateTimeKind.Utc) str += "Z";
         }
 
         _Builder.AppendFormat("\"{0}\"", str);
@@ -395,13 +395,13 @@ public class JsonWriter
             }
             first = false;
 
-            // 注释
+            // 注释——使用 # 前缀键写入有效 JSON（JsonParser 解析时自动跳过）
             if (!IgnoreComment && Options.WriteIndented)
             {
-                //var comment = pi.GetDisplayName() ?? pi.GetDescription();
                 if (!comment.IsNullOrEmpty())
                 {
-                    _Builder.AppendFormat("// {0}", comment);
+                    WritePair("#" + name, comment);
+                    _Builder.Append(',');
                     WriteIndent();
                 }
             }
@@ -412,18 +412,9 @@ public class JsonWriter
     #endregion
 
     #region 辅助
-    private void WritePairFast(String name, String value)
-    {
-        WriteStringFast(name);
-
-        _Builder.Append(':');
-
-        WriteStringFast(value);
-    }
-
     private void WritePair(String name, Object? value)
     {
-        WriteStringFast(name);
+        WriteString(name);
 
         _Builder.Append(':');
         if (Options.WriteIndented) _Builder.Append(' ');
@@ -589,9 +580,11 @@ public class JsonWriter
 
             switch (c)
             {
+                case '\b': _Builder.Append("\\b"); break;
                 case '\t': _Builder.Append("\\t"); break;
                 case '\r': _Builder.Append("\\r"); break;
                 case '\n': _Builder.Append("\\n"); break;
+                case '\f': _Builder.Append("\\f"); break;
                 case '"':
                 case '\\': _Builder.Append('\\'); _Builder.Append(c); break;
                 default:

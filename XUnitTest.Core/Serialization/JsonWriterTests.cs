@@ -25,8 +25,8 @@ public class JsonWriterTests
         Assert.NotNull(dic);
 
         var str2 = dic["time"];
-        Assert.EndsWith(" UTC", str2 + "");
-        Assert.Equal(dt.ToFullString() + " UTC", str2);
+        Assert.EndsWith("Z", str2 + "");
+        Assert.Equal(dt.ToString("yyyy-MM-ddTHH:mm:ss") + "Z", str2);
 
         var dt2 = dic["time"].ToDateTime();
         Assert.Equal(DateTimeKind.Utc, dt2.Kind);
@@ -53,8 +53,8 @@ public class JsonWriterTests
         if (useUTCDateTime)
         {
             var str2 = dic["time"];
-            Assert.EndsWith(" UTC", str2 + "");
-            Assert.Equal(dt.ToUniversalTime().ToFullString() + " UTC", str2);
+            Assert.EndsWith("Z", str2 + "");
+            Assert.Equal(dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss") + "Z", str2);
 
             var dt2 = dic["time"].ToDateTime();
             Assert.Equal(DateTimeKind.Utc, dt2.Kind);
@@ -63,8 +63,8 @@ public class JsonWriterTests
         else
         {
             var str2 = dic["time"];
-            Assert.False((str2 + "").EndsWith(" UTC"));
-            Assert.Equal(dt.ToFullString(), str2);
+            Assert.False((str2 + "").EndsWith("Z"));
+            Assert.Equal(dt.ToString("yyyy-MM-ddTHH:mm:ss"), str2);
 
             var dt2 = dic["time"].ToDateTime();
             Assert.NotEqual(DateTimeKind.Utc, dt2.Kind);
@@ -109,8 +109,8 @@ public class JsonWriterTests
         else
         {
             var str2 = dic["time"];
-            Assert.False((str2 + "").EndsWith(" UTC"));
-            Assert.Equal(dt.ToFullString(), str2);
+            Assert.False((str2 + "").EndsWith("Z"));
+            Assert.Equal(dt.ToString("yyyy-MM-ddTHH:mm:ss"), str2);
 
             var dt2 = dic["time"].ToDateTime();
             Assert.Equal(DateTimeKind.Unspecified, dt2.Kind);
@@ -294,6 +294,85 @@ public class JsonWriterTests
         var arr = new Object?[] { 1, null, 3 };
         var str = JsonWriter.ToJson(arr, new JsonOptions { IgnoreNullValues = false });
         Assert.Equal("[1,null,3]", str);
+    }
+
+    [Fact]
+    [DisplayName("字典键含特殊字符时正确转义")]
+    public void DictionaryKey_Escaping()
+    {
+        var dic = new Dictionary<String, Object?>
+        {
+            ["key\"with\"quotes"] = 1,
+            ["back\\slash"] = 2,
+            ["new\nline"] = 3,
+        };
+        var str = JsonWriter.ToJson(dic);
+        // 必须可被 JsonParser 正确解析
+        var js = new JsonParser(str);
+        var parsed = js.Decode() as IDictionary<String, Object>;
+        Assert.NotNull(parsed);
+        Assert.Equal(3, parsed.Count);
+        Assert.Equal(1, parsed["key\"with\"quotes"]);
+        Assert.Equal(2, parsed["back\\slash"]);
+        Assert.Equal(3, parsed["new\nline"]);
+    }
+
+    [Fact]
+    [DisplayName("WriteString 输出 \\b 和 \\f 简写转义")]
+    public void String_Escape_Bell_FormFeed()
+    {
+        var writer = new JsonWriter();
+        writer.Write("a\bb\fc");
+        var str = writer.GetString();
+        // \b (0x08) 和 \f (0x0C) 应使用简写而非 \\u0008/\\u000C
+        Assert.Equal("\"a\\bb\\fc\"", str);
+    }
+
+    [Fact]
+    [DisplayName("DateTime 默认使用 ISO 8601 格式")]
+    public void DateTime_ISO8601()
+    {
+        var dt = new DateTime(2026, 6, 22, 15, 30, 0, DateTimeKind.Utc);
+        var writer = new JsonWriter();
+        writer.Write(dt);
+        var str = writer.GetString();
+        // ISO 8601: T 分隔符，UTC 用 Z 后缀（非 " UTC"）
+        Assert.Equal("\"2026-06-22T15:30:00Z\"", str);
+    }
+
+    [Fact]
+    [DisplayName("DateTime 本地时间使用 ISO 8601 格式（无后缀）")]
+    public void DateTime_ISO8601_Local()
+    {
+        var dt = new DateTime(2026, 6, 22, 15, 30, 0, DateTimeKind.Local);
+        var writer = new JsonWriter();
+        writer.Write(dt);
+        var str = writer.GetString();
+        // 应包含 T 分隔符
+        Assert.Contains("T", str);
+        // 不应包含 " UTC" 后缀
+        Assert.DoesNotContain(" UTC", str);
+    }
+
+    [Fact]
+    [DisplayName("IgnoreComment=false 时使用 #key 机制（合法 JSON）")]
+    public void Comment_ValidJson()
+    {
+        var writer = new JsonWriter
+        {
+            IgnoreComment = false,
+            Options = new JsonOptions { WriteIndented = true },
+        };
+        var obj = new { Name = "Stone" };
+        writer.Write(obj);
+        var str = writer.GetString();
+        // 不应包含 // 注释（非法 JSON）
+        Assert.DoesNotContain("//", str);
+        // 应可被 JsonParser 正确解析
+        var js = new JsonParser(str);
+        var parsed = js.Decode() as IDictionary<String, Object>;
+        Assert.NotNull(parsed);
+        Assert.Equal("Stone", parsed["Name"]);
     }
 
     [Fact]
