@@ -7,7 +7,7 @@
     <Description>Core library of NewLife framework. Provides high-performance infrastructure for building scalable applications: logging (file/network), configuration (XML/JSON/HTTP), cache (memory/distributed), network (TCP/UDP/HTTP/WebSocket), serialization (binary/XML/JSON), APM tracing, IoC container, actor model, timer scheduler, plugin framework, and more. Supports .NET Framework 4.5 to .NET 10. 核心组件库，为构建可扩展应用程序提供高性能基础设施。提供日志（文件/网络）、配置（XML/JSON/HTTP）、缓存（内存/分布式）、网络（TCP/UDP/HTTP/WebSocket）、序列化（Binary/XML/JSON）、APM性能追踪、对象容器、并行模型、定时调度、插件框架等。支持.NET Framework 4.5至.NET 10全版本。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.16</VersionPrefix>
+    <VersionPrefix>11.17</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -32,7 +32,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>EventHub/EventBus全面异步化重构，统一入口为OnReceiveAsync；支持自定义JSON序列化选项；WebSocket支持粘包分包处理；统一ValueTask异步接口移除多余条件编译；兼容旧版.NET的IAsyncEnumerable/IAsyncDisposable；修复UdpClient并发绑定竞态问题</PackageReleaseNotes>
+    <PackageReleaseNotes>新增 System.Text.Json 对 IDictionarySource 序列化及 ISO 8601 DateTime 格式支持；XmlConfig/JsonConfig 支持原子写入，FileConfigProvider 增强并发安全；优化 HttpContent 埋点标签提取逻辑；修复 SystemJson.Parse 对象类型解析错误及数组序列化 null 元素忽略问题；统一测试并发控制简化配置</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

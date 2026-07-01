@@ -1,5 +1,27 @@
 # NewLife.Core 版本更新记录
 
+## v11.17.2026.0701 (2026-07-01)
+
+### JSON 增强
+- **IDictionarySource 序列化支持**：System.Text.Json 支持 `IDictionarySource` 接口序列化及多种时间格式
+- **DateTime ISO 8601 优化**：优化 `DateTime` 序列化为 ISO 8601 格式，增强字符串转义与注释处理
+
+### 配置系统
+- **原子写入**：`XmlConfig` 与 `JsonConfig` 支持原子写入，避免文件损坏
+- **并发安全增强**：`FileConfigProvider` 原子写入增强多线程安全性，提升文件配置写入兼容性
+
+### 网络优化
+- **HttpContent 埋点增强**：优化 HTTP 内容埋点标签提取逻辑，提升链路追踪健壮性
+
+### Bug 修复
+- **[fix]** 修复 `SystemJson.Parse` 解析对象类型错误
+- **[fix]** 修复数组序列化时错误忽略 null 元素
+
+### 测试与质量
+- **测试并发控制**：统一测试并发控制，移除 `xunit.runner.ci.json` 简化配置
+
+---
+
 ## v11.16.2026.0601 (2026-06-01)
 
 ### 事件总线增强

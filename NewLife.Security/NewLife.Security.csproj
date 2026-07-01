@@ -6,7 +6,7 @@
     <Description>Extended cryptographic algorithms for NewLife framework. Provides advanced encryption capabilities including ECC (Elliptic Curve Cryptography), ECDSA digital signature, and more. 扩展加密算法库，提供椭圆曲线加密（ECC）、ECDSA数字签名等高级加密能力。基于.NET CNG平台的安全扩展组件。</Description>
     <Company>新生命开发团队</Company>
     <Copyright>©2002-2026 NewLife</Copyright>
-    <VersionPrefix>11.16</VersionPrefix>
+    <VersionPrefix>11.17</VersionPrefix>
     <VersionSuffix>$([System.DateTime]::Now.ToString(`yyyy.MMdd`))</VersionSuffix>
     <Version>$(VersionPrefix).$(VersionSuffix)</Version>
     <FileVersion>$(Version)</FileVersion>
@@ -28,7 +28,7 @@
     <RepositoryUrl>https://github.com/NewLifeX/X</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>新生命团队;X组件;NewLife;$(AssemblyName)</PackageTags>
-    <PackageReleaseNotes>跟随 NewLife.Core v11.16 同步发版</PackageReleaseNotes>
+    <PackageReleaseNotes>跟随 NewLife.Core v11.17 同步发版</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
