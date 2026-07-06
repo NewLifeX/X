@@ -9,10 +9,11 @@ namespace NewLife.Collections;
 
 /// <summary>资源池。支持空闲释放、生命周期强制回收、池满阻塞等待，主要用于数据库连接池和网络连接池</summary>
 /// <remarks>
-/// <para>双空闲集合：ConcurrentStack（热栈，LIFO 复用，Min 保护） + ConcurrentQueue（冷队列，FIFO 清理）。</para>
-/// <para>借出：先试空闲池；无空闲时 SemaphoreSlim 控制并发借出数 ≤ Max，WaitTimeout 阻塞等待。</para>
-/// <para>清理：TimerX 定时扫描冷队列（IdleTime + MaxLifetime）和热栈（Pop-All→过滤→Push-Back）。</para>
-/// <para>钩子：OnCreate/OnGet/OnReturn/OnDispose 虚方法可重写，支持异步（OnCreateAsync/OnGetAsync）。</para>
+/// <para>唯一权威：SemaphoreSlim（容量=Max）是限流的唯一机制，借出时 Wait、归还时 Release。因创建新连接必先持有信号量，且空闲缓存只存放曾借出过的连接，故总连接数（Busy+Free）恒不超过 Max。FreeCount/BusyCount 仅用于观测，从不参与放行判断。</para>
+/// <para>空闲存储：双集合仅是缓存组织方式，不参与限流。ConcurrentStack（热栈，LIFO 复用，保留 Min 个最热连接） + ConcurrentQueue（冷队列，FIFO，存放 Min 以外的溢出连接便于清理）。</para>
+/// <para>清理：TimerX 定时扫描冷队列（IdleTime + MaxLifetime）和热栈（Pop-All→过滤→Push-Back）。空闲连接不持有信号量，销毁它们不释放槽位。</para>
+/// <para>钩子：OnCreate/OnGet/OnReturn/OnDispose 虚方法可重写，支持异步（OnCreateAsync/OnGetAsync）。钩子抛出异常时信号量会被安全释放，不会泄漏槽位。</para>
+/// <para>注意：Max 在首次借出时按当前值确定信号量容量，之后修改无效，请在使用前设定。</para>
 /// <para>文档：https://newlifex.com/core/object_pool</para>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
@@ -30,7 +31,7 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>繁忙个数</summary>
     public Int32 BusyCount => _BusyCount;
 
-    /// <summary>最大个数。默认100，限制总连接数（Busy+Free）</summary>
+    /// <summary>最大个数。默认100，限制总连接数（Busy+Free≤Max），由容量信号量唯一保证。小于等于0表示不限制。须在首次借出前设定。</summary>
     public Int32 Max { get; set; } = 100;
 
     /// <summary>最小个数。默认1，维持的最少空闲连接数，IdleTime 不清理但 MaxLifetime 可淘汰</summary>
@@ -51,11 +52,13 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>最大生命周期。从创建时刻算起的绝对存活时间，超过后强制回收。默认0s表示不启用。适用于数据库主从切换、连接代理滚动更新等场景。</summary>
     public Int32 MaxLifetime { get; set; }
 
-    /// <summary>容量信号量。控制最大并发借出数 ≤ Max，池满时阻塞等待</summary>
+    /// <summary>容量信号量。唯一限流机制，容量=Max。借出时 Wait、归还时 Release，保证总连接数 Busy+Free≤Max，池满时阻塞等待 WaitTimeout。Max≤0 时返回 null 表示不限流</summary>
     private SemaphoreSlim? _slot;
 
-    private SemaphoreSlim GetSlot()
+    private SemaphoreSlim? GetSlot()
     {
+        if (Max <= 0) return null;
+
         var s = Volatile.Read(ref _slot);
         if (s != null) return s;
 
@@ -154,39 +157,42 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <returns></returns>
     public virtual T Get()
     {
-        // 获取槽位。每次借出都需要槽位，限制最大并发数 ≤ Max
-        if (Max > 0 && !GetSlot()!.Wait(WaitTimeout))
+        // 获取槽位。借出持有、归还释放，信号量容量=Max 保证总连接数 Busy+Free≤Max
+        var slot = GetSlot();
+        if (slot?.Wait(WaitTimeout) == false)
         {
             using var span = DefaultTracer.Instance?.NewSpan($"pool:{Name}:Full", new { Name, BusyCount, Max, WaitTimeout });
             throw new PoolFullException(Name, BusyCount, Max);
         }
 
-        while (true)
+        // 已持有槽位。循环内 OnCreate/OnGet 若抛异常，catch 释放槽位避免泄漏；成功 return 不释放，归还时才还
+        try
         {
-            // 1. 先试空闲池（已有连接，不需创建）
-            if (TryAcquireFree(out var pi))
+            while (true)
             {
+                // 获取一个 Item（优先从空闲池复用，否则新建）
+                if (!TryAcquireFree(out var pi))
+                    pi = new Item { Value = OnCreate(), CreatedTime = TimerX.Now };
+
+                if (pi.Value == null) continue;
+
+                // 生命周期检查（新建项 CreatedTime=now，不会误淘汰）
                 if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
                 {
-                    if (pi.Value != null) OnDispose(pi.Value);
+                    OnDispose(pi.Value);
                     continue;
                 }
 
-                if (pi.Value != null && OnGet(pi.Value))
+                if (OnGet(pi.Value))
                     return FinishAcquire(pi);
 
-                if (pi.Value != null) OnDispose(pi.Value);
-                continue;
+                OnDispose(pi.Value);
             }
-
-            // 2. 创建新连接（槽位已获取）
-            pi = new Item { Value = OnCreate(), CreatedTime = TimerX.Now };
-
-            if (pi.Value != null && OnGet(pi.Value))
-                return FinishAcquire(pi);
-
-            // OnGet 验证失败或 Value 为空，销毁并继续
-            if (pi.Value != null) OnDispose(pi.Value);
+        }
+        catch
+        {
+            slot?.Release();
+            throw;
         }
     }
 
@@ -200,40 +206,44 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <returns></returns>
     public virtual async Task<T> GetAsync(CancellationToken cancellationToken = default)
     {
-        // 获取槽位。每次借出都需要槽位，限制最大并发数 ≤ Max
-        if (Max > 0 && !await GetSlot()!.WaitAsync(WaitTimeout, cancellationToken).ConfigureAwait(false))
+        // 获取槽位。借出持有、归还释放，信号量容量=Max 保证总连接数 Busy+Free≤Max
+        var slot = GetSlot();
+        if (slot != null && !await slot.WaitAsync(WaitTimeout, cancellationToken).ConfigureAwait(false))
         {
             using var span = DefaultTracer.Instance?.NewSpan($"pool:{Name}:Full", new { Name, BusyCount, Max, WaitTimeout });
             throw new PoolFullException(Name, BusyCount, Max);
         }
 
-        while (true)
+        // 已持有槽位。循环内取消或 OnCreateAsync/OnGetAsync 抛异常时，catch 释放槽位避免泄漏；成功 return 不释放
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // 1. 先试空闲池（已有连接，不需创建）
-            if (TryAcquireFree(out var pi))
+            while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // 获取一个 Item（优先从空闲池复用，否则新建）
+                if (!TryAcquireFree(out var pi))
+                    pi = new Item { Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false), CreatedTime = TimerX.Now };
+
+                if (pi.Value == null) continue;
+
+                // 生命周期检查（新建项 CreatedTime=now，不会误淘汰）
                 if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
                 {
-                    if (pi.Value != null) OnDispose(pi.Value);
+                    OnDispose(pi.Value);
                     continue;
                 }
 
-                if (pi.Value != null && await OnGetAsync(pi.Value, cancellationToken).ConfigureAwait(false))
+                if (await OnGetAsync(pi.Value, cancellationToken).ConfigureAwait(false))
                     return FinishAcquire(pi);
 
-                if (pi.Value != null) OnDispose(pi.Value);
-                continue;
+                OnDispose(pi.Value);
             }
-
-            // 2. 创建新连接（槽位已获取）
-            pi = new Item { Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false), CreatedTime = TimerX.Now };
-
-            if (pi.Value != null && await OnGetAsync(pi.Value, cancellationToken).ConfigureAwait(false))
-                return FinishAcquire(pi);
-
-            if (pi.Value != null) OnDispose(pi.Value);
+        }
+        catch
+        {
+            slot?.Release();
+            throw;
         }
     }
 
@@ -268,33 +278,36 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 
         Interlocked.Decrement(ref _BusyCount);
 
-        // 是否可用。不可用时销毁并释放槽位（总连接数-1），避免子类手动 TryDispose 的 workaround
-        var slot = GetSlot();
-        if (!OnReturn(value) || value is DisposeBase db && db.Disposed)
+        // 借出时持有的槽位，无论成功入池、销毁还是钩子抛异常，都在 finally 释放一次并唤醒等待者
+        try
         {
-            OnDispose(value);
-            slot.Release();
-            return false;
+            if (!OnReturn(value) || value is DisposeBase db && db.Disposed)
+            {
+                OnDispose(value);
+                return false;
+            }
+
+            // 如果空闲数不足最小值，则返回到基础空闲集合（热栈），否则进扩展集合（冷队列）
+            if (_FreeCount < Min)
+                _free.Push(pi);
+            else
+                _free2.Enqueue(pi);
+
+            // 最后时间
+            pi.LastTime = TimerX.Now;
+
+            Interlocked.Increment(ref _FreeCount);
+
+            // 启动定期清理的定时器（仅在需要清理时）
+            if (IdleTime > 0) StartTimer();
+
+            return true;
         }
-
-        // 如果空闲数不足最小值，则返回到基础空闲集合
-        if (_FreeCount < Min)
-            _free.Push(pi);
-        else
-            _free2.Enqueue(pi);
-
-        // 最后时间
-        pi.LastTime = TimerX.Now;
-
-        Interlocked.Increment(ref _FreeCount);
-
-        // 启动定期清理的定时器（仅在需要清理时）
-        if (IdleTime > 0) StartTimer();
-
-        // 释放槽位，唤醒等待者
-        slot.Release();
-
-        return true;
+        finally
+        {
+            // 释放槽位，唤醒等待者（Max≤0 时无信号量，GetSlot 返回 null 跳过）
+            GetSlot()?.Release();
+        }
     }
 
     /// <summary>归还时是否可用</summary>
@@ -312,12 +325,11 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         while (_free2.TryDequeue(out var pi)) OnDispose(pi.Value);
         Interlocked.Exchange(ref _FreeCount, 0);
 
-        // 繁忙项尚未归还（槽位仍被占用），销毁后释放槽位
-        var slot = GetSlot();
+        // 繁忙项尚未归还（仍持有槽位），销毁后释放槽位；空闲项不持有槽位，不释放
         foreach (var item in _busy)
         {
             OnDispose(item.Key);
-            slot.Release();
+            GetSlot()?.Release();
         }
         _busy.Clear();
         Interlocked.Exchange(ref _BusyCount, 0);

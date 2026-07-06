@@ -307,6 +307,80 @@ public class ObjectPoolTests
         pool.Return(obj2);
     }
 
+    [Fact(DisplayName = "OnCreate抛异常不泄漏信号量槽位")]
+    public void OnCreate_Throws_NoSlotLeak()
+    {
+        using var pool = new ThrowingCreatePool { Max = 2, WaitTimeout = TimeSpan.Zero, FailCount = 3 };
+
+        // 前3次 OnCreate 抛异常，槽位必须被释放，否则池会永久锁死
+        for (var i = 0; i < 3; i++)
+            Assert.Throws<InvalidOperationException>(() => pool.Get());
+
+        // 槽位无泄漏：现在应能正常借满 Max=2
+        var a = pool.Get();
+        var b = pool.Get();
+        Assert.NotNull(a);
+        Assert.NotNull(b);
+
+        // 已满，立即抛 PoolFull（证明恰好2个槽位可用，既无泄漏也无多余）
+        Assert.Throws<PoolFullException>(() => pool.Get());
+
+        pool.Return(a);
+        pool.Return(b);
+    }
+
+    [Fact(DisplayName = "OnCreateAsync抛异常不泄漏信号量槽位")]
+    public async Task OnCreateAsync_Throws_NoSlotLeak()
+    {
+        using var pool = new ThrowingCreatePool { Max = 2, WaitTimeout = TimeSpan.Zero, FailCount = 3 };
+
+        for (var i = 0; i < 3; i++)
+            await Assert.ThrowsAsync<InvalidOperationException>(() => pool.GetAsync());
+
+        var a = await pool.GetAsync();
+        var b = await pool.GetAsync();
+        Assert.NotNull(a);
+        Assert.NotNull(b);
+
+        await Assert.ThrowsAsync<PoolFullException>(() => pool.GetAsync());
+
+        pool.Return(a);
+        pool.Return(b);
+    }
+
+    [Fact(DisplayName = "OnReturn抛异常不泄漏信号量槽位")]
+    public void OnReturn_Throws_NoSlotLeak()
+    {
+        using var pool = new ThrowingReturnPool { Max = 1, WaitTimeout = TimeSpan.Zero, ThrowOnReturn = true };
+
+        var a = pool.Get();
+
+        // 归还时 OnReturn 抛异常，finally 必须释放槽位
+        Assert.Throws<InvalidOperationException>(() => pool.Return(a));
+
+        // 槽位无泄漏：Max=1，应能再次借出
+        pool.ThrowOnReturn = false;
+        var b = pool.Get();
+        Assert.NotNull(b);
+        pool.Return(b);
+    }
+
+    [Fact(DisplayName = "Max为0时借还与清空不触碰信号量")]
+    public void MaxZero_ReturnClear_NoThrow()
+    {
+        using var pool = new ObjectPool<TestResource> { Max = 0 };
+
+        var a = pool.Get();
+        var b = pool.Get();
+        Assert.Equal(2, pool.BusyCount);
+
+        Assert.True(pool.Return(a));
+        pool.Return(b);
+        Assert.Equal(0, pool.BusyCount);
+
+        pool.Clear();
+    }
+
     #region 辅助类
     class TestResource : IDisposable
     {
@@ -338,6 +412,36 @@ public class ObjectPoolTests
             await Task.Yield();
             GetAsyncCalled = true;
             return !value.Disposed;
+        }
+    }
+
+    class ThrowingCreatePool : ObjectPool<TestResource>
+    {
+        /// <summary>大于0时 OnCreate 抛异常，每次递减</summary>
+        public Int32 FailCount { get; set; }
+
+        protected override TestResource? OnCreate()
+        {
+            if (FailCount > 0)
+            {
+                FailCount--;
+                throw new InvalidOperationException("模拟创建失败");
+            }
+
+            return new TestResource();
+        }
+    }
+
+    class ThrowingReturnPool : ObjectPool<TestResource>
+    {
+        /// <summary>为真时 OnReturn 抛异常</summary>
+        public Boolean ThrowOnReturn { get; set; }
+
+        protected override Boolean OnReturn(TestResource value)
+        {
+            if (ThrowOnReturn) throw new InvalidOperationException("模拟归还校验失败");
+
+            return true;
         }
     }
     #endregion
