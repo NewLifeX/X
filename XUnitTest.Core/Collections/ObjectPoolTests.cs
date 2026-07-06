@@ -1,4 +1,5 @@
-﻿using NewLife.Collections;
+﻿using System.Diagnostics;
+using NewLife.Collections;
 using Xunit;
 
 namespace XUnitTest.Collections;
@@ -58,12 +59,14 @@ public class ObjectPoolTests
     [Fact(DisplayName = "超过最大值抛异常")]
     public void ExceedsMax_Throws()
     {
-        using var pool = new ObjectPool<TestResource> { Max = 2 };
+        using var pool = new ObjectPool<TestResource> { Max = 2, WaitTimeout = TimeSpan.Zero };
 
         pool.Get();
         pool.Get();
 
-        Assert.Throws<Exception>(() => pool.Get());
+        var ex = Assert.Throws<PoolFullException>(() => pool.Get());
+        Assert.Equal(2, ex.BusyCount);
+        Assert.Equal(2, ex.Max);
     }
 
     [Fact(DisplayName = "GetItem包装借出和归还")]
@@ -148,12 +151,14 @@ public class ObjectPoolTests
     [Fact(DisplayName = "GetAsync超过最大值抛异常")]
     public async Task GetAsync_ExceedsMax_Throws()
     {
-        using var pool = new ObjectPool<TestResource> { Max = 2 };
+        using var pool = new ObjectPool<TestResource> { Max = 2, WaitTimeout = TimeSpan.Zero };
 
         await pool.GetAsync();
         await pool.GetAsync();
 
-        await Assert.ThrowsAsync<Exception>(() => pool.GetAsync());
+        var ex = await Assert.ThrowsAsync<PoolFullException>(() => pool.GetAsync());
+        Assert.Equal(2, ex.BusyCount);
+        Assert.Equal(2, ex.Max);
     }
 
     [Fact(DisplayName = "GetAsync支持CancellationToken取消")]
@@ -211,6 +216,95 @@ public class ObjectPoolTests
         await Task.WhenAll(tasks);
 
         Assert.Equal(0, pool.BusyCount);
+    }
+
+    [Fact(DisplayName = "GetAsync_WaitTimeout等待后成功获取")]
+    public async Task GetAsync_WaitTimeout_Success()
+    {
+        using var pool = new ObjectPool<TestResource> { Max = 2, WaitTimeout = TimeSpan.FromSeconds(5) };
+
+        // 借出 2 个占满池
+        var obj1 = pool.Get();
+        var obj2 = pool.Get();
+
+        // 异步归还一个，让等待的 GetAsync 能获取到
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(200);
+            pool.Return(obj2);
+        });
+
+        // GetAsync 应该等待后成功获取
+        var obj3 = await pool.GetAsync();
+        Assert.NotNull(obj3);
+
+        pool.Return(obj1);
+        pool.Return(obj3);
+    }
+
+    [Fact(DisplayName = "GetAsync_WaitTimeout为0时立即抛异常")]
+    public async Task GetAsync_WaitTimeout_Throws()
+    {
+        using var pool = new ObjectPool<TestResource> { Max = 1, WaitTimeout = TimeSpan.Zero };
+
+        // 借出唯一的连接占满池
+        var obj = pool.Get();
+
+        // GetAsync 应 WaitTimeout=0 立即抛 PoolFullException
+        var sw = Stopwatch.StartNew();
+        var ex = await Assert.ThrowsAsync<PoolFullException>(() => pool.GetAsync());
+        sw.Stop();
+
+        Assert.Equal(1, ex.BusyCount);
+        Assert.Equal(1, ex.Max);
+        Assert.True(sw.ElapsedMilliseconds < 50, $"WaitTimeout=0 应立即抛异常，实际等待 {sw.ElapsedMilliseconds}ms");
+
+        pool.Return(obj);
+    }
+
+    [Fact(DisplayName = "GetAsync_WaitTimeout默认15s阻塞等待")]
+    public async Task GetAsync_WaitTimeout_DefaultBlocks()
+    {
+        using var pool = new ObjectPool<TestResource> { Max = 1 };
+
+        var obj = pool.Get();
+
+        // 异步归还一个，让等待的 GetAsync 能获取到
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(200);
+            pool.Return(obj);
+        });
+
+        // GetAsync 默认 WaitTimeout=15s，应阻塞等待后成功获取
+        var sw = Stopwatch.StartNew();
+        var obj2 = await pool.GetAsync();
+        sw.Stop();
+
+        Assert.NotNull(obj2);
+        Assert.True(sw.ElapsedMilliseconds >= 150, $"等待 {sw.ElapsedMilliseconds}ms，应 >= 150ms（阻塞等待归还）");
+
+        pool.Return(obj2);
+    }
+
+    [Fact(DisplayName = "MaxLifetime过期连接被惰性回收")]
+    public void MaxLifetime_ExpiredConnection_Recycled()
+    {
+        using var pool = new ObjectPool<TestResource> { MaxLifetime = 1, WaitTimeout = TimeSpan.Zero };
+
+        // 借出并立即归还，让 CreatedTime 距今很近
+        var obj1 = pool.Get();
+        pool.Return(obj1);
+        Assert.Equal(1, pool.FreeCount);
+
+        // 等待超过 MaxLifetime（1s），给足余量
+        Thread.Sleep(1500);
+
+        // 再次借出时，旧连接因超 MaxLifetime 被惰性回收，应创建新连接
+        var obj2 = pool.Get();
+        Assert.NotSame(obj1, obj2);
+
+        pool.Return(obj2);
     }
 
     #region 辅助类

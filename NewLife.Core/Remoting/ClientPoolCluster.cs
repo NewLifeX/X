@@ -101,7 +101,7 @@ namespace NewLife.Remoting
 
             /// <summary>释放时，返回是否有效。无效对象将会被抛弃</summary>
             /// <param name="value"></param>
-            protected override Boolean OnPut(ISocketClient value) => value != null && !value.Disposed /*&& value.Client != null*/;
+            protected override Boolean OnReturn(ISocketClient value) => value != null && !value.Disposed;
         }
 
         #region 日志

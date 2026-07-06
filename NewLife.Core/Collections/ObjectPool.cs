@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using NewLife.Log;
@@ -8,9 +7,13 @@ using NewLife.Threading;
 
 namespace NewLife.Collections;
 
-/// <summary>资源池。支持空闲释放，主要用于数据库连接池和网络连接池</summary>
+/// <summary>资源池。支持空闲释放、生命周期强制回收、池满阻塞等待，主要用于数据库连接池和网络连接池</summary>
 /// <remarks>
-/// 文档 https://newlifex.com/core/object_pool
+/// <para>双空闲集合：ConcurrentStack（热栈，LIFO 复用，Min 保护） + ConcurrentQueue（冷队列，FIFO 清理）。</para>
+/// <para>借出：SemaphoreSlim 控制并发数 ≤ Max，WaitTimeout 阻塞等待池满。</para>
+/// <para>清理：TimerX 定时扫描冷队列（IdleTime + MaxLifetime）和热栈（Pop-All→过滤→Push-Back）。</para>
+/// <para>钩子：OnCreate/OnGet/OnReturn/OnDispose 虚方法可重写，支持异步（OnCreateAsync/OnGetAsync）。</para>
+/// <para>文档：https://newlifex.com/core/object_pool</para>
 /// </remarks>
 /// <typeparam name="T"></typeparam>
 public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
@@ -19,30 +22,50 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <summary>名称</summary>
     public String Name { get; set; }
 
-    private Int32 _FreeCount;
+    private volatile Int32 _FreeCount;
     /// <summary>空闲个数</summary>
     public Int32 FreeCount => _FreeCount;
 
-    private Int32 _BusyCount;
+    private volatile Int32 _BusyCount;
     /// <summary>繁忙个数</summary>
     public Int32 BusyCount => _BusyCount;
 
-    /// <summary>最大个数。默认100，0表示无上限</summary>
+    /// <summary>最大个数。默认100，始终大于0</summary>
     public Int32 Max { get; set; } = 100;
 
     /// <summary>最小个数。默认1</summary>
     public Int32 Min { get; set; } = 1;
 
-    /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认10s</summary>
-    public Int32 IdleTime { get; set; } = 10;
+    /// <summary>空闲清理时间。最小个数之上的资源超过空闲时间时被清理，默认60s</summary>
+    public Int32 IdleTime { get; set; } = 60;
 
     /// <summary>
-    /// 完全空闲清理时间。默认0表示不清理。
-    /// - 基础空闲集合（_free）中的对象超过该时间将被清理；
-    /// - 借出但长时间未归还（_busy）且最后操作时间超过该时间也会被移除，避免“有借无还”。
-    /// 单位：秒。
+    /// 完全空闲清理时间。已废弃，不再支持。后续版本将移除。
     /// </summary>
-    public Int32 AllIdleTime { get; set; } = 0;
+    [Obsolete("不再支持，后续版本将移除。请使用 IdleTime 控制空闲清理。")]
+    public Int32 AllIdleTime { get; set; }
+
+    /// <summary>借出等待超时。默认15s，池满时阻塞等待。TimeSpan.Zero表示不等待，池满时立即抛出PoolFullException。</summary>
+    public TimeSpan WaitTimeout { get; set; } = TimeSpan.FromSeconds(15);
+
+    /// <summary>最大生命周期。从创建时刻算起的绝对存活时间，超过后强制回收。默认0s表示不启用。适用于数据库主从切换、连接代理滚动更新等场景。</summary>
+    public Int32 MaxLifetime { get; set; }
+
+    /// <summary>容量信号量。控制并发借出数不超过 Max，池满时阻塞等待</summary>
+    private SemaphoreSlim? _slot;
+
+    private SemaphoreSlim GetSlot()
+    {
+        var s = _slot;
+        if (s != null) return s;
+
+        lock (_sync)
+        {
+            if (_slot != null) return _slot;
+
+            return _slot = new SemaphoreSlim(Max, Max);
+        }
+    }
 
     /// <summary>基础空闲集合。只保存最小个数，最热部分</summary>
     private readonly ConcurrentStack<Item> _free = new();
@@ -76,25 +99,10 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         base.Dispose(disposing);
 
         _timer?.Dispose();
-        _timer = null; // 允许后续在需要时重新启动
-
-        WriteLog($"Dispose {typeof(T).FullName} FreeCount={FreeCount:n0} BusyCount={BusyCount:n0} Total={Total:n0}");
+        _timer = null;
+        _slot?.Dispose();
 
         Clear();
-    }
-
-    private volatile Boolean _inited;
-    private void Init()
-    {
-        if (_inited) return;
-
-        lock (_sync)
-        {
-            if (_inited) return;
-            _inited = true;
-
-            WriteLog($"Init {typeof(T).FullName} Min={Min} Max={Max} IdleTime={IdleTime}s AllIdleTime={AllIdleTime}s");
-        }
     }
     #endregion
 
@@ -106,6 +114,9 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
 
         /// <summary>最后操作时间（借出或归还）。用于过期清理</summary>
         public DateTime LastTime { get; set; }
+
+        /// <summary>创建时间。用于 MaxLifetime 强制回收</summary>
+        public DateTime CreatedTime { get; set; }
     }
     #endregion
 
@@ -126,31 +137,14 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         return false;
     }
 
-    /// <summary>完成借出，记录到繁忙集合并统计耗时</summary>
+    /// <summary>完成借出，记录到繁忙集合</summary>
     /// <param name="pi">缓存项</param>
-    /// <param name="success">是否从空闲集合命中</param>
-    /// <param name="startTimestamp">借出开始时间戳，0表示不计时</param>
     /// <returns></returns>
-    private T FinishAcquire(Item pi, Boolean success, Int64 startTimestamp)
+    private T FinishAcquire(Item pi)
     {
-        // 最后时间
         pi.LastTime = TimerX.Now;
-
-        // 加入繁忙集合
         _busy.TryAdd(pi.Value!, pi);
-
         Interlocked.Increment(ref _BusyCount);
-        if (success) Interlocked.Increment(ref _Success);
-
-        if (startTimestamp > 0)
-        {
-            var ms = (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
-
-            if (Cost < 0.001)
-                Cost = ms;
-            else
-                Cost = (Cost * 3 + ms) / 4;
-        }
 
         return pi.Value!;
     }
@@ -159,50 +153,51 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <returns></returns>
     public virtual T Get()
     {
-        var startTimestamp = Log != null && Log != Logger.Null ? Stopwatch.GetTimestamp() : 0L;
-        Interlocked.Increment(ref _Total);
-
-        var success = false;
-        Item? pi = null;
-        do
+        // 获取容量槽位，池满时阻塞等待
+        if (Max > 0 && !GetSlot()!.Wait(WaitTimeout))
         {
-            // 如果上一轮获取的资源不可用，先销毁避免泄漏
-            if (pi != null && pi.Value != null) OnDispose(pi.Value);
+            using var span = DefaultTracer.Instance?.NewSpan($"pool:{Name}:Full", new { Name, BusyCount, Max, WaitTimeout });
+            throw new PoolFullException(Name, BusyCount, Max);
+        }
 
-            // 从空闲集合借一个
-            if (TryAcquireFree(out pi))
+        try
+        {
+            while (true)
             {
-                success = true;
-            }
-            else
-            {
-                // 超出最大值后，抛出异常
-                var count = BusyCount;
-                if (Max > 0 && count >= Max)
+                // 从空闲集合借一个。借出时惰性检查 MaxLifetime（Work 定时清理作兜底）
+                if (TryAcquireFree(out var pi))
                 {
-                    var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
-
-                    WriteLog("Acquire Max " + msg);
-
-                    throw new Exception(Name + " " + msg);
+                    if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
+                    {
+                        if (pi.Value != null) OnDispose(pi.Value);
+                        continue;
+                    }
+                }
+                else
+                {
+                    // 借不到，增加
+                    pi = new Item
+                    {
+                        Value = OnCreate(),
+                        CreatedTime = TimerX.Now,
+                    };
                 }
 
-                // 借不到，增加
-                pi = new Item
+                // 借出时如果不可用，销毁并重试
+                if (pi.Value == null || !OnGet(pi.Value))
                 {
-                    Value = OnCreate(),
-                };
+                    if (pi.Value != null) OnDispose(pi.Value);
+                    continue;
+                }
 
-                if (count == 0) Init();
-
-                Interlocked.Increment(ref _NewCount);
-                success = false;
+                return FinishAcquire(pi);
             }
-
-            // 借出时如果不可用，再次借取
-        } while (pi.Value == null || !OnGet(pi.Value));
-
-        return FinishAcquire(pi, success, startTimestamp);
+        }
+        catch
+        {
+            if (Max > 0) GetSlot()!.Release();
+            throw;
+        }
     }
 
     /// <summary>借出时是否可用</summary>
@@ -215,53 +210,60 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <returns></returns>
     public virtual async Task<T> GetAsync(CancellationToken cancellationToken = default)
     {
-        var startTimestamp = Log != null && Log != Logger.Null ? Stopwatch.GetTimestamp() : 0L;
-        Interlocked.Increment(ref _Total);
-
-        var success = false;
-        Item? pi = null;
-        do
+        // 获取容量槽位，池满时异步阻塞等待
+        if (Max > 0 && !await GetSlot()!.WaitAsync(WaitTimeout, cancellationToken).ConfigureAwait(false))
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            using var span = DefaultTracer.Instance?.NewSpan($"pool:{Name}:Full", new { Name, BusyCount, Max, WaitTimeout });
+            throw new PoolFullException(Name, BusyCount, Max);
+        }
 
-            // 如果上一轮获取的资源不可用，先销毁避免泄漏
-            if (pi != null && pi.Value != null) OnDispose(pi.Value);
+        try
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            // 从空闲集合借一个
-            if (TryAcquireFree(out pi))
-            {
-                success = true;
-            }
-            else
-            {
-                // 超出最大值后，抛出异常
-                var count = BusyCount;
-                if (Max > 0 && count >= Max)
+                // 从空闲集合借一个。借出时惰性检查 MaxLifetime（Work 定时清理作兜底）
+                if (TryAcquireFree(out var pi))
                 {
-                    var msg = $"申请失败，已有 {count:n0} 达到或超过最大值 {Max:n0}";
-
-                    WriteLog("Acquire Max " + msg);
-
-                    throw new Exception(Name + " " + msg);
+                    if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < TimerX.Now)
+                    {
+                        if (pi.Value != null) OnDispose(pi.Value);
+                        continue;
+                    }
+                }
+                else
+                {
+                    // 借不到，异步创建
+                    pi = new Item
+                    {
+                        Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false),
+                        CreatedTime = TimerX.Now,
+                    };
                 }
 
-                // 借不到，异步创建
-                pi = new Item
+                // 借出时如果不可用，销毁并重试
+                if (pi.Value == null || !await OnGetAsync(pi.Value, cancellationToken).ConfigureAwait(false))
                 {
-                    Value = await OnCreateAsync(cancellationToken).ConfigureAwait(false),
-                };
+                    if (pi.Value != null) OnDispose(pi.Value);
+                    continue;
+                }
 
-                if (count == 0) Init();
-
-                Interlocked.Increment(ref _NewCount);
-                success = false;
+                return FinishAcquire(pi);
             }
-
-            // 借出时如果不可用，再次借取
-        } while (pi.Value == null || !await OnGetAsync(pi.Value, cancellationToken).ConfigureAwait(false));
-
-        return FinishAcquire(pi, success, startTimestamp);
+        }
+        catch
+        {
+            if (Max > 0) GetSlot()!.Release();
+            throw;
+        }
     }
+
+    /// <summary>异步检查借出时资源是否可用；默认调用同步 <see cref="OnGet"/>，子类可重写以支持异步检查（如 Ping 连接存活性）</summary>
+    /// <param name="value"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    protected virtual Task<Boolean> OnGetAsync(T value, CancellationToken cancellationToken = default) => Task.FromResult(OnGet(value));
 
     /// <summary>申请资源包装项，Dispose时自动归还到池中</summary>
     /// <returns></returns>
@@ -284,35 +286,21 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         if (value == null) return false;
 
         // 从繁忙队列找到并移除缓存项
-        if (!_busy.TryRemove(value, out var pi))
-        {
-#if DEBUG
-            WriteLog("Return Error");
-#endif
-            Interlocked.Increment(ref _ReleaseCount);
-
-            return false;
-        }
+        if (!_busy.TryRemove(value, out var pi)) return false;
 
         Interlocked.Decrement(ref _BusyCount);
 
-        // 是否可用
-        if (!OnReturn(value))
+        // 是否可用。不可用时自动销毁，避免子类手动 TryDispose 的 workaround
+        var slot = GetSlot();
+        if (!OnReturn(value) || value is DisposeBase db && db.Disposed)
         {
-            Interlocked.Increment(ref _ReleaseCount);
+            OnDispose(value);
+            slot.Release();
             return false;
         }
-
-        if (value is DisposeBase db && db.Disposed)
-        {
-            Interlocked.Increment(ref _ReleaseCount);
-            return false;
-        }
-
-        var min = Min;
 
         // 如果空闲数不足最小值，则返回到基础空闲集合
-        if (_FreeCount < min /*|| _free.Count < min*/)
+        if (_FreeCount < Min)
             _free.Push(pi);
         else
             _free2.Enqueue(pi);
@@ -323,7 +311,10 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         Interlocked.Increment(ref _FreeCount);
 
         // 启动定期清理的定时器（仅在需要清理时）
-        if (IdleTime > 0 || AllIdleTime > 0) StartTimer();
+        if (IdleTime > 0) StartTimer();
+
+        // 释放容量槽位，唤醒等待者
+        slot.Release();
 
         return true;
     }
@@ -366,66 +357,44 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     protected virtual Task<T?> OnCreateAsync(CancellationToken cancellationToken = default) => Task.FromResult(OnCreate());
-
-    /// <summary>异步检查借出时资源是否可用；默认调用同步 <see cref="OnGet"/>，子类可重写以支持异步检查（如 Ping 连接存活性）</summary>
-    /// <param name="value"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    protected virtual Task<Boolean> OnGetAsync(T value, CancellationToken cancellationToken = default) => Task.FromResult(OnGet(value));
     #endregion
 
     #region 定期清理
-    private TimerX? _timer;
+    private Boolean IsExpired(Item pi, DateTime idleExp, DateTime now)
+    {
+        if (IdleTime > 0 && pi.LastTime < idleExp) return true;
+        if (MaxLifetime > 0 && pi.CreatedTime.AddSeconds(MaxLifetime) < now) return true;
+        return false;
+    }
 
+    private TimerX? _timer;
     private void StartTimer()
     {
         if (_timer != null) return;
         lock (_sync)
         {
-            if (_timer != null) return;
-
-            _timer = new TimerX(Work, null, 5000, 5000) { Async = true };
+            _timer ??= new TimerX(Work, null, 15000, 15000) { Async = true };
         }
     }
 
     private void Work(Object? state)
     {
-        //// 总数小于等于最小个数时不处理
-        //if (FreeCount + BusyCount <= Min) return;
-
-        // 遍历并干掉过期项
         var count = 0;
 
-        // 清理过期不还。避免有借没还（仅在设置 AllIdleTime>0 时生效）
-        if (AllIdleTime > 0 && !_busy.IsEmpty)
-        {
-            var exp = TimerX.Now.AddSeconds(-AllIdleTime);
-            foreach (var item in _busy)
-            {
-                if (item.Value.LastTime < exp)
-                {
-                    if (_busy.TryRemove(item.Key, out _))
-                    {
-                        // 业务层可能故意有借没还
-                        //v.TryDispose();
+        var now = TimerX.Now;
+        var idleExp = IdleTime > 0 ? now.AddSeconds(-IdleTime) : DateTime.MinValue;
 
-                        Interlocked.Decrement(ref _BusyCount);
-                    }
-                }
-            }
-        }
-
-        // 总数小于等于最小个数时不处理
-        if (IdleTime > 0 && !_free2.IsEmpty && FreeCount + BusyCount > Min)
+        // 仅清理扩展空闲集合 _free2 中的超时项。热栈 _free 受 Min 保护，不清理
+        if (FreeCount + BusyCount > Min && !_free2.IsEmpty)
         {
-            var exp = TimerX.Now.AddSeconds(-IdleTime);
-            // 移除扩展空闲集合里面的超时项
-            while (_free2.TryPeek(out var pi) && pi.LastTime < exp)
+            // 移除过期项：空闲超时 或 超过最大生命周期
+            var times = 10;
+            while (times-- > 0 && _free2.TryPeek(out var pi) && IsExpired(pi, idleExp, now))
             {
                 // 取出来销毁。在并行操作中，此时返回可能是另一个对象
                 if (_free2.TryDequeue(out var pi2))
                 {
-                    if (pi2.LastTime < exp)
+                    if (IsExpired(pi2, idleExp, now))
                     {
                         pi2.Value.TryDispose();
 
@@ -441,49 +410,35 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
             }
         }
 
-        if (AllIdleTime > 0 && !_free.IsEmpty)
+        // 清理热栈 _free 中的过期项（空闲超时或超过最大生命周期）
+        // ConcurrentStack 只能访问栈顶，Pop-All → 过滤 → Push-Back 是唯一的正确清理方式
+        if (FreeCount + BusyCount > Min && !_free.IsEmpty)
         {
-            var exp = TimerX.Now.AddSeconds(-AllIdleTime);
-            // 移除基础空闲集合里面的超时项
-            while (_free.TryPeek(out var pi) && pi.LastTime < exp)
-            {
-                // 取出来销毁
-                if (_free.TryPop(out var pi2))
-                {
-                    if (pi2.LastTime < exp)
-                    {
-                        pi2.Value.TryDispose();
+            var buffer = new List<Item>();
+            while (_free.TryPop(out var pi)) buffer.Add(pi);
 
-                        count++;
-                        Interlocked.Decrement(ref _FreeCount);
-                    }
-                    else
-                    {
-                        // 可能是另一个对象，放回去
-                        _free.Push(pi2);
-                    }
+            foreach (var pi in buffer)
+            {
+                if (IsExpired(pi, idleExp, now))
+                {
+                    pi.Value.TryDispose();
+
+                    count++;
+                    Interlocked.Decrement(ref _FreeCount);
+                }
+                else
+                {
+                    _free.Push(pi);
                 }
             }
         }
 
-        var ncount = _NewCount;
-        var fcount = _ReleaseCount;
-        if (count > 0 || ncount > 0 || fcount > 0)
-        {
-            Interlocked.Add(ref _NewCount, -ncount);
-            Interlocked.Add(ref _ReleaseCount, -fcount);
-
-            var p = Total == 0 ? 0 : (Double)Success / Total;
-
-            WriteLog("Release New={6:n0} Release={7:n0} Free={0} Busy={1} 清除过期资源 {2:n0} 项。总请求 {3:n0} 次，命中 {4:p2}，平均 {5:n2}us", FreeCount, BusyCount, count, Total, p, Cost * 1000, ncount, fcount);
-        }
-
         // 如果没有需要清理的资源，停止定时器避免空转
-        if (_free.IsEmpty && _free2.IsEmpty && (_busy.IsEmpty || AllIdleTime <= 0))
+        if (_free.IsEmpty && _free2.IsEmpty)
         {
             lock (_sync)
             {
-                if (_free.IsEmpty && _free2.IsEmpty && (_busy.IsEmpty || AllIdleTime <= 0))
+                if (_free.IsEmpty && _free2.IsEmpty)
                 {
                     _timer?.Dispose();
                     _timer = null;
@@ -492,40 +447,20 @@ public class ObjectPool<T> : DisposeBase, IPool<T> where T : notnull
         }
     }
     #endregion
+}
 
-    #region 统计
-    private Int32 _Total;
-    /// <summary>总请求数</summary>
-    public Int32 Total => _Total;
+/// <summary>池满异常。当借出时池中繁忙数已达最大值且等待超时时抛出</summary>
+/// <remarks>实例化池满异常</remarks>
+/// <param name="poolName">池名称</param>
+/// <param name="busyCount">当前繁忙数</param>
+/// <param name="max">最大容量</param>
+public class PoolFullException(String poolName, Int32 busyCount, Int32 max) : InvalidOperationException($"{poolName} 申请失败，已有 {busyCount:n0} 达到或超过最大值 {max:n0}")
+{
+    /// <summary>当前繁忙数</summary>
+    public Int32 BusyCount { get; } = busyCount;
 
-    private Int32 _Success;
-    /// <summary>成功数</summary>
-    public Int32 Success => _Success;
-
-    /// <summary>新创建数</summary>
-    private Int32 _NewCount;
-
-    /// <summary>释放数</summary>
-    private Int32 _ReleaseCount;
-
-    /// <summary>平均耗时。单位ms</summary>
-    private Double Cost;
-    #endregion
-
-    #region 日志
-    /// <summary>日志</summary>
-    public ILog Log { get; set; } = Logger.Null;
-
-    /// <summary>写日志</summary>
-    /// <param name="format"></param>
-    /// <param name="args"></param>
-    public void WriteLog(String format, params Object?[] args)
-    {
-        if (Log == null || !Log.Enable) return;
-
-        Log.Info(Name + "." + format, args);
-    }
-    #endregion
+    /// <summary>最大容量</summary>
+    public Int32 Max { get; } = max;
 }
 
 /// <summary>资源池包装项，自动归还资源到池中</summary>
