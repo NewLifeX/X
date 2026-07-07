@@ -166,15 +166,6 @@ public abstract class Cache : DisposeBase, ICache, IEventBusFactory
     /// <param name="key">键</param>
     public virtual ICollection<T> GetSet<T>(String key) => throw new NotSupportedException();
 
-    /// <summary>获取事件总线，可发布消息或订阅消息</summary>
-    /// <typeparam name="T">事件类型</typeparam>
-    /// <param name="topic">事件主题</param>
-    /// <param name="clientId">客户标识/消息分组</param>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    [Obsolete("=>CreateEventBus")]
-    public virtual IEventBus<T> GetEventBus<T>(String topic, String clientId = "") => throw new NotSupportedException();
-
     /// <summary>创建事件总线，可发布消息或订阅消息</summary>
     /// <typeparam name="TEvent">事件类型</typeparam>
     /// <param name="topic">事件主题</param>
