@@ -61,7 +61,6 @@ var user = cache.GetOrAdd("user:1", k => LoadUserFromDb(k), 300);
 ```csharp
 // 原子递增，适合计数、限流
 var count = cache.Increment("api:calls", 1);
-var (value, ttl) = cache.IncrementWithTtl("api:calls", 1);  // 同时获取剩余过期时间
 ```
 
 ### 分布式锁
